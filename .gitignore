@@ -1,0 +1,8 @@
+# LaTeX junk
+*.aux
+*.log
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.pdf
