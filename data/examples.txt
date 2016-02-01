@@ -1,0 +1,6 @@
+% http://www.uccs.edu/~ahitchco/grep/
+
+{
+  NL: This particualar example will print out the files that find returns that contain the text "hello",
+  COMMAND: find | grep "hello"
+}
