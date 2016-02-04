@@ -1,0 +1,136 @@
+.\" sd.4
+.\" Copyright 1992 Rickard E. Faith (faith@cs.unc.edu)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SD 4 2012-05-03 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sd \- driver for SCSI disk drives
+.SH SYNOPSIS
+.nf
+.BR "#include <linux/hdreg.h>        " "/* for HDIO_GETGEO */"
+.BR "#include <linux/fs.h>           " "/* for BLKGETSIZE and BLKRRPART */"
+.fi
+.SH CONFIGURATION
+The block device name has the following form:
+.BI sd lp,
+where
+.I l
+is a letter denoting the physical drive, and
+.I p
+is a number denoting the partition on that physical drive.
+Often, the partition number,
+.IR p ,
+will be left off when the device corresponds to the whole drive.
+
+SCSI disks have a major device number of 8, and a minor device number of
+the form (16 *
+.IR drive_number ") + " partition_number ,
+where
+.I drive_number
+is the number of the physical drive in order of detection, and
+.I partition_number
+is as follows:
+.sp
+partition 0 is the whole drive
+.br
+partitions 1-4 are the DOS "primary" partitions
+.br
+partitions 5-8 are the DOS "extended" (or "logical") partitions
+
+For example,
+.I /dev/sda
+will have major 8, minor 0, and will refer to all of the first SCSI drive
+in the system; and
+.I /dev/sdb3
+will have major 8, minor 19, and will refer to the third DOS "primary"
+partition on the second SCSI drive in the system.
+
+At this time, only block devices are provided.
+Raw devices have not yet been implemented.
+.SH DESCRIPTION
+The following
+.IR ioctl s
+are provided:
+.TP
+.B HDIO_GETGEO
+.RS
+Returns the BIOS disk parameters in the following structure:
+.in +4n
+.nf
+
+struct hd_geometry {
+    unsigned char  heads;
+    unsigned char  sectors;
+    unsigned short cylinders;
+    unsigned long  start;
+};
+.fi
+.in
+
+A pointer to this structure is passed as the
+.BR ioctl (2)
+parameter.
+
+The information returned in the parameter is the disk geometry of the drive
+.I "as understood by DOS!"
+This geometry is
+.I not
+the physical geometry of the drive.
+It is used when constructing the
+drive's partition table, however, and is needed for convenient operation
+of
+.BR fdisk (1),
+.BR efdisk (1),
+and
+.BR lilo (1).
+If the geometry information is not available, zero will be returned for all
+of the parameters.
+.RE
+.TP
+.B BLKGETSIZE
+Returns the device size in sectors.
+The
+.BR ioctl (2)
+parameter should be a pointer to a
+.IR long .
+.TP
+.B BLKRRPART
+Forces a reread of the SCSI disk partition tables.
+No parameter is needed.
+
+The SCSI
+.BR ioctl (2)
+operations are also supported.
+If the
+.BR ioctl (2)
+parameter is required, and it is NULL, then
+.BR ioctl (2)
+will fail with the error
+.BR EINVAL .
+.SH FILES
+/dev/sd[a\-h]: the whole device
+.br
+/dev/sd[a\-h][0\-8]: individual block partitions
+.\".SH SEE ALSO
+.\".BR scsi (4)

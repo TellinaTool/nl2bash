@@ -1,0 +1,102 @@
+.\" Copyright 1995 Jim Van Zandt <jrv@vanzandt.mv.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Corrected prototype and include, aeb, 990927
+.TH LSEARCH 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+lfind, lsearch \- linear search of an array
+.SH SYNOPSIS
+.nf
+.B #include <search.h>
+.sp
+.BI "void *lfind(const void *" key ", const void *" base ", size_t *" nmemb ,
+.BI "         size_t " size ", int(*" compar ")(const void *, const void *));"
+.sp
+.BI "void *lsearch(const void *" key ", void *" base ", size_t *" nmemb ,
+.BI "         size_t " size ", int(*" compar ")(const void *, const void *));"
+.fi
+.SH DESCRIPTION
+.BR lfind ()
+and
+.BR lsearch ()
+perform a linear search for
+.I key
+in the array
+.IR base
+which has
+.I *nmemb
+elements of
+.I size
+bytes each.
+The comparison function referenced by
+.I compar
+is expected to have two arguments which point to the
+.I key
+object and to an array member, in that order, and which
+returns zero if the
+.I key
+object matches the array member, and
+nonzero otherwise.
+.PP
+If
+.BR lsearch ()
+does not find a matching element, then the
+.I key
+object is inserted at the end of the table, and
+.I *nmemb
+is
+incremented.
+In particular, one should know that a matching element
+exists, or that more room is available.
+.SH RETURN VALUE
+.BR lfind ()
+returns a pointer to a matching member of the array, or
+NULL if no match is found.
+.BR lsearch ()
+returns a pointer to
+a matching member of the array, or to the newly added member if no
+match is found.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw18 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR lfind (),
+.BR lsearch ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+Present in libc since libc-4.6.27.
+.SH BUGS
+The naming is unfortunate.
+.SH SEE ALSO
+.BR bsearch (3),
+.BR hsearch (3),
+.BR tsearch (3)

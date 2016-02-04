@@ -1,0 +1,234 @@
+.\" Copyright 2002 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" based on the description in glibc source and infopages
+.\"
+.\" Corrections and additions, aeb
+.TH ARGZ_ADD 3 2015-03-02  "" "Linux Programmer's Manual"
+.SH NAME
+argz_add, argz_add_sep, argz_append, argz_count, argz_create,
+argz_create_sep, argz_delete, argz_extract, argz_insert,
+argz_next, argz_replace, argz_stringify \- functions to handle an argz list
+.SH SYNOPSIS
+.nf
+.B "#include <argz.h>"
+.sp
+.BI "error_t argz_add(char **" argz ", size_t *" argz_len \
+", const char *" str );
+.sp
+.BI "error_t argz_add_sep(char **" argz ", size_t *" argz_len ,
+.BI "                     const char *" str ", int " delim );
+.sp
+.BI "error_t argz_append(char **" argz ", size_t *" argz_len ,
+.BI "                     const char *" buf ", size_t " buf_len );
+.sp
+.BI "size_t argz_count(const char *" argz ", size_t " argz_len );
+.sp
+.BI "error_t argz_create(char * const " argv "[], char **" argz ,
+.BI "                     size_t *" argz_len );
+.sp
+.BI "error_t argz_create_sep(const char *" str ", int " sep ", char **" argz ,
+.BI "                     size_t *" argz_len );
+.sp
+.BI "void argz_delete(char **" argz ", size_t *" argz_len ", char *" entry );
+.sp
+.BI "void argz_extract(const char *" argz ", size_t " argz_len ", char  **" argv );
+.sp
+.BI "error_t argz_insert(char **" argz ", size_t *" argz_len ", char *" before ,
+.BI "                     const char *" entry );
+.sp
+.BI "char *argz_next(const char *" argz ", size_t " argz_len ", const char *" entry );
+.sp
+.BI "error_t argz_replace(char **" argz ", size_t *" argz_len \
+", const char *" str ,
+.BI "                     const char *" with ", unsigned int *" replace_count );
+.sp
+.BI "void argz_stringify(char *" argz ", size_t " len ", int " sep );
+.fi
+.SH DESCRIPTION
+These functions are glibc-specific.
+.LP
+An argz vector is a pointer to a character buffer together with a length.
+The intended interpretation of the character buffer is an array
+of strings, where the strings are separated by null bytes (\(aq\\0\(aq).
+If the length is nonzero, the last byte of the buffer must be a null byte.
+.LP
+These functions are for handling argz vectors.
+The pair (NULL,0) is an argz vector, and, conversely,
+argz vectors of length 0 must have null pointer.
+Allocation of nonempty argz vectors is done using
+.BR malloc (3),
+so that
+.BR free (3)
+can be used to dispose of them again.
+.LP
+.BR argz_add ()
+adds the string
+.I str
+at the end of the array
+.IR *argz ,
+and updates
+.I *argz
+and
+.IR *argz_len .
+.LP
+.BR argz_add_sep ()
+is similar, but splits the string
+.I str
+into substrings separated by the delimiter
+.IR delim .
+For example, one might use this on a UNIX search path with
+delimiter \(aq:\(aq.
+.LP
+.BR argz_append ()
+appends the argz vector
+.RI ( buf ,\  buf_len )
+after
+.RI ( *argz ,\  *argz_len )
+and updates
+.IR *argz
+and
+.IR *argz_len .
+(Thus,
+.I *argz_len
+will be increased by
+.IR buf_len .)
+.LP
+.BR argz_count ()
+counts the number of strings, that is,
+the number of null bytes (\(aq\\0\(aq), in
+.RI ( argz ,\  argz_len ).
+.LP
+.BR argz_create ()
+converts a UNIX-style argument vector
+.IR argv ,
+terminated by
+.IR "(char\ *)\ 0" ,
+into an argz vector
+.RI ( *argz ,\  *argz_len ).
+.LP
+.BR argz_create_sep ()
+converts the null-terminated string
+.I str
+into an argz vector
+.RI ( *argz ,\  *argz_len )
+by breaking it up at every occurrence of the separator
+.IR sep .
+.LP
+.BR argz_delete ()
+removes the substring pointed to by
+.I entry
+from the argz vector
+.RI ( *argz ,\  *argz_len )
+and updates
+.I *argz
+and
+.IR *argz_len .
+.LP
+.BR argz_extract ()
+is the opposite of
+.BR argz_create ().
+It takes the argz vector
+.RI ( argz ,\  argz_len )
+and fills the array starting at
+.I argv
+with pointers to the substrings, and a final NULL,
+making a UNIX-style argv vector.
+The array
+.I argv
+must have room for
+.IR argz_count ( argz ", " argz_len ") + 1"
+pointers.
+.LP
+.BR argz_insert ()
+is the opposite of
+.BR argz_delete ().
+It inserts the argument
+.I entry
+at position
+.I before
+into the argz vector
+.RI ( *argz ,\  *argz_len )
+and updates
+.I *argz
+and
+.IR *argz_len .
+If
+.I before
+is NULL, then
+.I entry
+will inserted at the end.
+.LP
+.BR argz_next ()
+is a function to step trough the argz vector.
+If
+.I entry
+is NULL, the first entry is returned.
+Otherwise, the entry
+following is returned.
+It returns NULL if there is no following entry.
+.LP
+.BR argz_replace ()
+replaces each occurrence of
+.I str
+with
+.IR with ,
+reallocating argz as necessary.
+If
+.I replace_count
+is non-NULL,
+.I *replace_count
+will be incremented by the number of replacements.
+.LP
+.BR argz_stringify ()
+is the opposite of
+.BR argz_create_sep ().
+It transforms the argz vector into a normal string by replacing
+all null bytes (\(aq\\0\(aq) except the last by
+.IR sep .
+.SH RETURN VALUE
+All argz functions that do memory allocation have a return type of
+.IR error_t ,
+and return 0 for success, and
+.B ENOMEM
+if an allocation error occurs.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw33 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR argz_add (),
+.BR argz_add_sep (),
+.br
+.BR argz_append (),
+.BR argz_count (),
+.br
+.BR argz_create (),
+.BR argz_create_sep (),
+.br
+.BR argz_delete (),
+.BR argz_extract (),
+.br
+.BR argz_insert (),
+.BR argz_next (),
+.br
+.BR argz_replace (),
+.BR argz_stringify ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+These functions are a GNU extension.
+Handle with care.
+.SH BUGS
+Argz vectors without a terminating null byte may lead to
+Segmentation Faults.
+.SH SEE ALSO
+.BR envz_add (3)

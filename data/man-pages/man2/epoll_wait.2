@@ -1,0 +1,245 @@
+.\"  Copyright (C) 2003  Davide Libenzi
+.\"  Davide Libenzi <davidel@xmailserver.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\"  This program is free software; you can redistribute it and/or modify
+.\"  it under the terms of the GNU General Public License as published by
+.\"  the Free Software Foundation; either version 2 of the License, or
+.\"  (at your option) any later version.
+.\"
+.\"  This program is distributed in the hope that it will be useful,
+.\"  but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\"  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\"  GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2007-04-30: mtk, Added description of epoll_pwait()
+.\"
+.TH EPOLL_WAIT 2 2015-05-07 "Linux" "Linux Programmer's Manual"
+.SH NAME
+epoll_wait, epoll_pwait \- wait for an I/O event on an epoll file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <sys/epoll.h>
+.sp
+.BI "int epoll_wait(int " epfd ", struct epoll_event *" events ,
+.BI "               int " maxevents ", int " timeout );
+.BI "int epoll_pwait(int " epfd ", struct epoll_event *" events ,
+.BI "               int " maxevents ", int " timeout ,
+.BI "               const sigset_t *" sigmask );
+.fi
+.SH DESCRIPTION
+The
+.BR epoll_wait ()
+system call waits for events on the
+.BR epoll (7)
+instance referred to by the file descriptor
+.IR epfd .
+The memory area pointed to by
+.I events
+will contain the events that will be available for the caller.
+Up to
+.I maxevents
+are returned by
+.BR epoll_wait ().
+The
+.I maxevents
+argument must be greater than zero.
+
+The
+.I timeout
+argument specifies the number of milliseconds that
+.BR epoll_wait ()
+will block.
+The call will block until either:
+.IP * 3
+a file descriptor delivers an event;
+.IP *
+the call is interrupted by a signal handler; or
+.IP *
+the timeout expires.
+.PP
+Note that the
+.I timeout
+interval will be rounded up to the system clock granularity,
+and kernel scheduling delays mean that the blocking interval
+may overrun by a small amount.
+Specifying a
+.I timeout
+of \-1 causes
+.BR epoll_wait ()
+to block indefinitely, while specifying a
+.I timeout
+equal to zero cause
+.BR epoll_wait ()
+to return immediately, even if no events are available.
+
+The
+.I struct epoll_event
+is defined as:
+.sp
+.in +4n
+.nf
+typedef union epoll_data {
+    void    *ptr;
+    int      fd;
+    uint32_t u32;
+    uint64_t u64;
+} epoll_data_t;
+
+struct epoll_event {
+    uint32_t     events;    /* Epoll events */
+    epoll_data_t data;      /* User data variable */
+};
+.fi
+.in
+
+The
+.I data
+of each returned structure will contain the same data the user set with an
+.BR epoll_ctl (2)
+.RB ( EPOLL_CTL_ADD ", " EPOLL_CTL_MOD )
+while the
+.I events
+member will contain the returned event bit field.
+.SS epoll_pwait()
+The relationship between
+.BR epoll_wait ()
+and
+.BR epoll_pwait ()
+is analogous to the relationship between
+.BR select (2)
+and
+.BR pselect (2):
+like
+.BR pselect (2),
+.BR epoll_pwait ()
+allows an application to safely wait until either a file descriptor
+becomes ready or until a signal is caught.
+
+The following
+.BR epoll_pwait ()
+call:
+.nf
+
+    ready = epoll_pwait(epfd, &events, maxevents, timeout, &sigmask);
+
+.fi
+is equivalent to
+.I atomically
+executing the following calls:
+.nf
+
+    sigset_t origmask;
+
+    pthread_sigmask(SIG_SETMASK, &sigmask, &origmask);
+    ready = epoll_wait(epfd, &events, maxevents, timeout);
+    pthread_sigmask(SIG_SETMASK, &origmask, NULL);
+.fi
+.PP
+The
+.I sigmask
+argument may be specified as NULL, in which case
+.BR epoll_pwait ()
+is equivalent to
+.BR epoll_wait ().
+.SH RETURN VALUE
+When successful,
+.BR epoll_wait ()
+returns the number of file descriptors ready for the requested I/O, or zero
+if no file descriptor became ready during the requested
+.I timeout
+milliseconds.
+When an error occurs,
+.BR epoll_wait ()
+returns \-1 and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EBADF
+.I epfd
+is not a valid file descriptor.
+.TP
+.B EFAULT
+The memory area pointed to by
+.I events
+is not accessible with write permissions.
+.TP
+.B EINTR
+The call was interrupted by a signal handler before either (1) any of the
+requested events occurred or (2) the
+.I timeout
+expired; see
+.BR signal (7).
+.TP
+.B EINVAL
+.I epfd
+is not an
+.B epoll
+file descriptor, or
+.I maxevents
+is less than or equal to zero.
+.SH VERSIONS
+.BR epoll_wait ()
+was added to the kernel in version 2.6.
+.\" To be precise: kernel 2.5.44.
+.\" The interface should be finalized by Linux kernel 2.5.66.
+Library support is provided in glibc starting with version 2.3.2.
+
+.BR epoll_pwait ()
+was added to Linux in kernel 2.6.19.
+Library support is provided in glibc starting with version 2.6.
+.SH CONFORMING TO
+.BR epoll_wait ()
+is Linux-specific.
+.SH NOTES
+While one thread is blocked in a call to
+.BR epoll_pwait (),
+it is possible for another thread to add a file descriptor to the waited-upon
+.B epoll
+instance.
+If the new file descriptor becomes ready,
+it will cause the
+.BR epoll_wait ()
+call to unblock.
+
+For a discussion of what may happen if a file descriptor in an
+.B epoll
+instance being monitored by
+.BR epoll_wait ()
+is closed in another thread, see
+.BR select (2).
+.SH BUGS
+In kernels before 2.6.37, a
+.I timeout
+value larger than approximately
+.I LONG_MAX / HZ
+milliseconds is treated as \-1 (i.e., infinity).
+Thus, for example, on a system where the
+.I sizeof(long)
+is 4 and the kernel
+.I HZ
+value is 1000,
+this means that timeouts greater than 35.79 minutes are treated as infinity.
+.SS C library/kernel differences
+The raw
+.BR epoll_pwait ()
+system call has a sixth argument,
+.IR "size_t sigsetsize" ,
+which specifies the size in bytes of the
+.IR sigmask
+argument.
+The glibc
+.BR epoll_pwait ()
+wrapper function specifies this argument as a fixed value
+(equal to
+.IR sizeof(sigset_t) ).
+.SH SEE ALSO
+.BR epoll_create (2),
+.BR epoll_ctl (2),
+.BR epoll (7)

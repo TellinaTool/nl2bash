@@ -1,0 +1,139 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2002-07-25 by Walter Harms
+.\" 	(walter.harms@informatik.uni-oldenburg.de)
+.\"
+.TH ACOS 3  2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+acos, acosf, acosl \- arc cosine function
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "double acos(double " x );
+.BI "float acosf(float " x );
+.BI "long double acosl(long double " x );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR acosf (),
+.BR acosl ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad b
+.SH DESCRIPTION
+These functions calculate the arc cosine of
+.IR x ;
+that is
+the value whose cosine is
+.IR x .
+.SH RETURN VALUE
+On success, these functions return the arc cosine of
+.IR x
+in radians; the return value is in the range [0,\ pi].
+
+If
+.I x
+is a NaN, a NaN is returned.
+
+If
+.I x
+is +1,
++0 is returned.
+
+If
+.I x
+is positive infinity or negative infinity,
+a domain error occurs,
+and a NaN is returned.
+
+If
+.I x
+is outside the range [\-1,\ 1],
+a domain error occurs,
+and a NaN is returned.
+.SH ERRORS
+See
+.BR math_error (7)
+for information on how to determine whether an error has occurred
+when calling these functions.
+.PP
+The following errors can occur:
+.TP
+Domain error: \fIx\fP is outside the range [\-1,\ 1]
+.I errno
+is set to
+.BR EDOM .
+An invalid floating-point exception
+.RB ( FE_INVALID )
+is raised.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw24 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR acos (),
+.BR acosf (),
+.BR acosl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+
+The variant returning
+.I double
+also conforms to
+SVr4, 4.3BSD, C89.
+.SH SEE ALSO
+.BR asin (3),
+.BR atan (3),
+.BR atan2 (3),
+.BR cacos (3),
+.BR cos (3),
+.BR sin (3),
+.BR tan (3)

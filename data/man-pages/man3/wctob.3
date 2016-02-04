@@ -1,0 +1,84 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WCTOB 3 2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wctob \- try to represent a wide character as a single byte
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "int wctob(wint_t " c );
+.fi
+.SH DESCRIPTION
+The
+.BR wctob ()
+function tests whether
+the multibyte representation of the
+wide character
+.IR c ,
+starting in the initial state, consists of a single
+byte.
+If so, it is returned as an
+.IR "unsigned char" .
+.PP
+Never use this function.
+It cannot help you in writing internationalized
+programs.
+Internationalized programs must never distinguish single-byte and
+multibyte characters.
+.SH RETURN VALUE
+The
+.BR wctob ()
+function returns the single-byte representation of
+.IR c ,
+if it exists, of
+.B EOF
+otherwise.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wctob ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR wctob ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.PP
+This function should never be used.
+Internationalized programs must never
+distinguish single-byte and multibyte characters.
+Use either
+.BR wctomb (3)
+or the thread-safe
+.BR wcrtomb (3)
+instead.
+.SH SEE ALSO
+.BR btowc (3),
+.BR wcrtomb (3),
+.BR wctomb (3)

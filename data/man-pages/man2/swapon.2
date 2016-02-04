@@ -1,0 +1,205 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1995-07-22 by Michael Chastain <mec@duracef.shout.net>
+.\" Modified 1995-07-23 by aeb
+.\" Modified 1996-10-22 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1998-09-08 by aeb
+.\" Modified 2004-06-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2004-10-10 by aeb
+.\" 2004-12-14 mtk, Anand Kumria: added new errors
+.\" 2007-06-22 Ivana Varekova <varekova@redhat.com>, mtk
+.\"     Update text describing limit on number of swap files.
+.\"
+.\" FIXME Linux 3.11 added SWAP_FLAG_DISCARD_ONCE and SWAP_FLAG_DISCARD_PAGES
+.\"	commit dcf6b7ddd7df8965727746f89c59229b23180e5a
+.\"	Author: Rafael Aquini <aquini@redhat.com>
+.\"	Date:   Wed Jul 3 15:02:46 2013 -0700
+.\"
+.TH SWAPON 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+swapon, swapoff \- start/stop swapping to file/device
+.SH SYNOPSIS
+.B #include <unistd.h>
+.br
+.B #include <sys/swap.h>
+.sp
+.BI "int swapon(const char *" path ", int " swapflags );
+.br
+.BI "int swapoff(const char *" path );
+.SH DESCRIPTION
+.BR swapon ()
+sets the swap area to the file or block device specified by
+.IR path .
+.BR swapoff ()
+stops swapping to the file or block device specified by
+.IR path .
+.PP
+If the
+.B SWAP_FLAG_PREFER
+flag is specified in the
+.BR swapon ()
+.I swapflags
+argument, the new swap area will have a higher priority than default.
+The priority is encoded within
+.I swapflags
+as:
+.br
+.sp
+.I "    (prio << SWAP_FLAG_PRIO_SHIFT) & SWAP_FLAG_PRIO_MASK"
+.br
+.PP
+If the
+.B SWAP_FLAG_DISCARD
+flag is specified in the
+.BR swapon ()
+.I swapflags
+argument, freed swap pages will be discarded before they are reused,
+if the swap device supports the discard or trim operation.
+(This may improve performance on some Solid State Devices,
+but often it does not.)
+See also NOTES.
+.PP
+These functions may be used only by a privileged process (one having the
+.B CAP_SYS_ADMIN
+capability).
+.SS Priority
+Each swap area has a priority, either high or low.
+The default priority is low.
+Within the low-priority areas,
+newer areas are even lower priority than older areas.
+.PP
+All priorities set with
+.I swapflags
+are high-priority, higher than default.
+They may have any nonnegative value chosen by the caller.
+Higher numbers mean higher priority.
+.PP
+Swap pages are allocated from areas in priority order,
+highest priority first.
+For areas with different priorities,
+a higher-priority area is exhausted before using a lower-priority area.
+If two or more areas have the same priority,
+and it is the highest priority available,
+pages are allocated on a round-robin basis between them.
+.PP
+As of Linux 1.3.6, the kernel usually follows these rules,
+but there are exceptions.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EBUSY
+(for
+.BR swapon ())
+The specified
+.I path
+is already being used as a swap area.
+.TP
+.B EINVAL
+The file
+.I path
+exists, but refers neither to a regular file nor to a block device;
+.TP
+.B EINVAL
+.RB ( swapon ())
+The indicated path does not contain a valid swap signature or
+resides on an in-memory filesystem such as tmpfs.
+.TP
+.BR EINVAL " (since Linux 3.4)"
+.RB ( swapon ())
+An invalid flag value was specified in
+.IR flags .
+.TP
+.B EINVAL
+.RB ( swapoff ())
+.I path
+is not currently a swap area.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENOENT
+The file
+.I path
+does not exist.
+.TP
+.B ENOMEM
+The system has insufficient memory to start swapping.
+.TP
+.B EPERM
+The caller does not have the
+.B CAP_SYS_ADMIN
+capability.
+Alternatively, the maximum number of swap files are already in use;
+see NOTES below.
+.SH CONFORMING TO
+These functions are Linux-specific and should not be used in programs
+intended to be portable.
+The second
+.I swapflags
+argument was introduced in Linux 1.3.2.
+.SH NOTES
+The partition or path must be prepared with
+.BR mkswap (8).
+
+There is an upper limit on the number of swap files that may be used,
+defined by the kernel constant
+.BR MAX_SWAPFILES .
+Before kernel 2.4.10,
+.B MAX_SWAPFILES
+has the value 8;
+since kernel 2.4.10, it has the value 32.
+Since kernel 2.6.18, the limit is decreased by 2 (thus: 30)
+if the kernel is built with the
+.B CONFIG_MIGRATION
+option
+(which reserves two swap table entries for the page migration features of
+.BR mbind (2)
+and
+.BR migrate_pages (2)).
+Since kernel 2.6.32, the limit is further decreased by 1
+if the kernel is built with the
+.B CONFIG_MEMORY_FAILURE
+option.
+
+Discard of swap pages was introduced in kernel 2.6.29,
+then made conditional
+on the
+.B SWAP_FLAG_DISCARD
+flag in kernel 2.6.36,
+.\" To be precise: 2.6.35.5
+which still discards the
+entire swap area when
+.BR swapon ()
+is called, even if that flag bit is not set.
+.SH SEE ALSO
+.BR mkswap (8),
+.BR swapoff (8),
+.BR swapon (8)

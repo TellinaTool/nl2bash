@@ -1,0 +1,63 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt (michael@moria.de)
+.\" Modified Sat Jul 24 14:48:00 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 1995 by Mike Battersby (mib@deakin.edu.au)
+.\" Modified 2000 by aeb, following Michael Kerrisk
+.\"
+.TH PAUSE 2 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pause \- wait for signal
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.B int pause(void);
+.SH DESCRIPTION
+.BR pause ()
+causes the calling process (or thread) to sleep
+until a signal is delivered that either terminates the process or causes
+the invocation of a signal-catching function.
+.SH RETURN VALUE
+.BR pause ()
+returns only when a signal was caught and the
+signal-catching function returned.
+In this case,
+.BR pause ()
+returns \-1, and
+.I errno
+is set to
+.\" .BR ERESTARTNOHAND .
+.BR EINTR .
+.SH ERRORS
+.TP
+.B EINTR
+a signal was caught and the signal-catching function returned.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+.SH SEE ALSO
+.BR kill (2),
+.BR select (2),
+.BR signal (2),
+.BR sigsuspend (2)

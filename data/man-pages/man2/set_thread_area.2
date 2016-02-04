@@ -1,0 +1,166 @@
+.\" Copyright (C) 2003 Free Software Foundation, Inc.
+.\" Copyright (C) 2015 Andrew Lutomirski
+.\" Author: Kent Yoder
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" This file is distributed according to the GNU General Public License.
+.\" %%%LICENSE_END
+.\"
+.TH SET_THREAD_AREA 2 2015-02-21 "Linux" "Linux Programmer's Manual"
+.SH NAME
+set_thread_area \- set a GDT entry for thread-local storage
+.SH SYNOPSIS
+.nf
+.B #include <linux/unistd.h>
+.B #include <asm/ldt.h>
+
+.BI "int get_thread_area(struct user_desc *" u_info );
+.BI "int set_thread_area(struct user_desc *" u_info );
+.fi
+
+.IR Note :
+There are no glibc wrappers for these system calls; see NOTES.
+.SH DESCRIPTION
+Linux dedicates three global descriptor table (GDT) entries for
+thread-local storage.
+For more information about the GDT, see the
+Intel Software Developer's Manual or the AMD Architecture Programming Manual.
+
+Both of these system calls take an argument that is a pointer
+to a structure of the following type:
+
+.in +4n
+struct user_desc {
+    unsigned int  entry_number;
+    unsigned long base_addr;
+    unsigned int  limit;
+    unsigned int  seg_32bit:1;
+    unsigned int  contents:2;
+    unsigned int  read_exec_only:1;
+    unsigned int  limit_in_pages:1;
+    unsigned int  seg_not_present:1;
+    unsigned int  useable:1;
+};
+.in
+
+.BR get_thread_area ()
+reads the GDT entry indicated by
+.I u_info\->entry_number
+and fills in the rest of the fields in
+.IR u_info .
+
+.BR set_thread_area ()
+sets a TLS entry in the GDT.
+.PP
+The TLS array entry set by
+.BR set_thread_area ()
+corresponds to the value of
+.I u_info\->entry_number
+passed in by the user.
+If this value is in bounds,
+.BR set_thread_area ()
+writes the TLS descriptor pointed to by
+.I u_info
+into the thread's TLS array.
+.PP
+When
+.BR set_thread_area ()
+is passed an
+.I entry_number
+of \-1, it searches for a free TLS entry.
+If
+.BR set_thread_area ()
+finds a free TLS entry, the value of
+.I u_info\->entry_number
+is set upon return to show which entry was changed.
+.PP
+A
+.I user_desc
+is considered "empty" if
+.I read_exec_only
+and
+.I seg_not_present
+are set to 1 and all of the other fields are 0.
+If an "empty" descriptor is passed to
+.BR set_thread_area,
+the corresponding TLS entry will be cleared.
+See BUGS for additional details.
+.PP
+Since Linux 3.19,
+.BR set_thread_area ()
+cannot be used to write non-present segments, 16-bit segments, or code
+segments, although clearing a segment is still acceptable.
+.SH RETURN VALUE
+These system calls
+return 0 on success, and \-1 on failure, with
+.I errno
+set appropriately.
+.SH ERRORS
+.TP
+.B EFAULT
+\fIu_info\fP is an invalid pointer.
+.TP
+.B EINVAL
+\fIu_info\->entry_number\fP is out of bounds.
+.TP
+.B ENOSYS
+.BR get_thread_area (2)
+or
+.BR set_thread_area (2)
+was invoked as a 64-bit system call.
+.TP
+.B ESRCH
+.RB ( set_thread_area ())
+A free TLS entry could not be located.
+.SH VERSIONS
+.BR set_thread_area ()
+first appeared in Linux 2.5.29.
+.BR get_thread_area ()
+first appeared in Linux 2.5.32.
+.SH CONFORMING TO
+.BR set_thread_area ()
+is Linux-specific and should not be used in programs that are intended
+to be portable.
+.SH NOTES
+Glibc does not provide wrappers for these system calls,
+since they are generally intended for use only by threading libraries.
+In the unlikely event that you want to call them directly, use
+.BR syscall (2).
+.PP
+.BR arch_prctl (2)
+can interfere with
+.BR set_thread_area (2).
+See
+.BR arch_prctl (2)
+for more details.
+This is not normally a problem, as
+.BR arch_prctl (2)
+is normally used only by 64-bit programs.
+.SH BUGS
+On 64-bit kernels before Linux 3.19,
+.\" commit e30ab185c490e9a9381385529e0fd32f0a399495
+one of the padding bits in
+.IR user_desc ,
+if set, would prevent the descriptor from being considered empty (see
+.BR modify_ldt (2)).
+As a result, the only reliable way to clear a TLS entry is to use
+.BR memset (3)
+to zero the entire
+.I user_desc
+structure, including padding bits, and then to set the
+.I read_exec_only
+and
+.I seg_not_present
+bits.
+On Linux 3.19, a
+.I user_desc
+consisting entirely of zeros except for
+.I entry_number
+will also be interpreted as a request to clear a TLS entry, but this
+behaved differently on older kernels.
+.PP
+Prior to Linux 3.19, the DS and ES segment registers must not reference
+TLS entries.
+.SH SEE ALSO
+.BR arch_prctl (2),
+.BR modify_ldt (2)

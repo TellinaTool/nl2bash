@@ -1,0 +1,281 @@
+'\" t
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SEM_WAIT 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sem_wait, sem_timedwait, sem_trywait \- lock a semaphore
+.SH SYNOPSIS
+.nf
+.B #include <semaphore.h>
+.sp
+.BI "int sem_wait(sem_t *" sem );
+.sp
+.BI "int sem_trywait(sem_t *" sem );
+.sp
+.BI "int sem_timedwait(sem_t *" sem ", const struct timespec *" abs_timeout );
+.fi
+.sp
+Link with \fI\-pthread\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR sem_timedwait ():
+_POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600
+.SH DESCRIPTION
+.BR sem_wait ()
+decrements (locks) the semaphore pointed to by
+.IR sem .
+If the semaphore's value is greater than zero,
+then the decrement proceeds, and the function returns, immediately.
+If the semaphore currently has the value zero,
+then the call blocks until either it becomes possible to perform
+the decrement (i.e., the semaphore value rises above zero),
+or a signal handler interrupts the call.
+
+.BR sem_trywait ()
+is the same as
+.BR sem_wait (),
+except that if the decrement cannot be immediately performed,
+then call returns an error
+.RI ( errno
+set to
+.BR EAGAIN )
+instead of blocking.
+
+.BR sem_timedwait ()
+is the same as
+.BR sem_wait (),
+except that
+.I abs_timeout
+specifies a limit on the amount of time that the call
+should block if the decrement cannot be immediately performed.
+The
+.I abs_timeout
+argument points to a structure that specifies an absolute timeout
+in seconds and nanoseconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
+This structure is defined as follows:
+
+.nf
+.in +4n
+struct timespec {
+    time_t tv_sec;      /* Seconds */
+    long   tv_nsec;     /* Nanoseconds [0 .. 999999999] */
+};
+.in
+.fi
+.PP
+If the timeout has already expired by the time of the call,
+and the semaphore could not be locked immediately,
+then
+.BR sem_timedwait ()
+fails with a timeout error
+.RI ( errno
+set to
+.BR ETIMEDOUT ).
+
+If the operation can be performed immediately, then
+.BR sem_timedwait ()
+never fails with a timeout error, regardless of the value of
+.IR abs_timeout .
+Furthermore, the validity of
+.I abs_timeout
+is not checked in this case.
+.SH RETURN VALUE
+All of these functions return 0 on success;
+on error, the value of the semaphore is left unchanged,
+\-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINTR
+The call was interrupted by a signal handler; see
+.BR signal (7).
+.TP
+.B EINVAL
+.I sem
+is not a valid semaphore.
+.PP
+The following additional error can occur for
+.BR sem_trywait ():
+.TP
+.B EAGAIN
+The operation could not be performed without blocking (i.e., the
+semaphore currently has the value zero).
+.PP
+The following additional errors can occur for
+.BR sem_timedwait ():
+.TP
+.B EINVAL
+The value of
+.I abs_timeout.tv_nsecs
+is less than 0, or greater than or equal to 1000 million.
+.TP
+.B ETIMEDOUT
+The call timed out before the semaphore could be locked.
+.\" POSIX.1-2001 also allows EDEADLK -- "A deadlock condition
+.\" was detected", but this does not occur on Linux(?).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw26 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR sem_wait (),
+.BR sem_trywait (),
+.BR sem_timedwait ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+A signal handler always interrupts a blocked call to
+one of these functions, regardless of the use of the
+.BR sigaction (2)
+.B SA_RESTART
+flag.
+.\" sem_wait() is always interrupted on most other implementations,
+.\" but on FreeBSD 5.4 SA_RESTART does cause restarting.
+.SH EXAMPLE
+.PP
+The (somewhat trivial) program shown below operates on an
+unnamed semaphore.
+The program expects two command-line arguments.
+The first argument specifies a seconds value that is used to
+set an alarm timer to generate a
+.B SIGALRM
+signal.
+This handler performs a
+.BR sem_post (3)
+to increment the semaphore that is being waited on in
+.I main()
+using
+.BR sem_timedwait ().
+The second command-line argument specifies the length
+of the timeout, in seconds, for
+.BR sem_timedwait ().
+The following shows what happens on two different runs of the program:
+
+.in +4n
+.nf
+.RB "$" " ./a.out 2 3"
+About to call sem_timedwait()
+sem_post() from handler
+sem_timedwait() succeeded
+.RB "$" " ./a.out 2 1"
+About to call sem_timedwait()
+sem_timedwait() timed out
+.fi
+.in
+.SS Program source
+\&
+.nf
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <semaphore.h>
+#include <time.h>
+#include <assert.h>
+#include <errno.h>
+#include <signal.h>
+
+sem_t sem;
+
+#define handle_error(msg) \\
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static void
+handler(int sig)
+{
+    write(STDOUT_FILENO, "sem_post() from handler\\n", 24);
+    if (sem_post(&sem) == \-1) {
+        write(STDERR_FILENO, "sem_post() failed\\n", 18);
+        _exit(EXIT_FAILURE);
+    }
+}
+
+int
+main(int argc, char *argv[])
+{
+    struct sigaction sa;
+    struct timespec ts;
+    int s;
+
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <alarm\-secs> <wait\-secs>\\n",
+                argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    if (sem_init(&sem, 0, 0) == \-1)
+        handle_error("sem_init");
+
+    /* Establish SIGALRM handler; set alarm timer using argv[1] */
+
+    sa.sa_handler = handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    if (sigaction(SIGALRM, &sa, NULL) == \-1)
+        handle_error("sigaction");
+
+    alarm(atoi(argv[1]));
+
+    /* Calculate relative interval as current time plus
+       number of seconds given argv[2] */
+
+    if (clock_gettime(CLOCK_REALTIME, &ts) == \-1)
+        handle_error("clock_gettime");
+
+    ts.tv_sec += atoi(argv[2]);
+
+    printf("main() about to call sem_timedwait()\\n");
+    while ((s = sem_timedwait(&sem, &ts)) == \-1 && errno == EINTR)
+        continue;       /* Restart if interrupted by handler */
+
+    /* Check what happened */
+
+    if (s == \-1) {
+        if (errno == ETIMEDOUT)
+            printf("sem_timedwait() timed out\\n");
+        else
+            perror("sem_timedwait");
+    } else
+        printf("sem_timedwait() succeeded\\n");
+
+    exit((s == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
+}
+.fi
+.SH SEE ALSO
+.BR clock_gettime (2),
+.BR sem_getvalue (3),
+.BR sem_post (3),
+.BR sem_overview (7),
+.BR time (7)

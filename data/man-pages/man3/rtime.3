@@ -1,0 +1,144 @@
+.\" Copyright 2003 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2003-04-04 Walter Harms
+.\" <walter.harms@informatik.uni-oldenburg.de>
+.\"
+.\" Slightly polished, aeb, 2003-04-06
+.\"
+.TH RTIME 3 2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+rtime \- get time from a remote machine
+.SH SYNOPSIS
+.nf
+.B "#include <rpc/auth_des.h>"
+.sp
+.BI "int rtime(struct sockaddr_in *" addrp ", struct rpc_timeval *" timep ,
+.BI "          struct rpc_timeval *" timeout );
+.fi
+.SH DESCRIPTION
+This function uses the Time Server Protocol as described in
+RFC\ 868 to obtain the time from a remote machine.
+.LP
+The Time Server Protocol gives the time in seconds since
+00:00:00 UTC, 1 Jan 1900,
+and this function subtracts the appropriate constant in order to
+convert the result to seconds since the
+Epoch, 1970-01-01 00:00:00 +0000 (UTC).
+.LP
+When
+.I timeout
+is non-NULL, the udp/time socket (port 37) is used.
+Otherwise, the tcp/time socket (port 37) is used.
+.SH RETURN VALUE
+On success, 0 is returned, and the obtained 32-bit time value is stored in
+.IR timep\->tv_sec .
+In case of error \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+All errors for underlying functions
+.RB ( sendto (2),
+.BR poll (2),
+.BR recvfrom (2),
+.BR connect (2),
+.BR read (2))
+can occur.
+Moreover:
+.TP
+.B EIO
+The number of returned bytes is not 4.
+.TP
+.B ETIMEDOUT
+The waiting time as defined in timeout has expired.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR rtime ()
+T}	Thread safety	MT-Safe
+.TE
+.SH NOTES
+Only IPv4 is supported.
+.LP
+Some
+.I in.timed
+versions support only TCP.
+Try the example program with
+.I use_tcp
+set to 1.
+.LP
+Libc5 uses the prototype
+.nf
+
+    int rtime(struct sockaddr_in *, struct timeval *, struct timeval *);
+
+.fi
+and requires
+.I <sys/time.h>
+instead of
+.IR <rpc/auth_des.h> .
+.SH BUGS
+.BR rtime ()
+in glibc 2.2.5 and earlier does not work properly on 64-bit machines.
+.SH EXAMPLE
+This example requires that port 37 is up and open.
+You may check
+that the time entry within
+.I /etc/inetd.conf
+is not commented out.
+
+The program connects to a computer called "linux".
+Using "localhost" does not work.
+The result is the localtime of the computer "linux".
+.sp
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <time.h>
+#include <rpc/auth_des.h>
+#include <netdb.h>
+
+static int use_tcp = 0;
+static char *servername = "linux";
+
+int
+main(void)
+{
+    struct sockaddr_in name;
+    struct rpc_timeval time1 = {0,0};
+    struct rpc_timeval timeout = {1,0};
+    struct hostent *hent;
+    int ret;
+
+    memset(&name, 0, sizeof(name));
+    sethostent(1);
+    hent = gethostbyname(servername);
+    memcpy(&name.sin_addr, hent\->h_addr, hent\->h_length);
+
+    ret = rtime(&name, &time1, use_tcp ? NULL : &timeout);
+    if (ret < 0)
+        perror("rtime error");
+    else {
+        time_t t = time1.tv_sec;
+        printf("%s\\n", ctime(&t));
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.\" .BR netdate (1),
+.BR ntpdate (1),
+.\" .BR rdate (1),
+.BR inetd (8)

@@ -1,0 +1,140 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_ATTR_SETSCHEDPARAM 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_attr_setschedparam, pthread_attr_getschedparam \- set/get
+scheduling parameter attributes in thread attributes object
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.BI "int pthread_attr_setschedparam(pthread_attr_t *" attr ,
+.BI "                               const struct sched_param *" param );
+.BI "int pthread_attr_getschedparam(const pthread_attr_t *" attr ,
+.BI "                               struct sched_param *" param );
+.sp
+Compile and link with \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+The
+.BR pthread_attr_setschedparam ()
+function sets the scheduling parameter attributes of the
+thread attributes object referred to by
+.IR attr
+to the values specified in the buffer pointed to by
+.IR param .
+These attributes determine the scheduling parameters of
+a thread created using the thread attributes object
+.IR attr .
+
+The
+.BR pthread_attr_getschedparam ()
+returns the scheduling parameter attributes of the thread attributes object
+.IR attr
+in the buffer pointed to by
+.IR param .
+
+Scheduling parameters are maintained in the following structure:
+
+.in +4n
+.nf
+struct sched_param {
+    int sched_priority;     /* Scheduling priority */
+};
+.fi
+.in
+
+As can be seen, only one scheduling parameter is supported.
+For details of the permitted ranges for scheduling priorities
+in each scheduling policy, see
+.BR sched (7).
+
+In order for the parameter setting made by
+.BR pthread_attr_setschedparam ()
+to have effect when calling
+.BR pthread_create (3),
+the caller must use
+.BR pthread_attr_setinheritsched (3)
+to set the inherit-scheduler attribute of the attributes object
+.I attr
+to
+.BR PTHREAD_EXPLICIT_SCHED .
+.SH RETURN VALUE
+On success, these functions return 0;
+on error, they return a nonzero error number.
+.SH ERRORS
+.BR pthread_attr_setschedparam ()
+can fail with the following error:
+.TP
+.B EINVAL
+The priority specified in
+.I param
+does not make sense for the current scheduling policy of
+.IR attr .
+.PP
+POSIX.1 also documents an
+.B ENOTSUP
+error for
+.BR pthread_attr_setschedparam ().
+This value is never returned on Linux
+(but portable and future-proof applications should nevertheless
+handle this error return value).
+.\" .SH VERSIONS
+.\" Available since glibc 2.0.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw29 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_attr_setschedparam (),
+.BR pthread_attr_getschedparam ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+See
+.BR pthread_attr_setschedpolicy (3)
+for a list of the thread scheduling policies supported on Linux.
+.SH EXAMPLE
+See
+.BR pthread_setschedparam (3).
+.SH SEE ALSO
+.ad l
+.nh
+.BR sched_get_priority_min (2),
+.BR pthread_attr_init (3),
+.BR pthread_attr_setinheritsched (3),
+.BR pthread_attr_setschedpolicy (3),
+.BR pthread_create (3),
+.BR pthread_setschedparam (3),
+.BR pthread_setschedprio (3),
+.BR pthreads (7),
+.BR sched (7)

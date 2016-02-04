@@ -1,0 +1,171 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH AIO_WRITE 3 2015-03-02  "" "Linux Programmer's Manual"
+.SH NAME
+aio_write \- asynchronous write
+.SH SYNOPSIS
+.B "#include <aio.h>"
+.sp
+.BI "int aio_write(struct aiocb *" aiocbp );
+.sp
+Link with \fI\-lrt\fP.
+.SH DESCRIPTION
+The
+.BR aio_write ()
+function queues the I/O request described by the buffer pointed to by
+.IR aiocbp .
+This function is the asynchronous analog of
+.BR write (2).
+The arguments of the call
+
+    write(fd, buf, count)
+
+correspond (in order) to the fields
+.IR aio_fildes ,
+.IR aio_buf ,
+and
+.IR aio_nbytes
+of the structure pointed to by
+.IR aiocbp .
+(See
+.BR aio (7)
+for a description of the
+.I aiocb
+structure.)
+.LP
+If
+.B O_APPEND
+is not set, the data is written starting at the
+absolute position
+.IR aiocbp\->aio_offset ,
+regardless of the file offset.
+If
+.B O_APPEND
+is set, data is written at the end of the file in the same order as
+.BR aio_write ()
+calls are made.
+After the call, the value of the file offset is unspecified.
+.LP
+The "asynchronous" means that this call returns as soon as the
+request has been enqueued; the write may or may not have completed
+when the call returns.
+One tests for completion using
+.BR aio_error (3).
+The return status of a completed I/O operation can be obtained
+.BR aio_return (3).
+Asynchronous notification of I/O completion can be obtained by setting
+.IR aiocbp\->aio_sigevent
+appropriately; see
+.BR sigevent (7)
+for details.
+.LP
+If
+.B _POSIX_PRIORITIZED_IO
+is defined, and this file supports it,
+then the asynchronous operation is submitted at a priority equal
+to that of the calling process minus
+.IR aiocbp\->aio_reqprio .
+.LP
+The field
+.I aiocbp\->aio_lio_opcode
+is ignored.
+.LP
+No data is written to a regular file beyond its maximum offset.
+.SH RETURN VALUE
+On success, 0 is returned.
+On error, the request is not enqueued, \-1
+is returned, and
+.I errno
+is set appropriately.
+If an error is detected only later, it will
+be reported via
+.BR aio_return (3)
+(returns status \-1) and
+.BR aio_error (3)
+(error status\(emwhatever one would have gotten in
+.IR errno ,
+such as
+.BR EBADF ).
+.SH ERRORS
+.TP
+.B EAGAIN
+Out of resources.
+.TP
+.B EBADF
+.I aio_fildes
+is not a valid file descriptor open for writing.
+.TP
+.B EFBIG
+The file is a regular file, we want to write at least one byte,
+but the starting position is at or beyond the maximum offset for this file.
+.TP
+.B EINVAL
+One or more of
+.IR aio_offset ,
+.IR aio_reqprio ,
+.I aio_nbytes
+are invalid.
+.TP
+.B ENOSYS
+.BR aio_write ()
+is not implemented.
+.SH VERSIONS
+The
+.BR aio_write ()
+function is available since glibc 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR aio_write ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+It is a good idea to zero out the control block before use.
+The control block must not be changed while the write operation
+is in progress.
+The buffer area being written out
+.\" or the control block of the operation
+must not be accessed during the operation or undefined results may occur.
+The memory areas involved must remain valid.
+
+Simultaneous I/O operations specifying the same
+.I aiocb
+structure produce undefined results.
+.SH SEE ALSO
+.BR aio_cancel (3),
+.BR aio_error (3),
+.BR aio_fsync (3),
+.BR aio_read (3),
+.BR aio_return (3),
+.BR aio_suspend (3),
+.BR lio_listio (3),
+.BR aio (7)

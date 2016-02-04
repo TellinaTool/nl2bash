@@ -1,0 +1,762 @@
+.\" This manpage is Copyright (C) 2006, Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH FEATURE_TEST_MACROS 7 2015-03-29 "Linux" "Linux Programmer's Manual"
+.SH NAME
+feature_test_macros \- feature test macros
+.SH SYNOPSIS
+.nf
+.B #include <features.h>
+.fi
+.SH DESCRIPTION
+Feature test macros allow the programmer to control the definitions that
+are exposed by system header files when a program is compiled.
+
+.B NOTE:
+In order to be effective, a feature test macro
+.IR "must be defined before including any header files" .
+This can be done either in the compilation command
+.RI ( "cc \-DMACRO=value" )
+or by defining the macro within the source code before
+including any headers.
+
+Some feature test macros are useful for creating portable applications,
+by preventing nonstandard definitions from being exposed.
+Other macros can be used to expose nonstandard definitions that
+are not exposed by default.
+The precise effects of each of the feature test macros described below
+can be ascertained by inspecting the
+.I <features.h>
+header file.
+.SS Specification of feature test macro requirements in manual pages
+When a function requires that a feature test macro is defined,
+the manual page SYNOPSIS typically includes a note of the following form
+(this example from the
+.BR acct (2)
+manual page):
+.RS 8
+.sp
+.B #include <unistd.h>
+.sp
+.BI "int acct(const char *" filename );
+.sp
+.nf
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.fi
+.in
+.sp
+.BR acct ():
+_BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE\ <\ 500)
+.RE
+.PP
+The
+.B ||
+means that in order to obtain the declaration of
+.BR acct (2)
+from
+.IR <unistd.h> ,
+.I either
+of the following macro
+definitions must be made before including any header files:
+.RS
+.nf
+
+#define _BSD_SOURCE
+#define _XOPEN_SOURCE        /* or any value < 500 */
+.fi
+.RE
+.PP
+Alternatively, equivalent definitions can be included in the
+compilation command:
+.RS
+.nf
+
+cc \-D_BSD_SOURCE
+cc \-D_XOPEN_SOURCE           # Or any value < 500
+.fi
+.RE
+.PP
+Note that, as described below,
+.BR "some feature test macros are defined by default" ,
+so that it may not always be necessary to
+explicitly specify the feature test macro(s) shown in the
+SYNOPSIS.
+
+In a few cases, manual pages use a shorthand for expressing the
+feature test macro requirements (this example from
+.BR readahead (2)):
+.RS
+.nf
+
+.B #define _GNU_SOURCE
+.B #include <fcntl.h>
+.sp
+.BI "ssize_t readahead(int " fd ", off64_t *" offset ", size_t " count );
+.fi
+.RE
+.PP
+This format is employed in cases where only a single
+feature test macro can be used to expose the function
+declaration, and that macro is not defined by default.
+.SS Feature test macros understood by glibc
+The following paragraphs explain how feature test macros are handled
+in Linux glibc 2.\fIx\fP,
+.I x
+> 0.
+.\" The details in glibc 2.0 are simpler, but combining a
+.\" a description of them with the details in later glibc versions
+.\" would make for a complicated description.
+
+Linux glibc understands the following feature test macros:
+.TP
+.B __STRICT_ANSI__
+ISO Standard C.
+This macro is implicitly defined by
+.BR gcc (1)
+when invoked with, for example, the
+.I -std=c99
+or
+.I -ansi
+flag.
+.TP
+.B _POSIX_C_SOURCE
+Defining this macro causes header files to expose definitions as follows:
+.RS
+.IP \(bu 3
+The value 1 exposes definitions conforming to POSIX.1-1990 and
+ISO C (1990).
+.IP \(bu
+The value 2 or greater additionally exposes
+definitions for POSIX.2-1992.
+.IP \(bu
+The value 199309L or greater additionally exposes
+definitions for POSIX.1b (real-time extensions).
+.\" 199506L functionality is available only since glibc 2.1
+.IP \(bu
+The value 199506L or greater additionally exposes
+definitions for POSIX.1c (threads).
+.IP \(bu
+(Since glibc 2.3.3)
+The value 200112L or greater additionally exposes definitions corresponding
+to the POSIX.1-2001 base specification (excluding the XSI extension)
+and also causes C95 (since glibc 2.12) and
+C99 (since glibc 2.10) features to be exposed.
+.IP \(bu
+(Since glibc 2.10)
+The value 200809L or greater additionally exposes definitions corresponding
+to the POSIX.1-2008 base specification (excluding the XSI extension).
+.RE
+.TP
+.B _POSIX_SOURCE
+Defining this obsolete macro with any value is equivalent to defining
+.B _POSIX_C_SOURCE
+with the value 1.
+.TP
+.B _XOPEN_SOURCE
+Defining this macro causes header files to expose definitions as follows:
+.RS
+.IP \(bu 3
+Defining with any value exposes
+definitions conforming to POSIX.1, POSIX.2, and XPG4.
+.IP \(bu
+The value 500 or greater additionally exposes
+definitions for SUSv2 (UNIX 98).
+.IP \(bu
+(Since glibc 2.2) The value 600 or greater additionally exposes
+definitions for SUSv3 (UNIX 03; i.e., the POSIX.1-2001 base specification
+plus the XSI extension) and C99 definitions.
+.IP \(bu
+(Since glibc 2.10) The value 700 or greater additionally exposes
+definitions for SUSv4 (i.e., the POSIX.1-2008 base specification
+plus the XSI extension).
+.RE
+.IP
+If
+.B __STRICT_ANSI__
+is not defined, or
+.BR _XOPEN_SOURCE
+is defined with a value greater than or equal to 500
+.I and
+neither
+.B _POSIX_SOURCE
+nor
+.B _POSIX_C_SOURCE
+is explicitly defined, then
+the following macros are implicitly defined:
+.RS
+.IP \(bu 3
+.B _POSIX_SOURCE
+is defined with the value 1.
+.IP \(bu
+.B _POSIX_C_SOURCE
+is defined, according to the value of
+.BR _XOPEN_SOURCE :
+.RS 7
+.TP
+.BR _XOPEN_SOURCE " < 500"
+.B _POSIX_C_SOURCE
+is defined with the value 2.
+.TP
+.RB "500 <= " _XOPEN_SOURCE " < 600"
+.B _POSIX_C_SOURCE
+is defined with the value 199506L.
+.TP
+.RB "600 <= " _XOPEN_SOURCE " < 700"
+.B _POSIX_C_SOURCE
+is defined with the value 200112L.
+.TP
+.RB "700 <= " _XOPEN_SOURCE " (since glibc 2.10)"
+.B _POSIX_C_SOURCE
+is defined with the value 200809L.
+.RE
+.RE
+.TP
+.B _XOPEN_SOURCE_EXTENDED
+If this macro is defined, and
+.B _XOPEN_SOURCE
+is defined, then expose definitions corresponding to the XPG4v2
+(SUSv1) UNIX extensions (UNIX 95).
+This macro is also implicitly defined if
+.B _XOPEN_SOURCE
+is defined with a value of 500 or more.
+.TP
+.BR _ISOC99_SOURCE " (since glibc 2.1.3)"
+Exposes declarations consistent with the ISO C99 standard.
+
+Earlier glibc 2.1.x versions recognized an equivalent macro named
+.B _ISOC9X_SOURCE
+(because the C99 standard had not then been finalized).
+Although the use of this macro is obsolete, glibc continues
+to recognize it for backward compatibility.
+
+Defining
+.B _ISOC99_SOURCE
+also exposes ISO C (1990) Amendment 1 ("C95") definitions.
+(The primary change in C95 was support for international character sets.)
+.TP
+.BR _ISOC11_SOURCE " (since glibc 2.16)"
+Exposes declarations consistent with the ISO C11 standard.
+Defining this macro also enables C99 and C95 features (like
+.BR _ISOC99_SOURCE ).
+.TP
+.B _LARGEFILE64_SOURCE
+Expose definitions for the alternative API specified by the
+LFS (Large File Summit) as a "transitional extension" to the
+Single UNIX Specification.
+(See
+.UR http:\:/\:/opengroup.org\:/platform\:/lfs.html
+.UE .)
+The alternative API consists of a set of new objects
+(i.e., functions and types) whose names are suffixed with "64"
+(e.g.,
+.I off64_t
+versus
+.IR off_t ,
+.BR lseek64 ()
+versus
+.BR lseek (),
+etc.).
+New programs should not employ this macro; instead
+.I _FILE_OFFSET_BITS=64
+should be employed.
+.TP
+.BR _LARGEFILE_SOURCE
+This macro was historically used to expose certain functions (specifically
+.BR fseeko (3)
+and
+.BR ftello (3))
+that address limitations of earlier APIs
+.RB ( fseek (3)
+and
+.BR ftell (3))
+that use
+.IR "long int"
+for file offsets.
+This macro is implicitly defined if
+.BR _XOPEN_SOURCE
+is defined with a value greater than or equal to 500.
+New programs should not employ this macro;
+defining
+.BR _XOPEN_SOURCE
+as just described or defining
+.B _FILE_OFFSET_BITS
+with the value 64 is the preferred mechanism to achieve the same result.
+.TP
+.B _FILE_OFFSET_BITS
+Defining this macro with the value 64
+automatically converts references to 32-bit functions and data types
+related to file I/O and filesystem operations into references to
+their 64-bit counterparts.
+This is useful for performing I/O on large files (> 2 Gigabytes)
+on 32-bit systems.
+(Defining this macro permits correctly written programs to use
+large files with only a recompilation being required.)
+
+64-bit systems naturally permit file sizes greater than 2 Gigabytes,
+and on those systems this macro has no effect.
+.TP
+.BR _BSD_SOURCE " (deprecated since glibc 2.20)"
+Defining this macro with any value causes header files to expose
+BSD-derived definitions.
+
+In glibc versions up to and including 2.18,
+defining this macro also causes BSD definitions to be preferred in
+some situations where standards conflict, unless one or more of
+.BR _SVID_SOURCE ,
+.BR _POSIX_SOURCE ,
+.BR _POSIX_C_SOURCE ,
+.BR _XOPEN_SOURCE ,
+.BR _XOPEN_SOURCE_EXTENDED ,
+or
+.B _GNU_SOURCE
+is defined, in which case BSD definitions are disfavored.
+Since glibc 2.19,
+.B _BSD_SOURCE
+no longer causes BSD definitions to be preferred in case of conflicts.
+
+Since glibc 2.20, this macro is deprecated.
+.\" commit c941736c92fa3a319221f65f6755659b2a5e0a20
+.\" commit 498afc54dfee41d33ba519f496e96480badace8e
+.\" commit acd7f096d79c181866d56d4aaf3b043e741f1e2c
+It now has the same effect as defining
+.BR _DEFAULT_SOURCE ,
+but generates a compile-time warning (unless
+.BR _DEFAULT_SOURCE
+.\" commit ade40b10ff5fa59a318cf55b9d8414b758e8df78
+is also defined).
+Use
+.B _DEFAULT_SOURCE
+instead.
+To allow code that requires
+.BR _BSD_SOURCE
+in glibc 2.19 and earlier and
+.BR _DEFAULT_SOURCE
+in glibc 2.20 and later to compile without warnings, define
+.I both
+.B _BSD_SOURCE
+and
+.BR _DEFAULT_SOURCE .
+.TP
+.BR _SVID_SOURCE " (deprecated since glibc 2.20)"
+Defining this macro with any value causes header files to expose
+System V-derived definitions.
+(SVID == System V Interface Definition; see
+.BR standards (7).)
+
+Since glibc 2.20, this macro is deprecated in the same fashion as
+.BR _BSD_SOURCE .
+.TP
+.BR _DEFAULT_SOURCE " (since glibc 2.19)"
+This macro can be defined to ensure that the "default"
+definitions are provided even when the defaults would otherwise
+be disabled,
+as happens when individual macros are explicitly defined,
+or the compiler is invoked in one of its "standard" modes (e.g.,
+.IR "cc\ \-std=c99" ).
+Defining
+.B _DEFAULT_SOURCE
+without defining other individual macros
+or invoking the compiler in one of its "standard" modes has no effect.
+
+The "default" definitions comprise those required by POSIX.1-2008
+as well as various definitions derived from BSD and System V.
+On glibc 2.19 and earlier, these defaults were approximately equivalent
+to explicitly defining the following:
+
+    cc \-D_BSD_SOURCE \-D_SVID_SOURCE \-D_POSIX_C_SOURCE=200809
+.TP
+.BR _ATFILE_SOURCE " (since glibc 2.4)"
+Defining this macro with any value causes header files to expose
+declarations of a range of functions with the suffix "at";
+see
+.BR openat (2).
+Since glibc 2.10, this macro is also implicitly defined if
+.BR _POSIX_C_SOURCE
+is defined with a value greater than or equal to 200809L.
+.TP
+.B _GNU_SOURCE
+Defining this macro (with any value) implicitly defines
+.BR _ATFILE_SOURCE ,
+.BR _LARGEFILE64_SOURCE ,
+.BR _ISOC99_SOURCE ,
+.BR _XOPEN_SOURCE_EXTENDED ,
+.BR _POSIX_SOURCE ,
+.B _POSIX_C_SOURCE
+with the value 200809L
+(200112L in glibc versions before 2.10;
+199506L in glibc versions before 2.5;
+199309L in glibc versions before 2.1)
+and
+.B _XOPEN_SOURCE
+with the value 700
+(600 in glibc versions before 2.10;
+500 in glibc versions before 2.2).
+In addition, various GNU-specific extensions are also exposed.
+
+Since glibc 2.19, defining
+.BR _GNU_SOURCE
+also has the effect of implicitly defining
+.BR _DEFAULT_SOURCE .
+In glibc versions before 2.20, defining
+.BR _GNU_SOURCE
+also had the effect of implicitly defining
+.BR _BSD_SOURCE
+and
+.BR _SVID_SOURCE .
+.TP
+.B _REENTRANT
+Defining this macro exposes definitions of certain reentrant functions.
+For multithreaded programs, use
+.I "cc\ \-pthread"
+instead.
+.TP
+.B _THREAD_SAFE
+Synonym for
+.BR _REENTRANT ,
+provided for compatibility with some other implementations.
+.TP
+.BR _FORTIFY_SOURCE " (since glibc 2.3.4)"
+.\" For more detail, see:
+.\" http://gcc.gnu.org/ml/gcc-patches/2004-09/msg02055.html
+.\" [PATCH] Object size checking to prevent (some) buffer overflows
+.\" * From: Jakub Jelinek <jakub at redhat dot com>
+.\" * To: gcc-patches at gcc dot gnu dot org
+.\" * Date: Tue, 21 Sep 2004 04:16:40 -0400
+Defining this macro causes some lightweight checks to be performed
+to detect some buffer overflow errors when employing
+various string and memory manipulation functions (for example,
+.BR memcpy (3),
+.BR memset (3),
+.BR stpcpy (3),
+.BR strcpy (3),
+.BR strncpy (3),
+.BR strcat (3),
+.BR strncat (3),
+.BR sprintf (3),
+.BR snprintf (3),
+.BR vsprintf (3),
+.BR vsnprintf (3),
+.BR gets (3),
+and wide character variants thereof).
+For some functions, argument consistency is checked;
+for example, a check is made that
+.BR open (2)
+has been supplied with a
+.I mode
+argument when the specified flags include
+.BR O_CREAT .
+Not all problems are detected, just some common cases.
+.\" Look for __USE_FORTIFY_LEVEL in the header files
+
+If
+.B _FORTIFY_SOURCE
+is set to 1, with compiler optimization level 1
+.RI ( "gcc\ \-O1" )
+and above, checks that shouldn't change the behavior of
+conforming programs are performed.
+With
+.B _FORTIFY_SOURCE
+set to 2, some more checking is added, but
+some conforming programs might fail.
+.\" For example, given the following code
+.\"        int d;
+.\"        char buf[1000], buf[1000];
+.\"        strcpy(fmt, "Hello world\n%n");
+.\"        snprintf(buf, sizeof(buf), fmt, &d);
+.\"
+.\" Compiling with "gcc -D_FORTIFY_SOURCE=2 -O1" and then running will
+.\" cause the following diagnostic at runtime at the snprintf() call
+.\"
+.\"        *** %n in writable segment detected ***
+.\"        Aborted (core dumped)
+.\"
+
+Some of the checks can be performed at compile time
+(via macros logic implemented in header files),
+and result in compiler warnings;
+other checks take place at run time,
+and result in a run-time error if the check fails.
+
+Use of this macro requires compiler support, available with
+.BR gcc (1)
+since version 4.0.
+.SS Default definitions, implicit definitions, and combining definitions
+.PP
+If no feature test macros are explicitly defined,
+then the following feature test macros are defined by default:
+.BR _BSD_SOURCE
+(in glibc 2.19 and earlier),
+.BR _SVID_SOURCE
+(in glibc 2.19 and earlier),
+.BR _DEFAULT_SOURCE
+(since glibc 2.19),
+.BR _POSIX_SOURCE ,
+and
+.BR _POSIX_C_SOURCE =200809L
+(200112L in glibc versions before 2.10;
+199506L in glibc versions before 2.4;
+199309L in glibc versions before 2.1).
+.PP
+If any of
+.BR __STRICT_ANSI__ ,
+.BR _ISOC99_SOURCE ,
+.BR _POSIX_SOURCE ,
+.BR _POSIX_C_SOURCE  ,
+.BR _XOPEN_SOURCE ,
+.BR _XOPEN_SOURCE_EXTENDED ,
+.BR _BSD_SOURCE
+(in glibc 2.19 and earlier),
+or
+.B _SVID_SOURCE
+(in glibc 2.19 and earlier)
+is explicitly defined, then
+.BR _BSD_SOURCE ,
+.BR _SVID_SOURCE ,
+and
+.BR _DEFAULT_SOURCE
+are not defined by default.
+
+If
+.B _POSIX_SOURCE
+and
+.B _POSIX_C_SOURCE
+are not explicitly defined,
+and either
+.B __STRICT_ANSI__
+is not defined or
+.B _XOPEN_SOURCE
+is defined with a value of 500 or more, then
+.IP * 3
+.B _POSIX_SOURCE
+is defined with the value 1; and
+.IP *
+.B _POSIX_C_SOURCE
+is defined with one of the following values:
+.RS 3
+.IP \(bu 3
+2,
+if
+.B _XOPEN_SOURCE
+is defined with a value less than 500;
+.IP \(bu
+199506L,
+if
+.B _XOPEN_SOURCE
+is defined with a value greater than or equal to 500 and less than 600;
+or
+.IP \(bu
+(since glibc 2.4) 200112L,
+if
+.B _XOPEN_SOURCE
+is defined with a value greater than or equal to 600 and less than 700.
+.IP \(bu
+(Since glibc 2.10)
+200809L,
+if
+.B _XOPEN_SOURCE
+is defined with a value greater than or equal to 700.
+.IP \(bu
+Older versions of glibc do not know about the values
+200112L and 200809L for
+.BR _POSIX_C_SOURCE ,
+and the setting of this macro will depend on the glibc version.
+.IP \(bu
+If
+.B _XOPEN_SOURCE
+is undefined, then the setting of
+.B _POSIX_C_SOURCE
+depends on the glibc version:
+199506L, in glibc versions before 2.4;
+200112L, in glibc 2.4 to 2.9; and
+200809L, since glibc 2.10.
+.RE
+.PP
+Multiple macros can be defined; the results are additive.
+.SH CONFORMING TO
+POSIX.1 specifies
+.BR _POSIX_C_SOURCE ,
+.BR _POSIX_SOURCE ,
+and
+.BR _XOPEN_SOURCE .
+.B _XOPEN_SOURCE_EXTENDED
+was specified by XPG4v2 (aka SUSv1).
+
+.B _FILE_OFFSET_BITS
+is not specified by any standard,
+but is employed on some other implementations.
+
+.BR _BSD_SOURCE ,
+.BR _SVID_SOURCE ,
+.BR _DEFAULT_SOURCE ,
+.BR _ATFILE_SOURCE ,
+.BR _GNU_SOURCE ,
+.BR _FORTIFY_SOURCE ,
+.BR _REENTRANT ,
+and
+.B _THREAD_SAFE
+are specific to Linux (glibc).
+.SH NOTES
+.I <features.h>
+is a Linux/glibc-specific header file.
+Other systems have an analogous file, but typically with a different name.
+This header file is automatically included by other header files as
+required: it is not necessary to explicitly include it in order to
+employ feature test macros.
+
+According to which of the above feature test macros are defined,
+.I <features.h>
+internally defines various other macros that are checked by
+other glibc header files.
+These macros have names prefixed by two underscores (e.g.,
+.BR __USE_MISC ).
+Programs should
+.I never
+define these macros directly:
+instead, the appropriate feature test macro(s) from the
+list above should be employed.
+.SH EXAMPLE
+The program below can be used to explore how the various
+feature test macros are set depending on the glibc version
+and what feature test macros are explicitly set.
+The following shell session, on a system with glibc 2.10,
+shows some examples of what we would see:
+.in +4n
+.nf
+
+$ \fBcc ftm.c\fP
+$ \fB./a.out\fP
+_POSIX_SOURCE defined
+_POSIX_C_SOURCE defined: 200809L
+_BSD_SOURCE defined
+_SVID_SOURCE defined
+_ATFILE_SOURCE defined
+$ \fBcc \-D_XOPEN_SOURCE=500 ftm.c\fP
+$ \fB./a.out\fP
+_POSIX_SOURCE defined
+_POSIX_C_SOURCE defined: 199506L
+_XOPEN_SOURCE defined: 500
+$ \fBcc \-D_GNU_SOURCE ftm.c\fP
+$ \fB./a.out\fP
+_POSIX_SOURCE defined
+_POSIX_C_SOURCE defined: 200809L
+_ISOC99_SOURCE defined
+_XOPEN_SOURCE defined: 700
+_XOPEN_SOURCE_EXTENDED defined
+_LARGEFILE64_SOURCE defined
+_BSD_SOURCE defined
+_SVID_SOURCE defined
+_ATFILE_SOURCE defined
+_GNU_SOURCE defined
+.fi
+.in
+.SS Program source
+\&
+.nf
+/* ftm.c */
+
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+#ifdef _POSIX_SOURCE
+    printf("_POSIX_SOURCE defined\\n");
+#endif
+
+#ifdef _POSIX_C_SOURCE
+    printf("_POSIX_C_SOURCE defined: %ldL\\n", (long) _POSIX_C_SOURCE);
+#endif
+
+#ifdef _ISOC99_SOURCE
+    printf("_ISOC99_SOURCE defined\\n");
+#endif
+
+#ifdef _ISOC11_SOURCE
+    printf("_ISOC11_SOURCE defined\\n");
+#endif
+
+#ifdef _XOPEN_SOURCE
+    printf("_XOPEN_SOURCE defined: %d\\n", _XOPEN_SOURCE);
+#endif
+
+#ifdef _XOPEN_SOURCE_EXTENDED
+    printf("_XOPEN_SOURCE_EXTENDED defined\\n");
+#endif
+
+#ifdef _LARGEFILE64_SOURCE
+    printf("_LARGEFILE64_SOURCE defined\\n");
+#endif
+
+#ifdef _FILE_OFFSET_BITS
+    printf("_FILE_OFFSET_BITS defined: %d\\n", _FILE_OFFSET_BITS);
+#endif
+
+#ifdef _BSD_SOURCE
+    printf("_BSD_SOURCE defined\\n");
+#endif
+
+#ifdef _SVID_SOURCE
+    printf("_SVID_SOURCE defined\\n");
+#endif
+
+#ifdef _DEFAULT_SOURCE
+    printf("_DEFAULT_SOURCE defined\\n");
+#endif
+
+#ifdef _ATFILE_SOURCE
+    printf("_ATFILE_SOURCE defined\\n");
+#endif
+
+#ifdef _GNU_SOURCE
+    printf("_GNU_SOURCE defined\\n");
+#endif
+
+#ifdef _REENTRANT
+    printf("_REENTRANT defined\\n");
+#endif
+
+#ifdef _THREAD_SAFE
+    printf("_THREAD_SAFE defined\\n");
+#endif
+
+#ifdef _FORTIFY_SOURCE
+    printf("_FORTIFY_SOURCE defined\\n");
+#endif
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR libc (7),
+.BR standards (7)
+
+The section "Feature Test Macros" under
+.IR "info libc" .
+.\" But beware: the info libc document is out of date (Jul 07, mtk)
+
+.I /usr/include/features.h

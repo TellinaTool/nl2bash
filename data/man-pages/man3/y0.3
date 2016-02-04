@@ -1,0 +1,278 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:08:17 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2002-08-25, aeb
+.\" Modified 2004-11-12 as per suggestion by Fabian Kreutz/AEB
+.\" 2008-07-24, mtk, created this page, based on material from j0.3.
+.\"
+.TH Y0 3  2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+y0, y0f, y0l, y1, y1f, y1l, yn, ynf, ynl \-
+Bessel functions of the second kind
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "double y0(double " x );
+.br
+.BI "double y1(double " x );
+.br
+.BI "double yn(int " n ", double " x );
+.sp
+.BI "float y0f(float " x );
+.br
+.BI "float y1f(float " x );
+.br
+.BI "float ynf(int " n ", float " x );
+.sp
+.BI "long double y0l(long double " x );
+.br
+.BI "long double y1l(long double " x );
+.br
+.BI "long double ynl(int " n ", long double " x );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR y0 (),
+.BR y1 (),
+.BR yn ():
+.RS 4
+_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE
+.RE
+.br
+.BR y0f (),
+.BR y0l (),
+.BR y1f (),
+.BR y1l (),
+.BR ynf (),
+.BR ynl ():
+.RS 4
+_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 600
+.\" Also seems to work: -std=c99 -D_XOPEN_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+.PP
+The
+.BR y0 ()
+and
+.BR y1 ()
+functions return Bessel functions of
+.I x
+of the second kind of orders 0 and 1, respectively.
+The
+.BR yn ()
+function
+returns the Bessel function of
+.I x
+of the second kind of order
+.IR n .
+.PP
+The value of
+.I x
+must be positive.
+.PP
+The
+.BR y0f (),
+.BR y1f (),
+and
+.BR ynf ()
+functions are versions that take and return
+.I float
+values.
+The
+.BR y0l (),
+.BR y1l (),
+and
+.BR ynl ()
+functions are versions that take and return
+.I "long double"
+values.
+.SH RETURN VALUE
+On success, these functions return the appropriate
+Bessel value of the second kind for
+.IR x .
+
+If
+.I x
+is a NaN, a NaN is returned.
+
+If
+.I x
+is negative,
+a domain error occurs,
+and the functions return
+.RB - HUGE_VAL ,
+.RB - HUGE_VALF ,
+or
+.RB - HUGE_VALL ,
+respectively.
+(POSIX.1-2001 also allows a NaN return for this case.)
+
+If
+.I x
+is 0.0,
+a pole error occurs,
+and the functions return
+.RB - HUGE_VAL ,
+.RB - HUGE_VALF ,
+or
+.RB - HUGE_VALL ,
+respectively.
+
+If the result underflows,
+a range error occurs,
+and the functions return 0.0
+
+If the result overflows,
+a range error occurs,
+and the functions return
+.RB - HUGE_VAL ,
+.RB - HUGE_VALF ,
+or
+.RB - HUGE_VALL ,
+respectively.
+(POSIX.1-2001 also allows a 0.0 return for this case.)
+.SH ERRORS
+See
+.BR math_error (7)
+for information on how to determine whether an error has occurred
+when calling these functions.
+.PP
+The following errors can occur:
+.TP
+Domain error: \fIx\fP is negative
+.I errno
+is set to
+.BR EDOM .
+An invalid floating-point exception
+.RB ( FE_INVALID )
+is raised.
+.TP
+Pole error: \fIx\fP is 0.0
+.\" Before POSIX.1-2001 TC2, this was (inconsistently) specified
+.\" as a range error.
+.I errno
+is set to
+.\" FIXME . y0(0.0) gives EDOM
+.BR ERANGE
+(but see BUGS).
+No
+.B FE_DIVBYZERO
+exception is returned by
+.BR fetestexcept (3)
+for this case.
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6808
+.TP
+Range error: result underflow
+.\" e.g., y0(1e33) on glibc 2.8/x86-32
+.I errno
+is set to
+.BR ERANGE .
+.\" An underflow floating-point exception
+.\" .RB ( FE_UNDERFLOW )
+.\" is raised.
+.\" FIXME . Is it intentional that these functions do not use FE_*?
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6806
+No
+.B FE_UNDERFLOW
+exception is returned by
+.BR fetestexcept (3)
+for this case.
+.TP
+Range error: result overflow
+.\" e.g., yn(10, 1e-40) on glibc 2.8/x86-32
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+.I errno
+is not set for this case.
+.\" FIXME . Is it intentional that errno is not set?
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6808
+An overflow floating-point exception
+.RB ( FE_OVERFLOW )
+is raised.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR y0 (),
+.BR y0f (),
+.BR y0l ()
+T}	Thread safety	MT-Safe
+T{
+.BR y1 (),
+.BR y1f (),
+.BR y1l ()
+T}	Thread safety	MT-Safe
+T{
+.BR yn (),
+.BR ynf (),
+.BR ynl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+The functions returning
+.I double
+conform to SVr4, 4.3BSD,
+POSIX.1-2001, POSIX.1-2008.
+The others are nonstandard functions that also exist on the BSDs.
+.SH BUGS
+On a pole error, these functions set
+.I errno
+to
+.BR EDOM ,
+instead of
+.BR ERANGE
+as POSIX.1-2004 requires.
+.\" FIXME .
+.\" Bug raised: http://sourceware.org/bugzilla/show_bug.cgi?id=6807
+
+In glibc version 2.3.2 and earlier,
+.\" FIXME . Actually, 2.3.2 is the earliest test result I have; so yet
+.\" to confirm if this error occurs only in 2.3.2.
+these functions do not raise an invalid floating-point exception
+.RB ( FE_INVALID )
+when a domain error occurs.
+.SH SEE ALSO
+.BR j0 (3)

@@ -1,0 +1,118 @@
+'\" t
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SEM_INIT 3 2015-03-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sem_init \- initialize an unnamed semaphore
+.SH SYNOPSIS
+.nf
+.B #include <semaphore.h>
+.sp
+.BI "int sem_init(sem_t *" sem ", int " pshared ", unsigned int " value );
+.fi
+.sp
+Link with \fI\-pthread\fP.
+.SH DESCRIPTION
+.BR sem_init ()
+initializes the unnamed semaphore at the address pointed to by
+.IR sem .
+The
+.I value
+argument specifies the initial value for the semaphore.
+
+The
+.I pshared
+argument indicates whether this semaphore is to be shared
+between the threads of a process, or between processes.
+
+If
+.I pshared
+has the value 0,
+then the semaphore is shared between the threads of a process,
+and should be located at some address that is visible to all threads
+(e.g., a global variable, or a variable allocated dynamically on
+the heap).
+
+If
+.I pshared
+is nonzero, then the semaphore is shared between processes,
+and should be located in a region of shared memory (see
+.BR shm_open (3),
+.BR mmap (2),
+and
+.BR shmget (2)).
+(Since a child created by
+.BR fork (2)
+inherits its parent's memory mappings, it can also access the semaphore.)
+Any process that can access the shared memory region
+can operate on the semaphore using
+.BR sem_post (3),
+.BR sem_wait (3),
+and so on.
+
+Initializing a semaphore that has already been initialized
+results in undefined behavior.
+.SH RETURN VALUE
+.BR sem_init ()
+returns 0 on success;
+on error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+.I value
+exceeds
+.BR SEM_VALUE_MAX .
+.TP
+.B ENOSYS
+.I pshared
+is nonzero,
+but the system does not support process-shared semaphores (see
+.BR sem_overview (7)).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR sem_init ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001.
+.SH NOTES
+Bizarrely, POSIX.1-2001 does not specify the value that should
+be returned by a successful call to
+.BR sem_init ().
+POSIX.1-2008 rectifies this, specifying the zero return on success.
+.SH SEE ALSO
+.BR sem_destroy (3),
+.BR sem_post (3),
+.BR sem_wait (3),
+.BR sem_overview (7)

@@ -1,0 +1,109 @@
+.\" Copyright (C) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2007-10-23 mtk, Nearly a complete rewrite of the earlier page.
+.TH INTRO 3 2010-11-11 "Linux" "Linux Programmer's Manual"
+.SH NAME
+intro \- introduction to library functions
+.SH DESCRIPTION
+Section 3 of the manual describes all library functions excluding the library
+functions (system call wrappers) described in Section 2,
+which implement system calls.
+
+Many of the functions described in the section are part of the
+Standard C Library
+.RI ( libc ).
+Some functions are part of other libraries (e.g.,
+the math library,
+.IR libm ,
+or the real-time library,
+.IR librt )
+in which case the manual page will indicate the linker
+option needed to link against the required library
+(e.g.,
+.I \-lm
+and
+.IR \-lrt ,
+respectively,
+for the aforementioned libraries).
+
+In some cases,
+the programmer must define a feature test macro in order to obtain
+the declaration of a function from the header file specified
+in the man page SYNOPSIS section.
+(Where required, these feature test macros must be defined before including
+.I any
+header files.)
+In such cases, the required macro is described in the man page.
+For further information on feature test macros, see
+.BR feature_test_macros (7).
+.\"
+.\" There
+.\" are various function groups which can be identified by a letter which
+.\" is appended to the chapter number:
+.\" .IP (3C)
+.\" These functions, the functions from chapter 2 and from chapter 3S are
+.\" contained in the C standard library libc, which will be used by
+.\" .BR cc (1)
+.\" by default.
+.\" .IP (3S)
+.\" These functions are parts of the
+.\" .BR stdio (3)
+.\" library.  They are contained in the standard C library libc.
+.\" .IP (3M)
+.\" These functions are contained in the arithmetic library libm.  They are
+.\" used by the
+.\" .BR f77 (1)
+.\" FORTRAN compiler by default, but not by the
+.\" .BR cc (1)
+.\" C compiler, which needs the option \fI\-lm\fP.
+.\" .IP (3F)
+.\" These functions are part of the FORTRAN library libF77.  There are no
+.\" special compiler flags needed to use these functions.
+.\" .IP (3X)
+.\" Various special libraries.  The manual pages documenting their functions
+.\" specify the library names.
+.SH CONFORMING TO
+Certain terms and abbreviations are used to indicate UNIX variants
+and standards to which calls in this section conform.
+See
+.BR standards (7).
+.SH NOTES
+.SS Authors and copyright conditions
+Look at the header of the manual page source for the author(s) and copyright
+conditions.
+Note that these can be different from page to page!
+.SH SEE ALSO
+.BR intro (2),
+.BR errno (3),
+.BR capabilities (7),
+.BR credentials (7),
+.BR environ (7),
+.BR feature_test_macros (7),
+.BR libc (7),
+.BR math_error (7),
+.BR path_resolution (7),
+.BR pthreads (7),
+.BR signal (7),
+.BR standards (7)

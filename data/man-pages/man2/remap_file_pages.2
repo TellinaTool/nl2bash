@@ -1,0 +1,182 @@
+.\" Copyright (C) 2003, Michael Kerrisk (mtk.manpages@gmail.com)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2003-12-10 Initial creation, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2004-10-28 aeb, corrected prototype, prot must be 0
+.\"
+.TH REMAP_FILE_PAGES 2 2014-05-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+remap_file_pages \- create a nonlinear file mapping
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.B #include <sys/mman.h>
+.sp
+.BI "int remap_file_pages(void *" addr ", size_t " size ", int " prot ,
+.BI "                     size_t " pgoff ", int " flags );
+.fi
+.SH DESCRIPTION
+.BR Note :
+.\" commit 33041a0d76d3c3e0aff28ac95a2ffdedf1282dbc
+.\" http://lwn.net/Articles/597632/
+this system call is (since Linux 3.16) deprecated and will
+eventually be replaced by a slower in-kernel emulation.
+Those few applications that use this system call should
+consider migrating to alternatives.
+
+The
+.BR remap_file_pages ()
+system call is used to create a nonlinear mapping, that is, a mapping
+in which the pages of the file are mapped into a nonsequential order
+in memory.
+The advantage of using
+.BR remap_file_pages ()
+over using repeated calls to
+.BR mmap (2)
+is that the former approach does not require the kernel to create
+additional VMA (Virtual Memory Area) data structures.
+
+To create a nonlinear mapping we perform the following steps:
+.TP 3
+1.
+Use
+.BR mmap (2)
+to create a mapping (which is initially linear).
+This mapping must be created with the
+.B MAP_SHARED
+flag.
+.TP
+2.
+Use one or more calls to
+.BR remap_file_pages ()
+to rearrange the correspondence between the pages of the mapping
+and the pages of the file.
+It is possible to map the same page of a file
+into multiple locations within the mapped region.
+.LP
+The
+.I pgoff
+and
+.I size
+arguments specify the region of the file that is to be relocated
+within the mapping:
+.I pgoff
+is a file offset in units of the system page size;
+.I size
+is the length of the region in bytes.
+
+The
+.I addr
+argument serves two purposes.
+First, it identifies the mapping whose pages we want to rearrange.
+Thus,
+.I addr
+must be an address that falls within
+a region previously mapped by a call to
+.BR mmap (2).
+Second,
+.I addr
+specifies the address at which the file pages
+identified by
+.I pgoff
+and
+.I size
+will be placed.
+
+The values specified in
+.I addr
+and
+.I size
+should be multiples of the system page size.
+If they are not, then the kernel rounds
+.I both
+values
+.I down
+to the nearest multiple of the page size.
+.\" This rounding is weird, and not consistent with the treatment of
+.\" the analogous arguments for munmap()/mprotect() and for mlock().
+.\" MTK, 14 Sep 2005
+
+The
+.I prot
+argument must be specified as 0.
+
+The
+.I flags
+argument has the same meaning as for
+.BR mmap (2),
+but all flags other than
+.B MAP_NONBLOCK
+are ignored.
+.SH RETURN VALUE
+On success,
+.BR remap_file_pages ()
+returns 0.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EINVAL
+.I addr
+does not refer to a valid mapping
+created with the
+.B MAP_SHARED
+flag.
+.TP
+.B EINVAL
+.IR addr ,
+.IR size ,
+.IR prot ,
+or
+.I pgoff
+is invalid.
+.\" And possibly others from vma->vm_ops->populate()
+.SH VERSIONS
+The
+.BR remap_file_pages ()
+system call appeared in Linux 2.5.46;
+glibc support was added in version 2.3.3.
+.SH CONFORMING TO
+The
+.BR remap_file_pages ()
+system call is Linux-specific.
+.SH NOTES
+Since Linux 2.6.23,
+.\" commit 3ee6dafc677a68e461a7ddafc94a580ebab80735
+.BR remap_file_pages ()
+creates non-linear mappings only
+on in-memory file systems such as tmpfs, hugetlbfs or ramfs.
+On filesystems with a backing store,
+.BR remap_file_pages ()
+is not much more efficient than using
+.BR mmap (2)
+to adjust which parts of the file are mapped to which addresses.
+.SH SEE ALSO
+.BR getpagesize (2),
+.BR mmap (2),
+.BR mmap2 (2),
+.BR mprotect (2),
+.BR mremap (2),
+.BR msync (2)

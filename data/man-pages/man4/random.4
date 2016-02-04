@@ -1,0 +1,333 @@
+.\" Copyright (c) 1997 John S. Kallal (kallal@voicenet.com)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" Some changes by tytso and aeb.
+.\"
+.\" 2004-12-16, John V. Belmonte/mtk, Updated init and quit scripts
+.\" 2004-04-08, AEB, Improved description of read from /dev/urandom
+.\" 2008-06-20, George Spelvin <linux@horizon.com>,
+.\"             Matt Mackall <mpm@selenic.com>
+.\"     Add a Usage subsection that recommends most users to use
+.\"     /dev/urandom, and emphasizes parsimonious usage of /dev/random.
+.\"
+.TH RANDOM 4 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+random, urandom \- kernel random number source devices
+.SH SYNOPSIS
+#include <linux/random.h>
+.sp
+.BI "int ioctl(" fd ", RND" request ", " param ");"
+.SH DESCRIPTION
+The character special files \fI/dev/random\fP and
+\fI/dev/urandom\fP (present since Linux 1.3.30)
+provide an interface to the kernel's random number generator.
+File \fI/dev/random\fP has major device number 1
+and minor device number 8.
+File \fI/dev/urandom\fP has major device number 1 and minor device number 9.
+.LP
+The random number generator gathers environmental noise
+from device drivers and other sources into an entropy pool.
+The generator also keeps an estimate of the
+number of bits of noise in the entropy pool.
+From this entropy pool random numbers are created.
+.LP
+When read, the \fI/dev/random\fP device will return random bytes
+only within the estimated number of bits of noise in the entropy
+pool.
+\fI/dev/random\fP should be suitable for uses that need very
+high quality randomness such as one-time pad or key generation.
+When the entropy pool is empty, reads from \fI/dev/random\fP will block
+until additional environmental noise is gathered.
+If
+.BR open (2)
+is called for
+.I /dev/random
+with the flag
+.BR O_NONBLOCK ,
+a subsequent
+.BR read (2)
+will not block if the requested number of bytes is not available.
+Instead, the available bytes are returned.
+If no byte is available,
+.BR read (2)
+will return -1 and
+.I errno
+will be set to
+.BR EAGAIN .
+.LP
+A read from the \fI/dev/urandom\fP device will not block
+waiting for more entropy.
+If there is not sufficient entropy, a pseudorandom number generator is used
+to create the requested bytes.
+As a result, in this case the returned values are theoretically vulnerable to a
+cryptographic attack on the algorithms used by the driver.
+Knowledge of how to do this is not available in the current unclassified
+literature, but it is theoretically possible that such an attack may
+exist.
+If this is a concern in your application, use \fI/dev/random\fP
+instead.
+.B O_NONBLOCK
+has no effect when opening
+.IR /dev/urandom .
+When calling
+.BR read (2)
+for the device
+.IR /dev/urandom ,
+signals will not be handled until after the requested random bytes
+have been generated.
+
+Since Linux 3.16,
+.\" commit 79a8468747c5f95ed3d5ce8376a3e82e0c5857fc
+a
+.BR read (2)
+from
+.IR /dev/urandom
+will return at most 32 MB.
+A
+.BR read (2)
+from
+.IR /dev/random
+will return at most 512 bytes
+.\" SEC_XFER_SIZE in drivers/char/random.c
+(340 bytes on Linux kernels before version 2.6.12).
+
+Writing to \fI/dev/random\fP or \fI/dev/urandom\fP will update the
+entropy pool with the data written, but this will not result in a
+higher entropy count.
+This means that it will impact the contents
+read from both files, but it will not make reads from
+\fI/dev/random\fP faster.
+.SS Usage
+If you are unsure about whether you should use
+.IR /dev/random
+or
+.IR /dev/urandom ,
+then probably you want to use the latter.
+As a general rule,
+.IR /dev/urandom
+should be used for everything except long-lived GPG/SSL/SSH keys.
+
+If a seed file is saved across reboots as recommended below (all major
+Linux distributions have done this since 2000 at least), the output is
+cryptographically secure against attackers without local root access as
+soon as it is reloaded in the boot sequence, and perfectly adequate for
+network encryption session keys.
+Since reads from
+.I /dev/random
+may block, users will usually want to open it in nonblocking mode
+(or perform a read with timeout),
+and provide some sort of user notification if the desired
+entropy is not immediately available.
+
+The kernel random-number generator is designed to produce a small
+amount of high-quality seed material to seed a
+cryptographic pseudo-random number generator (CPRNG).
+It is designed for security, not speed, and is poorly
+suited to generating large amounts of random data.
+Users should be very economical in the amount of seed
+material that they read from
+.IR /dev/urandom
+(and
+.IR /dev/random );
+unnecessarily reading large quantities of data from this device will have
+a negative impact on other users of the device.
+
+The amount of seed material required to generate a cryptographic key
+equals the effective key size of the key.
+For example, a 3072-bit RSA
+or Diffie-Hellman private key has an effective key size of 128 bits
+(it requires about 2^128 operations to break) so a key generator
+needs only 128 bits (16 bytes) of seed material from
+.IR /dev/random .
+
+While some safety margin above that minimum is reasonable, as a guard
+against flaws in the CPRNG algorithm, no cryptographic primitive
+available today can hope to promise more than 256 bits of security,
+so if any program reads more than 256 bits (32 bytes) from the kernel
+random pool per invocation, or per reasonable reseed interval (not less
+than one minute), that should be taken as a sign that its cryptography is
+.I not
+skillfully implemented.
+.SS Configuration
+If your system does not have
+\fI/dev/random\fP and \fI/dev/urandom\fP created already, they
+can be created with the following commands:
+
+.nf
+    mknod \-m 666 /dev/random c 1 8
+    mknod \-m 666 /dev/urandom c 1 9
+    chown root:root /dev/random /dev/urandom
+.fi
+
+When a Linux system starts up without much operator interaction,
+the entropy pool may be in a fairly predictable state.
+This reduces the actual amount of noise in the entropy pool
+below the estimate.
+In order to counteract this effect, it helps to carry
+entropy pool information across shut-downs and start-ups.
+To do this, add the lines to an appropriate script
+which is run during the Linux system start-up sequence:
+
+.nf
+    echo "Initializing random number generator..."
+    random_seed=/var/run/random-seed
+    # Carry a random seed from start-up to start-up
+    # Load and then save the whole entropy pool
+    if [ \-f $random_seed ]; then
+        cat $random_seed >/dev/urandom
+    else
+        touch $random_seed
+    fi
+    chmod 600 $random_seed
+    poolfile=/proc/sys/kernel/random/poolsize
+    [ \-r $poolfile ] && bits=$(cat $poolfile) || bits=4096
+    bytes=$(expr $bits / 8)
+    dd if=/dev/urandom of=$random_seed count=1 bs=$bytes
+.fi
+
+Also, add the following lines in an appropriate script which is
+run during the Linux system shutdown:
+
+.nf
+    # Carry a random seed from shut-down to start-up
+    # Save the whole entropy pool
+    echo "Saving random seed..."
+    random_seed=/var/run/random-seed
+    touch $random_seed
+    chmod 600 $random_seed
+    poolfile=/proc/sys/kernel/random/poolsize
+    [ \-r $poolfile ] && bits=$(cat $poolfile) || bits=4096
+    bytes=$(expr $bits / 8)
+    dd if=/dev/urandom of=$random_seed count=1 bs=$bytes
+.fi
+
+In the above examples, we assume Linux 2.6.0 or later, where
+.IR /proc/sys/kernel/random/poolsize
+returns the size of the entropy pool in bits (see below).
+.SS /proc Interface
+The files in the directory
+.I /proc/sys/kernel/random
+(present since 2.3.16) provide an additional interface to the
+.I /dev/random
+device.
+.LP
+The read-only file
+.I entropy_avail
+gives the available entropy.
+Normally, this will be 4096 (bits),
+a full entropy pool.
+.LP
+The file
+.I poolsize
+gives the size of the entropy pool.
+The semantics of this file vary across kernel versions:
+.RS
+.TP 12
+Linux 2.4:
+This file gives the size of the entropy pool in
+.IR bytes .
+Normally, this file will have the value 512, but it is writable,
+and can be changed to any value for which an algorithm is available.
+The choices are 32, 64, 128, 256, 512, 1024, or 2048.
+.TP
+Linux 2.6:
+This file is read-only, and gives the size of the entropy pool in
+.IR bits .
+It contains the value 4096.
+.RE
+.LP
+The file
+.I read_wakeup_threshold
+contains the number of bits of entropy required for waking up processes
+that sleep waiting for entropy from
+.IR /dev/random .
+The default is 64.
+The file
+.I write_wakeup_threshold
+contains the number of bits of entropy below which we wake up
+processes that do a
+.BR select (2)
+or
+.BR poll (2)
+for write access to
+.IR /dev/random .
+These values can be changed by writing to the files.
+.LP
+The read-only files
+.I uuid
+and
+.I boot_id
+contain random strings like 6fd5a44b-35f4-4ad4-a9b9-6b9be13e1fe9.
+The former is generated afresh for each read, the latter was
+generated once.
+.SS ioctl(2) interface
+The following
+.BR ioctl (2)
+requests are defined on file descriptors connected to either \fI/dev/random\fP
+or \fI/dev/urandom\fP.
+All requests performed will interact with the input
+entropy pool impacting both \fI/dev/random\fP and \fI/dev/urandom\fP.
+The
+.B CAP_SYS_ADMIN
+capability is required for all requests except
+.BR RNDGETENTCNT .
+.TP
+.BR RNDGETENTCNT
+Retrieve the entropy count of the input pool, the contents will be the same
+as the
+.I entropy_avail
+file under proc.
+The result will be stored in the int pointed to by the argument.
+.TP
+.BR RNDADDTOENTCNT
+Increment or decrement the entropy count of the input pool
+by the value pointed to by the argument.
+.TP
+.BR RNDGETPOOL
+Removed in Linux 2.6.9.
+.TP
+.BR RNDADDENTROPY
+Add some additional entropy to the input pool,
+incrementing the entropy count.
+This differs from writing to \fI/dev/random\fP or \fI/dev/urandom\fP,
+which only adds some
+data but does not increment the entropy count.
+The following structure is used:
+.IP
+.nf
+    struct rand_pool_info {
+        int    entropy_count;
+        int    buf_size;
+        __u32  buf[0];
+    };
+.fi
+.IP
+Here
+.I entropy_count
+is the value added to (or subtracted from) the entropy count, and
+.I buf
+is the buffer of size
+.I buf_size
+which gets added to the entropy pool.
+.TP
+.BR RNDZAPENTCNT ", " RNDCLEARPOOL
+Zero the entropy count of all pools and add some system data (such as
+wall clock) to the pools.
+.SH FILES
+/dev/random
+.br
+/dev/urandom
+.\" .SH AUTHOR
+.\" The kernel's random number generator was written by
+.\" Theodore Ts'o (tytso@athena.mit.edu).
+.SH SEE ALSO
+.BR getrandom (2),
+.BR mknod (1)
+.br
+RFC\ 1750, "Randomness Recommendations for Security"

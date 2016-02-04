@@ -1,0 +1,159 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\" and Copyright 2014 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 17:45:39 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2000-02-13 by Nicolás Lichtmaier <nick@debian.org>
+.TH TOUPPER 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+toupper, tolower, toupper_l, tolower_l \- convert uppercase or lowercase
+.SH SYNOPSIS
+.nf
+.B #include <ctype.h>
+.sp
+.BI "int toupper(int " "c" );
+.br
+.BI "int tolower(int " "c" );
+
+.BI "int toupper_l(int " c ", locale_t " locale );
+.BI "int tolower_l(int " c ", locale_t " locale );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR toupper_l (),
+.BR tolower_l ():
+.PD 0
+.RS 4
+.TP
+Since glibc 2.10:
+_XOPEN_SOURCE\ >=\ 700
+.TP
+Before glibc 2.10:
+_GNU_SOURCE
+.RE
+.PD
+.SH DESCRIPTION
+These functions convert lowercase letters to uppercase, and vice versa.
+
+If
+.I c
+is a lowercase letter,
+.BR toupper ()
+returns its uppercase equivalent,
+if an uppercase representation exists in the current locale.
+Otherwise, it returns
+.IR c .
+The
+.BR toupper_l ()
+function performs the same task,
+but uses the locale referred to by the locale handle
+.IR locale .
+
+If
+.I c
+is an uppercase letter,
+.BR tolower ()
+returns its lowercase equivalent,
+if a lowercase representation exists in the current locale.
+Otherwise, it returns
+.IR c .
+The
+.BR tolower_l ()
+function performs the same task,
+but uses the locale referred to by the locale handle
+.IR locale .
+.PP
+If
+.I c
+is neither an
+.I "unsigned char"
+value nor
+.BR EOF ,
+the behavior of these functions
+is undefined.
+
+The behavior of
+.BR toupper_l ()
+and
+.BR tolower_l ()
+is undefined if
+.I locale
+is the special locale object
+.BR LC_GLOBAL_LOCALE
+(see
+.BR duplocale (3))
+or is not a valid locale object handle.
+.SH RETURN VALUE
+The value returned is that of the converted letter, or
+.I c
+if the conversion was not possible.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw24 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR toupper (),
+.BR tolower (),
+.br
+.BR toupper_l (),
+.BR tolower_l ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+.BR toupper (),
+.BR tolower ():
+C89, C99, 4.3BSD, POSIX.1-2001, POSIX.1-2008.
+
+.BR toupper_l (),
+.BR tolower_l ():
+POSIX.1-2008.
+.SH NOTES
+The details of what constitutes an uppercase or lowercase letter depend
+on the locale.
+For example, the default
+.B """C"""
+locale does not know about umlauts, so no conversion is done for them.
+.PP
+In some non-English locales, there are lowercase letters with no
+corresponding uppercase equivalent;
+.\" FIXME One day the statement about "sharp s" needs to be reworked,
+.\" since there is nowadays a capital "sharp s" that has a codepoint
+.\" in Unicode 5.0; see https://en.wikipedia.org/wiki/Capital_%E1%BA%9E
+the German sharp s is one example.
+.SH SEE ALSO
+.BR isalpha (3),
+.BR newlocale (3),
+.BR setlocale (3),
+.BR uselocale (3),
+.BR towlower (3),
+.BR towupper (3),
+.BR locale (7)

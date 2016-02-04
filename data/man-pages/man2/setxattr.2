@@ -1,0 +1,167 @@
+.\" Copyright (C) Andreas Gruenbacher, February 2001
+.\" Copyright (C) Silicon Graphics Inc, September 2001
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH SETXATTR 2 2015-05-07 "Linux" "Linux Programmer's Manual"
+.SH NAME
+setxattr, lsetxattr, fsetxattr \- set an extended attribute value
+.SH SYNOPSIS
+.fam C
+.nf
+.B #include <sys/types.h>
+.B #include <sys/xattr.h>
+.sp
+.BI "int setxattr(const char\ *" path ", const char\ *" name ,
+.BI "              const void\ *" value ", size_t " size ", int " flags );
+.BI "int lsetxattr(const char\ *" path ", const char\ *" name ,
+.BI "              const void\ *" value ", size_t " size ", int " flags );
+.BI "int fsetxattr(int " fd ", const char\ *" name ,
+.BI "              const void\ *" value ", size_t " size ", int " flags );
+.fi
+.fam T
+.SH DESCRIPTION
+Extended attributes are
+.IR name :\c
+.I value
+pairs associated with inodes (files, directories, symbolic links, etc.).
+They are extensions to the normal attributes which are associated
+with all inodes in the system (i.e., the
+.BR stat (2)
+data).
+A complete overview of extended attributes concepts can be found in
+.BR xattr (7).
+.PP
+.BR setxattr ()
+sets the
+.I value
+of the extended attribute identified by
+.I name
+and associated with the given
+.I path
+in the filesystem.
+The
+.I size
+argument specifies the size (in bytes) of
+.IR value ;
+a zero-length value is permitted.
+.PP
+.BR lsetxattr ()
+is identical to
+.BR setxattr (),
+except in the case of a symbolic link, where the extended attribute is
+set on the link itself, not the file that it refers to.
+.PP
+.BR fsetxattr ()
+is identical to
+.BR setxattr (),
+only the extended attribute is set on the open file referred to by
+.I fd
+(as returned by
+.BR open (2))
+in place of
+.IR path .
+.PP
+An extended attribute name is a null-terminated string.
+The
+.I name
+includes a namespace prefix; there may be several, disjoint
+namespaces associated with an individual inode.
+The
+.I value
+of an extended attribute is a chunk of arbitrary textual or
+binary data of specified length.
+.PP
+By default
+(i.e.,
+.IR flags
+is zero),
+the extended attribute will be created if it does not exist,
+or the value will be replaced if the attribute already exists.
+To modify these semantics, one of the following values can be specified in
+.IR flags :
+.TP
+.B XATTR_CREATE
+Perform a pure create, which fails if the named attribute exists already.
+.TP
+.B XATTR_REPLACE
+Perform a pure replace operation,
+which fails if the named attribute does not already exist.
+.SH RETURN VALUE
+On success, zero is returned.
+On failure, \-1 is returned and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EDQUOT
+Disk quota limits meant that
+there is insufficient space remaining to store the extended attribute.
+.TP
+.B EEXIST
+.B XATTR_CREATE
+was specified, and the attribute exists already.
+.TP
+.B ENOATTR
+.B XATTR_REPLACE
+was specified, and the attribute does not exist.
+.RB ( ENOATTR
+is defined to be a synonym for
+.BR ENODATA
+in
+.IR <attr/xattr.h> .)
+.TP
+.B ENOSPC
+There is insufficient space remaining to store the extended attribute.
+.TP
+.B ENOTSUP
+The namespace prefix of
+.I name
+is not valid.
+.TP
+.B ENOTSUP
+Extended attributes are not supported by the filesystem, or are disabled,
+.PP
+In addition, the errors documented in
+.BR stat (2)
+can also occur.
+.SH VERSIONS
+These system calls have been available on Linux since kernel 2.4;
+glibc support is provided since version 2.3.
+.SH CONFORMING TO
+These system calls are Linux-specific.
+.\" .SH AUTHORS
+.\" Andreas Gruenbacher,
+.\" .RI < a.gruenbacher@computer.org >
+.\" and the SGI XFS development team,
+.\" .RI < linux-xfs@oss.sgi.com >.
+.\" Please send any bug reports or comments to these addresses.
+.SH SEE ALSO
+.BR getfattr (1),
+.BR setfattr (1),
+.BR getxattr (2),
+.BR listxattr (2),
+.BR open (2),
+.BR removexattr (2),
+.BR stat (2),
+.BR symlink (7),
+.BR xattr (7)

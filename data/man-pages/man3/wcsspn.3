@@ -1,0 +1,76 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WCSSPN 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcsspn \- advance in a wide-character string, skipping
+any of a set of wide characters
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "size_t wcsspn(const wchar_t *" wcs ", const wchar_t *" accept );
+.fi
+.SH DESCRIPTION
+The
+.BR wcsspn ()
+function is the wide-character equivalent of the
+.BR strspn (3)
+function.
+It determines the length of the longest initial segment of
+.I wcs
+which consists entirely of wide-characters listed in
+.IR accept .
+In other
+words, it searches for the first occurrence in the wide-character string
+.I wcs
+of a wide-character not contained in the wide-character string
+.IR accept .
+.SH RETURN VALUE
+The
+.BR wcsspn ()
+function returns the number of
+wide characters in the longest
+initial segment of
+.I wcs
+which consists entirely of wide-characters listed
+in
+.IR accept .
+In other words, it returns the position of the first
+occurrence in the wide-character string
+.I wcs
+of a wide-character not
+contained in the wide-character string
+.IR accept ,
+or
+.I wcslen(wcs)
+if there is none.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcsspn ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH SEE ALSO
+.BR strspn (3),
+.BR wcscspn (3)

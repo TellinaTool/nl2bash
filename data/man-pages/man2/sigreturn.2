@@ -1,0 +1,145 @@
+.\" Copyright (C) 2008, 2014, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Created   Sat Aug 21 1995     Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\" Modified Tue Oct 22 22:09:03 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" 2008-06-26, mtk, added some more detail on the work done by sigreturn()
+.\" 2014-12-05, mtk, rewrote all of the rest of the original page
+.\"
+.TH SIGRETURN 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sigreturn, rt_sigreturn \- return from signal handler and cleanup stack frame
+.SH SYNOPSIS
+.BI "int sigreturn(...);"
+.SH DESCRIPTION
+If the Linux kernel determines that an unblocked
+signal is pending for a process, then,
+at the next transition back to user mode in that process
+(e.g., upon return from a system call or
+when the process is rescheduled onto the CPU),
+it saves various pieces of process context
+(processor status word, registers, signal mask, and signal stack settings)
+into the user-space stack.
+.\" See arch/x86/kernel/signal.c::__setup_frame() [in 3.17 source code]
+
+The kernel also arranges that, during the transition back to user mode,
+the signal handler is called, and that, upon return from the handler,
+control passes to a piece of user-space code commonly called
+the "signal trampoline".
+The signal trampoline code in turn calls
+.BR sigreturn ().
+
+This
+.BR sigreturn ()
+call undoes everything that was
+done\(emchanging the process's signal mask, switching signal stacks (see
+.BR sigaltstack "(2))\(emin "
+order to invoke the signal handler.
+It restores the process's signal mask, switches stacks,
+and restores the process's context
+(processor flags and registers,
+including the stack pointer and instruction pointer),
+so that the process resumes execution
+at the point where it was interrupted by the signal.
+.SH RETURN VALUE
+.BR sigreturn ()
+never returns.
+.SH CONFORMING TO
+Many UNIX-type systems have a
+.BR sigreturn ()
+system call or near equivalent.
+However, this call is not specified in POSIX,
+and details of its behavior vary across systems.
+.SH NOTES
+.BR sigreturn ()
+exists only to allow the implementation of signal handlers.
+It should
+.B never
+be called directly.
+Details of the arguments (if any) passed to
+.BR sigreturn ()
+vary depending on the architecture.
+
+Once upon a time, UNIX systems placed the signal trampoline code
+onto the user stack.
+Nowadays, pages of the user stack are protected so as to
+disallow code execution.
+Thus, on contemporary Linux systems, depending on the architecture,
+the signal trampoline code lives either in the
+.BR vdso (7)
+or in the C library.
+In the latter case,
+.\" See, for example, sysdeps/unix/sysv/linux/i386/sigaction.c and
+.\" sysdeps/unix/sysv/linux/x86_64/sigaction.c in the glibc (2.20) source.
+the C library supplies the location of the trampoline code using the
+.I sa_restorer
+field of the
+.I sigaction
+structure that is passed to
+.BR sigaction (2),
+and sets the
+.BR SA_RESTORER
+flag in the
+.IR sa_flags
+field.
+
+The saved process context information is placed in a
+.I ucontext_t
+structure (see
+.IR <sys/ucontext.h> ).
+That structure is visible within the signal handler
+as the third argument of a handler established with the
+.BR SA_SIGINFO
+flag.
+
+On some other UNIX systems,
+the operation of the signal trampoline differs a little.
+In particular, on some systems, upon transitioning back to user mode,
+the kernel passes control to the trampoline (rather than the signal handler),
+and the trampoline code calls the signal handler (and then calls
+.BR sigreturn ()
+once the handler returns).
+.\"
+.SS C library/kernel differences
+The original Linux system call was named
+.BR sigreturn ().
+However, with the addition of real-time signals in Linux 2.2,
+a new system call,
+.BR rt_sigreturn ()
+was added to support an enlarged
+.IR sigset_t
+type.
+The GNU C library
+hides these details from us, transparently employing
+.BR rt_sigreturn ()
+when the kernel provides it.
+.\"
+.SH SEE ALSO
+.BR kill (2),
+.BR restart_syscall (2),
+.BR sigaltstack (2),
+.BR signal (2),
+.BR getcontext (3),
+.BR signal (7),
+.BR vdso (7)

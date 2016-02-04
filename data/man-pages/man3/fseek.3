@@ -1,0 +1,191 @@
+.\" Copyright (c) 1990, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" This code is derived from software contributed to Berkeley by
+.\" Chris Torek and the American National Standards Committee X3,
+.\" on Information Processing Systems.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)fseek.3	6.11 (Berkeley) 6/29/91
+.\"
+.\" Converted for Linux, Mon Nov 29 15:22:01 1993, faith@cs.unc.edu
+.\"
+.TH FSEEK 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+fgetpos, fseek, fsetpos, ftell, rewind \- reposition a stream
+.SH SYNOPSIS
+.B #include <stdio.h>
+.sp
+.BI "int fseek(FILE *" stream ", long " offset ", int " whence );
+
+.BI "long ftell(FILE *" stream );
+
+.BI "void rewind(FILE *" stream );
+
+.BI "int fgetpos(FILE *" stream ", fpos_t *" pos );
+.br
+.BI "int fsetpos(FILE *" stream ", const fpos_t *" pos );
+.SH DESCRIPTION
+The
+.BR fseek ()
+function sets the file position indicator for the stream pointed to by
+.IR stream .
+The new position, measured in bytes, is obtained by adding
+.I offset
+bytes to the position specified by
+.IR whence .
+If
+.I whence
+is set to
+.BR SEEK_SET ,
+.BR SEEK_CUR ,
+or
+.BR SEEK_END ,
+the offset is relative to the start of the file, the current position
+indicator, or end-of-file, respectively.
+A successful call to the
+.BR fseek ()
+function clears the end-of-file indicator for the stream and undoes
+any effects of the
+.BR ungetc (3)
+function on the same stream.
+.PP
+The
+.BR ftell ()
+function obtains the current value of the file position indicator for the
+stream pointed to by
+.IR stream .
+.PP
+The
+.BR rewind ()
+function sets the file position indicator for the stream pointed to by
+.I stream
+to the beginning of the file.
+It is equivalent to:
+.PP
+.RS
+(void) fseek(stream, 0L, SEEK_SET)
+.RE
+.PP
+except that the error indicator for the stream is also cleared (see
+.BR clearerr (3)).
+.PP
+The
+.BR fgetpos ()
+and
+.BR fsetpos ()
+functions are alternate interfaces equivalent to
+.BR ftell ()
+and
+.BR fseek ()
+(with
+.I whence
+set to
+.BR SEEK_SET ),
+setting and storing the current value of the file offset into or from the
+object referenced by
+.IR pos .
+On some non-UNIX systems, an
+.I fpos_t
+object may be a complex object and these routines may be the only way to
+portably reposition a text stream.
+.SH RETURN VALUE
+The
+.BR rewind ()
+function returns no value.
+Upon successful completion,
+.BR fgetpos (),
+.BR fseek (),
+.BR fsetpos ()
+return 0,
+and
+.BR ftell ()
+returns the current offset.
+Otherwise, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+The
+.I stream
+specified is not a seekable stream.
+.TP
+.B EINVAL
+The
+.I whence
+argument to
+.BR fseek ()
+was not
+.BR SEEK_SET ,
+.BR SEEK_END ,
+or
+.BR SEEK_CUR .
+Or: the resulting file offset would be negative.
+.PP
+The functions
+.BR fgetpos (),
+.BR fseek (),
+.BR fsetpos (),
+and
+.BR ftell ()
+may also fail and set
+.I errno
+for any of the errors specified for the routines
+.BR fflush (3),
+.BR fstat (2),
+.BR lseek (2),
+and
+.BR malloc (3).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw27 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR fseek (),
+.BR ftell (),
+.BR rewind (),
+.br
+.BR fgetpos (),
+.BR fsetpos ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99.
+.SH SEE ALSO
+.BR lseek (2),
+.BR fseeko (3)

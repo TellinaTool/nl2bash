@@ -1,0 +1,125 @@
+.\" Copyright (C) Tom Bjorkholm & Markus Kuhn, 1996
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 1996-04-01 Tom Bjorkholm <tomb@mydata.se>
+.\"            First version written
+.\" 1996-04-10 Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"            revision
+.\"
+.TH SCHED_GET_PRIORITY_MAX 2 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sched_get_priority_max, sched_get_priority_min  \- get static priority range
+.SH SYNOPSIS
+.B #include <sched.h>
+.sp
+.BI "int sched_get_priority_max(int " policy );
+.sp
+.BI "int sched_get_priority_min(int " policy );
+.SH DESCRIPTION
+.BR sched_get_priority_max ()
+returns the maximum priority value that can be used with the
+scheduling algorithm identified by
+.IR policy .
+.BR sched_get_priority_min ()
+returns the minimum priority value that can be used with the
+scheduling algorithm identified by
+.IR policy .
+Supported
+.I policy
+values are
+.BR SCHED_FIFO ,
+.BR SCHED_RR ,
+.BR SCHED_OTHER ,
+.BR SCHED_BATCH ,
+.BR SCHED_IDLE ,
+and
+.BR SCHED_DEADLINE .
+Further details about these policies can be found in
+.BR sched (7).
+
+Processes with numerically higher priority values are scheduled before
+processes with numerically lower priority values.
+Thus, the value
+returned by
+.BR sched_get_priority_max ()
+will be greater than the
+value returned by
+.BR sched_get_priority_min ().
+
+Linux allows the static priority range 1 to 99 for the
+.B SCHED_FIFO
+and
+.B SCHED_RR
+policies, and the priority 0 for the remaining policies.
+Scheduling priority ranges for the various policies
+are not alterable.
+
+The range of scheduling priorities may vary on other POSIX systems,
+thus it is a good idea for portable applications to use a virtual
+priority range and map it to the interval given by
+.BR sched_get_priority_max ()
+and
+.BR sched_get_priority_min
+POSIX.1 requires
+.\" POSIX.1-2001, POSIX.1-2008 (XBD 2.8.4)
+a spread of at least 32 between the maximum and the minimum values for
+.B SCHED_FIFO
+and
+.BR SCHED_RR .
+
+POSIX systems on which
+.BR sched_get_priority_max ()
+and
+.BR sched_get_priority_min ()
+are available define
+.B _POSIX_PRIORITY_SCHEDULING
+in
+.IR <unistd.h> .
+.SH RETURN VALUE
+On success,
+.BR sched_get_priority_max ()
+and
+.BR sched_get_priority_min ()
+return the maximum/minimum priority value for the named scheduling
+policy.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EINVAL
+The argument
+.I policy
+does not identify a defined scheduling policy.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH SEE ALSO
+.ad l
+.nh
+.BR sched_getaffinity (2),
+.BR sched_getparam (2),
+.BR sched_getscheduler (2),
+.BR sched_setaffinity (2),
+.BR sched_setparam (2),
+.BR sched_setscheduler (2),
+.BR sched (7)

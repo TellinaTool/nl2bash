@@ -1,0 +1,102 @@
+.\" Copyright (C) 2004 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SET_TID_ADDRESS 2 2014-07-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+set_tid_address \- set pointer to thread ID
+.SH SYNOPSIS
+.nf
+.B #include <linux/unistd.h>
+.sp
+.BI "long set_tid_address(int *" tidptr );
+.fi
+.SH DESCRIPTION
+For each thread, the kernel maintains two attributes (addresses) called
+.I set_child_tid
+and
+.IR clear_child_tid .
+These two attributes contain the value NULL by default.
+.TP
+.I set_child_tid
+If a thread is started using
+.BR clone (2)
+with the
+.B CLONE_CHILD_SETTID
+flag,
+.I set_child_tid
+is set to the value passed in the
+.I ctid
+argument of that system call.
+.IP
+When
+.I set_child_tid
+is set, the very first thing the new thread does
+is to write its thread ID at this address.
+.TP
+.I clear_child_tid
+If a thread is started using
+.BR clone (2)
+with the
+.B CLONE_CHILD_CLEARTID
+flag,
+.I clear_child_tid
+is set to the value passed in the
+.I ctid
+argument of that system call.
+.LP
+The system call
+.BR set_tid_address ()
+sets the
+.I clear_child_tid
+value for the calling thread to
+.IR tidptr .
+.LP
+When a thread whose
+.I clear_child_tid
+is not NULL terminates, then,
+if the thread is sharing memory with other threads,
+then 0 is written at the address specified in
+.I clear_child_tid
+and the kernel performs the following operation:
+
+    futex(clear_child_tid, FUTEX_WAKE, 1, NULL, NULL, 0);
+
+The effect of this operation is to wake a single thread that
+is performing a futex wait on the memory location.
+Errors from the futex wake operation are ignored.
+.SH RETURN VALUE
+.BR set_tid_address ()
+always returns the caller's thread ID.
+.SH ERRORS
+.BR set_tid_address ()
+always succeeds.
+.SH VERSIONS
+This call is present since Linux 2.5.48.
+Details as given here are valid since Linux 2.5.49.
+.SH CONFORMING TO
+This system call is Linux-specific.
+.SH SEE ALSO
+.BR clone (2),
+.BR futex (2),
+.BR gettid (2)

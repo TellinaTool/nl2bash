@@ -1,0 +1,99 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:50:48 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Interchanged 'needle' and 'haystack'; added history, aeb, 980113.
+.TH MEMMEM 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+memmem \- locate a substring
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.B #include <string.h>
+.sp
+.BI "void *memmem(const void *" haystack ", size_t " haystacklen ,
+.BI "             const void *" needle ", size_t " needlelen  );
+.fi
+.SH DESCRIPTION
+The
+.BR memmem ()
+function finds the start of the first occurrence
+of the substring
+.IR needle
+of length
+.I needlelen
+in the memory
+area
+.I haystack
+of length
+.IR haystacklen .
+.SH RETURN VALUE
+The
+.BR memmem ()
+function returns a pointer to the beginning of the
+substring, or NULL if the substring is not found.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR memmem ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+This function is a GNU extension.
+.SH BUGS
+.\" This function was broken in Linux libraries up to and including libc 5.0.9;
+.\" there the
+.\" .IR needle
+.\" and
+.\" .I haystack
+.\" arguments were interchanged,
+.\" and a pointer to the end of the first occurrence of
+.\" .I needle
+.\" was returned.
+.\"
+.\" Both old and new libc's have the bug that if
+.\" .I needle
+.\" is empty,
+.\" .I haystack\-1
+.\" (instead of
+.\" .IR haystack )
+.\" is returned.
+In glibc 2.0, if
+.I needle
+is empty,
+.BR memmem ()
+returns a pointer to the last byte of
+.IR haystack .
+This is fixed in glibc 2.1.
+.SH SEE ALSO
+.BR strstr (3)

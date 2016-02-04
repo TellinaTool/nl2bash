@@ -1,0 +1,606 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2009-01-12, mtk, Created
+.\"
+.TH RTLD-AUDIT 7 2015-12-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+rtld-audit \- auditing API for the dynamic linker
+.SH SYNOPSIS
+.BR "#define _GNU_SOURCE" "             /* See feature_test_macros(7) */"
+
+.B #include <link.h>
+.SH DESCRIPTION
+The GNU dynamic linker (run-time linker)
+provides an auditing API that allows an application
+to be notified when various dynamic linking events occur.
+This API is very similar to the auditing interface provided by the
+Solaris run-time linker.
+The necessary constants and prototypes are defined by including
+.IR <link.h> .
+
+To use this interface, the programmer creates a shared library
+that implements a standard set of function names.
+Not all of the functions need to be implemented: in most cases,
+if the programmer is not interested in a particular class of auditing event,
+then no implementation needs to be provided for the corresponding
+auditing function.
+
+To employ the auditing interface, the environment variable
+.BR LD_AUDIT
+must be defined to contain a colon-separated list of shared libraries,
+each of which can implement (parts of) the auditing API.
+When an auditable event occurs,
+the corresponding function is invoked in each library,
+in the order that the libraries are listed.
+.SS la_version()
+\&
+.nf
+.BI "unsigned int la_version(unsigned int " version );
+.fi
+.PP
+This is the only function that
+.I must
+be defined by an auditing library:
+it performs the initial handshake between the dynamic linker and
+the auditing library.
+When invoking this function, the dynamic linker passes, in
+.IR version ,
+the highest version of the auditing interface that the linker supports.
+If necessary, the auditing library can check that this version
+is sufficient for its requirements.
+
+As its function result,
+this function should return the version of the auditing interface
+that this auditing library expects to use (returning
+.I version
+is acceptable).
+If the returned value is 0,
+or a version that is greater than that supported by the dynamic linker,
+then the audit library is ignored.
+.SS la_objsearch()
+\&
+.nf
+.BI "char *la_objsearch(const char *" name ", uintptr_t *" cookie ,
+.BI "                   unsigned int " flag );
+.fi
+.PP
+The dynamic linker invokes this function to inform the auditing library
+that it is about to search for a shared object.
+The
+.I name
+argument is the filename or pathname that is to be searched for.
+.I cookie
+identifies the shared object that initiated the search.
+.I flag
+is set to one of the following values:
+.TP 17
+.B LA_SER_ORIG
+This is the original name that is being searched for.
+Typically, this name comes from an ELF
+.B DT_NEEDED
+entry, or is the
+.I filename
+argument given to
+.BR dlopen (3).
+.TP
+.B LA_SER_LIBPATH
+.I name
+was created using a directory specified in
+.BR LD_LIBRARY_PATH .
+.TP
+.B LA_SER_RUNPATH
+.I name
+was created using a directory specified in an ELF
+.B DT_RPATH
+or
+.B DT_RUNPATH
+list.
+.TP
+.B LA_SER_CONFIG
+.I name
+was found via the
+.BR ldconfig (8)
+cache
+.RI ( /etc/ld.so.cache ).
+.TP
+.B LA_SER_DEFAULT
+.I name
+was found via a search of one of the default directories.
+.TP
+.B LA_SER_SECURE
+.I name
+is specific to a secure object (unused on Linux).
+.PP
+As its function result,
+.BR la_objsearch ()
+returns the pathname that the dynamic linker should use
+for further processing.
+If NULL is returned, then this pathname is ignored for further processing.
+If this audit library simply intends to monitor search paths, then
+.I name
+should be returned.
+.SS la_activity()
+\&
+.nf
+.BI "void la_activity( uintptr_t *" cookie ", unsigned int "flag  );
+.fi
+.PP
+The dynamic linker calls this function to inform the auditing library
+that link-map activity is occurring.
+.I cookie
+identifies the object at the head of the link map.
+When the dynamic linker invokes this function,
+.I flag
+is set to one of the following values:
+.TP 19
+.B LA_ACT_ADD
+New objects are being added to the link map.
+.TP
+.B LA_ACT_DELETE
+Objects are being removed from the link map.
+.TP
+.B LA_ACT_CONSISTENT
+Link-map activity has been completed: the map is once again consistent.
+.SS la_objopen()
+\&
+.nf
+.BI "unsigned int la_objopen(struct link_map *" map ", Lmid_t " lmid ,
+.BI "                        uintptr_t *" cookie );
+.fi
+.PP
+The dynamic linker calls this function when a new shared object is loaded.
+The
+.I map
+argument is a pointer to a link-map structure that describes the object.
+The
+.I lmid
+field has one of the following values
+.TP 17
+.B LM_ID_BASE
+Link map is part of the initial namespace.
+.TP
+.B LM_ID_NEWLM
+Link map is part of a new namespace requested via
+.BR dlmopen (3).
+.PP
+.I cookie
+is a pointer to an identifier for this object.
+The identifier is provided to later calls to functions
+in the auditing library in order to identify this object.
+This identifier is initialized to point to object's link map,
+but the audit library can change the identifier to some other value
+that it may prefer to use to identify the object.
+.PP
+As its return value,
+.BR la_objopen ()
+returns a bit mask created by ORing zero or more of the
+following constants,
+which allow the auditing library to select the objects to be monitored by
+.BR la_symbind* ():
+.TP 17
+.B LA_FLG_BINDTO
+Audit symbol bindings to this object.
+.TP
+.B LA_FLG_BINDFROM
+Audit symbol bindings from this object.
+.PP
+A return value of 0 from
+.BR la_objopen ()
+indicates that no symbol bindings should be audited for this object.
+.SS la_objclose()
+\&
+.nf
+.BI "unsigned int la_objclose(uintptr_t *" cookie );
+.fi
+.PP
+The dynamic linker invokes this function after any finalization
+code for the object has been executed,
+before the object is unloaded.
+The
+.I cookie
+argument is the identifier obtained from a previous invocation of
+.BR la_objopen ().
+
+In the current implementation, the value returned by
+.BR la_objclose ()
+is ignored.
+.SS la_preinit()
+\&
+.nf
+.BI "void la_preinit(uintptr_t *" cookie );
+.fi
+.PP
+The dynamic linker invokes this function after all shared objects
+have been loaded, before control is passed to the application
+(i.e., before calling
+.IR main ()).
+Note that
+.IR main ()
+may still later dynamically load objects using
+.BR dlopen (3).
+.SS la_symbind*()
+\&
+.nf
+.BI "uintptr_t la_symbind32(Elf32_Sym *" sym ", unsigned int " ndx ,
+.BI "                       uintptr_t *" refcook ", uintptr_t *" defcook ,
+.BI "                       unsigned int *" flags ", const char *" symname );
+.BI "uintptr_t la_symbind64(Elf64_Sym *" sym ", unsigned int " ndx ,
+.BI "                       uintptr_t *" refcook ", uintptr_t *" defcook ,
+.BI "                       unsigned int *" flags ", const char *" symname );
+.fi
+.PP
+The dynamic linker invokes one of these functions
+when a symbol binding occurs between two shared objects
+that have been marked for auditing notification by
+.BR la_objopen ().
+The
+.BR la_symbind32 ()
+function is employed on 32-bit platforms;
+the
+.BR la_symbind64 ()
+function is employed on 64-bit platforms.
+
+The
+.I sym
+argument is a pointer to a structure
+that provides information about the symbol being bound.
+The structure definition is shown in
+.IR <elf.h> .
+Among the fields of this structure,
+.I st_value
+indicates the address to which the symbol is bound.
+
+The
+.I ndx
+argument gives the index of the symbol in the symbol table
+of the bound shared object.
+
+The
+.I refcook
+argument identifies the shared object that is making the symbol reference;
+this is the same identifier that is provided to the
+.BR la_objopen ()
+function that returned
+.BR LA_FLG_BINDFROM .
+The
+.I defcook
+argument identifies the shared object that defines the referenced symbol;
+this is the same identifier that is provided to the
+.BR la_objopen ()
+function that returned
+.BR LA_FLG_BINDTO .
+
+The
+.I symname
+argument points a string containing the name of the symbol.
+
+The
+.I flags
+argument is a bit mask that both provides information about the symbol
+and can be used to modify further auditing of this
+PLT (Procedure Linkage Table) entry.
+The dynamic linker may supply the following bit values in this argument:
+.\" LA_SYMB_STRUCTCALL appears to be unused
+.TP 22
+.B LA_SYMB_DLSYM
+The binding resulted from a call to
+.BR dlsym (3).
+.TP
+.B LA_SYMB_ALTVALUE
+A previous
+.BR la_symbind* ()
+call returned an alternate value for this symbol.
+.PP
+By default, if the auditing library implements
+.BR la_pltenter ()
+and
+.BR la_pltexit ()
+functions (see below), then these functions are invoked, after
+.BR la_symbind (),
+for PLT entries, each time the symbol is referenced.
+.\" pltenter/pltexit are called for non-dynamically loaded libraries,
+.\" but don't seem to be called for dynamically loaded libs?
+.\" Is this the same on Solaris?
+The following flags can be ORed into
+.IR *flags
+to change this default behavior:
+.TP 22
+.B LA_SYMB_NOPLTENTER
+Don't call
+.BR la_pltenter ()
+for this symbol.
+.TP 22
+.B LA_SYMB_NOPLTEXIT
+Don't call
+.BR la_pltexit ()
+for this symbol.
+.PP
+The return value of
+.BR la_symbind32 ()
+and
+.BR la_symbind64 ()
+is the address to which control should be passed after the function returns.
+If the auditing library is simply monitoring symbol bindings,
+then it should return
+.IR sym\->st_value .
+A different value may be returned if the library wishes to direct control
+to an alternate location.
+.SS la_pltenter()
+The precise name and argument types for this function
+depend on the hardware platform.
+(The appropriate definition is supplied by
+.IR <link.h> .)
+Here is the definition for x86-32:
+.nf
+
+.BI "Elf32_Addr la_i86_gnu_pltenter(Elf32_Sym *" sym ", unsigned int " ndx ,
+.BI "                 uintptr_t *" refcook ", uintptr_t *" defcook ,
+.BI "                 La_i86_regs *" regs ", unsigned int *" flags ,
+.BI "                 const char *" symname ", long int *" framesizep );
+.fi
+
+This function is invoked just before a PLT entry is called,
+between two shared objects that have been marked for binding notification.
+
+The
+.IR sym ,
+.IR ndx ,
+.IR refcook ,
+.IR defcook ,
+and
+.IR symname
+are as for
+.BR la_symbind* ().
+
+The
+.I regs
+argument points to a structure (defined in
+.IR <link.h> )
+containing the values of registers to be used for
+the call to this PLT entry.
+
+The
+.I flags
+argument points to a bit mask that conveys information about,
+and can be used to modify subsequent auditing of, this PLT entry, as for
+.BR la_symbind* ().
+
+.\" FIXME . Is the following correct?
+The
+.IR framesizep
+argument points to a
+.IR "long\ int"
+buffer that can be used to explicitly set the frame size
+used for the call to this PLT entry.
+If different
+.BR la_pltenter ()
+invocations for this symbol return different values,
+then the maximum returned value is used.
+The
+.BR la_pltexit ()
+function is called only if this buffer is
+explicitly set to a suitable value.
+
+The return value of
+.BR la_pltenter ()
+is as for
+.BR la_symbind* ().
+.SS la_pltexit()
+The precise name and argument types for this function
+depend on the hardware platform.
+(The appropriate definition is supplied by
+.IR <link.h> .)
+Here is the definition for x86-32:
+.nf
+
+.BI "unsigned int la_i86_gnu_pltexit(Elf32_Sym *" sym ", unsigned int " ndx ,
+.BI "                 uintptr_t *" refcook ", uintptr_t *" defcook ,
+.BI "                 const La_i86_regs *" inregs ", La_i86_retval *" outregs ,
+.BI "                 const char *" symname );
+.fi
+.PP
+This function is called when a PLT entry,
+made between two shared objects that have been marked
+for binding notification, returns.
+The function is called just before control returns to the caller
+of the PLT entry.
+.PP
+The
+.IR sym ,
+.IR ndx ,
+.IR refcook ,
+.IR defcook ,
+and
+.IR symname
+are as for
+.BR la_symbind* ().
+
+The
+.I inregs
+argument points to a structure (defined in
+.IR <link.h> )
+containing the values of registers used for the call to this PLT entry.
+The
+.I outregs
+argument points to a structure (defined in
+.IR <link.h> )
+containing return values for the call to this PLT entry.
+These values can be modified by the caller,
+and the changes will be visible to the caller of the PLT entry.
+
+In the current GNU implementation, the return value of
+.BR la_pltexit ()
+is ignored.
+.\" This differs from Solaris, where an audit library that monitors
+.\" symbol binding should return the value of the 'retval' argument
+.\" (not provided by GNU, but equivalent to returning outregs->lrv_eax
+.\" on (say) x86-32).
+.SH CONFORMING TO
+This API is nonstandard, but very similar to the Solaris API,
+described in the Solaris
+.IR "Linker and Libraries Guide" ,
+in the chapter
+.IR "Runtime Linker Auditing Interface" .
+.SH NOTES
+Note the following differences from the Solaris dynamic linker
+auditing API:
+.IP * 3
+The Solaris
+.BR la_objfilter ()
+interface is not supported by the GNU implementation.
+.IP *
+The Solaris
+.BR la_symbind32 ()
+and
+.BR la_pltexit ()
+functions do not provide a
+.I symname
+argument.
+.IP *
+The Solaris
+.BR la_pltexit ()
+function does not provide
+.I inregs
+and
+.I outregs
+arguments (but does provide a
+.IR retval
+argument with the function return value).
+.SH BUGS
+In glibc versions up to and include 2.9,
+specifying more than one audit library in
+.B LD_AUDIT
+results in a run-time crash.
+This is reportedly fixed in glibc 2.10.
+.\" FIXME . Specifying multiple audit libraries doesn't work on GNU.
+.\" My simple tests on Solaris work okay, but not on Linux -- mtk, Jan 2009
+.\" glibc bug filed: http://sourceware.org/bugzilla/show_bug.cgi?id=9733
+.\" Reportedly, this is fixed on 16 Mar 2009 (i.e., for glibc 2.10)
+.SH EXAMPLE
+.nf
+#include <link.h>
+#include <stdio.h>
+
+unsigned int
+la_version(unsigned int version)
+{
+    printf("la_version(): %d\\n", version);
+
+    return version;
+}
+
+char *
+la_objsearch(const char *name, uintptr_t *cookie, unsigned int flag)
+{
+    printf("la_objsearch(): name = %s; cookie = %p", name, cookie);
+    printf("; flag = %s\\n",
+            (flag == LA_SER_ORIG) ?    "LA_SER_ORIG" :
+            (flag == LA_SER_LIBPATH) ? "LA_SER_LIBPATH" :
+            (flag == LA_SER_RUNPATH) ? "LA_SER_RUNPATH" :
+            (flag == LA_SER_DEFAULT) ? "LA_SER_DEFAULT" :
+            (flag == LA_SER_CONFIG) ?  "LA_SER_CONFIG" :
+            (flag == LA_SER_SECURE) ?  "LA_SER_SECURE" :
+            "???");
+
+    return name;
+}
+
+void
+la_activity (uintptr_t *cookie, unsigned int flag)
+{
+    printf("la_activity(): cookie = %p; flag = %s\\n", cookie,
+            (flag == LA_ACT_CONSISTENT) ? "LA_ACT_CONSISTENT" :
+            (flag == LA_ACT_ADD) ?        "LA_ACT_ADD" :
+            (flag == LA_ACT_DELETE) ?     "LA_ACT_DELETE" :
+            "???");
+}
+
+unsigned int
+la_objopen(struct link_map *map, Lmid_t lmid, uintptr_t *cookie)
+{
+    printf("la_objopen(): loading \\"%s\\"; lmid = %s; cookie=%p\\n",
+            map\->l_name,
+            (lmid == LM_ID_BASE) ?  "LM_ID_BASE" :
+            (lmid == LM_ID_NEWLM) ? "LM_ID_NEWLM" :
+            "???",
+            cookie);
+
+    return LA_FLG_BINDTO | LA_FLG_BINDFROM;
+}
+
+unsigned int
+la_objclose (uintptr_t *cookie)
+{
+    printf("la_objclose(): %p\\n", cookie);
+
+    return 0;
+}
+
+void
+la_preinit(uintptr_t *cookie)
+{
+    printf("la_preinit(): %p\\n", cookie);
+}
+
+uintptr_t
+la_symbind32(Elf32_Sym *sym, unsigned int ndx, uintptr_t *refcook,
+        uintptr_t *defcook, unsigned int *flags, const char *symname)
+{
+    printf("la_symbind32(): symname = %s; sym\->st_value = %p\\n",
+            symname, sym\->st_value);
+    printf("        ndx = %d; flags = 0x%x", ndx, *flags);
+    printf("; refcook = %p; defcook = %p\\n", refcook, defcook);
+
+    return sym\->st_value;
+}
+
+uintptr_t
+la_symbind64(Elf64_Sym *sym, unsigned int ndx, uintptr_t *refcook,
+        uintptr_t *defcook, unsigned int *flags, const char *symname)
+{
+    printf("la_symbind64(): symname = %s; sym\->st_value = %p\\n",
+            symname, sym\->st_value);
+    printf("        ndx = %d; flags = 0x%x", ndx, *flags);
+    printf("; refcook = %p; defcook = %p\\n", refcook, defcook);
+
+    return sym\->st_value;
+}
+
+Elf32_Addr
+la_i86_gnu_pltenter(Elf32_Sym *sym, unsigned int ndx,
+        uintptr_t *refcook, uintptr_t *defcook, La_i86_regs *regs,
+        unsigned int *flags, const char *symname, long int *framesizep)
+{
+    printf("la_i86_gnu_pltenter(): %s (%p)\\n", symname, sym\->st_value);
+
+    return sym\->st_value;
+}
+.fi
+.SH SEE ALSO
+.BR ldd (1),
+.BR dlopen (3),
+.BR ld.so (8),
+.BR ldconfig (8)

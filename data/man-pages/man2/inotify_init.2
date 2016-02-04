@@ -1,0 +1,109 @@
+.\" Copyright (C) 2005 Robert Love
+.\" and Copyright (C) 2008, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2005-07-19 Robert Love <rlove@rlove.org> - initial version
+.\" 2006-02-07 mtk, minor changes
+.\" 2008-10-10 mtk: add description of inotify_init1()
+.\"
+.TH INOTIFY_INIT 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+inotify_init, inotify_init1 \- initialize an inotify instance
+.SH SYNOPSIS
+.nf
+.B #include <sys/inotify.h>
+.sp
+.B "int inotify_init(void);"
+.BI "int inotify_init1(int " flags );
+.fi
+.SH DESCRIPTION
+For an overview of the inotify API, see
+.BR inotify (7).
+
+.BR inotify_init ()
+initializes a new inotify instance and returns a file descriptor associated
+with a new inotify event queue.
+
+If
+.I flags
+is 0, then
+.BR inotify_init1 ()
+is the same as
+.BR inotify_init ().
+The following values can be bitwise ORed in
+.IR flags
+to obtain different behavior:
+.TP 12
+.B IN_NONBLOCK
+Set the
+.BR O_NONBLOCK
+file status flag on the new open file description.
+Using this flag saves extra calls to
+.BR fcntl (2)
+to achieve the same result.
+.TP
+.B IN_CLOEXEC
+Set the close-on-exec
+.RB ( FD_CLOEXEC )
+flag on the new file descriptor.
+See the description of the
+.B O_CLOEXEC
+flag in
+.BR open (2)
+for reasons why this may be useful.
+.SH RETURN VALUE
+On success, these system calls return a new file descriptor.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+.RB ( inotify_init1 ())
+An invalid value was specified in
+.IR flags .
+.TP
+.B EMFILE
+The user limit on the total number of inotify instances has been reached.
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENOMEM
+Insufficient kernel memory is available.
+.SH VERSIONS
+.BR inotify_init ()
+first appeared in Linux 2.6.13;
+library support was added to glibc in version 2.4.
+.BR inotify_init1 ()
+was added in Linux 2.6.27;
+library support was added to glibc in version 2.9.
+.SH CONFORMING TO
+These system calls are Linux-specific.
+.SH SEE ALSO
+.BR inotify_add_watch (2),
+.BR inotify_rm_watch (2),
+.BR inotify (7)

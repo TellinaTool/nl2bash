@@ -1,0 +1,314 @@
+.\" Copyright 1995 by Jim Van Zandt <jrv@vanzandt.mv.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH TSEARCH 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+tsearch, tfind, tdelete, twalk, tdestroy \- manage a binary tree
+.SH SYNOPSIS
+.nf
+.B #include <search.h>
+.sp
+.BI "void *tsearch(const void *" key ", void **" rootp ,
+.BI "                int (*" compar ")(const void *, const void *));"
+.sp
+.BI "void *tfind(const void *" key ", void *const *" rootp ,
+.BI "                int (*" compar ")(const void *, const void *));"
+.sp
+.BI "void *tdelete(const void *" key ", void **" rootp ,
+.BI "                int (*" compar ")(const void *, const void *));"
+.sp
+.BI "void twalk(const void *" root ", void (*" action ")(const void *" nodep ,
+.BI "                                   const VISIT " which ,
+.BI "                                   const int " depth "));"
+.sp
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.br
+.B #include <search.h>
+.sp
+.BI "void tdestroy(void *" root ", void (*" free_node ")(void *" nodep ));
+.fi
+.SH DESCRIPTION
+.BR tsearch (),
+.BR tfind (),
+.BR twalk (),
+and
+.BR tdelete ()
+manage a
+binary tree.
+They are generalized from Knuth (6.2.2) Algorithm T.
+The first field in each node of the tree is a pointer to the
+corresponding data item.
+(The calling program must store the actual data.)
+.IR compar
+points to a comparison routine, which takes
+pointers to two items.
+It should return an integer which is negative,
+zero, or positive, depending on whether the first item is less than,
+equal to, or greater than the second.
+.PP
+.BR tsearch ()
+searches the tree for an item.
+.IR key
+points to the item to be searched for.
+.IR rootp
+points to a variable which points to the root of the tree.
+If the tree is empty,
+then the variable that
+.IR rootp
+points to should be set to NULL.
+If the item is found in the tree, then
+.BR tsearch ()
+returns a pointer
+to it.
+If it is not found, then
+.BR tsearch ()
+adds it, and returns a
+pointer to the newly added item.
+.PP
+.BR tfind ()
+is like
+.BR tsearch (),
+except that if the item is not
+found, then
+.BR tfind ()
+returns NULL.
+.PP
+.BR tdelete ()
+deletes an item from the tree.
+Its arguments are the same as for
+.BR tsearch ().
+.PP
+.BR twalk ()
+performs depth-first, left-to-right traversal of a binary
+tree.
+.IR root
+points to the starting node for the traversal.
+If that node is not the root, then only part of the tree will be visited.
+.BR twalk ()
+calls the user function
+.IR action
+each time a node is
+visited (that is, three times for an internal node, and once for a
+leaf).
+.IR action ,
+in turn, takes three arguments.
+The first argument is a pointer to the node being visited.
+The structure of the node is unspecified,
+but it is possible to cast the pointer to a pointer-to-pointer-to-element
+in order to access the element stored within the node.
+The application must not modify the structure pointed to by this argument.
+The second argument is an integer which
+takes one of the values
+.BR preorder ,
+.BR postorder ,
+or
+.BR endorder
+depending on whether this is the first, second, or
+third visit to the internal node,
+or the value
+.BR leaf
+if this is the single visit to a leaf node.
+(These symbols are defined in
+.IR <search.h> .)
+The third argument is the depth of the node;
+the root node has depth zero.
+.PP
+(More commonly,
+.BR preorder ,
+.BR postorder ,
+and
+.BR endorder
+are known as
+.BR preorder ,
+.BR inorder ,
+and
+.BR postorder :
+before visiting the children, after the first and before the second,
+and after visiting the children.
+Thus, the choice of name
+.BR post\%order
+is rather confusing.)
+.PP
+.BR tdestroy ()
+removes the whole tree pointed to by
+.IR root ,
+freeing all resources allocated by the
+.BR tsearch ()
+function.
+For the data in each tree node the function
+.IR free_node
+is called.
+The pointer to the data is passed as the argument to the function.
+If no such work is necessary,
+.IR free_node
+must point to a function
+doing nothing.
+.SH RETURN VALUE
+.BR tsearch ()
+returns a pointer to a matching item in the tree, or to
+the newly added item, or NULL if there was insufficient memory
+to add the item.
+.BR tfind ()
+returns a pointer to the item, or
+NULL if no match is found.
+If there are multiple elements that match the key,
+the element returned is unspecified.
+.PP
+.BR tdelete ()
+returns a pointer to the parent of the item deleted, or
+NULL if the item was not found.
+.PP
+.BR tsearch (),
+.BR tfind (),
+and
+.BR tdelete ()
+also
+return NULL if
+.IR rootp
+was NULL on entry.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR tsearch (),
+.BR tfind (),
+.br
+.BR tdelete ()
+T}	Thread safety	MT-Safe race:rootp
+T{
+.BR twalk ()
+T}	Thread safety	MT-Safe race:root
+T{
+.BR tdestroy ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4.
+The function
+.BR tdestroy ()
+is a GNU extension.
+.SH NOTES
+.BR twalk ()
+takes a pointer to the root, while the other functions
+take a pointer to a variable which points to the root.
+.PP
+.BR tdelete ()
+frees the memory required for the node in the tree.
+The user is responsible for freeing the memory for the corresponding
+data.
+.PP
+The example program depends on the fact that
+.BR twalk ()
+makes no
+further reference to a node after calling the user function with
+argument "endorder" or "leaf".
+This works with the GNU library
+implementation, but is not in the System V documentation.
+.SH EXAMPLE
+The following program inserts twelve random numbers into a binary
+tree, where duplicate numbers are collapsed, then prints the numbers
+in order.
+.sp
+.nf
+#define _GNU_SOURCE     /* Expose declaration of tdestroy() */
+#include <search.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+static void *root = NULL;
+
+static void *
+xmalloc(unsigned n)
+{
+    void *p;
+    p = malloc(n);
+    if (p)
+        return p;
+    fprintf(stderr, "insufficient memory\\n");
+    exit(EXIT_FAILURE);
+}
+
+static int
+compare(const void *pa, const void *pb)
+{
+    if (*(int *) pa < *(int *) pb)
+        return \-1;
+    if (*(int *) pa > *(int *) pb)
+        return 1;
+    return 0;
+}
+
+static void
+action(const void *nodep, const VISIT which, const int depth)
+{
+    int *datap;
+
+    switch (which) {
+    case preorder:
+        break;
+    case postorder:
+        datap = *(int **) nodep;
+        printf("%6d\\n", *datap);
+        break;
+    case endorder:
+        break;
+    case leaf:
+        datap = *(int **) nodep;
+        printf("%6d\\n", *datap);
+        break;
+    }
+}
+
+int
+main(void)
+{
+    int i, *ptr;
+    void *val;
+
+    srand(time(NULL));
+    for (i = 0; i < 12; i++) {
+        ptr = xmalloc(sizeof(int));
+        *ptr = rand() & 0xff;
+        val = tsearch((void *) ptr, &root, compare);
+        if (val == NULL)
+            exit(EXIT_FAILURE);
+        else if ((*(int **) val) != ptr)
+            free(ptr);
+    }
+    twalk(root, action);
+    tdestroy(root, free);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR bsearch (3),
+.BR hsearch (3),
+.BR lsearch (3),
+.BR qsort (3)

@@ -1,0 +1,102 @@
+.\" Copyright (C) 2006 Justin Pryzby <pryzbyj@justinpryzby.com>
+.\"     and Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(PERMISSIVE_MISC)
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+.\" CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+.\" TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+.\" SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+.\" %%%LICENSE_END
+.\"
+.\" References:
+.\"   /usr/lib/gcc/i486-linux-gnu/4.1.1/include/stddef.h
+.\"   glibc-doc
+.TH OFFSETOF 3 2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+offsetof \- offset of a structure member
+.SH SYNOPSIS
+.nf
+.B #include <stddef.h>
+.sp
+.BI "size_t offsetof(" type ", " member );
+.fi
+.SH DESCRIPTION
+The macro
+.BR offsetof ()
+returns the offset of the field
+.I member
+from the start of the structure
+.IR type .
+
+This macro is useful because the sizes of the fields that compose
+a structure can vary across implementations,
+and compilers may insert different numbers of padding
+bytes between fields.
+Consequently, an element's offset is not necessarily
+given by the sum of the sizes of the previous elements.
+
+A compiler error will result if
+.I member
+is not aligned to a byte boundary
+(i.e., it is a bit field).
+.SH RETURN VALUE
+.BR offsetof ()
+returns the offset of the given
+.I member
+within the given
+.IR type ,
+in units of bytes.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99.
+.SH EXAMPLE
+On a Linux/i386 system, when compiled using the default
+.BR gcc (1)
+options, the program below produces the following output:
+.in +4n
+.nf
+
+.RB "$" " ./a.out"
+offsets: i=0; c=4; d=8 a=16
+sizeof(struct s)=16
+.fi
+.SS Program source
+\&
+.nf
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(void)
+{
+    struct s {
+        int i;
+        char c;
+        double d;
+        char a[];
+    };
+
+    /* Output is compiler dependent */
+
+    printf("offsets: i=%zd; c=%zd; d=%zd a=%zd\\n",
+            offsetof(struct s, i), offsetof(struct s, c),
+            offsetof(struct s, d), offsetof(struct s, a));
+    printf("sizeof(struct s)=%zd\\n", sizeof(struct s));
+
+    exit(EXIT_SUCCESS);
+}
+.fi

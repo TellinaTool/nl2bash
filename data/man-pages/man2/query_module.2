@@ -1,0 +1,199 @@
+.\" Copyright (C) 1996 Free Software Foundation, Inc.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" This file is distributed according to the GNU General Public License.
+.\" %%%LICENSE_END
+.\"
+.\" 2006-02-09, some reformatting by Luc Van Oostenryck; some
+.\" reformatting and rewordings by mtk
+.\"
+.TH QUERY_MODULE 2 2014-05-10 "Linux" "Linux Programmer's Manual"
+.SH NAME
+query_module \- query the kernel for various bits pertaining to modules
+.SH SYNOPSIS
+.nf
+.B #include <linux/module.h>
+.sp
+.BI "int query_module(const char *" name ", int " which ", void *" buf ,
+.BI "                 size_t " bufsize ", size_t *" ret );
+.fi
+
+.IR Note :
+No declaration of this function is provided in glibc headers; see NOTES.
+.SH DESCRIPTION
+.IR Note :
+This system call is present only in kernels before Linux 2.6.
+
+.BR query_module ()
+requests information from the kernel about loadable modules.
+The returned information is placed in the buffer pointed to by
+.IR buf .
+The caller must specify the size of
+.I buf
+in
+.IR bufsize .
+The precise nature and format of the returned information
+depend on the operation specified by
+.IR which .
+Some operations require
+.I name
+to identify a currently loaded module, some allow
+.I name
+to be NULL, indicating the kernel proper.
+
+The following values can be specified for
+.IR which :
+.TP
+.B 0
+Returns success, if the kernel supports
+.BR query_module ().
+Used to probe for availability of the system call.
+.TP
+.B QM_MODULES
+Returns the names of all loaded modules.
+The returned buffer consists of a sequence of null-terminated strings;
+.I ret
+is set to the number of
+modules.
+.\" ret is set on ENOSPC
+.TP
+.B QM_DEPS
+Returns the names of all modules used by the indicated module.
+The returned buffer consists of a sequence of null-terminated strings;
+.I ret
+is set to the number of modules.
+.\" ret is set on ENOSPC
+.TP
+.B QM_REFS
+Returns the names of all modules using the indicated module.
+This is the inverse of
+.BR QM_DEPS .
+The returned buffer consists of a sequence of null-terminated strings;
+.I ret
+is set to the number of modules.
+.\" ret is set on ENOSPC
+.TP
+.B QM_SYMBOLS
+Returns the symbols and values exported by the kernel or the indicated
+module.
+The returned buffer is an array of structures of the following form
+.\" ret is set on ENOSPC
+.in +4n
+.nf
+
+struct module_symbol {
+    unsigned long value;
+    unsigned long name;
+};
+.fi
+.in
+.IP
+followed by null-terminated strings.
+The value of
+.I name
+is the character offset of the string relative to the start of
+.IR buf ;
+.I ret
+is set to the number of symbols.
+.TP
+.B QM_INFO
+Returns miscellaneous information about the indicated module.
+The output buffer format is:
+.in +4n
+.nf
+
+struct module_info {
+    unsigned long address;
+    unsigned long size;
+    unsigned long flags;
+};
+.fi
+.in
+.IP
+where
+.I address
+is the kernel address at which the module resides,
+.I size
+is the size of the module in bytes, and
+.I flags
+is a mask of
+.BR MOD_RUNNING ,
+.BR MOD_AUTOCLEAN ,
+and so on, that indicates the current status of the module
+(see the Linux kernel source file
+.IR include/linux/module.h ).
+.I ret
+is set to the size of the
+.I module_info
+structure.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EFAULT
+At least one of
+.IR name ,
+.IR buf ,
+or
+.I ret
+was outside the program's accessible address space.
+.TP
+.B EINVAL
+Invalid
+.IR which ;
+or
+.I name
+is NULL (indicating "the kernel"),
+but this is not permitted with the specified value of
+.IR which .
+.\" Not permitted with QM_DEPS, QM_REFS, or QM_INFO.
+.TP
+.B ENOENT
+No module by that
+.I name
+exists.
+.TP
+.B ENOSPC
+The buffer size provided was too small.
+.I ret
+is set to the minimum size needed.
+.TP
+.B ENOSYS
+.BR query_module ()
+is not supported in this version of the kernel
+(e.g., the kernel is version 2.6 or later).
+.SH VERSIONS
+This system call is present on Linux only up until kernel 2.4;
+it was removed in Linux 2.6.
+.\" Removed in Linux 2.5.48
+.SH CONFORMING TO
+.BR query_module ()
+is Linux-specific.
+.SH NOTES
+Some of the information that was formerly available via
+.BR query_module ()
+can be obtained from
+.IR /proc/modules ,
+.IR /proc/kallsyms ,
+and the files under the directory
+.IR /sys/module .
+
+The
+.BR query_module ()
+system call is not supported by glibc.
+No declaration is provided in glibc headers, but,
+through a quirk of history, glibc does export an ABI for this system call.
+Therefore, in order to employ this system call,
+it is sufficient to manually declare the interface in your code;
+alternatively, you can invoke the system call using
+.BR syscall (2).
+.SH SEE ALSO
+.BR create_module (2),
+.BR delete_module (2),
+.BR get_kernel_syms (2),
+.BR init_module (2),
+.BR lsmod (8),
+.BR modinfo (8)

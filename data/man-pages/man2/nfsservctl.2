@@ -1,0 +1,63 @@
+.\" %%%LICENSE_START(PUBLIC_DOMAIN)
+.\" This text is in the public domain.
+.\" %%%LICENSE_END
+.\"
+.\" FIXME . The description of nfsservctl() on this page
+.\" is woefully thin.
+.\"
+.TH NFSSERVCTL 2 2015-05-07 "Linux" "Linux Programmer's Manual"
+.SH NAME
+nfsservctl \- syscall interface to kernel nfs daemon
+.SH SYNOPSIS
+.nf
+.B #include <linux/nfsd/syscall.h>
+.sp
+.BI "long nfsservctl(int " cmd ", struct nfsctl_arg *" argp ,
+.BI "                union nfsctl_res *" resp );
+.fi
+.SH DESCRIPTION
+.IR Note :
+Since Linux 3.1, this system call no longer exists.
+It has been replaced by a set of files in the
+.I nfsd
+filesystem; see
+.BR nfsd (7).
+
+.nf
+/*
+ * These are the commands understood by nfsctl().
+ */
+#define NFSCTL_SVC          0    /* This is a server process. */
+#define NFSCTL_ADDCLIENT    1    /* Add an NFS client. */
+#define NFSCTL_DELCLIENT    2    /* Remove an NFS client. */
+#define NFSCTL_EXPORT       3    /* Export a filesystem. */
+#define NFSCTL_UNEXPORT     4    /* Unexport a filesystem. */
+#define NFSCTL_UGIDUPDATE   5    /* Update a client's UID/GID map
+                                    (only in Linux 2.4.x and earlier). */
+#define NFSCTL_GETFH        6    /* Get a file handle (used by mountd)
+                                    (only in Linux 2.4.x and earlier). */
+
+struct nfsctl_arg {
+    int                       ca_version;     /* safeguard */
+    union {
+        struct nfsctl_svc     u_svc;
+        struct nfsctl_client  u_client;
+        struct nfsctl_export  u_export;
+        struct nfsctl_uidmap  u_umap;
+        struct nfsctl_fhparm  u_getfh;
+        unsigned int          u_debug;
+    } u;
+}
+
+union nfsctl_res {
+        struct knfs_fh          cr_getfh;
+        unsigned int            cr_debug;
+};
+.fi
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH CONFORMING TO
+This call is Linux-specific.

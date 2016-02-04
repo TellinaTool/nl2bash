@@ -1,0 +1,90 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" Heavily based on glibc infopages, copyright Free Software Foundation
+.\"
+.\" aeb, 2003, polished a little
+.TH MEMPCPY 3 2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+mempcpy, wmempcpy  \- copy memory area
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.br
+.B #include <string.h>
+.sp
+.BI "void *mempcpy(void *" dest ", const void *" src ", size_t " n );
+.sp
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.br
+.B #include <wchar.h>
+.sp
+.BI "wchar_t *wmempcpy(wchar_t *" dest ", const wchar_t *" src ", size_t " n );
+.fi
+.SH DESCRIPTION
+The
+.BR mempcpy ()
+function is nearly identical to the
+.BR memcpy (3)
+function.
+It copies
+.I n
+bytes from the object beginning at
+.I src
+into the object pointed to by
+.IR dest .
+But instead of returning the value of
+.I dest
+it returns a pointer to the byte following the last written byte.
+.PP
+This function is useful in situations where a number of objects
+shall be copied to consecutive memory positions.
+.PP
+The
+.BR wmempcpy ()
+function is identical but takes
+.I wchar_t
+type arguments and copies
+.I n
+wide characters.
+.SH RETURN VALUE
+.I dest
++
+.IR n .
+.SH VERSIONS
+.BR mempcpy ()
+first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw21 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR mempcpy (),
+.BR wmempcpy ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+This function is a GNU extension.
+.SH EXAMPLE
+.nf
+void *
+combine(void *o1, size_t s1, void *o2, size_t s2)
+{
+    void *result = malloc(s1 + s2);
+    if (result != NULL)
+        mempcpy(mempcpy(result, o1, s1), o2, s2);
+    return result;
+}
+.fi
+.SH SEE ALSO
+.BR memccpy (3),
+.BR memcpy (3),
+.BR memmove (3),
+.BR wmemcpy (3)

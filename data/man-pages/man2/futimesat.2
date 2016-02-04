@@ -1,0 +1,133 @@
+.\" This manpage is Copyright (C) 2006, Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH FUTIMESAT 2 2012-05-10 "Linux" "Linux Programmer's Manual"
+.SH NAME
+futimesat \- change timestamps of a file relative to a \
+directory file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <fcntl.h>           /* Definition of AT_* constants */
+.B #include <sys/time.h>
+.sp
+.BI "int futimesat(int " dirfd ", const char *" pathname ,
+.BI "              const struct timeval " times [2]);
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR futimesat ():
+_GNU_SOURCE
+.SH DESCRIPTION
+This system call is obsolete.
+Use
+.BR utimensat (2)
+instead.
+
+The
+.BR futimesat ()
+system call operates in exactly the same way as
+.BR utimes (2),
+except for the differences described in this manual page.
+
+If the pathname given in
+.I pathname
+is relative, then it is interpreted relative to the directory
+referred to by the file descriptor
+.I dirfd
+(rather than relative to the current working directory of
+the calling process, as is done by
+.BR utimes (2)
+for a relative pathname).
+
+If
+.I pathname
+is relative and
+.I dirfd
+is the special value
+.BR AT_FDCWD ,
+then
+.I pathname
+is interpreted relative to the current working
+directory of the calling process (like
+.BR utimes (2)).
+
+If
+.I pathname
+is absolute, then
+.I dirfd
+is ignored.
+.SH RETURN VALUE
+On success,
+.BR futimesat ()
+returns a 0.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+The same errors that occur for
+.BR utimes (2)
+can also occur for
+.BR futimesat ().
+The following additional errors can occur for
+.BR futimesat ():
+.TP
+.B EBADF
+.I dirfd
+is not a valid file descriptor.
+.TP
+.B ENOTDIR
+.I pathname
+is relative and
+.I dirfd
+is a file descriptor referring to a file other than a directory.
+.SH VERSIONS
+.BR futimesat ()
+was added to Linux in kernel 2.6.16;
+library support was added to glibc in version 2.4.
+.SH CONFORMING TO
+This system call is nonstandard.
+It was implemented from a specification that was proposed for POSIX.1,
+but that specification was replaced by the one for
+.BR utimensat (2).
+
+A similar system call exists on Solaris.
+.SH NOTES
+.SS Glibc notes
+If
+.I pathname
+is NULL, then the glibc
+.BR futimesat ()
+wrapper function updates the times for the file referred to by
+.IR dirfd .
+.\" The Solaris futimesat() also has this strangeness.
+.SH SEE ALSO
+.BR stat (2),
+.BR utimensat (2),
+.BR utimes (2),
+.BR futimes (3),
+.BR path_resolution (7)

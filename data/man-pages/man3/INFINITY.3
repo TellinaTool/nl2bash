@@ -1,0 +1,103 @@
+.\" Copyright 2004 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH INFINITY 3  2007-07-26 "" "Linux Programmer's Manual"
+.SH NAME
+INFINITY, NAN, HUGE_VAL, HUGE_VALF, HUGE_VALL \- floating-point constants
+.SH SYNOPSIS
+.nf
+.BR "#define _ISOC99_SOURCE" "      /* See feature_test_macros(7) */"
+.br
+.B #include <math.h>
+.sp
+.B INFINITY
+.sp
+.B NAN
+.sp
+.B HUGE_VAL
+.br
+.B HUGE_VALF
+.br
+.B HUGE_VALL
+.fi
+.SH DESCRIPTION
+The macro
+.B INFINITY
+expands to a
+.I float
+constant representing positive infinity.
+
+The macro
+.B NAN
+expands to a
+.I float
+constant representing a quiet NaN
+(when supported).
+A
+.I quiet
+NaN is a NaN ("not-a-number") that does not raise exceptions
+when it is used in arithmetic.
+The opposite is a
+.I signaling
+NaN.
+See IEC 60559:1989.
+
+The macros
+.BR HUGE_VAL ,
+.BR HUGE_VALF ,
+.B HUGE_VALL
+expand to constants of types
+.IR double ,
+.I float
+and
+.IR "long double" ,
+respectively,
+that represent a large positive value, possibly positive infinity.
+.SH CONFORMING TO
+C99.
+.SH AVAILABILITY
+On a glibc system, the macro
+.B HUGE_VAL
+is always available.
+Availability of the
+.B NAN
+macro can be tested using
+.BR "#ifdef NAN" ,
+and similarly for
+.BR INFINITY ,
+.BR HUGE_VALF ,
+.BR HUGE_VALL .
+They will be defined by
+.I <math.h>
+if
+.B _ISOC99_SOURCE
+or
+.B _GNU_SOURCE
+is defined, or
+.B __STDC_VERSION__
+is defined
+and has a value not less than 199901L.
+.SH SEE ALSO
+.BR fpclassify (3),
+.BR math_error (7)

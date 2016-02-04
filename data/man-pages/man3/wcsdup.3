@@ -1,0 +1,90 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"
+.TH WCSDUP 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcsdup \- duplicate a wide-character string
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "wchar_t *wcsdup(const wchar_t *" s );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR wcsdup ():
+.PD 0
+.ad l
+.RS 4
+.TP 4
+Since glibc 2.10:
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP
+Before glibc 2.10:
+_GNU_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+The
+.BR wcsdup ()
+function is the wide-character equivalent
+of the
+.BR strdup (3)
+function.
+It allocates and returns a new wide-character string whose initial
+contents is a duplicate of the wide-character string pointed to by
+.IR s .
+.PP
+Memory for the new wide-character string is
+obtained with
+.BR malloc (3),
+and should be freed with
+.BR free (3).
+.SH RETURN VALUE
+On success,
+.BR wcsdup ()
+returns a pointer to the new wide-character string.
+On error, it returns \-1, with
+.I errno
+set to indicate the cause of the error.
+.SH ERRORS
+.TP
+.B ENOMEM
+Insufficient memory available to allocate duplicate string.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcsdup ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2008.
+This function is not specified in POSIX.1-2001,
+and is not widely available on other systems.
+.\" present in libc5 and glibc 2.0 and later
+.SH SEE ALSO
+.BR strdup (3),
+.BR wcscpy (3)

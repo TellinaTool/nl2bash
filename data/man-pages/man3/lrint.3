@@ -1,0 +1,136 @@
+.\" Copyright 2001 Andries Brouwer <aeb@cwi.nl>.
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH LRINT 3  2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+lrint, lrintf, lrintl, llrint, llrintf, llrintl \- round to nearest integer
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "long int lrint(double " x );
+.br
+.BI "long int lrintf(float " x );
+.br
+.BI "long int lrintl(long double " x );
+.sp
+.BI "long long int llrint(double " x );
+.br
+.BI "long long int llrintf(float " x );
+.br
+.BI "long long int llrintl(long double " x );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+All functions shown above:
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad
+.SH DESCRIPTION
+These functions round their argument to the nearest integer value,
+using the current rounding direction (see
+.BR fesetround (3)).
+
+Note that unlike the
+.BR rint (3)
+family of functions,
+the return type of these functions differs from
+that of their arguments.
+.SH RETURN VALUE
+These functions return the rounded integer value.
+
+If
+.I x
+is a NaN or an infinity,
+or the rounded value is too large to be stored in a
+.I long
+.RI ( "long long"
+in the case of the
+.B ll*
+functions),
+then a domain error occurs, and the return value is unspecified.
+.\" The return value is -(LONG_MAX - 1) or -(LLONG_MAX -1)
+.SH ERRORS
+See
+.BR math_error (7)
+for information on how to determine whether an error has occurred
+when calling these functions.
+.PP
+The following errors can occur:
+.TP
+Domain error: \fIx\fP is a NaN or infinite, or the rounded value is too large
+.\" .I errno
+.\" is set to
+.\" .BR EDOM .
+An invalid floating-point exception
+.RB ( FE_INVALID )
+is raised.
+.PP
+These functions do not set
+.IR errno .
+.\" FIXME . Is it intentional that these functions do not set errno?
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6798
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw30 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR lrint (),
+.BR lrintf (),
+.BR lrintl (),
+.br
+.BR llrint (),
+.BR llrintf (),
+.BR llrintl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+.SH SEE ALSO
+.BR ceil (3),
+.BR floor (3),
+.BR lround (3),
+.BR nearbyint (3),
+.BR rint (3),
+.BR round (3)

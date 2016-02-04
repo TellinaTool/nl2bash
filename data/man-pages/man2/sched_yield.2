@@ -1,0 +1,80 @@
+.\" Copyright (C) Tom Bjorkholm & Markus Kuhn, 1996
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 1996-04-01 Tom Bjorkholm <tomb@mydata.se>
+.\"            First version written
+.\" 1996-04-10 Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"            revision
+.\"
+.TH SCHED_YIELD 2 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sched_yield \- yield the processor
+.SH SYNOPSIS
+.B #include <sched.h>
+.sp
+.B int sched_yield(void);
+.SH DESCRIPTION
+.BR sched_yield ()
+causes the calling thread to relinquish the CPU.
+The thread is moved to the end of the queue for its static
+priority and a new thread gets to run.
+.SH RETURN VALUE
+On success,
+.BR sched_yield ()
+returns 0.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+In the Linux implementation,
+.BR sched_yield ()
+always succeeds.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+If the calling thread is the only thread in the highest
+priority list at that time,
+it will continue to run after a call to
+.BR sched_yield ().
+
+POSIX systems on which
+.BR sched_yield ()
+is available define
+.B _POSIX_PRIORITY_SCHEDULING
+in
+.IR <unistd.h> .
+
+Strategic calls to
+.BR sched_yield ()
+can improve performance by giving other threads or processes
+a chance to run when (heavily) contended resources (e.g., mutexes)
+have been released by the caller.
+Avoid calling
+.BR sched_yield ()
+unnecessarily or inappropriately
+(e.g., when resources needed by other
+schedulable threads are still held by the caller),
+since doing so will result in unnecessary context switches,
+which will degrade system performance.
+.SH SEE ALSO
+.BR sched (7)

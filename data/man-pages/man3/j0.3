@@ -1,0 +1,197 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:08:17 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2002-08-25, aeb
+.\" Modified 2004-11-12 as per suggestion by Fabian Kreutz/AEB
+.\" 2008-07-24, mtk, moved yxx() material into separate y0.3 page
+.\"
+.TH J0 3  2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+j0, j0f, j0l, j1, j1f, j1l, jn, jnf, jnl \-
+Bessel functions of the first kind
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.fi
+.BI "double j0(double " x );
+.br
+.BI "double j1(double " x );
+.br
+.BI "double jn(int " n ", double " x );
+.sp
+.BI "float j0f(float " x );
+.br
+.BI "float j1f(float " x );
+.br
+.BI "float jnf(int " n ", float " x );
+.sp
+.BI "long double j0l(long double " x );
+.br
+.BI "long double j1l(long double " x );
+.br
+.BI "long double jnl(int " n ", long double " x );
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR j0 (),
+.BR j1 (),
+.BR jn ():
+.RS 4
+_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE
+.RE
+.br
+.BR j0f (),
+.BR j0l (),
+.BR j1f (),
+.BR j1l (),
+.BR jnf (),
+.BR jnl ():
+.RS 4
+_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 600
+.\" Also seems to work: -std=c99 -D_XOPEN_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR j0 ()
+and
+.BR j1 ()
+functions return Bessel functions of
+.I x
+of the first kind of orders 0 and 1, respectively.
+The
+.BR jn ()
+function
+returns the Bessel function of
+.I x
+of the first kind of order
+.IR n .
+.PP
+The
+.BR j0f (),
+.BR j1f (),
+and
+.BR jnf (),
+functions are versions that take and return
+.I float
+values.
+The
+.BR j0l (),
+.BR j1l (),
+and
+.BR jnl ()
+functions are versions that take and return
+.I "long double"
+values.
+.SH RETURN VALUE
+On success, these functions return the appropriate
+Bessel value of the first kind for
+.IR x .
+
+If
+.I x
+is a NaN, a NaN is returned.
+
+If
+.I x
+is too large in magnitude,
+or the result underflows,
+a range error occurs,
+and the return value is 0.
+.SH ERRORS
+See
+.BR math_error (7)
+for information on how to determine whether an error has occurred
+when calling these functions.
+.PP
+The following errors can occur:
+.TP
+Range error: result underflow, or \fIx\fP is too large in magnitude
+.I errno
+is set to
+.BR ERANGE .
+.\" An underflow floating-point exception
+.\" .RB ( FE_UNDERFLOW )
+.\" is raised.
+.PP
+These functions do not raise exceptions for
+.BR fetestexcept (3).
+.\" FIXME . Is it intentional that these functions do not raise exceptions?
+.\" e.g., j0(1.5e16)
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6805
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR j0 (),
+.BR j0f (),
+.BR j0l ()
+T}	Thread safety	MT-Safe
+T{
+.BR j1 (),
+.BR j1f (),
+.BR j1l ()
+T}	Thread safety	MT-Safe
+T{
+.BR jn (),
+.BR jnf (),
+.BR jnl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+The functions returning
+.I double
+conform to SVr4, 4.3BSD,
+POSIX.1-2001, and POSIX.1-2008.
+The others are nonstandard functions that also exist on the BSDs.
+.SH BUGS
+There are errors of up to 2e\-16 in the values returned by
+.BR j0 (),
+.BR j1 ()
+and
+.BR jn ()
+for values of
+.I x
+between \-8 and 8.
+.SH SEE ALSO
+.BR y0 (3)

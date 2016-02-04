@@ -1,0 +1,90 @@
+.\" Copyright (c) 2013, Peter Schiffer <pschiffe@redhat.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.TH MEMUSAGESTAT 1 2014-09-06 "GNU" "Linux programmer's manual"
+.SH NAME
+memusagestat \- generate graphic from memory profiling data
+.SH SYNOPSIS
+.BR memusagestat " [\fIoption\fR]... \fIdatafile\fR [\fIoutfile\fR]"
+.SH DESCRIPTION
+.B memusagestat
+creates a PNG file containing a graphical representation of the
+memory profiling data in the file
+.IR datafile ;
+that file is generated via the
+.I -d
+(or
+.IR --data )
+option of
+.BR memusage (1).
+
+The red line in the graph shows the heap usage (allocated memory)
+and the green line shows the stack usage.
+The x-scale is either the number of memory-handling function calls or
+(if the
+.I -t
+option is specified)
+time.
+.SH OPTIONS
+.TP
+.BI \-o\  file \fR,\ \fB\-\-output= file
+Name of the output file.
+.TP
+.BI \-s\  string \fR,\ \fB\-\-string= string
+Use
+.I string
+as the title inside the output graph.
+.TP
+.BI \-t\fR,\ \fB\-\-time
+Use time (rather than number of function calls) as the scale for the X axis.
+.TP
+.BI \-T\fR,\ \fB\-\-total
+Also draw a graph of total memory consumption.
+.TP
+.BI \-x\  size \fR,\ \fB\-\-x-size= size
+Make the output graph
+.I size
+pixels wide.
+.TP
+.BI \-y\  size \fR,\ \fB\-\-y\-size= size
+Make the output graph
+.I size
+pixels high.
+.TP
+.BI \-?\fR,\ \fB\-\-help
+Print a help message and exit.
+.TP
+.BI \fB\-\-usage
+Print a short usage message and exit.
+.TP
+.BI \-V\fR,\ \fB\-\-version
+Print version information and exit.
+.SH EXAMPLE
+See
+.BR memusage (1).
+.SH BUGS
+To report bugs, see
+.UR http://www.gnu.org/software/libc/bugs.html
+.UE
+.SH SEE ALSO
+.BR memusage (1),
+.BR mtrace (1)

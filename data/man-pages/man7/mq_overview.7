@@ -1,0 +1,403 @@
+'\" t
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH MQ_OVERVIEW 7 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+mq_overview \- overview of POSIX message queues
+.SH DESCRIPTION
+POSIX message queues allow processes to exchange data in
+the form of messages.
+This API is distinct from that provided by System V message queues
+.RB ( msgget (2),
+.BR msgsnd (2),
+.BR msgrcv (2),
+etc.), but provides similar functionality.
+
+Message queues are created and opened using
+.BR mq_open (3);
+this function returns a
+.I message queue descriptor
+.RI ( mqd_t ),
+which is used to refer to the open message queue in later calls.
+Each message queue is identified by a name of the form
+.IR /somename ;
+that is, a null-terminated string of up to
+.BI NAME_MAX
+(i.e., 255) characters consisting of an initial slash,
+followed by one or more characters, none of which are slashes.
+Two processes can operate on the same queue by passing the same name to
+.BR mq_open (3).
+
+Messages are transferred to and from a queue using
+.BR mq_send (3)
+and
+.BR mq_receive (3).
+When a process has finished using the queue, it closes it using
+.BR mq_close (3),
+and when the queue is no longer required, it can be deleted using
+.BR mq_unlink (3).
+Queue attributes can be retrieved and (in some cases) modified using
+.BR mq_getattr (3)
+and
+.BR mq_setattr (3).
+A process can request asynchronous notification
+of the arrival of a message on a previously empty queue using
+.BR mq_notify (3).
+
+A message queue descriptor is a reference to an
+.I "open message queue description"
+(cf.
+.BR open (2)).
+After a
+.BR fork (2),
+a child inherits copies of its parent's message queue descriptors,
+and these descriptors refer to the same open message queue descriptions
+as the corresponding message queue descriptors in the parent.
+Corresponding message queue descriptors in the two processes share the flags
+.RI ( mq_flags )
+that are associated with the open message queue description.
+
+Each message has an associated
+.IR priority ,
+and messages are always delivered to the receiving process
+highest priority first.
+Message priorities range from 0 (low) to
+.I sysconf(_SC_MQ_PRIO_MAX)\ -\ 1
+(high).
+On Linux,
+.I sysconf(_SC_MQ_PRIO_MAX)
+returns 32768, but POSIX.1 requires only that
+an implementation support at least priorities in the range 0 to 31;
+some implementations provide only this range.
+.PP
+The remainder of this section describes some specific details
+of the Linux implementation of POSIX message queues.
+.SS Library interfaces and system calls
+In most cases the
+.BR mq_* ()
+library interfaces listed above are implemented
+on top of underlying system calls of the same name.
+Deviations from this scheme are indicated in the following table:
+.RS
+.TS
+lB lB
+l l.
+Library interface	System call
+mq_close(3)	close(2)
+mq_getattr(3)	mq_getsetattr(2)
+mq_notify(3)	mq_notify(2)
+mq_open(3)	mq_open(2)
+mq_receive(3)	mq_timedreceive(2)
+mq_send(3)	mq_timedsend(2)
+mq_setattr(3)	mq_getsetattr(2)
+mq_timedreceive(3)	mq_timedreceive(2)
+mq_timedsend(3)	mq_timedsend(2)
+mq_unlink(3)	mq_unlink(2)
+.TE
+.RE
+.SS Versions
+POSIX message queues have been supported on Linux since kernel 2.6.6.
+Glibc support has been provided since version 2.3.4.
+.SS Kernel configuration
+Support for POSIX message queues is configurable via the
+.B CONFIG_POSIX_MQUEUE
+kernel configuration option.
+This option is enabled by default.
+.SS Persistence
+POSIX message queues have kernel persistence:
+if not removed by
+.BR mq_unlink (3),
+a message queue will exist until the system is shut down.
+.SS Linking
+Programs using the POSIX message queue API must be compiled with
+.I cc \-lrt
+to link against the real-time library,
+.IR librt .
+.SS /proc interfaces
+The following interfaces can be used to limit the amount of
+kernel memory consumed by POSIX message queues and to set
+the default attributes for new message queues:
+.TP
+.IR /proc/sys/fs/mqueue/msg_default " (since Linux 3.5)"
+This file defines the value used for a new queue's
+.I mq_maxmsg
+setting when the queue is created with a call to
+.BR mq_open (3)
+where
+.I attr
+is specified as NULL.
+The default value for this file is 10.
+The minimum and maximum are as for
+.IR /proc/sys/fs/mqueue/msg_max .
+A new queue's default
+.I mq_maxmsg
+value will be the smaller of
+.IR msg_default
+and
+.IR msg_max .
+Up until Linux 2.6.28, the default
+.I mq_maxmsg
+was 10;
+from Linux 2.6.28 to Linux 3.4, the default was the value defined for the
+.I msg_max
+limit.
+.TP
+.I /proc/sys/fs/mqueue/msg_max
+This file can be used to view and change the ceiling value for the
+maximum number of messages in a queue.
+This value acts as a ceiling on the
+.I attr\->mq_maxmsg
+argument given to
+.BR mq_open (3).
+The default value for
+.I msg_max
+is 10.
+The minimum value is 1 (10 in kernels before 2.6.28).
+The upper limit is
+.BR HARD_MSGMAX .
+The
+.I msg_max
+limit is ignored for privileged processes
+.RB ( CAP_SYS_RESOURCE ),
+but the
+.BR HARD_MSGMAX
+ceiling is nevertheless imposed.
+
+The definition of
+.BR HARD_MSGMAX
+has changed across kernel versions:
+.RS
+.IP * 3
+Up to Linux 2.6.32:
+.IR "131072\ /\ sizeof(void\ *)"
+.IP *
+Linux 2.6.33 to 3.4:
+.IR "(32768\ *\ sizeof(void\ *) / 4)"
+.IP *
+Since Linux 3.5:
+.\" commit 5b5c4d1a1440e94994c73dddbad7be0676cd8b9a
+65,536
+.RE
+.TP
+.IR /proc/sys/fs/mqueue/msgsize_default " (since Linux 3.5)"
+This file defines the value used for a new queue's
+.I mq_msgsize
+setting when the queue is created with a call to
+.BR mq_open (3)
+where
+.I attr
+is specified as NULL.
+The default value for this file is 8192 (bytes).
+The minimum and maximum are as for
+.IR /proc/sys/fs/mqueue/msgsize_max .
+If
+.IR msgsize_default
+exceeds
+.IR msgsize_max ,
+a new queue's default
+.I mq_msgsize
+value is capped to the
+.I msgsize_max
+limit.
+Up until Linux 2.6.28, the default
+.I mq_msgsize
+was 8192;
+from Linux 2.6.28 to Linux 3.4, the default was the value defined for the
+.I msgsize_max
+limit.
+.TP
+.I /proc/sys/fs/mqueue/msgsize_max
+This file can be used to view and change the ceiling on the
+maximum message size.
+This value acts as a ceiling on the
+.I attr\->mq_msgsize
+argument given to
+.BR mq_open (3).
+The default value for
+.I msgsize_max
+is 8192 bytes.
+The minimum value is 128 (8192 in kernels before 2.6.28).
+The upper limit for
+.I msgsize_max
+has varied across kernel versions:
+.RS
+.IP * 3
+Before Linux 2.6.28, the upper limit is
+.BR INT_MAX .
+.IP *
+From Linux 2.6.28 to 3.4, the limit is 1,048,576.
+.IP *
+Since Linux 3.5, the limit is 16,777,216
+.RB ( HARD_MSGSIZEMAX ).
+.RE
+.IP
+The
+.I msgsize_max
+limit is ignored for privileged process
+.RB ( CAP_SYS_RESOURCE ),
+but, since Linux 3.5, the
+.BR HARD_MSGSIZEMAX
+ceiling is enforced for privileged processes.
+.TP
+.I /proc/sys/fs/mqueue/queues_max
+This file can be used to view and change the system-wide limit on the
+number of message queues that can be created.
+The default value for
+.I queues_max
+is 256.
+No ceiling is imposed on the
+.I queues_max
+limit; privileged processes
+.RB ( CAP_SYS_RESOURCE )
+can exceed the limit (but see BUGS).
+.SS Resource limit
+The
+.B RLIMIT_MSGQUEUE
+resource limit, which places a limit on the amount of space
+that can be consumed by all of the message queues
+belonging to a process's real user ID, is described in
+.BR getrlimit (2).
+.SS Mounting the message queue filesystem
+On Linux, message queues are created in a virtual filesystem.
+(Other implementations may also provide such a feature,
+but the details are likely to differ.)
+This filesystem can be mounted (by the superuser) using the following
+commands:
+.in +4n
+.nf
+
+.RB "#" " mkdir /dev/mqueue"
+.RB "#" " mount \-t mqueue none /dev/mqueue"
+
+.fi
+.in
+The sticky bit is automatically enabled on the mount directory.
+
+After the filesystem has been mounted, the message queues on the system
+can be viewed and manipulated using the commands usually used for files
+(e.g.,
+.BR ls (1)
+and
+.BR rm (1)).
+
+The contents of each file in the directory consist of a single line
+containing information about the queue:
+.in +4n
+.nf
+
+.RB "$" " cat /dev/mqueue/mymq"
+QSIZE:129     NOTIFY:2    SIGNO:0    NOTIFY_PID:8260
+
+.fi
+.in
+These fields are as follows:
+.TP
+.B QSIZE
+Number of bytes of data in all messages in the queue (but see BUGS).
+.TP
+.B NOTIFY_PID
+If this is nonzero, then the process with this PID has used
+.BR mq_notify (3)
+to register for asynchronous message notification,
+and the remaining fields describe how notification occurs.
+.TP
+.B NOTIFY
+Notification method:
+0 is
+.BR SIGEV_SIGNAL ;
+1 is
+.BR SIGEV_NONE ;
+and
+2 is
+.BR SIGEV_THREAD .
+.TP
+.B SIGNO
+Signal number to be used for
+.BR SIGEV_SIGNAL .
+.SS Polling message queue descriptors
+On Linux, a message queue descriptor is actually a file descriptor,
+and can be monitored using
+.BR select (2),
+.BR poll (2),
+or
+.BR epoll (7).
+This is not portable.
+.SS IPC namespaces
+For a discussion of the interaction of System V IPC objects and
+IPC namespaces, see
+.BR namespaces (7).
+.SH NOTES
+System V message queues
+.RB ( msgget (2),
+.BR msgsnd (2),
+.BR msgrcv (2),
+etc.) are an older API for exchanging messages between processes.
+POSIX message queues provide a better designed interface than
+System V message queues;
+on the other hand POSIX message queues are less widely available
+(especially on older systems) than System V message queues.
+
+Linux does not currently (2.6.26) support the use of access control
+lists (ACLs) for POSIX message queues.
+.SH EXAMPLE
+An example of the use of various message queue functions is shown in
+.BR mq_notify (3).
+.SH BUGS
+In Linux versions 3.5 to 3.14, the kernel imposed a ceiling of 1024
+.RB ( HARD_QUEUESMAX )
+on the value to which the
+.I queues_max
+limit could be raised,
+and the ceiling was enforced even for privileged processes.
+This ceiling value was removed in Linux 3.14,
+and patches to stable kernels 3.5.x to 3.13.x also removed the ceiling.
+
+As originally implemented (and documented),
+the QSIZE field displayed the total number of (user-supplied)
+bytes in all messages in the message queue.
+Some changes in Linux 3.5
+.\" commit d6629859b36d
+inadvertently changed the behavior,
+so that this field also included a count of kernel overhead bytes
+used to store the messages in the queue.
+This behavioral regression was rectified in Linux 4.2
+.\" commit de54b9ac253787c366bbfb28d901a31954eb3511
+(and earlier stable kernel series),
+so that the count once more included just the bytes of user data
+in messages in the queue.
+.SH SEE ALSO
+.BR getrlimit (2),
+.BR mq_getsetattr (2),
+.BR poll (2),
+.BR select (2),
+.BR mq_close (3),
+.BR mq_getattr (3),
+.BR mq_notify (3),
+.BR mq_open (3),
+.BR mq_receive (3),
+.BR mq_send (3),
+.BR mq_unlink (3),
+.BR epoll (7),
+.BR namespaces (7)

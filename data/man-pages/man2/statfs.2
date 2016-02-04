@@ -1,0 +1,371 @@
+.\" Copyright (C) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2003-08-17 by Walter Harms
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.TH STATFS 2 2015-02-21 "Linux" "Linux Programmer's Manual"
+.SH NAME
+statfs, fstatfs \- get filesystem statistics
+.SH SYNOPSIS
+.BR "#include <sys/vfs.h>    " "/* or <sys/statfs.h> */"
+.sp
+.BI "int statfs(const char *" path ", struct statfs *" buf );
+.br
+.BI "int fstatfs(int " fd ", struct statfs *" buf );
+.SH DESCRIPTION
+The
+.BR statfs ()
+system call returns information about a mounted filesystem.
+.I path
+is the pathname of any file within the mounted filesystem.
+.I buf
+is a pointer to a
+.I statfs
+structure defined approximately as follows:
+
+.in +4n
+.nf
+struct statfs {
+    __fsword_t f_type;    /* Type of filesystem (see below) */
+    __fsword_t f_bsize;   /* Optimal transfer block size */
+    fsblkcnt_t f_blocks;  /* Total data blocks in filesystem */
+    fsblkcnt_t f_bfree;   /* Free blocks in filesystem */
+    fsblkcnt_t f_bavail;  /* Free blocks available to
+                             unprivileged user */
+    fsfilcnt_t f_files;   /* Total file nodes in filesystem */
+    fsfilcnt_t f_ffree;   /* Free file nodes in filesystem */
+    fsid_t     f_fsid;    /* Filesystem ID */
+    __fsword_t f_namelen; /* Maximum length of filenames */
+    __fsword_t f_frsize;  /* Fragment size (since Linux 2.6) */
+    __fsword_t f_flags;   /* Mount flags of filesystem
+                             (since Linux 2.6.36) */
+    __fsword_t f_spare[xxx];
+                    /* Padding bytes reserved for future use */
+};
+
+Filesystem types:
+
+   ADFS_SUPER_MAGIC      0xadf5
+   AFFS_SUPER_MAGIC      0xADFF
+   BDEVFS_MAGIC          0x62646576
+   BEFS_SUPER_MAGIC      0x42465331
+   BFS_MAGIC             0x1BADFACE
+   BINFMTFS_MAGIC        0x42494e4d
+   BTRFS_SUPER_MAGIC     0x9123683E
+   CGROUP_SUPER_MAGIC    0x27e0eb
+   CIFS_MAGIC_NUMBER     0xFF534D42
+   CODA_SUPER_MAGIC      0x73757245
+   COH_SUPER_MAGIC       0x012FF7B7
+   CRAMFS_MAGIC          0x28cd3d45
+   DEBUGFS_MAGIC         0x64626720
+   DEVFS_SUPER_MAGIC     0x1373
+   DEVPTS_SUPER_MAGIC    0x1cd1
+   EFIVARFS_MAGIC        0xde5e81e4
+   EFS_SUPER_MAGIC       0x00414A53
+   EXT_SUPER_MAGIC       0x137D
+   EXT2_OLD_SUPER_MAGIC  0xEF51
+   EXT2_SUPER_MAGIC      0xEF53
+   EXT3_SUPER_MAGIC      0xEF53
+   EXT4_SUPER_MAGIC      0xEF53
+   FUSE_SUPER_MAGIC      0x65735546
+   FUTEXFS_SUPER_MAGIC   0xBAD1DEA
+   HFS_SUPER_MAGIC       0x4244
+   HOSTFS_SUPER_MAGIC    0x00c0ffee
+   HPFS_SUPER_MAGIC      0xF995E849
+   HUGETLBFS_MAGIC       0x958458f6
+   ISOFS_SUPER_MAGIC     0x9660
+   JFFS2_SUPER_MAGIC     0x72b6
+   JFS_SUPER_MAGIC       0x3153464a
+   MINIX_SUPER_MAGIC     0x137F /* orig. minix */
+   MINIX_SUPER_MAGIC2    0x138F /* 30 char minix */
+   MINIX2_SUPER_MAGIC    0x2468 /* minix V2 */
+   MINIX2_SUPER_MAGIC2   0x2478 /* minix V2, 30 char names */
+   MINIX3_SUPER_MAGIC    0x4d5a /* minix V3 fs, 60 char names */
+   MQUEUE_MAGIC          0x19800202
+   MSDOS_SUPER_MAGIC     0x4d44
+   NCP_SUPER_MAGIC       0x564c
+   NFS_SUPER_MAGIC       0x6969
+   NILFS_SUPER_MAGIC     0x3434
+   NTFS_SB_MAGIC         0x5346544e
+   OCFS2_SUPER_MAGIC     0x7461636f
+   OPENPROM_SUPER_MAGIC  0x9fa1
+   PIPEFS_MAGIC          0x50495045
+   PROC_SUPER_MAGIC      0x9fa0
+   PSTOREFS_MAGIC        0x6165676C
+   QNX4_SUPER_MAGIC      0x002f
+   QNX6_SUPER_MAGIC      0x68191122
+   RAMFS_MAGIC           0x858458f6
+   REISERFS_SUPER_MAGIC  0x52654973
+   ROMFS_MAGIC           0x7275
+   SELINUX_MAGIC         0xf97cff8c
+   SMACK_MAGIC           0x43415d53
+   SMB_SUPER_MAGIC       0x517B
+   SOCKFS_MAGIC          0x534F434B
+   SQUASHFS_MAGIC        0x73717368
+   SYSFS_MAGIC           0x62656572
+   SYSV2_SUPER_MAGIC     0x012FF7B6
+   SYSV4_SUPER_MAGIC     0x012FF7B5
+   TMPFS_MAGIC           0x01021994
+   UDF_SUPER_MAGIC       0x15013346
+   UFS_MAGIC             0x00011954
+   USBDEVICE_SUPER_MAGIC 0x9fa2
+   V9FS_MAGIC            0x01021997
+   VXFS_SUPER_MAGIC      0xa501FCF5
+   XENFS_SUPER_MAGIC     0xabba1974
+   XENIX_SUPER_MAGIC     0x012FF7B4
+   XFS_SUPER_MAGIC       0x58465342
+   _XIAFS_SUPER_MAGIC    0x012FD16D
+.fi
+.in
+.PP
+Most of these MAGIC constants are defined in
+.IR /usr/include/linux/magic.h ,
+and some are hardcoded in kernel sources.
+
+The
+.IR f_flags
+is a bit mask indicating mount options for the file system.
+It contains zero or more of the following bits:
+.\" XXX Keep this list in sync with statvfs(3)
+.TP
+.B ST_MANDLOCK
+Mandatory locking is permitted on the filesystem (see
+.BR fcntl (2)).
+.TP
+.B ST_NOATIME
+Do not update access times; see
+.BR mount (2).
+.TP
+.B ST_NODEV
+Disallow access to device special files on this filesystem.
+.TP
+.B ST_NODIRATIME
+Do not update directory access times; see
+.BR mount (2).
+.TP
+.B ST_NOEXEC
+Execution of programs is disallowed on this filesystem.
+.TP
+.B ST_NOSUID
+The set-user-ID and set-group-ID bits are ignored by
+.BR exec (3)
+for executable files on this filesystem
+.TP
+.B ST_RDONLY
+This filesystem is mounted read-only.
+.TP
+.B ST_RELATIME
+Update atime relative to mtime/ctime; see
+.BR mount (2).
+.TP
+.B ST_SYNCHRONOUS
+Writes are synched to the filesystem immediately (see the description of
+.B O_SYNC
+in
+.BR open (2)).
+.PP
+Nobody knows what
+.I f_fsid
+is supposed to contain (but see below).
+.PP
+Fields that are undefined for a particular filesystem are set to 0.
+
+.BR fstatfs ()
+returns the same information about an open file referenced by descriptor
+.IR fd .
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EACCES
+.RB ( statfs ())
+Search permission is denied for a component of the path prefix of
+.IR path .
+(See also
+.BR path_resolution (7).)
+.TP
+.B EBADF
+.RB ( fstatfs ())
+.I fd
+is not a valid open file descriptor.
+.TP
+.B EFAULT
+.I buf
+or
+.I path
+points to an invalid address.
+.TP
+.B EINTR
+This call was interrupted by a signal; see
+.BR signal (7).
+.TP
+.B EIO
+An I/O error occurred while reading from the filesystem.
+.TP
+.B ELOOP
+.RB ( statfs ())
+Too many symbolic links were encountered in translating
+.IR path .
+.TP
+.B ENAMETOOLONG
+.RB ( statfs ())
+.I path
+is too long.
+.TP
+.B ENOENT
+.RB ( statfs ())
+The file referred to by
+.I path
+does not exist.
+.TP
+.B ENOMEM
+Insufficient kernel memory was available.
+.TP
+.B ENOSYS
+The filesystem does not support this call.
+.TP
+.B ENOTDIR
+.RB ( statfs ())
+A component of the path prefix of
+.I path
+is not a directory.
+.TP
+.B EOVERFLOW
+Some values were too large to be represented in the returned struct.
+.SH CONFORMING TO
+Linux-specific.
+The Linux
+.BR statfs ()
+was inspired by the 4.4BSD one
+(but they do not use the same structure).
+.SH NOTES
+The
+.I __fsword_t
+type used for various fields in the
+.I statfs
+structure definition is a glibc internal type,
+not intended for public use.
+This leaves the programmer in a bit of a conundrum when trying to copy
+or compare these fields to local variables in a program.
+Using
+.I "unsigned\ int"
+for such variables suffices on most systems.
+
+The original Linux
+.BR statfs ()
+and
+.BR fstatfs ()
+system calls were not designed with extremely large file sizes in mind.
+Subsequently, Linux 2.6
+added new
+.BR statfs64 ()
+and
+.BR fstatfs64 ()
+system calls that employ a new structure,
+.IR statfs64 .
+The new structure contains the same fields as the original
+.I statfs
+structure, but the sizes of various fields are increased,
+to accommodate large file sizes.
+The glibc
+.BR statfs ()
+and
+.BR fstatfs ()
+wrapper functions transparently deal with the kernel differences.
+
+Some systems have only \fI<sys/vfs.h>\fP, other systems also have
+\fI<sys/statfs.h>\fP, where the former includes the latter.
+So it seems
+including the former is the best choice.
+
+LSB has deprecated the library calls
+.BR statfs ()
+and
+.BR fstatfs ()
+and tells us to use
+.BR statvfs (2)
+and
+.BR fstatvfs (2)
+instead.
+.SS The f_fsid field
+Solaris, Irix and POSIX have a system call
+.BR statvfs (2)
+that returns a
+.I "struct statvfs"
+(defined in
+.IR <sys/statvfs.h> )
+containing an
+.I "unsigned long"
+.IR f_fsid .
+Linux, SunOS, HP-UX, 4.4BSD have a system call
+.BR statfs ()
+that returns a
+.I "struct statfs"
+(defined in
+.IR <sys/vfs.h> )
+containing a
+.I fsid_t
+.IR f_fsid ,
+where
+.I fsid_t
+is defined as
+.IR "struct { int val[2]; }" .
+The same holds for FreeBSD, except that it uses the include file
+.IR <sys/mount.h> .
+
+The general idea is that
+.I f_fsid
+contains some random stuff such that the pair
+.RI ( f_fsid , ino )
+uniquely determines a file.
+Some operating systems use (a variation on) the device number,
+or the device number combined with the filesystem type.
+Several operating systems restrict giving out the
+.I f_fsid
+field to the superuser only (and zero it for unprivileged users),
+because this field is used in the filehandle of the filesystem
+when NFS-exported, and giving it out is a security concern.
+.LP
+Under some operating systems, the
+.I fsid
+can be used as the second argument to the
+.BR sysfs (2)
+system call.
+.SH BUGS
+From Linux 2.6.38 up to and including Linux 3.1,
+.\" broken in commit ff0c7d15f9787b7e8c601533c015295cc68329f8
+.\" fixed in commit d70ef97baf048412c395bb5d65791d8fe133a52b
+.BR fstatfs ()
+failed with the error
+.B ENOSYS
+for file descriptors created by
+.BR pipe (2).
+.SH SEE ALSO
+.BR stat (2),
+.BR statvfs (2),
+.BR path_resolution (7)

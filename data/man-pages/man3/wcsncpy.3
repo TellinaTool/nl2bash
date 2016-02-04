@@ -1,0 +1,84 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WCSNCPY 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcsncpy \- copy a fixed-size string of wide characters
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "wchar_t *wcsncpy(wchar_t *" dest ", const wchar_t *" src ", size_t " n );
+.fi
+.SH DESCRIPTION
+The
+.BR wcsncpy ()
+function is the wide-character equivalent of the
+.BR strncpy (3)
+function.
+It copies at most
+.I n
+wide characters from the wide-character
+string pointed to by
+.IR src ,
+including the terminating null wide character (L\(aq\\0\(aq),
+to the array pointed to by
+.IR dest .
+Exactly
+.I n
+wide characters are
+written at
+.IR dest .
+If the length \fIwcslen(src)\fP is smaller than
+.IR n ,
+the remaining wide characters in the array
+pointed to by
+.I dest
+are filled
+with null wide characters.
+If the length \fIwcslen(src)\fP is greater than or equal
+to
+.IR n ,
+the string pointed to by
+.I dest
+will not be terminated by a null wide character.
+.PP
+The strings may not overlap.
+.PP
+The programmer must ensure that there is room for at least
+.I n
+wide
+characters at
+.IR dest .
+.SH RETURN VALUE
+.BR wcsncpy ()
+returns
+.IR dest .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcsncpy ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH SEE ALSO
+.BR strncpy (3)

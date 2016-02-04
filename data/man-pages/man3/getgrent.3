@@ -1,0 +1,208 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:29:54 1993 by Rik Faith (faith@cs.unc.edu)
+.TH GETGRENT 3  2015-12-28 "" "Linux Programmer's Manual"
+.SH NAME
+getgrent, setgrent, endgrent \- get group file entry
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.B #include <grp.h>
+.sp
+.B struct group *getgrent(void);
+.sp
+.B void setgrent(void);
+.sp
+.B void endgrent(void);
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.PD 0
+.ad l
+.BR setgrent ():
+.RS 4
+_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED ||
+.br
+/* Since glibc 2.12: */ _POSIX_C_SOURCE\ >=\ 200809L
+.RE
+.sp
+.BR getgrent (),
+.BR endgrent ():
+.RS 4
+_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.PD
+.ad b
+.SH DESCRIPTION
+The
+.BR getgrent ()
+function returns a pointer to a structure containing
+the broken-out fields of a record in the group database
+(e.g., the local group file
+.IR /etc/group ,
+NIS, and LDAP).
+The first time
+.BR getgrent ()
+is called,
+it returns the first entry; thereafter, it returns successive entries.
+.PP
+The
+.BR setgrent ()
+function rewinds to the beginning
+of the group database, to allow repeated scans.
+.PP
+The
+.BR endgrent ()
+function is used to close the group database
+after all processing has been performed.
+.PP
+The \fIgroup\fP structure is defined in \fI<grp.h>\fP as follows:
+.sp
+.in +4n
+.nf
+struct group {
+    char   *gr_name;        /* group name */
+    char   *gr_passwd;      /* group password */
+    gid_t   gr_gid;         /* group ID */
+    char  **gr_mem;         /* NULL-terminated array of pointers
+                               to names of group members */
+};
+.fi
+.in
+.PP
+For more information about the fields of this structure, see
+.BR group (5).
+.SH RETURN VALUE
+The
+.BR getgrent ()
+function returns a pointer to a
+.I group
+structure,
+or NULL if there are no more entries or an error occurs.
+.LP
+Upon error,
+.I errno
+may be set.
+If one wants to check
+.I errno
+after the call, it should be set to zero before the call.
+
+The return value may point to a static area, and may be overwritten
+by subsequent calls to
+.BR getgrent (),
+.BR getgrgid (3),
+or
+.BR getgrnam (3).
+(Do not pass the returned pointer to
+.BR free (3).)
+.SH ERRORS
+.TP
+.B EAGAIN
+The service was temporarily unavailable; try again later.
+For NSS backends in glibc this indicates a temporary error talking to the backend.
+The error may correct itself, retrying later is suggested.
+.TP
+.B EINTR
+A signal was caught; see
+.BR signal (7).
+.TP
+.B EIO
+I/O error.
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.\" not in POSIX
+.B ENOENT
+A necessary input file cannot be found.
+For NSS backends in glibc this indicates the backend is not correctly configured.
+.TP
+.B ENOMEM
+.\" not in POSIX
+Insufficient memory to allocate
+.I group
+structure.
+.TP
+.B ERANGE
+Insufficient buffer space supplied.
+.SH FILES
+.TP
+.I /etc/group
+local group database file
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw11 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getgrent ()
+T}	Thread safety	T{
+MT-Unsafe race:grent
+.br
+race:grentbuf locale
+T}
+T{
+.BR setgrent (),
+.BR endgrent ()
+T}	Thread safety	MT-Unsafe race:grent locale
+.TE
+
+In the above table,
+.I grent
+in
+.I race:grent
+signifies that if any of the functions
+.BR setgrent (),
+.BR getgrent (),
+or
+.BR endgrent ()
+are used in parallel in different threads of a program,
+then data races could occur.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+.SH SEE ALSO
+.BR fgetgrent (3),
+.BR getgrent_r (3),
+.BR getgrgid (3),
+.BR getgrnam (3),
+.BR getgrouplist (3),
+.BR putgrent (3),
+.BR group (5)

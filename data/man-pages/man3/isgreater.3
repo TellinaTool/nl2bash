@@ -1,0 +1,153 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" 2002-07-27 Walter Harms
+.\" this was done with the help of the glibc manual
+.\"
+.TH ISGREATER 3  2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+isgreater, isgreaterequal, isless, islessequal, islessgreater,
+isunordered \- floating-point relational tests without exception for NaN
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "int isgreater(" x ", " y );
+.sp
+.BI "int isgreaterequal(" x ", " y );
+.sp
+.BI "int isless(" x ", " y );
+.sp
+.BI "int islessequal(" x ", " y );
+.sp
+.BI "int islessgreater(" x ", " y );
+.sp
+.BI "int isunordered(" x ", " y );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+All functions described here:
+.RS
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad b
+.SH DESCRIPTION
+The normal relation operations (like
+.BR < ,
+"less than")
+will fail if one of the operands is NaN.
+This will cause an exception.
+To avoid this, C99 defines the macros listed below.
+
+These macros are guaranteed to evaluate their arguments only once.
+The arguments must be of real floating-point type (note: do not pass
+integer values as arguments to these macros, since the arguments will
+.I not
+be promoted to real-floating types).
+.TP
+.BR isgreater ()
+determines \fI(x)\ >\ (y)\fP without an exception
+if
+.IR x
+or
+.I y
+is NaN.
+.TP
+.BR isgreaterequal ()
+determines \fI(x)\ >=\ (y)\fP without an exception
+if
+.IR x
+or
+.I y
+is NaN.
+.TP
+.BR isless ()
+determines \fI(x)\ <\ (y)\fP without an exception
+if
+.IR x
+or
+.I y
+is NaN.
+.TP
+.BR islessequal ()
+determines \fI(x)\ <=\ (y)\fP without an exception
+if
+.IR x
+or
+.I y
+is NaN.
+.TP
+.BR islessgreater ()
+determines \fI(x)\ < (y) || (x) >\ (y)\fP
+without an exception if
+.IR x
+or
+.I y
+is NaN.
+This macro is not equivalent to \fIx\ !=\ y\fP because that expression is
+true if
+.IR x
+or
+.I y
+is NaN.
+.TP
+.BR isunordered ()
+determines whether its arguments are unordered, that is, whether
+at least one of the arguments is a NaN.
+.SH RETURN VALUE
+The macros other than
+.BR isunordered ()
+return the result of the relational comparison;
+these macros return 0 if either argument is a NaN.
+
+.BR isunordered ()
+returns 1 if
+.IR x
+or
+.I y
+is NaN and 0 otherwise.
+.SH ERRORS
+No errors occur.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.ad l
+.TS
+allbox;
+lbw30 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR isgreater (),
+.BR isgreaterequal (),
+.BR isless (),
+.BR islessequal (),
+.BR islessgreater (),
+.BR isunordered ()
+T}	Thread safety	MT-Safe
+.TE
+.ad
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+Not all hardware supports these functions,
+and where hardware support isn't provided, they will be emulated by macros.
+This will result in a performance penalty.
+Don't use these functions if NaN is of no concern for you.
+.SH SEE ALSO
+.BR fpclassify (3),
+.BR isnan (3)

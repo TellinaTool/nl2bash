@@ -1,0 +1,51 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"
+.\" Modified, aeb, 990824
+.\"
+.TH MB_LEN_MAX 3 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+MB_LEN_MAX \- maximum multibyte length of a character across all locales
+.SH SYNOPSIS
+.nf
+.B #include <limits.h>
+.fi
+.SH DESCRIPTION
+The
+.B MB_LEN_MAX
+macro is the upper bound for the number of bytes needed to represent a single
+wide character, in any of the supported locales.
+.SH RETURN VALUE
+A constant integer greater than zero.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The entities
+.B MB_LEN_MAX
+and
+.I sizeof(wchar_t)
+are totally unrelated.
+In glibc,
+.B MB_LEN_MAX
+is typically 16
+.\" For an explanation of why the limit was raised to 16, see
+.\" http://lists.gnu.org/archive/html/bug-gnulib/2015-05/msg00001.html
+.\"     From:    Bruno Haible
+.\"     Subject: Re: why is MB_LEN_MAX so large (16) on glibc
+.\"     Date:    Thu, 14 May 2015 02:30:14 +0200
+(6 in glibc versions earlier than 2.2) while
+.I sizeof(wchar_t)
+is 4.
+.SH SEE ALSO
+.BR MB_CUR_MAX (3)

@@ -1,0 +1,213 @@
+.\" Copyright (c) 1998 Andries Brouwer
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2003-08-24 fix for / by John Kristoff + joey
+.\"
+.TH GLOB 7 2012-07-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+glob \- globbing pathnames
+.SH DESCRIPTION
+Long ago, in UNIX\ V6, there was a program
+.I /etc/glob
+that would expand wildcard patterns.
+Soon afterward this became a shell built-in.
+
+These days there is also a library routine
+.BR glob (3)
+that will perform this function for a user program.
+
+The rules are as follows (POSIX.2, 3.13).
+.SS Wildcard matching
+A string is a wildcard pattern if it contains one of the
+characters \(aq?\(aq, \(aq*\(aq or \(aq[\(aq.
+Globbing is the operation
+that expands a wildcard pattern into the list of pathnames
+matching the pattern.
+Matching is defined by:
+
+A \(aq?\(aq (not between brackets) matches any single character.
+
+A \(aq*\(aq (not between brackets) matches any string,
+including the empty string.
+.PP
+.B "Character classes"
+.sp
+An expression "\fI[...]\fP" where the first character after the
+leading \(aq[\(aq is not an \(aq!\(aq matches a single character,
+namely any of the characters enclosed by the brackets.
+The string enclosed by the brackets cannot be empty;
+therefore \(aq]\(aq can be allowed between the brackets, provided
+that it is the first character.
+(Thus, "\fI[][!]\fP" matches the
+three characters \(aq[\(aq, \(aq]\(aq and \(aq!\(aq.)
+.PP
+.B Ranges
+.sp
+There is one special convention:
+two characters separated by \(aq\-\(aq denote a range.
+(Thus, "\fI[A\-Fa\-f0\-9]\fP"
+is equivalent to "\fI[ABCDEFabcdef0123456789]\fP".)
+One may include \(aq\-\(aq in its literal meaning by making it the
+first or last character between the brackets.
+(Thus, "\fI[]\-]\fP" matches just the two characters \(aq]\(aq and \(aq\-\(aq,
+and "\fI[\-\-0]\fP" matches the
+three characters \(aq\-\(aq, \(aq.\(aq, \(aq0\(aq, since \(aq/\(aq
+cannot be matched.)
+.PP
+.B Complementation
+.sp
+An expression "\fI[!...]\fP" matches a single character, namely
+any character that is not matched by the expression obtained
+by removing the first \(aq!\(aq from it.
+(Thus, "\fI[!]a\-]\fP" matches any
+single character except \(aq]\(aq, \(aqa\(aq and \(aq\-\(aq.)
+
+One can remove the special meaning of \(aq?\(aq, \(aq*\(aq and \(aq[\(aq by
+preceding them by a backslash, or, in case this is part of
+a shell command line, enclosing them in quotes.
+Between brackets these characters stand for themselves.
+Thus, "\fI[[?*\e]\fP" matches the
+four characters \(aq[\(aq, \(aq?\(aq, \(aq*\(aq and \(aq\e\(aq.
+.SS Pathnames
+Globbing is applied on each of the components of a pathname
+separately.
+A \(aq/\(aq in a pathname cannot be matched by a \(aq?\(aq or \(aq*\(aq
+wildcard, or by a range like "\fI[.\-0]\fP".
+A range cannot contain an
+explicit \(aq/\(aq character; this would lead to a syntax error.
+
+If a filename starts with a \(aq.\(aq,
+this character must be matched explicitly.
+(Thus, \fIrm\ *\fP will not remove .profile, and \fItar\ c\ *\fP will not
+archive all your files; \fItar\ c\ .\fP is better.)
+.SS Empty lists
+The nice and simple rule given above: "expand a wildcard pattern
+into the list of matching pathnames" was the original UNIX
+definition.
+It allowed one to have patterns that expand into
+an empty list, as in
+
+.nf
+    xv \-wait 0 *.gif *.jpg
+.fi
+
+where perhaps no *.gif files are present (and this is not
+an error).
+However, POSIX requires that a wildcard pattern is left
+unchanged when it is syntactically incorrect, or the list of
+matching pathnames is empty.
+With
+.I bash
+one can force the classical behavior using this command:
+
+    shopt \-s nullglob
+.\" In Bash v1, by setting allow_null_glob_expansion=true
+
+(Similar problems occur elsewhere.
+For example, where old scripts have
+
+.nf
+    rm \`find . \-name "*~"\`
+.fi
+
+new scripts require
+
+.nf
+    rm \-f nosuchfile \`find . \-name "*~"\`
+.fi
+
+to avoid error messages from
+.I rm
+called with an empty argument list.)
+.SH NOTES
+.SS Regular expressions
+Note that wildcard patterns are not regular expressions,
+although they are a bit similar.
+First of all, they match
+filenames, rather than text, and secondly, the conventions
+are not the same: for example, in a regular expression \(aq*\(aq means zero or
+more copies of the preceding thing.
+
+Now that regular expressions have bracket expressions where
+the negation is indicated by a \(aq^\(aq, POSIX has declared the
+effect of a wildcard pattern "\fI[^...]\fP" to be undefined.
+.SS Character classes and internationalization
+Of course ranges were originally meant to be ASCII ranges,
+so that "\fI[\ \-%]\fP" stands for "\fI[\ !"#$%]\fP" and "\fI[a\-z]\fP" stands
+for "any lowercase letter".
+Some UNIX implementations generalized this so that a range X\-Y
+stands for the set of characters with code between the codes for
+X and for Y.
+However, this requires the user to know the
+character coding in use on the local system, and moreover, is
+not convenient if the collating sequence for the local alphabet
+differs from the ordering of the character codes.
+Therefore, POSIX extended the bracket notation greatly,
+both for wildcard patterns and for regular expressions.
+In the above we saw three types of items that can occur in a bracket
+expression: namely (i) the negation, (ii) explicit single characters,
+and (iii) ranges.
+POSIX specifies ranges in an internationally
+more useful way and adds three more types:
+
+(iii) Ranges X\-Y comprise all characters that fall between X
+and Y (inclusive) in the current collating sequence as defined
+by the
+.B LC_COLLATE
+category in the current locale.
+
+(iv) Named character classes, like
+.nf
+
+[:alnum:]  [:alpha:]  [:blank:]  [:cntrl:]
+[:digit:]  [:graph:]  [:lower:]  [:print:]
+[:punct:]  [:space:]  [:upper:]  [:xdigit:]
+
+.fi
+so that one can say "\fI[[:lower:]]\fP" instead of "\fI[a\-z]\fP", and have
+things work in Denmark, too, where there are three letters past \(aqz\(aq
+in the alphabet.
+These character classes are defined by the
+.B LC_CTYPE
+category
+in the current locale.
+
+(v) Collating symbols, like "\fI[.ch.]\fP" or "\fI[.a-acute.]\fP",
+where the string between "\fI[.\fP" and "\fI.]\fP" is a collating
+element defined for the current locale.
+Note that this may
+be a multicharacter element.
+
+(vi) Equivalence class expressions, like "\fI[=a=]\fP",
+where the string between "\fI[=\fP" and "\fI=]\fP" is any collating
+element from its equivalence class, as defined for the
+current locale.
+For example, "\fI[[=a=]]\fP" might be equivalent
+to "\fI[a\('a\(`a\(:a\(^a]\fP", that is,
+to "\fI[a[.a-acute.][.a-grave.][.a-umlaut.][.a-circumflex.]]\fP".
+.SH SEE ALSO
+.BR sh (1),
+.BR fnmatch (3),
+.BR glob (3),
+.BR locale (7),
+.BR regex (7)

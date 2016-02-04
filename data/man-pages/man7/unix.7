@@ -1,0 +1,908 @@
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>,
+.\" Copyright (C) 2008-2014, Michael Kerrisk <mtk.manpages@gmail.com>,
+.\" and Copyright (C) 2016, Heinrich Schuchardt <xypron.glpk@gmx.de>
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" Modified, 2003-12-02, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\" Modified, 2003-09-23, Adam Langley
+.\" Modified, 2004-05-27, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"	Added SOCK_SEQPACKET
+.\" 2008-05-27, mtk, Provide a clear description of the three types of
+.\"     address that can appear in the sockaddr_un structure: pathname,
+.\"     unnamed, and abstract.
+.\"
+.TH UNIX  7 2015-05-07 "Linux" "Linux Programmer's Manual"
+.SH NAME
+unix \- sockets for local interprocess communication
+.SH SYNOPSIS
+.B #include <sys/socket.h>
+.br
+.B #include <sys/un.h>
+
+.IB unix_socket " = socket(AF_UNIX, type, 0);"
+.br
+.IB error " = socketpair(AF_UNIX, type, 0, int *" sv ");"
+.SH DESCRIPTION
+The
+.B AF_UNIX
+(also known as
+.BR AF_LOCAL )
+socket family is used to communicate between processes on the same machine
+efficiently.
+Traditionally, UNIX domain sockets can be either unnamed,
+or bound to a filesystem pathname (marked as being of type socket).
+Linux also supports an abstract namespace which is independent of the
+filesystem.
+
+Valid socket types in the UNIX domain are:
+.BR SOCK_STREAM ,
+for a stream-oriented socket;
+.BR SOCK_DGRAM ,
+for a datagram-oriented socket that preserves message boundaries
+(as on most UNIX implementations, UNIX domain datagram
+sockets are always reliable and don't reorder datagrams);
+and (since Linux 2.6.4)
+.BR SOCK_SEQPACKET ,
+for a sequenced-packet socket that is connection-oriented,
+preserves message boundaries,
+and delivers messages in the order that they were sent.
+
+UNIX domain sockets support passing file descriptors or process credentials
+to other processes using ancillary data.
+.SS Address format
+A UNIX domain socket address is represented in the following structure:
+.in +4n
+.nf
+
+.\" #define UNIX_PATH_MAX    108
+.\"
+struct sockaddr_un {
+    sa_family_t sun_family;               /* AF_UNIX */
+    char        sun_path[108];            /* pathname */
+};
+.fi
+.in
+.PP
+The
+.I sun_family
+field always contains
+.BR AF_UNIX .
+On Linux
+.I sun_path
+is 108 bytes in size; see also NOTES, below.
+
+Various systems calls (for example,
+.BR bind (2),
+.BR connect (2),
+and
+.BR sendto (2))
+take a
+.I sockaddr_un
+argument as input.
+Some other system calls (for example,
+.BR getsockname (2),
+.BR getpeername (2),
+.BR recvfrom (2),
+and
+.BR accept (2))
+return an argument of this type.
+
+Three types of address are distinguished in the
+.I sockaddr_un
+structure:
+.IP * 3
+.IR pathname :
+a UNIX domain socket can be bound to a null-terminated
+filesystem pathname using
+.BR bind (2).
+When the address of a pathname socket is returned
+(by one of the system calls noted above),
+its length is
+
+    offsetof(struct sockaddr_un, sun_path) + strlen(sun_path) + 1
+
+and
+.I sun_path
+contains the null-terminated pathname.
+(On Linux, the above
+.BR offsetof ()
+expression equates to the same value as
+.IR sizeof(sa_family_t) ,
+but some other implementations include other fields before
+.IR sun_path ,
+so the
+.BR offsetof ()
+expression more portably describes the size of the address structure.)
+.IP
+For further details of pathname sockets, see below.
+.IP *
+.IR unnamed :
+A stream socket that has not been bound to a pathname using
+.BR bind (2)
+has no name.
+Likewise, the two sockets created by
+.BR socketpair (2)
+are unnamed.
+When the address of an unnamed socket is returned,
+its length is
+.IR "sizeof(sa_family_t)" ,
+and
+.I sun_path
+should not be inspected.
+.\" There is quite some variation across implementations: FreeBSD
+.\" says the length is 16 bytes, HP-UX 11 says it's zero bytes.
+.IP *
+.IR abstract :
+an abstract socket address is distinguished (from a pathname socket)
+by the fact that
+.IR sun_path[0]
+is a null byte (\(aq\\0\(aq).
+The socket's address in this namespace is given by the additional
+bytes in
+.IR sun_path
+that are covered by the specified length of the address structure.
+(Null bytes in the name have no special significance.)
+The name has no connection with filesystem pathnames.
+When the address of an abstract socket is returned,
+the returned
+.I addrlen
+is greater than
+.IR "sizeof(sa_family_t)"
+(i.e., greater than 2), and the name of the socket is contained in
+the first
+.IR "(addrlen \- sizeof(sa_family_t))"
+bytes of
+.IR sun_path .
+The abstract socket namespace is a nonportable Linux extension.
+.SS Pathname sockets
+When binding a socket to a pathname, a few rules should be observed
+for maximum portability and ease of coding:
+.IP * 3
+The pathname in
+.I sun_path
+should be null-terminated.
+.IP *
+The length of the pathname, including the terminating null byte,
+should not exceed the size of
+.IR sun_path .
+.IP *
+The
+.I addrlen
+argument that describes the enclosing
+.I sockaddr_un
+structure should have a value of at least:
+
+.nf
+    offsetof(struct sockaddr_un, sun_path)+strlen(addr.sun_path)+1
+.fi
+.IP
+or, more simply,
+.I addrlen
+can be specified as
+.IR "sizeof(struct sockaddr_un)" .
+.PP
+There is some variation in how implementations handle UNIX domain
+socket addresses that do not follow the above rules.
+For example, some (but not all) implementations
+.\" Linux does this, including for the case where the supplied path
+.\" is 108 bytes
+append a null terminator if none is present in the supplied
+.IR sun_path .
+
+When coding portable applications,
+keep in mind that some implementations
+.\" HP-UX
+have
+.I sun_path
+as short as 92 bytes.
+.\" Modern BSDs generally have 104, Tru64 and AIX have 104,
+.\" Solaris and Irix have 108
+
+Various system calls
+.RB ( accept (2),
+.BR recvfrom (2),
+.BR getsockname (2),
+.BR getpeername (2))
+return socket address structures.
+When applied to UNIX domain sockets, the value-result
+.I addrlen
+argument supplied to the call should be initialized as above.
+Upon return, the argument is set to indicate the
+.I actual
+size of the address structure.
+The caller should check the value returned in this argument:
+if the output value exceeds the input value,
+then there is no guarantee that a null terminator is present in
+.IR sun_path .
+(See BUGS.)
+.SS Socket options
+For historical reasons, these socket options are specified with a
+.B SOL_SOCKET
+type even though they are
+.B AF_UNIX
+specific.
+They can be set with
+.BR setsockopt (2)
+and read with
+.BR getsockopt (2)
+by specifying
+.B SOL_SOCKET
+as the socket family.
+.TP
+.B SO_PASSCRED
+Enables the receiving of the credentials of the sending process in an
+ancillary message.
+When this option is set and the socket is not yet connected
+a unique name in the abstract namespace will be generated automatically.
+Expects an integer boolean flag.
+.SS Autobind feature
+If a
+.BR bind (2)
+call specifies
+.I addrlen
+as
+.IR sizeof(sa_family_t) ,
+.\" i.e., sizeof(short)
+or the
+.BR SO_PASSCRED
+socket option was specified for a socket that was
+not explicitly bound to an address,
+then the socket is autobound to an abstract address.
+The address consists of a null byte
+followed by 5 bytes in the character set
+.IR [0-9a-f] .
+Thus, there is a limit of 2^20 autobind addresses.
+(From Linux 2.1.15, when the autobind feature was added,
+8 bytes were used, and the limit was thus 2^32 autobind addresses.
+The change to 5 bytes came in Linux 2.3.15.)
+.SS Sockets API
+The following paragraphs describe domain-specific details and
+unsupported features of the sockets API for UNIX domain sockets on Linux.
+
+UNIX domain sockets do not support the transmission of
+out-of-band data (the
+.B MSG_OOB
+flag for
+.BR send (2)
+and
+.BR recv (2)).
+
+The
+.BR send (2)
+.B MSG_MORE
+flag is not supported by UNIX domain sockets.
+
+The use of
+.B MSG_TRUNC
+in the
+.I flags
+argument of
+.BR recv (2)
+is not supported by UNIX domain sockets.
+
+The
+.B SO_SNDBUF
+socket option does have an effect for UNIX domain sockets, but the
+.B SO_RCVBUF
+option does not.
+For datagram sockets, the
+.B SO_SNDBUF
+value imposes an upper limit on the size of outgoing datagrams.
+This limit is calculated as the doubled (see
+.BR socket (7))
+option value less 32 bytes used for overhead.
+.SS Ancillary messages
+Ancillary data is sent and received using
+.BR sendmsg (2)
+and
+.BR recvmsg (2).
+For historical reasons the ancillary message types listed below
+are specified with a
+.B SOL_SOCKET
+type even though they are
+.B AF_UNIX
+specific.
+To send them set the
+.I cmsg_level
+field of the struct
+.I cmsghdr
+to
+.B SOL_SOCKET
+and the
+.I cmsg_type
+field to the type.
+For more information see
+.BR cmsg (3).
+.TP
+.B SCM_RIGHTS
+Send or receive a set of open file descriptors from another process.
+The data portion contains an integer array of the file descriptors.
+The passed file descriptors behave as though they have been created with
+.BR dup (2).
+.TP
+.B SCM_CREDENTIALS
+Send or receive UNIX credentials.
+This can be used for authentication.
+The credentials are passed as a
+.I struct ucred
+ancillary message.
+Thus structure is defined in
+.I <sys/socket.h>
+as follows:
+
+.in +4n
+.nf
+struct ucred {
+    pid_t pid;    /* process ID of the sending process */
+    uid_t uid;    /* user ID of the sending process */
+    gid_t gid;    /* group ID of the sending process */
+};
+.fi
+.in
+
+Since glibc 2.8, the
+.B _GNU_SOURCE
+feature test macro must be defined (before including
+.I any
+header files) in order to obtain the definition
+of this structure.
+
+The credentials which the sender specifies are checked by the kernel.
+A process with effective user ID 0 is allowed to specify values that do
+not match its own.
+The sender must specify its own process ID (unless it has the capability
+.BR CAP_SYS_ADMIN ),
+its user ID, effective user ID, or saved set-user-ID (unless it has
+.BR CAP_SETUID ),
+and its group ID, effective group ID, or saved set-group-ID
+(unless it has
+.BR CAP_SETGID ).
+To receive a
+.I struct ucred
+message the
+.B SO_PASSCRED
+option must be enabled on the socket.
+.SS Ioctls
+The following
+.BR ioctl (2)
+calls return information in
+.IR value .
+The correct syntax is:
+.PP
+.RS
+.nf
+.BI int " value";
+.IB error " = ioctl(" unix_socket ", " ioctl_type ", &" value ");"
+.fi
+.RE
+.PP
+.I ioctl_type
+can be:
+.TP
+.B SIOCINQ
+For
+.B SOCK_STREAM
+socket the function returns the amount of queued unread data in the receive buffer.
+The socket must not be in LISTEN state, otherwise an error
+.RB ( EINVAL )
+is returned.
+.B SIOCINQ
+is defined in
+.IR <linux/sockios.h> .
+.\" FIXME . http://sources.redhat.com/bugzilla/show_bug.cgi?id=12002,
+.\" filed 2010-09-10, may cause SIOCINQ to be defined in glibc headers
+Alternatively,
+you can use the synonymous
+.BR FIONREAD ,
+defined in
+.IR <sys/ioctl.h> .
+.\" SIOCOUTQ also has an effect for UNIX domain sockets, but not
+.\" quite what userland might expect. It seems to return the number
+.\" of bytes allocated for buffers containing pending output.
+.\" That number is normally larger than the number of bytes of pending
+.\" output. Since this info is, from userland's point of view, imprecise,
+.\" and it may well change, probably best not to document this now.
+For
+.B SOCK_DGRAM
+socket,
+the returned value is the same as
+for Internet domain datagram socket;
+see
+.BR udp (7).
+.SH ERRORS
+.TP
+.B EADDRINUSE
+The specified local address is already in use or the filesystem socket
+object already exists.
+.TP
+.B ECONNREFUSED
+The remote address specified by
+.BR connect (2)
+was not a listening socket.
+This error can also occur if the target pathname is not a socket.
+.TP
+.B ECONNRESET
+Remote socket was unexpectedly closed.
+.TP
+.B EFAULT
+User memory address was not valid.
+.TP
+.B EINVAL
+Invalid argument passed.
+A common cause is that the value
+.B AF_UNIX
+was not specified in the
+.I sun_type
+field of passed addresses, or the socket was in an
+invalid state for the applied operation.
+.TP
+.B EISCONN
+.BR connect (2)
+called on an already connected socket or a target address was
+specified on a connected socket.
+.TP
+.B ENOENT
+The pathname in the remote address specified to
+.BR connect (2)
+did not exist.
+.TP
+.B ENOMEM
+Out of memory.
+.TP
+.B ENOTCONN
+Socket operation needs a target address, but the socket is not connected.
+.TP
+.B EOPNOTSUPP
+Stream operation called on non-stream oriented socket or tried to
+use the out-of-band data option.
+.TP
+.B EPERM
+The sender passed invalid credentials in the
+.IR "struct ucred" .
+.TP
+.B EPIPE
+Remote socket was closed on a stream socket.
+If enabled, a
+.B SIGPIPE
+is sent as well.
+This can be avoided by passing the
+.B MSG_NOSIGNAL
+flag to
+.BR sendmsg (2)
+or
+.BR recvmsg (2).
+.TP
+.B EPROTONOSUPPORT
+Passed protocol is not
+.BR AF_UNIX .
+.TP
+.B EPROTOTYPE
+Remote socket does not match the local socket type
+.RB ( SOCK_DGRAM
+versus
+.BR SOCK_STREAM )
+.TP
+.B ESOCKTNOSUPPORT
+Unknown socket type.
+.PP
+Other errors can be generated by the generic socket layer or
+by the filesystem while generating a filesystem socket object.
+See the appropriate manual pages for more information.
+.SH VERSIONS
+.B SCM_CREDENTIALS
+and the abstract namespace were introduced with Linux 2.2 and should not
+be used in portable programs.
+(Some BSD-derived systems also support credential passing,
+but the implementation details differ.)
+.SH NOTES
+In the Linux implementation, sockets which are visible in the
+filesystem honor the permissions of the directory they are in.
+Their owner, group, and permissions can be changed.
+Creation of a new socket will fail if the process does not have write and
+search (execute) permission on the directory the socket is created in.
+Connecting to the socket object requires read/write permission.
+This behavior differs from many BSD-derived systems which
+ignore permissions for UNIX domain sockets.
+Portable programs should not rely on
+this feature for security.
+
+Binding to a socket with a filename creates a socket
+in the filesystem that must be deleted by the caller when it is no
+longer needed (using
+.BR unlink (2)).
+The usual UNIX close-behind semantics apply; the socket can be unlinked
+at any time and will be finally removed from the filesystem when the last
+reference to it is closed.
+
+To pass file descriptors or credentials over a
+.BR SOCK_STREAM ,
+you need
+to send or receive at least one byte of nonancillary data in the same
+.BR sendmsg (2)
+or
+.BR recvmsg (2)
+call.
+
+UNIX domain stream sockets do not support the notion of out-of-band data.
+.\"
+.SH BUGS
+When binding a socket to an address,
+Linux is one of the implementations that appends a null terminator
+if none is supplied in
+.IR sun_path .
+In most cases this is unproblematic:
+when the socket address is retrieved,
+it will be one byte longer than that supplied when the socket was bound.
+However, there is one case where confusing behavior can result:
+if 108 non-null bytes are supplied when a socket is bound,
+then the addition of the null terminator takes the length of
+the pathname beyond
+.IR sizeof(sun_path) .
+Consequently, when retrieving the socket address
+(for example, via
+.BR accept (2)),
+.\" The behavior on Solaris is quite similar.
+if the input
+.I addrlen
+argument for the retrieving call is specified as
+.IR "sizeof(struct sockaddr_un)" ,
+then the returned address structure
+.I won't
+have a null terminator in
+.IR sun_path .
+
+In addition, some implementations
+.\" i.e., traditional BSD
+don't require a null terminator when binding a socket (the
+.I addrlen
+argument is used to determine the length of
+.IR sun_path )
+and when the socket address is retrieved on these implementations,
+there is no null terminator in
+.IR sun_path .
+
+Applications that retrieve socket addresses can (portably) code
+to handle the possibility that there is no null terminator in
+.IR sun_path
+by respecting the fact that the number of valid bytes in the pathname is:
+
+    strnlen(addr.sun_path, addrlen \- offsetof(sockaddr_un, sun_path))
+.\" The following patch to amend kernel behavior was rejected:
+.\" http://thread.gmane.org/gmane.linux.kernel.api/2437
+.\" Subject: [patch] Fix handling of overlength pathname in AF_UNIX sun_path
+.\" 2012-04-17
+.\" And there was a related discussion in the Austin list:
+.\" http://thread.gmane.org/gmane.comp.standards.posix.austin.general/5735
+.\" Subject: Having a sun_path with no null terminator
+.\" 2012-04-18
+.\"
+.\" FIXME . Track http://austingroupbugs.net/view.php?id=561
+
+Alternatively, an application can retrieve
+the socket address by allocating a buffer of size
+.I "sizeof(struct sockaddr_un)+1"
+that is zeroed out before the retrieval.
+The retrieving call can specify
+.I addrlen
+as
+.IR "sizeof(struct sockaddr_un)" ,
+and the extra zero byte ensures that there will be
+a null terminator for the string returned in
+.IR sun_path :
+
+.nf
+.in +3
+void *addrp;
+
+addrlen = sizeof(struct sockaddr_un);
+addrp = malloc(addrlen + 1);
+if (addrp == NULL)
+    /* Handle error */ ;
+memset(addrp, 0, addrlen + 1);
+
+if (getsockname(sfd, (struct sockaddr *) addrp, &addrlen)) == \-1)
+    /* handle error */ ;
+
+printf("sun_path = %s\\n", ((struct sockaddr_un *) addrp)\->sun_path);
+.in
+.fi
+
+This sort of messiness can be avoided if it is guaranteed
+that the applications that
+.I create
+pathname sockets follow the rules outlined above under
+.IR "Pathname sockets" .
+.SH EXAMPLE
+The following code demonstrates the use of sequenced-packet
+sockets for local interprocess communication.
+It consists of two programs.
+The server program waits for a connection from the client program.
+The client sends each of its command-line arguments in separate messages.
+The server treats the incoming messages as integers and adds them up.
+The client sends the command string "END".
+The server sends back a message containing the sum of the client's integers.
+The client prints the sum and exits.
+The server waits for the next client to connect.
+To stop the server, the client is called with the command-line argument "DOWN".
+.PP
+The following output was recorded while running the server in the background
+and repeatedly executing the client.
+Execution of the server program ends when it receives the "DOWN" command.
+.SS Example output
+.in +4n
+.nf
+$ \fB./server &\fP
+[1] 25887
+$ \fB./client 3 4\fP
+Result = 7
+$ \fB./client 11 \-5\fP
+Result = 6
+$ \fB./client DOWN\fP
+Result = 0
+[1]+  Done                    ./server
+$
+.fi
+.in
+.SS Program source
+.nf
+/*
+ * File connection.h
+ */
+
+#define SOCKET_NAME "/tmp/9Lq7BNBnBycd6nxy.socket"
+#define BUFFER_SIZE 12
+
+/*
+ * File server.c
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+#include "connection.h"
+
+int
+main(int argc, char *argv[])
+{
+    struct sockaddr_un name;
+    int down_flag = 0;
+    int ret;
+    int connection_socket;
+    int data_socket;
+    int result;
+    char buffer[BUFFER_SIZE];
+
+    /*
+     * In case the program exited inadvertently on the last run,
+     * remove the socket.
+     */
+
+    unlink(SOCKET_NAME);
+
+    /* Create local socket. */
+
+    connection_socket = socket(AF_UNIX, SOCK_SEQPACKET, 0);
+    if (connection_socket == \-1) {
+        perror("socket");
+        exit(EXIT_FAILURE);
+    }
+
+    /*
+     * For portability clear the whole structure, since some
+     * implementations have additional (nonstandard) fields in
+     * the structure.
+     */
+
+    memset(&name, 0, sizeof(struct sockaddr_un));
+
+    /* Bind socket to socket name. */
+
+    name.sun_family = AF_UNIX;
+    strncpy(name.sun_path, SOCKET_NAME, sizeof(name.sun_path) \- 1);
+
+    ret = bind(connection_socket, (const struct sockaddr *) &name,
+               sizeof(struct sockaddr_un));
+    if (ret == \-1) {
+        perror("bind");
+        exit(EXIT_FAILURE);
+    }
+
+    /*
+     * Prepare for accepting connections. The backlog size is set
+     * to 20. So while one request is being processed other requests
+     * can be waiting.
+     */
+
+    ret = listen(connection_socket, 20);
+    if (ret == \-1) {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+
+    /* This is the main loop for handling connections. */
+
+    for (;;) {
+
+        /* Wait for incoming connection. */
+
+        data_socket = accept(connection_socket, NULL, NULL);
+        if (ret == \-1) {
+            perror("accept");
+            exit(EXIT_FAILURE);
+        }
+
+        result = 0;
+        for(;;) {
+
+            /* Wait for next data packet. */
+
+            ret = read(data_socket, buffer, BUFFER_SIZE);
+            if (ret == \-1) {
+                perror("read");
+                exit(EXIT_FAILURE);
+            }
+
+            /* Ensure buffer is 0\-terminated. */
+
+            buffer[BUFFER_SIZE \- 1] = 0;
+
+            /* Handle commands. */
+
+            if (!strncmp(buffer, "DOWN", BUFFER_SIZE)) {
+                down_flag = 1;
+                break;
+            }
+
+            if (!strncmp(buffer, "END", BUFFER_SIZE)) {
+                break;
+            }
+
+            /* Add received summand. */
+
+            result += atoi(buffer);
+        }
+
+        /* Send result. */
+
+        sprintf(buffer, "%d", result);
+        ret = write(data_socket, buffer, BUFFER_SIZE);
+
+        if (ret == \-1) {
+            perror("write");
+            exit(EXIT_FAILURE);
+        }
+
+        /* Close socket. */
+
+        close(data_socket);
+
+        /* Quit on DOWN command. */
+
+        if (down_flag) {
+            break;
+        }
+    }
+
+    close(connection_socket);
+
+    /* Unlink the socket. */
+
+    unlink(SOCKET_NAME);
+
+    exit(EXIT_SUCCESS);
+}
+
+/*
+ * File client.c
+ */
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+#include "connection.h"
+
+int
+main(int argc, char *argv[])
+{
+    struct sockaddr_un addr;
+    int i;
+    int ret;
+    int data_socket;
+    char buffer[BUFFER_SIZE];
+
+    /* Create local socket. */
+
+    data_socket = socket(AF_UNIX, SOCK_SEQPACKET, 0);
+    if (data_socket == \-1) {
+        perror("socket");
+        exit(EXIT_FAILURE);
+    }
+
+    /*
+     * For portability clear the whole structure, since some
+     * implementations have additional (nonstandard) fields in
+     * the structure.
+     */
+
+    memset(&addr, 0, sizeof(struct sockaddr_un));
+
+    /* Connect socket to socket address */
+
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, SOCKET_NAME, sizeof(addr.sun_path) \- 1);
+
+    ret = connect (data_socket, (const struct sockaddr *) &addr,
+                   sizeof(struct sockaddr_un));
+    if (ret == \-1) {
+        fprintf(stderr, "The server is down.\\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Send arguments. */
+
+    for (i = 1; i < argc; ++i) {
+        ret = write(data_socket, argv[i], strlen(argv[i]) + 1);
+        if (ret == \-1) {
+            perror("write");
+            break;
+        }
+    }
+
+    /* Request result. */
+
+    strcpy (buffer, "END");
+    ret = write(data_socket, buffer, strlen(buffer) + 1);
+    if (ret == \-1) {
+        perror("write");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Receive result. */
+
+    ret = read(data_socket, buffer, BUFFER_SIZE);
+    if (ret == \-1) {
+        perror("read");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Ensure buffer is 0\-terminated. */
+
+    buffer[BUFFER_SIZE \- 1] = 0;
+
+    printf("Result = %s\\n", buffer);
+
+    /* Close socket. */
+
+    close(data_socket);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.PP
+For an example of the use of
+.BR SCM_RIGHTS
+see
+.BR cmsg (3).
+.SH SEE ALSO
+.BR recvmsg (2),
+.BR sendmsg (2),
+.BR socket (2),
+.BR socketpair (2),
+.BR cmsg (3),
+.BR capabilities (7),
+.BR credentials (7),
+.BR socket (7),
+.BR udp (7)

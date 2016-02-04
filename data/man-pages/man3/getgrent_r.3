@@ -1,0 +1,218 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH GETGRENT_R 3 2015-07-23 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getgrent_r, fgetgrent_r \- get group file entry reentrantly
+.SH SYNOPSIS
+.nf
+.B #include <grp.h>
+.sp
+.BI "int getgrent_r(struct group *" gbuf ", char *" buf ,
+.br
+.BI "               size_t " buflen ", struct group **" gbufp );
+.sp
+.BI "int fgetgrent_r(FILE *" stream ", struct group *" gbuf ", char *" buf ,
+.br
+.BI "                size_t " buflen ", struct group **" gbufp );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR getgrent_r ():
+_GNU_SOURCE
+.\" FIXME . The FTM requirements seem inconsistent here.  File a glibc bug?
+.br
+.BR fgetgrent_r ():
+_SVID_SOURCE
+.SH DESCRIPTION
+The functions
+.BR getgrent_r ()
+and
+.BR fgetgrent_r ()
+are the reentrant versions of
+.BR getgrent (3)
+and
+.BR fgetgrent (3).
+The former reads the next group entry from the stream initialized by
+.BR setgrent (3).
+The latter reads the next group entry from
+.IR stream .
+.PP
+The \fIgroup\fP structure is defined in
+.I <grp.h>
+as follows:
+.sp
+.in +4n
+.nf
+struct group {
+    char   *gr_name;        /* group name */
+    char   *gr_passwd;      /* group password */
+    gid_t   gr_gid;         /* group ID */
+    char  **gr_mem;         /* NULL-terminated array of pointers
+                               to names of group members */
+};
+.fi
+.in
+.PP
+For more information about the fields of this structure, see
+.BR group (5).
+.PP
+The nonreentrant functions return a pointer to static storage,
+where this static storage contains further pointers to group
+name, password and members.
+The reentrant functions described here return all of that in
+caller-provided buffers.
+First of all there is the buffer
+.I gbuf
+that can hold a \fIstruct group\fP.
+And next the buffer
+.I buf
+of size
+.I buflen
+that can hold additional strings.
+The result of these functions, the \fIstruct group\fP read from the stream,
+is stored in the provided buffer
+.IR *gbuf ,
+and a pointer to this \fIstruct group\fP is returned in
+.IR *gbufp .
+.SH RETURN VALUE
+On success, these functions return 0 and
+.I *gbufp
+is a pointer to the \fIstruct group\fP.
+On error, these functions return an error value and
+.I *gbufp
+is NULL.
+.SH ERRORS
+.TP
+.B ENOENT
+No more entries.
+.TP
+.B ERANGE
+Insufficient buffer space supplied.
+Try again with larger buffer.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lbw27
+l l l.
+Interface	Attribute	Value
+T{
+.BR getgrent_r ()
+T}	Thread safety	MT-Unsafe race:grent locale
+T{
+.BR fgetgrent_r ()
+T}	Thread safety	MT-Safe
+.TE
+
+In the above table,
+.I grent
+in
+.I race:grent
+signifies that if any of the functions
+.BR setgrent (),
+.BR getgrent (),
+.BR endgrent (),
+or
+.BR getgrent_r ()
+are used in parallel in different threads of a program,
+then data races could occur.
+.SH CONFORMING TO
+These functions are GNU extensions, done in a style resembling
+the POSIX version of functions like
+.BR getpwnam_r (3).
+Other systems use the prototype
+.sp
+.nf
+.in +4n
+struct group *getgrent_r(struct group *grp, char *buf,
+                         int buflen);
+.in
+.fi
+.sp
+or, better,
+.sp
+.nf
+.in +4n
+int getgrent_r(struct group *grp, char *buf, int buflen,
+               FILE **gr_fp);
+.in
+.fi
+.SH NOTES
+The function
+.BR getgrent_r ()
+is not really reentrant since it shares the reading position
+in the stream with all other threads.
+.SH EXAMPLE
+.nf
+#define _GNU_SOURCE
+#include <grp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#define BUFLEN 4096
+
+int
+main(void)
+{
+    struct group grp, *grpp;
+    char buf[BUFLEN];
+    int i;
+
+    setgrent();
+    while (1) {
+        i = getgrent_r(&grp, buf, BUFLEN, &grpp);
+        if (i)
+            break;
+        printf("%s (%d):", grpp\->gr_name, grpp\->gr_gid);
+        for (i = 0; ; i++) {
+            if (grpp\->gr_mem[i] == NULL)
+                break;
+            printf(" %s", grpp\->gr_mem[i]);
+        }
+        printf("\en");
+    }
+    endgrent();
+    exit(EXIT_SUCCESS);
+}
+.fi
+.\" perhaps add error checking - should use strerror_r
+.\" #include <errno.h>
+.\" #include <stdlib.h>
+.\"         if (i) {
+.\"               if (i == ENOENT)
+.\"                     break;
+.\"               printf("getgrent_r: %s", strerror(i));
+.\"               exit(EXIT_FAILURE);
+.\"         }
+.SH SEE ALSO
+.BR fgetgrent (3),
+.BR getgrent (3),
+.BR getgrgid (3),
+.BR getgrnam (3),
+.BR putgrent (3),
+.BR group (5)

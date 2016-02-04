@@ -1,0 +1,148 @@
+.\" Copyright (C) 2000 by Werner Almesberger
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" May be distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" Written 2000-02-23 by Werner Almesberger
+.\" Modified 2004-06-17 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.TH PIVOT_ROOT 2 2012-07-13 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pivot_root \- change the root filesystem
+.SH SYNOPSIS
+.BI "int pivot_root(const char *" new_root ", const char *" put_old );
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+.BR pivot_root ()
+moves the root filesystem of the calling process to the
+directory \fIput_old\fP and makes \fInew_root\fP the new root filesystem
+of the calling process.
+.\"
+.\" The
+.\" .B CAP_SYS_ADMIN
+.\" capability is required.
+
+The typical use of
+.BR pivot_root ()
+is during system startup, when the
+system mounts a temporary root filesystem (e.g., an \fBinitrd\fP), then
+mounts the real root filesystem, and eventually turns the latter into
+the current root of all relevant processes or threads.
+
+.BR pivot_root ()
+may or may not change the current root and the current
+working directory of any processes or threads which use the old
+root directory.
+The caller of
+.BR pivot_root ()
+must ensure that processes with root or current working directory
+at the old root operate correctly in either case.
+An easy way to ensure this is to change their
+root and current working directory to \fInew_root\fP before invoking
+.BR pivot_root ().
+
+The paragraph above is intentionally vague because the implementation
+of
+.BR pivot_root ()
+may change in the future.
+At the time of writing,
+.BR pivot_root ()
+changes root and current working directory of each process or
+thread to \fInew_root\fP if they point to the old root directory.
+This
+is necessary in order to prevent kernel threads from keeping the old
+root directory busy with their root and current working directory,
+even if they never access
+the filesystem in any way.
+In the future, there may be a mechanism for
+kernel threads to explicitly relinquish any access to the filesystem,
+such that this fairly intrusive mechanism can be removed from
+.BR pivot_root ().
+
+Note that this also applies to the calling process:
+.BR pivot_root ()
+may
+or may not affect its current working directory.
+It is therefore recommended to call
+\fBchdir("/")\fP immediately after
+.BR pivot_root ().
+
+The following restrictions apply to \fInew_root\fP and \fIput_old\fP:
+.IP \- 3
+They must be directories.
+.IP \- 3
+\fInew_root\fP and \fIput_old\fP must not be on the same filesystem as
+the current root.
+.IP \- 3
+\fIput_old\fP must be underneath \fInew_root\fP, that is, adding a nonzero
+number of \fI/..\fP to the string pointed to by \fIput_old\fP must yield
+the same directory as \fInew_root\fP.
+.IP \- 3
+No other filesystem may be mounted on \fIput_old\fP.
+.PP
+See also
+.BR pivot_root (8)
+for additional usage examples.
+
+If the current root is not a mount point (e.g., after
+.BR chroot (2)
+or
+.BR pivot_root (),
+see also below), not the old root directory, but the
+mount point of that filesystem is mounted on \fIput_old\fP.
+
+\fInew_root\fP does not have to be a mount point.
+In this case,
+\fI/proc/mounts\fP will show the mount point of the filesystem containing
+\fInew_root\fP as root (\fI/\fP).
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+\fIerrno\fP is set appropriately.
+.SH ERRORS
+.BR pivot_root ()
+may return (in \fIerrno\fP) any of the errors returned by
+.BR stat (2).
+Additionally, it may return:
+.TP
+.B EBUSY
+\fInew_root\fP or \fIput_old\fP are on the current root filesystem,
+or a filesystem is already mounted on \fIput_old\fP.
+.TP
+.B EINVAL
+\fIput_old\fP is not underneath \fInew_root\fP.
+.TP
+.B ENOTDIR
+\fInew_root\fP or \fIput_old\fP is not a directory.
+.TP
+.B EPERM
+The calling process does not have the
+.B CAP_SYS_ADMIN
+capability.
+.SH VERSIONS
+.BR pivot_root ()
+was introduced in Linux 2.3.41.
+.SH CONFORMING TO
+.BR pivot_root ()
+is Linux-specific and hence is not portable.
+.SH NOTES
+Glibc does not provide a wrapper for this system call; call it using
+.BR syscall (2).
+.SH BUGS
+.BR pivot_root ()
+should not have to change root and current working directory of all other
+processes in the system.
+
+Some of the more obscure uses of
+.BR pivot_root ()
+may quickly lead to
+insanity.
+.SH SEE ALSO
+.BR chdir (2),
+.BR chroot (2),
+.BR stat (2),
+.BR initrd (4),
+.BR pivot_root (8)

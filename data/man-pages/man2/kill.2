@@ -1,0 +1,180 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified by Thomas Koenig <ig25@rz.uni-karlsruhe.de>
+.\" Modified 1993-07-23 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1993-07-25 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1995-11-01 by Michael Haardt
+.\"  <michael@cantor.informatik.rwth-aachen.de>
+.\" Modified 1996-04-14 by Andries Brouwer <aeb@cwi.nl>
+.\"  [added some polishing contributed by Mike Battersby <mib@deakin.edu.au>]
+.\" Modified 1996-07-21 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 1997-01-17 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 2001-12-18 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 2002-07-24 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added note on historical rules enforced when an unprivileged process
+.\"	sends a signal.
+.\" Modified 2004-06-16 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added note on CAP_KILL
+.\" Modified 2004-06-24 by aeb
+.\" Modified, 2004-11-30, after idea from emmanuel.colbus@ensimag.imag.fr
+.\"
+.TH KILL 2 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+kill \- send signal to a process
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.br
+.B #include <signal.h>
+.sp
+.BI "int kill(pid_t " pid ", int " sig );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR kill ():
+_POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+.ad b
+.SH DESCRIPTION
+The
+.BR kill ()
+system call
+can be used to send any signal to any process group or process.
+.PP
+If \fIpid\fP is positive, then signal \fIsig\fP is sent to the
+process with the ID specified by \fIpid\fP.
+.PP
+If \fIpid\fP equals 0, then \fIsig\fP is sent to every process in the
+process group of the calling process.
+.PP
+If \fIpid\fP equals \-1, then \fIsig\fP is sent to every process
+for which the calling process has permission to send signals,
+except for process 1 (\fIinit\fP), but see below.
+.PP
+If \fIpid\fP is less than \-1, then \fIsig\fP is sent to every process
+in the process group whose ID is \fI\-pid\fP.
+.PP
+If \fIsig\fP is 0, then no signal is sent, but error checking is still
+performed;
+this can be used to check for the existence of a process ID or
+process group ID.
+
+For a process to have permission to send a signal
+it must either be privileged (under Linux: have the
+.B CAP_KILL
+capability), or the real or effective
+user ID of the sending process must equal the real or
+saved set-user-ID of the target process.
+In the case of
+.B SIGCONT
+it suffices when the sending and receiving
+processes belong to the same session.
+(Historically, the rules were different; see NOTES.)
+.SH RETURN VALUE
+On success (at least one signal was sent), zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EINVAL
+An invalid signal was specified.
+.TP
+.B EPERM
+The process does not have permission to send the signal
+to any of the target processes.
+.TP
+.B ESRCH
+The pid or process group does not exist.
+Note that an existing process might be a zombie,
+a process which already committed termination, but
+has not yet been
+.BR wait (2)ed
+for.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+.SH NOTES
+The only signals that can be sent to process ID 1, the
+.I init
+process, are those for which
+.I init
+has explicitly installed signal handlers.
+This is done to assure the
+system is not brought down accidentally.
+.LP
+POSIX.1 requires that \fIkill(\-1,sig)\fP send \fIsig\fP
+to all processes that the calling process may send signals to,
+except possibly for some implementation-defined system processes.
+Linux allows a process to signal itself, but on Linux the call
+\fIkill(\-1,sig)\fP does not signal the calling process.
+.LP
+POSIX.1 requires that if a process sends a signal to itself,
+and the sending thread does not have the signal blocked,
+and no other thread
+has it unblocked or is waiting for it in
+.BR sigwait (3),
+at least one
+unblocked signal must be delivered to the sending thread before the
+.BR kill ()
+returns.
+.SS Linux notes
+Across different kernel versions, Linux has enforced different rules
+for the permissions required for an unprivileged process
+to send a signal to another process.
+.\" In the 0.* kernels things chopped and changed quite
+.\" a bit - MTK, 24 Jul 02
+In kernels 1.0 to 1.2.2, a signal could be sent if the
+effective user ID of the sender matched effective user ID of the target,
+or the real user ID of the sender matched the real user ID of the target.
+From kernel 1.2.3 until 1.3.77, a signal could be sent if the
+effective user ID of the sender matched either the real or effective
+user ID of the target.
+The current rules, which conform to POSIX.1, were adopted
+in kernel 1.3.78.
+.SH BUGS
+In 2.6 kernels up to and including 2.6.7,
+there was a bug that meant that when sending signals to a process group,
+.BR kill ()
+failed with the error
+.B EPERM
+if the caller did not have permission to send the signal to \fIany\fP (rather
+than \fIall\fP) of the members of the process group.
+Notwithstanding this error return, the signal was still delivered
+to all of the processes for which the caller had permission to signal.
+.SH SEE ALSO
+.BR _exit (2),
+.BR killpg (2),
+.BR signal (2),
+.BR tkill (2),
+.BR exit (3),
+.BR sigqueue (3),
+.BR capabilities (7),
+.BR credentials (7),
+.BR signal (7)

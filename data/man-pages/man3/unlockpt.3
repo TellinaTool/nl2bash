@@ -1,0 +1,65 @@
+.\" %%%LICENSE_START(PUBLIC_DOMAIN)
+.\" This page is in the public domain. - aeb
+.\" %%%LICENSE_END
+.\"
+.TH UNLOCKPT 3 2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+unlockpt \- unlock a pseudoterminal master/slave pair
+.SH SYNOPSIS
+.nf
+.BR "#define _XOPEN_SOURCE" "       /* See feature_test_macros(7) */"
+.br
+.B #include <stdlib.h>
+.sp
+.BI "int unlockpt(int " fd ");"
+.fi
+.SH DESCRIPTION
+The
+.BR unlockpt ()
+function unlocks the slave pseudoterminal device
+corresponding to the master pseudoterminal referred to by
+.IR fd .
+.PP
+.BR unlockpt ()
+should be called before opening the slave side of a pseudoterminal.
+.SH RETURN VALUE
+When successful,
+.BR unlockpt ()
+returns 0.
+Otherwise, it returns \-1 and sets
+.I errno
+appropriately.
+.SH ERRORS
+.TP
+.B EBADF
+The
+.I fd
+argument is not a file descriptor open for writing.
+.TP
+.B EINVAL
+The
+.I fd
+argument is not associated with a master pseudoterminal.
+.SH VERSIONS
+.BR unlockpt ()
+is provided in glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR unlockpt ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH SEE ALSO
+.BR grantpt (3),
+.BR posix_openpt (3),
+.BR ptsname (3),
+.BR pts (4),
+.BR pty (7)

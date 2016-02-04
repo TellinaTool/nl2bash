@@ -1,0 +1,175 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_SIGMASK 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_sigmask \- examine and change mask of blocked signals
+.SH SYNOPSIS
+.nf
+.B #include <signal.h>
+
+.BI "int pthread_sigmask(int " how ", const sigset_t *" set \
+", sigset_t *" oldset );
+.fi
+.sp
+Compile and link with \fI\-pthread\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR pthread_sigmask ():
+.RS 4
+_POSIX_C_SOURCE\ >=\ 199506L || _XOPEN_SOURCE\ >=\ 500
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR pthread_sigmask ()
+function is just like
+.BR sigprocmask (2),
+with the difference that its use in multithreaded programs
+is explicitly specified by POSIX.1.
+Other differences are noted in this page.
+
+For a description of the arguments and operation of this function, see
+.BR sigprocmask (2).
+.SH RETURN VALUE
+On success,
+.BR pthread_sigmask ()
+returns 0;
+on error, it returns an error number.
+.SH ERRORS
+See
+.BR sigprocmask (2).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_sigmask ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+A new thread inherits a copy of its creator's signal mask.
+
+The glibc
+.BR pthread_sigmask ()
+function silently ignores attempts to block the two real-time signals that
+are used internally by the NPTL threading implementation.
+See
+.BR nptl (7)
+for details.
+.SH EXAMPLE
+The program below blocks some signals in the main thread,
+and then creates a dedicated thread to fetch those signals via
+.BR sigwait (3).
+The following shell session demonstrates its use:
+
+.in +4n
+.nf
+.RB "$" " ./a.out &"
+[1] 5423
+.RB "$" " kill \-QUIT %1"
+Signal handling thread got signal 3
+.RB "$" " kill \-USR1 %1"
+Signal handling thread got signal 10
+.RB "$" " kill \-TERM %1"
+[1]+  Terminated              ./a.out
+.fi
+.in
+.SS Program source
+\&
+.nf
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <errno.h>
+
+/* Simple error handling functions */
+
+#define handle_error_en(en, msg) \\
+        do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static void *
+sig_thread(void *arg)
+{
+    sigset_t *set = arg;
+    int s, sig;
+
+    for (;;) {
+        s = sigwait(set, &sig);
+        if (s != 0)
+            handle_error_en(s, "sigwait");
+        printf("Signal handling thread got signal %d\\n", sig);
+    }
+}
+
+int
+main(int argc, char *argv[])
+{
+    pthread_t thread;
+    sigset_t set;
+    int s;
+
+    /* Block SIGQUIT and SIGUSR1; other threads created by main()
+       will inherit a copy of the signal mask. */
+
+    sigemptyset(&set);
+    sigaddset(&set, SIGQUIT);
+    sigaddset(&set, SIGUSR1);
+    s = pthread_sigmask(SIG_BLOCK, &set, NULL);
+    if (s != 0)
+        handle_error_en(s, "pthread_sigmask");
+
+    s = pthread_create(&thread, NULL, &sig_thread, (void *) &set);
+    if (s != 0)
+        handle_error_en(s, "pthread_create");
+
+    /* Main thread carries on to create other threads and/or do
+       other work */
+
+    pause();            /* Dummy pause so we can test program */
+}
+.fi
+.SH SEE ALSO
+.BR sigaction (2),
+.BR sigpending (2),
+.BR sigprocmask (2),
+.BR pthread_create (3),
+.BR pthread_kill (3),
+.BR sigsetops (3),
+.BR pthreads (7),
+.BR signal (7)

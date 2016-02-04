@@ -1,0 +1,58 @@
+.\" Copyright (c) 2009 Intel Corporation, Author Andi Kleen
+.\" Some sentences copied from comments in arch/x86/kernel/msr.c
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH MSR 4 2009-03-31 "Linux" "Linux Programmer's Manual"
+.SH NAME
+msr \- x86 CPU MSR access device
+.SH DESCRIPTION
+.I /dev/cpu/CPUNUM/msr
+provides an interface to read and write the model-specific
+registers (MSRs) of an x86 CPU.
+.I CPUNUM
+is the number of the CPU to access as listed in
+.IR /proc/cpuinfo .
+
+The register access is done by opening the file and seeking
+to the MSR number as offset in the file, and then
+reading or writing in chunks of 8 bytes.
+An I/O transfer of more than 8 bytes means multiple reads or writes
+of the same register.
+
+This file is protected so that it can be read and written only by the user
+.IR root ,
+or members of the group
+.IR root .
+.SH NOTES
+The
+.I msr
+driver is not auto-loaded.
+On modular kernels you might need to use the following command
+to load it explicitly before use:
+
+    $ \fImodprobe msr\fP
+.SH SEE ALSO
+Intel Corporation Intel 64 and IA-32 Architectures
+Software Developer's Manual Volume 3B Appendix B,
+for an overview of the Intel CPU MSRs.

@@ -1,0 +1,75 @@
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH MALLOC_USABLE_SIZE 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+malloc_usable_size \- obtain size of block of memory allocated from heap
+.SH SYNOPSIS
+.B #include <malloc.h>
+
+.BI "size_t malloc_usable_size (void *" ptr );
+.SH DESCRIPTION
+The
+.BR malloc_usable_size ()
+function returns the number of usable bytes in the block pointed to by
+.IR ptr ,
+a pointer to a block of memory allocated by
+.BR malloc (3)
+or a related function.
+.SH RETURN VALUE
+.BR malloc_usable_size ()
+returns the number of usable bytes in
+the block of allocated memory pointed to by
+.IR ptr .
+If
+.I ptr
+is NULL, 0 is returned.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw20 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR malloc_usable_size ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+This function is a GNU extension.
+.SH NOTES
+The value returned by
+.BR malloc_usable_size ()
+may be greater than the requested size of the allocation because
+of alignment and minimum size constraints.
+Although the excess bytes can be overwritten by the application
+without ill effects,
+this is not good programming practice:
+the number of excess bytes in an allocation depends on
+the underlying implementation.
+
+The main use of this function is for debugging and introspection.
+.SH SEE ALSO
+.BR malloc (3)

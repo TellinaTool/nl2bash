@@ -1,0 +1,115 @@
+.\" Copyright (c) 2009 Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_SETCONCURRENCY 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_setconcurrency, pthread_getconcurrency \- set/get
+the concurrency level
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.BI "int pthread_setconcurrency(int " new_level );
+.BI "int pthread_getconcurrency(void);
+.sp
+Compile and link with \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+The
+.BR pthread_setconcurrency ()
+function informs the implementation of the application's
+desired concurrency level, specified in
+.IR new_level .
+The implementation takes this only as a hint:
+POSIX.1 does not specify the level of concurrency that
+should be provided as a result of calling
+.BR pthread_setconcurrency ().
+
+Specifying
+.I new_level
+as 0 instructs the implementation to manage the concurrency level
+as it deems appropriate.
+
+.BR pthread_getconcurrency ()
+returns the current value of the concurrency level for this process.
+.SH RETURN VALUE
+On success,
+.BR pthread_setconcurrency ()
+returns 0;
+on error, it returns a nonzero error number.
+
+.BR pthread_getconcurrency ()
+always succeeds, returning the concurrency level set by a previous call to
+.BR pthread_setconcurrency (),
+or 0, if
+.BR pthread_setconcurrency ()
+has not previously been called.
+.SH ERRORS
+.BR pthread_setconcurrency ()
+can fail with the following error:
+.TP
+.B EINVAL
+.I new_level
+is negative.
+.PP
+POSIX.1 also documents an
+.BR EAGAIN
+error ("the value specified by
+.I new_level
+would cause a system resource to be exceeded").
+.SH VERSIONS
+These functions are available in glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw25 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_setconcurrency (),
+.BR pthread_getconcurrency ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+The default concurrency level is 0.
+
+Concurrency levels are meaningful only for M:N threading implementations,
+where at any moment a subset of a process's set of user-level threads
+may be bound to a smaller number of kernel-scheduling entities.
+Setting the concurrency level allows the application to
+give the system a hint as to the number of kernel-scheduling entities
+that should be provided for efficient execution of the application.
+
+Both LinuxThreads and NPTL are 1:1 threading implementations,
+so setting the concurrency level has no meaning.
+In other words,
+on Linux these functions merely exist for compatibility with other systems,
+and they have no effect on the execution of a program.
+.SH SEE ALSO
+.BR pthread_attr_setscope (3),
+.BR pthreads (7)

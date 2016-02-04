@@ -1,0 +1,71 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified Sun Jul 25 10:14:13 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 15 April 1995 by Michael Chastain <mec@shell.portal.com>
+.\"   Update calling parameters to Linux 1.2.4 values.
+.\" Modified 10 June 1995 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 3 May 1996 by Martin Schulze <joey@infodrom.north.de>
+.\" Modified Wed Nov  6 04:05:28 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Sat Jan 29 01:08:23 2000 by aeb
+.\"
+.TH SETUP 2 2008-12-03 "Linux" "Linux Programmer's Manual"
+.SH NAME
+setup \- setup devices and filesystems, mount root filesystem
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.B int setup(void);
+.SH DESCRIPTION
+.BR setup ()
+is called once from within
+.IR linux/init/main.c .
+It calls initialization functions for devices and filesystems
+configured into the kernel and then mounts the root filesystem.
+.PP
+No user process may call
+.BR setup ().
+Any user process, even a process with superuser permission,
+will receive
+.BR EPERM .
+.SH RETURN VALUE
+.BR setup ()
+always returns \-1 for a user process.
+.SH ERRORS
+.TP
+.B EPERM
+Always, for a user process.
+.SH VERSIONS
+Since Linux 2.1.121, no such function exists anymore.
+.SH CONFORMING TO
+This function is Linux-specific, and should not be used in programs
+intended to be portable, or indeed in any programs at all.
+.SH NOTES
+The calling sequence varied: at some times
+.BR setup ()
+has had a single argument
+.I "void\ *BIOS"
+and at other times a single argument
+.IR "int magic" .

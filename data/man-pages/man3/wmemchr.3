@@ -1,0 +1,67 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WMEMCHR 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wmemchr \- search a wide character in a wide-character array
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "wchar_t *wmemchr(const wchar_t *" s ", wchar_t " c ", size_t " n );
+.fi
+.SH DESCRIPTION
+The
+.BR wmemchr ()
+function is the wide-character equivalent of the
+.BR memchr (3)
+function.
+It searches the
+.IR n
+wide characters starting at
+.I s
+for
+the first occurrence of the wide character
+.IR c .
+.SH RETURN VALUE
+The
+.BR wmemchr ()
+function returns a pointer to the first occurrence of
+.I c
+among the
+.IR n
+wide characters starting at
+.IR s ,
+or NULL if
+.I c
+does
+not occur among these.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wmemchr ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH SEE ALSO
+.BR memchr (3),
+.BR wcschr (3)

@@ -1,0 +1,78 @@
+.\" Copyright (c) 1995 by Jim Van Zandt <jrv@vanzandt.mv.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Added BUGS section, aeb, 950919
+.\"
+.TH TOASCII 3 2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+toascii \- convert character to ASCII
+.SH SYNOPSIS
+.nf
+.B #include <ctype.h>
+.sp
+.BI "int toascii(int " "c" );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR toascii ():
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE
+.SH DESCRIPTION
+.BR toascii ()
+converts
+.I c
+to a 7-bit
+.I "unsigned char"
+value that fits into the ASCII character set, by clearing the
+high-order bits.
+.SH RETURN VALUE
+The value returned is that of the converted character.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR toascii ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+SVr4, BSD, POSIX.1-2001.
+POSIX.1-2008 marks
+.BR toascii ()
+as obsolete,
+noting that it cannot be used portably in a localized application.
+.SH BUGS
+Many people will be unhappy if you use this function.
+This function will convert accented letters into random characters.
+.SH SEE ALSO
+.BR isascii (3),
+.BR tolower (3),
+.BR toupper (3)

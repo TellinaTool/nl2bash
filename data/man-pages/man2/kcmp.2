@@ -1,0 +1,224 @@
+.\" Copyright (C) 2012, Cyrill Gorcunov <gorcunov@openvz.org>
+.\" and Copyright (C) 2012, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of
+.\" this manual under the conditions for verbatim copying, provided that
+.\" the entire resulting derived work is distributed under the terms of
+.\" a permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume
+.\" no responsibility for errors or omissions, or for damages resulting
+.\" from the use of the information contained herein.  The author(s) may
+.\" not have taken the same level of care in the production of this
+.\" manual, which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Kernel commit d97b46a64674a267bc41c9e16132ee2a98c3347d
+.\"
+.TH KCMP 2 2013-12-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+kcmp \- compare two processes to determine if they share a kernel resource
+.SH SYNOPSIS
+.nf
+.B #include <linux/kcmp.h>
+
+.BI "int kcmp(pid_t " pid1 ", pid_t " pid2 ", int " type ,
+.BI "         unsigned long " idx1 ", unsigned long "  idx2 );
+.fi
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+The
+.BR kcmp ()
+system call can be used to check whether the two processes identified by
+.I pid1
+and
+.I pid2
+share a kernel resource such as virtual memory, file descriptors,
+and so on.
+
+The
+.I type
+argument specifies which resource is to be compared in the two processes.
+It has one of the following values:
+.TP
+.BR KCMP_FILE
+Check whether a file descriptor
+.I idx1
+in the process
+.I pid1
+refers to the same open file description (see
+.BR open (2))
+as file descriptor
+.I idx2
+in the process
+.IR pid2 .
+.TP
+.BR KCMP_FILES
+Check whether the process share the same set of open file descriptors.
+The arguments
+.I idx1
+and
+.I idx2
+are ignored.
+.TP
+.BR KCMP_FS
+Check whether the processes share the same filesystem information
+(i.e., file mode creation mask, working directory, and filesystem root).
+The arguments
+.I idx1
+and
+.I idx2
+are ignored.
+.TP
+.BR KCMP_IO
+Check whether the processes share I/O context.
+The arguments
+.I idx1
+and
+.I idx2
+are ignored.
+.TP
+.BR KCMP_SIGHAND
+Check whether the processes share the same table of signal dispositions.
+The arguments
+.I idx1
+and
+.I idx2
+are ignored.
+.TP
+.BR KCMP_SYSVSEM
+Check whether the processes share the same
+list of System\ V semaphore undo operations.
+The arguments
+.I idx1
+and
+.I idx2
+are ignored.
+.TP
+.BR KCMP_VM
+Check whether the processes share the same address space.
+The arguments
+.I idx1
+and
+.I idx2
+are ignored.
+.PP
+Note the
+.BR kcmp ()
+is not protected against false positives which may occur if tasks are
+running.
+One should stop tasks by sending
+.BR SIGSTOP
+(see
+.BR signal (7))
+prior to inspection with this system call to obtain meaningful results.
+.SH RETURN VALUE
+The return value of a successful call to
+.BR kcmp ()
+is simply the result of arithmetic comparison
+of kernel pointers (when the kernel compares resources, it uses their
+memory addresses).
+
+The easiest way to explain is to consider an example.
+Suppose that
+.I v1
+and
+.I v2
+are the addresses of appropriate resources, then the return value
+is one of the following:
+.RS 4
+.IP 0 4
+.I v1
+is equal to
+.IR v2 ;
+in other words, the two processes share the resource.
+.IP 1
+.I v1
+is less than
+.IR v2 .
+.IP 2
+.I v1
+is greater than
+.IR v2 .
+.IP 3
+.I v1
+is not equal to
+.IR v2 ,
+but ordering information is unavailable.
+.RE
+.PP
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+
+.BR kcmp ()
+was designed to return values suitable for sorting.
+This is particularly handy if one needs to compare
+a large number of file descriptors.
+.SH ERRORS
+.TP
+.B EBADF
+.I type
+is
+.B KCMP_FILE
+and
+.I fd1
+or
+.I fd2
+is not an open file descriptor.
+.TP
+.B EINVAL
+.I type
+is invalid.
+.TP
+.B EPERM
+Insufficient permission to inspect process resources.
+The
+.B CAP_SYS_PTRACE
+capability is required to inspect processes that you do not own.
+.TP
+.B ESRCH
+Process
+.I pid1
+or
+.I pid2
+does not exist.
+.SH VERSIONS
+The
+.BR kcmp ()
+system call first appeared in Linux 3.5.
+.SH CONFORMING TO
+.BR kcmp ()
+is Linux-specific and should not be used in programs intended to be portable.
+.SH NOTES
+Glibc does not provide a wrapper for this system call; call it using
+.BR syscall (2).
+
+This system call is available only if the kernel was configured with
+.BR CONFIG_CHECKPOINT_RESTORE .
+The main use of the system call is for the
+checkpoint/restore in user space (CRIU) feature.
+The alternative to this system call would have been to expose suitable
+process information via the
+.BR proc (5)
+filesystem; this was deemed to be unsuitable for security reasons.
+
+See
+.BR clone (2)
+for some background information on the shared resources
+referred to on this page.
+.SH SEE ALSO
+.BR clone (2),
+.BR unshare (2)

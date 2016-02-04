@@ -1,0 +1,228 @@
+.\" Copyright (C) Markus Kuhn, 1996, 2001
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 1995-11-26  Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"      First version written
+.\" 2001-05-11  Markus Kuhn <mgk25@cl.cam.ac.uk>
+.\"      Update
+.\"
+.TH UTF-8 7 2014-06-13 "GNU" "Linux Programmer's Manual"
+.SH NAME
+UTF-8 \- an ASCII compatible multibyte Unicode encoding
+.SH DESCRIPTION
+The Unicode 3.0 character set occupies a 16-bit code space.
+The most obvious
+Unicode encoding (known as UCS-2)
+consists of a sequence of 16-bit words.
+Such strings can contain\(emas part of many 16-bit characters\(embytes
+such as \(aq\\0\(aq or \(aq/\(aq, which have a
+special meaning in filenames and other C library function arguments.
+In addition, the majority of UNIX tools expect ASCII files and can't
+read 16-bit words as characters without major modifications.
+For these reasons,
+UCS-2 is not a suitable external encoding of Unicode
+in filenames, text files, environment variables, and so on.
+The ISO 10646 Universal Character Set (UCS),
+a superset of Unicode, occupies an even larger code
+space\(em31\ bits\(emand the obvious
+UCS-4 encoding for it (a sequence of 32-bit words) has the same problems.
+
+The UTF-8 encoding of Unicode and UCS
+does not have these problems and is the common way in which
+Unicode is used on UNIX-style operating systems.
+.SS Properties
+The UTF-8 encoding has the following nice properties:
+.TP 0.2i
+*
+UCS
+characters 0x00000000 to 0x0000007f (the classic US-ASCII
+characters) are encoded simply as bytes 0x00 to 0x7f (ASCII
+compatibility).
+This means that files and strings which contain only
+7-bit ASCII characters have the same encoding under both
+ASCII
+and
+UTF-8 .
+.TP
+*
+All UCS characters greater than 0x7f are encoded as a multibyte sequence
+consisting only of bytes in the range 0x80 to 0xfd, so no ASCII
+byte can appear as part of another character and there are no
+problems with, for example,  \(aq\\0\(aq or \(aq/\(aq.
+.TP
+*
+The lexicographic sorting order of UCS-4 strings is preserved.
+.TP
+*
+All possible 2^31 UCS codes can be encoded using UTF-8.
+.TP
+*
+The bytes 0xc0, 0xc1, 0xfe, and 0xff are never used in the UTF-8 encoding.
+.TP
+*
+The first byte of a multibyte sequence which represents a single non-ASCII
+UCS character is always in the range 0xc2 to 0xfd and indicates how long
+this multibyte sequence is.
+All further bytes in a multibyte sequence
+are in the range 0x80 to 0xbf.
+This allows easy resynchronization and
+makes the encoding stateless and robust against missing bytes.
+.TP
+*
+UTF-8 encoded UCS characters may be up to six bytes long, however the
+Unicode standard specifies no characters above 0x10ffff, so Unicode characters
+can be only up to four bytes long in
+UTF-8.
+.SS Encoding
+The following byte sequences are used to represent a character.
+The sequence to be used depends on the UCS code number of the character:
+.TP 0.4i
+0x00000000 \- 0x0000007F:
+.RI 0 xxxxxxx
+.TP
+0x00000080 \- 0x000007FF:
+.RI 110 xxxxx
+.RI 10 xxxxxx
+.TP
+0x00000800 \- 0x0000FFFF:
+.RI 1110 xxxx
+.RI 10 xxxxxx
+.RI 10 xxxxxx
+.TP
+0x00010000 \- 0x001FFFFF:
+.RI 11110 xxx
+.RI 10 xxxxxx
+.RI 10 xxxxxx
+.RI 10 xxxxxx
+.TP
+0x00200000 \- 0x03FFFFFF:
+.RI 111110 xx
+.RI 10 xxxxxx
+.RI 10 xxxxxx
+.RI 10 xxxxxx
+.RI 10 xxxxxx
+.TP
+0x04000000 \- 0x7FFFFFFF:
+.RI 1111110 x
+.RI 10 xxxxxx
+.RI 10 xxxxxx
+.RI 10 xxxxxx
+.RI 10 xxxxxx
+.RI 10 xxxxxx
+.PP
+The
+.I xxx
+bit positions are filled with the bits of the character code number in
+binary representation.
+Only the shortest possible multibyte sequence
+which can represent the code number of the character can be used.
+.PP
+The UCS code values 0xd800\(en0xdfff (UTF-16 surrogates) as well as 0xfffe and
+0xffff (UCS noncharacters) should not appear in conforming UTF-8 streams.
+.SS Example
+The Unicode character 0xa9 = 1010 1001 (the copyright sign) is encoded
+in UTF-8 as
+.PP
+.RS
+11000010 10101001 = 0xc2 0xa9
+.RE
+.PP
+and character 0x2260 = 0010 0010 0110 0000 (the "not equal" symbol) is
+encoded as:
+.PP
+.RS
+11100010 10001001 10100000 = 0xe2 0x89 0xa0
+.RE
+.SS Application notes
+Users have to select a UTF-8 locale, for example with
+.PP
+.RS
+export LANG=en_GB.UTF-8
+.RE
+.PP
+in order to activate the UTF-8 support in applications.
+.PP
+Application software that has to be aware of the used character
+encoding should always set the locale with for example
+.PP
+.RS
+setlocale(LC_CTYPE, "")
+.RE
+.PP
+and programmers can then test the expression
+.PP
+.RS
+strcmp(nl_langinfo(CODESET), "UTF-8") == 0
+.RE
+.PP
+to determine whether a UTF-8 locale has been selected and whether
+therefore all plaintext standard input and output, terminal
+communication, plaintext file content, filenames and environment
+variables are encoded in UTF-8.
+.PP
+Programmers accustomed to single-byte encodings such as US-ASCII or ISO 8859
+have to be aware that two assumptions made so far are no longer valid
+in UTF-8 locales.
+Firstly, a single byte does not necessarily correspond any
+more to a single character.
+Secondly, since modern terminal emulators in UTF-8
+mode also support Chinese, Japanese, and Korean
+double-width characters as well as nonspacing combining characters,
+outputting a single character does not necessarily advance the cursor
+by one position as it did in ASCII.
+Library functions such as
+.BR mbsrtowcs (3)
+and
+.BR wcswidth (3)
+should be used today to count characters and cursor positions.
+.PP
+The official ESC sequence to switch from an ISO 2022
+encoding scheme (as used for instance by VT100 terminals) to
+UTF-8 is ESC % G
+("\\x1b%G").
+The corresponding return sequence from
+UTF-8 to ISO 2022 is ESC % @ ("\\x1b%@").
+Other ISO 2022 sequences (such as
+for switching the G0 and G1 sets) are not applicable in UTF-8 mode.
+.SS Security
+The Unicode and UCS standards require that producers of UTF-8
+shall use the shortest form possible, for example, producing a two-byte
+sequence with first byte 0xc0 is nonconforming.
+Unicode 3.1 has added the requirement that conforming programs must not accept
+non-shortest forms in their input.
+This is for security reasons: if
+user input is checked for possible security violations, a program
+might check only for the ASCII
+version of "/../" or ";" or NUL and overlook that there are many
+non-ASCII ways to represent these things in a non-shortest UTF-8
+encoding.
+.SS Standards
+ISO/IEC 10646-1:2000, Unicode 3.1, RFC\ 3629, Plan 9.
+.\" .SH AUTHOR
+.\" Markus Kuhn <mgk25@cl.cam.ac.uk>
+.SH SEE ALSO
+.BR locale (1),
+.BR nl_langinfo (3),
+.BR setlocale (3),
+.BR charsets (7),
+.BR unicode (7)

@@ -1,0 +1,146 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Mon Mar 29 22:41:16 1993, David Metcalfe
+.\" Modified Sat Jul 24 21:35:16 1993, Rik Faith (faith@cs.unc.edu)
+.TH BSEARCH 3  2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+bsearch \- binary search of a sorted array
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "void *bsearch(const void *" key ", const void *" base ,
+.BI "              size_t " nmemb ", size_t " size ,
+.BI "              int (*" compar ")(const void *, const void *));"
+.fi
+.SH DESCRIPTION
+The
+.BR bsearch ()
+function searches an array of
+.I nmemb
+objects,
+the initial member of which is pointed to by
+.IR base ,
+for a member
+that matches the object pointed to by
+.IR key .
+The size of each member
+of the array is specified by
+.IR size .
+.PP
+The contents of the array should be in ascending sorted order according
+to the comparison function referenced by
+.IR compar .
+The
+.I compar
+routine is expected to have two arguments which point to the
+.I key
+object and to an array member, in that order, and should return an integer
+less than, equal to, or greater than zero if the
+.I key
+object is found,
+respectively, to be less than, to match, or be greater than the array
+member.
+.SH RETURN VALUE
+The
+.BR bsearch ()
+function returns a pointer to a matching member of the
+array, or NULL if no match is found.
+If there are multiple elements that
+match the key, the element returned is unspecified.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR bsearch ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
+.SH EXAMPLE
+The example below first sorts an array of structures using
+.BR qsort (3),
+then retrieves desired elements using
+.BR bsearch ().
+.sp
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct mi {
+    int nr;
+    char *name;
+} months[] = {
+    { 1, "jan" }, { 2, "feb" }, { 3, "mar" }, { 4, "apr" },
+    { 5, "may" }, { 6, "jun" }, { 7, "jul" }, { 8, "aug" },
+    { 9, "sep" }, {10, "oct" }, {11, "nov" }, {12, "dec" }
+};
+
+#define nr_of_months (sizeof(months)/sizeof(months[0]))
+
+static int
+compmi(const void *m1, const void *m2)
+{
+    struct mi *mi1 = (struct mi *) m1;
+    struct mi *mi2 = (struct mi *) m2;
+    return strcmp(mi1\->name, mi2\->name);
+}
+
+int
+main(int argc, char **argv)
+{
+    int i;
+
+    qsort(months, nr_of_months, sizeof(struct mi), compmi);
+    for (i = 1; i < argc; i++) {
+        struct mi key, *res;
+        key.name = argv[i];
+        res = bsearch(&key, months, nr_of_months,
+                      sizeof(struct mi), compmi);
+        if (res == NULL)
+            printf("\(aq%s\(aq: unknown month\en", argv[i]);
+        else
+            printf("%s: month #%d\en", res\->name, res\->nr);
+    }
+    exit(EXIT_SUCCESS);
+}
+.fi
+.\" this example referred to in qsort.3
+.SH SEE ALSO
+.BR hsearch (3),
+.BR lsearch (3),
+.BR qsort (3),
+.BR tsearch (3)

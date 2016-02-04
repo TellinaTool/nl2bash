@@ -1,0 +1,274 @@
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH MALLOC_INFO 3  2015-07-23 "GNU" "Linux Programmer's Manual"
+.SH NAME
+malloc_info \- export malloc state to a stream
+.SH SYNOPSIS
+.nf
+.B #include <malloc.h>
+.sp
+.BI "int malloc_info(int " options ", FILE *" stream );
+.fi
+.SH DESCRIPTION
+The
+.BR malloc_info ()
+function exports an XML string that describes the current state
+of the memory-allocation
+implementation in the caller.
+The string is printed on the file stream
+.IR stream .
+The exported string includes information about all arenas (see
+.BR malloc (3)).
+
+As currently implemented,
+.I options
+must be zero.
+.SH RETURN VALUE
+On success,
+.BR malloc_info ()
+returns 0;
+on error, it returns \-1, with
+.I errno
+set to indicate the cause.
+.SH ERRORS
+.TP
+.B EINVAL
+.I options
+was nonzero.
+.SH VERSIONS
+.BR malloc_info ()
+was added to glibc in version 2.10.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR malloc_info ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+This function is a GNU extension.
+.SH NOTES
+The memory-allocation information is provided as an XML string
+(rather than a C structure)
+because the information may change over time
+(according to changes in the underlying implementation).
+The output XML string includes a version field.
+
+The
+.BR open_memstream (3)
+function can be used to send the output of
+.BR malloc_info ()
+directly into a buffer in memory, rather than to a file.
+
+The
+.BR malloc_info ()
+function is designed to address deficiencies in
+.BR malloc_stats (3)
+and
+.BR mallinfo (3).
+.SH EXAMPLE
+The program below takes up to four command-line arguments,
+of which the first three are mandatory.
+The first argument specifies the number of threads that
+the program should create.
+All of the threads, including the main thread,
+allocate the number of blocks of memory specified by the second argument.
+The third argument controls the size of the blocks to be allocated.
+The main thread creates blocks of this size,
+the second thread created by the program allocates blocks of twice this size,
+the third thread allocates blocks of three times this size, and so on.
+
+The program calls
+.BR malloc_info ()
+twice to display the memory-allocation state.
+The first call takes place before any threads
+are created or memory allocated.
+The second call is performed after all threads have allocated memory.
+
+In the following example,
+the command-line arguments specify the creation of one additional thread,
+and both the main thread and the additional thread
+allocate 10000 blocks of memory.
+After the blocks of memory have been allocated,
+.BR malloc_info ()
+shows the state of two allocation arenas.
+.in +4
+.nf
+
+.RB "$ " "getconf GNU_LIBC_VERSION"
+glibc 2.13
+.RB "$ " "./a.out 1 10000 100"
+============ Before allocating blocks ============
+<malloc version="1">
+<heap nr="0">
+<sizes>
+</sizes>
+<total type="fast" count="0" size="0"/>
+<total type="rest" count="0" size="0"/>
+<system type="current" size="135168"/>
+<system type="max" size="135168"/>
+<aspace type="total" size="135168"/>
+<aspace type="mprotect" size="135168"/>
+</heap>
+<total type="fast" count="0" size="0"/>
+<total type="rest" count="0" size="0"/>
+<system type="current" size="135168"/>
+<system type="max" size="135168"/>
+<aspace type="total" size="135168"/>
+<aspace type="mprotect" size="135168"/>
+</malloc>
+
+============ After allocating blocks ============
+<malloc version="1">
+<heap nr="0">
+<sizes>
+</sizes>
+<total type="fast" count="0" size="0"/>
+<total type="rest" count="0" size="0"/>
+<system type="current" size="1081344"/>
+<system type="max" size="1081344"/>
+<aspace type="total" size="1081344"/>
+<aspace type="mprotect" size="1081344"/>
+</heap>
+<heap nr="1">
+<sizes>
+</sizes>
+<total type="fast" count="0" size="0"/>
+<total type="rest" count="0" size="0"/>
+<system type="current" size="1032192"/>
+<system type="max" size="1032192"/>
+<aspace type="total" size="1032192"/>
+<aspace type="mprotect" size="1032192"/>
+</heap>
+<total type="fast" count="0" size="0"/>
+<total type="rest" count="0" size="0"/>
+<system type="current" size="2113536"/>
+<system type="max" size="2113536"/>
+<aspace type="total" size="2113536"/>
+<aspace type="mprotect" size="2113536"/>
+</malloc>
+.fi
+.in
+.SS Program source
+.nf
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <malloc.h>
+#include <errno.h>
+
+static size_t blockSize;
+static int numThreads, numBlocks;
+
+#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \\
+                        } while (0)
+
+static void *
+thread_func(void *arg)
+{
+    int j;
+    int tn = (int) arg;
+
+    /* The multiplier \(aq(2 + tn)\(aq ensures that each thread (including
+       the main thread) allocates a different amount of memory */
+
+    for (j = 0; j < numBlocks; j++)
+        if (malloc(blockSize * (2 + tn)) == NULL)
+            errExit("malloc\-thread");
+
+    sleep(100);         /* Sleep until main thread terminates */
+    return NULL;
+}
+
+int
+main(int argc, char *argv[])
+{
+    int j, tn, sleepTime;
+    pthread_t *thr;
+
+    if (argc < 4) {
+        fprintf(stderr,
+                "%s num\-threads num\-blocks block\-size [sleep\-time]\\n",
+                argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    numThreads = atoi(argv[1]);
+    numBlocks = atoi(argv[2]);
+    blockSize = atoi(argv[3]);
+    sleepTime = (argc > 4) ? atoi(argv[4]) : 0;
+
+    thr = calloc(numThreads, sizeof(pthread_t));
+    if (thr == NULL)
+        errExit("calloc");
+
+    printf("============ Before allocating blocks ============\\n");
+    malloc_info(0, stdout);
+
+    /* Create threads that allocate different amounts of memory */
+
+    for (tn = 0; tn < numThreads; tn++) {
+        errno = pthread_create(&thr[tn], NULL, thread_func,
+                               (void *) tn);
+        if (errno != 0)
+            errExit("pthread_create");
+
+        /* If we add a sleep interval after the start\-up of each
+           thread, the threads likely won\(aqt contend for malloc
+           mutexes, and therefore additional arenas won\(aqt be
+           allocated (see malloc(3)). */
+
+        if (sleepTime > 0)
+            sleep(sleepTime);
+    }
+
+    /* The main thread also allocates some memory */
+
+    for (j = 0; j < numBlocks; j++)
+        if (malloc(blockSize) == NULL)
+            errExit("malloc");
+
+    sleep(2);           /* Give all threads a chance to
+                           complete allocations */
+
+    printf("\\n============ After allocating blocks ============\\n");
+    malloc_info(0, stdout);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR mallinfo (3),
+.BR malloc (3),
+.BR malloc_stats (3),
+.BR mallopt (3),
+.BR open_memstream (3)

@@ -1,0 +1,415 @@
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"             and Copyright (C) 1993 Michael Haardt, Ian Jackson.
+.\" and Copyright (C) 2004, 2006, 2007, 2014 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1993-07-21 Rik Faith (faith@cs.unc.edu)
+.\" Modified 1994-08-21 by Michael Chastain (mec@shell.portal.com):
+.\"   Removed note about old kernel (pre-1.1.44) using wrong id on path.
+.\" Modified 1996-03-18 by Martin Schulze (joey@infodrom.north.de):
+.\"   Stated more clearly how it behaves with symbolic links.
+.\" Added correction due to Nick Duffek (nsd@bbc.com), aeb, 960426
+.\" Modified 1996-09-07 by Michael Haardt:
+.\"   Restrictions for NFS
+.\" Modified 1997-09-09 by Joseph S. Myers <jsm28@cam.ac.uk>
+.\" Modified 1998-01-13 by Michael Haardt:
+.\"   Using access is often insecure
+.\" Modified 2001-10-16 by aeb
+.\" Modified 2002-04-23 by Roger Luethi <rl@hellgate.ch>
+.\" Modified 2004-06-23 by Michael Kerrisk
+.\" 2007-06-10, mtk, various parts rewritten, and added BUGS section.
+.\"
+.TH ACCESS 2 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+access, faccessat \- check user's permissions for a file
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.sp
+.BI "int access(const char *" pathname ", int " mode );
+
+.BR "#include <fcntl.h>           " "/* Definition of AT_* constants */"
+.B #include <unistd.h>
+.sp
+.BI "int faccessat(int " dirfd ", const char *" pathname ", int " \
+mode ", int " flags );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR faccessat ():
+.PD 0
+.ad l
+.RS 4
+.TP 4
+Since glibc 2.10:
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP
+Before glibc 2.10:
+_ATFILE_SOURCE
+.RE
+.ad
+.PD
+.fi
+.SH DESCRIPTION
+.BR access ()
+checks whether the calling process can access the file
+.IR pathname .
+If
+.I pathname
+is a symbolic link, it is dereferenced.
+
+The
+.I mode
+specifies the accessibility check(s) to be performed,
+and is either the value
+.BR F_OK ,
+.\" F_OK is defined as 0 on every system that I know of.
+or a mask consisting of the bitwise OR of one or more of
+.BR R_OK ", " W_OK ", and " X_OK .
+.B F_OK
+tests for the existence of the file.
+.BR R_OK ", " W_OK ", and " X_OK
+test whether the file exists and grants read, write, and
+execute permissions, respectively.
+
+The check is done using the calling process's
+.I real
+UID and GID, rather than the effective IDs as is done when
+actually attempting an operation (e.g.,
+.BR open (2))
+on the file.
+Similarly, for the root user, the check uses the set of
+permitted capabilities rather than the set of effective
+capabilities; and for non-root users, the check uses an empty set
+of capabilities.
+
+This allows set-user-ID programs and capability-endowed programs
+to easily determine the invoking user's authority.
+In other words,
+.BR access ()
+does not answer the "can I read/write/execute this file?" question.
+It answers a slightly different question:
+"(assuming I'm a setuid binary) can
+.I the user who invoked me
+read/write/execute this file?",
+which gives set-user-ID programs the possibility to
+prevent malicious users from causing them to read files
+which users shouldn't be able to read.
+
+If the calling process is privileged (i.e., its real UID is zero),
+then an
+.B X_OK
+check is successful for a regular file if execute permission
+is enabled for any of the file owner, group, or other.
+.SS faccessat()
+The
+.BR faccessat ()
+system call operates in exactly the same way as
+.BR access (),
+except for the differences described here.
+
+If the pathname given in
+.I pathname
+is relative, then it is interpreted relative to the directory
+referred to by the file descriptor
+.I dirfd
+(rather than relative to the current working directory of
+the calling process, as is done by
+.BR access ()
+for a relative pathname).
+
+If
+.I pathname
+is relative and
+.I dirfd
+is the special value
+.BR AT_FDCWD ,
+then
+.I pathname
+is interpreted relative to the current working
+directory of the calling process (like
+.BR access ()).
+
+If
+.I pathname
+is absolute, then
+.I dirfd
+is ignored.
+
+.I flags
+is constructed by ORing together zero or more of the following values:
+.TP
+.B AT_EACCESS
+Perform access checks using the effective user and group IDs.
+By default,
+.BR faccessat ()
+uses the real IDs (like
+.BR access ()).
+.TP
+.B AT_SYMLINK_NOFOLLOW
+If
+.I pathname
+is a symbolic link, do not dereference it:
+instead return information about the link itself.
+.PP
+See
+.BR openat (2)
+for an explanation of the need for
+.BR faccessat ().
+.SH RETURN VALUE
+On success (all requested permissions granted, or
+.I mode
+is
+.B F_OK
+and the file exists), zero is returned.
+On error (at least one bit in
+.I mode
+asked for a permission that is denied, or
+.I mode
+is
+.B F_OK
+and the file does not exist, or some other error occurred),
+\-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.BR access ()
+and
+.BR faccessat ()
+shall fail if:
+.TP
+.B EACCES
+The requested access would be denied to the file, or search permission
+is denied for one of the directories in the path prefix of
+.IR pathname .
+(See also
+.BR path_resolution (7).)
+.TP
+.B ELOOP
+Too many symbolic links were encountered in resolving
+.IR pathname .
+.TP
+.B ENAMETOOLONG
+.I pathname
+is too long.
+.TP
+.B ENOENT
+A component of
+.I pathname
+does not exist or is a dangling symbolic link.
+.TP
+.B ENOTDIR
+A component used as a directory in
+.I pathname
+is not, in fact, a directory.
+.TP
+.B EROFS
+Write permission was requested for a file on a read-only filesystem.
+.PP
+.BR access ()
+and
+.BR faccessat ()
+may fail if:
+.TP
+.B EFAULT
+.I pathname
+points outside your accessible address space.
+.TP
+.B EINVAL
+.I mode
+was incorrectly specified.
+.TP
+.B EIO
+An I/O error occurred.
+.TP
+.B ENOMEM
+Insufficient kernel memory was available.
+.TP
+.B ETXTBSY
+Write access was requested to an executable which is being
+executed.
+.PP
+The following additional errors can occur for
+.BR faccessat ():
+.TP
+.B EBADF
+.I dirfd
+is not a valid file descriptor.
+.TP
+.B EINVAL
+Invalid flag specified in
+.IR flags .
+.TP
+.B ENOTDIR
+.I pathname
+is relative and
+.I dirfd
+is a file descriptor referring to a file other than a directory.
+.SH VERSIONS
+.BR faccessat ()
+was added to Linux in kernel 2.6.16;
+library support was added to glibc in version 2.4.
+.SH CONFORMING TO
+.BR access ():
+SVr4, 4.3BSD, POSIX.1-2001, POSIX.1-2008.
+
+.BR faccessat ():
+POSIX.1-2008.
+.SH NOTES
+.PP
+.BR Warning :
+Using these calls to check if a user is authorized to, for example,
+open a file before actually doing so using
+.BR open (2)
+creates a security hole, because the user might exploit the short time
+interval between checking and opening the file to manipulate it.
+.BR "For this reason, the use of this system call should be avoided" .
+(In the example just described,
+a safer alternative would be to temporarily switch the process's
+effective user ID to the real ID and then call
+.BR open (2).)
+.PP
+.BR access ()
+always dereferences symbolic links.
+If you need to check the permissions on a symbolic link, use
+.BR faccessat (2)
+with the flag
+.BR AT_SYMLINK_NOFOLLOW .
+.PP
+These calls return an error if any of the access types in
+.I mode
+is denied, even if some of the other access types in
+.I mode
+are permitted.
+.PP
+If the calling process has appropriate privileges (i.e., is superuser),
+POSIX.1-2001 permits an implementation to indicate success for an
+.B X_OK
+check even if none of the execute file permission bits are set.
+.\" HPU-UX 11 and Tru64 5.1 do this.
+Linux does not do this.
+.PP
+A file is accessible only if the permissions on each of the
+directories in the path prefix of
+.I pathname
+grant search (i.e., execute) access.
+If any directory is inaccessible, then the
+.BR access ()
+call will fail, regardless of the permissions on the file itself.
+.PP
+Only access bits are checked, not the file type or contents.
+Therefore, if a directory is found to be writable,
+it probably means that files can be created in the directory,
+and not that the directory can be written as a file.
+Similarly, a DOS file may be found to be "executable," but the
+.BR execve (2)
+call will still fail.
+.PP
+These calls
+may not work correctly on NFSv2 filesystems with UID mapping enabled,
+because UID mapping is done on the server and hidden from the client,
+which checks permissions.  (NFS versions 3 and higher perform the check on
+the server.)
+Similar problems can occur to FUSE mounts.
+.\"
+.\"
+.SS C library/kernel differences
+The raw
+.BR faccessat ()
+system call takes only the first three arguments.
+The
+.B AT_EACCESS
+and
+.B AT_SYMLINK_NOFOLLOW
+flags are actually implemented within the glibc wrapper function for
+.BR faccessat ().
+If either of these flags is specified, then the wrapper function employs
+.BR fstatat (2)
+to determine access permissions.
+.SS Glibc notes
+On older kernels where
+.BR faccessat ()
+is unavailable (and when the
+.B AT_EACCESS
+and
+.B AT_SYMLINK_NOFOLLOW
+flags are not specified),
+the glibc wrapper function falls back to the use of
+.BR access ().
+When
+.I pathname
+is a relative pathname,
+glibc constructs a pathname based on the symbolic link in
+.IR /proc/self/fd
+that corresponds to the
+.IR dirfd
+argument.
+.SH BUGS
+In kernel 2.4 (and earlier) there is some strangeness in the handling of
+.B X_OK
+tests for superuser.
+If all categories of execute permission are disabled
+for a nondirectory file, then the only
+.BR access ()
+test that returns \-1 is when
+.I mode
+is specified as just
+.BR X_OK ;
+if
+.B R_OK
+or
+.B W_OK
+is also specified in
+.IR mode ,
+then
+.BR access ()
+returns 0 for such files.
+.\" This behavior appears to have been an implementation accident.
+Early 2.6 kernels (up to and including 2.6.3)
+also behaved in the same way as kernel 2.4.
+
+In kernels before 2.6.20,
+these calls ignored the effect of the
+.B MS_NOEXEC
+flag if it was used to
+.BR mount (2)
+the underlying filesystem.
+Since kernel 2.6.20, the
+.B MS_NOEXEC
+flag is honored.
+.SH SEE ALSO
+.BR chmod (2),
+.BR chown (2),
+.BR open (2),
+.BR setgid (2),
+.BR setuid (2),
+.BR stat (2),
+.BR euidaccess (3),
+.BR credentials (7),
+.BR path_resolution (7),
+.BR symlink (7)

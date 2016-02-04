@@ -1,0 +1,334 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_CLEANUP_PUSH 3 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_cleanup_push, pthread_cleanup_pop \- push and pop
+thread cancellation clean-up handlers
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.BI "void pthread_cleanup_push(void (*" routine ")(void *),"
+.BI "                          void *" arg );
+.BI "void pthread_cleanup_pop(int " execute );
+.sp
+Compile and link with \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+These functions manipulate the calling thread's stack of
+thread-cancellation clean-up handlers.
+A clean-up handler is a function that is automatically executed
+when a thread is canceled (or in various other circumstances
+described below);
+it might, for example, unlock a mutex so that
+it becomes available to other threads in the process.
+
+The
+.BR pthread_cleanup_push ()
+function pushes
+.I routine
+onto the top of the stack of clean-up handlers.
+When
+.I routine
+is later invoked, it will be given
+.I arg
+as its argument.
+
+The
+.BR pthread_cleanup_pop ()
+function removes the routine at the top of the stack of clean-up handlers,
+and optionally executes it if
+.I execute
+is nonzero.
+
+A cancellation clean-up handler is popped from the stack
+and executed in the following circumstances:
+.IP 1. 3
+When a thread is canceled,
+all of the stacked clean-up handlers are popped and executed in
+the reverse of the order in which they were pushed onto the stack.
+.IP 2.
+When a thread terminates by calling
+.BR pthread_exit (3),
+all clean-up handlers are executed as described in the preceding point.
+(Clean-up handlers are
+.I not
+called if the thread terminates by
+performing a
+.I return
+from the thread start function.)
+.IP 3.
+When a thread calls
+.BR pthread_cleanup_pop ()
+with a nonzero
+.I execute
+argument, the top-most clean-up handler is popped and executed.
+.PP
+POSIX.1 permits
+.BR pthread_cleanup_push ()
+and
+.BR pthread_cleanup_pop ()
+to be implemented as macros that expand to text
+containing \(aq\fB{\fP\(aq and \(aq\fB}\fP\(aq, respectively.
+For this reason, the caller must ensure that calls to these
+functions are paired within the same function,
+and at the same lexical nesting level.
+(In other words, a clean-up handler is established only
+during the execution of a specified section of code.)
+
+Calling
+.BR longjmp (3)
+.RB ( siglongjmp (3))
+produces undefined results if any call has been made to
+.BR pthread_cleanup_push ()
+or
+.BR pthread_cleanup_pop ()
+without the matching call of the pair since the jump buffer
+was filled by
+.BR setjmp (3)
+.RB ( sigsetjmp (3)).
+Likewise, calling
+.BR longjmp (3)
+.RB ( siglongjmp (3))
+from inside a clean-up handler produces undefined results
+unless the jump buffer was also filled by
+.BR setjmp (3)
+.RB ( sigsetjmp (3))
+inside the handler.
+.SH RETURN VALUE
+These functions do not return a value.
+.SH ERRORS
+There are no errors.
+.\" SH VERSIONS
+.\" Available since glibc 2.0
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw23 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_cleanup_push (),
+.BR pthread_cleanup_pop ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+On Linux, the
+.BR pthread_cleanup_push ()
+and
+.BR pthread_cleanup_pop ()
+functions
+.I are
+implemented as macros that expand to text
+containing \(aq\fB{\fP\(aq and \(aq\fB}\fP\(aq, respectively.
+This means that variables declared within the scope of
+paired calls to these functions will be visible within only that scope.
+
+POSIX.1
+.\" The text was actually added in the 2004 TC2
+says that the effect of using
+.IR return ,
+.IR break ,
+.IR continue ,
+or
+.IR goto
+to prematurely leave a block bracketed
+.BR pthread_cleanup_push ()
+and
+.BR pthread_cleanup_pop ()
+is undefined.
+Portable applications should avoid doing this.
+.SH EXAMPLE
+The program below provides a simple example of the use of the functions
+described in this page.
+The program creates a thread that executes a loop bracketed by
+.BR pthread_cleanup_push ()
+and
+.BR pthread_cleanup_pop ().
+This loop increments a global variable,
+.IR cnt ,
+once each second.
+Depending on what command-line arguments are supplied,
+the main thread sends the other thread a cancellation request,
+or sets a global variable that causes the other thread
+to exit its loop and terminate normally (by doing a
+.IR return ).
+
+In the following shell session,
+the main thread sends a cancellation request to the other thread:
+
+.in +4n
+.nf
+$ \fB./a.out\fP
+New thread started
+cnt = 0
+cnt = 1
+Canceling thread
+Called clean-up handler
+Thread was canceled; cnt = 0
+.fi
+.in
+
+From the above, we see that the thread was canceled,
+and that the cancellation clean-up handler was called
+and it reset the value of the global variable
+.I cnt
+to 0.
+
+In the next run, the main program sets a
+global variable that causes other thread to terminate normally:
+
+.in +4n
+.nf
+$ \fB./a.out x\fP
+New thread started
+cnt = 0
+cnt = 1
+Thread terminated normally; cnt = 2
+.fi
+.in
+
+From the above, we see that the clean-up handler was not executed (because
+.I cleanup_pop_arg
+was 0), and therefore the value of
+.I cnt
+was not reset.
+
+In the next run, the main program sets a global variable that
+causes the other thread to terminate normally,
+and supplies a nonzero value for
+.IR cleanup_pop_arg :
+
+.in +4n
+.nf
+$ \fB./a.out x 1\fP
+New thread started
+cnt = 0
+cnt = 1
+Called clean-up handler
+Thread terminated normally; cnt = 0
+.fi
+.in
+
+In the above, we see that although the thread was not canceled,
+the clean-up handler was executed, because the argument given to
+.BR pthread_cleanup_pop ()
+was nonzero.
+.SS Program source
+\&
+.nf
+#include <pthread.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+
+#define handle_error_en(en, msg) \\
+        do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static int done = 0;
+static int cleanup_pop_arg = 0;
+static int cnt = 0;
+
+static void
+cleanup_handler(void *arg)
+{
+    printf("Called clean\-up handler\\n");
+    cnt = 0;
+}
+
+static void *
+thread_start(void *arg)
+{
+    time_t start, curr;
+
+    printf("New thread started\\n");
+
+    pthread_cleanup_push(cleanup_handler, NULL);
+
+    curr = start = time(NULL);
+
+    while (!done) {
+        pthread_testcancel();           /* A cancellation point */
+        if (curr < time(NULL)) {
+            curr = time(NULL);
+            printf("cnt = %d\\n", cnt);  /* A cancellation point */
+            cnt++;
+        }
+    }
+
+    pthread_cleanup_pop(cleanup_pop_arg);
+    return NULL;
+}
+
+int
+main(int argc, char *argv[])
+{
+    pthread_t thr;
+    int s;
+    void *res;
+
+    s = pthread_create(&thr, NULL, thread_start, NULL);
+    if (s != 0)
+        handle_error_en(s, "pthread_create");
+
+    sleep(2);           /* Allow new thread to run a while */
+
+    if (argc > 1) {
+        if (argc > 2)
+            cleanup_pop_arg = atoi(argv[2]);
+        done = 1;
+
+    } else {
+        printf("Canceling thread\\n");
+        s = pthread_cancel(thr);
+        if (s != 0)
+            handle_error_en(s, "pthread_cancel");
+    }
+
+    s = pthread_join(thr, &res);
+    if (s != 0)
+        handle_error_en(s, "pthread_join");
+
+    if (res == PTHREAD_CANCELED)
+        printf("Thread was canceled; cnt = %d\\n", cnt);
+    else
+        printf("Thread terminated normally; cnt = %d\\n", cnt);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR pthread_cancel (3),
+.BR pthread_cleanup_push_defer_np (3),
+.BR pthread_setcancelstate (3),
+.BR pthread_testcancel (3),
+.BR pthreads (7)

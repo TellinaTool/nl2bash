@@ -1,0 +1,132 @@
+.\" Copyright (c) 2015 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"
+.TH NPTL 7 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+nptl \- Native POSIX Threads Library
+.SH DESCRIPTION
+NPTL (Native POSIX Threads Library)
+is the GNU C library POSIX threads implementation that is used on modern
+Linux systems.
+.\"
+.SS NPTL and signals
+NPTL makes internal use of the first two real-time signals
+(signal numbers 32 and 33).
+One of these signals is used to support thread cancellation and POSIX timers
+(see
+.BR timer_create (2));
+the other is used as part of a mechanism that ensures all threads in
+a process always have the same UIDs and GIDs, as required by POSIX.
+These signals cannot be used in applications.
+
+To prevent accidental use of these signals in applications,
+which might interfere with the operation of the NPTL implementation,
+various glibc library functions and system call wrapper functions
+attempt to hide these signals from applications,
+as follows:
+.IP * 3
+.B SIGRTMIN
+is defined with the value 34 (rather than 32).
+.IP *
+The
+.BR sigwaitinfo (2),
+.BR sigtimedwait (2),
+and
+.BR sigwait (3)
+interfaces silently ignore requests to wait for these two signals
+if they are specified in the signal set argument of these calls.
+.IP *
+The
+.BR sigprocmask (2)
+and
+.BR pthread_sigmask (3)
+interfaces silently ignore attempts to block these two signals.
+.IP *
+The
+.BR sigaction (2),
+.BR pthread_kill (3),
+and
+.BR pthread_sigqueue (3)
+interfaces fail with the error
+.B EINVAL
+(indicating an invalid signal number) if these signals are specified.
+.IP *
+.BR sigfillset (3)
+does not include these two signals when it creates a full signal set.
+.\"
+.SS NPTL and process credential changes
+At the Linux kernel level,
+credentials (user and group IDs) are a per-thread attribute.
+However, POSIX requires that all of the POSIX threads in a process
+have the same credentials.
+To accommodate this requirement,
+the NPTL implementation wraps all of the system calls that
+change process credentials with functions that,
+in addition to invoking the underlying system call,
+arrange for all other threads in the process to also change their credentials.
+
+The implementation of each of these system calls involves the use of
+a real-time signal that is sent (using
+.BR tgkill (2))
+to each of the other threads that must change its credentials.
+Before sending these signals, the thread that is changing credentials
+saves the new credential(s) and records the system call being employed
+in a global buffer.
+A signal handler in the receiving thread(s) fetches this information and
+then uses the same system call to change its credentials.
+
+Wrapper functions employing this technique are provided for
+.BR setgid (2),
+.BR setuid (2),
+.BR setegid (2),
+.BR seteuid (2),
+.BR setregid (2),
+.BR setreuid (2),
+.BR setresgid (2),
+.BR setresuid (2),
+and
+.BR setgroups (2).
+.\" FIXME .
+.\" Maybe say something about vfork() not being serialized wrt set*id() APIs?
+.\" https://sourceware.org/bugzilla/show_bug.cgi?id=14749
+.SH CONFORMING TO
+For details of the conformance of NPTL to the POSIX standard, see
+.BR pthreads (7).
+.SH NOTES
+POSIX says
+.\" See POSIX.1-2008 specification of pthread_mutexattr_init()
+that any thread in any process with access to the memory
+containing a process-shared
+.RB ( PTHREAD_PROCESS_SHARED )
+mutex can operate on that mutex.
+However, on 64-bit x86 systems, the mutex definition for x86-64
+is incompatible with the mutex definition for i386,
+.\" See sysdeps/x86/bits/pthreadtypes.h
+meaning that 32-bit and 64-bit binaries can't share mutexes on x86-64 systems.
+.SH SEE ALSO
+.BR credentials (7),
+.BR pthreads (7),
+.BR signal (7),
+.BR standards (7)

@@ -1,0 +1,196 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification
+.\"      http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH MBRTOWC 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+mbrtowc \- convert a multibyte sequence to a wide character
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "size_t mbrtowc(wchar_t *" pwc ", const char *" s ", size_t " n \
+", mbstate_t *" ps );
+.fi
+.SH DESCRIPTION
+The main case for this function is when
+.IR s
+is not NULL and
+.I pwc
+is
+not NULL.
+In this case, the
+.BR mbrtowc ()
+function inspects at most
+.I n
+bytes of the multibyte string starting at
+.IR s ,
+extracts the next complete
+multibyte character, converts it to a wide character and stores it at
+.IR *pwc .
+It updates the shift state
+.IR *ps .
+If the converted wide
+character is not L\(aq\\0\(aq (the null wide character),
+it returns the number of bytes that were consumed
+from
+.IR s .
+If the converted wide character is L\(aq\\0\(aq, it resets the shift
+state
+.I *ps
+to the initial state and returns 0.
+.PP
+If the
+.IR n
+bytes starting at
+.I s
+do not contain a complete multibyte
+character,
+.BR mbrtowc ()
+returns
+.IR "(size_t)\ \-2" .
+This can happen even if
+.I n
+>=
+.IR MB_CUR_MAX ,
+if the multibyte string contains redundant shift
+sequences.
+.PP
+If the multibyte string starting at
+.I s
+contains an invalid multibyte
+sequence before the next complete character,
+.BR mbrtowc ()
+returns
+.IR "(size_t)\ \-1"
+and sets
+.I errno
+to
+.BR EILSEQ .
+In this case,
+the effects on
+.I *ps
+are undefined.
+.PP
+A different case is when
+.IR s
+is not NULL but
+.I pwc
+is NULL.
+In this case, the
+.BR mbrtowc ()
+function behaves as above, except that it does not
+store the converted wide character in memory.
+.PP
+A third case is when
+.I s
+is NULL.
+In this case,
+.IR pwc
+and
+.I n
+are
+ignored.
+If the conversion state represented by
+.I *ps
+denotes an
+incomplete multibyte character conversion, the
+.BR mbrtowc ()
+function
+returns
+.IR "(size_t)\ \-1" ,
+sets
+.I errno
+to
+.BR EILSEQ ,
+and
+leaves
+.I *ps
+in an undefined state.
+Otherwise, the
+.BR mbrtowc ()
+function
+puts
+.I *ps
+in the initial state and returns 0.
+.PP
+In all of the above cases, if
+.I ps
+is NULL, a static anonymous
+state known only to the
+.BR mbrtowc ()
+function is used instead.
+Otherwise,
+.IR *ps
+must be a valid
+.I mbstate_t
+object.
+An
+.IR mbstate_t
+object
+.I a
+can be initialized to the initial state
+by zeroing it, for example using
+.sp
+.in +4n
+memset(&a, 0, sizeof(a));
+.in
+.SH RETURN VALUE
+The
+.BR mbrtowc ()
+function returns the number of bytes parsed from the
+multibyte sequence starting at
+.IR s ,
+if a non-L\(aq\\0\(aq wide character
+was recognized.
+It returns 0, if a L\(aq\\0\(aq wide character was recognized.
+It returns
+.I (size_t)\ \-1
+and sets
+.I errno
+to
+.BR EILSEQ ,
+if an invalid multibyte sequence was
+encountered.
+It returns
+.I "(size_t)\ \-2"
+if it couldn't parse a complete multibyte
+character, meaning that
+.I n
+should be increased.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR mbrtowc ()
+T}	Thread safety	MT-Unsafe race:mbrtowc/!ps
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR mbrtowc ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.SH SEE ALSO
+.BR mbsinit (3),
+.BR mbsrtowcs (3)

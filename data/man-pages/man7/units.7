@@ -1,0 +1,129 @@
+'\" t
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH UNITS 7 2012-08-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+units \- decimal and binary prefixes
+.SH DESCRIPTION
+.SS Decimal prefixes
+The SI system of units uses prefixes that indicate powers of ten.
+A kilometer is 1000 meter, and a megawatt is 1000000 watt.
+Below the standard prefixes.
+.RS
+.TS
+l l l.
+Prefix	Name	Value
+y	yocto	10^-24 = 0.000000000000000000000001
+z	zepto	10^-21 = 0.000000000000000000001
+a	atto	10^-18 = 0.000000000000000001
+f	femto	10^-15 = 0.000000000000001
+p	pico	10^-12 = 0.000000000001
+n	nano	10^-9  = 0.000000001
+\(mc	micro	10^-6  = 0.000001
+m	milli	10^-3  = 0.001
+c	centi	10^-2  = 0.01
+d	deci	10^-1  = 0.1
+da	deka	10^ 1  = 10
+h	hecto	10^ 2  = 100
+k	kilo	10^ 3  = 1000
+M	mega	10^ 6  = 1000000
+G	giga	10^ 9  = 1000000000
+T	tera	10^12  = 1000000000000
+P	peta	10^15  = 1000000000000000
+E	exa	10^18  = 1000000000000000000
+Z	zetta	10^21  = 1000000000000000000000
+Y	yotta	10^24  = 1000000000000000000000000
+.TE
+.RE
+
+The symbol for micro is the Greek letter mu, often written u
+in an ASCII context where this Greek letter is not available.
+See also
+.sp
+.RS
+.UR http://physics.nist.gov\:/cuu\:/Units\:/prefixes.html
+.UE
+.RE
+.SS Binary prefixes
+The binary prefixes resemble the decimal ones,
+but have an additional \(aqi\(aq
+(and "Ki" starts with a capital \(aqK\(aq).
+The names are formed by taking the
+first syllable of the names of the decimal prefix with roughly the same
+size, followed by "bi" for "binary".
+.RS
+.TS
+l l l.
+Prefix	Name	Value
+Ki	kibi	2^10 = 1024
+Mi	mebi	2^20 = 1048576
+Gi	gibi	2^30 = 1073741824
+Ti	tebi	2^40 = 1099511627776
+Pi	pebi	2^50 = 1125899906842624
+Ei	exbi	2^60 = 1152921504606846976
+.TE
+.RE
+
+See also
+.sp
+.UR http://physics.nist.gov\:/cuu\:/Units\:/binary.html
+.UE
+.SS Discussion
+Before these binary prefixes were introduced, it was fairly
+common to use k=1000 and K=1024, just like b=bit, B=byte.
+Unfortunately, the M is capital already, and cannot be
+capitalized to indicate binary-ness.
+
+At first that didn't matter too much, since memory modules
+and disks came in sizes that were powers of two, so everyone
+knew that in such contexts "kilobyte" and "megabyte" meant
+1024 and 1048576 bytes, respectively.
+What originally was a
+sloppy use of the prefixes "kilo" and "mega" started to become
+regarded as the "real true meaning" when computers were involved.
+But then disk technology changed, and disk sizes became arbitrary numbers.
+After a period of uncertainty all disk manufacturers settled on the
+standard, namely k=1000, M=1000k, G=1000M.
+
+The situation was messy: in the 14k4 modems, k=1000; in the 1.44MB
+.\" also common: 14.4k modem
+diskettes, M=1024000; and so on.
+In 1998 the IEC approved the standard
+that defines the binary prefixes given above, enabling people
+to be precise and unambiguous.
+
+Thus, today, MB = 1000000B and MiB = 1048576B.
+
+In the free software world programs are slowly
+being changed to conform.
+When the Linux kernel boots and says
+
+.RS
+.nf
+hda: 120064896 sectors (61473 MB) w/2048KiB Cache
+.fi
+.RE
+
+the MB are megabytes and the KiB are kibibytes.

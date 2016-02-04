@@ -1,0 +1,118 @@
+.\" Copyright 1993 Giorgio Ciucci (giorgio@crcc.it)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2001-11-28, by Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"	Changed data type of proj_id; minor fixes
+.\"	aeb: further fixes; added notes.
+.\"
+.TH FTOK 3 2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+ftok \- convert a pathname and a project identifier to a System V IPC key
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.B #include <sys/ipc.h>
+.fi
+.sp
+.BI "key_t ftok(const char *" pathname ", int " proj_id );
+.SH DESCRIPTION
+The
+.BR ftok ()
+function uses the identity of the file named by the given
+.I pathname
+(which must refer to an existing, accessible file)
+and the least significant 8 bits of
+.I proj_id
+(which must be nonzero) to generate a
+.I key_t
+type System V IPC key, suitable for use with
+.BR msgget (2),
+.BR semget (2),
+or
+.BR shmget (2).
+.LP
+The resulting value is the same for all pathnames that
+name the same file, when the same value of
+.I proj_id
+is used.
+The value returned should be different when the
+(simultaneously existing) files or the project IDs differ.
+.SH RETURN VALUE
+On success, the generated
+.I key_t
+value is returned.
+On failure \-1 is returned, with
+.I errno
+indicating the error as for the
+.BR stat (2)
+system call.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR ftok ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+On some ancient systems, the prototype was:
+.sp
+.RS
+.BI "key_t ftok(char *" pathname ", char " proj_id );
+.RE
+.PP
+Today,
+.I proj_id
+is an
+.IR int ,
+but still only 8 bits are used.
+Typical usage has an ASCII character
+.IR proj_id ,
+that is why the behavior is said to be undefined when
+.I proj_id
+is zero.
+.LP
+Of course, no guarantee can be given that the resulting
+.I key_t
+is unique.
+Typically, a best-effort attempt combines the given
+.I proj_id
+byte, the lower 16 bits of the inode number, and the
+lower 8 bits of the device number into a 32-bit result.
+Collisions may easily happen, for example between files on
+.I /dev/hda1
+and files on
+.IR /dev/sda1 .
+.SH SEE ALSO
+.BR msgget (2),
+.BR semget (2),
+.BR shmget (2),
+.BR stat (2),
+.BR svipc (7)

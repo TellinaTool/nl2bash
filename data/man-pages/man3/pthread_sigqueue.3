@@ -1,0 +1,125 @@
+.\" Copyright (c) 2010 Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_SIGQUEUE 3 2015-03-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_sigqueue \- queue a signal and data to a thread
+.SH SYNOPSIS
+.nf
+.B #include <signal.h>
+.B #include <pthread.h>
+
+.BI "int pthread_sigqueue(pthread_t " thread ", int " sig ,
+.BI "                     const union sigval " value );
+.fi
+.sp
+Compile and link with \fI\-pthread\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR pthread_sigqueue ():
+_GNU_SOURCE
+.SH DESCRIPTION
+The
+.BR pthread_sigqueue ()
+function performs a similar task to
+.BR sigqueue (3),
+but, rather than sending a signal to a process,
+it sends a signal to a thread in the same process as the
+calling thread.
+
+The
+.I thread
+argument is the ID of a thread in the same process as the caller.
+The
+.I sig
+argument specifies the signal to be sent.
+The
+.I value
+argument specifies data to accompany the signal; see
+.BR sigqueue (3)
+for details.
+.SH RETURN VALUE
+On success,
+.BR pthread_sigqueue ()
+returns 0;
+on error, it returns an error number.
+.SH ERRORS
+.TP
+.B EAGAIN
+The limit of signals which may be queued has been reached.
+(See
+.BR signal (7)
+for further information.)
+.TP
+.B EINVAL
+.I sig
+was invalid.
+.TP
+.B ENOSYS
+.BR pthread_sigqueue ()
+is not supported on this system.
+.TP
+.B ESRCH
+.I thread
+is not valid.
+.SH VERSIONS
+The
+.BR pthread_sigqueue ()
+function first appeared in glibc 2.11.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_sigqueue ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+This function is a GNU extension.
+.SH NOTES
+The glibc implementation of
+.BR pthread_sigqueue ()
+gives an error
+.RB ( EINVAL )
+on attempts to send either of the real-time signals
+used internally by the NPTL threading implementation.
+See
+.BR nptl (7)
+for details.
+.SH SEE ALSO
+.BR rt_tgsigqueueinfo (2),
+.BR sigaction (2),
+.BR pthread_sigmask (3),
+.BR sigqueue (3),
+.BR sigwait (3),
+.BR pthreads (7),
+.BR signal (7)

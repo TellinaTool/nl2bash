@@ -1,0 +1,650 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sun Jul 25 11:05:58 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sat Feb 10 16:18:03 1996 by Urs Thuermann (urs@isnogud.escape.de)
+.\" Modified Mon Jun 16 20:02:00 1997 by Nicolás Lichtmaier <nick@debian.org>
+.\" Modified Mon Feb  6 16:41:00 1999 by Nicolás Lichtmaier <nick@debian.org>
+.\" Modified Tue Feb  8 16:46:45 2000 by Chris Pepper <pepper@tgg.com>
+.\" Modified Fri Sep  7 20:32:45 2001 by Tammy Fox <tfox@redhat.com>
+.TH HIER 7 2015-03-29 "Linux" "Linux Programmer's Manual"
+.SH NAME
+hier \- description of the filesystem hierarchy
+.SH DESCRIPTION
+A typical Linux system has, among others, the following directories:
+.TP
+.I /
+This is the root directory.
+This is where the whole tree starts.
+.TP
+.I /bin
+This directory contains executable programs which are needed in
+single user mode and to bring the system up or repair it.
+.TP
+.I /boot
+Contains static files for the boot loader.
+This directory holds only
+the files which are needed during the boot process.
+The map installer
+and configuration files should go to
+.I /sbin
+and
+.IR /etc .
+The operating system kernel (initrd for example) must be located in either
+.I /
+or
+.IR /boot .
+.TP
+.I /dev
+Special or device files, which refer to physical devices.
+See
+.BR mknod (1).
+.TP
+.I /etc
+Contains configuration files which are local to the machine.
+Some
+larger software packages, like X11, can have their own subdirectories
+below
+.IR /etc .
+Site-wide configuration files may be placed here or in
+.IR /usr/etc .
+Nevertheless, programs should always look for these files in
+.I /etc
+and you may have links for these files to
+.IR /usr/etc .
+.TP
+.I /etc/opt
+Host-specific configuration files for add-on applications installed
+in
+.IR /opt .
+.TP
+.I /etc/sgml
+This directory contains the configuration files for SGML (optional).
+.TP
+.I /etc/skel
+When a new user account is created, files from this directory are
+usually copied into the user's home directory.
+.TP
+.I /etc/X11
+Configuration files for the X11 window system (optional).
+.TP
+.I /etc/xml
+This directory contains the configuration files for XML (optional).
+.TP
+.I /home
+On machines with home directories for users, these are usually beneath
+this directory, directly or not.
+The structure of this directory
+depends on local administration decisions (optional).
+.TP
+.I /lib
+This directory should hold those shared libraries that are necessary
+to boot the system and to run the commands in the root filesystem.
+.TP
+.I /lib<qual>
+These directories are variants of
+.I /lib
+on system which support more than one binary format requiring separate
+libraries (optional).
+.TP
+.I /lib/modules
+Loadable kernel modules (optional).
+.TP
+.I /lost+found
+This directory contains items lost in the filesystem.
+These items are usually chunks of files mangled as a consequence of
+a faulty disk or a system crash.
+.TP
+.I /media
+This directory contains mount points for removable media such as CD
+and DVD disks or USB sticks.
+On systems where more than one device exists
+for mounting a certain type of media,
+mount directories can be created by appending a digit
+to the name of those available above starting with '0',
+but the unqualified name must also exist.
+.TP
+.I /media/floppy[1\-9]
+Floppy drive (optional).
+.TP
+.I /media/cdrom[1\-9]
+CD-ROM drive (optional).
+.TP
+.I /media/cdrecorder[1\-9]
+CD writer (optional).
+.TP
+.I /media/zip[1\-9]
+Zip drive (optional).
+.TP
+.I /media/usp[1\-9]
+USB drive (optional).
+.TP
+.I /mnt
+This directory is a mount point for a temporarily mounted filesystem.
+In some distributions,
+.I /mnt
+contains subdirectories intended to be used as mount points for several
+temporary filesystems.
+.TP
+.I /opt
+This directory should contain add-on packages that contain static files.
+.TP
+.I /proc
+This is a mount point for the
+.I proc
+filesystem, which provides information about running processes and
+the kernel.
+This pseudo-filesystem is described in more detail in
+.BR proc (5).
+.TP
+.I /root
+This directory is usually the home directory for the root user (optional).
+.TP
+.I /sbin
+Like
+.IR /bin ,
+this directory holds commands needed to boot the system, but which are
+usually not executed by normal users.
+.TP
+.I /srv
+This directory contains site-specific data that is served by this system.
+.TP
+.I /sys
+This is a mount point for the sysfs filesystem, which provides information
+about the kernel like
+.IR /proc ,
+but better structured, following the formalism of kobject infrastructure.
+.TP
+.I /tmp
+This directory contains temporary files which may be deleted with no
+notice, such as by a regular job or at system boot up.
+.TP
+.I /usr
+This directory is usually mounted from a separate partition.
+It should hold only sharable, read-only data, so that it can be mounted
+by various machines running Linux.
+.TP
+.I /usr/X11R6
+The X\-Window system, version 11 release 6 (optional).
+.TP
+.I /usr/X11R6/bin
+Binaries which belong to the X\-Window system; often, there is a
+symbolic link from the more traditional
+.I /usr/bin/X11
+to here.
+.TP
+.I /usr/X11R6/lib
+Data files associated with the X\-Window system.
+.TP
+.I /usr/X11R6/lib/X11
+These contain miscellaneous files needed to run X;  Often, there is a
+symbolic link from
+.I /usr/lib/X11
+to this directory.
+.TP
+.I /usr/X11R6/include/X11
+Contains include files needed for compiling programs using the X11
+window system.
+Often, there is a symbolic link from
+.I /usr/include/X11
+to this directory.
+.TP
+.I /usr/bin
+This is the primary directory for executable programs.
+Most programs
+executed by normal users which are not needed for booting or for
+repairing the system and which are not installed locally should be
+placed in this directory.
+.TP
+.I /usr/bin/mh
+Commands for the MH mail handling system (optional).
+.TP
+.I /usr/bin/X11
+is the traditional place to look for X11 executables; on Linux, it
+usually is a symbolic link to
+.IR /usr/X11R6/bin .
+.TP
+.I /usr/dict
+Replaced by
+.IR /usr/share/dict .
+.TP
+.I /usr/doc
+Replaced by
+.IR /usr/share/doc .
+.TP
+.I /usr/etc
+Site-wide configuration files to be shared between several machines
+may be stored in this directory.
+However, commands should always
+reference those files using the
+.I /etc
+directory.
+Links from files in
+.I /etc
+should point to the appropriate files in
+.IR /usr/etc .
+.TP
+.I /usr/games
+Binaries for games and educational programs (optional).
+.TP
+.I /usr/include
+Include files for the C compiler.
+.TP
+.I /usr/include/bsd
+BSD compatibility include files (optional).
+.TP
+.I /usr/include/X11
+Include files for the C compiler and the X\-Window system.
+This is
+usually a symbolic link to
+.IR /usr/X11R6/include/X11 .
+.TP
+.I /usr/include/asm
+Include files which declare some assembler functions.
+This used to be a
+symbolic link to
+.IR /usr/src/linux/include/asm .
+.TP
+.I /usr/include/linux
+This contains information which may change from system release to
+system release and used to be a symbolic link to
+.I /usr/src/linux/include/linux
+to get at operating-system-specific information.
+
+(Note that one should have include files there that work correctly with
+the current libc and in user space.
+However, Linux kernel source is not
+designed to be used with user programs and does not know anything
+about the libc you are using.
+It is very likely that things will break
+if you let
+.I /usr/include/asm
+and
+.I /usr/include/linux
+point at a random kernel tree.
+Debian systems don't do this
+and use headers from a known good kernel
+version, provided in the libc*-dev package.)
+.TP
+.I /usr/include/g++
+Include files to use with the GNU C++ compiler.
+.TP
+.I /usr/lib
+Object libraries, including dynamic libraries, plus some executables
+which usually are not invoked directly.
+More complicated programs may
+have whole subdirectories there.
+.TP
+.I /usr/lib<qual>
+These directories are variants of
+.I /usr/lib
+on system which support more than one binary format requiring separate
+libraries, except that the symbolic link
+.I /usr/lib<qual>/X11
+is not required (optional).
+.TP
+.I /usr/lib/X11
+The usual place for data files associated with X programs, and
+configuration files for the X system itself.
+On Linux, it usually is
+a symbolic link to
+.IR /usr/X11R6/lib/X11 .
+.TP
+.I /usr/lib/gcc-lib
+contains executables and include files for the GNU C compiler,
+.BR gcc (1).
+.TP
+.I /usr/lib/groff
+Files for the GNU groff document formatting system.
+.TP
+.I /usr/lib/uucp
+Files for
+.BR uucp (1).
+.TP
+.I /usr/local
+This is where programs which are local to the site typically go.
+.TP
+.I /usr/local/bin
+Binaries for programs local to the site.
+.TP
+.I /usr/local/doc
+Local documentation.
+.TP
+.I /usr/local/etc
+Configuration files associated with locally installed programs.
+.TP
+.I /usr/local/games
+Binaries for locally installed games.
+.TP
+.I /usr/local/lib
+Files associated with locally installed programs.
+.TP
+.I /usr/local/lib<qual>
+These directories are variants of
+.I /usr/local/lib
+on system which support more than one binary format requiring separate
+libraries (optional).
+.TP
+.I /usr/local/include
+Header files for the local C compiler.
+.TP
+.I /usr/local/info
+Info pages associated with locally installed programs.
+.TP
+.I /usr/local/man
+Man pages associated with locally installed programs.
+.TP
+.I /usr/local/sbin
+Locally installed programs for system administration.
+.TP
+.I /usr/local/share
+Local application data that can be shared among different architectures
+of the same OS.
+.TP
+.I /usr/local/src
+Source code for locally installed software.
+.TP
+.I /usr/man
+Replaced by
+.IR /usr/share/man .
+.TP
+.I /usr/sbin
+This directory contains program binaries for system administration
+which are not essential for the boot process, for mounting
+.IR /usr ,
+or for system repair.
+.TP
+.I /usr/share
+This directory contains subdirectories with specific application data, that
+can be shared among different architectures of the same OS.
+Often one finds stuff here that used to live in
+.I /usr/doc
+or
+.I /usr/lib
+or
+.IR /usr/man .
+.TP
+.I /usr/share/dict
+Contains the word lists used by spell checkers (optional).
+.TP
+.I /usr/share/dict/words
+List of English words (optional).
+.TP
+.I /usr/share/doc
+Documentation about installed programs (optional).
+.TP
+.I /usr/share/games
+Static data files for games in
+.I /usr/games
+(optional).
+.TP
+.I /usr/share/info
+Info pages go here (optional).
+.TP
+.I /usr/share/locale
+Locale information goes here (optional).
+.TP
+.I /usr/share/man
+Manual pages go here in subdirectories according to the man page sections.
+.TP
+.I /usr/share/man/<locale>/man[1\-9]
+These directories contain manual pages for the
+specific locale in source code form.
+Systems which use a unique language and code set for all manual pages
+may omit the <locale> substring.
+.TP
+.I /usr/share/misc
+Miscellaneous data that can be shared among different architectures of the
+same OS.
+.TP
+.I /usr/share/nls
+The message catalogs for native language support go here (optional).
+.TP
+.I /usr/share/sgml
+Files for SGML (optional).
+.TP
+.I /usr/share/sgml/docbook
+DocBook DTD (optional).
+.TP
+.I /usr/share/sgml/tei
+TEI DTD (optional).
+.TP
+.I /usr/share/sgml/html
+HTML DTD (optional).
+.TP
+.I /usr/share/sgml/mathtml
+MathML DTD (optional).
+.TP
+.I /usr/share/terminfo
+The database for terminfo (optional).
+.TP
+.I /usr/share/tmac
+Troff macros that are not distributed with groff (optional).
+.TP
+.I /usr/share/xml
+Files for XML (optional).
+.TP
+.I /usr/share/xml/docbook
+DocBook DTD (optional).
+.TP
+.I /usr/share/xml/xhtml
+XHTML DTD (optional).
+.TP
+.I /usr/share/xml/mathml
+MathML DTD (optional).
+.TP
+.I /usr/share/zoneinfo
+Files for timezone information (optional).
+.TP
+.I /usr/src
+Source files for different parts of the system, included with some packages
+for reference purposes.
+Don't work here with your own projects, as files
+below /usr should be read-only except when installing software (optional).
+.TP
+.I /usr/src/linux
+This was the traditional place for the kernel source.
+Some distributions put here the source for the default kernel they ship.
+You should probably use another directory when building your own kernel.
+.TP
+.I /usr/tmp
+Obsolete.
+This should be a link
+to
+.IR /var/tmp .
+This link is present only for compatibility reasons and shouldn't be used.
+.TP
+.I /var
+This directory contains files which may change in size, such as spool
+and log files.
+.TP
+.I /var/account
+Process accounting logs (optional).
+.TP
+.I /var/adm
+This directory is superseded by
+.I /var/log
+and should be a symbolic link to
+.IR /var/log .
+.TP
+.I /var/backups
+Reserved for historical reasons.
+.TP
+.I /var/cache
+Data cached for programs.
+.TP
+.I /var/cache/fonts
+Locally-generated fonts (optional).
+.TP
+.I /var/cache/man
+Locally-formatted man pages (optional).
+.TP
+.I /var/cache/www
+WWW proxy or cache data (optional).
+.TP
+.I /var/cache/<package>
+Package specific cache data (optional).
+.TP
+.IR /var/catman/cat[1\-9] " or " /var/cache/man/cat[1\-9]
+These directories contain preformatted manual pages according to their
+man page section.
+(The use of preformatted manual pages is deprecated.)
+.TP
+.I /var/crash
+System crash dumps (optional).
+.TP
+.I /var/cron
+Reserved for historical reasons.
+.TP
+.I /var/games
+Variable game data (optional).
+.TP
+.I /var/lib
+Variable state information for programs.
+.TP
+.I /var/lib/hwclock
+State directory for hwclock (optional).
+.TP
+.I /var/lib/misc
+Miscellaneous state data.
+.TP
+.I /var/lib/xdm
+X display manager variable data (optional).
+.TP
+.I /var/lib/<editor>
+Editor backup files and state (optional).
+.TP
+.I /var/lib/<name>
+These directories must be used for all distribution packaging support.
+.TP
+.I /var/lib/<package>
+State data for packages and subsystems (optional).
+.TP
+.I /var/lib/<pkgtool>
+Packaging support files (optional).
+.TP
+.I /var/local
+Variable data for
+.IR /usr/local .
+.TP
+.I /var/lock
+Lock files are placed in this directory.
+The naming convention for
+device lock files is
+.I LCK..<device>
+where
+.I <device>
+is the device's name in the filesystem.
+The format used is that of HDU UUCP lock files, that is, lock files
+contain a PID as a 10-byte ASCII decimal number, followed by a newline
+character.
+.TP
+.I /var/log
+Miscellaneous log files.
+.TP
+.I /var/opt
+Variable data for
+.IR /opt .
+.TP
+.I /var/mail
+Users' mailboxes.
+Replaces
+.IR /var/spool/mail .
+.TP
+.I /var/msgs
+Reserved for historical reasons.
+.TP
+.I /var/preserve
+Reserved for historical reasons.
+.TP
+.I /var/run
+Run-time variable files, like files holding process identifiers (PIDs)
+and logged user information
+.IR (utmp) .
+Files in this directory are usually cleared when the system boots.
+.TP
+.I /var/spool
+Spooled (or queued) files for various programs.
+.TP
+.I /var/spool/at
+Spooled jobs for
+.BR at (1).
+.TP
+.I /var/spool/cron
+Spooled jobs for
+.BR cron (8).
+.TP
+.I /var/spool/lpd
+Spooled files for printing (optional).
+.TP
+.I /var/spool/lpd/printer
+Spools for a specific printer (optional).
+.TP
+.I /var/spool/mail
+Replaced by
+.IR /var/mail .
+.TP
+.I /var/spool/mqueue
+Queued outgoing mail (optional).
+.TP
+.I /var/spool/news
+Spool directory for news (optional).
+.TP
+.I /var/spool/rwho
+Spooled files for
+.BR rwhod (8)
+(optional).
+.TP
+.I /var/spool/smail
+Spooled files for the
+.BR smail (1)
+mail delivery program.
+.TP
+.I /var/spool/uucp
+Spooled files for
+.BR uucp (1)
+(optional).
+.TP
+.I /var/tmp
+Like
+.IR /tmp ,
+this directory holds temporary files stored for an unspecified duration.
+.TP
+.I /var/yp
+Database files for NIS,
+formerly known as the Sun Yellow Pages (YP).
+.SH CONFORMING TO
+The Filesystem Hierarchy Standard, Version 2.3
+.UR http://www.pathname.com\:/fhs/
+.UE .
+.SH BUGS
+This list is not exhaustive; different systems may be configured
+differently.
+.SH SEE ALSO
+.BR find (1),
+.BR ln (1),
+.BR proc (5),
+.BR mount (8)
+
+The Filesystem Hierarchy Standard

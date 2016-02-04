@@ -1,0 +1,1286 @@
+.\" Copyright (c) 2013, 2014 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright (c) 2012, 2014 by Eric W. Biederman <ebiederm@xmission.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"
+.TH USER_NAMESPACES 7 2015-03-29 "Linux" "Linux Programmer's Manual"
+.SH NAME
+user_namespaces \- overview of Linux user namespaces
+.SH DESCRIPTION
+For an overview of namespaces, see
+.BR namespaces (7).
+
+User namespaces isolate security-related identifiers and attributes,
+in particular,
+user IDs and group IDs (see
+.BR credentials (7)),
+the root directory,
+keys (see
+.BR keyctl (2)),
+.\" FIXME: This page says very little about the interaction
+.\" of user namespaces and keys. Add something on this topic.
+and capabilities (see
+.BR capabilities (7)).
+A process's user and group IDs can be different
+inside and outside a user namespace.
+In particular,
+a process can have a normal unprivileged user ID outside a user namespace
+while at the same time having a user ID of 0 inside the namespace;
+in other words,
+the process has full privileges for operations inside the user namespace,
+but is unprivileged for operations outside the namespace.
+.\"
+.\" ============================================================
+.\"
+.SS Nested namespaces, namespace membership
+User namespaces can be nested;
+that is, each user namespace\(emexcept the initial ("root")
+namespace\(emhas a parent user namespace,
+and can have zero or more child user namespaces.
+The parent user namespace is the user namespace
+of the process that creates the user namespace via a call to
+.BR unshare (2)
+or
+.BR clone (2)
+with the
+.BR CLONE_NEWUSER
+flag.
+
+The kernel imposes (since version 3.11) a limit of 32 nested levels of
+.\" commit 8742f229b635bf1c1c84a3dfe5e47c814c20b5c8
+user namespaces.
+.\" FIXME Explain the rationale for this limit. (What is the rationale?)
+Calls to
+.BR unshare (2)
+or
+.BR clone (2)
+that would cause this limit to be exceeded fail with the error
+.BR EUSERS .
+
+Each process is a member of exactly one user namespace.
+A process created via
+.BR fork (2)
+or
+.BR clone (2)
+without the
+.BR CLONE_NEWUSER
+flag is a member of the same user namespace as its parent.
+A single-threaded process can join another user namespace with
+.BR setns (2)
+if it has the
+.BR CAP_SYS_ADMIN
+in that namespace;
+upon doing so, it gains a full set of capabilities in that namespace.
+
+A call to
+.BR clone (2)
+or
+.BR unshare (2)
+with the
+.BR CLONE_NEWUSER
+flag makes the new child process (for
+.BR clone (2))
+or the caller (for
+.BR unshare (2))
+a member of the new user namespace created by the call.
+.\"
+.\" ============================================================
+.\"
+.SS Capabilities
+The child process created by
+.BR clone (2)
+with the
+.BR CLONE_NEWUSER
+flag starts out with a complete set
+of capabilities in the new user namespace.
+Likewise, a process that creates a new user namespace using
+.BR unshare (2)
+or joins an existing user namespace using
+.BR setns (2)
+gains a full set of capabilities in that namespace.
+On the other hand,
+that process has no capabilities in the parent (in the case of
+.BR clone (2))
+or previous (in the case of
+.BR unshare (2)
+and
+.BR setns (2))
+user namespace,
+even if the new namespace is created or joined by the root user
+(i.e., a process with user ID 0 in the root namespace).
+
+Note that a call to
+.BR execve (2)
+will cause a process's capabilities to be recalculated in the usual way (see
+.BR capabilities (7)),
+so that usually,
+unless it has a user ID of 0 within the namespace or the executable file
+has a nonempty inheritable capabilities mask,
+it will lose all capabilities.
+See the discussion of user and group ID mappings, below.
+
+A call to
+.BR clone (2),
+.BR unshare (2),
+or
+.BR setns (2)
+using the
+.BR CLONE_NEWUSER
+flag sets the "securebits" flags
+(see
+.BR capabilities (7))
+to their default values (all flags disabled) in the child (for
+.BR clone (2))
+or caller (for
+.BR unshare (2),
+or
+.BR setns (2)).
+Note that because the caller no longer has capabilities
+in its original user namespace after a call to
+.BR setns (2),
+it is not possible for a process to reset its "securebits" flags while
+retaining its user namespace membership by using a pair of
+.BR setns (2)
+calls to move to another user namespace and then return to
+its original user namespace.
+
+Having a capability inside a user namespace
+permits a process to perform operations (that require privilege)
+only on resources governed by that namespace.
+The rules for determining whether or not a process has a capability
+in a particular user namespace are as follows:
+.IP 1. 3
+A process has a capability inside a user namespace
+if it is a member of that namespace and
+it has the capability in its effective capability set.
+A process can gain capabilities in its effective capability
+set in various ways.
+For example, it may execute a set-user-ID program or an
+executable with associated file capabilities.
+In addition,
+a process may gain capabilities via the effect of
+.BR clone (2),
+.BR unshare (2),
+or
+.BR setns (2),
+as already described.
+.\" In the 3.8 sources, see security/commoncap.c::cap_capable():
+.IP 2.
+If a process has a capability in a user namespace,
+then it has that capability in all child (and further removed descendant)
+namespaces as well.
+.IP 3.
+.\" * The owner of the user namespace in the parent of the
+.\" * user namespace has all caps.
+When a user namespace is created, the kernel records the effective
+user ID of the creating process as being the "owner" of the namespace.
+.\" (and likewise associates the effective group ID of the creating process
+.\" with the namespace).
+A process that resides
+in the parent of the user namespace
+.\" See kernel commit 520d9eabce18edfef76a60b7b839d54facafe1f9 for a fix
+.\" on this point
+and whose effective user ID matches the owner of the namespace
+has all capabilities in the namespace.
+.\"     This includes the case where the process executes a set-user-ID
+.\"     program that confers the effective UID of the creator of the namespace.
+By virtue of the previous rule,
+this means that the process has all capabilities in all
+further removed descendant user namespaces as well.
+.\"
+.\" ============================================================
+.\"
+.SS Interaction of user namespaces and other types of namespaces
+Starting in Linux 3.8, unprivileged processes can create user namespaces,
+and mount, PID, IPC, network, and UTS namespaces can be created with just the
+.B CAP_SYS_ADMIN
+capability in the caller's user namespace.
+
+When a non-user-namespace is created,
+it is owned by the user namespace in which the creating process
+was a member at the time of the creation of the namespace.
+Actions on the non-user-namespace
+require capabilities in the corresponding user namespace.
+
+If
+.BR CLONE_NEWUSER
+is specified along with other
+.B CLONE_NEW*
+flags in a single
+.BR clone (2)
+or
+.BR unshare (2)
+call, the user namespace is guaranteed to be created first,
+giving the child
+.RB ( clone (2))
+or caller
+.RB ( unshare (2))
+privileges over the remaining namespaces created by the call.
+Thus, it is possible for an unprivileged caller to specify this combination
+of flags.
+
+When a new IPC, mount, network, PID, or UTS namespace is created via
+.BR clone (2)
+or
+.BR unshare (2),
+the kernel records the user namespace of the creating process against
+the new namespace.
+(This association can't be changed.)
+When a process in the new namespace subsequently performs
+privileged operations that operate on global
+resources isolated by the namespace,
+the permission checks are performed according to the process's capabilities
+in the user namespace that the kernel associated with the new namespace.
+.\"
+.\" ============================================================
+.\"
+.SS Restrictions on mount namespaces
+
+Note the following points with respect to mount namespaces:
+.IP * 3
+A mount namespace has an owner user namespace.
+A mount namespace whose owner user namespace is different from
+the owner user namespace of its parent mount namespace is
+considered a less privileged mount namespace.
+.IP *
+When creating a less privileged mount namespace,
+shared mounts are reduced to slave mounts.
+This ensures that mappings performed in less
+privileged mount namespaces will not propagate to more privileged
+mount namespaces.
+.IP *
+.\" FIXME .
+.\"	What does "come as a single unit from more privileged mount" mean?
+Mounts that come as a single unit from more privileged mount are
+locked together and may not be separated in a less privileged mount
+namespace.
+(The
+.BR unshare (2)
+.B CLONE_NEWNS
+operation brings across all of the mounts from the original
+mount namespace as a single unit,
+and recursive mounts that propagate between
+mount namespaces propagate as a single unit.)
+.IP *
+The
+.BR mount (2)
+flags
+.BR MS_RDONLY ,
+.BR MS_NOSUID ,
+.BR MS_NOEXEC ,
+and the "atime" flags
+.RB ( MS_NOATIME ,
+.BR MS_NODIRATIME ,
+.BR MS_RELATIME )
+settings become locked
+.\" commit 9566d6742852c527bf5af38af5cbb878dad75705
+.\" Author: Eric W. Biederman <ebiederm@xmission.com>
+.\" Date:   Mon Jul 28 17:26:07 2014 -0700
+.\"
+.\"      mnt: Correct permission checks in do_remount
+.\"
+when propagated from a more privileged to
+a less privileged mount namespace,
+and may not be changed in the less privileged mount namespace.
+.IP *
+.\" (As of 3.18-rc1 (in Al Viro's 2014-08-30 vfs.git#for-next tree))
+A file or directory that is a mount point in one namespace that is not
+a mount point in another namespace, may be renamed, unlinked, or removed
+.RB ( rmdir (2))
+in the mount namespace in which it is not a mount point
+(subject to the usual permission checks).
+.IP
+Previously, attempting to unlink, rename, or remove a file or directory
+that was a mount point in another mount namespace would result in the error
+.BR EBUSY .
+That behavior had technical problems of enforcement (e.g., for NFS)
+and permitted denial-of-service attacks against more privileged users.
+(i.e., preventing individual files from being updated
+by bind mounting on top of them).
+.\"
+.\" ============================================================
+.\"
+.SS User and group ID mappings: uid_map and gid_map
+When a user namespace is created,
+it starts out without a mapping of user IDs (group IDs)
+to the parent user namespace.
+The
+.IR /proc/[pid]/uid_map
+and
+.IR /proc/[pid]/gid_map
+files (available since Linux 3.5)
+.\" commit 22d917d80e842829d0ca0a561967d728eb1d6303
+expose the mappings for user and group IDs
+inside the user namespace for the process
+.IR pid .
+These files can be read to view the mappings in a user namespace and
+written to (once) to define the mappings.
+
+The description in the following paragraphs explains the details for
+.IR uid_map ;
+.IR gid_map
+is exactly the same,
+but each instance of "user ID" is replaced by "group ID".
+
+The
+.I uid_map
+file exposes the mapping of user IDs from the user namespace
+of the process
+.IR pid
+to the user namespace of the process that opened
+.IR uid_map
+(but see a qualification to this point below).
+In other words, processes that are in different user namespaces
+will potentially see different values when reading from a particular
+.I uid_map
+file, depending on the user ID mappings for the user namespaces
+of the reading processes.
+
+Each line in the
+.I uid_map
+file specifies a 1-to-1 mapping of a range of contiguous
+user IDs between two user namespaces.
+(When a user namespace is first created, this file is empty.)
+The specification in each line takes the form of
+three numbers delimited by white space.
+The first two numbers specify the starting user ID in
+each of the two user namespaces.
+The third number specifies the length of the mapped range.
+In detail, the fields are interpreted as follows:
+.IP (1) 4
+The start of the range of user IDs in
+the user namespace of the process
+.IR pid .
+.IP (2)
+The start of the range of user
+IDs to which the user IDs specified by field one map.
+How field two is interpreted depends on whether the process that opened
+.I uid_map
+and the process
+.IR pid
+are in the same user namespace, as follows:
+.RS
+.IP a) 3
+If the two processes are in different user namespaces:
+field two is the start of a range of
+user IDs in the user namespace of the process that opened
+.IR uid_map .
+.IP b)
+If the two processes are in the same user namespace:
+field two is the start of the range of
+user IDs in the parent user namespace of the process
+.IR pid .
+This case enables the opener of
+.I uid_map
+(the common case here is opening
+.IR /proc/self/uid_map )
+to see the mapping of user IDs into the user namespace of the process
+that created this user namespace.
+.RE
+.IP (3)
+The length of the range of user IDs that is mapped between the two
+user namespaces.
+.PP
+System calls that return user IDs (group IDs)\(emfor example,
+.BR getuid (2),
+.BR getgid (2),
+and the credential fields in the structure returned by
+.BR stat (2)\(emreturn
+the user ID (group ID) mapped into the caller's user namespace.
+
+When a process accesses a file, its user and group IDs
+are mapped into the initial user namespace for the purpose of permission
+checking and assigning IDs when creating a file.
+When a process retrieves file user and group IDs via
+.BR stat (2),
+the IDs are mapped in the opposite direction,
+to produce values relative to the process user and group ID mappings.
+
+The initial user namespace has no parent namespace,
+but, for consistency, the kernel provides dummy user and group
+ID mapping files for this namespace.
+Looking at the
+.I uid_map
+file
+.RI ( gid_map
+is the same) from a shell in the initial namespace shows:
+
+.in +4n
+.nf
+$ \fBcat /proc/$$/uid_map\fP
+         0          0 4294967295
+.fi
+.in
+
+This mapping tells us
+that the range starting at user ID 0 in this namespace
+maps to a range starting at 0 in the (nonexistent) parent namespace,
+and the length of the range is the largest 32-bit unsigned integer.
+This leaves 4294967295 (the 32-bit signed \-1 value) unmapped.
+This is deliberate:
+.IR "(uid_t)\ \-1"
+is used in several interfaces (e.g.,
+.BR setreuid (2))
+as a way to specify "no user ID".
+Leaving
+.IR "(uid_t)\ \-1"
+unmapped and unusable guarantees that there will be no
+confusion when using these interfaces.
+.\"
+.\" ============================================================
+.\"
+.SS Defining user and group ID mappings: writing to uid_map and gid_map
+.PP
+After the creation of a new user namespace, the
+.I uid_map
+file of
+.I one
+of the processes in the namespace may be written to
+.I once
+to define the mapping of user IDs in the new user namespace.
+An attempt to write more than once to a
+.I uid_map
+file in a user namespace fails with the error
+.BR EPERM .
+Similar rules apply for
+.I gid_map
+files.
+
+The lines written to
+.IR uid_map
+.RI ( gid_map )
+must conform to the following rules:
+.IP * 3
+The three fields must be valid numbers,
+and the last field must be greater than 0.
+.IP *
+Lines are terminated by newline characters.
+.IP *
+There is an (arbitrary) limit on the number of lines in the file.
+As at Linux 3.18, the limit is five lines.
+In addition, the number of bytes written to
+the file must be less than the system page size,
+.\" FIXME(Eric): the restriction "less than" rather than "less than or equal"
+.\" seems strangely arbitrary. Furthermore, the comment does not agree
+.\" with the code in kernel/user_namespace.c. Which is correct?
+and the write must be performed at the start of the file (i.e.,
+.BR lseek (2)
+and
+.BR pwrite (2)
+can't be used to write to nonzero offsets in the file).
+.IP *
+The range of user IDs (group IDs)
+specified in each line cannot overlap with the ranges
+in any other lines.
+In the initial implementation (Linux 3.8), this requirement was
+satisfied by a simplistic implementation that imposed the further
+requirement that
+the values in both field 1 and field 2 of successive lines must be
+in ascending numerical order,
+which prevented some otherwise valid maps from being created.
+Linux 3.9 and later
+.\" commit 0bd14b4fd72afd5df41e9fd59f356740f22fceba
+fix this limitation, allowing any valid set of nonoverlapping maps.
+.IP *
+At least one line must be written to the file.
+.PP
+Writes that violate the above rules fail with the error
+.BR EINVAL .
+
+In order for a process to write to the
+.I /proc/[pid]/uid_map
+.RI ( /proc/[pid]/gid_map )
+file, all of the following requirements must be met:
+.IP 1. 3
+The writing process must have the
+.BR CAP_SETUID
+.RB ( CAP_SETGID )
+capability in the user namespace of the process
+.IR pid .
+.IP 2.
+The writing process must either be in the user namespace of the process
+.I pid
+or be in the parent user namespace of the process
+.IR pid .
+.IP 3.
+The mapped user IDs (group IDs) must in turn have a mapping
+in the parent user namespace.
+.IP 4.
+One of the following two cases applies:
+.RS
+.IP * 3
+.IR Either
+the writing process has the
+.BR CAP_SETUID
+.RB ( CAP_SETGID )
+capability in the
+.I parent
+user namespace.
+.RS
+.IP + 3
+No further restrictions apply:
+the process can make mappings to arbitrary user IDs (group IDs)
+in the parent user namespace.
+.RE
+.IP * 3
+.IR Or
+otherwise all of the following restrictions apply:
+.RS
+.IP + 3
+The data written to
+.I uid_map
+.RI ( gid_map )
+must consist of a single line that maps
+the writing process's effective user ID
+(group ID) in the parent user namespace to a user ID (group ID)
+in the user namespace.
+.IP +
+The writing process must have the same effective user ID as the process
+that created the user namespace.
+.IP +
+In the case of
+.IR gid_map ,
+use of the
+.BR setgroups (2)
+system call must first be denied by writing
+.RI \(dq deny \(dq
+to the
+.I /proc/[pid]/setgroups
+file (see below) before writing to
+.IR gid_map .
+.RE
+.RE
+.PP
+Writes that violate the above rules fail with the error
+.BR EPERM .
+.\"
+.\" ============================================================
+.\"
+.SS Interaction with system calls that change process UIDs or GIDs
+In a user namespace where the
+.I uid_map
+file has not been written, the system calls that change user IDs will fail.
+Similarly, if the
+.I gid_map
+file has not been written, the system calls that change group IDs will fail.
+After the
+.I uid_map
+and
+.I gid_map
+files have been written, only the mapped values may be used in
+system calls that change user and group IDs.
+
+For user IDs, the relevant system calls include
+.BR setuid (2),
+.BR setfsuid (2),
+.BR setreuid (2),
+and
+.BR setresuid (2).
+For group IDs, the relevant system calls include
+.BR setgid (2),
+.BR setfsgid (2),
+.BR setregid (2),
+.BR setresgid (2),
+and
+.BR setgroups (2).
+
+Writing
+.RI \(dq deny \(dq
+to the
+.I /proc/[pid]/setgroups
+file before writing to
+.I /proc/[pid]/gid_map
+.\" Things changed in Linux 3.19
+.\" commit 9cc46516ddf497ea16e8d7cb986ae03a0f6b92f8
+.\" commit 66d2f338ee4c449396b6f99f5e75cd18eb6df272
+.\" http://lwn.net/Articles/626665/
+will permanently disable
+.BR setgroups (2)
+in a user namespace and allow writing to
+.I /proc/[pid]/gid_map
+without having the
+.BR CAP_SETGID
+capability in the parent user namespace.
+.\"
+.\" ============================================================
+.\"
+.SS The /proc/[pid]/setgroups file
+.\"
+.\" commit 9cc46516ddf497ea16e8d7cb986ae03a0f6b92f8
+.\" commit 66d2f338ee4c449396b6f99f5e75cd18eb6df272
+.\" http://lwn.net/Articles/626665/
+.\" http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2014-8989
+.\"
+The
+.I /proc/[pid]/setgroups
+file displays the string
+.RI \(dq allow \(dq
+if processes in the user namespace that contains the process
+.I pid
+are permitted to employ the
+.BR setgroups (2)
+system call; it displays
+.RI \(dq deny \(dq
+if
+.BR setgroups (2)
+is not permitted in that user namespace.
+Note that regardless of the value in the
+.I /proc/[pid]/setgroups
+file (and regardless of the process's capabilities), calls to
+.BR setgroups (2)
+are also not permitted if
+.IR /proc/[pid]/gid_map
+has not yet been set.
+
+A privileged process (one with the
+.BR CAP_SYS_ADMIN
+capability in the namespace) may write either of the strings
+.RI \(dq allow \(dq
+or
+.RI \(dq deny \(dq
+to this file
+.I before
+writing a group ID mapping
+for this user namespace to the file
+.IR /proc/[pid]/gid_map .
+Writing the string
+.RI \(dq deny \(dq
+prevents any process in the user namespace from employing
+.BR setgroups (2).
+
+The essence of the restrictions described in the preceding
+paragraph is that it is permitted to write to
+.I /proc/[pid]/setgroups
+only so long as calling
+.BR setgroups (2)
+is disallowed because
+.I /proc/[pid]gid_map
+has not been set.
+This ensures that a process cannot transition from a state where
+.BR setgroups (2)
+is allowed to a state where
+.BR setgroups (2)
+is denied;
+a process can only transition from
+.BR setgroups (2)
+being disallowed to
+.BR setgroups (2)
+being allowed.
+
+The default value of this file in the initial user namespace is
+.RI \(dq allow \(dq.
+
+Once
+.IR /proc/[pid]/gid_map
+has been written to
+(which has the effect of enabling
+.BR setgroups (2)
+in the user namespace),
+it is no longer possible to disallow
+.BR setgroups (2)
+by writing
+.RI \(dq deny \(dq
+to
+.IR /proc/[pid]/setgroups
+(the write fails with the error
+.BR EPERM ).
+
+A child user namespace inherits the
+.IR /proc/[pid]/setgroups
+setting from its parent.
+
+If the
+.I setgroups
+file has the value
+.RI \(dq deny \(dq,
+then the
+.BR setgroups (2)
+system call can't subsequently be reenabled (by writing
+.RI \(dq allow \(dq
+to the file) in this user namespace.
+(Attempts to do so will fail with the error
+.BR EPERM .)
+This restriction also propagates down to all child user namespaces of
+this user namespace.
+
+The
+.I /proc/[pid]/setgroups
+file was added in Linux 3.19,
+but was backported to many earlier stable kernel series,
+because it addresses a security issue.
+The issue concerned files with permissions such as "rwx\-\-\-rwx".
+Such files give fewer permissions to "group" than they do to "other".
+This means that dropping groups using
+.BR setgroups (2)
+might allow a process file access that it did not formerly have.
+Before the existence of user namespaces this was not a concern,
+since only a privileged process (one with the
+.BR CAP_SETGID
+capability) could call
+.BR setgroups (2).
+However, with the introduction of user namespaces,
+it became possible for an unprivileged process to create
+a new namespace in which the user had all privileges.
+This then allowed formerly unprivileged
+users to drop groups and thus gain file access
+that they did not previously have.
+The
+.I /proc/[pid]/setgroups
+file was added to address this security issue,
+by denying any pathway for an unprivileged process to drop groups with
+.BR setgroups (2).
+.\"
+.\" /proc/PID/setgroups
+.\"	[allow == setgroups() is allowed, "deny" == setgroups() is disallowed]
+.\"	* Can write if have CAP_SYS_ADMIN in NS
+.\"	* Must write BEFORE writing to /proc/PID/gid_map
+.\"
+.\" setgroups()
+.\"	* Must already have written to gid_maps
+.\"	* /proc/PID/setgroups must be "allow"
+.\"
+.\" /proc/PID/gid_map -- writing
+.\"	* Must already have written "deny" to /proc/PID/setgroups
+.\"
+.\" ============================================================
+.\"
+.SS Unmapped user and group IDs
+.PP
+There are various places where an unmapped user ID (group ID)
+may be exposed to user space.
+For example, the first process in a new user namespace may call
+.BR getuid ()
+before a user ID mapping has been defined for the namespace.
+In most such cases, an unmapped user ID is converted
+.\" from_kuid_munged(), from_kgid_munged()
+to the overflow user ID (group ID);
+the default value for the overflow user ID (group ID) is 65534.
+See the descriptions of
+.IR /proc/sys/kernel/overflowuid
+and
+.IR /proc/sys/kernel/overflowgid
+in
+.BR proc (5).
+
+The cases where unmapped IDs are mapped in this fashion include
+system calls that return user IDs
+.RB ( getuid (2),
+.BR getgid (2),
+and similar),
+credentials passed over a UNIX domain socket,
+.\" also SO_PEERCRED
+credentials returned by
+.BR stat (2),
+.BR waitid (2),
+and the System V IPC "ctl"
+.B IPC_STAT
+operations,
+credentials exposed by
+.IR /proc/PID/status
+and the files in
+.IR /proc/sysvipc/* ,
+credentials returned via the
+.I si_uid
+field in the
+.I siginfo_t
+received with a signal (see
+.BR sigaction (2)),
+credentials written to the process accounting file (see
+.BR acct (5)),
+and credentials returned with POSIX message queue notifications (see
+.BR mq_notify (3)).
+
+There is one notable case where unmapped user and group IDs are
+.I not
+.\" from_kuid(), from_kgid()
+.\" Also F_GETOWNER_UIDS is an exception
+converted to the corresponding overflow ID value.
+When viewing a
+.I uid_map
+or
+.I gid_map
+file in which there is no mapping for the second field,
+that field is displayed as 4294967295 (\-1 as an unsigned integer);
+.\"
+.\" ============================================================
+.\"
+.SS Set-user-ID and set-group-ID programs
+.PP
+When a process inside a user namespace executes
+a set-user-ID (set-group-ID) program,
+the process's effective user (group) ID inside the namespace is changed
+to whatever value is mapped for the user (group) ID of the file.
+However, if either the user
+.I or
+the group ID of the file has no mapping inside the namespace,
+the set-user-ID (set-group-ID) bit is silently ignored:
+the new program is executed,
+but the process's effective user (group) ID is left unchanged.
+(This mirrors the semantics of executing a set-user-ID or set-group-ID
+program that resides on a filesystem that was mounted with the
+.BR MS_NOSUID
+flag, as described in
+.BR mount (2).)
+.\"
+.\" ============================================================
+.\"
+.SS Miscellaneous
+.PP
+When a process's user and group IDs are passed over a UNIX domain socket
+to a process in a different user namespace (see the description of
+.B SCM_CREDENTIALS
+in
+.BR unix (7)),
+they are translated into the corresponding values as per the
+receiving process's user and group ID mappings.
+.\"
+.SH CONFORMING TO
+Namespaces are a Linux-specific feature.
+.\"
+.SH NOTES
+Over the years, there have been a lot of features that have been added
+to the Linux kernel that have been made available only to privileged users
+because of their potential to confuse set-user-ID-root applications.
+In general, it becomes safe to allow the root user in a user namespace to
+use those features because it is impossible, while in a user namespace,
+to gain more privilege than the root user of a user namespace has.
+.\"
+.\" ============================================================
+.\"
+.SS Availability
+Use of user namespaces requires a kernel that is configured with the
+.B CONFIG_USER_NS
+option.
+User namespaces require support in a range of subsystems across
+the kernel.
+When an unsupported subsystem is configured into the kernel,
+it is not possible to configure user namespaces support.
+
+As at Linux 3.8, most relevant subsystems supported user namespaces,
+but a number of filesystems did not have the infrastructure needed
+to map user and group IDs between user namespaces.
+Linux 3.9 added the required infrastructure support for many of
+the remaining unsupported filesystems
+(Plan 9 (9P), Andrew File System (AFS), Ceph, CIFS, CODA, NFS, and OCFS2).
+Linux 3.11 added support the last of the unsupported major filesystems,
+.\" commit d6970d4b726cea6d7a9bc4120814f95c09571fc3
+XFS.
+.\"
+.SH EXAMPLE
+The program below is designed to allow experimenting with
+user namespaces, as well as other types of namespaces.
+It creates namespaces as specified by command-line options and then executes
+a command inside those namespaces.
+The comments and
+.I usage()
+function inside the program provide a full explanation of the program.
+The following shell session demonstrates its use.
+
+First, we look at the run-time environment:
+
+.in +4n
+.nf
+$ \fBuname -rs\fP     # Need Linux 3.8 or later
+Linux 3.8.0
+$ \fBid -u\fP         # Running as unprivileged user
+1000
+$ \fBid -g\fP
+1000
+.fi
+.in
+
+Now start a new shell in new user
+.RI ( \-U ),
+mount
+.RI ( \-m ),
+and PID
+.RI ( \-p )
+namespaces, with user ID
+.RI ( \-M )
+and group ID
+.RI ( \-G )
+1000 mapped to 0 inside the user namespace:
+
+.in +4n
+.nf
+$ \fB./userns_child_exec -p -m -U -M '0 1000 1' -G '0 1000 1' bash\fP
+.fi
+.in
+
+The shell has PID 1, because it is the first process in the new
+PID namespace:
+
+.in +4n
+.nf
+bash$ \fBecho $$\fP
+1
+.fi
+.in
+
+Inside the user namespace, the shell has user and group ID 0,
+and a full set of permitted and effective capabilities:
+
+.in +4n
+.nf
+bash$ \fBcat /proc/$$/status | egrep '^[UG]id'\fP
+Uid:	0	0	0	0
+Gid:	0	0	0	0
+bash$ \fBcat /proc/$$/status | egrep '^Cap(Prm|Inh|Eff)'\fP
+CapInh:	0000000000000000
+CapPrm:	0000001fffffffff
+CapEff:	0000001fffffffff
+.fi
+.in
+
+Mounting a new
+.I /proc
+filesystem and listing all of the processes visible
+in the new PID namespace shows that the shell can't see
+any processes outside the PID namespace:
+
+.in +4n
+.nf
+bash$ \fBmount -t proc proc /proc\fP
+bash$ \fBps ax\fP
+  PID TTY      STAT   TIME COMMAND
+    1 pts/3    S      0:00 bash
+   22 pts/3    R+     0:00 ps ax
+.fi
+.in
+.SS Program source
+\&
+.nf
+/* userns_child_exec.c
+
+   Licensed under GNU General Public License v2 or later
+
+   Create a child process that executes a shell command in new
+   namespace(s); allow UID and GID mappings to be specified when
+   creating a user namespace.
+*/
+#define _GNU_SOURCE
+#include <sched.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <limits.h>
+#include <errno.h>
+
+/* A simple error\-handling function: print an error message based
+   on the value in \(aqerrno\(aq and terminate the calling process */
+
+#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \\
+                        } while (0)
+
+struct child_args {
+    char **argv;        /* Command to be executed by child, with args */
+    int    pipe_fd[2];  /* Pipe used to synchronize parent and child */
+};
+
+static int verbose;
+
+static void
+usage(char *pname)
+{
+    fprintf(stderr, "Usage: %s [options] cmd [arg...]\\n\\n", pname);
+    fprintf(stderr, "Create a child process that executes a shell "
+            "command in a new user namespace,\\n"
+            "and possibly also other new namespace(s).\\n\\n");
+    fprintf(stderr, "Options can be:\\n\\n");
+#define fpe(str) fprintf(stderr, "    %s", str);
+    fpe("\-i          New IPC namespace\\n");
+    fpe("\-m          New mount namespace\\n");
+    fpe("\-n          New network namespace\\n");
+    fpe("\-p          New PID namespace\\n");
+    fpe("\-u          New UTS namespace\\n");
+    fpe("\-U          New user namespace\\n");
+    fpe("\-M uid_map  Specify UID map for user namespace\\n");
+    fpe("\-G gid_map  Specify GID map for user namespace\\n");
+    fpe("\-z          Map user\(aqs UID and GID to 0 in user namespace\\n");
+    fpe("            (equivalent to: \-M \(aq0 <uid> 1\(aq \-G \(aq0 <gid> 1\(aq)\\n");
+    fpe("\-v          Display verbose messages\\n");
+    fpe("\\n");
+    fpe("If \-z, \-M, or \-G is specified, \-U is required.\\n");
+    fpe("It is not permitted to specify both \-z and either \-M or \-G.\\n");
+    fpe("\\n");
+    fpe("Map strings for \-M and \-G consist of records of the form:\\n");
+    fpe("\\n");
+    fpe("    ID\-inside\-ns   ID\-outside\-ns   len\\n");
+    fpe("\\n");
+    fpe("A map string can contain multiple records, separated"
+        " by commas;\\n");
+    fpe("the commas are replaced by newlines before writing"
+        " to map files.\\n");
+
+    exit(EXIT_FAILURE);
+}
+
+/* Update the mapping file \(aqmap_file\(aq, with the value provided in
+   \(aqmapping\(aq, a string that defines a UID or GID mapping. A UID or
+   GID mapping consists of one or more newline\-delimited records
+   of the form:
+
+       ID_inside\-ns    ID\-outside\-ns   length
+
+   Requiring the user to supply a string that contains newlines is
+   of course inconvenient for command\-line use. Thus, we permit the
+   use of commas to delimit records in this string, and replace them
+   with newlines before writing the string to the file. */
+
+static void
+update_map(char *mapping, char *map_file)
+{
+    int fd, j;
+    size_t map_len;     /* Length of \(aqmapping\(aq */
+
+    /* Replace commas in mapping string with newlines */
+
+    map_len = strlen(mapping);
+    for (j = 0; j < map_len; j++)
+        if (mapping[j] == \(aq,\(aq)
+            mapping[j] = \(aq\\n\(aq;
+
+    fd = open(map_file, O_RDWR);
+    if (fd == \-1) {
+        fprintf(stderr, "ERROR: open %s: %s\\n", map_file,
+                strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    if (write(fd, mapping, map_len) != map_len) {
+        fprintf(stderr, "ERROR: write %s: %s\\n", map_file,
+                strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    close(fd);
+}
+
+/* Linux 3.19 made a change in the handling of setgroups(2) and the
+   \(aqgid_map\(aq file to address a security issue. The issue allowed
+   *unprivileged* users to employ user namespaces in order to drop
+   The upshot of the 3.19 changes is that in order to update the
+   \(aqgid_maps\(aq file, use of the setgroups() system call in this
+   user namespace must first be disabled by writing "deny" to one of
+   the /proc/PID/setgroups files for this namespace.  That is the
+   purpose of the following function. */
+
+static void
+proc_setgroups_write(pid_t child_pid, char *str)
+{
+    char setgroups_path[PATH_MAX];
+    int fd;
+
+    snprintf(setgroups_path, PATH_MAX, "/proc/%ld/setgroups",
+            (long) child_pid);
+
+    fd = open(setgroups_path, O_RDWR);
+    if (fd == \-1) {
+
+        /* We may be on a system that doesn\(aqt support
+           /proc/PID/setgroups. In that case, the file won\(aqt exist,
+           and the system won\(aqt impose the restrictions that Linux 3.19
+           added. That\(aqs fine: we don\(aqt need to do anything in order
+           to permit \(aqgid_map\(aq to be updated.
+
+           However, if the error from open() was something other than
+           the ENOENT error that is expected for that case,  let the
+           user know. */
+
+        if (errno != ENOENT)
+            fprintf(stderr, "ERROR: open %s: %s\\n", setgroups_path,
+                strerror(errno));
+        return;
+    }
+
+    if (write(fd, str, strlen(str)) == \-1)
+        fprintf(stderr, "ERROR: write %s: %s\\n", setgroups_path,
+            strerror(errno));
+
+    close(fd);
+}
+
+static int              /* Start function for cloned child */
+childFunc(void *arg)
+{
+    struct child_args *args = (struct child_args *) arg;
+    char ch;
+
+    /* Wait until the parent has updated the UID and GID mappings.
+       See the comment in main(). We wait for end of file on a
+       pipe that will be closed by the parent process once it has
+       updated the mappings. */
+
+    close(args\->pipe_fd[1]);    /* Close our descriptor for the write
+                                   end of the pipe so that we see EOF
+                                   when parent closes its descriptor */
+    if (read(args\->pipe_fd[0], &ch, 1) != 0) {
+        fprintf(stderr,
+                "Failure in child: read from pipe returned != 0\\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Execute a shell command */
+
+    printf("About to exec %s\\n", args\->argv[0]);
+    execvp(args\->argv[0], args\->argv);
+    errExit("execvp");
+}
+
+#define STACK_SIZE (1024 * 1024)
+
+static char child_stack[STACK_SIZE];    /* Space for child\(aqs stack */
+
+int
+main(int argc, char *argv[])
+{
+    int flags, opt, map_zero;
+    pid_t child_pid;
+    struct child_args args;
+    char *uid_map, *gid_map;
+    const int MAP_BUF_SIZE = 100;
+    char map_buf[MAP_BUF_SIZE];
+    char map_path[PATH_MAX];
+
+    /* Parse command\-line options. The initial \(aq+\(aq character in
+       the final getopt() argument prevents GNU\-style permutation
+       of command\-line options. That\(aqs useful, since sometimes
+       the \(aqcommand\(aq to be executed by this program itself
+       has command\-line options. We don\(aqt want getopt() to treat
+       those as options to this program. */
+
+    flags = 0;
+    verbose = 0;
+    gid_map = NULL;
+    uid_map = NULL;
+    map_zero = 0;
+    while ((opt = getopt(argc, argv, "+imnpuUM:G:zv")) != \-1) {
+        switch (opt) {
+        case \(aqi\(aq: flags |= CLONE_NEWIPC;        break;
+        case \(aqm\(aq: flags |= CLONE_NEWNS;         break;
+        case \(aqn\(aq: flags |= CLONE_NEWNET;        break;
+        case \(aqp\(aq: flags |= CLONE_NEWPID;        break;
+        case \(aqu\(aq: flags |= CLONE_NEWUTS;        break;
+        case \(aqv\(aq: verbose = 1;                  break;
+        case \(aqz\(aq: map_zero = 1;                 break;
+        case \(aqM\(aq: uid_map = optarg;             break;
+        case \(aqG\(aq: gid_map = optarg;             break;
+        case \(aqU\(aq: flags |= CLONE_NEWUSER;       break;
+        default:  usage(argv[0]);
+        }
+    }
+
+    /* \-M or \-G without \-U is nonsensical */
+
+    if (((uid_map != NULL || gid_map != NULL || map_zero) &&
+                !(flags & CLONE_NEWUSER)) ||
+            (map_zero && (uid_map != NULL || gid_map != NULL)))
+        usage(argv[0]);
+
+    args.argv = &argv[optind];
+
+    /* We use a pipe to synchronize the parent and child, in order to
+       ensure that the parent sets the UID and GID maps before the child
+       calls execve(). This ensures that the child maintains its
+       capabilities during the execve() in the common case where we
+       want to map the child\(aqs effective user ID to 0 in the new user
+       namespace. Without this synchronization, the child would lose
+       its capabilities if it performed an execve() with nonzero
+       user IDs (see the capabilities(7) man page for details of the
+       transformation of a process\(aqs capabilities during execve()). */
+
+    if (pipe(args.pipe_fd) == \-1)
+        errExit("pipe");
+
+    /* Create the child in new namespace(s) */
+
+    child_pid = clone(childFunc, child_stack + STACK_SIZE,
+                      flags | SIGCHLD, &args);
+    if (child_pid == \-1)
+        errExit("clone");
+
+    /* Parent falls through to here */
+
+    if (verbose)
+        printf("%s: PID of child created by clone() is %ld\\n",
+                argv[0], (long) child_pid);
+
+    /* Update the UID and GID maps in the child */
+
+    if (uid_map != NULL || map_zero) {
+        snprintf(map_path, PATH_MAX, "/proc/%ld/uid_map",
+                (long) child_pid);
+        if (map_zero) {
+            snprintf(map_buf, MAP_BUF_SIZE, "0 %ld 1", (long) getuid());
+            uid_map = map_buf;
+        }
+        update_map(uid_map, map_path);
+    }
+
+    if (gid_map != NULL || map_zero) {
+        proc_setgroups_write(child_pid, "deny");
+
+        snprintf(map_path, PATH_MAX, "/proc/%ld/gid_map",
+                (long) child_pid);
+        if (map_zero) {
+            snprintf(map_buf, MAP_BUF_SIZE, "0 %ld 1", (long) getgid());
+            gid_map = map_buf;
+        }
+        update_map(gid_map, map_path);
+    }
+
+    /* Close the write end of the pipe, to signal to the child that we
+       have updated the UID and GID maps */
+
+    close(args.pipe_fd[1]);
+
+    if (waitpid(child_pid, NULL, 0) == \-1)      /* Wait for child */
+        errExit("waitpid");
+
+    if (verbose)
+        printf("%s: terminating\\n", argv[0]);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR newgidmap (1),      \" From the shadow package
+.BR newuidmap (1),      \" From the shadow package
+.BR clone (2),
+.BR setns (2),
+.BR unshare (2),
+.BR proc (5),
+.BR subgid (5),         \" From the shadow package
+.BR subuid (5),         \" From the shadow package
+.BR credentials (7),
+.BR capabilities (7),
+.BR namespaces (7),
+.BR pid_namespaces (7)
+.sp
+The kernel source file
+.IR Documentation/namespaces/resource-control.txt .

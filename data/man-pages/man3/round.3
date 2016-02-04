@@ -1,0 +1,131 @@
+.\" Copyright 2001 Andries Brouwer <aeb@cwi.nl>.
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH ROUND 3  2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+round, roundf, roundl \- round to nearest integer, away from zero
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "double round(double " x );
+.br
+.BI "float roundf(float " x );
+.br
+.BI "long double roundl(long double " x );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR round (),
+.BR roundf (),
+.BR roundl ():
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad
+.SH DESCRIPTION
+These functions round
+.I x
+to the nearest integer, but
+round halfway cases away from zero (regardless of the current rounding
+direction, see
+.BR fenv (3)),
+instead of to the nearest even integer like
+.BR rint (3).
+
+For example,
+.IR round(0.5)
+is 1.0, and
+.IR round(\-0.5)
+is \-1.0.
+.SH RETURN VALUE
+These functions return the rounded integer value.
+
+If
+.I x
+is integral, +0, \-0, NaN,  or infinite,
+.I x
+itself is returned.
+.SH ERRORS
+No errors occur.
+POSIX.1-2001 documents a range error for overflows, but see NOTES.
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw27 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR round (),
+.BR roundf (),
+.BR roundl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+POSIX.1-2001 contains text about overflow (which might set
+.I errno
+to
+.BR ERANGE ,
+or raise an
+.B FE_OVERFLOW
+exception).
+In practice, the result cannot overflow on any current machine,
+so this error-handling stuff is just nonsense.
+.\" The POSIX.1-2001 APPLICATION USAGE SECTION discusses this point.
+(More precisely, overflow can happen only when the maximum value
+of the exponent is smaller than the number of mantissa bits.
+For the IEEE-754 standard 32-bit and 64-bit floating-point numbers
+the maximum value of the exponent is 128 (respectively, 1024),
+and the number of mantissa bits is 24 (respectively, 53).)
+
+If you want to store the rounded value in an integer type,
+you probably want to use one of the functions described in
+.BR lround (3)
+instead.
+.SH SEE ALSO
+.BR ceil (3),
+.BR floor (3),
+.BR lround (3),
+.BR nearbyint (3),
+.BR rint (3),
+.BR trunc (3)

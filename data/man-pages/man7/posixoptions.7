@@ -1,0 +1,856 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH POSIXOPTIONS 7 2007-12-21 "" "Linux Programmer's Manual"
+.SH NAME
+posixoptions \- optional parts of the POSIX standard
+.SH DESCRIPTION
+The POSIX standard (the information below is from POSIX.1-2001)
+describes a set of behaviors and interfaces for a compliant system.
+However, many interfaces are optional and there are feature test macros
+to test the availability of interfaces at compile time, and functions
+.BR sysconf (3),
+.BR fpathconf (3),
+.BR pathconf (3),
+.BR confstr (3)
+to do this at run time.
+From shell scripts one can use
+.BR getconf (1).
+For more detail, see
+.BR sysconf (3).
+.LP
+We give the name of the POSIX abbreviation, the option, the name of the
+.BR sysconf (3)
+parameter used to inquire about the option, and possibly
+a very short description.
+Much more precise detail can be found in the POSIX standard itself,
+versions of which can nowadays be accessed freely on the web.
+.SS ADV - _POSIX_ADVISORY_INFO - _SC_ADVISORY_INFO
+The following advisory functions are present:
+.br
+.nf
+.in +4
+
+.IR posix_fadvise (),
+.IR posix_fallocate (),
+.IR posix_memalign (),
+.IR posix_madvise ().
+.br
+.in -4
+.fi
+.SS AIO - _POSIX_ASYNCHRONOUS_IO - _SC_ASYNCHRONOUS_IO
+The header
+.I <aio.h>
+is present.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR aio_cancel (),
+.IR aio_error (),
+.IR aio_fsync (),
+.IR aio_read (),
+.IR aio_return (),
+.IR aio_suspend (),
+.IR aio_write (),
+.IR lio_listio ().
+.br
+.in -4
+.fi
+.SS BAR - _POSIX_BARRIERS - _SC_BARRIERS
+This option implies the
+.B _POSIX_THREADS
+and
+.B _POSIX_THREAD_SAFE_FUNCTIONS
+options.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR pthread_barrier_destroy (),
+.IR pthread_barrier_init (),
+.IR pthread_barrier_wait (),
+.IR pthread_barrierattr_destroy (),
+.IR pthread_barrierattr_init ().
+.in -4
+.br
+.fi
+.\" .SS BE
+.\" Batch environment.
+.\" .SS CD
+.\" C development.
+.SS --- - POSIX_CHOWN_RESTRICTED
+If this option is in effect (as it always is under POSIX.1-2001),
+then only root may change the owner of a file, and nonroot can
+set the group of a file only to one of the groups it belongs to.
+This affects the functions
+.IR chown (),
+.IR fchown ().
+.\" What about lchown() ?
+.SS CS - _POSIX_CLOCK_SELECTION - _SC_CLOCK_SELECTION
+This option implies the
+.B _POSIX_TIMERS
+option.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR pthread_condattr_getclock (),
+.IR pthread_condattr_setclock (),
+.IR clock_nanosleep ().
+.in -4
+
+.fi
+If
+.B CLOCK_REALTIME
+is changed by the function
+.IR clock_settime (),
+then this affects all timers set for an absolute time.
+.SS CPT - _POSIX_CPUTIME - _SC_CPUTIME
+The clockID CLOCK_PROCESS_CPUTIME_ID is supported.
+The initial value of this clock is 0 for each process.
+This option implies the
+.B _POSIX_TIMERS
+option.
+The function
+.IR clock_getcpuclockid ()
+is present.
+.\" .SS FD
+.\" Fortran development
+.\" .SS FR
+.\" Fortran runtime
+.SS --- - _POSIX_FILE_LOCKING - _SC_FILE_LOCKING
+This option has been deleted.
+Not in final XPG6.
+.SS FSC - _POSIX_FSYNC - _SC_FSYNC
+The function
+.IR fsync ()
+is present.
+.SS IP6 - _POSIX_IPV6 - _SC_IPV6
+Internet Protocol Version 6 is supported.
+.SS --- - _POSIX_JOB_CONTROL - _SC_JOB_CONTROL
+If this option is in effect (as it always is under POSIX.1-2001),
+then the system implements POSIX-style job control,
+and the following functions are present:
+.br
+.nf
+.in +4
+
+.IR setpgid (),
+.IR tcdrain (),
+.IR tcflush (),
+.IR tcgetpgrp (),
+.IR tcsendbreak (),
+.IR tcsetattr (),
+.IR tcsetpgrp ().
+.in -4
+.fi
+.SS MF - _POSIX_MAPPED_FILES - _SC_MAPPED_FILES
+Shared memory is supported.
+The include file
+.I <sys/mman.h>
+is present.
+The following functions are present:
+.IR mmap (),
+.IR msync (),
+.IR munmap ().
+.SS ML - _POSIX_MEMLOCK - _SC_MEMLOCK
+Shared memory can be locked into core.
+The functions
+.IR mlockall (),
+.IR munlockall ()
+are present.
+.SS MR/MLR - _POSIX_MEMLOCK_RANGE - _SC_MEMLOCK_RANGE
+More precisely, ranges can be locked into core.
+The functions
+.IR mlock (),
+.IR munlock ()
+are present.
+.SS MPR - _POSIX_MEMORY_PROTECTION - _SC_MEMORY_PROTECTION
+The function
+.IR mprotect ()
+is present.
+.SS MSG - _POSIX_MESSAGE_PASSING - _SC_MESSAGE_PASSING
+The include file
+.I <mqueue.h>
+is present.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR mq_close (),
+.IR mq_getattr (),
+.IR mq_notify (),
+.IR mq_open (),
+.IR mq_receive (),
+.IR mq_send (),
+.IR mq_setattr (),
+.IR mq_unlink ().
+.br
+.in -4
+.fi
+.SS MON - _POSIX_MONOTONIC_CLOCK - _SC_MONOTONIC_CLOCK
+.B CLOCK_MONOTONIC
+is supported.
+This option implies the
+.B _POSIX_TIMERS
+option.
+Affected functions are
+.nf
+.in +4
+
+.IR aio_suspend (),
+.IR clock_getres (),
+.IR clock_gettime (),
+.IR clock_settime (),
+.IR timer_create ().
+.in -4
+.fi
+.SS --- - _POSIX_MULTI_PROCESS - _SC_MULTI_PROCESS
+This option has been deleted.
+Not in final XPG6.
+.\" .SS MX
+.\" IEC 60559 Floating-Point Option.
+.SS --- - _POSIX_NO_TRUNC
+If this option is in effect (as it always is under POSIX.1-2001)
+then pathname components longer than
+.B NAME_MAX
+are not truncated,
+but give an error.
+This property may be dependent on the path prefix of the component.
+.SS PIO - _POSIX_PRIORITIZED_IO - _SC_PRIORITIZED_IO
+This option says that one can specify priorities for asynchronous I/O.
+This affects the functions
+.br
+.nf
+.in +4
+
+.IR aio_read (),
+.IR aio_write ().
+.in -4
+.fi
+.SS PS - _POSIX_PRIORITY_SCHEDULING - _SC_PRIORITY_SCHEDULING
+The include file
+.I <sched.h>
+is present.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR sched_get_priority_max (),
+.IR sched_get_priority_min (),
+.IR sched_getparam (),
+.IR sched_getscheduler (),
+.IR sched_rr_get_interval (),
+.IR sched_setparam (),
+.IR sched_setscheduler (),
+.IR sched_yield ().
+.in -4
+
+.fi
+If also
+.B _POSIX_SPAWN
+is in effect, then the following functions are present:
+.br
+.nf
+.in +4
+
+.IR posix_spawnattr_getschedparam (),
+.IR posix_spawnattr_getschedpolicy (),
+.IR posix_spawnattr_setschedparam (),
+.IR posix_spawnattr_setschedpolicy ().
+.in -4
+.fi
+.SS RS - _POSIX_RAW_SOCKETS
+Raw sockets are supported.
+Affected functions are
+.IR getsockopt (),
+.IR setsockopt ().
+.SS --- - _POSIX_READER_WRITER_LOCKS - _SC_READER_WRITER_LOCKS
+This option implies the
+.B _POSIX_THREADS
+option.
+Conversely,
+under POSIX.1-2001 the
+.B _POSIX_THREADS
+option implies this option.
+.nf
+The following functions are present:
+.in +4
+
+.IR pthread_rwlock_destroy (),
+.IR pthread_rwlock_init (),
+.IR pthread_rwlock_rdlock (),
+.IR pthread_rwlock_tryrdlock (),
+.IR pthread_rwlock_trywrlock (),
+.IR pthread_rwlock_unlock (),
+.IR pthread_rwlock_wrlock (),
+.IR pthread_rwlockattr_destroy (),
+.IR pthread_rwlockattr_init ().
+.in -4
+.fi
+.SS RTS - _POSIX_REALTIME_SIGNALS - _SC_REALTIME_SIGNALS
+Realtime signals are supported.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR sigqueue (),
+.IR sigtimedwait (),
+.IR sigwaitinfo ().
+.br
+.in -4
+.fi
+.SS --- - _POSIX_REGEXP - _SC_REGEXP
+If this option is in effect (as it always is under POSIX.1-2001)
+then POSIX regular expressions are supported
+and the following functions are present:
+.br
+.nf
+.in +4
+
+.IR regcomp (),
+.IR regerror (),
+.IR regexec (),
+.IR regfree ().
+.br
+.in -4
+.fi
+.SS --- - _POSIX_SAVED_IDS - _SC_SAVED_IDS
+If this option is in effect (as it always is under POSIX.1-2001),
+then a process has a saved set-user-ID and a saved set-group-ID.
+Affected functions are
+.br
+.nf
+.in +4
+
+.IR exec (),
+.IR kill (),
+.IR seteuid (),
+.IR setegid (),
+.IR setgid (),
+.IR setuid ().
+.br
+.in -4
+.fi
+.\" .SS SD
+.\" Software development
+.SS SEM - _POSIX_SEMAPHORES - _SC_SEMAPHORES
+The include file
+.I <semaphore.h>
+is present.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR sem_close (),
+.IR sem_destroy (),
+.IR sem_getvalue (),
+.IR sem_init (),
+.IR sem_open (),
+.IR sem_post (),
+.IR sem_trywait (),
+.IR sem_unlink (),
+.IR sem_wait ().
+.br
+.in -4
+.fi
+.SS SHM - _POSIX_SHARED_MEMORY_OBJECTS - _SC_SHARED_MEMORY_OBJECTS
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR mmap (),
+.IR munmap (),
+.IR shm_open (),
+.IR shm_unlink ().
+.br
+.in -4
+.fi
+.SS --- - _POSIX_SHELL - _SC_SHELL
+If this option is in effect (as it always is under POSIX.1-2001),
+the function
+.IR system ()
+is present.
+.SS SPN - _POSIX_SPAWN - _SC_SPAWN
+This option describes support for process creation in a context where
+it is difficult or impossible to use
+.IR fork (),
+for example, because no MMU is present.
+If
+.B _POSIX_SPAWN
+is in effect, then the include file
+.I <spawn.h>
+and the following functions are present:
+.br
+.nf
+.in +4
+
+.IR posix_spawn (),
+.IR posix_spawn_file_actions_addclose (),
+.IR posix_spawn_file_actions_adddup2 (),
+.IR posix_spawn_file_actions_addopen (),
+.IR posix_spawn_file_actions_destroy (),
+.IR posix_spawn_file_actions_init (),
+.IR posix_spawnattr_destroy (),
+.IR posix_spawnattr_getsigdefault (),
+.IR posix_spawnattr_getflags (),
+.IR posix_spawnattr_getpgroup (),
+.IR posix_spawnattr_getsigmask (),
+.IR posix_spawnattr_init (),
+.IR posix_spawnattr_setsigdefault (),
+.IR posix_spawnattr_setflags (),
+.IR posix_spawnattr_setpgroup (),
+.IR posix_spawnattr_setsigmask (),
+.IR posix_spawnp ().
+.in -4
+.br
+.fi
+If also
+.B _POSIX_PRIORITY_SCHEDULING
+is in effect, then
+the following functions are present:
+.br
+.nf
+.in +4
+
+.IR posix_spawnattr_getschedparam (),
+.IR posix_spawnattr_getschedpolicy (),
+.IR posix_spawnattr_setschedparam (),
+.IR posix_spawnattr_setschedpolicy ().
+.in -4
+.fi
+.SS SPI - _POSIX_SPIN_LOCKS - _SC_SPIN_LOCKS
+This option implies the
+.B _POSIX_THREADS
+and
+.B _POSIX_THREAD_SAFE_FUNCTIONS
+options.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR pthread_spin_destroy (),
+.IR pthread_spin_init (),
+.IR pthread_spin_lock (),
+.IR pthread_spin_trylock (),
+.IR pthread_spin_unlock ().
+.in -4
+.br
+.fi
+.SS SS - _POSIX_SPORADIC_SERVER - _SC_SPORADIC_SERVER
+The scheduling policy
+.B SCHED_SPORADIC
+is supported.
+This option implies the
+.B _POSIX_PRIORITY_SCHEDULING
+option.
+Affected functions are
+.br
+.nf
+.in +4
+
+.IR sched_setparam (),
+.IR sched_setscheduler ().
+.in -4
+.br
+.fi
+.SS SIO - _POSIX_SYNCHRONIZED_IO - _SC_SYNCHRONIZED_IO
+Affected functions are
+.IR open (),
+.IR msync (),
+.IR fsync (),
+.IR fdatasync ().
+.SS TSA - _POSIX_THREAD_ATTR_STACKADDR - _SC_THREAD_ATTR_STACKADDR
+Affected functions are
+.br
+.nf
+.in +4
+
+.IR pthread_attr_getstack (),
+.IR pthread_attr_getstackaddr (),
+.IR pthread_attr_setstack (),
+.IR pthread_attr_setstackaddr ().
+.in -4
+.br
+.fi
+.SS TSS - _POSIX_THREAD_ATTR_STACKSIZE - _SC_THREAD_ATTR_STACKSIZE
+Affected functions are
+.br
+.nf
+.in +4
+
+.IR pthread_attr_getstack (),
+.IR pthread_attr_getstacksize (),
+.IR pthread_attr_setstack (),
+.IR pthread_attr_setstacksize ().
+.in -4
+.br
+.fi
+.SS TCT - _POSIX_THREAD_CPUTIME - _SC_THREAD_CPUTIME
+The clockID CLOCK_THREAD_CPUTIME_ID is supported.
+This option implies the
+.B _POSIX_TIMERS
+option.
+Affected functions are
+.br
+.nf
+.in +4
+
+.IR pthread_getcpuclockid (),
+.IR clock_getres (),
+.IR clock_gettime (),
+.IR clock_settime (),
+.IR timer_create ().
+.in -4
+.br
+.fi
+.SS TPI - _POSIX_THREAD_PRIO_INHERIT - _SC_THREAD_PRIO_INHERIT
+Affected functions are
+.br
+.nf
+.in +4
+
+.IR pthread_mutexattr_getprotocol (),
+.IR pthread_mutexattr_setprotocol ().
+.in -4
+.br
+.fi
+.SS TPP - _POSIX_THREAD_PRIO_PROTECT - _SC_THREAD_PRIO_PROTECT
+Affected functions are
+.br
+.nf
+.in +4
+
+.IR pthread_mutex_getprioceiling (),
+.IR pthread_mutex_setprioceiling (),
+.IR pthread_mutexattr_getprioceiling (),
+.IR pthread_mutexattr_getprotocol (),
+.IR pthread_mutexattr_setprioceiling (),
+.IR pthread_mutexattr_setprotocol ().
+.in -4
+.br
+.fi
+.SS TPS - _POSIX_THREAD_PRIORITY_SCHEDULING - _SC_THREAD_PRIORITY_SCHEDULING
+If this option is in effect, the different threads inside a process
+can run with different priorities and/or different schedulers.
+Affected functions are
+.br
+.nf
+.in +4
+
+.IR pthread_attr_getinheritsched (),
+.IR pthread_attr_getschedpolicy (),
+.IR pthread_attr_getscope (),
+.IR pthread_attr_setinheritsched (),
+.IR pthread_attr_setschedpolicy (),
+.IR pthread_attr_setscope (),
+.IR pthread_getschedparam (),
+.IR pthread_setschedparam (),
+.IR pthread_setschedprio ().
+.in -4
+.br
+.fi
+.SS TSH - _POSIX_THREAD_PROCESS_SHARED - _SC_THREAD_PROCESS_SHARED
+Affected functions are
+.br
+.nf
+.in +4
+
+.IR pthread_barrierattr_getpshared (),
+.IR pthread_barrierattr_setpshared (),
+.IR pthread_condattr_getpshared (),
+.IR pthread_condattr_setpshared (),
+.IR pthread_mutexattr_getpshared (),
+.IR pthread_mutexattr_setpshared (),
+.IR pthread_rwlockattr_getpshared (),
+.IR pthread_rwlockattr_setpshared ().
+.in -4
+.br
+.fi
+.SS TSF - _POSIX_THREAD_SAFE_FUNCTIONS - _SC_THREAD_SAFE_FUNCTIONS
+Affected functions are
+.br
+.nf
+.in +4
+
+.IR readdir_r (),
+.IR getgrgid_r (),
+.IR getgrnam_r (),
+.IR getpwnam_r (),
+.IR getpwuid_r (),
+.IR flockfile (),
+.IR ftrylockfile (),
+.IR funlockfile (),
+.IR getc_unlocked (),
+.IR getchar_unlocked (),
+.IR putc_unlocked (),
+.IR putchar_unlocked (),
+.IR rand_r (),
+.IR strerror_r (),
+.IR strtok_r (),
+.IR asctime_r (),
+.IR ctime_r (),
+.IR gmtime_r (),
+.IR localtime_r ().
+.in -4
+.br
+.fi
+.SS TSP - _POSIX_THREAD_SPORADIC_SERVER - _SC_THREAD_SPORADIC_SERVER
+This option implies the
+.B _POSIX_THREAD_PRIORITY_SCHEDULING
+option.
+Affected functions are
+.br
+.nf
+.in +4
+
+.IR sched_getparam (),
+.IR sched_setparam (),
+.IR sched_setscheduler ().
+.in -4
+.br
+.fi
+.SS THR - _POSIX_THREADS - _SC_THREADS
+Basic support for POSIX threads is available.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR pthread_atfork (),
+.IR pthread_attr_destroy (),
+.IR pthread_attr_getdetachstate (),
+.IR pthread_attr_getschedparam (),
+.IR pthread_attr_init (),
+.IR pthread_attr_setdetachstate (),
+.IR pthread_attr_setschedparam (),
+.IR pthread_cancel (),
+.IR pthread_cleanup_push (),
+.IR pthread_cleanup_pop (),
+.IR pthread_cond_broadcast (),
+.IR pthread_cond_destroy (),
+.IR pthread_cond_init (),
+.IR pthread_cond_signal (),
+.IR pthread_cond_timedwait (),
+.IR pthread_cond_wait (),
+.IR pthread_condattr_destroy (),
+.IR pthread_condattr_init (),
+.IR pthread_create (),
+.IR pthread_detach (),
+.IR pthread_equal (),
+.IR pthread_exit (),
+.IR pthread_getspecific (),
+.IR pthread_join (),
+.IR pthread_key_create (),
+.IR pthread_key_delete (),
+.IR pthread_mutex_destroy (),
+.IR pthread_mutex_init (),
+.IR pthread_mutex_lock (),
+.IR pthread_mutex_trylock (),
+.IR pthread_mutex_unlock (),
+.IR pthread_mutexattr_destroy (),
+.IR pthread_mutexattr_init (),
+.IR pthread_once (),
+.IR pthread_rwlock_destroy (),
+.IR pthread_rwlock_init (),
+.IR pthread_rwlock_rdlock (),
+.IR pthread_rwlock_tryrdlock (),
+.IR pthread_rwlock_trywrlock (),
+.IR pthread_rwlock_unlock (),
+.IR pthread_rwlock_wrlock (),
+.IR pthread_rwlockattr_destroy (),
+.IR pthread_rwlockattr_init (),
+.IR pthread_self (),
+.IR pthread_setcancelstate (),
+.IR pthread_setcanceltype (),
+.IR pthread_setspecific (),
+.IR pthread_testcancel ().
+.in -4
+.br
+.fi
+.SS TMO - _POSIX_TIMEOUTS - _SC_TIMEOUTS
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR mq_timedreceive (),
+.IR mq_timedsend (),
+.IR pthread_mutex_timedlock (),
+.IR pthread_rwlock_timedrdlock (),
+.IR pthread_rwlock_timedwrlock (),
+.IR sem_timedwait (),
+.IR posix_trace_timedgetnext_event ().
+.in -4
+.br
+.fi
+.SS TMR - _POSIX_TIMERS - _SC_TIMERS
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR clock_getres (),
+.IR clock_gettime (),
+.IR clock_settime (),
+.IR nanosleep (),
+.IR timer_create (),
+.IR timer_delete (),
+.IR timer_gettime (),
+.IR timer_getoverrun (),
+.IR timer_settime ().
+.in -4
+.br
+.fi
+.SS TRC - _POSIX_TRACE - _SC_TRACE
+POSIX tracing is available.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR posix_trace_attr_destroy (),
+.IR posix_trace_attr_getclockres (),
+.IR posix_trace_attr_getcreatetime (),
+.IR posix_trace_attr_getgenversion (),
+.IR posix_trace_attr_getmaxdatasize (),
+.IR posix_trace_attr_getmaxsystemeventsize (),
+.IR posix_trace_attr_getmaxusereventsize (),
+.IR posix_trace_attr_getname (),
+.IR posix_trace_attr_getstreamfullpolicy (),
+.IR posix_trace_attr_getstreamsize (),
+.IR posix_trace_attr_init (),
+.IR posix_trace_attr_setmaxdatasize (),
+.IR posix_trace_attr_setname (),
+.IR posix_trace_attr_setstreamsize (),
+.IR posix_trace_attr_setstreamfullpolicy (),
+.IR posix_trace_clear (),
+.IR posix_trace_create (),
+.IR posix_trace_event (),
+.IR posix_trace_eventid_equal (),
+.IR posix_trace_eventid_get_name (),
+.IR posix_trace_eventid_open (),
+.IR posix_trace_eventtypelist_getnext_id (),
+.IR posix_trace_eventtypelist_rewind (),
+.IR posix_trace_flush (),
+.IR posix_trace_get_attr (),
+.IR posix_trace_get_status (),
+.IR posix_trace_getnext_event (),
+.IR posix_trace_shutdown (),
+.IR posix_trace_start (),
+.IR posix_trace_stop (),
+.IR posix_trace_trygetnext_event ().
+.in -4
+.br
+.fi
+.SS TEF - _POSIX_TRACE_EVENT_FILTER - _SC_TRACE_EVENT_FILTER
+This option implies the
+.B _POSIX_TRACE
+option.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR posix_trace_eventset_add (),
+.IR posix_trace_eventset_del (),
+.IR posix_trace_eventset_empty (),
+.IR posix_trace_eventset_fill (),
+.IR posix_trace_eventset_ismember (),
+.IR posix_trace_get_filter (),
+.IR posix_trace_set_filter (),
+.IR posix_trace_trid_eventid_open ().
+.in -4
+.br
+.fi
+.SS TRI - _POSIX_TRACE_INHERIT - _SC_TRACE_INHERIT
+Tracing children of the traced process is supported.
+This option implies the
+.B _POSIX_TRACE
+option.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR posix_trace_attr_getinherited (),
+.IR posix_trace_attr_setinherited ().
+.in -4
+.br
+.fi
+.SS TRL - _POSIX_TRACE_LOG - _SC_TRACE_LOG
+This option implies the
+.B _POSIX_TRACE
+option.
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR posix_trace_attr_getlogfullpolicy (),
+.IR posix_trace_attr_getlogsize (),
+.IR posix_trace_attr_setlogfullpolicy (),
+.IR posix_trace_attr_setlogsize (),
+.IR posix_trace_close (),
+.IR posix_trace_create_withlog (),
+.IR posix_trace_open (),
+.IR posix_trace_rewind ().
+.in -4
+.br
+.fi
+.SS TYM - _POSIX_TYPED_MEMORY_OBJECTS - _SC_TYPED_MEMORY_OBJECT
+The following functions are present:
+.br
+.nf
+.in +4
+
+.IR posix_mem_offset (),
+.IR posix_typed_mem_get_info (),
+.IR posix_typed_mem_open ().
+.in -4
+.br
+.fi
+.SS --- - _POSIX_VDISABLE
+Always present (probably 0).
+Value to set a changeable special control
+character to indicate that it is disabled.
+.SH XOPEN EXTENSIONS
+.BR _XOPEN_CRYPT ,
+.BR _XOPEN_LEGACY ,
+.BR _XOPEN_REALTIME ,
+.BR _XOPEN_REALTIME_THREADS ,
+.BR _XOPEN_UNIX .
+.\" To be described.
+.SH SEE ALSO
+.BR sysconf (3),
+.BR standards (7)

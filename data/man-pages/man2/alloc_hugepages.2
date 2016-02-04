@@ -1,0 +1,149 @@
+.\" Copyright 2003 Andries E. Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH ALLOC_HUGEPAGES 2 2007-05-31 "Linux" "Linux Programmer's Manual"
+.SH NAME
+alloc_hugepages, free_hugepages \- allocate or free huge pages
+.SH SYNOPSIS
+.nf
+.BI "void *alloc_hugepages(int " key ", void *" addr ", size_t " len ,
+.BI "                      int " prot ", int " flag );
+.\" asmlinkage unsigned long sys_alloc_hugepages(int key, unsigned long addr,
+.\" unsigned long len, int prot, int flag);
+.sp
+.BI "int free_hugepages(void *" addr );
+.\" asmlinkage int sys_free_hugepages(unsigned long addr);
+.fi
+.SH DESCRIPTION
+The system calls
+.BR alloc_hugepages ()
+and
+.BR free_hugepages ()
+were introduced in Linux 2.5.36 and removed again in 2.5.54.
+They existed only on i386 and ia64 (when built with
+.BR CONFIG_HUGETLB_PAGE ).
+In Linux 2.4.20, the syscall numbers exist,
+but the calls fail with the error
+.BR ENOSYS .
+.LP
+On i386 the memory management hardware knows about ordinary pages (4 KiB)
+and huge pages (2 or 4 MiB).
+Similarly ia64 knows about huge pages of
+several sizes.
+These system calls serve to map huge pages into the
+process's memory or to free them again.
+Huge pages are locked into memory, and are not swapped.
+.LP
+The
+.I key
+argument is an identifier.
+When zero the pages are private, and
+not inherited by children.
+When positive the pages are shared with other applications using the same
+.IR key ,
+and inherited by child processes.
+.LP
+The
+.I addr
+argument of
+.BR free_hugepages ()
+tells which page is being freed: it was the return value of a
+call to
+.BR alloc_hugepages ().
+(The memory is first actually freed when all users have released it.)
+The
+.I addr
+argument of
+.BR alloc_hugepages ()
+is a hint, that the kernel may or may not follow.
+Addresses must be properly aligned.
+.LP
+The
+.I len
+argument is the length of the required segment.
+It must be a multiple of the huge page size.
+.LP
+The
+.I prot
+argument specifies the memory protection of the segment.
+It is one of
+.BR PROT_READ ,
+.BR PROT_WRITE ,
+.BR PROT_EXEC .
+.LP
+The
+.I flag
+argument is ignored, unless
+.I key
+is positive.
+In that case, if
+.I flag
+is
+.BR IPC_CREAT ,
+then a new huge page segment is created when none
+with the given key existed.
+If this flag is not set, then
+.B ENOENT
+is returned when no segment with the given key exists.
+.SH RETURN VALUE
+On success,
+.BR alloc_hugepages ()
+returns the allocated virtual address, and
+.BR free_hugepages ()
+returns zero.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B ENOSYS
+The system call is not supported on this kernel.
+.SH FILES
+.I /proc/sys/vm/nr_hugepages
+Number of configured hugetlb pages.
+This can be read and written.
+.LP
+.I /proc/meminfo
+Gives info on the number of configured hugetlb pages and on their size
+in the three variables HugePages_Total, HugePages_Free, Hugepagesize.
+.SH CONFORMING TO
+These calls are specific to Linux on Intel processors, and should not be
+used in programs intended to be portable.
+.SH NOTES
+These system calls are gone;
+they existed only in Linux 2.5.36 through to 2.5.54.
+Now the hugetlbfs filesystem can be used instead.
+Memory backed by huge pages (if the CPU supports them) is obtained by
+using
+.BR mmap (2)
+to map files in this virtual filesystem.
+.LP
+The maximal number of huge pages can be specified using the
+.B hugepages=
+boot parameter.
+
+.\" requires CONFIG_HUGETLB_PAGE (under "Processor type and features")
+.\" and CONFIG_HUGETLBFS (under "Filesystems").
+.\" mount -t hugetlbfs hugetlbfs /huge
+.\" SHM_HUGETLB

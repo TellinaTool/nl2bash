@@ -1,0 +1,150 @@
+.\" Copyright (c) 2006, Michael Kerrisk (mtk.manpages@gmail.com)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SOCKATMARK 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sockatmark \- determine whether socket is at out-of-band mark
+.SH SYNOPSIS
+.B #include <sys/socket.h>
+.sp
+.BI "int sockatmark(int " sockfd );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR sockatmark ():
+_POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600
+.ad b
+.SH DESCRIPTION
+.BR sockatmark ()
+returns a value indicating whether or not the socket referred
+to by the file descriptor
+.I sockfd
+is at the out-of-band mark.
+If the socket is at the mark, then 1 is returned;
+if the socket is not at the mark, 0 is returned.
+This function does not remove the out-of-band mark.
+.SH RETURN VALUE
+A successful call to
+.BR sockatmark ()
+returns 1 if the socket is at the out-of-band mark, or 0 if it is not.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+.I sockfd
+is not a valid file descriptor.
+.TP
+.B EINVAL
+.\" POSIX.1 says ENOTTY for this case
+.I sockfd
+is not a file descriptor to which
+.BR sockatmark ()
+can be applied.
+.SH VERSIONS
+.BR sockatmark ()
+was added to glibc in version 2.2.4.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR sockatmark ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+If
+.BR sockatmark ()
+returns 1, then the out-of-band data can be read using the
+.B MSG_OOB
+flag of
+.BR recv (2).
+
+Out-of-band data is supported only on some stream socket protocols.
+
+.BR sockatmark ()
+can safely be called from a handler for the
+.B SIGURG
+signal.
+
+.BR sockatmark ()
+is implemented using the
+.B SIOCATMARK
+.BR ioctl (2)
+operation.
+.SH BUGS
+Prior to glibc 2.4,
+.BR sockatmark ()
+did not work.
+.SH EXAMPLE
+The following code can be used after receipt of a
+.B SIGURG
+signal to read (and discard) all data up to the mark,
+and then read the byte of data at the mark:
+.nf
+
+    char buf[BUF_LEN];
+    char oobdata;
+    int atmark, s;
+
+    for (;;) {
+        atmark = sockatmark(sockfd);
+        if (atmark == \-1) {
+            perror("sockatmark");
+            break;
+        }
+
+        if (atmark)
+            break;
+
+        s = read(sockfd, buf, BUF_LEN) <= 0);
+        if (s == \-1)
+            perror("read");
+        if (s <= 0)
+            break;
+    }
+
+    if (atmark == 1) {
+        if (recv(sockfd, &oobdata, 1, MSG_OOB) == \-1) {
+            perror("recv");
+            ...
+        }
+    }
+.fi
+.SH SEE ALSO
+.BR fcntl (2),
+.BR recv (2),
+.BR send (2),
+.BR tcp (7)

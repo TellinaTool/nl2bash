@@ -1,0 +1,154 @@
+.\" @(#)des_crypt.3	2.1 88/08/11 4.0 RPCSRC; from 1.16 88/03/02 SMI;
+.\"
+.\" Taken from libc4 sources, which say:
+.\" Copyright (C) 1993 Eric Young - can be distributed under GPL.
+.\"
+.\" However, the above header line suggests that this file in fact is
+.\" Copyright Sun Microsystems, Inc (and is provided for unrestricted use,
+.\" see other Sun RPC sources).
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" can be distributed under GPL.
+.\" %%%LICENSE_END
+.\"
+.TH DES_CRYPT 3  2015-03-02 "" "Linux Programmer's Manual"
+.SH NAME
+des_crypt, ecb_crypt, cbc_crypt, des_setparity, DES_FAILED \- fast
+DES encryption
+.SH SYNOPSIS
+.nf
+.\" Sun version
+.\" .B #include <des_crypt.h>
+.B #include <rpc/des_crypt.h>
+.LP
+.BI "int ecb_crypt(char *" key ", char *" data ", unsigned " datalen ,
+.BI "              unsigned " mode );
+.LP
+.BI "int cbc_crypt(char *" key ", char *" data ", unsigned " datalen ,
+.BI "              unsigned " mode ", char *" ivec );
+.LP
+.BI "void des_setparity(char *" key );
+.LP
+.BI "int DES_FAILED(int " status );
+.fi
+.SH DESCRIPTION
+.BR ecb_crypt ()
+and
+.BR cbc_crypt ()
+implement the
+NBS
+DES
+(Data Encryption Standard).
+These routines are faster and more general purpose than
+.BR crypt (3).
+They also are able to utilize
+DES
+hardware if it is available.
+.BR ecb_crypt ()
+encrypts in
+ECB
+(Electronic Code Book)
+mode, which encrypts blocks of data independently.
+.BR cbc_crypt ()
+encrypts in
+CBC
+(Cipher Block Chaining)
+mode, which chains together
+successive blocks.
+CBC
+mode protects against insertions, deletions and
+substitutions of blocks.
+Also, regularities in the clear text will
+not appear in the cipher text.
+.LP
+Here is how to use these routines.
+The first argument,
+.IR key ,
+is the 8-byte encryption key with parity.
+To set the key's parity, which for
+DES
+is in the low bit of each byte, use
+.BR des_setparity ().
+The second argument,
+.IR data ,
+contains the data to be encrypted or decrypted.
+The
+third argument,
+.IR datalen ,
+is the length in bytes of
+.IR data ,
+which must be a multiple of 8.
+The fourth argument,
+.IR mode ,
+is formed by ORing together some things.
+For the encryption direction OR in either
+.BR DES_ENCRYPT
+or
+.BR DES_DECRYPT .
+For software versus hardware
+encryption, OR in either
+.BR DES_HW
+or
+.BR DES_SW .
+If
+.BR DES_HW
+is specified, and there is no hardware, then the encryption is performed
+in software and the routine returns
+.BR DESERR_NOHWDEVICE .
+For
+.BR cbc_crypt (),
+the argument
+.I ivec
+is the 8-byte initialization
+vector for the chaining.
+It is updated to the next initialization
+vector upon return.
+.SH RETURN VALUE
+.PD 0
+.TP 20
+.BR DESERR_NONE
+No error.
+.TP
+.BR DESERR_NOHWDEVICE
+Encryption succeeded, but done in software instead of the requested hardware.
+.TP
+.BR DESERR_HWERROR
+An error occurred in the hardware or driver.
+.TP
+.BR DESERR_BADPARAM
+Bad argument to routine.
+.PD
+.LP
+Given a result status
+.IR stat ,
+the macro
+.\" .BR DES_FAILED\c
+.\" .BR ( stat )
+.BI DES_FAILED( stat )
+is false only for the first two statuses.
+.\" So far the Sun page
+.\" Some additions - aeb
+.SH VERSIONS
+These functions are present in
+glibc 2.1 and later.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw25 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR ecb_crypt (),
+.BR cbc_crypt (),
+.BR des_setparity ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+4.3BSD.
+Not in POSIX.1.
+.SH SEE ALSO
+.BR des (1),
+.BR crypt (3),
+.BR xcrypt (3)

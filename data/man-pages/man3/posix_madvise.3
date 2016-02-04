@@ -1,0 +1,134 @@
+.\" Copyright (C) 2015 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+)
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH POSIX_MADVISE 3 2015-02-03 Linux "Linux Programmer's Manual"
+.SH NAME
+posix_madvise \- give advice about patterns of memory usage
+.SH SYNOPSIS
+.nf
+.B #include <sys/mman.h>
+
+.BI "int posix_madvise(void *" addr ", size_t " len ", int " advice );
+.fi
+
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR posix_madvise ():
+.br
+.RS 4
+.ad l
+_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
+.RE
+.ad
+.SH DESCRIPTION
+The
+.BR posix_madvise ()
+function allows an application to advise the system about its expected
+patterns of usage of memory in the address range starting at
+.I addr
+and continuing for
+.I len
+bytes.
+The system is free to use this advice in order to improve the performance
+of memory accesses (or to ignore the advice altogether), but calling
+.BR posix_madvise ()
+shall not affect the semantics of access to memory in the specified range.
+
+The
+.I advice
+argument is one of the following:
+.TP
+.B POSIX_MADV_NORMAL
+The application has no special advice regarding its memory usage patterns
+for the specified address range.
+This is the default behavior.
+.TP
+.B POSIX_MADV_SEQUENTIAL
+The application expects to access the specified address range sequentially,
+running from lower addresses to higher addresses.
+Hence, pages in this region can be aggressively read ahead,
+and may be freed soon after they are accessed.
+.TP
+.B POSIX_MADV_RANDOM
+The application expects to access the specified address range randomly.
+Thus, read ahead may be less useful than normally.
+.TP
+.B POSIX_MADV_WILLNEED
+The application expects to access the specified address range
+in the near future.
+Thus, read ahead may be beneficial.
+.TP
+.B POSIX_MADV_DONTNEED
+The application expects that it will not access the specified address range
+in the near future.
+.SH RETURN VALUE
+On success,
+.BR posix_madvise ()
+returns 0.
+On failure, it returns a positive error number.
+.SH ERRORS
+.TP
+.B EINVAL
+.I addr
+is not a multiple of the system page size or
+.I len
+is negative.
+.TP
+.B EINVAL
+.I advice
+is invalid.
+.TP
+.B ENOMEM
+Addresses in the specified range are partially or completely outside
+the caller's address space.
+.SH VERSIONS
+Support for
+.BR posix_madvise ()
+first appeared in glibc version 2.2.
+.SH CONFORMING TO
+POSIX.1-2001.
+
+POSIX.1-2008 specifies a further value for
+.IR advice ,
+.BR POSIX_FADV_NOREUSE ,
+meaning that the specified data will be accessed only once.
+This value is not currently supported.
+.SH NOTES
+POSIX.1 permits an implementation to generate an error if
+.I len
+is 0.
+On Linux, specifying
+.I len
+as 0 is permitted (as a successful no-op).
+
+In glibc, this function is implemented using
+.BR madvise (2).
+However, since glibc 2.6,
+.BR POSIX_MADV_DONTNEED
+is treated as a no-op, because the corresponding
+.BR madvise (2)
+value,
+.BR MADV_DONTNEED ,
+has destructive semantics.
+.SH SEE ALSO
+.BR madvise (2),
+.BR posix_fadvise (2)

@@ -1,0 +1,236 @@
+.\" This manpage is Copyright (C) 2006 Silicon Graphics, Inc.
+.\"                               Christoph Lameter
+.\"
+.\" %%%LICENSE_START(VERBATIM_TWO_PARA)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\" %%%LICENSE_END
+.\"
+.\" FIXME Should programs normally be using move_pages() directly, or should
+.\" they rather be using interfaces in the numactl package?
+.\" (e.g., compare with recommendation in mbind(2)).
+.\" Does this page need to give advise on this topic?
+.TH MOVE_PAGES 2 2010-06-11 "Linux" "Linux Programmer's Manual"
+.SH NAME
+move_pages \- move individual pages of a process to another node
+.SH SYNOPSIS
+.nf
+.B #include <numaif.h>
+.sp
+.BI "long move_pages(int " pid ", unsigned long count, void **" pages ,
+.BI "                const int *" nodes ", int *" status ", int " flags );
+.fi
+.sp
+Link with \fI\-lnuma\fP.
+.SH DESCRIPTION
+.BR move_pages ()
+moves the specified
+.I pages
+of the process
+.I pid
+to the memory nodes specified by
+.IR nodes .
+The result of the move is reflected in
+.IR status .
+The
+.I flags
+indicate constraints on the pages to be moved.
+
+.I pid
+is the ID of the process in which pages are to be moved.
+To move pages in another process,
+the caller must be privileged
+.RB ( CAP_SYS_NICE )
+or the real or effective user ID of the calling process must match the
+real or saved-set user ID of the target process.
+If
+.I pid
+is 0, then
+.BR move_pages ()
+moves pages of the calling process.
+
+.I count
+is the number of pages to move.
+It defines the size of the three arrays
+.IR pages ,
+.IR nodes ,
+and
+.IR status .
+
+.I pages
+is an array of pointers to the pages that should be moved.
+These are pointers that should be aligned to page boundaries.
+.\" FIXME Describe the result if pointers in the 'pages' array are
+.\" not aligned to page boundaries
+Addresses are specified as seen by the process specified by
+.IR pid .
+
+.I nodes
+is an array of integers that specify the desired location for each page.
+Each element in the array is a node number.
+.I nodes
+can also be NULL, in which case
+.BR move_pages ()
+does not move any pages but instead will return the node
+where each page currently resides, in the
+.I status
+array.
+Obtaining the status of each page may be necessary to determine
+pages that need to be moved.
+
+.I status
+is an array of integers that return the status of each page.
+The array contains valid values only if
+.BR move_pages ()
+did not return an error.
+
+.I flags
+specify what types of pages to move.
+.B MPOL_MF_MOVE
+means that only pages that are in exclusive use by the process
+are to be moved.
+.B MPOL_MF_MOVE_ALL
+means that pages shared between multiple processes can also be moved.
+The process must be privileged
+.RB ( CAP_SYS_NICE )
+to use
+.BR MPOL_MF_MOVE_ALL .
+.SS Page states in the status array
+The following values can be returned in each element of the
+.I status
+array.
+.TP
+.B 0..MAX_NUMNODES
+Identifies the node on which the page resides.
+.TP
+.B -EACCES
+The page is mapped by multiple processes and can be moved only if
+.B MPOL_MF_MOVE_ALL
+is specified.
+.TP
+.B -EBUSY
+The page is currently busy and cannot be moved.
+Try again later.
+This occurs if a page is undergoing I/O or another kernel subsystem
+is holding a reference to the page.
+.TP
+.B -EFAULT
+This is a zero page or the memory area is not mapped by the process.
+.TP
+.B -EIO
+Unable to write back a page.
+The page has to be written back
+in order to move it since the page is dirty and the filesystem
+does not provide a migration function that would allow the move
+of dirty pages.
+.TP
+.B -EINVAL
+A dirty page cannot be moved.
+The filesystem does not
+provide a migration function and has no ability to write back pages.
+.TP
+.B -ENOENT
+The page is not present.
+.TP
+.B -ENOMEM
+Unable to allocate memory on target node.
+.SH RETURN VALUE
+On success
+.BR move_pages ()
+returns zero.
+.\" FIXME . Is the following quite true: does the wrapper in numactl
+.\" do the right thing?
+On error, it returns \-1, and sets
+.I errno
+to indicate the error.
+.SH ERRORS
+.TP
+.B E2BIG
+Too many pages to move.
+.TP
+.B EACCES
+.\" FIXME Clarify "current cpuset" in the description of the EACCESS error.
+.\" Is that the cpuset of the caller or the target?
+One of the target nodes is not allowed by the current cpuset.
+.TP
+.B EFAULT
+Parameter array could not be accessed.
+.TP
+.B EINVAL
+Flags other than
+.B MPOL_MF_MOVE
+and
+.B MPOL_MF_MOVE_ALL
+was specified or an attempt was made to migrate pages of a kernel thread.
+.TP
+.B ENODEV
+One of the target nodes is not online.
+.TP
+.B ENOENT
+No pages were found that require moving.
+All pages are either already
+on the target node, not present, had an invalid address or could not be
+moved because they were mapped by multiple processes.
+.TP
+.B EPERM
+The caller specified
+.B MPOL_MF_MOVE_ALL
+without sufficient privileges
+.RB ( CAP_SYS_NICE ).
+Or, the caller attempted to move pages of a process belonging
+to another user but did not have privilege to do so
+.RB ( CAP_SYS_NICE ).
+.TP
+.B ESRCH
+Process does not exist.
+.SH VERSIONS
+.BR move_pages ()
+first appeared on Linux in version 2.6.18.
+.SH CONFORMING TO
+This system call is Linux-specific.
+.SH NOTES
+For information on library support, see
+.BR numa (7).
+
+Use
+.BR get_mempolicy (2)
+with the
+.B MPOL_F_MEMS_ALLOWED
+flag to obtain the set of nodes that are allowed by
+.\" FIXME Clarify "current cpuset".  Is that the cpuset of the caller
+.\" or the target?
+the current cpuset.
+Note that this information is subject to change at any
+time by manual or automatic reconfiguration of the cpuset.
+
+Use of this function may result in pages whose location
+(node) violates the memory policy established for the
+specified addresses (See
+.BR mbind (2))
+and/or the specified process (See
+.BR set_mempolicy (2)).
+That is, memory policy does not constrain the destination
+nodes used by
+.BR move_pages ().
+
+The
+.I <numaif.h>
+header is not included with glibc, but requires installing
+.I libnuma-devel
+or a similar package.
+.SH SEE ALSO
+.BR get_mempolicy (2),
+.BR mbind (2),
+.BR set_mempolicy (2),
+.BR numa (3),
+.BR numa_maps (5),
+.BR cpuset (7),
+.BR numa (7),
+.BR migratepages (8),
+.BR numastat (8)

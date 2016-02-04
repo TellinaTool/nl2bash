@@ -1,0 +1,66 @@
+.\" This man page was written by Jeremy Phelps <jphelps@notreached.net>.
+.\"
+.\" %%%LICENSE_START(FREELY_REDISTRIBUTABLE)
+.\" Redistribute and modify at will.
+.\" %%%LICENSE_END
+.\"
+.TH GETPT 3 2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getpt \- open the pseudoterminal master (PTM)
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "             /* See feature_test_macros(7) */"
+.B #include <stdlib.h>
+.sp
+.B "int getpt(void);"
+.fi
+.SH DESCRIPTION
+.BR getpt ()
+opens a pseudoterminal master and returns its file descriptor.
+It is equivalent to
+.nf
+
+    open(/dev/ptmx, O_RDWR | O_NOCTTY);
+
+.fi
+on Linux systems, though the pseudoterminal master is located
+elsewhere on some systems that use GNU Libc.
+.SH RETURN VALUE
+.BR getpt ()
+returns an open file descriptor upon successful completion.
+Otherwise, it
+returns \-1 and sets
+.I errno
+to indicate the error.
+.SH ERRORS
+.BR getpt ()
+can fail with various errors described in
+.BR open (2).
+.SH VERSIONS
+.BR getpt ()
+is provided in glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getpt ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+.BR getpt ()
+is glibc-specific;
+use
+.BR posix_openpt (3)
+instead.
+.SH SEE ALSO
+.BR grantpt (3),
+.BR posix_openpt (3),
+.BR ptsname (3),
+.BR unlockpt (3),
+.BR ptmx (4),
+.BR pty (7)

@@ -1,0 +1,293 @@
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" A few fragments remain from an earlier (1992) page by
+.\" Drew Eckhardt (drew@cs.colorado.edu),
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt (michael@moria.de)
+.\" Modified Sat Jul 24 13:22:07 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 21 Aug 1994 by Michael Chastain (mec@shell.portal.com):
+.\"   Referenced 'clone(2)'.
+.\" Modified 1995-06-10, 1996-04-18, 1999-11-01, 2000-12-24
+.\"   by Andries Brouwer (aeb@cwi.nl)
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\" 2006-09-04, Michael Kerrisk
+.\"     Greatly expanded, to describe all attributes that differ
+.\"	parent and child.
+.\"
+.TH FORK 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+fork \- create a child process
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.B pid_t fork(void);
+.SH DESCRIPTION
+.BR fork ()
+creates a new process by duplicating the calling process.
+The new process is referred to as the
+.I child
+process.
+The calling process is referred to as the
+.I parent
+process.
+
+The child process and the parent process run in separate memory spaces.
+At the time of
+.BR fork ()
+both memory spaces have the same content.
+Memory writes, file mappings
+.RB ( mmap (2)),
+and unmappings
+.RB ( munmap (2))
+performed by one of the processes do not affect the other.
+
+The child process is an exact duplicate of the parent
+process except for the following points:
+.IP * 3
+The child has its own unique process ID,
+and this PID does not match the ID of any existing process group
+.RB ( setpgid (2)).
+.IP *
+The child's parent process ID is the same as the parent's process ID.
+.IP *
+The child does not inherit its parent's memory locks
+.RB ( mlock (2),
+.BR mlockall (2)).
+.IP *
+Process resource utilizations
+.RB ( getrusage (2))
+and CPU time counters
+.RB ( times (2))
+are reset to zero in the child.
+.IP *
+The child's set of pending signals is initially empty
+.RB ( sigpending (2)).
+.IP *
+The child does not inherit semaphore adjustments from its parent
+.RB ( semop (2)).
+.IP *
+The child does not inherit process-associated record locks from its parent
+.RB ( fcntl (2)).
+(On the other hand, it does inherit
+.BR fcntl (2)
+open file description locks and
+.BR flock (2)
+locks from its parent.)
+.IP *
+The child does not inherit timers from its parent
+.RB ( setitimer (2),
+.BR alarm (2),
+.BR timer_create (2)).
+.IP *
+The child does not inherit outstanding asynchronous I/O operations
+from its parent
+.RB ( aio_read (3),
+.BR aio_write (3)),
+nor does it inherit any asynchronous I/O contexts from its parent (see
+.BR io_setup (2)).
+.PP
+The process attributes in the preceding list are all specified
+in POSIX.1.
+The parent and child also differ with respect to the following
+Linux-specific process attributes:
+.IP * 3
+The child does not inherit directory change notifications (dnotify)
+from its parent
+(see the description of
+.B F_NOTIFY
+in
+.BR fcntl (2)).
+.IP *
+The
+.BR prctl (2)
+.B PR_SET_PDEATHSIG
+setting is reset so that the child does not receive a signal
+when its parent terminates.
+.IP *
+The default timer slack value is set to the parent's
+current timer slack value.
+See the description of
+.BR PR_SET_TIMERSLACK
+in
+.BR prctl (2).
+.IP *
+Memory mappings that have been marked with the
+.BR madvise (2)
+.B MADV_DONTFORK
+flag are not inherited across a
+.BR fork ().
+.IP *
+The termination signal of the child is always
+.B SIGCHLD
+(see
+.BR clone (2)).
+.IP *
+The port access permission bits set by
+.BR ioperm (2)
+are not inherited by the child;
+the child must turn on any bits that it requires using
+.BR ioperm (2).
+.PP
+Note the following further points:
+.IP * 3
+The child process is created with a single thread\(emthe
+one that called
+.BR fork ().
+The entire virtual address space of the parent is replicated in the child,
+including the states of mutexes, condition variables,
+and other pthreads objects; the use of
+.BR pthread_atfork (3)
+may be helpful for dealing with problems that this can cause.
+.IP *
+After a
+.BR fork (2)
+in a multithreaded program,
+the child can safely call only async-signal-safe functions (see
+.BR signal (7))
+until such time as it calls
+.BR execve (2).
+.IP *
+The child inherits copies of the parent's set of open file descriptors.
+Each file descriptor in the child refers to the same
+open file description (see
+.BR open (2))
+as the corresponding file descriptor in the parent.
+This means that the two file descriptors share open file status flags,
+file offset,
+and signal-driven I/O attributes (see the description of
+.B F_SETOWN
+and
+.B F_SETSIG
+in
+.BR fcntl (2)).
+.IP *
+The child inherits copies of the parent's set of open message
+queue descriptors (see
+.BR mq_overview (7)).
+Each file descriptor in the child refers to the same
+open message queue description
+as the corresponding file descriptor in the parent.
+This means that the two file descriptors share the same flags
+.RI ( mq_flags ).
+.IP *
+The child inherits copies of the parent's set of open directory streams (see
+.BR opendir (3)).
+POSIX.1 says that the corresponding directory streams
+in the parent and child
+.I may
+share the directory stream positioning;
+on Linux/glibc they do not.
+.SH RETURN VALUE
+On success, the PID of the child process is returned in the parent,
+and 0 is returned in the child.
+On failure, \-1 is returned in the parent,
+no child process is created, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EAGAIN
+\" NOTE! The following should match the description in pthread_create(3)
+A system-imposed limit on the number of threads was encountered.
+There are a number of limits that may trigger this error: the
+.BR RLIMIT_NPROC
+soft resource limit (set via
+.BR setrlimit (2)),
+which limits the number of processes and threads for a real user ID,
+was reached;
+the kernel's system-wide limit on the number of processes and threads,
+.IR /proc/sys/kernel/threads-max ,
+was reached (see
+.BR proc (5));
+or the maximum number of PIDs,
+.IR /proc/sys/kernel/pid_max ,
+was reached (see
+.BR proc (5)).
+.TP
+.B EAGAIN
+The caller is operating under the
+.BR SCHED_DEADLINE
+scheduling policy and does not have the reset-on-fork flag set.
+See
+.BR sched (7).
+.TP
+.B ENOMEM
+.BR fork ()
+failed to allocate the necessary kernel structures because memory is tight.
+.TP
+.B ENOSYS
+.BR fork ()
+is not supported on this platform (for example,
+.\" e.g., arm (optionally), blackfin, c6x, frv, h8300, microblaze, xtensa
+hardware without a Memory-Management Unit).
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+.SH NOTES
+.PP
+Under Linux,
+.BR fork ()
+is implemented using copy-on-write pages, so the only penalty that it incurs
+is the time and memory required to duplicate the parent's page tables,
+and to create a unique task structure for the child.
+.SS C library/kernel differences
+Since version 2.3.3,
+.\" nptl/sysdeps/unix/sysv/linux/fork.c
+rather than invoking the kernel's
+.BR fork ()
+system call,
+the glibc
+.BR fork ()
+wrapper that is provided as part of the
+NPTL threading implementation invokes
+.BR clone (2)
+with flags that provide the same effect as the traditional system call.
+(A call to
+.BR fork ()
+is equivalent to a call to
+.BR clone (2)
+specifying
+.I flags
+as just
+.BR SIGCHLD .)
+The glibc wrapper invokes any fork handlers that have been
+established using
+.BR pthread_atfork (3).
+.\" and does some magic to ensure that getpid(2) returns the right value.
+.SH EXAMPLE
+See
+.BR pipe (2)
+and
+.BR wait (2).
+.SH SEE ALSO
+.BR clone (2),
+.BR execve (2),
+.BR exit (2),
+.BR setrlimit (2),
+.BR unshare (2),
+.BR vfork (2),
+.BR wait (2),
+.BR daemon (3),
+.BR capabilities (7),
+.BR credentials (7)

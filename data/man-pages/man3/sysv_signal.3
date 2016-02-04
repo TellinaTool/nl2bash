@@ -1,0 +1,103 @@
+.\" Copyright (c) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SYSV_SIGNAL 3 2015-03-02 "" "Linux Programmer's Manual"
+.SH NAME
+sysv_signal \- signal handling with System V semantics
+.SH SYNOPSIS
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.br
+.B #include <signal.h>
+.sp
+.B typedef void (*sighandler_t)(int);
+.sp
+.BI "sighandler_t sysv_signal(int " signum ", sighandler_t " handler );
+.SH DESCRIPTION
+The
+.BR sysv_signal ()
+function takes the same arguments, and performs the same task, as
+.BR signal (2).
+
+However
+.BR sysv_signal ()
+provides the System V unreliable signal semantics, that is:
+a) the disposition of the signal is reset to the default
+when the handler is invoked;
+b) delivery of further instances of the signal is not blocked while
+the signal handler is executing; and
+c) if the handler interrupts (certain) blocking system calls,
+then the system call is not automatically restarted.
+.SH RETURN VALUE
+The
+.BR sysv_signal ()
+function returns the previous value of the signal handler, or
+.B SIG_ERR
+on error.
+.SH ERRORS
+As for
+.BR signal (2).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR sysv_signal ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+This function is nonstandard.
+.SH NOTES
+Use of
+.BR sysv_signal ()
+should be avoided; use
+.BR sigaction (2)
+instead.
+
+On older Linux systems,
+.BR sysv_signal ()
+and
+.BR signal (2)
+were equivalent.
+But on newer systems,
+.BR signal (2)
+provides reliable signal semantics; see
+.BR signal (2)
+for details.
+
+The use of
+.I sighandler_t
+is a GNU extension;
+this type is defined only if
+the
+.B _GNU_SOURCE
+feature test macro is defined.
+.SH SEE ALSO
+.BR sigaction (2),
+.BR signal (2),
+.BR bsd_signal (3),
+.BR signal (7)

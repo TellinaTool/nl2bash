@@ -1,0 +1,175 @@
+.\" Copyright (c) 1983, 1991, 1993
+.\"     The Regents of the University of California.  All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"     This product includes software developed by the University of
+.\"     California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)rexec.3     8.1 (Berkeley) 6/4/93
+.\" $FreeBSD: src/lib/libcompat/4.3/rexec.3,v 1.12 2004/07/02 23:52:14 ru Exp $
+.\"
+.\" Taken from FreeBSD 5.4; not checked against Linux reality (mtk)
+.\"
+.\" 2013-06-21, mtk, Converted from mdoc to man macros
+.\"
+.TH REXEC 3 2015-03-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+rexec, rexec_af \- return stream to a remote command
+.SH SYNOPSIS
+.nf
+.BR "#define _BSD_SOURCE" "             /* See feature_test_macros(7) */"
+.B #include <netdb.h>
+.sp
+.BI "int rexec(char **" ahost ", int " inport ", const char *" user ", "
+.BI "          const char *" passwd ", const char *" cmd ", int *" fd2p );
+.sp
+.BI "int rexec_af(char **" ahost ", int " inport ", const char *" user ", "
+.BI "             const char *" passwd ", const char *" cmd ", int *" fd2p ,
+.BI "             sa_family_t " af  );
+.fi
+.SH DESCRIPTION
+This interface is obsoleted by
+.BR rcmd (3).
+
+The
+.BR rexec ()
+function
+looks up the host
+.IR *ahost
+using
+.BR gethostbyname (3),
+returning \-1 if the host does not exist.
+Otherwise,
+.IR *ahost
+is set to the standard name of the host.
+If a username and password are both specified, then these
+are used to authenticate to the foreign host; otherwise
+the environment and then the
+.I .netrc
+file in user's
+home directory are searched for appropriate information.
+If all this fails, the user is prompted for the information.
+.PP
+The port
+.I inport
+specifies which well-known DARPA Internet port to use for
+the connection; the call
+.I "getservbyname(""exec"", ""tcp"")"
+(see
+.BR getservent (3))
+will return a pointer to a structure that contains the necessary port.
+The protocol for connection is described in detail in
+.BR rexecd (8).
+.PP
+If the connection succeeds,
+a socket in the Internet domain of type
+.BR SOCK_STREAM
+is returned to
+the caller, and given to the remote command as
+.IR stdin
+and
+.IR stdout .
+If
+.I fd2p
+is nonzero, then an auxiliary channel to a control
+process will be setup, and a file descriptor for it will be placed
+in
+.IR *fd2p .
+The control process will return diagnostic
+output from the command (unit 2) on this channel, and will also
+accept bytes on this channel as being UNIX signal numbers, to be
+forwarded to the process group of the command.
+The diagnostic
+information returned does not include remote authorization failure,
+as the secondary connection is set up after authorization has been
+verified.
+If
+.I fd2p
+is 0, then the
+.IR stderr
+(unit 2 of the remote
+command) will be made the same as the
+.IR stdout
+and no
+provision is made for sending arbitrary signals to the remote process,
+although you may be able to get its attention by using out-of-band data.
+.SS rexec_af()
+The
+.BR rexec ()
+function works over IPv4
+.RB ( AF_INET ).
+By contrast, the
+.BR rexec_af ()
+function provides an extra argument,
+.IR af ,
+that allows the caller to select the protocol.
+This argument can be specified as
+.BR AF_INET ,
+.BR AF_INET6 ,
+or
+.BR AF_UNSPEC
+(to allow the implementation to select the protocol).
+.SH VERSIONS
+The
+.BR rexec_af ()
+function was added to glibc in version 2.2.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw19 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR rexec (),
+.BR rexec_af ()
+T}	Thread safety	MT-Unsafe
+.TE
+.SH CONFORMING TO
+These functions are not in POSIX.1.
+The
+.BR rexec ()
+function first appeared in
+4.2BSD, and is present on the BSDs, Solaris, and many other systems.
+The
+.BR rexec_af ()
+function is more recent, and less widespread.
+.SH BUGS
+The
+.BR rexec ()
+function sends the unencrypted password across the network.
+.PP
+The underlying service is considered a big security hole and therefore
+not enabled on many sites; see
+.BR rexecd (8)
+for explanations.
+.SH SEE ALSO
+.BR rcmd (3),
+.BR rexecd (8)

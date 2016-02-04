@@ -1,0 +1,221 @@
+'\" t
+.\" Copyright (c) 1993 Michael Haardt (michael@cantor.informatik.rwth-aachen.de)
+.\" and 1994,1995 Alain Knaff (Alain.Knaff@imag.fr)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified, Sun Feb 26 15:00:02 1995, faith@cs.unc.edu
+.\"
+.TH FD 4 2014-05-10 "Linux" "Linux Programmer's Manual"
+.SH NAME
+fd \- floppy disk device
+.SH CONFIGURATION
+Floppy drives are block devices with major number 2.
+Typically they
+are owned by
+.I root.floppy
+(i.e., user root, group floppy) and have
+either mode 0660 (access checking via group membership) or mode 0666
+(everybody has access).
+The minor
+numbers encode the device type, drive number, and controller number.
+For each device type (that is, combination of density and track count)
+there is a base minor number.
+To this base number, add the drive's
+number on its controller and 128 if the drive is on the secondary
+controller.
+In the following device tables, \fIn\fP represents the
+drive number.
+.PP
+\fBWarning: If you use formats with more tracks
+than supported by your drive, you may cause it mechanical damage.\fP
+Trying once if more tracks than the usual 40/80 are supported should not
+damage it, but no warranty is given for that.
+If you are not sure, don't create device
+entries for those formats, so as to prevent their usage.
+.PP
+Drive-independent device files which automatically detect the media
+format and capacity:
+.TS
+l l.
+Name	Base minor #
+_
+\fBfd\fP\fIn\fP	0
+.TE
+.PP
+5.25 inch double-density device files:
+.TS
+lw(1i) l l l l l.
+Name	Capac.	Cyl.	Sect.	Heads	Base minor #
+_
+\fBfd\fP\fIn\fP\fBd360\fP	360K	40	9	2	4
+.TE
+.PP
+5.25 inch high-density device files:
+.TS
+lw(1i) l l l l l.
+Name	Capac.	Cyl.	Sect.	Heads	Base minor #
+_
+\fBfd\fP\fIn\fP\fBh360\fP	360K	40	9	2	20
+\fBfd\fP\fIn\fP\fBh410\fP	410K	41	10	2	48
+\fBfd\fP\fIn\fP\fBh420\fP	420K	42	10	2	64
+\fBfd\fP\fIn\fP\fBh720\fP	720K	80	9	2	24
+\fBfd\fP\fIn\fP\fBh880\fP	880K	80	11	2	80
+\fBfd\fP\fIn\fP\fBh1200\fP	1200K	80	15	2	8
+\fBfd\fP\fIn\fP\fBh1440\fP	1440K	80	18	2	40
+\fBfd\fP\fIn\fP\fBh1476\fP	1476K	82	18	2	56
+\fBfd\fP\fIn\fP\fBh1494\fP	1494K	83	18	2	72
+\fBfd\fP\fIn\fP\fBh1600\fP	1600K	80	20	2	92
+.TE
+.PP
+3.5 inch double-density device files:
+.TS
+lw(1i) l l l l l.
+Name	Capac.	Cyl.	Sect.	Heads	Base minor #
+_
+\fBfd\fP\fIn\fP\fBu360\fP	360K	80	9	1	12
+\fBfd\fP\fIn\fP\fBu720\fP	720K	80	9	2	16
+\fBfd\fP\fIn\fP\fBu800\fP	800K	80	10	2	120
+\fBfd\fP\fIn\fP\fBu1040\fP	1040K	80	13	2	84
+\fBfd\fP\fIn\fP\fBu1120\fP	1120K	80	14	2	88
+.TE
+.PP
+3.5 inch high-density device files:
+.TS
+lw(1i) l l l l l.
+Name	Capac.	Cyl.	Sect.	Heads	Base minor #
+_
+\fBfd\fP\fIn\fP\fBu360\fP	360K	40	9	2	12
+\fBfd\fP\fIn\fP\fBu720\fP	720K	80	9	2	16
+\fBfd\fP\fIn\fP\fBu820\fP	820K	82	10	2	52
+\fBfd\fP\fIn\fP\fBu830\fP	830K	83	10	2	68
+\fBfd\fP\fIn\fP\fBu1440\fP	1440K	80	18	2	28
+\fBfd\fP\fIn\fP\fBu1600\fP	1600K	80	20	2	124
+\fBfd\fP\fIn\fP\fBu1680\fP	1680K	80	21	2	44
+\fBfd\fP\fIn\fP\fBu1722\fP	1722K	82	21	2	60
+\fBfd\fP\fIn\fP\fBu1743\fP	1743K	83	21	2	76
+\fBfd\fP\fIn\fP\fBu1760\fP	1760K	80	22	2	96
+\fBfd\fP\fIn\fP\fBu1840\fP	1840K	80	23	2	116
+\fBfd\fP\fIn\fP\fBu1920\fP	1920K	80	24	2	100
+.TE
+.PP
+3.5 inch extra-density device files:
+.TS
+lw(1i) l l l l l.
+Name	Capac.	Cyl.	Sect.	Heads	Base minor #
+_
+\fBfd\fP\fIn\fP\fBu2880\fP	2880K	80	36	2	32
+\fBfd\fP\fIn\fP\fBCompaQ\fP	2880K	80	36	2	36
+\fBfd\fP\fIn\fP\fBu3200\fP	3200K	80	40	2	104
+\fBfd\fP\fIn\fP\fBu3520\fP	3520K	80	44	2	108
+\fBfd\fP\fIn\fP\fBu3840\fP	3840K	80	48	2	112
+.TE
+.SH DESCRIPTION
+\fBfd\fP special files access the floppy disk drives in raw mode.
+The following
+.BR ioctl (2)
+calls are supported by \fBfd\fP devices:
+.IP \fBFDCLRPRM\fP
+clears the media information of a drive (geometry of disk in drive).
+.IP \fBFDSETPRM\fP
+sets the media information of a drive.
+The media information will be
+lost when the media is changed.
+.IP \fBFDDEFPRM\fP
+sets the media information of a drive (geometry of disk in drive).
+The media information will not be lost when the media is changed.
+This will disable autodetection.
+In order to reenable autodetection, you
+have to issue an \fBFDCLRPRM\fP.
+.IP \fBFDGETDRVTYP\fP
+returns the type of a drive (name parameter).
+For formats which work
+in several drive types, \fBFDGETDRVTYP\fP returns a name which is
+appropriate for the oldest drive type which supports this format.
+.IP \fBFDFLUSH\fP
+invalidates the buffer cache for the given drive.
+.IP \fBFDSETMAXERRS\fP
+sets the error thresholds for reporting errors, aborting the operation,
+recalibrating, resetting, and reading sector by sector.
+.IP \fBFDSETMAXERRS\fP
+gets the current error thresholds.
+.IP \fBFDGETDRVTYP\fP
+gets the internal name of the drive.
+.IP \fBFDWERRORCLR\fP
+clears the write error statistics.
+.IP \fBFDWERRORGET\fP
+reads the write error statistics.
+These include the total number of
+write errors, the location and disk of the first write error, and the
+location and disk of the last write error.
+Disks are identified by a
+generation number which is incremented at (almost) each disk change.
+.IP \fBFDTWADDLE\fP
+Switch the drive motor off for a few microseconds.
+This might be
+needed in order to access a disk whose sectors are too close together.
+.IP \fBFDSETDRVPRM\fP
+sets various drive parameters.
+.IP \fBFDGETDRVPRM\fP
+reads these parameters back.
+.IP \fBFDGETDRVSTAT\fP
+gets the cached drive state (disk changed, write protected et al.)
+.IP \fBFDPOLLDRVSTAT\fP
+polls the drive and return its state.
+.IP \fBFDGETFDCSTAT\fP
+gets the floppy controller state.
+.IP \fBFDRESET\fP
+resets the floppy controller under certain conditions.
+.IP \fBFDRAWCMD\fP
+sends a raw command to the floppy controller.
+.PP
+For more precise information, consult also the \fI<linux/fd.h>\fP and
+\fI<linux/fdreg.h>\fP include files, as well as the
+.BR floppycontrol (1)
+manual page.
+.SH FILES
+/dev/fd*
+.SH NOTES
+The various formats permit reading and writing many types of disks.
+However, if a floppy is formatted with an inter-sector gap that is too small,
+performance may drop,
+to the point of needing a few seconds to access an entire track.
+To prevent this, use interleaved formats.
+
+It is not possible to
+read floppies which are formatted using GCR (group code recording),
+which is used by Apple II and Macintosh computers (800k disks).
+
+Reading floppies which are hard sectored (one hole per sector, with
+the index hole being a little skewed) is not supported.
+This used to be common with older 8-inch floppies.
+.\" .SH AUTHORS
+.\" Alain Knaff (Alain.Knaff@imag.fr), David Niemi
+.\" (niemidc@clark.net), Bill Broadhurst (bbroad@netcom.com).
+.SH SEE ALSO
+.BR chown (1),
+.BR floppycontrol (1),
+.BR getfdprm (1),
+.BR mknod (1),
+.BR superformat (1),
+.BR mount (8),
+.BR setfdprm (8)

@@ -1,0 +1,159 @@
+'\" t
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SEM_OVERVIEW 7 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sem_overview \- overview of POSIX semaphores
+.SH DESCRIPTION
+POSIX semaphores allow processes and threads to synchronize their actions.
+
+A semaphore is an integer whose value is never allowed to fall below zero.
+Two operations can be performed on semaphores:
+increment the semaphore value by one
+.RB ( sem_post (3));
+and decrement the semaphore value by one
+.RB ( sem_wait (3)).
+If the value of a semaphore is currently zero, then a
+.BR sem_wait (3)
+operation will block until the value becomes greater than zero.
+
+POSIX semaphores come in two forms: named semaphores and
+unnamed semaphores.
+.TP
+.B Named semaphores
+A named semaphore is identified by a name of the form
+.IR /somename ;
+that is, a null-terminated string of up to
+.BI NAME_MAX \-4
+(i.e., 251) characters consisting of an initial slash,
+.\" glibc allows the initial slash to be omitted, and makes
+.\" multiple initial slashes equivalent to a single slash.
+.\" This differs from the implementation of POSIX message queues.
+followed by one or more characters, none of which are slashes.
+.\" glibc allows subdirectory components in the name, in which
+.\" case the subdirectory tree must exist under /dev/shm, and
+.\" the fist subdirectory component must exist as the name
+.\" sem.name, and all of the subdirectory components must allow the
+.\" required permissions if a user wants to create a semaphore
+.\" object in a subdirectory.
+Two processes can operate on the same named semaphore by passing
+the same name to
+.BR sem_open (3).
+
+The
+.BR sem_open (3)
+function creates a new named semaphore or opens an existing
+named semaphore.
+After the semaphore has been opened, it can be operated on using
+.BR sem_post (3)
+and
+.BR sem_wait (3).
+When a process has finished using the semaphore, it can use
+.BR sem_close (3)
+to close the semaphore.
+When all processes have finished using the semaphore,
+it can be removed from the system using
+.BR sem_unlink (3).
+.TP
+.B Unnamed semaphores (memory-based semaphores)
+An unnamed semaphore does not have a name.
+Instead the semaphore is placed in a region of memory that
+is shared between multiple threads (a
+.IR "thread-shared semaphore" )
+or processes (a
+.IR "process-shared semaphore" ).
+A thread-shared semaphore is placed in an area of memory shared
+between the threads of a process, for example, a global variable.
+A process-shared semaphore must be placed in a shared memory region
+(e.g., a System V shared memory segment created using
+.BR shmget (2),
+or a POSIX shared memory object built created using
+.BR shm_open (3)).
+
+Before being used, an unnamed semaphore must be initialized using
+.BR sem_init (3).
+It can then be operated on using
+.BR sem_post (3)
+and
+.BR sem_wait (3).
+When the semaphore is no longer required,
+and before the memory in which it is located is deallocated,
+the semaphore should be destroyed using
+.BR sem_destroy (3).
+.PP
+The remainder of this section describes some specific details
+of the Linux implementation of POSIX semaphores.
+.SS Versions
+Prior to kernel 2.6, Linux supported only unnamed,
+thread-shared semaphores.
+On a system with Linux 2.6 and a glibc that provides the NPTL
+threading implementation,
+a complete implementation of POSIX semaphores is provided.
+.SS Persistence
+POSIX named semaphores have kernel persistence:
+if not removed by
+.BR sem_unlink (3),
+a semaphore will exist until the system is shut down.
+.SS Linking
+Programs using the POSIX semaphores API must be compiled with
+.I cc \-pthread
+to link against the real-time library,
+.IR librt .
+.SS Accessing named semaphores via the filesystem
+On Linux, named semaphores are created in a virtual filesystem,
+normally mounted under
+.IR /dev/shm ,
+with names of the form
+.IR \fBsem.\fPsomename .
+(This is the reason that semaphore names are limited to
+.BI NAME_MAX \-4
+rather than
+.B NAME_MAX
+characters.)
+
+Since Linux 2.6.19, ACLs can be placed on files under this directory,
+to control object permissions on a per-user and per-group basis.
+.SH NOTES
+System V semaphores
+.RB ( semget (2),
+.BR semop (2),
+etc.) are an older semaphore API.
+POSIX semaphores provide a simpler, and better designed interface than
+System V semaphores;
+on the other hand POSIX semaphores are less widely available
+(especially on older systems) than System V semaphores.
+.SH EXAMPLE
+An example of the use of various POSIX semaphore functions is shown in
+.BR sem_wait (3).
+.SH SEE ALSO
+.BR sem_close (3),
+.BR sem_destroy (3),
+.BR sem_getvalue (3),
+.BR sem_init (3),
+.BR sem_open (3),
+.BR sem_post (3),
+.BR sem_unlink (3),
+.BR sem_wait (3),
+.BR pthreads (7)

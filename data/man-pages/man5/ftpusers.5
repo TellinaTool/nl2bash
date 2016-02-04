@@ -1,0 +1,52 @@
+.\" Copyright (c) 2000 Christoph J. Thompson <obituary@linuxbe.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_MISC)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH FTPUSERS 5 2000-08-27 "Linux" "Linux Programmer's Manual"
+.SH NAME
+ftpusers \- list of users that may not log in via the FTP daemon
+.SH DESCRIPTION
+The text file
+.B ftpusers
+contains a list of users that may not log in using the
+File Transfer Protocol (FTP) server daemon.
+This file is used not merely for
+system administration purposes but for improving security within a TCP/IP
+networked environment.
+It will typically contain a list of the users that
+either have no business using ftp or have too many privileges to be allowed
+to log in through the FTP server daemon.
+Such users usually include root, daemon, bin, uucp, and news.
+If your FTP server daemon doesn't use
+.BR ftpusers ,
+then it is suggested that you read its documentation to find out how to
+block access for certain users.
+Washington University FTP server Daemon
+(wuftpd) and Professional FTP Daemon (proftpd) are known to make use of
+.BR ftpusers .
+.SS Format
+The format of
+.B ftpusers
+is very simple.
+There is one account name (or username) per line.
+Lines starting with a # are ignored.
+.SH FILES
+.I /etc/ftpusers
+.SH SEE ALSO
+.BR passwd (5),
+.BR proftpd (8),
+.BR wuftpd (8)

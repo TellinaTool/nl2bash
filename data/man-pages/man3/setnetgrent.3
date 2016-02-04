@@ -1,0 +1,154 @@
+.\"  Copyright 2002 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\"  based on glibc infopages
+.\" polished - aeb
+.\"
+.TH SETNETGRENT 3 2015-04-19 "GNU" "Linux Programmer's Manual"
+.SH NAME
+setnetgrent, endnetgrent, getnetgrent, getnetgrent_r, innetgr \-
+handle network group entries
+.SH SYNOPSIS
+.nf
+.B #include <netdb.h>
+
+.BI "int setnetgrent(const char *" netgroup );
+
+.B "void endnetgrent(void);"
+
+.BI "int getnetgrent(char **" host ", char **" user ", char **" domain );
+
+.BI "int getnetgrent_r(char **" host ", char **" user ","
+.BI "                  char **" domain ", char *" buf ", size_t " buflen );
+
+.BI "int innetgr(const char *" netgroup ", const char *" host ","
+.BI "            const char *" user ", const char *" domain );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR setnetgrent (),
+.BR endnetgrent (),
+.BR getnetgrent (),
+.BR getnetgrent_r (),
+.BR innetgr ():
+_BSD_SOURCE || _SVID_SOURCE
+.ad b
+.SH DESCRIPTION
+The
+.I netgroup
+is a SunOS invention.
+A netgroup database is a list of string triples
+.RI ( hostname ", " username ", " domainname )
+or other netgroup names.
+Any of the elements in a triple can be empty,
+which means that anything matches.
+The functions described here allow access to the netgroup databases.
+The file
+.I /etc/nsswitch.conf
+defines what database is searched.
+.PP
+The
+.BR setnetgrent ()
+call defines the netgroup that will be searched by subsequent
+.BR getnetgrent ()
+calls.
+The
+.BR getnetgrent ()
+function retrieves the next netgroup entry, and returns pointers in
+.IR host ,
+.IR user ,
+.IR domain .
+A null pointer means that the corresponding entry matches any string.
+The pointers are valid only as long as there is no call to other
+netgroup-related functions.
+To avoid this problem you can use the GNU function
+.BR getnetgrent_r ()
+that stores the strings in the supplied buffer.
+To free all allocated buffers use
+.BR endnetgrent ().
+.PP
+In most cases you want to check only if the triplet
+.RI ( hostname ", " username ", " domainname )
+is a member of a netgroup.
+The function
+.BR innetgr ()
+can be used for this without calling the above three functions.
+Again, a null pointer is a wildcard and matches any string.
+The function is thread-safe.
+.SH RETURN VALUE
+These functions return 1 on success and 0 for failure.
+.SH FILES
+.I /etc/netgroup
+.br
+.I /etc/nsswitch.conf
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw16 lb lbw23
+l l l.
+Interface	Attribute	Value
+T{
+.BR setnetgrent (),
+.br
+.BR getnetgrent_r (),
+.br
+.BR innetgr ()
+T}	Thread safety	T{
+MT-Unsafe race:netgrent
+.br
+locale
+T}
+T{
+.BR endnetgrent ()
+T}	Thread safety	MT-Unsafe race:netgrent
+T{
+.BR getnetgrent ()
+T}	Thread safety	T{
+MT-Unsafe race:netgrent
+.br
+race:netgrentbuf locale
+T}
+.TE
+
+In the above table,
+.I netgrent
+in
+.I race:netgrent
+signifies that if any of the functions
+.BR setnetgrent (3),
+.BR getnetgrent_r (3),
+.BR innetgr (3),
+.BR getnetgrent (3),
+or
+.BR endnetgrent (3)
+are used in parallel in different threads of a program,
+then data races could occur.
+.SH CONFORMING TO
+These functions are not in POSIX.1, but
+.BR setnetgrent (),
+.BR endnetgrent (),
+.BR getnetgrent (),
+and
+.BR innetgr ()
+are available on most UNIX systems.
+.BR getnetgrent_r ()
+is not widely available on other systems.
+.\" getnetgrent_r() is on Solaris 8 and AIX 5.1, but not the BSDs.
+.SH NOTES
+In the BSD implementation,
+.BR setnetgrent ()
+returns void.
+.SH SEE ALSO
+.BR sethostent (3),
+.BR setprotoent (3),
+.BR setservent (3)

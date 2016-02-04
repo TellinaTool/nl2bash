@@ -1,0 +1,100 @@
+'\" t
+.\" Copyright (c) 2010 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH AIO_INIT 3  2012-04-26 "Linux" "Linux Programmer's Manual"
+.SH NAME
+aio_init \- asynchronous I/O initialization
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.B "#include <aio.h>"
+
+.BI "void aio_init(const struct aioinit *" init );
+.fi
+.sp
+Link with \fI\-lrt\fP.
+.SH DESCRIPTION
+The GNU-specific
+.BR aio_init ()
+function allows the caller to provide tuning hints to the
+glibc POSIX AIO implementation.
+Use of this function is optional, but to be effective,
+it must be called before employing any other functions in the POSIX AIO API.
+
+The tuning information is provided in the buffer pointed to by the argument
+.IR init .
+This buffer is a structure of the following form:
+.PP
+.in +4n
+.nf
+struct aioinit {
+    int aio_threads;    /* Maximum number of threads */
+    int aio_num;        /* Number of expected simultaneous
+                           requests */
+    int aio_locks;      /* Not used */
+    int aio_usedba;     /* Not used */
+    int aio_debug;      /* Not used */
+    int aio_numusers;   /* Not used */
+    int aio_idle_time;  /* Number of seconds before idle thread
+                           terminates (since glibc 2.2) */
+    int aio_reserved;
+};
+.fi
+.in
+.PP
+The following fields are used in the
+.I aioinit
+structure:
+.TP 15
+.I aio_threads
+This field specifies the maximum number of worker threads that
+may be used by the implementation.
+If the number of outstanding I/O operations exceeds this limit,
+then excess operations will be queued until a worker thread becomes free.
+If this field is specified with a value less than 1, the value 1 is used.
+The default value is 20.
+.TP
+.I aio_num
+This field should specify the maximum number of simultaneous I/O requests
+that the caller expects to enqueue.
+If a value less than 32 is specified for this field,
+it is rounded up to 32.
+.\" FIXME . But, if aio_num > 32, the behavior looks strange. See
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=12083
+The default value is 64.
+.TP
+.I aio_idle_time
+This field specifies the amount of time in seconds that a
+worker thread should wait for further requests before terminating,
+after having completed a previous request.
+The default value is 1.
+.SH VERSIONS
+The
+.BR aio_init ()
+function is available since glibc 2.1.
+.SH CONFORMING TO
+This function is a GNU extension.
+.SH SEE ALSO
+.BR aio (7)

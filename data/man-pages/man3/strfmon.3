@@ -1,0 +1,218 @@
+.\" Copyright (c) 2000 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH STRFMON 3  2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+strfmon, strfmon_l \- convert monetary value to a string
+.SH SYNOPSIS
+.nf
+.B #include <monetary.h>
+.sp
+.BI "ssize_t strfmon(char *" s ", size_t " max ", const char *" format ,
+.B "...);"
+
+.BI "ssize_t strfmon_l(char *" s ", size_t " max ", locale_t " locale ",
+.B const char *" format , "...);"
+.fi
+.SH DESCRIPTION
+The
+.BR strfmon ()
+function formats the specified monetary amount
+according to the current locale
+and format specification
+.I format
+and places the
+result in the character array
+.I s
+of size
+.IR max .
+
+The
+.BR strfmon_l ()
+function performs the same task,
+but uses
+the locale specified by
+.IR locale .
+The behavior of
+.BR strfmon_l ()
+is undefined if
+.I locale
+is the special locale object
+.BR LC_GLOBAL_LOCALE
+(see
+.BR duplocale (3))
+or is not a valid locale object handle.
+.PP
+Ordinary characters in
+.I format
+are copied to
+.I s
+without conversion.
+Conversion specifiers are introduced by a \(aq%\(aq
+character.
+Immediately following it there can be zero or more
+of the following flags:
+.TP
+.BI = f
+The single-byte character
+.I f
+is used as the numeric fill character (to be used with
+a left precision, see below).
+When not specified, the space character is used.
+.TP
+.B ^
+Do not use any grouping characters that might be defined
+for the current locale.
+By default, grouping is enabled.
+.TP
+.BR ( " or " +
+The ( flag indicates that negative amounts should be enclosed between
+parentheses.
+The + flag indicates that signs should be handled
+in the default way, that is, amounts are preceded by the locale's
+sign indication, for example, nothing for positive, "\-" for negative.
+.TP
+.B !
+Omit the currency symbol.
+.TP
+.B \-
+Left justify all fields.
+The default is right justification.
+.LP
+Next, there may be a field width: a decimal digit string specifying
+a minimum field width in bytes.
+The default is 0.
+A result smaller than this width is padded with spaces
+(on the left, unless the left-justify flag was given).
+.LP
+Next, there may be a left precision of the form "#" followed by
+a decimal digit string.
+If the number of digits left of the
+radix character is smaller than this, the representation is
+padded on the left with the numeric fill character.
+Grouping characters are not counted in this field width.
+.LP
+Next, there may be a right precision of the form "." followed by
+a decimal digit string.
+The amount being formatted is rounded to
+the specified number of digits prior to formatting.
+The default is specified in the
+.I frac_digits
+and
+.I int_frac_digits
+items of the current locale.
+If the right precision is 0, no radix character is printed.
+(The radix character here is determined by
+.BR LC_MONETARY ,
+and may differ from that specified by
+.BR LC_NUMERIC .)
+.LP
+Finally, the conversion specification must be ended with a
+conversion character.
+The three conversion characters are
+.TP
+.B %
+(In this case, the entire specification must be exactly "%%".)
+Put a \(aq%\(aq character in the result string.
+.TP
+.B i
+One argument of type
+.I double
+is converted using the locale's international currency format.
+.TP
+.B n
+One argument of type
+.I double
+is converted using the locale's national currency format.
+.SH RETURN VALUE
+The
+.BR strfmon ()
+function returns the number of characters placed
+in the array
+.IR s ,
+not including the terminating null byte,
+provided the string, including the terminating null byte, fits.
+Otherwise, it sets
+.I errno
+to
+.BR E2BIG ,
+returns \-1, and the contents of the array is undefined.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR strfmon ()
+T}	Thread safety	MT-Safe locale
+T{
+.BR strfmon_l ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH EXAMPLE
+The call
+.in +4n
+.nf
+
+strfmon(buf, sizeof(buf), "[%^=*#6n] [%=*#6i]",
+        1234.567, 1234.567);
+
+.fi
+.in
+outputs
+.in +4n
+
+[€ **1234,57] [EUR **1 234,57]
+
+.in
+in the
+.I nl_NL
+locale.
+The
+.IR de_DE ,
+.IR de_CH ,
+.IR en_AU ,
+and
+.I en_GB
+locales yield
+.in +4n
+
+[ **1234,57 €] [ **1.234,57 EUR]
+.br
+[ Fr. **1234.57] [ CHF **1'234.57]
+.br
+[ $**1234.57] [ AUD**1,234.57]
+.br
+[ £**1234.57] [ GBP**1,234.57]
+.in
+.SH SEE ALSO
+.BR duplocale (3),
+.BR setlocale (3),
+.BR sprintf (3),
+.BR locale (7)

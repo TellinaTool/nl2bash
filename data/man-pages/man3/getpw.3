@@ -1,0 +1,136 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:23:25 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Mon May 27 21:37:47 1996 by Martin Schulze (joey@linux.de)
+.\"
+.TH GETPW 3 2015-07-23 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getpw \- reconstruct password line entry
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "             /* See feature_test_macros(7) */"
+.B #include <sys/types.h>
+.B #include <pwd.h>
+.sp
+.BI "int getpw(uid_t " uid ", char *" buf );
+.fi
+.SH DESCRIPTION
+The
+.BR getpw ()
+function reconstructs the password line entry for
+the given user ID \fIuid\fP in the buffer \fIbuf\fP.
+The returned buffer contains a line of format
+.sp
+.RS
+.B name:passwd:uid:gid:gecos:dir:shell
+.RE
+.PP
+The \fIpasswd\fP structure is defined in \fI<pwd.h>\fP as follows:
+.sp
+.in +4n
+.nf
+struct passwd {
+    char   *pw_name;       /* username */
+    char   *pw_passwd;     /* user password */
+    uid_t   pw_uid;        /* user ID */
+    gid_t   pw_gid;        /* group ID */
+    char   *pw_gecos;      /* user information */
+    char   *pw_dir;        /* home directory */
+    char   *pw_shell;      /* shell program */
+};
+.fi
+.in
+.PP
+For more information about the fields of this structure, see
+.BR passwd (5).
+.SH RETURN VALUE
+The
+.BR getpw ()
+function returns 0 on success; on error, it returns \-1, and
+.I errno
+is set to indicate the error.
+
+If
+.I uid
+is not found in the password database,
+.BR getpw ()
+returns \-1, sets
+.I errno
+to 0, and leaves
+.I buf
+unchanged.
+.SH ERRORS
+.TP
+.BR 0 " or " ENOENT
+No user corresponding to
+.IR uid .
+.TP
+.B EINVAL
+.I buf
+is NULL.
+.TP
+.B ENOMEM
+Insufficient memory to allocate
+.I passwd
+structure.
+.SH FILES
+.TP
+.I /etc/passwd
+password database file
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getpw ()
+T}	Thread safety	MT-Safe locale
+.TE
+
+.SH CONFORMING TO
+SVr2.
+.SH BUGS
+The
+.BR getpw ()
+function is dangerous as it may overflow the provided buffer
+.IR buf .
+It is obsoleted by
+.BR getpwuid (3).
+.SH SEE ALSO
+.BR endpwent (3),
+.BR fgetpwent (3),
+.BR getpwent (3),
+.BR getpwnam (3),
+.BR getpwuid (3),
+.BR putpwent (3),
+.BR setpwent (3),
+.BR passwd (5)

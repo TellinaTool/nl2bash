@@ -1,0 +1,111 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 17:56:43 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Added history, aeb, 980113.
+.\" 2005-05-05 mtk: added strcasestr()
+.\"
+.TH STRSTR 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+strstr, strcasestr \- locate a substring
+.SH SYNOPSIS
+.nf
+.B #include <string.h>
+.sp
+.BI "char *strstr(const char *" haystack ", const char *" needle );
+.sp
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.sp
+.B #include <string.h>
+.sp
+.BI "char *strcasestr(const char *" haystack ", const char *" needle );
+.fi
+.SH DESCRIPTION
+The
+.BR strstr ()
+function finds the first occurrence of the substring
+.I needle
+in the string
+.IR haystack .
+The terminating null bytes (\(aq\\0\(aq) are not compared.
+
+The
+.BR strcasestr ()
+function is like
+.BR strstr (),
+but ignores the case of both arguments.
+.SH RETURN VALUE
+These functions return a pointer to the beginning of the
+located substring, or NULL if the substring is not found.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR strstr ()
+T}	Thread safety	MT-Safe
+T{
+.BR strcasestr ()
+T}	Thread safety	MT-Safe locale
+.TE
+.SH CONFORMING TO
+.BR strstr ():
+POSIX.1-2001, POSIX.1-2008, C89, C99.
+
+The
+.BR strcasestr ()
+function is a nonstandard extension.
+.\" .SH BUGS
+.\" Early versions of Linux libc (like 4.5.26) would not allow
+.\" an empty
+.\" .I needle
+.\" argument for
+.\" .BR strstr ().
+.\" Later versions (like 4.6.27) work correctly,
+.\" and return
+.\" .IR haystack
+.\" when
+.\" .I needle
+.\" is empty.
+.SH SEE ALSO
+.BR index (3),
+.BR memchr (3),
+.BR memmem (3),
+.BR rindex (3),
+.BR strcasecmp (3),
+.BR strchr (3),
+.BR string (3),
+.BR strpbrk (3),
+.BR strsep (3),
+.BR strspn (3),
+.BR strtok (3),
+.BR wcsstr (3)

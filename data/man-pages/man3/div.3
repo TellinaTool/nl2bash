@@ -1,0 +1,123 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified 1993-03-29, David Metcalfe
+.\" Modified 1993-07-24, Rik Faith (faith@cs.unc.edu)
+.\" Modified 2002-08-10, 2003-11-01 Walter Harms, aeb
+.\"
+.TH DIV 3 2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+div, ldiv, lldiv, imaxdiv \- compute quotient and remainder of
+an integer division
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "div_t div(int " numerator ", int " denominator );
+.br
+.BI "ldiv_t ldiv(long " numerator ", long " denominator );
+.br
+.BI "lldiv_t lldiv(long long " numerator ", long long " denominator );
+.sp
+.B #include <inttypes.h>
+.sp
+.BI "imaxdiv_t imaxdiv(intmax_t " numerator ", intmax_t " denominator );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.ad l
+.sp
+.BR lldiv ():
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad
+.SH DESCRIPTION
+The
+.BR div ()
+function computes the value
+\fInumerator\fP/\fIdenominator\fP and
+returns the quotient and remainder in a structure
+named \fIdiv_t\fP that contains
+two integer members (in unspecified order) named \fIquot\fP and \fIrem\fP.
+The quotient is rounded toward zero.
+The result satisfies \fIquot\fP*\fIdenominator\fP+\fIrem\fP = \fInumerator\fP.
+.LP
+The
+.BR ldiv (),
+.BR lldiv (),
+and
+.BR imaxdiv ()
+functions do the same,
+dividing numbers of the indicated type and
+returning the result in a structure
+of the indicated name, in all cases with fields \fIquot\fP and \fIrem\fP
+of the same type as the function arguments.
+.SH RETURN VALUE
+The \fIdiv_t\fP (etc.) structure.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw33 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR div (),
+.BR ldiv (),
+.BR lldiv (),
+.BR imaxdiv ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
+The functions
+.BR lldiv ()
+and
+.BR imaxdiv ()
+were added in C99.
+.SH EXAMPLE
+After
+.nf
+
+        div_t q = div(\-5, 3);
+
+.fi
+the values \fIq.quot\fP and \fIq.rem\fP are \-1 and \-2, respectively.
+.SH SEE ALSO
+.BR abs (3),
+.BR remainder (3)

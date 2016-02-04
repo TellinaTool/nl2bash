@@ -1,0 +1,77 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH ISWCNTRL 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+iswcntrl \- test for control wide character
+.SH SYNOPSIS
+.nf
+.B #include <wctype.h>
+.sp
+.BI "int iswcntrl(wint_t " wc );
+.fi
+.SH DESCRIPTION
+The
+.BR iswcntrl ()
+function is the wide-character equivalent of the
+.BR iscntrl (3)
+function.
+It tests whether
+.I wc
+is a wide character
+belonging to the wide-character class "cntrl".
+.PP
+The wide-character class "cntrl" is disjoint from the wide-character class
+"print" and therefore also disjoint from its subclasses "graph", "alpha",
+"upper", "lower", "digit", "xdigit", "punct".
+.PP
+For an unsigned char
+.IR c ,
+.I iscntrl(c)
+implies
+.IR iswcntrl(btowc(c)) ,
+but not vice versa.
+.SH RETURN VALUE
+The
+.BR iswcntrl ()
+function returns nonzero if
+.I wc
+is a
+wide character belonging to the wide-character class "cntrl".
+Otherwise, it returns zero.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR iswcntrl ()
+T}	Thread safety	MT-Safe locale
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR iswcntrl ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.SH SEE ALSO
+.BR iscntrl (3),
+.BR iswctype (3)

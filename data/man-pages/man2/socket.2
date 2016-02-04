@@ -1,0 +1,428 @@
+'\" t
+.\" Copyright (c) 1983, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     $Id: socket.2,v 1.4 1999/05/13 11:33:42 freitag Exp $
+.\"
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-10-22 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1998, 1999 by Andi Kleen <ak@muc.de>
+.\" Modified 2002-07-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2004-06-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.TH SOCKET 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+socket \- create an endpoint for communication
+.SH SYNOPSIS
+.BR "#include <sys/types.h>" "          /* See NOTES */"
+.br
+.B #include <sys/socket.h>
+.sp
+.BI "int socket(int " domain ", int " type ", int " protocol );
+.SH DESCRIPTION
+.BR socket ()
+creates an endpoint for communication and returns a file descriptor
+that refers to that endpoint.
+.PP
+The
+.I domain
+argument specifies a communication domain; this selects the protocol
+family which will be used for communication.
+These families are defined in
+.IR <sys/socket.h> .
+The currently understood formats include:
+.TS
+tab(:);
+l l l.
+Name:Purpose:Man page
+T{
+.BR AF_UNIX ", " AF_LOCAL
+T}:T{
+Local communication
+T}:T{
+.BR unix (7)
+T}
+T{
+.B AF_INET
+T}:IPv4 Internet protocols:T{
+.BR ip (7)
+T}
+T{
+.B AF_INET6
+T}:IPv6 Internet protocols:T{
+.BR ipv6 (7)
+T}
+T{
+.B AF_IPX
+T}:IPX \- Novell protocols:
+T{
+.B AF_NETLINK
+T}:T{
+Kernel user interface device
+T}:T{
+.BR netlink (7)
+T}
+T{
+.B AF_X25
+T}:ITU-T X.25 / ISO-8208 protocol:T{
+.BR x25 (7)
+T}
+T{
+.B AF_AX25
+T}:T{
+Amateur radio AX.25 protocol
+T}:
+T{
+.B AF_ATMPVC
+T}:Access to raw ATM PVCs:
+T{
+.B AF_APPLETALK
+T}:AppleTalk:T{
+.BR ddp (7)
+T}
+T{
+.B AF_PACKET
+T}:T{
+Low level packet interface
+T}:T{
+.BR packet (7)
+T}
+T{
+.B AF_ALG
+T}:T{
+Interface to kernel crypto API
+T}
+.TE
+.PP
+The socket has the indicated
+.IR type ,
+which specifies the communication semantics.
+Currently defined types
+are:
+.TP 16
+.B SOCK_STREAM
+Provides sequenced, reliable, two-way, connection-based byte streams.
+An out-of-band data transmission mechanism may be supported.
+.TP
+.B SOCK_DGRAM
+Supports datagrams (connectionless, unreliable messages of a fixed
+maximum length).
+.TP
+.B SOCK_SEQPACKET
+Provides a sequenced, reliable, two-way connection-based data
+transmission path for datagrams of fixed maximum length; a consumer is
+required to read an entire packet with each input system call.
+.TP
+.B SOCK_RAW
+Provides raw network protocol access.
+.TP
+.B SOCK_RDM
+Provides a reliable datagram layer that does not guarantee ordering.
+.TP
+.B SOCK_PACKET
+Obsolete and should not be used in new programs;
+see
+.BR packet (7).
+.PP
+Some socket types may not be implemented by all protocol families.
+.PP
+Since Linux 2.6.27, the
+.I type
+argument serves a second purpose:
+in addition to specifying a socket type,
+it may include the bitwise OR of any of the following values,
+to modify the behavior of
+.BR socket ():
+.TP 16
+.B SOCK_NONBLOCK
+Set the
+.BR O_NONBLOCK
+file status flag on the new open file description.
+Using this flag saves extra calls to
+.BR fcntl (2)
+to achieve the same result.
+.TP
+.B SOCK_CLOEXEC
+Set the close-on-exec
+.RB ( FD_CLOEXEC )
+flag on the new file descriptor.
+See the description of the
+.B O_CLOEXEC
+flag in
+.BR open (2)
+for reasons why this may be useful.
+.PP
+The
+.I protocol
+specifies a particular protocol to be used with the socket.
+Normally only a single protocol exists to support a particular
+socket type within a given protocol family, in which case
+.I protocol
+can be specified as 0.
+However, it is possible that many protocols may exist, in
+which case a particular protocol must be specified in this manner.
+The protocol number to use is specific to the \*(lqcommunication domain\*(rq
+in which communication is to take place; see
+.BR protocols (5).
+See
+.BR getprotoent (3)
+on how to map protocol name strings to protocol numbers.
+.PP
+Sockets of type
+.B SOCK_STREAM
+are full-duplex byte streams.
+They do not preserve
+record boundaries.
+A stream socket must be in
+a
+.I connected
+state before any data may be sent or received on it.
+A connection to
+another socket is created with a
+.BR connect (2)
+call.
+Once connected, data may be transferred using
+.BR read (2)
+and
+.BR write (2)
+calls or some variant of the
+.BR send (2)
+and
+.BR recv (2)
+calls.
+When a session has been completed a
+.BR close (2)
+may be performed.
+Out-of-band data may also be transmitted as described in
+.BR send (2)
+and received as described in
+.BR recv (2).
+.PP
+The communications protocols which implement a
+.B SOCK_STREAM
+ensure that data is not lost or duplicated.
+If a piece of data for which
+the peer protocol has buffer space cannot be successfully transmitted
+within a reasonable length of time, then the connection is considered
+to be dead.
+When
+.B SO_KEEPALIVE
+is enabled on the socket the protocol checks in a protocol-specific
+manner if the other end is still alive.
+A
+.B SIGPIPE
+signal is raised if a process sends or receives
+on a broken stream; this causes naive processes,
+which do not handle the signal, to exit.
+.B SOCK_SEQPACKET
+sockets employ the same system calls as
+.B SOCK_STREAM
+sockets.
+The only difference is that
+.BR read (2)
+calls will return only the amount of data requested,
+and any data remaining in the arriving packet will be discarded.
+Also all message boundaries in incoming datagrams are preserved.
+.PP
+.B SOCK_DGRAM
+and
+.B SOCK_RAW
+sockets allow sending of datagrams to correspondents named in
+.BR sendto (2)
+calls.
+Datagrams are generally received with
+.BR recvfrom (2),
+which returns the next datagram along with the address of its sender.
+.PP
+.B SOCK_PACKET
+is an obsolete socket type to receive raw packets directly from the
+device driver.
+Use
+.BR packet (7)
+instead.
+.PP
+An
+.BR fcntl (2)
+.B F_SETOWN
+operation can be used to specify a process or process group to receive a
+.B SIGURG
+signal when the out-of-band data arrives or
+.B SIGPIPE
+signal when a
+.B SOCK_STREAM
+connection breaks unexpectedly.
+This operation may also be used to set the process or process group
+that receives the I/O and asynchronous notification of I/O events via
+.BR SIGIO .
+Using
+.B F_SETOWN
+is equivalent to an
+.BR ioctl (2)
+call with the
+.B FIOSETOWN
+or
+.B SIOCSPGRP
+argument.
+.PP
+When the network signals an error condition to the protocol module (e.g.,
+using a ICMP message for IP) the pending error flag is set for the socket.
+The next operation on this socket will return the error code of the pending
+error.
+For some protocols it is possible to enable a per-socket error queue
+to retrieve detailed information about the error; see
+.B IP_RECVERR
+in
+.BR ip (7).
+.PP
+The operation of sockets is controlled by socket level
+.IR options .
+These options are defined in
+.IR <sys/socket.h> .
+The functions
+.BR setsockopt (2)
+and
+.BR getsockopt (2)
+are used to set and get options, respectively.
+.SH RETURN VALUE
+On success, a file descriptor for the new socket is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EACCES
+Permission to create a socket of the specified type and/or protocol
+is denied.
+.TP
+.B EAFNOSUPPORT
+The implementation does not support the specified address family.
+.TP
+.B EINVAL
+Unknown protocol, or protocol family not available.
+.TP
+.B EINVAL
+.\" Since Linux 2.6.27
+Invalid flags in
+.IR type .
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.BR ENOBUFS " or " ENOMEM
+Insufficient memory is available.
+The socket cannot be
+created until sufficient resources are freed.
+.TP
+.B EPROTONOSUPPORT
+The protocol type or the specified protocol is not
+supported within this domain.
+.PP
+Other errors may be generated by the underlying protocol modules.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, 4.4BSD.
+
+The
+.B SOCK_NONBLOCK
+and
+.B SOCK_CLOEXEC
+flags are Linux-specific.
+
+.BR socket ()
+appeared in 4.2BSD.
+It is generally portable to/from
+non-BSD systems supporting clones of the BSD socket layer (including
+System\ V variants).
+.SH NOTES
+POSIX.1 does not require the inclusion of
+.IR <sys/types.h> ,
+and this header file is not required on Linux.
+However, some historical (BSD) implementations required this header
+file, and portable applications are probably wise to include it.
+
+The manifest constants used under 4.x BSD for protocol families
+are
+.BR PF_UNIX ,
+.BR PF_INET ,
+and so on, while
+.BR AF_UNIX ,
+.BR AF_INET ,
+and so on are used for address
+families.
+However, already the BSD man page promises: "The protocol
+family generally is the same as the address family", and subsequent
+standards use AF_* everywhere.
+
+The
+.B AF_ALG
+protocol type was added in Linux 2.6.38.
+More information on this interface is provided with the kernel HTML
+documentation at
+.IR https://www.kernel.org/doc/htmldocs/crypto-API/User.html .
+.SH EXAMPLE
+An example of the use of
+.BR socket ()
+is shown in
+.BR getaddrinfo (3).
+.SH SEE ALSO
+.BR accept (2),
+.BR bind (2),
+.BR close (2),
+.BR connect (2),
+.BR fcntl (2),
+.BR getpeername (2),
+.BR getsockname (2),
+.BR getsockopt (2),
+.BR ioctl (2),
+.BR listen (2),
+.BR read (2),
+.BR recv (2),
+.BR select (2),
+.BR send (2),
+.BR shutdown (2),
+.BR socketpair (2),
+.BR write (2),
+.BR getprotoent (3),
+.BR ip (7),
+.BR socket (7),
+.BR tcp (7),
+.BR udp (7),
+.BR unix (7)
+
+\(lqAn Introductory 4.3BSD Interprocess Communication Tutorial\(rq
+and
+\(lqBSD Interprocess Communication Tutorial\(rq,
+reprinted in
+.I UNIX Programmer's Supplementary Documents Volume 1.

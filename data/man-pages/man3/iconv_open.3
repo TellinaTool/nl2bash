@@ -1,0 +1,123 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   OpenGroup's Single UNIX specification
+.\"     http://www.UNIX-systems.org/online.html
+.\"
+.\" 2007-03-31 Bruno Haible, Describe the glibc/libiconv //TRANSLIT
+.\" and //IGNORE extensions for 'tocode'.
+.\"
+.TH ICONV_OPEN 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+iconv_open \- allocate descriptor for character set conversion
+.SH SYNOPSIS
+.nf
+.B #include <iconv.h>
+.sp
+.BI "iconv_t iconv_open(const char *" tocode ", const char *" fromcode );
+.fi
+.SH DESCRIPTION
+The
+.BR iconv_open ()
+function allocates a conversion descriptor suitable
+for converting byte sequences from character encoding
+.I fromcode
+to
+character encoding
+.IR tocode .
+.PP
+The values permitted for
+.IR fromcode
+and
+.I tocode
+and the supported
+combinations are system-dependent.
+For the GNU C library, the permitted
+values are listed by the
+.I "iconv \-\-list"
+command, and all combinations
+of the listed values are supported.
+Furthermore the GNU C library and the
+GNU libiconv library support the following two suffixes:
+.TP
+//TRANSLIT
+When the string "//TRANSLIT" is appended to
+.IR tocode ,
+transliteration
+is activated.
+This means that when a character cannot be represented in the
+target character set, it can be approximated through one or several
+similarly looking characters.
+.TP
+//IGNORE
+When the string "//IGNORE" is appended to
+.IR tocode ,
+characters that
+cannot be represented in the target character set will be silently discarded.
+.PP
+The resulting conversion descriptor can be used with
+.BR iconv (3)
+any number of times.
+It remains valid until deallocated using
+.BR iconv_close (3).
+.PP
+A conversion descriptor contains a conversion state.
+After creation using
+.BR iconv_open (),
+the state is in the initial state.
+Using
+.BR iconv (3)
+modifies the descriptor's conversion state.
+To bring the state back to the initial state, use
+.BR iconv (3)
+with NULL as
+.I inbuf
+argument.
+.SH RETURN VALUE
+The
+.BR iconv_open ()
+function returns a freshly allocated conversion
+descriptor.
+In case of error, it sets
+.I errno
+and returns
+.IR (iconv_t)\ \-1 .
+.SH ERRORS
+The following error can occur, among others:
+.TP
+.B EINVAL
+The conversion from
+.IR fromcode
+to
+.I tocode
+is not supported by the
+implementation.
+.SH VERSIONS
+This function is available in glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR iconv_open ()
+T}	Thread safety	MT-Safe locale
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SUSv2.
+.SH SEE ALSO
+.BR iconv (1),
+.BR iconv (3),
+.BR iconv_close (3)

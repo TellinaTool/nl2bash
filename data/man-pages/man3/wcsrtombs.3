@@ -1,0 +1,157 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WCSRTOMBS 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcsrtombs \- convert a wide-character string to a multibyte string
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "size_t wcsrtombs(char *" dest ", const wchar_t **" src ,
+.BI "                 size_t " len ", mbstate_t *" ps );
+.fi
+.SH DESCRIPTION
+If
+.I dest
+is not NULL,
+the
+.BR wcsrtombs ()
+function converts
+the wide-character string
+.I *src
+to a multibyte string starting at
+.IR dest .
+At most
+.I len
+bytes are written to
+.IR dest .
+The shift state
+.I *ps
+is updated.
+The conversion is effectively performed by repeatedly
+calling
+.IR "wcrtomb(dest, *src, ps)" ,
+as long as this call succeeds,
+and then incrementing
+.I dest
+by the
+number of bytes written and
+.I *src
+by one.
+The conversion can stop for three reasons:
+.PP
+1. A wide character has been encountered that can not be represented as a
+multibyte sequence (according to the current locale).
+In this case,
+.I *src
+is left pointing to the invalid wide character,
+.I (size_t)\ \-1
+is returned,
+and
+.I errno
+is set to
+.BR EILSEQ .
+.PP
+2. The length limit forces a stop.
+In this case,
+.I *src
+is left pointing
+to the next wide character to be converted,
+and the number of bytes written to
+.I dest
+is returned.
+.PP
+3. The wide-character string has been completely converted, including the
+terminating null wide character (L\(aq\\0\(aq),
+which has the side effect of bringing back
+.I *ps
+to the initial state.
+In this case,
+.I *src
+is set to NULL, and the number
+of bytes written to
+.IR dest ,
+excluding the terminating null byte (\(aq\\0\(aq),
+is returned.
+.PP
+If
+.IR dest
+is NULL,
+.I len
+is ignored,
+and the conversion proceeds as above, except that the converted bytes
+are not written out to memory, and that
+no length limit exists.
+.PP
+In both of the above cases,
+if
+.I ps
+is NULL, a static anonymous
+state known only to the
+.BR wcsrtombs ()
+function is used instead.
+.PP
+The programmer must ensure that there is room for at least
+.I len
+bytes
+at
+.IR dest .
+.SH RETURN VALUE
+The
+.BR wcsrtombs ()
+function returns
+the number of bytes that make up the
+converted part of multibyte sequence,
+not including the terminating null byte.
+If a wide character was encountered
+which could not be converted,
+.I (size_t)\ \-1
+is returned, and
+.I errno
+set to
+.BR EILSEQ .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lbw28
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcsrtombs ()
+T}	Thread safety	MT-Unsafe race:wcsrtombs/!ps
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR wcsrtombs ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.PP
+Passing NULL as
+.I ps
+is not multithread safe.
+.SH SEE ALSO
+.BR iconv (3),
+.BR mbsinit (3),
+.BR wcrtomb (3),
+.BR wcsnrtombs (3),
+.BR wcstombs (3)

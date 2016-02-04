@@ -1,0 +1,240 @@
+.\" Copyright (C) 2014 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"
+.TH SCHED_SETSCHEDULER 2 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sched_setscheduler, sched_getscheduler \-
+set and get scheduling policy/parameters
+.SH SYNOPSIS
+.nf
+.B #include <sched.h>
+.sp
+.BI "int sched_setscheduler(pid_t " pid ", int " policy ,
+.br
+.BI "                       const struct sched_param *" param );
+.sp
+.BI "int sched_getscheduler(pid_t " pid );
+.fi
+.SH DESCRIPTION
+The
+.BR sched_setscheduler ()
+system call
+sets both the scheduling policy and parameters for the
+thread whose ID is specified in \fIpid\fP.
+If \fIpid\fP equals zero, the
+scheduling policy and parameters of the calling thread will be set.
+
+The scheduling parameters are specified in the
+.I param
+argument, which is a pointer to a structure of the following form:
+
+.nf
+.in +4n
+struct sched_param {
+    ...
+    int sched_priority;
+    ...
+};
+.in
+.fi
+
+In the current implementation, the structure contains only one field,
+.IR sched_priority .
+The interpretation of
+.I param
+depends on the selected policy.
+
+Currently, Linux supports the following "normal"
+(i.e., non-real-time) scheduling policies as values that may be specified in
+.IR policy :
+.TP 14
+.BR SCHED_OTHER
+the standard round-robin time-sharing policy;
+.\" In the 2.6 kernel sources, SCHED_OTHER is actually called
+.\" SCHED_NORMAL.
+.TP
+.BR SCHED_BATCH
+for "batch" style execution of processes; and
+.TP
+.BR SCHED_IDLE
+for running
+.I very
+low priority background jobs.
+.PP
+For each of the above policies,
+.IR param\->sched_priority
+must be 0.
+
+Various "real-time" policies are also supported,
+for special time-critical applications that need precise control over
+the way in which runnable threads are selected for execution.
+For the rules governing when a process may use these policies, see
+.BR sched (7).
+The real-time policies that may be specified in
+.IR policy
+are:
+.TP 14
+.BR SCHED_FIFO
+a first-in, first-out policy; and
+.TP
+.BR SCHED_RR
+a round-robin policy.
+.PP
+For each of the above policies,
+.IR param\->sched_priority
+specifies a scheduling priority for the thread.
+This is a number in the range returned by calling
+.BR sched_get_priority_min (2)
+and
+.BR sched_get_priority_max (2)
+with the specified
+.IR policy .
+On Linux, these system calls return, respectively, 1 and 99.
+
+Since Linux 2.6.32, the
+.B SCHED_RESET_ON_FORK
+flag can be ORed in
+.I policy
+when calling
+.BR sched_setscheduler ().
+As a result of including this flag, children created by
+.BR fork (2)
+do not inherit privileged scheduling policies.
+See
+.BR sched (7)
+for details.
+
+.BR sched_getscheduler ()
+returns the current scheduling policy of the thread
+identified by \fIpid\fP.
+If \fIpid\fP equals zero, the policy of the
+calling thread will be retrieved.
+.SH RETURN VALUE
+On success,
+.BR sched_setscheduler ()
+returns zero.
+On success,
+.BR sched_getscheduler ()
+returns the policy for the thread (a nonnegative integer).
+On error, both calls return \-1, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EINVAL
+Invalid arguments:
+.I pid
+is negative or
+.I param
+is NULL.
+.TP
+.B EINVAL
+.RB ( sched_setscheduler ())
+.I policy
+is not one of the recognized policies.
+.TP
+.B EINVAL
+.RB ( sched_setscheduler ())
+.I param
+does not make sense for the specified
+.IR policy .
+.TP
+.B EPERM
+The calling thread does not have appropriate privileges.
+.TP
+.B ESRCH
+The thread whose ID is \fIpid\fP could not be found.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008 (but see BUGS below).
+The \fBSCHED_BATCH\fP and \fBSCHED_IDLE\fP policies are Linux-specific.
+.SH NOTES
+Further details of the semantics of all of the above "normal"
+and "real-time" scheduling policies can be found in
+.BR sched (7).
+
+POSIX systems on which
+.BR sched_setscheduler ()
+and
+.BR sched_getscheduler ()
+are available define
+.B _POSIX_PRIORITY_SCHEDULING
+in \fI<unistd.h>\fP.
+
+POSIX.1 does not detail the permissions that an unprivileged
+thread requires in order to call
+.BR sched_setscheduler (),
+and details vary across systems.
+For example, the Solaris 7 manual page says that
+the real or effective user ID of the caller must
+match the real user ID or the save set-user-ID of the target.
+.PP
+The scheduling policy and parameters are in fact per-thread
+attributes on Linux.
+The value returned from a call to
+.BR gettid (2)
+can be passed in the argument
+.IR pid .
+Specifying
+.I pid
+as 0 will operate on the attributes of the calling thread,
+and passing the value returned from a call to
+.BR getpid (2)
+will operate on the attributes of the main thread of the thread group.
+(If you are using the POSIX threads API, then use
+.BR pthread_setschedparam (3),
+.BR pthread_getschedparam (3),
+and
+.BR pthread_setschedprio (3),
+instead of the
+.BR sched_* (2)
+system calls.)
+.SH BUGS
+POSIX.1 says that on success,
+.BR sched_setscheduler ()
+should return the previous scheduling policy.
+Linux
+.BR sched_setscheduler ()
+does not conform to this requirement,
+since it always returns 0 on success.
+.SH SEE ALSO
+.ad l
+.nh
+.BR chrt (1),
+.BR nice (2),
+.BR sched_get_priority_max (2),
+.BR sched_get_priority_min (2),
+.BR sched_getaffinity (2),
+.BR sched_getattr (2),
+.BR sched_getparam (2),
+.BR sched_rr_get_interval (2),
+.BR sched_setaffinity (2),
+.BR sched_setattr (2),
+.BR sched_setparam (2),
+.BR sched_yield (2),
+.BR setpriority (2),
+.BR capabilities (7),
+.BR cpuset (7),
+.BR sched (7)
+.ad

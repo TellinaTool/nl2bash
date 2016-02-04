@@ -1,0 +1,81 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:48:17 1993 by Rik Faith (faith@cs.unc.edu)
+.TH DIFFTIME 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+difftime \- calculate time difference
+.SH SYNOPSIS
+.nf
+.B #include <time.h>
+.sp
+.BI "double difftime(time_t " time1 ", time_t " time0 );
+.fi
+.SH DESCRIPTION
+The
+.BR difftime ()
+function returns the number of seconds elapsed
+between time \fItime1\fP and time \fItime0\fP, represented as a
+.IR double .
+Each of the times is specified in calendar time, which means its
+value is a measurement (in seconds) relative to the
+Epoch, 1970-01-01 00:00:00 +0000 (UTC).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR difftime ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
+.SH NOTES
+On a POSIX system,
+.I time_t
+is an arithmetic type, and one could just
+define
+.RS
+.nf
+
+#define difftime(t1,t0) (double)(t1 \- t0)
+
+.fi
+.RE
+when the possible overflow in the subtraction is not a concern.
+.SH SEE ALSO
+.BR date (1),
+.BR gettimeofday (2),
+.BR time (2),
+.BR ctime (3),
+.BR gmtime (3),
+.BR localtime (3)

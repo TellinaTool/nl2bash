@@ -1,0 +1,43 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"
+.\" Modified, aeb, 990824
+.\"
+.TH MB_CUR_MAX 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+MB_CUR_MAX \- maximum length of a multibyte character in the current locale
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.fi
+.SH DESCRIPTION
+The
+.B MB_CUR_MAX
+macro defines an integer expression giving
+the maximum number of bytes needed to represent a single
+wide character in the current locale.
+It is locale dependent and therefore not a compile-time constant.
+.SH RETURN VALUE
+An integer in the range [1,
+.BR MB_LEN_MAX ].
+The value 1 denotes traditional 8-bit encoded characters.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH SEE ALSO
+.BR MB_LEN_MAX (3),
+.BR mblen (3),
+.BR mbstowcs (3),
+.BR mbtowc (3),
+.BR wcstombs (3),
+.BR wctomb (3)

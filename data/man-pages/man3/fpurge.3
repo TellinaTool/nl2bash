@@ -1,0 +1,97 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH FPURGE 3  2015-07-23 "" "Linux Programmer's Manual"
+.SH NAME
+fpurge, __fpurge \- purge a stream
+.SH SYNOPSIS
+.nf
+/* unsupported */
+.B #include <stdio.h>
+.sp
+.BI "int fpurge(FILE *" stream );
+.sp
+/* supported */
+.B #include <stdio.h>
+.br
+.B #include <stdio_ext.h>
+.sp
+.BI "void  __fpurge(FILE *" stream );
+.fi
+.SH DESCRIPTION
+The function
+.BR fpurge ()
+clears the buffers of the given stream.
+For output streams this discards any unwritten output.
+For input streams this discards any input read from the underlying object
+but not yet obtained via
+.BR getc (3);
+this includes any text pushed back via
+.BR ungetc (3).
+See also
+.BR fflush (3).
+.LP
+The function
+.BR __fpurge ()
+does precisely the same, but without returning a value.
+.SH RETURN VALUE
+Upon successful completion
+.BR fpurge ()
+returns 0.
+On error, it returns \-1 and sets
+.I errno
+appropriately.
+.SH ERRORS
+.TP
+.B EBADF
+.I stream
+is not an open stream.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR __fpurge ()
+T}	Thread safety	MT-Safe race:stream
+.TE
+
+.SH CONFORMING TO
+These functions are nonstandard and not portable.
+The function
+.BR fpurge ()
+was introduced in 4.4BSD and is not available under Linux.
+The function
+.BR __fpurge ()
+was introduced in Solaris, and is present in glibc 2.1.95 and later.
+.SH NOTES
+Usually it is a mistake to want to discard input buffers.
+.SH SEE ALSO
+.\" .BR fclean (3),
+.BR fflush (3),
+.BR setbuf (3),
+.BR stdio_ext (3)

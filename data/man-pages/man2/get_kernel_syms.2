@@ -1,0 +1,84 @@
+.\" Copyright (C) 1996 Free Software Foundation, Inc.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" This file is distributed according to the GNU General Public License.
+.\" %%%LICENSE_END
+.\"
+.\" 2006-02-09, some reformatting by Luc Van Oostenryck; some
+.\" reformatting and rewordings by mtk
+.\"
+.TH GET_KERNEL_SYMS 2 2012-10-18 "Linux" "Linux Programmer's Manual"
+.SH NAME
+get_kernel_syms \- retrieve exported kernel and module symbols
+.SH SYNOPSIS
+.nf
+.B #include <linux/module.h>
+.sp
+.BI "int get_kernel_syms(struct kernel_sym *" table );
+.fi
+.SH DESCRIPTION
+.BR Note :
+This system call is present only in kernels before Linux 2.6.
+
+If
+.I table
+is NULL,
+.BR get_kernel_syms ()
+returns the number of symbols available for query.
+Otherwise, it fills in a table of structures:
+.PP
+.in +4n
+.nf
+struct kernel_sym {
+    unsigned long value;
+    char          name[60];
+};
+.fi
+.in
+.PP
+The symbols are interspersed with magic symbols of the form
+.BI # module-name
+with the kernel having an empty name.
+The value associated with a symbol of this form is the address at
+which the module is loaded.
+.PP
+The symbols exported from each module follow their magic module tag
+and the modules are returned in the reverse of the
+order in which they were loaded.
+.SH RETURN VALUE
+On success, returns the number of symbols copied to
+.IR table .
+On error, \-1 is returned and
+.I errno
+is set appropriately.
+.SH ERRORS
+There is only one possible error return:
+.TP
+.B ENOSYS
+.BR get_kernel_syms ()
+is not supported in this version of the kernel.
+.SH VERSIONS
+This system call is present on Linux only up until kernel 2.4;
+it was removed in Linux 2.6.
+.\" Removed in Linux 2.5.48
+.SH CONFORMING TO
+.BR get_kernel_syms ()
+is Linux-specific.
+.SH BUGS
+There is no way to indicate the size of the buffer allocated for
+.IR table .
+If symbols have been added to the kernel since the
+program queried for the symbol table size, memory will be corrupted.
+.PP
+The length of exported symbol names is limited to 59 characters.
+.PP
+Because of these limitations, this system call is deprecated in
+favor of
+.BR query_module (2)
+(which is itself nowadays deprecated
+in favor of other interfaces described on its manual page).
+.SH SEE ALSO
+.BR create_module (2),
+.BR delete_module (2),
+.BR init_module (2),
+.BR query_module (2)

@@ -1,0 +1,164 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified 1993-03-29, David Metcalfe
+.\" Modified 1993-07-24, Rik Faith (faith@cs.unc.edu)
+.\" 2006-01-15, mtk, Added example program.
+.\" Modified 2012-03-08, Mark R. Bannister <cambridge@users.sourceforge.net>
+.\"                  and Ben Bacarisse <software@bsb.me.uk>
+.\"     Document qsort_r()
+.\"
+.TH QSORT 3 2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+qsort, qsort_r \- sort an array
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "void qsort(void *" base ", size_t " nmemb ", size_t " size ,
+.BI "           int (*" compar ")(const void *, const void *));"
+.sp
+.BI "void qsort_r(void *" base ", size_t " nmemb ", size_t " size ,
+.BI "           int (*" compar ")(const void *, const void *, void *),"
+.BI "           void *" arg ");"
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR qsort_r ():
+_GNU_SOURCE
+.ad b
+.SH DESCRIPTION
+The
+.BR qsort ()
+function sorts an array with \fInmemb\fP elements of
+size \fIsize\fP.
+The \fIbase\fP argument points to the start of the
+array.
+.PP
+The contents of the array are sorted in ascending order according to a
+comparison function pointed to by \fIcompar\fP, which is called with two
+arguments that point to the objects being compared.
+.PP
+The comparison function must return an integer less than, equal to, or
+greater than zero if the first argument is considered to be respectively
+less than, equal to, or greater than the second.
+If two members compare as equal,
+their order in the sorted array is undefined.
+.PP
+The
+.BR qsort_r ()
+function is identical to
+.BR qsort ()
+except that the comparison function
+.I compar
+takes a third argument.
+A pointer is passed to the comparison function via
+.IR arg .
+In this way, the comparison function does not need to use global variables to
+pass through arbitrary arguments, and is therefore reentrant and safe to
+use in threads.
+.SH RETURN VALUE
+The
+.BR qsort ()
+and
+.BR qsort_r ()
+functions return no value.
+.SH VERSIONS
+.BR qsort_r ()
+was added to glibc in version 2.8.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw18 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR qsort (),
+.BR qsort_r ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+.BR qsort ():
+POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
+.SH NOTES
+To compare C strings, the comparison function can call
+.BR strcmp (3),
+as shown in the example below.
+.SH EXAMPLE
+For one example of use, see the example under
+.BR bsearch (3).
+
+Another example is the following program,
+which sorts the strings given in its command-line arguments:
+.sp
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static int
+cmpstringp(const void *p1, const void *p2)
+{
+    /* The actual arguments to this function are "pointers to
+       pointers to char", but strcmp(3) arguments are "pointers
+       to char", hence the following cast plus dereference */
+
+    return strcmp(* (char * const *) p1, * (char * const *) p2);
+}
+
+int
+main(int argc, char *argv[])
+{
+    int j;
+
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <string>...\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    qsort(&argv[1], argc \- 1, sizeof(char *), cmpstringp);
+
+    for (j = 1; j < argc; j++)
+        puts(argv[j]);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR sort (1),
+.BR alphasort (3),
+.BR strcmp (3),
+.BR versionsort (3)

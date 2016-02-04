@@ -1,0 +1,206 @@
+.\" Copyright (C) 2001 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH GETCONTEXT 3 2015-03-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+getcontext, setcontext \- get or set the user context
+.SH SYNOPSIS
+.B #include <ucontext.h>
+.sp
+.BI "int getcontext(ucontext_t *" ucp );
+.br
+.BI "int setcontext(const ucontext_t *" ucp );
+.SH DESCRIPTION
+In a System V-like environment, one has the two types
+.I mcontext_t
+and
+.I ucontext_t
+defined in
+.I <ucontext.h>
+and the four functions
+.BR getcontext (),
+.BR setcontext (),
+.BR makecontext (3),
+and
+.BR swapcontext (3)
+that allow user-level context switching between multiple
+threads of control within a process.
+.LP
+The
+.I mcontext_t
+type is machine-dependent and opaque.
+The
+.I ucontext_t
+type is a structure that has at least
+the following fields:
+.in +4
+.nf
+
+typedef struct ucontext {
+    struct ucontext *uc_link;
+    sigset_t         uc_sigmask;
+    stack_t          uc_stack;
+    mcontext_t       uc_mcontext;
+    ...
+} ucontext_t;
+
+.fi
+.in
+with
+.IR sigset_t
+and
+.I stack_t
+defined in
+.IR <signal.h> .
+Here
+.I uc_link
+points to the context that will be resumed
+when the current context terminates (in case the current context
+was created using
+.BR makecontext (3)),
+.I uc_sigmask
+is the
+set of signals blocked in this context (see
+.BR sigprocmask (2)),
+.I uc_stack
+is the stack used by this context (see
+.BR sigaltstack (2)),
+and
+.I uc_mcontext
+is the
+machine-specific representation of the saved context,
+that includes the calling thread's machine registers.
+.LP
+The function
+.BR getcontext ()
+initializes the structure
+pointed at by
+.I ucp
+to the currently active context.
+.LP
+The function
+.BR setcontext ()
+restores the user context
+pointed at by
+.IR ucp .
+A successful call does not return.
+The context should have been obtained by a call of
+.BR getcontext (),
+or
+.BR makecontext (3),
+or passed as third argument to a signal
+handler.
+.LP
+If the context was obtained by a call of
+.BR getcontext (),
+program execution continues as if this call just returned.
+.LP
+If the context was obtained by a call of
+.BR makecontext (3),
+program execution continues by a call to the function
+.I func
+specified as the second argument of that call to
+.BR makecontext (3).
+When the function
+.I func
+returns, we continue with the
+.I uc_link
+member of the structure
+.I ucp
+specified as the
+first argument of that call to
+.BR makecontext (3).
+When this member is NULL, the thread exits.
+.LP
+If the context was obtained by a call to a signal handler,
+then old standard text says that "program execution continues with the
+program instruction following the instruction interrupted
+by the signal".
+However, this sentence was removed in SUSv2,
+and the present verdict is "the result is unspecified".
+.SH RETURN VALUE
+When successful,
+.BR getcontext ()
+returns 0 and
+.BR setcontext ()
+does not return.
+On error, both return \-1 and set
+.I errno
+appropriately.
+.SH ERRORS
+None defined.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw26 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getcontext (),
+.BR setcontext ()
+T}	Thread safety	MT-Safe race:ucp
+.TE
+.SH CONFORMING TO
+SUSv2, POSIX.1-2001.
+POSIX.1-2008 removes the specification of
+.BR getcontext (),
+citing portability issues, and
+recommending that applications be rewritten to use POSIX threads instead.
+.SH NOTES
+The earliest incarnation of this mechanism was the
+.BR setjmp (3)/ longjmp (3)
+mechanism.
+Since that does not define
+the handling of the signal context, the next stage was the
+.BR sigsetjmp (3)/ siglongjmp (3)
+pair.
+The present mechanism gives much more control.
+On the other hand,
+there is no easy way to detect whether a return from
+.BR getcontext ()
+is from the first call, or via a
+.BR setcontext ()
+call.
+The user has to invent her own bookkeeping device, and a register
+variable won't do since registers are restored.
+.LP
+When a signal occurs, the current user context is saved and
+a new context is created by the kernel for the signal handler.
+Do not leave the handler using
+.BR longjmp (3):
+it is undefined what would happen with contexts.
+Use
+.BR siglongjmp (3)
+or
+.BR setcontext ()
+instead.
+.SH SEE ALSO
+.BR sigaction (2),
+.BR sigaltstack (2),
+.BR sigprocmask (2),
+.BR longjmp (3),
+.BR makecontext (3),
+.BR sigsetjmp (3)

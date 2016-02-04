@@ -1,0 +1,87 @@
+.\" Copyright (C) 2003 John Levon <levon@movementarian.org>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2004-06-17 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.TH LOOKUP_DCOOKIE 2 2004-06-17 "Linux" "Linux Programmer's Manual"
+.SH NAME
+lookup_dcookie \- return a directory entry's path
+.SH SYNOPSIS
+.BI "int lookup_dcookie(u64 " cookie ", char *" buffer ", size_t " len );
+.SH DESCRIPTION
+Look up the full path of the directory entry specified by the value
+.IR cookie .
+The cookie is an opaque identifier uniquely identifying a particular
+directory entry.
+The buffer given is filled in with the full path of the directory entry.
+
+For
+.BR lookup_dcookie ()
+to return successfully,
+the kernel must still hold a cookie reference to the directory entry.
+.SH RETURN VALUE
+On success,
+.BR lookup_dcookie ()
+returns the length of the path string copied into the buffer.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EFAULT
+The buffer was not valid.
+.TP
+.B EINVAL
+The kernel has no registered cookie/directory entry mappings at the
+time of lookup, or the cookie does not refer to a valid directory entry.
+.TP
+.B ENAMETOOLONG
+The name could not fit in the buffer.
+.TP
+.B ENOMEM
+The kernel could not allocate memory for the temporary buffer holding
+the path.
+.TP
+.B EPERM
+The process does not have the capability
+.B CAP_SYS_ADMIN
+required to look up cookie values.
+.TP
+.B ERANGE
+The buffer was not large enough to hold the path of the directory entry.
+.SH VERSIONS
+Available since Linux 2.5.43.
+The
+.B ENAMETOOLONG
+error return was added in 2.5.70.
+.SH CONFORMING TO
+.BR lookup_dcookie ()
+is Linux-specific.
+.SH NOTES
+.BR lookup_dcookie ()
+is a special-purpose system call, currently used only by the oprofile profiler.
+It relies on a kernel driver to register cookies for directory entries.
+
+The path returned may be suffixed by the string " (deleted)" if the directory
+entry has been removed.

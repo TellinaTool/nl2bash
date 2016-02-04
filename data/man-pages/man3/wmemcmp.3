@@ -1,0 +1,86 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"
+.TH WMEMCMP 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wmemcmp \- compare two arrays of wide-characters
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "int wmemcmp(const wchar_t *" s1 ", const wchar_t *" s2 ", size_t " n );
+.fi
+.SH DESCRIPTION
+The
+.BR wmemcmp ()
+function is the wide-character equivalent of the
+.BR memcmp (3)
+function.
+It compares the
+.IR n
+wide-characters starting at
+.I s1
+and the
+.I n
+wide-characters starting at
+.IR s2 .
+.SH RETURN VALUE
+The
+.BR wmemcmp ()
+function returns
+zero if the wide-character arrays of size
+.I n
+at
+.IR s1
+and
+.I s2
+are equal.
+It returns an integer greater than
+zero if at the first differing position
+.I i
+.RI ( i " <"
+.IR n ),
+the
+corresponding wide-character
+.I s1[i]
+is greater than
+.IR s2[i] .
+It returns an integer less than zero if
+at the first differing position
+.I i
+.RI ( i
+<
+.IR n ),
+the corresponding
+wide-character
+.I s1[i]
+is less than
+.IR s2[i] .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wmemcmp ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH SEE ALSO
+.BR memcmp (3),
+.BR wcscmp (3)

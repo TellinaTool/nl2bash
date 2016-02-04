@@ -1,0 +1,154 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" This was done with the help of the glibc manual.
+.\"
+.\" 2004-10-31, aeb, corrected
+.TH FPCLASSIFY 3  2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+fpclassify, isfinite, isnormal, isnan, isinf \- floating-point
+classification macros
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "int fpclassify(" x );
+.sp
+.BI "int isfinite(" x );
+.sp
+.BI "int isnormal(" x );
+.sp
+.BI "int isnan(" x );
+.sp
+.BI "int isinf(" x );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.\" I haven't fully grokked the source to determine the FTM requirements;
+.\" in part, the following has been tested by experiment.
+.ad l
+.BR fpclassify (),
+.BR isfinite (),
+.BR isnormal ():
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.BR isnan ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.BR isinf ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad
+.SH DESCRIPTION
+Floating point numbers can have special values, such as
+infinite or NaN.
+With the macro
+.BI fpclassify( x )
+you can find out what type
+.I x
+is.
+The macro takes any floating-point expression as argument.
+The result is one of the following values:
+.TP 14
+.B FP_NAN
+.I x
+is "Not a Number".
+.TP
+.B FP_INFINITE
+.I x
+is either positive infinity or negative infinity.
+.TP
+.B FP_ZERO
+.I x
+is zero.
+.TP
+.B FP_SUBNORMAL
+.I x
+is too small to be represented in normalized format.
+.TP
+.B FP_NORMAL
+if nothing of the above is correct then it must be a
+normal floating-point number.
+.LP
+The other macros provide a short answer to some standard questions.
+.TP 14
+.BI isfinite( x )
+returns a nonzero value if
+.br
+(fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
+.TP
+.BI isnormal( x )
+returns a nonzero value if
+(fpclassify(x) == FP_NORMAL)
+.TP
+.BI isnan( x )
+returns a nonzero value if
+(fpclassify(x) == FP_NAN)
+.TP
+.BI isinf( x )
+returns 1 if
+.I x
+is positive infinity, and \-1 if
+.I x
+is negative infinity.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.ad l
+.TS
+allbox;
+lbw28 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR fpclassify (),
+.BR isfinite (),
+.BR isnormal (),
+.BR isnan (),
+.BR isinf ()
+T}	Thread safety	MT-Safe
+.TE
+.ad
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+
+For
+.BR isinf (),
+the standards merely say that the return value is nonzero
+if and only if the argument has an infinite value.
+.SH NOTES
+In glibc 2.01 and earlier,
+.BR isinf ()
+returns a nonzero value (actually: 1) if
+.I x
+is positive infinity or negative infinity.
+(This is all that C99 requires.)
+.SH SEE ALSO
+.BR finite (3),
+.BR INFINITY (3),
+.BR isgreater (3),
+.BR signbit (3)

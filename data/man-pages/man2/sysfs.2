@@ -1,0 +1,103 @@
+.\" Copyright (C) 1995, Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Created   Wed Aug  9 1995     Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\"
+.TH SYSFS 2 2010-06-27 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sysfs \- get filesystem type information
+.SH SYNOPSIS
+.BI "int sysfs(int " option ", const char *" fsname );
+
+.BI "int sysfs(int " option ", unsigned int " fs_index ", char *" buf );
+
+.BI "int sysfs(int " option );
+.SH DESCRIPTION
+.BR sysfs ()
+returns information about the filesystem types currently present in
+the kernel.
+The specific form of the
+.BR sysfs ()
+call and the information returned depends on the
+.I option
+in effect:
+.TP 3
+.B 1
+Translate the filesystem identifier string
+.I fsname
+into a filesystem type index.
+.TP
+.B 2
+Translate the filesystem type index
+.I fs_index
+into a null-terminated filesystem identifier string.
+This string will
+be written to the buffer pointed to by
+.IR buf .
+Make sure that
+.I buf
+has enough space to accept the string.
+.TP
+.B 3
+Return the total number of filesystem types currently present in the
+kernel.
+.PP
+The numbering of the filesystem type indexes begins with zero.
+.SH RETURN VALUE
+On success,
+.BR sysfs ()
+returns the filesystem index for option
+.BR 1 ,
+zero for option
+.BR 2 ,
+and the number of currently configured filesystems for option
+.BR 3 .
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EFAULT
+.RI "Either " fsname " or " buf
+is outside your accessible address space.
+.TP
+.B EINVAL
+.I fsname
+is not a valid filesystem type identifier;
+.I fs_index
+is out-of-bounds;
+.I option
+is invalid.
+.SH CONFORMING TO
+SVr4.
+.SH NOTES
+This System-V derived system call is obsolete; don't use it.
+On systems with
+.IR /proc ,
+the same information can be obtained via
+.IR /proc/filesystems ;
+use that interface instead.
+.SH BUGS
+There is no libc or glibc support.
+There is no way to guess how large \fIbuf\fP should be.

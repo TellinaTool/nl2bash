@@ -1,0 +1,277 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:46:03 1993 by Rik Faith (faith@cs.unc.edu)
+.TH DRAND48 3  2015-12-28 "" "Linux Programmer's Manual"
+.SH NAME
+drand48, erand48, lrand48, nrand48, mrand48, jrand48, srand48, seed48,
+lcong48 \- generate uniformly distributed pseudo-random numbers
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.B double drand48(void);
+.sp
+.BI "double erand48(unsigned short " xsubi [3]);
+.sp
+.B long int lrand48(void);
+.sp
+.BI "long int nrand48(unsigned short " xsubi [3]);
+.sp
+.B long int mrand48(void);
+.sp
+.BI "long int jrand48(unsigned short " xsubi [3]);
+.sp
+.BI "void srand48(long int " seedval );
+.sp
+.BI "unsigned short *seed48(unsigned short " seed16v [3]);
+.sp
+.BI "void lcong48(unsigned short " param [7]);
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+All functions shown above:
+.\" .BR drand48 (),
+.\" .BR erand48 (),
+.\" .BR lrand48 (),
+.\" .BR nrand48 (),
+.\" .BR mrand48 (),
+.\" .BR jrand48 (),
+.\" .BR srand48 (),
+.\" .BR seed48 (),
+.\" .BR lcong48 ():
+_SVID_SOURCE || _XOPEN_SOURCE
+.ad b
+.SH DESCRIPTION
+These functions generate pseudo-random numbers using the linear congruential
+algorithm and 48-bit integer arithmetic.
+.PP
+The
+.BR drand48 ()
+and
+.BR erand48 ()
+functions return nonnegative
+double-precision floating-point values uniformly distributed over the interval
+[0.0,\ 1.0).
+.PP
+The
+.BR lrand48 ()
+and
+.BR nrand48 ()
+functions return nonnegative
+long integers uniformly distributed over the interval [0,\ 2^31).
+.PP
+The
+.BR mrand48 ()
+and
+.BR jrand48 ()
+functions return signed long
+integers uniformly distributed over the interval [\-2^31,\ 2^31).
+.PP
+The
+.BR srand48 (),
+.BR seed48 ()
+and
+.BR lcong48 ()
+functions are
+initialization functions, one of which should be called before using
+.BR drand48 (),
+.BR lrand48 ()
+or
+.BR mrand48 ().
+The functions
+.BR erand48 (),
+.BR nrand48 ()
+and
+.BR jrand48 ()
+do not require
+an initialization function to be called first.
+.PP
+All the functions work by generating a sequence of 48-bit integers,
+.IR Xi ,
+according to the linear congruential formula:
+.sp
+.nf
+.RS
+.B Xn+1 = (aXn + c) mod m,   where n >= 0
+.RE
+.fi
+.sp
+The parameter
+.I m
+= 2^48, hence 48-bit integer arithmetic is performed.
+Unless
+.BR lcong48 ()
+is called,
+.IR a
+and
+.I c
+are given by:
+.sp
+.nf
+.RS
+.B a = 0x5DEECE66D
+.B c = 0xB
+.RE
+.fi
+.sp
+The value returned by any of the functions
+.BR drand48 (),
+.BR erand48 (),
+.BR lrand48 (),
+.BR nrand48 (),
+.BR mrand48 ()
+or
+.BR jrand48 ()
+is
+computed by first generating the next 48-bit
+.I Xi
+in the sequence.
+Then the appropriate number of bits, according to the type of data item to
+be returned, is copied from the high-order bits of
+.I Xi
+and transformed
+into the returned value.
+.PP
+The functions
+.BR drand48 (),
+.BR lrand48 ()
+and
+.BR mrand48 ()
+store
+the last 48-bit
+.I Xi
+generated in an internal buffer.
+The functions
+.BR erand48 (),
+.BR nrand48 ()
+and
+.BR jrand48 ()
+require the calling
+program to provide storage for the successive
+.I Xi
+values in the array
+argument
+.IR xsubi .
+The functions are initialized by placing the initial
+value of
+.I Xi
+into the array before calling the function for the first
+time.
+.PP
+The initializer function
+.BR srand48 ()
+sets the high order 32-bits of
+.I Xi
+to the argument
+.IR seedval .
+The low order 16-bits are set
+to the arbitrary value 0x330E.
+.PP
+The initializer function
+.BR seed48 ()
+sets the value of
+.I Xi
+to
+the 48-bit value specified in the array argument
+.IR seed16v .
+The
+previous value of
+.I Xi
+is copied into an internal buffer and a
+pointer to this buffer is returned by
+.BR seed48 ().
+.PP
+The initialization function
+.BR lcong48 ()
+allows the user to specify
+initial values for
+.IR Xi ,
+.I a
+and
+.IR c .
+Array argument
+elements
+.I param[0-2]
+specify
+.IR Xi ,
+.I param[3-5]
+specify
+.IR a ,
+and
+.I param[6]
+specifies
+.IR c .
+After
+.BR lcong48 ()
+has been called, a subsequent call to either
+.BR srand48 ()
+or
+.BR seed48 ()
+will restore the standard values of
+.I a
+and
+.IR c .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.ad l
+.TS
+allbox;
+lb lb lb
+lw21 l lw22.
+Interface	Attribute	Value
+T{
+.BR drand48 (),
+.BR erand48 (),
+.BR lrand48 (),
+.BR nrand48 (),
+.BR mrand48 (),
+.BR jrand48 (),
+.BR srand48 (),
+.BR seed48 (),
+.BR lcong48 ()
+T}	Thread safety	T{
+MT-Unsafe race:drand48
+T}
+.TE
+.ad
+.PP
+The above
+functions record global state information for the random number generator,
+so they are not thread-safe.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4.
+.SH SEE ALSO
+.BR rand (3),
+.BR random (3)

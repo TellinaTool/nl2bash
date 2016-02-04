@@ -1,0 +1,77 @@
+.\" Copyright (c) 2009 Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_YIELD 3 2015-03-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_yield \- yield the processor
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "             /* See feature_test_macros(7) */"
+.B #include <pthread.h>
+
+.B int pthread_yield(void);
+.fi
+.sp
+Compile and link with \fI\-pthread\fP.
+.SH DESCRIPTION
+.BR pthread_yield ()
+causes the calling thread to relinquish the CPU.
+The thread is placed at the end of the run queue for its static
+priority and another thread is scheduled to run.
+For further details, see
+.BR sched_yield (2)
+.SH RETURN VALUE
+On success,
+.BR pthread_yield ()
+returns 0;
+on error, it returns an error number.
+.SH ERRORS
+On Linux, this call always succeeds
+(but portable and future-proof applications should nevertheless
+handle a possible error return).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_yield ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+This call is nonstandard, but present on several other systems.
+Use the standardized
+.BR sched_yield (2)
+instead.
+.\" e.g., the BSDs, Tru64, AIX, and Irix.
+.SH NOTES
+On Linux, this function is implemented as a call to
+.BR sched_yield (2).
+.SH SEE ALSO
+.BR sched_yield (2),
+.BR pthreads (7),
+.BR sched (7)

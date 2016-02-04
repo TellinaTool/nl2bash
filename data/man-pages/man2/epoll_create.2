@@ -1,0 +1,151 @@
+.\"  Copyright (C) 2003  Davide Libenzi
+.\"  Davide Libenzi <davidel@xmailserver.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\"  This program is free software; you can redistribute it and/or modify
+.\"  it under the terms of the GNU General Public License as published by
+.\"  the Free Software Foundation; either version 2 of the License, or
+.\"  (at your option) any later version.
+.\"
+.\"  This program is distributed in the hope that it will be useful,
+.\"  but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\"  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\"  GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2004-06-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2005-04-04 by Marko Kohtala <marko.kohtala@gmail.com>
+.\" 2008-10-10, mtk: add description of epoll_create1()
+.\"
+.TH EPOLL_CREATE 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+epoll_create, epoll_create1 \- open an epoll file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <sys/epoll.h>
+.sp
+.BI "int epoll_create(int " size );
+.BI "int epoll_create1(int " flags );
+.fi
+.SH DESCRIPTION
+.BR epoll_create ()
+creates an
+.BR epoll (7)
+instance.
+Since Linux 2.6.8, the
+.I size
+argument is ignored, but must be greater than zero; see NOTES below.
+
+.BR epoll_create ()
+returns a file descriptor referring to the new epoll instance.
+This file descriptor is used for all the subsequent calls to the
+.B epoll
+interface.
+When no longer required, the file descriptor returned by
+.BR epoll_create ()
+should be closed by using
+.BR close (2).
+When all file descriptors referring to an epoll instance have been closed,
+the kernel destroys the instance
+and releases the associated resources for reuse.
+.SS epoll_create1()
+If
+.I flags
+is 0, then, other than the fact that the obsolete
+.I size
+argument is dropped,
+.BR epoll_create1 ()
+is the same as
+.BR epoll_create ().
+The following value can be included in
+.IR flags
+to obtain different behavior:
+.TP
+.B EPOLL_CLOEXEC
+Set the close-on-exec
+.RB ( FD_CLOEXEC )
+flag on the new file descriptor.
+See the description of the
+.B O_CLOEXEC
+flag in
+.BR open (2)
+for reasons why this may be useful.
+.SH RETURN VALUE
+On success,
+these system calls
+return a nonnegative file descriptor.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+.I size
+is not positive.
+.TP
+.B EINVAL
+.RB ( epoll_create1 ())
+Invalid value specified in
+.IR flags .
+.TP
+.B EMFILE
+The per-user limit on the number of epoll instances imposed by
+.I /proc/sys/fs/epoll/max_user_instances
+was encountered.
+See
+.BR epoll (7)
+for further details.
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENOMEM
+There was insufficient memory to create the kernel object.
+.SH VERSIONS
+.BR epoll_create ()
+was added to the kernel in version 2.6.
+Library support is provided in glibc starting with version 2.3.2.
+
+.\" To be precise: kernel 2.5.44.
+.\" The interface should be finalized by Linux kernel 2.5.66.
+.BR epoll_create1 ()
+was added to the kernel in version 2.6.27.
+Library support is provided in glibc starting with version 2.9.
+.SH CONFORMING TO
+.BR epoll_create ()
+is Linux-specific.
+.SH NOTES
+In the initial
+.BR epoll_create ()
+implementation, the
+.I size
+argument informed the kernel of the number of file descriptors
+that the caller expected to add to the
+.B epoll
+instance.
+The kernel used this information as a hint for the amount of
+space to initially allocate in internal data structures describing events.
+(If necessary, the kernel would allocate more space
+if the caller's usage exceeded the hint given in
+.IR size .)
+Nowadays,
+this hint is no longer required
+(the kernel dynamically sizes the required data structures
+without needing the hint), but
+.I size
+must still be greater than zero,
+in order to ensure backward compatibility when new
+.B epoll
+applications are run on older kernels.
+.SH SEE ALSO
+.BR close (2),
+.BR epoll_ctl (2),
+.BR epoll_wait (2),
+.BR epoll (7)

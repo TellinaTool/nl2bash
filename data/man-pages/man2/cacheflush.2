@@ -1,0 +1,103 @@
+.\" Written by Ralf Baechle (ralf@waldorf-gmbh.de),
+.\" Copyright (c) 1994, 1995 Waldorf GMBH
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH CACHEFLUSH 2 2015-02-21 "Linux" "Linux Programmer's Manual"
+.SH NAME
+cacheflush \- flush contents of instruction and/or data cache
+.SH SYNOPSIS
+.nf
+.B #include <asm/cachectl.h>
+.sp
+.BI "int cacheflush(char *" addr ", int "nbytes ", int "cache );
+.fi
+.SH DESCRIPTION
+.BR cacheflush ()
+flushes the contents of the indicated cache(s) for the
+user addresses in the range
+.I addr
+to
+.IR (addr+nbytes-1) .
+.I cache
+may be one of:
+.TP
+.B ICACHE
+Flush the instruction cache.
+.TP
+.B DCACHE
+Write back to memory and invalidate the affected valid cache lines.
+.TP
+.B BCACHE
+Same as
+.BR (ICACHE|DCACHE) .
+.SH RETURN VALUE
+.BR cacheflush ()
+returns 0 on success or \-1 on error.
+If errors are detected,
+.I errno
+will indicate the error.
+.SH ERRORS
+.TP
+.B EFAULT
+Some or all of the address range
+.I addr
+to
+.I (addr+nbytes-1)
+is not accessible.
+.TP
+.B EINVAL
+.I cache
+is not one of
+.BR ICACHE ,
+.BR DCACHE ,
+or
+.BR BCACHE
+(but see BUGS).
+.SH CONFORMING TO
+Historically, this system calls was available on all MIPS UNIX variants
+including RISC/os, IRIX, Ultrix, NetBSD, OpenBSD, and FreeBSD
+(and also on some non-UNIX MIPS operating systems), so that
+the existence of this call in MIPS operating systems is a de-facto
+standard.
+.SS Caveat
+.BR cacheflush ()
+should not be used in programs intended to be portable.
+On Linux, this call first appeared on the MIPS architecture,
+but nowadays, Linux provides a
+.BR cacheflush ()
+system call on some other architectures, but with different arguments.
+.SH BUGS
+Linux kernels older than version 2.6.11 ignore the
+.I addr
+and
+.I nbytes
+arguments, making this function fairly expensive.
+Therefore, the whole cache is always flushed.
+
+This function is always behaving as if
+.BR BCACHE
+has been passed for the
+.I cache
+argument and does not do any error checking on the
+.I cache
+argument.

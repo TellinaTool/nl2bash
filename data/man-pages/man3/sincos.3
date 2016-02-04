@@ -1,0 +1,95 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.TH SINCOS 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+sincos, sincosf, sincosl \- calculate sin and cos simultaneously
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.B #include <math.h>
+.sp
+.BI "void sincos(double " x ", double *" sin ", double *" cos );
+.br
+.BI "void sincosf(float " x ", float *" sin ", float *" cos );
+.br
+.BI "void sincosl(long double " x ", long double *" sin ", long double *" cos );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.SH DESCRIPTION
+Several applications need sine and cosine of the same angle
+.IR x .
+These functions compute both at the same time, and store the results in
+.I *sin
+and
+.IR *cos .
+
+If
+.I x
+is a NaN,
+a NaN is returned in
+.I *sin
+and
+.IR *cos .
+
+If
+.I x
+is positive infinity or negative infinity,
+a domain error occurs, and
+a NaN is returned in
+.I *sin
+and
+.IR *cos .
+.SH RETURN VALUE
+These functions return
+.IR void .
+.SH ERRORS
+See
+.BR math_error (7)
+for information on how to determine whether an error has occurred
+when calling these functions.
+.PP
+The following errors can occur:
+.TP
+Domain error: \fIx\fP is an infinity
+.\" .I errno
+.\" is set to
+.\" .BR EDOM .
+An invalid floating-point exception
+.RB ( FE_INVALID )
+is raised.
+.PP
+These functions do not set
+.IR errno .
+.\" FIXME . Is it intentional that these functions do not set errno?
+.\" sin() and cos() also don't set errno; bugs have been raised for
+.\" those functions.
+.\" See https://www.sourceware.org/bugzilla/show_bug.cgi?id=15467
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw30 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR sincos (),
+.BR sincosf (),
+.BR sincosl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+These functions are GNU extensions.
+.SH SEE ALSO
+.BR cos (3),
+.BR sin (3),
+.BR tan (3)

@@ -1,0 +1,151 @@
+.\" Copyright (C) 2003 Andi Kleen
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH ARCH_PRCTL 2 2015-02-21 "Linux" "Linux Programmer's Manual"
+.SH NAME
+arch_prctl \- set architecture-specific thread state
+.SH SYNOPSIS
+.nf
+.B #include <asm/prctl.h>
+.br
+.B #include <sys/prctl.h>
+.sp
+.BI "int arch_prctl(int " code ", unsigned long " addr );
+.BI "int arch_prctl(int " code ", unsigned long *" addr );
+.fi
+.SH DESCRIPTION
+The
+.BR arch_prctl ()
+function sets architecture-specific process or thread state.
+.I code
+selects a subfunction
+and passes argument
+.I addr
+to it;
+.I addr
+is interpreted as either an
+.I "unsigned long"
+for the "set" operations, or as an
+.IR "unsigned long\ *" ,
+for the "get" operations.
+.LP
+Subfunctions for x86-64 are:
+.TP
+.B ARCH_SET_FS
+Set the 64-bit base for the
+.I FS
+register to
+.IR addr .
+.TP
+.B ARCH_GET_FS
+Return the 64-bit base value for the
+.I FS
+register of the current thread in the
+.I unsigned long
+pointed to by
+.IR addr .
+.TP
+.B ARCH_SET_GS
+Set the 64-bit base for the
+.I GS
+register to
+.IR addr .
+.TP
+.B ARCH_GET_GS
+Return the 64-bit base value for the
+.I GS
+register of the current thread in the
+.I unsigned long
+pointed to by
+.IR addr .
+.SH RETURN VALUE
+On success,
+.BR arch_prctl ()
+returns 0; on error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EFAULT
+.I addr
+points to an unmapped address or is outside the process address space.
+.TP
+.B EINVAL
+.I code
+is not a valid subcommand.
+.TP
+.B EPERM
+.I addr
+is outside the process address space.
+.\" .SH AUTHOR
+.\" Man page written by Andi Kleen.
+.SH CONFORMING TO
+.BR arch_prctl ()
+is a Linux/x86-64 extension and should not be used in programs intended
+to be portable.
+.SH NOTES
+.BR arch_prctl ()
+is supported only on Linux/x86-64 for 64-bit programs currently.
+
+The 64-bit base changes when a new 32-bit segment selector is loaded.
+
+.B ARCH_SET_GS
+is disabled in some kernels.
+
+Context switches for 64-bit segment bases are rather expensive.
+As an optimization, if a 32-bit TLS base address is used,
+.BR arch_prctl (2)
+may use a real TLS entry as if
+.BR set_thread_area (2)
+had been called, instead of manipulating the segment base register directly.
+Memory in the first 2GB of address space can be allocated by using
+.BR mmap (2)
+with the
+.B MAP_32BIT
+flag.
+
+Because of the aforementioned optimization, using
+.BR arch_prctl (2)
+and
+.BR set_thread_area (2)
+in the same thread is dangerous, as they may overwrite each other's
+TLS entries.
+
+As of version 2.7, glibc provides no prototype for
+.BR arch_prctl ().
+You have to declare it yourself for now.
+This may be fixed in future glibc versions.
+
+.I FS
+may be already used by the threading library.
+Programs that use
+.B ARCH_SET_FS
+directly are very likely to crash.
+.SH SEE ALSO
+.BR mmap (2),
+.BR modify_ldt (2),
+.BR prctl (2),
+.BR set_thread_area (2)
+
+AMD X86-64 Programmer's manual

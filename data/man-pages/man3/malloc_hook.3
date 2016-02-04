@@ -1,0 +1,141 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" Heavily based on glibc documentation
+.\" Polished, added docs, removed glibc doc bug, 2002-07-20, aeb
+.\"
+.TH MALLOC_HOOK 3 2010-10-13 "GNU" "Linux Programmer's Manual"
+.SH NAME
+__malloc_hook, __malloc_initialize_hook,
+__memalign_hook, __free_hook, __realloc_hook,
+__after_morecore_hook \- malloc debugging variables
+.SH SYNOPSIS
+.nf
+.B "#include <malloc.h>"
+.sp
+.BI "void *(*__malloc_hook)(size_t " size ", const void *" caller );
+.sp
+.BI "void *(*__realloc_hook)(void *" ptr ", size_t " size \
+", const void *" caller );
+.sp
+.BI "void *(*__memalign_hook)(size_t " alignment ", size_t " size ,
+.BI "                         const void *" caller );
+.sp
+.BI "void (*__free_hook)(void *" ptr ", const void *" caller );
+.sp
+.B "void (*__malloc_initialize_hook)(void);"
+.sp
+.B "void (*__after_morecore_hook)(void);"
+.fi
+.SH DESCRIPTION
+The GNU C library lets you modify the behavior of
+.BR malloc (3),
+.BR realloc (3),
+and
+.BR free (3)
+by specifying appropriate hook functions.
+You can use these hooks
+to help you debug programs that use dynamic memory allocation,
+for example.
+.LP
+The variable
+.B __malloc_initialize_hook
+points at a function that is called once when the malloc implementation
+is initialized.
+This is a weak variable, so it can be overridden in
+the application with a definition like the following:
+.nf
+
+    void (*__malloc_initialize_hook)(void) = my_init_hook;
+
+.fi
+Now the function
+.IR my_init_hook ()
+can do the initialization of all hooks.
+.LP
+The four functions pointed to by
+.BR __malloc_hook ,
+.BR __realloc_hook ,
+.BR __memalign_hook ,
+.B __free_hook
+have a prototype like the functions
+.BR malloc (3),
+.BR realloc (3),
+.BR memalign (3),
+.BR free (3),
+respectively, except that they have a final argument
+.I caller
+that gives the address of the caller of
+.BR malloc (3),
+etc.
+.LP
+The variable
+.B __after_morecore_hook
+points at a function that is called each time after
+.BR sbrk (2)
+was asked for more memory.
+.SH CONFORMING TO
+These functions are GNU extensions.
+.SH NOTES
+The use of these hook functions is not safe in multithreaded programs,
+and they are now deprecated.
+.\" https://bugzilla.redhat.com/show_bug.cgi?id=450187
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=9957
+Programmers should instead preempt calls to the relevant functions
+by defining and exporting functions such as "malloc" and "free".
+.SH EXAMPLE
+Here is a short example of how to use these variables.
+.sp
+.nf
+#include <stdio.h>
+#include <malloc.h>
+
+/* Prototypes for our hooks.  */
+static void my_init_hook(void);
+static void *my_malloc_hook(size_t, const void *);
+
+/* Variables to save original hooks. */
+static void *(*old_malloc_hook)(size_t, const void *);
+
+/* Override initializing hook from the C library. */
+void (*__malloc_initialize_hook) (void) = my_init_hook;
+
+static void
+my_init_hook(void)
+{
+    old_malloc_hook = __malloc_hook;
+    __malloc_hook = my_malloc_hook;
+}
+
+static void *
+my_malloc_hook(size_t size, const void *caller)
+{
+    void *result;
+
+    /* Restore all old hooks */
+    __malloc_hook = old_malloc_hook;
+
+    /* Call recursively */
+    result = malloc(size);
+
+    /* Save underlying hooks */
+    old_malloc_hook = __malloc_hook;
+
+    /* printf() might call malloc(), so protect it too. */
+    printf("malloc(%u) called from %p returns %p\\n",
+            (unsigned int) size, caller, result);
+
+    /* Restore our own hooks */
+    __malloc_hook = my_malloc_hook;
+
+    return result;
+}
+.fi
+.SH SEE ALSO
+.BR mallinfo (3),
+.BR malloc (3),
+.BR mcheck (3),
+.BR mtrace (3)

@@ -1,0 +1,91 @@
+'\" t
+.\" Copyright (c) 2007 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SGETMASK 2  2014-12-31 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sgetmask, ssetmask \- manipulation of signal mask (obsolete)
+.SH SYNOPSIS
+.B "long sgetmask(void);"
+.sp
+.BI "long ssetmask(long " newmask );
+
+.IR Note :
+There are no glibc wrappers for these system calls; see NOTES.
+.SH DESCRIPTION
+These system calls are obsolete.
+.IR "Do not use them" ;
+use
+.BR sigprocmask (2)
+instead.
+
+.BR sgetmask ()
+returns the signal mask of the calling process.
+
+.BR ssetmask ()
+sets the signal mask of the calling process to the value given in
+.IR newmask .
+The previous signal mask is returned.
+
+The signal masks dealt with by these two system calls
+are plain bit masks (unlike the
+.I sigset_t
+used by
+.BR sigprocmask (2));
+use
+.BR sigmask (3)
+to create and inspect these masks.
+.SH RETURN VALUE
+.BR sgetmask ()
+always successfully returns the signal mask.
+.BR ssetmask ()
+always succeeds, and returns the previous signal mask.
+.SH ERRORS
+These system calls always succeed.
+.SH VERSIONS
+Since Linux 3.16,
+.\" f6187769dae48234f3877df3c4d99294cc2254fa
+support for these system calls is optional,
+depending on whether the kernel was built with the
+.B CONFIG_SGETMASK_SYSCALL
+option.
+.SH CONFORMING TO
+These system calls are Linux-specific.
+.SH NOTES
+Glibc does not provide wrappers for these obsolete system calls;
+in the unlikely event that you want to call them, use
+.BR syscall (2).
+
+These system calls are unaware of signal numbers greater than 31
+(i.e., real-time signals).
+
+These system calls do not exist on x86-64.
+
+It is not possible to block
+.B SIGSTOP
+or
+.BR SIGKILL .
+.SH SEE ALSO
+.BR sigprocmask (2),
+.BR signal (7)

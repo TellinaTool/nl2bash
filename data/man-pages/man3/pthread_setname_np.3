@@ -1,0 +1,219 @@
+.\" Copyright (C) 2012 Chandan Apsangi <chandan.jc@gmail.com>
+.\" and Copyright (C) 2013 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_SETNAME_NP 3 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_setname_np, pthread_getname_np \- set/get the name of a thread
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "             /* See feature_test_macros(7) */"
+.B #include <pthread.h>
+.BI "int pthread_setname_np(pthread_t " thread ", const char *" name ");
+.BI "int pthread_getname_np(pthread_t " thread ,
+.BI "                       char *" name ", size_t " len );
+.fi
+.sp
+Compile and link with \fI\-pthread\fP.
+.SH DESCRIPTION
+By default, all the threads created using
+.BR pthread_create ()
+inherit the program name.
+The
+.BR pthread_setname_np ()
+function can be used to set a unique name for a thread,
+which can be useful for debugging
+multithreaded applications.
+The thread name is a meaningful C language string, whose length is
+restricted to 16 characters, including the terminating null byte (\(aq\\0\(aq).
+The
+.I thread
+argument specifies the thread whose name is to be changed;
+.I name
+specifies the new name.
+
+The
+.BR pthread_getname_np ()
+function can be used to retrieve the name of the thread.
+The
+.I thread
+argument specifies the thread whose name is to be retrieved.
+The buffer
+.I name
+is used to return the thread name;
+.I len
+specifies the number of bytes available in
+.IR name .
+The buffer specified by
+.I name
+should be at least 16 characters in length.
+The returned thread name in the output buffer will be null terminated.
+.SH RETURN VALUE
+On success, these functions return 0;
+on error, they return a nonzero error number.
+.SH ERRORS
+The
+.BR pthread_setname_np ()
+function can fail with the following error:
+.TP
+.B ERANGE
+The length of the string specified pointed to by
+.I name
+exceeds the allowed limit.
+.PP
+The
+.BR pthread_getname_np ()
+function can fail with the following error:
+.TP
+.B ERANGE
+The buffer specified by
+.I name
+and
+.I len
+is too small to hold the thread name.
+.PP
+If either of these functions fails to open
+.IR /proc/self/task/[tid]/comm ,
+then the call may fail with one of the errors described in
+.BR open (2).
+.SH VERSIONS
+These functions first appeared in glibc in version 2.12.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw21 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_setname_np (),
+.BR pthread_getname_np ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+These functions are nonstandard GNU extensions.
+.SH NOTES
+.BR pthread_setname_np ()
+internally writes to the thread-specific
+.I comm
+file under the
+.IR /proc
+filesystem:
+.IR /proc/self/task/[tid]/comm .
+.BR pthread_getname_np ()
+retrieves it from the same location.
+.SH EXAMPLE
+.PP
+The program below demonstrates the use of
+.BR pthread_setname_np ()
+and
+.BR pthread_getname_np ().
+
+The following shell session shows a sample run of the program:
+.in +4n
+.nf
+
+.RB "$" " ./a.out"
+Created a thread. Default name is: a.out
+The thread name after setting it is THREADFOO.
+\fB^Z\fP                           # Suspend the program
+[1]+  Stopped           ./a.out
+.RB "$ " "ps H -C a.out -o 'pid tid cmd comm'"
+  PID   TID CMD                         COMMAND
+ 5990  5990 ./a.out                     a.out
+ 5990  5991 ./a.out                     THREADFOO
+.RB "$ " "cat /proc/5990/task/5990/comm"
+a.out
+.RB "$ " "cat /proc/5990/task/5991/comm"
+THREADFOO
+.fi
+.in
+.SS Program source
+\&
+.nf
+#define _GNU_SOURCE
+#include <pthread.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdlib.h>
+
+#define NAMELEN 16
+
+#define errExitEN(en, msg) \\
+            do { errno = en; perror(msg); exit(EXIT_FAILURE); \\
+        } while (0)
+
+static void *
+threadfunc(void *parm)
+{
+    sleep(5);          // allow main program to set the thread name
+    return NULL;
+}
+
+int
+main(int argc, char **argv)
+{
+    pthread_t thread;
+    int rc;
+    char thread_name[NAMELEN];
+
+    rc = pthread_create(&thread, NULL, threadfunc, NULL);
+    if (rc != 0)
+        errExitEN(rc, "pthread_create");
+
+    rc = pthread_getname_np(thread, thread_name, NAMELEN);
+    if (rc != 0)
+        errExitEN(rc, "pthread_getname_np");
+
+    printf("Created a thread. Default name is: %s\\n", thread_name);
+    rc = pthread_setname_np(thread, (argc > 1) ? argv[1] : "THREADFOO");
+    if (rc != 0)
+        errExitEN(rc, "pthread_setname_np");
+
+    sleep(2);
+
+    rc = pthread_getname_np(thread, thread_name,
+                            (argc > 2) ? atoi(argv[1]) : NAMELEN);
+    if (rc != 0)
+        errExitEN(rc, "pthread_getname_np");
+    printf("The thread name after setting it is %s.\\n", thread_name);
+
+    rc = pthread_join(thread, NULL);
+    if (rc != 0)
+        errExitEN(rc, "pthread_join");
+
+    printf("Done\\n");
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.ad l
+.nh
+.BR prctl (2),
+.BR pthread_create (3),
+.BR pthreads (7)

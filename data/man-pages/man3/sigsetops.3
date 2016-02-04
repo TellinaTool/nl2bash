@@ -1,0 +1,207 @@
+.\" Copyright (c) 1994 Mike Battersby
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by aeb, 960721
+.\" 2005-11-21, mtk, added descriptions of sigisemptyset(), sigandset(),
+.\"                  and sigorset()
+.\" 2007-10-26 mdw   added wording that a sigset_t must be initialized
+.\"                  prior to use
+.\"
+.TH SIGSETOPS 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sigemptyset, sigfillset, sigaddset, sigdelset, sigismember \- POSIX
+signal set operations
+.SH SYNOPSIS
+.B #include <signal.h>
+.sp
+.BI "int sigemptyset(sigset_t *" set );
+.sp
+.BI "int sigfillset(sigset_t *" set );
+.sp
+.BI "int sigaddset(sigset_t *" set ", int " signum );
+.sp
+.BI "int sigdelset(sigset_t *" set ", int " signum );
+.sp
+.BI "int sigismember(const sigset_t *" set ", int " signum );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR sigemptyset (),
+.BR sigfillset (),
+.BR sigaddset (),
+.BR sigdelset (),
+.BR sigismember ():
+.RS 4
+_POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+These functions allow the manipulation of POSIX signal sets.
+.PP
+.BR sigemptyset ()
+initializes the signal set given by
+.I set
+to empty, with all signals excluded from the set.
+.PP
+.BR sigfillset ()
+initializes
+.I set
+to full, including all signals.
+.PP
+.BR sigaddset ()
+and
+.BR sigdelset ()
+add and delete respectively signal
+.I signum
+from
+.IR set .
+.PP
+.BR sigismember ()
+tests whether
+.I signum
+is a member of
+.IR set .
+.PP
+Objects of type
+.I sigset_t
+must be initialized by a call to either
+.BR sigemptyset ()
+or
+.BR sigfillset ()
+before being passed to the functions
+.BR sigaddset (),
+.BR sigdelset ()
+and
+.BR sigismember ()
+or the additional glibc functions described below
+.RB ( sigisemptyset (),
+.BR sigandset (),
+and
+.BR sigorset ()).
+The results are undefined if this is not done.
+.SH RETURN VALUE
+.BR sigemptyset (),
+.BR sigfillset (),
+.BR sigaddset (),
+and
+.BR sigdelset ()
+return 0 on success and \-1 on error.
+.PP
+.BR sigismember ()
+returns 1 if
+.I signum
+is a member of
+.IR set ,
+0 if
+.I signum
+is not a member, and \-1 on error.
+
+On error, these functions set
+.I errno
+to indicate the cause of the error.
+.SH ERRORS
+.TP
+.B EINVAL
+.I sig
+is not a valid signal.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw31 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR sigemptyset (),
+.BR sigfillset (),
+.br
+.BR sigaddset (),
+.BR sigdelset (),
+.br
+.BR sigismember (),
+.BR sigisemptyset (),
+.br
+.BR sigorset (),
+.BR sigandset ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+When creating a filled signal set, the glibc
+.BR sigfillset ()
+function does not include the two real-time signals used internally
+by the NPTL threading implementation.
+See
+.BR nptl (7)
+for details.
+.\"
+.SS Glibc extensions
+If the
+.B _GNU_SOURCE
+feature test macro is defined, then \fI<signal.h>\fP
+exposes three other functions for manipulating signal
+sets:
+
+.nf
+.BI "int sigisemptyset(const sigset_t *" set );
+.BI "int sigorset(sigset_t *" dest ", const sigset_t *" left ,
+.BI "              const sigset_t *" right );
+.BI "int sigandset(sigset_t *" dest ", const sigset_t *" left ,
+.BI "              const sigset_t *" right );
+.fi
+
+.BR sigisemptyset ()
+returns 1 if
+.I set
+contains no signals, and 0 otherwise.
+
+.BR sigorset ()
+places the union of the sets
+.I left
+and
+.I right
+in
+.IR dest .
+.BR sigandset ()
+places the intersection of the sets
+.I left
+and
+.I right
+in
+.IR dest .
+Both functions return 0 on success, and \-1 on failure.
+.PP
+These functions are nonstandard (a few other systems provide similar
+functions) and their use should be avoided in portable applications.
+.SH SEE ALSO
+.BR sigaction (2),
+.BR sigpending (2),
+.BR sigprocmask (2),
+.BR sigsuspend (2)

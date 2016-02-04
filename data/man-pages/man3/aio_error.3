@@ -1,0 +1,107 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH AIO_ERROR 3 2015-03-02  "" "Linux Programmer's Manual"
+.SH NAME
+aio_error \- get error status of asynchronous I/O operation
+.SH SYNOPSIS
+.B "#include <aio.h>"
+.sp
+.BI "int aio_error(const struct aiocb *" aiocbp );
+.sp
+Link with \fI\-lrt\fP.
+.SH DESCRIPTION
+The
+.BR aio_error ()
+function returns the error status for the asynchronous I/O request
+with control block pointed to by
+.IR aiocbp .
+(See
+.BR aio (7)
+for a description of the
+.I aiocb
+structure.)
+.SH RETURN VALUE
+This function returns one of the following:
+.IP * 3
+.BR EINPROGRESS ,
+if the request has not been
+completed yet.
+.IP *
+.BR ECANCELED ,
+if the request was canceled.
+.IP *
+0, if the request completed successfully.
+.IP *
+A positive error number, if the asynchronous I/O operation failed.
+This is the same value that would have been stored in the
+.I errno
+variable in the case of a synchronous
+.BR read (2),
+.BR write (2),
+.BR fsync (2),
+or
+.BR fdatasync (2)
+call.
+.SH ERRORS
+.TP
+.B EINVAL
+.I aiocbp
+does not point at a control block for an asynchronous I/O request
+of which the return status (see
+.BR aio_return (3))
+has not been retrieved yet.
+.TP
+.B ENOSYS
+.BR aio_error ()
+is not implemented.
+.SH VERSIONS
+The
+.BR aio_error ()
+function is available since glibc 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR aio_error ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH EXAMPLE
+See
+.BR aio (7).
+.SH SEE ALSO
+.BR aio_cancel (3),
+.BR aio_fsync (3),
+.BR aio_read (3),
+.BR aio_return (3),
+.BR aio_suspend (3),
+.BR aio_write (3),
+.BR lio_listio (3),
+.BR aio (7)

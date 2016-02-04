@@ -1,0 +1,114 @@
+.\" Copyright 2001 John Levon <moz@compsoc.man.ac.uk>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Additions, aeb, 2001-10-17.
+.TH CLEARENV 3  2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+clearenv \- clear the environment
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.B "int clearenv(void);"
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR clearenv ():
+_SVID_SOURCE || _BSD_SOURCE
+.SH DESCRIPTION
+The
+.BR clearenv ()
+function clears the environment of all name-value
+pairs and sets the value of the external variable
+.I environ
+to NULL.
+.SH RETURN VALUE
+The
+.BR clearenv ()
+function returns zero on success, and a nonzero
+value on failure.
+.\" Most versions of UNIX return -1 on error, or do not even have errors.
+.\" Glibc info and the Watcom C library document "a nonzero value".
+.SH VERSIONS
+Available since glibc 2.0.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR clearenv ()
+T}	Thread safety	MT-Unsafe const:env
+.TE
+
+.SH CONFORMING TO
+Various UNIX variants (DG/UX, HP-UX, QNX, ...).
+POSIX.9 (bindings for FORTRAN77).
+POSIX.1-1996 did not accept
+.BR clearenv ()
+and
+.BR putenv (3),
+but changed its mind and scheduled these functions for some
+later issue of this standard (cf. B.4.6.1).
+However, POSIX.1-2001
+adds only
+.BR putenv (3),
+and rejected
+.BR clearenv ().
+.SH NOTES
+Used in security-conscious applications.
+If it is unavailable
+the assignment
+.nf
+
+    environ = NULL;
+
+.fi
+will probably do.
+.LP
+The DG/UX and Tru64 man pages write: If
+.I environ
+has been modified by anything other than the
+.BR putenv (3),
+.BR getenv (3),
+or
+.BR clearenv ()
+functions, then
+.BR clearenv ()
+will return an error and the process environment will remain unchanged.
+.\" .LP
+.\" HP-UX has a ENOMEM error return.
+.SH SEE ALSO
+.BR getenv (3),
+.BR putenv (3),
+.BR setenv (3),
+.BR unsetenv (3),
+.BR environ (7)

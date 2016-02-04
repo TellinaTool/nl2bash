@@ -1,0 +1,93 @@
+.\" This manpage copyright 1998 by Andi Kleen.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Subject to the GPL.
+.\" %%%LICENSE_END
+.\"
+.\" Based on the original comments from Alexey Kuznetsov
+.\" $Id: netlink.3,v 1.1 1999/05/14 17:17:24 freitag Exp $
+.\"
+.TH NETLINK 3 2014-03-20 "GNU" "Linux Programmer's Manual"
+.SH NAME
+netlink \- Netlink macros
+.SH SYNOPSIS
+.nf
+.B #include <asm/types.h>
+.br
+.B #include <linux/netlink.h>
+.sp
+.BI "int NLMSG_ALIGN(size_t " len );
+.br
+.BI "int NLMSG_LENGTH(size_t " len );
+.br
+.BI "int NLMSG_SPACE(size_t " len );
+.br
+.BI "void *NLMSG_DATA(struct nlmsghdr *" nlh );
+.br
+.BI "struct nlmsghdr *NLMSG_NEXT(struct nlmsghdr *" nlh ", int " len );
+.br
+.BI "int NLMSG_OK(struct nlmsghdr *" nlh ", int " len );
+.br
+.BI "int NLMSG_PAYLOAD(struct nlmsghdr *" nlh ", int " len );
+.fi
+.SH DESCRIPTION
+.I <linux/netlink.h>
+defines several standard macros to access or create a netlink datagram.
+They are similar in spirit to the macros defined in
+.BR cmsg (3)
+for auxiliary data.
+The buffer passed to and from a netlink socket should
+be accessed using only these macros.
+.TP
+.BR NLMSG_ALIGN ()
+Round the length of a netlink message up to align it properly.
+.TP
+.BR NLMSG_LENGTH ()
+Given the payload length,
+.IR len ,
+this macro returns the aligned length to store in the
+.I nlmsg_len
+field of the
+.IR nlmsghdr .
+.TP
+.BR NLMSG_SPACE ()
+Return the number of bytes that a netlink message with payload of
+.I len
+would occupy.
+.TP
+.BR NLMSG_DATA ()
+Return a pointer to the payload associated with the passed
+.IR nlmsghdr .
+.TP
+.\" this is bizarre, maybe the interface should be fixed.
+.BR NLMSG_NEXT ()
+Get the next
+.I nlmsghdr
+in a multipart message.
+The caller must check if the current
+.I nlmsghdr
+didn't have the
+.B NLMSG_DONE
+set\(emthis function doesn't return NULL on end.
+The
+.I len
+argument is an lvalue containing the remaining length
+of the message buffer.
+This macro decrements it by the length of the message header.
+.TP
+.BR NLMSG_OK ()
+Return true if the netlink message is not truncated and
+is in a form suitable for parsing.
+.TP
+.BR NLMSG_PAYLOAD ()
+Return the length of the payload associated with the
+.IR nlmsghdr .
+.SH CONFORMING TO
+These macros are nonstandard Linux extensions.
+.SH NOTES
+It is often better to use netlink via
+.I libnetlink
+than via the low-level kernel interface.
+.SH SEE ALSO
+.BR libnetlink (3),
+.BR netlink (7)

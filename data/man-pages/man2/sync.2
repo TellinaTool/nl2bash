@@ -1,0 +1,123 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\" and Copyright (c) 2011 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified Sat Jul 24 12:02:47 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 15 Apr 1995 by Michael Chastain <mec@shell.portal.com>:
+.\"   Added reference to `bdflush(2)'.
+.\" Modified 960414 by Andries Brouwer <aeb@cwi.nl>:
+.\"   Added the fact that since 1.3.20 sync actually waits.
+.\" Modified Tue Oct 22 22:27:07 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2001-10-10 by aeb, following Michael Kerrisk.
+.\" 2011-09-07, mtk, Added syncfs() documentation,
+.\"
+.TH SYNC 2 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sync, syncfs \- commit buffer cache to disk
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.B void sync(void);
+.sp
+.BI "int syncfs(int " fd );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR sync ():
+.ad l
+.RS 4
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.ad
+.sp
+.BR syncfs ():
+.ad l
+.RS 4
+_GNU_SOURCE
+.RE
+.ad
+.SH DESCRIPTION
+.BR sync ()
+causes all buffered modifications to file metadata and data to be
+written to the underlying filesystems.
+
+.BR syncfs ()
+is like
+.BR sync (),
+but synchronizes just the filesystem containing file
+referred to by the open file descriptor
+.IR fd .
+.SH RETURN VALUE
+.BR syncfs ()
+returns 0 on success;
+on error, it returns \-1 and sets
+.I errno
+to indicate the error.
+.SH ERRORS
+.BR sync ()
+is always successful.
+
+.BR syncfs ()
+can fail for at least the following reason:
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor.
+.SH VERSIONS
+.BR syncfs ()
+first appeared in Linux 2.6.39;
+library support was added to glibc in version 2.14.
+.SH CONFORMING TO
+.BR sync ():
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+
+.BR syncfs ()
+is Linux-specific.
+.SH NOTES
+Since glibc 2.2.2, the Linux prototype for
+.BR sync ()
+is as listed above,
+following the various standards.
+In glibc 2.2.1 and earlier,
+it was "int sync(void)", and
+.BR sync ()
+always returned 0.
+.SH BUGS
+According to the standard specification (e.g., POSIX.1-2001),
+.BR sync ()
+schedules the writes, but may return before the actual
+writing is done.
+However, since version 1.3.20 Linux does actually wait.
+(This still does not guarantee data integrity: modern disks have
+large caches.)
+.SH SEE ALSO
+.BR bdflush (2),
+.BR fdatasync (2),
+.BR fsync (2),
+.BR sync (1)

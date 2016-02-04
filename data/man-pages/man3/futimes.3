@@ -1,0 +1,112 @@
+.\" Copyright (c) 2006, 2008, Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH FUTIMES 3 2015-03-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+futimes, lutimes \- change file timestamps
+.SH SYNOPSIS
+.nf
+.B #include <sys/time.h>
+
+.BI "int futimes(int " fd ", const struct timeval " tv [2]);
+
+.BI "int lutimes(const char *" filename ", const struct timeval " tv [2]);
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR futimes (),
+.BR lutimes ():
+_BSD_SOURCE
+.SH DESCRIPTION
+.BR futimes ()
+changes the access and modification times of a file in the same way as
+.BR utimes (2),
+with the difference that the file whose timestamps are to be changed
+is specified via a file descriptor,
+.IR fd ,
+rather than via a pathname.
+
+.BR lutimes ()
+changes the access and modification times of a file in the same way as
+.BR utimes (2),
+with the difference that if
+.I filename
+refers to a symbolic link, then the link is not dereferenced:
+instead, the timestamps of the symbolic link are changed.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+Errors are as for
+.BR utimes (2),
+with the following additions for
+.BR futimes ():
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor.
+.TP
+.B ENOSYS
+The
+.I /proc
+filesystem could not be accessed.
+.PP
+The following additional error may occur for
+.BR lutimes ():
+.TP
+.B ENOSYS
+The kernel does not support this call; Linux 2.6.22 or later is required.
+.SH VERSIONS
+.BR futimes ()
+is available since glibc 2.3.
+.BR lutimes ()
+is available since glibc 2.6, and is implemented using the
+.BR utimensat (2)
+system call, which is supported since kernel 2.6.22.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw20 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR futimes (),
+.BR lutimes ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+These functions are not specified in any standard.
+Other than Linux, they are available only on the BSDs.
+.SH SEE ALSO
+.BR utime (2),
+.BR utimensat (2),
+.BR symlink (7)

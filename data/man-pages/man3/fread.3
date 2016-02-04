@@ -1,0 +1,121 @@
+.\" Copyright (c) 1990, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" This code is derived from software contributed to Berkeley by
+.\" Chris Torek and the American National Standards Committee X3,
+.\" on Information Processing Systems.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)fread.3	6.6 (Berkeley) 6/29/91
+.\"
+.\" Converted for Linux, Mon Nov 29 15:37:33 1993, faith@cs.unc.edu
+.\" Sun Feb 19 21:26:54 1995 by faith, return values
+.\" Modified Thu Apr 20 20:43:53 1995 by Jim Van Zandt <jrv@vanzandt.mv.com>
+.\" Modified Fri May 17 10:21:51 1996 by Martin Schulze <joey@infodrom.north.de>
+.\"
+.TH FREAD 3  2015-07-23 "GNU" "Linux Programmer's Manual"
+.SH NAME
+fread, fwrite \- binary stream input/output
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.sp
+.BI "size_t fread(void *" ptr ", size_t " size ", size_t " nmemb \
+", FILE *" stream );
+.sp
+.BI "size_t fwrite(const void *" ptr ", size_t " size ", size_t " nmemb ,
+.BI "              FILE *" stream );
+.fi
+.SH DESCRIPTION
+The function
+.BR fread ()
+reads
+.I nmemb
+items of data, each
+.I size
+bytes long, from the stream pointed to by
+.IR stream ,
+storing them at the location given by
+.IR ptr .
+.PP
+The function
+.BR fwrite ()
+writes
+.I nmemb
+items of data, each
+.I size
+bytes long, to the stream pointed to by
+.IR stream ,
+obtaining them from the location given by
+.IR ptr .
+.PP
+For nonlocking counterparts, see
+.BR unlocked_stdio (3).
+.SH RETURN VALUE
+On success,
+.BR fread ()
+and
+.BR fwrite ()
+return the number of items read or written.
+This number equals the number of bytes transferred only when
+.I size
+is 1.
+If an error occurs, or the end of the file is reached,
+the return value is a short item count (or zero).
+.PP
+.BR fread ()
+does not distinguish between end-of-file and error, and callers must use
+.BR feof (3)
+and
+.BR ferror (3)
+to determine which occurred.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw17 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR fread (),
+.BR fwrite ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89.
+.SH SEE ALSO
+.BR read (2),
+.BR write (2),
+.BR feof (3),
+.BR ferror (3),
+.BR unlocked_stdio (3)

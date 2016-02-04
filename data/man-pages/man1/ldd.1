@@ -1,0 +1,112 @@
+.\" Copyright 1995-2000 David Engel (david@ods.com)
+.\" Copyright 1995 Rickard E. Faith (faith@cs.unc.edu)
+.\" Copyright 2000 Ben Collins (bcollins@debian.org)
+.\"    Redone for GLibc 2.2
+.\" Copyright 2000 Jakub Jelinek (jakub@redhat.com)
+.\"    Corrected.
+.\" Most of this was copied from the README file.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Do not restrict distribution.
+.\" May be distributed under the GNU General Public License
+.\" %%%LICENSE_END
+.\"
+.TH LDD 1 2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+ldd \- print shared object dependencies
+.SH SYNOPSIS
+.BR ldd " [\fIoption\fP]... \fIfile\fP..."
+.SH DESCRIPTION
+.B ldd
+prints the shared objects (shared libraries) required by each program or
+shared object specified on the command line.
+.SS Security
+In the usual case,
+.B ldd
+invokes the standard dynamic linker (see
+.BR ld.so (8))
+with the
+.B LD_TRACE_LOADED_OBJECTS
+environment variable set to 1,
+which causes the linker to display the library dependencies.
+Be aware,
+however,
+that in some circumstances, some versions of
+.BR ldd
+may attempt to obtain the dependency information
+by directly executing the program.
+.\" Mainline glibc's ldd allows this possibility (the line
+.\"      try_trace "$file"
+.\" in glibc 2.15, for example), but many distro versions of
+.\" ldd seem to remove that code path from the script.
+Thus, you should
+.I never
+employ
+.B ldd
+on an untrusted executable,
+since this may result in the execution of arbitrary code.
+A safer alternative when dealing with untrusted executables is:
+
+    $ objdump \-p /path/to/program | grep NEEDED
+.SH OPTIONS
+.TP
+.B \-\-version
+Print the version number of
+.BR ldd .
+.TP
+.BR \-v ", " \-\-verbose
+Print all information, including, for example,
+symbol versioning information.
+.TP
+.BR \-u ", " \-\-unused
+Print unused direct dependencies.
+(Since glibc 2.3.4.)
+.TP
+.BR \-d ", " \-\-data\-relocs
+Perform relocations and report any missing objects (ELF only).
+.TP
+.BR \-r ", " \-\-function\-relocs
+Perform relocations for both data objects and functions, and
+report any missing objects or functions (ELF only).
+.TP
+.B \-\-help
+Usage information.
+.\" .SH NOTES
+.\" The standard version of
+.\" .B ldd
+.\" comes with glibc2.
+.\" Libc5 came with an older version, still present
+.\" on some systems.
+.\" The long options are not supported by the libc5 version.
+.\" On the other hand, the glibc2 version does not support
+.\" .B \-V
+.\" and only has the equivalent
+.\" .BR \-\-version .
+.\" .LP
+.\" The libc5 version of this program will use the name of a library given
+.\" on the command line as-is when it contains a \(aq/\(aq; otherwise it
+.\" searches for the library in the standard locations.
+.\" To run it
+.\" on a shared library in the current directory, prefix the name with "./".
+.SH BUGS
+.B ldd
+does not work on a.out shared libraries.
+.PP
+.B ldd
+does not work with some extremely old a.out programs which were
+built before
+.B ldd
+support was added to the compiler releases.
+If you use
+.B ldd
+on one of these programs, the program will attempt to run with
+.I argc
+= 0 and the results will be unpredictable.
+.\" .SH AUTHOR
+.\" David Engel.
+.\" Roland McGrath and Ulrich Drepper.
+.SH SEE ALSO
+.BR pldd (1),
+.BR sprof (1),
+.BR ld.so (8),
+.BR ldconfig (8)

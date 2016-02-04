@@ -1,0 +1,96 @@
+.\"  Copyright 2002 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.TH GETTTYENT 3 2015-03-02  "GNU" "Linux Programmer's Manual"
+.SH NAME
+getttyent, getttynam, setttyent, endttyent \- get ttys file entry
+.SH SYNOPSIS
+.B "#include <ttyent.h>"
+.sp
+.B "struct ttyent *getttyent(void);"
+.sp
+.BI "struct ttyent *getttynam(const char *" name );
+.sp
+.B "int setttyent(void);"
+.sp
+.B "int endttyent(void);"
+.SH DESCRIPTION
+These functions provide an interface to the file
+.B _PATH_TTYS
+(e.g.,
+.IR /etc/ttys ).
+
+The function
+.BR setttyent ()
+opens the file or rewinds it if already open.
+
+The function
+.BR endttyent ()
+closes the file.
+
+The function
+.BR getttynam ()
+searches for a given terminal name in the file.
+It returns a pointer to a
+.I ttyent
+structure (description below).
+
+The function
+.BR getttyent ()
+opens the file
+.B _PATH_TTYS
+(if necessary) and returns the first entry.
+If the file is already open, the next entry.
+The
+.I ttyent
+structure has the form:
+.in +4n
+.nf
+
+struct ttyent {
+    char *ty_name;     /* terminal device name */
+    char *ty_getty;    /* command to execute, usually getty */
+    char *ty_type;     /* terminal type for termcap */
+    int   ty_status;   /* status flags */
+    char *ty_window;   /* command to start up window manager */
+    char *ty_comment;  /* comment field */
+};
+.fi
+.in
+
+.I ty_status
+can be:
+.br
+.nf
+
+#define TTY_ON     0x01  /* enable logins (start ty_getty program) */
+#define TTY_SECURE 0x02  /* allow UID 0 to login */
+.fi
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw25 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getttyent (),
+.BR setttyent (),
+.BR endttyent (),
+.BR getttynam ()
+T}	Thread safety	MT-Unsafe race:ttyent
+.TE
+.SH CONFORMING TO
+Not in POSIX.1.
+Present on the BSDs, and perhaps other systems.
+.SH NOTES
+Under Linux, the file
+.IR /etc/ttys ,
+and the functions described above, are not used.
+.SH SEE ALSO
+.BR ttyname (3),
+.BR ttyslot (3)

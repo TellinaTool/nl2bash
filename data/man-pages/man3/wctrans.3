@@ -1,0 +1,84 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WCTRANS 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wctrans \- wide-character translation mapping
+.SH SYNOPSIS
+.nf
+.B #include <wctype.h>
+.sp
+.BI "wctrans_t wctrans(const char *" name );
+.fi
+.SH DESCRIPTION
+The
+.I wctrans_t
+type represents a mapping
+which can map a wide character to
+another wide character.
+Its nature is implementation-dependent, but the special
+value
+.IR "(wctrans_t)\ 0"
+denotes an invalid mapping.
+Nonzero
+.I wctrans_t
+values can be passed to the
+.BR towctrans (3)
+function to actually perform
+the wide-character mapping.
+.PP
+The
+.BR wctrans ()
+function returns a mapping, given by its name.
+The set of
+valid names depends on the
+.B LC_CTYPE
+category of the current locale, but the
+following names are valid in all locales.
+.nf
+  "tolower" \- realizes the \fBtolower\fP(3) mapping
+  "toupper" \- realizes the \fBtoupper\fP(3) mapping
+.fi
+.SH RETURN VALUE
+The
+.BR wctrans ()
+function returns a mapping descriptor if the
+.I name
+is valid.
+Otherwise, it returns
+.IR "(wctrans_t)\ 0" .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wctrans ()
+T}	Thread safety	MT-Safe locale
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR wctrans ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.SH SEE ALSO
+.BR towctrans (3)

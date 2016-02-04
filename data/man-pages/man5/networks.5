@@ -1,0 +1,79 @@
+.\" Copyright (c) 2001 Martin Schulze <joey@infodrom.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2008-09-04, mtk, taken from Debian downstream, with a few light edits
+.\"
+.TH NETWORKS 5 2008-09-04 "GNU/Linux" "Linux System Administration"
+.SH NAME
+networks \- network name information
+.SH DESCRIPTION
+The file
+.I /etc/networks
+is a plain ASCII file that describes known DARPA networks and symbolic
+names for these networks.
+Each line represents a network and has the following structure:
+
+.RS
+.I name number aliases ...
+.RE
+
+where the fields are delimited by spaces or tabs.
+Empty lines are ignored.
+The hash character (\fB#\fP) indicates the start of a comment:
+this character, and the remaining characters up to
+the end of the current line,
+are ignored by library functions that process the file.
+
+The field descriptions are:
+.TP
+.I name
+The symbolic name for the network.
+Network names can contain any printable characters except
+white-space characters or the comment character.
+.TP
+.I number
+The official number for this network in numbers-and-dots notation (see
+.BR inet (3)).
+The trailing ".0" (for the host component of the network address) may be omitted.
+.TP
+.I aliases
+Optional aliases for the network.
+.LP
+
+This file is read by the
+.BR route (8)
+and
+.BR netstat (8)
+utilities.
+Only Class A, B or C networks are supported, partitioned networks
+(i.e., network/26 or network/28) are not supported by this facility.
+.SH FILES
+.TP
+.I /etc/networks
+The networks definition file.
+.SH SEE ALSO
+.BR getnetbyaddr (3),
+.BR getnetbyname (3),
+.BR getnetent (3),
+.BR netstat (8),
+.BR route (8)

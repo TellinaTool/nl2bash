@@ -1,0 +1,151 @@
+.\" Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"	<mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH GETRPCENT_R 3  2015-07-23 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getrpcent_r, getrpcbyname_r, getrpcbynumber_r \- get
+RPC entry (reentrant)
+.SH SYNOPSIS
+.nf
+.B #include <netdb.h>
+.sp
+.BI "int getrpcent_r(struct rpcent *" result_buf ", char *" buf ,
+.BI "                size_t " buflen ", struct rpcent **" result );
+.sp
+.BI "int getrpcbyname_r(const char *" name ,
+.BI "                struct rpcent *" result_buf ", char *" buf ,
+.BI "                size_t " buflen ", struct rpcent **" result );
+.sp
+.BI "int getrpcbynumber_r(int " number ,
+.BI "                struct rpcent *" result_buf ", char *" buf ,
+.BI "                size_t " buflen ", struct rpcent **" result );
+.sp
+.fi
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.ad l
+.in
+.sp
+.BR getrpcent_r (),
+.BR getrpcbyname_r (),
+.BR getrpcbynumber_r ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR getrpcent_r (),
+.BR getrpcbyname_r (),
+and
+.BR getrpcbynumber_r ()
+functions are the reentrant equivalents of, respectively,
+.BR getrpcent (3),
+.BR getrpcbyname (3),
+and
+.BR getrpcbynumber (3).
+They differ in the way that the
+.I rpcent
+structure is returned,
+and in the function calling signature and return value.
+This manual page describes just the differences from
+the nonreentrant functions.
+
+Instead of returning a pointer to a statically allocated
+.I rpcent
+structure as the function result,
+these functions copy the structure into the location pointed to by
+.IR result_buf .
+
+The
+.I buf
+array is used to store the string fields pointed to by the returned
+.I rpcent
+structure.
+(The nonreentrant functions allocate these strings in static storage.)
+The size of this array is specified in
+.IR buflen .
+If
+.I buf
+is too small, the call fails with the error
+.BR ERANGE ,
+and the caller must try again with a larger buffer.
+(A buffer of length 1024 bytes should be sufficient for most applications.)
+.\" I can find no information on the required/recommended buffer size;
+.\" the nonreentrant functions use a 1024 byte buffer -- mtk.
+
+If the function call successfully obtains an RPC record, then
+.I *result
+is set pointing to
+.IR result_buf ;
+otherwise,
+.I *result
+is set to NULL.
+.SH RETURN VALUE
+On success, these functions return 0.
+On error, they return one of the positive error numbers listed in ERRORS.
+
+On error, record not found
+.RB ( getrpcbyname_r (),
+.BR getrpcbynumber_r ()),
+or end of input
+.RB ( getrpcent_r ())
+.I result
+is set to NULL.
+.SH ERRORS
+.TP
+.B ENOENT
+.RB ( getrpcent_r ())
+No more records in database.
+.TP
+.B ERANGE
+.I buf
+is too small.
+Try again with a larger buffer
+(and increased
+.IR buflen ).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw19 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getrpcent_r (),
+.BR getrpcbyname_r (),
+.BR getrpcbynumber_r ()
+T}	Thread safety	MT-Safe locale
+.TE
+
+.SH CONFORMING TO
+These functions are GNU extensions.
+Functions with similar names exist on some other systems,
+though typically with different calling signatures.
+.SH SEE ALSO
+.BR getrpcent (3),
+.BR rpc (5)

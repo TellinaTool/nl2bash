@@ -1,0 +1,455 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de)
+.\" and copyright (c) 1999 Andries Brouwer (aeb@cwi.nl)
+.\" and copyright (c) 2006 Justin Pryzby <justinpryzby@users.sf.net>
+.\" and copyright (c) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sun Jul 25 11:02:22 1993 by Rik Faith (faith@cs.unc.edu)
+.\" 2006-05-24, Justin Pryzby <justinpryzby@users.sf.net>
+.\"  	document FTW_ACTIONRETVAL; include .SH RETURN VALUE;
+.\" 2006-05-24, Justin Pryzby <justinpryzby@users.sf.net> and
+.\"	Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 	reorganized and rewrote much of the page
+.\" 2006-05-24, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added an example program.
+.\"
+.TH FTW 3 2015-04-19 "Linux" "Linux Programmer's Manual"
+.SH NAME
+ftw, nftw \- file tree walk
+.SH SYNOPSIS
+.nf
+.B #include <ftw.h>
+
+.BI "int nftw(const char *" dirpath ,
+.BI "        int (*" fn ") (const char *" fpath ", const struct stat *" sb ,
+.BI "                   int " typeflag ", struct FTW *" ftwbuf ),
+.BI "        int " nopenfd ", int " flags );
+
+.B #include <ftw.h>
+
+.BI "int ftw(const char *" dirpath ,
+.BI "        int (*" fn ") (const char *" fpath ", const struct stat *" sb ,
+.BI "                   int " typeflag ),
+.BI "        int " nopenfd );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR nftw ():
+_XOPEN_SOURCE >= 500
+.SH DESCRIPTION
+.BR nftw ()
+walks through the directory tree that is
+located under the directory \fIdirpath\fP,
+and calls \fIfn\fP() once for each entry in the tree.
+By default, directories are handled before the files and
+subdirectories they contain (preorder traversal).
+
+To avoid using up all of the calling process's file descriptors,
+\fInopenfd\fP specifies the maximum number of directories that
+.BR nftw ()
+will hold open simultaneously.
+When
+the search depth exceeds this,
+.BR nftw ()
+will become slower because
+directories have to be closed and reopened.
+.BR nftw ()
+uses at most
+one file descriptor for each level in the directory tree.
+
+For each entry found in the tree,
+.BR nftw ()
+calls
+\fIfn\fP() with four arguments:
+.IR fpath ,
+.IR sb ,
+.IR typeflag ,
+and
+.IR ftwbuf .
+.I fpath
+is the pathname of the entry,
+and is expressed either as a pathname relative to the calling process's
+current working directory at the time of the call to
+.BR nftw (),
+if
+.IR dirpath
+was expressed as a relative pathname,
+or as an absolute pathname, if
+.I dirpath
+was expressed as an absolute pathname.
+.I sb
+is a pointer to the
+.I stat
+structure returned by a call to
+.BR stat (2)
+for
+.IR fpath .
+.I typeflag
+is an integer that has one of the following values:
+.TP
+.B FTW_F
+.I fpath
+is a regular file.
+.TP
+.B FTW_D
+.I fpath
+is a directory.
+.TP
+.B FTW_DNR
+.I fpath
+is a directory which can't be read.
+.TP
+.B FTW_DP
+.I fpath
+is a directory, and \fBFTW_DEPTH\fP was specified in \fIflags\fP.
+(If
+.B FTW_DEPTH
+was not specified in
+.IR flags ,
+then directories will always be visited with
+.I typeflag
+set to
+.BR FTW_D .)
+All of the files
+and subdirectories within \fIfpath\fP have been processed.
+.TP
+.B FTW_NS
+The
+.BR stat (2)
+call failed on
+.IR fpath ,
+which is not a symbolic link.
+The probable cause for this is that the caller had read permission
+on the parent directory, so that the filename
+.I fpath
+could be seen,
+but did not have execute permission,
+so that the file could not be reached for
+.BR stat (2).
+.TP
+.B FTW_SL
+.I fpath
+is a symbolic link, and \fBFTW_PHYS\fP was set in \fIflags\fP.
+.\" To obtain the definition of this constant from
+.\" .IR <ftw.h> ,
+.\" either
+.\" .B _BSD_SOURCE
+.\" must be defined, or
+.\" .BR _XOPEN_SOURCE
+.\" must be defined with a value of 500 or more.
+.TP
+.B FTW_SLN
+.I fpath
+is a symbolic link pointing to a nonexistent file.
+(This occurs only if \fBFTW_PHYS\fP is not set.)
+.PP
+The fourth argument that
+.BR nftw ()
+supplies when calling
+\fIfn\fP()
+is a structure of type \fIFTW\fP:
+.in +4n
+.nf
+
+struct FTW {
+    int base;
+    int level;
+};
+
+.fi
+.in
+.I base
+is the offset of the filename (i.e., basename component)
+in the pathname given in
+.IR fpath .
+.I level
+is the depth of
+.I fpath
+in the directory tree, relative to the root of the tree
+.RI ( dirpath ,
+which has depth 0).
+.PP
+To stop the tree walk, \fIfn\fP() returns a nonzero value; this
+value will become the return value of
+.BR nftw ().
+As long as \fIfn\fP() returns 0,
+.BR nftw ()
+will continue either until it has traversed the entire tree,
+in which case it will return zero,
+or until it encounters an error (such as a
+.BR malloc (3)
+failure), in which case it will return \-1.
+.PP
+Because
+.BR nftw ()
+uses dynamic data structures, the only safe way to
+exit out of a tree walk is to return a nonzero value from \fIfn\fP().
+To allow a signal to terminate the walk without causing a memory leak,
+have the handler set a global flag that is checked by \fIfn\fP().
+\fIDon't\fP use
+.BR longjmp (3)
+unless the program is going to terminate.
+
+The \fIflags\fP argument of
+.BR nftw ()
+is formed by ORing zero or more of the
+following flags:
+.TP
+.BR FTW_ACTIONRETVAL " (since glibc 2.3.3)"
+If this glibc-specific flag is set, then
+.BR nftw ()
+handles the return value from
+.IR fn ()
+differently.
+.IR fn ()
+should return one of the following values:
+.RS
+.TP
+.B FTW_CONTINUE
+Instructs
+.BR nftw ()
+to continue normally.
+.TP
+.B FTW_SKIP_SIBLINGS
+If \fIfn\fP() returns this value, then
+siblings of the current entry will be skipped,
+and processing continues in the parent.
+.\" If \fBFTW_DEPTH\fP
+.\" is set, the entry's parent directory is processed next (with
+.\" \fIflag\fP set to \fBFTW_DP\fP).
+.TP
+.B FTW_SKIP_SUBTREE
+If \fIfn\fP() is called with an entry that is a directory
+(\fItypeflag\fP is \fBFTW_D\fP), this return
+value will prevent objects within that directory from being passed as
+arguments to \fIfn\fP().
+.BR nftw ()
+continues processing with the next sibling of the directory.
+.TP
+.B FTW_STOP
+Causes
+.BR nftw ()
+to return immediately with the return value
+\fBFTW_STOP\fP.
+.PP
+Other return values could be associated with new actions in the future;
+\fIfn\fP() should not return values other than those listed above.
+
+The feature test macro
+.B _GNU_SOURCE
+must be defined
+(before including
+.I any
+header files)
+in order to
+obtain the definition of \fBFTW_ACTIONRETVAL\fP from \fI<ftw.h>\fP.
+.RE
+.TP
+.B FTW_CHDIR
+If set, do a
+.BR chdir (2)
+to each directory before handling its contents.
+This is useful if the program needs to perform some action
+in the directory in which \fIfpath\fP resides.
+(Specifying this flag has no effect on the pathname that is passed in the
+.I fpath
+argument of
+.IR fn .)
+.TP
+.B FTW_DEPTH
+If set, do a post-order traversal, that is, call \fIfn\fP() for
+the directory itself \fIafter\fP handling the contents of the directory
+and its subdirectories.
+(By default, each directory is handled \fIbefore\fP its contents.)
+.TP
+.B FTW_MOUNT
+If set, stay within the same filesystem
+(i.e., do not cross mount points).
+.TP
+.B FTW_PHYS
+If set, do not follow symbolic links.
+(This is what you want.)
+If not set, symbolic links are followed, but no file is reported twice.
+.sp
+If \fBFTW_PHYS\fP is not set, but \fBFTW_DEPTH\fP is set,
+then the function
+.IR fn ()
+is never called for a directory that would be a descendant of itself.
+.SS ftw()
+.BR ftw ()
+is an older function that offers a subset of the functionality of
+.BR nftw ().
+The notable differences are as follows:
+.IP * 3
+.BR ftw ()
+has no
+.IR flags
+argument.
+It behaves the same as when
+.BR nftw ()
+is called with
+.I flags
+specified as zero.
+.IP *
+The callback function,
+.IR fn (),
+is not supplied with a fourth argument.
+.IP *
+The range of values that is passed via the
+.I typeflag
+argument supplied to
+.IR fn ()
+is smaller: just
+.BR FTW_F ,
+.BR FTW_D ,
+.BR FTW_DNR ,
+.BR FTW_NS ,
+and (possibly)
+.BR FTW_SL .
+.SH RETURN VALUE
+These functions return 0 on success, and \-1 if an error occurs.
+
+If \fIfn\fP() returns nonzero,
+then the tree walk is terminated and the value returned by \fIfn\fP()
+is returned as the result of
+.BR ftw ()
+or
+.BR nftw ().
+
+If
+.BR nftw ()
+is called with the \fBFTW_ACTIONRETVAL\fP flag,
+then the only nonzero value that should be used by \fIfn\fP()
+to terminate the tree walk is \fBFTW_STOP\fP,
+and that value is returned as the result of
+.BR nftw ().
+.SH VERSIONS
+.BR nftw ()
+is available under glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR nftw ()
+T}	Thread safety	MT-Safe cwd
+T{
+.BR ftw ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, SUSv1.
+POSIX.1-2008 marks
+.BR ftw ()
+as obsolete.
+.SH NOTES
+POSIX.1-2008 notes that the results are unspecified if
+.I fn
+does not preserve the current working directory.
+.PP
+The function
+.BR nftw ()
+and the use of \fBFTW_SL\fP with
+.BR ftw ()
+were introduced in SUSv1.
+.LP
+In some implementations (e.g., glibc),
+.BR ftw ()
+will never use \fBFTW_SL\fP, on other systems \fBFTW_SL\fP occurs only
+for symbolic links that do not point to an existing file,
+and again on other systems
+.BR ftw ()
+will use \fBFTW_SL\fP for each symbolic link.
+If
+.I fpath
+is a symbolic link and
+.BR stat (2)
+failed, POSIX.1-2008 states
+that it is undefined whether \fBFTW_NS\fP or \fBFTW_SL\fP
+is passed in
+.IR typeflag .
+For predictable results, use
+.BR nftw ().
+.SH EXAMPLE
+The following program traverses the directory tree under the path named
+in its first command-line argument, or under the current directory
+if no argument is supplied.
+It displays various information about each file.
+The second command-line argument can be used to specify characters that
+control the value assigned to the \fIflags\fP
+argument when calling
+.BR nftw ().
+.SS Program source
+.nf
+#define _XOPEN_SOURCE 500
+#include <ftw.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+
+static int
+display_info(const char *fpath, const struct stat *sb,
+             int tflag, struct FTW *ftwbuf)
+{
+    printf("%\-3s %2d %7jd   %\-40s %d %s\\n",
+        (tflag == FTW_D) ?   "d"   : (tflag == FTW_DNR) ? "dnr" :
+        (tflag == FTW_DP) ?  "dp"  : (tflag == FTW_F) ?   "f" :
+        (tflag == FTW_NS) ?  "ns"  : (tflag == FTW_SL) ?  "sl" :
+        (tflag == FTW_SLN) ? "sln" : "???",
+        ftwbuf\->level, (intmax_t) sb\->st_size,
+        fpath, ftwbuf\->base, fpath + ftwbuf\->base);
+    return 0;           /* To tell nftw() to continue */
+}
+
+int
+main(int argc, char *argv[])
+{
+    int flags = 0;
+
+    if (argc > 2 && strchr(argv[2], \(aqd\(aq) != NULL)
+        flags |= FTW_DEPTH;
+    if (argc > 2 && strchr(argv[2], \(aqp\(aq) != NULL)
+        flags |= FTW_PHYS;
+
+    if (nftw((argc < 2) ? "." : argv[1], display_info, 20, flags)
+            == \-1) {
+        perror("nftw");
+        exit(EXIT_FAILURE);
+    }
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR stat (2),
+.BR fts (3),
+.BR readdir (3)

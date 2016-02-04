@@ -1,0 +1,98 @@
+.\" Copyright 1997 Nicolás Lichtmaier <nick@debian.org>
+.\" Created Wed Jul  2 23:27:34 ART 1997
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Added info on availability, aeb, 971207
+.\" Added -lutil remark, 030718
+.\" 2008-07-02, mtk, document updwtmpx()
+.\"
+.TH UPDWTMP 3  2015-04-19 "GNU" "Linux Programmer's Manual"
+.SH NAME
+updwtmp, logwtmp \- append an entry to the wtmp file
+.SH SYNOPSIS
+.nf
+.B #include <utmp.h>
+.sp
+.BI "void updwtmp(const char *" wtmp_file ", const struct utmp *" ut );
+.br
+.BI "void logwtmp(const char *" line ", const char *" name \
+", const char *" host );
+.fi
+
+For
+.BR logwtmp (),
+link with \fI\-lutil\fP.
+.SH DESCRIPTION
+.BR updwtmp ()
+appends the utmp structure
+.I ut
+to the wtmp file.
+.PP
+.BR logwtmp ()
+constructs a utmp structure using
+.IR line ", " name ", " host ,
+current time and current process ID.
+Then it calls
+.BR updwtmp ()
+to append the structure to the wtmp file.
+.SH FILES
+.TP
+.I /var/log/wtmp
+database of past user logins
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lbw24
+l l l.
+Interface	Attribute	Value
+T{
+.BR updwtmp (),
+.br
+.BR logwtmp ()
+T}	Thread safety	MT-Unsafe sig:ALRM timer
+.TE
+
+.SH CONFORMING TO
+Not in POSIX.1.
+Present on Solaris, NetBSD, and perhaps other systems.
+.SH NOTES
+For consistency with the other "utmpx" functions (see
+.BR getutxent (3)),
+glibc provides (since version 2.1):
+.nf
+.sp
+.B #include <utmpx.h>
+.sp
+.BI "void updwtmpx (const char *" wtmpx_file ", const struct utmpx *" utx );
+.fi
+.PP
+This function performs the same task as
+.BR updwtmp (),
+but differs in that it takes a
+.I utmpx
+structure as its last argument.
+.SH SEE ALSO
+.BR getutxent (3),
+.BR wtmp (5)

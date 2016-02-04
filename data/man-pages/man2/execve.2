@@ -1,0 +1,776 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\" and Copyright (c) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-21 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1994-08-21 by Michael Chastain <mec@shell.portal.com>:
+.\" Modified 1997-01-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1999-11-12 by Urs Thuermann <urs@isnogud.escape.de>
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2006-09-04 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added list of process attributes that are not preserved on exec().
+.\" 2007-09-14 Ollie Wild <aaw@google.com>, mtk
+.\"     Add text describing limits on command-line arguments + environment
+.\"
+.TH EXECVE 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+execve \- execute program
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.BI "int execve(const char *" filename ", char *const " argv "[], "
+.br
+.BI "           char *const " envp []);
+.SH DESCRIPTION
+.BR execve ()
+executes the program pointed to by \fIfilename\fP.
+\fIfilename\fP must be either a binary executable, or a script
+starting with a line of the form:
+
+.in +4n
+.nf
+\fB#!\fP \fIinterpreter \fP[optional-arg]
+.fi
+.in
+
+For details of the latter case, see "Interpreter scripts" below.
+
+\fIargv\fP is an array of argument strings passed to the new program.
+By convention, the first of these strings should contain the filename
+associated with the file being executed.
+\fIenvp\fP is an array of strings, conventionally of the form
+\fBkey=value\fP, which are passed as environment to the new program.
+Both \fIargv\fP and \fIenvp\fP must be terminated by a null pointer.
+The argument vector and environment can be accessed by the
+called program's main function, when it is defined as:
+
+.in +4n
+.nf
+int main(int argc, char *argv[], char *envp[])
+.fi
+.in
+
+.BR execve ()
+does not return on success, and the text, data, bss, and
+stack of the calling process are overwritten by that of the program
+loaded.
+
+If the current program is being ptraced, a \fBSIGTRAP\fP is sent to it
+after a successful
+.BR execve ().
+
+If the set-user-ID bit is set on the program file pointed to by
+\fIfilename\fP,
+and the underlying filesystem is not mounted
+.I nosuid
+(the
+.B MS_NOSUID
+flag for
+.BR mount (2)),
+and the calling process is not being ptraced,
+then the effective user ID of the calling process is changed
+to that of the owner of the program file.
+Similarly, when the set-group-ID
+bit of the program file is set the effective group ID of the calling
+process is set to the group of the program file.
+
+The effective user ID of the process is copied to the saved set-user-ID;
+similarly, the effective group ID is copied to the saved set-group-ID.
+This copying takes place after any effective ID changes that occur
+because of the set-user-ID and set-group-ID mode bits.
+
+If the executable is an a.out dynamically linked
+binary executable containing
+shared-library stubs, the Linux dynamic linker
+.BR ld.so (8)
+is called at the start of execution to bring
+needed shared objects into memory
+and link the executable with them.
+
+If the executable is a dynamically linked ELF executable, the
+interpreter named in the PT_INTERP segment is used to load the needed
+shared objects.
+This interpreter is typically
+.I /lib/ld-linux.so.2
+for binaries linked with glibc (see
+.BR ld-linux.so (8)).
+
+All process attributes are preserved during an
+.BR execve (),
+except the following:
+.IP * 3
+The dispositions of any signals that are being caught are
+reset to the default
+.RB ( signal (7)).
+.IP *
+Any alternate signal stack is not preserved
+.RB ( sigaltstack (2)).
+.IP *
+Memory mappings are not preserved
+.RB ( mmap (2)).
+.IP *
+Attached System\ V shared memory segments are detached
+.RB ( shmat (2)).
+.IP *
+POSIX shared memory regions are unmapped
+.RB ( shm_open (3)).
+.IP *
+Open POSIX message queue descriptors are closed
+.RB ( mq_overview (7)).
+.IP *
+Any open POSIX named semaphores are closed
+.RB ( sem_overview (7)).
+.IP *
+POSIX timers are not preserved
+.RB ( timer_create (2)).
+.IP *
+Any open directory streams are closed
+.RB ( opendir (3)).
+.IP *
+Memory locks are not preserved
+.RB ( mlock (2),
+.BR mlockall (2)).
+.IP *
+Exit handlers are not preserved
+.RB ( atexit (3),
+.BR on_exit (3)).
+.IP *
+The floating-point environment is reset to the default (see
+.BR fenv (3)).
+.PP
+The process attributes in the preceding list are all specified
+in POSIX.1.
+The following Linux-specific process attributes are also
+not preserved during an
+.BR execve ():
+.IP * 3
+The
+.BR prctl (2)
+.B PR_SET_DUMPABLE
+flag is set,
+unless a set-user-ID or set-group ID program is being executed,
+in which case it is cleared.
+.IP *
+The
+.BR prctl (2)
+.B PR_SET_KEEPCAPS
+flag is cleared.
+.IP *
+(Since Linux 2.4.36 / 2.6.23)
+If a set-user-ID or set-group-ID program is being executed,
+then the parent death signal set by
+.BR prctl (2)
+.B PR_SET_PDEATHSIG
+flag is cleared.
+.IP *
+The process name, as set by
+.BR prctl (2)
+.B PR_SET_NAME
+(and displayed by
+.IR "ps\ \-o comm" ),
+is reset to the name of the new executable file.
+.IP *
+The
+.B SECBIT_KEEP_CAPS
+.I securebits
+flag is cleared.
+See
+.BR capabilities (7).
+.IP *
+The termination signal is reset to
+.B SIGCHLD
+(see
+.BR clone (2)).
+.IP *
+The file descriptor table is unshared, undoing the effect of the
+.B CLONE_FILES
+flag of
+.BR clone (2).
+.PP
+Note the following further points:
+.IP * 3
+All threads other than the calling thread are destroyed during an
+.BR execve ().
+Mutexes, condition variables, and other pthreads objects are not preserved.
+.IP *
+The equivalent of \fIsetlocale(LC_ALL, "C")\fP
+is executed at program start-up.
+.IP *
+POSIX.1 specifies that the dispositions of any signals that
+are ignored or set to the default are left unchanged.
+POSIX.1 specifies one exception: if
+.B SIGCHLD
+is being ignored,
+then an implementation may leave the disposition unchanged or
+reset it to the default; Linux does the former.
+.IP *
+Any outstanding asynchronous I/O operations are canceled
+.RB ( aio_read (3),
+.BR aio_write (3)).
+.IP *
+For the handling of capabilities during
+.BR execve (),
+see
+.BR capabilities (7).
+.IP *
+By default, file descriptors remain open across an
+.BR execve ().
+File descriptors that are marked close-on-exec are closed;
+see the description of
+.B FD_CLOEXEC
+in
+.BR fcntl (2).
+(If a file descriptor is closed, this will cause the release
+of all record locks obtained on the underlying file by this process.
+See
+.BR fcntl (2)
+for details.)
+POSIX.1 says that if file descriptors 0, 1, and 2 would
+otherwise be closed after a successful
+.BR execve (),
+and the process would gain privilege because the set-user_ID or
+set-group_ID mode bit was set on the executed file,
+then the system may open an unspecified file for each of these
+file descriptors.
+As a general principle, no portable program, whether privileged or not,
+can assume that these three file descriptors will remain
+closed across an
+.BR execve ().
+.\" On Linux it appears that these file descriptors are
+.\" always open after an execve(), and it looks like
+.\" Solaris 8 and FreeBSD 6.1 are the same. -- mtk, 30 Apr 2007
+.SS Interpreter scripts
+An interpreter script is a text file that has execute
+permission enabled and whose first line is of the form:
+
+.in +4n
+.nf
+\fB#!\fP \fIinterpreter \fP[optional-arg]
+.fi
+.in
+
+The
+.I interpreter
+must be a valid pathname for an
+executable which is not itself a script.
+If the
+.I filename
+argument of
+.BR execve ()
+specifies an interpreter script, then
+.I interpreter
+will be invoked with the following arguments:
+
+.in +4n
+.nf
+\fIinterpreter\fP [optional-arg] \fIfilename\fP arg...
+.fi
+.in
+
+where
+.I arg...
+is the series of words pointed to by the
+.I argv
+argument of
+.BR execve (),
+starting at
+.IR argv [1].
+
+For portable use,
+.I optional-arg
+should either be absent, or be specified as a single word (i.e., it
+should not contain white space); see NOTES below.
+.SS Limits on size of arguments and environment
+Most UNIX implementations impose some limit on the total size
+of the command-line argument
+.RI ( argv )
+and environment
+.RI ( envp )
+strings that may be passed to a new program.
+POSIX.1 allows an implementation to advertise this limit using the
+.B ARG_MAX
+constant (either defined in
+.I <limits.h>
+or available at run time using the call
+.IR "sysconf(_SC_ARG_MAX)" ).
+
+On Linux prior to kernel 2.6.23, the memory used to store the
+environment and argument strings was limited to 32 pages
+(defined by the kernel constant
+.BR MAX_ARG_PAGES ).
+On architectures with a 4-kB page size,
+this yields a maximum size of 128 kB.
+
+On kernel 2.6.23 and later, most architectures support a size limit
+derived from the soft
+.B RLIMIT_STACK
+resource limit (see
+.BR getrlimit (2))
+that is in force at the time of the
+.BR execve ()
+call.
+(Architectures with no memory management unit are excepted:
+they maintain the limit that was in effect before kernel 2.6.23.)
+This change allows programs to have a much larger
+argument and/or environment list.
+.\" For some background on the changes to ARG_MAX in kernels 2.6.23 and
+.\" 2.6.25, see:
+.\"     http://sourceware.org/bugzilla/show_bug.cgi?id=5786
+.\"     http://bugzilla.kernel.org/show_bug.cgi?id=10095
+.\"     http://thread.gmane.org/gmane.linux.kernel/646709/focus=648101,
+.\"     checked into 2.6.25 as commit a64e715fc74b1a7dcc5944f848acc38b2c4d4ee2.
+For these architectures, the total size is limited to 1/4 of the allowed
+stack size.
+(Imposing the 1/4-limit
+ensures that the new program always has some stack space.)
+.\" Ollie: That doesn't include the lists of pointers, though,
+.\" so the actual usage is a bit higher (1 pointer per argument).
+Since Linux 2.6.25,
+the kernel places a floor of 32 pages on this size limit,
+so that, even when
+.BR RLIMIT_STACK
+is set very low,
+applications are guaranteed to have at least as much argument and
+environment space as was provided by Linux 2.6.23 and earlier.
+(This guarantee was not provided in Linux 2.6.23 and 2.6.24.)
+Additionally, the limit per string is 32 pages (the kernel constant
+.BR MAX_ARG_STRLEN ),
+and the maximum number of strings is 0x7FFFFFFF.
+.SH RETURN VALUE
+On success,
+.BR execve ()
+does not return, on error \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B E2BIG
+The total number of bytes in the environment
+.RI ( envp )
+and argument list
+.RI ( argv )
+is too large.
+.TP
+.B EACCES
+Search permission is denied on a component of the path prefix of
+.I filename
+or the name of a script interpreter.
+(See also
+.BR path_resolution (7).)
+.TP
+.B EACCES
+The file or a script interpreter is not a regular file.
+.TP
+.B EACCES
+Execute permission is denied for the file or a script or ELF interpreter.
+.TP
+.B EACCES
+The filesystem is mounted
+.IR noexec .
+.TP
+.BR EAGAIN " (since Linux 3.1)"
+.\" commit 72fa59970f8698023045ab0713d66f3f4f96945c
+Having changed its real UID using one of the
+.BR set*uid ()
+calls, the caller was\(emand is now still\(emabove its
+.BR RLIMIT_NPROC
+resource limit (see
+.BR setrlimit (2)).
+For a more detailed explanation of this error, see NOTES.
+.TP
+.B EFAULT
+.I filename
+or one of the pointers in the vectors
+.I argv
+or
+.I envp
+points outside your accessible address space.
+.TP
+.B EINVAL
+An ELF executable had more than one PT_INTERP segment (i.e., tried to
+name more than one interpreter).
+.TP
+.B EIO
+An I/O error occurred.
+.TP
+.B EISDIR
+An ELF interpreter was a directory.
+.TP
+.B ELIBBAD
+An ELF interpreter was not in a recognized format.
+.TP
+.B ELOOP
+Too many symbolic links were encountered in resolving
+.I filename
+or the name of a script or ELF interpreter.
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENAMETOOLONG
+.I filename
+is too long.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENOENT
+The file
+.I filename
+or a script or ELF interpreter does not exist, or a shared library
+.\" FIXME but see http://sourceware.org/bugzilla/show_bug.cgi?id=12241
+needed for file or interpreter cannot be found.
+.TP
+.B ENOEXEC
+An executable is not in a recognized format, is for the wrong
+architecture, or has some other format error that means it cannot be
+executed.
+.TP
+.B ENOMEM
+Insufficient kernel memory was available.
+.TP
+.B ENOTDIR
+A component of the path prefix of
+.I filename
+or a script or ELF interpreter is not a directory.
+.TP
+.B EPERM
+The filesystem is mounted
+.IR nosuid ,
+the user is not the superuser,
+and the file has the set-user-ID or set-group-ID bit set.
+.TP
+.B EPERM
+The process is being traced, the user is not the superuser and the
+file has the set-user-ID or set-group-ID bit set.
+.TP
+.B ETXTBSY
+The specified executable was open for writing by one or more processes.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+POSIX does not document the #! behavior, but it exists
+(with some variations) on other UNIX systems.
+.\" SVr4 documents additional error
+.\" conditions EAGAIN, EINTR, ELIBACC, ENOLINK, EMULTIHOP; POSIX does not
+.\" document ETXTBSY, EPERM, EFAULT, ELOOP, EIO, ENFILE, EMFILE, EINVAL,
+.\" EISDIR or ELIBBAD error conditions.
+.SH NOTES
+Set-user-ID and set-group-ID processes can not be
+.BR ptrace (2)d.
+
+The result of mounting a filesystem
+.I nosuid
+varies across Linux kernel versions:
+some will refuse execution of set-user-ID and set-group-ID
+executables when this would
+give the user powers she did not have already (and return
+.BR EPERM ),
+some will just ignore the set-user-ID and set-group-ID bits and
+.BR exec ()
+successfully.
+
+On Linux,
+.I argv
+and
+.I envp
+can be specified as NULL.
+In both cases, this has the same effect as specifying the argument
+as a pointer to a list containing a single null pointer.
+.B "Do not take advantage of this nonstandard and nonportable misfeature!"
+On many other UNIX systems, specifying
+.I argv
+as NULL will result in an error
+.RB ( EFAULT ).
+.I Some
+other UNIX systems treat the
+.I envp==NULL
+case the same as Linux.
+.\" e.g., EFAULT on Solaris 8 and FreeBSD 6.1; but
+.\" HP-UX 11 is like Linux -- mtk, Apr 2007
+.\" Bug filed 30 Apr 2007: http://bugzilla.kernel.org/show_bug.cgi?id=8408
+.\" Bug rejected (because fix would constitute an ABI change).
+.\"
+
+POSIX.1 says that values returned by
+.BR sysconf (3)
+should be invariant over the lifetime of a process.
+However, since Linux 2.6.23, if the
+.BR RLIMIT_STACK
+resource limit changes, then the value reported by
+.B _SC_ARG_MAX
+will also change,
+to reflect the fact that the limit on space for holding
+command-line arguments and environment variables has changed.
+
+In most cases where
+.BR execve ()
+fails, control returns to the original executable image,
+and the caller of
+.BR execve ()
+can then handle the error.
+However, in (rare) cases (typically caused by resource exhaustion),
+failure may occur past the point of no return:
+the original executable image has been torn down,
+but the new image could not be completely built.
+In such cases, the kernel kills the process with a
+.BR SIGKILL
+signal.
+.\"
+.SS Interpreter scripts
+A maximum line length of 127 characters is allowed for the first line in
+an interpreter scripts.
+
+The semantics of the
+.I optional-arg
+argument of an interpreter script vary across implementations.
+On Linux, the entire string following the
+.I interpreter
+name is passed as a single argument to the interpreter,
+and this string can include white space.
+However, behavior differs on some other systems.
+Some systems
+.\" e.g., Solaris 8
+use the first white space to terminate
+.IR optional-arg .
+On some systems,
+.\" e.g., FreeBSD before 6.0, but not FreeBSD 6.0 onward
+an interpreter script can have multiple arguments,
+and white spaces in
+.I optional-arg
+are used to delimit the arguments.
+
+Linux ignores the set-user-ID and set-group-ID bits on scripts.
+.\"
+.\" .SH BUGS
+.\" Some Linux versions have failed to check permissions on ELF
+.\" interpreters.  This is a security hole, because it allows users to
+.\" open any file, such as a rewinding tape device, for reading.  Some
+.\" Linux versions have also had other security holes in
+.\" .BR execve ()
+.\" that could be exploited for denial of service by a suitably crafted
+.\" ELF binary. There are no known problems with 2.0.34 or 2.2.15.
+.SS execve() and EAGAIN
+A more detailed explanation of the
+.BR EAGAIN
+error that can occur (since Linux 3.1) when calling
+.BR execve ()
+is as follows.
+
+The
+.BR EAGAIN
+error can occur when a
+.I preceding
+call to
+.BR setuid (2),
+.BR setreuid (2),
+or
+.BR setresuid (2)
+caused the real user ID of the process to change,
+and that change caused the process to exceed its
+.BR RLIMIT_NPROC
+resource limit (i.e., the number of processes belonging
+to the new real UID exceeds the resource limit).
+From Linux 2.6.0 to 3.0, this caused the
+.BR set*uid ()
+call to fail.
+(Prior to 2.6,
+.\" commit 909cc4ae86f3380152a18e2a3c44523893ee11c4
+the resource limit was not imposed on processes that
+changed their user IDs.)
+
+Since Linux 3.1, the scenario just described no longer causes the
+.BR set*uid ()
+call to fail,
+because it too often led to security holes where buggy applications
+didn't check the return status and assumed
+that\(emif the caller had root privileges\(emthe call would always succeed.
+Instead, the
+.BR set*uid ()
+calls now successfully change the real UID,
+but the kernel sets an internal flag, named
+.BR PF_NPROC_EXCEEDED ,
+to note that the
+.BR RLIMIT_NPROC
+resource limit has been exceeded.
+If the
+.BR PF_NPROC_EXCEEDED
+flag is set and the resource limit is still
+exceeded at the time of a subsequent
+.BR execve ()
+call, that call fails with the error
+.BR EAGAIN .
+This kernel logic ensures that the
+.BR RLIMIT_NPROC
+resource limit is still enforced for the
+common privileged daemon workflow\(emnamely,
+.BR fork (2)
++
+.BR set*uid ()
++
+.BR execve ().
+
+If the resource limit was not still exceeded at the time of the
+.BR execve ()
+call
+(because other processes belonging to this real UID terminated between the
+.BR set*uid ()
+call and the
+.BR execve ()
+call), then the
+.BR execve ()
+call succeeds and the kernel clears the
+.BR PF_NPROC_EXCEEDED
+process flag.
+The flag is also cleared if a subsequent call to
+.BR fork (2)
+by this process succeeds.
+.SS Historical
+With UNIX\ V6, the argument list of an
+.BR exec ()
+call was ended by 0,
+while the argument list of
+.I main
+was ended by \-1.
+Thus, this argument list was not directly usable in a further
+.BR exec ()
+call.
+Since UNIX\ V7, both are NULL.
+.\"
+.\" .SH BUGS
+.\" Some Linux versions have failed to check permissions on ELF
+.\" interpreters.  This is a security hole, because it allows users to
+.\" open any file, such as a rewinding tape device, for reading.  Some
+.\" Linux versions have also had other security holes in
+.\" .BR execve ()
+.\" that could be exploited for denial of service by a suitably crafted
+.\" ELF binary. There are no known problems with 2.0.34 or 2.2.15.
+.SH EXAMPLE
+The following program is designed to be execed by the second program below.
+It just echoes its command-line arguments, one per line.
+
+.in +4n
+.nf
+/* myecho.c */
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+    int j;
+
+    for (j = 0; j < argc; j++)
+        printf("argv[%d]: %s\\n", j, argv[j]);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.in
+
+This program can be used to exec the program named in its command-line
+argument:
+.in +4n
+.nf
+
+/* execve.c */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int
+main(int argc, char *argv[])
+{
+    char *newargv[] = { NULL, "hello", "world", NULL };
+    char *newenviron[] = { NULL };
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <file\-to\-exec>\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    newargv[0] = argv[1];
+
+    execve(argv[1], newargv, newenviron);
+    perror("execve");   /* execve() returns only on error */
+    exit(EXIT_FAILURE);
+}
+.fi
+.in
+
+We can use the second program to exec the first as follows:
+
+.in +4n
+.nf
+.RB "$" " cc myecho.c \-o myecho"
+.RB "$" " cc execve.c \-o execve"
+.RB "$" " ./execve ./myecho"
+argv[0]: ./myecho
+argv[1]: hello
+argv[2]: world
+.fi
+.in
+
+We can also use these programs to demonstrate the use of a script
+interpreter.
+To do this we create a script whose "interpreter" is our
+.I myecho
+program:
+
+.in +4n
+.nf
+.RB "$" " cat > script"
+.B #!./myecho script-arg
+.B ^D
+.RB "$" " chmod +x script"
+.fi
+.in
+
+We can then use our program to exec the script:
+
+.in +4n
+.nf
+.RB "$" " ./execve ./script"
+argv[0]: ./myecho
+argv[1]: script-arg
+argv[2]: ./script
+argv[3]: hello
+argv[4]: world
+.fi
+.in
+.SH SEE ALSO
+.BR chmod (2),
+.BR execveat (2),
+.BR fork (2),
+.BR ptrace (2),
+.BR execl (3),
+.BR fexecve (3),
+.BR getopt (3),
+.BR system (3),
+.BR credentials (7),
+.BR environ (7),
+.BR path_resolution (7),
+.BR ld.so (8)

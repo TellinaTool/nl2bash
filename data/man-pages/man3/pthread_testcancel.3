@@ -1,0 +1,79 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_TESTCANCEL 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_testcancel \- request delivery of any pending cancellation request
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.B void pthread_testcancel(void);
+.sp
+Compile and link with \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+Calling
+.BR pthread_testcancel ()
+creates a cancellation point within the calling thread,
+so that a thread that is otherwise executing code that contains
+no cancellation points will respond to a cancellation request.
+
+If cancelability is disabled (using
+.BR pthread_setcancelstate (3)),
+or no cancellation request is pending,
+then a call to
+.BR pthread_testcancel ()
+has no effect.
+.SH RETURN VALUE
+This function does not return a value.
+If the calling thread is canceled as a consequence of a call
+to this function, then the function does not return.
+.SH ERRORS
+This function always succeeds.
+.\" SH VERSIONS
+.\" Available since glibc 2.0
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw20 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_testcancel ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH EXAMPLE
+See
+.BR pthread_cleanup_push (3).
+.SH SEE ALSO
+.BR pthread_cancel (3),
+.BR pthread_cleanup_push (3),
+.BR pthread_setcancelstate (3),
+.BR pthreads (7)

@@ -1,0 +1,103 @@
+.\" This file is derived from unlink.2, which has the following copyright:
+.\"
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"             and Copyright (C) 1993 Ian Jackson.
+.\"
+.\" Edited into remove.3 shape by:
+.\" Graeme W. Wilford (G.Wilford@ee.surrey.ac.uk) on 13th July 1994
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH REMOVE 3 2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+remove \- remove a file or directory
+.SH SYNOPSIS
+.B #include <stdio.h>
+.sp
+.BI "int remove(const char *" pathname );
+.SH DESCRIPTION
+.BR remove ()
+deletes a name from the filesystem.
+It calls
+.BR unlink (2)
+for files, and
+.BR rmdir (2)
+for directories.
+
+If the removed name was the
+last link to a file and no processes have the file open, the file is
+deleted and the space it was using is made available for reuse.
+
+If the name was the last link to a file,
+but any processes still have the file open,
+the file will remain in existence until the last file
+descriptor referring to it is closed.
+
+If the name referred to a symbolic link, the link is removed.
+
+If the name referred to a socket, FIFO, or device, the name is removed,
+but processes which have the object open may continue to use it.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+The errors that occur are those for
+.BR unlink (2)
+and
+.BR rmdir (2).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR remove ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99, 4.3BSD.
+.\" .SH NOTES
+.\" Under libc4 and libc5,
+.\" .BR remove ()
+.\" was an alias for
+.\" .BR unlink (2)
+.\" (and hence would not remove directories).
+.SH BUGS
+Infelicities in the protocol underlying NFS can cause the unexpected
+disappearance of files which are still being used.
+.SH SEE ALSO
+.BR rm (1),
+.BR unlink (1),
+.BR link (2),
+.BR mknod (2),
+.BR open (2),
+.BR rename (2),
+.BR rmdir (2),
+.BR unlink (2),
+.BR mkfifo (3),
+.BR symlink (7)

@@ -1,0 +1,113 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"
+.TH WCSNCASECMP 3 2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcsncasecmp \- compare two fixed-size wide-character strings, ignoring case
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "int wcsncasecmp(const wchar_t *" s1 ", const wchar_t *" s2 ", size_t " n );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR wcsncasecmp ():
+.PD 0
+.ad l
+.RS 4
+.TP 4
+Since glibc 2.10:
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP
+Before glibc 2.10:
+_GNU_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+The
+.BR wcsncasecmp ()
+function is the wide-character equivalent of the
+.BR strncasecmp (3)
+function.
+It compares the wide-character string pointed to
+by
+.I s1
+and the wide-character string
+pointed to by
+.IR s2 ,
+but at most
+.I n
+wide characters from each string, ignoring case differences
+.RB ( towupper (3),
+.BR towlower (3)).
+.SH RETURN VALUE
+The
+.BR wcsncasecmp ()
+function returns zero
+if the wide-character strings at
+.I s1
+and
+.IR s2 ,
+truncated to at most length
+.IR n ,
+are equal except
+for case distinctions.
+It returns a positive integer if truncated
+.I s1
+is
+greater than truncated
+.IR s2 ,
+ignoring case.
+It returns a negative integer
+if truncated
+.I s1
+is smaller than truncated
+.IR s2 ,
+ignoring case.
+.SH VERSIONS
+The
+.BR wcsncasecmp ()
+function is provided in glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcsncasecmp ()
+T}	Thread safety	MT-Safe locale
+.TE
+.SH CONFORMING TO
+POSIX.1-2008.
+This function is not specified in POSIX.1-2001,
+and is not widely available on other systems.
+.SH NOTES
+The behavior of
+.BR wcsncasecmp ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.SH SEE ALSO
+.BR strncasecmp (3),
+.BR wcsncmp (3)

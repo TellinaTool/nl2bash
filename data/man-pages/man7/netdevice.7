@@ -1,0 +1,377 @@
+'\" t
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" $Id: netdevice.7,v 1.10 2000/08/17 10:09:54 ak Exp $
+.\"
+.\" Modified, 2004-11-25, mtk, formatting and a few wording fixes
+.\"
+.\" Modified, 2011-11-02, <bidulock@openss7.org>, added many basic
+.\"  but missing ioctls, such as SIOCGIFADDR.
+.\"
+.TH NETDEVICE  7 2014-01-24 "Linux" "Linux Programmer's Manual"
+.SH NAME
+netdevice \- low-level access to Linux network devices
+.SH SYNOPSIS
+.B "#include <sys/ioctl.h>"
+.br
+.B "#include <net/if.h>"
+.SH DESCRIPTION
+This man page describes the sockets interface which is used to configure
+network devices.
+
+Linux supports some standard ioctls to configure network devices.
+They can be used on any socket's file descriptor regardless of the
+family or type.
+Most of them pass an
+.I ifreq
+structure:
+
+.in +4n
+.nf
+struct ifreq {
+    char ifr_name[IFNAMSIZ]; /* Interface name */
+    union {
+        struct sockaddr ifr_addr;
+        struct sockaddr ifr_dstaddr;
+        struct sockaddr ifr_broadaddr;
+        struct sockaddr ifr_netmask;
+        struct sockaddr ifr_hwaddr;
+        short           ifr_flags;
+        int             ifr_ifindex;
+        int             ifr_metric;
+        int             ifr_mtu;
+        struct ifmap    ifr_map;
+        char            ifr_slave[IFNAMSIZ];
+        char            ifr_newname[IFNAMSIZ];
+        char           *ifr_data;
+    };
+};
+.fi
+.in
+
+Normally, the user specifies which device to affect by setting
+.I ifr_name
+to the name of the interface.
+All other members of the structure may
+share memory.
+.SS Ioctls
+If an ioctl is marked as privileged, then using it requires an effective
+user ID of 0 or the
+.B CAP_NET_ADMIN
+capability.
+If this is not the case,
+.B EPERM
+will be returned.
+.TP
+.B SIOCGIFNAME
+Given the
+.IR ifr_ifindex ,
+return the name of the interface in
+.IR ifr_name .
+This is the only ioctl which returns its result in
+.IR ifr_name .
+.TP
+.B SIOCGIFINDEX
+Retrieve the interface index of the interface into
+.IR ifr_ifindex .
+.TP
+.BR SIOCGIFFLAGS ", " SIOCSIFFLAGS
+Get or set the active flag word of the device.
+.I ifr_flags
+contains a bit mask of the following values:
+.\" Do not right adjust text blocks in tables
+.na
+.TS
+tab(:);
+c s
+l l.
+Device flags
+IFF_UP:Interface is running.
+IFF_BROADCAST:Valid broadcast address set.
+IFF_DEBUG:Internal debugging flag.
+IFF_LOOPBACK:Interface is a loopback interface.
+IFF_POINTOPOINT:Interface is a point-to-point link.
+IFF_RUNNING:Resources allocated.
+IFF_NOARP:T{
+No arp protocol, L2 destination address not set.
+T}
+IFF_PROMISC:Interface is in promiscuous mode.
+IFF_NOTRAILERS:Avoid use of trailers.
+IFF_ALLMULTI:Receive all multicast packets.
+IFF_MASTER:Master of a load balancing bundle.
+IFF_SLAVE:Slave of a load balancing bundle.
+IFF_MULTICAST:Supports multicast
+IFF_PORTSEL:Is able to select media type via ifmap.
+IFF_AUTOMEDIA:Auto media selection active.
+IFF_DYNAMIC:T{
+The addresses are lost when the interface goes down.
+T}
+IFF_LOWER_UP:Driver signals L1 up (since Linux 2.6.17)
+IFF_DORMANT:Driver signals dormant (since Linux 2.6.17)
+IFF_ECHO:Echo sent packets (since Linux 2.6.25)
+
+.TE
+.ad
+Setting the active flag word is a privileged operation, but any
+process may read it.
+.TP
+.BR SIOCGIFPFLAGS ", " SIOCSIFPFLAGS
+Get or set extended (private) flags for the device.
+.I ifr_flags
+contains a bit mask of the following values:
+.TS
+tab(:);
+c s
+l l.
+Private flags
+IFF_802_1Q_VLAN:Interface is 802.1Q VLAN device.
+IFF_EBRIDGE:Interface is Ethernet bridging device.
+IFF_SLAVE_INACTIVE:Interface is inactive bonding slave.
+IFF_MASTER_8023AD:Interface is 802.3ad bonding master.
+IFF_MASTER_ALB:Interface is balanced-alb bonding master.
+IFF_BONDING:Interface is a bonding master or slave.
+IFF_SLAVE_NEEDARP:Interface needs ARPs for validation.
+IFF_ISATAP:Interface is RFC4214 ISATAP interface.
+.TE
+.sp
+Setting the extended (private) interface flags is a privileged operation.
+.TP
+.BR SIOCGIFADDR ", " SIOCSIFADDR
+Get or set the address of the device using
+.IR ifr_addr .
+Setting the interface address is a privileged operation.
+For compatibility, only
+.B AF_INET
+addresses are accepted or returned.
+.TP
+.BR SIOCGIFDSTADDR ", " SIOCSIFDSTADDR
+Get or set the destination address of a point-to-point device using
+.IR ifr_dstaddr .
+For compatibility, only
+.B AF_INET
+addresses are accepted or returned.
+Setting the destination address is a privileged operation.
+.TP
+.BR SIOCGIFBRDADDR ", " SIOCSIFBRDADDR
+Get or set the broadcast address for a device using
+.IR ifr_brdaddr .
+For compatibility, only
+.B AF_INET
+addresses are accepted or returned.
+Setting the broadcast address is a privileged operation.
+.TP
+.BR SIOCGIFNETMASK ", " SIOCSIFNETMASK
+Get or set the network mask for a device using
+.IR ifr_netmask .
+For compatibility, only
+.B AF_INET
+addresses are accepted or returned.
+Setting the network mask is a privileged operation.
+.TP
+.BR SIOCGIFMETRIC ", " SIOCSIFMETRIC
+Get or set the metric of the device using
+.IR ifr_metric .
+This is currently not implemented; it sets
+.I ifr_metric
+to 0 if you attempt to read it and returns
+.B EOPNOTSUPP
+if you attempt to set it.
+.TP
+.BR SIOCGIFMTU ", " SIOCSIFMTU
+Get or set the MTU (Maximum Transfer Unit) of a device using
+.IR ifr_mtu .
+Setting the MTU is a privileged operation.
+Setting the MTU to
+too small values may cause kernel crashes.
+.TP
+.BR SIOCGIFHWADDR ", " SIOCSIFHWADDR
+Get or set the hardware address of a device using
+.IR ifr_hwaddr .
+The hardware address is specified in a struct
+.IR sockaddr .
+.I sa_family
+contains the ARPHRD_* device type,
+.I sa_data
+the L2 hardware address starting from byte 0.
+Setting the hardware address is a privileged operation.
+.TP
+.B SIOCSIFHWBROADCAST
+Set the hardware broadcast address of a device from
+.IR ifr_hwaddr .
+This is a privileged operation.
+.TP
+.BR SIOCGIFMAP ", " SIOCSIFMAP
+Get or set the interface's hardware parameters using
+.IR ifr_map .
+Setting the parameters is a privileged operation.
+
+.in +4n
+.nf
+struct ifmap {
+    unsigned long   mem_start;
+    unsigned long   mem_end;
+    unsigned short  base_addr;
+    unsigned char   irq;
+    unsigned char   dma;
+    unsigned char   port;
+};
+.fi
+.in
+
+The interpretation of the ifmap structure depends on the device driver
+and the architecture.
+.TP
+.BR SIOCADDMULTI ", " SIOCDELMULTI
+Add an address to or delete an address from the device's link layer
+multicast filters using
+.IR ifr_hwaddr .
+These are privileged operations.
+See also
+.BR packet (7)
+for an alternative.
+.TP
+.BR SIOCGIFTXQLEN ", " SIOCSIFTXQLEN
+Get or set the transmit queue length of a device using
+.IR ifr_qlen .
+Setting the transmit queue length is a privileged operation.
+.TP
+.B SIOCSIFNAME
+Changes the name of the interface specified in
+.I ifr_name
+to
+.IR ifr_newname .
+This is a privileged operation.
+It is allowed only when the interface
+is not up.
+.TP
+.B SIOCGIFCONF
+Return a list of interface (transport layer) addresses.
+This currently
+means only addresses of the
+.B AF_INET
+(IPv4) family for compatibility.
+Unlike the others, this ioctl passes an
+.I ifconf
+structure:
+
+.in +4n
+.nf
+struct ifconf {
+    int                 ifc_len; /* size of buffer */
+    union {
+        char           *ifc_buf; /* buffer address */
+        struct ifreq   *ifc_req; /* array of structures */
+    };
+};
+.fi
+.in
+
+If
+.I ifc_req
+is NULL,
+.B SIOCGIFCONF
+returns the necessary buffer size in bytes
+for receiving all available addresses in
+.IR ifc_len .
+Otherwise,
+.I ifc_req
+contains a pointer to an array of
+.I ifreq
+structures to be filled with all currently active L3 interface addresses.
+.I ifc_len
+contains the size of the array in bytes.
+Within each
+.I ifreq
+structure,
+.I ifr_name
+will receive the interface name, and
+.I ifr_addr
+the address.
+The actual number of bytes transferred is returned in
+.IR ifc_len .
+
+If the size specified by
+.I ifc_len
+is insufficient to store all the addresses,
+the kernel will skip the exceeding ones and return success.
+There is no reliable way of detecting this condition once it has occurred.
+It is therefore recommended to either determine the necessary buffer size
+beforehand by calling
+.B SIOCGIFCONF
+with
+.I ifc_req
+set to NULL, or to retry the call with a bigger buffer whenever
+.I ifc_len
+upon return differs by less than
+.I sizeof(struct ifreq)
+from its original value.
+
+If an error occurs accessing the
+.I ifconf
+or
+.I ifreq
+structures,
+.B EFAULT
+will be returned.
+.\" Slaving isn't supported in 2.2
+.\" .
+.\" .TP
+.\" .BR SIOCGIFSLAVE ", " SIOCSIFSLAVE
+.\" Get or set the slave device using
+.\" .IR ifr_slave .
+.\" Setting the slave device is a privileged operation.
+.\" .PP
+.\" FIXME . add amateur radio stuff.
+.PP
+Most protocols support their own ioctls to configure protocol-specific
+interface options.
+See the protocol man pages for a description.
+For configuring IP addresses, see
+.BR ip (7).
+.PP
+In addition, some devices support private ioctls.
+These are not described here.
+.SH NOTES
+Strictly speaking,
+.B SIOCGIFCONF
+and the other ioctls that accept or return only
+.B AF_INET
+socket addresses,
+are IP-specific and belong in
+.BR ip (7).
+.LP
+The names of interfaces with no addresses or that don't have the
+.B IFF_RUNNING
+flag set can be found via
+.IR /proc/net/dev .
+.LP
+Local IPv6 IP addresses can be found via
+.I /proc/net
+or via
+.BR rtnetlink (7).
+.SH BUGS
+glibc 2.1 is missing the
+.I ifr_newname
+macro in
+.IR <net/if.h> .
+Add the following to your program as a workaround:
+.sp
+.in +4n
+.nf
+#ifndef ifr_newname
+#define ifr_newname     ifr_ifru.ifru_slave
+#endif
+.fi
+.in
+.SH SEE ALSO
+.BR proc (5),
+.BR capabilities (7),
+.BR ip (7),
+.BR rtnetlink (7)

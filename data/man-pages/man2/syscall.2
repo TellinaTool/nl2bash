@@ -1,0 +1,303 @@
+.\" Copyright (c) 1980, 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)syscall.2	8.1 (Berkeley) 6/16/93
+.\"
+.\"
+.\" 2002-03-20  Christoph Hellwig <hch@infradead.org>
+.\"	- adopted for Linux
+.\" 2015-01-17, Kees Cook <keescook@chromium.org>
+.\"	Added mips and arm64.
+.\"
+.TH SYSCALL 2 2015-03-29 "Linux" "Linux Programmer's Manual"
+.SH NAME
+syscall \- indirect system call
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.B #include <unistd.h>
+.BR "#include <sys/syscall.h>   "  "/* For SYS_xxx definitions */"
+
+.BI "long syscall(long " number ", ...);"
+.fi
+.SH DESCRIPTION
+.BR syscall ()
+is a small library function that invokes
+the system call whose assembly language
+interface has the specified
+.I number
+with the specified arguments.
+Employing
+.BR syscall ()
+is useful, for example,
+when invoking a system call that has no wrapper function in the C library.
+
+.BR syscall ()
+saves CPU registers before making the system call,
+restores the registers upon return from the system call,
+and stores any error code returned by the system call in
+.BR errno (3)
+if an error occurs.
+
+Symbolic constants for system call numbers can be found in the header file
+.IR <sys/syscall.h> .
+.SH RETURN VALUE
+The return value is defined by the system call being invoked.
+In general, a 0 return value indicates success.
+A \-1 return value indicates an error,
+and an error code is stored in
+.IR errno .
+.SH NOTES
+.BR syscall ()
+first appeared in
+4BSD.
+.SS Architecture-specific requirements
+Each architecture ABI has its own requirements on how
+system call arguments are passed to the kernel.
+For system calls that have a glibc wrapper (e.g., most system calls),
+glibc handles the details of copying arguments to the right registers
+in a manner suitable for the architecture.
+However, when using
+.BR syscall ()
+to make a system call,
+the caller might need to handle architecture-dependent details;
+this requirement is most commonly encountered on certain 32-bit architectures.
+
+For example, on the ARM architecture Embedded ABI (EABI), a
+64-bit value (e.g.,
+.IR "long long" )
+must be aligned to an even register pair.
+Thus, using
+.BR syscall ()
+instead of the wrapper provided by glibc,
+the
+.BR readahead ()
+system call would be invoked as follows on the ARM architecture with the EABI:
+
+.in +4n
+.nf
+syscall(SYS_readahead, fd, 0,
+        (unsigned int) (offset >> 32),
+        (unsigned int) (offset & 0xFFFFFFFF),
+        count);
+.fi
+.in
+.PP
+Since the offset argument is 64 bits, and the first argument
+.RI ( fd )
+is passed in
+.IR r0 ,
+the caller must manually split and align the 64-bit value
+so that it is passed in the
+.IR r2 / r3
+register pair.
+That means inserting a dummy value into
+.I r1
+(the second argument of 0).
+
+Similar issues can occur on MIPS with the O32 ABI,
+on PowerPC with the 32-bit ABI, and on Xtensa.
+.\" Mike Frysinger: this issue ends up forcing MIPS
+.\" O32 to take 7 arguments to syscall()
+
+The affected system calls are
+.BR fadvise64_64 (2),
+.BR ftruncate64 (2),
+.BR posix_fadvise (2),
+.BR pread64 (2),
+.BR pwrite64 (2),
+.BR readahead (2),
+.BR sync_file_range (2),
+and
+.BR truncate64 (2).
+.SS Architecture calling conventions
+Every architecture has its own way of invoking and passing arguments to the
+kernel.
+The details for various architectures are listed in the two tables below.
+
+The first table lists the instruction used to transition to kernel mode
+(which might not be the fastest or best way to transition to the kernel,
+so you might have to refer to
+.BR vdso (7)),
+the register used to indicate the system call number,
+the register used to return the system call result,
+and the register used to signal an error.
+.if t \{\
+.ft CW
+\}
+.TS
+l2	l2	l2	l2	l2	l.
+arch/ABI	instruction	syscall #	retval	error	Notes
+_
+alpha	callsys	v0	a0	a3	[1]
+arc	trap0	r8	r0	-
+arm/OABI	swi NR	-	a1	-	[2]
+arm/EABI	swi 0x0	r7	r0	-
+arm64	svc #0	x8	x0	-
+blackfin	excpt 0x0	P0	R0	-
+i386	int $0x80	eax	eax	-
+ia64	break 0x100000	r15	r8	r10	[1]
+m68k	trap #0	d0	d0	-
+microblaze	brki r14,8	r12	r3	-
+mips	syscall	v0	v0	a3	[1]
+nios2	trap	r2	r2	r7
+parisc	ble 0x100(%sr2, %r0)	r20	r28	-
+powerpc	sc	r0	r3	r0	[1]
+s390	svc 0	r1	r2	-	[3]
+s390x	svc 0	r1	r2	-	[3]
+superh	trap #0x17	r3	r0	-	[4]
+sparc/32	t 0x10	g1	o0	psr/csr	[1]
+sparc/64	t 0x6d	g1	o0	psr/csr	[1]
+tile	swint1	R10	R00	R01	[1]
+x86_64	syscall	rax	rax	-	[5]
+x32	syscall	rax	rax	-	[5]
+xtensa	syscall	a2	a2	-
+.TE
+.PP
+Notes:
+.RS 4
+.IP [1] 4
+On a few architectures,
+a register is used as a boolean
+(0 indicating no error, and \-1 indicating an error) to signal that the
+system call failed.
+The actual error value is still contained in the return register.
+On sparc, the carry bit
+.RI ( csr )
+in the processor status register
+.RI ( psr )
+is used instead of a full register.
+.IP [2]
+.I NR
+is the system call number.
+.IP [3]
+For s390 and s390x,
+.I NR
+(the system call number) may be passed directly with
+.I "svc\ NR"
+if it is less than 256.
+.IP [4]
+On SuperH, the trap number controls the maximum number of arguments passed.
+A
+.IR "trap\ #0x10"
+can be used with only 0-argument system calls, a
+.IR "trap\ #0x11"
+can be used with 0- or 1-argument system calls,
+and so on up to
+.IR "trap #0x17"
+for 7-argument system calls.
+.IP [5]
+The x32 ABI uses the same instruction as the x86_64 ABI and is used on
+the same processors.
+To differentiate between them, the bit mask
+.I __X32_SYSCALL_BIT
+is bitwise-ORed into the system call number for system calls
+under the x32 ABI.
+Both system call tables are available though,
+so setting the bit is not a hard requirement.
+.RE
+.if t \{\
+.in
+.ft P
+\}
+.PP
+The second table shows the registers used to pass the system call arguments.
+.if t \{\
+.ft CW
+\}
+.TS
+l	l2	l2	l2	l2	l2	l2	l2	l.
+arch/ABI	arg1	arg2	arg3	arg4	arg5	arg6	arg7	Notes
+_
+alpha	a0	a1	a2	a3	a4	a5	-
+arc	r0	r1	r2	r3	r4	r5	-
+arm/OABI	a1	a2	a3	a4	v1	v2	v3
+arm/EABI	r0	r1	r2	r3	r4	r5	r6
+arm64	x0	x1	x2	x3	x4	x5	-
+blackfin	R0	R1	R2	R3	R4	R5	-
+i386	ebx	ecx	edx	esi	edi	ebp	-
+ia64	out0	out1	out2	out3	out4	out5	-
+m68k	d1	d2	d3	d4	d5	a0	-
+microblaze	r5	r6	r7	r8	r9	r10	-
+mips/o32	a0	a1	a2	a3	-	-	-	[1]
+mips/n32,64	a0	a1	a2	a3	a4	a5	-
+nios2	r4	r5	r6	r7	r8	r9	-
+parisc	r26	r25	r24	r23	r22	r21	-
+powerpc	r3	r4	r5	r6	r7	r8	r9
+s390	r2	r3	r4	r5	r6	r7	-
+s390x	r2	r3	r4	r5	r6	r7	-
+superh	r4	r5	r6	r7	r0	r1	r2
+sparc/32	o0	o1	o2	o3	o4	o5	-
+sparc/64	o0	o1	o2	o3	o4	o5	-
+tile	R00	R01	R02	R03	R04	R05	-
+x86_64	rdi	rsi	rdx	r10	r8	r9	-
+x32	rdi	rsi	rdx	r10	r8	r9	-
+xtensa	a6	a3	a4	a5	a8	a9	-
+.TE
+.PP
+Notes:
+.RS 4
+.IP [1] 4
+The mips/o32 system call convention passes
+arguments 5 through 8 on the user stack.
+.RE
+.if t \{\
+.in
+.ft P
+\}
+.PP
+Note that these tables don't cover the entire calling convention\(emsome
+architectures may indiscriminately clobber other registers not listed here.
+.SH EXAMPLE
+.nf
+#define _GNU_SOURCE
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+#include <signal.h>
+
+int
+main(int argc, char *argv[])
+{
+    pid_t tid;
+
+    tid = syscall(SYS_gettid);
+    tid = syscall(SYS_tgkill, getpid(), tid, SIGHUP);
+}
+.fi
+.SH SEE ALSO
+.BR _syscall (2),
+.BR intro (2),
+.BR syscalls (2),
+.BR errno (3),
+.BR vdso (7)

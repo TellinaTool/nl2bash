@@ -1,0 +1,162 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2001-04-01 by aeb
+.\" Modified 2003-07-23 by aeb
+.\"
+.TH USLEEP 3  2015-03-02 "" "Linux Programmer's Manual"
+.SH NAME
+usleep \- suspend execution for microsecond intervals
+.SH SYNOPSIS
+.nf
+.B "#include <unistd.h>"
+.sp
+.BI "int usleep(useconds_t " usec );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR usleep ():
+.ad l
+.RS 4
+.PD 0
+.TP 4
+Since glibc 2.12:
+.nf
+_BSD_SOURCE ||
+    (_XOPEN_SOURCE\ >=\ 500 ||
+        _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED) &&
+    !(_POSIX_C_SOURCE\ >=\ 200809L || _XOPEN_SOURCE\ >=\ 700)
+.TP 4
+.fi
+Before glibc 2.12:
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.PD
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR usleep ()
+function suspends execution of the calling thread for
+(at least) \fIusec\fP microseconds.
+The sleep may be lengthened slightly
+by any system activity or by the time spent processing the call or by the
+granularity of system timers.
+.SH RETURN VALUE
+The
+.BR usleep ()
+function returns 0 on success.
+On error, \-1 is returned, with
+.I errno
+set to indicate the cause of the error.
+.SH ERRORS
+.TP
+.B EINTR
+Interrupted by a signal; see
+.BR signal (7).
+.TP
+.B EINVAL
+\fIusec\fP is not smaller than 1000000.
+(On systems where that is considered an error.)
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR usleep ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+4.3BSD, POSIX.1-2001.
+POSIX.1-2001 declares this function obsolete; use
+.BR nanosleep (2)
+instead.
+POSIX.1-2008 removes the specification of
+.BR usleep ().
+
+On the original BSD implementation,
+and in glibc before version 2.2.2, the return type of this function is
+.IR void .
+The POSIX version returns
+.IR int ,
+and this is also the prototype used since glibc 2.2.2.
+
+Only the
+.B EINVAL
+error return is documented by SUSv2 and POSIX.1-2001.
+.SH NOTES
+The type
+.I useconds_t
+is an unsigned integer type capable of holding integers
+in the range [0,1000000].
+Programs will be more portable
+if they never mention this type explicitly.
+Use
+.in +4n
+.nf
+.sp
+#include <unistd.h>
+\&...
+    unsigned int usecs;
+\&...
+    usleep(usecs);
+.fi
+.in
+.LP
+The interaction of this function with the
+.B SIGALRM
+signal, and with other timer functions such as
+.BR alarm (2),
+.BR sleep (3),
+.BR nanosleep (2),
+.BR setitimer (2),
+.BR timer_create (2),
+.BR timer_delete (2),
+.BR timer_getoverrun (2),
+.BR timer_gettime (2),
+.BR timer_settime (2),
+.BR ualarm (3)
+is unspecified.
+.SH SEE ALSO
+.BR alarm (2),
+.BR getitimer (2),
+.BR nanosleep (2),
+.BR select (2),
+.BR setitimer (2),
+.BR sleep (3),
+.BR ualarm (3),
+.BR time (7)

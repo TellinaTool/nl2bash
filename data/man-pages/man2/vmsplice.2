@@ -1,0 +1,168 @@
+.\" This manpage is Copyright (C) 2006 Jens Axboe
+.\" and Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH VMSPLICE 2 2014-10-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+vmsplice \- splice user pages into a pipe
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.B #include <fcntl.h>
+.B #include <sys/uio.h>
+
+.BI "ssize_t vmsplice(int " fd ", const struct iovec *" iov ,
+.BI "                 unsigned long " nr_segs ", unsigned int " flags );
+.fi
+.\" Return type was long before glibc 2.7
+.SH DESCRIPTION
+.\" Linus: vmsplice() system call to basically do a "write to
+.\" the buffer", but using the reference counting and VM traversal
+.\" to actually fill the buffer. This means that the user needs to
+.\" be careful not to reuse the user-space buffer it spliced into
+.\" the kernel-space one (contrast this to "write()", which copies
+.\" the actual data, and you can thus reuse the buffer immediately
+.\" after a successful write), but that is often easy to do.
+The
+.BR vmsplice ()
+system call maps
+.I nr_segs
+ranges of user memory described by
+.I iov
+into a pipe.
+The file descriptor
+.I fd
+must refer to a pipe.
+
+The pointer
+.I iov
+points to an array of
+.I iovec
+structures as defined in
+.IR <sys/uio.h> :
+
+.in +4n
+.nf
+struct iovec {
+    void  *iov_base;        /* Starting address */
+    size_t iov_len;         /* Number of bytes */
+};
+.in
+.fi
+
+The
+.I flags
+argument is a bit mask that is composed by ORing together
+zero or more of the following values:
+.TP 1.9i
+.B SPLICE_F_MOVE
+Unused for
+.BR vmsplice ();
+see
+.BR splice (2).
+.TP
+.B SPLICE_F_NONBLOCK
+.\" Not used for vmsplice
+.\" May be in the future -- therefore EAGAIN
+Do not block on I/O; see
+.BR splice (2)
+for further details.
+.TP
+.B SPLICE_F_MORE
+Currently has no effect for
+.BR vmsplice (),
+but may be implemented in the future; see
+.BR splice (2).
+.TP
+.B SPLICE_F_GIFT
+The user pages are a gift to the kernel.
+The application may not modify this memory ever,
+.\" FIXME . Explain the following line in a little more detail:
+otherwise the page cache and on-disk data may differ.
+Gifting pages to the kernel means that a subsequent
+.BR splice (2)
+.B SPLICE_F_MOVE
+can successfully move the pages;
+if this flag is not specified, then a subsequent
+.BR splice (2)
+.B SPLICE_F_MOVE
+must copy the pages.
+Data must also be properly page aligned, both in memory and length.
+.\" FIXME
+.\"	It looks like the page-alignment requirement went away with
+.\"	commit bd1a68b59c8e3bce45fb76632c64e1e063c3962d
+.\"
+.\" .... if we expect to later SPLICE_F_MOVE to the cache.
+.SH RETURN VALUE
+Upon successful completion,
+.BR vmsplice ()
+returns the number of bytes transferred to the pipe.
+On error,
+.BR vmsplice ()
+returns \-1 and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EAGAIN
+.B SPLICE_F_NONBLOCK
+was specified in
+.IR flags ,
+and the operation would block.
+.TP
+.B EBADF
+.I fd
+either not valid, or doesn't refer to a pipe.
+.TP
+.B EINVAL
+.I nr_segs
+is greater than
+.BR IOV_MAX ;
+or memory not aligned if
+.B SPLICE_F_GIFT
+set.
+.TP
+.B ENOMEM
+Out of memory.
+.SH VERSIONS
+The
+.BR vmsplice ()
+system call first appeared in Linux 2.6.17;
+library support was added to glibc in version 2.5.
+.SH CONFORMING TO
+This system call is Linux-specific.
+.SH NOTES
+.BR vmsplice ()
+follows the other vectorized read/write type functions when it comes to
+limitations on the number of segments being passed in.
+This limit is
+.B IOV_MAX
+as defined in
+.IR <limits.h> .
+Currently,
+.\" UIO_MAXIOV in kernel source
+this limit is 1024.
+.SH SEE ALSO
+.BR splice (2),
+.BR tee (2)

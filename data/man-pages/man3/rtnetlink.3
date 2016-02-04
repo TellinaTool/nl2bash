@@ -1,0 +1,124 @@
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" $Id: rtnetlink.3,v 1.2 1999/05/18 10:35:10 freitag Exp $
+.\"
+.TH RTNETLINK 3 2014-09-06 "GNU" "Linux Programmer's Manual"
+.SH NAME
+rtnetlink \- macros to manipulate rtnetlink messages
+.SH SYNOPSIS
+.B #include <asm/types.h>
+.br
+.B #include <linux/netlink.h>
+.br
+.B #include <linux/rtnetlink.h>
+.br
+.B #include <sys/socket.h>
+
+.BI "rtnetlink_socket = socket(AF_NETLINK, int " socket_type \
+", NETLINK_ROUTE);"
+.sp
+.BI "int RTA_OK(struct rtattr *" rta ", int " rtabuflen );
+.sp
+.BI "void *RTA_DATA(struct rtattr *" rta );
+.sp
+.BI "unsigned int RTA_PAYLOAD(struct rtattr *" rta );
+.sp
+.BI "struct rtattr *RTA_NEXT(struct rtattr *" rta \
+", unsigned int " rtabuflen );
+.sp
+.BI "unsigned int RTA_LENGTH(unsigned int " length );
+.sp
+.BI "unsigned int RTA_SPACE(unsigned int "length );
+.SH DESCRIPTION
+All
+.BR rtnetlink (7)
+messages consist of a
+.BR netlink (7)
+message header and appended attributes.
+The attributes should be manipulated only using the macros provided here.
+.PP
+.BI RTA_OK( rta ", " attrlen )
+returns true if
+.I rta
+points to a valid routing attribute;
+.I attrlen
+is the running length of the attribute buffer.
+When not true then you must assume there are no more attributes in the
+message, even if
+.I attrlen
+is nonzero.
+.PP
+.BI RTA_DATA( rta )
+returns a pointer to the start of this attribute's data.
+.PP
+.BI RTA_PAYLOAD( rta )
+returns the length of this attribute's data.
+.PP
+.BI RTA_NEXT( rta ", " attrlen )
+gets the next attribute after
+.IR rta .
+Calling this macro will update
+.IR attrlen .
+You should use
+.B RTA_OK
+to check the validity of the returned pointer.
+.PP
+.BI RTA_LENGTH( len )
+returns the length which is required for
+.I len
+bytes of data plus the header.
+.PP
+.BI RTA_SPACE( len )
+returns the amount of space which will be needed in a message with
+.I len
+bytes of data.
+.SH CONFORMING TO
+These macros are nonstandard Linux extensions.
+.SH BUGS
+This manual page is incomplete.
+.SH EXAMPLE
+.\" FIXME . ? would be better to use libnetlink in the EXAMPLE code here
+Creating a rtnetlink message to set the MTU of a device:
+.nf
+    #include <linux/rtnetlink.h>
+
+    ...
+
+    struct {
+        struct nlmsghdr  nh;
+        struct ifinfomsg if;
+        char             attrbuf[512];
+    } req;
+
+    struct rtattr *rta;
+    unsigned int mtu = 1000;
+
+    int rtnetlink_sk = socket(AF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
+
+    memset(&req, 0, sizeof(req));
+    req.nh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
+    req.nh.nlmsg_flags = NLM_F_REQUEST;
+    req.nh.nlmsg_type = RTM_NEWLINK;
+    req.if.ifi_family = AF_UNSPEC;
+    req.if.ifi_index = INTERFACE_INDEX;
+    req.if.ifi_change = 0xffffffff; /* ??? */
+    rta = (struct rtattr *)(((char *) &req) +
+                             NLMSG_ALIGN(req.nh.nlmsg_len));
+    rta\->rta_type = IFLA_MTU;
+    rta\->rta_len = RTA_LENGTH(sizeof(unsigned int));
+    req.n.nlmsg_len = NLMSG_ALIGN(req.nh.nlmsg_len) +
+                                  RTA_LENGTH(sizeof(mtu));
+    memcpy(RTA_DATA(rta), &mtu, sizeof(mtu));
+    send(rtnetlink_sk, &req, req.nh.nlmsg_len, 0);
+.fi
+.SH SEE ALSO
+.BR netlink (3),
+.BR netlink (7),
+.BR rtnetlink (7)

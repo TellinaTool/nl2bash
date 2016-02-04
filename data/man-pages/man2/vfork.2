@@ -1,0 +1,278 @@
+.\" Copyright (c) 1999 Andries Brouwer (aeb@cwi.nl), 1 Nov 1999
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 1999-11-10: Merged text taken from the page contributed by
+.\" Reed H. Petty (rhp@draper.net)
+.\"
+.TH VFORK 2 2012-08-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+vfork \- create a child process and block parent
+.SH SYNOPSIS
+.B #include <sys/types.h>
+.br
+.B #include <unistd.h>
+.sp
+.B pid_t vfork(void);
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR vfork ():
+.ad l
+.RS 4
+.PD 0
+.TP 4
+Since glibc 2.12:
+.nf
+_BSD_SOURCE ||
+    (_XOPEN_SOURCE\ >=\ 500 ||
+        _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED) &&
+    !(_POSIX_C_SOURCE\ >=\ 200809L || _XOPEN_SOURCE\ >=\ 700)
+.TP 4
+.fi
+Before glibc 2.12:
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.PD
+.RE
+.ad b
+.SH DESCRIPTION
+.SS Standard description
+(From POSIX.1)
+The
+.BR vfork ()
+function has the same effect as
+.BR fork (2),
+except that the behavior is undefined if the process created by
+.BR vfork ()
+either modifies any data other than a variable of type
+.I pid_t
+used to store the return value from
+.BR vfork (),
+or returns from the function in which
+.BR vfork ()
+was called, or calls any other function before successfully calling
+.BR _exit (2)
+or one of the
+.BR exec (3)
+family of functions.
+.SS Linux description
+.BR vfork (),
+just like
+.BR fork (2),
+creates a child process of the calling process.
+For details and return value and errors, see
+.BR fork (2).
+.PP
+.BR vfork ()
+is a special case of
+.BR clone (2).
+It is used to create new processes without copying the page tables of
+the parent process.
+It may be useful in performance-sensitive applications
+where a child is created which then immediately issues an
+.BR execve (2).
+.PP
+.BR vfork ()
+differs from
+.BR fork (2)
+in that the calling thread is suspended until the child terminates
+(either normally,
+by calling
+.BR _exit (2),
+or abnormally, after delivery of a fatal signal),
+or it makes a call to
+.BR execve (2).
+Until that point, the child shares all memory with its parent,
+including the stack.
+The child must not return from the current function or call
+.BR exit (3),
+but may call
+.BR _exit (2).
+
+As with
+.BR fork (2),
+the child process created by
+.BR vfork ()
+inherits copies of various of the caller's process attributes
+(e.g., file descriptors, signal dispositions, and current working directory);
+the
+.BR vfork ()
+call differs only in the treatment of the virtual address space,
+as described above.
+
+Signals sent to the parent
+arrive after the child releases the parent's memory
+(i.e., after the child terminates
+or calls
+.BR execve (2)).
+.SS Historic description
+Under Linux,
+.BR fork (2)
+is implemented using copy-on-write pages, so the only penalty incurred by
+.BR fork (2)
+is the time and memory required to duplicate the parent's page tables,
+and to create a unique task structure for the child.
+However, in the bad old days a
+.BR fork (2)
+would require making a complete copy of the caller's data space,
+often needlessly, since usually immediately afterward an
+.BR exec (3)
+is done.
+Thus, for greater efficiency, BSD introduced the
+.BR vfork ()
+system call, which did not fully copy the address space of
+the parent process, but borrowed the parent's memory and thread
+of control until a call to
+.BR execve (2)
+or an exit occurred.
+The parent process was suspended while the
+child was using its resources.
+The use of
+.BR vfork ()
+was tricky: for example, not modifying data
+in the parent process depended on knowing which variables were
+held in a register.
+.SH CONFORMING TO
+4.3BSD; POSIX.1-2001 (but marked OBSOLETE).
+POSIX.1-2008 removes the specification of
+.BR vfork ().
+
+The requirements put on
+.BR vfork ()
+by the standards are weaker than those put on
+.BR fork (2),
+so an implementation where the two are synonymous is compliant.
+In particular, the programmer cannot rely on the parent
+remaining blocked until the child either terminates or calls
+.BR execve (2),
+and cannot rely on any specific behavior with respect to shared memory.
+.\" In AIXv3.1 vfork is equivalent to fork.
+.SH NOTES
+.PP
+Some consider the semantics of
+.BR vfork ()
+to be an architectural blemish, and the 4.2BSD man page stated:
+"This system call will be eliminated when proper system sharing mechanisms
+are implemented.
+Users should not depend on the memory sharing semantics of
+.BR vfork ()
+as it will, in that case, be made synonymous to
+.BR fork (2).\c
+"
+However, even though modern memory management hardware
+has decreased the performance difference between
+.BR fork (2)
+and
+.BR vfork (),
+there are various reasons why Linux and other systems have retained
+.BR vfork ():
+.IP * 3
+Some performance-critical applications require the small performance
+advantage conferred by
+.BR vfork ().
+.IP *
+.BR vfork ()
+can be implemented on systems that lack a memory-management unit (MMU), but
+.BR fork (2)
+can't be implemented on such systems.
+(POSIX.1-2008 removed
+.BR vfork ()
+from the standard; the POSIX rationale for the
+.BR posix_spawn (3)
+function notes that that function,
+which provides functionality equivalent to
+.BR fork (2)+ exec (3),
+is designed to be implementable on systems that lack an MMU.)
+.\" http://stackoverflow.com/questions/4259629/what-is-the-difference-between-fork-and-vfork
+.\" http://developers.sun.com/solaris/articles/subprocess/subprocess.html
+.\" http://mailman.uclinux.org/pipermail/uclinux-dev/2009-April/000684.html
+.SS Linux notes
+Fork handlers established using
+.BR pthread_atfork (3)
+are not called when a multithreaded program employing
+the NPTL threading library calls
+.BR vfork ().
+Fork handlers are called in this case in a program using the
+LinuxThreads threading library.
+(See
+.BR pthreads (7)
+for a description of Linux threading libraries.)
+
+A call to
+.BR vfork ()
+is equivalent to calling
+.BR clone (2)
+with
+.I flags
+specified as:
+
+     CLONE_VM | CLONE_VFORK | SIGCHLD
+.SS History
+The
+.BR vfork ()
+system call appeared in 3.0BSD.
+.\" In the release notes for 4.2BSD Sam Leffler wrote: `vfork: Is still
+.\" present, but definitely on its way out'.
+In 4.4BSD it was made synonymous to
+.BR fork (2)
+but NetBSD introduced it again,
+cf.
+.UR http://www.netbsd.org\:/Documentation\:/kernel\:/vfork.html
+.UE .
+In Linux, it has been equivalent to
+.BR fork (2)
+until 2.2.0-pre6 or so.
+Since 2.2.0-pre9 (on i386, somewhat later on
+other architectures) it is an independent system call.
+Support was added in glibc 2.0.112.
+.SH BUGS
+.PP
+Details of the signal handling are obscure and differ between systems.
+The BSD man page states:
+"To avoid a possible deadlock situation, processes that are children
+in the middle of a
+.BR vfork ()
+are never sent
+.B SIGTTOU
+or
+.B SIGTTIN
+signals; rather, output or
+.IR ioctl s
+are allowed and input attempts result in an end-of-file indication."
+.\"
+.\" As far as I can tell, the following is not true in 2.6.19:
+.\" Currently (Linux 2.3.25),
+.\" .BR strace (1)
+.\" cannot follow
+.\" .BR vfork ()
+.\" and requires a kernel patch.
+.SH SEE ALSO
+.BR clone (2),
+.BR execve (2),
+.BR fork (2),
+.BR unshare (2),
+.BR wait (2)

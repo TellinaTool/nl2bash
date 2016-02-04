@@ -1,0 +1,121 @@
+'\" t -*- coding: UTF-8 -*-
+.\" Copyright 2009  Lefteris Dimitroulakis (edimitro@tee.gr)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH ISO_8859-6 7 2014-10-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+iso_8859-6 \- ISO 8859-6 character set encoded in octal, decimal,
+and hexadecimal
+.SH DESCRIPTION
+The ISO 8859 standard includes several 8-bit extensions to the ASCII
+character set (also known as ISO 646-IRV).
+ISO 8859-6 encodes the
+characters used in the Arabic language.
+.SS ISO 8859 alphabets
+The full set of ISO 8859 alphabets includes:
+.TS
+l l.
+ISO 8859-1	West European languages (Latin-1)
+ISO 8859-2	Central and East European languages (Latin-2)
+ISO 8859-3	Southeast European and miscellaneous languages (Latin-3)
+ISO 8859-4	Scandinavian/Baltic languages (Latin-4)
+ISO 8859-5	Latin/Cyrillic
+ISO 8859-6	Latin/Arabic
+ISO 8859-7	Latin/Greek
+ISO 8859-8	Latin/Hebrew
+ISO 8859-9	Latin-1 modification for Turkish (Latin-5)
+ISO 8859-10	Lappish/Nordic/Eskimo languages (Latin-6)
+ISO 8859-11	Latin/Thai
+ISO 8859-13	Baltic Rim languages (Latin-7)
+ISO 8859-14	Celtic (Latin-8)
+ISO 8859-15	West European languages (Latin-9)
+ISO 8859-16	Romanian (Latin-10)
+.TE
+.SS ISO 8859-6 characters
+The following table displays the characters in ISO 8859-6, which
+are printable and unlisted in the
+.BR ascii (7)
+manual page.
+.TS
+l l l c lp-1.
+Oct	Dec	Hex	Char	Description
+_
+240	160	A0	 	NO-BREAK SPACE
+244	164	A4	¤	CURRENCY SIGN
+254	172	AC	،	ARABIC COMMA
+255	173	AD	­	SOFT HYPHEN
+273	187	BB	؛	ARABIC SEMICOLON
+277	191	BF	؟	ARABIC QUESTION MARK
+301	193	C1	ء	ARABIC LETTER HAMZA
+302	194	C2	آ	ARABIC LETTER ALEF WITH MADDA ABOVE
+303	195	C3	أ	ARABIC LETTER ALEF WITH HAMZA ABOVE
+304	196	C4	ؤ	ARABIC LETTER WAW WITH HAMZA ABOVE
+305	197	C5	إ	ARABIC LETTER ALEF WITH HAMZA BELOW
+306	198	C6	ئ	ARABIC LETTER YEH WITH HAMZA ABOVE
+307	199	C7	ا	ARABIC LETTER ALEF
+310	200	C8	ب	ARABIC LETTER BEH
+311	201	C9	ة	ARABIC LETTER TEH MARBUTA
+312	202	CA	ت	ARABIC LETTER TEH
+313	203	CB	ث	ARABIC LETTER THEH
+314	204	CC	ج	ARABIC LETTER JEEM
+315	205	CD	ح	ARABIC LETTER HAH
+316	206	CE	خ	ARABIC LETTER KHAH
+317	207	CF	د	ARABIC LETTER DAL
+320	208	D0	ذ	ARABIC LETTER THAL
+321	209	D1	ر	ARABIC LETTER REH
+322	210	D2	ز	ARABIC LETTER ZAIN
+323	211	D3	س	ARABIC LETTER SEEN
+324	212	D4	ش	ARABIC LETTER SHEEN
+325	213	D5	ص	ARABIC LETTER SAD
+326	214	D6	ض	ARABIC LETTER DAD
+327	215	D7	ط	ARABIC LETTER TAH
+330	216	D8	ظ	ARABIC LETTER ZAH
+331	217	D9	ع	ARABIC LETTER AIN
+332	218	DA	غ	ARABIC LETTER GHAIN
+340	224	E0	ـ	ARABIC TATWEEL
+341	225	E1	ف	ARABIC LETTER FEH
+342	226	E2	ق	ARABIC LETTER QAF
+343	227	E3	ك	ARABIC LETTER KAF
+344	228	E4	ل	ARABIC LETTER LAM
+345	229	E5	م	ARABIC LETTER MEEM
+346	230	E6	ن	ARABIC LETTER NOON
+347	231	E7	ه	ARABIC LETTER HEH
+350	232	E8	و	ARABIC LETTER WAW
+351	233	E9	ى	ARABIC LETTER ALEF MAKSURA
+352	234	EA	ي	ARABIC LETTER YEH
+353	235	EB	ً 	ARABIC FATHATAN
+354	236	EC	ٌ 	ARABIC DAMMATAN
+355	237	ED	ٍ 	ARABIC KASRATAN
+356	238	EE	َ 	ARABIC FATHA
+357	239	EF	ُ 	ARABIC DAMMA
+360	240	F0	ِ 	ARABIC KASRA
+361	241	F1	ّ 	ARABIC SHADDA
+362	242	F2	ْ 	ARABIC SUKUN
+.TE
+.SH NOTES
+ISO 8859-6 lacks the glyphs required for many related languages,
+such as Urdu and Persian (Farsi).
+.SH SEE ALSO
+.BR ascii (7),
+.BR charsets (7),
+.BR utf-8 (7)

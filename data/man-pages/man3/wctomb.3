@@ -1,0 +1,116 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WCTOMB 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wctomb \- convert a wide character to a multibyte sequence
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "int wctomb(char *" s ", wchar_t " wc );
+.fi
+.SH DESCRIPTION
+If
+.I s
+is not NULL,
+the
+.BR wctomb ()
+function converts the wide character
+.I wc
+to its multibyte representation and stores it at the beginning of
+the character array pointed to by
+.IR s .
+It updates the shift state, which
+is stored in a static anonymous variable
+known only to the
+.BR wctomb ()
+function,
+and returns the length of said multibyte representation,
+that is, the number of
+bytes written at
+.IR s .
+.PP
+The programmer must ensure that there is
+room for at least
+.B MB_CUR_MAX
+bytes at
+.IR s .
+.PP
+If
+.I s
+is NULL, the
+.BR wctomb ()
+function
+.\" The Dinkumware doc and the Single UNIX specification say this, but
+.\" glibc doesn't implement this.
+resets the shift state, known only to this function,
+to the initial state, and
+returns nonzero if the encoding has nontrivial shift state,
+or zero if the encoding is stateless.
+.SH RETURN VALUE
+If
+.I s
+is not NULL, the
+.BR wctomb ()
+function
+returns the number of bytes
+that have been written to the byte array at
+.IR s .
+If
+.I wc
+can not be
+represented as a multibyte sequence (according
+to the current locale), \-1 is returned.
+.PP
+If
+.I s
+is NULL, the
+.BR wctomb ()
+function returns nonzero if the
+encoding has nontrivial shift state, or zero if the encoding is stateless.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wctomb ()
+T}	Thread safety	MT-Unsafe race
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR wctomb ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.PP
+The function
+.BR wcrtomb (3)
+provides
+a better interface to the same functionality.
+.SH SEE ALSO
+.BR MB_CUR_MAX (3),
+.BR mblen (3),
+.BR mbstowcs (3),
+.BR mbtowc (3),
+.BR wcrtomb (3),
+.BR wcstombs (3)

@@ -1,0 +1,168 @@
+.\" Copyright (c) 2012 YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+.\" and Copyright (c) 2012 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of
+.\" this manual under the conditions for verbatim copying, provided that
+.\" the entire resulting derived work is distributed under the terms of
+.\" a permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume
+.\" no responsibility for errors or omissions, or for damages resulting
+.\" from the use of the information contained herein.  The author(s) may
+.\" not have taken the same level of care in the production of this
+.\" manual, which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH IF_NAMEINDEX 3 2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+if_nameindex, if_freenameindex \- get network interface names and indexes
+.SH SYNOPSIS
+.nf
+.B #include <net/if.h>
+.sp
+.BI "struct if_nameindex *if_nameindex(void);
+.BI "void if_freenameindex(struct if_nameindex *" "ptr" );
+.fi
+.SH DESCRIPTION
+The
+.BR if_nameindex ()
+function returns an array of
+.I if_nameindex
+structures, each containing information
+about one of the network interfaces on the local system.
+The
+.I if_nameindex
+structure contains at least the following entries:
+.sp
+.in +4n
+.nf
+    unsigned int if_index; /* Index of interface (1, 2, ...) */
+    char        *if_name;  /* Null-terminated name ("eth0", etc.) */
+.fi
+.in
+.PP
+The
+.I if_index
+field contains the interface index.
+The
+.I ifa_name
+field points to the null-terminated interface name.
+The end of the array is indicated by entry with
+.I if_index
+set to zero and
+.I ifa_name
+set to NULL.
+.PP
+The data structure returned by
+.BR if_nameindex ()
+is dynamically allocated and should be freed using
+.BR if_freenameindex ()
+when no longer needed.
+.SH RETURN VALUE
+On success,
+.BR if_nameindex ()
+returns pointer to the array;
+on error, NULL is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.BR if_nameindex ()
+may fail and set
+.I errno
+if:
+.TP
+.B ENOBUFS
+Insufficient resources available.
+.PP
+.BR if_nameindex ()
+may also fail for any of the errors specified for
+.BR socket (2),
+.BR bind (2),
+.BR ioctl (2),
+.BR getsockname (2),
+.BR recvmsg (2),
+.BR sendto (2),
+or
+.BR malloc (3).
+.SH VERSIONS
+The
+.BR if_nameindex ()
+function first appeared in glibc 2.1, but before glibc 2.3.4,
+the implementation supported only interfaces with IPv4 addresses.
+Support of interfaces that don't have IPv4 addresses is available only
+on kernels that support netlink.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR if_nameindex (),
+.br
+.BR if_freenameindex ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, RFC\ 3493.
+
+This function first appeared in BSDi.
+.SH EXAMPLE
+The program below demonstrates the use of the functions described
+on this page.
+An example of the output this program might produce is the following:
+
+.in +4n
+.nf
+$ \fB./a.out\fI
+1: lo
+2: wlan0
+3: em1
+.fi
+.in
+.SS Program source
+.nf
+#include <net/if.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int
+main(int argc, char *argv[])
+{
+    struct if_nameindex *if_ni, *i;
+
+    if_ni = if_nameindex();
+    if (if_ni == NULL) {
+        perror("if_nameindex");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = if_ni; ! (i\->if_index == 0 && i\->if_name == NULL); i++)
+        printf("%u: %s\\n", i\->if_index, i\->if_name);
+
+    if_freenameindex(if_ni);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR getsockopt (2),
+.BR setsockopt (2),
+.BR getifaddrs (3),
+.BR if_indextoname (3),
+.BR if_nametoindex (3),
+.BR ifconfig (8)

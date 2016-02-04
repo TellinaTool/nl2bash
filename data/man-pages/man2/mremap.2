@@ -1,0 +1,224 @@
+.\" Copyright (c) 1996 Tom Bjorkholm <tomb@mydata.se>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 1996-04-11 Tom Bjorkholm <tomb@mydata.se>
+.\"            First version written (1.3.86)
+.\" 1996-04-12 Tom Bjorkholm <tomb@mydata.se>
+.\"            Update for Linux 1.3.87 and later
+.\" 2005-10-11 mtk: Added NOTES for MREMAP_FIXED; revised EINVAL text.
+.\"
+.TH MREMAP 2 2015-12-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+mremap \- remap a virtual memory address
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.br
+.B #include <sys/mman.h>
+.sp
+.BI "void *mremap(void *" old_address ", size_t " old_size ,
+.BI "             size_t " new_size ", int " flags ", ... /* void *" new_address " */);"
+.fi
+.SH DESCRIPTION
+.BR mremap ()
+expands (or shrinks) an existing memory mapping, potentially
+moving it at the same time (controlled by the \fIflags\fP argument and
+the available virtual address space).
+
+\fIold_address\fP is the old address of the virtual memory block that you
+want to expand (or shrink).
+Note that \fIold_address\fP has to be page
+aligned.
+\fIold_size\fP is the old size of the
+virtual memory block.
+\fInew_size\fP is the requested size of the
+virtual memory block after the resize.
+An optional fifth argument,
+.IR new_address ,
+may be provided; see the description of
+.B MREMAP_FIXED
+below.
+
+In Linux the memory is divided into pages.
+A user process has (one or)
+several linear virtual memory segments.
+Each virtual memory segment has one
+or more mappings to real memory pages (in the page table).
+Each virtual memory segment has its own
+protection (access rights), which may cause
+a segmentation violation if the memory is accessed incorrectly (e.g.,
+writing to a read-only segment).
+Accessing virtual memory outside of the
+segments will also cause a segmentation violation.
+
+.BR mremap ()
+uses the Linux page table scheme.
+.BR mremap ()
+changes the
+mapping between virtual addresses and memory pages.
+This can be used to implement a very efficient
+.BR realloc (3).
+
+The \fIflags\fP bit-mask argument may be 0, or include the following flag:
+.TP
+.B MREMAP_MAYMOVE
+By default, if there is not sufficient space to expand a mapping
+at its current location, then
+.BR mremap ()
+fails.
+If this flag is specified, then the kernel is permitted to
+relocate the mapping to a new virtual address, if necessary.
+If the mapping is relocated,
+then absolute pointers into the old mapping location
+become invalid (offsets relative to the starting address of
+the mapping should be employed).
+.TP
+.BR MREMAP_FIXED " (since Linux 2.3.31)"
+This flag serves a similar purpose to the
+.B MAP_FIXED
+flag of
+.BR mmap (2).
+If this flag is specified, then
+.BR mremap ()
+accepts a fifth argument,
+.IR "void\ *new_address" ,
+which specifies a page-aligned address to which the mapping must
+be moved.
+Any previous mapping at the address range specified by
+.I new_address
+and
+.I new_size
+is unmapped.
+If
+.B MREMAP_FIXED
+is specified, then
+.B MREMAP_MAYMOVE
+must also be specified.
+.PP
+If the memory segment specified by
+.I old_address
+and
+.I old_size
+is locked (using
+.BR mlock (2)
+or similar), then this lock is maintained when the segment is
+resized and/or relocated.
+As a consequence, the amount of memory locked by the process may change.
+.SH RETURN VALUE
+On success
+.BR mremap ()
+returns a pointer to the new virtual memory area.
+On error, the value
+.B MAP_FAILED
+(that is, \fI(void\ *)\ \-1\fP) is returned,
+and \fIerrno\fP is set appropriately.
+.SH ERRORS
+.TP
+.B EAGAIN
+The caller tried to expand a memory segment that is locked,
+but this was not possible without exceeding the
+.B RLIMIT_MEMLOCK
+resource limit.
+.TP
+.B EFAULT
+"Segmentation fault." Some address in the range
+\fIold_address\fP to \fIold_address\fP+\fIold_size\fP is an invalid
+virtual memory address for this process.
+You can also get
+.B EFAULT
+even if there exist mappings that cover the
+whole address space requested, but those mappings are of different types.
+.TP
+.B EINVAL
+An invalid argument was given.
+Possible causes are: \fIold_address\fP was not
+page aligned; a value other than
+.B MREMAP_MAYMOVE
+or
+.B MREMAP_FIXED
+was specified in
+.IR flags ;
+.I new_size
+was zero;
+.I new_size
+or
+.I new_address
+was invalid;
+or the new address range specified by
+.I new_address
+and
+.I new_size
+overlapped the old address range specified by
+.I old_address
+and
+.IR old_size ;
+or
+.B MREMAP_FIXED
+was specified without also specifying
+.BR MREMAP_MAYMOVE .
+.TP
+.B ENOMEM
+The memory area cannot be expanded at the current virtual address, and the
+.B MREMAP_MAYMOVE
+flag is not set in \fIflags\fP.
+Or, there is not enough (virtual) memory available.
+.SH CONFORMING TO
+This call is Linux-specific, and should not be used in programs
+intended to be portable.
+.\" 4.2BSD had a (never actually implemented)
+.\" .BR mremap (2)
+.\" call with completely different semantics.
+.SH NOTES
+Prior to version 2.4, glibc did not expose the definition of
+.BR MREMAP_FIXED ,
+and the prototype for
+.BR mremap ()
+did not allow for the
+.I new_address
+argument.
+
+If
+.BR mremap ()
+is used to move or expand an area locked with
+.BR mlock (2)
+or equivalent, the
+.BR mremap ()
+call will make a best effort to populate the new area but will not fail
+with
+.B ENOMEM
+if the area cannot be populated.
+.SH SEE ALSO
+.BR brk (2),
+.BR getpagesize (2),
+.BR getrlimit (2),
+.BR mlock (2),
+.BR mmap (2),
+.BR sbrk (2),
+.BR malloc (3),
+.BR realloc (3)
+
+Your favorite text book on operating systems
+for more information on paged memory
+(e.g., \fIModern Operating Systems\fP by Andrew S. Tanenbaum,
+\fIInside Linux\fP by Randolf Bentson,
+\fIThe Design of the UNIX Operating System\fP by Maurice J. Bach)

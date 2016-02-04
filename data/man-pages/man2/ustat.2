@@ -1,0 +1,120 @@
+.\" Copyright (C) 1995, Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Created  1995-08-09 Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\" Modified 1997-01-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2001-03-22 by aeb
+.\" Modified 2003-08-04 by aeb
+.\"
+.TH USTAT 2 2003-08-04 "Linux" "Linux Programmer's Manual"
+.SH NAME
+ustat \- get filesystem statistics
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.br
+.BR "#include <unistd.h>" "    /* libc[45] */"
+.br
+.BR "#include <ustat.h>" "     /* glibc2 */"
+.sp
+.BI "int ustat(dev_t " dev ", struct ustat *" ubuf );
+.fi
+.SH DESCRIPTION
+.BR ustat ()
+returns information about a mounted filesystem.
+.I dev
+is a device number identifying a device containing
+a mounted filesystem.
+.I ubuf
+is a pointer to a
+.I ustat
+structure that contains the following
+members:
+.in +4n
+.nf
+
+daddr_t f_tfree;      /* Total free blocks */
+ino_t   f_tinode;     /* Number of free inodes */
+char    f_fname[6];   /* Filsys name */
+char    f_fpack[6];   /* Filsys pack name */
+.fi
+.in
+.PP
+The last two fields,
+.I f_fname
+and
+.IR f_fpack ,
+are not implemented and will
+always be filled with null bytes (\(aq\\0\(aq).
+.SH RETURN VALUE
+On success, zero is returned and the
+.I ustat
+structure pointed to by
+.I ubuf
+will be filled in.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EFAULT
+.I ubuf
+points outside of your accessible address space.
+.TP
+.B EINVAL
+.I dev
+does not refer to a device containing a mounted filesystem.
+.TP
+.B ENOSYS
+The mounted filesystem referenced by
+.I dev
+does not support this operation, or any version of Linux before
+1.3.16.
+.SH CONFORMING TO
+SVr4.
+.\" SVr4 documents additional error conditions ENOLINK, ECOMM, and EINTR
+.\" but has no ENOSYS condition.
+.SH NOTES
+.BR ustat ()
+is deprecated and has been provided only for compatibility.
+All new programs should use
+.BR statfs (2)
+instead.
+.SS HP-UX notes
+The HP-UX version of the
+.I ustat
+structure has an additional field,
+.IR f_blksize ,
+that is unknown elsewhere.
+HP-UX warns:
+For some filesystems, the number of free inodes does not change.
+Such filesystems will return \-1 in the field
+.IR f_tinode .
+.\" Some software tries to use this in order to test whether the
+.\" underlying filesystem is NFS.
+For some filesystems, inodes are dynamically allocated.
+Such filesystems will return the current number of free inodes.
+.SH SEE ALSO
+.BR stat (2),
+.BR statfs (2)

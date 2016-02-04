@@ -1,0 +1,157 @@
+.\" Copyright (C) Andreas Gruenbacher, February 2001
+.\" Copyright (C) Silicon Graphics Inc, September 2001
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH GETXATTR 2 2015-05-07 "Linux" "Linux Programmer's Manual"
+.SH NAME
+getxattr, lgetxattr, fgetxattr \- retrieve an extended attribute value
+.SH SYNOPSIS
+.fam C
+.nf
+.B #include <sys/types.h>
+.B #include <sys/xattr.h>
+.sp
+.BI "ssize_t getxattr(const char\ *" path ", const char\ *" name ,
+.BI "                 void\ *" value ", size_t " size );
+.BI "ssize_t lgetxattr(const char\ *" path ", const char\ *" name ,
+.BI "                 void\ *" value ", size_t " size );
+.BI "ssize_t fgetxattr(int " fd ", const char\ *" name ,
+.BI "                 void\ *" value ", size_t " size );
+.fi
+.fam T
+.SH DESCRIPTION
+Extended attributes are
+.IR name :\c
+.I value
+pairs associated with inodes (files, directories, symbolic links, etc.).
+They are extensions to the normal attributes which are associated
+with all inodes in the system (i.e., the
+.BR stat (2)
+data).
+A complete overview of extended attributes concepts can be found in
+.BR xattr (7).
+.PP
+.BR getxattr ()
+retrieves the value of the extended attribute identified by
+.I name
+and associated with the given
+.I path
+in the filesystem.
+The attribute value is placed in the buffer pointed to by
+.IR value ;
+.I size
+specifies the size of that buffer.
+The return value of the call is the number of bytes placed in
+.IR value .
+.PP
+.BR lgetxattr ()
+is identical to
+.BR getxattr (),
+except in the case of a symbolic link, where the link itself is
+interrogated, not the file that it refers to.
+.PP
+.BR fgetxattr ()
+is identical to
+.BR getxattr (),
+only the open file referred to by
+.I fd
+(as returned by
+.BR open (2))
+is interrogated in place of
+.IR path .
+.PP
+An extended attribute
+.I name
+is a null-terminated string.
+The name includes a namespace prefix; there may be several, disjoint
+namespaces associated with an individual inode.
+The value of an extended attribute is a chunk of arbitrary textual or
+binary data that was assigned using
+.BR setxattr (2).
+.PP
+If
+.I size
+is specified as zero, these calls return the current size of the
+named extended attribute (and leave
+.I value
+unchanged).
+This can be used to determine the size of the buffer that
+should be supplied in a subsequent call.
+(But, bear in mind that there is a possibility that the
+attribute value may change between the two calls,
+so that it is still necessary to check the return status
+from the second call.)
+.SH RETURN VALUE
+On success, these calls return a nonnegative value which is
+the size (in bytes) of the extended attribute value.
+On failure, \-1 is returned and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B ENOATTR
+The named attribute does not exist, or the process has no access to
+this attribute.
+.RB ( ENOATTR
+is defined to be a synonym for
+.BR ENODATA
+in
+.IR <attr/xattr.h> .)
+.TP
+.B ENOTSUP
+Extended attributes are not supported by the filesystem, or are disabled.
+.TP
+.B ERANGE
+The
+.I size
+of the
+.I value
+buffer is too small to hold the result.
+.PP
+In addition, the errors documented in
+.BR stat (2)
+can also occur.
+.SH VERSIONS
+These system calls have been available on Linux since kernel 2.4;
+glibc support is provided since version 2.3.
+.SH CONFORMING TO
+These system calls are Linux-specific.
+.\" .SH AUTHORS
+.\" Andreas Gruenbacher,
+.\" .RI < a.gruenbacher@computer.org >
+.\" and the SGI XFS development team,
+.\" .RI < linux-xfs@oss.sgi.com >.
+.\" Please send any bug reports or comments to these addresses.
+.SH EXAMPLE
+See
+.BR listxattr (2).
+.SH SEE ALSO
+.BR getfattr (1),
+.BR setfattr (1),
+.BR listxattr (2),
+.BR open (2),
+.BR removexattr (2),
+.BR setxattr (2),
+.BR stat (2),
+.BR symlink (7),
+.BR xattr (7)

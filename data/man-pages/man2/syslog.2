@@ -1,0 +1,390 @@
+'\" t
+.\" Copyright (C) 1995 Andries Brouwer (aeb@cwi.nl)
+.\" and Copyright (C) 2012, 2014 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Written 11 June 1995 by Andries Brouwer <aeb@cwi.nl>
+.\" 2008-02-15, Jeremy Kerr <jk@ozlabs.org>
+.\"     Add info on command type 10; add details on types 6, 7, 8, & 9.
+.\" 2008-02-15, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Update LOG_BUF_LEN details; update RETURN VALUE section.
+.\"
+.TH SYSLOG 2  2015-05-07 "Linux" "Linux Programmer's Manual"
+.SH NAME
+syslog, klogctl \- read and/or clear kernel message ring buffer;
+set console_loglevel
+.SH SYNOPSIS
+.nf
+.BI "int syslog(int " type ", char *" bufp ", int " len );
+.B  "                /* No wrapper provided in glibc */"
+.sp
+/* The glibc interface */
+.br
+.B "#include <sys/klog.h>"
+.sp
+.BI "int klogctl(int " type ", char *" bufp ", int " len );
+.fi
+.SH DESCRIPTION
+.IR Note :
+Probably, you are looking for the C library function
+.BR syslog (),
+which talks to
+.BR syslogd (8);
+see
+.BR syslog (3)
+for details.
+
+This page describes the kernel
+.BR syslog ()
+system call, which is used to control the kernel
+.IR printk ()
+buffer; the glibc wrapper function for the system call is called
+.BR klogctl ().
+.SS The kernel log buffer
+The kernel has a cyclic buffer of length
+.B LOG_BUF_LEN
+in which messages given as arguments to the kernel function
+.BR printk ()
+are stored (regardless of their log level).
+In early kernels,
+.B LOG_BUF_LEN
+had the value 4096;
+from kernel 1.3.54, it was 8192;
+from kernel 2.1.113, it was 16384;
+since kernel 2.4.23/2.6, the value is a kernel configuration option
+.RB ( CONFIG_LOG_BUF_SHIFT ,
+default value dependent on the architecture).
+.\" Under "General setup" ==> "Kernel log buffer size"
+.\" For 2.6, precisely the option seems to have appeared in 2.5.55.
+Since Linux 2.6.6, the size can be queried with command type 10 (see below).
+.SS Commands
+The \fItype\fP argument determines the action taken by this function.
+The list below specifies the values for
+.IR type .
+The symbolic names are defined in the kernel source,
+but are not exported to user space;
+you will either need to use the numbers, or define the names yourself.
+.TP
+.BR SYSLOG_ACTION_CLOSE " (0)"
+Close the log.
+Currently a NOP.
+.TP
+.BR SYSLOG_ACTION_OPEN " (1)"
+Open the log.
+Currently a NOP.
+.TP
+.BR SYSLOG_ACTION_READ " (2)"
+Read from the log.
+The call
+waits until the kernel log buffer is nonempty, and then reads
+at most \fIlen\fP bytes into the buffer pointed to by
+.IR bufp .
+The call returns the number of bytes read.
+Bytes read from the log disappear from the log buffer:
+the information can be read only once.
+This is the function executed by the kernel when a user program reads
+.IR /proc/kmsg .
+.TP
+.BR SYSLOG_ACTION_READ_ALL " (3)"
+Read all messages remaining in the ring buffer,
+placing them in the buffer pointed to by
+.IR bufp .
+The call reads the last \fIlen\fP
+bytes from the log buffer (nondestructively),
+but will not read more than was written into the buffer since the
+last "clear ring buffer" command (see command 5 below)).
+The call returns the number of bytes read.
+.TP
+.BR SYSLOG_ACTION_READ_CLEAR " (4)"
+Read and clear all messages remaining in the ring buffer.
+The call does precisely the same as for a
+.I type
+of 3, but also executes the "clear ring buffer" command.
+.TP
+.BR SYSLOG_ACTION_CLEAR " (5)"
+The call executes just the "clear ring buffer" command.
+The
+.I bufp
+and
+.I len
+arguments are ignored.
+.IP
+This command does not really clear the ring buffer.
+Rather, it sets a kernel bookkeeping variable that
+determines the results returned by commands 3
+.RB ( SYSLOG_ACTION_READ_ALL )
+and 4
+.RB ( SYSLOG_ACTION_READ_CLEAR ).
+This command has no effect on commands 2
+.RB ( SYSLOG_ACTION_READ )
+and 9
+.RB ( SYSLOG_ACTION_SIZE_UNREAD ).
+.TP
+.BR SYSLOG_ACTION_CONSOLE_OFF " (6)"
+The command saves the current value of
+.I console_loglevel
+and then sets
+.I console_loglevel
+to
+.IR minimum_console_loglevel ,
+so that no messages are printed to the console.
+Before Linux 2.6.32,
+.\" commit 1aaad49e856ce41adc07d8ae0c8ef35fc4483245
+the command simply sets
+.I console_loglevel
+to
+.IR minimum_console_loglevel .
+See the discussion of
+.IR /proc/sys/kernel/printk ,
+below.
+
+The
+.I bufp
+and
+.I len
+arguments are ignored.
+.TP
+.BR SYSLOG_ACTION_CONSOLE_ON " (7)"
+If a previous
+.B SYSLOG_ACTION_CONSOLE_OFF
+command has been performed,
+this command restores
+.I console_loglevel
+to the value that was saved by that command.
+Before Linux 2.6.32,
+.\" commit 1aaad49e856ce41adc07d8ae0c8ef35fc4483245
+this command simply sets
+.I console_loglevel
+to
+.IR default_console_loglevel .
+See the discussion of
+.IR /proc/sys/kernel/printk ,
+below.
+
+The
+.I bufp
+and
+.I len
+arguments are ignored.
+.TP
+.BR SYSLOG_ACTION_CONSOLE_LEVEL " (8)"
+The call sets
+.I console_loglevel
+to the value given in
+.IR len ,
+which must be an integer between 1 and 8 (inclusive).
+The kernel silently enforces a minimum value of
+.IR minimum_console_loglevel
+for
+.IR len .
+See the
+.IR "log level"
+section for details.
+The
+.I bufp
+argument is ignored.
+.TP
+.BR SYSLOG_ACTION_SIZE_UNREAD " (9) (since Linux 2.4.10)"
+The call
+returns the number of bytes currently available to be read
+from the kernel log buffer via command 2
+.RB ( SYSLOG_ACTION_READ ).
+The
+.I bufp
+and
+.I len
+arguments are ignored.
+.TP
+.BR SYSLOG_ACTION_SIZE_BUFFER " (10) (since Linux 2.6.6)"
+This command returns the total size of the kernel log buffer.
+The
+.I bufp
+and
+.I len
+arguments are ignored.
+.PP
+All commands except 3 and 10 require privilege.
+In Linux kernels before 2.6.37,
+command types 3 and 10 are allowed to unprivileged processes;
+since Linux 2.6.37,
+these commands are allowed to unprivileged processes only if
+.IR /proc/sys/kernel/dmesg_restrict
+has the value 0.
+Before Linux 2.6.37, "privileged" means that the caller has the
+.BR CAP_SYS_ADMIN
+capability.
+Since Linux 2.6.37,
+"privileged" means that the caller has either the
+.BR CAP_SYS_ADMIN
+capability (now deprecated for this purpose) or the (new)
+.BR CAP_SYSLOG
+capability.
+.\"
+.\"
+.SS /proc/sys/kernel/printk
+.I /proc/sys/kernel/printk
+is a writable file containing four integer values that influence kernel
+.I printk()
+behavior when printing or logging error messages.
+The four values are:
+.TP
+.I console_loglevel
+Only messages with a log level lower than this value will
+be printed to the console.
+The default value for this field is
+.B DEFAULT_CONSOLE_LOGLEVEL
+(7), but it is set to
+4 if the kernel command line contains the word "quiet", \" since Linux 2.4
+10 if the kernel command line contains the word "debug",
+and to 15 in case
+of a kernel fault (the 10 and 15 are just silly, and equivalent to 8).
+The value of
+.IR console_loglevel
+can be set (to a value in the range 1-8) by a
+.BR syslog ()
+call with a
+.I type
+of 8.
+.TP
+.I default_message_loglevel
+This value will be used as the log level for
+.IR printk()
+messages that do not have an explicit level.
+Up to and including Linux 2.6.38,
+the hard-coded default value for this field was 4
+.RB ( KERN_WARNING );
+since Linux 2.6.39,
+.\" commit 5af5bcb8d37f99ba415a1adc6da71051b84f93a5
+the default value is a defined by the kernel configuration option
+.BR CONFIG_DEFAULT_MESSAGE_LOGLEVEL ,
+which defaults to 4.
+.TP
+.I minimum_console_loglevel
+The value in this field is the minimum value to which
+.I console_loglevel
+can be set.
+.TP
+.I default_console_loglevel
+This is the default value for
+.IR console_loglevel .
+.\"
+.\"
+.SS The log level
+Every
+.IR printk ()
+message has its own log level.
+If the log level is not explicitly specified as part of the message,
+it defaults to
+.IR default_message_loglevel .
+The conventional meaning of the log level is as follows:
+.TS
+lB lB lB
+lB c l.
+Kernel constant	Level value	Meaning
+KERN_EMERG	0	System is unusable
+KERN_ALERT	1	Action must be taken immediately
+KERN_CRIT	2	Critical conditions
+KERN_ERR	3	Error conditions
+KERN_WARNING	4	Warning conditions
+KERN_NOTICE	5	Normal but significant condition
+KERN_INFO	6	Informational
+KERN_DEBUG	7	Debug-level messages
+.TE
+
+The kernel
+.IR printk()
+routine will print a message on the
+console only if it has a log level less than the value of
+.IR console_loglevel .
+.SH RETURN VALUE
+For \fItype\fP equal to 2, 3, or 4, a successful call to
+.BR syslog ()
+returns the number
+of bytes read.
+For \fItype\fP 9,
+.BR syslog ()
+returns the number of bytes currently
+available to be read on the kernel log buffer.
+For \fItype\fP 10,
+.BR syslog ()
+returns the total size of the kernel log buffer.
+For other values of \fItype\fP, 0 is returned on success.
+
+In case of error, \-1 is returned,
+and \fIerrno\fP is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+Bad arguments (e.g.,
+bad
+.IR type ;
+or for
+.I type
+2, 3, or 4,
+.I buf
+is NULL,
+or
+.I len
+is less than zero; or for
+.I type
+8, the
+.I level
+is outside the range 1 to 8).
+.TP
+.B ENOSYS
+This
+.BR syslog ()
+system call is not available, because the kernel was compiled with the
+.BR CONFIG_PRINTK
+kernel-configuration option disabled.
+.TP
+.B EPERM
+An attempt was made to change
+.I console_loglevel
+or clear the kernel
+message ring buffer by a process without sufficient privilege
+(more precisely: without the
+.B CAP_SYS_ADMIN
+or
+.BR CAP_SYSLOG
+capability).
+.TP
+.B ERESTARTSYS
+System call was interrupted by a signal; nothing was read.
+(This can be seen only during a trace.)
+.SH CONFORMING TO
+This system call is Linux-specific and should not be used in programs
+intended to be portable.
+.SH NOTES
+From the very start, people noted that it is unfortunate that
+a system call and a library routine of the same name are entirely
+different animals.
+.\" In libc4 and libc5 the number of this call was defined by
+.\" .BR SYS_klog .
+.\" In glibc 2.0 the syscall is baptized
+.\" .BR klogctl ().
+.SH SEE ALSO
+.BR dmesg (1),
+.BR syslog (3),
+.BR capabilities (7)

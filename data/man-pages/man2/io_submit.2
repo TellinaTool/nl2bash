@@ -1,0 +1,105 @@
+.\" Copyright (C) 2003 Free Software Foundation, Inc.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" This file is distributed according to the GNU General Public License.
+.\" %%%LICENSE_END
+.\"
+.TH IO_SUBMIT 2 2012-07-13 "Linux" "Linux Programmer's Manual"
+.SH NAME
+io_submit \- submit asynchronous I/O blocks for processing
+.SH SYNOPSIS
+.nf
+.BR "#include <linux/aio_abi.h>" "          /* Defines needed types */"
+
+.BI "int io_submit(aio_context_t " ctx_id ", long " nr \
+", struct iocb **" iocbpp );
+.fi
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+.PP
+The
+.BR io_submit ()
+system call
+queues \fInr\fP I/O request blocks for processing in
+the AIO context \fIctx_id\fP.
+The
+.I iocbpp
+argument should be an array of \fInr\fP AIO control blocks,
+which will be submitted to context \fIctx_id\fP.
+.SH RETURN VALUE
+On success,
+.BR io_submit ()
+returns the number of \fIiocb\fPs submitted (which may be
+0 if \fInr\fP is zero).
+For the failure return, see NOTES.
+.SH ERRORS
+.TP
+.B EAGAIN
+Insufficient resources are available to queue any \fIiocb\fPs.
+.TP
+.B EBADF
+The file descriptor specified in the first \fIiocb\fP is invalid.
+.TP
+.B EFAULT
+One of the data structures points to invalid data.
+.TP
+.B EINVAL
+The AIO context specified by \fIctx_id\fP is invalid.
+\fInr\fP is less than 0.
+The \fIiocb\fP at
+.I *iocbpp[0]
+is not properly initialized,
+or the operation specified is invalid for the file descriptor
+in the \fIiocb\fP.
+.TP
+.B ENOSYS
+.BR io_submit ()
+is not implemented on this architecture.
+.SH VERSIONS
+.PP
+The asynchronous I/O system calls first appeared in Linux 2.5.
+.SH CONFORMING TO
+.PP
+.BR io_submit ()
+is Linux-specific and should not be used in
+programs that are intended to be portable.
+.SH NOTES
+Glibc does not provide a wrapper function for this system call.
+You could invoke it using
+.BR syscall (2).
+But instead, you probably want to use the
+.BR io_submit ()
+wrapper function provided by
+.\" http://git.fedorahosted.org/git/?p=libaio.git
+.IR libaio .
+
+Note that the
+.I libaio
+wrapper function uses a different type
+.RI ( io_context_t )
+.\" But glibc is confused, since <libaio.h> uses 'io_context_t' to declare
+.\" the system call.
+for the
+.I ctx_id
+argument.
+Note also that the
+.I libaio
+wrapper does not follow the usual C library conventions for indicating errors:
+on error it returns a negated error number
+(the negative of one of the values listed in ERRORS).
+If the system call is invoked via
+.BR syscall (2),
+then the return value follows the usual conventions for
+indicating an error: \-1, with
+.I errno
+set to a (positive) value that indicates the error.
+.SH SEE ALSO
+.BR io_cancel (2),
+.BR io_destroy (2),
+.BR io_getevents (2),
+.BR io_setup (2),
+.BR aio (7)
+.\" .SH AUTHOR
+.\" Kent Yoder.

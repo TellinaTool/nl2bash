@@ -1,0 +1,335 @@
+'\" t
+.\" Copyright (C) 2015 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH DLINFO 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+dlinfo \- obtain information about a dynamically loaded object
+.SH SYNOPSIS
+.nf
+.B #define _GNU_SOURCE
+.B #include <link.h>
+.B #include <dlfcn.h>
+
+.BR "int dlinfo(void *" handle ", int " request ", void *" info );
+
+Link with \fI\-ldl\fP.
+.fi
+.SH DESCRIPTION
+The
+.BR dlinfo ()
+function obtains information about the dynamically loaded object
+referred to by
+.IR handle
+(typically obtained by an earlier call to
+.BR dlopen (3)
+or
+.BR dlmopen (3)).
+The
+.I request
+argument specifies which information is to be returned.
+The
+.I info
+argument is a pointer to a buffer used to store information
+returned by the call; the type of this argument depends on
+.IR request .
+
+The following values are supported for
+.IR request
+(with the corresponding type for
+.IR info
+shown in parentheses):
+.TP
+.BR RTLD_DI_LMID " (\fILmid_t *\fP)"
+Obtain the ID of the link-map list (namespace) in which
+.I handle
+is loaded.
+.TP
+.BR RTLD_DI_LINKMAP " (\fIstruct link_map **\fP)"
+Obtain a pointer to the
+.I link_map
+structure corresponding to
+.IR handle .
+The
+.IR info
+argument points to a pointer to a
+.I link_map
+structure, defined in
+.I <link.h>
+as:
+
+.in +4n
+.nf
+struct link_map {
+    ElfW(Addr) l_addr;  /* Difference between the
+                           address in the ELF file and
+                           the address in memory */
+    char      *l_name;  /* Absolute pathname where
+                           object was found */
+    ElfW(Dyn) *l_ld;    /* Dynamic section of the
+                           shared object */
+    struct link_map *l_next, *l_prev;
+                        /* Chain of loaded objects */
+
+    /* Plus additional fields private to the
+       implementation */
+};
+.fi
+.in
+.TP
+.BR RTLD_DI_ORIGIN " (\fIchar *\fP)"
+Copy the pathname of the origin of the shared object corresponding to
+.IR handle
+to the location pointed to by
+.IR info .
+.TP
+.BR RTLD_DI_SERINFO " (\fIDl_serinfo *\fP)"
+Obtain the library search paths for the shared object referred to by
+.IR handle .
+The
+.I info
+argument is a pointer to a
+.I Dl_serinfo
+that contains the search paths.
+Because the number of search paths may vary,
+the size of the structure pointed to by
+.IR info
+can vary.
+The
+.B RTLD_DI_SERINFOSIZE
+request described below allows applications to size the buffer suitably.
+The caller must perform the following steps:
+.RS
+.IP 1. 3
+Use a
+.B RTLD_DI_SERINFOSIZE
+request to populate a
+.I Dl_serinfo
+structure with the size
+.RI ( dls_size )
+of the structure needed for the subsequent
+.B RTLD_DI_SERINFO
+request.
+.IP 2.
+Allocate a
+.I Dl_serinfo
+buffer of the correct size
+.RI ( dls_size ).
+.IP 3.
+Use a further
+.B RTLD_DI_SERINFOSIZE
+request to populate the
+.I dls_size
+and
+.I dls_cnt
+fields of the buffer allocated in the previous step.
+.IP 4.
+Use a
+.B RTLD_DI_SERINFO
+to obtain the library search paths.
+.IP
+.RE
+.IP
+The
+.I Dl_serinfo
+structure is defined as follows:
+
+.in +4n
+.nf
+typedef struct {
+    size_t dls_size;           /* Size in bytes of
+                                  the whole buffer */
+    unsigned int dls_cnt;      /* Number of elements
+                                  in 'dls_serpath' */
+    Dl_serpath dls_serpath[1]; /* Actually longer,
+                                  'dls_cnt' elements */
+} Dl_serinfo;
+
+.fi
+.in
+Each of the
+.I dls_serpath
+elements in the above structure is a structure of the following form:
+
+.in +4n
+.nf
+typedef struct {
+    char *dls_name;            /* Name of library search
+                                  path directory */
+    unsigned int dls_flags;    /* Indicates where this
+                                  directory came from */
+} Dl_serpath;
+.fi
+.in
+
+The
+.I dls_flags
+field is currently unused, and always contains zero.
+.TP
+.BR RTLD_DI_SERINFOSIZE " (\fIDl_serinfo *\fP)"
+Populate the
+.I dls_size
+and
+.I dls_cnt
+fields of the
+.I Dl_serinfo
+structure pointed to by
+.IR info
+with values suitable for allocating a buffer for use in a subsequent
+.B RTLD_DI_SERINFO
+request.
+.TP
+.BR RTLD_DI_TLS_MODID " (\fIsize_t *\fP, since glibc 2.4)"
+Obtain the module ID of this shared object's TLS (thread-local storage)
+segment, as used in TLS relocations.
+If this object does not define a TLS segment, zero is placed in
+.IR *info .
+.TP
+.BR RTLD_DI_TLS_DATA " (\fIvoid **\fP, since glibc 2.4)"
+Obtain a pointer to the calling
+thread's TLS block corresponding to this shared object's TLS segment.
+If this object does not define a PT_TLS segment,
+or if the calling thread has not allocated a block for it,
+NULL is placed in
+.IR *info .
+.SH RETURN VALUE
+On success,
+.BR dlinfo ()
+returns 0.
+On failure, it returns \-1; the cause of the error can be diagnosed using
+.BR dlerror (3).
+.SH VERSIONS
+.BR dlinfo ()
+first appeared in glibc 2.3.3.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR dlinfo ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+This function is a nonstandard GNU extension.
+.SH NOTES
+This function derives from the Solaris function of the same name
+and also appears on some other systems.
+The sets of requests supported by the various implementations
+overlaps only partially.
+.SH EXAMPLE
+The program below opens a shared objects using
+.BR dlopen ()
+and then uses the
+.B RTLD_DI_SERINFOSIZE
+and
+.B RTLD_DI_SERINFO
+requests to obtain the library search path list for the library.
+Here is an example of what we might see when running the program:
+
+.in +4n
+.nf
+$ \fB./a.out /lib64/libm.so.6\fP
+dls_serpath[0].dls_name = /lib64
+dls_serpath[1].dls_name = /usr/lib64
+.fi
+.in
+.SS Program source
+\&
+.nf
+#define _GNU_SOURCE
+#include <dlfcn.h>
+#include <link.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+    void *handle;
+    Dl_serinfo serinfo;
+    Dl_serinfo *sip;
+    int j;
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <libpath>\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    /* Obtain a handle for shared objects specified on command line */
+
+    handle = dlopen(argv[1], RTLD_NOW);
+    if (handle == NULL) {
+        fprintf(stderr, "dlopen() failed: %s\\n", dlerror());
+        exit(EXIT_FAILURE);
+    }
+
+    /* Discover the size of the buffer that we must pass to
+       RTLD_DI_SERINFO */
+
+    if (dlinfo(handle, RTLD_DI_SERINFOSIZE, &serinfo) == \-1) {
+        fprintf(stderr, "RTLD_DI_SERINFOSIZE failed: %s\\n", dlerror());
+        exit(EXIT_FAILURE);
+    }
+
+    /* Allocate the buffer for use with RTLD_DI_SERINFO */
+
+    sip = malloc(serinfo.dls_size);
+    if (sip == NULL) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Initialize the \(aqdls_size\(aq and \(aqdls_cnt\(aq fields in the newly
+       allocated buffer */
+
+    if (dlinfo(handle, RTLD_DI_SERINFOSIZE, sip) == \-1) {
+        fprintf(stderr, "RTLD_DI_SERINFOSIZE failed: %s\\n", dlerror());
+        exit(EXIT_FAILURE);
+    }
+
+    /* Fetch and print library search list */
+
+    if (dlinfo(handle, RTLD_DI_SERINFO, sip) == \-1) {
+        fprintf(stderr, "RTLD_DI_SERINFO failed: %s\\n", dlerror());
+        exit(EXIT_FAILURE);
+    }
+
+    for (j = 0; j < serinfo.dls_cnt; j++)
+        printf("dls_serpath[%d].dls_name = %s\\n",
+                j, sip\->dls_serpath[j].dls_name);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR dl_iterate_phdr (3),
+.BR dladdr (3),
+.BR dlerror (3),
+.BR dlopen (3),
+.BR dlsym (3),
+.BR ld.so (8)

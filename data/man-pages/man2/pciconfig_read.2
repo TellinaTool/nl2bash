@@ -1,0 +1,115 @@
+.\" Contributed by Niki A. Rahimi, LTC Security Development
+.\" narahimi@us.ibm.com
+.\"
+.\" %%%LICENSE_START(FREELY_REDISTRIBUTABLE)
+.\" May be freely distributed.
+.\" %%%LICENSE_END
+.\"
+.TH PCICONFIG_READ 2 2003-07-14 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pciconfig_read, pciconfig_write, pciconfig_iobase \- pci device information handling
+.SH SYNOPSIS
+.nf
+.B #include <pci.h>
+.sp
+.BI "int pciconfig_read(unsigned long " bus ", unsigned long " dfn ,
+.BI "          unsigned long " off ", unsigned long " len ", void *" buf );
+.BI "int pciconfig_write(unsigned long " bus ", unsigned long " dfn ,
+.BI "          unsigned long " off ", unsigned long " len ", void *" buf );
+.BI "int pciconfig_iobase(long " which ", unsigned long " bus ,
+.BI "          unsigned long " devfn );
+.fi
+.SH DESCRIPTION
+.PP
+Most of the interaction with PCI devices is already handled by the
+kernel PCI layer,
+and thus these calls should not normally need to be accessed from user space.
+.TP
+.BR pciconfig_read ()
+Reads to
+.I buf
+from device
+.I dev
+at offset
+.I off
+value.
+.TP
+.BR pciconfig_write ()
+Writes from
+.I buf
+to device
+.I dev
+at offset
+.I off
+value.
+.TP
+.BR pciconfig_iobase ()
+You pass it a bus/devfn pair and get a physical address for either the
+memory offset (for things like prep, this is 0xc0000000),
+the IO base for PIO cycles, or the ISA holes if any.
+.SH RETURN VALUE
+.TP
+.BR pciconfig_read ()
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set appropriately.
+.TP
+.BR pciconfig_write ()
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set appropriately.
+.TP
+.BR pciconfig_iobase ()
+Returns information on locations of various I/O
+regions in physical memory according to the
+.I which
+value.
+Values for
+.I which
+are:
+.BR IOBASE_BRIDGE_NUMBER ,
+.BR IOBASE_MEMORY ,
+.BR IOBASE_IO ,
+.BR IOBASE_ISA_IO ,
+.BR IOBASE_ISA_MEM .
+.SH ERRORS
+.TP
+.B EINVAL
+.I len
+value is invalid.
+This does not apply to
+.BR pciconfig_iobase ().
+.TP
+.B EIO
+I/O error.
+.TP
+.B ENODEV
+For
+.BR pciconfig_iobase (),
+"hose" value is NULL.
+For the other calls, could not find a slot.
+.TP
+.B ENOSYS
+The system has not implemented these calls
+.RB ( CONFIG_PCI
+not defined).
+.TP
+.B EOPNOTSUPP
+This return value is valid only for
+.BR pciconfig_iobase ().
+It is returned if the value for
+.I which
+is invalid.
+.TP
+.B EPERM
+User does not have the
+.B CAP_SYS_ADMIN
+capability.
+This does not apply to
+.BR pciconfig_iobase ().
+.SH CONFORMING TO
+These calls are Linux-specific, available since Linux 2.0.26/2.1.11.
+.SH SEE ALSO
+.BR capabilities (7)

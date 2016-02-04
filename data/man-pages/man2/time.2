@@ -1,0 +1,126 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified Sat Jul 24 14:13:40 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Additions by Joseph S. Myers <jsm28@cam.ac.uk>, 970909
+.\"
+.TH TIME 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+time \- get time in seconds
+.SH SYNOPSIS
+.B #include <time.h>
+.sp
+.BI "time_t time(time_t *" tloc );
+.SH DESCRIPTION
+.BR time ()
+returns the time as the number of seconds since the
+Epoch, 1970-01-01 00:00:00 +0000 (UTC).
+
+If
+.I tloc
+is non-NULL,
+the return value is also stored in the memory pointed to by
+.IR tloc .
+.SH RETURN VALUE
+On success, the value of time in seconds since the Epoch is returned.
+On error, \fI((time_t)\ \-1)\fP is returned, and \fIerrno\fP is set
+appropriately.
+.SH ERRORS
+.TP
+.B EFAULT
+.I tloc
+points outside your accessible address space (but see BUGS).
+
+On systems where the C library
+.BR time ()
+wrapper function invokes an implementation provided by the
+.BR vdso (7)
+(so that there is no trap into the kernel),
+an invalid address may instead trigger a
+.B SIGSEGV
+signal.
+.SH CONFORMING TO
+SVr4, 4.3BSD, C89, C99, POSIX.1-2001.
+.\" .br
+.\" Under 4.3BSD, this call is obsoleted by
+.\" .BR gettimeofday (2).
+POSIX does not specify any error conditions.
+.SH NOTES
+POSIX.1 defines
+.I seconds since the Epoch
+using a formula that approximates the number of seconds between a
+specified time and the Epoch.
+This formula takes account of the facts that
+all years that are evenly divisible by 4 are leap years,
+but years that are evenly divisible by 100 are not leap years
+unless they are also evenly divisible by 400,
+in which case they are leap years.
+This value is not the same as the actual number of seconds between the time
+and the Epoch, because of leap seconds and because system clocks are not
+required to be synchronized to a standard reference.
+The intention is that the interpretation of seconds since the Epoch values be
+consistent; see POSIX.1-2008 Rationale A.4.15 for further rationale.
+
+On Linux, a call to
+.BR time ()
+with
+.I tloc
+specified as NULL cannot fail with the error
+.BR EOVERFLOW ,
+even on ABIs where
+.I time_t
+is a signed 32-bit integer and the clock ticks past the time 2**31
+(2038-01-19 03:14:08 UTC, ignoring leap seconds).
+(POSIX.1 permits, but does not require, the
+.B EOVERFLOW
+error in the case where the seconds since the Epoch will not fit in
+.IR time_t .)
+Instead, the behavior on Linux is undefined when the system time is out of the
+.I time_t
+range.
+Applications intended to run after 2038 should use ABIs with
+.I time_t
+wider than 32 bits.
+.SH BUGS
+Error returns from this system call are indistinguishable from
+successful reports that the time is a few seconds
+.I before
+the Epoch, so the C library wrapper function never sets
+.I errno
+as a result of this call.
+
+The
+.I tloc
+argument is obsolescent and should always be NULL in new code.
+When
+.I tloc
+is NULL, the call cannot fail.
+.SH SEE ALSO
+.BR date (1),
+.BR gettimeofday (2),
+.BR ctime (3),
+.BR ftime (3),
+.BR time (7),
+.BR vdso (7)

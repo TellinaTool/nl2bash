@@ -1,0 +1,172 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2004-11-15, Added further text on FLT_ROUNDS
+.\" 	as suggested by AEB and Fabian Kreutz
+.\"
+.TH FMA 3  2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+fma, fmaf, fmal \- floating-point multiply and add
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "double fma(double " x ", double " y ", double " z );
+.br
+.BI "float fmaf(float " x ", float " y ", float " z );
+.br
+.BI "long double fmal(long double " x ", long double " y ", long double " z );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR fma (),
+.BR fmaf (),
+.BR fmal ():
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad
+.SH DESCRIPTION
+These functions compute
+.IR x " * " y " + " z .
+The result is rounded as one ternary operation according to the
+current rounding mode (see
+.BR fenv (3)).
+.SH RETURN VALUE
+These functions return the value of
+.IR x " * " y " + " z ,
+rounded as one ternary operation.
+
+If
+.I x
+or
+.I y
+is a NaN, a NaN is returned.
+
+If
+.I x
+times
+.I y
+is an exact infinity, and
+.I z
+is an infinity with the opposite sign,
+a domain error occurs,
+and a NaN is returned.
+
+.\" POSIX.1-2008 allows some possible differences for the following two
+.\" domain error cases, but on Linux they are treated the same (AFAICS).
+.\" Nevertheless, we'll mirror POSIX.1 and describe the two cases
+.\" separately.
+If one of
+.I x
+or
+.I y
+is an infinity, the other is 0, and
+.I z
+is not a NaN,
+a domain error occurs, and
+a NaN is returned.
+.\" POSIX.1 says that a NaN or an implementation-defined value shall
+.\" be returned for this case.
+
+If one of
+.I x
+or
+.I y
+is an infinity, and the other is 0, and
+.I z
+is a NaN,
+.\" POSIX.1 makes the domain error optional for this case.
+a domain error occurs, and
+a NaN is returned.
+
+If
+.I x
+times
+.I y
+is not an infinity times zero (or vice versa), and
+.I z
+is a NaN,
+a NaN is returned.
+
+If the result overflows,
+a range error occurs, and
+an infinity with the correct sign is returned.
+
+If the result underflows,
+a range error occurs, and
+a signed 0 is returned.
+.SH ERRORS
+See
+.BR math_error (7)
+for information on how to determine whether an error has occurred
+when calling these functions.
+.PP
+The following errors can occur:
+.TP
+Domain error: \fIx\fP * \fIy\fP + \fIz\fP, \
+or \fIx\fP * \fIy\fP is invalid and \fIz\fP is not a NaN
+.\" .I errno
+.\" is set to
+.\" .BR EDOM .
+An invalid floating-point exception
+.RB ( FE_INVALID )
+is raised.
+.TP
+Range error: result overflow
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+An overflow floating-point exception
+.RB ( FE_OVERFLOW )
+is raised.
+.TP
+Range error: result underflow
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+An underflow floating-point exception
+.RB ( FE_UNDERFLOW )
+is raised.
+.PP
+These functions do not set
+.IR errno .
+.\" FIXME . Is it intentional that these functions do not set errno?
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6801
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw21 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR fma (),
+.BR fmaf (),
+.BR fmal ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+.SH SEE ALSO
+.BR remainder (3),
+.BR remquo (3)

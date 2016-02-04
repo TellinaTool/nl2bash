@@ -1,0 +1,68 @@
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"
+.TH VHANGUP 2 2007-07-26 "Linux" "Linux Programmer's Manual"
+.SH NAME
+vhangup \- virtually hangup the current terminal
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.B int vhangup(void);
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR vhangup ():
+_BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE\ <\ 500)
+.ad b
+.SH DESCRIPTION
+.BR vhangup ()
+simulates a hangup on the current terminal.
+This call arranges for other
+users to have a \*(lqclean\*(rq terminal at login time.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EPERM
+The calling process has insufficient privilege to call
+.BR vhangup ();
+the
+.B CAP_SYS_TTY_CONFIG
+capability is required.
+.SH CONFORMING TO
+This call is Linux-specific, and should not be used in programs
+intended to be portable.
+.SH SEE ALSO
+.BR capabilities (7),
+.BR init (1)

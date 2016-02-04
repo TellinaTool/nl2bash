@@ -1,0 +1,101 @@
+.\" Copyright 2003 Abhijit Menon-Sen <ams@wiw.org>
+.\" and Copyright (C) 2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH GETTID 2 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+gettid \- get thread identification
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.sp
+.B pid_t gettid(void);
+.fi
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+.BR gettid ()
+returns the caller's thread ID (TID).
+In a single-threaded process, the thread ID
+is equal to the process ID (PID, as returned by
+.BR getpid (2)).
+In a multithreaded process, all threads
+have the same PID, but each one has a unique TID.
+For further details, see the discussion of
+.BR CLONE_THREAD
+in
+.BR clone (2).
+.SH RETURN VALUE
+On success, returns the thread ID of the calling process.
+.SH ERRORS
+This call is always successful.
+.SH VERSIONS
+The
+.BR gettid ()
+system call first appeared on Linux in kernel 2.4.11.
+.SH CONFORMING TO
+.BR gettid ()
+is Linux-specific and should not be used in programs that
+are intended to be portable.
+.SH NOTES
+Glibc does not provide a wrapper for this system call; call it using
+.BR syscall (2).
+.\" FIXME . See http://sourceware.org/bugzilla/show_bug.cgi?id=6399
+.\" "gettid() should have a wrapper"
+
+The thread ID returned by this call is not the same thing as a
+POSIX thread ID (i.e., the opaque value returned by
+.BR pthread_self (3)).
+
+In a new thread group created by a
+.BR clone (2)
+call that does not specify the
+.BR CLONE_THREAD
+flag (or, equivalently, a new process created by
+.BR fork (2)),
+the new process is a thread group leader,
+and its thread group ID (the value returned by
+.BR gettid (2))
+is the same as its thread ID (the value returned by
+.BR gettid ()).
+.SH SEE ALSO
+.BR capget (2),
+.BR clone (2),
+.BR fcntl (2),
+.BR fork (2),
+.BR get_robust_list (2),
+.BR gettid (2),
+.\" .BR kcmp (2),
+.BR ioprio_set (2),
+.\" .BR move_pages (2),
+.\" .BR migrate_pages (2),
+.BR perf_event_open (2),
+.\" .BR process_vm_readv (2),
+.\" .BR ptrace (2),
+.BR sched_setaffinity (2),
+.BR sched_setparam (2),
+.BR sched_setscheduler (2),
+.BR tgkill (2),
+.BR timer_create (2)

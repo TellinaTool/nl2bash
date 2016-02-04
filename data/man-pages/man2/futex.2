@@ -1,0 +1,1876 @@
+.\" Page by b.hubert
+.\" and Copyright (C) 2015, Thomas Gleixner <tglx@linutronix.de>
+.\" and Copyright (C) 2015, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(FREELY_REDISTRIBUTABLE)
+.\" may be freely modified and distributed
+.\" %%%LICENSE_END
+.\"
+.\" Niki A. Rahimi (LTC Security Development, narahimi@us.ibm.com)
+.\" added ERRORS section.
+.\"
+.\" Modified 2004-06-17 mtk
+.\" Modified 2004-10-07 aeb, added FUTEX_REQUEUE, FUTEX_CMP_REQUEUE
+.\"
+.\" FIXME Still to integrate are some points from Torvald Riegel's mail of
+.\"       2015-01-23:
+.\"       http://thread.gmane.org/gmane.linux.kernel/1703405/focus=7977
+.\"
+.\" FIXME Do we need to add some text regarding Torvald Riegel's 2015-01-24 mail
+.\"       at http://thread.gmane.org/gmane.linux.kernel/1703405/focus=1873242
+.\"
+.TH FUTEX 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+futex \- fast user-space locking
+.SH SYNOPSIS
+.nf
+.sp
+.B "#include <linux/futex.h>"
+.B "#include <sys/time.h>"
+.sp
+.BI "int futex(int *" uaddr ", int " futex_op ", int " val ,
+.BI "          const struct timespec *" timeout , \
+" \fR  /* or: \fBuint32_t \fIval2\fP */
+.BI "          int *" uaddr2 ", int " val3 );
+.fi
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+.PP
+The
+.BR futex ()
+system call provides a method for waiting until a certain condition becomes
+true.
+It is typically used as a blocking construct in the context of
+shared-memory synchronization.
+When using futexes, the majority of
+the synchronization operations are performed in user space.
+A user-space program employs the
+.BR futex ()
+system call only when it is likely that the program has to block for
+a longer time until the condition becomes true.
+Other
+.BR futex ()
+operations can be used to wake any processes or threads waiting
+for a particular condition.
+
+A futex is a 32-bit value\(emreferred to below as a
+.IR "futex word" \(emwhose
+address is supplied to the
+.BR futex ()
+system call.
+(Futexes are 32 bits in size on all platforms, including 64-bit systems.)
+All futex operations are governed by this value.
+In order to share a futex between processes,
+the futex is placed in a region of shared memory,
+created using (for example)
+.BR mmap (2)
+or
+.BR shmat (2).
+(Thus, the futex word may have different
+virtual addresses in different processes,
+but these addresses all refer to the same location in physical memory.)
+In a multithreaded program, it is sufficient to place the futex word
+in a global variable shared by all threads.
+
+When executing a futex operation that requests to block a thread,
+the kernel will block only if the futex word has the value that the
+calling thread supplied (as one of the arguments of the
+.BR futex ()
+call) as the expected value of the futex word.
+The loading of the futex word's value,
+the comparison of that value with the expected value,
+and the actual blocking will happen atomically and will be totally ordered
+with respect to concurrent operations performed by other threads
+on the same futex word.
+.\" Notes from Darren Hart (Dec 2015):
+.\"     Totally ordered with respect futex operations refers to semantics
+.\"     of the ACQUIRE/RELEASE operations and how they impact ordering of
+.\"     memory reads and writes. The kernel futex operations are protected
+.\"     by spinlocks, which ensure that all operations are serialized
+.\"     with respect to one another.
+.\"
+.\"     This is a lot to attempt to define in this document. Perhaps a
+.\"     reference to linux/Documentation/memory-barriers.txt as a footnote
+.\"     would be sufficient? Or perhaps for this manual, "serialized" would
+.\"     be sufficient, with a footnote regarding "totally ordered" and a
+.\"     pointer to the memory-barrier documentation?
+Thus, the futex word is used to connect the synchronization in user space
+with the implementation of blocking by the kernel.
+Analogously to an atomic
+compare-and-exchange operation that potentially changes shared memory,
+blocking via a futex is an atomic compare-and-block operation.
+.\" FIXME(Torvald Riegel):
+.\"      Eventually we want to have some text in NOTES to satisfy
+.\"      the reference in the following sentence
+.\" See NOTES for
+.\" a detailed specification of the synchronization semantics.
+
+One use of futexes is for implementing locks.
+The state of the lock (i.e., acquired or not acquired)
+can be represented as an atomically accessed flag in shared memory.
+In the uncontended case,
+a thread can access or modify the lock state with atomic instructions,
+for example atomically changing it from not acquired to acquired
+using an atomic compare-and-exchange instruction.
+(Such instructions are performed entirely in user mode,
+and the kernel maintains no information about the lock state.)
+On the other hand, a thread may be unable to acquire a lock because
+it is already acquired by another thread.
+It then may pass the lock's flag as a futex word and the value
+representing the acquired state as the expected value to a
+.BR futex ()
+wait operation.
+This
+.BR futex ()
+operation will block if and only if the lock is still acquired
+(i.e., the value in the futex word still matches the "acquired state").
+When releasing the lock, a thread has to first reset the
+lock state to not acquired and then execute a futex
+operation that wakes threads blocked on the lock flag used as a futex word
+(this can be further optimized to avoid unnecessary wake-ups).
+See
+.BR futex (7)
+for more detail on how to use futexes.
+
+Besides the basic wait and wake-up futex functionality, there are further
+futex operations aimed at supporting more complex use cases.
+
+Note that
+no explicit initialization or destruction is necessary to use futexes;
+the kernel maintains a futex
+(i.e., the kernel-internal implementation artifact)
+only while operations such as
+.BR FUTEX_WAIT ,
+described below, are being performed on a particular futex word.
+.\"
+.SS Arguments
+The
+.I uaddr
+argument points to the futex word.
+On all platforms, futexes are four-byte
+integers that must be aligned on a four-byte boundary.
+The operation to perform on the futex is specified in the
+.I futex_op
+argument;
+.IR val
+is a value whose meaning and purpose depends on
+.IR futex_op .
+
+The remaining arguments
+.RI ( timeout ,
+.IR uaddr2 ,
+and
+.IR val3 )
+are required only for certain of the futex operations described below.
+Where one of these arguments is not required, it is ignored.
+
+For several blocking operations, the
+.I timeout
+argument is a pointer to a
+.IR timespec
+structure that specifies a timeout for the operation.
+However,  notwithstanding the prototype shown above, for some operations,
+the least significant four bytes are used as an integer whose meaning
+is determined by the operation.
+For these operations, the kernel casts the
+.I timeout
+value first to
+.IR "unsigned long",
+then to
+.IR uint32_t ,
+and in the remainder of this page, this argument is referred to as
+.I val2
+when interpreted in this fashion.
+
+Where it is required, the
+.IR uaddr2
+argument is a pointer to a second futex word that is employed
+by the operation.
+The interpretation of the final integer argument,
+.IR val3 ,
+depends on the operation.
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.SS Futex operations
+The
+.I futex_op
+argument consists of two parts:
+a command that specifies the operation to be performed,
+bit-wise ORed with zero or more options that
+modify the behaviour of the operation.
+The options that may be included in
+.I futex_op
+are as follows:
+.TP
+.BR FUTEX_PRIVATE_FLAG " (since Linux 2.6.22)"
+.\" commit 34f01cc1f512fa783302982776895c73714ebbc2
+This option bit can be employed with all futex operations.
+It tells the kernel that the futex is process-private and not shared
+with another process (i.e., it is being used for synchronization
+only between threads of the same process).
+This allows the kernel to make some additional performance optimizations.
+.\" I.e., It allows the kernel choose the fast path for validating
+.\" the user-space address and avoids expensive VMA lookups,
+.\" taking reference counts on file backing store, and so on.
+
+As a convenience,
+.IR <linux/futex.h>
+defines a set of constants with the suffix
+.BR _PRIVATE
+that are equivalents of all of the operations listed below,
+.\" except the obsolete FUTEX_FD, for which the "private" flag was
+.\" meaningless
+but with the
+.BR FUTEX_PRIVATE_FLAG
+ORed into the constant value.
+Thus, there are
+.BR FUTEX_WAIT_PRIVATE ,
+.BR FUTEX_WAKE_PRIVATE ,
+and so on.
+.TP
+.BR FUTEX_CLOCK_REALTIME " (since Linux 2.6.28)"
+.\" commit 1acdac104668a0834cfa267de9946fac7764d486
+This option bit can be employed only with the
+.BR FUTEX_WAIT_BITSET
+and
+.BR FUTEX_WAIT_REQUEUE_PI
+operations.
+
+If this option is set, the kernel treats
+.I timeout
+as an absolute time based on
+.BR CLOCK_REALTIME .
+
+If this option is not set, the kernel treats
+.I timeout
+as a relative time,
+measured against the
+.BR CLOCK_MONOTONIC
+clock.
+.PP
+The operation specified in
+.I futex_op
+is one of the following:
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_WAIT " (since Linux 2.6.0)"
+.\" Strictly speaking, since some time in 2.5.x
+This operation tests that the value at the
+futex word pointed to by the address
+.I uaddr
+still contains the expected value
+.IR val ,
+and if so, then sleeps waiting for a
+.B FUTEX_WAKE
+operation on the futex word.
+The load of the value of the futex word is an atomic memory
+access (i.e., using atomic machine instructions of the respective
+architecture).
+This load, the comparison with the expected value, and
+starting to sleep are performed atomically
+.\" FIXME: Torvald, I think we may need to add some explanation of
+.\"        "totally ordered" here.
+and totally ordered
+with respect to other futex operations on the same futex word.
+If the thread starts to sleep,
+it is considered a waiter on this futex word.
+If the futex value does not match
+.IR val ,
+then the call fails immediately with the error
+.BR EAGAIN .
+
+The purpose of the comparison with the expected value is to prevent lost
+wake-ups.
+If another thread changed the value of the futex word after the
+calling thread decided to block based on the prior value,
+and if the other thread executed a
+.BR FUTEX_WAKE
+operation (or similar wake-up) after the value change and before this
+.BR FUTEX_WAIT
+operation, then the calling thread will observe the
+value change and will not start to sleep.
+
+If the
+.I timeout
+argument is non-NULL, its contents specify a relative timeout for the wait,
+measured according to the
+.BR CLOCK_MONOTONIC
+clock.
+(This interval will be rounded up to the system clock granularity,
+and is guaranteed not to expire early.)
+If
+.I timeout
+is NULL, the call blocks indefinitely.
+
+The arguments
+.I uaddr2
+and
+.I val3
+are ignored.
+.\" FIXME(Torvald) I think we should remove this.  Or maybe adapt to a
+.\"      different example.
+.\" For
+.\" .BR futex (7),
+.\" this call is executed if decrementing the count gave a negative value
+.\" (indicating contention),
+.\" and will sleep until another process or thread releases
+.\" the futex and executes the
+.\" .B FUTEX_WAKE
+.\" operation.
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_WAKE " (since Linux 2.6.0)"
+.\" Strictly speaking, since Linux 2.5.x
+This operation wakes at most
+.I val
+of the waiters that are waiting (e.g., inside
+.BR FUTEX_WAIT )
+on the futex word at the address
+.IR uaddr .
+Most commonly,
+.I val
+is specified as either 1 (wake up a single waiter) or
+.BR INT_MAX
+(wake up all waiters).
+No guarantee is provided about which waiters are awoken
+(e.g., a waiter with a higher scheduling priority is not guaranteed
+to be awoken in preference to a waiter with a lower priority).
+
+The arguments
+.IR timeout ,
+.IR uaddr2 ,
+and
+.I val3
+are ignored.
+.\" FIXME(Torvald) I think we should remove this.  Or maybe adapt to
+.\"          a different example.
+.\"     For
+.\"     .BR futex (7),
+.\"     this is executed if incrementing the count showed that
+.\"     there were waiters,
+.\"     once the futex value has been set to 1
+.\"     (indicating that it is available).
+.\"
+.\" FIXME How does "incrementing the count show that there were waiters"?
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_FD " (from Linux 2.6.0 up to and including Linux 2.6.25)"
+.\" Strictly speaking, from Linux 2.5.x to 2.6.25
+This operation creates a file descriptor that is associated with
+the futex at
+.IR uaddr .
+The caller must close the returned file descriptor after use.
+When another process or thread performs a
+.BR FUTEX_WAKE
+on the futex word, the file descriptor indicates as being readable with
+.BR select (2),
+.BR poll (2),
+and
+.BR epoll (7)
+
+The file descriptor can be used to obtain asynchronous notifications: if
+.I val
+is nonzero, then, when another process or thread executes a
+.BR FUTEX_WAKE ,
+the caller will receive the signal number that was passed in
+.IR val .
+
+The arguments
+.IR timeout ,
+.I uaddr2
+and
+.I val3
+are ignored.
+
+Because it was inherently racy,
+.B FUTEX_FD
+has been removed
+.\" commit 82af7aca56c67061420d618cc5a30f0fd4106b80
+from Linux 2.6.26 onward.
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_REQUEUE " (since Linux 2.6.0)"
+This operation performs the same task as
+.BR FUTEX_CMP_REQUEUE
+(see below), except that no check is made using the value in
+.IR  val3 .
+(The argument
+.I val3
+is ignored.)
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_CMP_REQUEUE " (since Linux 2.6.7)"
+This operation first checks whether the location
+.I uaddr
+still contains the value
+.IR val3 .
+If not, the operation fails with the error
+.BR EAGAIN .
+Otherwise, the operation wakes up a maximum of
+.I val
+waiters that are waiting on the futex at
+.IR uaddr .
+If there are more than
+.I val
+waiters, then the remaining waiters are removed
+from the wait queue of the source futex at
+.I uaddr
+and added to the wait queue of the target futex at
+.IR uaddr2 .
+The
+.I val2
+argument specifies an upper limit on the number of waiters
+that are requeued to the futex at
+.IR uaddr2 .
+
+.\" FIXME(Torvald) Is the following correct?  Or is just the decision
+.\" which threads to wake or requeue part of the atomic operation?
+The load from
+.I uaddr
+is an atomic memory access (i.e., using atomic machine instructions of
+the respective architecture).
+This load, the comparison with
+.IR val3 ,
+and the requeueing of any waiters are performed atomically and totally
+ordered with respect to other operations on the same futex word.
+.\" Notes from a f2f conversation with Thomas Gleixner (Aug 2015): ###
+.\"	The operation is serialized with respect to operations on both
+.\"	source and target futex. No other waiter can enqueue itself
+.\"	for waiting and no other waiter can dequeue itself because of
+.\"	a timeout or signal.
+
+Typical values to specify for
+.I val
+are 0 or 1.
+(Specifying
+.BR INT_MAX
+is not useful, because it would make the
+.BR FUTEX_CMP_REQUEUE
+operation equivalent to
+.BR FUTEX_WAKE .)
+The limit value specified via
+.I val2
+is typically either 1 or
+.BR INT_MAX .
+(Specifying the argument as 0 is not useful, because it would make the
+.BR FUTEX_CMP_REQUEUE
+operation equivalent to
+.BR FUTEX_WAIT .)
+
+The
+.B FUTEX_CMP_REQUEUE
+operation was added as a replacement for the earlier
+.BR FUTEX_REQUEUE .
+The difference is that the check of the value at
+.I uaddr
+can be used to ensure that requeueing happens only under certain
+conditions, which allows race conditions to be avoided in certain use cases.
+.\" But, as Rich Felker points out, there remain valid use cases for
+.\" FUTEX_REQUEUE, for example, when the calling thread is requeuing
+.\" the target(s) to a lock that the calling thread owns
+.\"     From: Rich Felker <dalias@libc.org>
+.\"     Date: Wed, 29 Oct 2014 22:43:17 -0400
+.\"     To: Darren Hart <dvhart@infradead.org>
+.\"     CC: libc-alpha@sourceware.org, ...
+.\"     Subject: Re: Add futex wrapper to glibc?
+
+Both
+.BR FUTEX_REQUEUE
+and
+.BR FUTEX_CMP_REQUEUE
+can be used to avoid "thundering herd" wake-ups that could occur when using
+.B FUTEX_WAKE
+in cases where all of the waiters that are woken need to acquire
+another futex.
+Consider the following scenario,
+where multiple waiter threads are waiting on B,
+a wait queue implemented using a futex:
+
+.in +4n
+.nf
+lock(A)
+while (!check_value(V)) {
+    unlock(A);
+    block_on(B);
+    lock(A);
+};
+unlock(A);
+.fi
+.in
+
+If a waker thread used
+.BR FUTEX_WAKE ,
+then all waiters waiting on B would be woken up,
+and they would all try to acquire lock A.
+However, waking all of the threads in this manner would be pointless because
+all except one of the threads would immediately block on lock A again.
+By contrast, a requeue operation wakes just one waiter and moves
+the other waiters to lock A,
+and when the woken waiter unlocks A then the next waiter can proceed.
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.\" FIXME I added a lengthy piece of text on FUTEX_WAKE_OP text,
+.\"       and I'd be happy if someone checked it.
+.TP
+.BR FUTEX_WAKE_OP " (since Linux 2.6.14)"
+.\" commit 4732efbeb997189d9f9b04708dc26bf8613ed721
+.\"	Author: Jakub Jelinek <jakub@redhat.com>
+.\"	Date:   Tue Sep 6 15:16:25 2005 -0700
+.\" FIXME(Torvald) The glibc condvar implementation is currently being
+.\"     revised (e.g., to not use an internal lock anymore).
+.\"     It is probably more future-proof to remove this paragraph.
+.\" [Torvald, do you have an update here?]
+This operation was added to support some user-space use cases
+where more than one futex must be handled at the same time.
+The most notable example is the implementation of
+.BR pthread_cond_signal (3),
+which requires operations on two futexes,
+the one used to implement the mutex and the one used in the implementation
+of the wait queue associated with the condition variable.
+.BR FUTEX_WAKE_OP
+allows such cases to be implemented without leading to
+high rates of contention and context switching.
+
+The
+.BR FUTEX_WAKE_OP
+operation is equivalent to executing the following code atomically
+and totally ordered with respect to other futex operations on
+any of the two supplied futex words:
+
+.in +4n
+.nf
+int oldval = *(int *) uaddr2;
+*(int *) uaddr2 = oldval \fIop\fP \fIoparg\fP;
+futex(uaddr, FUTEX_WAKE, val, 0, 0, 0);
+if (oldval \fIcmp\fP \fIcmparg\fP)
+    futex(uaddr2, FUTEX_WAKE, val2, 0, 0, 0);
+.fi
+.in
+
+In other words,
+.BR FUTEX_WAKE_OP
+does the following:
+.RS
+.IP * 3
+saves the original value of the futex word at
+.IR uaddr2
+and performs an operation to modify the value of the futex at
+.IR uaddr2 ;
+this is an atomic read-modify-write memory access (i.e., using atomic
+machine instructions of the respective architecture)
+.IP *
+wakes up a maximum of
+.I val
+waiters on the futex for the futex word at
+.IR uaddr ;
+and
+.IP *
+dependent on the results of a test of the original value of the
+futex word at
+.IR uaddr2 ,
+wakes up a maximum of
+.I val2
+waiters on the futex for the futex word at
+.IR uaddr2 .
+.RE
+.IP
+The operation and comparison that are to be performed are encoded
+in the bits of the argument
+.IR val3 .
+Pictorially, the encoding is:
+
+.in +8n
+.nf
++---+---+-----------+-----------+
+|op |cmp|   oparg   |  cmparg   |
++---+---+-----------+-----------+
+  4   4       12          12    <== # of bits
+.fi
+.in
+
+Expressed in code, the encoding is:
+
+.in +4n
+.nf
+#define FUTEX_OP(op, oparg, cmp, cmparg) \\
+                (((op & 0xf) << 28) | \\
+                ((cmp & 0xf) << 24) | \\
+                ((oparg & 0xfff) << 12) | \\
+                (cmparg & 0xfff))
+.fi
+.in
+
+In the above,
+.I op
+and
+.I cmp
+are each one of the codes listed below.
+The
+.I oparg
+and
+.I cmparg
+components are literal numeric values, except as noted below.
+
+The
+.I op
+component has one of the following values:
+
+.in +4n
+.nf
+FUTEX_OP_SET        0  /* uaddr2 = oparg; */
+FUTEX_OP_ADD        1  /* uaddr2 += oparg; */
+FUTEX_OP_OR         2  /* uaddr2 |= oparg; */
+FUTEX_OP_ANDN       3  /* uaddr2 &= ~oparg; */
+FUTEX_OP_XOR        4  /* uaddr2 ^= oparg; */
+.fi
+.in
+
+In addition, bit-wise ORing the following value into
+.I op
+causes
+.IR "(1\ <<\ oparg)"
+to be used as the operand:
+
+.in +4n
+.nf
+FUTEX_OP_ARG_SHIFT  8  /* Use (1 << oparg) as operand */
+.fi
+.in
+
+The
+.I cmp
+field is one of the following:
+
+.in +4n
+.nf
+FUTEX_OP_CMP_EQ     0  /* if (oldval == cmparg) wake */
+FUTEX_OP_CMP_NE     1  /* if (oldval != cmparg) wake */
+FUTEX_OP_CMP_LT     2  /* if (oldval < cmparg) wake */
+FUTEX_OP_CMP_LE     3  /* if (oldval <= cmparg) wake */
+FUTEX_OP_CMP_GT     4  /* if (oldval > cmparg) wake */
+FUTEX_OP_CMP_GE     5  /* if (oldval >= cmparg) wake */
+.fi
+.in
+
+The return value of
+.BR FUTEX_WAKE_OP
+is the sum of the number of waiters woken on the futex
+.IR uaddr
+plus the number of waiters woken on the futex
+.IR uaddr2 .
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_WAIT_BITSET " (since Linux 2.6.25)"
+.\" commit cd689985cf49f6ff5c8eddc48d98b9d581d9475d
+This operation is like
+.BR FUTEX_WAIT
+except that
+.I val3
+is used to provide a 32-bit mask to the kernel.
+This bit mask is stored in the kernel-internal state of the waiter.
+See the description of
+.BR FUTEX_WAKE_BITSET
+for further details.
+
+The
+.BR FUTEX_WAIT_BITSET
+operation also interprets the
+.I timeout
+argument differently from
+.BR FUTEX_WAIT .
+See the discussion of
+.BR FUTEX_CLOCK_REALTIME ,
+above.
+
+The
+.I uaddr2
+argument is ignored.
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_WAKE_BITSET " (since Linux 2.6.25)"
+.\" commit cd689985cf49f6ff5c8eddc48d98b9d581d9475d
+This operation is the same as
+.BR FUTEX_WAKE
+except that the
+.I val3
+argument is used to provide a 32-bit bit mask to the kernel.
+This bit mask is used to select which waiters should be woken up.
+The selection is done by a bit-wise AND of the "wake" bit mask
+(i.e., the value in
+.IR val3 )
+and the bit mask which is stored in the kernel-internal
+state of the waiter (the "wait" bit mask that is set using
+.BR FUTEX_WAIT_BITSET ).
+All of the waiters for which the result of the AND is nonzero are woken up;
+the remaining waiters are left sleeping.
+
+The effect of
+.BR FUTEX_WAIT_BITSET
+and
+.BR FUTEX_WAKE_BITSET
+is to allow selective wake-ups among multiple waiters that are blocked
+on the same futex.
+However, note that, depending on the use case,
+employing this bit-mask multiplexing feature on a
+futex can be less efficient than simply using multiple futexes,
+because employing bit-mask multiplexing requires the kernel
+to check all waiters on a futex,
+including those that are not interested in being woken up
+(i.e., they do not have the relevant bit set in their "wait" bit mask).
+.\" According to http://locklessinc.com/articles/futex_cheat_sheet/:
+.\"
+.\"    "The original reason for the addition of these extensions
+.\"     was to improve the performance of pthread read-write locks
+.\"     in glibc. However, the pthreads library no longer uses the
+.\"     same locking algorithm, and these extensions are not used
+.\"     without the bitset parameter being all ones.
+.\"
+.\" The page goes on to note that the FUTEX_WAIT_BITSET operation
+.\" is nevertheless used (with a bit mask of all ones) in order to
+.\" obtain the absolute timeout functionality that is useful
+.\" for efficiently implementing Pthreads APIs (which use absolute
+.\" timeouts); FUTEX_WAIT provides only relative timeouts.
+
+The
+.I uaddr2
+and
+.I timeout
+arguments are ignored.
+
+The
+.BR FUTEX_WAIT
+and
+.BR FUTEX_WAKE
+operations correspond to
+.BR FUTEX_WAIT_BITSET
+and
+.BR FUTEX_WAKE_BITSET
+operations where the bit masks are all ones.
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.SS Priority-inheritance futexes
+Linux supports priority-inheritance (PI) futexes in order to handle
+priority-inversion problems that can be encountered with
+normal futex locks.
+Priority inversion is the problem that occurs when a high-priority
+task is blocked waiting to acquire a lock held by a low-priority task,
+while tasks at an intermediate priority continuously preempt
+the low-priority task from the CPU.
+Consequently, the low-priority task makes no progress toward
+releasing the lock, and the high-priority task remains blocked.
+
+Priority inheritance is a mechanism for dealing with
+the priority-inversion problem.
+With this mechanism, when a high-priority task becomes blocked
+by a lock held by a low-priority task,
+the priority of the low-priority task is temporarily raised
+to that of the high-priority task,
+so that it is not preempted by any intermediate level tasks,
+and can thus make progress toward releasing the lock.
+To be effective, priority inheritance must be transitive,
+meaning that if a high-priority task blocks on a lock
+held by a lower-priority task that is itself blocked by a lock
+held by another intermediate-priority task
+(and so on, for chains of arbitrary length),
+then both of those tasks
+(or more generally, all of the tasks in a lock chain)
+have their priorities raised to be the same as the high-priority task.
+
+From a user-space perspective,
+what makes a futex PI-aware is a policy agreement (described below)
+between user space and the kernel about the value of the futex word,
+coupled with the use of the PI-futex operations described below.
+(Unlike the other futex operations described above,
+the PI-futex operations are designed
+for the implementation of very specific IPC mechanisms.)
+.\"
+.\" Quoting Darren Hart:
+.\"     These opcodes paired with the PI futex value policy (described below)
+.\"     defines a "futex" as PI aware. These were created very specifically
+.\"     in support of PI pthread_mutexes, so it makes a lot more sense to
+.\"     talk about a PI aware pthread_mutex, than a PI aware futex, since
+.\"     there is a lot of policy and scaffolding that has to be built up
+.\"     around it to use it properly (this is what a PI pthread_mutex is).
+
+.\"       mtk: The following text is drawn from the Hart/Guniguntala paper
+.\"       (listed in SEE ALSO), but I have reworded some pieces
+.\"       significntly.
+.\"
+The PI-futex operations described below differ from the other
+futex operations in that they impose policy on the use of the value of the
+futex word:
+.IP * 3
+If the lock is not acquired, the futex word's value shall be 0.
+.IP *
+If the lock is acquired, the futex word's value shall
+be the thread ID (TID;
+see
+.BR gettid (2))
+of the owning thread.
+.IP *
+If the lock is owned and there are threads contending for the lock,
+then the
+.B FUTEX_WAITERS
+bit shall be set in the futex word's value; in other words, this value is:
+
+    FUTEX_WAITERS | TID
+.IP
+(Note that is invalid for a PI futex word to have no owner and
+.BR FUTEX_WAITERS
+set.)
+.PP
+With this policy in place,
+a user-space application can acquire an unacquired
+lock or release a lock using atomic instructions executed in user mode
+(e.g., a compare-and-swap operation such as
+.I cmpxchg
+on the x86 architecture).
+Acquiring a lock simply consists of using compare-and-swap to atomically
+set the futex word's value to the caller's TID if its previous value was 0.
+Releasing a lock requires using compare-and-swap to set the futex word's
+value to 0 if the previous value was the expected TID.
+
+If a futex is already acquired (i.e., has a nonzero value),
+waiters must employ the
+.B FUTEX_LOCK_PI
+operation to acquire the lock.
+If other threads are waiting for the lock, then the
+.B FUTEX_WAITERS
+bit is set in the futex value;
+in this case, the lock owner must employ the
+.B FUTEX_UNLOCK_PI
+operation to release the lock.
+
+In the cases where callers are forced into the kernel
+(i.e., required to perform a
+.BR futex ()
+call),
+they then deal directly with a so-called RT-mutex,
+a kernel locking mechanism which implements the required
+priority-inheritance semantics.
+After the RT-mutex is acquired, the futex value is updated accordingly,
+before the calling thread returns to user space.
+
+It is important to note
+.\" tglx (July 2015):
+.\"     If there are multiple waiters on a pi futex then a wake pi operation
+.\"     will wake the first waiter and hand over the lock to this waiter. This
+.\"     includes handing over the rtmutex which represents the futex in the
+.\"     kernel. The strict requirement is that the futex owner and the rtmutex
+.\"     owner must be the same, except for the update period which is
+.\"     serialized by the futex internal locking. That means the kernel must
+.\"     update the user-space value prior to returning to user space
+that the kernel will update the futex word's value prior
+to returning to user space.
+(This prevents the possibility of the futex word's value ending
+up in an invalid state, such as having an owner but the value being 0,
+or having waiters but not having the
+.B FUTEX_WAITERS
+bit set.)
+
+If a futex has an associated RT-mutex in the kernel
+(i.e., there are blocked waiters)
+and the owner of the futex/RT-mutex dies unexpectedly,
+then the kernel cleans up the RT-mutex and hands it over to the next waiter.
+This in turn requires that the user-space value is updated accordingly.
+To indicate that this is required, the kernel sets the
+.B FUTEX_OWNER_DIED
+bit in the futex word along with the thread ID of the new owner.
+User space can detect this situation via the presence of the
+.B FUTEX_OWNER_DIED
+bit and is then responsible for cleaning up the stale state left over by
+the dead owner.
+.\" tglx (July 2015):
+.\"     The FUTEX_OWNER_DIED bit can also be set on uncontended futexes, where
+.\"     the kernel has no state associated. This happens via the robust futex
+.\"     mechanism. In that case the futex value will be set to
+.\"     FUTEX_OWNER_DIED. The robust futex mechanism is also available for non
+.\"     PI futexes.
+
+PI futexes are operated on by specifying one of the values listed below in
+.IR futex_op .
+Note that the PI futex operations must be used as paired operations
+and are subject to some additional requirements:
+.IP * 3
+.B FUTEX_LOCK_PI
+and
+.B FUTEX_TRYLOCK_PI
+pair with
+.BR FUTEX_UNLOCK_PI.
+.B FUTEX_UNLOCK_PI
+must be called only on a futex owned by the calling thread,
+as defined by the value policy, otherwise the error
+.B EPERM
+results.
+.IP *
+.B FUTEX_WAIT_REQUEUE_PI
+pairs with
+.BR FUTEX_CMP_REQUEUE_PI .
+This must be performed from a non-PI futex to a distinct PI futex
+(or the error
+.B EINVAL
+results).
+Additionally,
+.I val
+(the number of waiters to be woken) must be 1
+(or the error
+.B EINVAL
+results).
+.P
+The PI futex operations are as follows:
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_LOCK_PI " (since Linux 2.6.18)"
+.\" commit c87e2837be82df479a6bae9f155c43516d2feebc
+This operation is used after an attempt to acquire
+the lock via an atomic user-mode instruction failed
+because the futex word has a nonzero value\(emspecifically,
+because it contained the (PID-namespace-specific) TID of the lock owner.
+
+The operation checks the value of the futex word at the address
+.IR uaddr .
+If the value is 0, then the kernel tries to atomically set
+the futex value to the caller's TID.
+If the futex word's value is nonzero,
+the kernel atomically sets the
+.B FUTEX_WAITERS
+bit, which signals the futex owner that it cannot unlock the futex in
+user space atomically by setting the futex value to 0.
+.\" tglx (July 2015):
+.\"     The operation here is similar to the FUTEX_WAIT logic. When the user
+.\"     space atomic acquire does not succeed because the futex value was non
+.\"     zero, then the waiter goes into the kernel, takes the kernel internal
+.\"     lock and retries the acquisition under the lock. If the acquisition
+.\"     does not succeed either, then it sets the FUTEX_WAITERS bit, to signal
+.\"     the lock owner that it needs to go into the kernel. Here is the pseudo
+.\"     code:
+.\"
+.\"     	lock(kernel_lock);
+.\"     retry:
+.\"     	
+.\"     	/*
+.\"     	 * Owner might have unlocked in userspace before we
+.\"     	 * were able to set the waiter bit.
+.\"              */
+.\"             if (atomic_acquire(futex) == SUCCESS) {
+.\"     	   unlock(kernel_lock());
+.\"     	   return 0;
+.\"     	}
+.\"
+.\"     	/*
+.\"     	 * Owner might have unlocked after the above atomic_acquire()
+.\"     	 * attempt.
+.\"     	 */
+.\"     	if (atomic_set_waiters_bit(futex) != SUCCESS)
+.\"     	   goto retry;
+.\"
+.\"     	queue_waiter();
+.\"     	unlock(kernel_lock);
+.\"     	block();
+.\"
+After that, the kernel:
+.RS
+.IP 1. 3
+Tries to find the thread which is associated with the owner TID.
+.IP 2.
+Creates or reuses kernel state on behalf of the owner.
+(If this is the first waiter, there is no kernel state for this
+futex, so kernel state is created by locking the RT-mutex
+and the futex owner is made the owner of the RT-mutex.
+If there are existing waiters, then the existing state is reused.)
+.IP 3.
+Attaches the waiter to the futex
+(i.e., the waiter is enqueued on the RT-mutex waiter list).
+.RE
+.IP
+If more than one waiter exists,
+the enqueueing of the waiter is in descending priority order.
+(For information on priority ordering, see the discussion of the
+.BR SCHED_DEADLINE ,
+.BR SCHED_FIFO ,
+and
+.BR SCHED_RR
+scheduling policies in
+.BR sched (7).)
+The owner inherits either the waiter's CPU bandwidth
+(if the waiter is scheduled under the
+.BR SCHED_DEADLINE
+policy) or the waiter's priority (if the waiter is scheduled under the
+.BR SCHED_RR
+or
+.BR SCHED_FIFO
+policy).
+.\" August 2015:
+.\"     mtk: If the realm is restricted purely to SCHED_OTHER (SCHED_NORMAL)
+.\"          processes, does the nice value come into play also?
+.\"
+.\"     tglx: No. SCHED_OTHER/NORMAL tasks are handled in FIFO order
+This inheritance follows the lock chain in the case of nested locking
+.\" (i.e., task 1 blocks on lock A, held by task 2,
+.\" while task 2 blocks on lock B, held by task 3)
+and performs deadlock detection.
+
+The
+.I timeout
+argument provides a timeout for the lock attempt.
+It is interpreted as an absolute time, measured against the
+.BR CLOCK_REALTIME
+clock.
+If
+.I timeout
+is NULL, the operation will block indefinitely.
+
+The
+.IR uaddr2 ,
+.IR val ,
+and
+.IR val3
+arguments are ignored.
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_TRYLOCK_PI " (since Linux 2.6.18)"
+.\" commit c87e2837be82df479a6bae9f155c43516d2feebc
+This operation tries to acquire the lock at
+.IR uaddr .
+It is invoked when a user-space atomic acquire did not
+succeed because the futex word was not 0.
+
+Because the kernel has access to more state information than user space,
+acquisition of the lock might succeed if performed by the
+kernel in cases where the futex word
+(i.e., the state information accessible to use-space) contains stale state
+.RB ( FUTEX_WAITERS
+and/or
+.BR FUTEX_OWNER_DIED ).
+This can happen when the owner of the futex died.
+User space cannot handle this condition in a race-free manner,
+but the kernel can fix this up and acquire the futex.
+.\" Paraphrasing a f2f conversation with Thomas Gleixner about the
+.\" above point (Aug 2015): ###
+.\"	There is a rare possibility of a race condition involving an
+.\"	uncontended futex with no owner, but with waiters.  The
+.\"	kernel-user-space contract is that if a futex is nonzero, you must
+.\"	go into kernel.  The futex was owned by a task, and that task dies
+.\"	but there are no waiters, so the futex value is non zero.
+.\"	Therefore, the next locker has to go into the kernel,
+.\"	so that the kernel has a chance to clean up. (CMXCH on zero
+.\"	in user space would fail, so kernel has to clean up.)
+.\" Darren Hart (Oct 2015):
+.\"     The trylock in the kernel has more state, so it can independently
+.\"     verify the  flags that userspace must trust implicitly.
+
+The
+.IR uaddr2 ,
+.IR val ,
+.IR timeout ,
+and
+.IR val3
+arguments are ignored.
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_UNLOCK_PI " (since Linux 2.6.18)"
+.\" commit c87e2837be82df479a6bae9f155c43516d2feebc
+This operation wakes the top priority waiter that is waiting in
+.B FUTEX_LOCK_PI
+on the futex address provided by the
+.I uaddr
+argument.
+
+This is called when the user-space value at
+.I uaddr
+cannot be changed atomically from a TID (of the owner) to 0.
+
+The
+.IR uaddr2 ,
+.IR val ,
+.IR timeout ,
+and
+.IR val3
+arguments are ignored.
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_CMP_REQUEUE_PI " (since Linux 2.6.31)"
+.\" commit 52400ba946759af28442dee6265c5c0180ac7122
+This operation is a PI-aware variant of
+.BR FUTEX_CMP_REQUEUE .
+It requeues waiters that are blocked via
+.B FUTEX_WAIT_REQUEUE_PI
+on
+.I uaddr
+from a non-PI source futex
+.RI ( uaddr )
+to a PI target futex
+.RI ( uaddr2 ).
+
+As with
+.BR FUTEX_CMP_REQUEUE ,
+this operation wakes up a maximum of
+.I val
+waiters that are waiting on the futex at
+.IR uaddr .
+However, for
+.BR FUTEX_CMP_REQUEUE_PI ,
+.I val
+is required to be 1
+(since the main point is to avoid a thundering herd).
+The remaining waiters are removed from the wait queue of the source futex at
+.I uaddr
+and added to the wait queue of the target futex at
+.IR uaddr2 .
+
+The
+.I val2
+.\" val2 is the cap on the number of requeued waiters.
+.\" In the glibc pthread_cond_broadcast() implementation, this argument
+.\" is specified as INT_MAX, and for pthread_cond_signal() it is 0.
+and
+.I val3
+arguments serve the same purposes as for
+.BR FUTEX_CMP_REQUEUE .
+.\"
+.\"       The page at http://locklessinc.com/articles/futex_cheat_sheet/
+.\"       notes that "priority-inheritance Futex to priority-inheritance
+.\"       Futex requeues are currently unsupported". However, probably
+.\"       the page does not need to say nothing about this, since
+.\"       Thomas Gleixner commented (July 2015): "they never will be
+.\"       supported because they make no sense at all"
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.TP
+.BR FUTEX_WAIT_REQUEUE_PI " (since Linux 2.6.31)"
+.\" commit 52400ba946759af28442dee6265c5c0180ac7122
+.\"
+Wait on a non-PI futex at
+.I uaddr
+and potentially be requeued (via a
+.BR FUTEX_CMP_REQUEUE_PI
+operation in another task) onto a PI futex at
+.IR uaddr2 .
+The wait operation on
+.I uaddr
+is the same as for
+.BR FUTEX_WAIT .
+
+The waiter can be removed from the wait on
+.I uaddr
+without requeueing on
+.IR uaddr2
+via a
+.BR FUTEX_WAKE
+operation in another task.
+In this case, the
+.BR FUTEX_WAIT_REQUEUE_PI
+operation fails with the error
+.BR EAGAIN .
+
+If
+.I timeout
+is not NULL, it specifies a timeout for the wait operation;
+this timeout is interpreted as outlined above in the description of the
+.BR FUTEX_CLOCK_REALTIME
+option.
+If
+.I timeout
+is NULL, the operation can block indefinitely.
+
+The
+.I val3
+argument is ignored.
+
+The
+.BR FUTEX_WAIT_REQUEUE_PI
+and
+.BR FUTEX_CMP_REQUEUE_PI
+were added to support a fairly specific use case:
+support for priority-inheritance-aware POSIX threads condition variables.
+The idea is that these operations should always be paired,
+in order to ensure that user space and the kernel remain in sync.
+Thus, in the
+.BR FUTEX_WAIT_REQUEUE_PI
+operation, the user-space application pre-specifies the target
+of the requeue that takes place in the
+.BR FUTEX_CMP_REQUEUE_PI
+operation.
+.\"
+.\" Darren Hart notes that a patch to allow glibc to fully support
+.\" PI-aware pthreads condition variables has not yet been accepted into
+.\" glibc. The story is complex, and can be found at
+.\" https://sourceware.org/bugzilla/show_bug.cgi?id=11588
+.\" Darren notes that in the meantime, the patch is shipped with various
+.\" PREEMPT_RT-enabled Linux systems.
+.\"
+.\" Related to the preceding, Darren proposed that somewhere, man-pages
+.\" should document the following point:
+.\"
+.\"     While the Linux kernel, since 2.6.31, supports requeueing of
+.\"     priority-inheritance (PI) aware mutexes via the
+.\"     FUTEX_WAIT_REQUEUE_PI and FUTEX_CMP_REQUEUE_PI futex operations,
+.\"     the glibc implementation does not yet take full advantage of this.
+.\"     Specifically, the condvar internal data lock remains a non-PI aware
+.\"     mutex, regardless of the type of the pthread_mutex associated with
+.\"     the condvar. This can lead to an unbounded priority inversion on
+.\"     the internal data lock even when associating a PI aware
+.\"     pthread_mutex with a condvar during a pthread_cond*_wait
+.\"     operation. For this reason, it is not recommended to rely on
+.\"     priority inheritance when using pthread condition variables.
+.\"
+.\" The problem is that the obvious location for this text is
+.\" the pthread_cond*wait(3) man page. However, such a man page
+.\" does not currently exist.
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.SH RETURN VALUE
+.PP
+In the event of an error (and assuming that
+.BR futex ()
+was invoked via
+.BR syscall (2)),
+all operations return \-1 and set
+.I errno
+to indicate the cause of the error.
+
+The return value on success depends on the operation,
+as described in the following list:
+.TP
+.B FUTEX_WAIT
+Returns 0 if the caller was woken up.
+Note that a wake-up can also be caused by common futex usage patterns
+in unrelated code that happened to have previously used the futex word's
+memory location (e.g., typical futex-based implementations of
+Pthreads mutexes can cause this under some conditions).
+Therefore, callers should always conservatively assume that a return
+value of 0 can mean a spurious wake-up, and use the futex word's value
+(i.e., the user-space synchronization scheme)
+to decide whether to continue to block or not.
+.TP
+.B FUTEX_WAKE
+Returns the number of waiters that were woken up.
+.TP
+.B FUTEX_FD
+Returns the new file descriptor associated with the futex.
+.TP
+.B FUTEX_REQUEUE
+Returns the number of waiters that were woken up.
+.TP
+.B FUTEX_CMP_REQUEUE
+Returns the total number of waiters that were woken up or
+requeued to the futex for the futex word at
+.IR uaddr2 .
+If this value is greater than
+.IR val ,
+then the difference is the number of waiters requeued to the futex for the
+futex word at
+.IR uaddr2 .
+.TP
+.B FUTEX_WAKE_OP
+Returns the total number of waiters that were woken up.
+This is the sum of the woken waiters on the two futexes for
+the futex words at
+.I uaddr
+and
+.IR uaddr2 .
+.TP
+.B FUTEX_WAIT_BITSET
+Returns 0 if the caller was woken up.
+See
+.B FUTEX_WAIT
+for how to interpret this correctly in practice.
+.TP
+.B FUTEX_WAKE_BITSET
+Returns the number of waiters that were woken up.
+.TP
+.B FUTEX_LOCK_PI
+Returns 0 if the futex was successfully locked.
+.TP
+.B FUTEX_TRYLOCK_PI
+Returns 0 if the futex was successfully locked.
+.TP
+.B FUTEX_UNLOCK_PI
+Returns 0 if the futex was successfully unlocked.
+.TP
+.B FUTEX_CMP_REQUEUE_PI
+Returns the total number of waiters that were woken up or
+requeued to the futex for the futex word at
+.IR uaddr2 .
+If this value is greater than
+.IR val ,
+then difference is the number of waiters requeued to the futex for
+the futex word at
+.IR uaddr2 .
+.TP
+.B FUTEX_WAIT_REQUEUE_PI
+Returns 0 if the caller was successfully requeued to the futex for
+the futex word at
+.IR uaddr2 .
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.SH ERRORS
+.TP
+.B EACCES
+No read access to the memory of a futex word.
+.TP
+.B EAGAIN
+.RB ( FUTEX_WAIT ,
+.BR FUTEX_WAIT_BITSET ,
+.BR FUTEX_WAIT_REQUEUE_PI )
+The value pointed to by
+.I uaddr
+was not equal to the expected value
+.I val
+at the time of the call.
+
+.BR Note :
+on Linux, the symbolic names
+.B EAGAIN
+and
+.B EWOULDBLOCK
+(both of which appear in different parts of the kernel futex code)
+have the same value.
+.TP
+.B EAGAIN
+.RB ( FUTEX_CMP_REQUEUE ,
+.BR FUTEX_CMP_REQUEUE_PI )
+The value pointed to by
+.I uaddr
+is not equal to the expected value
+.IR val3 .
+.TP
+.BR EAGAIN
+.RB ( FUTEX_LOCK_PI ,
+.BR FUTEX_TRYLOCK_PI ,
+.BR FUTEX_CMP_REQUEUE_PI )
+The futex owner thread ID of
+.I uaddr
+(for
+.BR FUTEX_CMP_REQUEUE_PI :
+.IR uaddr2 )
+is about to exit,
+but has not yet handled the internal state cleanup.
+Try again.
+.TP
+.BR EDEADLK
+.RB ( FUTEX_LOCK_PI ,
+.BR FUTEX_TRYLOCK_PI ,
+.BR FUTEX_CMP_REQUEUE_PI )
+The futex word at
+.I uaddr
+is already locked by the caller.
+.TP
+.BR EDEADLK
+.\" FIXME . I see that kernel/locking/rtmutex.c uses EDEADLK in some
+.\"       places, and EDEADLOCK in others. On almost all architectures
+.\"       these constants are synonymous. Is there a reason that both
+.\"       names are used?
+.\"
+.\"       tglx (July 2015): "No. We should probably fix that."
+.\"
+.RB ( FUTEX_CMP_REQUEUE_PI )
+While requeueing a waiter to the PI futex for the futex word at
+.IR uaddr2 ,
+the kernel detected a deadlock.
+.TP
+.B EFAULT
+A required pointer argument (i.e.,
+.IR uaddr ,
+.IR uaddr2 ,
+or
+.IR timeout )
+did not point to a valid user-space address.
+.TP
+.B EINTR
+A
+.B FUTEX_WAIT
+or
+.B FUTEX_WAIT_BITSET
+operation was interrupted by a signal (see
+.BR signal (7)).
+In kernels before Linux 2.6.22, this error could also be returned for
+on a spurious wakeup; since Linux 2.6.22, this no longer happens.
+.TP
+.B EINVAL
+The operation in
+.IR futex_op
+is one of those that employs a timeout, but the supplied
+.I timeout
+argument was invalid
+.RI ( tv_sec
+was less than zero, or
+.IR tv_nsec
+was not less than 1,000,000,000).
+.TP
+.B EINVAL
+The operation specified in
+.IR futex_op
+employs one or both of the pointers
+.I uaddr
+and
+.IR uaddr2 ,
+but one of these does not point to a valid object\(emthat is,
+the address is not four-byte-aligned.
+.TP
+.B EINVAL
+.RB ( FUTEX_WAIT_BITSET ,
+.BR FUTEX_WAKE_BITSET )
+The bit mask supplied in
+.IR val3
+is zero.
+.TP
+.B EINVAL
+.RB ( FUTEX_CMP_REQUEUE_PI )
+.I uaddr
+equals
+.IR uaddr2
+(i.e., an attempt was made to requeue to the same futex).
+.TP
+.BR EINVAL
+.RB ( FUTEX_FD )
+The signal number supplied in
+.I val
+is invalid.
+.TP
+.B EINVAL
+.RB ( FUTEX_WAKE ,
+.BR FUTEX_WAKE_OP ,
+.BR FUTEX_WAKE_BITSET ,
+.BR FUTEX_REQUEUE ,
+.BR FUTEX_CMP_REQUEUE )
+The kernel detected an inconsistency between the user-space state at
+.I uaddr
+and the kernel state\(emthat is, it detected a waiter which waits in
+.BR FUTEX_LOCK_PI
+on
+.IR uaddr .
+.TP
+.B EINVAL
+.RB ( FUTEX_LOCK_PI ,
+.BR FUTEX_TRYLOCK_PI ,
+.BR FUTEX_UNLOCK_PI )
+The kernel detected an inconsistency between the user-space state at
+.I uaddr
+and the kernel state.
+This indicates either state corruption
+or that the kernel found a waiter on
+.I uaddr
+which is waiting via
+.BR FUTEX_WAIT
+or
+.BR FUTEX_WAIT_BITSET .
+.TP
+.B EINVAL
+.RB ( FUTEX_CMP_REQUEUE_PI )
+The kernel detected an inconsistency between the user-space state at
+.I uaddr2
+and the kernel state;
+.\" From a conversation with Thomas Gleixner (Aug 2015): ###
+.\"	The kernel sees: I have non PI state for a futex you tried to
+.\"     tell me was PI
+that is, the kernel detected a waiter which waits via
+.BR FUTEX_WAIT
+or
+.BR FUTEX_WAIT_BITSET
+on
+.IR uaddr2 .
+.TP
+.B EINVAL
+.RB ( FUTEX_CMP_REQUEUE_PI )
+The kernel detected an inconsistency between the user-space state at
+.I uaddr
+and the kernel state;
+that is, the kernel detected a waiter which waits via
+.BR FUTEX_WAIT
+or
+.BR FUTEX_WAIT_BITESET
+on
+.IR uaddr .
+.TP
+.B EINVAL
+.RB ( FUTEX_CMP_REQUEUE_PI )
+The kernel detected an inconsistency between the user-space state at
+.I uaddr
+and the kernel state;
+that is, the kernel detected a waiter which waits on
+.I uaddr
+via
+.BR FUTEX_LOCK_PI
+(instead of
+.BR FUTEX_WAIT_REQUEUE_PI ).
+.TP
+.B EINVAL
+.RB ( FUTEX_CMP_REQUEUE_PI )
+.\" This deals with the case:
+.\"     wait_requeue_pi(A, B);
+.\"     requeue_pi(A, C);
+An attempt was made to requeue a waiter to a futex other than that
+specified by the matching
+.B FUTEX_WAIT_REQUEUE_PI
+call for that waiter.
+.TP
+.B EINVAL
+.RB ( FUTEX_CMP_REQUEUE_PI )
+The
+.I val
+argument is not 1.
+.TP
+.B EINVAL
+Invalid argument.
+.TP
+.BR ENOMEM
+.RB ( FUTEX_LOCK_PI ,
+.BR FUTEX_TRYLOCK_PI ,
+.BR FUTEX_CMP_REQUEUE_PI )
+The kernel could not allocate memory to hold state information.
+.TP
+.B ENFILE
+.RB ( FUTEX_FD )
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENOSYS
+Invalid operation specified in
+.IR futex_op .
+.TP
+.B ENOSYS
+The
+.BR FUTEX_CLOCK_REALTIME
+option was specified in
+.IR futex_op ,
+but the accompanying operation was neither
+.BR FUTEX_WAIT_BITSET
+nor
+.BR FUTEX_WAIT_REQUEUE_PI .
+.TP
+.BR ENOSYS
+.RB ( FUTEX_LOCK_PI ,
+.BR FUTEX_TRYLOCK_PI ,
+.BR FUTEX_UNLOCK_PI ,
+.BR FUTEX_CMP_REQUEUE_PI ,
+.BR FUTEX_WAIT_REQUEUE_PI )
+A run-time check determined that the operation is not available.
+The PI-futex operations are not implemented on all architectures and
+are not supported on some CPU variants.
+.TP
+.BR EPERM
+.RB ( FUTEX_LOCK_PI ,
+.BR FUTEX_TRYLOCK_PI ,
+.BR FUTEX_CMP_REQUEUE_PI )
+The caller is not allowed to attach itself to the futex at
+.I uaddr
+(for
+.BR FUTEX_CMP_REQUEUE_PI :
+the futex at
+.IR uaddr2 ).
+(This may be caused by a state corruption in user space.)
+.TP
+.BR EPERM
+.RB ( FUTEX_UNLOCK_PI )
+The caller does not own the lock represented by the futex word.
+.TP
+.BR ESRCH
+.RB ( FUTEX_LOCK_PI ,
+.BR FUTEX_TRYLOCK_PI ,
+.BR FUTEX_CMP_REQUEUE_PI )
+The thread ID in the futex word at
+.I uaddr
+does not exist.
+.TP
+.BR ESRCH
+.RB ( FUTEX_CMP_REQUEUE_PI )
+The thread ID in the futex word at
+.I uaddr2
+does not exist.
+.TP
+.B ETIMEDOUT
+The operation in
+.IR futex_op
+employed the timeout specified in
+.IR timeout ,
+and the timeout expired before the operation completed.
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.SH VERSIONS
+.PP
+Futexes were first made available in a stable kernel release
+with Linux 2.6.0.
+
+Initial futex support was merged in Linux 2.5.7 but with different
+semantics from what was described above.
+A four-argument system call with the semantics
+described in this page was introduced in Linux 2.5.40.
+A fifth argument was added in Linux 2.5.70,
+and a sixth argument was added in Linux 2.6.7.
+.SH CONFORMING TO
+This system call is Linux-specific.
+.SH NOTES
+Glibc does not provide a wrapper for this system call; call it using
+.BR syscall (2).
+
+Several higher-level programming abstractions are implemented via futexes,
+including POSIX semaphores and
+various POSIX threads synchronization mechanisms
+(mutexes, condition variables, read-write locks, and barriers).
+.\" TODO FIXME(Torvald) Above, we cite this section and claim it contains
+.\" details on the synchronization semantics; add the C11 equivalents
+.\" here (or whatever we find consensus for).
+.\"
+.\""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+.\"
+.SH EXAMPLE
+.\" FIXME Is it worth having an example program?
+.\" FIXME Anything obviously broken in the example program?
+.\"
+The program below demonstrates use of futexes in a program where a parent
+process and a child process use a pair of futexes located inside a
+shared anonymous mapping to synchronize access to a shared resource:
+the terminal.
+The two processes each write
+.IR nloops
+(a command-line argument that defaults to 5 if omitted)
+messages to the terminal and employ a synchronization protocol
+that ensures that they alternate in writing messages.
+Upon running this program we see output such as the following:
+
+.in +4n
+.nf
+$ \fB./futex_demo\fP
+Parent (18534) 0
+Child  (18535) 0
+Parent (18534) 1
+Child  (18535) 1
+Parent (18534) 2
+Child  (18535) 2
+Parent (18534) 3
+Child  (18535) 3
+Parent (18534) 4
+Child  (18535) 4
+.fi
+.in
+.SS Program source
+\&
+.nf
+/* futex_demo.c
+
+   Usage: futex_demo [nloops]
+                    (Default: 5)
+
+   Demonstrate the use of futexes in a program where parent and child
+   use a pair of futexes located inside a shared anonymous mapping to
+   synchronize access to a shared resource: the terminal. The two
+   processes each write \(aqnum\-loops\(aq messages to the terminal and employ
+   a synchronization protocol that ensures that they alternate in
+   writing messages.
+*/
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/mman.h>
+#include <sys/syscall.h>
+#include <linux/futex.h>
+#include <sys/time.h>
+
+#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \\
+                        } while (0)
+
+static int *futex1, *futex2, *iaddr;
+
+static int
+futex(int *uaddr, int futex_op, int val,
+      const struct timespec *timeout, int *uaddr2, int val3)
+{
+    return syscall(SYS_futex, uaddr, futex_op, val,
+                   timeout, uaddr, val3);
+}
+
+/* Acquire the futex pointed to by \(aqfutexp\(aq: wait for its value to
+   become 1, and then set the value to 0. */
+
+static void
+fwait(int *futexp)
+{
+    int s;
+
+    /* __sync_bool_compare_and_swap(ptr, oldval, newval) is a gcc
+       built\-in function.  It atomically performs the equivalent of:
+
+           if (*ptr == oldval)
+               *ptr = newval;
+
+       It returns true if the test yielded true and *ptr was updated.
+       The alternative here would be to employ the equivalent atomic
+       machine\-language instructions.  For further information, see
+       the GCC Manual. */
+
+    while (1) {
+
+        /* Is the futex available? */
+
+        if (__sync_bool_compare_and_swap(futexp, 1, 0))
+            break;      /* Yes */
+
+        /* Futex is not available; wait */
+
+        s = futex(futexp, FUTEX_WAIT, 0, NULL, NULL, 0);
+        if (s == \-1 && errno != EAGAIN)
+            errExit("futex\-FUTEX_WAIT");
+    }
+}
+
+/* Release the futex pointed to by \(aqfutexp\(aq: if the futex currently
+   has the value 0, set its value to 1 and the wake any futex waiters,
+   so that if the peer is blocked in fpost(), it can proceed. */
+
+static void
+fpost(int *futexp)
+{
+    int s;
+
+    /* __sync_bool_compare_and_swap() was described in comments above */
+
+    if (__sync_bool_compare_and_swap(futexp, 0, 1)) {
+
+        s = futex(futexp, FUTEX_WAKE, 1, NULL, NULL, 0);
+        if (s  == \-1)
+            errExit("futex\-FUTEX_WAKE");
+    }
+}
+
+int
+main(int argc, char *argv[])
+{
+    pid_t childPid;
+    int j, nloops;
+
+    setbuf(stdout, NULL);
+
+    nloops = (argc > 1) ? atoi(argv[1]) : 5;
+
+    /* Create a shared anonymous mapping that will hold the futexes.
+       Since the futexes are being shared between processes, we
+       subsequently use the "shared" futex operations (i.e., not the
+       ones suffixed "_PRIVATE") */
+
+    iaddr = mmap(NULL, sizeof(int) * 2, PROT_READ | PROT_WRITE,
+                MAP_ANONYMOUS | MAP_SHARED, \-1, 0);
+    if (iaddr == MAP_FAILED)
+        errExit("mmap");
+
+    futex1 = &iaddr[0];
+    futex2 = &iaddr[1];
+
+    *futex1 = 0;        /* State: unavailable */
+    *futex2 = 1;        /* State: available */
+
+    /* Create a child process that inherits the shared anonymous
+       mapping */
+
+    childPid = fork();
+    if (childPid == \-1)
+        errExit("fork");
+
+    if (childPid == 0) {        /* Child */
+        for (j = 0; j < nloops; j++) {
+            fwait(futex1);
+            printf("Child  (%ld) %d\\n", (long) getpid(), j);
+            fpost(futex2);
+        }
+
+        exit(EXIT_SUCCESS);
+    }
+
+    /* Parent falls through to here */
+
+    for (j = 0; j < nloops; j++) {
+        fwait(futex2);
+        printf("Parent (%ld) %d\\n", (long) getpid(), j);
+        fpost(futex1);
+    }
+
+    wait(NULL);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.ad l
+.BR get_robust_list (2),
+.BR restart_syscall (2),
+.BR pthread_mutexattr_getprotocol (3),
+.BR futex (7),
+.BR sched (7)
+.PP
+The following kernel source files:
+.IP * 2
+.I Documentation/pi-futex.txt
+.IP *
+.I Documentation/futex-requeue-pi.txt
+.IP *
+.I Documentation/locking/rt-mutex.txt
+.IP *
+.I Documentation/locking/rt-mutex-design.txt
+.IP *
+.I Documentation/robust-futex-ABI.txt
+.PP
+Franke, H., Russell, R., and Kirwood, M., 2002.
+\fIFuss, Futexes and Furwocks: Fast Userlevel Locking in Linux\fP
+(from proceedings of the Ottawa Linux Symposium 2002),
+.br
+.UR http://kernel.org\:/doc\:/ols\:/2002\:/ols2002-pages-479-495.pdf
+.UE
+
+Hart, D., 2009. \fIA futex overview and update\fP,
+.UR http://lwn.net/Articles/360699/
+.UE
+
+Hart, D. and Guniguntala, D., 2009.
+\fIRequeue-PI: Making Glibc Condvars PI-Aware\fP
+(from proceedings of the 2009 Real-Time Linux Workshop),
+.UR http://lwn.net/images/conf/rtlws11/papers/proc/p10.pdf
+.UE
+
+Drepper, U., 2011. \fIFutexes Are Tricky\fP,
+.UR http://www.akkadia.org/drepper/futex.pdf
+.UE
+.PP
+Futex example library, futex-*.tar.bz2 at
+.br
+.UR ftp://ftp.kernel.org\:/pub\:/linux\:/kernel\:/people\:/rusty/
+.UE
+.\"
+.\" FIXME Are there any other resources that should be listed
+.\"       in the SEE ALSO section?
+.\" FIXME(Torvald) We should probably refer to the glibc code here, in
+.\"       particular the glibc-internal futex wrapper functions that are
+.\"       WIP, and the generic pthread_mutex_t and perhaps condvar
+.\"       implementations.

@@ -1,0 +1,64 @@
+.\" This man-page is Copyright (C) 1997 John S. Kallal
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" correction, aeb, 970825
+.TH FULL 4 2007-11-24 "Linux" "Linux Programmer's Manual"
+.SH NAME
+full \- always full device
+.SH CONFIGURATION
+If your system does not have
+.I /dev/full
+created already, it
+can be created with the following commands:
+.nf
+
+        mknod \-m 666 /dev/full c 1 7
+        chown root:root /dev/full
+.fi
+.SH DESCRIPTION
+File
+.I /dev/full
+has major device number 1
+and minor device number 7.
+.LP
+Writes to the
+.I /dev/full
+device will fail with an
+.B ENOSPC
+error.
+This can be used to test how a program handles disk-full errors.
+
+Reads from the
+.I /dev/full
+device will return \\0 characters.
+
+Seeks on
+.I /dev/full
+will always succeed.
+.SH FILES
+/dev/full
+.SH SEE ALSO
+.BR mknod (1),
+.BR null (4),
+.BR zero (4)

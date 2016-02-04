@@ -1,0 +1,85 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification
+.\"      http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH GETWCHAR 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getwchar \- read a wide character from standard input
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.B "wint_t getwchar(void);"
+.fi
+.SH DESCRIPTION
+The
+.BR getwchar ()
+function is the wide-character equivalent of the
+.BR getchar (3)
+function.
+It reads a wide character from
+.I stdin
+and returns
+it.
+If the end of stream is reached, or if
+.I ferror(stdin)
+becomes true, it returns
+.BR WEOF .
+If a wide-character conversion error occurs, it sets
+.I errno
+to
+.B EILSEQ
+and returns
+.BR WEOF .
+.PP
+For a nonlocking counterpart, see
+.BR unlocked_stdio (3).
+.SH RETURN VALUE
+The
+.BR getwchar ()
+function returns the next wide-character from
+standard input, or
+.BR WEOF .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getwchar ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR getwchar ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.PP
+It is reasonable to expect that
+.BR getwchar ()
+will actually
+read a multibyte sequence from standard input and then
+convert it to a wide character.
+.SH SEE ALSO
+.BR fgetwc (3),
+.BR unlocked_stdio (3)

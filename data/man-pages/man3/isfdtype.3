@@ -1,0 +1,103 @@
+'\" t
+.\" Copyright (C) 2014 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH ISFDTYPE 3 2014-03-13 "Linux" "Linux Programmer's Manual"
+.SH NAME
+isfdtype \- test file type of a file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <sys/stat.h>
+.B #include <sys/socket.h>
+
+.BI "int isfdtype(int " fd ", int " fdtype );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR isfdtype ():
+.ad l
+.RS 4
+.PD 0
+.TP 4
+Since glibc 2.20:
+_DEFAULT_SOURCE
+.TP 4
+Before glibc 2.20:
+_BSD_SOURCE || _SVID_SOURCE
+.PD
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR isfdtype ()
+function tests whether the file descriptor
+.I fd
+refers to a file of type
+.IR fdtype .
+The
+.I fdtype
+argument specifies one of the
+.B S_IF*
+constants defined in
+.I <sys/stat.h>
+and documented in
+.BR stat (2)
+(e.g.,
+.BR S_IFREG ).
+.SH RETURN VALUE
+The
+.BR isfdtype ()
+function returns 1 if the file descriptor
+.I fd
+is of type
+.IR fdtype
+and 0 if it is not.
+On error, -1 is returned and
+.I errno
+is set to indicate the cause.
+.SH ERRORS
+The
+.BR isfdtype ()
+function can fail with any of the same errors as
+.BR fstat (3).
+.SH CONFORMING TO
+The
+.BR isfdtype ()
+function is not specified in any standard,
+but did appear in the draft POSIX.1g standard.
+It is present on OpenBSD and Tru64 UNIX
+(where the required header file in both cases is just
+.IR <sys/stat.h> ,
+as shown in the POSIX.1g draft),
+and possibly other systems.
+.SH NOTES
+Portable applications should use
+.BR fstat (3)
+instead.
+.SH SEE ALSO
+.BR fstat (3)

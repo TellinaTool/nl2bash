@@ -1,0 +1,81 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.TH COMPLEX 7 2011-09-16 "" "Linux Programmer's Manual"
+.SH NAME
+complex \- basics of complex mathematics
+.SH SYNOPSIS
+.B #include <complex.h>
+.SH DESCRIPTION
+Complex numbers are numbers of the form z = a+b*i, where a and b are
+real numbers and i = sqrt(\-1), so that i*i = \-1.
+.br
+There are other ways to represent that number.
+The pair (a,b) of real
+numbers may be viewed as a point in the plane, given by X- and
+Y-coordinates.
+This same point may also be described by giving
+the pair of real numbers (r,phi), where r is the distance to the origin O,
+and phi the angle between the X-axis and the line Oz.
+Now
+z = r*exp(i*phi) = r*(cos(phi)+i*sin(phi)).
+.PP
+The basic operations are defined on z = a+b*i and w = c+d*i as:
+.TP
+.B addition: z+w = (a+c) + (b+d)*i
+.TP
+.B multiplication: z*w = (a*c \- b*d) + (a*d + b*c)*i
+.TP
+.B division: z/w = ((a*c + b*d)/(c*c + d*d)) + ((b*c \- a*d)/(c*c + d*d))*i
+.PP
+Nearly all math function have a complex counterpart but there are
+some complex-only functions.
+.SH EXAMPLE
+Your C-compiler can work with complex numbers if it supports the C99 standard.
+Link with \fI\-lm\fP.
+The imaginary unit is represented by I.
+.sp
+.nf
+/* check that exp(i * pi) == \-1 */
+#include <math.h>        /* for atan */
+#include <stdio.h>
+#include <complex.h>
+
+int
+main(void)
+{
+    double pi = 4 * atan(1.0);
+    double complex z = cexp(I * pi);
+    printf("%f + %f * i\\n", creal(z), cimag(z));
+}
+.fi
+.SH SEE ALSO
+.BR cabs (3),
+.BR cacos (3),
+.BR cacosh (3),
+.BR carg (3),
+.BR casin (3),
+.BR casinh (3),
+.BR catan (3),
+.BR catanh (3),
+.BR ccos (3),
+.BR ccosh (3),
+.BR cerf (3),
+.BR cexp (3),
+.BR cexp2 (3),
+.BR cimag (3),
+.BR clog (3),
+.BR clog10 (3),
+.BR clog2 (3),
+.BR conj (3),
+.BR cpow (3),
+.BR cproj (3),
+.BR creal (3),
+.BR csin (3),
+.BR csinh (3),
+.BR csqrt (3),
+.BR ctan (3),
+.BR ctanh (3)

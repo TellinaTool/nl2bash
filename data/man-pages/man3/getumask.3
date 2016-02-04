@@ -1,0 +1,64 @@
+.\" Copyright (C) 2002 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" This replaces an earlier man page written by Walter Harms
+.\" <walter.harms@informatik.uni-oldenburg.de>.
+.\"
+.TH GETUMASK 3 2010-09-10 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getumask \- get file creation mask
+.SH SYNOPSIS
+.BR "#define _GNU_SOURCE" "             /* See feature_test_macros(7) */"
+.br
+.B "#include <sys/types.h>"
+.br
+.B "#include <sys/stat.h>"
+.sp
+.B "mode_t getumask(void);"
+.SH DESCRIPTION
+This function returns the current file creation mask.
+It is equivalent to
+.in +4n
+.nf
+
+mode_t getumask(void)
+{
+    mode_t mask = umask( 0 );
+    umask(mask);
+    return mask;
+}
+
+.fi
+.in
+except that it is documented to be thread-safe (that is, shares
+a lock with the
+.BR umask (2)
+library call).
+.SH CONFORMING TO
+This is a vaporware GNU extension.
+.SH NOTES
+This function is documented but not implemented yet in glibc,
+as at version 2.9.
+.SH SEE ALSO
+.BR umask (2)

@@ -1,0 +1,215 @@
+.\" Copyright (C) 2012 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH DELETE_MODULE 2 2014-05-10 "Linux" "Linux Programmer's Manual"
+.SH NAME
+delete_module \- unload a kernel module
+.SH SYNOPSIS
+.nf
+.BI "int delete_module(const char *" name ", int " flags );
+.fi
+
+.IR Note :
+No declaration of this function is provided in glibc headers; see NOTES.
+.SH DESCRIPTION
+The
+.BR delete_module ()
+system call attempts to remove the unused loadable module entry
+identified by
+.IR name .
+If the module has an
+.I exit
+function, then that function is executed before unloading the module.
+The
+.IR flags
+argument is used to modify the behavior of the system call,
+as described below.
+This system call requires privilege.
+
+Module removal is attempted according to the following rules:
+.IP 1. 4
+If there are other loaded modules that depend on
+(i.e., refer to symbols defined in) this module,
+then the call fails.
+.IP 2.
+Otherwise, if the reference count for the module
+(i.e., the number of processes currently using the module)
+is zero, then the module is immediately unloaded.
+.IP 3.
+If a module has a nonzero reference count,
+then the behavior depends on the bits set in
+.IR flags .
+In normal usage (see NOTES), the
+.BR O_NONBLOCK
+flag is always specified, and the
+.BR O_TRUNC
+flag may additionally be specified.
+.\"  	O_TRUNC == KMOD_REMOVE_FORCE in kmod library
+.\"  	O_NONBLOCK == KMOD_REMOVE_NOWAIT in kmod library
+
+The various combinations for
+.I flags
+have the following effect:
+.RS 4
+.TP
+.B flags == O_NONBLOCK
+The call returns immediately, with an error.
+.TP
+.B flags == (O_NONBLOCK | O_TRUNC)
+The module is unloaded immediately,
+regardless of whether it has a nonzero reference count.
+.TP
+.B (flags & O_NONBLOCK) == 0
+If
+.I flags
+does not specify
+.BR O_NONBLOCK ,
+the following steps occur:
+.RS
+.IP * 3
+The module is marked so that no new references are permitted.
+.IP *
+If the module's reference count is nonzero,
+the caller is placed in an uninterruptible sleep state
+.RB ( TASK_UNINTERRUPTIBLE )
+until the reference count is zero, at which point the call unblocks.
+.IP *
+The module is unloaded in the usual way.
+.RE
+.RE
+.PP
+The
+.B O_TRUNC
+flag has one further effect on the rules described above.
+By default, if a module has an
+.I init
+function but no
+.I exit
+function, then an attempt to remove the module will fail.
+However, if
+.BR O_TRUNC
+was specified, this requirement is bypassed.
+.PP
+Using the
+.B O_TRUNC
+flag is dangerous!
+If the kernel was not built with
+.BR CONFIG_MODULE_FORCE_UNLOAD ,
+this flag is silently ignored.
+(Normally,
+.BR CONFIG_MODULE_FORCE_UNLOAD
+is enabled.)
+Using this flag taints the kernel (TAINT_FORCED_RMMOD).
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EBUSY
+The module is not "live"
+(i.e., it is still being initialized or is already marked for removal);
+or, the module has
+an
+.I init
+function but has no
+.I exit
+function, and
+.B O_TRUNC
+was not specified in
+.IR flags .
+.TP
+.B EFAULT
+.I name
+refers to a location outside the process's accessible address space.
+.TP
+.B ENOENT
+No module by that name exists.
+.TP
+.B EPERM
+The caller was not privileged
+(did not have the
+.B CAP_SYS_MODULE
+capability),
+or module unloading is disabled
+(see
+.IR /proc/sys/kernel/modules_disabled
+in
+.BR proc (5)).
+.TP
+.B EWOULDBLOCK
+Other modules depend on this module;
+or,
+.BR O_NONBLOCK
+was specified in
+.IR flags ,
+but the reference count of this module is nonzero and
+.B O_TRUNC
+was not specified in
+.IR flags .
+.SH CONFORMING TO
+.BR delete_module ()
+is Linux-specific.
+.SH NOTES
+The
+.BR delete_module ()
+system call is not supported by glibc.
+No declaration is provided in glibc headers, but,
+through a quirk of history, glibc does export an ABI for this system call.
+Therefore, in order to employ this system call,
+it is sufficient to manually declare the interface in your code;
+alternatively, you can invoke the system call using
+.BR syscall (2).
+
+The uninterruptible sleep that may occur if
+.BR O_NONBLOCK
+is omitted from
+.IR flags
+is considered undesirable, because the sleeping process is left
+in an unkillable state.
+As at Linux 3.7, specifying
+.BR O_NONBLOCK
+is optional, but in future kernels it is likely to become mandatory.
+.SS Linux 2.4 and earlier
+In Linux 2.4 and earlier, the system call took only one argument:
+
+.BI "   int delete_module(const char *" name );
+
+If
+.I name
+is NULL, all unused modules marked auto-clean are removed.
+
+Some further details of differences in the behavior of
+.BR delete_module ()
+in Linux 2.4 and earlier are
+.I not
+currently explained in this manual page.
+.SH SEE ALSO
+.BR create_module (2),
+.BR init_module (2),
+.BR query_module (2),
+.BR lsmod (8),
+.BR modprobe (8),
+.BR rmmod (8)

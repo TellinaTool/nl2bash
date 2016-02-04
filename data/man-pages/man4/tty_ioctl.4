@@ -1,0 +1,562 @@
+.\" Copyright 2002 Walter Harms <walter.harms@informatik.uni-oldenburg.de>
+.\" and Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.TH TTY_IOCTL 4 2015-12-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+tty_ioctl \- ioctls for terminals and serial lines
+.SH SYNOPSIS
+.B "#include <termios.h>"
+.sp
+.BI "int ioctl(int " fd ", int " cmd ", ...);"
+.SH DESCRIPTION
+The
+.BR ioctl (2)
+call for terminals and serial ports accepts many possible command arguments.
+Most require a third argument, of varying type, here called
+.I argp
+or
+.IR arg .
+.LP
+Use of
+.I ioctl
+makes for nonportable programs.
+Use the POSIX interface described in
+.BR termios (3)
+whenever possible.
+.SS Get and set terminal attributes
+.TP
+.BI "TCGETS	struct termios *" argp
+Equivalent to
+.IR "tcgetattr(fd, argp)" .
+.br
+Get the current serial port settings.
+.TP
+.BI "TCSETS	const struct termios *" argp
+Equivalent to
+.IR "tcsetattr(fd, TCSANOW, argp)" .
+.br
+Set the current serial port settings.
+.TP
+.BI "TCSETSW	const struct termios *" argp
+Equivalent to
+.IR "tcsetattr(fd, TCSADRAIN, argp)" .
+.br
+Allow the output buffer to drain, and
+set the current serial port settings.
+.TP
+.BI "TCSETSF	const struct termios *" argp
+Equivalent to
+.IR "tcsetattr(fd, TCSAFLUSH, argp)" .
+.br
+Allow the output buffer to drain, discard pending input, and
+set the current serial port settings.
+.LP
+The following four ioctls are just like
+.BR TCGETS ,
+.BR TCSETS ,
+.BR TCSETSW ,
+.BR TCSETSF ,
+except that they take a
+.I "struct termio\ *"
+instead of a
+.IR "struct termios\ *" .
+.IP
+.BI "TCGETA	struct termio *" argp
+.IP
+.BI "TCSETA	const struct termio *" argp
+.IP
+.BI "TCSETAW	const struct termio *" argp
+.IP
+.BI "TCSETAF	const struct termio *" argp
+.SS Locking the termios structure
+The
+.I termios
+structure of a terminal can be locked.
+The lock is itself a
+.I termios
+structure, with nonzero bits or fields indicating a
+locked value.
+.TP
+.BI "TIOCGLCKTRMIOS	struct termios *" argp
+Gets the locking status of the
+.I termios
+structure of the terminal.
+.TP
+.BI "TIOCSLCKTRMIOS	const struct termios *" argp
+Sets the locking status of the
+.I termios
+structure of the terminal.
+Only a process with the
+.BR CAP_SYS_ADMIN
+capability can do this.
+.SS Get and set window size
+Window sizes are kept in the kernel, but not used by the kernel
+(except in the case of virtual consoles, where the kernel will
+update the window size when the size of the virtual console changes,
+for example, by loading a new font).
+
+The following constants and structure are defined in
+.IR <sys/ioctl.h> .
+.TP
+.BI "TIOCGWINSZ	struct winsize *" argp
+Get window size.
+.TP
+.BI "TIOCSWINSZ	const struct winsize *" argp
+Set window size.
+.LP
+The struct used by these ioctls is defined as
+
+.in +4n
+.nf
+struct winsize {
+    unsigned short ws_row;
+    unsigned short ws_col;
+    unsigned short ws_xpixel;   /* unused */
+    unsigned short ws_ypixel;   /* unused */
+};
+.fi
+.in
+
+When the window size changes, a
+.B SIGWINCH
+signal is sent to the
+foreground process group.
+.SS Sending a break
+.TP
+.BI "TCSBRK	int " arg
+Equivalent to
+.IR "tcsendbreak(fd, arg)" .
+.br
+If the terminal is using asynchronous serial data transmission, and
+.I arg
+is zero, then send a break (a stream of zero bits) for between
+0.25 and 0.5 seconds.
+If the terminal is not using asynchronous
+serial data transmission, then either a break is sent, or the function
+returns without doing anything.
+When
+.I arg
+is nonzero, nobody knows what will happen.
+
+(SVr4, UnixWare, Solaris, Linux treat
+.I "tcsendbreak(fd,arg)"
+with nonzero
+.I arg
+like
+.IR "tcdrain(fd)" .
+SunOS treats
+.I arg
+as a multiplier, and sends a stream of bits
+.I arg
+times as long as done for zero
+.IR arg .
+DG/UX and AIX treat
+.I arg
+(when nonzero) as a time interval measured in milliseconds.
+HP-UX ignores
+.IR arg .)
+.TP
+.BI "TCSBRKP	int " arg
+So-called "POSIX version" of
+.BR TCSBRK .
+It treats nonzero
+.I arg
+as a timeinterval measured in deciseconds, and does nothing
+when the driver does not support breaks.
+.TP
+.B "TIOCSBRK	void"
+Turn break on, that is, start sending zero bits.
+.TP
+.B "TIOCCBRK	void"
+Turn break off, that is, stop sending zero bits.
+.SS Software flow control
+.TP
+.BI "TCXONC	int " arg
+Equivalent to
+.IR "tcflow(fd, arg)" .
+.br
+See
+.BR tcflow (3)
+for the argument values
+.BR TCOOFF ,
+.BR TCOON ,
+.BR TCIOFF ,
+.BR TCION .
+.SS Buffer count and flushing
+.TP
+.BI "FIONREAD	int *" argp
+Get the number of bytes in the input buffer.
+.TP
+.BI "TIOCINQ	int *" argp
+Same as
+.BR FIONREAD .
+.TP
+.BI "TIOCOUTQ	int *" argp
+Get the number of bytes in the output buffer.
+.TP
+.BI "TCFLSH	int " arg
+Equivalent to
+.IR "tcflush(fd, arg)" .
+.br
+See
+.BR tcflush (3)
+for the argument values
+.BR TCIFLUSH ,
+.BR TCOFLUSH ,
+.BR TCIOFLUSH .
+.SS Faking input
+.TP
+.BI "TIOCSTI	const char *" argp
+Insert the given byte in the input queue.
+.SS Redirecting console output
+.TP
+.B "TIOCCONS	void"
+Redirect output that would have gone to
+.I /dev/console
+or
+.I /dev/tty0
+to the given terminal.
+If that was a pseudoterminal master, send it to the slave.
+In Linux before version 2.6.10,
+anybody can do this as long as the output was not redirected yet;
+since version 2.6.10, only a process with the
+.BR CAP_SYS_ADMIN
+capability may do this.
+If output was redirected already
+.B EBUSY
+is returned,
+but redirection can be stopped by using this ioctl with
+.I fd
+pointing at
+.I /dev/console
+or
+.IR /dev/tty0 .
+.SS Controlling terminal
+.TP
+.BI "TIOCSCTTY	int " arg
+Make the given terminal the controlling terminal of the calling process.
+The calling process must be a session leader and not have a
+controlling terminal already.
+For this case,
+.I arg
+should be specified as zero.
+
+If this terminal is already the controlling terminal
+of a different session group, then the ioctl fails with
+.BR EPERM ,
+unless the caller has the
+.BR CAP_SYS_ADMIN
+capability and
+.I arg
+equals 1, in which case the terminal is stolen, and all processes that had
+it as controlling terminal lose it.
+.TP
+.B "TIOCNOTTY	void"
+If the given terminal was the controlling terminal of the calling process,
+give up this controlling terminal.
+If the process was session leader,
+then send
+.B SIGHUP
+and
+.B SIGCONT
+to the foreground process group
+and all processes in the current session lose their controlling terminal.
+.SS Process group and session ID
+.TP
+.BI "TIOCGPGRP	pid_t *" argp
+When successful, equivalent to
+.IR "*argp = tcgetpgrp(fd)" .
+.br
+Get the process group ID of the foreground process group on this terminal.
+.TP
+.BI "TIOCSPGRP	const pid_t *" argp
+Equivalent to
+.IR "tcsetpgrp(fd, *argp)" .
+.br
+Set the foreground process group ID of this terminal.
+.TP
+.BI "TIOCGSID	pid_t *" argp
+Get the session ID of the given terminal.
+This will fail with
+.B ENOTTY
+in case the terminal is not a master pseudoterminal
+and not our controlling terminal.
+Strange.
+.SS Exclusive mode
+.TP
+.B "TIOCEXCL	void"
+Put the terminal into exclusive mode.
+No further
+.BR open (2)
+operations on the terminal are permitted.
+(They will fail with
+.BR EBUSY ,
+except for a process with the
+.BR CAP_SYS_ADMIN
+capability.)
+.TP
+.BI "TIOCGEXCL	int *" argp
+If the terminal is currently in exclusive mode,
+place a nonzero value in the location pointed to by
+.IR argp ;
+otherwise, place zero in
+.IR *argp
+(since Linux 3.8).
+.TP
+.B "TIOCNXCL	void"
+Disable exclusive mode.
+.SS Line discipline
+.TP
+.BI "TIOCGETD	int *" argp
+Get the line discipline of the terminal.
+.TP
+.BI "TIOCSETD	const int *" argp
+Set the line discipline of the terminal.
+.SS Pseudoterminal ioctls
+.TP
+.BI "TIOCPKT	const int *" argp
+Enable (when
+.RI * argp
+is nonzero) or disable packet mode.
+Can be applied to the master side of a pseudoterminal only (and will return
+.B ENOTTY
+otherwise).
+In packet mode, each subsequent
+.BR read (2)
+will return a packet that either contains a single nonzero control byte,
+or has a single byte containing zero (\(aq\0\(aq) followed by data
+written on the slave side of the pseudoterminal.
+If the first byte is not
+.B TIOCPKT_DATA
+(0), it is an OR of one
+or more of the following bits:
+
+.nf
+TIOCPKT_FLUSHREAD   The read queue for the terminal is flushed.
+TIOCPKT_FLUSHWRITE  The write queue for the terminal is flushed.
+TIOCPKT_STOP        Output to the terminal is stopped.
+TIOCPKT_START       Output to the terminal is restarted.
+TIOCPKT_DOSTOP      The start and stop characters are \fB^S\fP/\fB^Q\fP.
+TIOCPKT_NOSTOP      The start and stop characters are not \fB^S\fP/\fB^Q\fP.
+.fi
+
+While this mode is in use, the presence
+of control status information to be read
+from the master side may be detected by a
+.BR select (2)
+for exceptional conditions.
+
+This mode is used by
+.BR rlogin (1)
+and
+.BR rlogind (8)
+to implement a remote-echoed,
+locally \fB^S\fP/\fB^Q\fP flow-controlled remote login.
+.TP
+.BI "TIOGCPKT	const int *" argp
+Return the current packet mode setting in the integer pointed to by
+.IR argp
+(since Linux 3.8).
+.TP
+.BI "TIOCSPTLCK	int *" argp
+Set (if
+.IR *argp
+is nonzero) or remove (if
+.IR *argp
+is zero) the pseudoterminal slave device.
+(See also
+.BR unlockpt (3).)
+.TP
+.BI "TIOCGPTLCK	int *" argp
+Place the current lock state of the pseudoterminal slave device
+in the location pointed to by
+.IR argp
+(since Linux 3.8).
+.PP
+The BSD ioctls
+.BR TIOCSTOP ,
+.BR TIOCSTART ,
+.BR TIOCUCNTL ,
+.B TIOCREMOTE
+have not been implemented under Linux.
+.SS Modem control
+.TP
+.BI "TIOCMGET	int *" argp
+Get the status of modem bits.
+.TP
+.BI "TIOCMSET	const int *" argp
+Set the status of modem bits.
+.TP
+.BI "TIOCMBIC	const int *" argp
+Clear the indicated modem bits.
+.TP
+.BI "TIOCMBIS	const int *" argp
+Set the indicated modem bits.
+.LP
+The following bits are used by the above ioctls:
+
+.nf
+TIOCM_LE        DSR (data set ready/line enable)
+TIOCM_DTR       DTR (data terminal ready)
+TIOCM_RTS       RTS (request to send)
+TIOCM_ST        Secondary TXD (transmit)
+TIOCM_SR        Secondary RXD (receive)
+TIOCM_CTS       CTS (clear to send)
+TIOCM_CAR       DCD (data carrier detect)
+TIOCM_CD         see TIOCM_CAR
+TIOCM_RNG       RNG (ring)
+TIOCM_RI         see TIOCM_RNG
+TIOCM_DSR       DSR (data set ready)
+.fi
+.TP
+.BI "TIOCMIWAIT	int " arg
+Wait for any of the 4 modem bits (DCD, RI, DSR, CTS) to change.
+The bits of interest are specified as a bit mask in
+.IR arg ,
+by ORing together any of the bit values,
+.BR TIOCM_RNG ,
+.BR TIOCM_DSR ,
+.BR TIOCM_CD ,
+and
+.BR TIOCM_CTS .
+The caller should use
+.B TIOCGICOUNT
+to see which bit has changed.
+.TP
+.BI "TIOCGICOUNT	struct serial_icounter_struct *" argp
+Get counts of input serial line interrupts (DCD, RI, DSR, CTS).
+The counts are written to the
+.I serial_icounter_struct
+structure pointed to by
+.IR argp .
+
+Note: both 1->0 and 0->1 transitions are counted, except for
+RI, where only 0->1 transitions are counted.
+.SS Marking a line as local
+.TP
+.BI "TIOCGSOFTCAR	int *" argp
+("Get software carrier flag")
+Get the status of the CLOCAL flag in the c_cflag field of the
+.I termios
+structure.
+.TP
+.BI "TIOCSSOFTCAR	const int *" argp
+("Set software carrier flag")
+Set the CLOCAL flag in the
+.I termios
+structure when
+.RI * argp
+is nonzero, and clear it otherwise.
+.LP
+If the
+.B CLOCAL
+flag for a line is off, the hardware carrier detect (DCD)
+signal is significant, and an
+.BR open (2)
+of the corresponding terminal will block until DCD is asserted,
+unless the
+.B O_NONBLOCK
+flag is given.
+If
+.B CLOCAL
+is set, the line behaves as if DCD is always asserted.
+The software carrier flag is usually turned on for local devices,
+and is off for lines with modems.
+.SS Linux-specific
+For the
+.B TIOCLINUX
+ioctl, see
+.BR console_ioctl (4).
+.SS Kernel debugging
+.B "#include <linux/tty.h>"
+.TP
+.BI "TIOCTTYGSTRUCT	struct tty_struct *" argp
+Get the
+.I tty_struct
+corresponding to
+.IR fd .
+This command was removed in Linux 2.5.67.
+.\"     commit b3506a09d15dc5aee6d4bb88d759b157016e1864
+.\"     Author: Andries E. Brouwer <andries.brouwer@cwi.nl>
+.\"     Date:   Tue Apr 1 04:42:46 2003 -0800
+.\"
+.\"     [PATCH] kill TIOCTTYGSTRUCT
+.\"
+.\"     Only used for (dubious) debugging purposes, and exposes
+.\"     internal kernel state.
+.\"
+.\" .SS Serial info
+.\" .BR "#include <linux/serial.h>"
+.\" .sp
+.\" .TP
+.\" .BI "TIOCGSERIAL	struct serial_struct *" argp
+.\" Get serial info.
+.\" .TP
+.\" .BI "TIOCSSERIAL	const struct serial_struct *" argp
+.\" Set serial info.
+.SH RETURN VALUE
+The
+.BR ioctl (2)
+system call returns 0 on success.
+On error, it returns \-1 and sets
+.I errno
+appropriately.
+.SH ERRORS
+.TP
+.B EINVAL
+Invalid command parameter.
+.TP
+.B ENOIOCTLCMD
+Unknown command.
+.TP
+.B ENOTTY
+Inappropriate
+.IR fd .
+.TP
+.B EPERM
+Insufficient permission.
+.SH EXAMPLE
+Check the condition of DTR on the serial port.
+
+.nf
+#include <termios.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+
+int
+main(void)
+{
+    int fd, serial;
+
+    fd = open("/dev/ttyS0", O_RDONLY);
+    ioctl(fd, TIOCMGET, &serial);
+    if (serial & TIOCM_DTR)
+        puts("TIOCM_DTR is set");
+    else
+        puts("TIOCM_DTR is not set");
+    close(fd);
+}
+.fi
+.SH SEE ALSO
+.BR ioctl (2),
+.BR termios (3),
+.BR console_ioctl (4),
+.BR pty (7)
+.\"
+.\" FIONBIO			const int *
+.\" FIONCLEX			void
+.\" FIOCLEX			void
+.\" FIOASYNC			const int *
+.\" from serial.c:
+.\" TIOCSERCONFIG		void
+.\" TIOCSERGWILD		int *
+.\" TIOCSERSWILD		const int *
+.\" TIOCSERGSTRUCT		struct async_struct *
+.\" TIOCSERGETLSR		int *
+.\" TIOCSERGETMULTI		struct serial_multiport_struct *
+.\" TIOCSERSETMULTI		const struct serial_multiport_struct *
+.\" TIOCGSERIAL, TIOCSSERIAL (see above)

@@ -1,0 +1,63 @@
+.\" Copyright (c) 2013, Peter Schiffer (pschiffe@redhat.com)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.TH MTRACE 1 2014-09-01 "GNU" "Linux user manual"
+.SH NAME
+mtrace \- interpret the malloc trace log
+.SH SYNOPSIS
+.BR mtrace " [\fIoption\fR]... [\fIbinary\fR] \fImtracedata\fR"
+.SH DESCRIPTION
+.B mtrace
+is a Perl script used to interpret and provide human readable output
+of the trace log contained in the file
+.IR mtracedata ,
+whose contents were produced by
+.BR mtrace (3).
+If
+.I binary
+is provided, the output of
+.B mtrace
+also contains the source file name with line number information
+for problem locations
+(assuming that
+.I binary
+was compiled with debugging information).
+
+For more information about the
+.BR mtrace (3)
+function and
+.B mtrace
+script usage, see
+.BR mtrace (3).
+.SH OPTIONS
+.TP
+.BI \fB\-\-help
+Print help and exit.
+.TP
+.BI \fB\-\-version
+Print version information and exit.
+.SH BUGS
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/libc/bugs.html>.
+.SH SEE ALSO
+.BR memusage (1),
+.BR mtrace (3)

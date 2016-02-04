@@ -1,0 +1,90 @@
+.\" Copyright (c) IBM Corp. 2012
+.\" Author: Jan Glauber <jang@linux.vnet.ibm.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH S390_RUNTIME_INSTR 2 2012-12-17 "Linux Programmer's Manual"
+.SH NAME
+s390_runtime_instr \- enable/disable s390 CPU run-time instrumentation
+.SH SYNOPSIS
+.nf
+.B #include <asm/runtime_instr.h>
+
+.BI "int s390_runtime_instr(int " command ", int " signum ");
+.fi
+.SH DESCRIPTION
+The
+.BR s390_runtime_instr ()
+system call starts or stops CPU run-time instrumentation for the
+calling thread.
+
+The
+.IR command
+argument controls whether run-time instrumentation is started
+.RB ( S390_RUNTIME_INSTR_START ,
+1) or stopped
+.RB ( S390_RUNTIME_INSTR_STOP ,
+2) for the calling thread.
+
+The
+.IR signum
+argument specifies the number of a real-time signal.
+The real-time signal is sent to the thread if the run-time instrumentation
+buffer is full or if the run-time-instrumentation-halted interrupt
+occurred.
+.SH RETURN VALUE
+On success,
+.BR s390_runtime_instr ()
+returns 0 and enables the thread for
+run-time instrumentation by assigning the thread a default run-time
+instrumentation control block.
+The caller can then read and modify the control block and start the run-time
+instrumentation.
+On error, \-1 is returned and
+.IR errno
+is set to one of the error codes listed below.
+.SH ERRORS
+.TP
+.B EINVAL
+The value specified in
+.IR command
+is not a valid command or the value specified in
+.IR signum
+is not a real-time signal number.
+.TP
+.B ENOMEM
+Allocating memory for the run-time instrumentation control block failed.
+.TP
+.B EOPNOTSUPP
+The run-time instrumentation facility is not available.
+.SH VERSIONS
+This system call is available since Linux 3.7.
+.SH CONFORMING TO
+This Linux-specific system call is available only on the s390 architecture.
+The run-time instrumentation facility is available beginning with System z EC12.
+.SH NOTES
+Glibc does not provide a wrapper for this system call, use
+.BR syscall (2)
+to call it.
+.SH SEE ALSO
+.BR syscall (2),
+.BR signal (7)

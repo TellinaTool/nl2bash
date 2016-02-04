@@ -1,0 +1,137 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WCRTOMB 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcrtomb \- convert a wide character to a multibyte sequence
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "size_t wcrtomb(char *" s ", wchar_t " wc ", mbstate_t *" ps );
+.fi
+.SH DESCRIPTION
+The main case for this function is when
+.I s
+is
+not NULL and
+.I wc
+is not a null wide character (L\(aq\\0\(aq).
+In this case, the
+.BR wcrtomb ()
+function
+converts the wide character
+.I wc
+to its multibyte representation and stores it
+at the beginning of the character
+array pointed to by
+.IR s .
+It updates the shift state
+.IR *ps ,
+and
+returns the length of said multibyte representation,
+that is, the number of bytes
+written at
+.IR s .
+.PP
+A different case is when
+.I s
+is not NULL,
+but
+.I wc
+is a null wide character (L\(aq\\0\(aq).
+In this case, the
+.BR wcrtomb ()
+function stores at
+the character array pointed to by
+.I s
+the shift sequence needed to
+bring
+.I *ps
+back to the initial state,
+followed by a \(aq\\0\(aq byte.
+It updates the shift state
+.I *ps
+(i.e., brings
+it into the initial state),
+and returns the length of the shift sequence plus
+one, that is, the number of bytes written at
+.IR s .
+.PP
+A third case is when
+.I s
+is NULL.
+In this case,
+.I wc
+is ignored,
+and the function effectively returns
+
+    wcrtomb(buf, L\(aq\\0\(aq, ps)
+
+where
+.I buf
+is an internal anonymous buffer.
+.PP
+In all of the above cases, if
+.I ps
+is NULL, a static anonymous
+state known only to the
+.BR wcrtomb ()
+function is used instead.
+.SH RETURN VALUE
+The
+.BR wcrtomb ()
+function returns the number of
+bytes that have been or would
+have been written to the byte array at
+.IR s .
+If
+.I wc
+can not be
+represented as a multibyte sequence (according to the current locale),
+.I (size_t)\ \-1
+is returned, and
+.I errno
+set to
+.BR EILSEQ .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lbw26
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcrtomb ()
+T}	Thread safety	MT-Unsafe race:wcrtomb/!ps
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR wcrtomb ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.PP
+Passing NULL as
+.I ps
+is not multithread safe.
+.SH SEE ALSO
+.BR mbsinit (3),
+.BR wcsrtombs (3)

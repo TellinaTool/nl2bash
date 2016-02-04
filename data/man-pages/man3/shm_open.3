@@ -1,0 +1,299 @@
+.\" Copyright (C) 2002 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" FIXME . Add an example to this page
+.TH SHM_OPEN 3 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+shm_open, shm_unlink \- create/open or unlink POSIX shared memory objects
+.SH SYNOPSIS
+.B #include <sys/mman.h>
+.br
+.BR "#include <sys/stat.h>" "        /* For mode constants */"
+.br
+.BR "#include <fcntl.h>" "           /* For O_* constants */"
+.sp
+.BI "int shm_open(const char *" name ", int " oflag ", mode_t " mode );
+.sp
+.BI "int shm_unlink(const char *" name );
+.sp
+Link with \fI\-lrt\fP.
+.SH DESCRIPTION
+.BR shm_open ()
+creates and opens a new, or opens an existing, POSIX shared memory object.
+A POSIX shared memory object is in effect a handle which can
+be used by unrelated processes to
+.BR mmap (2)
+the same region of shared memory.
+The
+.BR shm_unlink ()
+function performs the converse operation,
+removing an object previously created by
+.BR shm_open ().
+.LP
+The operation of
+.BR shm_open ()
+is analogous to that of
+.BR open (2).
+.I name
+specifies the shared memory object to be created or opened.
+For portable use,
+a shared memory object should be identified by a name of the form
+.IR /somename ;
+that is, a null-terminated string of up to
+.BI NAME_MAX
+(i.e., 255) characters consisting of an initial slash,
+.\" glibc allows the initial slash to be omitted, and makes
+.\" multiple initial slashes equivalent to a single slash.
+.\" This differs from the implementation of POSIX message queues.
+followed by one or more characters, none of which are slashes.
+.\" glibc allows subdirectory components in the name, in which
+.\" case the subdirectory must exist under /dev/shm, and allow the
+.\" required permissions if a user wants to create a shared memory
+.\" object in that subdirectory.
+.LP
+.I oflag
+is a bit mask created by ORing together exactly one of
+.B O_RDONLY
+or
+.B O_RDWR
+and any of the other flags listed here:
+.TP 1.1i
+.B O_RDONLY
+Open the object for read access.
+A shared memory object opened in this way can be
+.BR mmap (2)ed
+only for read
+.RB ( PROT_READ )
+access.
+.TP
+.B O_RDWR
+Open the object for read-write access.
+.TP
+.B O_CREAT
+Create the shared memory object if it does not exist.
+The user and group ownership of the object are taken
+from the corresponding effective IDs of the calling process,
+.\" In truth it is actually the filesystem IDs on Linux, but these
+.\" are nearly always the same as the effective IDs.  (MTK, Jul 05)
+and the object's
+permission bits are set according to the low-order 9 bits of
+.IR mode ,
+except that those bits set in the process file mode
+creation mask (see
+.BR umask (2))
+are cleared for the new object.
+A set of macro constants which can be used to define
+.I mode
+is listed in
+.BR open (2).
+(Symbolic definitions of these constants can be obtained by including
+.IR <sys/stat.h> .)
+.sp
+A new shared memory object initially has zero length\(emthe size of the
+object can be set using
+.BR ftruncate (2).
+The newly allocated bytes of a shared memory
+object are automatically initialized to 0.
+.TP
+.B O_EXCL
+If
+.B O_CREAT
+was also specified, and a shared memory object with the given
+.I name
+already exists, return an error.
+The check for the existence of the object, and its creation if it
+does not exist, are performed atomically.
+.TP
+.B O_TRUNC
+If the shared memory object already exists, truncate it to zero bytes.
+.LP
+Definitions of these flag values can be obtained by including
+.IR <fcntl.h> .
+.LP
+On successful completion
+.BR shm_open ()
+returns a new file descriptor referring to the shared memory object.
+This file descriptor is guaranteed to be the lowest-numbered file descriptor
+not previously opened within the process.
+The
+.B FD_CLOEXEC
+flag (see
+.BR fcntl (2))
+is set for the file descriptor.
+
+The file descriptor is normally used in subsequent calls
+to
+.BR ftruncate (2)
+(for a newly created object) and
+.BR mmap (2).
+After a call to
+.BR mmap (2)
+the file descriptor may be closed without affecting the memory mapping.
+
+The operation
+of
+.BR shm_unlink ()
+is analogous to
+.BR unlink (2):
+it removes a shared memory object name, and, once all processes
+have unmapped the object, de-allocates and
+destroys the contents of the associated memory region.
+After a successful
+.BR shm_unlink (),
+attempts to
+.BR shm_open ()
+an object with the same
+.I name
+will fail (unless
+.B O_CREAT
+was specified, in which case a new, distinct object is created).
+.SH RETURN VALUE
+On success,
+.BR shm_open ()
+returns a nonnegative file descriptor.
+On failure,
+.BR shm_open ()
+returns \-1.
+.BR shm_unlink ()
+returns 0 on success, or \-1 on error.
+.SH ERRORS
+On failure,
+.I errno
+is set to indicate the cause of the error.
+Values which may appear in
+.I errno
+include the following:
+.TP
+.B EACCES
+Permission to
+.BR shm_unlink ()
+the shared memory object was denied.
+.TP
+.B EACCES
+Permission was denied to
+.BR shm_open ()
+.I name
+in the specified
+.IR mode ,
+or
+.B O_TRUNC
+was specified and the caller does not have write permission on the object.
+.TP
+.B EEXIST
+Both
+.B O_CREAT
+and
+.B O_EXCL
+were specified to
+.BR shm_open ()
+and the shared memory object specified by
+.I name
+already exists.
+.TP
+.B EINVAL
+The
+.I name
+argument to
+.BR shm_open ()
+was invalid.
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENAMETOOLONG
+The length of
+.I name
+exceeds
+.BR PATH_MAX .
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENOENT
+An attempt was made to
+.BR shm_open ()
+a
+.I name
+that did not exist, and
+.B O_CREAT
+was not specified.
+.TP
+.B ENOENT
+An attempt was to made to
+.BR shm_unlink ()
+a
+.I name
+that does not exist.
+.SH VERSIONS
+These functions are provided in glibc 2.2 and later.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw24 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR shm_open (),
+.BR shm_unlink ()
+T}	Thread safety	MT-Safe locale
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.LP
+POSIX.1-2001 says that the group ownership of a newly created shared
+memory object is set to either the calling process's effective group ID
+or "a system default group ID".
+POSIX.1-2008 says that the group ownership
+may be set to either the calling process's effective group ID
+or, if the object is visible in the filesystem,
+the group ID of the parent directory.
+.SH NOTES
+.LP
+POSIX leaves the behavior of the combination of
+.B O_RDONLY
+and
+.B O_TRUNC
+unspecified.
+On Linux, this will successfully truncate an existing
+shared memory object\(emthis may not be so on other UNIX systems.
+.LP
+The POSIX shared memory object implementation on Linux 2.4 makes use
+of a dedicated filesystem, which is normally
+mounted under
+.IR /dev/shm .
+.SH SEE ALSO
+.BR close (2),
+.BR fchmod (2),
+.BR fchown (2),
+.BR fcntl (2),
+.BR fstat (2),
+.BR ftruncate (2),
+.BR memfd_create (2),
+.BR mmap (2),
+.BR open (2),
+.BR umask (2),
+.BR shm_overview (7)

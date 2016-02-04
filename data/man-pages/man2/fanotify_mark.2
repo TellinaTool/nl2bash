@@ -1,0 +1,333 @@
+.\" Copyright (C) 2013,  Heinrich Schuchardt <xypron.glpk@gmx.de>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of
+.\" this manual under the conditions for verbatim copying, provided that
+.\" the entire resulting derived work is distributed under the terms of
+.\" a permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume.
+.\" no responsibility for errors or omissions, or for damages resulting.
+.\" from the use of the information contained herein.  The author(s) may.
+.\" not have taken the same level of care in the production of this.
+.\" manual, which is licensed free of charge, as they might when working.
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.TH FANOTIFY_MARK 2 2014-10-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+fanotify_mark \- add, remove, or modify an fanotify mark on a filesystem
+object
+.SH SYNOPSIS
+.nf
+.B #include <sys/fanotify.h>
+.sp
+.BI "int fanotify_mark(int " fanotify_fd ", unsigned int " flags ,
+.BI "                  uint64_t " mask ", int " dirfd \
+", const char *" pathname );
+.fi
+.SH DESCRIPTION
+For an overview of the fanotify API, see
+.BR fanotify (7).
+.PP
+.BR fanotify_mark (2)
+adds, removes, or modifies an fanotify mark on a filesystem object.
+The caller must have read permission on the filesystem object that
+is to be marked.
+.PP
+The
+.I fanotify_fd
+argument is a file descriptor returned by
+.BR fanotify_init (2).
+.PP
+.I flags
+is a bit mask describing the modification to perform.
+It must include exactly one of the following values:
+.TP
+.B FAN_MARK_ADD
+The events in
+.I mask
+will be added to the mark mask (or to the ignore mask).
+.I mask
+must be nonempty or the error
+.B EINVAL
+will occur.
+.TP
+.B FAN_MARK_REMOVE
+The events in argument
+.I mask
+will be removed from the mark mask (or from the ignore mask).
+.I mask
+must be nonempty or the error
+.B EINVAL
+will occur.
+.TP
+.B FAN_MARK_FLUSH
+Remove either all mount or all non-mount marks from the fanotify group.
+If
+.I flags
+contains
+.BR FAN_MARK_MOUNT ,
+all marks for mounts are removed from the group.
+Otherwise, all marks for directories and files are removed.
+No flag other than
+.B FAN_MARK_MOUNT
+can be used in conjunction with
+.BR FAN_MARK_FLUSH .
+.I mask
+is ignored.
+.PP
+If none of the values above is specified, or more than one is specified,
+the call fails with the error
+.BR EINVAL .
+.PP
+In addition,
+zero or more of the following values may be ORed into
+.IR flags :
+.TP
+.B FAN_MARK_DONT_FOLLOW
+If
+.I pathname
+is a symbolic link, mark the link itself, rather than the file to which it
+refers.
+(By default,
+.BR fanotify_mark ()
+dereferences
+.I pathname
+if it is a symbolic link.)
+.TP
+.B FAN_MARK_ONLYDIR
+If the filesystem object to be marked is not a directory, the error
+.B ENOTDIR
+shall be raised.
+.TP
+.B FAN_MARK_MOUNT
+Mark the mount point specified by
+.IR pathname .
+If
+.I pathname
+is not itself a mount point, the mount point containing
+.I pathname
+will be marked.
+All directories, subdirectories, and the contained files of the mount point
+will be monitored.
+.TP
+.B FAN_MARK_IGNORED_MASK
+The events in
+.I mask
+shall be added to or removed from the ignore mask.
+.TP
+.B FAN_MARK_IGNORED_SURV_MODIFY
+The ignore mask shall survive modify events.
+If this flag is not set,
+the ignore mask is cleared when a modify event occurs
+for the ignored file or directory.
+.PP
+.I mask
+defines which events shall be listened for (or which shall be ignored).
+It is a bit mask composed of the following values:
+.TP
+.B FAN_ACCESS
+Create an event when a file or directory (but see BUGS) is accessed (read).
+.TP
+.B FAN_MODIFY
+Create an event when a file is modified (write).
+.TP
+.B FAN_CLOSE_WRITE
+Create an event when a writable file is closed.
+.TP
+.B FAN_CLOSE_NOWRITE
+Create an event when a read-only file or directory is closed.
+.TP
+.B FAN_OPEN
+Create an event when a file or directory is opened.
+.TP
+.B FAN_OPEN_PERM
+Create an event when a permission to open a file or directory is requested.
+An fanotify file descriptor created with
+.B FAN_CLASS_PRE_CONTENT
+or
+.B FAN_CLASS_CONTENT
+is required.
+.TP
+.B FAN_ACCESS_PERM
+Create an event when a permission to read a file or directory is requested.
+An fanotify file descriptor created with
+.B FAN_CLASS_PRE_CONTENT
+or
+.B FAN_CLASS_CONTENT
+is required.
+.TP
+.B FAN_ONDIR
+Create events for directories\(emfor example, when
+.BR opendir (3),
+.BR readdir (3)
+(but see BUGS), and
+.BR closedir (3)
+are called.
+Without this flag, only events for files are created.
+.TP
+.B FAN_EVENT_ON_CHILD
+Events for the immediate children of marked directories shall be created.
+The flag has no effect when marking mounts.
+Note that events are not generated for children of the subdirectories
+of marked directories.
+To monitor complete directory trees it is necessary to mark the relevant
+mount.
+.PP
+The following composed value is defined:
+.TP
+.B FAN_CLOSE
+A file is closed
+.RB ( FAN_CLOSE_WRITE | FAN_CLOSE_NOWRITE ).
+.PP
+The filesystem object to be marked is determined by the file descriptor
+.I dirfd
+and the pathname specified in
+.IR pathname :
+.IP * 3
+If
+.I pathname
+is NULL,
+.I dirfd
+defines the filesystem object to be marked.
+.IP *
+If
+.I pathname
+is NULL, and
+.I dirfd
+takes the special value
+.BR AT_FDCWD ,
+the current working directory is to be marked.
+.IP *
+If
+.I pathname
+is absolute, it defines the filesystem object to be marked, and
+.I dirfd
+is ignored.
+.IP *
+If
+.I pathname
+is relative, and
+.I dirfd
+does not have the value
+.BR AT_FDCWD ,
+then the filesystem object to be marked is determined by interpreting
+.I pathname
+relative the directory referred to by
+.IR dirfd .
+.IP *
+If
+.I pathname
+is relative, and
+.I dirfd
+has the value
+.BR AT_FDCWD ,
+then the filesystem object to be marked is determined by interpreting
+.I pathname
+relative the current working directory.
+.SH RETURN VALUE
+On success,
+.BR fanotify_mark ()
+returns 0.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+An invalid file descriptor was passed in
+.IR fanotify_fd .
+.TP
+.B EINVAL
+An invalid value was passed in
+.IR flags
+or
+.IR mask ,
+or
+.I fanotify_fd
+was not an fanotify file descriptor.
+.TP
+.B EINVAL
+The fanotify file descriptor was opened with
+.B FAN_CLASS_NOTIF
+and mask contains a flag for permission events
+.RB ( FAN_OPEN_PERM
+or
+.BR FAN_ACCESS_PERM ).
+.TP
+.B ENOENT
+The filesystem object indicated by
+.IR dirfd
+and
+.IR pathname
+does not exist.
+This error also occurs when trying to remove a mark from an object
+which is not marked.
+.TP
+.B ENOMEM
+The necessary memory could not be allocated.
+.TP
+.B ENOSPC
+The number of marks exceeds the limit of 8192 and the
+.B FAN_UNLIMITED_MARKS
+flag was not specified when the fanotify file descriptor was created with
+.BR fanotify_init (2).
+.TP
+.B ENOSYS
+This kernel does not implement
+.BR fanotify_mark ().
+The fanotify API is available only if the kernel was configured with
+.BR CONFIG_FANOTIFY .
+.TP
+.B ENOTDIR
+.I flags
+contains
+.BR FAN_MARK_ONLYDIR ,
+and
+.I dirfd
+and
+.I pathname
+do not specify a directory.
+.SH VERSIONS
+.BR fanotify_mark ()
+was introduced in version 2.6.36 of the Linux kernel and enabled in version
+2.6.37.
+.SH CONFORMING TO
+This system call is Linux-specific.
+.SH BUGS
+The following bugs were present in Linux kernels before version 3.16:
+.IP * 3
+.\" Fixed by commit 0a8dd2db579f7a0ac7033d6b857c3d5dbaa77563
+If
+.I flags
+contains
+.BR FAN_MARK_FLUSH ,
+.I dirfd
+and
+.I pathname
+must specify a valid filesystem object, even though this object is not used.
+.IP *
+.\" Fixed by commit d4c7cf6cffb1bc711a833b5e304ba5bcfe76398b
+.BR readdir (2)
+does not generate a
+.B FAN_ACCESS
+event.
+.IP *
+.\" Fixed by commit cc299a98eb13a9853675a9cbb90b30b4011e1406
+If
+.BR fanotify_mark (2)
+is called with
+.BR FAN_MARK_FLUSH ,
+.I flags
+is not checked for invalid values.
+.SH SEE ALSO
+.BR fanotify_init (2),
+.BR fanotify (7)

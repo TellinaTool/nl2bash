@@ -1,0 +1,352 @@
+.\" Copyright 1993 Giorgio Ciucci (giorgio@crcc.it)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" FIXME . There is now duplication of some of the information
+.\" below in semctl.2, msgctl.2, and shmctl.2 -- MTK, Nov 04
+.\"
+.\" FIXME . Ultimately, there should probably be
+.\" svmq_overview(7), svshm_overview(7), and sem_overview(7)
+.\" that provide an overview of each System V IPC mechanism.
+.\" In that case:
+.\"   * Those files should add a discussion of the /proc/sysvipc
+.\"     interfaces.
+.\"   * Documentation of the various /proc interfaces should move into
+.\"     those files (from proc(5)), and references in the various *.2
+.\"     pages that refer to the /proc files should be adjusted.
+.\"   * The only part that uniquely belongs in svipc(7) is perhaps
+.\"     the discussion of ipc_perm.
+.\"
+.TH SVIPC 7 2014-09-21 "Linux" "Linux Programmer's Manual"
+.SH NAME
+svipc \- System V interprocess communication mechanisms
+.SH SYNOPSIS
+.nf
+.B #include <sys/msg.h>
+.B #include <sys/sem.h>
+.B #include <sys/shm.h>
+.fi
+.SH DESCRIPTION
+This manual page refers to the Linux implementation of the System V
+interprocess communication (IPC) mechanisms:
+message queues, semaphore sets, and shared memory segments.
+In the following, the word
+.I resource
+means an instantiation of one among such mechanisms.
+.SS Resource access permissions
+For each resource, the system uses a common structure of type
+.I "struct ipc_perm"
+to store information needed in determining permissions to perform an
+IPC operation.
+The
+.I ipc_perm
+structure includes the following members:
+.in +4n
+.nf
+
+struct ipc_perm {
+    uid_t          cuid;   /* creator user ID */
+    gid_t          cgid;   /* creator group ID */
+    uid_t          uid;    /* owner user ID */
+    gid_t          gid;    /* owner group ID */
+    unsigned short mode;   /* r/w permissions */
+};
+.fi
+.in
+.PP
+The
+.I mode
+member of the
+.I ipc_perm
+structure defines, with its lower 9 bits, the access permissions to the
+resource for a process executing an IPC system call.
+The permissions are interpreted as follows:
+.sp
+.nf
+    0400    Read by user.
+    0200    Write by user.
+.sp .5
+    0040    Read by group.
+    0020    Write by group.
+.sp .5
+    0004    Read by others.
+    0002    Write by others.
+.fi
+.PP
+Bits 0100, 0010, and 0001 (the execute bits) are unused by the system.
+Furthermore,
+"write"
+effectively means
+"alter"
+for a semaphore set.
+.PP
+The same system header file also defines the following symbolic
+constants:
+.TP 14
+.B IPC_CREAT
+Create entry if key doesn't exist.
+.TP
+.B IPC_EXCL
+Fail if key exists.
+.TP
+.B IPC_NOWAIT
+Error if request must wait.
+.TP
+.B IPC_PRIVATE
+Private key.
+.TP
+.B IPC_RMID
+Remove resource.
+.TP
+.B IPC_SET
+Set resource options.
+.TP
+.B IPC_STAT
+Get resource options.
+.PP
+Note that
+.B IPC_PRIVATE
+is a
+.I key_t
+type, while all the other symbolic constants are flag fields and can
+be OR'ed into an
+.I int
+type variable.
+.SS Message queues
+A message queue is uniquely identified by a positive integer
+.RI "(its " msqid )
+and has an associated data structure of type
+.IR "struct msqid_ds" ,
+defined in
+.IR <sys/msg.h> ,
+containing the following members:
+.in +4n
+.nf
+
+struct msqid_ds {
+    struct ipc_perm msg_perm;
+    msgqnum_t       msg_qnum;    /* no of messages on queue */
+    msglen_t        msg_qbytes;  /* bytes max on a queue */
+    pid_t           msg_lspid;   /* PID of last msgsnd(2) call */
+    pid_t           msg_lrpid;   /* PID of last msgrcv(2) call */
+    time_t          msg_stime;   /* last msgsnd(2) time */
+    time_t          msg_rtime;   /* last msgrcv(2) time */
+    time_t          msg_ctime;   /* last change time */
+};
+.fi
+.in
+.TP 11
+.I msg_perm
+.I ipc_perm
+structure that specifies the access permissions on the message
+queue.
+.TP
+.I msg_qnum
+Number of messages currently on the message queue.
+.TP
+.I msg_qbytes
+Maximum number of bytes of message text allowed on the message
+queue.
+.TP
+.I msg_lspid
+ID of the process that performed the last
+.BR msgsnd (2)
+system call.
+.TP
+.I msg_lrpid
+ID of the process that performed the last
+.BR msgrcv (2)
+system call.
+.TP
+.I msg_stime
+Time of the last
+.BR msgsnd (2)
+system call.
+.TP
+.I msg_rtime
+Time of the last
+.BR msgrcv (2)
+system call.
+.TP
+.I msg_ctime
+Time of the last
+system call that changed a member of the
+.I msqid_ds
+structure.
+.SS Semaphore sets
+A semaphore set is uniquely identified by a positive integer
+.RI "(its " semid )
+and has an associated data structure of type
+.IR "struct semid_ds" ,
+defined in
+.IR <sys/sem.h> ,
+containing the following members:
+.in +4n
+.nf
+
+struct semid_ds {
+    struct ipc_perm sem_perm;
+    time_t          sem_otime;   /* last operation time */
+    time_t          sem_ctime;   /* last change time */
+    unsigned long   sem_nsems;   /* count of sems in set */
+};
+.fi
+.in
+.TP 11
+.I sem_perm
+.I ipc_perm
+structure that specifies the access permissions on the semaphore
+set.
+.TP
+.I sem_otime
+Time of last
+.BR semop (2)
+system call.
+.TP
+.I sem_ctime
+Time of last
+.BR semctl (2)
+system call that changed a member of the above structure or of one
+semaphore belonging to the set.
+.TP
+.I sem_nsems
+Number of semaphores in the set.
+Each semaphore of the set is referenced by a nonnegative integer
+ranging from
+.B 0
+to
+.IR sem_nsems\-1 .
+.PP
+A semaphore is a data structure of type
+.I "struct sem"
+containing the following members:
+.in +4n
+.nf
+
+struct sem {
+    int semval;  /* semaphore value */
+    int sempid;  /* PID for last operation */
+.\"    unsigned short semncnt; /* nr awaiting semval to increase */
+.\"    unsigned short semzcnt; /* nr awaiting semval = 0 */
+};
+.fi
+.in
+.TP 11
+.I semval
+Semaphore value: a nonnegative integer.
+.TP
+.I sempid
+ID of the last process that performed a semaphore operation
+on this semaphore.
+.\".TP
+.\".I semncnt
+.\"Number of processes suspended awaiting for
+.\".I semval
+.\"to increase.
+.\".TP
+.\".I semznt
+.\"Number of processes suspended awaiting for
+.\".I semval
+.\"to become zero.
+.SS Shared memory segments
+A shared memory segment is uniquely identified by a positive integer
+.RI "(its " shmid )
+and has an associated data structure of type
+.IR "struct shmid_ds" ,
+defined in
+.IR <sys/shm.h> ,
+containing the following members:
+.in +4n
+.nf
+
+struct shmid_ds {
+    struct ipc_perm shm_perm;
+    size_t          shm_segsz;   /* size of segment */
+    pid_t           shm_cpid;    /* PID of creator */
+    pid_t           shm_lpid;    /* PID, last operation */
+    shmatt_t        shm_nattch;  /* no. of current attaches */
+    time_t          shm_atime;   /* time of last attach */
+    time_t          shm_dtime;   /* time of last detach */
+    time_t          shm_ctime;   /* time of last change */
+};
+.fi
+.in
+.TP 11
+.I shm_perm
+.I ipc_perm
+structure that specifies the access permissions on the shared memory
+segment.
+.TP
+.I shm_segsz
+Size in bytes of the shared memory segment.
+.TP
+.I shm_cpid
+ID of the process that created the shared memory segment.
+.TP
+.I shm_lpid
+ID of the last process that executed a
+.BR shmat (2)
+or
+.BR shmdt (2)
+system call.
+.TP
+.I shm_nattch
+Number of current alive attaches for this shared memory segment.
+.TP
+.I shm_atime
+Time of the last
+.BR shmat (2)
+system call.
+.TP
+.I shm_dtime
+Time of the last
+.BR shmdt (2)
+system call.
+.TP
+.I shm_ctime
+Time of the last
+.BR shmctl (2)
+system call that changed
+.IR shmid_ds .
+.SS IPC namespaces
+For a discussion of the interaction of System V IPC objects and
+IPC namespaces, see
+.BR namespaces (7).
+.SH SEE ALSO
+.BR ipcmk (1),
+.BR ipcrm (1),
+.BR ipcs (1),
+.BR ipc (2),
+.BR msgctl (2),
+.BR msgget (2),
+.BR msgrcv (2),
+.BR msgsnd (2),
+.BR semctl (2),
+.BR semget (2),
+.BR semop (2),
+.BR shmat (2),
+.BR shmctl (2),
+.BR shmdt (2),
+.BR shmget (2),
+.BR ftok (3),
+.BR namespaces (7)

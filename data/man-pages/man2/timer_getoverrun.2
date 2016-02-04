@@ -1,0 +1,140 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH TIMER_GETOVERRUN 2 2015-08-08 Linux "Linux Programmer's Manual"
+.SH NAME
+timer_getoverrun \- get overrun count for a POSIX per-process timer
+.SH SYNOPSIS
+.nf
+.B  #include <time.h>
+
+.BI "int timer_getoverrun(timer_t " timerid );
+.fi
+
+Link with \fI\-lrt\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR timer_getoverrun ():
+_POSIX_C_SOURCE\ >=\ 199309L
+.SH DESCRIPTION
+.BR timer_getoverrun ()
+returns the "overrun count" for the timer referred to by
+.IR timerid .
+An application can use the overrun count to accurately calculate the number
+of timer expirations that would have occurred over a given time interval.
+Timer overruns can occur both when receiving expiration notifications
+via signals
+.RB ( SIGEV_SIGNAL ),
+and via threads
+.RB ( SIGEV_THREAD ).
+
+When expiration notifications are delivered via a signal,
+overruns can occur as follows.
+Regardless of whether or not a real-time signal is used for
+timer notifications,
+the system queues at most one signal per timer.
+(This is the behavior specified by POSIX.1.
+The alternative, queuing one signal for each timer expiration,
+could easily result in overflowing the allowed limits for
+queued signals on the system.)
+Because of system scheduling delays,
+or because the signal may be temporarily blocked,
+there can be a delay between the time when the notification
+signal is generated and the time when it
+is delivered (e.g., caught by a signal handler) or accepted (e.g., using
+.BR sigwaitinfo (2)).
+In this interval, further timer expirations may occur.
+The timer overrun count is the number of additional
+timer expirations that occurred between the time when the signal
+was generated and when it was delivered or accepted.
+
+Timer overruns can also occur when expiration notifications
+are delivered via invocation of a thread,
+since there may be an arbitrary delay between an expiration of the timer
+and the invocation of the notification thread,
+and in that delay interval, additional timer expirations may occur.
+.SH RETURN VALUE
+On success,
+.BR timer_getoverrun ()
+returns the overrun count of the specified timer;
+this count may be 0 if no overruns have occurred.
+On failure, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+.I timerid
+is not a valid timer ID.
+.SH VERSIONS
+This system call is available since Linux 2.6.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+When timer notifications are delivered via signals
+.RB ( SIGEV_SIGNAL ),
+on Linux it is also possible to obtain the overrun count via the
+.I si_overrun
+field of the
+.I siginfo_t
+structure (see
+.BR sigaction (2)).
+This allows an application to avoid the overhead of making
+a system call to obtain the overrun count,
+but is a nonportable extension to POSIX.1.
+
+POSIX.1 discusses timer overruns only in the context of
+timer notifications using signals.
+.\" FIXME . Austin bug filed, 11 Feb 09
+.SH BUGS
+POSIX.1 specifies that if the timer overrun count
+is equal to or greater than an implementation-defined maximum,
+.BR DELAYTIMER_MAX ,
+then
+.BR timer_getoverrun ()
+should return
+.BR DELAYTIMER_MAX .
+However, Linux does not implement this feature: instead,
+if the timer overrun value exceeds the maximum representable integer,
+the counter cycles, starting once more from low values.
+.\" Bug filed: http://bugzilla.kernel.org/show_bug.cgi?id=12665
+.\" http://thread.gmane.org/gmane.linux.kernel/113276/
+.SH EXAMPLE
+See
+.BR timer_create (2).
+.SH SEE ALSO
+.BR clock_gettime (2),
+.BR sigaction (2),
+.BR signalfd (2),
+.BR sigwaitinfo (2),
+.BR timer_create (2),
+.BR timer_delete (2),
+.BR timer_settime (2),
+.BR signal (7),
+.BR time (7)

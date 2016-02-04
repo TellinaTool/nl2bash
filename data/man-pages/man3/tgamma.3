@@ -1,0 +1,206 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" Based on glibc infopages
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\" Modified 2004-11-15, fixed error noted by Fabian Kreutz
+.\"	 <kreutz@dbs.uni-hannover.de>
+.\"
+.TH TGAMMA 3 2015-04-19 "GNU" "Linux Programmer's Manual"
+.SH NAME
+tgamma, tgammaf, tgammal \- true gamma function
+.SH SYNOPSIS
+.B #include <math.h>
+.sp
+.BI "double tgamma(double " x );
+.br
+.BI "float tgammaf(float " x );
+.br
+.BI "long double tgammal(long double " x );
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR tgamma (),
+.BR tgammaf (),
+.BR tgammal ():
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad
+.SH DESCRIPTION
+These functions calculate the Gamma function of
+.IR x .
+
+The Gamma function is defined by
+.sp
+    Gamma(x) = integral from 0 to infinity of t^(x\-1) e^\-t dt
+.sp
+It is defined for every real number except for nonpositive integers.
+For nonnegative integral
+.I m
+one has
+.sp
+    Gamma(m+1) = m!
+.sp
+and, more generally, for all
+.IR x :
+.sp
+    Gamma(x+1) = x * Gamma(x)
+.sp
+Furthermore, the following is valid for all values of
+.I x
+outside the poles:
+.sp
+    Gamma(x) * Gamma(1 \- x) = PI / sin(PI * x)
+.PP
+.SH RETURN VALUE
+On success, these functions return Gamma(x).
+
+If
+.I x
+is a NaN, a NaN is returned.
+
+If
+.I x
+is positive infinity, positive infinity is returned.
+
+If
+.I x
+is a negative integer, or is negative infinity,
+a domain error occurs,
+and a NaN is returned.
+
+If the result overflows,
+a range error occurs,
+and the functions return
+.BR HUGE_VAL ,
+.BR HUGE_VALF ,
+or
+.BR HUGE_VALL ,
+respectively, with the correct mathematical sign.
+
+If the result underflows,
+a range error occurs,
+and the functions return 0, with the correct mathematical sign.
+
+If
+.I x
+is \-0 or +0,
+a pole error occurs,
+and the functions return
+.BR HUGE_VAL ,
+.BR HUGE_VALF ,
+or
+.BR HUGE_VALL ,
+respectively, with the same sign as the 0.
+.SH ERRORS
+See
+.BR math_error (7)
+for information on how to determine whether an error has occurred
+when calling these functions.
+.PP
+The following errors can occur:
+.TP
+Domain error: \fIx\fP is a negative integer, or negative infinity
+.I errno
+is set to
+.BR EDOM .
+An invalid floating-point exception
+.RB ( FE_INVALID )
+is raised (but see BUGS).
+.TP
+Pole error: \fIx\fP is +0 or \-0
+.I errno
+is set to
+.BR ERANGE .
+A divide-by-zero floating-point exception
+.RB ( FE_DIVBYZERO )
+is raised.
+.TP
+Range error: result overflow
+.I errno
+is set to
+.BR ERANGE .
+An overflow floating-point exception
+.RB ( FE_OVERFLOW )
+is raised.
+.PP
+glibc also gives the following error which is not specified
+in C99 or POSIX.1-2001.
+.TP
+Range error: result underflow
+.\" e.g., tgamma(-172.5) on glibc 2.8/x86-32
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+An underflow floating-point exception
+.RB ( FE_UNDERFLOW )
+is raised.
+.IP
+.I errno
+is not set for this case.
+.\" FIXME . Is it intentional that errno is not set:
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6810
+.\"
+.\" glibc (as at 2.8) also supports and an inexact
+.\" exception for various cases.
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw30 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR tgamma (),
+.BR tgammaf (),
+.BR tgammal ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+This function had to be called "true gamma function"
+since there is already a function
+.BR gamma (3)
+that returns something else (see
+.BR gamma (3)
+for details).
+.SH BUGS
+Before version 2.18, the glibc implementation of these functions did not set
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=6809
+.I errno
+to
+.B EDOM
+when
+.I x
+is negative infinity.
+
+In glibc versions 2.3.3 and earlier,
+an argument of +0 or \-0 incorrectly produced a domain error
+.RI ( errno
+set to
+.B EDOM
+and an
+.B FE_INVALID
+exception raised), rather than a pole error.
+.SH SEE ALSO
+.BR gamma (3),
+.BR lgamma (3)

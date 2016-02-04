@@ -1,0 +1,85 @@
+.\" Copyright (c) 1995 Martin Schulze <joey@infodrom.north.de>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 1995-10-18  Martin Schulze  <joey@infodrom.north.de>
+.\"	* first released
+.\" 2002-09-22  Seth W. Klein  <sk@sethwklein.net>
+.\"     * protocol numbers are now assigned by the IANA
+.\"
+.TH PROTOCOLS 5 2012-08-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+protocols \- protocols definition file
+.SH DESCRIPTION
+This file is a plain ASCII file, describing the various DARPA internet
+protocols that are available from the TCP/IP subsystem.
+It should be
+consulted instead of using the numbers in the ARPA include files, or,
+even worse, just guessing them.
+These numbers will occur in the
+protocol field of any IP header.
+
+Keep this file untouched since changes would result in incorrect IP
+packages.
+Protocol numbers and names are specified by the IANA
+(Internet Assigned Numbers Authority).
+.\" .. by the DDN Network Information Center.
+
+Each line is of the following format:
+
+.RS
+.I protocol number aliases ...
+.RE
+
+where the fields are delimited by spaces or tabs.
+Empty lines are ignored.
+If a line contains a hash mark (#), the hash mark and the part
+of the line following it are ignored.
+
+The field descriptions are:
+.TP
+.I protocol
+the native name for the protocol.
+For example
+.IR ip ,
+.IR tcp ,
+or
+.IR udp .
+.TP
+.I number
+the official number for this protocol as it will appear within the IP
+header.
+.TP
+.I aliases
+optional aliases for the protocol.
+.LP
+This file might be distributed over a network using a network-wide
+naming service like Yellow Pages/NIS or BIND/Hesiod.
+.SH FILES
+.TP
+.I /etc/protocols
+The protocols definition file.
+.SH SEE ALSO
+.BR getprotoent (3)
+
+.UR http://www.iana.org\:/assignments\:/protocol-numbers
+.UE

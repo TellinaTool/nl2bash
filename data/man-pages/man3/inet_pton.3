@@ -1,0 +1,230 @@
+.\" Copyright 2000 Sam Varshavchik <mrsam@courier-mta.com>
+.\" and Copyright (c) 2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References: RFC 2553
+.TH INET_PTON 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+inet_pton \- convert IPv4 and IPv6 addresses from text to binary form
+.SH SYNOPSIS
+.nf
+.B #include <arpa/inet.h>
+
+.BI "int inet_pton(int " "af" ", const char *" "src" ", void *" "dst" );
+.fi
+.SH DESCRIPTION
+This function converts the character string
+.I src
+into a network address structure in the
+.I af
+address family, then
+copies
+the network address structure to
+.IR dst .
+The
+.I af
+argument must be either
+.B AF_INET
+or
+.BR AF_INET6 .
+.PP
+The following address families are currently supported:
+.TP
+.B AF_INET
+.I src
+points to a character string containing an IPv4 network address in
+dotted-decimal format, "\fIddd.ddd.ddd.ddd\fP", where
+.I ddd
+is a decimal number of up to three digits in the range 0 to 255.
+The address is converted to a
+.I struct in_addr
+and copied to
+.IR dst ,
+which must be
+.I sizeof(struct in_addr)
+(4) bytes (32 bits) long.
+.TP
+.B AF_INET6
+.I src
+points to a character string containing an IPv6 network address.
+The address is converted to a
+.I struct in6_addr
+and copied to
+.IR dst ,
+which must be
+.I sizeof(struct in6_addr)
+(16) bytes (128 bits) long.
+The allowed formats for IPv6 addresses follow these rules:
+.RS
+.IP 1. 3
+The preferred format is
+.IR x:x:x:x:x:x:x:x .
+This form consists of eight hexadecimal numbers,
+each of which expresses a 16-bit value (i.e., each
+.I x
+can be up to 4 hex digits).
+.IP 2.
+A series of contiguous zero values in the preferred format
+can be abbreviated to
+.IR :: .
+Only one instance of
+.I ::
+can occur in an address.
+For example, the loopback address
+.I 0:0:0:0:0:0:0:1
+can be abbreviated as
+.IR ::1 .
+The wildcard address, consisting of all zeros, can be written as
+.IR :: .
+.IP 3.
+An alternate format is useful for expressing IPv4-mapped IPv6 addresses.
+This form is written as
+.IR x:x:x:x:x:x:d.d.d.d ,
+where the six leading
+.IR x s
+are hexadecimal values that define the six most-significant
+16-bit pieces of the address (i.e., 96 bits), and the
+.IR d s
+express a value in dotted-decimal notation that
+defines the least significant 32 bits of the address.
+An example of such an address is
+.IR ::FFFF:204.152.189.116 .
+.RE
+.IP
+See RFC 2373 for further details on the representation of IPv6 addresses.
+.SH RETURN VALUE
+.BR inet_pton ()
+returns 1 on success (network address was successfully converted).
+0 is returned if
+.I src
+does not contain a character string representing a valid network
+address in the specified address family.
+If
+.I af
+does not contain a valid address family, \-1 is returned and
+.I errno
+is set to
+.BR EAFNOSUPPORT .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR inet_pton ()
+T}	Thread safety	MT-Safe locale
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+Unlike
+.BR inet_aton (3)
+and
+.BR inet_addr (3),
+.BR inet_pton ()
+supports IPv6 addresses.
+On the other hand,
+.BR inet_pton ()
+accepts only IPv4 addresses in dotted-decimal notation, whereas
+.BR inet_aton (3)
+and
+.BR inet_addr (3)
+allow the more general numbers-and-dots notation (hexadecimal
+and octal number formats, and formats that don't require all
+four bytes to be explicitly written).
+For an interface that handles both IPv6 addresses, and IPv4
+addresses in numbers-and-dots notation, see
+.BR getaddrinfo (3).
+.SH BUGS
+.B AF_INET6
+does not recognize IPv4 addresses.
+An explicit IPv4-mapped IPv6 address must be supplied in
+.I src
+instead.
+.SH EXAMPLE
+The program below demonstrates the use of
+.BR inet_pton ()
+and
+.BR inet_ntop (3).
+Here are some example runs:
+.in +4n
+.nf
+
+.RB "$" " ./a.out i6 0:0:0:0:0:0:0:0"
+::
+.RB "$" " ./a.out i6 1:0:0:0:0:0:0:8"
+1::8
+.RB "$" " ./a.out i6 0:0:0:0:0:FFFF:204.152.189.116"
+::ffff:204.152.189.116
+.fi
+.in
+.SS Program source
+\&
+.nf
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int
+main(int argc, char *argv[])
+{
+    unsigned char buf[sizeof(struct in6_addr)];
+    int domain, s;
+    char str[INET6_ADDRSTRLEN];
+
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s {i4|i6|<num>} string\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    domain = (strcmp(argv[1], "i4") == 0) ? AF_INET :
+             (strcmp(argv[1], "i6") == 0) ? AF_INET6 : atoi(argv[1]);
+
+    s = inet_pton(domain, argv[2], buf);
+    if (s <= 0) {
+        if (s == 0)
+            fprintf(stderr, "Not in presentation format");
+        else
+            perror("inet_pton");
+        exit(EXIT_FAILURE);
+    }
+
+    if (inet_ntop(domain, buf, str, INET6_ADDRSTRLEN) == NULL) {
+        perror("inet_ntop");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("%s\\n", str);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR getaddrinfo (3),
+.BR inet (3),
+.BR inet_ntop (3)

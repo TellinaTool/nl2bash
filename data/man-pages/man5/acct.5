@@ -1,0 +1,178 @@
+.\" Copyright (C) 2008, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH ACCT 5 2008-06-15 "Linux" "Linux Programmer's Manual"
+.SH NAME
+acct \- process accounting file
+.SH SYNOPSIS
+.B #include <sys/acct.h>
+.SH DESCRIPTION
+If the kernel is built with the process accounting option enabled
+.RB ( CONFIG_BSD_PROCESS_ACCT ),
+then calling
+.BR acct (2)
+starts process accounting, for example:
+
+.in +4n
+acct("/var/log/pacct");
+.in
+
+When process accounting is enabled, the kernel writes a record
+to the accounting file as each process on the system terminates.
+This record contains information about the terminated process,
+and is defined in
+.I <sys/acct.h>
+as follows:
+
+.in +4n
+.nf
+#define ACCT_COMM 16
+
+typedef u_int16_t comp_t;
+
+struct acct {
+    char ac_flag;           /* Accounting flags */
+    u_int16_t ac_uid;       /* Accounting user ID */
+    u_int16_t ac_gid;       /* Accounting group ID */
+    u_int16_t ac_tty;       /* Controlling terminal */
+    u_int32_t ac_btime;     /* Process creation time
+                               (seconds since the Epoch) */
+    comp_t    ac_utime;     /* User CPU time */
+    comp_t    ac_stime;     /* System CPU time */
+    comp_t    ac_etime;     /* Elapsed time */
+    comp_t    ac_mem;       /* Average memory usage (kB) */
+    comp_t    ac_io;        /* Characters transferred (unused) */
+    comp_t    ac_rw;        /* Blocks read or written (unused) */
+    comp_t    ac_minflt;    /* Minor page faults */
+    comp_t    ac_majflt;    /* Major page faults */
+    comp_t    ac_swaps;     /* Number of swaps (unused) */
+    u_int32_t ac_exitcode;  /* Process termination status
+                               (see wait(2)) */
+    char      ac_comm[ACCT_COMM+1];
+                            /* Command name (basename of last
+                               executed command; null-terminated) */
+    char      ac_pad[\fIX\fP];    /* padding bytes */
+};
+
+enum {          /* Bits that may be set in ac_flag field */
+    AFORK = 0x01,           /* Has executed fork, but no exec */
+    ASU   = 0x02,           /* Used superuser privileges */
+    ACORE = 0x08,           /* Dumped core */
+    AXSIG = 0x10            /* Killed by a signal */
+};
+.fi
+.in
+.PP
+The
+.I comp_t
+data type is a floating-point value consisting of a 3-bit, base-8 exponent,
+and a 13-bit mantissa.
+A value,
+.IR c ,
+of this type can be converted to a (long) integer as follows:
+.nf
+
+    v = (c & 0x1fff) << (((c >> 13) & 0x7) * 3);
+.fi
+.PP
+The
+.IR ac_utime ,
+.IR ac_stime ,
+and
+.I ac_etime
+fields measure time in "clock ticks"; divide these values by
+.I sysconf(_SC_CLK_TCK)
+to convert them to seconds.
+.SS Version 3 accounting file format
+Since kernel 2.6.8,
+an optional alternative version of the accounting file can be produced
+if the
+.B CONFIG_BSD_PROCESS_ACCT_V3
+option is set when building the kernel.
+With this option is set,
+the records written to the accounting file contain additional fields,
+and the width of
+.I c_uid
+and
+.I ac_gid
+fields is widened from 16 to 32 bits
+(in line with the increased size of UID and GIDs in Linux 2.4 and later).
+The records are defined as follows:
+
+.in +4n
+.nf
+struct acct_v3 {
+    char      ac_flag;      /* Flags */
+    char      ac_version;   /* Always set to ACCT_VERSION (3) */
+    u_int16_t ac_tty;       /* Controlling terminal */
+    u_int32_t ac_exitcode;  /* Process termination status */
+    u_int32_t ac_uid;       /* Real user ID */
+    u_int32_t ac_gid;       /* Real group ID */
+    u_int32_t ac_pid;       /* Process ID */
+    u_int32_t ac_ppid;      /* Parent process ID */
+    u_int32_t ac_btime;     /* Process creation time */
+    float     ac_etime;     /* Elapsed time */
+    comp_t    ac_utime;     /* User CPU time */
+    comp_t    ac_stime;     /* System time */
+    comp_t    ac_mem;       /* Average memory usage (kB) */
+    comp_t    ac_io;        /* Characters transferred (unused) */
+    comp_t    ac_rw;        /* Blocks read or written
+                               (unused) */
+    comp_t    ac_minflt;    /* Minor page faults */
+    comp_t    ac_majflt;    /* Major page faults */
+    comp_t    ac_swaps;     /* Number of swaps (unused) */
+    char      ac_comm[ACCT_COMM]; /* Command name */
+};
+.fi
+.in
+.SH VERSIONS
+The
+.I acct_v3
+structure is defined in glibc since version 2.6.
+.SH CONFORMING TO
+Process accounting originated on BSD.
+Although it is present on most systems, it is not standardized,
+and the details vary somewhat between systems.
+.SH NOTES
+Records in the accounting file are ordered by termination time of
+the process.
+
+In kernels up to and including 2.6.9,
+a separate accounting record is written for each thread created using
+the NPTL threading library;
+since Linux 2.6.10,
+a single accounting record is written for the entire process
+on termination of the last thread in the process.
+
+The
+.I proc/sys/kernel/acct
+file, described in
+.BR proc (5),
+defines settings that control the behavior of process accounting
+when disk space runs low.
+.SH SEE ALSO
+.BR lastcomm (1),
+.BR acct (2),
+.BR accton (8),
+.BR sa (8)

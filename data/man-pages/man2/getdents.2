@@ -1,0 +1,310 @@
+.\" Copyright (C) 1995 Andries Brouwer (aeb@cwi.nl)
+.\" and Copyright 2008, 2015 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Written 11 June 1995 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 22 July 1995 by Michael Chastain <mec@duracef.shout.net>:
+.\"   Derived from 'readdir.2'.
+.\" Modified Tue Oct 22 08:11:14 EDT 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\"
+.TH GETDENTS 2  2015-04-12 "Linux" "Linux Programmer's Manual"
+.SH NAME
+getdents, getdents64 \- get directory entries
+.SH SYNOPSIS
+.nf
+.BI "int getdents(unsigned int " fd ", struct linux_dirent *" dirp ,
+.BI "             unsigned int " count );
+.BI "int getdents64(unsigned int " fd ", struct linux_dirent64 *" dirp ,
+.BI "             unsigned int " count );
+.fi
+
+.IR Note :
+There are no glibc wrappers for these system calls; see NOTES.
+.SH DESCRIPTION
+These are not the interfaces you are interested in.
+Look at
+.BR readdir (3)
+for the POSIX-conforming C library interface.
+This page documents the bare kernel system call interfaces.
+.SS getdents()
+The system call
+.BR getdents ()
+reads several
+.I linux_dirent
+structures from the directory
+referred to by the open file descriptor
+.I fd
+into the buffer pointed to by
+.IR dirp .
+The argument
+.I count
+specifies the size of that buffer.
+.PP
+The
+.I linux_dirent
+structure is declared as follows:
+.PP
+.in +4n
+.nf
+struct linux_dirent {
+    unsigned long  d_ino;     /* Inode number */
+    unsigned long  d_off;     /* Offset to next \fIlinux_dirent\fP */
+    unsigned short d_reclen;  /* Length of this \fIlinux_dirent\fP */
+    char           d_name[];  /* Filename (null-terminated) */
+                      /* length is actually (d_reclen \- 2 \-
+                         offsetof(struct linux_dirent, d_name)) */
+    /*
+    char           pad;       // Zero padding byte
+    char           d_type;    // File type (only since Linux
+                              // 2.6.4); offset is (d_reclen \- 1)
+    */
+}
+.fi
+.in
+.PP
+.I d_ino
+is an inode number.
+.I d_off
+is the distance from the start of the directory to the start of the next
+.IR linux_dirent .
+.I d_reclen
+is the size of this entire
+.IR linux_dirent .
+.I d_name
+is a null-terminated filename.
+
+.I d_type
+is a byte at the end of the structure that indicates the file type.
+It contains one of the following values (defined in
+.IR <dirent.h> ):
+.TP 12
+.B DT_BLK
+This is a block device.
+.TP
+.B DT_CHR
+This is a character device.
+.TP
+.B DT_DIR
+This is a directory.
+.TP
+.B DT_FIFO
+This is a named pipe (FIFO).
+.TP
+.B DT_LNK
+This is a symbolic link.
+.TP
+.B DT_REG
+This is a regular file.
+.TP
+.B DT_SOCK
+This is a UNIX domain socket.
+.TP
+.B DT_UNKNOWN
+The file type is unknown.
+.PP
+The
+.I d_type
+field is implemented since Linux 2.6.4.
+It occupies a space that was previously a zero-filled padding byte in the
+.IR linux_dirent
+structure.
+Thus, on kernels up to and including 2.6.3,
+attempting to access this field always provides the value 0
+.RB ( DT_UNKNOWN ).
+.PP
+Currently,
+.\" kernel 2.6.27
+.\" The same sentence is in readdir.2
+only some filesystems (among them: Btrfs, ext2, ext3, and ext4)
+have full support for returning the file type in
+.IR d_type .
+All applications must properly handle a return of
+.BR DT_UNKNOWN .
+.SS getdents64()
+The original Linux
+.BR getdents ()
+system call did not handle large filesystems and large file offsets.
+Consequently, Linux 2.4 added
+.BR getdents64 (),
+with wider types for the
+.I d_ino
+and
+.I d_off
+fields.
+In addition,
+.BR getdents64 ()
+supports an explicit
+.I d_type
+field.
+
+The
+.BR getdents64 ()
+system call is like
+.BR getdents (),
+except that its second argument is a pointer to a buffer containing
+structures of the following type:
+
+.nf
+.in +4n
+struct linux_dirent64 {
+    ino64_t        d_ino;    /* 64-bit inode number */
+    off64_t        d_off;    /* 64-bit offset to next structure */
+    unsigned short d_reclen; /* Size of this dirent */
+    unsigned char  d_type;   /* File type */
+    char           d_name[]; /* Filename (null-terminated) */
+};
+.in
+.fi
+.SH RETURN VALUE
+On success, the number of bytes read is returned.
+On end of directory, 0 is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EBADF
+Invalid file descriptor
+.IR fd .
+.TP
+.B EFAULT
+Argument points outside the calling process's address space.
+.TP
+.B EINVAL
+Result buffer is too small.
+.TP
+.B ENOENT
+No such directory.
+.TP
+.B ENOTDIR
+File descriptor does not refer to a directory.
+.SH CONFORMING TO
+SVr4.
+.\" SVr4 documents additional ENOLINK, EIO error conditions.
+.SH NOTES
+Glibc does not provide a wrapper for these system calls; call them using
+.BR syscall (2).
+You will need to define the
+.I linux_dirent
+or
+.I linux_dirent64
+structure yourself.
+However, you probably want to use
+.BR readdir (3)
+instead.
+
+These calls supersede
+.BR readdir (2).
+.SH EXAMPLE
+.\" FIXME The example program needs to be revised, since it uses the older
+.\" getdents() system call and the structure with smaller field widths.
+The program below demonstrates the use of
+.BR getdents ().
+The following output shows an example of what we see when running this
+program on an ext2 directory:
+
+.in +4n
+.nf
+.RB "$" " ./a.out /testfs/"
+--------------- nread=120 ---------------
+inode#    file type  d_reclen  d_off   d_name
+       2  directory    16         12  .
+       2  directory    16         24  ..
+      11  directory    24         44  lost+found
+      12  regular      16         56  a
+  228929  directory    16         68  sub
+   16353  directory    16         80  sub2
+  130817  directory    16       4096  sub3
+.fi
+.in
+.SS Program source
+\&
+.nf
+#define _GNU_SOURCE
+#include <dirent.h>     /* Defines DT_* constants */
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/syscall.h>
+
+#define handle_error(msg) \\
+        do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+struct linux_dirent {
+    long           d_ino;
+    off_t          d_off;
+    unsigned short d_reclen;
+    char           d_name[];
+};
+
+#define BUF_SIZE 1024
+
+int
+main(int argc, char *argv[])
+{
+    int fd, nread;
+    char buf[BUF_SIZE];
+    struct linux_dirent *d;
+    int bpos;
+    char d_type;
+
+    fd = open(argc > 1 ? argv[1] : ".", O_RDONLY | O_DIRECTORY);
+    if (fd == \-1)
+        handle_error("open");
+
+    for ( ; ; ) {
+        nread = syscall(SYS_getdents, fd, buf, BUF_SIZE);
+        if (nread == \-1)
+            handle_error("getdents");
+
+        if (nread == 0)
+            break;
+
+        printf("\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- nread=%d \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\\n", nread);
+        printf("inode#    file type  d_reclen  d_off   d_name\\n");
+        for (bpos = 0; bpos < nread;) {
+            d = (struct linux_dirent *) (buf + bpos);
+            printf("%8ld  ", d\->d_ino);
+            d_type = *(buf + bpos + d\->d_reclen \- 1);
+            printf("%\-10s ", (d_type == DT_REG) ?  "regular" :
+                             (d_type == DT_DIR) ?  "directory" :
+                             (d_type == DT_FIFO) ? "FIFO" :
+                             (d_type == DT_SOCK) ? "socket" :
+                             (d_type == DT_LNK) ?  "symlink" :
+                             (d_type == DT_BLK) ?  "block dev" :
+                             (d_type == DT_CHR) ?  "char dev" : "???");
+            printf("%4d %10lld  %s\\n", d\->d_reclen,
+                    (long long) d\->d_off, d\->d_name);
+            bpos += d\->d_reclen;
+        }
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR readdir (2),
+.BR readdir (3)

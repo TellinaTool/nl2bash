@@ -1,0 +1,98 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"
+.TH WCSNLEN 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcsnlen \- determine the length of a fixed-size wide-character string
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "size_t wcsnlen(const wchar_t *" s ", size_t " maxlen );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR wcsnlen ():
+.PD 0
+.ad l
+.RS 4
+.TP 4
+Since glibc 2.10:
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP
+Before glibc 2.10:
+_GNU_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+The
+.BR wcsnlen ()
+function is the wide-character equivalent
+of the
+.BR strnlen (3)
+function.
+It returns the number of wide-characters in the string pointed to by
+.IR s ,
+not including the terminating null wide character (L\(aq\\0\(aq),
+but at most
+.I maxlen
+wide characters (note: this parameter is not a byte count).
+In doing this,
+.BR wcsnlen ()
+looks at only the first
+.I maxlen
+wide characters at
+.I s
+and never beyond
+.IR s+maxlen .
+.SH RETURN VALUE
+The
+.BR wcsnlen ()
+function returns
+.IR wcslen(s) ,
+if that is less than
+.IR maxlen ,
+or
+.I maxlen
+if there is no null wide character among the
+first
+.I maxlen
+wide characters pointed to by
+.IR s .
+.SH VERSIONS
+The
+.BR wcsnlen ()
+function is provided in glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcsnlen ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2008.
+.SH SEE ALSO
+.BR strnlen (3),
+.BR wcslen (3)

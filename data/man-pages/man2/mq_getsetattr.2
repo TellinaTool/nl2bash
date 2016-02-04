@@ -1,0 +1,58 @@
+'\" t
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH MQ_GETSETATTR 2 2012-07-13 "Linux" "Linux Programmer's Manual"
+.SH NAME
+mq_getsetattr \- get/set message queue attributes
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.B #include <mqueue.h>
+.sp
+.BI "int mq_getsetattr(mqd_t " mqdes ", struct mq_attr *" newattr ","
+.BI "                 struct mq_attr *" oldattr );
+.fi
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+Do not use this system call.
+
+This is the low-level system call used to implement
+.BR mq_getattr (3)
+and
+.BR mq_setattr (3).
+For an explanation of how this system call operates,
+see the description of
+.BR mq_setattr (3).
+.SH CONFORMING TO
+This interface is nonstandard; avoid its use.
+.SH NOTES
+Glibc does not provide a wrapper for this system call; call it using
+.BR syscall (2).
+(Actually, never call it unless you are writing a C library!)
+.SH SEE ALSO
+.BR mq_getattr (3),
+.BR mq_overview (7)

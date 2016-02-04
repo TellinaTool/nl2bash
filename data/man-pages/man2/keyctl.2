@@ -1,0 +1,168 @@
+.\" Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
+.\" Written by David Howells (dhowells@redhat.com)
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_ONEPARA)
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License
+.\" as published by the Free Software Foundation; either version
+.\" 2 of the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" FIXME Document KEYCTL_GET_SECURITY (new in 2.6.26)
+.\"		commit 70a5bb72b55e82fbfbf1e22cae6975fac58a1e2d
+.\"		Author: David Howells <dhowells@redhat.com>
+.\"		Date:   Tue Apr 29 01:01:26 2008 -0700
+.\" FIXME Document KEYCTL_SESSION_TO_PARENT (new in 2.6.32)
+.\"		commit ee18d64c1f632043a02e6f5ba5e045bb26a5465f
+.\"		Author: David Howells <dhowells@redhat.com>
+.\"		Date:   Wed Sep 2 09:14:21 2009 +0100
+.\" FIXME Document KEYCTL_REJECT (new in 2.6.39)
+.\"		commit fdd1b94581782a2ddf9124414e5b7a5f48ce2f9c
+.\"		Author: David Howells <dhowells@redhat.com>
+.\"		Documentation/security/keys.txt
+.\" FIXME Document KEYCTL_INSTANTIATE_IOV (new in 2.6.39)
+.\"		commit ee009e4a0d4555ed522a631bae9896399674f064
+.\"		Author: David Howells <dhowells@redhat.com>
+.\"		Documentation/security/keys.txt
+.\" FIXME Document KEYCTL_INVALIDATE (new in 3.5)
+.\"		commit fd75815f727f157a05f4c96b5294a4617c0557da
+.\"		Author: David Howells <dhowells@redhat.com>
+.\"		Documentation/security/keys.txt
+.\" FIXME Document KEYCTL_GET_PERSISTENT (new in 3.13)
+.\"		commit f36f8c75ae2e7d4da34f4c908cebdb4aa42c977e
+.\"		Author: David Howells <dhowells@redhat.com>
+.\"
+.TH KEYCTL 2 2015-05-07 Linux "Linux Key Management Calls"
+.SH NAME
+keyctl \- manipulate the kernel's key management facility
+.SH SYNOPSIS
+.nf
+.B #include <keyutils.h>
+.sp
+.BI "long keyctl(int " cmd ", ...);"
+.fi
+.SH DESCRIPTION
+.BR keyctl ()
+has a number of functions available:
+.TP
+.B KEYCTL_GET_KEYRING_ID
+Ask for a keyring's ID.
+.TP
+.B KEYCTL_JOIN_SESSION_KEYRING
+Join or start named session keyring.
+.TP
+.B KEYCTL_UPDATE
+Update a key.
+.TP
+.B KEYCTL_REVOKE
+Revoke a key.
+.TP
+.B KEYCTL_CHOWN
+Set ownership of a key.
+.TP
+.B KEYCTL_SETPERM
+Set perms on a key.
+.TP
+.B KEYCTL_DESCRIBE
+Describe a key.
+.TP
+.B KEYCTL_CLEAR
+Clear contents of a keyring.
+.TP
+.B KEYCTL_LINK
+Link a key into a keyring.
+.TP
+.B KEYCTL_UNLINK
+Unlink a key from a keyring.
+.TP
+.B KEYCTL_SEARCH
+Search for a key in a keyring.
+.TP
+.B KEYCTL_READ
+Read a key or keyring's contents.
+.TP
+.B KEYCTL_INSTANTIATE
+Instantiate a partially constructed key.
+.TP
+.B KEYCTL_NEGATE
+Negate a partially constructed key.
+.TP
+.B KEYCTL_SET_REQKEY_KEYRING
+Set default request-key keyring.
+.TP
+.B KEYCTL_SET_TIMEOUT
+Set timeout on a key.
+.TP
+.B KEYCTL_ASSUME_AUTHORITY
+Assume authority to instantiate key.
+.P
+These are wrapped by
+.B libkeyutils
+into individual functions to permit the compiler to check types.
+See the
+.B See Also
+section at the bottom.
+.SH RETURN VALUE
+On success
+.BR keyctl ()
+returns the serial number of the key it found.
+On error, the value \-1
+will be returned and errno will have been set to an appropriate error.
+.SH ERRORS
+.TP
+.B EACCES
+A key operation wasn't permitted.
+.TP
+.B EDQUOT
+The key quota for the caller's user would be exceeded by creating a key or
+linking it to the keyring.
+.TP
+.B EKEYEXPIRED
+An expired key was found or specified.
+.TP
+.B EKEYREJECTED
+A rejected key was found or specified.
+.TP
+.B EKEYREVOKED
+A revoked key was found or specified.
+.TP
+.B ENOKEY
+No matching key was found or an invalid key was specified.
+.SH LINKING
+Although this is a Linux system call, it is not present in
+.I libc
+but can be found rather in
+.IR libkeyutils .
+When linking,
+.B -lkeyutils
+should be specified to the linker.
+.SH SEE ALSO
+.ad l
+.nh
+.BR keyctl (1),
+.BR add_key (2),
+.BR request_key (2),
+.BR keyctl_set_timeout (3),
+.BR keyctl_chown (3),
+.BR keyctl_clear (3),
+.BR keyctl_describe (3),
+.BR keyctl_describe_alloc (3),
+.BR keyctl_get_keyring_ID (3),
+.BR keyctl_instantiate (3),
+.BR keyctl_join_session_keyring (3),
+.BR keyctl_link (3),
+.BR keyctl_negate (3),
+.BR keyctl_revoke (3),
+.BR keyctl_search (3),
+.BR keyctl_setperm (3),
+.BR keyctl_set_reqkey_keyring (3),
+.BR keyctl_set_timeout (3),
+.BR keyctl_read (3),
+.BR keyctl_read_alloc (3),
+.BR keyctl_unlink (3),
+.BR keyctl_update (3),
+.BR keyrings (7),
+.BR request-key (8)
+
+The kernel source file
+.IR Documentation/security/keys.txt .

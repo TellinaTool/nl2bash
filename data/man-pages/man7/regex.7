@@ -1,0 +1,291 @@
+.\" From Henry Spencer's regex package (as found in the apache
+.\" distribution). The package carries the following copyright:
+.\"
+.\"  Copyright 1992, 1993, 1994 Henry Spencer.  All rights reserved.
+.\" %%%LICENSE_START(MISC)
+.\"  This software is not subject to any license of the American Telephone
+.\"  and Telegraph Company or of the Regents of the University of California.
+.\"
+.\"  Permission is granted to anyone to use this software for any purpose
+.\"  on any computer system, and to alter it and redistribute it, subject
+.\"  to the following restrictions:
+.\"
+.\"  1. The author is not responsible for the consequences of use of this
+.\"     software, no matter how awful, even if they arise from flaws in it.
+.\"
+.\"  2. The origin of this software must not be misrepresented, either by
+.\"     explicit claim or by omission.  Since few users ever read sources,
+.\"     credits must appear in the documentation.
+.\"
+.\"  3. Altered versions must be plainly marked as such, and must not be
+.\"     misrepresented as being the original software.  Since few users
+.\"     ever read sources, credits must appear in the documentation.
+.\"
+.\"  4. This notice may not be removed or altered.
+.\" %%%LICENSE_END
+.\"
+.\" In order to comply with `credits must appear in the documentation'
+.\" I added an AUTHOR paragraph below - aeb.
+.\"
+.\" In the default nroff environment there is no dagger \(dg.
+.\"
+.\" 2005-05-11 Removed discussion of `[[:<:]]' and `[[:>:]]', which
+.\" 	appear not to be in the glibc implementation of regcomp
+.\"
+.ie t .ds dg \(dg
+.el .ds dg (!)
+.TH REGEX 7 2009-01-12 "" "Linux Programmer's Manual"
+.SH NAME
+regex \- POSIX.2 regular expressions
+.SH DESCRIPTION
+Regular expressions ("RE"s),
+as defined in POSIX.2, come in two forms:
+modern REs (roughly those of
+.IR egrep ;
+POSIX.2 calls these "extended" REs)
+and obsolete REs (roughly those of
+.BR ed (1);
+POSIX.2 "basic" REs).
+Obsolete REs mostly exist for backward compatibility in some old programs;
+they will be discussed at the end.
+POSIX.2 leaves some aspects of RE syntax and semantics open;
+"\*(dg" marks decisions on these aspects that
+may not be fully portable to other POSIX.2 implementations.
+.PP
+A (modern) RE is one\*(dg or more nonempty\*(dg \fIbranches\fR,
+separated by \(aq|\(aq.
+It matches anything that matches one of the branches.
+.PP
+A branch is one\*(dg or more \fIpieces\fR, concatenated.
+It matches a match for the first, followed by a match for the second,
+and so on.
+.PP
+A piece is an \fIatom\fR possibly followed
+by a single\*(dg \(aq*\(aq, \(aq+\(aq, \(aq?\(aq, or \fIbound\fR.
+An atom followed by \(aq*\(aq
+matches a sequence of 0 or more matches of the atom.
+An atom followed by \(aq+\(aq
+matches a sequence of 1 or more matches of the atom.
+An atom followed by \(aq?\(aq
+matches a sequence of 0 or 1 matches of the atom.
+.PP
+A \fIbound\fR is \(aq{\(aq followed by an unsigned decimal integer,
+possibly followed by \(aq,\(aq
+possibly followed by another unsigned decimal integer,
+always followed by \(aq}\(aq.
+The integers must lie between 0 and
+.B RE_DUP_MAX
+(255\*(dg) inclusive,
+and if there are two of them, the first may not exceed the second.
+An atom followed by a bound containing one integer \fIi\fR
+and no comma matches
+a sequence of exactly \fIi\fR matches of the atom.
+An atom followed by a bound
+containing one integer \fIi\fR and a comma matches
+a sequence of \fIi\fR or more matches of the atom.
+An atom followed by a bound
+containing two integers \fIi\fR and \fIj\fR matches
+a sequence of \fIi\fR through \fIj\fR (inclusive) matches of the atom.
+.PP
+An atom is a regular expression enclosed in "\fI()\fP"
+(matching a match for the regular expression),
+an empty set of "\fI()\fP" (matching the null string)\*(dg,
+a \fIbracket expression\fR (see below), \(aq.\(aq
+(matching any single character), \(aq^\(aq (matching the null string at the
+beginning of a line), \(aq$\(aq (matching the null string at the
+end of a line), a \(aq\e\(aq followed by one of the characters
+"\fI^.[$()|*+?{\e\fP"
+(matching that character taken as an ordinary character),
+a \(aq\e\(aq followed by any other character\*(dg
+(matching that character taken as an ordinary character,
+as if the \(aq\e\(aq had not been present\*(dg),
+or a single character with no other significance (matching that character).
+A \(aq{\(aq followed by a character other than a digit is an ordinary
+character, not the beginning of a bound\*(dg.
+It is illegal to end an RE with \(aq\e\(aq.
+.PP
+A \fIbracket expression\fR is a list of characters enclosed in "\fI[]\fP".
+It normally matches any single character from the list (but see below).
+If the list begins with \(aq^\(aq,
+it matches any single character
+(but see below) \fInot\fR from the rest of the list.
+If two characters in the list are separated by \(aq\-\(aq, this is shorthand
+for the full \fIrange\fR of characters between those two (inclusive) in the
+collating sequence,
+for example, "\fI[0\-9]\fP" in ASCII matches any decimal digit.
+It is illegal\*(dg for two ranges to share an
+endpoint, for example, "\fIa-c-e\fP".
+Ranges are very collating-sequence-dependent,
+and portable programs should avoid relying on them.
+.PP
+To include a literal \(aq]\(aq in the list, make it the first character
+(following a possible \(aq^\(aq).
+To include a literal \(aq\-\(aq, make it the first or last character,
+or the second endpoint of a range.
+To use a literal \(aq\-\(aq as the first endpoint of a range,
+enclose it in "\fI[.\fP" and "\fI.]\fP"
+to make it a collating element (see below).
+With the exception of these and some combinations using \(aq[\(aq (see next
+paragraphs), all other special characters, including \(aq\e\(aq, lose their
+special significance within a bracket expression.
+.PP
+Within a bracket expression, a collating element (a character,
+a multicharacter sequence that collates as if it were a single character,
+or a collating-sequence name for either)
+enclosed in "\fI[.\fP" and "\fI.]\fP" stands for the
+sequence of characters of that collating element.
+The sequence is a single element of the bracket expression's list.
+A bracket expression containing a multicharacter collating element
+can thus match more than one character,
+for example, if the collating sequence includes a "ch" collating element,
+then the RE "\fI[[.ch.]]*c\fP" matches the first five characters
+of "chchcc".
+.PP
+Within a bracket expression, a collating element enclosed in "\fI[=\fP" and
+"\fI=]\fP" is an equivalence class, standing for the sequences of characters
+of all collating elements equivalent to that one, including itself.
+(If there are no other equivalent collating elements,
+the treatment is as if the enclosing delimiters
+were "\fI[.\fP" and "\fI.]\fP".)
+For example, if o and \o'o^' are the members of an equivalence class,
+then "\fI[[=o=]]\fP", "\fI[[=\o'o^'=]]\fP",
+and "\fI[o\o'o^']\fP" are all synonymous.
+An equivalence class may not\*(dg be an endpoint
+of a range.
+.PP
+Within a bracket expression, the name of a \fIcharacter class\fR enclosed
+in "\fI[:\fP" and "\fI:]\fP" stands for the list
+of all characters belonging to that
+class.
+Standard character class names are:
+.PP
+.RS
+.TS
+l l l.
+alnum	digit	punct
+alpha	graph	space
+blank	lower	upper
+cntrl	print	xdigit
+.TE
+.RE
+.PP
+These stand for the character classes defined in
+.BR wctype (3).
+A locale may provide others.
+A character class may not be used as an endpoint of a range.
+.\" As per http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=295666
+.\" The following does not seem to apply in the glibc implementation
+.\" .PP
+.\" There are two special cases\*(dg of bracket expressions:
+.\" the bracket expressions "\fI[[:<:]]\fP" and "\fI[[:>:]]\fP" match
+.\" the null string at the beginning and end of a word respectively.
+.\" A word is defined as a sequence of
+.\" word characters
+.\" which is neither preceded nor followed by
+.\" word characters.
+.\" A word character is an
+.\" .I alnum
+.\" character (as defined by
+.\" .BR wctype (3))
+.\" or an underscore.
+.\" This is an extension,
+.\" compatible with but not specified by POSIX.2,
+.\" and should be used with
+.\" caution in software intended to be portable to other systems.
+.PP
+In the event that an RE could match more than one substring of a given
+string,
+the RE matches the one starting earliest in the string.
+If the RE could match more than one substring starting at that point,
+it matches the longest.
+Subexpressions also match the longest possible substrings, subject to
+the constraint that the whole match be as long as possible,
+with subexpressions starting earlier in the RE taking priority over
+ones starting later.
+Note that higher-level subexpressions thus take priority over
+their lower-level component subexpressions.
+.PP
+Match lengths are measured in characters, not collating elements.
+A null string is considered longer than no match at all.
+For example,
+"\fIbb*\fP" matches the three middle characters of "abbbc",
+"\fI(wee|week)(knights|nights)\fP"
+matches all ten characters of "weeknights",
+when "\fI(.*).*\fP" is matched against "abc" the parenthesized subexpression
+matches all three characters, and
+when "\fI(a*)*\fP" is matched against "bc"
+both the whole RE and the parenthesized
+subexpression match the null string.
+.PP
+If case-independent matching is specified,
+the effect is much as if all case distinctions had vanished from the
+alphabet.
+When an alphabetic that exists in multiple cases appears as an
+ordinary character outside a bracket expression, it is effectively
+transformed into a bracket expression containing both cases,
+for example, \(aqx\(aq becomes "\fI[xX]\fP".
+When it appears inside a bracket expression, all case counterparts
+of it are added to the bracket expression, so that, for example, "\fI[x]\fP"
+becomes "\fI[xX]\fP" and "\fI[^x]\fP" becomes "\fI[^xX]\fP".
+.PP
+No particular limit is imposed on the length of REs\*(dg.
+Programs intended to be portable should not employ REs longer
+than 256 bytes,
+as an implementation can refuse to accept such REs and remain
+POSIX-compliant.
+.PP
+Obsolete ("basic") regular expressions differ in several respects.
+\(aq|\(aq, \(aq+\(aq, and \(aq?\(aq are
+ordinary characters and there is no equivalent
+for their functionality.
+The delimiters for bounds are "\fI\e{\fP" and "\fI\e}\fP",
+with \(aq{\(aq and \(aq}\(aq by themselves ordinary characters.
+The parentheses for nested subexpressions are "\fI\e(\fP" and "\fI\e)\fP",
+with \(aq(\(aq and \(aq)\(aq by themselves ordinary characters.
+\(aq^\(aq is an ordinary character except at the beginning of the
+RE or\*(dg the beginning of a parenthesized subexpression,
+\(aq$\(aq is an ordinary character except at the end of the
+RE or\*(dg the end of a parenthesized subexpression,
+and \(aq*\(aq is an ordinary character if it appears at the beginning of the
+RE or the beginning of a parenthesized subexpression
+(after a possible leading \(aq^\(aq).
+.PP
+Finally, there is one new type of atom, a \fIback reference\fR:
+\(aq\e\(aq followed by a nonzero decimal digit \fId\fR
+matches the same sequence of characters
+matched by the \fId\fRth parenthesized subexpression
+(numbering subexpressions by the positions of their opening parentheses,
+left to right),
+so that, for example, "\fI\e([bc]\e)\e1\fP" matches "bb" or "cc" but not "bc".
+.SH BUGS
+Having two kinds of REs is a botch.
+.PP
+The current POSIX.2 spec says that \(aq)\(aq is an ordinary character in
+the absence of an unmatched \(aq(\(aq;
+this was an unintentional result of a wording error,
+and change is likely.
+Avoid relying on it.
+.PP
+Back references are a dreadful botch,
+posing major problems for efficient implementations.
+They are also somewhat vaguely defined
+(does
+"\fIa\e(\e(b\e)*\e2\e)*d\fP" match "abbbd"?).
+Avoid using them.
+.PP
+POSIX.2's specification of case-independent matching is vague.
+The "one case implies all cases" definition given above
+is current consensus among implementors as to the right interpretation.
+.\" As per http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=295666
+.\" The following does not seem to apply in the glibc implementation
+.\" .PP
+.\" The syntax for word boundaries is incredibly ugly.
+.SH AUTHOR
+.\" Sigh... The page license means we must have the author's name
+.\" in the formatted output.
+This page was taken from Henry Spencer's regex package.
+.SH SEE ALSO
+.BR grep (1),
+.BR regex (3)
+.PP
+POSIX.2, section 2.8 (Regular Expression Notation).

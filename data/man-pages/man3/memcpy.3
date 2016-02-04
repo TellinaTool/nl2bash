@@ -1,0 +1,116 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2015 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sun Jul 25 10:41:09 1993 by Rik Faith (faith@cs.unc.edu)
+.TH MEMCPY 3  2015-07-23 "" "Linux Programmer's Manual"
+.SH NAME
+memcpy \- copy memory area
+.SH SYNOPSIS
+.nf
+.B #include <string.h>
+.sp
+.BI "void *memcpy(void *" dest ", const void *" src ", size_t " n );
+.fi
+.SH DESCRIPTION
+The
+.BR memcpy ()
+function copies \fIn\fP bytes from memory area
+\fIsrc\fP to memory area \fIdest\fP.
+The memory areas must not overlap.
+Use
+.BR memmove (3)
+if the memory areas do overlap.
+.SH RETURN VALUE
+The
+.BR memcpy ()
+function returns a pointer to \fIdest\fP.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR memcpy ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
+.SH NOTES
+Failure to observe the requirement that the memory areas
+do not overlap has been the source of real bugs.
+(POSIX and the C standards are explicit that employing
+.BR memcpy ()
+with overlapping areas produces undefined behavior.)
+Most notably, in glibc 2.13
+.\" glibc commit 6fb8cbcb58a29fff73eb2101b34caa19a7f88eba
+a performance optimization of
+.BR memcpy ()
+on some platforms (including x86-64) included changing the order
+.\" From forward copying to backward copying
+in which bytes were copied from
+.I src
+to
+.IR dest .
+
+This change revealed breakages in a number of applications that performed
+copying with overlapping areas.
+.\" Adobe Flash player was the highest profile example:
+.\"   https://bugzilla.redhat.com/show_bug.cgi?id=638477
+.\"   Reported: 2010-09-29 02:35 EDT by JCHuynh
+.\"   Bug 638477 - Strange sound on mp3 flash website
+.\"
+.\"   https://sourceware.org/bugzilla/show_bug.cgi?id=12518
+.\"   Bug 12518 - memcpy acts randomly (and differently) with overlapping areas
+.\"   Reported:       2011-02-25 02:26 UTC by Linus Torvalds
+.\"
+Under the previous implementation,
+the order in which the bytes were copied had fortuitously hidden the bug,
+which was revealed when the copying order was reversed.
+In glibc 2.14,
+.\" glibc commit 0354e355014b7bfda32622e0255399d859862fcd
+a versioned symbol was added so that old binaries
+(i.e., those linked against glibc versions earlier than 2.14)
+employed a
+.BR memcpy ()
+implementation that safely handles the overlapping buffers case
+(by providing an "older"
+.BR memcpy ()
+implementation that was aliased to
+.BR memmove (3)).
+.SH SEE ALSO
+.BR bcopy (3),
+.BR memccpy (3),
+.BR memmove (3),
+.BR mempcpy (3),
+.BR strcpy (3),
+.BR strncpy (3),
+.BR wmemcpy (3)
