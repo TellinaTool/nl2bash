@@ -7,3 +7,7 @@
 *.fls
 *.pdf
 *.synctex.gz
+*.out
+
+# Ignore the uncompressed StackOverflow data
+*.sqlite
