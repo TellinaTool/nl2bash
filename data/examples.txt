@@ -1,6 +1,305 @@
-% http://www.uccs.edu/~ahitchco/grep/
+===
 
-{
-  NL: This particualar example will print out the files that find returns that contain the text "hello",
-  COMMAND: find | grep "hello"
-}
+%http://www.uccs.edu/~ahitchco/grep/
+
+--- 001
+
+desc: This particualar example will print out the files that find returns that contain the text "hello".
+cmd: find | grep "hello"
+
+--- 002
+
+desc: list all of the lines that contain the word 'boo'.
+cmd: grep "boo" a_file
+
+--- 003
+
+desc: The following will search for the string "boo" in every directory below the current directory.
+cmd: find . -exec grep "boo" {} \;
+
+===
+
+#comment: this source is actually pretty dirty -- descripitons are actually of bad english quality.
+
+%http://www.bashoneliners.com/oneliners/oneliner/popular/
+
+--- 001
+
+desc: In current directory, recursively find all files with 'conf' in the filename.
+cmd: find . -name *conf*
+
+--- 002
+
+desc: Find all files recursively with specified string in the filename and output any lines found containing a different string.
+cmd: find . -name *conf* -exec grep -Hni 'matching_text' {} \; > matching_text.conf.list
+
+--- 003
+
+desc: Find recent logs that contain the string "Exception"
+cmd: find . -name '*.log' -mtime -2 -exec grep -Hc Exception {} \; | grep -v :0$
+
+--- 004
+
+desc: In this example I was looking for a list of log files which contain or don't contain a stack trace of OutOfMemoryError events.
+cmd: for i in *.log; do grep OutOfMemo $i >/dev/null && echo $i oom || echo $i ok; done
+
+--- 005
+
+desc: Show files containing "foo" and "bar" and "baz"
+cmd: grep -l 'baz' $(grep -l 'bar' $(grep -lr 'foo' *) )
+
+--- 006
+
+desc: Replaces the lines from 1 to the first occurrence of a line starting with STRING of every file found with find.
+cmd: find . -type f -name '*.html' -exec sed -i -e '1r common_header' -e '1,/STRING/d' {} \;
+
+--- 007
+
+desc: Recursively remove all empty sub-directories from a directory tree
+cmd: find . -depth  -type d  -empty -exec rmdir {} \;
+
+--- 008
+
+desc: Find files that are not executable
+cmd: find /some/path -type f ! -perm -111 -ls
+
+--- 009
+
+desc: Find all of the distinct file extensions in a folder
+cmd: find . -type f | perl -ne 'print $1 if m/\.([^.\/]+)$/' | sort -u;
+
+--- 010
+
+desc: Shows latest file (by last modification of file status information) for the given pattern. So in this example filename = custlist*.xls.
+cmd: find . -name 'filename' | xargs -r ls -tc | head -n1
+
+--- 011
+
+desc: Find the most recently modified files in a directory and all subdirectories
+cmd: find /path/to/dir -type f -mtime -7 -print0 | xargs -0 ls -lt | head
+
+--- 012
+
+desc: find and display every file in /etc containing the string nameserver with the corresponding line, including line number
+cmd: find /etc -type f -print0 2>/dev/null | xargs -0 grep --color=AUTO -Hn 'nameserver' 2>/dev/null
+
+--- 013
+
+desc: an elegant way to rename all files in a directory to lowercase names
+cmd: for i in `ls -1`; do mv $i "${i,,}" ; done
+
+===
+
+%http://pro-toolz.net/data/programming/bash/important_shell_commands.html
+
+--- 001
+
+desc: Finding files exceeding specified size (in 512-byte blocks)
+cmd: find / -size +10000
+
+--- 002
+
+desc: Find the 100 biggest files on your system
+cmd: find / -type f -ls |awk '{print $7,$11}'|sort -n|tail -100
+
+--- 003
+
+desc: perform search of files with keyword and perform long listing
+cmd: find /etc/ -name "*pass*" -ls
+
+--- 004
+
+desc: Make archive of subset of dir/ and below
+cmd: find dir/ -name '*.txt' | tar c --files-from=- | bzip2 > dir_txt.tar.bz2
+
+--- 005
+
+desc: Make copy of subset of dir/ and below
+cmd: find dir/ -name '*.txt' | xargs cp -a --target-directory=dir_txt/ --parents
+
+--- 006
+
+desc: Process each item with multiple commands - in while loop
+cmd: find -maxdepth 1 -type d | while read dir; do echo ; echo cmd2; done
+
+--- 007
+
+desc: Search all regular files for 'string' in this dir
+cmd: find -maxdepth 1 -type f | xargs grep -F 'string'
+
+--- 008
+
+desc: Search 'expr' in this dir and below. See also findrepo
+cmd: find -name '*.[ch]' | xargs grep -E 'expr'
+
+--- 009
+
+desc: Find dirs not accessible by all (useful for web site)
+cmd: find -type d ! -perm -111
+
+--- 010
+
+desc: Find files not readable by all (useful for web site)
+cmd: find -type f ! -perm -444
+
+--- 011
+
+desc: View all files on the system with SUID configured
+cmd: find / -perm -u+s
+
+--- 012
+
+desc: Find all your writable directories
+cmd: find / -perm -0777 -type d
+
+--- 013
+
+desc: Search all regular files for 'string' in this dir and below
+cmd: find -type f -print0 | xargs -r0 grep -F 'string'
+
+--- 014
+
+desc: Search the two directories /example1 and /example2 for files containing the string "New word" and print the names of the files:
+cmd: find /example1 /example2 -exec grep -l 'New word' {} \;
+
+--- 015
+
+desc: Remove all files named test.doc or *.txt that have not been accessed for seven days:
+cmd: find /tmp \( -name test.doc -o -name '*.txt' \) -atime +7 -exec rm {} \;
+
+--- 016
+
+desc: Change permissions on all regular files in a directory subtree to mode 444
+cmd: find /tmp -type f -print | xargs chmod 444 
+
+--- 017
+
+desc: Find and print root directories only
+cmd: find / -maxdepth 1 -type d
+
+--- 018
+
+desc: Search for files inside many paths
+cmd: find . -regex '/dir[0-9] '
+
+--- 019
+
+desc: Find files named core in or below the directory /tmp and delete them. 
+cmd: find /tmp -name core -type f -print | xargs /bin/rm -f
+
+--- 020
+
+desc: to find the files that were accessed yesterday:
+cmd: find ~ -daystart -type f -atime 1
+
+--- 021
+
+desc: Find a string in files starting cwd
+cmd: find . -exec egrep -li "str" {} \;
+
+--- 022
+
+desc: Find recently modified files
+cmd: find . -mtime -1 -type f
+
+--- 023
+
+desc: Find files modified during the past # of days
+cmd: find / -mtime <# of days>
+
+--- 024
+
+desc: Finds and removes files older than < days> specified
+cmd: find . ! -mtime -< days> | /usr/bin/xargs rm -rf
+
+--- 025
+
+desc: Find files containing < sub-string> within directory tree
+cmd: find . -type f -exec grep "< sub-string>" {} \; -print
+
+--- 026
+
+desc: Recursive grep on files
+cmd: find . -type f -print | xargs grep -i [PATTERN]
+
+--- 027
+
+desc: Find all files owned by < username>
+cmd: find / -user < username>
+
+--- 028
+
+desc: Recursively finds files by name and automatically removes them
+cmd: find / -name "< file_name>" -exec rm -rf {} \;
+
+--- 029
+
+Search file and directory into root filesystem from '/'
+find / -name file1
+
+---
+
+Search files and directories belonging to 'user1'
+find / -user user1
+
+---
+
+Search files with '. bin' extension within directory '/ home/user1'
+find /home/user1 -name \*.bin
+
+---
+
+Search binary files are not used in the last 100 days
+find /usr/bin -type f -atime +100
+
+---
+
+Search files created or changed within 10 days
+find /usr/bin -type f -mtime -10
+
+---
+
+Search files with '.rpm' extension and modify permits
+find / -name \*.rpm -exec chmod 755 '{}' \;
+
+---
+
+Search files with '.rpm' extension ignoring removable partitions as cdrom, pen-drive, etc..
+find / -xdev -name \*.rpm
+
+---
+
+To find all files not owned by user or group
+find / -nouser -o -nogroup -ls
+
+---
+
+To find all files modified in last 24 hours
+find / -mtime 1 -o -ctime 1
+
+---
+
+Deletes files from /tmp directory and subdirs not accessed in the last 30 days:
+find /tmp -type f -mtime +30 -exec rm -i {} \;
+
+---
+
+Find files larger than 10MB on the system
+find / -type f -size +10240k
+
+---
+
+Listing all files under current dir
+find . -depth -print
+
+
+
+
+
+
+
+
+
+
+
+
