@@ -292,13 +292,309 @@ find / -type f -size +10240k
 Listing all files under current dir
 find . -depth -print
 
+---
 
+What does some strange unix command names stand for ?
+awk = "Aho Weinberger and Kernighan"
 
+---
 
+COMPLETE awk doc
+http://www.gnu.org/software/gawk/manual/gawk.html
 
+---
 
+kill all processes containing keyword
+kill $(ps fa | grep 'mp3' | awk '{print $2}')
 
+---
 
+use awk as grep
+awk '/ls/' /etc/passwd
+
+---
+
+Number count of lines containing the word "Mat" in a file:
+cat textfile | awk '/Mat/ {nlines = nlines + 1} END {print nlines}'
+
+---
+
+To Print fields (columns) in reverse order:
+awk '{ for (i = NF; i > 0; --i) print $i }' textfile
+
+---
+
+Print only lines longer than 50 characters:
+awk 'length > 50' textfile
+
+---
+
+Print the first field of each line and its lenght
+awk '{print $1," ",length($1)}' /etc/passwd
+
+---
+
+get only file names form a current dir
+ls -l | grep -v '^d' | awk '{ print $9 }'
+
+---
+
+Remove all even lines from example.txt
+cat example.txt | awk 'NR%2==1'
+
+---
+
+View the first column of a line
+echo a b c | awk '{print $1}'
+
+---
+
+View the first and third column of a line
+echo a b c | awk '{print $1,$3}'
+
+---
+
+Print lines longer than 72 characters:
+awk 'length > 7' file1
+
+---
+
+Print first two fields in opposite order:
+awk '{ print $2, $1 }' /etc/passwd
+
+---
+
+Print last word of each line from specified file1
+awk '{print $NF}' /tmp/file1
+
+---
+
+Print one field before last
+uptime|awk '{print $(NF-1)}'
+
+---
+
+Print total sizes of ordinary files in all subdirs:
+ls -lR|grep ^- |awk '{ sum += $5 }; END { print sum }'
+
+---
+
+Print all lines between start/stop pairs:
+awk '/start/, /stop/' /etc/sysconfig/hwconf
+
+---
+
+Show only lines from a file1 that are less, longer or 80 characters long
+awk "length ==80" file1 
+awk "length <80" file1 
+awk "length >80" file1
+
+---
+
+Separate multiline fields with --, Print out only fields containing keyword
+clear;awk '{ RS = "--" } /zipinfo / ' examples.db
+
+---
+
+Print all lines where field three matches a condition. But do not print whole lines, just print second field from those lines.
+awk '$3 == "ext3" { print $2 }' /etc/fstab
+
+---
+
+Use a different Field separator
+cat /etc/group|awk -F ':' '{print $1}'
+
+---
+
+Split file on repeating keyword CHAPTER and nuber every created file:
+awk 'BEGIN{RS="CHAPTER";OFS="\n"}{ print > "myfile"NR}' testfile.txt
+
+---
+
+Summarize all numbers in first column of file1
+gawk '{ sum += $1 }; END { print sum }' file1
+
+---
+
+Print all system users
+gawk -F: '{ print $1 }' /etc/passwd
+
+---
+
+Print all system users and sort them
+cat /etc/passwd|gawk 'BEGIN { FS = ":" };{ print $1 | "sort" }'
+
+---
+
+Print number of lines in a file
+gawk '{ nlines++ };{ print nlines }' /etc/passwd
+
+---
+
+Number each line in a file
+awk '{ print NR, $0 }' /etc/passwd
+
+---
+
+Count lines in a file.
+awk 'END { print NR }' my_data_file
+
+---
+
+Print all lines whose first field (column) is different from the previous one:
+awk '$1 != prev { print; prev = $1 }' textfile
+
+---
+
+Print number of characters for each line in a file
+awk '{print length($0)}' examples
+
+---
+
+Displaying all users with UID of 0
+awk -F: '{if($3 == 0) print $1}' /etc/passwd
+
+---
+
+Removing blank lines with awk
+awk 'NF>0' < text_file
+
+---
+
+print configured ip addresses
+ifconfig | awk '/inet/{print $2}' | awk -F: '{print $2}'
+
+---
+
+This awk program prints the even numbered lines in the my_data_file file.
+awk 'NR % 2 == 0' my_data_file
+
+---
+
+This awk program prints the odd numbered lines in the my_data_file file.
+awk 'NR % 2 == 1' my_data_file
+
+---
+
+Prints the total number of kilobytes used by files.
+ls -lg files | awk '{ x += $5 } END { print "total K-bytes: " (x + 1023)/1024 }'
+
+---
+
+To delete blank lines from a text file
+awk 'NF > 0' my_text_file
+
+---
+
+grep = "Global Regular Expression Print"
+grep comes from the ed command to print all lines matching a 
+
+---
+
+certain pattern 'g/re/p' where "re" is a "regular expression".
+Look up words "Aug" on file '/var/log/messages'
+
+---
+
+Look up words that begin with "Aug" on file '/var/log/messages'
+grep ^Aug /var/log/messages
+
+---
+
+Select from file '/var/log/messages' all lines that contain numbers
+grep [0-9] /var/log/messages
+
+---
+
+Search string "Aug" at directory '/var/log' and below
+grep Aug -R /var/log/*
+
+---
+
+Show CPU(s) info
+grep "model name" /proc/cpuinfo
+
+---
+
+Paint suz keywords from a file
+grep --color suz /usr/share/dict/words
+
+---
+
+Show RAM total seen by the system
+grep MemTotal /proc/meminfo
+
+---
+
+Show lines containing cpu
+grep cpu /proc/cpuinfo
+
+---
+
+count lines in a file
+grep -c "" filename
+
+---
+
+Count CPUs (available cores) that server has
+grep -c ^processor /proc/cpuinfo
+
+---
+
+Find all files from /etc that contain word eth0
+grep -r eth0 /etc
+
+---
+
+List matching files
+grep -l root /etc/* # matching 
+
+---
+
+List nonmatching files
+grep -L root /etc/* # nonmatching
+
+---
+
+Print all but empty lines from a file
+grep -v ^$ /tmp/file1
+
+---
+
+Search all files in the current directory for the string xyz:
+grep xyz *
+
+---
+
+Grep for string and also show line numbers
+grep -n user1 /etc/passwd
+
+---
+
+Get all possible four letters word starting with da
+grep "^da..$" /usr/share/dict/words
+
+---
+
+Find all executables files in directory
+ls -lR /tmp| grep "\-x" | grep -v "dr"
+
+---
+
+Deleting ALL blank lines from a file
+grep "." testfile.txt > newfile.txt
+
+---
+
+Deleting ALL blank lines from a file
+grep [[:space:]] testfile.txt > newfile.txt
+
+---
+
+Get info on last reboot operations
+grep -n syslogd /var/log/messages
+
+---
 
 
 

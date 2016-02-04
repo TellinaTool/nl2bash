@@ -1,8 +1,8 @@
 .PHONY: all clean
 
-all: relatedwork.pdf
+all: NL2Commands.pdf
 
-relatedwork.pdf: relatedwork.tex bibliography.bib
+NL2Commands.pdf: NL2Commands.tex bibliography.bib
 	latexmk -pdf -pdflatex='pdflatex -interaction nonstopmode' '$<'
 
 clean:
