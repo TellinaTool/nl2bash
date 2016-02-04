@@ -1,0 +1,241 @@
+.\" Copyright 1995  James R. Van Zandt <jrv@vanzandt.mv.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Changed Tue Sep 19 01:49:29 1995, aeb: moved from man2 to man3
+.\"  added ref to /etc/utmp, added BUGS section, etc.
+.\" modified 2003 Walter Harms, aeb - added getlogin_r, note on stdin use
+.TH GETLOGIN 3 2015-12-28 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getlogin, getlogin_r, cuserid \- get username
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.B "char *getlogin(void);"
+.br
+.BI "int getlogin_r(char *" buf ", size_t " bufsize );
+.sp
+.B #include <stdio.h>
+.sp
+.BI "char *cuserid(char *" string );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR getlogin_r ():
+_REENTRANT || _POSIX_C_SOURCE\ >=\ 199506L
+.br
+.BR cuserid ():
+_XOPEN_SOURCE
+.SH DESCRIPTION
+.BR getlogin ()
+returns a pointer to a string containing the name of
+the user logged in on the controlling terminal of the process, or a
+null pointer if this information cannot be determined.
+The string is
+statically allocated and might be overwritten on subsequent calls to
+this function or to
+.BR cuserid ().
+.PP
+.BR getlogin_r ()
+returns this same username in the array
+.I buf
+of size
+.IR bufsize .
+.PP
+.BR cuserid ()
+returns a pointer to a string containing a username
+associated with the effective user ID of the process.
+If \fIstring\fP
+is not a null pointer, it should be an array that can hold at least
+\fBL_cuserid\fP characters; the string is returned in this array.
+Otherwise, a pointer to a string in a static area is returned.
+This
+string is statically allocated and might be overwritten on subsequent
+calls to this function or to
+.BR getlogin ().
+.PP
+The macro \fBL_cuserid\fP is an integer constant that indicates how
+long an array you might need to store a username.
+\fBL_cuserid\fP is declared in \fI<stdio.h>\fP.
+.PP
+These functions let your program identify positively the user who is
+running
+.RB ( cuserid ())
+or the user who logged in this session
+.RB ( getlogin ()).
+(These can differ when set-user-ID programs are involved.)
+.PP
+For most purposes, it is more useful to use the environment variable
+\fBLOGNAME\fP to find out who the user is.
+This is more flexible
+precisely because the user can set \fBLOGNAME\fP arbitrarily.
+.SH RETURN VALUE
+.BR getlogin ()
+returns a pointer to the username when successful,
+and NULL on failure, with
+.I errno
+set to indicate the cause of the error.
+.BR getlogin_r ()
+returns 0 when successful, and nonzero on failure.
+.SH ERRORS
+POSIX specifies
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENXIO
+The calling process has no controlling terminal.
+.TP
+.B ERANGE
+(getlogin_r)
+The length of the username, including the terminating null byte (\(aq\\0\(aq),
+is larger than
+.IR bufsize .
+.LP
+Linux/glibc also has
+.TP
+.B ENOENT
+There was no corresponding entry in the utmp-file.
+.TP
+.B ENOMEM
+Insufficient memory to allocate passwd structure.
+.TP
+.B ENOTTY
+Standard input didn't refer to a terminal.
+(See BUGS.)
+.SH FILES
+.TP
+\fI/etc/passwd\fP
+password database file
+.TP
+\fI/var/run/utmp\fP
+(traditionally \fI/etc/utmp\fP;
+some libc versions used \fI/var/adm/utmp\fP)
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getlogin ()
+T}	Thread safety	T{
+MT-Unsafe race:getlogin race:utent
+.br
+sig:ALRM timer locale
+T}
+T{
+.BR getlogin_r ()
+T}	Thread safety	T{
+MT-Unsafe race:utent sig:ALRM timer
+.br
+locale
+T}
+T{
+.BR cuserid ()
+T}	Thread safety	MT-Unsafe race:cuserid/!string locale
+.TE
+
+In the above table,
+.I utent
+in
+.I race:utent
+signifies that if any of the functions
+.BR setutent (3),
+.BR getutent (3),
+or
+.BR endutent (3)
+are used in parallel in different threads of a program,
+then data races could occur.
+.BR getlogin ()
+and
+.BR getlogin_r ()
+call those functions,
+so we use race:utent to remind users.
+.SH CONFORMING TO
+.BR getlogin ()
+and
+.BR getlogin_r ():
+POSIX.1-2001, POSIX.1-2008.
+
+System V has a
+.BR cuserid ()
+function which uses the real
+user ID rather than the effective user ID.
+The
+.BR cuserid ()
+function
+was included in the 1988 version of POSIX,
+but removed from the 1990 version.
+It was present in SUSv2, but removed in POSIX.1-2001.
+.LP
+OpenBSD has
+.BR getlogin ()
+and
+.BR setlogin (),
+and a username
+associated with a session, even if it has no controlling terminal.
+.SH BUGS
+Unfortunately, it is often rather easy to fool
+.BR getlogin ().
+Sometimes it does not work at all, because some program messed up
+the utmp file.
+Often, it gives only the first 8 characters of
+the login name.
+The user currently logged in on the controlling terminal
+of our program need not be the user who started it.
+Avoid
+.BR getlogin ()
+for security-related purposes.
+.LP
+Note that glibc does not follow the POSIX specification and uses
+.I stdin
+instead of
+.IR /dev/tty .
+A bug.
+(Other recent systems, like SunOS 5.8 and HP-UX 11.11 and FreeBSD 4.8
+all return the login name also when
+.I stdin
+is redirected.)
+.LP
+Nobody knows precisely what
+.BR cuserid ()
+does; avoid it in portable programs.
+Or avoid it altogether: use
+.I getpwuid(geteuid())
+instead, if that is
+what you meant.
+.B Do not use
+.BR cuserid ().
+.SH SEE ALSO
+.BR geteuid (2),
+.BR getuid (2),
+.BR utmp (5)

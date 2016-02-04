@@ -1,0 +1,164 @@
+.\" Copyright 2004 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH FINITE 3  2015-03-02 "" "Linux Programmer's Manual"
+.SH NAME
+finite, finitef, finitel, isinf, isinff, isinfl, isnan, isnanf, isnanl \-
+BSD floating-point classification functions
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "int finite(double " x );
+.br
+.BI "int finitef(float " x );
+.br
+.BI "int finitel(long double " x );
+.sp
+.BI "int isinf(double " x );
+.br
+.BI "int isinff(float " x );
+.br
+.BI "int isinfl(long double " x );
+.sp
+.BI "int isnan(double " x );
+.br
+.BI "int isnanf(float " x );
+.br
+.BI "int isnanl(long double " x );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR finite (),
+.BR finitef (),
+.BR finitel ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE
+.RE
+.BR isinf ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE;
+.br
+or
+.I cc\ -std=c99
+.RE
+.br
+.BR isinff (),
+.BR isinfl ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE
+.RE
+.BR isnan ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE || _ISOC99_SOURCE;
+.br
+or
+.I cc\ -std=c99
+.RE
+.BR isnanf (),
+.BR isnanl ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR finite (),
+.BR finitef (),
+and
+.BR finitel ()
+functions return a nonzero value if
+.I x
+is neither infinite
+nor a "not-a-number" (NaN) value, and 0 otherwise.
+
+The
+.BR isnan (),
+.BR isnanf (),
+and
+.BR isnanl ()
+functions return a nonzero value if
+.I x
+is a NaN value,
+and 0 otherwise.
+
+The
+.BR isinf (),
+.BR isinff (),
+and
+.BR isinfl ()
+functions return 1 if
+.I x
+is positive infinity, \-1 if
+.I x
+is negative infinity, and 0 otherwise.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw31 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR finite (),
+.BR finitef (),
+.BR finitel (),
+.br
+.BR isinf (),
+.BR isinff (),
+.BR isinfl (),
+.br
+.BR isnan (),
+.BR isnanf (),
+.BR isnanl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH NOTES
+Note that these functions are obsolete.
+C99 defines macros
+.BR isfinite (),
+.BR isinf (),
+and
+.BR isnan ()
+(for all types) replacing them.
+Further note that the C99
+.BR isinf ()
+has weaker guarantees on the return value.
+See
+.BR fpclassify (3).
+.\"
+.\" finite* not on HP-UX; they exist on Tru64.
+.\" .SH HISTORY
+.\" The
+.\" .BR finite ()
+.\" function occurs in 4.3BSD.
+.\" see IEEE.3 in the 4.3BSD manual
+.SH SEE ALSO
+.BR fpclassify (3)

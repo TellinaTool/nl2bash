@@ -1,0 +1,86 @@
+.\" Copyright (C) 2002 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH TCGETSID 3 2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+tcgetsid \- get session ID
+.SH SYNOPSIS
+.BR "#define _XOPEN_SOURCE 500" "        /* See feature_test_macros(7) */"
+.br
+.B "#include <termios.h>"
+.sp
+.BI "pid_t tcgetsid(int " fd );
+.SH DESCRIPTION
+The function
+.BR tcgetsid ()
+returns the session ID of the current session that has the
+terminal associated to
+.I fd
+as controlling terminal.
+This terminal must be the controlling terminal of the calling process.
+.SH RETURN VALUE
+When
+.I fd
+refers to the controlling terminal of our session,
+the function
+.BR tcgetsid ()
+will return the session ID of this session.
+Otherwise, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor.
+.TP
+.B ENOTTY
+The calling process does not have a controlling terminal, or
+it has one but it is not described by
+.IR fd .
+.SH VERSIONS
+.BR tcgetsid ()
+is provided in glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR tcgetsid ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+This function is implemented via the
+.B TIOCGSID
+.BR ioctl (2),
+present
+since Linux 2.1.71.
+.SH SEE ALSO
+.BR getsid (2)

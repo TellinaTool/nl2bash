@@ -1,0 +1,65 @@
+.\" Copyright 1995 Michael Chastain (mec@shell.portal.com), 15 April 1995.
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Updated, aeb, 980612
+.\"
+.TH UNIMPLEMENTED 2 2013-02-12 "Linux" "Linux Programmer's Manual"
+.SH NAME
+afs_syscall, break, fattach, fdetach, ftime, getmsg, getpmsg, gtty, isastream,
+lock, madvise1, mpx, prof, profil, putmsg, putpmsg, security,
+stty, tuxcall, ulimit, vserver \- unimplemented system calls
+.SH SYNOPSIS
+Unimplemented system calls.
+.SH DESCRIPTION
+These system calls are not implemented in the Linux kernel.
+.SH RETURN VALUE
+These system calls always return \-1 and set
+.I errno
+to
+.BR ENOSYS .
+.SH NOTES
+Note that
+.BR ftime (3),
+.BR profil (3),
+and
+.BR ulimit (3)
+are implemented as library functions.
+
+Some system calls, like
+.BR alloc_hugepages (2),
+.BR free_hugepages (2),
+.BR ioperm (2),
+.BR iopl (2),
+and
+.BR vm86 (2)
+exist only on certain architectures.
+
+Some system calls, like
+.BR ipc (2),
+.BR create_module (2),
+.BR init_module (2),
+and
+.BR delete_module (2)
+exist only when the Linux kernel was built with support for them.
+.SH SEE ALSO
+.BR syscalls (2)

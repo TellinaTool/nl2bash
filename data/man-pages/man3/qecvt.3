@@ -1,0 +1,118 @@
+.\" Copyright (C) 2002 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" This replaces an earlier man page written by Walter Harms
+.\" <walter.harms@informatik.uni-oldenburg.de>.
+.\"
+.TH QECVT 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+qecvt, qfcvt, qgcvt \- convert a floating-point number to a string
+.SH SYNOPSIS
+.B #include <stdlib.h>
+.sp
+.BI "char *qecvt(long double " number ", int " ndigits ", int *" decpt ,
+.BI "int *" sign );
+.sp
+.BI "char *qfcvt(long double " number ", int " ndigits ", int *" decpt ,
+.BI "int *" sign );
+.sp
+.BI "char *qgcvt(long double " number ", int " ndigit ", char *" buf );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR qecvt (),
+.BR qfcvt (),
+.BR qgcvt ():
+_SVID_SOURCE
+.ad b
+.\" FIXME . The full FTM picture looks to have be something like the
+.\" following mess:
+.\"    glibc 2.20 onward
+.\"        _DEFAULT_SOURCE
+.\"    glibc 2.18 to glibc 2.19
+.\"        _BSD_SOURCE || _SVID_SOURCE
+.\"    glibc 2.10 to glibc 2.17
+.\"        _SVID_SOURCE || (_XOPEN_SOURCE >= 500 ||
+.\"            (_XOPEN_SOURCE && _XOPEN_SOURCE_EXTENDED) &&
+.\"                ! (_POSIX_C_SOURCE >= 200809L || _XOPEN_SOURCE >= 700))
+.\"    Before glibc 2.10:
+.\"        _SVID_SOURCE || _XOPEN_SOURCE >= 500 ||
+.\"            (_XOPEN_SOURCE && _XOPEN_SOURCE_EXTENDED)
+.SH DESCRIPTION
+The functions
+.BR qecvt (),
+.BR qfcvt (),
+and
+.BR qgcvt ()
+are identical to
+.BR ecvt (3),
+.BR fcvt (3),
+and
+.BR gcvt (3)
+respectively, except that they use a
+.I "long double"
+argument
+.IR number .
+See
+.BR ecvt (3)
+and
+.BR gcvt (3).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR qecvt ()
+T}	Thread safety	MT-Unsafe race:qecvt
+T{
+.BR qfcvt ()
+T}	Thread safety	MT-Unsafe race:qfcvt
+T{
+.BR qgcvt ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+SVr4.
+Not seen in most common UNIX implementations,
+but occurs in SunOS.
+.\" Not supported by libc4 and libc5.
+Supported by glibc.
+.SH NOTES
+These functions are obsolete.
+Instead,
+.BR snprintf (3)
+is recommended.
+.SH SEE ALSO
+.BR ecvt (3),
+.BR ecvt_r (3),
+.BR gcvt (3),
+.BR sprintf (3)

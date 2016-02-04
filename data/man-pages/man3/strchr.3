@@ -1,0 +1,140 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Mon Apr 12 12:51:24 1993, David Metcalfe
+.\" 2006-05-19, Justin Pryzby <pryzbyj@justinpryzby.com>
+.\"	Document strchrnul(3).
+.\"
+.TH STRCHR 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+strchr, strrchr, strchrnul \- locate character in string
+.SH SYNOPSIS
+.nf
+.B #include <string.h>
+.sp
+.BI "char *strchr(const char *" s ", int " c );
+.sp
+.BI "char *strrchr(const char *" s ", int " c );
+.sp
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.B #include <string.h>
+.sp
+.BI "char *strchrnul(const char *" s ", int " c );
+.fi
+.SH DESCRIPTION
+The
+.BR strchr ()
+function returns a pointer to the first occurrence
+of the character
+.I c
+in the string
+.IR s .
+.PP
+The
+.BR strrchr ()
+function returns a pointer to the last occurrence
+of the character
+.I c
+in the string
+.IR s .
+.PP
+The
+.BR strchrnul ()
+function is like
+.BR strchr ()
+except that if
+.I c
+is not found in
+.IR s ,
+then it returns a pointer to the null byte
+at the end of
+.IR s ,
+rather than NULL.
+.PP
+Here "character" means "byte"; these functions do not work with
+wide or multibyte characters.
+.SH RETURN VALUE
+The
+.BR strchr ()
+and
+.BR strrchr ()
+functions return a pointer to
+the matched character or NULL if the character is not found.
+The terminating null byte is considered part of the string,
+so that if
+.I c
+is specified as \(aq\\0\(aq,
+these functions return a pointer to the terminator.
+
+The
+.BR strchrnul ()
+function returns a pointer to
+the matched character,
+or a pointer to the null
+byte at the end of
+.I s
+(i.e.,
+.IR "s+strlen(s)" )
+if the character is not found.
+.SH VERSIONS
+.BR strchrnul ()
+first appeared in glibc in version 2.1.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw32 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR strchr (),
+.BR strrchr (),
+.BR strchrnul ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+.BR strchr (),
+.BR strrchr ():
+POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
+
+.BR strchrnul ()
+is a GNU extension.
+.SH SEE ALSO
+.BR index (3),
+.BR memchr (3),
+.BR rindex (3),
+.BR string (3),
+.BR strlen (3),
+.BR strpbrk (3),
+.BR strsep (3),
+.BR strspn (3),
+.BR strstr (3),
+.BR strtok (3),
+.BR wcschr (3),
+.BR wcsrchr (3)

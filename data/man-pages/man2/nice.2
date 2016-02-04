@@ -1,0 +1,112 @@
+.\" Copyright (c) 1992 Drew Eckhardt <drew@cs.colorado.edu>, March 28, 1992
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-11-04 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2001-06-04 by aeb
+.\" Modified 2004-05-27 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.TH NICE 2 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+nice \- change process priority
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.BI "int nice(int " inc );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR nice ():
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE
+.SH DESCRIPTION
+.BR nice ()
+adds
+.I inc
+to the nice value for the calling process.
+(A higher nice value means a low priority.)
+Only the super\%user may specify a negative increment,
+or priority increase.
+The range for nice values is described in
+.BR getpriority (2).
+.SH RETURN VALUE
+On success, the new nice value is returned (but see NOTES below).
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EPERM
+The calling process attempted to increase its priority by
+supplying a negative
+.I inc
+but has insufficient privileges.
+Under Linux, the
+.B CAP_SYS_NICE
+capability is required.
+(But see the discussion of the
+.B RLIMIT_NICE
+resource limit in
+.BR setrlimit (2).)
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+However, the Linux and (g)libc
+(earlier than glibc 2.2.4) return value is nonstandard, see below.
+SVr4 documents an additional
+.B EINVAL
+error code.
+.SH NOTES
+SUSv2 and POSIX.1 specify that
+.BR nice ()
+should return the new nice value.
+However, the Linux system call and the
+.BR nice ()
+library function provided in older versions of (g)libc
+(earlier than glibc 2.2.4) return 0 on success.
+The new nice value can be found using
+.BR getpriority (2).
+
+Since glibc 2.2.4,
+.BR nice ()
+is implemented as a library function that calls
+.BR getpriority (2)
+to obtain the new nice value to be returned to the caller.
+With this implementation,
+a successful call can legitimately return \-1.
+To reliably detect an error, set
+.I errno
+to 0 before the call, and check its value when
+.BR nice ()
+returns \-1.
+.SH SEE ALSO
+.BR nice (1),
+.BR renice (1),
+.BR fork (2),
+.BR getpriority (2),
+.BR setpriority (2),
+.BR capabilities (7),
+.BR sched (7)

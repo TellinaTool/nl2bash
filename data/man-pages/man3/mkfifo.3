@@ -1,0 +1,211 @@
+.\" This manpage is Copyright (C) 1995 James R. Van Zandt <jrv@vanzandt.mv.com>
+.\" and Copyright (C) 2006, 2014 Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" changed section from 2 to 3, aeb, 950919
+.\"
+.TH MKFIFO 3 2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+mkfifo, mkfifoat \- make a FIFO special file (a named pipe)
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.B #include <sys/stat.h>
+.sp
+.BI "int mkfifo(const char *" pathname ", mode_t " mode );
+.sp
+.BR "#include <fcntl.h>           " "/* Definition of AT_* constants */"
+.B #include <sys/stat.h>
+.sp
+.BI "int mkfifoat(int " dirfd ", const char *" pathname ", mode_t " mode );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR mkfifoat ():
+.PD 0
+.ad l
+.RS 4
+.TP 4
+Since glibc 2.10:
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP
+Before glibc 2.10:
+_ATFILE_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+.BR mkfifo ()
+makes a FIFO special file with name \fIpathname\fP.
+\fImode\fP specifies the FIFO's permissions.
+It is modified by the
+process's \fBumask\fP in the usual way: the permissions of the created
+file are \fB(\fP\fImode\fP\fB & ~umask)\fP.
+.PP
+A FIFO special file is similar to a pipe, except that it is created
+in a different way.
+Instead of being an anonymous communications
+channel, a FIFO special file is entered into the filesystem by
+calling
+.BR mkfifo ().
+.PP
+Once you have created a FIFO special file in this way, any process can
+open it for reading or writing, in the same way as an ordinary file.
+However, it has to be open at both ends simultaneously before you can
+proceed to do any input or output operations on it.
+Opening a FIFO for reading normally blocks until some
+other process opens the same FIFO for writing, and vice versa.
+See
+.BR fifo (7)
+for nonblocking handling of FIFO special files.
+.SS mkfifoat()
+The
+.BR mkfifoat ()
+function operates in exactly the same way as
+.BR mkfifo (),
+except for the differences described here.
+
+If the pathname given in
+.I pathname
+is relative, then it is interpreted relative to the directory
+referred to by the file descriptor
+.I dirfd
+(rather than relative to the current working directory of
+the calling process, as is done by
+.BR mkfifo ()
+for a relative pathname).
+
+If
+.I pathname
+is relative and
+.I dirfd
+is the special value
+.BR AT_FDCWD ,
+then
+.I pathname
+is interpreted relative to the current working
+directory of the calling process (like
+.BR mkfifo ()).
+
+If
+.I pathname
+is absolute, then
+.I dirfd
+is ignored.
+.SH RETURN VALUE
+On success
+.BR mkfifo ()
+and
+.BR mkfifoat ()
+return 0.
+In the case of an error, \-1 is returned (in which case, \fIerrno\fP
+is set appropriately).
+.SH ERRORS
+.TP
+.B EACCES
+One of the directories in \fIpathname\fP did not allow search
+(execute) permission.
+.TP
+.B EDQUOT
+The user's quota of disk blocks or inodes on the filesystem has been
+exhausted.
+.TP
+.B EEXIST
+\fIpathname\fP already exists.
+This includes the case where
+.I pathname
+is a symbolic link, dangling or not.
+.TP
+.B ENAMETOOLONG
+Either the total length of \fIpathname\fP is greater than
+\fBPATH_MAX\fP, or an individual filename component has a length
+greater than \fBNAME_MAX\fP.
+In the GNU system, there is no imposed
+limit on overall filename length, but some filesystems may place
+limits on the length of a component.
+.TP
+.B ENOENT
+A directory component in \fIpathname\fP does not exist or is a
+dangling symbolic link.
+.TP
+.B ENOSPC
+The directory or filesystem has no room for the new file.
+.TP
+.B ENOTDIR
+A component used as a directory in \fIpathname\fP is not, in fact, a
+directory.
+.TP
+.B EROFS
+\fIpathname\fP refers to a read-only filesystem.
+.PP
+The following additional errors can occur for
+.BR mkfifoat ():
+.TP
+.B EBADF
+.I dirfd
+is not a valid file descriptor.
+.TP
+.B ENOTDIR
+.I pathname
+is a relative path and
+.I dirfd
+is a file descriptor referring to a file other than a directory.
+.SH VERSIONS
+.BR mkfifoat ()
+was added to glibc in version 2.4.
+It is implemented using
+.BR mknodat (2),
+available on Linux since kernel 2.6.16.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw20 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR mkfifo (),
+.BR mkfifoat ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+.BR mkfifo ():
+POSIX.1-2001, POSIX.1-2008.
+
+.BR mkfifoat ():
+POSIX.1-2008.
+.SH SEE ALSO
+.BR mkfifo (1),
+.BR close (2),
+.BR open (2),
+.BR read (2),
+.BR stat (2),
+.BR umask (2),
+.BR write (2),
+.BR fifo (7)

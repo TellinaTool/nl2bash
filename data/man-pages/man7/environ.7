@@ -1,0 +1,263 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"   Fri Apr  2 11:32:09 MET DST 1993
+.\" and Andries Brouwer (aeb@cwi.nl), Fri Feb 14 21:47:50 1997.
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sun Jul 25 10:45:30 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Jul 21 21:25:26 1996 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Mon Oct 21 17:47:19 1996 by Eric S. Raymond (esr@thyrsus.com)
+.\" Modified Wed Aug 27 20:28:58 1997 by Nicolás Lichtmaier (nick@debian.org)
+.\" Modified Mon Sep 21 00:00:26 1998 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Wed Jan 24 06:37:24 2001 by Eric S. Raymond (esr@thyrsus.com)
+.\" Modified Thu Dec 13 23:53:27 2001 by Martin Schulze <joey@infodrom.org>
+.\"
+.TH ENVIRON 7 2014-08-19 "Linux" "Linux Programmer's Manual"
+.SH NAME
+environ \- user environment
+.SH SYNOPSIS
+.nf
+.BI "extern char **" environ ;
+.br
+.fi
+.SH DESCRIPTION
+The variable
+.I environ
+points to an array of pointers to strings called the "environment".
+The last pointer in this array has the value NULL.
+(This variable must be declared in the user program,
+but is declared in the header file
+.I <unistd.h>
+if the
+.B _GNU_SOURCE
+feature test macro is defined.)
+This array of strings is made available to the process by the
+.BR exec (3)
+call that started the process.
+
+By convention the strings in
+.I environ
+have the form "\fIname\fP\fB=\fP\fIvalue\fP".
+Common examples are:
+.TP
+.B USER
+The name of the logged-in user (used by some BSD-derived programs).
+.TP
+.B LOGNAME
+The name of the logged-in user (used by some System-V derived programs).
+.TP
+.B HOME
+A user's login directory, set by
+.BR login (1)
+from the password file
+.BR passwd (5).
+.TP
+.B LANG
+The name of a locale to use for locale categories when not overridden
+by
+.B LC_ALL
+or more specific environment variables such as
+.BR LC_COLLATE ,
+.BR LC_CTYPE ,
+.BR LC_MESSAGES ,
+.BR LC_MONETARY ,
+.BR LC_NUMERIC ,
+and
+.BR LC_TIME
+(see
+.BR locale (7)
+for further details of the
+.BR LC_*
+environment variables).
+.TP
+.B PATH
+The sequence of directory prefixes that
+.BR sh (1)
+and many other
+programs apply in searching for a file known by an incomplete pathname.
+The prefixes are separated by \(aq\fB:\fP\(aq.
+(Similarly one has
+.B CDPATH
+used by some shells to find the target
+of a change directory command,
+.B MANPATH
+used by
+.BR man (1)
+to find manual pages, and so on)
+.TP
+.B PWD
+The current working directory.
+Set by some shells.
+.TP
+.B SHELL
+The pathname of the user's login shell.
+.TP
+.B TERM
+The terminal type for which output is to be prepared.
+.TP
+.B PAGER
+The user's preferred utility to display text files.
+.TP
+.BR EDITOR / VISUAL
+The user's preferred utility to edit text files.
+.\" .TP
+.\" .B BROWSER
+.\" The user's preferred utility to browse URLs. Sequence of colon-separated
+.\" browser commands. See http://www.catb.org/~esr/BROWSER/ .
+.PP
+Further names may be placed in the environment by the
+.I export
+command and "name=value" in
+.BR sh (1),
+or by the
+.I setenv
+command if you use
+.BR csh (1).
+Arguments may also be placed in the
+environment at the point of an
+.BR exec (3).
+A C program can manipulate its environment using the functions
+.BR getenv (3),
+.BR putenv (3),
+.BR setenv (3),
+and
+.BR unsetenv (3).
+
+Note that the behavior of many programs and library routines is
+influenced by the presence or value of certain environment variables.
+A random collection:
+.LP
+The variables
+.BR LANG ", " LANGUAGE ", " NLSPATH ", " LOCPATH ", "
+.BR LC_ALL ", " LC_MESSAGES ", "
+and so on influence locale handling; see
+.BR catopen (3),
+.BR gettext (3),
+and
+.BR locale (7).
+.LP
+.B TMPDIR
+influences the path prefix of names created by
+.BR tmpnam (3)
+and other routines, and the temporary directory used by
+.BR sort (1)
+and other programs.
+.LP
+.BR LD_LIBRARY_PATH ", " LD_PRELOAD
+and other LD_* variables influence
+the behavior of the dynamic loader/linker.
+.LP
+.B POSIXLY_CORRECT
+makes certain programs and library routines follow
+the prescriptions of POSIX.
+.LP
+The behavior of
+.BR malloc (3)
+is influenced by
+.B MALLOC_*
+variables.
+.LP
+The variable
+.B HOSTALIASES
+gives the name of a file containing aliases
+to be used with
+.BR gethostbyname (3).
+.LP
+.BR TZ " and " TZDIR
+give timezone information used by
+.BR tzset (3)
+and through that by functions like
+.BR ctime (3),
+.BR localtime (3),
+.BR mktime (3),
+.BR strftime (3).
+See also
+.BR tzselect (8).
+.LP
+.B TERMCAP
+gives information on how to address a given terminal
+(or gives the name of a file containing such information).
+.LP
+.BR COLUMNS " and " LINES
+tell applications about the window size, possibly overriding the actual size.
+.LP
+.BR PRINTER " or " LPDEST
+may specify the desired printer to use.
+See
+.BR lpr (1).
+.LP
+Etc.
+.SH BUGS
+Clearly there is a security risk here.
+Many a system command has been
+tricked into mischief by a user who specified unusual values for
+.BR IFS " or " LD_LIBRARY_PATH .
+
+There is also the risk of name space pollution.
+Programs like
+.I make
+and
+.I autoconf
+allow overriding of default utility names from the
+environment with similarly named variables in all caps.
+Thus one uses
+.B CC
+to select the desired C compiler (and similarly
+.BR MAKE ,
+.BR AR ,
+.BR AS ,
+.BR FC ,
+.BR LD ,
+.BR LEX ,
+.BR RM ,
+.BR YACC ,
+etc.).
+However, in some traditional uses such an environment variable
+gives options for the program instead of a pathname.
+Thus, one has
+.BR MORE ,
+.BR LESS ,
+and
+.BR GZIP .
+Such usage is considered mistaken, and to be avoided in new
+programs.
+The authors of
+.I gzip
+should consider renaming their option to
+.BR GZIP_OPT .
+.SH SEE ALSO
+.BR env (1),
+.BR bash (1),
+.BR csh (1),
+.BR login (1),
+.BR printenv (1),
+.BR sh (1),
+.BR tcsh (1),
+.BR execve (2),
+.BR clearenv (3),
+.BR exec (3),
+.BR getenv (3),
+.BR putenv (3),
+.BR setenv (3),
+.BR unsetenv (3),
+.BR locale (7),
+.BR ld.so (8)

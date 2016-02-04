@@ -1,0 +1,83 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_KILL_OTHER_THREADS_NP 3 2015-03-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_kill_other_threads_np \- terminate all other threads in process
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.B void pthread_kill_other_threads_np(void);
+.fi
+.SH DESCRIPTION
+.BR pthread_kill_other_threads_np ()
+has an effect only in the LinuxThreads threading implementation.
+On that implementation,
+calling this function causes the immediate termination of
+all threads in the application,
+except the calling thread.
+The cancellation state and cancellation type of the
+to-be-terminated threads are ignored,
+and the cleanup handlers are not called in those threads.
+.\" .SH VERSIONS
+.\" Available since glibc 2.0
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw31 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_kill_other_threads_np ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+This function is a nonstandard GNU extension;
+hence the suffix "_np" (nonportable) in the name.
+.SH NOTES
+.BR pthread_kill_other_threads_np ()
+is intended to be called just before a thread calls
+.BR execve (2)
+or a similar function.
+This function is designed to address a limitation in the obsolete
+LinuxThreads implementation whereby the other threads of an application
+are not automatically terminated (as POSIX.1-2001 requires) during
+.BR execve (2).
+
+In the NPTL threading implementation,
+.BR pthread_kill_other_threads_np ()
+exists, but does nothing.
+(Nothing needs to be done,
+because the implementation does the right thing during an
+.BR execve (2).)
+.SH SEE ALSO
+.BR execve (2),
+.BR pthread_cancel (3),
+.BR pthread_setcancelstate (3),
+.BR pthread_setcanceltype (3),
+.BR pthreads (7)

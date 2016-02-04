@@ -1,0 +1,38 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.TH CCOSH 3 2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+ccosh, ccoshf, ccoshl \- complex hyperbolic cosine
+.SH SYNOPSIS
+.B #include <complex.h>
+.sp
+.BI "double complex ccosh(double complex " z ");"
+.br
+.BI "float complex ccoshf(float complex " z ");"
+.br
+.BI "long double complex ccoshl(long double complex " z ");"
+.sp
+Link with \fI\-lm\fP.
+.SH DESCRIPTION
+These functions calculate the complex hyperbolic cosine of
+.IR z .
+
+The complex hyperbolic cosine function is defined as:
+.nf
+
+    ccosh(z) = (exp(z)+exp(\-z))/2
+.fi
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+.SH SEE ALSO
+.BR cabs (3),
+.BR cacosh (3),
+.BR csinh (3),
+.BR ctanh (3),
+.BR complex (7)

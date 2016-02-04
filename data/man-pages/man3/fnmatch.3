@@ -1,0 +1,144 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 19:35:54 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Mon Oct 16 00:16:29 2000 following Joseph S. Myers
+.\"
+.TH FNMATCH 3  2015-12-28 "GNU" "Linux Programmer's Manual"
+.SH NAME
+fnmatch \- match filename or pathname
+.SH SYNOPSIS
+.nf
+.B #include <fnmatch.h>
+.sp
+.BI "int fnmatch(const char *" "pattern" ", const char *" string ", int " flags );
+.fi
+.SH DESCRIPTION
+The
+.BR fnmatch ()
+function checks whether the
+.I string
+argument matches the
+.I pattern
+argument, which is a shell wildcard pattern.
+.PP
+The
+.I flags
+argument modifies the behavior; it is the bitwise OR of zero or more
+of the following flags:
+.TP
+.B FNM_NOESCAPE
+If this flag is set, treat backslash as an ordinary character,
+instead of an escape character.
+.TP
+.B FNM_PATHNAME
+If this flag is set, match a slash in
+.I string
+only with a slash in
+.I pattern
+and not by an asterisk (*) or a question mark (?) metacharacter,
+nor by a bracket expression ([]) containing a slash.
+.TP
+.B FNM_PERIOD
+If this flag is set, a leading period in
+.I string
+has to be matched exactly by a period in
+.IR pattern .
+A period is considered to be leading if it is the first character in
+.IR string ,
+or if both
+.B FNM_PATHNAME
+is set and the period immediately follows a slash.
+.TP
+.B FNM_FILE_NAME
+This is a GNU synonym for
+.BR FNM_PATHNAME .
+.TP
+.B FNM_LEADING_DIR
+If this flag (a GNU extension) is set, the pattern is considered to be
+matched if it matches an initial segment of
+.I string
+which is followed by a slash.
+This flag is mainly for the internal
+use of glibc and is implemented only in certain cases.
+.TP
+.B FNM_CASEFOLD
+If this flag (a GNU extension) is set, the pattern is matched
+case-insensitively.
+.TP
+.B FNM_EXTMATCH
+If this flag (a GNU extension) is set, extended patterns are
+supported, as introduced by \&'ksh' and now supported by other shells.
+The extended format is as follows, with \fIpattern\-list\fR
+being a \&'|' separated list of patterns.
+.TP
+\&'?(\fIpattern\-list\fR)'
+The pattern matches if zero or one occurrences of any of the
+patterns in the \fIpattern\-list\fR match the input \fIstring\fR.
+.TP
+\&'*(\fIpattern\-list\fR)'
+The pattern matches if zero or more occurrences of any of the
+patterns in the \fIpattern\-list\fR match the input \fIstring\fR.
+.TP
+\&'+(\fIpattern\-list\fR)'
+The pattern matches if one or more occurrences of any of the
+patterns in the \fIpattern\-list\fR match the input \fIstring\fR.
+.TP
+\&'@(\fIpattern\-list\fR)'
+The pattern matches if exactly one occurrence of any of the
+patterns in the \fIpattern\-list\fR match the input \fIstring\fR.
+.TP
+\&'!(\fIpattern\-list\fR)'
+The pattern matches if the input \fIstring\fR cannot be matched with
+any of the patterns in the \fIpattern\-list\fR.
+.SH RETURN VALUE
+Zero if
+.I string
+matches
+.IR pattern ,
+.B FNM_NOMATCH
+if there is no match or another nonzero value if there is an error.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR fnmatch ()
+T}	Thread safety	MT-Safe env locale
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, POSIX.2.
+The
+.BR FNM_FILE_NAME ", " FNM_LEADING_DIR ", and " FNM_CASEFOLD
+flags are GNU extensions.
+.SH SEE ALSO
+.BR sh (1),
+.BR glob (3),
+.BR scandir (3),
+.BR wordexp (3),
+.BR glob (7)

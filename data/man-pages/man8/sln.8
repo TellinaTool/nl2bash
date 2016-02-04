@@ -1,0 +1,63 @@
+.\" Copyright (c) 2013 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SLN 8 2013-02-10 "GNU" "Linux Programmer's Manual"
+.SH NAME
+sln \- create symbolic links
+.SH SYNOPSIS
+.BI sln " source dest"
+.br
+.BI sln " filelist"
+.SH DESCRIPTION
+The
+.B sln
+program creates symbolic links.
+Unlike the
+.BR ln (1)
+program, it is statically linked.
+This means that if for some reason the dynamic linker is not working,
+.BR sln
+can be used to make symbolic links to dynamic libraries.
+
+The command line has two forms.
+In the first form, it creates
+.I dest
+as a new symbolic link to
+.IR source .
+
+In the second form,
+.I filelist
+is a list of space-separated pathname pairs,
+and the effect is as if
+.BR sln
+was executed once for each line of the file,
+with the two pathnames as the arguments.
+
+The
+.B sln
+program supports no command-line options.
+.SH SEE ALSO
+.BR ln (1),
+.BR ldconfig (8),
+.BR ld.so (8)

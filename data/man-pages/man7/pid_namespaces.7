@@ -1,0 +1,364 @@
+.\" Copyright (c) 2013 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright (c) 2012 by Eric W. Biederman <ebiederm@xmission.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"
+.TH PID_NAMESPACES 7 2015-01-10 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pid_namespaces \- overview of Linux PID namespaces
+.SH DESCRIPTION
+For an overview of namespaces, see
+.BR namespaces (7).
+
+PID namespaces isolate the process ID number space,
+meaning that processes in different PID namespaces can have the same PID.
+PID namespaces allow containers to provide functionality
+such as suspending/resuming the set of processes in the container and
+migrating the container to a new host
+while the processes inside the container maintain the same PIDs.
+
+PIDs in a new PID namespace start at 1,
+somewhat like a standalone system, and calls to
+.BR fork (2),
+.BR vfork (2),
+or
+.BR clone (2)
+will produce processes with PIDs that are unique within the namespace.
+
+Use of PID namespaces requires a kernel that is configured with the
+.B CONFIG_PID_NS
+option.
+.\"
+.\" ============================================================
+.\"
+.SS The namespace "init" process
+The first process created in a new namespace
+(i.e., the process created using
+.BR clone (2)
+with the
+.BR CLONE_NEWPID
+flag, or the first child created by a process after a call to
+.BR unshare (2)
+using the
+.BR CLONE_NEWPID
+flag) has the PID 1, and is the "init" process for the namespace (see
+.BR init (1)).
+A child process that is orphaned within the namespace will be reparented
+to this process rather than
+.BR init (1)
+(unless one of the ancestors of the child
+in the same PID namespace employed the
+.BR prctl (2)
+.B PR_SET_CHILD_SUBREAPER
+command to mark itself as the reaper of orphaned descendant processes).
+
+If the "init" process of a PID namespace terminates,
+the kernel terminates all of the processes in the namespace via a
+.BR SIGKILL
+signal.
+This behavior reflects the fact that the "init" process
+is essential for the correct operation of a PID namespace.
+In this case, a subsequent
+.BR fork (2)
+into this PID namespace will fail with the error
+.BR ENOMEM ;
+it is not possible to create a new processes in a PID namespace whose "init"
+process has terminated.
+Such scenarios can occur when, for example,
+a process uses an open file descriptor for a
+.I /proc/[pid]/ns/pid
+file corresponding to a process that was in a namespace to
+.BR setns (2)
+into that namespace after the "init" process has terminated.
+Another possible scenario can occur after a call to
+.BR unshare (2):
+if the first child subsequently created by a
+.BR fork (2)
+terminates, then subsequent calls to
+.BR fork (2)
+will fail with
+.BR ENOMEM .
+
+Only signals for which the "init" process has established a signal handler
+can be sent to the "init" process by other members of the PID namespace.
+This restriction applies even to privileged processes,
+and prevents other members of the PID namespace from
+accidentally killing the "init" process.
+
+Likewise, a process in an ancestor namespace
+can\(emsubject to the usual permission checks described in
+.BR kill (2)\(emsend
+signals to the "init" process of a child PID namespace only
+if the "init" process has established a handler for that signal.
+(Within the handler, the
+.I siginfo_t
+.I si_pid
+field described in
+.BR sigaction (2)
+will be zero.)
+.B SIGKILL
+or
+.B SIGSTOP
+are treated exceptionally:
+these signals are forcibly delivered when sent from an ancestor PID namespace.
+Neither of these signals can be caught by the "init" process,
+and so will result in the usual actions associated with those signals
+(respectively, terminating and stopping the process).
+
+Starting with Linux 3.4, the
+.BR reboot (2)
+system call causes a signal to be sent to the namespace "init" process.
+See
+.BR reboot (2)
+for more details.
+.\"
+.\" ============================================================
+.\"
+.SS Nesting PID namespaces
+PID namespaces can be nested:
+each PID namespace has a parent,
+except for the initial ("root") PID namespace.
+The parent of a PID namespace is the PID namespace of the process that
+created the namespace using
+.BR clone (2)
+or
+.BR unshare (2).
+PID namespaces thus form a tree,
+with all namespaces ultimately tracing their ancestry to the root namespace.
+
+A process is visible to other processes in its PID namespace,
+and to the processes in each direct ancestor PID namespace
+going back to the root PID namespace.
+In this context, "visible" means that one process
+can be the target of operations by another process using
+system calls that specify a process ID.
+Conversely, the processes in a child PID namespace can't see
+processes in the parent and further removed ancestor namespaces.
+More succinctly: a process can see (e.g., send signals with
+.BR kill (2),
+set nice values with
+.BR setpriority (2),
+etc.) only processes contained in its own PID namespace
+and in descendants of that namespace.
+
+A process has one process ID in each of the layers of the PID
+namespace hierarchy in which is visible,
+and walking back though each direct ancestor namespace
+through to the root PID namespace.
+System calls that operate on process IDs always
+operate using the process ID that is visible in the
+PID namespace of the caller.
+A call to
+.BR getpid (2)
+always returns the PID associated with the namespace in which
+the process was created.
+
+Some processes in a PID namespace may have parents
+that are outside of the namespace.
+For example, the parent of the initial process in the namespace
+(i.e., the
+.BR init (1)
+process with PID 1) is necessarily in another namespace.
+Likewise, the direct children of a process that uses
+.BR setns (2)
+to cause its children to join a PID namespace are in a different
+PID namespace from the caller of
+.BR setns (2).
+Calls to
+.BR getppid (2)
+for such processes return 0.
+
+While processes may freely descend into child PID namespaces
+(e.g., using
+.BR setns (2)
+with
+.BR CLONE_NEWPID ),
+they may not move in the other direction.
+That is to say, processes may not enter any ancestor namespaces
+(parent, grandparent, etc.).
+Changing PID namespaces is a one way operation.
+.\"
+.\" ============================================================
+.\"
+.SS setns(2) and unshare(2) semantics
+Calls to
+.BR setns (2)
+that specify a PID namespace file descriptor
+and calls to
+.BR unshare (2)
+with the
+.BR CLONE_NEWPID
+flag cause children subsequently created
+by the caller to be placed in a different PID namespace from the caller.
+These calls do not, however,
+change the PID namespace of the calling process,
+because doing so would change the caller's idea of its own PID
+(as reported by
+.BR getpid ()),
+which would break many applications and libraries.
+
+To put things another way:
+a process's PID namespace membership is determined when the process is created
+and cannot be changed thereafter.
+Among other things, this means that the parental relationship
+between processes mirrors the parental relationship between PID namespaces:
+the parent of a process is either in the same namespace
+or resides in the immediate parent PID namespace.
+.SS Compatibility of CLONE_NEWPID with other CLONE_* flags
+.BR CLONE_NEWPID
+can't be combined with some other
+.BR CLONE_*
+flags:
+.IP * 3
+.B CLONE_THREAD
+requires being in the same PID namespace in order that
+the threads in a process can send signals to each other.
+Similarly, it must be possible to see all of the threads
+of a processes in the
+.BR proc (5)
+filesystem.
+.IP *
+.BR CLONE_SIGHAND
+requires being in the same PID namespace;
+otherwise the process ID of the process sending a signal
+could not be meaningfully encoded when a signal is sent
+(see the description of the
+.I siginfo_t
+type in
+.BR sigaction (2)).
+A signal queue shared by processes in multiple PID namespaces
+will defeat that.
+.IP *
+.BR CLONE_VM
+requires all of the threads to be in the same PID namespace,
+because, from the point of view of a core dump,
+if two processes share the same address space then they are threads and will
+be core dumped together.
+When a core dump is written, the PID of each
+thread is written into the core dump.
+Writing the process IDs could not meaningfully succeed
+if some of the process IDs were in a parent PID namespace.
+.PP
+To summarize: there is a technical requirement for each of
+.BR CLONE_THREAD ,
+.BR CLONE_SIGHAND ,
+and
+.BR CLONE_VM
+to share a PID namespace.
+(Note furthermore that in
+.BR clone (2)
+requires
+.BR CLONE_VM
+to be specified if
+.BR CLONE_THREAD
+or
+.BR CLONE_SIGHAND
+is specified.)
+Thus, call sequences such as the following will fail (with the error
+.BR EINVAL ):
+
+.nf
+    unshare(CLONE_NEWPID);
+    clone(..., CLONE_VM, ...);    /* Fails */
+
+    setns(fd, CLONE_NEWPID);
+    clone(..., CLONE_VM, ...);    /* Fails */
+
+    clone(..., CLONE_VM, ...);
+    setns(fd, CLONE_NEWPID);      /* Fails */
+
+    clone(..., CLONE_VM, ...);
+    unshare(CLONE_NEWPID);        /* Fails */
+.fi
+.\"
+.\" ============================================================
+.\"
+.SS /proc and PID namespaces
+A
+.I /proc
+filesystem shows (in the
+.I /proc/PID
+directories) only processes visible in the PID namespace
+of the process that performed the mount, even if the
+.I /proc
+filesystem is viewed from processes in other namespaces.
+
+After creating a new PID namespace,
+it is useful for the child to change its root directory
+and mount a new procfs instance at
+.I /proc
+so that tools such as
+.BR ps (1)
+work correctly.
+If a new mount namespace is simultaneously created by including
+.BR CLONE_NEWNS
+in the
+.IR flags
+argument of
+.BR clone (2)
+or
+.BR unshare (2),
+then it isn't necessary to change the root directory:
+a new procfs instance can be mounted directly over
+.IR /proc .
+
+From a shell, the command to mount
+.I /proc
+is:
+
+    $ mount -t proc proc /proc
+
+Calling
+.BR readlink (2)
+on the path
+.I /proc/self
+yields the process ID of the caller in the PID namespace of the procfs mount
+(i.e., the PID namespace of the process that mounted the procfs).
+This can be useful for introspection purposes,
+when a process wants to discover its PID in other namespaces.
+.\"
+.\" ============================================================
+.\"
+.SS Miscellaneous
+When a process ID is passed over a UNIX domain socket to a
+process in a different PID namespace (see the description of
+.B SCM_CREDENTIALS
+in
+.BR unix (7)),
+it is translated into the corresponding PID value in
+the receiving process's PID namespace.
+.SH CONFORMING TO
+Namespaces are a Linux-specific feature.
+.SH EXAMPLE
+See
+.BR user_namespaces (7).
+.SH SEE ALSO
+.BR clone (2),
+.BR setns (2),
+.BR unshare (2),
+.BR proc (5),
+.BR credentials (7),
+.BR capabilities (7),
+.BR user_namespaces (7),
+.BR switch_root (8)

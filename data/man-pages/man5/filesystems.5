@@ -1,0 +1,214 @@
+.\" Copyright 1996 Daniel Quinlan (Daniel.Quinlan@linux.org)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2007-12-14 mtk Added Reiserfs, XFS, JFS.
+.\"
+.TH FILESYSTEMS 5 2015-03-29 "Linux" "Linux Programmer's Manual"
+.nh
+.SH NAME
+filesystems \- Linux filesystem types: ext, ext2, ext3, ext4, hpfs, iso9660,
+JFS, minix, msdos, ncpfs nfs, ntfs, proc, Reiserfs, smb, sysv, umsdos, vfat,
+XFS, xiafs,
+.SH DESCRIPTION
+When, as is customary, the
+.B proc
+filesystem is mounted on
+.IR /proc ,
+you can find in the file
+.I /proc/filesystems
+which filesystems your kernel currently supports;
+see
+.BR proc (5)
+for more details.
+If you need a currently unsupported filesystem, insert the corresponding
+module or recompile the kernel.
+
+In order to use a filesystem, you have to
+.I mount
+it; see
+.BR mount (8).
+
+Below a short description of the available or historically available
+filesystems in the Linux kernel.
+See kernel documentation for a comprehensive
+description of all options and limitations.
+.TP 10
+.B ext
+is an elaborate extension of the
+.B minix
+filesystem.
+It has been completely superseded by the second version
+of the extended filesystem
+.RB ( ext2 )
+and has been removed from the kernel (in 2.1.21).
+.TP
+.B ext2
+is the high performance disk filesystem used by Linux for fixed disks
+as well as removable media.
+The second extended filesystem was designed as an extension of the
+extended filesystem
+.RB ( ext ).
+.RB See " ext2 " (5).
+.TP
+.B ext3
+is a journaling version of the
+.B ext2
+filesystem.
+It is easy to
+switch back and forth between
+.B ext2
+and
+.BR ext3 .
+.RB See " ext3 " (5).
+.TP
+.B ext4
+is a set of upgrades to
+.B ext3
+including substantial performance and
+reliability enhancements,
+plus large increases in volume, file, and directory size limits.
+.RB See " ext4 " (5).
+.TP
+.B hpfs
+is the High Performance Filesystem, used in OS/2.
+This filesystem is
+read-only under Linux due to the lack of available documentation.
+.TP
+.B iso9660
+is a CD-ROM filesystem type conforming to the ISO 9660 standard.
+.RS
+.TP
+.B "High Sierra"
+Linux supports High Sierra, the precursor to the ISO 9660 standard for
+CD-ROM filesystems.
+It is automatically recognized within the
+.B iso9660
+filesystem support under Linux.
+.TP
+.B "Rock Ridge"
+Linux also supports the System Use Sharing Protocol records specified
+by the Rock Ridge Interchange Protocol.
+They are used to further describe the files in the
+.B iso9660
+filesystem to a UNIX host, and provide information such as long
+filenames, UID/GID, POSIX permissions, and devices.
+It is automatically recognized within the
+.B iso9660
+filesystem support under Linux.
+.RE
+.TP
+.B JFS
+is a journaling filesystem, developed by IBM,
+that was integrated into Linux in kernel 2.4.24.
+.TP
+.B minix
+is the filesystem used in the Minix operating system, the first to run
+under Linux.
+It has a number of shortcomings, including a 64MB partition size
+limit, short filenames, and a single timestamp.
+It remains useful for floppies and RAM disks.
+.TP
+.B msdos
+is the filesystem used by DOS, Windows, and some OS/2 computers.
+.B msdos
+filenames can be no longer than 8 characters, followed by an
+optional period and 3 character extension.
+.TP
+.B ncpfs
+is a network filesystem that supports the NCP protocol, used by
+Novell NetWare.
+.sp
+To use
+.BR ncpfs ,
+you need special programs, which can be found at
+.UR ftp://linux01.gwdg.de\:/pub\:/ncpfs
+.UE .
+.TP
+.B nfs
+is the network filesystem used to access disks located on remote computers.
+.TP
+.B ntfs
+replaces Microsoft Window's FAT filesystems (VFAT, FAT32).
+It has reliability, performance, and space-utilization enhancements
+plus features like ACLs, journaling, encryption, and so on.
+.TP
+.B proc
+is a pseudo filesystem which is used as an interface to kernel data
+structures rather than reading and interpreting
+.IR /dev/kmem .
+In particular, its files do not take disk space.
+See
+.BR proc (5).
+.TP
+.B Reiserfs
+is a journaling filesystem, designed by Hans Reiser,
+that was integrated into Linux in kernel 2.4.1.
+.TP
+.B smb
+is a network filesystem that supports the SMB protocol, used by
+Windows for Workgroups, Windows NT, and Lan Manager.
+.sp
+To use
+.B smb
+fs, you need a special mount program, which can be found in the ksmbfs
+package, found at
+.UR ftp://sunsite.unc.edu\:/pub\:/Linux\:/system\:/Filesystems\:/smbfs
+.UE .
+.TP
+.B sysv
+is an implementation of the SystemV/Coherent filesystem for Linux.
+It implements all of Xenix FS, SystemV/386 FS, and Coherent FS.
+.TP
+.B umsdos
+is an extended DOS filesystem used by Linux.
+It adds capability for
+long filenames, UID/GID, POSIX permissions, and special files
+(devices, named pipes, etc.)  under the DOS filesystem, without
+sacrificing compatibility with DOS.
+.TP
+.B vfat
+is an extended DOS filesystem used by Microsoft Windows95 and Windows NT.
+.B vfat
+adds the capability to use long filenames under the MSDOS filesystem.
+.TP
+.B XFS
+is a journaling filesystem, developed by SGI,
+that was integrated into Linux in kernel 2.4.20.
+.TP
+.B xiafs
+was designed and implemented to be a stable, safe filesystem by
+extending the Minix filesystem code.
+It provides the basic most
+requested features without undue complexity.
+The
+.B xiafs
+filesystem is no longer actively developed or maintained.
+It was removed from the kernel in 2.1.21.
+.SH SEE ALSO
+.BR ext2 (5),
+.BR ext3 (5),
+.BR ext4 (5),
+.BR proc (5),
+.BR fsck (8),
+.BR mkfs (8),
+.BR mount (8)

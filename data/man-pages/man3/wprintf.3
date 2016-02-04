@@ -1,0 +1,277 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WPRINTF 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wprintf, fwprintf, swprintf, vwprintf, vfwprintf, vswprintf \- formatted
+wide-character output conversion
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.B #include <wchar.h>
+.sp
+.BI "int wprintf(const wchar_t *" format ", ...);"
+.BI "int fwprintf(FILE *" stream ", const wchar_t *" format ", ...);"
+.BI "int swprintf(wchar_t *" wcs ", size_t " maxlen ,
+.BI "             const wchar_t *" format ", ...);"
+.sp
+.BI "int vwprintf(const wchar_t *" format ", va_list " args );
+.BI "int vfwprintf(FILE *" stream ", const wchar_t *" format ", va_list " args );
+.BI "int vswprintf(wchar_t *" wcs ", size_t " maxlen ,
+.BI "              const wchar_t *" format ", va_list " args );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+All functions shown above:
+.RS 4
+.\" .BR wprintf (),
+.\" .BR fwprintf (),
+.\" .BR swprintf (),
+.\" .BR vwprintf (),
+.\" .BR vfwprintf (),
+.\" .BR vswprintf ():
+_XOPEN_SOURCE\ >=\ 500 || _ISOC99_SOURCE ||
+.br
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad
+.SH DESCRIPTION
+The
+.BR wprintf ()
+family of functions is
+the wide-character equivalent of the
+.BR printf (3)
+family of functions.
+It performs formatted output of wide
+characters.
+.PP
+The
+.BR wprintf ()
+and
+.BR vwprintf ()
+functions
+perform wide-character output to
+.IR stdout .
+.I stdout
+must not be byte oriented; see
+.BR fwide (3)
+for more information.
+.PP
+The
+.BR fwprintf ()
+and
+.BR vfwprintf ()
+functions
+perform wide-character output to
+.IR stream .
+.I stream
+must not be byte oriented; see
+.BR fwide (3)
+for more information.
+.PP
+The
+.BR swprintf ()
+and
+.BR vswprintf ()
+functions
+perform wide-character output
+to an array of wide characters.
+The programmer must ensure that there is
+room for at least
+.I maxlen
+wide
+characters at
+.IR wcs .
+.PP
+These functions are like
+the
+.BR printf (3),
+.BR vprintf (3),
+.BR fprintf (3),
+.BR vfprintf (3),
+.BR sprintf (3),
+.BR vsprintf (3)
+functions except for the
+following differences:
+.TP
+.B \(bu
+The
+.I format
+string is a wide-character string.
+.TP
+.B \(bu
+The output consists of wide characters, not bytes.
+.TP
+.B \(bu
+.BR swprintf ()
+and
+.BR vswprintf ()
+take a
+.I maxlen
+argument,
+.BR sprintf (3)
+and
+.BR vsprintf (3)
+do not.
+.RB ( snprintf (3)
+and
+.BR vsnprintf (3)
+take a
+.I maxlen
+argument, but these functions do not return \-1 upon
+buffer overflow on Linux.)
+.PP
+The treatment of the conversion characters
+.BR c
+and
+.B s
+is different:
+.TP
+.B c
+If no
+.B l
+modifier is present, the
+.I int
+argument is converted to a wide character by a call to the
+.BR btowc (3)
+function, and the resulting wide character is written.
+If an
+.B l
+modifier is present, the
+.I wint_t
+(wide character) argument is written.
+.TP
+.B s
+If no
+.B l
+modifier is present: The
+.I "const\ char\ *"
+argument is expected to be a pointer to an array of character type
+(pointer to a string) containing a multibyte character sequence beginning
+in the initial shift state.
+Characters from the array are converted to
+wide characters (each by a call to the
+.BR mbrtowc (3)
+function with a conversion state starting in the initial state before
+the first byte).
+The resulting wide characters are written up to
+(but not including) the terminating null wide character (L\(aq\\0\(aq).
+If a precision is
+specified, no more wide characters than the number specified are written.
+Note that the precision determines the number of
+.I wide characters
+written, not the number of
+.I bytes
+or
+.IR "screen positions" .
+The array must contain a terminating null byte (\(aq\\0\(aq),
+unless a precision is given
+and it is so small that the number of converted wide characters reaches it
+before the end of the array is reached.
+If an
+.B l
+modifier is present: The
+.I "const\ wchar_t\ *"
+argument is expected to be a pointer to an array of wide characters.
+Wide characters from the array are written up to (but not including) a
+terminating null wide character.
+If a precision is specified, no more than
+the number specified are written.
+The array must contain a terminating null
+wide character, unless a precision is given and it is smaller than or equal
+to the number of wide characters in the array.
+.SH RETURN VALUE
+The functions return the number of wide characters written, excluding the
+terminating null wide character in
+case of the functions
+.BR swprintf ()
+and
+.BR vswprintf ().
+They return \-1 when an error occurs.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw24 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wprintf (),
+.BR fwprintf (),
+.br
+.BR swprintf (),
+.BR vwprintf (),
+.br
+.BR vfwprintf (),
+.BR vswprintf ()
+T}	Thread safety	MT-Safe locale
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR wprintf ()
+et al. depends
+on the
+.B LC_CTYPE
+category of the
+current locale.
+.PP
+If the
+.I format
+string contains non-ASCII wide characters, the program
+will work correctly only if the
+.B LC_CTYPE
+category of the current locale at
+run time is the same as the
+.B LC_CTYPE
+category of the current locale at
+compile time.
+This is because the
+.I wchar_t
+representation is platform- and locale-dependent.
+(The glibc represents
+wide characters using their Unicode (ISO-10646) code point, but other
+platforms don't do this.
+Also, the use of C99 universal character names
+of the form \\unnnn does not solve this problem.)
+Therefore, in
+internationalized programs, the
+.I format
+string should consist of ASCII
+wide characters only, or should be constructed at run time in an
+internationalized way (e.g., using
+.BR gettext (3)
+or
+.BR iconv (3),
+followed by
+.BR mbstowcs (3)).
+.SH SEE ALSO
+.BR fprintf (3),
+.BR fputwc (3),
+.BR fwide (3),
+.BR printf (3),
+.BR snprintf (3)
+.\" .BR wscanf (3)

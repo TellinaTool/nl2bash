@@ -1,0 +1,186 @@
+'\" t
+.\" This manpage is Copyright (C) 1996 Michael Haardt.
+.\" Updates Nov 1998, Andries Brouwer
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.TH MOUSE 4 1996-02-10 "Linux" "Linux Programmer's Manual"
+.SH NAME
+mouse \- serial mouse interface
+.SH CONFIGURATION
+Serial mice are connected to a serial RS232/V24 dialout line, see
+.BR ttyS (4)
+for a description.
+.SH DESCRIPTION
+.SS Introduction
+The pinout of the usual 9 pin plug as used for serial mice is:
+.TS
+center;
+r c l.
+pin	name	used for
+2	RX	Data
+3	TX	\-12 V, Imax = 10 mA
+4	DTR	+12 V, Imax = 10 mA
+7	RTS	+12 V, Imax = 10 mA
+5	GND	Ground
+.TE
+
+This is the specification, in fact 9 V suffices with most mice.
+.PP
+The mouse driver can recognize a mouse by dropping RTS to low and raising
+it again.
+About 14 ms later the mouse will send 0x4D (\(aqM\(aq) on the data line.
+After a further 63 ms, a Microsoft-compatible 3-button mouse will send
+0x33 (\(aq3\(aq).
+.PP
+The relative mouse movement is sent as
+.I dx
+(positive means right)
+and
+.I dy
+(positive means down).
+Various mice can operate at different speeds.
+To select speeds, cycle through the
+speeds 9600, 4800, 2400, and 1200 bit/s, each time writing the two characters
+from the table below and waiting 0.1 seconds.
+The following table shows available speeds and the strings that select them:
+.TS
+center;
+l l.
+bit/s	string
+9600	*q
+4800	*p
+2400	*o
+1200	*n
+.TE
+
+The first byte of a data packet can be used to synchronization purposes.
+.SS Microsoft protocol
+The
+.B Microsoft
+protocol uses 1 start bit, 7 data bits, no parity
+and one stop bit at the speed of 1200 bits/sec.
+Data is sent to RxD in 3-byte packets.
+The
+.IR dx
+and
+.I dy
+movements are sent as
+two's-complement,
+.I lb
+.RI ( rb )
+are set when the left (right)
+button is pressed:
+.TS
+center;
+r c c c c c c c.
+byte	d6	d5	d4	d3	d2	d1	d0
+1	1	lb	rb	dy7	dy6	dx7	dx6
+2	0	dx5	dx4	dx3	dx2	dx1	dx0
+3	0	dy5	dy4	dy3	dy2	dy1	dy0
+.TE
+.SS 3-button Microsoft protocol
+Original Microsoft mice only have two buttons.
+However, there are some
+three button mice which also use the Microsoft protocol.
+Pressing or
+releasing the middle button is reported by sending a packet with zero
+movement and no buttons pressed.
+(Thus, unlike for the other two buttons, the status of the middle
+button is not reported in each packet.)
+.SS Logitech protocol
+Logitech serial 3-button mice use a different extension of the
+Microsoft protocol: when the middle button is up, the above 3-byte
+packet is sent.
+When the middle button is down a 4-byte packet is
+sent, where the 4th byte has value 0x20 (or at least has the 0x20
+bit set).
+In particular, a press of the middle button is reported
+as 0,0,0,0x20 when no other buttons are down.
+.SS Mousesystems protocol
+The
+.B Mousesystems
+protocol uses 1 start bit, 8 data bits, no parity
+and two stop bits at the speed of 1200 bits/sec.
+Data is sent to RxD in
+5-byte packets.
+.I dx
+is sent as the sum of the two two's-complement
+values,
+.I dy
+is send as negated sum of the two two's-complement
+values.
+.I lb
+.RI ( mb ,
+.IR rb )
+are cleared when the left (middle,
+right) button is pressed:
+.TS
+center;
+r c c c c c c c c.
+byte	d7	d6	d5	d4	d3	d2	d1	d0
+1	1	0	0	0	0	lb	mb	rb
+2	0	dxa6	dxa5	dxa4	dxa3	dxa2	dxa1	dxa0
+3	0	dya6	dya5	dya4	dya3	dya2	dya1	dya0
+4	0	dxb6	dxb5	dxb4	dxb3	dxb2	dxb1	dxb0
+5	0	dyb6	dyb5	dyb4	dyb3	dyb2	dyb1	dyb0
+.TE
+
+Bytes 4 and 5 describe the change that occurred since bytes 2 and 3
+were transmitted.
+.SS Sun protocol
+The
+.B Sun
+protocol is the 3-byte version of the above 5-byte
+Mousesystems protocol: the last two bytes are not sent.
+.SS MM protocol
+The
+.B MM
+protocol uses 1 start bit, 8 data bits, odd parity and one
+stop bit at the speed of 1200 bits/sec.
+Data is sent to RxD in 3-byte
+packets.
+.I dx
+and
+.I dy
+are sent as single signed values, the
+sign bit indicating a negative value.
+.I lb
+.RI ( mb ,
+.IR rb )
+are
+set when the left (middle, right) button is pressed:
+.TS
+center;
+r c c c c c c c c.
+byte	d7	d6	d5	d4	d3	d2	d1	d0
+1	1	0	0	dxs	dys	lb	mb	rb
+2	0	dx6	dx5	dx4	dx3	dx2	dx1	dx0
+3	0	dy6	dy5	dy4	dy3	dy2	dy1	dy0
+.TE
+.SH FILES
+.TP
+.I /dev/mouse
+A commonly used symlink pointing to a mouse device.
+.SH SEE ALSO
+.BR ttyS (4),
+.BR gpm (8)

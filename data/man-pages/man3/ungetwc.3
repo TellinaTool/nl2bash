@@ -1,0 +1,99 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH UNGETWC 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+ungetwc \- push back a wide character onto a FILE stream
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "wint_t ungetwc(wint_t " wc ", FILE *" stream );
+.fi
+.SH DESCRIPTION
+The
+.BR ungetwc ()
+function is the wide-character equivalent of the
+.BR ungetc (3)
+function.
+It pushes back a wide character onto
+.I stream
+and returns it.
+.PP
+If
+.I wc
+is
+.BR WEOF ,
+it returns
+.BR WEOF .
+If
+.I wc
+is an invalid wide character,
+it sets
+.IR errno
+to
+.B EILSEQ
+and returns
+.BR WEOF .
+.PP
+If
+.I wc
+is a valid wide character, it is pushed back onto the stream
+and thus becomes available for future wide-character read operations.
+The file-position indicator is decremented by one or more.
+The end-of-file
+indicator is cleared.
+The backing storage of the file is not affected.
+.PP
+Note:
+.I wc
+need not be the last wide-character read from the stream;
+it can be any other valid wide character.
+.PP
+If the implementation supports multiple push-back operations in a row, the
+pushed-back wide characters will be read in reverse order; however, only one
+level of push-back is guaranteed.
+.SH RETURN VALUE
+The
+.BR ungetwc ()
+function returns
+.IR wc
+when successful, or
+.B WEOF
+upon
+failure.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR ungetwc ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR ungetwc ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.SH SEE ALSO
+.BR fgetwc (3)

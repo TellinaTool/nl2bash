@@ -1,0 +1,157 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH MBSRTOWCS 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+mbsrtowcs \- convert a multibyte string to a wide-character string
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "size_t mbsrtowcs(wchar_t *" dest ", const char **" src ,
+.BI "                  size_t " len ", mbstate_t *" ps );
+.fi
+.SH DESCRIPTION
+If
+.I dest
+is not NULL, the
+.BR mbsrtowcs ()
+function converts the
+multibyte string
+.I *src
+to a wide-character string starting at
+.IR dest .
+At most
+.I len
+wide characters are written to
+.IR dest .
+The shift state
+.I *ps
+is updated.
+The conversion is effectively performed by repeatedly
+calling
+.I "mbrtowc(dest, *src, n, ps)"
+where
+.I n
+is some
+positive number, as long as this call succeeds, and then incrementing
+.I dest
+by one and
+.I *src
+by the number of bytes consumed.
+The conversion can stop for three reasons:
+.IP 1. 3
+An invalid multibyte sequence has been encountered.
+In this case,
+.I *src
+is left pointing to the invalid multibyte sequence,
+.I (size_t)\ \-1
+is returned,
+and
+.I errno
+is set to
+.BR EILSEQ .
+.IP 2.
+.I len
+non-L\(aq\\0\(aq wide characters have been stored at
+.IR dest .
+In this case,
+.I *src
+is left pointing to the next
+multibyte sequence to be converted,
+and the number of wide characters written to
+.I dest
+is returned.
+.IP 3.
+The multibyte string has been completely converted, including the
+terminating null wide character (\(aq\\0\(aq), which has the side
+effect of bringing back
+.I *ps
+to the
+initial state.
+In this case,
+.I *src
+is set to NULL, and the number of wide
+characters written to
+.IR dest ,
+excluding the terminating null wide character, is returned.
+.PP
+If
+.IR dest
+is NULL,
+.I len
+is ignored,
+and the conversion proceeds as above,
+except that the converted wide characters are not written out to memory,
+and that no length limit exists.
+.PP
+In both of the above cases,
+if
+.I ps
+is NULL, a static anonymous
+state known only to the
+.BR mbsrtowcs ()
+function is used instead.
+.PP
+The programmer must ensure that there is room for at least
+.I len
+wide
+characters at
+.IR dest .
+.SH RETURN VALUE
+The
+.BR mbsrtowcs ()
+function returns the number of wide characters that make
+up the converted part of the wide-character string, not including the
+terminating null wide character.
+If an invalid multibyte sequence was
+encountered,
+.I (size_t)\ \-1
+is returned, and
+.I errno
+set to
+.BR EILSEQ .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lbw28
+l l l.
+Interface	Attribute	Value
+T{
+.BR mbsrtowcs ()
+T}	Thread safety	MT-Unsafe race:mbsrtowcs/!ps
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR mbsrtowcs ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.PP
+Passing NULL as
+.I ps
+is not multithread safe.
+.SH SEE ALSO
+.BR iconv (3),
+.BR mbrtowc (3),
+.BR mbsinit (3),
+.BR mbsnrtowcs (3),
+.BR mbstowcs (3)

@@ -1,0 +1,191 @@
+.\" Copyright (c) 2001 John Levon <moz@compsoc.man.ac.uk>
+.\" Based in part on GNU libc documentation
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH GETLINE 3  2015-03-29 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getline, getdelim \- delimited string input
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.sp
+.BI "ssize_t getline(char **" lineptr ", size_t *" n ", FILE *" stream );
+
+.BI "ssize_t getdelim(char **" lineptr ", size_t *" n ", int " delim \
+", FILE *" stream );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR getline (),
+.BR getdelim ():
+.PD 0
+.RS 4
+.TP 4
+Since glibc 2.10:
+_POSIX_C_SOURCE\ >=\ 200809L || _XOPEN_SOURCE\ >=\ 700
+.TP
+Before glibc 2.10:
+_GNU_SOURCE
+.RE
+.PD
+.ad
+.SH DESCRIPTION
+.BR getline ()
+reads an entire line from \fIstream\fP,
+storing the address of the buffer containing the text into
+.IR "*lineptr" .
+The buffer is null-terminated and includes the newline character, if
+one was found.
+
+If
+.I "*lineptr"
+is set to NULL and
+.I *n
+is set 0 before the call, then
+.BR getline ()
+will allocate a buffer for storing the line.
+This buffer should be freed by the user program
+even if
+.BR getline ()
+failed.
+
+Alternatively, before calling
+.BR getline (),
+.I "*lineptr"
+can contain a pointer to a
+.BR malloc (3)\-allocated
+buffer
+.I "*n"
+bytes in size.
+If the buffer is not large enough to hold the line,
+.BR getline ()
+resizes it with
+.BR realloc (3),
+updating
+.I "*lineptr"
+and
+.I "*n"
+as necessary.
+
+In either case, on a successful call,
+.I "*lineptr"
+and
+.I "*n"
+will be updated to reflect the buffer address and allocated size respectively.
+
+.BR getdelim ()
+works like
+.BR getline (),
+except that a line delimiter other than newline can be specified as the
+.I delimiter
+argument.
+As with
+.BR getline (),
+a delimiter character is not added if one was not present
+in the input before end of file was reached.
+.SH RETURN VALUE
+On success,
+.BR getline ()
+and
+.BR getdelim ()
+return the number of characters read, including the delimiter character,
+but not including the terminating null byte (\(aq\\0\(aq).
+This value can be used
+to handle embedded null bytes in the line read.
+
+Both functions return \-1 on failure to read a line (including end-of-file
+condition).
+In the event of an error,
+.I errno
+is set to indicate the cause.
+.SH ERRORS
+.TP
+.B EINVAL
+Bad arguments
+.RI ( n
+or
+.I lineptr
+is NULL, or
+.I stream
+is not valid).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw21 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getline (),
+.BR getdelim ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+Both
+.BR getline ()
+and
+.BR getdelim ()
+were originally GNU extensions.
+They were standardized in POSIX.1-2008.
+.SH EXAMPLE
+.nf
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(void)
+{
+    FILE *stream;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    stream = fopen("/etc/motd", "r");
+    if (stream == NULL)
+        exit(EXIT_FAILURE);
+
+    while ((read = getline(&line, &len, stream)) != \-1) {
+        printf("Retrieved line of length %zu :\en", read);
+        printf("%s", line);
+    }
+
+    free(line);
+    fclose(stream);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR read (2),
+.BR fgets (3),
+.BR fopen (3),
+.BR fread (3),
+.BR scanf (3)

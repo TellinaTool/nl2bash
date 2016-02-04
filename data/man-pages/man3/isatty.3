@@ -1,0 +1,78 @@
+.\" Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH ISATTY 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+isatty \- test whether a file descriptor refers to a terminal
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.sp
+.BI "int isatty(int " fd );
+.fi
+.SH DESCRIPTION
+The
+.BR isatty ()
+function tests whether
+.I fd
+is an open file descriptor referring to a terminal.
+.SH RETURN VALUE
+.BR isatty ()
+returns 1 if
+.I fd
+is an open file descriptor referring to a terminal;
+otherwise 0 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor.
+.TP
+.B EINVAL
+.I fd
+refers to a file other than a terminal.
+POSIX.1 specifies the error
+.BR ENOTTY
+.\" FIXME . File a bug for this?
+for this case.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR isatty ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+.SH SEE ALSO
+.BR fstat (2),
+.BR ttyname (3)

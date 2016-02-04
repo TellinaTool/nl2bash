@@ -1,0 +1,78 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH STRTOIMAX 3 2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+strtoimax, strtoumax \- convert string to integer
+.SH SYNOPSIS
+.nf
+.B #include <inttypes.h>
+.sp
+.BI "intmax_t strtoimax(const char *" nptr ", char **" endptr ", int " base );
+.br
+.BI "uintmax_t strtoumax(const char *" nptr ", char **" endptr ", int " base );
+.fi
+.SH DESCRIPTION
+These functions are just like
+.BR strtol (3)
+and
+.BR strtoul (3),
+except that they return a value of type
+.I intmax_t
+and
+.IR uintmax_t ,
+respectively.
+.SH RETURN VALUE
+On success, the converted value is returned.
+If nothing was found to convert, zero is returned.
+On overflow or underflow
+.B INTMAX_MAX
+or
+.B INTMAX_MIN
+or
+.B UINTMAX_MAX
+is returned, and
+.I errno
+is set to
+.BR ERANGE .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw24 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR strtoimax (),
+.BR strtoumax ()
+T}	Thread safety	MT-Safe locale
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH SEE ALSO
+.BR imaxabs (3),
+.BR imaxdiv (3),
+.BR strtol (3),
+.BR strtoul (3),
+.BR wcstoimax (3)

@@ -1,0 +1,116 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_DETACH 3 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_detach \- detach a thread
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.BI "int pthread_detach(pthread_t " thread );
+.fi
+.sp
+Compile and link with \fI\-pthread\fP.
+.SH DESCRIPTION
+The
+.BR pthread_detach ()
+function marks the thread identified by
+.IR thread
+as detached.
+When a detached thread terminates,
+its resources are automatically released back to the system without
+the need for another thread to join with the terminated thread.
+
+Attempting to detach an already detached thread results
+in unspecified behavior.
+.SH RETURN VALUE
+On success,
+.BR pthread_detach ()
+returns 0;
+on error, it returns an error number.
+.SH ERRORS
+.TP
+.B EINVAL
+.I thread
+is not a joinable thread.
+.TP
+.B ESRCH
+No thread with the ID
+.I thread
+could be found.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_detach ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+Once a thread has been detached, it can't be joined with
+.BR pthread_join (3)
+or be made joinable again.
+
+A new thread can be created in a detached state using
+.BR pthread_attr_setdetachstate (3)
+to set the detached attribute of the
+.I attr
+argument of
+.BR pthread_create (3).
+
+The detached attribute merely determines the behavior of the system
+when the thread terminates;
+it does not prevent the thread from being terminated
+if the process terminates using
+.BR exit (3)
+(or equivalently, if the main thread returns).
+
+Either
+.BR pthread_join (3)
+or
+.BR pthread_detach ()
+should be called for each thread that an application creates,
+so that system resources for the thread can be released.
+(But note that the resources of all threads are freed when the
+process terminates.)
+.SH EXAMPLE
+The following statement detaches the calling thread:
+
+    pthread_detach(pthread_self());
+.SH SEE ALSO
+.BR pthread_attr_setdetachstate (3),
+.BR pthread_cancel (3),
+.BR pthread_create (3),
+.BR pthread_exit (3),
+.BR pthread_join (3),
+.BR pthreads (7)

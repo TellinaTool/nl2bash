@@ -1,0 +1,332 @@
+.\" Copyright (C) 2007, 2010 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 18:34:44 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Merged readv.[23], 2002-10-17, aeb
+.\" 2007-04-30 mtk, A fairly major rewrite to fix errors and
+.\"     add more details.
+.\" 2010-11-16, mtk, Added documentation of preadv() and pwritev()
+.\"
+.TH READV 2  2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+readv, writev, preadv, pwritev \- read or write data into multiple buffers
+.SH SYNOPSIS
+.nf
+.B #include <sys/uio.h>
+.sp
+.BI "ssize_t readv(int " fd ", const struct iovec *" iov ", int " iovcnt );
+.sp
+.BI "ssize_t writev(int " fd ", const struct iovec *" iov ", int " iovcnt );
+.sp
+.BI "ssize_t preadv(int " fd ", const struct iovec *" iov ", int " iovcnt ,
+.BI "               off_t " offset );
+.sp
+.BI "ssize_t pwritev(int " fd ", const struct iovec *" iov ", int " iovcnt ,
+.BI "                off_t " offset );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR preadv (),
+.BR pwritev ():
+_BSD_SOURCE
+.SH DESCRIPTION
+The
+.BR readv ()
+system call reads
+.I iovcnt
+buffers from the file associated with the file descriptor
+.I fd
+into the buffers described by
+.I iov
+("scatter input").
+.PP
+The
+.BR writev ()
+system call writes
+.I iovcnt
+buffers of data described by
+.I iov
+to the file associated with the file descriptor
+.I fd
+("gather output").
+.PP
+The pointer
+.I iov
+points to an array of
+.I iovec
+structures,
+defined in
+.I <sys/uio.h>
+as:
+.PP
+.br
+.in +4n
+.nf
+struct iovec {
+    void  *iov_base;    /* Starting address */
+    size_t iov_len;     /* Number of bytes to transfer */
+};
+.fi
+.in
+.PP
+The
+.BR readv ()
+system call works just like
+.BR read (2)
+except that multiple buffers are filled.
+.PP
+The
+.BR writev ()
+system call works just like
+.BR write (2)
+except that multiple buffers are written out.
+.PP
+Buffers are processed in array order.
+This means that
+.BR readv ()
+completely fills
+.IR iov [0]
+before proceeding to
+.IR iov [1],
+and so on.
+(If there is insufficient data, then not all buffers pointed to by
+.I iov
+may be filled.)
+Similarly,
+.BR writev ()
+writes out the entire contents of
+.IR iov [0]
+before proceeding to
+.IR iov [1],
+and so on.
+.PP
+The data transfers performed by
+.BR readv ()
+and
+.BR writev ()
+are atomic: the data written by
+.\" Regarding atomicity, see https://bugzilla.kernel.org/show_bug.cgi?id=10596
+.BR writev ()
+is written as a single block that is not intermingled with output
+from writes in other processes (but see
+.BR pipe (7)
+for an exception);
+analogously,
+.BR readv ()
+is guaranteed to read a contiguous block of data from the file,
+regardless of read operations performed in other threads or processes
+that have file descriptors referring to the same open file description
+(see
+.BR open (2)).
+.SS preadv() and pwritev()
+The
+.BR preadv ()
+system call combines the functionality of
+.BR readv ()
+and
+.BR pread (2).
+It performs the same task as
+.BR readv (),
+but adds a fourth argument,
+.IR offset ,
+which specifies the file offset at which the input operation
+is to be performed.
+
+The
+.BR pwritev ()
+system call combines the functionality of
+.BR writev ()
+and
+.BR pwrite (2).
+It performs the same task as
+.BR writev (),
+but adds a fourth argument,
+.IR offset ,
+which specifies the file offset at which the output operation
+is to be performed.
+
+The file offset is not changed by these system calls.
+The file referred to by
+.I fd
+must be capable of seeking.
+.SH RETURN VALUE
+On success,
+.BR readv ()
+and
+.BR preadv ()
+return the number of bytes read;
+.BR writev ()
+and
+.BR pwritev ()
+return the number of bytes written.
+
+Note that is not an error for a successful call to transfer fewer bytes
+than requested (see
+.BR read (2)
+and
+.BR write (2)).
+
+On error, \-1 is returned, and \fIerrno\fP is set appropriately.
+.SH ERRORS
+The errors are as given for
+.BR read (2)
+and
+.BR write (2).
+Furthermore,
+.BR preadv ()
+and
+.BR pwritev ()
+can also fail for the same reasons as
+.BR lseek (2).
+Additionally, the following error is defined:
+.TP
+.B EINVAL
+The sum of the
+.I iov_len
+values overflows an
+.I ssize_t
+value.
+.TP
+.B EINVAL
+The vector count \fIiovcnt\fP is less than zero or greater than the
+permitted maximum.
+.SH VERSIONS
+.BR preadv ()
+and
+.BR pwritev ()
+first appeared in Linux 2.6.30; library support was added in glibc 2.10.
+.SH CONFORMING TO
+.BR readv (),
+.BR writev ():
+POSIX.1-2001, POSIX.1-2008,
+4.4BSD (these system calls first appeared in 4.2BSD).
+.\" Linux libc5 used \fIsize_t\fP as the type of the \fIiovcnt\fP argument,
+.\" and \fIint\fP as the return type.
+.\" The readv/writev system calls were buggy before Linux 1.3.40.
+.\" (Says release.libc.)
+
+.BR preadv (),
+.BR pwritev ():
+nonstandard, but present also on the modern BSDs.
+.SH NOTES
+POSIX.1 allows an implementation to place a limit on
+the number of items that can be passed in
+.IR iov .
+An implementation can advertise its limit by defining
+.B IOV_MAX
+in
+.I <limits.h>
+or at run time via the return value from
+.IR sysconf(_SC_IOV_MAX) .
+On modern Linux systems, the limit is 1024.
+Back in Linux 2.0 days, this limit was 16.
+.\"
+.\"
+.SS C library/kernel differences
+The raw
+.BR preadv ()
+and
+.BR pwritev ()
+system calls have call signatures that differ slightly from that of the
+corresponding GNU C library wrapper functions shown in the SYNOPSIS.
+The final argument,
+.IR offset ,
+is unpacked by the wrapper functions into two arguments in the system calls:
+
+.BI "    unsigned long " pos_l ", unsigned long " pos
+
+These arguments contain, respectively, the low order and high order 32 bits of
+.IR offset .
+.SS Historical C library/kernel differences
+To deal with the fact that
+.B IOV_MAX
+was so low on early versions of Linux,
+the glibc wrapper functions for
+.BR readv ()
+and
+.BR writev ()
+did some extra work if they detected that the underlying kernel
+system call failed because this limit was exceeded.
+In the case of
+.BR readv (),
+the wrapper function allocated a temporary buffer large enough
+for all of the items specified by
+.IR iov ,
+passed that buffer in a call to
+.BR read (2),
+copied data from the buffer to the locations specified by the
+.I iov_base
+fields of the elements of
+.IR iov ,
+and then freed the buffer.
+The wrapper function for
+.BR writev ()
+performed the analogous task using a temporary buffer and a call to
+.BR write (2).
+
+The need for this extra effort in the glibc wrapper functions
+went away with Linux 2.2 and later.
+However, glibc continued to provide this behavior until version 2.10.
+Starting with glibc version 2.9,
+the wrapper functions provide this behavior only if the library detects
+that the system is running a Linux kernel older than version 2.6.18
+(an arbitrarily selected kernel version).
+And since glibc 2.20
+(which requires a minimum Linux kernel version of 2.6.32),
+the glibc wrapper functions always just directly invoke the system calls.
+
+It is not advisable to mix calls to
+.BR readv ()
+or
+.BR writev (),
+which operate on file descriptors, with the functions from the stdio
+library; the results will be undefined and probably not what you want.
+.SH EXAMPLE
+The following code sample demonstrates the use of
+.BR writev ():
+
+.in +4n
+.nf
+char *str0 = "hello ";
+char *str1 = "world\\n";
+struct iovec iov[2];
+ssize_t nwritten;
+
+iov[0].iov_base = str0;
+iov[0].iov_len = strlen(str0);
+iov[1].iov_base = str1;
+iov[1].iov_len = strlen(str1);
+
+nwritten = writev(STDOUT_FILENO, iov, 2);
+.fi
+.in
+.SH SEE ALSO
+.BR pread (2),
+.BR read (2),
+.BR write (2)

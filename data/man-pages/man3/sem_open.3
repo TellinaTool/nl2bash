@@ -1,0 +1,191 @@
+'\" t
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SEM_OPEN 3 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sem_open \- initialize and open a named semaphore
+.SH SYNOPSIS
+.nf
+.BR "#include <fcntl.h>" "           /* For O_* constants */"
+.BR "#include <sys/stat.h>" "        /* For mode constants */"
+.B #include <semaphore.h>
+.sp
+.BI "sem_t *sem_open(const char *" name ", int " oflag );
+.BI "sem_t *sem_open(const char *" name ", int " oflag ", "
+.BI "                mode_t " mode ", unsigned int " value );
+.fi
+.sp
+Link with \fI\-pthread\fP.
+.SH DESCRIPTION
+.BR sem_open ()
+creates a new POSIX semaphore or opens an existing semaphore.
+The semaphore is identified by
+.IR name .
+For details of the construction of
+.IR name ,
+see
+.BR sem_overview (7).
+
+The
+.I oflag
+argument specifies flags that control the operation of the call.
+(Definitions of the flags values can be obtained by including
+.IR <fcntl.h> .)
+If
+.B O_CREAT
+is specified in
+.IR oflag ,
+then the semaphore is created if
+it does not already exist.
+The owner (user ID) of the semaphore is set to the effective
+user ID of the calling process.
+The group ownership (group ID) is set to the effective group ID
+of the calling process.
+.\" In reality the filesystem IDs are used on Linux.
+If both
+.B O_CREAT
+and
+.B O_EXCL
+are specified in
+.IR oflag ,
+then an error is returned if a semaphore with the given
+.I name
+already exists.
+.PP
+If
+.B O_CREAT
+is specified in
+.IR oflag ,
+then two additional arguments must be supplied.
+The
+.I mode
+argument specifies the permissions to be placed on the new semaphore,
+as for
+.BR open (2).
+(Symbolic definitions for the permissions bits can be obtained by including
+.IR <sys/stat.h> .)
+The permissions settings are masked against the process umask.
+Both read and write permission should be granted to each class of
+user that will access the semaphore.
+The
+.I value
+argument specifies the initial value for the new semaphore.
+If
+.B O_CREAT
+is specified, and a semaphore with the given
+.I name
+already exists, then
+.I mode
+and
+.I value
+are ignored.
+.SH RETURN VALUE
+On success,
+.BR sem_open ()
+returns the address of the new semaphore;
+this address is used when calling other semaphore-related functions.
+On error,
+.BR sem_open ()
+returns
+.BR SEM_FAILED ,
+with
+.I errno
+set to indicate the error.
+.SH ERRORS
+.TP
+.B EACCES
+The semaphore exists, but the caller does not have permission to
+open it.
+.TP
+.B EEXIST
+Both
+.B O_CREAT
+and
+.B O_EXCL
+were specified in
+.IR oflag ,
+but a semaphore with this
+.I name
+already exists.
+.TP
+.B EINVAL
+.I value
+was greater than
+.BR SEM_VALUE_MAX .
+.TP
+.B EINVAL
+.I name
+consists of just "/", followed by no other characters.
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENAMETOOLONG
+.I name
+was too long.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENOENT
+The
+.B O_CREAT
+flag was not specified in
+.IR oflag
+and no semaphore with this
+.I name
+exists;
+or,
+.\" this error can occur if we have a name of the (nonportable) form
+.\" /dir/name, and the directory /dev/shm/dir does not exist.
+.B O_CREAT
+was specified, but
+.I name
+wasn't well formed.
+.TP
+.B ENOMEM
+Insufficient memory.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR sem_open ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH SEE ALSO
+.BR sem_close (3),
+.BR sem_getvalue (3),
+.BR sem_post (3),
+.BR sem_unlink (3),
+.BR sem_wait (3),
+.BR sem_overview (7)

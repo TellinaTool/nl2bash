@@ -1,0 +1,355 @@
+.\" Copyright (c) 2000 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2000-08-14 added GNU additions from Andreas Jaeger
+.\" 2000-12-05 some changes inspired by acahalan's remarks
+.\"
+.TH FENV 3  2015-03-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+feclearexcept, fegetexceptflag, feraiseexcept, fesetexceptflag,
+fetestexcept, fegetenv, fegetround, feholdexcept, fesetround,
+fesetenv, feupdateenv, feenableexcept, fedisableexcept,
+fegetexcept \- floating-point rounding and exception handling
+.SH SYNOPSIS
+.nf
+.B #include <fenv.h>
+.sp
+.BI "int feclearexcept(int " excepts );
+.br
+.BI "int fegetexceptflag(fexcept_t *" flagp ", int " excepts );
+.br
+.BI "int feraiseexcept(int " excepts );
+.br
+.BI "int fesetexceptflag(const fexcept_t *" flagp ", int " excepts );
+.br
+.BI "int fetestexcept(int " excepts );
+.sp
+.B "int fegetround(void);"
+.br
+.BI "int fesetround(int " rounding_mode );
+.sp
+.BI "int fegetenv(fenv_t *" envp );
+.br
+.BI "int feholdexcept(fenv_t *" envp );
+.br
+.BI "int fesetenv(const fenv_t *" envp );
+.br
+.BI "int feupdateenv(const fenv_t *" envp );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.SH DESCRIPTION
+These eleven functions were defined in C99, and describe the handling
+of floating-point rounding and exceptions (overflow, zero-divide, etc.).
+.SS Exceptions
+The
+.I divide-by-zero
+exception occurs when an operation on finite numbers
+produces infinity as exact answer.
+.LP
+The
+.I overflow
+exception occurs when a result has to be represented as a
+floating-point number, but has (much) larger absolute value than the
+largest (finite) floating-point number that is representable.
+.LP
+The
+.I underflow
+exception occurs when a result has to be represented as a
+floating-point number, but has smaller absolute value than the smallest
+positive normalized floating-point number (and would lose much accuracy
+when represented as a denormalized number).
+.LP
+The
+.I inexact
+exception occurs when the rounded result of an operation
+is not equal to the infinite precision result.
+It may occur whenever
+.I overflow
+or
+.I underflow
+occurs.
+.LP
+The
+.I invalid
+exception occurs when there is no well-defined result
+for an operation, as for 0/0 or infinity \- infinity or sqrt(\-1).
+.SS Exception handling
+Exceptions are represented in two ways: as a single bit
+(exception present/absent), and these bits correspond in some
+implementation-defined way with bit positions in an integer,
+and also as an opaque structure that may contain more information
+about the exception (perhaps the code address where it occurred).
+.LP
+Each of the macros
+.BR FE_DIVBYZERO ,
+.BR FE_INEXACT ,
+.BR FE_INVALID ,
+.BR FE_OVERFLOW ,
+.B FE_UNDERFLOW
+is defined when the implementation supports handling
+of the corresponding exception, and if so then
+defines the corresponding bit(s), so that one can call
+exception handling functions, for example, using the integer argument
+.BR FE_OVERFLOW | FE_UNDERFLOW .
+Other exceptions may be supported.
+The macro
+.B FE_ALL_EXCEPT
+is the bitwise OR of all bits corresponding to supported exceptions.
+.PP
+The
+.BR feclearexcept ()
+function clears the supported exceptions represented by the bits
+in its argument.
+.LP
+The
+.BR fegetexceptflag ()
+function stores a representation of the state of the exception flags
+represented by the argument
+.I excepts
+in the opaque object
+.IR *flagp .
+.LP
+The
+.BR feraiseexcept ()
+function raises the supported exceptions represented by the bits in
+.IR excepts .
+.LP
+The
+.BR fesetexceptflag ()
+function sets the complete status for the exceptions represented by
+.I excepts
+to the value
+.IR *flagp .
+This value must have been obtained by an earlier call of
+.BR fegetexceptflag ()
+with a last argument that contained all bits in
+.IR excepts .
+.LP
+The
+.BR fetestexcept ()
+function returns a word in which the bits are set that were
+set in the argument
+.I excepts
+and for which the corresponding exception is currently set.
+.SS Rounding mode
+The rounding mode determines how the result of floating-point operations
+is treated when the result cannot be exactly represented in the significand.
+Various rounding modes may be provided:
+round to nearest (the default),
+round up (toward positive infinity),
+round down (toward negative infinity), and
+round toward zero.
+
+Each of the macros
+.BR FE_TONEAREST ,
+.BR FE_UPWARD ,
+.BR FE_DOWNWARD ,
+and
+.BR FE_TOWARDZERO
+is defined when the implementation supports getting and setting
+the corresponding rounding direction.
+.LP
+The
+.BR fegetround ()
+function returns the macro corresponding to the current
+rounding mode.
+.LP
+The
+.BR fesetround ()
+function sets the rounding mode as specified by its argument
+and returns zero when it was successful.
+
+C99 and POSIX.1-2008 specify an identifier,
+.BR FLT_ROUNDS ,
+defined in
+.IR <float.h> ,
+which indicates the implementation-defined rounding
+behavior for floating-point addition.
+This identifier has one of the following values:
+.IP \-1
+The rounding mode is not determinable.
+.IP 0
+Rounding is toward 0.
+.IP 1
+Rounding is toward nearest number.
+.IP 2
+Rounding is toward positive infinity.
+.IP 3
+Rounding is toward negative infinity.
+.PP
+Other values represent machine-dependent, nonstandard rounding modes.
+.PP
+The value of
+.BR FLT_ROUNDS
+should reflect the current rounding mode as set by
+.BR fesetround ()
+(but see BUGS).
+.SS Floating-point environment
+The entire floating-point environment, including
+control modes and status flags, can be handled
+as one opaque object, of type
+.IR fenv_t .
+The default environment is denoted by
+.B FE_DFL_ENV
+(of type
+.IR "const fenv_t\ *" ).
+This is the environment setup at program start and it is defined by
+ISO C to have round to nearest, all exceptions cleared and a nonstop
+(continue on exceptions) mode.
+.LP
+The
+.BR fegetenv ()
+function saves the current floating-point environment in the object
+.IR *envp .
+.LP
+The
+.BR feholdexcept ()
+function does the same, then clears all exception flags,
+and sets a nonstop (continue on exceptions) mode,
+if available.
+It returns zero when successful.
+.LP
+The
+.BR fesetenv ()
+function restores the floating-point environment from
+the object
+.IR *envp .
+This object must be known to be valid, for example, the result of a call to
+.BR fegetenv ()
+or
+.BR feholdexcept ()
+or equal to
+.BR FE_DFL_ENV .
+This call does not raise exceptions.
+.LP
+The
+.BR feupdateenv ()
+function installs the floating-point environment represented by
+the object
+.IR *envp ,
+except that currently raised exceptions are not cleared.
+After calling this function, the raised exceptions will be a bitwise OR
+of those previously set with those in
+.IR *envp .
+As before, the object
+.I *envp
+must be known to be valid.
+.SH RETURN VALUE
+These functions return zero on success and nonzero if an error occurred.
+.\" Earlier seven of these functions were listed as returning void.
+.\" This was corrected in Corrigendum 1 (ISO/IEC 9899:1999/Cor.1:2001(E))
+.\" of the C99 Standard.
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.nh
+.ad l
+.TS
+allbox;
+lb lb lb
+lw35 l l.
+Interface	Attribute	Value
+T{
+.BR feclearexcept (),
+.BR fegetexceptflag (),
+.BR feraiseexcept (),
+.BR fesetexceptflag (),
+.BR fetestexcept (),
+.BR fegetround (),
+.BR fesetround (),
+.BR fegetenv (),
+.BR feholdexcept (),
+.BR fesetenv (),
+.BR feupdateenv (),
+.BR feenableexcept (),
+.BR fedisableexcept (),
+.BR fegetexcept ()
+T}	Thread safety	T{
+MT-Safe
+T}
+.TE
+.ad
+.hy
+.SH CONFORMING TO
+IEC 60559 (IEC 559:1989), ANSI/IEEE 854, C99, POSIX.1-2001.
+.SH NOTES
+.SS Glibc notes
+If possible, the GNU C Library defines a macro
+.B FE_NOMASK_ENV
+which represents an environment where every exception raised causes a
+trap to occur.
+You can test for this macro using
+.BR #ifdef .
+It is defined only if
+.B _GNU_SOURCE
+is defined.
+The C99 standard does not define a way to set individual bits in the
+floating-point mask, for example, to trap on specific flags.
+Since version 2.2, glibc supports the functions
+.BR feenableexcept ()
+and
+.BR fedisableexcept ()
+to set individual floating-point traps, and
+.BR fegetexcept ()
+to query the state.
+.sp
+.nf
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.br
+.B "#include <fenv.h>"
+.sp
+.BI "int feenableexcept(int " excepts );
+.br
+.BI "int fedisableexcept(int " excepts );
+.br
+.B "int fegetexcept(void);"
+.br
+.fi
+.LP
+The
+.BR feenableexcept ()
+and
+.BR fedisableexcept ()
+functions enable (disable) traps for each of the exceptions represented by
+.I excepts
+and return the previous set of enabled exceptions when successful,
+and \-1 otherwise.
+The
+.BR fegetexcept ()
+function returns the set of all currently enabled exceptions.
+.SH BUGS
+C99 specifies that the value of
+.B FLT_ROUNDS
+should reflect changes to the current rounding mode, as set by
+.BR fesetround ().
+Currently,
+.\" Aug 08, glibc 2.8
+this does not occur:
+.B FLT_ROUNDS
+always has the value 1.
+.\" See http://gcc.gnu.org/ml/gcc/2002-02/msg01535.html
+.SH SEE ALSO
+.BR math_error (7)

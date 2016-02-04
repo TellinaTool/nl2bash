@@ -1,0 +1,181 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" based on glibc infopages
+.\"
+.TH LGAMMA 3 2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+lgamma, lgammaf, lgammal, lgamma_r, lgammaf_r, lgammal_r, signgam \-
+log gamma function
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "double lgamma(double " x );
+.br
+.BI "float lgammaf(float " x );
+.br
+.BI "long double lgammal(long double " x );
+.sp
+.BI "double lgamma_r(double " x ", int *" signp );
+.br
+.BI "float lgammaf_r(float " x ", int *" signp );
+.br
+.BI "long double lgammal_r(long double " x ", int *" signp );
+.sp
+.BI "extern int " signgam ;
+.fi
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR lgamma ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.br
+.BR lgammaf (),
+.BR lgammal ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.BR lgamma_r (),
+.BR lgammaf_r (),
+.BR lgammal_r ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE
+.RE
+.IR signgam :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+For the definition of the Gamma function, see
+.BR tgamma (3).
+.PP
+The
+.BR lgamma (),
+.BR lgammaf (),
+and
+.BR lgammal ()
+functions return the natural logarithm of
+the absolute value of the Gamma function.
+The sign of the Gamma function is returned in the
+external integer
+.I signgam
+declared in
+.IR <math.h> .
+It is 1 when the Gamma function is positive or zero, \-1
+when it is negative.
+.PP
+Since using a constant location
+.I signgam
+is not thread-safe, the functions
+.BR lgamma_r (),
+.BR lgammaf_r (),
+and
+.BR lgammal_r ()
+have been introduced; they return the sign via the argument
+.IR signp .
+.SH RETURN VALUE
+On success, these functions return the natural logarithm of Gamma(x).
+
+If
+.I x
+is a NaN, a NaN is returned.
+
+If
+.I x
+is 1 or 2, +0 is returned.
+
+If
+.I x
+is positive infinity or negative infinity,
+positive infinity is returned.
+
+If
+.I x
+is a nonpositive integer,
+a pole error occurs,
+and the functions return
+.RB + HUGE_VAL ,
+.RB + HUGE_VALF ,
+or
+.RB + HUGE_VALL ,
+respectively.
+
+If the result overflows,
+a range error occurs,
+.\" e.g., lgamma(DBL_MAX)
+and the functions return
+.BR HUGE_VAL ,
+.BR HUGE_VALF ,
+or
+.BR HUGE_VALL ,
+respectively, with the correct mathematical sign.
+.SH ERRORS
+See
+.BR math_error (7)
+for information on how to determine whether an error has occurred
+when calling these functions.
+.PP
+The following errors can occur:
+.TP
+Pole error: \fIx\fP is a nonpositive integer
+.I errno
+is set to
+.BR ERANGE
+(but see BUGS).
+A divide-by-zero floating-point exception
+.RB ( FE_DIVBYZERO )
+is raised.
+.TP
+Range error: result overflow
+.I errno
+is set to
+.BR ERANGE .
+An overflow floating-point exception
+.RB ( FE_OVERFLOW )
+is raised.
+.\" glibc (as at 2.8) also supports an inexact
+.\" exception for various cases.
+.SH CONFORMING TO
+The
+.BR lgamma ()
+functions are specified in C99, POSIX.1-2001, and POSIX.1-2008.
+.I signgam
+is specified in POSIX.1-2001 and POSIX.1-2008, but not in C99.
+The
+.BR lgamma_r ()
+functions are nonstandard, but present on several other systems.
+.SH BUGS
+In glibc 2.9 and earlier,
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=6777
+when a pole error occurs,
+.I errno
+is set to
+.BR EDOM ;
+instead of the POSIX-mandated
+.BR ERANGE .
+Since version 2.10, glibc does the right thing.
+.SH SEE ALSO
+.BR tgamma (3)

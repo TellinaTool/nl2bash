@@ -1,0 +1,145 @@
+.\" This man page is Copyright (C) 2006 Andi Kleen <ak@muc.de>.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" 2008, mtk, various edits
+.\"
+.TH GETCPU 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+getcpu \- determine CPU and NUMA node on which the calling thread is running
+.SH SYNOPSIS
+.nf
+.B #include <linux/getcpu.h>
+.sp
+.BI "int getcpu(unsigned *" cpu ", unsigned *" node \
+", struct getcpu_cache *" tcache );
+.fi
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+The
+.BR getcpu ()
+system call identifies the processor and node on which the calling
+thread or process is currently running and writes them into the
+integers pointed to by the
+.I cpu
+and
+.I node
+arguments.
+The processor is a unique small integer identifying a CPU.
+The node is a unique small identifier identifying a NUMA node.
+When either
+.I cpu
+or
+.I node
+is NULL nothing is written to the respective pointer.
+
+The third argument to this system call is nowadays unused,
+and should be specified as NULL
+unless portability to Linux 2.6.23 or earlier is required (see NOTES).
+
+The information placed in
+.I cpu
+is guaranteed to be current only at the time of the call:
+unless the CPU affinity has been fixed using
+.BR sched_setaffinity (2),
+the kernel might change the CPU at any time.
+(Normally this does not happen
+because the scheduler tries to minimize movements between CPUs to
+keep caches hot, but it is possible.)
+The caller must allow for the possibility that the information returned in
+.I cpu
+and
+.I node
+is no longer current by the time the call returns.
+.SH RETURN VALUE
+On success, 0 is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EFAULT
+Arguments point outside the calling process's address space.
+.SH VERSIONS
+.BR getcpu ()
+was added in kernel 2.6.19 for x86_64 and i386.
+.SH CONFORMING TO
+.BR getcpu ()
+is Linux-specific.
+.SH NOTES
+Linux makes a best effort to make this call as fast as possible.
+The intention of
+.BR getcpu ()
+is to allow programs to make optimizations with per-CPU data
+or for NUMA optimization.
+
+Glibc does not provide a wrapper for this system call; call it using
+.BR syscall (2);
+or use
+.BR sched_getcpu (3)
+instead.
+
+The
+.I tcache
+argument is unused since Linux 2.6.24.
+.\" commit 4307d1e5ada595c87f9a4d16db16ba5edb70dcb1
+.\" Author: Ingo Molnar <mingo@elte.hu>
+.\" Date:   Wed Nov 7 18:37:48 2007 +0100
+.\" x86: ignore the sys_getcpu() tcache parameter
+In earlier kernels,
+if this argument was non-NULL,
+then it specified a pointer to a caller-allocated buffer in thread-local
+storage that was used to provide a caching mechanism for
+.BR getcpu ().
+Use of the cache could speed
+.BR getcpu ()
+calls, at the cost that there was a very small chance that
+the returned information would be out of date.
+The caching mechanism was considered to cause problems when
+migrating threads between CPUs, and so the argument is now ignored.
+.\"
+.\" ===== Before kernel 2.6.24: =====
+.\" .I tcache
+.\" is a pointer to a
+.\" .IR "struct getcpu_cache"
+.\" that is used as a cache by
+.\" .BR getcpu ().
+.\" The caller should put the cache into a thread-local variable
+.\" if the process is multithreaded,
+.\" because the cache cannot be shared between different threads.
+.\" .I tcache
+.\" can be NULL.
+.\" If it is not NULL
+.\" .BR getcpu ()
+.\" will use it to speed up operation.
+.\" The information inside the cache is private to the system call
+.\" and should not be accessed by the user program.
+.\" The information placed in the cache can change between kernel releases.
+.\"
+.\" When no cache is specified
+.\" .BR getcpu ()
+.\" will be slower,
+.\" but always retrieve the current CPU and node information.
+.\" With a cache
+.\" .BR getcpu ()
+.\" is faster.
+.\" However, the cached information is updated only once per jiffy (see
+.\" .BR time (7)).
+.\" This means that the information could theoretically be out of date,
+.\" although in practice the scheduler's attempt to maintain
+.\" soft CPU affinity means that the information is unlikely to change
+.\" over the course of the caching interval.
+.SH SEE ALSO
+.BR mbind (2),
+.BR sched_setaffinity (2),
+.BR set_mempolicy (2),
+.BR sched_getcpu (3),
+.BR cpuset (7),
+.BR vdso (7)

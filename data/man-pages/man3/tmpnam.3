@@ -1,0 +1,181 @@
+.\" Copyright (c) 1999 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2003-11-15, aeb, added tmpnam_r
+.\"
+.TH TMPNAM 3  2015-03-02 "" "Linux Programmer's Manual"
+.SH NAME
+tmpnam, tmpnam_r \- create a name for a temporary file
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.sp
+.BI "char *tmpnam(char *" s );
+.fi
+.SH DESCRIPTION
+.B Note:
+Avoid use of
+.BR tmpnam ();
+use
+.BR mkstemp (3)
+or
+.BR tmpfile (3)
+instead.
+
+The
+.BR tmpnam ()
+function returns a pointer to a string that is a valid filename,
+and such that a file with this name did not exist at some point
+in time, so that naive programmers may think it
+a suitable name for a temporary file.
+If the argument
+.I s
+is NULL, this name is generated in an internal static buffer
+and may be overwritten by the next call to
+.BR tmpnam ().
+If
+.I s
+is not NULL, the name is copied to the character array (of length
+at least
+.IR L_tmpnam )
+pointed to by
+.I s
+and the value
+.I s
+is returned in case of success.
+.LP
+The pathname that is created, has a directory prefix
+.IR P_tmpdir .
+(Both
+.I L_tmpnam
+and
+.I P_tmpdir
+are defined in
+.IR <stdio.h> ,
+just like the
+.B TMP_MAX
+mentioned below.)
+.SH RETURN VALUE
+The
+.BR tmpnam ()
+function returns a pointer to a unique temporary
+filename, or NULL if a unique name cannot be generated.
+.SH ERRORS
+No errors are defined.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR tmpnam ()
+T}	Thread safety	MT-Unsafe race:tmpnam/!s
+T{
+.BR tmpnam_r ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+SVr4, 4.3BSD, C89, C99, POSIX.1-2001.
+POSIX.1-2008 marks
+.BR tmpnam ()
+as obsolete.
+.SH NOTES
+The
+.BR tmpnam ()
+function generates a different string each time it is called,
+up to
+.B TMP_MAX
+times.
+If it is called more than
+.B TMP_MAX
+times,
+the behavior is implementation defined.
+.LP
+Although
+.BR tmpnam ()
+generates names that are difficult to guess,
+it is nevertheless possible that between the time that
+.BR tmpnam ()
+returns a pathname, and the time that the program opens it,
+another program might create that pathname using
+.BR open (2),
+or create it as a symbolic link.
+This can lead to security holes.
+To avoid such possibilities, use the
+.BR open (2)
+.B O_EXCL
+flag to open the pathname.
+Or better yet, use
+.BR mkstemp (3)
+or
+.BR tmpfile (3).
+.LP
+Portable applications that use threads cannot call
+.BR tmpnam ()
+with a NULL argument if either
+.B _POSIX_THREADS
+or
+.B _POSIX_THREAD_SAFE_FUNCTIONS
+is defined.
+.LP
+A POSIX draft proposed to use a function
+.BR tmpnam_r ()
+defined by
+.sp
+.nf
+.in +4n
+char *
+tmpnam_r(char *s)
+{
+    return s ? tmpnam(s) : NULL;
+}
+.in
+.fi
+.sp
+apparently as a warning not to use NULL.
+A few systems implement it.
+To get a glibc prototype for this function from
+.IR <stdio.h> ,
+define
+.B _SVID_SOURCE
+or
+.B _BSD_SOURCE
+(before including
+.I any
+header file).
+.SH BUGS
+Never use this function.
+Use
+.BR mkstemp (3)
+or
+.BR tmpfile (3)
+instead.
+.SH SEE ALSO
+.BR mkstemp (3),
+.BR mktemp (3),
+.BR tempnam (3),
+.BR tmpfile (3)

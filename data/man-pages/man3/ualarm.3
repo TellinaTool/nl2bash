@@ -1,0 +1,162 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH UALARM 3  2015-03-02 "" "Linux Programmer's Manual"
+.SH NAME
+ualarm \- schedule signal after given number of microseconds
+.SH SYNOPSIS
+.nf
+.B "#include <unistd.h>"
+.sp
+.BI "useconds_t ualarm(useconds_t " usecs ", useconds_t " interval );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR ualarm ():
+.ad l
+.RS 4
+.PD 0
+.TP 4
+Since glibc 2.12:
+.nf
+_BSD_SOURCE ||
+    (_XOPEN_SOURCE\ >=\ 500 ||
+        _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED) &&
+    !(_POSIX_C_SOURCE\ >=\ 200809L || _XOPEN_SOURCE\ >=\ 700)
+.TP 4
+.fi
+Before glibc 2.12:
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.PD
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR ualarm ()
+function causes the signal
+.B SIGALRM
+to be sent to the invoking process after (not less than)
+.I usecs
+microseconds.
+The delay may be lengthened slightly by any system activity
+or by the time spent processing the call or by the
+granularity of system timers.
+.LP
+Unless caught or ignored, the
+.B SIGALRM
+signal will terminate the process.
+.LP
+If the
+.I interval
+argument is nonzero, further
+.B SIGALRM
+signals will be sent every
+.I interval
+microseconds after the first.
+.SH RETURN VALUE
+This function returns the number of microseconds remaining for
+any alarm that was previously set, or 0 if no alarm was pending.
+.SH ERRORS
+.TP
+.B EINTR
+Interrupted by a signal; see
+.BR signal (7).
+.TP
+.B EINVAL
+\fIusecs\fP or \fIinterval\fP is not smaller than 1000000.
+(On systems where that is considered an error.)
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR ualarm ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+4.3BSD, POSIX.1-2001.
+POSIX.1-2001 marks
+.BR ualarm ()
+as obsolete.
+POSIX.1-2008 removes the specification of
+.BR ualarm ().
+4.3BSD, SUSv2, and POSIX do not define any errors.
+.SH NOTES
+POSIX.1-2001 does not specify what happens if the
+.I usecs
+argument is 0.
+.\" This case is not documented in HP-US, Solar, FreeBSD, NetBSD, or OpenBSD!
+On Linux (and probably most other systems),
+the effect is to cancel any pending alarm.
+
+The type
+.I useconds_t
+is an unsigned integer type capable of holding integers
+in the range [0,1000000].
+On the original BSD implementation, and in glibc before version 2.1,
+the arguments to
+.BR ualarm ()
+were instead typed as
+.IR "unsigned int" .
+Programs will be more portable if they never mention
+.I useconds_t
+explicitly.
+.LP
+The interaction of this function with
+other timer functions such as
+.BR alarm (2),
+.BR sleep (3),
+.BR nanosleep (2),
+.BR setitimer (2),
+.BR timer_create (2),
+.BR timer_delete (2),
+.BR timer_getoverrun (2),
+.BR timer_gettime (2),
+.BR timer_settime (2),
+.BR usleep (3)
+is unspecified.
+.LP
+This function is obsolete.
+Use
+.BR setitimer (2)
+or POSIX interval timers
+.RB ( timer_create (2),
+etc.)
+instead.
+.SH SEE ALSO
+.BR alarm (2),
+.BR getitimer (2),
+.BR nanosleep (2),
+.BR select (2),
+.BR setitimer (2),
+.BR usleep (3),
+.BR time (7)

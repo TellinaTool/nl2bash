@@ -1,0 +1,379 @@
+'\" t -*- coding: UTF-8 -*-
+.\" Copyright (C) 2014 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH NEWLOCALE 3 2014-05-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+newlocale, freelocale \- create, modify, and free a locale object
+.SH SYNOPSIS
+.nf
+.B #include <locale.h>
+
+.BI "locale_t newlocale(int " category_mask ", const char *" locale ",
+.BI "                   locale_t " base );
+
+.BI "void freelocale(locale_t " locobj );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR newlocale (),
+.BR freelocale ():
+.PD 0
+.RS 4
+.TP
+Since glibc 2.10:
+_XOPEN_SOURCE\ >=\ 700
+.TP
+Before glibc 2.10:
+_GNU_SOURCE
+.RE
+.PD
+.SH DESCRIPTION
+The
+.BR newlocale ()
+function creates a new locale object, or modifies an existing object,
+returning a reference to the new or modified object as the function result.
+Whether the call creates a new object or modifies an existing object
+is determined by the value of
+.IR base :
+.IP * 3
+If
+.I base
+is
+.IR "(locale_t)\ 0" ,
+a new object is created.
+.IP *
+If
+.I base
+refers to valid existing locale object
+(i.e., an object returned by a previous call to
+.BR newlocale ()
+or
+.BR duplocale (3)),
+then that object is modified by the call.
+If the call is successful, the contents of
+.I base
+are unspecified (in particular, the object referred to by
+.I base
+may be freed, and a new object created).
+Therefore, the caller should ensure that it stops using
+.I base
+before the call to
+.BR newlocale (),
+and should subsequently refer to the modified object via the
+reference returned as the function result.
+If the call fails, the contents of
+.I base
+remain valid and unchanged.
+.PP
+If
+.I base
+is the special locale object
+.BR LC_GLOBAL_LOCALE
+(see
+.BR duplocale (3)),
+or is not
+.IR "(locale_t)\ 0"
+and is not a valid locale object handle,
+the behavior is undefined.
+
+The
+.I category_mask
+argument is a bit mask that specifies the locale categories
+that are to be set in a newly created locale object
+or modified in an existing object.
+The mask is constructed by a bitwise OR of the constants
+.BR LC_ADDRESS_MASK ,
+.BR LC_CTYPE_MASK ,
+.BR LC_COLLATE_MASK ,
+.BR LC_IDENTIFICATION_MASK ,
+.BR LC_MEASUREMENT_MASK ,
+.BR LC_MESSAGES_MASK ,
+.BR LC_MONETARY_MASK ,
+.BR LC_NUMERIC_MASK ,
+.BR LC_NAME_MASK ,
+.BR LC_PAPER_MASK ,
+.BR LC_TELEPHONE_MASK ,
+and
+.BR LC_TIME_MASK .
+Alternatively, the mask can be specified as
+.BR LC_ALL_MASK ,
+which is equivalent to ORing all of the preceding constants.
+
+For each category specified in
+.IR category_mask ,
+the locale data from
+.I locale
+will be used in the object returned by
+.BR newlocale ().
+If a new locale object is being created,
+data for all categories not specified in
+.IR category_mask
+is taken from the default ("POSIX") locale.
+
+The following preset values of
+.I locale
+are defined for all categories that can be specified in
+.IR category_mask :
+.TP
+"POSIX"
+A minimal locale environment for C language programs.
+.TP
+"C"
+Equivalent to "POSIX".
+.TP
+""
+An implementation-defined native environment
+corresponding to the values of the
+.BR LC_*
+and
+.B LANG
+environment variables (see
+.BR locale (7)).
+.SS freelocale()
+The
+.BR freelocale ()
+function deallocates the resources associated with
+.IR locobj ,
+a locale object previously returned by a call to
+.BR newlocale ()
+or
+.BR duplocale (3).
+If
+.I locobj
+is
+.BR LC_GLOBAL_LOCALE
+or is not valid locale object handle, the results are undefined.
+
+Once a locale object has been freed,
+the program should make no further use of it.
+.SH RETURN VALUE
+On success,
+.BR newlocale ()
+returns a handle that can be used in calls to
+.BR duplocale (3),
+.BR freelocale (),
+and other functions that take a
+.I locale_t
+argument.
+On error,
+.BR newlocale ()
+returns
+.IR "(locale_t)\ 0",
+and sets
+.I errno
+to indicate the cause of the error.
+.SH ERRORS
+.TP
+.B EINVAL
+One or more bits in
+.I category_mask
+do not correspond to a valid locale category.
+.TP
+.B EINVAL
+.I locale
+is NULL.
+.TP
+.B ENOENT
+.I locale
+is not a string pointer referring to a valid locale.
+.TP
+.B ENOMEM
+Insufficient memory to create a locale object.
+.SH VERSIONS
+The
+.BR newlocale ()
+and
+.BR freelocale ()
+functions first appeared in version 2.3 of the GNU C library.
+.SH CONFORMING TO
+POSIX.1-2008.
+.SH NOTES
+Each locale object created by
+.BR newlocale ()
+should be deallocated using
+.BR freelocale (3).
+.SH EXAMPLE
+The program below takes up to two command-line arguments,
+which each identify locales.
+The first argument is required, and is used to set the
+.B LC_NUMERIC
+category in a locale object created using
+.BR newlocale ().
+The second command-line argument is optional;
+if it is present, it is used to set the
+.B LC_TIME
+category of the locale object.
+
+Having created and initialized the locale object,
+the program then applies it using
+.BR uselocale (3),
+and then tests the effect of the locale changes by:
+.IP 1. 3
+Displaying a floating-point number with a fractional part.
+This output will be affected by the
+.B LC_NUMERIC
+setting.
+In many European-language locales,
+the fractional part of the number is separated from the integer part
+using a comma, rather than a period.
+.IP 2.
+Displaying the date.
+The format and language of the output will be affected by the
+.B LC_TIME
+setting.
+.PP
+The following shell sessions show some example runs of this program.
+
+Set the
+.B LC_NUMERIC
+category to
+.IR fr_FR
+(French):
+.in +4n
+.nf
+
+$ \fB./a.out fr_FR\fP
+123456,789
+Fri Mar  7 00:25:08 2014
+.fi
+.in
+
+Set the
+.B LC_NUMERIC
+category to
+.IR fr_FR
+(French),
+and the
+.B LC_TIME
+category to
+.IR it_IT
+(Italian):
+.in +4n
+.nf
+
+$ \fB./a.out fr_FR it_IT\fP
+123456,789
+ven 07 mar 2014 00:26:01 CET
+.fi
+.in
+
+Specify the
+.B LC_TIME
+setting as an empty string,
+which causes the value to be taken from environment variable settings
+(which, here, specify
+.IR mi_NZ ,
+New Zealand Māori):
+.in +4n
+.nf
+
+$ LC_ALL=mi_NZ ./a.out fr_FR ""
+123456,789
+Te Paraire, te 07 o Poutū-te-rangi, 2014 00:38:44 CET
+.fi
+.SS Program source
+.nf
+#define _XOPEN_SOURCE 700
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+#include <time.h>
+
+#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \\
+                        } while (0)
+
+int
+main(int argc, char *argv[])
+{
+    char buf[100];
+    time_t t;
+    size_t s;
+    struct tm *tm;
+    locale_t loc, nloc;
+
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s locale1 [locale2]\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    /* Create a new locale object, taking the LC_NUMERIC settings
+       from the locale specified in argv[1] */
+
+    loc = newlocale(LC_NUMERIC_MASK, argv[1], (locale_t) 0);
+    if (loc == (locale_t) 0)
+        errExit("newlocale");
+
+    /* If a second command\-line argument was specified, modify the
+       locale object to take the LC_TIME settings from the locale
+       specified in argv[2]. We assign the result of this newlocale()
+       call to 'nloc' rather than 'loc', since in some cases, we might
+       want to preserve 'loc' if this call fails. */
+
+    if (argc > 2) {
+        nloc = newlocale(LC_TIME_MASK, argv[2], loc);
+        if (nloc == (locale_t) 0)
+            errExit("newlocale");
+        loc = nloc;
+    }
+
+    /* Apply the newly created locale to this thread */
+
+    uselocale(loc);
+
+    /* Test effect of LC_NUMERIC */
+
+    printf("%8.3f\\n", 123456.789);
+
+    /* Test effect of LC_TIME */
+
+    t = time(NULL);
+    tm = localtime(&t);
+    if (tm == NULL)
+        errExit("time");
+
+    s = strftime(buf, sizeof(buf), "%c", tm);
+    if (s == 0)
+        errExit("strftime");
+
+    printf("%s\\n", buf);
+
+    /* Free the locale object */
+
+    freelocale(loc);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR locale (1),
+.BR duplocale (3),
+.BR setlocale (3),
+.BR uselocale (3),
+.BR locale (5),
+.BR locale (7)

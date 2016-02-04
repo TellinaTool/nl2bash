@@ -1,0 +1,141 @@
+.\" Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
+.\" Written by David Howells (dhowells@redhat.com)
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_ONEPARA)
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License
+.\" as published by the Free Software Foundation; either version
+.\" 2 of the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.TH REQUEST_KEY 2 2015-05-07 Linux "Linux Key Management Calls"
+.SH NAME
+request_key \- request a key from the kernel's key management facility
+.SH SYNOPSIS
+.nf
+.B #include <keyutils.h>
+.sp
+.BI "key_serial_t request_key(const char *" type ", const char *" description ,
+.BI "                         const char *" callout_info ,
+.BI "                         key_serial_t " keyring ");"
+.fi
+.SH DESCRIPTION
+.BR request_key ()
+asks the kernel to find a key of the given
+.I type
+that matches the specified
+.I description
+and, if successful, to attach it to the nominated
+.I keyring
+and to return its serial number.
+.P
+.BR request_key ()
+first recursively searches all the keyrings attached to the calling process in
+the order thread-specific keyring, process-specific keyring and then session
+keyring for a matching key.
+.P
+If
+.BR request_key ()
+is called from a program invoked by
+.BR request_key ()
+on behalf of some other process to generate a key, then the keyrings of that
+other process will be searched next, using that other process's UID, GID,
+groups, and security context to control access.
+.P
+The keys in each keyring searched are checked for a match before any child
+keyrings are recursed into.
+Only keys that are
+.B searchable
+for the caller may be found, and only
+.B searchable
+keyrings may be searched.
+.P
+If the key is not found, then, if
+.I callout_info
+is set, this function will attempt to look further afield.
+In such a case, the
+.I callout_info
+is passed to a user-space service such as
+.B /sbin/request\-key
+to generate the key.
+.P
+If that is unsuccessful also, then an error will be returned, and a temporary
+negative key will be installed in the nominated
+.IR keyring .
+This will expire after a few seconds, but will cause subsequent
+calls to
+.BR request_key ()
+to fail until it does.
+.P
+The
+.I keyring
+serial number may be that of a valid keyring to which the caller has write
+permission, or it may be a special keyring ID:
+.TP
+.B KEY_SPEC_THREAD_KEYRING
+This specifies the caller's thread-specific keyring.
+.TP
+.B KEY_SPEC_PROCESS_KEYRING
+This specifies the caller's process-specific keyring.
+.TP
+.B KEY_SPEC_SESSION_KEYRING
+This specifies the caller's session-specific keyring.
+.TP
+.B KEY_SPEC_USER_KEYRING
+This specifies the caller's UID-specific keyring.
+.TP
+.B KEY_SPEC_USER_SESSION_KEYRING
+This specifies the caller's UID-session keyring.
+.P
+If a key is created, no matter whether it's a valid key or a negative key, it
+will displace any other key of the same type and description from the
+destination
+.IR keyring .
+.SH RETURN VALUE
+On success
+.BR request_key ()
+returns the serial number of the key it found.
+On error, the value \-1
+will be returned and errno will have been set to an appropriate error.
+.SH ERRORS
+.TP
+.B EACCES
+The keyring wasn't available for modification by the user.
+.TP
+.B EINTR
+The request was interrupted by a signal; see
+.BR signal (7).
+.TP
+.B EDQUOT
+The key quota for this user would be exceeded by creating this key or linking
+it to the keyring.
+.TP
+.B EKEYEXPIRED
+An expired key was found, but no replacement could be obtained.
+.TP
+.B EKEYREJECTED
+The attempt to generate a new key was rejected.
+.TP
+.B EKEYREVOKED
+A revoked key was found, but no replacement could be obtained.
+.TP
+.B ENOMEM
+Insufficient memory to create a key.
+.TP
+.B ENOKEY
+No matching key was found.
+.SH LINKING
+Although this is a Linux system call, it is not present in
+.I libc
+but can be found rather in
+.IR libkeyutils .
+When linking,
+.B -lkeyutils
+should be specified to the linker.
+.SH SEE ALSO
+.BR keyctl (1),
+.BR add_key (2),
+.BR keyctl (2),
+.BR keyctl (3),
+.BR keyrings (7),
+.BR request-key (8)

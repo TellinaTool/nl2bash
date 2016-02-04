@@ -1,0 +1,459 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_SETSCHEDPARAM 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_setschedparam, pthread_getschedparam \- set/get
+scheduling policy and parameters of a thread
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.BI "int pthread_setschedparam(pthread_t " thread ", int " policy ,
+.BI "                          const struct sched_param *" param );
+.BI "int pthread_getschedparam(pthread_t " thread ", int *" policy ,
+.BI "                          struct sched_param *" param );
+.sp
+Compile and link with \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+The
+.BR pthread_setschedparam ()
+function sets the scheduling policy and parameters of the thread
+.IR thread .
+
+.I policy
+specifies the new scheduling policy for
+.IR thread .
+The supported values for
+.IR policy ,
+and their semantics, are described in
+.BR sched (7).
+.\" FIXME . pthread_setschedparam() places no restriction on the policy,
+.\" but pthread_attr_setschedpolicy() restricts policy to RR/FIFO/OTHER
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=7013
+
+The structure pointed to by
+.I param
+specifies the new scheduling parameters for
+.IR thread .
+Scheduling parameters are maintained in the following structure:
+
+.in +4n
+.nf
+struct sched_param {
+    int sched_priority;     /* Scheduling priority */
+};
+.fi
+.in
+
+As can be seen, only one scheduling parameter is supported.
+For details of the permitted ranges for scheduling priorities
+in each scheduling policy, see
+.BR sched (7).
+
+The
+.BR pthread_getschedparam ()
+function returns the scheduling policy and parameters of the thread
+.IR thread ,
+in the buffers pointed to by
+.I policy
+and
+.IR param ,
+respectively.
+The returned priority value is that set by the most recent
+.BR pthread_setschedparam (),
+.BR pthread_setschedprio (3),
+or
+.BR pthread_create (3)
+call that affected
+.IR thread .
+The returned priority does not reflect any temporary priority adjustments
+as a result of calls to any priority inheritance or
+priority ceiling functions (see, for example,
+.BR pthread_mutexattr_setprioceiling (3)
+and
+.BR pthread_mutexattr_setprotocol (3)).
+.\" FIXME . nptl/pthread_setschedparam.c has the following
+.\"   /* If the thread should have higher priority because of some
+.\"      PTHREAD_PRIO_PROTECT mutexes it holds, adjust the priority. */
+.\" Eventually (perhaps after writing the mutexattr pages), we
+.\" may want to add something on the topic to this page.
+.SH RETURN VALUE
+On success, these functions return 0;
+on error, they return a nonzero error number.
+If
+.BR pthread_setschedparam ()
+fails, the scheduling policy and parameters of
+.I thread
+are not changed.
+.SH ERRORS
+Both of these functions can fail with the following error:
+.TP
+.B ESRCH
+No thread with the ID
+.I thread
+could be found.
+.PP
+.BR pthread_setschedparam ()
+may additionally fail with the following errors:
+.TP
+.B EINVAL
+.I policy
+is not a recognized policy, or
+.I param
+does not make sense for the
+.IR policy .
+.TP
+.B EPERM
+The caller does not have appropriate privileges
+to set the specified scheduling policy and parameters.
+.PP
+POSIX.1 also documents an
+.B ENOTSUP
+("attempt was made to set the policy or scheduling parameters
+to an unsupported value") error for
+.BR pthread_setschedparam ().
+.\" .SH VERSIONS
+.\" Available since glibc 2.0
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw24 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_setschedparam (),
+.BR pthread_getschedparam ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+For a description of the permissions required to, and the effect of,
+changing a thread's scheduling policy and priority,
+and details of the permitted ranges for priorities
+in each scheduling policy, see
+.BR sched (7).
+.SH EXAMPLE
+The program below demonstrates the use of
+.BR pthread_setschedparam ()
+and
+.BR pthread_getschedparam (),
+as well as the use of a number of other scheduling-related
+pthreads functions.
+
+In the following run, the main thread sets its scheduling policy to
+.BR SCHED_FIFO
+with a priority of 10,
+and initializes a thread attributes object with
+a scheduling policy attribute of
+.BR SCHED_RR
+and a scheduling priority attribute of 20.
+The program then sets (using
+.BR pthread_attr_setinheritsched (3))
+the inherit scheduler attribute of the thread attributes object to
+.BR PTHREAD_EXPLICIT_SCHED ,
+meaning that threads created using this attributes object should
+take their scheduling attributes from the thread attributes object.
+The program then creates a thread using the thread attributes object,
+and that thread displays its scheduling policy and priority.
+.in +4n
+.nf
+
+$ \fBsu\fP      # Need privilege to set real-time scheduling policies
+Password:
+# \fB./a.out \-mf10 \-ar20 \-i e\fP
+Scheduler settings of main thread
+    policy=SCHED_FIFO, priority=10
+
+Scheduler settings in \(aqattr\(aq
+    policy=SCHED_RR, priority=20
+    inheritsched is EXPLICIT
+
+Scheduler attributes of new thread
+    policy=SCHED_RR, priority=20
+.fi
+.in
+
+In the above output, one can see that the scheduling policy and priority
+were taken from the values specified in the thread attributes object.
+
+The next run is the same as the previous,
+except that the inherit scheduler attribute is set to
+.BR PTHREAD_INHERIT_SCHED ,
+meaning that threads created using the thread attributes object should
+ignore the scheduling attributes specified in the attributes object
+and instead take their scheduling attributes from the creating thread.
+
+.in +4n
+.nf
+# \fB./a.out \-mf10 \-ar20 \-i i\fP
+Scheduler settings of main thread
+    policy=SCHED_FIFO, priority=10
+
+Scheduler settings in \(aqattr\(aq
+    policy=SCHED_RR, priority=20
+    inheritsched is INHERIT
+
+Scheduler attributes of new thread
+    policy=SCHED_FIFO, priority=10
+.fi
+.in
+
+In the above output, one can see that the scheduling policy and priority
+were taken from the creating thread,
+rather than the thread attributes object.
+
+Note that if we had omitted the
+.IR "\-i\ i"
+option, the output would have been the same, since
+.BR PTHREAD_INHERIT_SCHED
+is the default for the inherit scheduler attribute.
+.SS Program source
+\&
+.nf
+/* pthreads_sched_test.c */
+
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+
+#define handle_error_en(en, msg) \\
+        do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static void
+usage(char *prog_name, char *msg)
+{
+    if (msg != NULL)
+        fputs(msg, stderr);
+
+    fprintf(stderr, "Usage: %s [options]\\n", prog_name);
+    fprintf(stderr, "Options are:\\n");
+#define fpe(msg) fprintf(stderr, "\\t%s", msg);          /* Shorter */
+    fpe("\-a<policy><prio> Set scheduling policy and priority in\\n");
+    fpe("                 thread attributes object\\n");
+    fpe("                 <policy> can be\\n");
+    fpe("                     f  SCHED_FIFO\\n");
+    fpe("                     r  SCHED_RR\\n");
+    fpe("                     o  SCHED_OTHER\\n");
+    fpe("\-A               Use default thread attributes object\\n");
+    fpe("\-i {e|i}         Set inherit scheduler attribute to\\n");
+    fpe("                 \(aqexplicit\(aq or \(aqinherit\(aq\\n");
+    fpe("\-m<policy><prio> Set scheduling policy and priority on\\n");
+    fpe("                 main thread before pthread_create() call\\n");
+    exit(EXIT_FAILURE);
+}
+
+static int
+get_policy(char p, int *policy)
+{
+    switch (p) {
+    case \(aqf\(aq: *policy = SCHED_FIFO;     return 1;
+    case \(aqr\(aq: *policy = SCHED_RR;       return 1;
+    case \(aqo\(aq: *policy = SCHED_OTHER;    return 1;
+    default:  return 0;
+    }
+}
+
+static void
+display_sched_attr(int policy, struct sched_param *param)
+{
+    printf("    policy=%s, priority=%d\\n",
+            (policy == SCHED_FIFO)  ? "SCHED_FIFO" :
+            (policy == SCHED_RR)    ? "SCHED_RR" :
+            (policy == SCHED_OTHER) ? "SCHED_OTHER" :
+            "???",
+            param\->sched_priority);
+}
+
+static void
+display_thread_sched_attr(char *msg)
+{
+    int policy, s;
+    struct sched_param param;
+
+    s = pthread_getschedparam(pthread_self(), &policy, &param);
+    if (s != 0)
+        handle_error_en(s, "pthread_getschedparam");
+
+    printf("%s\\n", msg);
+    display_sched_attr(policy, &param);
+}
+
+static void *
+thread_start(void *arg)
+{
+    display_thread_sched_attr("Scheduler attributes of new thread");
+
+    return NULL;
+}
+
+int
+main(int argc, char *argv[])
+{
+    int s, opt, inheritsched, use_null_attrib, policy;
+    pthread_t thread;
+    pthread_attr_t attr;
+    pthread_attr_t *attrp;
+    char *attr_sched_str, *main_sched_str, *inheritsched_str;
+    struct sched_param param;
+
+    /* Process command\-line options */
+
+    use_null_attrib = 0;
+    attr_sched_str = NULL;
+    main_sched_str = NULL;
+    inheritsched_str = NULL;
+
+    while ((opt = getopt(argc, argv, "a:Ai:m:")) != \-1) {
+        switch (opt) {
+        case \(aqa\(aq: attr_sched_str = optarg;      break;
+        case \(aqA\(aq: use_null_attrib = 1;          break;
+        case \(aqi\(aq: inheritsched_str = optarg;    break;
+        case \(aqm\(aq: main_sched_str = optarg;      break;
+        default:  usage(argv[0], "Unrecognized option\\n");
+        }
+    }
+
+    if (use_null_attrib &&
+            (inheritsched_str != NULL || attr_sched_str != NULL))
+        usage(argv[0], "Can\(aqt specify \-A with \-i or \-a\\n");
+
+    /* Optionally set scheduling attributes of main thread,
+       and display the attributes */
+
+    if (main_sched_str != NULL) {
+        if (!get_policy(main_sched_str[0], &policy))
+            usage(argv[0], "Bad policy for main thread (\-m)\\n");
+        param.sched_priority = strtol(&main_sched_str[1], NULL, 0);
+
+        s = pthread_setschedparam(pthread_self(), policy, &param);
+        if (s != 0)
+            handle_error_en(s, "pthread_setschedparam");
+    }
+
+    display_thread_sched_attr("Scheduler settings of main thread");
+    printf("\\n");
+
+    /* Initialize thread attributes object according to options */
+
+    attrp = NULL;
+
+    if (!use_null_attrib) {
+        s = pthread_attr_init(&attr);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_init");
+        attrp = &attr;
+    }
+
+    if (inheritsched_str != NULL) {
+        if (inheritsched_str[0] == \(aqe\(aq)
+            inheritsched = PTHREAD_EXPLICIT_SCHED;
+        else if (inheritsched_str[0] == \(aqi\(aq)
+            inheritsched = PTHREAD_INHERIT_SCHED;
+        else
+            usage(argv[0], "Value for \-i must be \(aqe\(aq or \(aqi\(aq\\n");
+
+        s = pthread_attr_setinheritsched(&attr, inheritsched);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_setinheritsched");
+    }
+
+    if (attr_sched_str != NULL) {
+        if (!get_policy(attr_sched_str[0], &policy))
+            usage(argv[0],
+                    "Bad policy for \(aqattr\(aq (\-a)\\n");
+        param.sched_priority = strtol(&attr_sched_str[1], NULL, 0);
+
+        s = pthread_attr_setschedpolicy(&attr, policy);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_setschedpolicy");
+        s = pthread_attr_setschedparam(&attr, &param);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_setschedparam");
+    }
+
+    /* If we initialized a thread attributes object, display
+       the scheduling attributes that were set in the object */
+
+    if (attrp != NULL) {
+        s = pthread_attr_getschedparam(&attr, &param);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_getschedparam");
+        s = pthread_attr_getschedpolicy(&attr, &policy);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_getschedpolicy");
+
+        printf("Scheduler settings in \(aqattr\(aq\\n");
+        display_sched_attr(policy, &param);
+
+        s = pthread_attr_getinheritsched(&attr, &inheritsched);
+        printf("    inheritsched is %s\\n",
+                (inheritsched == PTHREAD_INHERIT_SCHED)  ? "INHERIT" :
+                (inheritsched == PTHREAD_EXPLICIT_SCHED) ? "EXPLICIT" :
+                "???");
+        printf("\\n");
+    }
+
+    /* Create a thread that will display its scheduling attributes */
+
+    s = pthread_create(&thread, attrp, &thread_start, NULL);
+    if (s != 0)
+        handle_error_en(s, "pthread_create");
+
+    /* Destroy unneeded thread attributes object */
+
+    if (!use_null_attrib) {
+      s = pthread_attr_destroy(&attr);
+      if (s != 0)
+          handle_error_en(s, "pthread_attr_destroy");
+    }
+
+    s = pthread_join(thread, NULL);
+    if (s != 0)
+        handle_error_en(s, "pthread_join");
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.ad l
+.nh
+.BR getrlimit (2),
+.BR sched_get_priority_min (2),
+.BR pthread_attr_init (3),
+.BR pthread_attr_setinheritsched (3),
+.BR pthread_attr_setschedparam (3),
+.BR pthread_attr_setschedpolicy (3),
+.BR pthread_create (3),
+.BR pthread_self (3),
+.BR pthread_setschedprio (3),
+.BR pthreads (7),
+.BR sched (7)

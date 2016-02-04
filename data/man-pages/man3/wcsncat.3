@@ -1,0 +1,67 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WCSNCAT 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcsncat \- concatenate two wide-character strings
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "wchar_t *wcsncat(wchar_t *" dest ", const wchar_t *" src ", size_t " n );
+.fi
+.SH DESCRIPTION
+The
+.BR wcsncat ()
+function is the wide-character equivalent of the
+.BR strncat (3)
+function.
+It copies at most
+.I n
+wide characters from the wide-character
+string pointed to by
+.I src
+to the end of the wide-character string pointed
+to by
+.IR dest ,
+and adds a terminating null wide character (L\(aq\\0\(aq).
+.PP
+The strings may not overlap.
+.PP
+The programmer must ensure that there is room for at least
+.IR wcslen(dest) + n +1
+wide characters at
+.IR dest .
+.SH RETURN VALUE
+.BR wcsncat ()
+returns
+.IR dest .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcsncat ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH SEE ALSO
+.BR strncat (3),
+.BR wcscat (3)

@@ -1,0 +1,103 @@
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\" Portions extracted from linux/kernel/ioport.c (no copyright notice).
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Tue Aug  1 16:47    1995 by Jochen Karrer
+.\"                              <cip307@cip.physik.uni-wuerzburg.de>
+.\" Modified Tue Oct 22 08:11:14 EDT 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Fri Nov 27 14:50:36 CET 1998 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"
+.TH IOPL 2 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+iopl \- change I/O privilege level
+.SH SYNOPSIS
+.B #include <sys/io.h>
+.sp
+.BI "int iopl(int " level );
+.SH DESCRIPTION
+.BR iopl ()
+changes the I/O privilege level of the calling process,
+as specified by the two least significant bits in
+.IR level .
+
+This call is necessary to allow 8514-compatible X servers to run under
+Linux.
+Since these X servers require access to all 65536 I/O ports, the
+.BR ioperm (2)
+call is not sufficient.
+
+In addition to granting unrestricted I/O port access, running at a higher
+I/O privilege level also allows the process to disable interrupts.
+This will probably crash the system, and is not recommended.
+
+Permissions are inherited by
+.BR fork (2)
+and
+.BR execve (2).
+
+The I/O privilege level for a normal process is 0.
+
+This call is mostly for the i386 architecture.
+On many other architectures it does not exist or will always
+return an error.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EINVAL
+.I level
+is greater than 3.
+.TP
+.B ENOSYS
+This call is unimplemented.
+.TP
+.B EPERM
+The calling process has insufficient privilege to call
+.BR iopl ();
+the
+.B CAP_SYS_RAWIO
+capability is required to raise the I/O privilege level
+above its current value.
+.SH CONFORMING TO
+.BR iopl ()
+is Linux-specific and should not be used in programs that are
+intended to be portable.
+.SH NOTES
+.\" Libc5 treats it as a system call and has a prototype in
+.\" .IR <unistd.h> .
+.\" Glibc1 does not have a prototype.
+Glibc2 has a prototype both in
+.I <sys/io.h>
+and in
+.IR <sys/perm.h> .
+Avoid the latter, it is available on i386 only.
+.SH SEE ALSO
+.BR ioperm (2),
+.BR outb (2),
+.BR capabilities (7)

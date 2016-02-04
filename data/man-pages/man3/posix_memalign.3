@@ -1,0 +1,298 @@
+.\" Copyright (c) 2001 by John Levon <moz@compsoc.man.ac.uk>
+.\" Based in part on GNU libc documentation.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2001-10-11, 2003-08-22, aeb, added some details
+.\" 2012-03-23, Michael Kerrisk <mtk.manpages@mail.com>
+.\"     Document pvalloc() and aligned_alloc()
+.TH POSIX_MEMALIGN 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+posix_memalign, aligned_alloc, memalign, valloc, pvalloc \- allocate aligned memory
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "int posix_memalign(void **" memptr ", size_t " alignment ", size_t " size );
+.BI "void *aligned_alloc(size_t " alignment ", size_t " size );
+.BI "void *valloc(size_t " size );
+.sp
+.B #include <malloc.h>
+.sp
+.BI "void *memalign(size_t " alignment ", size_t " size );
+.BI "void *pvalloc(size_t " size );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR posix_memalign ():
+_POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600
+.sp
+.BR aligned_alloc ():
+_ISOC11_SOURCE
+.sp
+.BR valloc ():
+.br
+.PD 0
+.RS 4
+.TP 4
+Since glibc 2.12:
+.nf
+_BSD_SOURCE ||
+    (_XOPEN_SOURCE\ >=\ 500 ||
+        _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED) &&
+    !(_POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600)
+.br
+.fi
+.TP
+Before glibc 2.12:
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.ad b
+.br
+(The (nonstandard) header file
+.I <malloc.h>
+also exposes the declaration of
+.BR valloc ();
+no feature test macros are required.)
+.RE
+.PD
+.SH DESCRIPTION
+The function
+.BR posix_memalign ()
+allocates
+.I size
+bytes and places the address of the allocated memory in
+.IR "*memptr" .
+The address of the allocated memory will be a multiple of
+.IR "alignment" ,
+which must be a power of two and a multiple of
+.IR "sizeof(void\ *)" .
+If
+.I size
+is 0, then
+the value placed in
+.IR "*memptr"
+is either NULL,
+.\" glibc does this:
+or a unique pointer value that can later be successfully passed to
+.BR free (3).
+
+The obsolete function
+.BR memalign ()
+allocates
+.I size
+bytes and returns a pointer to the allocated memory.
+The memory address will be a multiple of
+.IR alignment ,
+which must be a power of two.
+.\" The behavior of memalign() for size==0 is as for posix_memalign()
+.\" but no standards govern this.
+
+The function
+.BR aligned_alloc ()
+is the same as
+.BR memalign (),
+except for the added restriction that
+.I size
+should be a multiple of
+.IR alignment .
+
+The obsolete function
+.BR valloc ()
+allocates
+.I size
+bytes and returns a pointer to the allocated memory.
+The memory address will be a multiple of the page size.
+It is equivalent to
+.IR "memalign(sysconf(_SC_PAGESIZE),size)" .
+
+The obsolete function
+.BR pvalloc ()
+is similar to
+.BR valloc (),
+but rounds the size of the allocation up to
+the next multiple of the system page size.
+
+For all of these functions, the memory is not zeroed.
+.SH RETURN VALUE
+.BR aligned_alloc (),
+.BR memalign (),
+.BR valloc (),
+and
+.BR pvalloc ()
+return a pointer to the allocated memory, or NULL if the request fails.
+
+.BR posix_memalign ()
+returns zero on success, or one of the error values listed in the
+next section on failure.
+The value of
+.I errno
+is indeterminate after a call to
+.BR posix_memalign ().
+.SH ERRORS
+.TP
+.B EINVAL
+The
+.I alignment
+argument was not a power of two, or was not a multiple of
+.IR "sizeof(void\ *)" .
+.TP
+.B ENOMEM
+There was insufficient memory to fulfill the allocation request.
+.SH VERSIONS
+The functions
+.BR memalign (),
+.BR valloc (),
+and
+.BR pvalloc ()
+have been available in all Linux libc libraries.
+
+The function
+.BR aligned_alloc ()
+was added to glibc in version 2.16.
+
+The function
+.BR posix_memalign ()
+is available since glibc 2.1.91.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR aligned_alloc (),
+.br
+.BR memalign (),
+.br
+.BR posix_memalign ()
+T}	Thread safety	MT-Safe
+T{
+.BR valloc (),
+.br
+.BR pvalloc ()
+T}	Thread safety	MT-Unsafe init
+.TE
+
+.SH CONFORMING TO
+The function
+.BR valloc ()
+appeared in 3.0BSD.
+It is documented as being obsolete in 4.3BSD,
+and as legacy in SUSv2.
+It does not appear in POSIX.1.
+
+The function
+.BR pvalloc ()
+is a GNU extension.
+
+The function
+.BR memalign ()
+appears in SunOS 4.1.3 but not in 4.4BSD.
+
+The function
+.BR posix_memalign ()
+comes from POSIX.1d and is specified in POSIX.1-2001 and POSIX.1-2008.
+
+The function
+.BR aligned_alloc ()
+is specified in the C11 standard.
+.\"
+.SS Headers
+Everybody agrees that
+.BR posix_memalign ()
+is declared in \fI<stdlib.h>\fP.
+
+On some systems
+.BR memalign ()
+is declared in \fI<stdlib.h>\fP instead of \fI<malloc.h>\fP.
+
+According to SUSv2,
+.BR valloc ()
+is declared in \fI<stdlib.h>\fP.
+Libc4,5 and glibc declare it in \fI<malloc.h>\fP, and also in
+\fI<stdlib.h>\fP
+if suitable feature test macros are defined (see above).
+.SH NOTES
+On many systems there are alignment restrictions, for example, on buffers
+used for direct block device I/O.
+POSIX specifies the
+.I "pathconf(path,_PC_REC_XFER_ALIGN)"
+call that tells what alignment is needed.
+Now one can use
+.BR posix_memalign ()
+to satisfy this requirement.
+
+.BR posix_memalign ()
+verifies that
+.I alignment
+matches the requirements detailed above.
+.BR memalign ()
+may not check that the
+.I alignment
+argument is correct.
+
+POSIX requires that memory obtained from
+.BR posix_memalign ()
+can be freed using
+.BR free (3).
+Some systems provide no way to reclaim memory allocated with
+.BR memalign ()
+or
+.BR valloc ()
+(because one can pass to
+.BR free (3)
+only a pointer obtained from
+.BR malloc (3),
+while, for example,
+.BR memalign ()
+would call
+.BR malloc (3)
+and then align the obtained value).
+.\" Other systems allow passing the result of
+.\" .IR valloc ()
+.\" to
+.\" .IR free (3),
+.\" but not to
+.\" .IR realloc (3).
+The glibc implementation
+allows memory obtained from any of these functions to be
+reclaimed with
+.BR free (3).
+
+The glibc
+.BR malloc (3)
+always returns 8-byte aligned memory addresses, so these functions are
+needed only if you require larger alignment values.
+.SH SEE ALSO
+.BR brk (2),
+.BR getpagesize (2),
+.BR free (3),
+.BR malloc (3)

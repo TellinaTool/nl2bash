@@ -1,0 +1,99 @@
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Fri Jun 23 01:35:19 1995 Andries Brouwer <aeb@cwi.nl>
+.\" (prompted by Bas V. de Bakker <bas@phys.uva.nl>)
+.\" Corrected (and moved to man3), 980612, aeb
+.TH PROFIL 3 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+profil \- execution time profile
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.sp
+.BI "int profil(unsigned short *" buf ", size_t " bufsiz ,
+.BI "           size_t " offset ", unsigned int " scale );
+.sp
+.fi
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR profil ():
+_BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE\ <\ 500)
+.SH DESCRIPTION
+This routine provides a means to find out in what areas your program
+spends most of its time.
+The argument
+.I buf
+points to
+.I bufsiz
+bytes of core.
+Every virtual 10 milliseconds, the user's program counter (PC)
+is examined:
+.I offset
+is subtracted and the result is multiplied by
+.I scale
+and divided by 65536.
+If the resulting value is less than
+.IR bufsiz ,
+then the corresponding entry in
+.I buf
+is incremented.
+If
+.I buf
+is NULL, profiling is disabled.
+.SH RETURN VALUE
+Zero is always returned.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR profil ()
+T}	Thread safety	MT-Unsafe
+.TE
+
+.SH CONFORMING TO
+Similar to a call in SVr4 (but not POSIX.1).
+.SH BUGS
+.BR profil ()
+cannot be used on a program that also uses
+.B ITIMER_PROF
+interval timers (see
+.BR setitimer (2)).
+
+True kernel profiling provides more accurate results.
+Libc 4.4 contained a kernel patch providing a system call profil.
+.SH SEE ALSO
+.BR gprof (1),
+.BR sprof (1),
+.BR setitimer (2),
+.BR sigaction (2),
+.BR signal (2)

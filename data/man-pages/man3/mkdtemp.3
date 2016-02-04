@@ -1,0 +1,109 @@
+.\" Copyright 2001 John Levon <moz@compsoc.man.ac.uk>
+.\" Based on mkstemp(3), Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and GNU libc documentation
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.TH MKDTEMP 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+mkdtemp \- create a unique temporary directory
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "char *mkdtemp(char *" template );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR mkdtemp ():
+.br
+.ad l
+.RS 4
+.PD 0
+_BSD_SOURCE
+.br
+|| /* Since glibc 2.10: */
+.RS 4
+(_POSIX_C_SOURCE\ >=\ 200809L || _XOPEN_SOURCE\ >=\ 700)
+.ad
+.PD
+.RE
+.RE
+.SH DESCRIPTION
+The
+.BR mkdtemp ()
+function generates a uniquely named temporary
+directory from \fItemplate\fP.
+The last six characters of \fItemplate\fP
+must be XXXXXX and these are replaced with a string that makes the
+directory name unique.
+The directory is then created with
+permissions 0700.
+Since it will be modified,
+.I template
+must not be a string constant, but should be declared as a character array.
+.SH RETURN VALUE
+The
+.BR mkdtemp ()
+function returns a pointer to the modified template
+string on success, and NULL on failure, in which case
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EINVAL
+The last six characters of \fItemplate\fP were not XXXXXX.
+Now \fItemplate\fP is unchanged.
+.PP
+Also see
+.BR mkdir (2)
+for other possible values for \fIerrno\fP.
+.SH VERSIONS
+Available since glibc 2.1.91.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR mkdtemp ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2008.
+This function is present on the BSDs.
+.\" As at 2006, this function is being considered for a revision of POSIX.1
+.\" Also in NetBSD 1.4.
+.SH SEE ALSO
+.BR mkdir (2),
+.BR mkstemp (3),
+.BR mktemp (3),
+.BR tempnam (3),
+.BR tmpfile (3),
+.BR tmpnam (3)

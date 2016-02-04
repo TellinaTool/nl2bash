@@ -1,0 +1,63 @@
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\" Portions extracted from linux/mm/swap.c:
+.\"                Copyright (C) 1991, 1992  Linus Torvalds
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 21 Aug 1994 by Michael Chastain <mec@shell.portal.com>:
+.\"   Added text about calling restriction (new in kernel 1.1.20 I believe).
+.\"   N.B. calling "idle" from user process used to hang process!
+.\" Modified Thu Oct 31 14:41:15 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" "
+.TH IDLE 2 2012-12-31 "Linux" "Linux Programmer's Manual"
+.SH NAME
+idle \- make process 0 idle
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.B int idle(void);
+.SH DESCRIPTION
+.BR idle ()
+is an internal system call used during bootstrap.
+It marks the process's pages as swappable, lowers its priority,
+and enters the main scheduling loop.
+.BR idle ()
+never returns.
+.PP
+Only process 0 may call
+.BR idle ().
+Any user process, even a process with superuser permission,
+will receive
+.BR EPERM .
+.SH RETURN VALUE
+.BR idle ()
+never returns for process 0, and always returns \-1 for a user process.
+.SH ERRORS
+.TP
+.B EPERM
+Always, for a user process.
+.SH VERSIONS
+Since Linux 2.3.13, this system call does not exist anymore.
+.SH CONFORMING TO
+This function is Linux-specific, and should not be used in programs
+intended to be portable.

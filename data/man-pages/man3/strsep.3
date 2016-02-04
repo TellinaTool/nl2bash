@@ -1,0 +1,120 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:00:10 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Mon Jan 20 12:04:18 1997 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Tue Jan 23 20:23:07 2001 by Andries Brouwer (aeb@cwi.nl)
+.\"
+.TH STRSEP 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+strsep \- extract token from string
+.SH SYNOPSIS
+.nf
+.B #include <string.h>
+.sp
+.BI "char *strsep(char **" stringp ", const char *" delim );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR strsep ():
+_BSD_SOURCE
+.SH DESCRIPTION
+If
+.I *stringp
+is NULL, the
+.BR strsep ()
+function returns NULL
+and does nothing else.
+Otherwise, this function finds the first token
+in the string
+.IR *stringp ,
+that is delimited by one of the bytes in the string
+.IR delim .
+This token is terminated by overwriting the delimiter
+with a null byte (\(aq\\0\(aq),
+and
+.I *stringp
+is updated to point past the token.
+In case no delimiter was found, the token is taken to be
+the entire string
+.IR *stringp ,
+and
+.I *stringp
+is made NULL.
+.SH RETURN VALUE
+The
+.BR strsep ()
+function returns a pointer to the token,
+that is, it returns the original value of
+.IR *stringp .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR strsep ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+4.4BSD.
+.SH NOTES
+The
+.BR strsep ()
+function was introduced as a replacement for
+.BR strtok (3),
+since the latter cannot handle empty fields.
+However,
+.BR strtok (3)
+conforms to C89/C99 and hence is more portable.
+.SH BUGS
+Be cautious when using this function.
+If you do use it, note that:
+.IP * 2
+This function modifies its first argument.
+.IP *
+This function cannot be used on constant strings.
+.IP *
+The identity of the delimiting character is lost.
+.SH SEE ALSO
+.BR index (3),
+.BR memchr (3),
+.BR rindex (3),
+.BR strchr (3),
+.BR string (3),
+.BR strpbrk (3),
+.BR strspn (3),
+.BR strstr (3),
+.BR strtok (3)

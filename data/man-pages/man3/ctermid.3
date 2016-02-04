@@ -1,0 +1,84 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 19:51:06 1993 by Rik Faith (faith@cs.unc.edu)
+.TH CTERMID 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+ctermid \- get controlling terminal name
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.\" POSIX also requires this function to be declared in <unistd.h>,
+.\" and glibc does so if suitable feature test macros are defined.
+.sp
+.BI "char *ctermid(char *" "s" );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR ctermid ():
+_POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+.\" From <unistd.h>: _XOPEN_SOURCE
+.SH DESCRIPTION
+.BR ctermid ()
+returns a string which is the pathname for the current
+controlling terminal for this process.
+If
+.I s
+is NULL,
+a static buffer is used, otherwise
+.I s
+points to a buffer used to hold the terminal pathname.
+The symbolic constant
+.B L_ctermid
+is the maximum number of characters in the returned pathname.
+.SH RETURN VALUE
+The pointer to the pathname.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR ctermid ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, Svr4.
+.SH BUGS
+The path returned may not uniquely identify the controlling
+terminal; it may, for example, be
+.IR /dev/tty .
+.PP
+It is not assured that the program can open the terminal.
+.\" in glibc 2.3.x, x >= 4, the glibc headers threw an error
+.\" if ctermid() was given an argument; fixed in 2.4.
+.SH SEE ALSO
+.BR ttyname (3)

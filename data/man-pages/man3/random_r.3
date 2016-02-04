@@ -1,0 +1,155 @@
+.\" Copyright 2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"
+.TH RANDOM_R 3  2015-12-28 "GNU" "Linux Programmer's Manual"
+.SH NAME
+random_r, srandom_r, initstate_r, setstate_r \- reentrant
+random number generator
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "int random_r(struct random_data *" buf ", int32_t *" result );
+
+.BI "int srandom_r(unsigned int " seed ", struct random_data *" buf );
+
+.BI "int initstate_r(unsigned int " seed ", char *" statebuf ,
+.BI "                size_t " statelen ", struct random_data *" buf );
+.br
+.BI "int setstate_r(char *" statebuf ", struct random_data *" buf );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR random_r (),
+.BR srandom_r (),
+.BR initstate_r (),
+.BR setstate_r ():
+.RS 4
+_SVID_SOURCE || _BSD_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+These functions are the reentrant equivalents
+of the functions described in
+.BR random (3).
+They are suitable for use in multithreaded programs where each thread
+needs to obtain an independent, reproducible sequence of random numbers.
+
+The
+.BR random_r ()
+function is like
+.BR random (3),
+except that instead of using state information maintained
+in a global variable,
+it uses the state information in the argument pointed to by
+.IR buf ,
+which must have been previously initialized by
+.BR initstate_r ().
+The generated random number is returned in the argument
+.IR result .
+
+The
+.BR srandom_r ()
+function is like
+.BR srandom (3),
+except that it initializes the seed for the random number generator
+whose state is maintained in the object pointed to by
+.IR buf ,
+which must have been previously initialized by
+.BR initstate_r (),
+instead of the seed associated with the global state variable.
+
+The
+.BR initstate_r ()
+function is like
+.BR initstate (3)
+except that it initializes the state in the object pointed to by
+.IR buf ,
+rather than initializing the global state variable.
+
+The
+.BR setstate_r ()
+function is like
+.BR setstate (3)
+except that it modifies the state in the object pointer to by
+.IR buf ,
+rather than modifying the global state variable.
+.SH RETURN VALUE
+All of these functions return 0 on success.
+On error, \-1 is returned, with
+.I errno
+set to indicate the cause of the error.
+.SH ERRORS
+.TP
+.B EINVAL
+A state array of less than 8 bytes was specified to
+.BR initstate_r ().
+.TP
+.B EINVAL
+The
+.I statebuf
+or
+.I buf
+argument to
+.BR setstate_r ()
+was NULL.
+.TP
+.B EINVAL
+The
+.I buf
+or
+.I result
+argument to
+.BR random_r ()
+was NULL.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw27 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR random_r (),
+.BR srandom_r (),
+.br
+.BR initstate_r (),
+.BR setstate_r ()
+T}	Thread safety	MT-Safe race:buf
+.TE
+.SH CONFORMING TO
+These functions are nonstandard glibc extensions.
+.\" These functions appear to be on Tru64, but don't seem to be on
+.\" Solaris, HP-UX, or FreeBSD.
+.SH SEE ALSO
+.BR drand48 (3),
+.BR rand (3),
+.BR random (3)

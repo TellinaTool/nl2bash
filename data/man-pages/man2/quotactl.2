@@ -1,0 +1,511 @@
+.\" Copyright (c) 2010, Jan Kara
+.\" A few pieces copyright (c) 1996 Andries Brouwer (aeb@cwi.nl)
+.\" and copyright 2010 (c) Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of
+.\" this manual under the conditions for verbatim copying, provided that
+.\" the entire resulting derived work is distributed under the terms of
+.\" a permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume
+.\" no responsibility for errors or omissions, or for damages resulting
+.\" from the use of the information contained herein.  The author(s) may
+.\" not have taken the same level of care in the production of this
+.\" manual, which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH QUOTACTL 2 2010-06-16 "Linux" "Linux Programmer's Manual"
+.SH NAME
+quotactl \- manipulate disk quotas
+.SH SYNOPSIS
+.nf
+.B #include <sys/quota.h>
+.B #include <xfs/xqm.h>
+.LP
+.BI "int quotactl(int " cmd ", const char *" special ", int " id \
+", caddr_t " addr );
+.fi
+.SH DESCRIPTION
+.LP
+The quota system can be used to set per-user and per-group limits on the
+amount of disk space used on a filesystem.
+For each user and/or group,
+a soft limit and a hard limit can be set for each filesystem.
+The hard limit can't be exceeded.
+The soft limit can be exceeded, but warnings will ensue.
+Moreover, the user can't exceed the soft limit for more than one week
+(by default) at a time;
+after this time, the soft limit counts as a hard limit.
+
+The
+.BR quotactl ()
+call manipulates disk quotas.
+The
+.I cmd
+argument indicates a command to be applied to the user or
+group ID specified in
+.IR id .
+To initialize the
+.IR cmd
+argument, use the
+.IR "QCMD(subcmd, type)"
+macro.
+The
+.I type
+value is either
+.BR USRQUOTA ,
+for user quotas,
+or
+.BR GRPQUOTA ,
+for group quotas.
+The
+.I subcmd
+value is described below.
+
+The
+.I special
+argument is a pointer to a null-terminated string containing the pathname
+of the (mounted) block special device for the filesystem being manipulated.
+
+The
+.I addr
+argument is the address of an optional, command-specific, data structure
+that is copied in or out of the system.
+The interpretation of
+.I addr
+is given with each command below.
+
+The
+.I subcmd
+value is one of the following:
+.TP 8
+.B Q_QUOTAON
+Turn on quotas for a filesystem.
+The
+.I id
+argument is the identification number of the quota format to be used.
+Currently, there are three supported quota formats:
+.RS
+.TP 13
+.BR QFMT_VFS_OLD
+The original quota format.
+.TP
+.BR QFMT_VFS_V0
+The standard VFS v0 quota format, which can handle 32-bit UIDs and GIDs
+and quota limits up to 2^42 bytes and 2^32 inodes.
+.TP
+.BR QFMT_VFS_V1
+A quota format that can handle 32-bit UIDs and GIDs
+and quota limits of 2^64 bytes and 2^64 inodes.
+.RE
+.IP
+The
+.IR addr
+argument points to the pathname of a file containing the quotas for
+the filesystem.
+The quota file must exist; it is normally created with the
+.BR quotacheck (8)
+program.
+This operation requires privilege
+.RB ( CAP_SYS_ADMIN ).
+.TP 8
+.B Q_QUOTAOFF
+Turn off quotas for a filesystem.
+The
+.I addr
+and
+.I id
+arguments are ignored.
+This operation requires privilege
+.RB ( CAP_SYS_ADMIN ).
+.TP
+.B Q_GETQUOTA
+Get disk quota limits and current usage for user or group
+.IR id .
+The
+.I addr
+argument is a pointer to a
+.I dqblk
+structure defined in
+.IR <sys/quota.h>
+as follows:
+.in +4n
+.nf
+
+/* uint64_t is an unsigned 64\-bit integer;
+   uint32_t is an unsigned 32\-bit integer */
+
+struct dqblk {          /* Definition since Linux 2.4.22 */
+    uint64_t dqb_bhardlimit;   /* absolute limit on disk
+                                  quota blocks alloc */
+    uint64_t dqb_bsoftlimit;   /* preferred limit on
+                                  disk quota blocks */
+    uint64_t dqb_curspace;     /* current quota block
+                                  count */
+    uint64_t dqb_ihardlimit;   /* maximum number of
+                                  allocated inodes */
+    uint64_t dqb_isoftlimit;   /* preferred inode limit */
+    uint64_t dqb_curinodes;    /* current number of
+                                  allocated inodes */
+    uint64_t dqb_btime;        /* time limit for excessive
+                                  disk use */
+    uint64_t dqb_itime;        /* time limit for excessive
+                                  files */
+    uint32_t dqb_valid;        /* bit mask of QIF_*
+                                  constants */
+};
+
+/* Flags in dqb_valid that indicate which fields in
+   dqblk structure are valid. */
+
+#define QIF_BLIMITS   1
+#define QIF_SPACE     2
+#define QIF_ILIMITS   4
+#define QIF_INODES    8
+#define QIF_BTIME     16
+#define QIF_ITIME     32
+#define QIF_LIMITS    (QIF_BLIMITS | QIF_ILIMITS)
+#define QIF_USAGE     (QIF_SPACE | QIF_INODES)
+#define QIF_TIMES     (QIF_BTIME | QIF_ITIME)
+#define QIF_ALL       (QIF_LIMITS | QIF_USAGE | QIF_TIMES)
+
+.fi
+.in
+The
+.I dqb_valid
+field is a bit mask that is set to indicate the entries in the
+.I dqblk
+structure that are valid.
+Currently, the kernel fills in all entries of the
+.I dqblk
+structure and marks them as valid in the
+.I dqb_valid
+field.
+Unprivileged users may retrieve only their own quotas;
+a privileged user
+.RB ( CAP_SYS_ADMIN )
+can retrieve the quotas of any user.
+.TP
+.B Q_SETQUOTA
+Set quota information for user or group
+.IR id ,
+using the information supplied in the
+.I dqblk
+structure pointed to by
+.IR addr .
+The
+.I dqb_valid
+field of the
+.I dqblk
+structure indicates which entries in the structure have been set by the caller.
+This operation supersedes the
+.B Q_SETQLIM
+and
+.B Q_SETUSE
+operations in the previous quota interfaces.
+This operation requires privilege
+.RB ( CAP_SYS_ADMIN ).
+.TP
+.B Q_GETINFO
+Get information (like grace times) about quotafile.
+The
+.I addr
+argument should be a pointer to a
+.I dqinfo
+structure.
+This structure is defined in
+.IR <sys/quota.h>
+as follows:
+.in +4n
+.nf
+
+/* uint64_t is an unsigned 64\-bit integer;
+   uint32_t is an unsigned 32\-bit integer */
+
+struct dqinfo {         /* Defined since kernel 2.4.22 */
+    uint64_t dqi_bgrace;    /* Time before block soft limit
+                               becomes hard limit */
+
+    uint64_t dqi_igrace;    /* Time before inode soft limit
+                               becomes hard limit */
+    uint32_t dqi_flags;     /* Flags for quotafile
+                               (DQF_*) */
+    uint32_t dqi_valid;
+};
+
+/* Bits for dqi_flags */
+
+/* Quota format QFMT_VFS_OLD */
+
+#define V1_DQF_RSQUASH	1   /* Root squash enabled */
+
+/* Other quota formats have no dqi_flags bits defined */
+
+/* Flags in dqi_valid that indicate which fields in
+   dqinfo structure are valid. */
+
+# define IIF_BGRACE	1
+# define IIF_IGRACE	2
+# define IIF_FLAGS	4
+# define IIF_ALL        (IIF_BGRACE | IIF_IGRACE | IIF_FLAGS)
+
+.fi
+.in
+The
+.I dqi_valid
+field in the
+.I dqinfo
+structure indicates the entries in the structure that are valid.
+Currently, the kernel fills in all entries of the
+.I dqinfo
+structure and marks them all as valid in the
+.I dqi_valid
+field.
+The
+.I id
+argument is ignored.
+.TP
+.B Q_SETINFO
+Set information about quotafile.
+The
+.I addr
+argument should be a pointer to a
+.I dqinfo
+structure.
+The
+.I dqi_valid
+field of the
+.I dqinfo
+structure indicates the entries in the structure
+that have been set by the caller.
+This operation supersedes the
+.B Q_SETGRACE
+and
+.B Q_SETFLAGS
+operations in the previous quota interfaces.
+The
+.I id
+argument is ignored.
+This operation requires privilege
+.RB ( CAP_SYS_ADMIN ).
+.TP
+.B Q_GETFMT
+Get quota format used on the specified filesystem.
+The
+.I addr
+argument should be a pointer to a 4-byte buffer
+where the format number will be stored.
+.TP
+.B Q_SYNC
+Update the on-disk copy of quota usages for a filesystem.
+If
+.I special
+is NULL, then all filesystems with active quotas are sync'ed.
+The
+.I addr
+and
+.I id
+arguments are ignored.
+.TP
+.B Q_GETSTATS
+Get statistics and other generic information about the quota subsystem.
+The
+.I addr
+argument should be a pointer to a
+.I dqstats
+structure in which data should be stored.
+This structure is defined in
+.IR <sys/quota.h> .
+The
+.I special
+and
+.I id
+arguments are ignored.
+This operation is obsolete and not supported by recent kernels.
+.\" Q_GETSTATS was removed in kernel 2.4.22.
+Files in
+.I /proc/sys/fs/quota/
+carry the information instead.
+.PP
+For XFS filesystems making use of the XFS Quota Manager (XQM),
+the above commands are bypassed and the following commands are used:
+.TP 8
+.B Q_XQUOTAON
+Turn on quotas for an XFS filesystem.
+XFS provides the ability to turn on/off quota limit enforcement
+with quota accounting.
+Therefore, XFS expects
+.I addr
+to be a pointer to an
+.I "unsigned int"
+that contains either the flags
+.B XFS_QUOTA_UDQ_ACCT
+and/or
+.B XFS_QUOTA_UDQ_ENFD
+(for user quota), or
+.B XFS_QUOTA_GDQ_ACCT
+and/or
+.B XFS_QUOTA_GDQ_ENFD
+(for group quota), as defined in
+.IR <xfs/xqm.h> .
+This operation requires privilege
+.RB ( CAP_SYS_ADMIN ).
+.TP
+.B Q_XQUOTAOFF
+Turn off quotas for an XFS filesystem.
+As with
+.BR Q_QUOTAON ,
+XFS filesystems expect a pointer to an
+.I "unsigned int"
+that specifies whether quota accounting and/or limit enforcement need
+to be turned off.
+This operation requires privilege
+.RB ( CAP_SYS_ADMIN ).
+.TP
+.B Q_XGETQUOTA
+Get disk quota limits and current usage for user
+.IR id .
+The
+.I addr
+argument is a pointer to an
+.I fs_disk_quota
+structure (defined in
+.IR <xfs/xqm.h> ).
+Unprivileged users may retrieve only their own quotas;
+a privileged user
+.RB ( CAP_SYS_ADMIN )
+may retrieve the quotas of any user.
+.TP
+.B Q_XSETQLIM
+Set disk quota limits for user
+.IR id .
+The
+.I addr
+argument is a pointer to an
+.I fs_disk_quota
+structure (defined in
+.IR <xfs/xqm.h> ).
+This operation requires privilege
+.RB ( CAP_SYS_ADMIN ).
+.TP
+.B Q_XGETQSTAT
+Returns an
+.I fs_quota_stat
+structure containing XFS filesystem-specific quota information.
+This is useful for finding out how much space is used to store quota
+information, and also to get quotaon/off status of a given local XFS
+filesystem.
+.TP
+.B Q_XQUOTARM
+Free the disk space taken by disk quotas.
+Quotas must have already been turned off.
+.PP
+There is no command equivalent to
+.B Q_SYNC
+for XFS since
+.BR sync (1)
+writes quota information to disk (in addition to the other filesystem
+metadata that it writes out).
+.SH RETURN VALUE
+.LP
+On success,
+.BR quotactl ()
+returns 0; on error \-1
+is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EFAULT
+.I addr
+or
+.I special
+is invalid.
+.TP
+.B EINVAL
+.I cmd
+or
+.I type
+is invalid.
+.TP
+.B ENOENT
+The file specified by
+.I special
+or
+.I addr
+does not exist.
+.TP
+.B ENOSYS
+The kernel has not been compiled with the
+.B CONFIG_QUOTA
+option.
+.TP
+.B ENOTBLK
+.I special
+is not a block device.
+.TP
+.B EPERM
+The caller lacked the required privilege
+.RB ( CAP_SYS_ADMIN )
+for the specified operation.
+.TP
+.B ESRCH
+No disk quota is found for the indicated user.
+Quotas have not been turned on for this filesystem.
+.LP
+If
+.I cmd
+is
+.BR Q_SETQUOTA ,
+.BR quotactl ()
+may also set
+.I errno
+to:
+.TP
+.B ERANGE
+Specified limits are out of range allowed by quota format.
+.LP
+If
+.I cmd
+is
+.BR Q_QUOTAON ,
+.BR quotactl ()
+may also set
+.I errno
+to:
+.TP
+.B EACCES
+The quota file pointed to by
+.I addr
+exists, but is not a regular file; or,
+the quota file pointed to by
+.I addr
+exists, but is not on the filesystem pointed to by
+.IR special .
+.TP
+.B EBUSY
+.B Q_QUOTAON
+attempted, but another
+.B Q_QUOTAON
+had already been performed.
+.TP
+.B EINVAL
+The quota file is corrupted.
+.TP
+.B ESRCH
+Specified quota format was not found.
+.SH SEE ALSO
+.BR quota (1),
+.BR getrlimit (2),
+.BR quotacheck (8),
+.BR quotaon (8)

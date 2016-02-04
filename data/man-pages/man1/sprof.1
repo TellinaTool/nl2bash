@@ -1,0 +1,302 @@
+.\" Copyright (C) 2014 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SPROF 1 2015-08-08 "Linux" "Linux User Manual"
+.SH NAME
+sprof \- read and display shared object profiling data
+.SH SYNOPSIS
+.nf
+.BR sprof " [\fIoption\fP]... \fIshared-object-path\fP \
+[\fIprofile-data-path\fP]"
+.fi
+.SH DESCRIPTION
+The
+.B sprof
+command displays a profiling summary for the
+shared object (shared library) specified as its first command-line argument.
+The profiling summary is created using previously generated
+profiling data in the (optional) second command-line argument.
+If the profiling data pathname is omitted, then
+.B sprof
+will attempt to deduce it using the soname of the shared object,
+looking for a file with the name
+.IR <soname>.profile
+in the current directory.
+.SH OPTIONS
+The following command-line options specify the profile output
+to be produced:
+.TP
+.BR \-c ", " \-\-call\-pairs
+Print a list of pairs of call paths for the interfaces exported
+by the shared object,
+along with the number of times each path is used.
+.TP
+.BR \-p ", " \-\-flat\-profile
+Generate a flat profile of all of the functions in the monitored object,
+with counts and ticks.
+.TP
+.BR \-q ", " \-\-graph
+Generate a call graph.
+.PP
+If none of the above options is specified,
+then the default behavior is to display a flat profile and a call graph.
+.PP
+The following additional command-line options are available:
+.TP
+.BR \-? ", " \-\-help
+Display a summary of command-line options and arguments and exit.
+.TP
+.BR \-\-usage
+Display a short usage message and exit.
+.TP
+.BR \-V ", " \-\-version
+Display the program version and exit.
+.SH CONFORMING TO
+The
+.B sprof
+command is a GNU extension, not present in POSIX.1.
+.SH EXAMPLE
+The following example demonstrates the use of
+.BR sprof .
+The example consists of a main program that calls two functions
+in a shared object.
+First, the code of the main program:
+
+.in +4n
+.nf
+$ \fBcat prog.c\fP
+#include <stdlib.h>
+
+void x1(void);
+void x2(void);
+
+int
+main(int argc, char *argv[])
+{
+    x1();
+    x2();
+    exit(EXIT_SUCCESS);
+}
+.fi
+.in
+.PP
+The functions
+.IR x1()
+and
+.IR x2()
+are defined in the following source file that is used to
+construct the shared object:
+
+.in +4n
+.nf
+$ \fBcat libdemo.c\fP
+#include <unistd.h>
+
+void
+consumeCpu1(int lim)
+{
+    int j;
+
+    for (j = 0; j < lim; j++)
+	getppid();
+}
+
+void
+x1(void) {
+    int j;
+
+    for (j = 0; j < 100; j++)
+	consumeCpu1(200000);
+}
+
+void
+consumeCpu2(int lim)
+{
+    int j;
+
+    for (j = 0; j < lim; j++)
+	getppid();
+}
+
+void
+x2(void)
+{
+    int j;
+
+    for (j = 0; j < 1000; j++)
+	consumeCpu2(10000);
+}
+.fi
+.in
+.PP
+Now we construct the shared object with the real name
+.IR libdemo.so.1.0.1 ,
+and the soname
+.IR libdemo.so.1 :
+
+.in +4n
+.nf
+$ \fBcc \-g \-fPIC \-shared \-Wl,\-soname,libdemo.so.1 \e\fP
+        \fB\-o libdemo.so.1.0.1 libdemo.c\fP
+.fi
+.in
+.PP
+Then we construct symbolic links for the library soname and
+the library linker name:
+
+.in +4n
+.nf
+$ \fBln \-sf libdemo.so.1.0.1 libdemo.so.1\fP
+$ \fBln \-sf libdemo.so.1 libdemo.so\fP
+.fi
+.in
+.PP
+Next, we compile the main program, linking it against the shared object,
+and then list the dynamic dependencies of the program:
+
+.in +4n
+.nf
+$ \fBcc \-g \-o prog prog.c \-L. \-ldemo\fP
+$ \fBldd prog\fP
+	linux\-vdso.so.1 =>  (0x00007fff86d66000)
+	libdemo.so.1 => not found
+	libc.so.6 => /lib64/libc.so.6 (0x00007fd4dc138000)
+	/lib64/ld\-linux\-x86\-64.so.2 (0x00007fd4dc51f000)
+.fi
+.in
+.PP
+In order to get profiling information for the shared object,
+we define the environment variable
+.BR LD_PROFILE
+with the soname of the library:
+
+.in +4n
+.nf
+$ \fBexport LD_PROFILE=libdemo.so.1\fP
+.fi
+.in
+.PP
+We then define the environment variable
+.BR LD_PROFILE_OUTPUT
+with the pathname of the directory where profile output should be written,
+and create that directory if it does not exist already:
+
+.in +4n
+.nf
+$ \fBexport LD_PROFILE_OUTPUT=$(pwd)/prof_data\fP
+$ \fBmkdir \-p $LD_PROFILE_OUTPUT\fP
+.fi
+.in
+.PP
+.B LD_PROFILE
+causes profiling output to be
+.I appended
+to the output file if it already exists,
+so we ensure that there is no preexisting profiling data:
+
+.in +4n
+.nf
+$ \fBrm \-f $LD_PROFILE_OUTPUT/$LD_PROFILE.profile\fP
+.fi
+.in
+.PP
+We then run the program to produce the profiling output,
+which is written to a file in the directory specified in
+.BR LD_PROFILE_OUTPUT :
+
+.in +4n
+.nf
+$ \fBLD_LIBRARY_PATH=. ./prog\fP
+$ \fBls prof_data\fP
+libdemo.so.1.profile
+.fi
+.in
+.PP
+We then use the
+.BR "sprof \-p"
+option to generate a flat profile with counts and ticks:
+
+.in +4n
+.nf
+$ \fBsprof \-p libdemo.so.1 $LD_PROFILE_OUTPUT/libdemo.so.1.profile\fP
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  us/call  us/call  name
+ 60.00      0.06     0.06      100   600.00           consumeCpu1
+ 40.00      0.10     0.04     1000    40.00           consumeCpu2
+  0.00      0.10     0.00        1     0.00           x1
+  0.00      0.10     0.00        1     0.00           x2
+.fi
+.in
+.PP
+The
+.BR "sprof \-q"
+option generates a call graph:
+
+.in +4n
+.nf
+$ \fBsprof \-q libdemo.so.1 $LD_PROFILE_OUTPUT/libdemo.so.1.profile\fP
+
+index % time    self  children    called     name
+
+                0.00    0.00      100/100         x1 [1]
+[0]    100.0    0.00    0.00      100         consumeCpu1 [0]
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+                0.00    0.00        1/1           <UNKNOWN>
+[1]      0.0    0.00    0.00        1         x1 [1]
+                0.00    0.00      100/100         consumeCpu1 [0]
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+                0.00    0.00     1000/1000        x2 [3]
+[2]      0.0    0.00    0.00     1000         consumeCpu2 [2]
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+                0.00    0.00        1/1           <UNKNOWN>
+[3]      0.0    0.00    0.00        1         x2 [3]
+                0.00    0.00     1000/1000        consumeCpu2 [2]
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+.fi
+.in
+.PP
+Above and below, the "<UNKNOWN>" strings represent identifiers that
+are outside of the profiled object (in this example, these are instances of
+.IR main() ).
+.PP
+The
+.BR "sprof \-c"
+option generates a list of call pairs and the number of their occurrences:
+
+.in +4n
+.nf
+$ \fBsprof \-c libdemo.so.1 $LD_PROFILE_OUTPUT/libdemo.so.1.profile\fP
+<UNKNOWN>                  x1                                 1
+x1                         consumeCpu1                      100
+<UNKNOWN>                  x2                                 1
+x2                         consumeCpu2                     1000
+.fi
+.in
+.SH SEE ALSO
+.BR gprof (1),
+.BR ldd (1),
+.BR ld.so (8)

@@ -1,0 +1,394 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 1995-08-14 by Arnt Gulbrandsen <agulbra@troll.no>
+.\" Modified 2002-07-27 by Walter Harms
+.\" 	(walter.harms@informatik.uni-oldenburg.de)
+.TH POW 3  2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+pow, powf, powl \- power functions
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "double pow(double " x ", double " y );
+.br
+.BI "float powf(float " x ", float " y );
+.br
+.BI "long double powl(long double " x ", long double " y );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR powf (),
+.BR powl ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad
+.SH DESCRIPTION
+These functions return the value of
+.I x
+raised to the
+power of
+.IR y .
+.SH RETURN VALUE
+On success, these functions return the value of
+.I x
+to the power of
+.IR y .
+
+If
+.I x
+is a finite value less than 0, and
+.I y
+is a finite noninteger, a domain error occurs,
+.\" The domain error is generated at least as far back as glibc 2.4
+and a NaN is returned.
+
+If the result overflows,
+a range error occurs,
+.\" The range error is generated at least as far back as glibc 2.4
+and the functions return
+.BR HUGE_VAL ,
+.BR HUGE_VALF ,
+or
+.BR HUGE_VALL ,
+respectively, with the mathematically correct sign.
+
+If result underflows, and is not representable,
+a range error occurs,
+and 0.0 is returned.
+.\" POSIX.1 does not specify the sign of the zero,
+.\" but http://sources.redhat.com/bugzilla/show_bug.cgi?id=2678
+.\" points out that the zero has the wrong sign in some cases.
+
+Except as specified below, if
+.I x
+or
+.I y
+is a NaN, the result is a NaN.
+
+If
+.I x
+is +1, the result is 1.0 (even if
+.I y
+is a NaN).
+
+If
+.I y
+is 0, the result is 1.0 (even if
+.I x
+is a NaN).
+
+If
+.I x
+is +0 (\-0),
+and
+.I y
+is an odd integer greater than 0,
+the result is +0 (\-0).
+
+If
+.I x
+is 0,
+and
+.I y
+greater than 0 and not an odd integer,
+the result is +0.
+
+If
+.I x
+is \-1,
+and
+.I y
+is positive infinity or negative infinity,
+the result is 1.0.
+
+If the absolute value of
+.I x
+is less than 1,
+and
+.I y
+is negative infinity,
+the result is positive infinity.
+
+If the absolute value of
+.I x
+is greater than 1,
+and
+.I y
+is negative infinity,
+the result is +0.
+
+If the absolute value of
+.I x
+is less than 1,
+and
+.I y
+is positive infinity,
+the result is +0.
+
+If the absolute value of
+.I x
+is greater than 1,
+and
+.I y
+is positive infinity,
+the result is positive infinity.
+
+If
+.I x
+is negative infinity,
+and
+.I y
+is an odd integer less than 0,
+the result is \-0.
+
+If
+.I x
+is negative infinity,
+and
+.I y
+less than 0 and not an odd integer,
+the result is +0.
+
+If
+.I x
+is negative infinity,
+and
+.I y
+is an odd integer greater than 0,
+the result is negative infinity.
+
+If
+.I x
+is negative infinity,
+and
+.I y
+greater than 0 and not an odd integer,
+the result is positive infinity.
+
+If
+.I x
+is positive infinity,
+and
+.I y
+less than 0,
+the result is +0.
+
+If
+.I x
+is positive infinity,
+and
+.I y
+greater than 0,
+the result is positive infinity.
+
+If
+.I x
+is +0 or \-0,
+and
+.I y
+is an odd integer less than 0,
+a pole error occurs and
+.BR HUGE_VAL ,
+.BR HUGE_VALF ,
+or
+.BR HUGE_VALL ,
+is returned,
+with the same sign as
+.IR x .
+
+If
+.I x
+is +0 or \-0,
+and
+.I y
+is less than 0 and not an odd integer,
+a pole error occurs and
+.\" The pole error is generated at least as far back as glibc 2.4
+.RB + HUGE_VAL ,
+.RB + HUGE_VALF ,
+or
+.RB + HUGE_VALL ,
+is returned.
+.SH ERRORS
+.\" FIXME . review status of this error
+.\" longstanding bug report for glibc:
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=369
+.\" For negative x, and -large and +large y, glibc 2.8 gives incorrect
+.\" results
+.\" pow(-0.5,-DBL_MAX)=nan
+.\" EDOM FE_INVALID nan; fail-errno fail-except fail-result;
+.\" FAIL (expected: range-error-overflow (ERANGE, FE_OVERFLOW); +INF)
+.\"
+.\" pow(-1.5,-DBL_MAX)=nan
+.\" EDOM FE_INVALID nan; fail-errno fail-except fail-result;
+.\" FAIL (expected: range-error-underflow (ERANGE, FE_UNDERFLOW); +0)
+.\"
+.\" pow(-0.5,DBL_MAX)=nan
+.\" EDOM FE_INVALID nan; fail-errno fail-except fail-result;
+.\" FAIL (expected: range-error-underflow (ERANGE, FE_UNDERFLOW); +0)
+.\"
+.\" pow(-1.5,DBL_MAX)=nan
+.\" EDOM FE_INVALID nan; fail-errno fail-except fail-result;
+.\" FAIL (expected: range-error-overflow (ERANGE, FE_OVERFLOW); +INF)
+See
+.BR math_error (7)
+for information on how to determine whether an error has occurred
+when calling these functions.
+.PP
+The following errors can occur:
+.TP
+Domain error: \fIx\fP is negative, and \fIy\fP is a finite noninteger
+.I errno
+is set to
+.BR EDOM .
+An invalid floating-point exception
+.RB ( FE_INVALID )
+is raised.
+.TP
+Pole error: \fIx\fP is zero, and \fIy\fP is negative
+.I errno
+is set to
+.BR ERANGE
+(but see BUGS).
+A divide-by-zero floating-point exception
+.RB ( FE_DIVBYZERO )
+is raised.
+.TP
+Range error: the result overflows
+.I errno
+is set to
+.BR ERANGE .
+An overflow floating-point exception
+.RB ( FE_OVERFLOW )
+is raised.
+.TP
+Range error: the result underflows
+.I errno
+is set to
+.BR ERANGE .
+An underflow floating-point exception
+.RB ( FE_UNDERFLOW )
+is raised.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw21 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pow (),
+.BR powf (),
+.BR powl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+
+The variant returning
+.I double
+also conforms to
+SVr4, 4.3BSD, C89.
+.SH BUGS
+On 64-bits,
+.\"
+.\" https://sourceware.org/bugzilla/show_bug.cgi?id=13932
+.BR pow ()
+may be more than 10,000 times slower for some (rare) inputs
+than for other nearby inputs.
+This affects only
+.BR pow (),
+and not
+.BR powf ()
+nor
+.BR powl ().
+
+In glibc 2.9 and earlier,
+.\"
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=6776
+when a pole error occurs,
+.I errno
+is set to
+.BR EDOM
+instead of the POSIX-mandated
+.BR ERANGE .
+Since version 2.10,
+.\" or possibly 2.9, I haven't found the source code change
+.\" and I don't have a 2.9 system to test
+glibc does the right thing.
+
+If
+.I x
+is negative,
+then large negative or positive
+.I y
+values yield a NaN as the function result, with
+.I errno
+set to
+.BR EDOM ,
+and an invalid
+.RB ( FE_INVALID )
+floating-point exception.
+For example, with
+.BR pow (),
+one sees this behavior when the absolute value of
+.I y
+is greater than about 9.223373e18.
+.\" see bug http://sources.redhat.com/bugzilla/show_bug.cgi?id=3866
+.\" and http://sources.redhat.com/bugzilla/show_bug.cgi?id=369
+
+In version 2.3.2 and earlier,
+.\" FIXME . Actually, 2.3.2 is the earliest test result I have; so yet
+.\" to confirm if this error occurs only in 2.3.2.
+when an overflow or underflow error occurs, glibc's
+.BR pow ()
+generates a bogus invalid floating-point exception
+.RB ( FE_INVALID )
+in addition to the overflow or underflow exception.
+.SH SEE ALSO
+.BR cbrt (3),
+.BR cpow (3),
+.BR sqrt (3)

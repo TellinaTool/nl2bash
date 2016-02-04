@@ -1,0 +1,110 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH MBSINIT 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+mbsinit \- test for initial shift state
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "int mbsinit(const mbstate_t *" ps );
+.fi
+.SH DESCRIPTION
+Character conversion between the multibyte representation and the wide
+character representation uses conversion state, of type
+.IR mbstate_t .
+Conversion of a string uses a finite-state machine; when it is interrupted
+after the complete conversion of a number of characters, it may need to
+save a state for processing the remaining characters.
+Such a conversion
+state is needed for the sake of encodings such as ISO-2022 and UTF-7.
+.PP
+The initial state is the state at the beginning of conversion of a string.
+There are two kinds of state: The one used by multibyte to wide character
+conversion functions, such as
+.BR mbsrtowcs (3),
+and the one used by wide
+character to multibyte conversion functions, such as
+.BR wcsrtombs (3),
+but they both fit in a
+.IR mbstate_t ,
+and they both have the same
+representation for an initial state.
+.PP
+For 8-bit encodings, all states are equivalent to the initial state.
+For multibyte encodings like UTF-8, EUC-*, BIG5 or SJIS, the wide character
+to multibyte conversion functions never produce non-initial states, but the
+multibyte to wide-character conversion functions like
+.BR mbrtowc (3)
+do
+produce non-initial states when interrupted in the middle of a character.
+.PP
+One possible way to create an
+.I mbstate_t
+in initial state is to set it to zero:
+.nf
+
+    mbstate_t state;
+    memset(&state,0,sizeof(mbstate_t));
+.fi
+.PP
+On Linux, the following works as well, but might generate compiler warnings:
+.nf
+
+    mbstate_t state = { 0 };
+.fi
+.PP
+The function
+.BR mbsinit ()
+tests whether
+.I *ps
+corresponds to an
+initial state.
+.SH RETURN VALUE
+.BR mbsinit ()
+returns nonzero if
+.I *ps
+is an initial state, or if
+.I ps
+is NULL.
+Otherwise, it returns 0.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR mbsinit ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR mbsinit ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.SH SEE ALSO
+.BR mbrlen (3),
+.BR mbrtowc (3),
+.BR wcrtomb (3),
+.BR mbsrtowcs (3),
+.BR wcsrtombs (3)

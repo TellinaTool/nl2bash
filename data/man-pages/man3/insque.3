@@ -1,0 +1,257 @@
+.\" peter memishian -- meem@gnu.ai.mit.edu
+.\" $Id: insque.3,v 1.2 1996/10/30 21:03:39 meem Exp meem $
+.\" and Copyright (c) 2010, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   Linux libc source code (5.4.7)
+.\"   Solaris 2.x, OSF/1, and HP-UX manpages
+.\"   Curry's "UNIX Systems Programming for SVR4" (O'Reilly & Associates 1996)
+.\"
+.\" Changed to POSIX, 2003-08-11, aeb+wh
+.\" mtk, 2010-09-09: Noted glibc 2.4 bug, added info on circular
+.\"	lists, added example program
+.\"
+.TH INSQUE 3  2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+insque, remque \- insert/remove an item from a queue
+.SH SYNOPSIS
+.nf
+.B #include <search.h>
+.sp
+.BI "void insque(void *" elem ", void *" prev );
+
+.BI "void remque(void *" elem );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR insque (),
+.BR remque ():
+.RS 4
+_SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.ad
+.SH DESCRIPTION
+The
+.BR insque ()
+and
+.BR remque ()
+functions manipulate doubly-linked lists.
+Each element in the list is a structure of
+which the first two elements are a forward and a
+backward pointer.
+The linked list may be linear (i.e., NULL forward pointer at
+the end of the list and NULL backward pointer at the start of the list)
+or circular.
+
+The
+.BR insque ()
+function inserts the element pointed to by \fIelem\fP
+immediately after the element pointed to by \fIprev\fP.
+
+If the list is linear, then the call
+.I "insque(elem, NULL)"
+can be used to insert the initial list element,
+and the call sets the forward and backward pointers of
+.I elem
+to NULL.
+
+If the list is circular,
+the caller should ensure that the forward and backward pointers of the
+first element are initialized to point to that element,
+and the
+.I prev
+argument of the
+.BR insque ()
+call should also point to the element.
+
+The
+.BR remque ()
+function removes the element pointed to by \fIelem\fP from the
+doubly-linked list.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR insque (),
+.BR remque ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+Traditionally (e.g., SunOS, Linux libc4 and libc5),
+the arguments of these functions were of type \fIstruct qelem *\fP,
+defined as:
+
+.in +4n
+.nf
+struct qelem {
+    struct qelem *q_forw;
+    struct qelem *q_back;
+    char          q_data[1];
+};
+.fi
+.in
+
+This is still what you will get if
+.B _GNU_SOURCE
+is defined before
+including \fI<search.h>\fP.
+
+The location of the prototypes for these functions differs among several
+versions of UNIX.
+The above is the POSIX version.
+Some systems place them in \fI<string.h>\fP.
+.\" Linux libc4 and libc 5 placed them
+.\" in \fI<stdlib.h>\fP.
+.SH BUGS
+In glibc 2.4 and earlier, it was not possible to specify
+.I prev
+as NULL.
+Consequently, to build a linear list, the caller had to build a list
+using an initial call that contained the first two elements of the list,
+with the forward and backward pointers in each element suitably initialized.
+.SH EXAMPLE
+The program below demonstrates the use of
+.BR insque ().
+Here is an example run of the program:
+.in +4n
+.nf
+
+.RB "$ " "./a.out -c a b c"
+Traversing completed list:
+    a
+    b
+    c
+That was a circular list
+.fi
+.in
+.SS Program source
+\&
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <search.h>
+
+struct element {
+    struct element *forward;
+    struct element *backward;
+    char *name;
+};
+
+static struct element *
+new_element(void)
+{
+    struct element *e;
+
+    e = malloc(sizeof(struct element));
+    if (e == NULL) {
+        fprintf(stderr, "malloc() failed\\n");
+        exit(EXIT_FAILURE);
+    }
+
+    return e;
+}
+
+int
+main(int argc, char *argv[])
+{
+    struct element *first, *elem, *prev;
+    int circular, opt, errfnd;
+
+    /* The "\-c" command\-line option can be used to specify that the
+       list is circular */
+
+    errfnd = 0;
+    circular = 0;
+    while ((opt = getopt(argc, argv, "c")) != \-1) {
+        switch (opt) {
+        case 'c':
+            circular = 1;
+            break;
+        default:
+            errfnd = 1;
+            break;
+        }
+    }
+
+    if (errfnd || optind >= argc) {
+        fprintf(stderr,  "Usage: %s [\-c] string...\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    /* Create first element and place it in the linked list */
+
+    elem = new_element();
+    first = elem;
+
+    elem\->name = argv[optind];
+
+    if (circular) {
+        elem\->forward = elem;
+        elem\->backward = elem;
+        insque(elem, elem);
+    } else {
+        insque(elem, NULL);
+    }
+
+    /* Add remaining command\-line arguments as list elements */
+
+    while (++optind < argc) {
+        prev = elem;
+
+        elem = new_element();
+        elem\->name = argv[optind];
+        insque(elem, prev);
+    }
+
+    /* Traverse the list from the start, printing element names */
+
+    printf("Traversing completed list:\\n");
+    elem = first;
+    do {
+        printf("    %s\\n", elem\->name);
+        elem = elem\->forward;
+    } while (elem != NULL && elem != first);
+
+    if (elem == first)
+        printf("That was a circular list\\n");
+
+    exit(EXIT_SUCCESS);
+}
+.fi

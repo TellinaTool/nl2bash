@@ -1,0 +1,126 @@
+.\" Copyright (c) 2005 Michael Kerrisk
+.\" based on earlier work by faith@cs.unc.edu and
+.\" Mike Battersby <mib@deakin.edu.au>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2005-09-15, mtk, Created new page by splitting off from sigaction.2
+.\"
+.TH SIGPENDING 2 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sigpending, rt_sigpending \- examine pending signals
+.SH SYNOPSIS
+.B #include <signal.h>
+.sp
+.BI "int sigpending(sigset_t *" set );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR sigpending ():
+_POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+.ad b
+.SH DESCRIPTION
+.PP
+.BR sigpending ()
+returns the set of signals that are pending for delivery to the calling
+thread (i.e., the signals which have been raised while blocked).
+The mask of pending signals is returned in
+.IR set .
+.SH RETURN VALUE
+.BR sigpending ()
+returns 0 on success and \-1 on error.
+In the event of an error,
+.I errno
+is set to indicate the cause.
+.SH ERRORS
+.TP
+.B EFAULT
+.I set
+points to memory which is not a valid part of the process address space.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+See
+.BR sigsetops (3)
+for details on manipulating signal sets.
+
+If a signal is both blocked and has a disposition of "ignored", it is
+.I not
+added to the mask of pending signals when generated.
+
+The set of signals that is pending for a thread
+is the union of the set of signals that is pending for that thread
+and the set of signals that is pending for the process as a whole; see
+.BR signal (7).
+
+A child created via
+.BR fork (2)
+initially has an empty pending signal set;
+the pending signal set is preserved across an
+.BR execve (2).
+.\"
+.SS C library/kernel differences
+The original Linux system call was named
+.BR sigpending ().
+However, with the addition of real-time signals in Linux 2.2,
+the fixed-size, 32-bit
+.IR sigset_t
+argument supported by that system call was no longer fit for purpose.
+Consequently, a new system call,
+.BR rt_sigpending (),
+was added to support an enlarged
+.IR sigset_t
+type.
+The new system call takes a second argument,
+.IR "size_t sigsetsize" ,
+which specifies the size in bytes of the signal set in
+.IR set .
+.\" This argument is currently required to be less than or equal to
+.\" .IR sizeof(sigset_t)
+.\" (or the error
+.\" .B EINVAL
+.\" results).
+The glibc
+.BR sigpending ()
+wrapper function hides these details from us, transparently calling
+.BR rt_sigpending ()
+when the kernel provides it.
+.\"
+.SH BUGS
+In versions of glibc up to and including 2.2.1,
+there is a bug in the wrapper function for
+.BR sigpending ()
+which means that information about pending real-time signals
+is not correctly returned.
+.SH SEE ALSO
+.BR kill (2),
+.BR sigaction (2),
+.BR signal (2),
+.BR sigprocmask (2),
+.BR sigsuspend (2),
+.BR sigsetops (3),
+.BR signal (7)

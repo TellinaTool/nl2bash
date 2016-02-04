@@ -1,0 +1,95 @@
+.\" Copyright (C) 2014 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PLDD 1 2014-09-27 "GNU" "Linux User Manual"
+.SH NAME
+pldd \- display dynamic shared objects linked into a process
+.SH SYNOPSIS
+.nf
+.BI "pldd " "pid"
+.BI pldd " option"
+.fi
+.SH DESCRIPTION
+The
+.B pldd
+command displays a list of the dynamic shared objects that are
+linked into the process with the specified process ID.
+The list includes the libraries that have been dynamically loaded using
+.BR dlopen (3).
+.SH OPTIONS
+.TP
+.BR \-? ", " \-\-help
+Display program help message.
+.TP
+.BR \-\-usage
+Display a short usage message.
+.TP
+.BR \-V ", " \-\-version
+Display the program version.
+.SH VERSIONS
+.B pldd
+is available since glibc 2.15.
+.SH CONFORMING TO
+The
+.B pldd
+command is not specified by POSIX.1.
+Some other systems
+.\" There are man pages on Solaris and HP-UX.
+have a similar command.
+.SH EXIT STATUS
+On success,
+.B pldd
+exits with the status 0.
+If the specified process does not exist,
+the user does not have permission to access
+its dynamic shared object list,
+or no command-line arguments are supplied,
+.B pldd
+exists with a status of 1.
+If given an invalid option, it exits with the status 64.
+.SH EXAMPLE
+.nf
+$ \fBecho $$\fP               # Display PID of shell
+1143
+$ \fBpldd $$\fP               # Display DSOs linked into the shell
+1143:	/usr/bin/bash
+linux\-vdso.so.1
+/lib64/libtinfo.so.5
+/lib64/libdl.so.2
+/lib64/libc.so.6
+/lib64/ld\-linux\-x86\-64.so.2
+/lib64/libnss_files.so.2
+.fi
+.SH NOTES
+The command
+
+     lsof -p PID
+
+also shows output that includes the dynamic shared objects
+that are linked into a process.
+.SH SEE ALSO
+.BR ldd (1),
+.BR lsof (1),
+.BR dlopen (3),
+.BR ld.so (8)

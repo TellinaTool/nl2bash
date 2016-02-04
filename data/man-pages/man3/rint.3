@@ -1,0 +1,171 @@
+.\" Copyright 2001 Andries Brouwer <aeb@cwi.nl>.
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH RINT 3  2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+nearbyint, nearbyintf, nearbyintl, rint, rintf, rintl \- round
+to nearest integer
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "double nearbyint(double " x );
+.br
+.BI "float nearbyintf(float " x );
+.br
+.BI "long double nearbyintl(long double " x );
+.sp
+.BI "double rint(double " x );
+.br
+.BI "float rintf(float " x );
+.br
+.BI "long double rintl(long double " x );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR nearbyint (),
+.BR nearbyintf (),
+.BR nearbyintl ():
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _POSIX_C_SOURCE\ >=\ 200112L || _ISOC99_SOURCE;
+.br
+or
+.I cc\ -std=c99
+.RE
+.br
+.BR rint ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.br
+.BR rintf (),
+.BR rintl ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR nearbyint (),
+.BR nearbyintf (),
+and
+.BR nearbyintl ()
+functions round their argument to an integer value in floating-point
+format, using the current rounding direction (see
+.BR fesetround (3))
+and without raising the
+.I inexact
+exception.
+When the current rounding direction is to nearest, these
+functions round halfway cases to the even integer in accordance with
+IEEE-754.
+.LP
+The
+.BR rint (),
+.BR rintf (),
+and
+.BR rintl ()
+functions do the same, but will raise the
+.I inexact
+exception
+.RB ( FE_INEXACT ,
+checkable via
+.BR fetestexcept (3))
+when the result differs in value from the argument.
+.SH RETURN VALUE
+These functions return the rounded integer value.
+
+If
+.I x
+is integral, +0, \-0, NaN, or infinite,
+.I x
+itself is returned.
+.SH ERRORS
+No errors occur.
+POSIX.1-2001 documents a range error for overflows, but see NOTES.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw26 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR nearbyint (),
+.BR nearbyintf (),
+.br
+.BR nearbyintl (),
+.BR rint (),
+.br
+.BR rintf (),
+.BR rintl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+SUSv2 and POSIX.1-2001 contain text about overflow (which might set
+.I errno
+to
+.BR ERANGE ,
+or raise an
+.B FE_OVERFLOW
+exception).
+In practice, the result cannot overflow on any current machine,
+so this error-handling stuff is just nonsense.
+(More precisely, overflow can happen only when the maximum value
+of the exponent is smaller than the number of mantissa bits.
+For the IEEE-754 standard 32-bit and 64-bit floating-point numbers
+the maximum value of the exponent is 128 (respectively, 1024),
+and the number of mantissa bits is 24 (respectively, 53).)
+
+If you want to store the rounded value in an integer type,
+you probably want to use one of the functions described in
+.BR lrint (3)
+instead.
+.SH SEE ALSO
+.BR ceil (3),
+.BR floor (3),
+.BR lrint (3),
+.BR round (3),
+.BR trunc (3)

@@ -1,0 +1,100 @@
+.\" Copyright (C) 2002, Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 31 Jan 2002, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added description of mmap2
+.\" Modified, 2004-11-25, mtk -- removed stray #endif in prototype
+.\"
+.TH MMAP2 2 2014-02-25 "Linux" "Linux Programmer's Manual"
+.SH NAME
+mmap2 \- map files or devices into memory
+.SH SYNOPSIS
+.nf
+.B #include <sys/mman.h>
+.sp
+.BI "void *mmap2(void *" addr ", size_t " length ", int " prot ,
+.BI "             int " flags ", int " fd ", off_t " pgoffset );
+.fi
+.SH DESCRIPTION
+This is probably not the system call that you are interested in; instead, see
+.BR mmap (2),
+which describes the glibc wrapper function that invokes this system call.
+
+The
+.BR mmap2 ()
+system call provides the same interface as
+.BR mmap (2),
+except that the final argument specifies the offset into the
+file in 4096-byte units (instead of bytes, as is done by
+.BR mmap (2)).
+This enables applications that use a 32-bit
+.I off_t
+to map large files (up to 2^44 bytes).
+.SH RETURN VALUE
+On success,
+.BR mmap2 ()
+returns a pointer to the mapped area.
+On error, \-1 is returned and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EFAULT
+Problem with getting the data from user space.
+.TP
+.B EINVAL
+(Various platforms where the page size is not 4096 bytes.)
+.I "offset\ *\ 4096"
+is not a multiple of the system page size.
+.PP
+.BR mmap2 ()
+can also return any of the errors described in
+.BR mmap (2).
+.SH VERSIONS
+.BR mmap2 ()
+is available since Linux 2.3.31.
+.SH CONFORMING TO
+This system call is Linux-specific.
+.SH NOTES
+On architectures where this system call is present,
+the glibc
+.BR mmap ()
+wrapper function invokes this system call rather than the
+.BR mmap (2)
+system call.
+
+This system call does not exist on x86-64.
+
+On ia64, the unit for
+.I offset
+is actually the system page size, rather than 4096 bytes.
+.\" ia64 can have page sizes ranging from 4kB to 64kB.
+.\" On cris, it looks like the unit might also be the page size,
+.\" which is 8192 bytes. -- mtk, June 2007
+.SH SEE ALSO
+.BR getpagesize (2),
+.BR mmap (2),
+.BR mremap (2),
+.BR msync (2),
+.BR shm_open (3)

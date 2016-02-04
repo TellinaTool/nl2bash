@@ -1,0 +1,84 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"     Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2003-04-07 by Michael Kerrisk
+.\"
+.TH TTY 4 2003-04-07 "Linux" "Linux Programmer's Manual"
+.SH NAME
+tty \- controlling terminal
+.SH DESCRIPTION
+The file
+.I /dev/tty
+is a character file with major number 5 and
+minor number 0, usually of mode 0666 and owner.group root.tty.
+It is a synonym for the controlling terminal of a process, if any.
+.LP
+In addition to the
+.BR ioctl (2)
+requests supported by the device that
+.B tty
+refers to, the
+.BR ioctl (2)
+request
+.B TIOCNOTTY
+is supported.
+.SS TIOCNOTTY
+Detach the calling process from its controlling terminal.
+.sp
+If the process is the session leader,
+then
+.B SIGHUP
+and
+.B SIGCONT
+signals are sent to the foreground process group
+and all processes in the current session lose their controlling tty.
+.sp
+This
+.BR ioctl (2)
+call works only on file descriptors connected
+to
+.IR /dev/tty .
+It is used by daemon processes when they are invoked
+by a user at a terminal.
+The process attempts to open
+.IR /dev/tty .
+If the open succeeds, it
+detaches itself from the terminal by using
+.BR TIOCNOTTY ,
+while if the
+open fails, it is obviously not attached to a terminal and does not need
+to detach itself.
+.SH FILES
+/dev/tty
+.SH SEE ALSO
+.BR chown (1),
+.BR mknod (1),
+.BR ioctl (2),
+.BR termios (3),
+.BR console (4),
+.BR tty_ioctl (4),
+.BR ttyS (4),
+.BR agetty (8),
+.BR mingetty (8)

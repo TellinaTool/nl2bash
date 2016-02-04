@@ -1,0 +1,172 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"     Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sun Jul 25 10:46:28 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Aug 21 18:12:27 1994 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Jun 18 01:53:57 1995 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Mon Jan  5 20:24:40 MET 1998 by Michael Haardt
+.\"  (michael@cantor.informatik.rwth-aachen.de)
+.TH PASSWD 5 2015-02-01 "Linux" "Linux Programmer's Manual"
+.SH NAME
+passwd \- password file
+.SH DESCRIPTION
+The
+.IR /etc/passwd
+file is a text file that describes user login accounts for the system.
+It should have read permission allowed for all users (many utilities, like
+.BR ls (1)
+use it to map user IDs to usernames), but write access only for the
+superuser.
+.PP
+In the good old days there was no great problem with this general
+read permission.
+Everybody could read the encrypted passwords, but the
+hardware was too slow to crack a well-chosen password, and moreover the
+basic assumption used to be that of a friendly user-community.
+These days many people run some version of the shadow password suite, where
+.I /etc/passwd
+has an \(aqx\(aq character in the password field,
+and the encrypted passwords are in
+.IR /etc/shadow ,
+which is readable by the superuser only.
+.PP
+If the encrypted password, whether in
+.I /etc/passwd
+or in
+.IR /etc/shadow ,
+is an empty string, login is allowed without even asking for a password.
+Note that this functionality may be intentionally disabled in applications,
+or configurable (for example using the "nullok" or "nonull" arguments to
+pam_unix.so).
+.PP
+If the encrypted password in
+.I /etc/passwd
+is "\fI*NP*\fP" (without the quotes),
+the shadow record should be obtained from an NIS+ server.
+.PP
+Regardless of whether shadow passwords are used, many system administrators
+use an asterisk (*) in the encrypted password field to make sure
+that this user can not authenticate him- or herself using a
+password.
+(But see NOTES below.)
+.PP
+If you create a new login, first put an asterisk (*) in the password field,
+then use
+.BR passwd (1)
+to set it.
+.PP
+Each line of the file describes a single user,
+and contains seven colon-separated fields:
+.sp
+.RS
+name:password:UID:GID:GECOS:directory:shell
+.RE
+.sp
+The field are as follows:
+.TP 12
+.I name
+This is the user's login name.
+It should not contain capital letters.
+.TP
+.I password
+This is either the encrypted user password,
+an asterisk (*), or the letter \(aqx\(aq.
+(See
+.BR pwconv (8)
+for an explanation of \(aqx\(aq.)
+.TP
+.I UID
+The privileged
+.I root
+login account (superuser) has the user ID 0.
+.TP
+.I GID
+This is the numeric primary group ID for this user.
+(Additional groups for the user are defined in the system group file; see
+.BR group (5)).
+.TP
+.I GECOS
+This field (sometimes called the "comment field")
+is optional and used only for informational purposes.
+Usually, it contains the full username.
+Some programs (for example,
+.BR finger (1))
+display information from this field.
+.IP
+GECOS stands for "General Electric Comprehensive Operating System",
+which was renamed to GCOS when
+GE's large systems division was sold to Honeywell.
+Dennis Ritchie has reported: "Sometimes we sent printer output or
+batch jobs to the GCOS machine.
+The gcos field in the password file was a place to stash the
+information for the $IDENTcard.
+Not elegant."
+.TP
+.I directory
+This is the user's home directory:
+the initial directory where the user is placed after logging in.
+The value in this field is used to set the
+.B HOME
+environment variable.
+.TP
+.I shell
+This is the program to run at login (if empty, use
+.IR /bin/sh ).
+If set to a nonexistent executable, the user will be unable to login
+through
+.BR login (1).
+The value in this field is used to set the
+.B SHELL
+environment variable.
+.SH FILES
+.I /etc/passwd
+.SH NOTES
+If you want to create user groups, there must be an entry in
+.IR /etc/group ,
+or no group will exist.
+.PP
+If the encrypted password is set to an asterisk (*), the user will be unable
+to login using
+.BR login (1),
+but may still login using
+.BR rlogin (1),
+run existing processes and initiate new ones through
+.BR rsh (1),
+.BR cron (8),
+.BR at (1),
+or mail filters, etc.
+Trying to lock an account by simply changing the
+shell field yields the same result and additionally allows the use of
+.BR su (1).
+.SH SEE ALSO
+.BR chfn (1),
+.BR chsh (1),
+.BR login (1),
+.BR passwd (1),
+.BR su (1),
+.BR crypt (3),
+.BR getpwent (3),
+.BR getpwnam (3),
+.BR group (5),
+.BR shadow (5)

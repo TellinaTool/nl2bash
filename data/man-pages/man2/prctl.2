@@ -1,0 +1,1350 @@
+.\" Copyright (C) 1998 Andries Brouwer (aeb@cwi.nl)
+.\" and Copyright (C) 2002, 2006, 2008, 2012, 2013 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright Guillem Jover <guillem@hadrons.org>
+.\" and Copyright (C) 2014 Dave Hansen / Intel
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Thu Nov 11 04:19:42 MET 1999, aeb: added PR_GET_PDEATHSIG
+.\" Modified 27 Jun 02, Michael Kerrisk
+.\" 	Added PR_SET_DUMPABLE, PR_GET_DUMPABLE,
+.\"	PR_SET_KEEPCAPS, PR_GET_KEEPCAPS
+.\" Modified 2006-08-30 Guillem Jover <guillem@hadrons.org>
+.\"	Updated Linux versions where the options where introduced.
+.\"	Added PR_SET_TIMING, PR_GET_TIMING, PR_SET_NAME, PR_GET_NAME,
+.\"	PR_SET_UNALIGN, PR_GET_UNALIGN, PR_SET_FPEMU, PR_GET_FPEMU,
+.\"	PR_SET_FPEXC, PR_GET_FPEXC
+.\" 2008-04-29 Serge Hallyn, Document PR_CAPBSET_READ and PR_CAPBSET_DROP
+.\" 2008-06-13 Erik Bosman, <ejbosman@cs.vu.nl>
+.\"     Document PR_GET_TSC and PR_SET_TSC.
+.\" 2008-06-15 mtk, Document PR_SET_SECCOMP, PR_GET_SECCOMP
+.\" 2009-10-03 Andi Kleen, document PR_MCE_KILL
+.\" 2012-04 Cyrill Gorcunov, Document PR_SET_MM
+.\" 2012-04-25 Michael Kerrisk, Document PR_TASK_PERF_EVENTS_DISABLE and
+.\"				PR_TASK_PERF_EVENTS_ENABLE
+.\" 2012-09-20 Kees Cook, update PR_SET_SECCOMP for mode 2
+.\" 2012-09-20 Kees Cook, document PR_SET_NO_NEW_PRIVS, PR_GET_NO_NEW_PRIVS
+.\" 2012-10-25 Michael Kerrisk, Document PR_SET_TIMERSLACK and
+.\"                             PR_GET_TIMERSLACK
+.\" 2013-01-10 Kees Cook, document PR_SET_PTRACER
+.\" 2012-02-04 Michael kerrisk, document PR_{SET,GET}_CHILD_SUBREAPER
+.\" 2014-11-10 Dave Hansen, document PR_MPX_{EN,DIS}ABLE_MANAGEMENT
+.\"
+.\"
+.TH PRCTL 2 2015-12-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+prctl \- operations on a process
+.SH SYNOPSIS
+.nf
+.B #include <sys/prctl.h>
+.sp
+.BI "int prctl(int " option ", unsigned long " arg2 ", unsigned long " arg3 ,
+.BI "          unsigned long " arg4 ", unsigned long " arg5 );
+.fi
+.SH DESCRIPTION
+.BR prctl ()
+is called with a first argument describing what to do
+(with values defined in \fI<linux/prctl.h>\fP), and further
+arguments with a significance depending on the first one.
+The first argument can be:
+.\"
+.TP
+.BR PR_CAP_AMBIENT " (since Linux 4.3)"
+.\" commit 58319057b7847667f0c9585b9de0e8932b0fdb08
+Reads or changes the ambient capability set, according to the value of
+.IR arg2 ,
+which must be one of the following:
+.RS
+.\"
+.TP
+.B PR_CAP_AMBIENT_RAISE
+The capability specified in
+.I arg3
+is added to the ambient set.
+The specified capability must already be present in
+both the permitted and the inheritable sets of the process.
+This operation is not permitted if the
+.B SECBIT_NO_CAP_AMBIENT_RAISE
+securebit is set.
+.TP
+.B PR_CAP_AMBIENT_LOWER
+The capability specified in
+.I arg3
+is removed from the ambient set.
+.TP
+.B PR_CAP_AMBIENT_IS_SET
+The
+.BR prctl (2)
+call returns 1 if the capability in
+.I arg3
+is in the ambient set and 0 if it is not.
+.TP
+.BR PR_CAP_AMBIENT_CLEAR_ALL
+All capabilities will be removed from the ambient set.
+This operation requires setting
+.I arg3
+to zero.
+.RE
+.IP
+In all of the above operations,
+.I arg4
+and
+.I arg5
+must be specified as 0.
+.TP
+.BR PR_CAPBSET_READ " (since Linux 2.6.25)"
+Return (as the function result) 1 if the capability specified in
+.I arg2
+is in the calling thread's capability bounding set,
+or 0 if it is not.
+(The capability constants are defined in
+.IR <linux/capability.h> .)
+The capability bounding set dictates
+whether the process can receive the capability through a
+file's permitted capability set on a subsequent call to
+.BR execve (2).
+
+If the capability specified in
+.I arg2
+is not valid, then the call fails with the error
+.BR EINVAL .
+.TP
+.BR PR_CAPBSET_DROP " (since Linux 2.6.25)"
+If the calling thread has the
+.B CAP_SETPCAP
+capability, then drop the capability specified by
+.I arg2
+from the calling thread's capability bounding set.
+Any children of the calling thread will inherit the newly
+reduced bounding set.
+
+The call fails with the error:
+.B EPERM
+if the calling thread does not have the
+.BR CAP_SETPCAP ;
+.BR EINVAL
+if
+.I arg2
+does not represent a valid capability; or
+.BR EINVAL
+if file capabilities are not enabled in the kernel,
+in which case bounding sets are not supported.
+.TP
+.BR PR_SET_CHILD_SUBREAPER " (since Linux 3.4)"
+.\" commit ebec18a6d3aa1e7d84aab16225e87fd25170ec2b
+If
+.I arg2
+is nonzero,
+set the "child subreaper" attribute of the calling process;
+if
+.I arg2
+is zero, unset the attribute.
+When a process is marked as a child subreaper,
+all of the children that it creates, and their descendants,
+will be marked as having a subreaper.
+In effect, a subreaper fulfills the role of
+.BR init (1)
+for its descendant processes.
+Upon termination of a process
+that is orphaned (i.e., its immediate parent has already terminated)
+and marked as having a subreaper,
+the nearest still living ancestor subreaper
+will receive a
+.BR SIGCHLD
+signal and be able to
+.BR wait (2)
+on the process to discover its termination status.
+.TP
+.BR PR_GET_CHILD_SUBREAPER " (since Linux 3.4)"
+Return the "child subreaper" setting of the caller,
+in the location pointed to by
+.IR "(int\ *) arg2" .
+.TP
+.BR PR_SET_DUMPABLE " (since Linux 2.3.20)"
+Set the state of the "dumpable" flag,
+which determines whether core dumps are produced for the calling process
+upon delivery of a signal whose default behavior is to produce a core dump.
+
+In kernels up to and including 2.6.12,
+.I arg2
+must be either 0
+.RB ( SUID_DUMP_DISABLE ,
+process is not dumpable) or 1
+.RB ( SUID_DUMP_USER ,
+process is dumpable).
+Between kernels 2.6.13 and 2.6.17,
+.\" commit abf75a5033d4da7b8a7e92321d74021d1fcfb502
+the value 2 was also permitted,
+which caused any binary which normally would not be dumped
+to be dumped readable by root only;
+for security reasons, this feature has been removed.
+.\" See http://marc.theaimsgroup.com/?l=linux-kernel&m=115270289030630&w=2
+.\" Subject:    Fix prctl privilege escalation (CVE-2006-2451)
+.\" From:       Marcel Holtmann <marcel () holtmann ! org>
+.\" Date:       2006-07-12 11:12:00
+(See also the description of
+.I /proc/sys/fs/\:suid_dumpable
+in
+.BR proc (5).)
+
+Normally, this flag is set to 1.
+However, it is reset to the current value contained in the file
+.IR /proc/sys/fs/\:suid_dumpable
+(which by default has the value 0),
+if any of the following attributes of the process
+are changed by the operations listed below:
+.\" See kernel/cred.c::commit_creds() (Linux 3.18 sources)
+.RS
+.IP * 3
+The effective user or group ID is changed.
+.IP *
+The filesystem user or group ID is changed (see
+.BR credentials (7)).
+.IP *
+The process's set of permitted capabilities (see
+.BR capabilities (7))
+is changed such that its new set of capabilities is
+not a subset of its previous set of capabilities.
+.RE
+.IP
+The operations that may trigger changes to the dumpable flag include:
+.\" Look for uses of commit_creds() in the kernel source code
+.RS
+.IP * 3
+execution
+.RB ( execve (2))
+of a set-user-ID or set-group-ID program,
+or a program that has capabilities (see
+.BR capabilities (7));
+.IP *
+.BR capset (2);
+and
+.IP *
+system calls that change process credentials
+.RB ( setuid (2)
+.BR setgid (2),
+.BR setresuid (2),
+.BR setresgid (2),
+.BR setgroups (2),
+and so on).
+.\" Also certain namespace operations;
+.RE
+.IP
+Processes that are not dumpable can not be attached via
+.BR ptrace (2)
+.BR PTRACE_ATTACH .
+.TP
+.BR PR_GET_DUMPABLE " (since Linux 2.3.20)"
+Return (as the function result) the current state of the calling
+process's dumpable flag.
+.\" Since Linux 2.6.13, the dumpable flag can have the value 2,
+.\" but in 2.6.13 PR_GET_DUMPABLE simply returns 1 if the dumpable
+.\" flags has a nonzero value.  This was fixed in 2.6.14.
+.TP
+.BR PR_SET_ENDIAN " (since Linux 2.6.18, PowerPC only)"
+Set the endian-ness of the calling process to the value given
+in \fIarg2\fP, which should be one of the following:
+.\" Respectively 0, 1, 2
+.BR PR_ENDIAN_BIG ,
+.BR PR_ENDIAN_LITTLE ,
+or
+.B PR_ENDIAN_PPC_LITTLE
+(PowerPC pseudo little endian).
+.TP
+.BR PR_GET_ENDIAN " (since Linux 2.6.18, PowerPC only)"
+Return the endian-ness of the calling process,
+in the location pointed to by
+.IR "(int\ *) arg2" .
+.TP
+.BR PR_SET_FPEMU " (since Linux 2.4.18, 2.5.9, only on ia64)"
+Set floating-point emulation control bits to \fIarg2\fP.
+Pass
+.B PR_FPEMU_NOPRINT
+to silently emulate floating-point operation accesses, or
+.B PR_FPEMU_SIGFPE
+to not emulate floating-point operations and send
+.B SIGFPE
+instead.
+.TP
+.BR PR_GET_FPEMU " (since Linux 2.4.18, 2.5.9, only on ia64)"
+Return floating-point emulation control bits,
+in the location pointed to by
+.IR "(int\ *) arg2" .
+.TP
+.BR PR_SET_FPEXC " (since Linux 2.4.21, 2.5.32, only on PowerPC)"
+Set floating-point exception mode to \fIarg2\fP.
+Pass \fBPR_FP_EXC_SW_ENABLE\fP to use FPEXC for FP exception enables,
+\fBPR_FP_EXC_DIV\fP for floating-point divide by zero,
+\fBPR_FP_EXC_OVF\fP for floating-point overflow,
+\fBPR_FP_EXC_UND\fP for floating-point underflow,
+\fBPR_FP_EXC_RES\fP for floating-point inexact result,
+\fBPR_FP_EXC_INV\fP for floating-point invalid operation,
+\fBPR_FP_EXC_DISABLED\fP for FP exceptions disabled,
+\fBPR_FP_EXC_NONRECOV\fP for async nonrecoverable exception mode,
+\fBPR_FP_EXC_ASYNC\fP for async recoverable exception mode,
+\fBPR_FP_EXC_PRECISE\fP for precise exception mode.
+.TP
+.BR PR_GET_FPEXC " (since Linux 2.4.21, 2.5.32, only on PowerPC)"
+Return floating-point exception mode,
+in the location pointed to by
+.IR "(int\ *) arg2" .
+.TP
+.BR PR_SET_KEEPCAPS " (since Linux 2.2.18)"
+Set the state of the thread's "keep capabilities" flag,
+which determines whether the threads's permitted
+capability set is cleared when a change is made to the threads's user IDs
+such that the threads's real UID, effective UID, and saved set-user-ID
+all become nonzero when at least one of them previously had the value 0.
+By default, the permitted capability set is cleared when such a change is made;
+setting the "keep capabilities" flag prevents it from being cleared.
+.I arg2
+must be either 0 (permitted capabilities are cleared)
+or 1 (permitted capabilities are kept).
+(A thread's
+.I effective
+capability set is always cleared when such a credential change is made,
+regardless of the setting of the "keep capabilities" flag.)
+The "keep capabilities" value will be reset to 0 on subsequent calls to
+.BR execve (2).
+.TP
+.BR PR_GET_KEEPCAPS " (since Linux 2.2.18)"
+Return (as the function result) the current state of the calling threads's
+"keep capabilities" flag.
+.TP
+.BR PR_MCE_KILL " (since Linux 2.6.32)"
+Set the machine check memory corruption kill policy for the current thread.
+If
+.I arg2
+is
+.BR PR_MCE_KILL_CLEAR ,
+clear the thread memory corruption kill policy and use the system-wide default.
+(The system-wide default is defined by
+.IR /proc/sys/vm/memory_failure_early_kill ;
+see
+.BR proc (5).)
+If
+.I arg2
+is
+.BR PR_MCE_KILL_SET ,
+use a thread-specific memory corruption kill policy.
+In this case,
+.I arg3
+defines whether the policy is
+.I early kill
+.RB ( PR_MCE_KILL_EARLY ),
+.I late kill
+.RB ( PR_MCE_KILL_LATE ),
+or the system-wide default
+.RB ( PR_MCE_KILL_DEFAULT ).
+Early kill means that the thread receives a
+.B SIGBUS
+signal as soon as hardware memory corruption is detected inside
+its address space.
+In late kill mode, the process is killed only when it accesses a corrupted page.
+See
+.BR sigaction (2)
+for more information on the
+.BR SIGBUS
+signal.
+The policy is inherited by children.
+The remaining unused
+.BR prctl ()
+arguments must be zero for future compatibility.
+.TP
+.BR PR_MCE_KILL_GET " (since Linux 2.6.32)"
+Return the current per-process machine check kill policy.
+All unused
+.BR prctl ()
+arguments must be zero.
+.TP
+.BR PR_SET_MM " (since Linux 3.3)"
+.\" commit 028ee4be34a09a6d48bdf30ab991ae933a7bc036
+Modify certain kernel memory map descriptor fields
+of the calling process.
+Usually these fields are set by the kernel and dynamic loader (see
+.BR ld.so (8)
+for more information) and a regular application should not use this feature.
+However, there are cases, such as self-modifying programs,
+where a program might find it useful to change its own memory map.
+This feature is available only if the kernel is built with the
+.BR CONFIG_CHECKPOINT_RESTORE
+option enabled.
+The calling process must have the
+.BR CAP_SYS_RESOURCE
+capability.
+The value in
+.I arg2
+is one of the options below, while
+.I arg3
+provides a new value for the option.
+.RS
+.TP
+.BR PR_SET_MM_START_CODE
+Set the address above which the program text can run.
+The corresponding memory area must be readable and executable,
+but not writable or sharable (see
+.BR mprotect (2)
+and
+.BR mmap (2)
+for more information).
+.TP
+.BR PR_SET_MM_END_CODE
+Set the address below which the program text can run.
+The corresponding memory area must be readable and executable,
+but not writable or sharable.
+.TP
+.BR PR_SET_MM_START_DATA
+Set the address above which initialized and
+uninitialized (bss) data are placed.
+The corresponding memory area must be readable and writable,
+but not executable or sharable.
+.TP
+.B PR_SET_MM_END_DATA
+Set the address below which initialized and
+uninitialized (bss) data are placed.
+The corresponding memory area must be readable and writable,
+but not executable or sharable.
+.TP
+.BR PR_SET_MM_START_STACK
+Set the start address of the stack.
+The corresponding memory area must be readable and writable.
+.TP
+.BR PR_SET_MM_START_BRK
+Set the address above which the program heap can be expanded with
+.BR brk (2)
+call.
+The address must be greater than the ending address of
+the current program data segment.
+In addition, the combined size of the resulting heap and
+the size of the data segment can't exceed the
+.BR RLIMIT_DATA
+resource limit (see
+.BR setrlimit (2)).
+.TP
+.BR PR_SET_MM_BRK
+Set the current
+.BR brk (2)
+value.
+The requirements for the address are the same as for the
+.BR PR_SET_MM_START_BRK
+option.
+.P
+The following options are available since Linux 3.5.
+.\" commit fe8c7f5cbf91124987106faa3bdf0c8b955c4cf7
+.TP
+.BR PR_SET_MM_ARG_START
+Set the address above which the program command line is placed.
+.TP
+.BR PR_SET_MM_ARG_END
+Set the address below which the program command line is placed.
+.TP
+.BR PR_SET_MM_ENV_START
+Set the address above which the program environment is placed.
+.TP
+.BR PR_SET_MM_ENV_END
+Set the address below which the program environment is placed.
+.IP
+The address passed with
+.BR PR_SET_MM_ARG_START ,
+.BR PR_SET_MM_ARG_END ,
+.BR PR_SET_MM_ENV_START ,
+and
+.BR PR_SET_MM_ENV_END
+should belong to a process stack area.
+Thus, the corresponding memory area must be readable, writable, and
+(depending on the kernel configuration) have the
+.BR MAP_GROWSDOWN
+attribute set (see
+.BR mmap (2)).
+.TP
+.BR PR_SET_MM_AUXV
+Set a new auxiliary vector.
+The
+.I arg3
+argument should provide the address of the vector.
+The
+.I arg4
+is the size of the vector.
+.TP
+.BR PR_SET_MM_EXE_FILE
+.\" commit b32dfe377102ce668775f8b6b1461f7ad428f8b6
+Supersede the
+.IR /proc/pid/exe
+symbolic link with a new one pointing to a new executable file
+identified by the file descriptor provided in
+.I arg3
+argument.
+The file descriptor should be obtained with a regular
+.BR open (2)
+call.
+.IP
+To change the symbolic link, one needs to unmap all existing
+executable memory areas, including those created by the kernel itself
+(for example the kernel usually creates at least one executable
+memory area for the ELF
+.IR \.text
+section).
+.IP
+The second limitation is that such transitions can be done only once
+in a process life time.
+Any further attempts will be rejected.
+This should help system administrators monitor unusual
+symbolic-link transitions over all processes running on a system.
+.RE
+.TP
+.BR PR_MPX_ENABLE_MANAGEMENT ", " PR_MPX_DISABLE_MANAGEMENT " (since Linux 3.19) "
+.\" commit fe3d197f84319d3bce379a9c0dc17b1f48ad358c
+.\" See also http://lwn.net/Articles/582712/
+.\" See also https://gcc.gnu.org/wiki/Intel%20MPX%20support%20in%20the%20GCC%20compiler
+Enable or disable kernel management of Memory Protection eXtensions (MPX)
+bounds tables.
+The
+.IR arg2 ,
+.IR arg3 ,
+.IR arg4 ,
+and
+.IR arg5
+.\" commit e9d1b4f3c60997fe197bf0243cb4a41a44387a88
+arguments must be zero.
+
+MPX is a hardware-assisted mechanism for performing bounds checking on
+pointers.
+It consists of a set of registers storing bounds information
+and a set of special instruction prefixes that tell the CPU on which
+instructions it should do bounds enforcement.
+There is a limited number of these registers and
+when there are more pointers than registers,
+their contents must be "spilled" into a set of tables.
+These tables are called "bounds tables" and the MPX
+.BR prctl ()
+operations control
+whether the kernel manages their allocation and freeing.
+
+When management is enabled, the kernel will take over allocation
+and freeing of the bounds tables.
+It does this by trapping the #BR exceptions that result
+at first use of missing bounds tables and
+instead of delivering the exception to user space,
+it allocates the table and populates the bounds directory
+with the location of the new table.
+For freeing, the kernel checks to see if bounds tables are
+present for memory which is not allocated, and frees them if so.
+
+Before enabling MPX management using
+.BR PR_MPX_ENABLE_MANAGEMENT ,
+the application must first have allocated a user-space buffer for
+the bounds directory and placed the location of that directory in the
+.I bndcfgu
+register.
+
+These calls will fail if the CPU or kernel does not support MPX.
+Kernel support for MPX is enabled via the
+.BR CONFIG_X86_INTEL_MPX
+configuration option.
+You can check whether the CPU supports MPX by looking for the 'mpx'
+CPUID bit, like with the following command:
+
+	cat /proc/cpuinfo | grep ' mpx '
+
+A thread may not switch in or out of long (64-bit) mode while MPX is
+enabled.
+
+All threads in a process are affected by these calls.
+
+The child of a
+.BR fork (2)
+inherits the state of MPX management.
+During
+.BR execve (2),
+MPX management is reset to a state as if
+.BR PR_MPX_DISABLE_MANAGEMENT
+had been called.
+
+For further information on Intel MPX, see the kernel source file
+.IR Documentation/x86/intel_mpx.txt .
+.TP
+.BR PR_SET_NAME " (since Linux 2.6.9)"
+Set the name of the calling thread,
+using the value in the location pointed to by
+.IR "(char\ *) arg2" .
+The name can be up to 16 bytes long,
+.\" TASK_COMM_LEN in include/linux/sched.h
+including the terminating null byte.
+(If the length of the string, including the terminating null byte,
+exceeds 16 bytes, the string is silently truncated.)
+This is the same attribute that can be set via
+.BR pthread_setname_np (3)
+and retrieved using
+.BR pthread_getname_np (3).
+The attribute is likewise accessible via
+.IR /proc/self/task/[tid]/comm ,
+where
+.I tid
+is the name of the calling thread.
+.TP
+.BR PR_GET_NAME " (since Linux 2.6.11)"
+Return the name of the calling thread,
+in the buffer pointed to by
+.IR "(char\ *) arg2" .
+The buffer should allow space for up to 16 bytes;
+the returned string will be null-terminated.
+.TP
+.BR PR_SET_NO_NEW_PRIVS " (since Linux 3.5)"
+Set the calling process's
+.I no_new_privs
+bit to the value in
+.IR arg2 .
+With
+.I no_new_privs
+set to 1,
+.BR execve (2)
+promises not to grant privileges to do anything
+that could not have been done without the
+.BR execve (2)
+call (for example,
+rendering the set-user-ID and set-group-ID mode bits,
+and file capabilities non-functional).
+Once set, this bit cannot be unset.
+The setting of this bit is inherited by children created by
+.BR fork (2)
+and
+.BR clone (2),
+and preserved across
+.BR execve (2).
+
+For more information, see the kernel source file
+.IR Documentation/prctl/no_new_privs.txt .
+.TP
+.BR PR_GET_NO_NEW_PRIVS " (since Linux 3.5)"
+Return (as the function result) the value of the
+.I no_new_privs
+bit for the current process.
+A value of 0 indicates the regular
+.BR execve (2)
+behavior.
+A value of 1 indicates
+.BR execve (2)
+will operate in the privilege-restricting mode described above.
+.TP
+.BR PR_SET_PDEATHSIG " (since Linux 2.1.57)"
+Set the parent death signal
+of the calling process to \fIarg2\fP (either a signal value
+in the range 1..maxsig, or 0 to clear).
+This is the signal that the calling process will get when its
+parent dies.
+This value is cleared for the child of a
+.BR fork (2)
+and (since Linux 2.4.36 / 2.6.23)
+when executing a set-user-ID or set-group-ID binary,
+or a binary that has associated capabilities (see
+.BR capabilities (7)).
+This value is preserved across
+.BR execve (2).
+
+.IR Warning :
+.\" https://bugzilla.kernel.org/show_bug.cgi?id=43300
+the "parent" in this case is considered to be the
+.I thread
+that created this process.
+In other words, the signal will be sent when that thread terminates
+(via, for example,
+.BR pthread_exit (3)),
+rather than after all of the threads in the parent process terminate.
+.TP
+.BR PR_GET_PDEATHSIG " (since Linux 2.3.15)"
+Return the current value of the parent process death signal,
+in the location pointed to by
+.IR "(int\ *) arg2" .
+.TP
+.BR PR_SET_PTRACER " (since Linux 3.4)"
+.\" commit 2d514487faf188938a4ee4fb3464eeecfbdcf8eb
+.\" commit bf06189e4d14641c0148bea16e9dd24943862215
+This is meaningful only when the Yama LSM is enabled and in mode 1
+("restricted ptrace", visible via
+.IR /proc/sys/kernel/yama/ptrace_scope ).
+When a "ptracer process ID" is passed in \fIarg2\fP,
+the caller is declaring that the ptracer process can
+.BR ptrace (2)
+the calling process as if it were a direct process ancestor.
+Each
+.B PR_SET_PTRACER
+operation replaces the previous "ptracer process ID".
+Employing
+.B PR_SET_PTRACER
+with
+.I arg2
+set to 0 clears the caller's "ptracer process ID".
+If
+.I arg2
+is
+.BR PR_SET_PTRACER_ANY ,
+the ptrace restrictions introduced by Yama are effectively disabled for the
+calling process.
+
+For further information, see the kernel source file
+.IR Documentation/security/Yama.txt .
+.TP
+.BR PR_SET_SECCOMP " (since Linux 2.6.23)"
+.\" See http://thread.gmane.org/gmane.linux.kernel/542632
+.\" [PATCH 0 of 2] seccomp updates
+.\" andrea@cpushare.com
+Set the secure computing (seccomp) mode for the calling thread, to limit
+the available system calls.
+The more recent
+.BR seccomp (2)
+system call provides a superset of the functionality of
+.BR PR_SET_SECCOMP .
+
+The seccomp mode is selected via
+.IR arg2 .
+(The seccomp constants are defined in
+.IR <linux/seccomp.h> .)
+
+With
+.IR arg2
+set to
+.BR SECCOMP_MODE_STRICT ,
+the only system calls that the thread is permitted to make are
+.BR read (2),
+.BR write (2),
+.BR _exit (2)
+(but not
+.BR exit_group (2)),
+and
+.BR sigreturn (2).
+Other system calls result in the delivery of a
+.BR SIGKILL
+signal.
+Strict secure computing mode is useful for number-crunching applications
+that may need to execute untrusted byte code,
+perhaps obtained by reading from a pipe or socket.
+This operation is available only
+if the kernel is configured with
+.B CONFIG_SECCOMP
+enabled.
+
+With
+.IR arg2
+set to
+.BR SECCOMP_MODE_FILTER " (since Linux 3.5),"
+the system calls allowed are defined by a pointer
+to a Berkeley Packet Filter passed in
+.IR arg3 .
+This argument is a pointer to
+.IR "struct sock_fprog" ;
+it can be designed to filter
+arbitrary system calls and system call arguments.
+This mode is available only if the kernel is configured with
+.B CONFIG_SECCOMP_FILTER
+enabled.
+
+If
+.BR SECCOMP_MODE_FILTER
+filters permit
+.BR fork (2),
+then the seccomp mode is inherited by children created by
+.BR fork (2);
+if
+.BR execve (2)
+is permitted, then the seccomp mode is preserved across
+.BR execve (2).
+If the filters permit
+.BR prctl ()
+calls, then additional filters can be added;
+they are run in order until the first non-allow result is seen.
+
+For further information, see the kernel source file
+.IR Documentation/prctl/seccomp_filter.txt .
+.TP
+.BR PR_GET_SECCOMP " (since Linux 2.6.23)"
+Return (as the function result)
+the secure computing mode of the calling thread.
+If the caller is not in secure computing mode, this operation returns 0;
+if the caller is in strict secure computing mode, then the
+.BR prctl ()
+call will cause a
+.B SIGKILL
+signal to be sent to the process.
+If the caller is in filter mode, and this system call is allowed by the
+seccomp filters, it returns 2; otherwise, the process is killed with a
+.BR SIGKILL
+signal.
+This operation is available only
+if the kernel is configured with
+.B CONFIG_SECCOMP
+enabled.
+
+Since Linux 3.8, the
+.IR Seccomp
+field of the
+.IR /proc/[pid]/status
+file provides a method of obtaining the same information,
+without the risk that the process is killed; see
+.BR proc (5).
+.TP
+.BR PR_SET_SECUREBITS " (since Linux 2.6.26)"
+Set the "securebits" flags of the calling thread to the value supplied in
+.IR arg2 .
+See
+.BR capabilities (7).
+.TP
+.BR PR_GET_SECUREBITS " (since Linux 2.6.26)"
+Return (as the function result)
+the "securebits" flags of the calling thread.
+See
+.BR capabilities (7).
+.TP
+.BR PR_SET_THP_DISABLE " (since Linux 3.15)"
+.\" commit a0715cc22601e8830ace98366c0c2bd8da52af52
+Set the state of the "THP disable" flag for the calling thread.
+If
+.I arg2
+has a nonzero value, the flag is set, otherwise it is cleared.
+Setting this flag provides a method
+for disabling transparent huge pages
+for jobs where the code cannot be modified, and using a malloc hook with
+.BR madvise (2)
+is not an option (i.e., statically allocated data).
+The setting of the "THP disable" flag is inherited by a child created via
+.BR fork (2)
+and is preserved across
+.BR execve (2).
+.\"
+.TP
+.BR PR_TASK_PERF_EVENTS_DISABLE " (since Linux 2.6.31)"
+Disable all performance counters attached to the calling process,
+regardless of whether the counters were created by
+this process or another process.
+Performance counters created by the calling process for other
+processes are unaffected.
+For more information on performance counters, see the Linux kernel source file
+.IR tools/perf/design.txt .
+.IP
+Originally called
+.BR PR_TASK_PERF_COUNTERS_DISABLE ;
+.\" commit 1d1c7ddbfab358445a542715551301b7fc363e28
+renamed (with same numerical value)
+in Linux 2.6.32.
+.\"
+.TP
+.BR PR_TASK_PERF_EVENTS_ENABLE " (since Linux 2.6.31)"
+The converse of
+.BR PR_TASK_PERF_EVENTS_DISABLE ;
+enable performance counters attached to the calling process.
+.IP
+Originally called
+.BR PR_TASK_PERF_COUNTERS_ENABLE ;
+.\" commit 1d1c7ddbfab358445a542715551301b7fc363e28
+renamed
+.\" commit cdd6c482c9ff9c55475ee7392ec8f672eddb7be6
+in Linux 2.6.32.
+.\"
+.TP
+.BR PR_GET_THP_DISABLE " (since Linux 3.15)"
+Return (via the function result) the current setting of the "THP disable"
+flag for the calling thread:
+either 1, if the flag is set, or 0, if it is not.
+.TP
+.BR PR_GET_TID_ADDRESS " (since Linux 3.5)"
+.\" commit 300f786b2683f8bb1ec0afb6e1851183a479c86d
+Retrieve the
+.I clear_child_tid
+address set by
+.BR set_tid_address (2)
+and the
+.BR clone (2)
+.B CLONE_CHILD_CLEARTID
+flag, in the location pointed to by
+.IR "(int\ **)\ arg2" .
+This feature is available only if the kernel is built with the
+.BR CONFIG_CHECKPOINT_RESTORE
+option enabled.
+.TP
+.BR PR_SET_TIMERSLACK " (since Linux 2.6.28)"
+.\" See https://lwn.net/Articles/369549/
+.\" commit 6976675d94042fbd446231d1bd8b7de71a980ada
+Set the current timer slack for the calling thread to the nanosecond value
+supplied in
+.IR arg2 .
+If
+.I arg2
+is less than or equal to zero,
+.\" It seems that it's not possible to set the timer slack to zero;
+.\" The minimum value is 1? Seems a little strange.
+reset the current timer slack to the thread's default timer slack value.
+The timer slack is used by the kernel to group timer expirations
+for the calling thread that are close to one another;
+as a consequence, timer expirations for the thread may be
+up to the specified number of nanoseconds late (but will never expire early).
+Grouping timer expirations can help reduce system power consumption
+by minimizing CPU wake-ups.
+
+The timer expirations affected by timer slack are those set by
+.BR select (2),
+.BR pselect (2),
+.BR poll (2),
+.BR ppoll (2),
+.BR epoll_wait (2),
+.BR epoll_pwait (2),
+.BR clock_nanosleep (2),
+.BR nanosleep (2),
+and
+.BR futex (2)
+(and thus the library functions implemented via futexes, including
+.\" List obtained by grepping for futex usage in glibc source
+.BR pthread_cond_timedwait (3),
+.BR pthread_mutex_timedlock (3),
+.BR pthread_rwlock_timedrdlock (3),
+.BR pthread_rwlock_timedwrlock (3),
+and
+.BR sem_timedwait (3)).
+
+Timer slack is not applied to threads that are scheduled under
+a real-time scheduling policy (see
+.BR sched_setscheduler (2)).
+
+Each thread has two associated timer slack values:
+a "default" value, and a "current" value.
+The current value is the one that governs grouping
+of timer expirations.
+When a new thread is created,
+the two timer slack values are made the same as the current value
+of the creating thread.
+Thereafter, a thread can adjust its current timer slack value via
+.BR PR_SET_TIMERSLACK
+(the default value can't be changed).
+The timer slack values of
+.IR init
+(PID 1), the ancestor of all processes,
+are 50,000 nanoseconds (50 microseconds).
+The timer slack values are preserved across
+.BR execve (2).
+.TP
+.BR PR_GET_TIMERSLACK " (since Linux 2.6.28)"
+Return (as the function result)
+the current timer slack value of the calling thread.
+.TP
+.BR PR_SET_TIMING " (since Linux 2.6.0-test4)"
+Set whether to use (normal, traditional) statistical process timing or
+accurate timestamp-based process timing, by passing
+.B PR_TIMING_STATISTICAL
+.\" 0
+or
+.B PR_TIMING_TIMESTAMP
+.\" 1
+to \fIarg2\fP.
+.B PR_TIMING_TIMESTAMP
+is not currently implemented
+(attempting to set this mode will yield the error
+.BR EINVAL ).
+.\" PR_TIMING_TIMESTAMP doesn't do anything in 2.6.26-rc8,
+.\" and looking at the patch history, it appears
+.\" that it never did anything.
+.TP
+.BR PR_GET_TIMING " (since Linux 2.6.0-test4)"
+Return (as the function result) which process timing method is currently
+in use.
+.TP
+.BR PR_SET_TSC " (since Linux 2.6.26, x86 only)"
+Set the state of the flag determining whether the timestamp counter
+can be read by the process.
+Pass
+.B PR_TSC_ENABLE
+to
+.I arg2
+to allow it to be read, or
+.B PR_TSC_SIGSEGV
+to generate a
+.B SIGSEGV
+when the process tries to read the timestamp counter.
+.TP
+.BR PR_GET_TSC " (since Linux 2.6.26, x86 only)"
+Return the state of the flag determining whether the timestamp counter
+can be read,
+in the location pointed to by
+.IR "(int\ *) arg2" .
+.TP
+.B PR_SET_UNALIGN
+(Only on: ia64, since Linux 2.3.48; parisc, since Linux 2.6.15;
+PowerPC, since Linux 2.6.18; Alpha, since Linux 2.6.22)
+Set unaligned access control bits to \fIarg2\fP.
+Pass
+\fBPR_UNALIGN_NOPRINT\fP to silently fix up unaligned user accesses,
+or \fBPR_UNALIGN_SIGBUS\fP to generate
+.B SIGBUS
+on unaligned user access.
+.TP
+.B PR_GET_UNALIGN
+(see
+.B PR_SET_UNALIGN
+for information on versions and architectures)
+Return unaligned access control bits, in the location pointed to by
+.IR "(int\ *) arg2" .
+.SH RETURN VALUE
+On success,
+.BR PR_GET_DUMPABLE ,
+.BR PR_GET_KEEPCAPS ,
+.BR PR_GET_NO_NEW_PRIVS ,
+.BR PR_GET_THP_DISABLE ,
+.BR PR_CAPBSET_READ ,
+.BR PR_GET_TIMING ,
+.BR PR_GET_TIMERSLACK ,
+.BR PR_GET_SECUREBITS ,
+.BR PR_MCE_KILL_GET ,
+.BR PR_CAP_AMBIENT + PR_CAP_AMBIENT_IS_SET ,
+and (if it returns)
+.BR PR_GET_SECCOMP
+return the nonnegative values described above.
+All other
+.I option
+values return 0 on success.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EACCES
+.I option
+is
+.BR PR_SET_MM ,
+and
+.I arg3
+is
+.BR PR_SET_MM_EXE_FILE ,
+the file is not executable.
+.TP
+.B EBADF
+.I option
+is
+.BR PR_SET_MM ,
+.I arg3
+is
+.BR PR_SET_MM_EXE_FILE ,
+and the file descriptor passed in
+.I arg4
+is not valid.
+.TP
+.B EBUSY
+.I option
+is
+.BR PR_SET_MM ,
+.I arg3
+is
+.BR PR_SET_MM_EXE_FILE ,
+and this the second attempt to change the
+.I /proc/pid/exe
+symbolic link, which is prohibited.
+.TP
+.B EFAULT
+.I arg2
+is an invalid address.
+.TP
+.B EFAULT
+.I option
+is
+.BR PR_SET_SECCOMP ,
+.I arg2
+is
+.BR SECCOMP_MODE_FILTER ,
+the system was built with
+.BR CONFIG_SECCOMP_FILTER ,
+and
+.I arg3
+is an invalid address.
+.TP
+.B EINVAL
+The value of
+.I option
+is not recognized.
+.TP
+.B EINVAL
+.I option
+is
+.BR PR_MCE_KILL
+or
+.BR PR_MCE_KILL_GET
+or
+.BR PR_SET_MM ,
+and unused
+.BR prctl ()
+arguments were not specified as zero.
+.TP
+.B EINVAL
+.I arg2
+is not valid value for this
+.IR option .
+.TP
+.B EINVAL
+.I option
+is
+.BR PR_SET_SECCOMP
+or
+.BR PR_GET_SECCOMP ,
+and the kernel was not configured with
+.BR CONFIG_SECCOMP .
+.TP
+.B EINVAL
+.I option
+is
+.BR PR_SET_SECCOMP ,
+.I arg2
+is
+.BR SECCOMP_MODE_FILTER ,
+and the kernel was not configured with
+.BR CONFIG_SECCOMP_FILTER .
+.TP
+.B EINVAL
+.I option
+is
+.BR PR_SET_MM ,
+and one of the following is true
+.RS
+.IP * 3
+.I arg4
+or
+.I arg5
+is nonzero;
+.IP *
+.I arg3
+is greater than
+.B TASK_SIZE
+(the limit on the size of the user address space for this architecture);
+.IP *
+.I arg2
+is
+.BR PR_SET_MM_START_CODE ,
+.BR PR_SET_MM_END_CODE ,
+.BR PR_SET_MM_START_DATA ,
+.BR PR_SET_MM_END_DATA ,
+or
+.BR PR_SET_MM_START_STACK ,
+and the permissions of the corresponding memory area are not as required;
+.IP *
+.I arg2
+is
+.BR PR_SET_MM_START_BRK
+or
+.BR PR_SET_MM_BRK ,
+and
+.I arg3
+is less than or equal to the end of the data segment
+or specifies a value that would cause the
+.B RLIMIT_DATA
+resource limit to be exceeded.
+.RE
+.TP
+.B EINVAL
+.I option
+is
+.BR PR_SET_PTRACER
+and
+.I arg2
+is not 0,
+.BR PR_SET_PTRACER_ANY ,
+or the PID of an existing process.
+.TP
+.B EINVAL
+.I option
+is
+.B PR_SET_PDEATHSIG
+and
+.I arg2
+is not a valid signal number.
+.TP
+.B EINVAL
+.I option
+is
+.BR PR_SET_DUMPABLE
+and
+.I arg2
+is neither
+.B SUID_DUMP_DISABLE
+nor
+.BR SUID_DUMP_USER .
+.TP
+.B EINVAL
+.I option
+is
+.BR PR_SET_TIMING
+and
+.I arg2
+is not
+.BR PR_TIMING_STATISTICAL .
+.TP
+.B EINVAL
+.I option
+is
+.BR PR_SET_NO_NEW_PRIVS
+and
+.I arg2
+is not equal to 1
+or
+.IR arg3 ,
+.IR arg4 ,
+or
+.IR arg5
+is nonzero.
+.TP
+.B EINVAL
+.I option
+is
+.BR PR_GET_NO_NEW_PRIVS
+and
+.IR arg2 ,
+.IR arg3 ,
+.IR arg4 ,
+or
+.IR arg5
+is nonzero.
+.TP
+.B EINVAL
+.I option
+is
+.BR PR_SET_THP_DISABLE
+and
+.IR arg3 ,
+.IR arg4 ,
+or
+.IR arg5
+is nonzero.
+.TP
+.B EINVAL
+.I option
+is
+.BR PR_GET_THP_DISABLE
+and
+.IR arg2 ,
+.IR arg3 ,
+.IR arg4 ,
+or
+.IR arg5
+is nonzero.
+.TP
+.B EINVAL
+.I option
+is
+.B PR_CAP_AMBIENT
+and an unused argument
+.RI ( arg4 ,
+.IR arg5 ,
+or,
+in the case of
+.BR PR_CAP_AMBIENT_CLEAR_ALL ,
+.IR arg3 )
+is nonzero; or
+.IR arg2
+has an invalid value;
+or
+.IR arg2
+is
+.BR PR_CAP_AMBIENT_LOWER ,
+.BR PR_CAP_AMBIENT_RAISE ,
+or
+.BR PR_CAP_AMBIENT_IS_SET
+and
+.IR arg3
+does not specify a valid capability.
+.TP
+.B ENXIO
+.I option
+was
+.BR PR_MPX_ENABLE_MANAGEMENT
+or
+.BR PR_MPX_DISABLE_MANAGEMENT
+and the kernel or the CPU does not support MPX management.
+Check that the kernel and processor have MPX support.
+.TP
+.B EPERM
+.I option
+is
+.BR PR_SET_SECUREBITS ,
+and the caller does not have the
+.B CAP_SETPCAP
+capability,
+or tried to unset a "locked" flag,
+or tried to set a flag whose corresponding locked flag was set
+(see
+.BR capabilities (7)).
+.TP
+.B EPERM
+.I option
+is
+.BR PR_SET_KEEPCAPS ,
+and the caller's
+.B SECURE_KEEP_CAPS_LOCKED
+flag is set
+(see
+.BR capabilities (7)).
+.TP
+.B EPERM
+.I option
+is
+.BR PR_CAPBSET_DROP ,
+and the caller does not have the
+.B CAP_SETPCAP
+capability.
+.TP
+.B EPERM
+.I option
+is
+.BR PR_SET_MM ,
+and the caller does not have the
+.B CAP_SYS_RESOURCE
+capability.
+.TP
+.B EPERM
+.IR option
+is
+.BR PR_CAP_AMBIENT
+and
+.IR arg2
+is
+.BR PR_CAP_AMBIENT_RAISE ,
+but either the capability specified in
+.IR arg3
+is not present in the process's permitted and inheritable capability sets,
+or the
+.B PR_CAP_AMBIENT_LOWER
+securebit has been set.
+.SH VERSIONS
+The
+.BR prctl ()
+system call was introduced in Linux 2.1.57.
+.\" The library interface was added in glibc 2.0.6
+.SH CONFORMING TO
+This call is Linux-specific.
+IRIX has a
+.BR prctl ()
+system call (also introduced in Linux 2.1.44
+as irix_prctl on the MIPS architecture),
+with prototype
+.sp
+.BI "ptrdiff_t prctl(int " option ", int " arg2 ", int " arg3 );
+.sp
+and options to get the maximum number of processes per user,
+get the maximum number of processors the calling process can use,
+find out whether a specified process is currently blocked,
+get or set the maximum stack size, and so on.
+.SH SEE ALSO
+.BR signal (2),
+.BR core (5)

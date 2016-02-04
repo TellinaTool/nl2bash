@@ -1,0 +1,178 @@
+.\" Copyright 1995 Jim Van Zandt
+.\" From jrv@vanzandt.mv.com Mon Sep  4 21:11:50 1995
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 1996-11-08, meem@sherilyn.wustl.edu, corrections
+.\" 2004-10-31, aeb, changed maintainer address, updated list
+.\" 2015-04-20, william@tuffbizz.com, updated list
+.\"
+.TH UNDOCUMENTED 3 2015-05-07 "Linux" "Linux Programmer's Manual"
+.SH NAME
+undocumented \- undocumented library functions
+.SH SYNOPSIS
+Undocumented library functions
+.SH DESCRIPTION
+This man page mentions those library functions which are implemented in
+the standard libraries but not yet documented in man pages.
+.SS Solicitation
+If you have information about these functions,
+please look in the source code, write a man page (using a style
+similar to that of the other Linux section 3 man pages), and send it to
+.B mtk.manpages@gmail.com
+for inclusion in the next man page release.
+.SS The list
+
+.BR authdes_create (3),
+.BR authdes_getucred (3),
+.BR authdes_pk_create (3),
+.\" .BR chflags (3),
+.BR clntunix_create (3),
+.BR creat64 (3),
+.BR dn_skipname (3),
+.\" .BR fattach (3),
+.\" .BR fchflags (3),
+.\" .BR fclean (3),
+.BR fcrypt (3),
+.\" .BR fdetach (3),
+.BR fp_nquery (3),
+.BR fp_query (3),
+.BR fp_resstat (3),
+.BR freading (3),
+.BR freopen64 (3),
+.BR fseeko64 (3),
+.BR ftello64 (3),
+.BR ftw64 (3),
+.BR fwscanf (3),
+.BR get_avphys_pages (3),
+.BR getdirentries64 (3),
+.BR getmsg (3),
+.BR getnetname (3),
+.BR get_phys_pages (3),
+.BR getpublickey (3),
+.BR getsecretkey (3),
+.BR h_errlist (3),
+.BR host2netname (3),
+.BR hostalias (3),
+.BR inet_nsap_addr (3),
+.BR inet_nsap_ntoa (3),
+.BR init_des (3),
+.BR libc_nls_init (3),
+.BR mstats (3),
+.BR netname2host (3),
+.BR netname2user (3),
+.BR nlist (3),
+.BR obstack_free (3),
+.\" .BR obstack stuff (3),
+.BR parse_printf_format (3),
+.BR p_cdname (3),
+.BR p_cdnname (3),
+.BR p_class (3),
+.BR p_fqname (3),
+.BR p_option (3),
+.BR p_query (3),
+.BR printf_size (3),
+.BR printf_size_info (3),
+.BR p_rr (3),
+.BR p_time (3),
+.BR p_type (3),
+.BR putlong (3),
+.BR putshort (3),
+.BR re_compile_fastmap (3),
+.BR re_compile_pattern (3),
+.BR register_printf_function (3),
+.BR re_match (3),
+.BR re_match_2 (3),
+.BR re_rx_search (3),
+.BR re_search (3),
+.BR re_search_2 (3),
+.BR re_set_registers (3),
+.BR re_set_syntax (3),
+.BR res_send_setqhook (3),
+.BR res_send_setrhook (3),
+.BR ruserpass (3),
+.BR setfileno (3),
+.BR sethostfile (3),
+.BR svc_exit (3),
+.BR svcudp_enablecache (3),
+.BR tell (3),
+.BR tr_break (3),
+.BR tzsetwall (3),
+.BR ufc_dofinalperm (3),
+.BR ufc_doit (3),
+.BR user2netname (3),
+.BR wcschrnul (3),
+.BR wcsftime (3),
+.BR wscanf (3),
+.BR xdr_authdes_cred (3),
+.BR xdr_authdes_verf (3),
+.BR xdr_cryptkeyarg (3),
+.BR xdr_cryptkeyres (3),
+.BR xdr_datum (3),
+.BR xdr_des_block (3),
+.BR xdr_domainname (3),
+.BR xdr_getcredres (3),
+.BR xdr_keybuf (3),
+.BR xdr_keystatus (3),
+.BR xdr_mapname (3),
+.BR xdr_netnamestr (3),
+.BR xdr_netobj (3),
+.BR xdr_passwd (3),
+.BR xdr_peername (3),
+.BR xdr_rmtcall_args (3),
+.BR xdr_rmtcallres (3),
+.BR xdr_unixcred (3),
+.BR xdr_yp_buf (3),
+.BR xdr_yp_inaddr (3),
+.BR xdr_ypbind_binding (3),
+.BR xdr_ypbind_resp (3),
+.BR xdr_ypbind_resptype (3),
+.BR xdr_ypbind_setdom (3),
+.BR xdr_ypdelete_args (3),
+.BR xdr_ypmaplist (3),
+.BR xdr_ypmaplist_str (3),
+.BR xdr_yppasswd (3),
+.BR xdr_ypreq_key (3),
+.BR xdr_ypreq_nokey (3),
+.BR xdr_ypresp_all (3),
+.BR xdr_ypresp_all_seq (3),
+.BR xdr_ypresp_key_val (3),
+.BR xdr_ypresp_maplist (3),
+.BR xdr_ypresp_master (3),
+.BR xdr_ypresp_order (3),
+.BR xdr_ypresp_val (3),
+.BR xdr_ypstat (3),
+.BR xdr_ypupdate_args (3),
+.BR yp_all (3),
+.BR yp_bind (3),
+.BR yperr_string (3),
+.BR yp_first (3),
+.BR yp_get_default_domain (3),
+.BR yp_maplist (3),
+.BR yp_master (3),
+.BR yp_match (3),
+.BR yp_next (3),
+.BR yp_order (3),
+.BR ypprot_err (3),
+.BR yp_unbind (3),
+.BR yp_update (3)

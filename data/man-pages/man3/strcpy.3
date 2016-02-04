@@ -1,0 +1,242 @@
+.\" Copyright (C) 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:06:49 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Fri Aug 25 23:17:51 1995 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Wed Dec 18 00:47:18 1996 by Andries Brouwer (aeb@cwi.nl)
+.\" 2007-06-15, Marc Boyer <marc.boyer@enseeiht.fr> + mtk
+.\"     Improve discussion of strncpy().
+.\"
+.TH STRCPY 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+strcpy, strncpy \- copy a string
+.SH SYNOPSIS
+.nf
+.B #include <string.h>
+.sp
+.BI "char *strcpy(char *" dest ", const char *" src );
+.sp
+.BI "char *strncpy(char *" dest ", const char *" src ", size_t " n );
+.fi
+.SH DESCRIPTION
+The
+.BR strcpy ()
+function copies the string pointed to by
+.IR src ,
+including the terminating null byte (\(aq\\0\(aq),
+to the buffer pointed to by
+.IR dest .
+The strings may not overlap, and the destination string
+.I dest
+must be large enough to receive the copy.
+.IR "Beware of buffer overruns!"
+(See BUGS.)
+.PP
+The
+.BR strncpy ()
+function is similar, except that at most
+.I n
+bytes of
+.I src
+are copied.
+.BR Warning :
+If there is no null byte
+among the first
+.I n
+bytes of
+.IR src ,
+the string placed in
+.I dest
+will not be null-terminated.
+.PP
+If the length of
+.I src
+is less than
+.IR n ,
+.BR strncpy ()
+writes additional null bytes to
+.I dest
+to ensure that a total of
+.I n
+bytes are written.
+.PP
+A simple implementation of
+.BR strncpy ()
+might be:
+.in +4n
+.nf
+
+char *
+strncpy(char *dest, const char *src, size_t n)
+{
+    size_t i;
+
+    for (i = 0; i < n && src[i] != \(aq\\0\(aq; i++)
+        dest[i] = src[i];
+    for ( ; i < n; i++)
+        dest[i] = \(aq\\0\(aq;
+
+    return dest;
+}
+.fi
+.in
+.SH RETURN VALUE
+The
+.BR strcpy ()
+and
+.BR strncpy ()
+functions return a pointer to
+the destination string
+.IR dest .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw19 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR strcpy (),
+.BR strncpy ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
+.SH NOTES
+Some programmers consider
+.BR strncpy ()
+to be inefficient and error prone.
+If the programmer knows (i.e., includes code to test!)
+that the size of
+.I dest
+is greater than
+the length of
+.IR src ,
+then
+.BR strcpy ()
+can be used.
+
+One valid (and intended) use of
+.BR strncpy ()
+is to copy a C string to a fixed-length buffer
+while ensuring both that the buffer is not overflowed
+and that unused bytes in the target buffer are zeroed out
+(perhaps to prevent information leaks if the buffer is to be
+written to media or transmitted to another process via an
+interprocess communication technique).
+
+If there is no terminating null byte in the first
+.I n
+bytes of
+.IR src ,
+.BR strncpy ()
+produces an unterminated string in
+.IR dest .
+If
+.I buf
+has length
+.IR buflen ,
+you can force termination using something like the following:
+.in +4n
+.nf
+
+strncpy(buf, str, buflen \- 1);
+if (buflen > 0)
+    buf[buflen \- 1]= \(aq\\0\(aq;
+.fi
+.in
+.PP
+(Of course, the above technique ignores the fact that, if
+.I src
+contains more than
+.I "buflen\ \-\ 1"
+bytes, information is lost in the copying to
+.IR dest .)
+.\"
+.SS strlcpy()
+Some systems (the BSDs, Solaris, and others) provide the following function:
+
+    size_t strlcpy(char *dest, const char *src, size_t size);
+
+.\" http://static.usenix.org/event/usenix99/full_papers/millert/millert_html/index.html
+.\"     "strlcpy and strlcat - consistent, safe, string copy and concatenation"
+.\"     1999 USENIX Annual Technical Conference
+This function is similar to
+.BR strncpy (),
+but it copies at most
+.I size\-1
+bytes to
+.IR dest ,
+always adds a terminating null byte,
+and does not pad the target with (further) null bytes.
+This function fixes some of the problems of
+.BR strcpy ()
+and
+.BR strncpy (),
+but the caller must still handle the possibility of data loss if
+.I size
+is too small.
+The return value of the function is the length of
+.IR src ,
+which allows truncation to be easily detected:
+if the return value is greater than or equal to
+.IR size ,
+truncation occurred.
+If loss of data matters, the caller
+.I must
+either check the arguments before the call,
+or test the function return value.
+.BR strlcpy ()
+is not present in glibc and is not standardized by POSIX,
+.\" https://lwn.net/Articles/506530/
+but is available on Linux via the
+.IR libbsd
+library.
+.SH BUGS
+If the destination string of a
+.BR strcpy ()
+is not large enough, then anything might happen.
+Overflowing fixed-length string buffers is a favorite cracker technique
+for taking complete control of the machine.
+Any time a program reads or copies data into a buffer,
+the program first needs to check that there's enough space.
+This may be unnecessary if you can show that overflow is impossible,
+but be careful: programs can get changed over time,
+in ways that may make the impossible possible.
+.SH SEE ALSO
+.BR bcopy (3),
+.BR memccpy (3),
+.BR memcpy (3),
+.BR memmove (3),
+.BR stpcpy (3),
+.BR stpncpy (3),
+.BR strdup (3),
+.BR string (3),
+.BR wcscpy (3),
+.BR wcsncpy (3)

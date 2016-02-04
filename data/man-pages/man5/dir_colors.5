@@ -1,0 +1,410 @@
+.\" manpage for /etc/dir_colors, config file for dircolors(1)
+.\" extracted from color-ls 3.12.0.3 dircolors(1) manpage
+.\"
+.\" %%%LICENSE_START(LDPv1)
+.\" This file may be copied under the conditions described
+.\" in the LDP GENERAL PUBLIC LICENSE, Version 1, September 1998
+.\" that should have been distributed together with this file.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Dec 22 22:25:33 2001 by Martin Schulze <joey@infodrom.org>
+.\"
+.TH DIR_COLORS 5 2013-08-09 "GNU" "Linux User Manual"
+.SH NAME
+dir_colors \- configuration file for dircolors(1)
+.SH DESCRIPTION
+The program
+.BR ls (1)
+uses the environment variable
+.B LS_COLORS
+to determine the colors in which the filenames are to be displayed.
+This environment variable is usually set by a command like
+
+.RS
+eval \`dircolors some_path/dir_colors\`
+.RE
+
+found in a system default shell initialization file, like
+.I /etc/profile
+or
+.IR /etc/csh.cshrc .
+(See also
+.BR dircolors (1).)
+Usually, the file used here is
+.I /etc/DIR_COLORS
+and can be overridden by a
+.I .dir_colors
+file in one's home directory.
+.PP
+This configuration file consists of several statements, one per line.
+Anything right of a hash mark (#) is treated as a comment, if the
+hash mark is at the beginning of a line or is preceded by at least one
+whitespace.
+Blank lines are ignored.
+.PP
+The
+.I global
+section of the file consists of any statement before the first
+.B TERM
+statement.
+Any statement in the global section of the file is
+considered valid for all terminal types.
+Following the global section
+is one or more
+.I terminal-specific
+sections, preceded by one or more
+.B TERM
+statements which specify the terminal types (as given by the
+.B TERM
+environment variable) the following declarations apply to.
+It is always possible to override a global declaration by a subsequent
+terminal-specific one.
+.PP
+The following statements are recognized; case is insignificant:
+.TP
+.B TERM \fIterminal-type\fR
+Starts a terminal-specific section and specifies which terminal it
+applies to.
+Multiple
+.B TERM
+statements can be used to create a section which applies for several
+terminal types.
+.TP
+.B COLOR yes|all|no|none|tty
+(Slackware only; ignored by GNU
+.BR dircolors (1).)
+Specifies that colorization should always be enabled (\fIyes\fR or
+\fIall\fR), never enabled (\fIno\fR or \fInone\fR), or enabled only if
+the output is a terminal (\fItty\fR).
+The default is \fIno\fR.
+.TP
+.B EIGHTBIT yes|no
+(Slackware only; ignored by GNU
+.BR dircolors (1).)
+Specifies that eight-bit ISO 8859 characters should be enabled by
+default.
+For compatibility reasons, this can also be specified as 1 for
+\fIyes\fR or 0 for \fIno\fR.
+The default is \fIno\fR.
+.TP
+.B OPTIONS \fIoptions\fR
+(Slackware only; ignored by GNU
+.BR dircolors (1).)
+Adds command-line options to the default
+.B ls
+command line.
+The options can be any valid
+.B ls
+command-line options, and should include the leading minus sign.
+Note that
+.B dircolors
+does not verify the validity of these options.
+.TP
+.B NORMAL \fIcolor-sequence\fR
+Specifies the color used for normal (nonfilename) text.
+
+Synonym:
+.BR NORM .
+.TP
+.B FILE \fIcolor-sequence\fR
+Specifies the color used for a regular file.
+.TP
+.B DIR \fIcolor-sequence\fR
+Specifies the color used for directories.
+.TP
+.B LINK \fIcolor-sequence\fR
+Specifies the color used for a symbolic link.
+
+Synonyms:
+.BR LNK ,
+.BR SYMLINK .
+.TP
+.B ORPHAN \fIcolor-sequence\fR
+Specifies the color used for an orphaned symbolic link (one which
+points to a nonexistent file).
+If this is unspecified,
+.B ls
+will use the
+.B LINK
+color instead.
+.TP
+.B MISSING \fIcolor-sequence\fR
+Specifies the color used for a missing file (a nonexistent file which
+nevertheless has a symbolic link pointing to it).
+If this is unspecified,
+.B ls
+will use the
+.B FILE
+color instead.
+.TP
+.B FIFO \fIcolor-sequence\fR
+Specifies the color used for a FIFO (named pipe).
+
+Synonym:
+.BR PIPE .
+.TP
+.B SOCK \fIcolor-sequence\fR
+Specifies the color used for a socket.
+.TP
+.B DOOR \fIcolor-sequence\fR
+(Supported since fileutils 4.1)
+Specifies the color used for a door (Solaris 2.5 and later).
+.TP
+.B BLK \fIcolor-sequence\fR
+Specifies the color used for a block device special file.
+
+Synonym:
+.BR BLOCK .
+.TP
+.B CHR \fIcolor-sequence\fR
+Specifies the color used for a character device special file.
+
+Synonym:
+.BR CHAR .
+.TP
+.B EXEC \fIcolor-sequence\fR
+Specifies the color used for a file with the executable attribute set.
+.TP
+.B SUID \fIcolor-sequence\fR
+Specifies the color used for a file with the set-user-ID attribute set.
+
+Synonym:
+.BR SETUID .
+.TP
+.B SGID \fIcolor-sequence\fR
+Specifies the color used for a file with the set-group-ID attribute set.
+
+Synonym:
+.BR SETGID .
+.TP
+.B STICKY \fIcolor-sequence\fR
+Specifies the color used for a directory with the sticky attribute set.
+.TP
+.B STICKY_OTHER_WRITABLE \fIcolor-sequence\fR
+Specifies the color used for a other-writable directory with the executable attribute set.
+
+Synonym:
+.BR OWT .
+.TP
+.B OTHER_WRITABLE \fIcolor-sequence\fR
+Specifies the color used for a other-writable directory without the executable attribute set.
+
+Synonym:
+.BR OWR .
+.TP
+.B LEFTCODE \fIcolor-sequence\fR
+Specifies the
+.I "left code"
+for non-ISO\ 6429 terminals (see below).
+
+Synonym:
+.BR LEFT .
+.TP
+.B RIGHTCODE \fIcolor-sequence\fR
+Specifies the
+.I "right code"
+for non-ISO\ 6429 terminals (see below).
+
+Synonym:
+.BR RIGHT .
+.TP
+.B ENDCODE \fIcolor-sequence\fR
+Specifies the
+.I "end code"
+for non-ISO\ 6429 terminals (see below).
+
+Synonym:
+.BR END .
+.TP
+\fB*\fIextension\fR \fIcolor-sequence\fR
+Specifies the color used for any file that ends in \fIextension\fR.
+.TP
+\fB .\fIextension\fR \fIcolor-sequence\fR
+Same as \fB*\fR.\fIextension\fR.
+Specifies the color used for any file that
+ends in .\fIextension\fR.
+Note that the period is included in the
+extension, which makes it impossible to specify an extension not
+starting with a period, such as
+.B ~
+for
+.B emacs
+backup files.
+This form should be considered obsolete.
+.SS ISO 6429 (ANSI) color sequences
+Most color-capable ASCII terminals today use ISO 6429 (ANSI) color sequences,
+and many common terminals without color capability, including
+.B xterm
+and the widely used and cloned DEC VT100, will recognize ISO 6429 color
+codes and harmlessly eliminate them from the output or emulate them.
+.B ls
+uses ISO 6429 codes by default, assuming colorization is enabled.
+
+ISO 6429 color sequences are composed of sequences of numbers
+separated by semicolons.
+The most common codes are:
+.RS
+.TS
+l l.
+ 0	to restore default color
+ 1	for brighter colors
+ 4	for underlined text
+ 5	for flashing text
+30	for black foreground
+31	for red foreground
+32	for green foreground
+33	for yellow (or brown) foreground
+34	for blue foreground
+35	for purple foreground
+36	for cyan foreground
+37	for white (or gray) foreground
+40	for black background
+41	for red background
+42	for green background
+43	for yellow (or brown) background
+44	for blue background
+45	for purple background
+46	for cyan background
+47	for white (or gray) background
+.TE
+.RE
+.sp
+Not all commands will work on all systems or display devices.
+.PP
+.B ls
+uses the following defaults:
+.TS
+lb l l.
+NORMAL	0       	Normal (nonfilename) text
+FILE	0       	Regular file
+DIR	32      	Directory
+LINK	36      	Symbolic link
+ORPHAN	undefined	Orphaned symbolic link
+MISSING	undefined	Missing file
+FIFO	31      	Named pipe (FIFO)
+SOCK	33      	Socket
+BLK	44;37   	Block device
+CHR	44;37   	Character device
+EXEC	35      	Executable file
+.TE
+.sp
+A few terminal programs do not recognize the default
+properly.
+If all text gets colorized after you do a directory
+listing, change the
+.B NORMAL
+and
+.B FILE
+codes to the numerical codes for your normal foreground and background
+colors.
+.SS Other terminal types (advanced configuration)
+If you have a color-capable (or otherwise highlighting) terminal (or
+printer!) which uses a different set of codes, you can still generate
+a suitable setup.
+To do so, you will have to use the
+.BR LEFTCODE ,
+.BR RIGHTCODE ,
+and
+.B ENDCODE
+definitions.
+.PP
+When writing out a filename,
+.B ls
+generates the following output sequence:
+.B LEFTCODE
+.I typecode
+.B RIGHTCODE
+.I filename
+.BR ENDCODE ,
+where the
+.I typecode
+is the color sequence that depends on the type or name of file.
+If the
+.B ENDCODE
+is undefined, the sequence
+.B "LEFTCODE NORMAL RIGHTCODE"
+will be used instead.
+The purpose of the left- and rightcodes is
+merely to reduce the amount of typing necessary (and to hide ugly
+escape codes away from the user).
+If they are not appropriate for
+your terminal, you can eliminate them by specifying the respective
+keyword on a line by itself.
+.PP
+.B NOTE:
+If the
+.B ENDCODE
+is defined in the global section of the setup file, it
+.I cannot
+be undefined in a terminal-specific section of the file.
+This means any
+.B NORMAL
+definition will have no effect.
+A different
+.B ENDCODE
+can, however, be specified, which would have the same effect.
+.SS Escape sequences
+To specify control- or blank characters in the color sequences or
+filename extensions, either C-style \e-escaped notation or
+.BR stty \-style
+^-notation can be used.
+The C-style notation
+includes the following characters:
+.RS
+.TS
+lb l.
+\ea	Bell (ASCII 7)
+\eb	Backspace (ASCII 8)
+\ee	Escape (ASCII 27)
+\ef	Form feed (ASCII 12)
+\en	Newline (ASCII 10)
+\er	Carriage Return (ASCII 13)
+\et	Tab (ASCII 9)
+\ev	Vertical Tab (ASCII 11)
+\e?	Delete (ASCII 127)
+\e\fInnn	Any character (octal notation)
+\ex\fInnn	Any character (hexadecimal notation)
+\e_	Space
+\e\e	Backslash (\e)
+\e^	Caret (^)
+\e#	Hash mark (#)
+.TE
+.RE
+.sp
+Note that escapes are necessary to enter a space, backslash,
+caret, or any control character anywhere in the string, as well as a
+hash mark as the first character.
+.SH FILES
+.TP
+.I /etc/DIR_COLORS
+System-wide configuration file.
+.TP
+.I ~/.dir_colors
+Per-user configuration file.
+.PP
+This page describes the
+.B dir_colors
+file format as used in the fileutils-4.1 package;
+other versions may differ slightly.
+.SH NOTES
+The default
+.B LEFTCODE
+and
+.B RIGHTCODE
+definitions, which are used by ISO 6429 terminals are:
+.RS
+.TS
+lb l.
+LEFTCODE	\ee[
+RIGHTCODE	m
+.TE
+.RE
+.sp
+The default
+.B ENDCODE
+is undefined.
+.SH SEE ALSO
+.BR dircolors (1),
+.BR ls (1),
+.BR stty (1),
+.BR xterm (1)

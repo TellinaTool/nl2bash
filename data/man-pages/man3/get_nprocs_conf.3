@@ -1,0 +1,103 @@
+.\" Copyright (c) 2012, Petr Benas
+.\" and Copyright (c) 2012, Michael Kerrisk <mtk.man-pages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of
+.\" this manual under the conditions for verbatim copying, provided that
+.\" the entire resulting derived work is distributed under the terms of
+.\" a permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume
+.\" no responsibility for errors or omissions, or for damages resulting
+.\" from the use of the information contained herein.  The author(s) may
+.\" not have taken the same level of care in the production of this
+.\" manual, which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH GET_NPROCS 3   2015-04-19 "GNU" "Linux Programmer's Manual"
+.SH NAME
+get_nprocs, get_nprocs_conf \- get number of processors
+.SH SYNOPSIS
+.B #include <sys/sysinfo.h>
+.sp
+.BI "int get_nprocs(void);"
+.br
+.BI "int get_nprocs_conf(void);"
+.SH DESCRIPTION
+The function
+.BR get_nprocs_conf ()
+returns the number of processors configured by the operating system.
+
+The function
+.BR get_nprocs ()
+returns the number of processors currently available in the system.
+This may be less than the number returned by
+.BR get_nprocs_conf ()
+because processors may be offline (e.g., on hotpluggable systems).
+.SH RETURN VALUE
+As given in DESCRIPTION.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR get_nprocs (),
+.br
+.BR get_nprocs_conf ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+These functions are GNU extensions.
+.SH NOTES
+The current
+.\" glibc 2.15
+implementation of these functions is rather expensive,
+since they open and parse files in the
+.I /sys
+filesystem each time they are called.
+
+The following
+.BR sysconf (3)
+calls make use of the functions documented on this page
+to return the same information.
+.nf
+
+    np = sysconf(_SC_NPROCESSORS_CONF);     /* processors configured */
+    np = sysconf(_SC_NPROCESSORS_ONLN);     /* processors available */
+.fi
+.SH EXAMPLE
+The following example shows how
+.BR get_nprocs ()
+and
+.BR get_nprocs_conf ()
+can be used.
+
+.nf
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/sysinfo.h>
+
+int
+main(int argc, char *argv[])
+{
+    printf("This system has %d processors configured and "
+            "%d processors available.\\n",
+            get_nprocs_conf(), get_nprocs());
+    exit(EXIT_SUCCESS);
+}
+.fi
+

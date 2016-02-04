@@ -1,0 +1,113 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 21:27:01 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 14 Jun 2002, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 	Added notes on differences from other UNIX systems with respect to
+.\"	waited-for children.
+.TH CLOCK 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+clock \- determine processor time
+.SH SYNOPSIS
+.nf
+.B #include <time.h>
+.sp
+.B clock_t clock(void);
+.fi
+.SH DESCRIPTION
+The
+.BR clock ()
+function returns an approximation of processor time used by the program.
+.SH RETURN VALUE
+The value returned is the CPU time used so far as a
+.IR clock_t ;
+to get the number of seconds used, divide by
+.BR CLOCKS_PER_SEC .
+If the processor time used is not available or its value cannot
+be represented, the function returns the value
+.IR (clock_t)\ \-1 .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR clock ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99.
+XSI requires that
+.B CLOCKS_PER_SEC
+equals 1000000 independent
+of the actual resolution.
+.SH NOTES
+The C standard allows for arbitrary values at the start of the program;
+subtract the value returned from a call to
+.BR clock ()
+at the start of the program to get maximum portability.
+.PP
+Note that the time can wrap around.
+On a 32-bit system where
+.B CLOCKS_PER_SEC
+equals 1000000 this function will return the same
+value approximately every 72 minutes.
+.PP
+On several other implementations,
+the value returned by
+.BR clock ()
+also includes the times of any children whose status has been
+collected via
+.BR wait (2)
+(or another wait-type call).
+Linux does not include the times of waited-for children in the
+value returned by
+.BR clock ().
+.\" I have seen this behavior on Irix 6.3, and the OSF/1, HP/UX, and
+.\" Solaris manual pages say that clock() also does this on those systems.
+.\" POSIX.1-2001 doesn't explicitly allow this, nor is there an
+.\" explicit prohibition. -- MTK
+The
+.BR times (2)
+function, which explicitly returns (separate) information about the
+caller and its children, may be preferable.
+
+In glibc 2.17 and earlier,
+.BR clock ()
+was implemented on top of
+.BR times (2).
+For improved accuracy,
+since glibc 2.18, it is implemented on top of
+.BR clock_gettime (2)
+(using the
+.BR CLOCK_PROCESS_CPUTIME_ID
+clock).
+.SH SEE ALSO
+.BR clock_gettime (2),
+.BR getrusage (2),
+.BR times (2)

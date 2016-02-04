@@ -1,0 +1,70 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"
+.TH WCSWIDTH 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcswidth \- determine columns needed for a fixed-size wide-character string
+.SH SYNOPSIS
+.nf
+.BR "#define _XOPEN_SOURCE" "             /* See feature_test_macros(7) */"
+.B #include <wchar.h>
+.sp
+.BI "int wcswidth(const wchar_t *" s ", size_t " n );
+.fi
+.SH DESCRIPTION
+The
+.BR wcswidth ()
+function returns the
+number of columns needed to represent
+the wide-character string pointed to by
+.IR s ,
+but at most
+.I n
+wide
+characters.
+If a nonprintable wide character occurs among these characters,
+\-1 is returned.
+.SH RETURN VALUE
+The
+.BR wcswidth ()
+function
+returns the number of column positions for the
+wide-character string
+.IR s ,
+truncated to at most length
+.IR n .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcswidth ()
+T}	Thread safety	MT-Safe locale
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+The behavior of
+.BR wcswidth ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.SH SEE ALSO
+.BR iswprint (3),
+.BR wcwidth (3)

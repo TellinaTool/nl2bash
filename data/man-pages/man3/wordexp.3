@@ -1,0 +1,249 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH WORDEXP 3 2015-08-08  "" "Linux Programmer's Manual"
+.SH NAME
+wordexp, wordfree \- perform word expansion like a posix-shell
+.SH SYNOPSIS
+.B "#include <wordexp.h>"
+.sp
+.BI "int wordexp(const char *" s ", wordexp_t *" p ", int " flags );
+.sp
+.BI "void wordfree(wordexp_t *" p );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR wordexp (),
+.BR wordfree ():
+_XOPEN_SOURCE
+.SH DESCRIPTION
+The function
+.BR wordexp ()
+performs a shell-like expansion of the string
+.I s
+and returns the result in the structure pointed to by
+.IR p .
+The data type
+.I wordexp_t
+is a structure that at least has the fields
+.IR we_wordc ,
+.IR we_wordv ,
+and
+.IR we_offs .
+The field
+.I we_wordc
+is a
+.I size_t
+that gives the number of words in the expansion of
+.IR s .
+The field
+.I we_wordv
+is a
+.I "char\ **"
+that points to the array of words found.
+The field
+.I we_offs
+of type
+.I size_t
+is sometimes (depending on
+.IR flags ,
+see below) used to indicate the number of initial elements in the
+.I we_wordv
+array that should be filled with NULLs.
+.LP
+The function
+.BR wordfree ()
+frees the allocated memory again.
+More precisely, it does not free
+its argument, but it frees the array
+.I we_wordv
+and the strings that points to.
+.SS The string argument
+Since the expansion is the same as the expansion by the shell (see
+.BR sh (1))
+of the parameters to a command, the string
+.I s
+must not contain characters that would be illegal in shell command
+parameters.
+In particular, there must not be any unescaped
+newline or |, &, ;, <, >, (, ), {, } characters
+outside a command substitution or parameter substitution context.
+.LP
+If the argument
+.I s
+contains a word that starts with an unquoted comment character #,
+then it is unspecified whether that word and all following words
+are ignored, or the # is treated as a non-comment character.
+.SS The expansion
+The expansion done consists of the following stages:
+tilde expansion (replacing ~user by user's home directory),
+variable substitution (replacing $FOO by the value of the environment
+variable FOO), command substitution (replacing $(command) or \`command\`
+by the output of command), arithmetic expansion, field splitting,
+wildcard expansion, quote removal.
+.LP
+The result of expansion of special parameters
+($@, $*, $#, $?, $\-, $$, $!, $0) is unspecified.
+.LP
+Field splitting is done using the environment variable $IFS.
+If it is not set, the field separators are space, tab and newline.
+.SS The output array
+The array
+.I we_wordv
+contains the words found, followed by a NULL.
+.SS The flags argument
+The
+.I flag
+argument is a bitwise inclusive OR of the following values:
+.TP
+.B WRDE_APPEND
+Append the words found to the array resulting from a previous call.
+.TP
+.B WRDE_DOOFFS
+Insert
+.I we_offs
+initial NULLs in the array
+.IR we_wordv .
+(These are not counted in the returned
+.IR we_wordc .)
+.TP
+.B WRDE_NOCMD
+Don't do command substitution.
+.TP
+.B WRDE_REUSE
+The argument
+.I p
+resulted from a previous call to
+.BR wordexp (),
+and
+.BR wordfree ()
+was not called.
+Reuse the allocated storage.
+.TP
+.B WRDE_SHOWERR
+Normally during command substitution
+.I stderr
+is redirected to
+.IR /dev/null .
+This flag specifies that
+.I stderr
+is not to be redirected.
+.TP
+.B WRDE_UNDEF
+Consider it an error if an undefined shell variable is expanded.
+.SH RETURN VALUE
+In case of success 0 is returned.
+In case of error
+one of the following five values is returned.
+.TP
+.B WRDE_BADCHAR
+Illegal occurrence of newline or one of |, &, ;, <, >, (, ), {, }.
+.TP
+.B WRDE_BADVAL
+An undefined shell variable was referenced, and the
+.B WRDE_UNDEF
+flag
+told us to consider this an error.
+.TP
+.B WRDE_CMDSUB
+Command substitution requested, but the
+.B WRDE_NOCMD
+flag told us to consider this an error.
+.TP
+.B WRDE_NOSPACE
+Out of memory.
+.TP
+.B WRDE_SYNTAX
+Shell syntax error, such as unbalanced parentheses or
+unmatched quotes.
+.SH VERSIONS
+.BR wordexp ()
+and
+.BR wordfree ()
+are provided in glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lbw30
+l l l.
+Interface	Attribute	Value
+T{
+.BR wordexp ()
+T}	Thread safety	T{
+MT-Unsafe race:utent const:env
+.br
+env sig:ALRM timer locale
+T}
+T{
+.BR wordfree ()
+T}	Thread safety	MT-Safe
+.TE
+
+In the above table,
+.I utent
+in
+.I race:utent
+signifies that if any of the functions
+.BR setutent (3),
+.BR getutent (3),
+or
+.BR endutent (3)
+are used in parallel in different threads of a program,
+then data races could occur.
+.BR wordexp (3)
+calls those functions,
+so we use race:utent to remind users.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH EXAMPLE
+The output of the following example program
+is approximately that of "ls [a-c]*.c".
+.LP
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <wordexp.h>
+
+int
+main(int argc, char **argv)
+{
+    wordexp_t p;
+    char **w;
+    int i;
+
+    wordexp("[a\-c]*.c", &p, 0);
+    w = p.we_wordv;
+    for (i = 0; i < p.we_wordc; i++)
+        printf("%s\en", w[i]);
+    wordfree(&p);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR fnmatch (3),
+.BR glob (3)

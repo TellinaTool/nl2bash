@@ -1,0 +1,190 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   OpenGroup's Single UNIX specification
+.\"	http://www.UNIX-systems.org/online.html
+.\"
+.\" 2000-06-30 correction by Yuichi SATO <sato@complex.eng.hokudai.ac.jp>
+.\" 2000-11-15 aeb, fixed prototype
+.\"
+.TH ICONV 3 2015-12-28 "GNU" "Linux Programmer's Manual"
+.SH NAME
+iconv \- perform character set conversion
+.SH SYNOPSIS
+.nf
+.B #include <iconv.h>
+.sp
+.BI "size_t iconv(iconv_t " cd ,
+.BI "             char **" inbuf ", size_t *" inbytesleft ,
+.BI "             char **" outbuf ", size_t *" outbytesleft );
+.fi
+.SH DESCRIPTION
+The
+.BR iconv ()
+function converts a sequence of characters in one character encoding
+to a sequence of characters in another character encoding.
+The
+.I cd
+argument is a conversion descriptor,
+previously created by a call to
+.BR iconv_open (3);
+the conversion descriptor defines the character encodings that
+.BR iconv ()
+uses for the conversion.
+The
+.I inbuf
+argument is the address of a variable that points to
+the first character of the input sequence;
+.I inbytesleft
+indicates the number of bytes in that buffer.
+The
+.I outbuf
+argument is the address of a variable that points to
+the first byte available in the output buffer;
+.I outbytesleft
+indicates the number of bytes available in the output buffer.
+.PP
+The main case is when \fIinbuf\fP is not NULL and \fI*inbuf\fP is not NULL.
+In this case, the
+.BR iconv ()
+function converts the multibyte sequence
+starting at \fI*inbuf\fP to a multibyte sequence starting at \fI*outbuf\fP.
+At most \fI*inbytesleft\fP bytes, starting at \fI*inbuf\fP, will be read.
+At most \fI*outbytesleft\fP bytes, starting at \fI*outbuf\fP, will be written.
+.PP
+The
+.BR iconv ()
+function converts one multibyte character at a time, and for
+each character conversion it increments \fI*inbuf\fP and decrements
+\fI*inbytesleft\fP by the number of converted input bytes, it increments
+\fI*outbuf\fP and decrements \fI*outbytesleft\fP by the number of converted
+output bytes, and it updates the conversion state contained in \fIcd\fP.
+If the character encoding of the input is stateful, the
+.BR iconv ()
+function can also convert a sequence of input bytes
+to an update to the conversion state without producing any output bytes;
+such input is called a \fIshift sequence\fP.
+The conversion can stop for four reasons:
+.IP 1. 3
+An invalid multibyte sequence is encountered in the input.
+In this case,
+it sets \fIerrno\fP to \fBEILSEQ\fP and returns
+.IR (size_t)\ \-1 .
+\fI*inbuf\fP
+is left pointing to the beginning of the invalid multibyte sequence.
+.IP 2.
+The input byte sequence has been entirely converted,
+that is, \fI*inbytesleft\fP has gone down to 0.
+In this case,
+.BR iconv ()
+returns the number of
+nonreversible conversions performed during this call.
+.IP 3.
+An incomplete multibyte sequence is encountered in the input, and the
+input byte sequence terminates after it.
+In this case, it sets \fIerrno\fP to
+\fBEINVAL\fP and returns
+.IR (size_t)\ \-1 .
+\fI*inbuf\fP is left pointing to the
+beginning of the incomplete multibyte sequence.
+.IP 4.
+The output buffer has no more room for the next converted character.
+In this case, it sets \fIerrno\fP to \fBE2BIG\fP and returns
+.IR (size_t)\ \-1 .
+.PP
+A different case is when \fIinbuf\fP is NULL or \fI*inbuf\fP is NULL, but
+\fIoutbuf\fP is not NULL and \fI*outbuf\fP is not NULL.
+In this case, the
+.BR iconv ()
+function attempts to set \fIcd\fP's conversion state to the
+initial state and store a corresponding shift sequence at \fI*outbuf\fP.
+At most \fI*outbytesleft\fP bytes, starting at \fI*outbuf\fP, will be written.
+If the output buffer has no more room for this reset sequence, it sets
+\fIerrno\fP to \fBE2BIG\fP and returns
+.IR (size_t)\ \-1 .
+Otherwise, it increments
+\fI*outbuf\fP and decrements \fI*outbytesleft\fP by the number of bytes
+written.
+.PP
+A third case is when \fIinbuf\fP is NULL or \fI*inbuf\fP is NULL, and
+\fIoutbuf\fP is NULL or \fI*outbuf\fP is NULL.
+In this case, the
+.BR iconv ()
+function sets \fIcd\fP's conversion state to the initial state.
+.SH RETURN VALUE
+The
+.BR iconv ()
+function returns the number of characters converted in a
+nonreversible way during this call; reversible conversions are not counted.
+In case of error, it sets \fIerrno\fP and returns
+.IR (size_t)\ \-1 .
+.SH ERRORS
+The following errors can occur, among others:
+.TP
+.B E2BIG
+There is not sufficient room at \fI*outbuf\fP.
+.TP
+.B EILSEQ
+An invalid multibyte sequence has been encountered in the input.
+.TP
+.B EINVAL
+An incomplete multibyte sequence has been encountered in the input.
+.SH VERSIONS
+This function is available in glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR iconv ()
+T}	Thread safety	MT-Safe race:cd
+.TE
+.PP
+The
+.BR iconv ()
+function is MT-Safe, as long as callers arrange for
+mutual exclusion on the
+.I cd
+argument.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+In each series of calls to
+.BR iconv (),
+the last should be one with \fIinbuf\fP or \fI*inbuf\fP equal to NULL,
+in order to flush out any partially converted input.
+
+Although
+.I inbuf
+and
+.I outbuf
+are typed as
+.IR "char\ **" ,
+this does not mean that the objects they point can be interpreted
+as C strings or as arrays of characters:
+the interpretation of character byte sequences is
+handled internally by the conversion functions.
+In some encodings, a zero byte may be a valid part of a multibyte character.
+
+The caller of
+.BR iconv ()
+must ensure that the pointers passed to the function are suitable
+for accessing characters in the appropriate character set.
+This includes ensuring correct alignment on platforms that have
+tight restrictions on alignment.
+.SH SEE ALSO
+.BR iconv_close (3),
+.BR iconv_open (3),
+.BR iconvconfig (8)

@@ -1,0 +1,190 @@
+.\" Copyright (c) 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\" and Copyright 2003,2004 Andi Kleen, SuSE Labs.
+.\" numa_maps material Copyright (c) 2005 Silicon Graphics Incorporated.
+.\"     Christoph Lameter, <cl@linux-foundation.org>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH NUMA 7 2012-08-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+numa \- overview of Non-Uniform Memory Architecture
+.SH DESCRIPTION
+Non-Uniform Memory Access (NUMA) refers to multiprocessor systems
+whose memory is divided into multiple memory nodes.
+The access time of a memory node depends on
+the relative locations of the accessing CPU and the accessed node.
+(This contrasts with a symmetric multiprocessor system,
+where the access time for all of the memory is the same for all CPUs.)
+Normally, each CPU on a NUMA system has a local memory node whose
+contents can be accessed faster than the memory in
+the node local to another CPU
+or the memory on a bus shared by all CPUs.
+.SS NUMA system calls
+The Linux kernel implements the following NUMA-related system calls:
+.BR get_mempolicy (2),
+.BR mbind (2),
+.BR migrate_pages (2),
+.BR move_pages (2),
+and
+.BR set_mempolicy (2).
+However, applications should normally use the interface provided by
+.IR libnuma ;
+see "Library Support" below.
+.SS /proc/[number]/numa_maps  (since Linux 2.6.14)
+.\" See also Changelog-2.6.14
+This file displays information about a process's
+NUMA memory policy and allocation.
+
+Each line contains information about a memory range used by the process,
+displaying\(emamong other information\(emthe effective memory policy for
+that memory range and on which nodes the pages have been allocated.
+
+.I numa_maps
+is a read-only file.
+When
+.I /proc/<pid>/numa_maps
+is read, the kernel will scan the virtual address space of the
+process and report how memory is used.
+One line is displayed for each unique memory range of the process.
+
+The first field of each line shows the starting address of the memory range.
+This field allows a correlation with the contents of the
+.I /proc/<pid>/maps
+file,
+which contains the end address of the range and other information,
+such as the access permissions and sharing.
+
+The second field shows the memory policy currently in effect for the
+memory range.
+Note that the effective policy is not necessarily the policy
+installed by the process for that memory range.
+Specifically, if the process installed a "default" policy for that range,
+the effective policy for that range will be the process policy,
+which may or may not be "default".
+
+The rest of the line contains information about the pages allocated in
+the memory range, as follows:
+.TP
+.I N<node>=<nr_pages>
+The number of pages allocated on
+.IR <node> .
+.I <nr_pages>
+includes only pages currently mapped by the process.
+Page migration and memory reclaim may have temporarily unmapped pages
+associated with this memory range.
+These pages may show up again only after the process has
+attempted to reference them.
+If the memory range represents a shared memory area or file mapping,
+other processes may currently have additional pages mapped in a
+corresponding memory range.
+.TP
+.I file=<filename>
+The file backing the memory range.
+If the file is mapped as private, write accesses may have generated
+COW (Copy-On-Write) pages in this memory range.
+These pages are displayed as anonymous pages.
+.TP
+.I heap
+Memory range is used for the heap.
+.TP
+.I stack
+Memory range is used for the stack.
+.TP
+.I huge
+Huge memory range.
+The page counts shown are huge pages and not regular sized pages.
+.TP
+.I anon=<pages>
+The number of anonymous page in the range.
+.TP
+.I dirty=<pages>
+Number of dirty pages.
+.TP
+.I mapped=<pages>
+Total number of mapped pages, if different from
+.IR dirty
+and
+.I anon
+pages.
+.TP
+.I mapmax=<count>
+Maximum mapcount (number of processes mapping a single page) encountered
+during the scan.
+This may be used as an indicator of the degree of sharing occurring in a
+given memory range.
+.TP
+.I swapcache=<count>
+Number of pages that have an associated entry on a swap device.
+.TP
+.I active=<pages>
+The number of pages on the active list.
+This field is shown only if different from the number of pages in this range.
+This means that some inactive pages exist in the memory range that may be
+removed from memory by the swapper soon.
+.TP
+.I writeback=<pages>
+Number of pages that are currently being written out to disk.
+.SH CONFORMING TO
+No standards govern NUMA interfaces.
+.SH NOTES
+The Linux NUMA system calls and
+.I /proc
+interface are available only
+if the kernel was configured and built with the
+.BR CONFIG_NUMA
+option.
+.SS Library support
+Link with \fI\-lnuma\fP
+to get the system call definitions.
+.I libnuma
+and the required
+.I <numaif.h>
+header are available in the
+.I numactl
+package.
+
+However, applications should not use these system calls directly.
+Instead, the higher level interface provided by the
+.BR numa (3)
+functions in the
+.I numactl
+package is recommended.
+The
+.I numactl
+package is available at
+.UR ftp://oss.sgi.com\:/www\:/projects\:/libnuma\:/download/
+.UE .
+The package is also included in some Linux distributions.
+Some distributions include the development library and header
+in the separate
+.I numactl-devel
+package.
+.SH SEE ALSO
+.BR get_mempolicy (2),
+.BR mbind (2),
+.BR move_pages (2),
+.BR set_mempolicy (2),
+.BR numa (3),
+.BR cpuset (7),
+.BR numactl (8)

@@ -1,0 +1,32 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.TH CEXP2 3 2014-08-19 "" "Linux Programmer's Manual"
+.SH NAME
+cexp2, cexp2f, cexp2l \- base-2 exponent of a complex number
+.SH SYNOPSIS
+.B #include <complex.h>
+.sp
+.BI "double complex cexp2(double complex " z ");"
+.br
+.BI "float complex cexp2f(float complex " z ");"
+.br
+.BI "long double complex cexp2l(long double complex " z ");"
+.sp
+Link with \fI\-lm\fP.
+.SH DESCRIPTION
+The function returns 2 raised to the power of
+.IR z .
+.SH CONFORMING TO
+These function names are reserved for future use in C99.
+.SH AVAILABILITY
+Not yet in glibc, as at version 2.19.
+.\" But reserved in NAMESPACE.
+.SH SEE ALSO
+.BR cabs (3),
+.BR cexp (3),
+.BR clog10 (3),
+.BR complex (7)

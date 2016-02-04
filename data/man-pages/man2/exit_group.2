@@ -1,0 +1,50 @@
+.\" Copyright (C) 2004 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH EXIT_GROUP 2 2008-11-27 "Linux" "Linux Programmer's Manual"
+.SH NAME
+exit_group \- exit all threads in a process
+.SH SYNOPSIS
+.nf
+.B #include <linux/unistd.h>
+.sp
+.BI "void exit_group(int " status );
+.fi
+.SH DESCRIPTION
+This system call is equivalent to
+.BR exit (2)
+except that it terminates not only the calling thread, but all threads
+in the calling process's thread group.
+.SH RETURN VALUE
+This system call does not return.
+.SH VERSIONS
+This call is present since Linux 2.5.35.
+.SH CONFORMING TO
+This call is Linux-specific.
+.SH NOTES
+Since glibc 2.3, this is the system call invoked when the
+.BR exit (2)
+wrapper function is called.
+.SH SEE ALSO
+.BR exit (2)

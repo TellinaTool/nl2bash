@@ -1,0 +1,182 @@
+.\" Copyright (c) 2006, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH POSIX_FALLOCATE 3  2015-12-05 "GNU" "Linux Programmer's Manual"
+.SH NAME
+posix_fallocate \- allocate file space
+.SH SYNOPSIS
+.nf
+.B #include <fcntl.h>
+.sp
+.BI "int posix_fallocate(int " fd ", off_t " offset ", off_t " len );
+.fi
+.sp
+.ad l
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR posix_fallocate ():
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _POSIX_C_SOURCE\ >=\ 200112L
+.RE
+.ad
+.SH DESCRIPTION
+The function
+.BR posix_fallocate ()
+ensures that disk space is allocated for the file referred to by the
+file descriptor
+.I fd
+for the bytes in the range starting at
+.I offset
+and continuing for
+.I len
+bytes.
+After a successful call to
+.BR posix_fallocate (),
+subsequent writes to bytes in the specified range are
+guaranteed not to fail because of lack of disk space.
+
+If the size of the file is less than
+.IR offset + len ,
+then the file is increased to this size;
+otherwise the file size is left unchanged.
+.SH RETURN VALUE
+.BR posix_fallocate ()
+returns zero on success, or an error number on failure.
+Note that
+.I errno
+is not set.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor, or is not opened for writing.
+.TP
+.B EFBIG
+.I offset+len
+exceeds the maximum file size.
+.TP
+.B EINVAL
+.I offset
+was less than 0, or
+.I len
+was less than or equal to 0, or the underlying filesystem does not
+support the operation.
+.TP
+.B ENODEV
+.I fd
+does not refer to a regular file.
+.TP
+.B ENOSPC
+There is not enough space left on the device containing the file
+referred to by
+.IR fd .
+.TP
+.B ESPIPE
+.I fd
+refers to a pipe.
+.SH VERSIONS
+.BR posix_fallocate ()
+is available since glibc 2.1.94.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR posix_fallocate ()
+T}	Thread safety	MT-Safe (but see NOTES)
+.TE
+.SH CONFORMING TO
+POSIX.1-2001.
+
+POSIX.1-2008 says that an implementation
+.I shall
+give the
+.B EINVAL
+error if
+.I len
+was 0, or
+.I offset
+was less than 0.
+POSIX.1-2001 says that an implementation
+.I shall
+give the
+.B EINVAL
+error if
+.I len
+is less than 0, or
+.I offset
+was less than 0, and
+.I may
+give the error if
+.I len
+equals zero.
+.SH NOTES
+In the glibc implementation,
+.BR posix_fallocate ()
+is implemented using the
+.BR fallocate (2)
+system call, which is MT-safe.
+If the underlying filesystem does not support
+.BR fallocate (2),
+then the operation is emulated with the following caveats:
+.IP * 2
+The emulation is inefficient.
+.IP *
+There is a race condition where concurrent writes from another thread or
+process could be overwritten with null bytes.
+.IP *
+There is a race condition where concurrent file size increases by
+another thread or process could result in a file whose size is smaller
+than expected.
+.IP *
+If
+.I fd
+has been opened with the
+.B O_APPEND
+or
+.B O_WRONLY
+flags, the function will fail with the error
+.B EBADF.
+.PP
+In general, the emulation is not MT-safe.
+On Linux, applications may use
+.BR fallocate (2)
+if they cannot tolerate the emulation caveats.
+In general, this is
+only recommended if the application plans to terminate the operation if
+.B EOPNOTSUPP
+is returned, otherwise the application itself will need to implement a
+fallback with all the same problems as the emulation provided by glibc.
+.SH SEE ALSO
+.BR fallocate (1),
+.BR fallocate (2),
+.BR lseek (2),
+.BR posix_fadvise (2)

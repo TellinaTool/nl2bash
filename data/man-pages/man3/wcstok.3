@@ -1,0 +1,113 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WCSTOK 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcstok \- split wide-character string into tokens
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "wchar_t *wcstok(wchar_t *" wcs ", const wchar_t *" delim \
+", wchar_t **" ptr );
+.fi
+.SH DESCRIPTION
+The
+.BR wcstok ()
+function is the wide-character equivalent of the
+.BR strtok (3)
+function,
+with an added argument to make it multithread-safe.
+It can be used
+to split a wide-character string
+.I wcs
+into tokens, where a token is
+defined as a substring not containing any wide-characters from
+.IR delim .
+.PP
+The search starts at
+.IR wcs ,
+if
+.I wcs
+is not NULL,
+or at
+.IR *ptr ,
+if
+.I wcs
+is NULL.
+First, any delimiter wide-characters are skipped, that is, the
+pointer is advanced beyond any wide-characters which occur in
+.IR delim .
+If the end of the wide-character string is now
+reached,
+.BR wcstok ()
+returns NULL, to indicate that no tokens
+were found, and stores an appropriate value in
+.IR *ptr ,
+so that subsequent calls to
+.BR wcstok ()
+will continue to return NULL.
+Otherwise, the
+.BR wcstok ()
+function recognizes the beginning of a token
+and returns a pointer to it, but before doing that, it zero-terminates the
+token by replacing the next wide-character which occurs in
+.I delim
+with
+a null wide character (L\(aq\\0\(aq),
+and it updates
+.I *ptr
+so that subsequent calls will
+continue searching after the end of recognized token.
+.SH RETURN VALUE
+The
+.BR wcstok ()
+function returns a pointer to the next token,
+or NULL if no further token was found.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcstok ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The original
+.I wcs
+wide-character string is destructively modified during
+the operation.
+.SH EXAMPLE
+The following code loops over the tokens contained in a wide-character string.
+.sp
+.nf
+wchar_t *wcs = ...;
+wchar_t *token;
+wchar_t *state;
+for (token = wcstok(wcs, " \\t\\n", &state);
+    token != NULL;
+    token = wcstok(NULL, " \\t\\n", &state)) {
+    ...
+}
+.fi
+.SH SEE ALSO
+.BR strtok (3),
+.BR wcschr (3)

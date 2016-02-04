@@ -1,0 +1,109 @@
+.\" Copyright (c) 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SCHED_GETCPU 3 2015-03-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sched_getcpu \- determine CPU on which the calling thread is running
+.SH SYNOPSIS
+.nf
+.B #include <sched.h>
+
+.B int sched_getcpu(void);
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR sched_getcpu ():
+.ad l
+.RS 4
+.PD 0
+.TP 4
+Since glibc 2.14:
+_GNU_SOURCE
+.TP 4
+Before glibc 2.14:
+_BSD_SOURCE || _SVID_SOURCE
+    /* _GNU_SOURCE also suffices */
+.PD
+.RE
+.ad b
+.SH DESCRIPTION
+.BR sched_getcpu ()
+returns the number of the CPU on which the calling thread is currently executing.
+.SH RETURN VALUE
+On success,
+.BR sched_getcpu ()
+returns a nonnegative CPU number.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B ENOSYS
+This kernel does not implement
+.BR getcpu (2).
+.SH VERSIONS
+This function is available since glibc 2.6.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR sched_getcpu ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+.BR sched_getcpu ()
+is glibc-specific.
+.SH NOTES
+The call
+.in +4n
+.nf
+
+cpu = sched_getcpu();
+
+.fi
+.in
+is equivalent to the following
+.BR getcpu (2)
+call:
+.in +4n
+.nf
+
+int c, s;
+s = getcpu(&c, NULL, NULL);
+cpu = (s == \-1) ? s : c;
+.fi
+.in
+.SH SEE ALSO
+.BR getcpu (2),
+.BR sched (7)

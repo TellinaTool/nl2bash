@@ -1,0 +1,914 @@
+.\" (C) Copyright 1992-1999 Rickard E. Faith and David A. Wheeler
+.\" (faith@cs.unc.edu and dwheeler@ida.org)
+.\" and (C) Copyright 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2007-05-30 created by mtk, using text from old man.7 plus
+.\" rewrites and additional text.
+.\"
+.TH MAN-PAGES 7 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+man-pages \- conventions for writing Linux man pages
+.SH SYNOPSIS
+.B man
+.RI [ section ]
+.I title
+.SH DESCRIPTION
+This page describes the conventions that should be employed
+when writing man pages for the Linux \fIman-pages\fP project,
+which documents the user-space API provided by the Linux kernel
+and the GNU C library.
+The project thus provides most of the pages in Section 2,
+as well as many of the pages that appear
+in Sections 3, 4, 5, and 7 of the man pages on a Linux system.
+The conventions described on this page may also be useful
+for authors writing man pages for other projects.
+.SS Sections of the manual pages
+.PP
+The manual Sections are traditionally defined as follows:
+.TP 10
+.B 1 User commands (Programs)
+Those commands that can be executed by the user from within
+a shell.
+.TP
+.B 2 System calls
+Those functions which wrap operations performed by the kernel.
+.TP
+.B 3 Library calls
+All library functions excluding the system call wrappers
+(Most of the
+.I libc
+functions).
+.TP
+.B 4 Special files (devices)
+Files found in
+.I /dev
+which allow to access to devices through the kernel.
+.TP
+.B 5 File formats and configuration files
+Describes various human-readable file formats and configuration files.
+.TP
+.B 6 Games
+Games and funny little programs available on the system.
+.TP
+.B 7 Overview, conventions, and miscellaneous
+Overviews or descriptions of various topics, conventions and protocols,
+character set standards, the standard filesystem layout, and miscellaneous
+other things.
+.TP
+.B 8 System management commands
+Commands like
+.BR mount (8),
+many of which only root can execute.
+.\" .TP
+.\" .B 9 Kernel routines
+.\" This is an obsolete manual section.
+.\" Once it was thought a good idea to document the Linux kernel here,
+.\" but in fact very little has been documented, and the documentation
+.\" that exists is outdated already.
+.\" There are better sources of
+.\" information for kernel developers.
+.SS Macro package
+New manual pages should be marked up using the
+.B groff an.tmac
+package described in
+.BR man (7).
+This choice is mainly for consistency: the vast majority of
+existing Linux manual pages are marked up using these macros.
+.SS Conventions for source file layout
+Please limit source code line length to no more than about 75 characters
+wherever possible.
+This helps avoid line-wrapping in some mail clients when patches are
+submitted inline.
+
+New sentences should be started on new lines.
+This makes it easier to see the effect of patches,
+which often operate at the level of individual sentences.
+.SS Title line
+The first command in a man page should be a
+.B TH
+command:
+.RS
+.sp
+.B \&.TH
+.I "title section date source manual"
+.sp
+.RE
+where:
+.RS
+.TP 10
+.I title
+The title of the man page, written in all caps (e.g.,
+.IR MAN-PAGES ).
+.TP
+.I section
+The section number in which the man page should be placed (e.g.,
+.IR 7 ).
+.TP
+.I date
+The date of the last nontrivial change that was made to the man page.
+(Within the
+.I man-pages
+project, the necessary updates to these timestamps are handled
+automatically by scripts, so there is no need to manually update
+them as part of a patch.)
+Dates should be written in the form YYYY-MM-DD.
+.TP
+.I source
+The source of the command, function, or system call.
+
+For those few \fIman-pages\fP pages in Sections 1 and 8,
+probably you just want to write
+.IR GNU .
+
+For system calls, just write
+.IR "Linux" .
+(An earlier practice was to write the version number
+of the kernel from which the manual page was being written/checked.
+However, this was never done consistently, and so was
+probably worse than including no version number.
+Henceforth, avoid including a version number.)
+
+For library calls that are part of glibc or one of the
+other common GNU libraries, just use
+.IR "GNU C Library" ", " GNU ,
+or an empty string.
+
+For Section 4 pages, use
+.IR "Linux" .
+
+In cases of doubt, just write
+.IR Linux ", or " GNU .
+.TP
+.I manual
+The title of the manual (e.g., for Section 2 and 3 pages in
+the \fIman-pages\fP package, use
+.IR "Linux Programmer's Manual" ).
+.RE
+.SS Sections within a manual page
+The list below shows conventional or suggested sections.
+Most manual pages should include at least the
+.B highlighted
+sections.
+Arrange a new manual page so that sections
+are placed in the order shown in the list.
+.in +0.5i
+.nf
+
+\fBNAME\fP
+\fBSYNOPSIS\fP
+CONFIGURATION      [Normally only in Section 4]
+\fBDESCRIPTION\fP
+OPTIONS            [Normally only in Sections 1, 8]
+EXIT STATUS        [Normally only in Sections 1, 8]
+RETURN VALUE       [Normally only in Sections 2, 3]
+.\" May 07: Few current man pages have an ERROR HANDLING section,,,
+.\" ERROR HANDLING,
+ERRORS             [Typically only in Sections 2, 3]
+.\" May 07: Almost no current man pages have a USAGE section,,,
+.\" USAGE,
+.\" DIAGNOSTICS,
+.\" May 07: Almost no current man pages have a SECURITY section,,,
+.\" SECURITY,
+ENVIRONMENT
+FILES
+VERSIONS           [Normally only in Sections 2, 3]
+ATTRIBUTES         [Normally only in Sections 2, 3]
+CONFORMING TO
+NOTES
+BUGS
+EXAMPLE
+.\" AUTHORS sections are discouraged
+.\" AUTHORS             [Discouraged]
+\fBSEE ALSO\fP
+
+.fi
+.in
+.IR "Where a traditional heading would apply" ", " "please use it" ;
+this kind of consistency can make the information easier to understand.
+If you must, you can create your own
+headings if they make things easier to understand (this can
+be especially useful for pages in Sections 4 and 5).
+However, before doing this, consider whether you could use the
+traditional headings, with some subsections (\fI.SS\fP) within
+those sections.
+
+The following list elaborates on the contents of each of
+the above sections.
+.TP 14
+.B NAME
+The name of this manual page.
+
+See
+.BR man (7)
+for important details of the line(s) that should follow the
+\fB.SH NAME\fP command.
+All words in this line (including the word immediately
+following the "\\\-") should be in lowercase,
+except where English or technical terminological convention
+dictates otherwise.
+.TP
+.B SYNOPSIS
+A brief summary of the command or function's interface.
+
+For commands, this shows the syntax of the command and its arguments
+(including options);
+boldface is used for as-is text and italics are used to
+indicate replaceable arguments.
+Brackets ([]) surround optional arguments, vertical bars (|)
+separate choices, and ellipses (\&...) can be repeated.
+For functions, it shows any required data declarations or
+.B #include
+directives, followed by the function declaration.
+
+Where a feature test macro must be defined in order to obtain
+the declaration of a function (or a variable) from a header file,
+then the SYNOPSIS should indicate this, as described in
+.BR feature_test_macros (7).
+.\" FIXME . Say something here about compiler options
+.TP
+.B CONFIGURATION
+Configuration details for a device.
+
+This section normally appears only in Section 4 pages.
+.TP
+.B DESCRIPTION
+An explanation of what the program, function, or format does.
+
+Discuss how it interacts with files and standard input, and what it
+produces on standard output or standard error.
+Omit internals and implementation details unless they're critical for
+understanding the interface.
+Describe the usual case;
+for information on command-line options of a program use the
+.B OPTIONS
+section.
+.\" If there is some kind of input grammar or complex set of subcommands,
+.\" consider describing them in a separate
+.\" .B USAGE
+.\" section (and just place an overview in the
+.\" .B DESCRIPTION
+.\" section).
+
+When describing new behavior or new flags for
+a system call or library function,
+be careful to note the kernel or C library version
+that introduced the change.
+The preferred method of noting this information for flags is as part of a
+.B .TP
+list, in the following form (here, for a new system call flag):
+.RS 22
+.TP
+.BR XYZ_FLAG " (since Linux 3.7)"
+Description of flag...
+.RE
+.IP
+Including version information is especially useful to users
+who are constrained to using older kernel or C library versions
+(which is typical in embedded systems, for example).
+.TP
+.B OPTIONS
+A description of the command-line options accepted by a
+program and how they change its behavior.
+
+This section should appear only for Section 1 and 8 manual pages.
+.\" .TP
+.\" .B USAGE
+.\" describes the grammar of any sublanguage this implements.
+.TP
+.B EXIT STATUS
+A list of the possible exit status values of a program and
+the conditions that cause these values to be returned.
+
+This section should appear only for Section 1 and 8 manual pages.
+.TP
+.B RETURN VALUE
+For Section 2 and 3 pages, this section gives a
+list of the values the library routine will return to the caller
+and the conditions that cause these values to be returned.
+.TP
+.B ERRORS
+For Section 2 and 3 manual pages, this is a list of the
+values that may be placed in
+.I errno
+in the event of an error, along with information about the cause
+of the errors.
+
+.IR "The error list should be in alphabetical order" .
+.TP
+.B ENVIRONMENT
+A list of all environment variables that affect the program or function
+and how they affect it.
+.TP
+.B FILES
+A list of the files the program or function uses, such as
+configuration files, startup files,
+and files the program directly operates on.
+
+Give the full pathname of these files, and use the installation
+process to modify the directory part to match user preferences.
+For many programs, the default installation location is in
+.IR /usr/local ,
+so your base manual page should use
+.I /usr/local
+as the base.
+.\" May 07: Almost no current man pages have a DIAGNOSTICS section;
+.\"         "RETURN VALUE" or "EXIT STATUS" is preferred.
+.\" .TP
+.\" .B DIAGNOSTICS
+.\" gives an overview of the most common error messages and how to
+.\" cope with them.
+.\" You don't need to explain system error messages
+.\" or fatal signals that can appear during execution of any program
+.\" unless they're special in some way to the program.
+.\"
+.\" May 07: Almost no current man pages have a SECURITY section.
+.\".TP
+.\".B SECURITY
+.\"discusses security issues and implications.
+.\"Warn about configurations or environments that should be avoided,
+.\"commands that may have security implications, and so on, especially
+.\"if they aren't obvious.
+.\"Discussing security in a separate section isn't necessary;
+.\"if it's easier to understand, place security information in the
+.\"other sections (such as the
+.\" .B DESCRIPTION
+.\" or
+.\" .B USAGE
+.\" section).
+.\" However, please include security information somewhere!
+.TP
+.B ATTRIBUTES
+A summary of various attributes of the function(s) documented on this page.
+See
+.BR attributes (7)
+for further details.
+.TP
+.B VERSIONS
+A brief summary of the Linux kernel or glibc versions where a
+system call or library function appeared,
+or changed significantly in its operation.
+
+As a general rule, every new interface should
+include a VERSIONS section in its manual page.
+Unfortunately,
+many existing manual pages don't include this information
+(since there was no policy to do so when they were written).
+Patches to remedy this are welcome,
+but, from the perspective of programmers writing new code,
+this information probably matters only in the case of kernel
+interfaces that have been added in Linux 2.4 or later
+(i.e., changes since kernel 2.2),
+and library functions that have been added to glibc since version 2.1
+(i.e., changes since glibc 2.0).
+
+The
+.BR syscalls (2)
+manual page also provides information about kernel versions
+in which various system calls first appeared.
+.TP
+.B CONFORMING TO
+A description of any standards or conventions that relate to the function
+or command described by the manual page.
+
+The preferred terms to use for the various standards are listed as
+headings in
+.BR standards (7).
+
+For a page in Section 2 or 3,
+this section should note the POSIX.1
+version(s) that the call conforms to,
+and also whether the call is specified in C99.
+(Don't worry too much about other standards like SUS, SUSv2, and XPG,
+or the SVr4 and 4.xBSD implementation standards,
+unless the call was specified in those standards,
+but isn't in the current version of POSIX.1.)
+
+If the call is not governed by any standards but commonly
+exists on other systems, note them.
+If the call is Linux-specific, note this.
+
+If this section consists of just a list of standards
+(which it commonly does),
+terminate the list with a period (\(aq.\(aq).
+.TP
+.B NOTES
+Miscellaneous notes.
+
+For Section 2 and 3 man pages you may find it useful to include
+subsections (\fBSS\fP) named \fILinux Notes\fP and \fIGlibc Notes\fP.
+
+In Section 2, use the heading
+.I "C library/kernel differences"
+to mark off notes that describe the differences (if any) between
+the C library wrapper function for a system call and
+the raw system call interface provided by the kernel.
+.TP
+.B BUGS
+A list of limitations, known defects or inconveniences,
+and other questionable activities.
+.TP
+.B EXAMPLE
+One or more examples demonstrating how this function, file or
+command is used.
+
+For details on writing example programs,
+see \fIExample Programs\fP below.
+.TP
+.B AUTHORS
+A list of authors of the documentation or program.
+
+\fBUse of an AUTHORS section is strongly discouraged\fP.
+Generally, it is better not to clutter every page with a list
+of (over time potentially numerous) authors;
+if you write or significantly amend a page,
+add a copyright notice as a comment in the source file.
+If you are the author of a device driver and want to include
+an address for reporting bugs, place this under the BUGS section.
+.TP
+.B SEE ALSO
+A comma-separated list of related man pages, possibly followed by
+other related pages or documents.
+
+The list should be ordered by section number and
+then alphabetically by name.
+Do not terminate this list with a period.
+.IP
+Where the SEE ALSO list contains many long manual page names,
+to improve the visual result of the output, it may be useful to employ the
+.I .ad l
+(don't right justify)
+and
+.I .nh
+(don't hyphenate)
+directives.
+Hyphenation of individual page names can be prevented
+by preceding words with the string "\\%".
+
+Given the distributed, autonomous nature of FOSS projects
+and their documentation, it is sometimes necessary\(emand in many cases
+desirable\(emthat the SEE ALSO section includes references to
+manual pages provided by other projects.
+.SH STYLE GUIDE
+The following subsections describe the preferred style for the
+.IR man-pages
+project.
+For details not covered below, the Chicago Manual of Style
+is usually a good source;
+try also grepping for preexisting usage in the project source tree.
+.SS Use of gender-neutral language
+As far as possible, use gender-neutral language in the text of man
+pages.
+Use of "they" ("them", "themself", "their") as a gender-neutral singular
+pronoun is acceptable.
+.SS Font conventions
+.PP
+For functions, the arguments are always specified using italics,
+.IR "even in the SYNOPSIS section" ,
+where the rest of the function is specified in bold:
+.PP
+.BI "    int myfunction(int " argc ", char **" argv );
+.PP
+Variable names should, like argument names, be specified in italics.
+.PP
+Filenames (whether pathnames, or references to header files)
+are always in italics (e.g.,
+.IR <stdio.h> ),
+except in the SYNOPSIS section, where included files are in bold (e.g.,
+.BR "#include <stdio.h>" ).
+When referring to a standard header file include,
+specify the header file surrounded by angle brackets,
+in the usual C way (e.g.,
+.IR <stdio.h> ).
+.PP
+Special macros, which are usually in uppercase, are in bold (e.g.,
+.BR MAXINT ).
+Exception: don't boldface NULL.
+.PP
+When enumerating a list of error codes, the codes are in bold (this list
+usually uses the
+.B \&.TP
+macro).
+.PP
+Complete commands should, if long,
+be written as an indented line on their own,
+with a blank line before and after the command, for example
+.in +4n
+.nf
+
+man 7 man-pages
+
+.fi
+.in
+If the command is short, then it can be included inline in the text,
+in italic format, for example,
+.IR "man 7 man-pages" .
+In this case, it may be worth using nonbreaking spaces
+("\e\ ") at suitable places in the command.
+Command options should be written in italics (e.g.,
+.IR \-l ).
+.PP
+Expressions, if not written on a separate indented line, should
+be specified in italics.
+Again, the use of nonbreaking spaces may be appropriate
+if the expression is inlined with normal text.
+.PP
+Any reference to the subject of the current manual page
+should be written with the name in bold.
+If the subject is a function (i.e., this is a Section 2 or 3 page),
+then the name should be followed by a pair of parentheses
+in Roman (normal) font.
+For example, in the
+.BR fcntl (2)
+man page, references to the subject of the page would be written as:
+.BR fcntl ().
+The preferred way to write this in the source file is:
+.nf
+
+    .BR fcntl ()
+
+.fi
+(Using this format, rather than the use of "\\fB...\\fP()"
+makes it easier to write tools that parse man page source files.)
+.PP
+Any reference to another man page
+should be written with the name in bold,
+.I always
+followed by the section number,
+formatted in Roman (normal) font, without any
+separating spaces (e.g.,
+.BR intro (2)).
+The preferred way to write this in the source file is:
+.nf
+
+    .BR intro (2)
+
+.fi
+(Including the section number in cross references lets tools like
+.BR man2html (1)
+create properly hyperlinked pages.)
+
+Control characters should be written in bold face,
+with no quotes; for example,
+.BR ^X .
+.SS Spelling
+Starting with release 2.59,
+.I man-pages
+follows American spelling conventions
+(previously, there was a random mix of British and American spellings);
+please write all new pages and patches according to these conventions.
+
+Aside from the well-known spelling differences,
+there are a few other subtleties to watch for:
+.IP * 3
+American English tends to use the forms "backward", "upward", "toward",
+and so on
+rather than the British forms "backwards", "upwards", "towards", and so on.
+.SS BSD version numbers
+The classical scheme for writing BSD version numbers is
+.IR x.yBSD ,
+where
+.I x.y
+is the version number (e.g., 4.2BSD).
+Avoid forms such as
+.IR "BSD 4.3" .
+.SS Capitalization
+In subsection ("SS") headings,
+capitalize the first word in the heading, but otherwise use lowercase,
+except where English usage (e.g., proper nouns) or programming
+language requirements (e.g., identifier names) dictate otherwise.
+For example:
+
+    .SS Unicode under Linux
+.\"
+.SS Indentation of structure definitions, shell session logs, and so on
+When structure definitions, shell session logs, and so on are included
+in running text, indent them by 4 spaces (i.e., a block enclosed by
+.I ".in\ +4n"
+and
+.IR ".in" ).
+.SS Preferred terms
+The following table lists some preferred terms to use in man pages,
+mainly to ensure consistency across pages.
+.TS
+l l l
+---
+l l l.
+Term	Avoid using	Notes
+
+bit mask	bitmask
+built-in	builtin
+Epoch	epoch	T{
+For the UNIX Epoch (00:00:00, 1 Jan 1970 UTC)
+T}
+filename	file name
+filesystem	file system
+hostname	host name
+inode	i-node
+lowercase	lower case, lower-case
+pathname	path name
+pseudoterminal	pseudo-terminal
+privileged port	T{
+reserved port,
+system port
+T}
+real-time	T{
+realtime,
+real time
+T}
+run time	runtime
+saved set-group-ID	T{
+saved group ID,
+saved set-GID
+T}
+saved set-user-ID	T{
+saved user ID,
+saved set-UID
+T}
+set-group-ID	set-GID, setgid
+set-user-ID	set-UID, setuid
+superuser	T{
+super user,
+super-user
+T}
+superblock	T{
+super block,
+super-block
+T}
+timestamp	time stamp
+timezone	time zone
+uppercase	upper case, upper-case
+usable	useable
+user space	userspace
+username	user name
+zeros	zeroes
+.TE
+.PP
+See also the discussion
+.IR "Hyphenation of attributive compounds"
+below.
+.SS Terms to avoid
+The following table lists some terms to avoid using in man pages,
+along with some suggested alternatives,
+mainly to ensure consistency across pages.
+.TS
+l l l
+---
+l l l.
+Avoid	Use instead	Notes
+
+32bit	32-bit	T{
+same for 8-bit, 16-bit, etc.
+T}
+current process	calling process	T{
+A common mistake made by kernel programmers when writing man pages
+T}
+manpage	T{
+man page, manual page
+T}
+minus infinity	negative infinity
+non-root	unprivileged user
+non-superuser	unprivileged user
+nonprivileged	unprivileged
+OS	operating system
+plus infinity	positive infinity
+pty	pseudoterminal
+tty	terminal
+Unices	UNIX systems
+Unixes	UNIX systems
+.TE
+.SS Trademarks
+Use the correct spelling and case for trademarks.
+The following is a list of the correct spellings of various
+relevant trademarks that are sometimes misspelled:
+
+     DG/UX
+     HP-UX
+     UNIX
+     UnixWare
+.SS NULL, NUL, null pointer, and null character
+A
+.IR "null pointer"
+is a pointer that points to nothing,
+and is normally indicated by the constant
+.IR NULL .
+On the other hand,
+.I NUL
+is the
+.IR "null byte",
+a byte with the value 0, represented in C via the character constant
+.IR \(aq\e0\(aq .
+
+The preferred term for the pointer is "null pointer" or simply "NULL";
+avoid writing "NULL pointer".
+
+The preferred term for the byte is "null byte".
+Avoid writing "NUL", since it is too easily confused with "NULL".
+Avoid also the terms "zero byte" and "null character".
+The byte that terminates a C string should be described
+as "the terminating null byte";
+strings may be described as "null-terminated",
+but avoid the use of "NUL-terminated".
+.SS Hyperlinks
+For hyperlinks, use the
+.IR .UR / .UE
+macro pair
+(see
+.BR groff_man (7)).
+This produces proper hyperlinks that can be used in a web browser,
+when rendering a page with, say:
+
+     BROWSER=firefox man -H pagename
+.SS Use of e.g., i.e., etc., a.k.a., and similar
+In general, the use of abbreviations such as "e.g.", "i.e.", "etc.", "a.k.a."
+should be avoided, in favor of suitable full wordings
+("for example", "that is", "and so on", "also known as").
+
+The only place where such abbreviations may be acceptable is in
+.I short
+parenthetical asides (e.g., like this one).
+
+Always include periods in such abbreviations, as shown here.
+In addition, "e.g." and "i.e." should always be followed by a comma.
+.SS Em-dashes
+The way to write an em-dash\(emthe glyph that appears
+at either end of this subphrase\(emin *roff is with the macro "\\(em".
+(On an ASCII terminal, an em-dash typically renders as two hyphens,
+but in other typographical contexts it renders as a long dash.)
+Em-dashes should be written
+.I without
+surrounding spaces.
+.SS Hyphenation of attributive compounds
+Compound terms should be hyphenated when used attributively
+(i.e., to qualify a following noun). Some examples:
+
+    32-bit value
+    command-line argument
+    floating-point number
+    run-time check
+    user-space function
+    wide-character string
+.SS Hyphenation with multi, non, pre, re, sub, and so on
+The general tendency in modern English is not to hyphenate
+after prefixes such as "multi", "non", "pre", "re", "sub", and so on.
+Manual pages should generally follow this rule when these prefixes are
+used in natural English constructions with simple suffixes.
+The following list gives some examples of the preferred forms:
+
+    interprocess
+    multithreaded
+    multiprocess
+    nonblocking
+    nondefault
+    nonempty
+    noninteractive
+    nonnegative
+    nonportable
+    nonzero
+    preallocated
+    precreate
+    prerecorded
+    reestablished
+    reinitialize
+    rearm
+    reread
+    subcomponent
+    subdirectory
+    subsystem
+
+Hyphens should be retained when the prefixes are used in nonstandard
+English words, with trademarks, proper nouns, acronyms, or compound terms.
+Some examples:
+
+    non-ASCII
+    non-English
+    non-NULL
+    non-real-time
+
+Finally, note that "re-create" and "recreate" are two different verbs,
+and the former is probably what you want.
+.SS Real minus character
+Where a real minus character is required (e.g., for numbers such as \-1,
+or when writing options that have a leading dash, such as in
+.IR "ls\ \-l"),
+use the following form in the man page source:
+
+    \\-
+
+This guideline applies also to code examples.
+.SS Character constants
+To produce single quotes that render well in both ASCII and UTF-8,
+use the following form for character constants in the man page source:
+
+    \\(aqC\\(aq
+
+where
+.I C
+is the quoted character.
+This guideline applies also to character constants used in code examples.
+.SS Example programs and shell sessions
+Manual pages may include example programs demonstrating how to
+use a system call or library function.
+However, note the following:
+.IP * 3
+Example programs should be written in C.
+.IP *
+An example program is necessary and useful only if it demonstrates
+something beyond what can easily be provided in a textual
+description of the interface.
+An example program that does nothing
+other than call an interface usually serves little purpose.
+.IP *
+Example programs should be fairly short (preferably less than 100 lines;
+ideally less than 50 lines).
+.IP *
+Example programs should do error checking after system calls and
+library function calls.
+.IP *
+Example programs should be complete, and compile without
+warnings when compiled with \fIcc\ \-Wall\fP.
+.IP *
+Where possible and appropriate, example programs should allow
+experimentation, by varying their behavior based on inputs
+(ideally from command-line arguments, or alternatively, via
+input read by the program).
+.IP *
+Example programs should be laid out according to Kernighan and
+Ritchie style, with 4-space indents.
+(Avoid the use of TAB characters in source code!)
+The following command can be used to format your source code to
+something close to the preferred style:
+
+    indent \-npro \-kr \-i4 \-ts4 \-sob \-l72 \-ss \-nut \-psl prog.c
+.IP *
+For consistency, all example programs should terminate using either of:
+
+     exit(EXIT_SUCCESS);
+     exit(EXIT_FAILURE);
+
+Avoid using the following forms to terminate a program:
+
+    exit(0);
+    exit(1);
+    return n;
+.IP *
+If there is extensive explanatory text before the
+program source code, mark off the source code
+with a subsection heading
+.IR "Program source" ,
+as in:
+
+    .SS Program source
+
+Always do this if the explanatory text includes a shell session log.
+.PP
+If you include a shell session log demonstrating the use of a program
+or other system feature:
+.IP * 3
+Place the session log above the source code listing
+.IP *
+Indent the session log by four spaces.
+.IP *
+Boldface the user input text,
+to distinguish it from output produced by the system.
+.PP
+For some examples of what example programs should look like, see
+.BR wait (2)
+and
+.BR pipe (2).
+.SH EXAMPLE
+For canonical examples of how man pages in the
+.I man-pages
+package should look, see
+.BR pipe (2)
+and
+.BR fcntl (2).
+.SH SEE ALSO
+.BR man (1),
+.BR man2html (1),
+.BR attributes (7),
+.BR groff (7),
+.BR groff_man (7),
+.BR man (7),
+.BR mdoc (7)

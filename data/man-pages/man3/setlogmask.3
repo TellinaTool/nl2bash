@@ -1,0 +1,94 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH SETLOGMASK 3  2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+setlogmask \- set log priority mask
+.SH SYNOPSIS
+.nf
+.B #include <syslog.h>
+.sp
+.BI "int setlogmask(int " mask );
+.fi
+.SH DESCRIPTION
+A process has a log priority mask that determines which calls to
+.BR syslog (3)
+may be logged.
+All other calls will be ignored.
+Logging is enabled for the priorities that have the corresponding
+bit set in
+.IR mask .
+The initial mask is such that logging is enabled for all priorities.
+.LP
+The
+.BR setlogmask ()
+function sets this logmask for the calling process,
+and returns the previous mask.
+If the mask argument is 0, the current logmask is not modified.
+.LP
+The eight priorities are
+.BR LOG_EMERG ,
+.BR LOG_ALERT ,
+.BR LOG_CRIT ,
+.BR LOG_ERR ,
+.BR LOG_WARNING ,
+.BR LOG_NOTICE ,
+.BR LOG_INFO ,
+and
+.BR LOG_DEBUG .
+The bit corresponding to a priority
+.I p
+is
+.IR LOG_MASK(p) .
+Some systems also provide a macro
+.IR LOG_UPTO(p)
+for the mask
+of all priorities in the above list up to and including
+.IR p .
+.SH RETURN VALUE
+This function returns the previous log priority mask.
+.SH ERRORS
+None.
+.\" .SH NOTES
+.\" The glibc logmask handling was broken in versions before glibc 2.1.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lbw22
+l l l.
+Interface	Attribute	Value
+T{
+.BR setlogmask ()
+T}	Thread safety	MT-Unsafe race:LogMask
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.\" Note that the description in POSIX.1-2001 is flawed.
+.SH SEE ALSO
+.BR closelog (3),
+.BR openlog (3),
+.BR syslog (3)

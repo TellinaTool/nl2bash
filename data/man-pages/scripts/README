@@ -1,0 +1,4 @@
+The files in this directory are scripts for man-pages maintenance tasks.
+They may be useful for downstream man-pages package maintainers or for 
+man-pages translators. This directory does not contain any files that
+need to be installed in order to use the manual pages.

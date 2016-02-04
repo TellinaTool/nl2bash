@@ -1,0 +1,149 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright (C) 2007, 2012 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's "POSIX Programmer's Guide" (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:30:29 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Fri Feb 14 21:47:50 1997 by Andries Brouwer (aeb@cwi.nl)
+.\"
+.TH GETENV 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getenv, secure_getenv \- get an environment variable
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "char *getenv(const char *" name );
+
+.BI "char *secure_getenv(const char *" name );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR secure_getenv ():
+_GNU_SOURCE
+.SH DESCRIPTION
+The
+.BR getenv ()
+function searches the environment list to find the
+environment variable
+.IR name ,
+and returns a pointer to the corresponding
+.I value
+string.
+
+The GNU-specific
+.BR secure_getenv ()
+function is just like
+.BR getenv ()
+except that it returns NULL in cases where "secure execution" is required.
+Secure execution is required if one of the following conditions
+was true when the program run by the calling process was loaded:
+.IP * 3
+the process's effective user ID did not match its real user ID or
+the process's effective group ID did not match its real group ID
+(typically this is the result of executing a set-user-ID or
+set-group-ID program);
+.IP *
+the effective capability bit was set on the executable file; or
+.IP *
+the process has a nonempty permitted capability set.
+.PP
+Secure execution may also required if triggered
+by some Linux security modules.
+
+The
+.BR secure_getenv ()
+function is intended for use in general-purpose libraries
+to avoid vulnerabilities that could occur if
+set-user-ID or set-group-ID programs accidentally
+trusted the environment.
+.SH RETURN VALUE
+The
+.BR getenv ()
+function returns a pointer to the value in the
+environment, or NULL if there is no match.
+.SH VERSIONS
+.BR secure_getenv ()
+first appeared in glibc 2.17.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw25 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getenv (),
+.BR secure_getenv ()
+T}	Thread safety	MT-Safe env
+.TE
+.SH CONFORMING TO
+.BR getenv ():
+POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
+
+.BR secure_getenv ()
+is a GNU extension.
+.SH NOTES
+The strings in the environment list are of the form \fIname=value\fP.
+
+As typically implemented,
+.BR getenv ()
+returns a pointer to a string within the environment list.
+The caller must take care not to modify this string,
+since that would change the environment of the process.
+
+The implementation of
+.BR getenv ()
+is not required to be reentrant.
+The string pointed to by the return value of
+.BR getenv ()
+may be statically allocated,
+and can be modified by a subsequent call to
+.BR getenv (),
+.BR putenv (3),
+.BR setenv (3),
+or
+.BR unsetenv (3).
+
+The "secure execution" mode of
+.BR secure_getenv ()
+is controlled by the
+.B AT_SECURE
+flag contained in the auxiliary vector passed from the kernel to user space.
+.SH SEE ALSO
+.BR clearenv (3),
+.BR getauxval (3),
+.BR putenv (3),
+.BR setenv (3),
+.BR unsetenv (3),
+.BR capabilities (7),
+.BR environ (7)

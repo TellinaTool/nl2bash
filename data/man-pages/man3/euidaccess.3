@@ -1,0 +1,117 @@
+.\" Copyright (C) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH EUIDACCESS 3 2015-03-02 "" "Linux Programmer's Manual"
+.SH NAME
+euidaccess, eaccess \- check effective user's permissions for a file
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "             /* See feature_test_macros(7) */"
+.B #include <unistd.h>
+.sp
+.BI "int euidaccess(const char *" pathname ", int " mode );
+.BI "int eaccess(const char *" pathname ", int " mode );
+.fi
+.SH DESCRIPTION
+Like
+.BR access (2),
+.BR euidaccess ()
+checks permissions and existence of the file identified by its argument
+.IR pathname .
+However, whereas
+.BR access (2)
+performs checks using the real user and group identifiers of the process,
+.BR euidaccess ()
+uses the effective identifiers.
+
+.I mode
+is a mask consisting of one or more of
+.BR R_OK ", " W_OK ", " X_OK ", and " F_OK ,
+with the same meanings as for
+.BR access (2).
+
+.BR eaccess ()
+is a synonym for
+.BR euidaccess (),
+provided for compatibility with some other systems.
+.SH RETURN VALUE
+On success (all requested permissions granted), zero is returned.
+On error (at least one bit in
+.I mode
+asked for a permission that is denied, or some other error occurred),
+\-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+As for
+.BR access (2).
+.SH VERSIONS
+The
+.BR eaccess ()
+function was added to glibc in version 2.4.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw23 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR euidaccess (),
+.BR eaccess ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+These functions are nonstandard.
+Some other systems have an
+.\" e.g., FreeBSD 6.1.
+.BR eaccess ()
+function.
+.SH NOTES
+.IR Warning :
+Using this function to check a process's permissions on a file before
+performing some operation based on that information leads to race conditions:
+the file permissions may change between the two steps.
+Generally, it is safer just to attempt the desired operation and handle
+any permission error that occurs.
+
+This function always dereferences symbolic links.
+If you need to check the permissions on a symbolic link, use
+.BR faccessat (2)
+with the flags
+.BR AT_EACCESS
+and
+.BR AT_SYMLINK_NOFOLLOW .
+.SH SEE ALSO
+.BR access (2),
+.BR chmod (2),
+.BR chown (2),
+.BR faccessat (2),
+.BR open (2),
+.BR setgid (2),
+.BR setuid (2),
+.BR stat (2),
+.BR credentials (7),
+.BR path_resolution (7)

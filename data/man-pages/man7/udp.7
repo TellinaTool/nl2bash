@@ -1,0 +1,266 @@
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" $Id: udp.7,v 1.7 2000/01/22 01:55:05 freitag Exp $
+.\"
+.TH UDP  7 2013-07-31 "Linux" "Linux Programmer's Manual"
+.SH NAME
+udp \- User Datagram Protocol for IPv4
+.SH SYNOPSIS
+.B #include <sys/socket.h>
+.br
+.B #include <netinet/in.h>
+.br
+.B #include <netinet/udp.h>
+.sp
+.B udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+.SH DESCRIPTION
+This is an implementation of the User Datagram Protocol
+described in RFC\ 768.
+It implements a connectionless, unreliable datagram packet service.
+Packets may be reordered or duplicated before they arrive.
+UDP generates and checks checksums to catch transmission errors.
+
+When a UDP socket is created,
+its local and remote addresses are unspecified.
+Datagrams can be sent immediately using
+.BR sendto (2)
+or
+.BR sendmsg (2)
+with a valid destination address as an argument.
+When
+.BR connect (2)
+is called on the socket, the default destination address is set and
+datagrams can now be sent using
+.BR send (2)
+or
+.BR write (2)
+without specifying a destination address.
+It is still possible to send to other destinations by passing an
+address to
+.BR sendto (2)
+or
+.BR sendmsg (2).
+In order to receive packets, the socket can be bound to a local
+address first by using
+.BR bind (2).
+Otherwise, the socket layer will automatically assign
+a free local port out of the range defined by
+.I /proc/sys/net/ipv4/ip_local_port_range
+and bind the socket to
+.BR INADDR_ANY .
+
+All receive operations return only one packet.
+When the packet is smaller than the passed buffer, only that much
+data is returned; when it is bigger, the packet is truncated and the
+.B MSG_TRUNC
+flag is set.
+.B MSG_WAITALL
+is not supported.
+
+IP options may be sent or received using the socket options described in
+.BR ip (7).
+They are processed by the kernel only when the appropriate
+.I /proc
+parameter
+is enabled (but still passed to the user even when it is turned off).
+See
+.BR ip (7).
+
+When the
+.B MSG_DONTROUTE
+flag is set on sending, the destination address must refer to a local
+interface address and the packet is sent only to that interface.
+
+By default, Linux UDP does path MTU (Maximum Transmission Unit) discovery.
+This means the kernel
+will keep track of the MTU to a specific target IP address and return
+.B EMSGSIZE
+when a UDP packet write exceeds it.
+When this happens, the application should decrease the packet size.
+Path MTU discovery can be also turned off using the
+.B IP_MTU_DISCOVER
+socket option or the
+.I /proc/sys/net/ipv4/ip_no_pmtu_disc
+file; see
+.BR ip (7)
+for details.
+When turned off, UDP will fragment outgoing UDP packets
+that exceed the interface MTU.
+However, disabling it is not recommended
+for performance and reliability reasons.
+.SS Address format
+UDP uses the IPv4
+.I sockaddr_in
+address format described in
+.BR ip (7).
+.SS Error handling
+All fatal errors will be passed to the user as an error return even
+when the socket is not connected.
+This includes asynchronous errors
+received from the network.
+You may get an error for an earlier packet
+that was sent on the same socket.
+This behavior differs from many other BSD socket implementations
+which don't pass any errors unless the socket is connected.
+Linux's behavior is mandated by
+.BR RFC\ 1122 .
+
+For compatibility with legacy code, in Linux 2.0 and 2.2
+it was possible to set the
+.B SO_BSDCOMPAT
+.B SOL_SOCKET
+option to receive remote errors only when the socket has been
+connected (except for
+.B EPROTO
+and
+.BR EMSGSIZE ).
+Locally generated errors are always passed.
+Support for this socket option was removed in later kernels; see
+.BR socket (7)
+for further information.
+
+When the
+.B IP_RECVERR
+option is enabled, all errors are stored in the socket error queue,
+and can be received by
+.BR recvmsg (2)
+with the
+.B MSG_ERRQUEUE
+flag set.
+.SS /proc interfaces
+System-wide UDP parameter settings can be accessed by files in the directory
+.IR /proc/sys/net/ipv4/ .
+.TP
+.IR udp_mem " (since Linux 2.6.25)"
+This is a vector of three integers governing the number
+of pages allowed for queueing by all UDP sockets.
+.RS
+.TP 10
+.I min
+Below this number of pages, UDP is not bothered about its
+memory appetite.
+When the amount of memory allocated by UDP exceeds
+this number, UDP starts to moderate memory usage.
+.TP
+.I pressure
+This value was introduced to follow the format of
+.IR tcp_mem
+(see
+.BR tcp (7)).
+.TP
+.I max
+Number of pages allowed for queueing by all UDP sockets.
+.RE
+.IP
+Defaults values for these three items are
+calculated at boot time from the amount of available memory.
+.TP
+.IR udp_rmem_min " (integer; default value: PAGE_SIZE; since Linux 2.6.25)"
+Minimal size, in bytes, of receive buffers used by UDP sockets in moderation.
+Each UDP socket is able to use the size for receiving data,
+even if total pages of UDP sockets exceed
+.I udp_mem
+pressure.
+.TP
+.IR udp_wmem_min " (integer; default value: PAGE_SIZE; since Linux 2.6.25)"
+Minimal size, in bytes, of send buffer used by UDP sockets in moderation.
+Each UDP socket is able to use the size for sending data,
+even if total pages of UDP sockets exceed
+.I udp_mem
+pressure.
+.SS Socket options
+To set or get a UDP socket option, call
+.BR getsockopt (2)
+to read or
+.BR setsockopt (2)
+to write the option with the option level argument set to
+.BR IPPROTO_UDP .
+Unless otherwise noted,
+.I optval
+is a pointer to an
+.IR int .
+.TP
+.BR UDP_CORK " (since Linux 2.5.44)"
+If this option is enabled, then all data output on this socket
+is accumulated into a single datagram that is transmitted when
+the option is disabled.
+This option should not be used in code intended to be
+portable.
+.\" FIXME document UDP_ENCAP (new in kernel 2.5.67)
+.\" From include/linux/udp.h:
+.\" /* UDP encapsulation types */
+.\" #define UDP_ENCAP_ESPINUDP_NON_IKE      1 /* draft-ietf-ipsec-nat-t-ike-00/01 */
+.\" #define UDP_ENCAP_ESPINUDP      2 /* draft-ietf-ipsec-udp-encaps-06 */
+.\" #define UDP_ENCAP_L2TPINUDP     3 /* rfc2661 */
+.SS Ioctls
+These ioctls can be accessed using
+.BR ioctl (2).
+The correct syntax is:
+.PP
+.RS
+.nf
+.BI int " value";
+.IB error " = ioctl(" udp_socket ", " ioctl_type ", &" value ");"
+.fi
+.RE
+.TP
+.BR FIONREAD " (" SIOCINQ )
+Gets a pointer to an integer as argument.
+Returns the size of the next pending datagram in the integer in bytes,
+or 0 when no datagram is pending.
+.B Warning:
+Using
+.BR FIONREAD ,
+it is impossible to distinguish the case where no datagram is pending
+from the case where the next pending datagram contains zero bytes of data.
+It is safer to use
+.BR select (2),
+.BR poll (2),
+or
+.BR epoll (7)
+to distinguish these cases.
+.\" See http://www.securiteam.com/unixfocus/5KP0I15IKO.html
+.\" "GNUnet DoS (UDP Socket Unreachable)", 14 May 2006
+.TP
+.BR TIOCOUTQ " (" SIOCOUTQ )
+Returns the number of data bytes in the local send queue.
+Only supported with Linux 2.4 and above.
+.PP
+In addition, all ioctls documented in
+.BR ip (7)
+and
+.BR socket (7)
+are supported.
+.SH ERRORS
+All errors documented for
+.BR socket (7)
+or
+.BR ip (7)
+may be returned by a send or receive on a UDP socket.
+.TP
+.B ECONNREFUSED
+No receiver was associated with the destination address.
+This might be caused by a previous packet sent over the socket.
+.SH VERSIONS
+.B IP_RECVERR
+is a new feature in Linux 2.2.
+.\" .SH CREDITS
+.\" This man page was written by Andi Kleen.
+.SH SEE ALSO
+.BR ip (7),
+.BR raw (7),
+.BR socket (7),
+.BR udplite (7)
+
+RFC\ 768 for the User Datagram Protocol.
+.br
+RFC\ 1122 for the host requirements.
+.br
+RFC\ 1191 for a description of path MTU discovery.

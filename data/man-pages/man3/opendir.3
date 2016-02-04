@@ -1,0 +1,161 @@
+.\" Copyright (C) 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:46:01 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 11 June 1995 by Andries Brouwer (aeb@cwi.nl)
+.\" 2007-07-30 Ulrich Drepper <drepper@redhat.com>: document fdopendir().
+.TH OPENDIR 3  2015-12-28 "GNU" "Linux Programmer's Manual"
+.SH NAME
+opendir, fdopendir \- open a directory
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.br
+.B #include <dirent.h>
+.sp
+.BI "DIR *opendir(const char *" name );
+.BI "DIR *fdopendir(int " fd );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR fdopendir ():
+.PD 0
+.ad l
+.RS 4
+.TP 4
+Since glibc 2.10:
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP
+Before glibc 2.10:
+_GNU_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+The
+.BR opendir ()
+function opens a directory stream corresponding to the
+directory \fIname\fP, and returns a pointer to the directory stream.
+The stream is positioned at the first entry in the directory.
+
+The
+.BR fdopendir ()
+function
+is like
+.BR opendir (),
+but returns a directory stream for the directory referred
+to by the open file descriptor
+.IR fd .
+After a successful call to
+.BR fdopendir (),
+.I fd
+is used internally by the implementation,
+and should not otherwise be used by the application.
+.SH RETURN VALUE
+The
+.BR opendir ()
+and
+.BR fdopendir ()
+functions return a pointer to the directory stream.
+On error, NULL is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EACCES
+Permission denied.
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor opened for reading.
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENOENT
+Directory does not exist, or \fIname\fP is an empty string.
+.TP
+.B ENOMEM
+Insufficient memory to complete the operation.
+.TP
+.B ENOTDIR
+\fIname\fP is not a directory.
+.SH VERSIONS
+.BR fdopendir ()
+is available in glibc since version 2.4.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw22 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR opendir (),
+.BR fdopendir ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+.BR opendir ()
+is present on SVr4, 4.3BSD, and specified in POSIX.1-2001.
+.BR fdopendir ()
+is specified in POSIX.1-2008.
+.SH NOTES
+The underlying file descriptor of the directory stream can be obtained using
+.BR dirfd (3).
+
+The
+.BR opendir ()
+function sets the close-on-exec flag for the file descriptor underlying the
+.IR "DIR *" .
+The
+.BR fdopendir ()
+function leaves the setting of the close-on-exec
+flag unchanged for the file descriptor,
+.IR fd .
+POSIX.1-200x leaves it unspecified whether a successful call to
+.BR fdopendir ()
+will set the close-on-exec flag for the file descriptor,
+.IR fd .
+.SH SEE ALSO
+.BR open (2),
+.BR closedir (3),
+.BR dirfd (3),
+.BR readdir (3),
+.BR rewinddir (3),
+.BR scandir (3),
+.BR seekdir (3),
+.BR telldir (3)

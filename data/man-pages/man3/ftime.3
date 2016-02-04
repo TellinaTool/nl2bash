@@ -1,0 +1,109 @@
+.\" Copyright (c) 1993 Michael Haardt
+.\" (michael@moria.de)
+.\" Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 14:23:14 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Oct 18 17:31:43 1998 by Andries Brouwer (aeb@cwi.nl)
+.\" 2008-06-23, mtk, minor rewrites, added some details
+.\"
+.TH FTIME 3 2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+ftime \- return date and time
+.SH SYNOPSIS
+.B "#include <sys/timeb.h>"
+.sp
+.BI "int ftime(struct timeb *" tp );
+.SH DESCRIPTION
+This function returns the current time as seconds and milliseconds
+since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
+The time is returned in
+.IR tp ,
+which is declared as follows:
+.sp
+.in +4n
+.nf
+struct timeb {
+    time_t         time;
+    unsigned short millitm;
+    short          timezone;
+    short          dstflag;
+};
+.fi
+.in
+.LP
+Here \fItime\fP is the number of seconds since the Epoch,
+and \fImillitm\fP is the number of milliseconds since \fItime\fP
+seconds since the Epoch.
+The \fItimezone\fP field is the local timezone measured in minutes
+of time west of Greenwich (with a negative value indicating minutes
+east of Greenwich).
+The \fIdstflag\fP field
+is a flag that, if nonzero, indicates that Daylight Saving time
+applies locally during the appropriate part of the year.
+.LP
+POSIX.1-2001 says that the contents of the \fItimezone\fP and \fIdstflag\fP
+fields are unspecified; avoid relying on them.
+.SH RETURN VALUE
+This function always returns 0.
+(POSIX.1-2001 specifies, and some systems document, a \-1 error return.)
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR ftime ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+4.2BSD, POSIX.1-2001.
+POSIX.1-2008 removes the specification of
+.BR ftime ().
+
+This function is obsolete.
+Don't use it.
+If the time in seconds
+suffices,
+.BR time (2)
+can be used;
+.BR gettimeofday (2)
+gives microseconds;
+.BR clock_gettime (2)
+gives nanoseconds but is not as widely available.
+.SH BUGS
+.LP
+Early glibc2 is buggy and returns 0 in the
+.I millitm
+field;
+glibc 2.1.1 is correct again.
+.\" .SH HISTORY
+.\" The
+.\" .BR ftime ()
+.\" function appeared in 4.2BSD.
+.SH SEE ALSO
+.BR gettimeofday (2),
+.BR time (2)

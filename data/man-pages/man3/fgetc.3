@@ -1,0 +1,167 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Wed Jul 28 11:12:07 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Fri Sep  8 15:48:13 1995 by Andries Brouwer (aeb@cwi.nl)
+.TH FGETC 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+fgetc, fgets, getc, getchar, ungetc \- input of characters and strings
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.sp
+.BI "int fgetc(FILE *" stream );
+
+.BI "char *fgets(char *" "s" ", int " "size" ", FILE *" "stream" );
+
+.BI "int getc(FILE *" stream );
+
+.B "int getchar(void);"
+
+.BI "int ungetc(int " c ", FILE *" stream );
+.fi
+.SH DESCRIPTION
+.BR fgetc ()
+reads the next character from
+.I stream
+and returns it as an
+.I unsigned char
+cast to an
+.IR int ,
+or
+.B EOF
+on end of file or error.
+.PP
+.BR getc ()
+is equivalent to
+.BR fgetc ()
+except that it may be implemented as a macro which evaluates
+.I stream
+more than once.
+.PP
+.BR getchar ()
+is equivalent to
+.BI "getc(" stdin ) \fR.
+.PP
+.BR fgets ()
+reads in at most one less than
+.I size
+characters from
+.I stream
+and stores them into the buffer pointed to by
+.IR s .
+Reading stops after an
+.B EOF
+or a newline.
+If a newline is read, it is stored into the buffer.
+A terminating null byte (\(aq\e0\(aq)
+is stored after the last character in the buffer.
+.PP
+.BR ungetc ()
+pushes
+.I c
+back to
+.IR stream ,
+cast to
+.IR "unsigned char" ,
+where it is available for subsequent read operations.
+Pushed-back characters
+will be returned in reverse order; only one pushback is guaranteed.
+.PP
+Calls to the functions described here can be mixed with each other and with
+calls to other input functions from the
+.I stdio
+library for the same input stream.
+.PP
+For nonlocking counterparts, see
+.BR unlocked_stdio (3).
+.SH RETURN VALUE
+.BR fgetc (),
+.BR getc ()
+and
+.BR getchar ()
+return the character read as an
+.I unsigned char
+cast to an
+.I int
+or
+.B EOF
+on end of file or error.
+.PP
+.BR fgets ()
+returns
+.I s
+on success, and NULL
+on error or when end of file occurs while no characters have been read.
+.PP
+.BR ungetc ()
+returns
+.I c
+on success, or
+.B EOF
+on error.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw25 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR fgetc (),
+.BR fgets (),
+.BR getc (),
+.br
+.BR getchar (),
+.BR ungetc ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99.
+
+It is not advisable to mix calls to input functions from the
+.I stdio
+library with low-level calls to
+.BR read (2)
+for the file descriptor associated with the input stream; the results
+will be undefined and very probably not what you want.
+.SH SEE ALSO
+.BR read (2),
+.BR write (2),
+.BR ferror (3),
+.BR fgetwc (3),
+.BR fgetws (3),
+.BR fopen (3),
+.BR fread (3),
+.BR fseek (3),
+.BR getline (3),
+.BR gets (3),
+.BR getwchar (3),
+.BR puts (3),
+.BR scanf (3),
+.BR ungetwc (3),
+.BR unlocked_stdio (3),
+.BR feature_test_macros (7)

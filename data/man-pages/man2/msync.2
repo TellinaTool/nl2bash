@@ -1,0 +1,153 @@
+.\" Copyright (C) 1996 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH MSYNC 2 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+msync \- synchronize a file with a memory map
+.SH SYNOPSIS
+.B #include <sys/mman.h>
+.sp
+.BI "int msync(void *" addr ", size_t " length ", int " flags );
+.SH DESCRIPTION
+.BR msync ()
+flushes changes made to the in-core copy of a file that was mapped
+into memory using
+.BR mmap (2)
+back to the filesystem.
+Without use of this call,
+there is no guarantee that changes are written back before
+.BR munmap (2)
+is called.
+To be more precise, the part of the file that
+corresponds to the memory area starting at
+.I addr
+and having length
+.I length
+is updated.
+
+The
+.I flags
+argument should specify exactly one of
+.BR MS_ASYNC
+and
+.BR MS_SYNC ,
+and may additionally include the
+.B MS_INVALIDATE
+bit.
+These bits have the following meanings:
+.TP
+.B MS_ASYNC
+Specifies that an update be scheduled, but the call returns immediately.
+.TP
+.B MS_SYNC
+Requests an update and waits for it to complete.
+.TP
+.B MS_INVALIDATE
+.\" Since Linux 2.4, this seems to be a no-op (other than the
+.\" EBUSY check for VM_LOCKED).
+Asks to invalidate other mappings of the same file
+(so that they can be updated with the fresh values just written).
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EBUSY
+.B MS_INVALIDATE
+was specified in
+.IR flags ,
+and a memory lock exists for the specified address range.
+.TP
+.B EINVAL
+.I addr
+is not a multiple of PAGESIZE; or any bit other than
+.BR MS_ASYNC " | " MS_INVALIDATE " | " MS_SYNC
+is set in
+.IR flags ;
+or both
+.B MS_SYNC
+and
+.B MS_ASYNC
+are set in
+.IR flags .
+.TP
+.B ENOMEM
+The indicated memory (or part of it) was not mapped.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+
+This call was introduced in Linux 1.3.21, and then used
+.B EFAULT
+instead of
+.BR ENOMEM .
+In Linux 2.4.19, this was changed to the POSIX value
+.BR ENOMEM .
+.SH AVAILABILITY
+On POSIX systems on which
+.BR msync ()
+is available, both
+.B _POSIX_MAPPED_FILES
+and
+.B _POSIX_SYNCHRONIZED_IO
+are defined in
+.I <unistd.h>
+to a value greater than 0.
+(See also
+.BR sysconf (3).)
+.\" POSIX.1-2001: It shall be defined to -1 or 0 or 200112L.
+.\" -1: unavailable, 0: ask using sysconf().
+.\" glibc defines them to 1.
+.SH NOTES
+According to POSIX, either
+.BR MS_SYNC
+or
+.BR MS_ASYNC
+must be specified in
+.IR flags ,
+and indeed failure to include one of these flags will cause
+.BR msync ()
+to fail on some systems.
+However, Linux permits a call to
+.BR msync ()
+that specifies neither of these flags,
+with semantics that are (currently) equivalent to specifying
+.BR MS_ASYNC .
+(Since Linux 2.6.19,
+.\" commit 204ec841fbea3e5138168edbc3a76d46747cc987
+.BR MS_ASYNC
+is in fact a no-op, since the kernel properly tracks dirty
+pages and flushes them to storage as necessary.)
+Notwithstanding the Linux behavior,
+portable, future-proof applications should ensure that they specify either
+.BR MS_SYNC
+or
+.BR MS_ASYNC
+in
+.IR flags .
+.SH SEE ALSO
+.BR mmap (2)
+
+B.O. Gallmeister, POSIX.4, O'Reilly, pp. 128-129 and 389-391.

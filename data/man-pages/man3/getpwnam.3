@@ -1,0 +1,341 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's "POSIX Programmer's Guide" (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 1996-05-27 by Martin Schulze (joey@linux.de)
+.\" Modified 2003-11-15 by aeb
+.\" 2008-11-07, mtk, Added an example program for getpwnam_r().
+.\"
+.TH GETPWNAM 3  2015-12-28 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getpwnam, getpwnam_r, getpwuid, getpwuid_r \- get password file entry
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.B #include <pwd.h>
+.sp
+.BI "struct passwd *getpwnam(const char *" name );
+.sp
+.BI "struct passwd *getpwuid(uid_t " uid );
+.sp
+.BI "int getpwnam_r(const char *" name ", struct passwd *" pwd ,
+.br
+.BI "               char *" buf ", size_t " buflen ", struct passwd **" result );
+.sp
+.BI "int getpwuid_r(uid_t " uid ", struct passwd *" pwd ,
+.br
+.BI "               char *" buf ", size_t " buflen ", struct passwd **" result );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR getpwnam_r (),
+.BR getpwuid_r ():
+.RS 4
+_POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _BSD_SOURCE ||
+_SVID_SOURCE || _POSIX_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR getpwnam ()
+function returns a pointer to a structure containing
+the broken-out fields of the record in the password database
+(e.g., the local password file
+.IR /etc/passwd ,
+NIS, and LDAP)
+that matches the username
+.IR name .
+.PP
+The
+.BR getpwuid ()
+function returns a pointer to a structure containing
+the broken-out fields of the record in the password database
+that matches the user ID
+.IR uid .
+.PP
+The \fIpasswd\fP structure is defined in \fI<pwd.h>\fP as follows:
+.sp
+.in +4n
+.nf
+struct passwd {
+    char   *pw_name;       /* username */
+    char   *pw_passwd;     /* user password */
+    uid_t   pw_uid;        /* user ID */
+    gid_t   pw_gid;        /* group ID */
+    char   *pw_gecos;      /* user information */
+    char   *pw_dir;        /* home directory */
+    char   *pw_shell;      /* shell program */
+};
+.fi
+.in
+.PP
+See
+.BR passwd (5)
+for more information about these fields.
+.PP
+The
+.BR getpwnam_r ()
+and
+.BR getpwuid_r ()
+functions obtain the same information as
+.BR getpwnam ()
+and
+.BR getpwuid (),
+but store the retrieved
+.I passwd
+structure in the space pointed to by
+.IR pwd .
+The string fields pointed to by the members of the
+.I passwd
+structure are stored in the buffer
+.I buf
+of size
+.IR buflen .
+A pointer to the result (in case of success) or NULL (in case no entry
+was found or an error occurred) is stored in
+.IR *result .
+.PP
+The call
+
+    sysconf(_SC_GETPW_R_SIZE_MAX)
+
+returns either \-1, without changing
+.IR errno ,
+or an initial suggested size for
+.IR buf .
+(If this size is too small,
+the call fails with
+.BR ERANGE ,
+in which case the caller can retry with a larger buffer.)
+.SH RETURN VALUE
+The
+.BR getpwnam ()
+and
+.BR getpwuid ()
+functions return a pointer to a
+.I passwd
+structure, or NULL if the matching entry is not found or
+an error occurs.
+If an error occurs,
+.I errno
+is set appropriately.
+If one wants to check
+.I errno
+after the call, it should be set to zero before the call.
+.LP
+The return value may point to a static area, and may be overwritten
+by subsequent calls to
+.BR getpwent (3),
+.BR getpwnam (),
+or
+.BR getpwuid ().
+(Do not pass the returned pointer to
+.BR free (3).)
+.LP
+On success,
+.BR getpwnam_r ()
+and
+.BR getpwuid_r ()
+return zero, and set
+.IR *result
+to
+.IR pwd .
+If no matching password record was found,
+these functions return 0 and store NULL in
+.IR *result .
+In case of error, an error number is returned, and NULL is stored in
+.IR *result .
+.SH ERRORS
+.TP
+.BR 0 " or " ENOENT " or " ESRCH " or " EBADF " or " EPERM " or ... "
+The given
+.I name
+or
+.I uid
+was not found.
+.TP
+.B EINTR
+A signal was caught; see
+.BR signal (7).
+.TP
+.B EIO
+I/O error.
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENOMEM
+.\" not in POSIX
+Insufficient memory to allocate
+.I passwd
+structure.
+.\" This structure is static, allocated 0 or 1 times. No memory leak. (libc45)
+.TP
+.B ERANGE
+Insufficient buffer space supplied.
+.SH FILES
+.TP
+.I /etc/passwd
+local password database file
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getpwnam ()
+T}	Thread safety	MT-Unsafe race:pwnam locale
+T{
+.BR getpwuid ()
+T}	Thread safety	MT-Unsafe race:pwuid locale
+T{
+.BR getpwnam_r (),
+.br
+.BR getpwuid_r ()
+T}	Thread safety	MT-Safe locale
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+The
+.I pw_gecos
+field is not specified in POSIX, but is present on most implementations.
+.SH NOTES
+The formulation given above under "RETURN VALUE" is from POSIX.1-2001.
+It does not call "not found" an error, and hence does not specify what value
+.I errno
+might have in this situation.
+But that makes it impossible to recognize
+errors.
+One might argue that according to POSIX
+.I errno
+should be left unchanged if an entry is not found.
+Experiments on various
+UNIX-like systems show that lots of different values occur in this
+situation: 0, ENOENT, EBADF, ESRCH, EWOULDBLOCK, EPERM, and probably others.
+.\" more precisely:
+.\" AIX 5.1 - gives ESRCH
+.\" OSF1 4.0g - gives EWOULDBLOCK
+.\" libc, glibc up to version 2.6, Irix 6.5 - give ENOENT
+.\" glibc since version 2.7 - give 0
+.\" FreeBSD 4.8, OpenBSD 3.2, NetBSD 1.6 - give EPERM
+.\" SunOS 5.8 - gives EBADF
+.\" Tru64 5.1b, HP-UX-11i, SunOS 5.7 - give 0
+
+The
+.I pw_dir
+field contains the name of the initial working directory of the user.
+Login programs use the value of this field to initialize the
+.B HOME
+environment variable for the login shell.
+An application that wants to determine its user's home directory
+should inspect the value of
+.B HOME
+(rather than the value
+.IR getpwuid(getuid())\->pw_dir )
+since this allows the user to modify their notion of
+"the home directory" during a login session.
+To determine the (initial) home directory of another user,
+it is necessary to use
+.I getpwnam("username")\->pw_dir
+or similar.
+.SH EXAMPLE
+The program below demonstrates the use of
+.BR getpwnam_r ()
+to find the full username and user ID for the username
+supplied as a command-line argument.
+
+.nf
+#include <pwd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+
+int
+main(int argc, char *argv[])
+{
+    struct passwd pwd;
+    struct passwd *result;
+    char *buf;
+    size_t bufsize;
+    int s;
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s username\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (bufsize == \-1)          /* Value was indeterminate */
+        bufsize = 16384;        /* Should be more than enough */
+
+    buf = malloc(bufsize);
+    if (buf == NULL) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+
+    s = getpwnam_r(argv[1], &pwd, buf, bufsize, &result);
+    if (result == NULL) {
+        if (s == 0)
+            printf("Not found\\n");
+        else {
+            errno = s;
+            perror("getpwnam_r");
+        }
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Name: %s; UID: %ld\\n", pwd.pw_gecos, (long) pwd.pw_uid);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR endpwent (3),
+.BR fgetpwent (3),
+.BR getgrnam (3),
+.BR getpw (3),
+.BR getpwent (3),
+.BR getspnam (3),
+.BR putpwent (3),
+.BR setpwent (3),
+.BR passwd (5)

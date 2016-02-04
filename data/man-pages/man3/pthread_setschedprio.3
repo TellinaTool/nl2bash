@@ -1,0 +1,116 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_SETSCHEDPRIO 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_setschedprio \- set scheduling priority of a thread
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.BI "int pthread_setschedprio(pthread_t " thread ", int " prio );
+.sp
+Compile and link with \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+The
+.BR pthread_setschedprio ()
+function sets the scheduling priority of the thread
+.I thread
+to the value specified in
+.IR prio .
+(By contrast
+.BR pthread_setschedparam (3)
+changes both the scheduling policy and priority of a thread.)
+.\" FIXME . nptl/pthread_setschedprio.c has the following
+.\"   /* If the thread should have higher priority because of some
+.\"      PTHREAD_PRIO_PROTECT mutexes it holds, adjust the priority. */
+.\" Eventually (perhaps after writing the mutexattr pages), we
+.\" may want to add something on the topic to this page.
+.\" nptl/pthread_setschedparam.c has a similar case.
+.SH RETURN VALUE
+On success, this function returns 0;
+on error, it returns a nonzero error number.
+If
+.BR pthread_setschedprio ()
+fails, the scheduling priority of
+.I thread
+is not changed.
+.SH ERRORS
+.TP
+.B EINVAL
+.I prio
+is not valid for the scheduling policy of the specified thread.
+.TP
+.B EPERM
+The caller does not have appropriate privileges
+to set the specified priority.
+.TP
+.B ESRCH
+No thread with the ID
+.I thread
+could be found.
+.PP
+POSIX.1 also documents an
+.B ENOTSUP
+("attempt was made to set the priority
+to an unsupported value") error for
+.BR pthread_setschedparam (3).
+.SH VERSIONS
+This function is available in glibc since version 2.3.4.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw22 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_setschedprio ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+For a description of the permissions required to, and the effect of,
+changing a thread's scheduling priority,
+and details of the permitted ranges for priorities
+in each scheduling policy, see
+.BR sched (7).
+.SH SEE ALSO
+.ad l
+.nh
+.BR getrlimit (2),
+.BR sched_get_priority_min (2),
+.BR pthread_attr_init (3),
+.BR pthread_attr_setinheritsched (3),
+.BR pthread_attr_setschedparam (3),
+.BR pthread_attr_setschedpolicy (3),
+.BR pthread_create (3),
+.BR pthread_self (3),
+.BR pthread_setschedparam (3),
+.BR pthreads (7),
+.BR sched (7)

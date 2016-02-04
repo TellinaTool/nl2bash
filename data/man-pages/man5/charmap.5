@@ -1,0 +1,119 @@
+.\" Copyright (C) 1994  Jochen Hein (Hein@Student.TU-Clausthal.de)
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH CHARMAP 5 2014-07-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+charmap \- character set description file
+.SH DESCRIPTION
+A character set description (charmap) defines all available characters
+and their encodings in a character set.
+.BR localedef (1)
+can use charmaps to create locale variants for different character sets.
+.SS Syntax
+The charmap file starts with a header that may consist of the
+following keywords:
+.TP
+.I <code_set_name>
+is followed by the name of the character map.
+.TP
+.I <comment_char>
+is followed by a character that will be used as the comment character
+for the rest of the file.
+It defaults to the number sign (#).
+.TP
+.I <escape_char>
+is followed by a character that should be used as the escape character
+for the rest of the file to mark characters that should be interpreted
+in a special way.
+It defaults to the backslash (\\).
+.TP
+.I <mb_cur_max>
+is followed by the maximum number of bytes for a character.
+The default value is 1.
+.TP
+.I <mb_cur_min>
+is followed by the minimum number of bytes for a character.
+This value must be less than or equal than
+.IR mb_cur_max .
+If not specified, it defaults to
+.IR mb_cur_max .
+.PP
+The character set definition section starts with the keyword
+.I CHARMAP
+in the first column.
+
+The following lines may have one of the two following forms to
+define the character set:
+.TP
+.I <character> <byte-sequence> <comment>
+This form defines exactly one character and its byte sequence,
+.I <comment>
+being optional.
+.TP
+.I <character>..<character> <byte-sequence> <comment>
+This form defines a character range and its byte sequence,
+.I <comment>
+being optional.
+.PP
+The character set definition section ends with the string
+.IR "END CHARMAP" .
+.PP
+The character set definition section may optionally be followed by a
+section to define widths of characters.
+.PP
+The
+.B WIDTH_DEFAULT
+keyword can be used to define the default width for all characters
+not explicitly listed.
+The default character width is 1.
+.PP
+The width section for individual characters starts with the keyword
+.I WIDTH
+in the first column.
+
+The following lines may have one of the two following forms to
+define the widths of the characters:
+.TP
+.I <character> <width>
+This form defines the width of exactly one character.
+.TP
+.I <character>...<character> <width>
+This form defines the width for all the characters in the range.
+.PP
+The width definition section ends with the string
+.IR "END WIDTH" .
+.SH FILES
+.TP
+.I /usr/share/i18n/charmaps
+Usual default character map path.
+.SH CONFORMING TO
+POSIX.2.
+.SH EXAMPLE
+The Euro sign is defined as follows in the
+.I UTF\-8
+charmap:
+.PP
+.nf
+<U20AC>     /xe2/x82/xac
+.fi
+.SH SEE ALSO
+.BR iconv (1),
+.BR locale (1),
+.BR localedef (1),
+.BR locale (5),
+.BR charsets (7)

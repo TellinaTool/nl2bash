@@ -1,0 +1,119 @@
+.\" Copyright 2001 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH FSEEKO 3  2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+fseeko, ftello \- seek to or report file position
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.sp
+.BI "int fseeko(FILE *" stream ", off_t " offset ", int " whence );
+.sp
+.BI "off_t ftello(FILE *" stream );
+.BI
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR fseeko (),
+.BR ftello ():
+.br
+.RS 4
+.ad l
+_FILE_OFFSET_BITS\ ==\ 64 ||
+_POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600
+.br
+(defining the obsolete _LARGEFILE_SOURCE macro also works)
+.RE
+.ad
+.SH DESCRIPTION
+The
+.BR fseeko ()
+and
+.BR ftello ()
+functions are identical to
+.BR fseek (3)
+and
+.BR ftell (3)
+(see
+.BR fseek (3)),
+respectively, except that the
+.I offset
+argument of
+.BR fseeko ()
+and the return value of
+.BR ftello ()
+is of type
+.I off_t
+instead of
+.IR long .
+.LP
+On some architectures, both
+.IR off_t
+and
+.I long
+are 32-bit types, but defining
+.BR _FILE_OFFSET_BITS
+with the value 64 (before including
+.I any
+header files)
+will turn
+.I off_t
+into a 64-bit type.
+.SH RETURN VALUE
+On successful completion,
+.BR fseeko ()
+returns 0, while
+.BR ftello ()
+returns the current offset.
+Otherwise, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+See the ERRORS in
+.BR fseek (3).
+.SH VERSIONS
+These functions are available under glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw18 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR fseeko (),
+.BR ftello ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SUSv2.
+.SH SEE ALSO
+.BR fseek (3)

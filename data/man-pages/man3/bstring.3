@@ -1,0 +1,93 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-04-12, David Metcalfe
+.\" Modified 1993-07-24, Rik Faith (faith@cs.unc.edu)
+.\" Modified 2002-01-20, Walter Harms
+.TH BSTRING 3  2014-05-28 "" "Linux Programmer's Manual"
+.SH NAME
+bcmp, bcopy, bzero, memccpy, memchr, memcmp, memcpy, memfrob, memmem,
+memmove, memset \- byte string operations
+.SH SYNOPSIS
+.nf
+.B #include <string.h>
+.sp
+.BI "int bcmp(const void *" s1 ", const void *" s2 ", size_t " n );
+.sp
+.BI "void bcopy(const void *" src ", void *" dest ", size_t " n );
+.sp
+.BI "void bzero(void *" s ", size_t " n );
+.sp
+.BI "void *memccpy(void *" dest ", const void *" src ", int " c ", size_t " n );
+.sp
+.BI "void *memchr(const void *" s ", int " c ", size_t " n );
+.sp
+.BI "int memcmp(const void *" s1 ", const void *" s2 ", size_t " n );
+.sp
+.BI "void *memcpy(void *" dest ", const void *" src ", size_t " n );
+.sp
+.BI "void *memfrob(void *" s ", size_t " n );
+.sp
+.BI "void *memmem(const void *" needle ", size_t " needlelen ,
+.BI "             const void *" haystack ", size_t " haystacklen );
+.sp
+.BI "void *memmove(void *" dest ", const void *" src ", size_t " n );
+.sp
+.BI "void *memset(void *" s ", int " c ", size_t " n );
+.fi
+.SH DESCRIPTION
+The byte string functions perform operations on strings (byte arrays)
+that are not necessarily null-terminated.
+See the individual man pages
+for descriptions of each function.
+.SH NOTES
+The functions
+.BR bcmp (),
+.BR bcopy ()
+and
+.BR bzero ()
+are obsolete.
+Use
+.BR memcmp (),
+.BR memcpy ()
+and
+.BR memset ()
+instead.
+.\" The old functions are not even available on some non-GNU/Linux systems.
+.SH SEE ALSO
+.BR bcmp (3),
+.BR bcopy (3),
+.BR bzero (3),
+.BR memccpy (3),
+.BR memchr (3),
+.BR memcmp (3),
+.BR memcpy (3),
+.BR memfrob (3),
+.BR memmem (3),
+.BR memmove (3),
+.BR memset (3)

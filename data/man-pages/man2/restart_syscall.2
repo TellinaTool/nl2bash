@@ -1,0 +1,143 @@
+.\" Copyright (c) 2013 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" http://thread.gmane.org/gmane.linux.kernel/76552/focus=76803
+.\" From: Linus Torvalds <torvalds <at> transmeta.com>
+.\" Subject: Re: [PATCH] compatibility syscall layer (lets try again)
+.\" Newsgroups: gmane.linux.kernel
+.\" Date: 2002-12-05 02:51:12 GMT
+.\"
+.\" See also Section 11.3.3 of Understanding the Linux Kernel, 3rd edition
+.\"
+.TH RESTART_SYSCALL 2 2014-12-31 "Linux" "Linux Programmer's Manual"
+.SH NAME
+restart_syscall \- restart a system call after interruption by a stop signal
+.SH SYNOPSIS
+.B int restart_syscall(void);
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+The
+.BR restart_syscall ()
+system call is used to restart certain system calls
+after a process that was stopped by a signal (e.g.,
+.BR SIGSTOP
+or
+.BR SIGTSTP )
+is later resumed after receiving a
+.BR SIGCONT
+signal.
+This system call is designed only for internal use by the kernel.
+
+.BR restart_syscall ()
+is used for restarting only those system calls that,
+when restarted, should adjust their time-related parameters\(emnamely
+.BR poll (2)
+(since Linux 2.6.24),
+.BR nanosleep (2)
+(since Linux 2.6),
+.BR clock_nanosleep (2)
+(since Linux 2.6),
+and
+.BR futex (2),
+when employed with the
+.BR FUTEX_WAIT
+(since Linux 2.6.22)
+and
+.BR FUTEX_WAIT_BITSET
+(since Linux 2.6.31)
+operations.
+.\" These system calls correspond to the special internal errno value
+.\" ERESTART_RESTARTBLOCK. Each of the system calls has a "restart"
+.\" helper function that is invoked by restart_syscall().
+.\" Notable (as at Linux 3.17) is that poll() has such a "restart"
+.\" function, but ppoll(), select(), and pselect() do not.
+.\" This means that the latter system calls do not take account of the
+.\" time spent in the stopped state when restarting.
+.BR restart_syscall ()
+restarts the interrupted system call with a
+time argument that is suitably adjusted to account for the
+time that has already elapsed (including the time where the process
+was stopped by a signal).
+Without the
+.BR restart_syscall ()
+mechanism, restarting these system calls would not correctly deduct the
+already elapsed time when the process continued execution.
+.SH RETURN VALUE
+The return value of
+.BR restart_syscall ()
+is the return value of whatever system call is being restarted.
+.SH ERRORS
+.I errno
+is set as per the errors for whatever system call is being restarted by
+.BR restart_syscall ().
+.SH VERSIONS
+The
+.BR restart_syscall ()
+system call is present since Linux 2.6.
+.SH CONFORMING TO
+This system call is Linux-specific.
+.SH NOTES
+There is no glibc wrapper for this system call,
+because it is intended for use only by the kernel and
+should never be called by applications.
+
+The kernel uses
+.BR restart_syscall ()
+to ensure that when a system call is restarted
+after a process has been stopped by a signal and then resumed by
+.BR SIGCONT ,
+then the time that the process spent in the stopped state is counted
+against the timeout interval specified in the original system call.
+In the case of system calls that take a timeout argument and
+automatically restart after a stop signal plus
+.BR SIGCONT ,
+but which do not have the
+.BR restart_syscall (2)
+mechanism built in, then, after the process resumes execution,
+the time that the process spent in the stop state is
+.I not
+counted against the timeout value.
+Notable examples of system calls that suffer this problem are
+.BR ppoll (2),
+.BR select (2),
+and
+.BR pselect (2).
+
+From user space, the operation of
+.BR restart_syscall ()
+is largely invisible:
+to the process that made the system call that is restarted,
+it appears as though that system call executed and
+returned in the usual fashion.
+.SH SEE ALSO
+.BR sigaction (2),
+.BR sigreturn (2),
+.BR signal (7)
+.\" FIXME . ppoll(2), select(2), and pselect(2)
+.\"     should probably get the restart_syscall() treatment:
+.\"     If a select() call is suspended by stop-sig+SIGCONT, the time
+.\"     spent suspended is *not* deducted when the select() is restarted.
+.\" FIXME . check whether recvmmsg() handles stop-sig+SIGCONT properly.

@@ -1,0 +1,171 @@
+.\" Copyright (C) 1999 Joseph Samuel Myers.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PREAD 2 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pread, pwrite \- read from or write to a file descriptor at a given offset
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.BI "ssize_t pread(int " fd ", void *" buf ", size_t " count \
+", off_t " offset );
+.sp
+.BI "ssize_t pwrite(int " fd ", const void *" buf ", size_t " count \
+", off_t " offset );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.PD 0
+.ad l
+.sp
+.BR pread (),
+.BR pwrite ():
+.RS 4
+_XOPEN_SOURCE\ >=\ 500
+.br
+|| /* Since glibc 2.12: */ _POSIX_C_SOURCE\ >=\ 200809L
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+.BR pread ()
+reads up to
+.I count
+bytes from file descriptor
+.I fd
+at offset
+.I offset
+(from the start of the file) into the buffer starting at
+.IR buf .
+The file offset is not changed.
+.PP
+.BR pwrite ()
+writes up to
+.I count
+bytes from the buffer starting at
+.I buf
+to the file descriptor
+.I fd
+at offset
+.IR offset .
+The file offset is not changed.
+.PP
+The file referenced by
+.I fd
+must be capable of seeking.
+.SH RETURN VALUE
+On success,
+.BR pread ()
+returns the number of bytes read
+(a return of zero indicates end of file)
+and
+.BR pwrite ()
+returns the number of bytes written.
+
+Note that is not an error for a successful call to transfer fewer bytes
+than requested (see
+.BR read (2)
+and
+.BR write (2)).
+
+On error, \-1 is returned and
+.I errno
+is set to indicate the cause of the error.
+.SH ERRORS
+.BR pread ()
+can fail and set
+.I errno
+to any error specified for
+.BR read (2)
+or
+.BR lseek (2).
+.BR pwrite ()
+can fail and set
+.I errno
+to any error specified for
+.BR write (2)
+or
+.BR lseek (2).
+.SH VERSIONS
+The
+.BR pread ()
+and
+.BR pwrite ()
+system calls were added to Linux in
+version 2.1.60; the entries in the i386 system call table were added
+in 2.1.69.
+C library support (including emulation using
+.BR lseek (2)
+on older kernels without the system calls) was added in glibc 2.1.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+The
+.BR pread ()
+and
+.BR pwrite ()
+system calls are especially useful in multithreaded applications.
+They allow multiple threads to perform I/O on the same file descriptor
+without being affected by changes to the file offset by other threads.
+.\"
+.SS C library/kernel differences
+On Linux, the underlying system calls were renamed
+in kernel 2.6:
+.BR pread ()
+became
+.BR pread64 (),
+and
+.BR pwrite ()
+became
+.BR pwrite64 ().
+The system call numbers remained the same.
+The glibc
+.BR pread ()
+and
+.BR pwrite ()
+wrapper functions transparently deal with the change.
+
+On some 32-bit architectures,
+the calling signature for these system calls differ,
+for the reasons described in
+.BR syscall (2).
+.SH BUGS
+POSIX requires that opening a file with the
+.BR O_APPEND
+flag should have no effect on the location at which
+.BR pwrite ()
+writes data.
+However, on Linux, if a file is opened with
+.\" FIXME . https://bugzilla.kernel.org/show_bug.cgi?id=43178
+.BR O_APPEND ,
+.BR pwrite ()
+appends data to the end of the file, regardless of the value of
+.IR offset .
+.SH SEE ALSO
+.BR lseek (2),
+.BR read (2),
+.BR readv (2),
+.BR write (2)

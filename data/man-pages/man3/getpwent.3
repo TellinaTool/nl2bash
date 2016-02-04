@@ -1,0 +1,198 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified Sat Jul 24 19:22:14 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Mon May 27 21:37:47 1996 by Martin Schulze (joey@linux.de)
+.\"
+.TH GETPWENT 3  2015-12-28 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getpwent, setpwent, endpwent \- get password file entry
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.B #include <pwd.h>
+.sp
+.B struct passwd *getpwent(void);
+.sp
+.B void setpwent(void);
+.sp
+.B void endpwent(void);
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR getpwent (),
+.BR setpwent (),
+.BR endpwent ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR getpwent ()
+function returns a pointer to a structure containing
+the broken-out fields of a record from the password database
+(e.g., the local password file
+.IR /etc/passwd ,
+NIS, and LDAP).
+The first time
+.BR getpwent ()
+is called, it returns the first entry; thereafter, it returns successive
+entries.
+.PP
+The
+.BR setpwent ()
+function rewinds to the beginning
+of the password database.
+.PP
+The
+.BR endpwent ()
+function is used to close the password database
+after all processing has been performed.
+.PP
+The \fIpasswd\fP structure is defined in \fI<pwd.h>\fP as follows:
+.sp
+.in +4n
+.nf
+struct passwd {
+    char   *pw_name;       /* username */
+    char   *pw_passwd;     /* user password */
+    uid_t   pw_uid;        /* user ID */
+    gid_t   pw_gid;        /* group ID */
+    char   *pw_gecos;      /* user information */
+    char   *pw_dir;        /* home directory */
+    char   *pw_shell;      /* shell program */
+};
+.fi
+.in
+.PP
+For more information about the fields of this structure, see
+.BR passwd (5).
+.SH RETURN VALUE
+The
+.BR getpwent ()
+function returns a pointer to a
+.I passwd
+structure, or NULL if
+there are no more entries or an error occurred.
+If an error occurs,
+.I errno
+is set appropriately.
+If one wants to check
+.I errno
+after the call, it should be set to zero before the call.
+
+The return value may point to a static area, and may be overwritten
+by subsequent calls to
+.BR getpwent (),
+.BR getpwnam (3),
+or
+.BR getpwuid (3).
+(Do not pass the returned pointer to
+.BR free (3).)
+.SH ERRORS
+.TP
+.B EINTR
+A signal was caught; see
+.BR signal (7).
+.TP
+.B EIO
+I/O error.
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENOMEM
+.\" not in POSIX
+Insufficient memory to allocate
+.I passwd
+structure.
+.\" to allocate the passwd structure, or to allocate buffers
+.TP
+.B ERANGE
+Insufficient buffer space supplied.
+.SH FILES
+.TP
+.I /etc/passwd
+local password database file
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw11 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getpwent ()
+T}	Thread safety	T{
+MT-Unsafe race:pwent
+.br
+race:pwentbuf locale
+T}
+T{
+.BR setpwent (),
+.br
+.BR endpwent ()
+T}	Thread safety	MT-Unsafe race:pwent locale
+.TE
+
+In the above table,
+.I pwent
+in
+.I race:pwent
+signifies that if any of the functions
+.BR setpwent (),
+.BR getpwent (),
+or
+.BR endpwent ()
+are used in parallel in different threads of a program,
+then data races could occur.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+The
+.I pw_gecos
+field is not specified in POSIX, but is present on most implementations.
+.SH SEE ALSO
+.BR fgetpwent (3),
+.BR getpw (3),
+.BR getpwent_r (3),
+.BR getpwnam (3),
+.BR getpwuid (3),
+.BR putpwent (3),
+.BR passwd (5)

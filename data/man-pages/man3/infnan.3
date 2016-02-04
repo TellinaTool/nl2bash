@@ -1,0 +1,91 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:11:11 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2004-11-12 as per suggestion by Fabian Kreutz/AEB
+.\"	to note that this function is not available in glibc2.
+.\"
+.TH INFNAN 3  1993-06-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+infnan \- deal with infinite or not-a-number (NaN) result
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "double infnan(int " error );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.SH DESCRIPTION
+The
+.BR infnan ()
+function returns a suitable value for infinity and
+"not-a-number" (NaN) results.
+The value of
+.I error
+can be
+.B ERANGE
+to represent infinity or anything else to represent NaN.
+.I errno
+is also set.
+.SH RETURN VALUE
+If
+.I error
+is
+.B ERANGE
+(Infinity),
+.B HUGE_VAL
+is returned.
+.PP
+If
+.I error
+is
+.RB \- ERANGE
+(\-Infinity),
+.RB \- HUGE_VAL
+is returned.
+.PP
+If
+.I error
+is anything else, NAN is returned.
+.SH ERRORS
+.TP
+.B EDOM
+The value of
+.I error
+is "not-a-number" (NaN).
+.TP
+.B ERANGE
+The value of
+.I error
+is positive infinity or negative infinity.
+.SH CONFORMING TO
+4.3BSD.
+.SH NOTES
+This obsolete function was provided in
+libc4 and libc5, but is not available in glibc2.

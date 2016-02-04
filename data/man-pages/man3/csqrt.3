@@ -1,0 +1,49 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.TH CSQRT 3 2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+csqrt, csqrtf, csqrtl \- complex square root
+.SH SYNOPSIS
+.B #include <complex.h>
+.sp
+.BI "double complex csqrt(double complex " z ");"
+.br
+.BI "float complex csqrtf(float complex " z ");"
+.br
+.BI "long double complex csqrtl(long double complex " z ");"
+.sp
+Link with \fI\-lm\fP.
+.SH DESCRIPTION
+These functions calculate the complex square root of
+.IR z ,
+with a branch cut along the negative real axis.
+(That means that \fIcsqrt(\-1+eps*I)\fP will be close to I while
+\fIcsqrt(\-1\-eps*I)\fP will be close to \-I, \fIif eps\fP is a small positive
+real number.)
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw27 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR csqrt (),
+.BR csqrtf (),
+.BR csqrtl ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+.SH SEE ALSO
+.BR cabs (3),
+.BR cexp (3),
+.BR complex (7)

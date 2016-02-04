@@ -1,0 +1,87 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification
+.\"     http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\" Modified Tue Oct 16 23:18:40 BST 2001 by John Levon <moz@compsoc.man.ac.uk>
+.TH FGETWS 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+fgetws \- read a wide-character string from a FILE stream
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "wchar_t *fgetws(wchar_t *" ws ", int " n ", FILE *" stream );
+.fi
+.SH DESCRIPTION
+The
+.BR fgetws ()
+function is the wide-character equivalent
+of the
+.BR fgets (3)
+function.
+It reads a string of at most \fIn\-1\fP wide characters into the
+wide-character array pointed to by \fIws\fP,
+and adds a terminating null wide character (L\(aq\\0\(aq).
+It stops reading wide characters after it has encountered and
+stored a newline wide character.
+It also stops when end of stream is reached.
+.PP
+The programmer must ensure that there is room for at least \fIn\fP wide
+characters at \fIws\fP.
+.PP
+For a nonlocking counterpart, see
+.BR unlocked_stdio (3).
+.SH RETURN VALUE
+The
+.BR fgetws ()
+function, if successful, returns \fIws\fP.
+If end of stream
+was already reached or if an error occurred, it returns NULL.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR fgetws ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR fgetws ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.PP
+In the absence of additional information passed to the
+.BR fopen (3)
+call, it is
+reasonable to expect that
+.BR fgetws ()
+will actually read a multibyte string
+from the stream and then convert it to a wide-character string.
+.PP
+This function is unreliable,
+because it does not permit to deal properly with
+null wide characters that may be present in the input.
+.SH SEE ALSO
+.BR fgetwc (3),
+.BR unlocked_stdio (3)

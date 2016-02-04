@@ -1,0 +1,73 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 2001-03-16 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 2004-05-27 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.TH STIME 2 2014-05-10 "Linux" "Linux Programmer's Manual"
+.SH NAME
+stime \- set time
+.SH SYNOPSIS
+.B #include <time.h>
+.sp
+.BI "int stime(const time_t *" t );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR stime ():
+_SVID_SOURCE
+.SH DESCRIPTION
+.BR stime ()
+sets the system's idea of the time and date.
+The time, pointed
+to by \fIt\fP, is measured in seconds since the
+Epoch, 1970-01-01 00:00:00 +0000 (UTC).
+.BR stime ()
+may be executed only by the superuser.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EFAULT
+Error in getting information from user space.
+.TP
+.B EPERM
+The calling process has insufficient privilege.
+Under Linux, the
+.B CAP_SYS_TIME
+privilege is required.
+.SH CONFORMING TO
+SVr4.
+.SH SEE ALSO
+.BR date (1),
+.BR settimeofday (2),
+.BR capabilities (7)

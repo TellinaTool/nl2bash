@@ -1,0 +1,657 @@
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" $Id: packet.7,v 1.13 2000/08/14 08:03:45 ak Exp $
+.\"
+.TH PACKET  7 2015-05-07 "Linux" "Linux Programmer's Manual"
+.SH NAME
+packet \- packet interface on device level
+.SH SYNOPSIS
+.nf
+.B #include <sys/socket.h>
+.br
+.B #include <linux/if_packet.h>
+.br
+.B #include <net/ethernet.h>     /* the L2 protocols */
+.sp
+.BI "packet_socket = socket(AF_PACKET, int " socket_type ", int "protocol );
+.fi
+.SH DESCRIPTION
+Packet sockets are used to receive or send raw packets at the device driver
+(OSI Layer 2) level.
+They allow the user to implement protocol modules in user space
+on top of the physical layer.
+
+The
+.I socket_type
+is either
+.B SOCK_RAW
+for raw packets including the link-level header or
+.B SOCK_DGRAM
+for cooked packets with the link-level header removed.
+The link-level header information is available in a common format in a
+.IR sockaddr_ll
+structure.
+.I protocol
+is the IEEE 802.3 protocol number in network byte order.
+See the
+.I <linux/if_ether.h>
+include file for a list of allowed protocols.
+When protocol
+is set to
+.BR htons(ETH_P_ALL) ,
+then all protocols are received.
+All incoming packets of that protocol type will be passed to the packet
+socket before they are passed to the protocols implemented in the kernel.
+
+Only processes with the
+.B CAP_NET_RAW
+capability may open packet sockets.
+
+.B SOCK_RAW
+packets are passed to and from the device driver without any changes in
+the packet data.
+When receiving a packet, the address is still parsed and
+passed in a standard
+.I sockaddr_ll
+address structure.
+When transmitting a packet, the user-supplied buffer
+should contain the physical-layer header.
+That packet is then
+queued unmodified to the network driver of the interface defined by the
+destination address.
+Some device drivers always add other headers.
+.B SOCK_RAW
+is similar to but not compatible with the obsolete
+.B AF_INET/SOCK_PACKET
+of Linux 2.0.
+
+.B SOCK_DGRAM
+operates on a slightly higher level.
+The physical header is removed before the packet is passed to the user.
+Packets sent through a
+.B SOCK_DGRAM
+packet socket get a suitable physical-layer header based on the
+information in the
+.I sockaddr_ll
+destination address before they are queued.
+
+By default, all packets of the specified protocol type
+are passed to a packet socket.
+To get packets only from a specific interface use
+.BR bind (2)
+specifying an address in a
+.I struct sockaddr_ll
+to bind the packet socket to an interface.
+Fields used for binding are
+.IR sll_family
+(should be
+.BR AF_PACKET ),
+.IR sll_protocol ,
+and
+.IR sll_ifindex .
+
+The
+.BR connect (2)
+operation is not supported on packet sockets.
+
+When the
+.B MSG_TRUNC
+flag is passed to
+.BR recvmsg (2),
+.BR recv (2),
+or
+.BR recvfrom (2),
+the real length of the packet on the wire is always returned,
+even when it is longer than the buffer.
+.SS Address types
+The
+.I sockaddr_ll
+structure is a device-independent physical-layer address.
+
+.in +4n
+.nf
+struct sockaddr_ll {
+    unsigned short sll_family;   /* Always AF_PACKET */
+    unsigned short sll_protocol; /* Physical-layer protocol */
+    int            sll_ifindex;  /* Interface number */
+    unsigned short sll_hatype;   /* ARP hardware type */
+    unsigned char  sll_pkttype;  /* Packet type */
+    unsigned char  sll_halen;    /* Length of address */
+    unsigned char  sll_addr[8];  /* Physical-layer address */
+};
+.fi
+.in
+
+The fields of this structure are as follows:
+.IP * 3
+.I sll_protocol
+is the standard ethernet protocol type in network byte order as defined
+in the
+.I <linux/if_ether.h>
+include file.
+It defaults to the socket's protocol.
+.IP *
+.I sll_ifindex
+is the interface index of the interface
+(see
+.BR netdevice (7));
+0 matches any interface (only permitted for binding).
+.I sll_hatype
+is an ARP type as defined in the
+.I <linux/if_arp.h>
+include file.
+.IP *
+.I sll_pkttype
+contains the packet type.
+Valid types are
+.B PACKET_HOST
+for a packet addressed to the local host,
+.B PACKET_BROADCAST
+for a physical-layer broadcast packet,
+.B PACKET_MULTICAST
+for a packet sent to a physical-layer multicast address,
+.B PACKET_OTHERHOST
+for a packet to some other host that has been caught by a device driver
+in promiscuous mode, and
+.B PACKET_OUTGOING
+for a packet originating from the local host that is looped back to a packet
+socket.
+These types make sense only for receiving.
+.IP *
+.I sll_addr
+and
+.I sll_halen
+contain the physical-layer (e.g., IEEE 802.3) address and its length.
+The exact interpretation depends on the device.
+.PP
+When you send packets, it is enough to specify
+.IR sll_family ,
+.IR sll_addr ,
+.IR sll_halen ,
+.IR sll_ifindex ,
+and
+.IR sll_protocol .
+The other fields should be 0.
+.I sll_hatype
+and
+.I sll_pkttype
+are set on received packets for your information.
+.SS Socket options
+Packet socket options are configured by calling
+.BR setsockopt (2)
+with level
+.BR SOL_PACKET .
+.TP
+.BR PACKET_ADD_MEMBERSHIP
+.PD 0
+.TP
+.BR PACKET_DROP_MEMBERSHIP
+.PD
+Packet sockets can be used to configure physical-layer multicasting
+and promiscuous mode.
+.B PACKET_ADD_MEMBERSHIP
+adds a binding and
+.B PACKET_DROP_MEMBERSHIP
+drops it.
+They both expect a
+.I packet_mreq
+structure as argument:
+
+.in +4n
+.nf
+struct packet_mreq {
+    int            mr_ifindex;    /* interface index */
+    unsigned short mr_type;       /* action */
+    unsigned short mr_alen;       /* address length */
+    unsigned char  mr_address[8]; /* physical-layer address */
+};
+.fi
+.in
+
+.I mr_ifindex
+contains the interface index for the interface whose status
+should be changed.
+The
+.I mr_type
+field specifies which action to perform.
+.B PACKET_MR_PROMISC
+enables receiving all packets on a shared medium (often known as
+"promiscuous mode"),
+.B PACKET_MR_MULTICAST
+binds the socket to the physical-layer multicast group specified in
+.I mr_address
+and
+.IR mr_alen ,
+and
+.B PACKET_MR_ALLMULTI
+sets the socket up to receive all multicast packets arriving at
+the interface.
+
+In addition, the traditional ioctls
+.BR SIOCSIFFLAGS ,
+.BR SIOCADDMULTI ,
+.B SIOCDELMULTI
+can be used for the same purpose.
+.TP
+.BR PACKET_AUXDATA " (since Linux 2.6.21)"
+.\" commit 8dc4194474159660d7f37c495e3fc3f10d0db8cc
+If this binary option is enabled, the packet socket passes a metadata
+structure along with each packet in the
+.BR recvmsg (2)
+control field.
+The structure can be read with
+.BR cmsg (3).
+It is defined as
+
+.in +4n
+.nf
+struct tpacket_auxdata {
+    __u32 tp_status;
+    __u32 tp_len;      /* packet length */
+    __u32 tp_snaplen;  /* captured length */
+    __u16 tp_mac;
+    __u16 tp_net;
+    __u16 tp_vlan_tci;
+    __u16 tp_padding;
+};
+.fi
+.in
+.TP
+.BR PACKET_FANOUT " (since Linux 3.1)"
+.\" commit dc99f600698dcac69b8f56dda9a8a00d645c5ffc
+To scale processing across threads, packet sockets can form a fanout
+group.
+In this mode, each matching packet is enqueued onto only one
+socket in the group.
+A socket joins a fanout group by calling
+.BR setsockopt (2)
+with level
+.B SOL_PACKET
+and option
+.BR PACKET_FANOUT .
+Each network namespace can have up to 65536 independent groups.
+A socket selects a group by encoding the ID in the first 16 bits of
+the integer option value.
+The first packet socket to join a group implicitly creates it.
+To successfully join an existing group, subsequent packet sockets
+must have the same protocol, device settings, fanout mode and
+flags (see below).
+Packet sockets can leave a fanout group only by closing the socket.
+The group is deleted when the last socket is closed.
+
+Fanout supports multiple algorithms to spread traffic between sockets,
+as follows:
+.RS
+.IP * 3
+The default mode,
+.BR PACKET_FANOUT_HASH ,
+sends packets from the same flow to the same socket to maintain
+per-flow ordering.
+For each packet, it chooses a socket by taking the packet flow hash
+modulo the number of sockets in the group, where a flow hash is a hash
+over network-layer address and optional transport-layer port fields.
+.IP *
+The load-balance mode
+.BR PACKET_FANOUT_LB
+implements a round-robin algorithm.
+.IP *
+.BR PACKET_FANOUT_CPU
+selects the socket based on the CPU that the packet arrived on.
+.IP *
+.BR PACKET_FANOUT_ROLLOVER
+processes all data on a single socket, moving to the next when one
+becomes backlogged.
+.IP *
+.BR PACKET_FANOUT_RND
+selects the socket using a pseudo-random number generator.
+.IP *
+.BR PACKET_FANOUT_QM
+.\" commit 2d36097d26b5991d71a2cf4a20c1a158f0f1bfcd
+(available since Linux 3.14)
+selects the socket using the recorded queue_mapping of the received skb.
+.RE
+.IP
+Fanout modes can take additional options.
+IP fragmentation causes packets from the same flow to have different
+flow hashes.
+The flag
+.BR PACKET_FANOUT_FLAG_DEFRAG ,
+if set, causes packets to be defragmented before fanout is applied, to
+preserve order even in this case.
+Fanout mode and options are communicated in the second 16 bits of the
+integer option value.
+The flag
+.BR PACKET_FANOUT_FLAG_ROLLOVER
+enables the roll over mechanism as a backup strategy: if the
+original fanout algorithm selects a backlogged socket, the packet
+rolls over to the next available one.
+.TP
+.BR PACKET_LOSS " (with " PACKET_TX_RING )
+When a malformed packet is encountered on a transmit ring,
+the default is to reset its
+.I tp_status
+to
+.BR TP_STATUS_WRONG_FORMAT
+and abort the transmission immediately.
+The malformed packet blocks itself and subsequently enqueued packets from
+being sent.
+The format error must be fixed, the associated
+.I tp_status
+reset to
+.BR TP_STATUS_SEND_REQUEST ,
+and the transmission process restarted via
+.BR send (2).
+However, if
+.BR PACKET_LOSS
+is set, any malformed packet will be skipped, its
+.I tp_status
+reset to
+.BR TP_STATUS_AVAILABLE ,
+and the transmission process continued.
+.TP
+.BR PACKET_RESERVE " (with " PACKET_RX_RING )
+By default, a packet receive ring writes packets immediately following the
+metadata structure and alignment padding.
+This integer option reserves additional headroom.
+.TP
+.BR PACKET_RX_RING
+Create a memory-mapped ring buffer for asynchronous packet reception.
+The packet socket reserves a contiguous region of application address
+space, lays it out into an array of packet slots and copies packets
+(up to
+.IR tp_snaplen )
+into subsequent slots.
+Each packet is preceded by a metadata structure similar to
+.IR tpacket_auxdata .
+The protocol fields encode the offset to the data
+from the start of the metadata header.
+.I tp_net
+stores the offset to the network layer.
+If the packet socket is of type
+.BR SOCK_DGRAM ,
+then
+.I tp_mac
+is the same.
+If it is of type
+.BR SOCK_RAW ,
+then that field stores the offset to the link-layer frame.
+Packet socket and application communicate the head and tail of the ring
+through the
+.I tp_status
+field.
+The packet socket owns all slots with
+.I tp_status
+equal to
+.BR TP_STATUS_KERNEL .
+After filling a slot, it changes the status of the slot to transfer
+ownership to the application.
+During normal operation, the new
+.I tp_status
+value has at least the
+.BR TP_STATUS_USER
+bit set to signal that a received packet has been stored.
+When the application has finished processing a packet, it transfers
+ownership of the slot back to the socket by setting
+.I tp_status
+equal to
+.BR TP_STATUS_KERNEL .
+
+Packet sockets implement multiple variants of the packet ring.
+The implementation details are described in
+.IR Documentation/networking/packet_mmap.txt
+in the Linux kernel source tree.
+.TP
+.BR PACKET_STATISTICS
+Retrieve packet socket statistics in the form of a structure
+
+.in +4n
+.nf
+struct tpacket_stats {
+    unsigned int tp_packets;  /* Total packet count */
+    unsigned int tp_drops;    /* Dropped packet count */
+};
+.fi
+.in
+
+Receiving statistics resets the internal counters.
+The statistics structure differs when using a ring of variant
+.BR TPACKET_V3 .
+.TP
+.BR PACKET_TIMESTAMP " (with " PACKET_RX_RING "; since Linux 2.6.36)"
+.\" commit 614f60fa9d73a9e8fdff3df83381907fea7c5649
+The packet receive ring always stores a timestamp in the metadata header.
+By default, this is a software generated timestamp generated when the
+packet is copied into the ring.
+This integer option selects the type of timestamp.
+Besides the default, it support the two hardware formats described in
+.IR Documentation/networking/timestamping.txt
+in the Linux kernel source tree.
+.TP
+.BR PACKET_TX_RING " (since Linux 2.6.31)"
+.\" commit 69e3c75f4d541a6eb151b3ef91f34033cb3ad6e1
+Create a memory-mapped ring buffer for packet transmission.
+This option is similar to
+.BR PACKET_RX_RING
+and takes the same arguments.
+The application writes packets into slots with
+.I tp_status
+equal to
+.BR TP_STATUS_AVAILABLE
+and schedules them for transmission by changing
+.I tp_status
+to
+.BR TP_STATUS_SEND_REQUEST .
+When packets are ready to be transmitted, the application calls
+.BR send (2)
+or a variant thereof.
+The
+.I buf
+and
+.I len
+fields of this call are ignored.
+If an address is passed using
+.BR sendto (2)
+or
+.BR sendmsg (2),
+then that overrides the socket default.
+On successful transmission, the socket resets
+.I tp_status
+to
+.BR TP_STATUS_AVAILABLE .
+It immediately aborts the transmission on error unless
+.BR PACKET_LOSS
+is set.
+.TP
+.BR PACKET_VERSION " (with " PACKET_RX_RING "; since Linux 2.6.27)"
+.\" commit bbd6ef87c544d88c30e4b762b1b61ef267a7d279
+By default,
+.BR PACKET_RX_RING
+creates a packet receive ring of variant
+.BR TPACKET_V1 .
+To create another variant, configure the desired variant by setting this
+integer option before creating the ring.
+.TP
+.BR PACKET_QDISC_BYPASS " (since Linux 3.14)"
+.\" commit d346a3fae3ff1d99f5d0c819bf86edf9094a26a1
+By default, packets sent through packet sockets pass through the kernel's
+qdisc (traffic control) layer, which is fine for the vast majority of use
+cases.
+For traffic generator appliances using packet sockets
+that intend to brute-force flood the network\(emfor example,
+to test devices under load in a similar
+fashion to pktgen\(emthis layer can be bypassed by setting
+this integer option to 1.
+A side effect is that packet buffering in the qdisc layer is avoided,
+which will lead to increased drops when network
+device transmit queues are busy;
+therefore, use at your own risk.
+.SS Ioctls
+.B SIOCGSTAMP
+can be used to receive the timestamp of the last received packet.
+Argument is a
+.I struct timeval
+variable.
+.\" FIXME Document SIOCGSTAMPNS
+
+In addition, all standard ioctls defined in
+.BR netdevice (7)
+and
+.BR socket (7)
+are valid on packet sockets.
+.SS Error handling
+Packet sockets do no error handling other than errors occurred
+while passing the packet to the device driver.
+They don't have the concept of a pending error.
+.SH ERRORS
+.TP
+.B EADDRNOTAVAIL
+Unknown multicast group address passed.
+.TP
+.B EFAULT
+User passed invalid memory address.
+.TP
+.B EINVAL
+Invalid argument.
+.TP
+.B EMSGSIZE
+Packet is bigger than interface MTU.
+.TP
+.B ENETDOWN
+Interface is not up.
+.TP
+.B ENOBUFS
+Not enough memory to allocate the packet.
+.TP
+.B ENODEV
+Unknown device name or interface index specified in interface address.
+.TP
+.B ENOENT
+No packet received.
+.TP
+.B ENOTCONN
+No interface address passed.
+.TP
+.B ENXIO
+Interface address contained an invalid interface index.
+.TP
+.B EPERM
+User has insufficient privileges to carry out this operation.
+.PP
+In addition, other errors may be generated by the low-level driver.
+.SH VERSIONS
+.B AF_PACKET
+is a new feature in Linux 2.2.
+Earlier Linux versions supported only
+.BR SOCK_PACKET .
+.PP
+.SH NOTES
+For portable programs it is suggested to use
+.B AF_PACKET
+via
+.BR pcap (3);
+although this covers only a subset of the
+.B AF_PACKET
+features.
+
+The
+.B SOCK_DGRAM
+packet sockets make no attempt to create or parse the IEEE 802.2 LLC
+header for a IEEE 802.3 frame.
+When
+.B ETH_P_802_3
+is specified as protocol for sending the kernel creates the
+802.3 frame and fills out the length field; the user has to supply the LLC
+header to get a fully conforming packet.
+Incoming 802.3 packets are not multiplexed on the DSAP/SSAP protocol
+fields; instead they are supplied to the user as protocol
+.B ETH_P_802_2
+with the LLC header prefixed.
+It is thus not possible to bind to
+.BR ETH_P_802_3 ;
+bind to
+.B ETH_P_802_2
+instead and do the protocol multiplex yourself.
+The default for sending is the standard Ethernet DIX
+encapsulation with the protocol filled in.
+
+Packet sockets are not subject to the input or output firewall chains.
+.SS Compatibility
+In Linux 2.0, the only way to get a packet socket was with the call:
+
+    socket(AF_INET, SOCK_PACKET, protocol)
+
+This is still supported, but deprecated and strongly discouraged.
+The main difference between the two methods is that
+.B SOCK_PACKET
+uses the old
+.I struct sockaddr_pkt
+to specify an interface, which doesn't provide physical-layer
+independence.
+
+.in +4n
+.nf
+struct sockaddr_pkt {
+    unsigned short spkt_family;
+    unsigned char  spkt_device[14];
+    unsigned short spkt_protocol;
+};
+.fi
+.in
+
+.I spkt_family
+contains
+the device type,
+.I spkt_protocol
+is the IEEE 802.3 protocol type as defined in
+.I <sys/if_ether.h>
+and
+.I spkt_device
+is the device name as a null-terminated string, for example, eth0.
+
+This structure is obsolete and should not be used in new code.
+.SH BUGS
+The IEEE 802.2/803.3 LLC handling could be considered as a bug.
+
+Socket filters are not documented.
+
+The
+.B MSG_TRUNC
+.BR recvmsg (2)
+extension is an ugly hack and should be replaced by a control message.
+There is currently no way to get the original destination address of
+packets via
+.BR SOCK_DGRAM .
+.\" .SH CREDITS
+.\" This man page was written by Andi Kleen with help from Matthew Wilcox.
+.\" AF_PACKET in Linux 2.2 was implemented
+.\" by Alexey Kuznetsov, based on code by Alan Cox and others.
+.SH SEE ALSO
+.BR socket (2),
+.BR pcap (3),
+.BR capabilities (7),
+.BR ip (7),
+.BR raw (7),
+.BR socket (7)
+
+RFC\ 894 for the standard IP Ethernet encapsulation.
+RFC\ 1700 for the IEEE 802.3 IP encapsulation.
+
+The
+.I <linux/if_ether.h>
+include file for physical-layer protocols.
+
+The Linux kernel source tree.
+.IR /Documentation/networking/filter.txt
+describes how to apply Berkeley Packet Filters to packet sockets.
+.IR /tools/testing/selftests/net/psock_tpacket.c
+contains example source code for all available versions of
+.BR PACKET_RX_RING
+and
+.BR PACKET_TX_RING .

@@ -1,0 +1,128 @@
+.\" Copyright (C) 2008 Michael Kerrisk <tmk.manpages@gmail.com>
+.\" and Copyright 2003 Abhijit Menon-Sen <ams@wiw.org>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2004-05-31, added tgkill, ahu, aeb
+.\" 2008-01-15 mtk -- rewrote DESCRIPTION
+.\"
+.TH TKILL 2 2014-12-31 "Linux" "Linux Programmer's Manual"
+.SH NAME
+tkill, tgkill \- send a signal to a thread
+.SH SYNOPSIS
+.nf
+.BI "int tkill(int " tid ", int " sig );
+.sp
+.BI "int tgkill(int " tgid ", int " tid ", int " sig );
+.fi
+
+.IR Note :
+There are no glibc wrappers for these system calls; see NOTES.
+.SH DESCRIPTION
+.BR tgkill ()
+sends the signal
+.I sig
+to the thread with the thread ID
+.I tid
+in the thread group
+.IR tgid .
+(By contrast,
+.BR kill (2)
+can be used to send a signal only to a process (i.e., thread group)
+as a whole, and the signal will be delivered to an arbitrary
+thread within that process.)
+
+.BR tkill ()
+is an obsolete predecessor to
+.BR tgkill ().
+It allows only the target thread ID to be specified,
+which may result in the wrong thread being signaled if a thread
+terminates and its thread ID is recycled.
+Avoid using this system call.
+.\" FIXME Maybe say something about the following:
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=12889
+.\"     Rich Felker <bugdal@aerifal.cx>
+.\"     There is a race condition in pthread_kill: it is possible that,
+.\"     between the time pthread_kill reads the pid/tid from the target
+.\"     thread descriptor and the time it makes the tgkill syscall,
+.\"     the target thread terminates and the same tid gets assigned
+.\"     to a new thread in the same process.
+.\"
+.\"     (The tgkill syscall was designed to eliminate a similar race
+.\"     condition in tkill, but it only succeeded in eliminating races
+.\"     where the tid gets reused in a different process, and does not
+.\"     help if the same tid gets assigned to a new thread in the
+.\"     same process.)
+.\"
+.\"     The only solution I can see is to introduce a mutex that ensures
+.\"     that a thread cannot exit while pthread_kill is being called on it.
+.\"
+.\"     Note that in most real-world situations, like almost all race
+.\"     conditions, this one will be extremely rare. To make it
+.\"     measurable, one could exhaust all but 1-2 available pid values,
+.\"     possibly by lowering the max pid parameter in /proc, forcing
+.\"     the same tid to be reused rapidly.
+
+These are the raw system call interfaces, meant for internal
+thread library use.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and \fIerrno\fP
+is set appropriately.
+.SH ERRORS
+.TP
+.B EINVAL
+An invalid thread ID, thread group ID, or signal was specified.
+.TP
+.B EPERM
+Permission denied.
+For the required permissions, see
+.BR kill (2).
+.TP
+.B ESRCH
+No process with the specified thread ID (and thread group ID) exists.
+.SH VERSIONS
+.BR tkill ()
+is supported since Linux 2.4.19 / 2.5.4.
+.BR tgkill ()
+was added in Linux 2.5.75.
+.SH CONFORMING TO
+.BR tkill ()
+and
+.BR tgkill ()
+are Linux-specific and should not be used
+in programs that are intended to be portable.
+.SH NOTES
+See the description of
+.B CLONE_THREAD
+in
+.BR clone (2)
+for an explanation of thread groups.
+
+Glibc does not provide wrappers for these system calls; call them using
+.BR syscall (2).
+.SH SEE ALSO
+.BR clone (2),
+.BR gettid (2),
+.BR kill (2),
+.BR rt_sigqueueinfo (2)

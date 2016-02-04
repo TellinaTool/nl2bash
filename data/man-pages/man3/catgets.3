@@ -1,0 +1,100 @@
+.\" Copyright 1993 Mitchum DSouza <m.dsouza@mrc-applied-psychology.cambridge.ac.uk>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Updated, aeb, 980809
+.TH CATGETS 3 2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+catgets \- get message from a message catalog
+.SH SYNOPSIS
+.nf
+.B #include <nl_types.h>
+
+.BI "char *catgets(nl_catd " catalog ", int " set_number \
+", int " message_number ,
+.BI "              const char *" message );
+.fi
+.SH DESCRIPTION
+.BR catgets ()
+reads the message
+.IR message_number ,
+in set
+.IR set_number ,
+from the message catalog identified by
+.IR catalog ,
+where
+.I catalog
+is a catalog descriptor returned from an earlier call to
+.BR catopen (3).
+The fourth argument,
+.IR message ,
+points to a default message string which will be returned by
+.BR catgets ()
+if the identified message catalog is not currently available.
+The
+message-text is contained in an internal buffer area and should be copied by
+the application if it is to be saved or modified.
+The return string is
+always terminated with a null byte (\(aq\\0\(aq).
+.SH RETURN VALUE
+.LP
+On success,
+.BR catgets ()
+returns a pointer to an internal buffer area
+containing the null-terminated message string.
+On failure,
+.BR catgets ()
+returns the value
+.IR message .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR catgets ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+The
+.BR catgets ()
+function is available only in libc.so.4.4.4c and above.
+The Jan 1987 X/Open Portability Guide specifies a more subtle
+error return:
+.I message
+is returned if the message catalog specified by
+.I catalog
+is not available, while an empty string is returned
+when the message catalog is available but does not contain
+the specified message.
+These two possible error returns seem to be discarded in SUSv2
+in favor of always returning
+.IR message .
+.SH SEE ALSO
+.BR catopen (3),
+.BR setlocale (3)

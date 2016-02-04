@@ -1,0 +1,243 @@
+.\" Copyright (c) 1999, 2000 SuSE GmbH Nuernberg, Germany
+.\" Author: Thorsten Kukuk <kukuk@suse.de>
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of the
+.\" License, or (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH NSCD.CONF 5 2014-02-07 "GNU" "Linux Programmer's Manual"
+.SH NAME
+nscd.conf \- name service cache daemon configuration file
+.SH DESCRIPTION
+The file
+.I /etc/nscd.conf
+is read from
+.BR nscd (8)
+at startup.
+Each line specifies either an attribute and a value, or an
+attribute, service, and a value.
+Fields are separated either by SPACE
+or TAB characters.
+A \(aq#\(aq (number sign) indicates the beginning of a
+comment; following characters, up to the end of the line,
+are not interpreted by nscd.
+
+Valid services are \fIpasswd\fP, \fIgroup\fP, \fIhosts\fP, \fIservices\fP,
+or \fInetgroup\fP.
+
+.B logfile
+.I debug-file-name
+.RS
+Specifies name of the file to which debug info should be written.
+.RE
+
+.B debug-level
+.I value
+.RS
+Sets the desired debug level.
+The default is 0.
+.RE
+
+.B threads
+.I number
+.RS
+This is the number of threads that are started to wait for
+requests.
+At least five threads will always be created.
+.RE
+
+.B max-threads
+.I number
+.RS
+Specifies the maximum number of threads.
+The default is 32.
+.RE
+
+.B server-user
+.I user
+.RS
+If this option is set, nscd will run as this user and not as root.
+If a separate cache for every user is used (\-S parameter), this
+option is ignored.
+.RE
+
+.B stat-user
+.I user
+.RS
+Specifies the user who is allowed to request statistics.
+.RE
+
+.B reload-count
+unlimited |
+.I number
+.RS
+Limit on the number of times a cached entry gets reloaded without being used
+before it gets removed.
+The default is 5.
+.RE
+
+.B paranoia
+.I <yes|no>
+.RS
+Enabling paranoia mode causes nscd to restart itself periodically.
+The default is no.
+.RE
+
+.B restart-interval
+.I time
+.RS
+Sets the restart interval to
+.I time
+seconds
+if periodic restart is enabled by enabling
+.B paranoia
+mode.
+The default is 3600.
+.RE
+
+.B enable-cache
+.I service
+.I <yes|no>
+.RS
+Enables or disables the specified
+.I service
+cache.
+The default is no.
+.RE
+
+.B positive-time-to-live
+.I service
+.I value
+.RS
+Sets the TTL (time-to-live) for positive entries (successful queries)
+in the specified cache for
+.IR service .
+.I Value
+is in seconds.
+Larger values increase cache hit rates and reduce mean
+response times, but increase problems with cache coherence.
+.RE
+
+.B negative-time-to-live
+.I service
+.I value
+.RS
+Sets the TTL (time-to-live) for negative entries (unsuccessful queries)
+in the specified cache for
+.IR service .
+.I Value
+is in seconds.
+Can result in significant performance improvements if there
+are several files owned by UIDs (user IDs) not in system databases (for
+example untarring the Linux kernel sources as root); should be kept small
+to reduce cache coherency problems.
+.RE
+
+.B suggested-size
+.I service
+.I value
+.RS
+This is the internal hash table size,
+.I value
+should remain a prime number for optimum efficiency.
+The default is 211.
+.RE
+
+.B check-files
+.I service
+.I <yes|no>
+.RS
+Enables or disables checking the file belonging to the specified
+.I service
+for changes.
+The files are
+.IR /etc/passwd ,
+.IR /etc/group ,
+.IR /etc/hosts ,
+.I /etc/services
+and
+.IR /etc/netgroup .
+The default is yes.
+.RE
+
+.B persistent
+.I service
+.I <yes|no>
+.RS
+Keep the content of the cache for
+.I service
+over server restarts; useful when
+.B paranoia
+mode is set.
+The default is no.
+.RE
+
+.B shared
+.I service
+.I <yes|no>
+.RS
+The memory mapping of the nscd databases for
+.I service
+is shared with the clients so
+that they can directly search in them instead of having to ask the
+daemon over the socket each time a lookup is performed.
+The default is no.
+.RE
+
+.B max-db-size
+.I service
+.I bytes
+.RS
+The maximum allowable size, in bytes, of the database files for the
+.IR service .
+The default is 33554432.
+.RE
+
+.B auto-propagate
+.I service
+.I <yes|no>
+.RS
+When set to
+.IR no
+for
+.I passwd
+or
+.I group
+service, then the
+.I .byname
+requests are not added to
+.IR passwd.byuid
+or
+.I group.bygid
+cache.
+This can help with tables containing multiple records for the same ID.
+The default is yes.
+This option is valid only for services
+.IR passwd
+and
+.IR group .
+.RE
+.SH NOTES
+The default values stated in this manual page originate
+from the source code of
+.BR nscd (8)
+and are used if not overridden in the configuration file.
+The default values used in the configuration file of
+your distribution might differ.
+.SH SEE ALSO
+.BR nscd (8)
+.\" .SH AUTHOR
+.\" .B nscd
+.\" was written by Thorsten Kukuk and Ulrich Drepper.

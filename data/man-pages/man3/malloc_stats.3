@@ -1,0 +1,79 @@
+'\" t
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH MALLOC_STATS 3  2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+malloc_stats \- print memory allocation statistics
+.SH SYNOPSIS
+.B #include <malloc.h>
+
+.B void malloc_stats(void);
+.SH DESCRIPTION
+The
+.BR malloc_stats ()
+function prints (on standard error) statistics about memory allocated by
+.BR malloc (3)
+and related functions.
+For each arena (allocation area), this function prints
+the total amount of memory allocated
+and the total number of bytes consumed by in-use allocations.
+(These two values correspond to the
+.I arena
+and
+.I uordblks
+fields retrieved by
+.BR mallinfo (3).)
+In addition,
+the function prints the sum of these two statistics for all arenas,
+and the maximum number of blocks and bytes that were ever simultaneously
+allocated using
+.BR mmap (2).
+.\" .SH VERSIONS
+.\" Available already in glibc 2.0, possibly earlier
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR malloc_stats ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+This function is a GNU extension.
+.SH NOTES
+More detailed information about memory allocations in the main arena
+can be obtained using
+.BR mallinfo (3).
+.SH SEE ALSO
+.BR mmap (2),
+.BR mallinfo (3),
+.BR malloc (3),
+.BR malloc_info (3),
+.BR mallopt (3)

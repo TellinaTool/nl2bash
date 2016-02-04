@@ -1,0 +1,84 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Text fragments inspired by Martin Schulze <joey@infodrom.org>.
+.\"
+.TH ASPRINTF 3 2015-04-19 "GNU" "Linux Programmer's Manual"
+.SH NAME
+asprintf, vasprintf \- print to allocated string
+.SH SYNOPSIS
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.br
+.B #include <stdio.h>
+.sp
+.BI "int asprintf(char **" strp ", const char *" fmt ", ...);"
+.sp
+.BI "int vasprintf(char **" strp ", const char *" fmt ", va_list " ap );
+.SH DESCRIPTION
+The functions
+.BR asprintf ()
+and
+.BR vasprintf ()
+are analogs of
+.BR sprintf (3)
+and
+.BR vsprintf (3),
+except that they allocate a string large enough to hold the output
+including the terminating null byte (\(aq\\0\(aq),
+and return a pointer to it via the first argument.
+This pointer should be passed to
+.BR free (3)
+to release the allocated storage when it is no longer needed.
+.SH RETURN VALUE
+When successful, these functions return the number of bytes printed,
+just like
+.BR sprintf (3).
+If memory allocation wasn't possible, or some other error occurs,
+these functions will return \-1, and the contents of
+.I strp
+are undefined.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw23 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR asprintf (),
+.BR vasprintf ()
+T}	Thread safety	MT-Safe locale
+.TE
+
+.SH CONFORMING TO
+These functions are GNU extensions, not in C or POSIX.
+They are also available under *BSD.
+The FreeBSD implementation sets
+.I strp
+to NULL on error.
+.SH SEE ALSO
+.BR free (3),
+.BR malloc (3),
+.BR printf (3)

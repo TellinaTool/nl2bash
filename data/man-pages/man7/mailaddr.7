@@ -1,0 +1,126 @@
+.\" Copyright (c) 1983, 1987 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\"	@(#)mailaddr.7	6.5 (Berkeley) 2/14/89
+.\"
+.\" Extensively rewritten by Arnt Gulbrandsen <agulbra@troll.no>.  My
+.\" changes are placed under the same copyright as the original BSD page.
+.\"
+.\" Adjusted by Arnt Gulbrandsen <arnt@gulbrandsen.priv.no> in 2004 to
+.\" account for changes since 1995. Route-addrs are now even less
+.\" common, etc. Some minor wording improvements. Same copyright.
+.\"
+.\" %%%LICENSE_START(PERMISSIVE_MISC)
+.\" Redistribution and use in source and binary forms are permitted
+.\" provided that the above copyright notice and this paragraph are
+.\" duplicated in all such forms and that any documentation,
+.\" advertising materials, and other materials related to such
+.\" distribution and use acknowledge that the software was developed
+.\" by the University of California, Berkeley.  The name of the
+.\" University may not be used to endorse or promote products derived
+.\" from this software without specific prior written permission.
+.\" THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+.\" WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+.\" %%%LICENSE_END
+.\"
+.TH MAILADDR 7 2004-09-15 "Linux" "Linux User's Manual"
+.UC 5
+.SH NAME
+mailaddr \- mail addressing description
+.SH DESCRIPTION
+.nh
+This manual page gives a brief introduction to SMTP mail addresses, as
+used on the Internet.
+These addresses are in the general format
+.PP
+	user@domain
+.PP
+where a domain is a hierarchical dot-separated list of subdomains.
+These examples are valid forms of the same address:
+.PP
+	eric@monet.berkeley.edu
+.br
+	Eric Allman <eric@monet.berkeley.edu>
+.br
+        eric@monet.berkeley.edu (Eric Allman)
+.PP
+The domain part ("monet.berkeley.edu") is a mail-accepting domain.
+It can be a host and in the past it usually was, but it doesn't have to be.
+The domain part is not case sensitive.
+.PP
+The local part ("eric") is often a username, but its meaning is
+defined by the local software.
+Sometimes it is case sensitive,
+although that is unusual.
+If you see a local-part that looks like
+garbage, it is usually because of a gateway between an internal e-mail
+system and the net, here are some examples:
+.PP
+	"surname/admd=telemail/c=us/o=hp/prmd=hp"@some.where
+.br
+	USER%SOMETHING@some.where
+.br
+	machine!machine!name@some.where
+.br
+	I2461572@some.where
+.PP
+(These are, respectively, an X.400 gateway, a gateway to an arbitrary
+internal mail system that lacks proper internet support, an UUCP
+gateway, and the last one is just boring username policy.)
+.PP
+The real-name part ("Eric Allman") can either be placed before
+<>, or in () at the end.
+(Strictly speaking the two aren't the same,
+but the difference is beyond the scope of this page.)
+The name may have to be quoted using "", for example, if it contains ".":
+.PP
+	"Eric P. Allman" <eric@monet.berkeley.edu>
+.SS Abbreviation.
+.PP
+Many mail systems let users abbreviate the domain name.
+For instance,
+users at berkeley.edu may get away with "eric@monet" to send mail to
+Eric Allman.
+.I "This behavior is deprecated."
+Sometimes it works, but you should not depend on it.
+.SS Route-addrs.
+.PP
+In the past, sometimes one had to route a message through
+several hosts to get it to its final destination.
+Addresses which
+show these relays are termed "route-addrs".
+These use the syntax:
+.PP
+	<@hosta,@hostb:user@hostc>
+.PP
+This specifies that the message should be sent to hosta, from there
+to hostb, and finally to hostc.
+Many hosts disregard route-addrs
+and send directly to hostc.
+.PP
+Route-addrs are very unusual now.
+They occur sometimes in old mail
+archives.
+It is generally possible to ignore all but the "user@hostc"
+part of the address to determine the actual address.
+.SS Postmaster.
+.PP
+Every site is required to have a user or user alias designated
+"postmaster" to which problems with the mail system may be
+addressed.
+The "postmaster" address is not case sensitive.
+.SH FILES
+.I /etc/aliases
+.br
+.I ~/.forward
+.SH SEE ALSO
+.BR binmail (1),
+.BR mail (1),
+.BR mconnect (1),
+.BR aliases (5),
+.BR forward (5),
+.BR sendmail (8),
+.BR vrfy (8)
+
+RFC\ 2822 (Internet Message Format)

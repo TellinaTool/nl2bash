@@ -1,0 +1,187 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"   Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Tue Jul  6 12:42:46 MDT 1993 <dminer@nyx.cs.du.edu>
+.\" Added "Calling Directly" and supporting paragraphs
+.\"
+.\" Modified Sat Jul 24 15:19:12 1993 by Rik Faith <faith@cs.unc.edu>
+.\"
+.\" Modified 21 Aug 1994 by Michael Chastain <mec@shell.portal.com>:
+.\"   Added explanation of arg stacking when 6 or more args.
+.\"
+.\" Modified 10 June 1995 by Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" 2007-10-23 mtk: created as a new page, by taking the content
+.\" specific to the _syscall() macros from intro(2).
+.\"
+.TH _SYSCALL 2 2007-12-19 "Linux" "Linux Programmer's Manual"
+.SH NAME
+_syscall \- invoking a system call without library support (OBSOLETE)
+.SH SYNOPSIS
+.B #include <linux/unistd.h>
+
+A _syscall macro
+
+desired system call
+.SH DESCRIPTION
+The important thing to know about a system call is its prototype.
+You need to know how many arguments, their types,
+and the function return type.
+There are seven macros that make the actual call into the system easier.
+They have the form:
+.sp
+.RS
+.RI _syscall X ( type , name , type1 , arg1 , type2 , arg2 ,...)
+.RE
+.PP
+where
+.IP
+.I X
+is 0\(en6, which are the number of arguments taken by the
+system call
+.IP
+.I type
+is the return type of the system call
+.IP
+.I name
+is the name of the system call
+.IP
+.I typeN
+is the Nth argument's type
+.IP
+.I argN
+is the name of the Nth argument
+.PP
+These macros create a function called
+.I name
+with the arguments you
+specify.
+Once you include the _syscall() in your source file,
+you call the system call by
+.IR name .
+.SH FILES
+.I /usr/include/linux/unistd.h
+.SH CONFORMING TO
+The use of these macros is Linux-specific, and deprecated.
+.SH NOTES
+Starting around kernel 2.6.18, the _syscall macros were removed
+from header files supplied to user space.
+Use
+.BR syscall (2)
+instead.
+(Some architectures, notably ia64, never provided the _syscall macros;
+on those architectures,
+.BR syscall (2)
+was always required.)
+
+The _syscall() macros
+.I "do not"
+produce a prototype.
+You may have to
+create one, especially for C++ users.
+
+System calls are not required to return only positive or negative error
+codes.
+You need to read the source to be sure how it will return errors.
+Usually, it is the negative of a standard error code,
+for example,
+.RI \- EPERM .
+The _syscall() macros will return the result
+.I r
+of the system call
+when
+.I r
+is nonnegative, but will return \-1 and set the variable
+.I errno
+to
+.RI \- r
+when
+.I r
+is negative.
+For the error codes, see
+.BR errno (3).
+
+When defining a system call, the argument types
+.I must
+be
+passed by-value or by-pointer (for aggregates like structs).
+.\" The preferred way to invoke system calls that glibc does not know
+.\" about yet is via
+.\" .BR syscall (2).
+.\" However, this mechanism can be used only if using a libc
+.\" (such as glibc) that supports
+.\" .BR syscall (2),
+.\" and if the
+.\" .I <sys/syscall.h>
+.\" header file contains the required SYS_foo definition.
+.\" Otherwise, the use of a _syscall macro is required.
+.\"
+.SH EXAMPLE
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <linux/unistd.h>       /* for _syscallX macros/related stuff */
+#include <linux/kernel.h>       /* for struct sysinfo */
+
+_syscall1(int, sysinfo, struct sysinfo *, info);
+
+/* Note: if you copy directly from the nroff source, remember to
+REMOVE the extra backslashes in the printf statement. */
+
+int
+main(void)
+{
+    struct sysinfo s_info;
+    int error;
+
+    error = sysinfo(&s_info);
+    printf("code error = %d\\n", error);
+    printf("Uptime = %lds\\nLoad: 1 min %lu / 5 min %lu / 15 min %lu\\n"
+           "RAM: total %lu / free %lu / shared %lu\\n"
+           "Memory in buffers = %lu\\nSwap: total %lu / free %lu\\n"
+           "Number of processes = %d\\n",
+           s_info.uptime, s_info.loads[0],
+           s_info.loads[1], s_info.loads[2],
+           s_info.totalram, s_info.freeram,
+           s_info.sharedram, s_info.bufferram,
+           s_info.totalswap, s_info.freeswap,
+           s_info.procs);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SS Sample output
+.nf
+code error = 0
+uptime = 502034s
+Load: 1 min 13376 / 5 min 5504 / 15 min 1152
+RAM: total 15343616 / free 827392 / shared 8237056
+Memory in buffers = 5066752
+Swap: total 27881472 / free 24698880
+Number of processes = 40
+.fi
+.SH SEE ALSO
+.BR intro (2),
+.BR syscall (2),
+.BR errno (3)

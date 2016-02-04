@@ -1,0 +1,146 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH MBTOWC 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+mbtowc \- convert a multibyte sequence to a wide character
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "int mbtowc(wchar_t *" pwc ", const char *" s ", size_t " n );
+.fi
+.SH DESCRIPTION
+The main case for this function is when
+.IR s
+is not NULL and
+.I pwc
+is
+not NULL.
+In this case, the
+.BR mbtowc ()
+function inspects at most
+.I n
+bytes of the multibyte string starting at
+.IR s ,
+extracts the next complete
+multibyte character, converts it to a wide character and stores it at
+.IR *pwc .
+It updates an internal shift state known only to the
+.BR mbtowc ()
+function.
+If
+.I s
+does not point to a null byte (\(aq\\0\(aq), it returns the number
+of bytes that were consumed from
+.IR s ,
+otherwise it returns 0.
+.PP
+If the
+.IR n
+bytes starting at
+.I s
+do not contain a complete multibyte
+character, or if they contain an invalid multibyte sequence,
+.BR mbtowc ()
+returns \-1.
+This can happen even if
+.I n
+>=
+.IR MB_CUR_MAX ,
+if the multibyte string contains redundant shift sequences.
+.PP
+A different case is when
+.IR s
+is not NULL but
+.I pwc
+is NULL.
+In this case, the
+.BR mbtowc ()
+function behaves as above, except that it does not
+store the converted wide character in memory.
+.PP
+A third case is when
+.I s
+is NULL.
+In this case,
+.IR pwc
+and
+.I n
+are
+ignored.
+The
+.BR mbtowc ()
+function
+.\" The Dinkumware doc and the Single UNIX specification say this, but
+.\" glibc doesn't implement this.
+resets the shift state, only known to this function,
+to the initial state, and
+returns nonzero if the encoding has nontrivial shift state, or zero if the
+encoding is stateless.
+.SH RETURN VALUE
+If
+.I s
+is not NULL, the
+.BR mbtowc ()
+function returns the number of
+consumed bytes starting at
+.IR s ,
+or 0 if
+.I s
+points to a null byte,
+or \-1 upon failure.
+.PP
+If
+.I s
+is NULL, the
+.BR mbtowc ()
+function
+returns nonzero if the encoding
+has nontrivial shift state, or zero if the encoding is stateless.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR mbtowc ()
+T}	Thread safety	MT-Unsafe race
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR mbtowc ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.PP
+This function is not multithread safe.
+The function
+.BR mbrtowc (3)
+provides
+a better interface to the same functionality.
+.SH SEE ALSO
+.BR MB_CUR_MAX (3),
+.BR mblen (3),
+.BR mbrtowc (3),
+.BR mbstowcs (3),
+.BR wctomb (3),
+.BR wcstombs (3)

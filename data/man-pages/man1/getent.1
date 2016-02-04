@@ -1,0 +1,399 @@
+.\" Copyright (c) 2011, Mark R. Bannister <cambridge@users.sourceforge.net>
+.\" Copyright (c) 2015, Robin H. Johnson <robbat2@gentoo.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH GETENT 1 2015-04-19 "Linux" "User Commands"
+.SH NAME
+getent \- get entries from Name Service Switch libraries
+.SH SYNOPSIS
+.BR getent\ [\fIoption\fP]...\ \fIdatabase\fP\ \fIkey\fP...
+.SH DESCRIPTION
+The
+.B getent
+command displays entries from databases supported by the
+Name Service Switch libraries,
+which are configured in
+.IR /etc/nsswitch.conf .
+If one or more
+.I key
+arguments are provided,
+then only the entries that match the supplied keys will be displayed.
+Otherwise, if no
+.I key
+is provided, all entries will be displayed (unless the database does not
+support enumeration).
+.LP
+The
+.I database
+may be any of those supported by the GNU C Library, listed below:
+.RS 3
+.TP 10
+.B ahosts
+When no
+.I key
+is provided, use
+.BR sethostent (3),
+.BR gethostent (3),
+and
+.BR endhostent (3)
+to enumerate the hosts database.
+This is identical to using
+.BR hosts .
+When one or more
+.I key
+arguments are provided, pass each
+.I key
+in succession to
+.BR getaddrinfo (3)
+with the address family
+.BR AF_UNSPEC ,
+enumerating each socket address structure returned.
+.TP
+.B ahostsv4
+Same as
+.BR ahosts ,
+but use the address family
+.BR AF_INET .
+.TP
+.B ahostsv6
+Same as
+.BR ahosts ,
+but use the address family
+.BR AF_INET6 .
+The call to
+.BR getaddrinfo (3)
+in this case includes the
+.B AI_V4MAPPED
+flag.
+.TP
+.B aliases
+When no
+.I key
+is provided, use
+.BR setaliasent (3),
+.BR getaliasent (3),
+and
+.BR endaliasent (3)
+to enumerate the aliases database.
+When one or more
+.I key
+arguments are provided, pass each
+.I key
+in succession to
+.BR getaliasbyname (3)
+and display the result.
+.TP
+.B ethers
+When one or more
+.I key
+arguments are provided, pass each
+.I key
+in succession to
+.BR ether_aton (3)
+and
+.BR ether_hostton (3)
+until a result is obtained, and display the result.
+Enumeration is not supported on
+.BR ethers ,
+so a
+.I key
+must be provided.
+.TP
+.B group
+When no
+.I key
+is provided, use
+.BR setgrent (3),
+.BR getgrent (3),
+and
+.BR endgrent (3)
+to enumerate the group database.
+When one or more
+.I key
+arguments are provided, pass each numeric
+.I key
+to
+.BR getgrgid (3)
+and each nonnumeric
+.I key
+to
+.BR getgrnam (3)
+and display the result.
+.TP
+.B gshadow
+When no
+.I key
+is provided, use
+.BR setsgent (3),
+.BR getsgent (3),
+and
+.BR endsgent (3)
+to enumerate the gshadow database.
+When one or more
+.I key
+arguments are provided, pass each
+.I key
+in succession to
+.BR getsgnam (3)
+and display the result.
+.TP
+.B hosts
+When no
+.I key
+is provided, use
+.BR sethostent (3),
+.BR gethostent (3),
+and
+.BR endhostent (3)
+to enumerate the hosts database.
+When one or more
+.I key
+arguments are provided, pass each
+.I key
+to
+.BR gethostbyaddr (3)
+or
+.BR gethostbyname2 (3),
+depending on whether a call to
+.BR inet_pton (3)
+indicates that the
+.I key
+is an IPv6 or IPv4 address or not, and display the result.
+.TP
+.B initgroups
+When one or more
+.I key
+arguments are provided, pass each
+.I key
+in succession to
+.BR getgrouplist (3)
+and display the result.
+Enumeration is not supported on
+.BR initgroups ,
+so a
+.I key
+must be provided.
+.TP
+.B netgroup
+When one
+.I key
+is provided, pass the
+.I key
+to
+.BR setnetgrent (3)
+and, using
+.BR getnetgrent (3)
+display the resulting string triple
+.RI ( hostname ", " username ", " domainname ).
+Alternatively, three
+.I keys
+may be provided, which are interpreted as the
+.IR hostname ,
+.I username
+and
+.I domainname
+to match to a netgroup name via
+.BR innetgr (3).
+Enumeration is not supported on
+.BR netgroup ,
+so either one or three
+.I keys
+must be provided.
+.TP
+.B networks
+When no
+.I key
+is provided, use
+.BR setnetent (3),
+.BR getnetent (3),
+and
+.BR endnetent (3)
+to enumerate the networks database.
+When one or more
+.I key
+arguments are provided, pass each numeric
+.I key
+to
+.BR getnetbyaddr (3)
+and each nonnumeric
+.I key
+to
+.BR getnetbyname (3)
+and display the result.
+.TP
+.B passwd
+When no
+.I key
+is provided, use
+.BR setpwent (3),
+.BR getpwent (3),
+and
+.BR endpwent (3)
+to enumerate the passwd database.
+When one or more
+.I key
+arguments are provided, pass each numeric
+.I key
+to
+.BR getpwuid (3)
+and each nonnumeric
+.I key
+to
+.BR getpwnam (3)
+and display the result.
+.TP
+.B protocols
+When no
+.I key
+is provided, use
+.BR setprotoent (3),
+.BR getprotoent (3),
+and
+.BR endprotoent (3)
+to enumerate the protocols database.
+When one or more
+.I key
+arguments are provided, pass each numeric
+.I key
+to
+.BR getprotobynumber (3)
+and each nonnumeric
+.I key
+to
+.BR getprotobyname (3)
+and display the result.
+.TP
+.B rpc
+When no
+.I key
+is provided, use
+.BR setrpcent (3),
+.BR getrpcent (3),
+and
+.BR endrpcent (3)
+to enumerate the rpc database.
+When one or more
+.I key
+arguments are provided, pass each numeric
+.I key
+to
+.BR getrpcbynumber (3)
+and each nonnumeric
+.I key
+to
+.BR getrpcbyname (3)
+and display the result.
+.TP
+.B services
+When no
+.I key
+is provided, use
+.BR setservent (3),
+.BR getservent (3),
+and
+.BR endservent (3)
+to enumerate the services database.
+When one or more
+.I key
+arguments are provided, pass each numeric
+.I key
+to
+.BR getservbynumber (3)
+and each nonnumeric
+.I key
+to
+.BR getservbyname (3)
+and display the result.
+.TP
+.B shadow
+When no
+.I key
+is provided, use
+.BR setspent (3),
+.BR getspent (3),
+and
+.BR endspent (3)
+to enumerate the shadow database.
+When one or more
+.I key
+arguments are provided, pass each
+.I key
+in succession to
+.BR getspnam (3)
+and display the result.
+.RE
+.SH OPTIONS
+.TP
+.BR \-s\ \fIservice\fP ", " \-\-service\ \fIservice\fP
+.\" commit 9d0881aa76b399e6a025c5cf44bebe2ae0efa8af (glibc)
+Override all databases with the specified service.
+(Since glibc 2.2.5.)
+.TP
+.BR \-s\ \fIdatabase\fP:\fIservice\fP ", "\
+\-\-service\ \fIdatabase\fP:\fIservice\fP
+.\" commit b4f6f4be85d32b9c03361c38376e36f08100e3e8 (glibc)
+Override only specified databases with the specified service.
+The option may be used multiple times,
+but only the last service for each database will be used.
+(Since glibc 2.4.)
+.TP
+.BR \-i ", " \-\-no\-idn
+.\" commit a160f8d808cf8020b13bd0ef4a9eaf3c11f964ad (glibc)
+Disables IDN encoding in lookups for
+.BR ahosts / getaddrinfo (3)
+(Since glibc-2.13.)
+.TP
+.BR \-? ", " \-\-help
+Print a usage summary and exit.
+.TP
+.B "\-\-usage"
+Print a short usage summary and exit.
+.TP
+.BR \-V ", " \-\-version
+Print the version number, license, and disclaimer of warranty for
+.BR getent .
+.SH EXIT STATUS
+One of the following exit values can be returned by
+.BR getent :
+.RS 3
+.TP 10
+.B 0
+Command completed successfully.
+.TP
+.B 1
+Missing arguments, or
+.I database
+unknown.
+.TP
+.B 2
+One or more supplied
+.I key
+could not be found in the
+.IR database .
+.TP
+.B 3
+Enumeration not supported on this
+.IR database .
+.RE
+.SH SEE ALSO
+.BR nsswitch.conf (5)

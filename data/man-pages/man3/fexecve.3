@@ -1,0 +1,180 @@
+.\" Copyright (c) 2006, 2014, Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH FEXECVE 3 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+fexecve \- execute program specified via file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.sp
+.BI "int fexecve(int " fd ", char *const " argv "[], char *const " envp []);
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR fexecve ():
+.PD 0
+.ad l
+.RS 4
+.TP 4
+Since glibc 2.10:
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP
+Before glibc 2.10:
+_GNU_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+.BR fexecve ()
+performs the same task as
+.BR execve (2),
+with the difference that the file to be executed
+is specified via a file descriptor,
+.IR fd ,
+rather than via a pathname.
+The file descriptor
+.I fd
+must be opened read-only,
+and the caller must have permission to execute the file that it refers to.
+.\" POSIX.1-2008 specifies the O_EXEC flag for open as an alternative,
+.\" but Linux doesn't support this flag yet.
+.SH RETURN VALUE
+A successful call to
+.BR fexecve ()
+never returns.
+On error, the function does return, with a result value of \-1, and
+.I errno
+is set appropriately.
+.SH ERRORS
+Errors are as for
+.BR execve (2),
+with the following additions:
+.TP
+.B EINVAL
+.I fd
+is not a valid file descriptor, or
+.I argv
+is NULL, or
+.I envp
+is NULL.
+.TP
+.B ENOSYS
+The
+.I /proc
+filesystem could not be accessed.
+.SH VERSIONS
+.BR fexecve ()
+is implemented since glibc 2.3.2.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR fexecve ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2008.
+This function is not specified in POSIX.1-2001,
+and is not widely available on other systems.
+It is specified in POSIX.1-2008.
+.SH NOTES
+On Linux,
+.BR fexecve ()
+is implemented using the
+.BR proc (5)
+filesystem, so
+.I /proc
+needs to be mounted and available at the time of the call.
+.\" FIXME .
+.\" With the addition of the execveat(2), fexecve() can be implemented
+.\" even where /proc is unavailable. Review future glibc releases to
+.\" see if the implementation is changed to use execveat(2).
+
+The idea behind
+.BR fexecve ()
+is to allow the caller to verify (checksum) the contents of
+an executable before executing it.
+Simply opening the file, checksumming the contents, and then doing an
+.BR execve (2)
+would not suffice, since, between the two steps, the filename,
+or a directory prefix of the pathname, could have been exchanged
+(by, for example, modifying the target of a symbolic link).
+.BR fexecve ()
+does not mitigate the problem that the
+.I contents
+of a file could be changed between the checksumming and the call to
+.BR fexecve ();
+for that, the solution is to ensure that the permissions on the file
+prevent it from being modified by malicious users.
+
+The natural idiom when using
+.BR fexecve ()
+is to set the close-on-exec flag on
+.IR fd ,
+so that the file descriptor does not leak through to the program
+that is executed.
+This approach is natural for two reasons.
+First, it prevents file descriptors being consumed unnecessarily.
+(The executed program normally has no need of a file descriptor
+that refers to the program itself.)
+Second, if
+.BR fexecve ()
+is used recursively,
+employing the close-on-exec flag prevents the file descriptor exhaustion
+that would result from the fact that each step in the recursion would
+cause one more file descriptor to be passed to the new program.
+(But see BUGS.)
+.SH BUGS
+If
+.I fd
+refers to a script (i.e., it is an executable text file that names
+a script interpreter with a first line that begins with the characters
+.IR #! )
+and the close-on-exec flag has been set for
+.IR fd ,
+then
+.BR fexecve ()
+fails with the error
+.BR ENOENT .
+This error occurs because,
+by the time the script interpreter is executed,
+.I fd
+has already been closed because of the close-on-exec flag.
+Thus, the close-on-exec flag can't be set on
+.I fd
+if it refers to a script, leading to the problems described in NOTES.
+.SH SEE ALSO
+.BR execve (2),
+.BR execveat (2)

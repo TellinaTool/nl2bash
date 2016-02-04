@@ -1,0 +1,5533 @@
+.\" Copyright (C) 1994, 1995 by Daniel Quinlan (quinlan@yggdrasil.com)
+.\" and Copyright (C) 2002-2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" with networking additions from Alan Cox (A.Cox@swansea.ac.uk)
+.\" and scsi additions from Michael Neuffer (neuffer@mail.uni-mainz.de)
+.\" and sysctl additions from Andries Brouwer (aeb@cwi.nl)
+.\" and System V IPC (as well as various other) additions from
+.\" Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1995-05-17 by faith@cs.unc.edu
+.\" Minor changes by aeb and Marty Leisner (leisner@sdsp.mc.xerox.com).
+.\" Modified 1996-04-13, 1996-07-22 by aeb@cwi.nl
+.\" Modified 2001-12-16 by rwhron@earthlink.net
+.\" Modified 2002-07-13 by jbelton@shaw.ca
+.\" Modified 2002-07-22, 2003-05-27, 2004-04-06, 2004-05-25
+.\"    by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2004-11-17, mtk -- updated notes on /proc/loadavg
+.\" 2004-12-01, mtk, rtsig-max and rtsig-nr went away in 2.6.8
+.\" 2004-12-14, mtk, updated 'statm', and fixed error in order of list
+.\" 2005-05-12, mtk, updated 'stat'
+.\" 2005-07-13, mtk, added /proc/sys/fs/mqueue/*
+.\" 2005-09-16, mtk, Added /proc/sys/fs/suid_dumpable
+.\" 2005-09-19, mtk, added /proc/zoneinfo
+.\" 2005-03-01, mtk, moved /proc/sys/fs/mqueue/* material to mq_overview.7.
+.\" 2008-06-05, mtk, Added /proc/[pid]/oom_score, /proc/[pid]/oom_adj,
+.\"     /proc/[pid]/limits, /proc/[pid]/mountinfo, /proc/[pid]/mountstats,
+.\"     and /proc/[pid]/fdinfo/*.
+.\" 2008-06-19, mtk, Documented /proc/[pid]/status.
+.\" 2008-07-15, mtk, added /proc/config.gz
+.\"
+.\" FIXME . cross check against Documentation/filesystems/proc.txt
+.\" to see what information could be imported from that file
+.\" into this file.
+.\"
+.TH PROC 5 2015-12-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+proc \- process information pseudo-filesystem
+.SH DESCRIPTION
+The
+.I proc
+filesystem is a pseudo-filesystem which provides an interface to
+kernel data structures.
+It is commonly mounted at
+.IR /proc .
+Most of it is read-only, but some files allow kernel variables to be
+changed.
+.SS Mount options
+The
+.I proc
+filesystem supports the following mount options:
+.TP
+.BR hidepid "=\fIn\fP (since Linux 3.3)"
+.\" commit 0499680a42141d86417a8fbaa8c8db806bea1201
+This option controls who can access the information in
+.IR /proc/[pid]
+directories.
+The argument,
+.IR n ,
+is one of the following values:
+.RS
+.TP 4
+0
+Everybody may access all
+.IR /proc/[pid]
+directories.
+This is the traditional behavior,
+and the default if this mount option is not specified.
+.TP
+1
+Users may not access files and subdirectories inside any
+.IR /proc/[pid]
+directories but their own (the
+.IR /proc/[pid]
+directories themselves remain visible).
+Sensitive files such as
+.IR /proc/[pid]/cmdline
+and
+.IR /proc/[pid]/status
+are now protected against other users.
+This makes it impossible to learn whether any user is running a
+specific program
+(so long as the program doesn't otherwise reveal itself by its behavior).
+.\" As an additional bonus, since
+.\" .IR /proc/[pid]/cmdline
+.\" is unaccessible for other users,
+.\" poorly written programs passing sensitive information via
+.\" program arguments are now protected against local eavesdroppers.
+.TP
+2
+As for mode 1, but in addition the
+.IR /proc/[pid]
+directories belonging to other users become invisible.
+This means that
+.IR /proc/[pid]
+entries can no longer be used to discover the PIDs on the system.
+This doesn't hide the fact that a process with a specific PID value exists
+(it can be learned by other means, for example, by "kill -0 $PID"),
+but it hides a process's UID and GID,
+which could otherwise be learned by employing
+.BR stat (2)
+on a
+.IR /proc/[pid]
+directory.
+This greatly complicates an attacker's task of gathering
+information about running processes (e.g., discovering whether
+some daemon is running with elevated privileges,
+whether another user is running some sensitive program,
+whether other users are running any program at all, and so on).
+.RE
+.TP
+.BR gid "=\fIgid\fP (since Linux 3.3)"
+.\" commit 0499680a42141d86417a8fbaa8c8db806bea1201
+Specifies the ID of a group whose members are authorized to
+learn process information otherwise prohibited by
+.BR hidepid
+(ie/e/, users in this group behave as though
+.I /proc
+was mounted with
+.IR hidepid=0 .
+This group should be used instead of approaches such as putting
+nonroot users into the
+.BR sudoers (5)
+file.
+.SS Files and directories
+The following list describes many of the files and directories under the
+.I /proc
+hierarchy.
+.PD 1
+.TP
+.I /proc/[pid]
+There is a numerical subdirectory for each running process; the
+subdirectory is named by the process ID.
+Each such subdirectory contains the following
+pseudo-files and directories.
+.TP
+.I /proc/[pid]/attr
+.\" https://lwn.net/Articles/28222/
+.\" From:    Stephen Smalley <sds@epoch.ncsc.mil>
+.\" To:	     LKML and others
+.\" Subject: [RFC][PATCH] Process Attribute API for Security Modules
+.\" Date:    08 Apr 2003 16:17:52 -0400
+.\"
+.\"	http://www.nsa.gov/research/_files/selinux/papers/module/x362.shtml
+.\"
+The files in this directory provide an API for security modules.
+The contents of this directory are files that can be read and written
+in order to set security-related attributes.
+This directory was added to support SELinux,
+but the intention was that the API be general enough to support
+other security modules.
+For the purpose of explanation,
+examples of how SELinux uses these files are provided below.
+
+This directory is present only if the kernel was configured with
+.BR CONFIG_SECURITY .
+.TP
+.IR /proc/[pid]/attr/current " (since Linux 2.6.0)"
+The contents of this file represent the current
+security attributes of the process.
+
+In SELinux, this file is used to get the security context of a process.
+Prior to Linux 2.6.11, this file could not be used to set the security
+context (a write was always denied), since SELinux limited process security
+transitions to
+.BR execve (2)
+(see the description of
+.IR /proc/[pid]/attr/exec ,
+below).
+Since Linux 2.6.11, SELinux lifted this restriction and began supporting
+"set" operations via writes to this node if authorized by policy,
+although use of this operation is only suitable for applications that are
+trusted to maintain any desired separation between the old and new security
+contexts.
+Prior to Linux 2.6.28, SELinux did not allow threads within a
+multi-threaded process to set their security context via this node
+as it would yield an inconsistency among the security contexts of the
+threads sharing the same memory space.
+Since Linux 2.6.28, SELinux lifted
+this restriction and began supporting "set" operations for threads within
+a multithreaded process if the new security context is bounded by the old
+security context, where the bounded relation is defined in policy and
+guarantees that the new security context has a subset of the permissions
+of the old security context.
+Other security modules may choose to support "set" operations via
+writes to this node.
+.TP
+.IR /proc/[pid]/attr/exec " (since Linux 2.6.0)"
+This file represents the attributes to assign to the
+process upon a subsequent
+.BR execve (2).
+
+In SELinux,
+this is needed to support role/domain transitions, and
+.BR execve (2)
+is the preferred point to make such transitions because it offers better
+control over the initialization of the process in the new security label
+and the inheritance of state.
+In SELinux, this attribute is reset on
+.BR execve (2)
+so that the new program reverts to the default behavior for any
+.BR execve (2)
+calls that it may make.
+In SELinux, a process can set
+only its own
+.I /proc/[pid]/attr/exec
+attribute.
+.TP
+.IR /proc/[pid]/attr/fscreate " (since Linux 2.6.0)"
+This file represents the attributes to assign to files
+created by subsequent calls to
+.BR open (2),
+.BR mkdir (2),
+.BR symlink (2),
+and
+.BR mknod (2)
+
+SELinux employs this file to support creation of a file
+(using the aforementioned system calls)
+in a secure state,
+so that there is no risk of inappropriate access being obtained
+between the time of creation and the time that attributes are set.
+In SELinux, this attribute is reset on
+.BR execve (2),
+so that the new program reverts to the default behavior for
+any file creation calls it may make, but the attribute will persist
+across multiple file creation calls within a program unless it is
+explicitly reset.
+In SELinux, a process can set only its own
+.IR /proc/[pid]/attr/fscreate
+attribute.
+.TP
+.IR /proc/[pid]/attr/prev " (since Linux 2.6.0)"
+This file contains the security context of the process before the last
+.BR execve (2);
+that is, the previous value of
+.IR /proc/[pid]/attr/current .
+.TP
+.IR /proc/[pid]/attr/keycreate " (since Linux 2.6.18)"
+.\" commit 4eb582cf1fbd7b9e5f466e3718a59c957e75254e
+.\" /Documentation/keys.txt
+If a process writes a security context into this file,
+all subsequently created keys
+.RB ( add_key (2))
+will be labeled with this context.
+For further information, see the kernel source file
+.IR Documentation/keys.txt .
+.TP
+.IR /proc/[pid]/attr/socketcreate " (since Linux 2.6.18)"
+.\" commit 42c3e03ef6b298813557cdb997bd6db619cd65a2
+If a process writes a security context into this file,
+all subsequently created sockets will be labeled with this context.
+.\"
+.\" FIXME Describe /proc/[pid]/autogroup
+.\"	2.6.38
+.\"	commit 5091faa449ee0b7d73bc296a93bca9540fc51d0a
+.\" 	CONFIG_SCHED_AUTOGROUP
+.\"
+.TP
+.IR /proc/[pid]/auxv " (since 2.6.0-test7)"
+This contains the contents of the ELF interpreter information passed
+to the process at exec time.
+The format is one \fIunsigned long\fP ID
+plus one \fIunsigned long\fP value for each entry.
+The last entry contains two zeros.
+See also
+.BR getauxval (3).
+.TP
+.IR /proc/[pid]/cgroup " (since Linux 2.6.24)"
+.\" 	  Info in Documentation/cgroups/cgroups.txt
+This file describes control groups to which the process/task belongs.
+For each cgroup hierarchy there is one entry containing
+colon-separated fields of the form:
+.nf
+.ft CW
+
+    5:cpuacct,cpu,cpuset:/daemons
+.ft
+.fi
+.IP
+The colon-separated fields are, from left to right:
+.RS 11
+.IP 1. 3
+hierarchy ID number
+.IP 2.
+set of subsystems bound to the hierarchy
+.IP 3.
+control group in the hierarchy to which the process belongs
+.RE
+.IP
+This file is present only if the
+.B CONFIG_CGROUPS
+kernel configuration option is enabled.
+.TP
+.IR /proc/[pid]/clear_refs " (since Linux 2.6.22)"
+.\" commit b813e931b4c8235bb42e301096ea97dbdee3e8fe (2.6.22)
+.\" commit 398499d5f3613c47f2143b8c54a04efb5d7a6da9 (2.6.32)
+.\" commit 040fa02077de01c7e08fa75be6125e4ca5636011 (3.11)
+.\"
+.\"       "Clears page referenced bits shown in smaps output"
+.\"       write-only, writable only by the owner of the process
+
+This is a write-only file, writable only by owner of the process.
+
+The following values may be written to the file:
+.RS
+.TP
+1 (since Linux 2.6.22)
+.\" Internally: CLEAR_REFS_ALL
+Reset the PG_Referenced and ACCESSED/YOUNG
+bits for all the pages associated with the process.
+(Before kernel 2.6.32, writing any nonzero value to this file
+had this effect.)
+.TP
+2 (since Linux 2.6.32)
+.\" Internally: CLEAR_REFS_ANON
+Reset the PG_Referenced and ACCESSED/YOUNG
+bits for all anonymous pages associated with the process.
+.TP
+3 (since Linux 2.6.32)
+.\" Internally: CLEAR_REFS_MAPPED
+Reset the PG_Referenced and ACCESSED/YOUNG
+bits for all file-mapped pages associated with the process.
+.RE
+.IP
+Clearing the PG_Referenced and ACCESSED/YOUNG bits provides a method
+to measure approximately how much memory a process is using.
+One first inspects the values in the "Referenced" fields
+for the VMAs shown in
+.IR /proc/[pid]/smaps
+to get an idea of the memory footprint of the
+process.
+One then clears the PG_Referenced and ACCESSED/YOUNG bits
+and, after some measured time interval,
+once again inspects the values in the "Referenced" fields
+to get an idea of the change in memory footprint of the
+process during the measured interval.
+If one is interested only in inspecting the selected mapping types,
+then the value 2 or 3 can be used instead of 1.
+
+A further value can be written to affect a different bit:
+.RS
+.TP
+4 (since Linux 3.11)
+Clear the soft-dirty bit for all the pages associated with the process.
+.\" Internally: CLEAR_REFS_SOFT_DIRTY
+This is used (in conjunction with
+.IR /proc/[pid]/pagemap )
+by the check-point restore system to discover which pages of a process
+have been dirtied since the file
+.IR /proc/[pid]/clear_refs
+was written to.
+.RE
+.IP
+Writing any value to
+.IR /proc/[pid]/clear_refs
+other than those listed above has no effect.
+
+The
+.IR /proc/[pid]/clear_refs
+file is present only if the
+.B CONFIG_PROC_PAGE_MONITOR
+kernel configuration option is enabled.
+.TP
+.I /proc/[pid]/cmdline
+This read-only file holds the complete command line for the process,
+unless the process is a zombie.
+.\" In 2.3.26, this also used to be true if the process was swapped out.
+In the latter case, there is nothing in this file:
+that is, a read on this file will return 0 characters.
+The command-line arguments appear in this file as a set of
+strings separated by null bytes (\(aq\\0\(aq),
+with a further null byte after the last string.
+.TP
+.IR /proc/[pid]/comm " (since Linux 2.6.33)"
+.\" commit 4614a696bd1c3a9af3a08f0e5874830a85b889d4
+This file exposes the process's
+.I comm
+value\(emthat is, the command name associated with the process.
+Different threads in the same process may have different
+.I comm
+values, accessible via
+.IR /proc/[pid]/task/[tid]/comm .
+A thread may modify its
+.I comm
+value, or that of any of other thread in the same thread group (see
+the discussion of
+.B CLONE_THREAD
+in
+.BR clone (2)),
+by writing to the file
+.IR /proc/self/task/[tid]/comm .
+Strings longer than
+.B TASK_COMM_LEN
+(16) characters are silently truncated.
+
+This file provides a superset of the
+.BR prctl (2)
+.B PR_SET_NAME
+and
+.B PR_GET_NAME
+operations, and is employed by
+.BR pthread_setname_np (3)
+when used to rename threads other than the caller.
+.TP
+.IR /proc/[pid]/coredump_filter " (since Linux 2.6.23)"
+See
+.BR core (5).
+.TP
+.IR /proc/[pid]/cpuset " (since Linux 2.6.12)"
+.\" and/proc/[pid]/task/[tid]/cpuset
+See
+.BR cpuset (7).
+.TP
+.I /proc/[pid]/cwd
+This is a symbolic link to the current working directory of the process.
+To find out the current working directory of process 20,
+for instance, you can do this:
+
+.in +4n
+.nf
+.RB "$" " cd /proc/20/cwd; /bin/pwd"
+.fi
+.in
+
+Note that the
+.I pwd
+command is often a shell built-in, and might
+not work properly.
+In
+.BR bash (1),
+you may use
+.IR "pwd\ \-P" .
+
+.\" The following was still true as at kernel 2.6.13
+In a multithreaded process, the contents of this symbolic link
+are not available if the main thread has already terminated
+(typically by calling
+.BR pthread_exit (3)).
+.TP
+.I /proc/[pid]/environ
+This file contains the environment for the process.
+The entries are separated by null bytes (\(aq\\0\(aq),
+and there may be a null byte at the end.
+Thus, to print out the environment of process 1, you would do:
+.in +4n
+.nf
+
+.ft CW
+.RB "$" " strings /proc/1/environ"
+.fi
+.ft P
+.in
+.TP
+.I /proc/[pid]/exe
+Under Linux 2.2 and later, this file is a symbolic link
+containing the actual pathname of the executed command.
+This symbolic link can be dereferenced normally; attempting to open
+it will open the executable.
+You can even type
+.I /proc/[pid]/exe
+to run another copy of the same executable that is being run by
+process [pid].
+If the pathname has been unlinked, the symbolic link will contain the
+string \(aq(deleted)\(aq appended to the original pathname.
+.\" The following was still true as at kernel 2.6.13
+In a multithreaded process, the contents of this symbolic link
+are not available if the main thread has already terminated
+(typically by calling
+.BR pthread_exit (3)).
+
+Under Linux 2.0 and earlier,
+.I /proc/[pid]/exe
+is a pointer to the binary which was executed,
+and appears as a symbolic link.
+A
+.BR readlink (2)
+call on this file under Linux 2.0 returns a string in the format:
+
+    [device]:inode
+
+For example, [0301]:1502 would be inode 1502 on device major 03 (IDE,
+MFM, etc. drives) minor 01 (first partition on the first drive).
+
+.BR find (1)
+with the
+.I \-inum
+option can be used to locate the file.
+.TP
+.I /proc/[pid]/fd/
+This is a subdirectory containing one entry for each file which the
+process has open, named by its file descriptor, and which is a
+symbolic link to the actual file.
+Thus, 0 is standard input, 1 standard output, 2 standard error, and so on.
+
+For file descriptors for pipes and sockets,
+the entries will be symbolic links whose content is the
+file type with the inode.
+A
+.BR readlink (2)
+call on this file returns a string in the format:
+
+    type:[inode]
+
+For example,
+.I socket:[2248868]
+will be a socket and its inode is 2248868.
+For sockets, that inode can be used to find more information
+in one of the files under
+.IR /proc/net/ .
+
+For file descriptors that have no corresponding inode
+(e.g., file descriptors produced by
+.BR epoll_create (2),
+.BR eventfd (2),
+.BR inotify_init (2),
+.BR signalfd (2),
+and
+.BR timerfd (2)),
+the entry will be a symbolic link with contents of the form
+
+    anon_inode:<file-type>
+
+In some cases, the
+.I file-type
+is surrounded by square brackets.
+
+For example, an epoll file descriptor will have a symbolic link
+whose content is the string
+.IR "anon_inode:[eventpoll]" .
+
+.\"The following was still true as at kernel 2.6.13
+In a multithreaded process, the contents of this directory
+are not available if the main thread has already terminated
+(typically by calling
+.BR pthread_exit (3)).
+
+Programs that will take a filename as a command-line argument,
+but will not take input from standard input if no argument is supplied,
+or that write to a file named as a command-line argument,
+but will not send their output to standard output
+if no argument is supplied, can nevertheless be made to use
+standard input or standard out using
+.IR /proc/[pid]/fd .
+For example, assuming that
+.I \-i
+is the flag designating an input file and
+.I \-o
+is the flag designating an output file:
+.in +4n
+.nf
+
+.RB "$" " foobar \-i /proc/self/fd/0 \-o /proc/self/fd/1 ..."
+.fi
+.in
+
+and you have a working filter.
+.\" The following is not true in my tests (MTK):
+.\" Note that this will not work for
+.\" programs that seek on their files, as the files in the fd directory
+.\" are not seekable.
+
+.I /proc/self/fd/N
+is approximately the same as
+.I /dev/fd/N
+in some UNIX and UNIX-like systems.
+Most Linux MAKEDEV scripts symbolically link
+.I /dev/fd
+to
+.IR /proc/self/fd ,
+in fact.
+
+Most systems provide symbolic links
+.IR /dev/stdin ,
+.IR /dev/stdout ,
+and
+.IR /dev/stderr ,
+which respectively link to the files
+.IR 0 ,
+.IR 1 ,
+and
+.IR 2
+in
+.IR /proc/self/fd .
+Thus the example command above could be written as:
+.in +4n
+.nf
+
+.RB "$" " foobar \-i /dev/stdin \-o /dev/stdout ..."
+.fi
+.in
+.\" FIXME Describe /proc/[pid]/loginuid
+.\"       Added in 2.6.11; updating requires CAP_AUDIT_CONTROL
+.\"       CONFIG_AUDITSYSCALL
+.TP
+.IR /proc/[pid]/fdinfo/ " (since Linux 2.6.22)"
+This is a subdirectory containing one entry for each file which the
+process has open, named by its file descriptor.
+The files in this directory are readable only by the owner of the process.
+The contents of each file can be read to obtain information
+about the corresponding file descriptor.
+The content depends on the type of file referred to by the
+corresponding file descriptor.
+
+For regular files and directories, we see something like:
+.in +4n
+.nf
+
+.RB "$" " cat /proc/12015/fdinfo/4"
+pos:    1000
+flags:  01002002
+mnt_id: 21
+.fi
+.in
+
+The
+.I pos
+field is a decimal number showing the file offset.
+The
+.I flags
+field is an octal number that displays the
+file access mode and file status flags (see
+.BR open (2)).
+The
+.I mnt_id
+field, present since Linux 3.15,
+.\" commit 49d063cb353265c3af701bab215ac438ca7df36d
+is the ID of the mount point containing this file.
+See the description of
+.IR /proc/[pid]/mountinfo .
+
+For eventfd file descriptors (see
+.BR eventfd (2)),
+we see the following fields:
+
+.in +4n
+.nf
+pos:	0
+flags:	02
+mnt_id:	10
+eventfd-count:               40
+.fi
+.in
+
+.I eventfd-count
+is the current value of the eventfd counter, in hexadecimal.
+
+For epoll file descriptors (see
+.BR epoll (7)),
+we see the following fields:
+
+.in +4n
+.nf
+pos:	0
+flags:	02
+mnt_id:	10
+tfd:        9 events:       19 data: 74253d2500000009
+tfd:        7 events:       19 data: 74253d2500000007
+.fi
+.in
+
+Each of the lines beginning
+.I tfd
+describes one of the file descriptors being monitored via
+the epoll file descriptor (see
+.BR epoll_ctl (2)
+for some details).
+The
+.IR tfd
+field is the number of the file descriptor.
+The
+.I events
+field is a hexadecimal mask of the events being monitored for this file
+descriptor.
+The
+.I data
+field is the data value associated with this file descriptor.
+
+For signalfd file descriptors (see
+.BR signalfd (2)),
+we see the following fields:
+
+.in +4n
+.nf
+pos:	0
+flags:	02
+mnt_id:	10
+sigmask:	0000000000000006
+.fi
+.in
+
+.I sigmask
+is the hexadecimal mask of signals that are accepted via this
+signalfd file descriptor.
+(In this example, bits 2 and 3 are set, corresponding to the signals
+.B SIGINT
+and
+.BR SIGQUIT ;
+see
+.BR signal (7).)
+.\" FIXME
+.\" Certain file types include additional info; see
+.\" Documentation/filesystems/proc.txt
+.\"
+.\" Especially interesting is this:
+.\"
+.\"     commit ab49bdecc3ebb46ab661f5f05d5c5ea9606406c6
+.\"     Author: Cyrill Gorcunov <gorcunov@openvz.org>
+.\"     Date:   Mon Dec 17 16:05:06 2012 -0800
+.\"
+.\" Basically, the /proc/PID/fdinfo/ entry for an inotify FD
+.\" includes the file handles for all watched FDs
+.\"
+.TP
+.IR /proc/[pid]/io " (since kernel 2.6.20)"
+.\" commit 7c3ab7381e79dfc7db14a67c6f4f3285664e1ec2
+This file contains I/O statistics for the process, for example:
+.in +4n
+.nf
+
+.RB "#" " cat /proc/3828/io"
+rchar: 323934931
+wchar: 323929600
+syscr: 632687
+syscw: 632675
+read_bytes: 0
+write_bytes: 323932160
+cancelled_write_bytes: 0
+.fi
+.in
+
+The fields are as follows:
+.RS
+.TP
+.IR rchar ": characters read"
+The number of bytes which this task has caused to be read from storage.
+This is simply the sum of bytes which this process passed to
+.BR read (2)
+and similar system calls.
+It includes things such as terminal I/O and
+is unaffected by whether or not actual
+physical disk I/O was required (the read might have been satisfied from
+pagecache).
+.TP
+.IR wchar ": characters written"
+The number of bytes which this task has caused, or shall cause to be written
+to disk.
+Similar caveats apply here as with
+.IR rchar .
+.TP
+.IR syscr ": read syscalls"
+Attempt to count the number of read I/O operations\(emthat is,
+system calls such as
+.BR read (2)
+and
+.BR pread (2).
+.TP
+.IR syscw ": write syscalls"
+Attempt to count the number of write I/O operations\(emthat is,
+system calls such as
+.BR write (2)
+and
+.BR pwrite (2).
+.TP
+.IR read_bytes ": bytes read"
+Attempt to count the number of bytes which this process really did cause to
+be fetched from the storage layer.
+This is accurate for block-backed filesystems.
+.TP
+.IR write_bytes ": bytes written"
+Attempt to count the number of bytes which this process caused to be sent to
+the storage layer.
+.TP
+.IR cancelled_write_bytes :
+The big inaccuracy here is truncate.
+If a process writes 1MB to a file and then deletes the file,
+it will in fact perform no writeout.
+But it will have been accounted as having caused 1MB of write.
+In other words: this field represents the number of bytes which this process
+caused to not happen, by truncating pagecache.
+A task can cause "negative" I/O too.
+If this task truncates some dirty pagecache,
+some I/O which another task has been accounted for
+(in its
+.IR write_bytes )
+will not be happening.
+.RE
+.IP
+.IR Note :
+In the current implementation, things are a bit racy on 32-bit systems:
+if process A reads process B's
+.I /proc/[pid]/io
+while process B is updating one of these 64-bit counters,
+process A could see an intermediate result.
+.TP
+.IR /proc/[pid]/gid_map " (since Linux 3.5)"
+See
+.BR user_namespaces (7).
+.TP
+.IR /proc/[pid]/limits " (since Linux 2.6.24)"
+This file displays the soft limit, hard limit, and units of measurement
+for each of the process's resource limits (see
+.BR getrlimit (2)).
+Up to and including Linux 2.6.35,
+this file is protected to allow reading only by the real UID of the process.
+Since Linux 2.6.36,
+.\" commit 3036e7b490bf7878c6dae952eec5fb87b1106589
+this file is readable by all users on the system.
+.TP
+.IR /proc/[pid]/map_files/ " (since kernel 3.3)
+.\" commit 640708a2cff7f81e246243b0073c66e6ece7e53e
+This subdirectory contains entries corresponding to memory-mapped
+files (see
+.BR mmap (2)).
+Entries are named by memory region start and end
+address pair (expressed as hexadecimal numbers),
+and are symbolic links to the mapped files themselves.
+Here is an example, with the output wrapped and reformatted to fit on an 80-column display:
+.in +4n
+.nf
+
+.RB "#" " ls -l /proc/self/map_files/"
+lr\-\-\-\-\-\-\-\-. 1 root root 64 Apr 16 21:31
+            3252e00000\-3252e20000 \-> /usr/lib64/ld-2.15.so
+\&...
+.fi
+.in
+
+Although these entries are present for memory regions that were
+mapped with the
+.BR MAP_FILE
+flag, the way anonymous shared memory (regions created with the
+.B MAP_ANON | MAP_SHARED
+flags)
+is implemented in Linux
+means that such regions also appear on this directory.
+Here is an example where the target file is the deleted
+.I /dev/zero
+one:
+.in +4n
+.nf
+
+lrw\-\-\-\-\-\-\-. 1 root root 64 Apr 16 21:33
+            7fc075d2f000\-7fc075e6f000 \-> /dev/zero (deleted)
+.fi
+.in
+
+This directory appears only if the
+.B CONFIG_CHECKPOINT_RESTORE
+kernel configuration option is enabled.
+Privilege
+.RB ( CAP_SYS_ADMIN )
+.\" FIXME
+.\" This may change. See the mail thread
+.\" [RFC][PATCH v2] procfs: Always expose /proc/<pid>/map_files/ and make it readable
+.\" from Jan 2015
+is required to view the contents of this directory.
+.TP
+.I /proc/[pid]/maps
+A file containing the currently mapped memory regions and their access
+permissions.
+See
+.BR mmap (2)
+for some further information about memory mappings.
+
+The format of the file is:
+
+.in -7n
+.nf
+.ft CW
+.ft
+.I "address           perms offset  dev   inode       pathname"
+00400000-00452000 r-xp 00000000 08:02 173521      /usr/bin/dbus-daemon
+00651000-00652000 r--p 00051000 08:02 173521      /usr/bin/dbus-daemon
+00652000-00655000 rw-p 00052000 08:02 173521      /usr/bin/dbus-daemon
+00e03000-00e24000 rw-p 00000000 00:00 0           [heap]
+00e24000-011f7000 rw-p 00000000 00:00 0           [heap]
+\&...
+35b1800000-35b1820000 r-xp 00000000 08:02 135522  /usr/lib64/ld-2.15.so
+35b1a1f000-35b1a20000 r--p 0001f000 08:02 135522  /usr/lib64/ld-2.15.so
+35b1a20000-35b1a21000 rw-p 00020000 08:02 135522  /usr/lib64/ld-2.15.so
+35b1a21000-35b1a22000 rw-p 00000000 00:00 0
+35b1c00000-35b1dac000 r-xp 00000000 08:02 135870  /usr/lib64/libc-2.15.so
+35b1dac000-35b1fac000 ---p 001ac000 08:02 135870  /usr/lib64/libc-2.15.so
+35b1fac000-35b1fb0000 r--p 001ac000 08:02 135870  /usr/lib64/libc-2.15.so
+35b1fb0000-35b1fb2000 rw-p 001b0000 08:02 135870  /usr/lib64/libc-2.15.so
+\&...
+f2c6ff8c000-7f2c7078c000 rw-p 00000000 00:00 0    [stack:986]
+\&...
+7fffb2c0d000-7fffb2c2e000 rw-p 00000000 00:00 0   [stack]
+7fffb2d48000-7fffb2d49000 r-xp 00000000 00:00 0   [vdso]
+.fi
+.in
+
+The
+.I address
+field is the address space in the process that the mapping occupies.
+The
+.I perms
+field is a set of permissions:
+
+.nf
+.in +5
+r = read
+w = write
+x = execute
+s = shared
+p = private (copy on write)
+.fi
+.in
+
+The
+.I offset
+field is the offset into the file/whatever;
+.I dev
+is the device
+(major:minor);
+.I inode
+is the inode on that device.
+0 indicates that no inode is associated with the memory region,
+as would be the case with BSS (uninitialized data).
+
+The
+.I pathname
+field will usually be the file that is backing the mapping.
+For ELF files,
+you can easily coordinate with the
+.I offset
+field by looking at the
+Offset field in the ELF program headers
+.RI ( "readelf\ \-l" ).
+
+There are additional helpful pseudo-paths:
+.RS 12
+.TP
+.IR [stack]
+The initial process's (also known as the main thread's) stack.
+.TP
+.IR [stack:<tid>] " (since Linux 3.4)"
+.\" commit b76437579d1344b612cf1851ae610c636cec7db0
+A thread's stack (where the
+.IR <tid>
+is a thread ID).
+It corresponds to the
+.IR /proc/[pid]/task/[tid]/
+path.
+.TP
+.IR [vdso]
+The virtual dynamically linked shared object.
+.TP
+.IR [heap]
+The process's heap.
+.in
+.RE
+.IP
+If the
+.I pathname
+field is blank,
+this is an anonymous mapping as obtained via the
+.BR mmap (2)
+function.
+There is no easy way to coordinate this back to a process's source,
+short of running it through
+.BR gdb (1),
+.BR strace (1),
+or similar.
+
+Under Linux 2.0, there is no field giving pathname.
+.TP
+.I /proc/[pid]/mem
+This file can be used to access the pages of a process's memory through
+.BR open (2),
+.BR read (2),
+and
+.BR lseek (2).
+.TP
+.IR /proc/[pid]/mountinfo " (since Linux 2.6.26)"
+.\" This info adapted from Documentation/filesystems/proc.txt
+This file contains information about mount points.
+It contains lines of the form:
+.nf
+.ft CW
+
+36 35 98:0 /mnt1 /mnt2 rw,noatime master:1 - ext3 /dev/root rw,errors=continue
+(1)(2)(3)   (4)   (5)      (6)      (7)   (8) (9)   (10)         (11)
+.ft
+.fi
+.IP
+The numbers in parentheses are labels for the descriptions below:
+.RS 7
+.TP 5
+(1)
+mount ID: unique identifier of the mount (may be reused after
+.BR umount (2)).
+.TP
+(2)
+parent ID: ID of parent mount (or of self for the top of the mount tree).
+.TP
+(3)
+major:minor: value of
+.I st_dev
+for files on filesystem (see
+.BR stat (2)).
+.TP
+(4)
+root: root of the mount within the filesystem.
+.TP
+(5)
+mount point: mount point relative to the process's root.
+.TP
+(6)
+mount options: per-mount options.
+.TP
+(7)
+optional fields: zero or more fields of the form "tag[:value]".
+.TP
+(8)
+separator: marks the end of the optional fields.
+.TP
+(9)
+filesystem type: name of filesystem in the form "type[.subtype]".
+.TP
+(10)
+mount source: filesystem-specific information or "none".
+.TP
+(11)
+super options: per-superblock options.
+.RE
+.IP
+Parsers should ignore all unrecognized optional fields.
+Currently, the possible optional fields are:
+.RS 12
+.TP 18
+shared:X
+mount is shared in peer group X
+.TP
+master:X
+mount is slave to peer group X
+.TP
+propagate_from:X
+mount is slave and receives propagation from peer group X (*)
+.TP
+unbindable
+mount is unbindable
+.RE
+.IP
+(*) X is the closest dominant peer group under the process's root.
+If X is the immediate master of the mount,
+or if there is no dominant peer group under the same root,
+then only the "master:X" field is present
+and not the "propagate_from:X" field.
+
+For more information on mount propagation see:
+.I Documentation/filesystems/sharedsubtree.txt
+in the Linux kernel source tree.
+.TP
+.IR /proc/[pid]/mounts " (since Linux 2.4.19)"
+This is a list of all the filesystems currently mounted in the
+process's mount namespace.
+The format of this file is documented in
+.BR fstab (5).
+Since kernel version 2.6.15, this file is pollable:
+after opening the file for reading, a change in this file
+(i.e., a filesystem mount or unmount) causes
+.BR select (2)
+to mark the file descriptor as readable, and
+.BR poll (2)
+and
+.BR epoll_wait (2)
+mark the file as having an error condition.
+See
+.BR namespaces (7)
+for more information.
+.TP
+.IR /proc/[pid]/mountstats " (since Linux 2.6.17)"
+This file exports information (statistics, configuration information)
+about the mount points in the process's mount namespace.
+Lines in this file have the form:
+.nf
+
+device /dev/sda7 mounted on /home with fstype ext3 [statistics]
+(       1      )            ( 2 )             (3 ) (4)
+.fi
+.IP
+The fields in each line are:
+.RS 7
+.TP 5
+(1)
+The name of the mounted device
+(or "nodevice" if there is no corresponding device).
+.TP
+(2)
+The mount point within the filesystem tree.
+.TP
+(3)
+The filesystem type.
+.TP
+(4)
+Optional statistics and configuration information.
+Currently (as at Linux 2.6.26), only NFS filesystems export
+information via this field.
+.RE
+.IP
+This file is readable only by the owner of the process.
+
+See
+.BR namespaces (7)
+for more information.
+.TP
+.IR /proc/[pid]/ns/ " (since Linux 3.0)"
+.\" See commit 6b4e306aa3dc94a0545eb9279475b1ab6209a31f
+This is a subdirectory containing one entry for each namespace that
+supports being manipulated by
+.BR setns (2).
+For more information, see
+.BR namespaces (7).
+.TP
+.IR /proc/[pid]/numa_maps " (since Linux 2.6.14)"
+See
+.BR numa (7).
+.TP
+.IR /proc/[pid]/oom_adj " (since Linux 2.6.11)"
+This file can be used to adjust the score used to select which process
+should be killed in an out-of-memory (OOM) situation.
+The kernel uses this value for a bit-shift operation of the process's
+.IR oom_score
+value:
+valid values are in the range \-16 to +15,
+plus the special value \-17,
+which disables OOM-killing altogether for this process.
+A positive score increases the likelihood of this
+process being killed by the OOM-killer;
+a negative score decreases the likelihood.
+.IP
+The default value for this file is 0;
+a new process inherits its parent's
+.I oom_adj
+setting.
+A process must be privileged
+.RB ( CAP_SYS_RESOURCE )
+to update this file.
+.IP
+Since Linux 2.6.36, use of this file is deprecated in favor of
+.IR /proc/[pid]/oom_score_adj .
+.TP
+.IR /proc/[pid]/oom_score " (since Linux 2.6.11)"
+.\" See mm/oom_kill.c::badness() in the 2.6.25 sources
+This file displays the current score that the kernel gives to
+this process for the purpose of selecting a process
+for the OOM-killer.
+A higher score means that the process is more likely to be
+selected by the OOM-killer.
+The basis for this score is the amount of memory used by the process,
+with increases (+) or decreases (\-) for factors including:
+.\" See mm/oom_kill.c::badness() in the 2.6.25 sources
+.RS
+.IP * 2
+whether the process creates a lot of children using
+.BR fork (2)
+(+);
+.IP *
+whether the process has been running a long time,
+or has used a lot of CPU time (\-);
+.IP *
+whether the process has a low nice value (i.e., > 0) (+);
+.IP *
+whether the process is privileged (\-); and
+.\" More precisely, if it has CAP_SYS_ADMIN or CAP_SYS_RESOURCE
+.IP *
+whether the process is making direct hardware access (\-).
+.\" More precisely, if it has CAP_SYS_RAWIO
+.RE
+.IP
+The
+.I oom_score
+also reflects the adjustment specified by the
+.I oom_score_adj
+or
+.I oom_adj
+setting for the process.
+.TP
+.IR /proc/[pid]/oom_score_adj " (since Linux 2.6.36)"
+.\" Text taken from 3.7 Documentation/filesystems/proc.txt
+This file can be used to adjust the badness heuristic used to select which
+process gets killed in out-of-memory conditions.
+
+The badness heuristic assigns a value to each candidate task ranging from 0
+(never kill) to 1000 (always kill) to determine which process is targeted.
+The units are roughly a proportion along that range of
+allowed memory the process may allocate from,
+based on an estimation of its current memory and swap use.
+For example, if a task is using all allowed memory,
+its badness score will be 1000.
+If it is using half of its allowed memory, its score will be 500.
+
+There is an additional factor included in the badness score: root
+processes are given 3% extra memory over other tasks.
+
+The amount of "allowed" memory depends on the context
+in which the OOM-killer was called.
+If it is due to the memory assigned to the allocating task's cpuset
+being exhausted,
+the allowed memory represents the set of mems assigned to that
+cpuset (see
+.BR cpuset (7)).
+If it is due to a mempolicy's node(s) being exhausted,
+the allowed memory represents the set of mempolicy nodes.
+If it is due to a memory limit (or swap limit) being reached,
+the allowed memory is that configured limit.
+Finally, if it is due to the entire system being out of memory, the
+allowed memory represents all allocatable resources.
+
+The value of
+.I oom_score_adj
+is added to the badness score before it
+is used to determine which task to kill.
+Acceptable values range from \-1000
+(OOM_SCORE_ADJ_MIN) to +1000 (OOM_SCORE_ADJ_MAX).
+This allows user space to control the preference for OOM-killing,
+ranging from always preferring a certain
+task or completely disabling it from OOM killing.
+The lowest possible value, \-1000, is
+equivalent to disabling OOM-killing entirely for that task,
+since it will always report a badness score of 0.
+
+Consequently, it is very simple for user space to define
+the amount of memory to consider for each task.
+Setting a
+.I oom_score_adj
+value of +500, for example,
+is roughly equivalent to allowing the remainder of tasks sharing the
+same system, cpuset, mempolicy, or memory controller resources
+to use at least 50% more memory.
+A value of \-500, on the other hand, would be roughly
+equivalent to discounting 50% of the task's
+allowed memory from being considered as scoring against the task.
+
+For backward compatibility with previous kernels,
+.I /proc/[pid]/oom_adj
+can still be used to tune the badness score.
+Its value is
+scaled linearly with
+.IR oom_score_adj .
+
+Writing to
+.IR /proc/[pid]/oom_score_adj
+or
+.IR /proc/[pid]/oom_adj
+will change the other with its scaled value.
+.TP
+.IR /proc/[pid]/pagemap " (since Linux 2.6.25)"
+This file shows the mapping of each of the process's virtual pages
+into physical page frames or swap area.
+It contains one 64-bit value for each virtual page,
+with the bits set as follows:
+.RS 12
+.TP
+63
+If set, the page is present in RAM.
+.TP
+62
+If set, the page is in swap space
+.TP
+61 (since Linux 3.5)
+The page is a file-mapped page or a shared anonymous page.
+.TP
+60-56 (since Linux 3.11)
+Zero
+.\" Not quite true; see commit 541c237c0923f567c9c4cabb8a81635baadc713f
+.TP
+55 (Since Linux 3.11)
+PTE is soft-dirty
+(see the kernel source file
+.IR Documentation/vm/soft-dirty.txt ).
+.TP
+54-0
+If the page is present in RAM (bit 63), then these bits
+provide the page frame number, which can be used to index
+.IR /proc/kpageflags
+and
+.IR /proc/kpagecount .
+If the page is present in swap (bit 62),
+then bits 4-0 give the swap type, and bits 54-5 encode the swap offset.
+.RE
+.IP
+Before Linux 3.11, bits 60-55 were
+used to encode the base-2 log of the page size.
+.IP
+To employ
+.IR /proc/[pid]/pagemap
+efficiently, use
+.IR /proc/[pid]/maps
+to determine which areas of memory are actually mapped and seek
+to skip over unmapped regions.
+.IP
+The
+.IR /proc/[pid]/pagemap
+file is present only if the
+.B CONFIG_PROC_PAGE_MONITOR
+kernel configuration option is enabled.
+.TP
+.IR /proc/[pid]/personality " (since Linux 2.6.28)"
+.\" commit 478307230810d7e2a753ed220db9066dfdf88718
+This read-only file exposes the process's execution domain, as set by
+.BR personality (2).
+The value is displayed in hexadecimal notation.
+.TP
+.I /proc/[pid]/root
+UNIX and Linux support the idea of a per-process root of the
+filesystem, set by the
+.BR chroot (2)
+system call.
+This file is a symbolic link that points to the process's
+root directory, and behaves in the same way as
+.IR exe ,
+and
+.IR fd/* .
+
+.\" The following was still true as at kernel 2.6.13
+In a multithreaded process, the contents of this symbolic link
+are not available if the main thread has already terminated
+(typically by calling
+.BR pthread_exit (3)).
+.\" FIXME Describe /proc/[pid]/projid_map
+.\"       Added in 3.7, commit f76d207a66c3a53defea67e7d36c3eb1b7d6d61d
+.\" FIXME Describe /proc/[pid]/seccomp
+.\"       Added in 2.6.12
+.\"
+.\" FIXME Describe /proc/[pid]/sessionid
+.\"       Added in 2.6.25; read-only; only readable by real UID
+.\"	  commit 1e0bd7550ea9cf474b1ad4c6ff5729a507f75fdc
+.\"       CONFIG_AUDITSYSCALL
+.\"
+.\" FIXME Describe /proc/[pid]/sched
+.\"       Added in 2.6.23
+.\"       CONFIG_SCHED_DEBUG, and additional fields if CONFIG_SCHEDSTATS
+.\"       Displays various scheduling parameters
+.\"       This file can be written, to reset stats
+.\"       The set of fields exposed by this file have changed
+.\"	  significantly over time.
+.\"       commit 43ae34cb4cd650d1eb4460a8253a8e747ba052ac
+.\"
+.\" FIXME Describe /proc/[pid]/schedstats and
+.\"       /proc/[pid]/task/[tid]/schedstats
+.\"       Added in 2.6.9
+.\"       CONFIG_SCHEDSTATS
+.TP
+.IR /proc/[pid]/seccomp " (from Linux 2.6.12 to 2.6.22)"
+Read/set the seccomp mode for the process.
+If this file contains the value zero, seccomp mode is not enabled.
+Writing the value 1 to this file (irreversibly) places the process in
+seccomp mode: the only permitted system calls are
+.BR read (2),
+.BR write (2),
+.BR _exit (2),
+and
+.BR sigreturn (2).
+This file went away in Linux 2.6.23,
+.\" commit 1d9d02feeee89e9132034d504c9a45eeaf618a3d
+when it was replaced by a
+.BR prctl (2)-based
+mechanism.
+.TP
+.IR /proc/[pid]/setgroups " (since Linux 3.19)"
+See
+.BR user_namespaces (7).
+.TP
+.IR /proc/[pid]/smaps " (since Linux 2.6.14)"
+This file shows memory consumption for each of the process's mappings.
+(The
+.BR pmap (1)
+command displays similar information,
+in a form that may be easier for parsing.)
+For each mapping there is a series of lines such as the following:
+.in +4n
+.nf
+
+00400000-0048a000 r-xp 00000000 fd:03 960637       /bin/bash
+Size:                552 kB
+Rss:                 460 kB
+Pss:                 100 kB
+Shared_Clean:        452 kB
+Shared_Dirty:          0 kB
+Private_Clean:         8 kB
+Private_Dirty:         0 kB
+Referenced:          460 kB
+Anonymous:             0 kB
+AnonHugePages:         0 kB
+Swap:                  0 kB
+KernelPageSize:        4 kB
+MMUPageSize:           4 kB
+Locked:                0 kB
+
+.fi
+.in
+The first of these lines shows the same information as is displayed
+for the mapping in
+.IR /proc/[pid]/maps .
+The remaining lines show the size of the mapping,
+the amount of the mapping that is currently resident in RAM ("Rss"),
+the process' proportional share of this mapping ("Pss"),
+the number of clean and dirty shared pages in the mapping,
+and the number of clean and dirty private pages in the mapping.
+"Referenced" indicates the amount of memory currently marked as
+referenced or accessed.
+"Anonymous" shows the amount of memory
+that does not belong to any file.
+"Swap" shows how much
+would-be-anonymous memory is also used, but out on swap.
+
+The "KernelPageSize" entry is the page size used by the kernel to back a VMA.
+This matches the size used by the MMU in the majority of cases.
+However, one counter-example occurs on PPC64 kernels
+whereby a kernel using 64K as a base page size may still use 4K
+pages for the MMU on older processors.
+To distinguish, this
+patch reports "MMUPageSize" as the page size used by the MMU.
+
+The "Locked" indicates whether the mapping is locked in memory
+or not.
+
+"VmFlags" field represents the kernel flags associated with
+the particular virtual memory area in two letter encoded manner.
+The codes are the following:
+
+    rd  - readable
+    wr  - writable
+    ex  - executable
+    sh  - shared
+    mr  - may read
+    mw  - may write
+    me  - may execute
+    ms  - may share
+    gd  - stack segment grows down
+    pf  - pure PFN range
+    dw  - disabled write to the mapped file
+    lo  - pages are locked in memory
+    io  - memory mapped I/O area
+    sr  - sequential read advise provided
+    rr  - random read advise provided
+    dc  - do not copy area on fork
+    de  - do not expand area on remapping
+    ac  - area is accountable
+    nr  - swap space is not reserved for the area
+    ht  - area uses huge tlb pages
+    nl  - non-linear mapping
+    ar  - architecture specific flag
+    dd  - do not include area into core dump
+    sd  - soft-dirty flag
+    mm  - mixed map area
+    hg  - huge page advise flag
+    nh  - no-huge page advise flag
+    mg  - mergeable advise flag
+
+The
+.IR /proc/[pid]/smaps
+file is present only if the
+.B CONFIG_PROC_PAGE_MONITOR
+kernel configuration option is enabled.
+.TP
+.IR /proc/[pid]/stack " (since Linux 2.6.29)"
+.\" 2ec220e27f5040aec1e88901c1b6ea3d135787ad
+This file provides a symbolic trace of the function calls in this
+process's kernel stack.
+This file is provided only if the kernel was built with the
+.B CONFIG_STACKTRACE
+configuration option.
+.TP
+.I /proc/[pid]/stat
+Status information about the process.
+This is used by
+.BR ps (1).
+It is defined in the kernel source file
+.IR fs/proc/array.c "."
+
+The fields, in order, with their proper
+.BR scanf (3)
+format specifiers, are:
+.RS
+.TP 10
+(1) \fIpid\fP \ %d
+.br
+The process ID.
+.TP
+(2) \fIcomm\fP \ %s
+The filename of the executable, in parentheses.
+This is visible whether or not the executable is swapped out.
+.TP
+(3) \fIstate\fP \ %c
+One of the following characters, indicating process state:
+.RS
+.IP R 3
+Running
+.IP S
+Sleeping in an interruptible wait
+.IP D
+Waiting in uninterruptible
+disk sleep
+.IP Z
+Zombie
+.IP T
+Stopped (on a signal) or (before Linux 2.6.33) trace stopped
+.IP t
+.\" commit 44d90df6b757c59651ddd55f1a84f28132b50d29
+Tracing stop (Linux 2.6.33 onward)
+.IP W
+Paging (only before Linux 2.6.0)
+.IP X
+Dead (from Linux 2.6.0 onward)
+.IP x
+.\" commit 44d90df6b757c59651ddd55f1a84f28132b50d29
+Dead (Linux 2.6.33 to
+.\" commit 74e37200de8e9c4e09b70c21c3f13c2071e77457
+3.13 only)
+.IP K
+.\" commit 44d90df6b757c59651ddd55f1a84f28132b50d29
+Wakekill (Linux 2.6.33 to
+.\" commit 74e37200de8e9c4e09b70c21c3f13c2071e77457
+3.13 only)
+.IP W
+.\" commit 44d90df6b757c59651ddd55f1a84f28132b50d29
+Waking (Linux 2.6.33 to
+.\" commit 74e37200de8e9c4e09b70c21c3f13c2071e77457
+3.13 only)
+.IP P
+.\" commit f2530dc71cf0822f90bb63ea4600caaef33a66bb
+Parked (Linux 3.9 to
+.\" commit 74e37200de8e9c4e09b70c21c3f13c2071e77457
+3.13 only)
+.RE
+.TP
+(4) \fIppid\fP \ %d
+The PID of the parent of this process.
+.TP
+(5) \fIpgrp\fP \ %d
+The process group ID of the process.
+.TP
+(6) \fIsession\fP \ %d
+The session ID of the process.
+.TP
+(7) \fItty_nr\fP \ %d
+The controlling terminal of the process.
+(The minor device number is contained in the combination of bits
+31 to 20 and 7 to 0;
+the major device number is in bits 15 to 8.)
+.TP
+(8) \fItpgid\fP \ %d
+.\" This field and following, up to and including wchan added 0.99.1
+The ID of the foreground process group of the controlling
+terminal of the process.
+.TP
+(9) \fIflags\fP \ %u
+The kernel flags word of the process.
+For bit meanings,
+see the PF_* defines in the Linux kernel source file
+.IR include/linux/sched.h .
+Details depend on the kernel version.
+
+The format for this field was %lu before Linux 2.6.
+.TP
+(10) \fIminflt\fP \ %lu
+The number of minor faults the process has made which have not
+required loading a memory page from disk.
+.TP
+(11) \fIcminflt\fP \ %lu
+The number of minor faults that the process's
+waited-for children have made.
+.TP
+(12) \fImajflt\fP \ %lu
+The number of major faults the process has made which have
+required loading a memory page from disk.
+.TP
+(13) \fIcmajflt\fP \ %lu
+The number of major faults that the process's
+waited-for children have made.
+.TP
+(14) \fIutime\fP \ %lu
+Amount of time that this process has been scheduled in user mode,
+measured in clock ticks (divide by
+.IR sysconf(_SC_CLK_TCK) ).
+This includes guest time, \fIguest_time\fP
+(time spent running a virtual CPU, see below),
+so that applications that are not aware of the guest time field
+do not lose that time from their calculations.
+.TP
+(15) \fIstime\fP \ %lu
+Amount of time that this process has been scheduled in kernel mode,
+measured in clock ticks (divide by
+.IR sysconf(_SC_CLK_TCK) ).
+.TP
+(16) \fIcutime\fP \ %ld
+Amount of time that this process's
+waited-for children have been scheduled in user mode,
+measured in clock ticks (divide by
+.IR sysconf(_SC_CLK_TCK) ).
+(See also
+.BR times (2).)
+This includes guest time, \fIcguest_time\fP
+(time spent running a virtual CPU, see below).
+.TP
+(17) \fIcstime\fP \ %ld
+Amount of time that this process's
+waited-for children have been scheduled in kernel mode,
+measured in clock ticks (divide by
+.IR sysconf(_SC_CLK_TCK) ).
+.TP
+(18) \fIpriority\fP \ %ld
+(Explanation for Linux 2.6)
+For processes running a real-time scheduling policy
+.RI ( policy
+below; see
+.BR sched_setscheduler (2)),
+this is the negated scheduling priority, minus one;
+that is, a number in the range \-2 to \-100,
+corresponding to real-time priorities 1 to 99.
+For processes running under a non-real-time scheduling policy,
+this is the raw nice value
+.RB ( setpriority (2))
+as represented in the kernel.
+The kernel stores nice values as numbers
+in the range 0 (high) to 39 (low),
+corresponding to the user-visible nice range of \-20 to 19.
+
+Before Linux 2.6, this was a scaled value based on
+the scheduler weighting given to this process.
+.\" And back in kernel 1.2 days things were different again.
+.TP
+(19) \fInice\fP \ %ld
+The nice value (see
+.BR setpriority (2)),
+a value in the range 19 (low priority) to \-20 (high priority).
+.\" Back in kernel 1.2 days things were different.
+.\" .TP
+.\" \fIcounter\fP %ld
+.\" The current maximum size in jiffies of the process's next timeslice,
+.\" or what is currently left of its current timeslice, if it is the
+.\" currently running process.
+.\" .TP
+.\" \fItimeout\fP %u
+.\" The time in jiffies of the process's next timeout.
+.\" timeout was removed sometime around 2.1/2.2
+.TP
+(20) \fInum_threads\fP \ %ld
+Number of threads in this process (since Linux 2.6).
+Before kernel 2.6, this field was hard coded to 0 as a placeholder
+for an earlier removed field.
+.TP
+(21) \fIitrealvalue\fP \ %ld
+The time in jiffies before the next
+.B SIGALRM
+is sent to the process due to an interval timer.
+Since kernel 2.6.17, this field is no longer maintained,
+and is hard coded as 0.
+.TP
+(22) \fIstarttime\fP \ %llu
+The time the process started after system boot.
+In kernels before Linux 2.6, this value was expressed in jiffies.
+Since Linux 2.6, the value is expressed in clock ticks (divide by
+.IR sysconf(_SC_CLK_TCK) ).
+
+The format for this field was %lu before Linux 2.6.
+.TP
+(23) \fIvsize\fP \ %lu
+Virtual memory size in bytes.
+.TP
+(24) \fIrss\fP \ %ld
+Resident Set Size: number of pages the process has in real memory.
+This is just the pages which
+count toward text, data, or stack space.
+This does not include pages
+which have not been demand-loaded in, or which are swapped out.
+.TP
+(25) \fIrsslim\fP \ %lu
+Current soft limit in bytes on the rss of the process;
+see the description of
+.B RLIMIT_RSS
+in
+.BR getrlimit (2).
+.TP
+(26) \fIstartcode\fP \ %lu
+The address above which program text can run.
+.TP
+(27) \fIendcode\fP \ %lu
+The address below which program text can run.
+.TP
+(28) \fIstartstack\fP \ %lu
+The address of the start (i.e., bottom) of the stack.
+.TP
+(29) \fIkstkesp\fP \ %lu
+The current value of ESP (stack pointer), as found in the
+kernel stack page for the process.
+.TP
+(30) \fIkstkeip\fP \ %lu
+The current EIP (instruction pointer).
+.TP
+(31) \fIsignal\fP \ %lu
+The bitmap of pending signals, displayed as a decimal number.
+Obsolete, because it does not provide information on real-time signals; use
+.I /proc/[pid]/status
+instead.
+.TP
+(32) \fIblocked\fP \ %lu
+The bitmap of blocked signals, displayed as a decimal number.
+Obsolete, because it does not provide information on real-time signals; use
+.I /proc/[pid]/status
+instead.
+.TP
+(33) \fIsigignore\fP \ %lu
+The bitmap of ignored signals, displayed as a decimal number.
+Obsolete, because it does not provide information on real-time signals; use
+.I /proc/[pid]/status
+instead.
+.TP
+(34) \fIsigcatch\fP \ %lu
+The bitmap of caught signals, displayed as a decimal number.
+Obsolete, because it does not provide information on real-time signals; use
+.I /proc/[pid]/status
+instead.
+.TP
+(35) \fIwchan\fP \ %lu
+This is the "channel" in which the process is waiting.
+It is the address of a location in the kernel where the process is sleeping.
+The corresponding symbolic name can be found in
+.IR /proc/[pid]/wchan .
+.TP
+(36) \fInswap\fP \ %lu
+.\" nswap was added in 2.0
+Number of pages swapped (not maintained).
+.TP
+(37) \fIcnswap\fP \ %lu
+.\" cnswap was added in 2.0
+Cumulative \fInswap\fP for child processes (not maintained).
+.TP
+(38) \fIexit_signal\fP \ %d \ (since Linux 2.1.22)
+Signal to be sent to parent when we die.
+.TP
+(39) \fIprocessor\fP \ %d \ (since Linux 2.2.8)
+CPU number last executed on.
+.TP
+(40) \fIrt_priority\fP \ %u \ (since Linux 2.5.19)
+Real-time scheduling priority, a number in the range 1 to 99 for
+processes scheduled under a real-time policy,
+or 0, for non-real-time processes (see
+.BR sched_setscheduler (2)).
+.TP
+(41) \fIpolicy\fP \ %u \ (since Linux 2.5.19)
+Scheduling policy (see
+.BR sched_setscheduler (2)).
+Decode using the SCHED_* constants in
+.IR linux/sched.h .
+
+The format for this field was %lu before Linux 2.6.22.
+.TP
+(42) \fIdelayacct_blkio_ticks\fP \ %llu \ (since Linux 2.6.18)
+Aggregated block I/O delays, measured in clock ticks (centiseconds).
+.TP
+(43) \fIguest_time\fP \ %lu \ (since Linux 2.6.24)
+Guest time of the process (time spent running a virtual CPU
+for a guest operating system), measured in clock ticks (divide by
+.IR sysconf(_SC_CLK_TCK) ).
+.TP
+(44) \fIcguest_time\fP \ %ld \ (since Linux 2.6.24)
+Guest time of the process's children, measured in clock ticks (divide by
+.IR sysconf(_SC_CLK_TCK) ).
+.TP
+(45) \fIstart_data\fP \ %lu \ (since Linux 3.3)
+.\" commit b3f7f573a20081910e34e99cbc91831f4f02f1ff
+Address above which program initialized and
+uninitialized (BSS) data are placed.
+.TP
+(46) \fIend_data\fP \ %lu \ (since Linux 3.3)
+.\" commit b3f7f573a20081910e34e99cbc91831f4f02f1ff
+Address below which program initialized and
+uninitialized (BSS) data are placed.
+.TP
+(47) \fIstart_brk\fP \ %lu \ (since Linux 3.3)
+.\" commit b3f7f573a20081910e34e99cbc91831f4f02f1ff
+Address above which program heap can be expanded with
+.BR brk (2).
+.TP
+(48) \fIarg_start\fP \ %lu \ (since Linux 3.5)
+.\" commit 5b172087f99189416d5f47fd7ab5e6fb762a9ba3
+Address above which program command-line arguments
+.RI ( argv )
+are placed.
+.TP
+(49) \fIarg_end\fP \ %lu \ (since Linux 3.5)
+.\" commit 5b172087f99189416d5f47fd7ab5e6fb762a9ba3
+Address below program command-line arguments
+.RI ( argv )
+are placed.
+.TP
+(50) \fIenv_start\fP \ %lu \ (since Linux 3.5)
+.\" commit 5b172087f99189416d5f47fd7ab5e6fb762a9ba3
+Address above which program environment is placed.
+.TP
+(51) \fIenv_end\fP \ %lu \ (since Linux 3.5)
+.\" commit 5b172087f99189416d5f47fd7ab5e6fb762a9ba3
+Address below which program environment is placed.
+.TP
+(52) \fIexit_code\fP \ %d \ (since Linux 3.5)
+.\" commit 5b172087f99189416d5f47fd7ab5e6fb762a9ba3
+The thread's exit status in the form reported by
+.BR waitpid (2).
+.RE
+.TP
+.I /proc/[pid]/statm
+Provides information about memory usage, measured in pages.
+The columns are:
+.in +4n
+.nf
+
+size       (1) total program size
+           (same as VmSize in \fI/proc/[pid]/status\fP)
+resident   (2) resident set size
+           (same as VmRSS in \fI/proc/[pid]/status\fP)
+share      (3) shared pages (i.e., backed by a file)
+text       (4) text (code)
+.\" (not including libs; broken, includes data segment)
+lib        (5) library (unused in Linux 2.6)
+data       (6) data + stack
+.\" (including libs; broken, includes library text)
+dt         (7) dirty pages (unused in Linux 2.6)
+.fi
+.in
+.TP
+.I /proc/[pid]/status
+Provides much of the information in
+.I /proc/[pid]/stat
+and
+.I /proc/[pid]/statm
+in a format that's easier for humans to parse.
+Here's an example:
+.in +4n
+.nf
+
+.RB "$" " cat /proc/$$/status"
+Name:   bash
+State:  S (sleeping)
+Tgid:   3515
+Pid:    3515
+PPid:   3452
+TracerPid:      0
+Uid:    1000    1000    1000    1000
+Gid:    100     100     100     100
+FDSize: 256
+Groups: 16 33 100
+VmPeak:     9136 kB
+VmSize:     7896 kB
+VmLck:         0 kB
+VmPin:         0 kB
+VmHWM:      7572 kB
+VmRSS:      6316 kB
+VmData:     5224 kB
+VmStk:        88 kB
+VmExe:       572 kB
+VmLib:      1708 kB
+VmPMD:         4 kB
+VmPTE:        20 kB
+VmSwap:        0 kB
+Threads:        1
+SigQ:   0/3067
+SigPnd: 0000000000000000
+ShdPnd: 0000000000000000
+SigBlk: 0000000000010000
+SigIgn: 0000000000384004
+SigCgt: 000000004b813efb
+CapInh: 0000000000000000
+CapPrm: 0000000000000000
+CapEff: 0000000000000000
+CapBnd: ffffffffffffffff
+CapAmb:	0000000000000000
+Seccomp:        0
+Cpus_allowed:   00000001
+Cpus_allowed_list:      0
+Mems_allowed:   1
+Mems_allowed_list:      0
+voluntary_ctxt_switches:        150
+nonvoluntary_ctxt_switches:     545
+.fi
+.in
+.IP
+The fields are as follows:
+.RS
+.IP * 2
+.IR Name :
+Command run by this process.
+.IP *
+.IR State :
+Current state of the process.
+One of
+"R (running)",
+"S (sleeping)",
+"D (disk sleep)",
+"T (stopped)",
+"T (tracing stop)",
+"Z (zombie)",
+or
+"X (dead)".
+.IP *
+.IR Tgid :
+Thread group ID (i.e., Process ID).
+.IP *
+.IR Pid :
+Thread ID (see
+.BR gettid (2)).
+.IP *
+.IR PPid :
+PID of parent process.
+.IP *
+.IR TracerPid :
+PID of process tracing this process (0 if not being traced).
+.IP *
+.IR Uid ", " Gid :
+Real, effective, saved set, and filesystem UIDs (GIDs).
+.IP *
+.IR FDSize :
+Number of file descriptor slots currently allocated.
+.IP *
+.IR Groups :
+Supplementary group list.
+.IP *
+.IR VmPeak :
+Peak virtual memory size.
+.IP *
+.IR VmSize :
+Virtual memory size.
+.IP *
+.IR VmLck :
+Locked memory size (see
+.BR mlock (3)).
+.IP *
+.IR VmPin :
+Pinned memory size
+.\" commit bc3e53f682d93df677dbd5006a404722b3adfe18
+(since Linux 3.2).
+These are pages that can't be moved because something needs to
+directly access physical memory.
+.IP *
+.IR VmHWM :
+Peak resident set size ("high water mark").
+.IP *
+.IR VmRSS :
+Resident set size.
+.IP *
+.IR VmData ", " VmStk ", " VmExe :
+Size of data, stack, and text segments.
+.IP *
+.IR VmLib :
+Shared library code size.
+.IP *
+.IR VmPTE :
+Page table entries size (since Linux 2.6.10).
+.IP *
+.IR VmPMD :
+.\" commit dc6c9a35b66b520cf67e05d8ca60ebecad3b0479
+Size of second-level page tables (since Linux 4.0).
+.IP *
+.IR VmSwap :
+.\" commit b084d4353ff99d824d3bc5a5c2c22c70b1fba722
+Swapped-out virtual memory size by anonymous private pages;
+shmem swap usage is not included (since Linux 2.6.34).
+.IP *
+.IR Threads :
+Number of threads in process containing this thread.
+.IP *
+.IR SigQ :
+This field contains two slash-separated numbers that relate to
+queued signals for the real user ID of this process.
+The first of these is the number of currently queued
+signals for this real user ID, and the second is the
+resource limit on the number of queued signals for this process
+(see the description of
+.BR RLIMIT_SIGPENDING
+in
+.BR getrlimit (2)).
+.IP *
+.IR SigPnd ", " ShdPnd :
+Number of signals pending for thread and for process as a whole (see
+.BR pthreads (7)
+and
+.BR signal (7)).
+.IP *
+.IR SigBlk ", " SigIgn ", " SigCgt :
+Masks indicating signals being blocked, ignored, and caught (see
+.BR signal (7)).
+.IP *
+.IR CapInh ", " CapPrm ", " CapEff :
+Masks of capabilities enabled in inheritable, permitted, and effective sets
+(see
+.BR capabilities (7)).
+.IP *
+.IR CapBnd :
+Capability Bounding set
+(since Linux 2.6.26, see
+.BR capabilities (7)).
+.IP *
+.IR CapAmb :
+Ambient capability set
+(since Linux 4.3, see
+.BR capabilities (7)).
+.IP *
+.IR Seccomp :
+.\" commit 2f4b3bf6b2318cfaa177ec5a802f4d8d6afbd816
+Seccomp mode of the process
+(since Linux 3.8, see
+.BR seccomp (2)).
+0 means
+.BR SECCOMP_MODE_DISABLED ;
+1 means
+.BR SECCOMP_MODE_STRICT ;
+2 means
+.BR SECCOMP_MODE_FILTER .
+This field is provided only if the kernel was built with the
+.BR CONFIG_SECCOMP
+kernel configuration option enabled.
+.IP *
+.IR Cpus_allowed :
+Mask of CPUs on which this process may run
+(since Linux 2.6.24, see
+.BR cpuset (7)).
+.IP *
+.IR Cpus_allowed_list :
+Same as previous, but in "list format"
+(since Linux 2.6.26, see
+.BR cpuset (7)).
+.IP *
+.IR Mems_allowed :
+Mask of memory nodes allowed to this process
+(since Linux 2.6.24, see
+.BR cpuset (7)).
+.IP *
+.IR Mems_allowed_list :
+Same as previous, but in "list format"
+(since Linux 2.6.26, see
+.BR cpuset (7)).
+.IP *
+.IR voluntary_ctxt_switches ", " nonvoluntary_ctxt_switches :
+Number of voluntary and involuntary context switches (since Linux 2.6.23).
+.RE
+.TP
+.IR /proc/[pid]/syscall " (since Linux 2.6.27)"
+.\" commit ebcb67341fee34061430f3367f2e507e52ee051b
+This file exposes the system call number and argument registers for the
+system call currently being executed by the process,
+followed by the values of the stack pointer and program counter registers.
+The values of all six argument registers are exposed,
+although most system calls use fewer registers.
+
+If the process is blocked, but not in a system call,
+then the file displays \-1 in place of the system call number,
+followed by just the values of the stack pointer and program counter.
+If process is not blocked, then the file contains just the string "running".
+
+This file is present only if the kernel was configured with
+.BR CONFIG_HAVE_ARCH_TRACEHOOK .
+.TP
+.IR /proc/[pid]/task " (since Linux 2.6.0-test6)"
+This is a directory that contains one subdirectory
+for each thread in the process.
+The name of each subdirectory is the numerical thread ID
+.RI ( [tid] )
+of the thread (see
+.BR gettid (2)).
+Within each of these subdirectories, there is a set of
+files with the same names and contents as under the
+.I /proc/[pid]
+directories.
+For attributes that are shared by all threads, the contents for
+each of the files under the
+.I task/[tid]
+subdirectories will be the same as in the corresponding
+file in the parent
+.I /proc/[pid]
+directory
+(e.g., in a multithreaded process, all of the
+.I task/[tid]/cwd
+files will have the same value as the
+.I /proc/[pid]/cwd
+file in the parent directory, since all of the threads in a process
+share a working directory).
+For attributes that are distinct for each thread,
+the corresponding files under
+.I task/[tid]
+may have different values (e.g., various fields in each of the
+.I task/[tid]/status
+files may be different for each thread).
+
+.\" The following was still true as at kernel 2.6.13
+In a multithreaded process, the contents of the
+.I /proc/[pid]/task
+directory are not available if the main thread has already terminated
+(typically by calling
+.BR pthread_exit (3)).
+.TP
+.IR /proc/[pid]/timers " (since Linux 3.10)"
+.\" commit 5ed67f05f66c41e39880a6d61358438a25f9fee5
+.\" commit 48f6a7a511ef8823fdff39afee0320092d43a8a0
+A list of the POSIX timers for this process.
+Each timer is listed with a line that starts with the string "ID:".
+For example:
+
+.in +4n
+.nf
+ID: 1
+signal: 60/00007fff86e452a8
+notify: signal/pid.2634
+ClockID: 0
+ID: 0
+signal: 60/00007fff86e452a8
+notify: signal/pid.2634
+ClockID: 1
+.fi
+.in
+
+The lines shown for each timer have the following meanings:
+.RS
+.TP
+.I ID
+The ID for this timer.
+This is not the same as the timer ID returned by
+.BR timer_create (2);
+rather, it is the same kernel-internal ID that is available via the
+.I si_timerid
+field of the
+.IR siginfo_t
+structure (see
+.BR sigaction (2)).
+.TP
+.I signal
+This is the signal number that this timer uses to deliver notifications
+followed by a slash, and then the
+.I sigev_value
+value supplied to the signal handler.
+Valid only for timers that notify via a signal.
+.TP
+.I notify
+The part before the slash specifies the mechanism
+that this timer uses to deliver notifications,
+and is one of "thread", "signal", or "none".
+Immediately following the slash is either the string "tid" for timers
+with
+.B SIGEV_THREAD_ID
+notification, or "pid" for timers that notify by other mechanisms.
+Following the "." is the PID of the process
+(or the kernel thread ID of the thread)  that will be delivered
+a signal if the timer delivers notifications via a signal.
+.TP
+.I ClockID
+This field identifies the clock that the timer uses for measuring time.
+For most clocks, this is a number that matches one of the user-space
+.BR CLOCK_*
+constants exposed via
+.IR <time.h> .
+.B CLOCK_PROCESS_CPUTIME_ID
+timers display with a value of -6
+in this field.
+.B CLOCK_THREAD_CPUTIME_ID
+timers display with a value of -2
+in this field.
+.RE
+.IP
+This file is available only when the kernel was configured with
+.BR CONFIG_CHECKPOINT_RESTORE .
+.TP
+.IR /proc/[pid]/uid_map ", " /proc/[pid]/gid_map " (since Linux 3.5)"
+See
+.BR user_namespaces (7).
+.TP
+.IR /proc/[pid]/wchan " (since Linux 2.6.0)"
+The symbolic name corresponding to the location
+in the kernel where the process is sleeping.
+.TP
+.I /proc/apm
+Advanced power management version and battery information when
+.B CONFIG_APM
+is defined at kernel compilation time.
+.TP
+.I /proc/buddyinfo
+This file contains information which is used for diagnosing memory
+fragmentation issues.
+Each line starts with the identification of the node and the name
+of the zone which together identify a memory region
+This is then
+followed by the count of available chunks of a certain order in
+which these zones are split.
+The size in bytes of a certain order is given by the formula:
+
+    (2^order)\ *\ PAGE_SIZE
+
+The binary buddy allocator algorithm inside the kernel will split
+one chunk into two chunks of a smaller order (thus with half the
+size) or combine two contiguous chunks into one larger chunk of
+a higher order (thus with double the size) to satisfy allocation
+requests and to counter memory fragmentation.
+The order matches the column number, when starting to count at zero.
+
+For example on a x86_64 system:
+
+.in -12n
+.nf
+Node 0, zone     DMA     1    1    1    0    2    1    1    0    1    1    3
+Node 0, zone   DMA32    65   47    4   81   52   28   13   10    5    1  404
+Node 0, zone  Normal   216   55  189  101   84   38   37   27    5    3  587
+.fi
+.in
+
+In this example, there is one node containing three zones and there
+are 11 different chunk sizes.
+If the page size is 4 kilobytes, then the first zone called
+.I DMA
+(on x86 the first 16 megabyte of memory) has 1 chunk of 4 kilobytes
+(order 0) available and has 3 chunks of 4 megabytes (order 10) available.
+
+If the memory is heavily fragmented, the counters for higher
+order chunks will be zero and allocation of large contiguous areas
+will fail.
+
+Further information about the zones can be found in
+.IR /proc/zoneinfo .
+.TP
+.I /proc/bus
+Contains subdirectories for installed busses.
+.TP
+.I /proc/bus/pccard
+Subdirectory for PCMCIA devices when
+.B CONFIG_PCMCIA
+is set at kernel compilation time.
+.TP
+.I /proc/bus/pccard/drivers
+.TP
+.I /proc/bus/pci
+Contains various bus subdirectories and pseudo-files containing
+information about PCI busses, installed devices, and device
+drivers.
+Some of these files are not ASCII.
+.TP
+.I /proc/bus/pci/devices
+Information about PCI devices.
+They may be accessed through
+.BR lspci (8)
+and
+.BR setpci (8).
+.TP
+.I /proc/cmdline
+Arguments passed to the Linux kernel at boot time.
+Often done via a boot manager such as
+.BR lilo (8)
+or
+.BR grub (8).
+.TP
+.IR /proc/config.gz " (since Linux 2.6)"
+This file exposes the configuration options that were used
+to build the currently running kernel,
+in the same format as they would be shown in the
+.I .config
+file that resulted when configuring the kernel (using
+.IR "make xconfig" ,
+.IR "make config" ,
+or similar).
+The file contents are compressed; view or search them using
+.BR zcat (1)
+and
+.BR zgrep (1).
+As long as no changes have been made to the following file,
+the contents of
+.I /proc/config.gz
+are the same as those provided by :
+.in +4n
+.nf
+
+cat /lib/modules/$(uname \-r)/build/.config
+.fi
+.in
+.IP
+.I /proc/config.gz
+is provided only if the kernel is configured with
+.BR CONFIG_IKCONFIG_PROC .
+.TP
+.I /proc/crypto
+A list of the ciphers provided by the kernel crypto API.
+For details, see the kernel
+.I "Linux Kernel Crypto API"
+documentation available under the kernel source directory
+.IR Documentation/DocBook .
+(That documentation can be built using a command such as
+.IR "make htmldocs"
+in the root directory of the kernel source tree.)
+.TP
+.I /proc/cpuinfo
+This is a collection of CPU and system architecture dependent items,
+for each supported architecture a different list.
+Two common entries are \fIprocessor\fP which gives CPU number and
+\fIbogomips\fP; a system constant that is calculated
+during kernel initialization.
+SMP machines have information for
+each CPU.
+The
+.BR lscpu (1)
+command gathers its information from this file.
+.TP
+.I /proc/devices
+Text listing of major numbers and device groups.
+This can be used by MAKEDEV scripts for consistency with the kernel.
+.TP
+.IR /proc/diskstats " (since Linux 2.5.69)"
+This file contains disk I/O statistics for each disk device.
+See the Linux kernel source file
+.I Documentation/iostats.txt
+for further information.
+.TP
+.I /proc/dma
+This is a list of the registered \fIISA\fP DMA (direct memory access)
+channels in use.
+.TP
+.I /proc/driver
+Empty subdirectory.
+.TP
+.I /proc/execdomains
+List of the execution domains (ABI personalities).
+.TP
+.I /proc/fb
+Frame buffer information when
+.B CONFIG_FB
+is defined during kernel compilation.
+.TP
+.I /proc/filesystems
+A text listing of the filesystems which are supported by the kernel,
+namely filesystems which were compiled into the kernel or whose kernel
+modules are currently loaded.
+(See also
+.BR filesystems (5).)
+If a filesystem is marked with "nodev",
+this means that it does not require a block device to be mounted
+(e.g., virtual filesystem, network filesystem).
+
+Incidentally, this file may be used by
+.BR mount (8)
+when no filesystem is specified and it didn't manage to determine the
+filesystem type.
+Then filesystems contained in this file are tried
+(excepted those that are marked with "nodev").
+.TP
+.I /proc/fs
+.\" FIXME Much more needs to be said about /proc/fs
+.\"
+Contains subdirectories that in turn contain files
+with information about (certain) mounted filesystems.
+.TP
+.I /proc/ide
+This directory
+exists on systems with the IDE bus.
+There are directories for each IDE channel and attached device.
+Files include:
+
+.in +4n
+.nf
+cache              buffer size in KB
+capacity           number of sectors
+driver             driver version
+geometry           physical and logical geometry
+identify           in hexadecimal
+media              media type
+model              manufacturer's model number
+settings           drive settings
+smart_thresholds   in hexadecimal
+smart_values       in hexadecimal
+.fi
+.in
+
+The
+.BR hdparm (8)
+utility provides access to this information in a friendly format.
+.TP
+.I /proc/interrupts
+This is used to record the number of interrupts per CPU per IO device.
+Since Linux 2.6.24,
+for the i386 and x86_64 architectures, at least, this also includes
+interrupts internal to the system (that is, not associated with a device
+as such), such as NMI (nonmaskable interrupt), LOC (local timer interrupt),
+and for SMP systems, TLB (TLB flush interrupt), RES (rescheduling
+interrupt), CAL (remote function call interrupt), and possibly others.
+Very easy to read formatting, done in ASCII.
+.TP
+.I /proc/iomem
+I/O memory map in Linux 2.4.
+.TP
+.I /proc/ioports
+This is a list of currently registered Input-Output port regions that
+are in use.
+.TP
+.IR /proc/kallsyms " (since Linux 2.5.71)"
+This holds the kernel exported symbol definitions used by the
+.BR modules (X)
+tools to dynamically link and bind loadable modules.
+In Linux 2.5.47 and earlier, a similar file with slightly different syntax
+was named
+.IR ksyms .
+.TP
+.I /proc/kcore
+This file represents the physical memory of the system and is stored
+in the ELF core file format.
+With this pseudo-file, and an unstripped
+kernel
+.RI ( /usr/src/linux/vmlinux )
+binary, GDB can be used to
+examine the current state of any kernel data structures.
+
+The total length of the file is the size of physical memory (RAM) plus
+4KB.
+.TP
+.I /proc/kmsg
+This file can be used instead of the
+.BR syslog (2)
+system call to read kernel messages.
+A process must have superuser
+privileges to read this file, and only one process should read this
+file.
+This file should not be read if a syslog process is running
+which uses the
+.BR syslog (2)
+system call facility to log kernel messages.
+
+Information in this file is retrieved with the
+.BR dmesg (1)
+program.
+.TP
+.IR /proc/kpagecount " (since Linux 2.6.25)"
+This file contains a 64-bit count of the number of
+times each physical page frame is mapped,
+indexed by page frame number (see the discussion of
+.IR /proc/[pid]/pagemap ).
+.IP
+The
+.IR /proc/kpagecount
+file is present only if the
+.B CONFIG_PROC_PAGE_MONITOR
+kernel configuration option is enabled.
+.TP
+.IR /proc/kpageflags " (since Linux 2.6.25)"
+This file contains 64-bit masks corresponding to each physical page frame;
+it is indexed by page frame number (see the discussion of
+.IR /proc/[pid]/pagemap ).
+The bits are as follows:
+
+     0 - KPF_LOCKED
+     1 - KPF_ERROR
+     2 - KPF_REFERENCED
+     3 - KPF_UPTODATE
+     4 - KPF_DIRTY
+     5 - KPF_LRU
+     6 - KPF_ACTIVE
+     7 - KPF_SLAB
+     8 - KPF_WRITEBACK
+     9 - KPF_RECLAIM
+    10 - KPF_BUDDY
+    11 - KPF_MMAP           (since Linux 2.6.31)
+    12 - KPF_ANON           (since Linux 2.6.31)
+    13 - KPF_SWAPCACHE      (since Linux 2.6.31)
+    14 - KPF_SWAPBACKED     (since Linux 2.6.31)
+    15 - KPF_COMPOUND_HEAD  (since Linux 2.6.31)
+    16 - KPF_COMPOUND_TAIL  (since Linux 2.6.31)
+    16 - KPF_HUGE           (since Linux 2.6.31)
+    18 - KPF_UNEVICTABLE    (since Linux 2.6.31)
+    19 - KPF_HWPOISON       (since Linux 2.6.31)
+    20 - KPF_NOPAGE         (since Linux 2.6.31)
+    21 - KPF_KSM            (since Linux 2.6.32)
+    22 - KPF_THP            (since Linux 3.4)
+
+For further details on the meanings of these bits,
+see the kernel source file
+.IR Documentation/vm/pagemap.txt .
+Before kernel 2.6.29,
+.\" commit ad3bdefe877afb47480418fdb05ecd42842de65e
+.\" commit e07a4b9217d1e97d2f3a62b6b070efdc61212110
+.BR KPF_WRITEBACK ,
+.BR KPF_RECLAIM ,
+.BR KPF_BUDDY ,
+and
+.BR KPF_LOCKED
+did not report correctly.
+.IP
+The
+.IR /proc/kpageflags
+file is present only if the
+.B CONFIG_PROC_PAGE_MONITOR
+kernel configuration option is enabled.
+.TP
+.IR /proc/ksyms " (Linux 1.1.23-2.5.47)"
+See
+.IR /proc/kallsyms .
+.TP
+.I /proc/loadavg
+The first three fields in this file are load average figures
+giving the number of jobs in the run queue (state R)
+or waiting for disk I/O (state D) averaged over 1, 5, and 15 minutes.
+They are the same as the load average numbers given by
+.BR uptime (1)
+and other programs.
+The fourth field consists of two numbers separated by a slash (/).
+The first of these is the number of currently runnable kernel
+scheduling entities (processes, threads).
+The value after the slash is the number of kernel scheduling entities
+that currently exist on the system.
+The fifth field is the PID of the process that was most
+recently created on the system.
+.TP
+.I /proc/locks
+This file shows current file locks
+.RB ( flock "(2) and " fcntl (2))
+and leases
+.RB ( fcntl (2)).
+.TP
+.IR /proc/malloc " (only up to and including Linux 2.2)"
+.\" It looks like this only ever did something back in 1.0 days
+This file is present only if
+.B CONFIG_DEBUG_MALLOC
+was defined during compilation.
+.TP
+.I /proc/meminfo
+This file reports statistics about memory usage on the system.
+It is used by
+.BR free (1)
+to report the amount of free and used memory (both physical and swap)
+on the system as well as the shared memory and buffers used by the
+kernel.
+Each line of the file consists of a parameter name, followed by a colon,
+the value of the parameter, and an option unit of measurement (e.g., "kB").
+The list below describes the parameter names and
+the format specifier required to read the field value.
+Except as noted below,
+all of the fields have been present since at least Linux 2.6.0.
+Some fields are displayed only if the kernel was configured
+with various options; those dependencies are noted in the list.
+.RS
+.TP
+.IR MemTotal " %lu"
+Total usable RAM (i.e., physical RAM minus a few reserved
+bits and the kernel binary code).
+.TP
+.IR MemFree " %lu"
+The sum of
+.IR LowFree + HighFree .
+.TP
+.IR Buffers " %lu"
+Relatively temporary storage for raw disk blocks that
+shouldn't get tremendously large (20MB or so).
+.TP
+.IR Cached " %lu"
+In-memory cache for files read from the disk (the page cache).
+Doesn't include
+.IR SwapCached .
+.TP
+.IR SwapCached " %lu"
+Memory that once was swapped out, is swapped back in but
+still also is in the swap file.
+(If memory pressure is high, these pages
+don't need to be swapped out again because they are already
+in the swap file.
+This saves I/O.)
+.TP
+.IR Active " %lu"
+Memory that has been used more recently and usually not
+reclaimed unless absolutely necessary.
+.TP
+.IR Inactive " %lu"
+Memory which has been less recently used.
+It is more eligible to be reclaimed for other purposes.
+.TP
+.IR Active(anon) " %lu (since Linux 2.6.28)"
+[To be documented.]
+.TP
+.IR Inactive(anon) " %lu (since Linux 2.6.28)"
+[To be documented.]
+.TP
+.IR Active(file) " %lu (since Linux 2.6.28)"
+[To be documented.]
+.TP
+.IR Inactive(file) " %lu (since Linux 2.6.28)"
+[To be documented.]
+.TP
+.IR Unevictable " %lu (since Linux 2.6.28)"
+(From Linux 2.6.28 to 2.6.30,
+\fBCONFIG_UNEVICTABLE_LRU\fP was required.)
+[To be documented.]
+.TP
+.IR Mlocked " %lu (since Linux 2.6.28)"
+(From Linux 2.6.28 to 2.6.30,
+\fBCONFIG_UNEVICTABLE_LRU\fP was required.)
+[To be documented.]
+.TP
+.IR HighTotal " %lu"
+(Starting with Linux 2.6.19, \fBCONFIG_HIGHMEM\fP is required.)
+Total amount of highmem.
+Highmem is all memory above ~860MB of physical memory.
+Highmem areas are for use by user-space programs,
+or for the page cache.
+The kernel must use tricks to access
+this memory, making it slower to access than lowmem.
+.TP
+.IR HighFree " %lu
+(Starting with Linux 2.6.19, \fBCONFIG_HIGHMEM\fP is required.)
+Amount of free highmem.
+.TP
+.IR LowTotal " %lu
+(Starting with Linux 2.6.19, \fBCONFIG_HIGHMEM\fP is required.)
+Total amount of lowmem.
+Lowmem is memory which can be used for everything that
+highmem can be used for, but it is also available for the
+kernel's use for its own data structures.
+Among many other things,
+it is where everything from
+.I Slab
+is allocated.
+Bad things happen when you're out of lowmem.
+.TP
+.IR LowFree " %lu
+(Starting with Linux 2.6.19, \fBCONFIG_HIGHMEM\fP is required.)
+Amount of free lowmem.
+.TP
+.IR MmapCopy " %lu (since Linux 2.6.29)"
+.RB ( CONFIG_MMU
+is required.)
+[To be documented.]
+.TP
+.IR SwapTotal " %lu"
+Total amount of swap space available.
+.TP
+.IR SwapFree " %lu"
+Amount of swap space that is currently unused.
+.TP
+.IR Dirty " %lu"
+Memory which is waiting to get written back to the disk.
+.TP
+.IR Writeback " %lu"
+Memory which is actively being written back to the disk.
+.TP
+.IR AnonPages " %lu (since Linux 2.6.18)"
+Non-file backed pages mapped into user-space page tables.
+.TP
+.IR Mapped " %lu"
+Files which have been mapped into memory (with
+.BR mmap (2)),
+such as libraries.
+.TP
+.IR Shmem " %lu (since Linux 2.6.32)"
+[To be documented.]
+.TP
+.IR Slab " %lu"
+In-kernel data structures cache.
+.TP
+.IR SReclaimable " %lu (since Linux 2.6.19)"
+Part of
+.IR Slab ,
+that might be reclaimed, such as caches.
+.TP
+.IR SUnreclaim " %lu (since Linux 2.6.19)"
+Part of
+.IR Slab ,
+that cannot be reclaimed on memory pressure.
+.TP
+.IR KernelStack " %lu (since Linux 2.6.32)"
+Amount of memory allocated to kernel stacks.
+.TP
+.IR PageTables " %lu (since Linux 2.6.18)"
+Amount of memory dedicated to the lowest level of page tables.
+.TP
+.IR Quicklists " %lu (since Linux 2.6.27)"
+(\fBCONFIG_QUICKLIST\fP is required.)
+[To be documented.]
+.TP
+.IR NFS_Unstable " %lu (since Linux 2.6.18)"
+NFS pages sent to the server, but not yet committed to stable storage.
+.TP
+.IR Bounce " %lu (since Linux 2.6.18)"
+Memory used for block device "bounce buffers".
+.TP
+.IR WritebackTmp " %lu (since Linux 2.6.26)"
+Memory used by FUSE for temporary writeback buffers.
+.TP
+.IR CommitLimit " %lu (since Linux 2.6.10)"
+This is the total amount of memory currently available to
+be allocated on the system, expressed in kilobytes.
+This limit is adhered to
+only if strict overcommit accounting is enabled (mode 2 in
+.IR /proc/sys/vm/overcommit_memory ).
+The limit is calculated according to the formula described under
+.IR /proc/sys/vm/overcommit_memory .
+For further details, see the kernel source file
+.IR Documentation/vm/overcommit-accounting .
+.TP
+.IR Committed_AS " %lu"
+The amount of memory presently allocated on the system.
+The committed memory is a sum of all of the memory which
+has been allocated by processes, even if it has not been
+"used" by them as of yet.
+A process which allocates 1GB of memory (using
+.BR malloc (3)
+or similar), but touches only 300MB of that memory will show up
+as using only 300MB of memory even if it has the address space
+allocated for the entire 1GB.
+
+This 1GB is memory which has been "committed" to by the VM
+and can be used at any time by the allocating application.
+With strict overcommit enabled on the system (mode 2 in
+IR /proc/sys/vm/overcommit_memory ),
+allocations which would exceed the
+.I CommitLimit
+will not be permitted.
+This is useful if one needs to guarantee that processes will not
+fail due to lack of memory once that memory has been successfully allocated.
+.TP
+.IR VmallocTotal " %lu"
+Total size of vmalloc memory area.
+.TP
+.IR VmallocUsed " %lu"
+Amount of vmalloc area which is used.
+.TP
+.IR VmallocChunk " %lu"
+Largest contiguous block of vmalloc area which is free.
+.TP
+.IR HardwareCorrupted " %lu (since Linux 2.6.32)"
+(\fBCONFIG_MEMORY_FAILURE\fP is required.)
+[To be documented.]
+.TP
+.IR AnonHugePages " %lu (since Linux 2.6.38)"
+(\fBCONFIG_TRANSPARENT_HUGEPAGE\fP is required.)
+Non-file backed huge pages mapped into user-space page tables.
+.TP
+.IR HugePages_Total " %lu"
+(\fBCONFIG_HUGETLB_PAGE\fP is required.)
+The size of the pool of huge pages.
+.TP
+.IR HugePages_Free " %lu"
+(\fBCONFIG_HUGETLB_PAGE\fP is required.)
+The number of huge pages in the pool that are not yet allocated.
+.TP
+.IR HugePages_Rsvd " %lu (since Linux 2.6.17)"
+(\fBCONFIG_HUGETLB_PAGE\fP is required.)
+This is the number of huge pages for
+which a commitment to allocate from the pool has been made,
+but no allocation has yet been made.
+These reserved huge pages
+guarantee that an application will be able to allocate a
+huge page from the pool of huge pages at fault time.
+.TP
+.IR HugePages_Surp " %lu (since Linux 2.6.24)"
+(\fBCONFIG_HUGETLB_PAGE\fP is required.)
+This is the number of huge pages in
+the pool above the value in
+.IR /proc/sys/vm/nr_hugepages .
+The maximum number of surplus huge pages is controlled by
+.IR /proc/sys/vm/nr_overcommit_hugepages .
+.TP
+.IR Hugepagesize " %lu"
+(\fBCONFIG_HUGETLB_PAGE\fP is required.)
+The size of huge pages.
+.RE
+.TP
+.I /proc/modules
+A text list of the modules that have been loaded by the system.
+See also
+.BR lsmod (8).
+.TP
+.I /proc/mounts
+Before kernel 2.4.19, this file was a list
+of all the filesystems currently mounted on the system.
+With the introduction of per-process mount namespaces in
+Linux 2.4.19, this file became a link to
+.IR /proc/self/mounts ,
+which lists the mount points of the process's own mount namespace.
+The format of this file is documented in
+.BR fstab (5).
+.TP
+.I /proc/mtrr
+Memory Type Range Registers.
+See the Linux kernel source file
+.I Documentation/mtrr.txt
+for details.
+.TP
+.I /proc/net
+various net pseudo-files, all of which give the status of some part of
+the networking layer.
+These files contain ASCII structures and are,
+therefore, readable with
+.BR cat (1).
+However, the standard
+.BR netstat (8)
+suite provides much cleaner access to these files.
+.TP
+.I /proc/net/arp
+This holds an ASCII readable dump of the kernel ARP table used for
+address resolutions.
+It will show both dynamically learned and preprogrammed ARP entries.
+The format is:
+
+.nf
+.ft CW
+.in 8n
+IP address     HW type   Flags     HW address          Mask   Device
+192.168.0.50   0x1       0x2       00:50:BF:25:68:F3   *      eth0
+192.168.0.250  0x1       0xc       00:00:00:00:00:00   *      eth0
+.ft
+.fi
+.in
+
+Here "IP address" is the IPv4 address of the machine and the "HW type"
+is the hardware type of the address from RFC\ 826.
+The flags are the internal
+flags of the ARP structure (as defined in
+.IR /usr/include/linux/if_arp.h )
+and
+the "HW address" is the data link layer mapping for that IP address if
+it is known.
+.TP
+.I /proc/net/dev
+The dev pseudo-file contains network device status information.
+This gives
+the number of received and sent packets, the number of errors and
+collisions
+and other basic statistics.
+These are used by the
+.BR ifconfig (8)
+program to report device status.
+The format is:
+
+.nf
+.ft CW
+.in 1n
+Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+    lo: 2776770   11307    0    0    0     0          0         0  2776770   11307    0    0    0     0       0          0
+  eth0: 1215645    2751    0    0    0     0          0         0  1782404    4324    0    0    0   427       0          0
+  ppp0: 1622270    5552    1    0    0     0          0         0   354130    5669    0    0    0     0       0          0
+  tap0:    7714      81    0    0    0     0          0         0     7714      81    0    0    0     0       0          0
+.in
+.ft
+.fi
+.\" .TP
+.\" .I /proc/net/ipx
+.\" No information.
+.\" .TP
+.\" .I /proc/net/ipx_route
+.\" No information.
+.TP
+.I /proc/net/dev_mcast
+Defined in
+.IR /usr/src/linux/net/core/dev_mcast.c :
+.nf
+.in +5
+indx interface_name  dmi_u dmi_g dmi_address
+2    eth0            1     0     01005e000001
+3    eth1            1     0     01005e000001
+4    eth2            1     0     01005e000001
+.in
+.fi
+.TP
+.I /proc/net/igmp
+Internet Group Management Protocol.
+Defined in
+.IR /usr/src/linux/net/core/igmp.c .
+.TP
+.I /proc/net/rarp
+This file uses the same format as the
+.I arp
+file and contains the current reverse mapping database used to provide
+.BR rarp (8)
+reverse address lookup services.
+If RARP is not configured into the
+kernel,
+this file will not be present.
+.TP
+.I /proc/net/raw
+Holds a dump of the RAW socket table.
+Much of the information is not of
+use
+apart from debugging.
+The "sl" value is the kernel hash slot for the
+socket,
+the "local_address" is the local address and protocol number pair.
+\&"St" is
+the internal status of the socket.
+The "tx_queue" and "rx_queue" are the
+outgoing and incoming data queue in terms of kernel memory usage.
+The "tr", "tm\->when", and "rexmits" fields are not used by RAW.
+The "uid"
+field holds the effective UID of the creator of the socket.
+.\" .TP
+.\" .I /proc/net/route
+.\" No information, but looks similar to
+.\" .BR route (8).
+.TP
+.I /proc/net/snmp
+This file holds the ASCII data needed for the IP, ICMP, TCP, and UDP
+management
+information bases for an SNMP agent.
+.TP
+.I /proc/net/tcp
+Holds a dump of the TCP socket table.
+Much of the information is not
+of use apart from debugging.
+The "sl" value is the kernel hash slot
+for the socket, the "local_address" is the local address and port number pair.
+The "rem_address" is the remote address and port number pair
+(if connected).
+\&"St" is the internal status of the socket.
+The "tx_queue" and "rx_queue" are the
+outgoing and incoming data queue in terms of kernel memory usage.
+The "tr", "tm\->when", and "rexmits" fields hold internal information of
+the kernel socket state and are useful only for debugging.
+The "uid"
+field holds the effective UID of the creator of the socket.
+.TP
+.I /proc/net/udp
+Holds a dump of the UDP socket table.
+Much of the information is not of
+use apart from debugging.
+The "sl" value is the kernel hash slot for the
+socket, the "local_address" is the local address and port number pair.
+The "rem_address" is the remote address and port number pair
+(if connected).
+"St" is the internal status of the socket.
+The "tx_queue" and "rx_queue" are the outgoing and incoming data queue
+in terms of kernel memory usage.
+The "tr", "tm\->when", and "rexmits" fields
+are not used by UDP.
+The "uid"
+field holds the effective UID of the creator of the socket.
+The format is:
+
+.nf
+.ft CW
+.in 1n
+sl  local_address rem_address   st tx_queue rx_queue tr rexmits  tm\->when uid
+ 1: 01642C89:0201 0C642C89:03FF 01 00000000:00000001 01:000071BA 00000000 0
+ 1: 00000000:0801 00000000:0000 0A 00000000:00000000 00:00000000 6F000100 0
+ 1: 00000000:0201 00000000:0000 0A 00000000:00000000 00:00000000 00000000 0
+.in
+.ft
+.fi
+.TP
+.I /proc/net/unix
+Lists the UNIX domain sockets present within the system and their
+status.
+The format is:
+.nf
+.sp .5
+.ft CW
+Num RefCount Protocol Flags    Type St Path
+ 0: 00000002 00000000 00000000 0001 03
+ 1: 00000001 00000000 00010000 0001 01 /dev/printer
+.ft
+.sp .5
+.fi
+
+The fields are as follows:
+.RS
+.TP 10
+.IR Num :
+the kernel table slot number.
+.TP
+.IR RefCount :
+the number of users of the socket.
+.TP
+.IR Protocol :
+currently always 0.
+.TP
+.IR Flags :
+the internal kernel flags holding the status of the socket.
+.TP
+.IR Type :
+the socket type.
+For
+.BR SOCK_STREAM
+sockets, this is 0001; for
+.BR SOCK_DGRAM
+sockets, it is 0002; and for
+.BR SOCK_SEQPACKET
+sockets, it is 0005.
+.TP
+.IR St :
+the internal state of the socket.
+.TP
+.IR Path :
+the bound path (if any) of the socket.
+Sockets in the abstract namespace are included in the list,
+and are shown with a
+.I Path
+that commences with the character '@'.
+.RE
+.TP
+.I /proc/net/netfilter/nfnetlink_queue
+This file contains information about netfilter userspace queueing, if used.
+Each line represents a queue.
+Queues that have not been subscribed to
+by userspace are not shown.
+.nf
+
+   1   4207     0  2 65535     0     0        0  1
+  (1)   (2)    (3)(4)  (5)    (6)   (7)      (8)
+.fi
+.IP
+The fields in each line are:
+.RS 7
+.TP 5
+(1)
+The ID of the queue.
+This matches what is specified in the
+.B \-\-queue\-num
+or
+.B \-\-queue\-balance
+options to the
+.BR iptables (8)
+NFQUEUE target.
+See
+.BR iptables-extensions (8)
+for more information.
+.TP
+(2)
+The netlink port ID subscribed to the queue.
+.TP
+(3)
+The number of packets currently queued and waiting to be processed by
+the application.
+.TP
+(4)
+The copy mode of the queue.
+It is either 1 (metadata only) or 2
+(also copy payload data to userspace).
+.TP
+(5)
+Copy range; that is, how many bytes of packet payload should be copied to
+userspace at most.
+.TP
+(6)
+queue dropped.
+Number of packets that had to be dropped by the kernel because
+too many packets are already waiting for userspace to send back the mandatory
+accept/drop verdicts.
+.TP
+(7)
+queue user dropped.
+Number of packets that were dropped within the netlink
+subsystem.
+Such drops usually happen when the corresponding socket buffer is
+full; that is, userspace is not able to read messages fast enough.
+.TP
+(8)
+sequence number.
+Every queued packet is associated with a (32-bit)
+monotonically-increasing sequence number.
+This shows the ID of the most recent packet queued.
+.RE
+.IP
+The last number exists only for compatibility reasons and is always 1.
+.TP
+.I /proc/partitions
+Contains the major and minor numbers of each partition as well as the number
+of 1024-byte blocks and the partition name.
+.TP
+.I /proc/pci
+This is a listing of all PCI devices found during kernel initialization
+and their configuration.
+
+This file has been deprecated in favor of a new
+.I /proc
+interface for PCI
+.RI ( /proc/bus/pci ).
+It became optional in Linux 2.2 (available with
+.B CONFIG_PCI_OLD_PROC
+set at kernel compilation).
+It became once more nonoptionally enabled in Linux 2.4.
+Next, it was deprecated in Linux 2.6 (still available with
+.B CONFIG_PCI_LEGACY_PROC
+set), and finally removed altogether since Linux 2.6.17.
+.\" FIXME Document /proc/sched_debug
+.\"
+.\" .TP
+.\" .IR /proc/sched_debug " (since Linux 2.6.23)"
+.\" See also /proc/[pid]/sched
+.TP
+.IR /proc/profile " (since Linux 2.4)"
+This file is present only if the kernel was booted with the
+.I profile=1
+command-line option.
+It exposes kernel profiling information in a binary format for use by
+.BR readprofile (1).
+Writing (e.g., an empty string) to this file resets the profiling counters;
+on some architectures,
+writing a binary integer "profiling multiplier" of size
+.IR sizeof(int)
+sets the profiling interrupt frequency.
+.TP
+.I /proc/scsi
+A directory with the
+.I scsi
+mid-level pseudo-file and various SCSI low-level
+driver directories,
+which contain a file for each SCSI host in this system, all of
+which give the status of some part of the SCSI IO subsystem.
+These files contain ASCII structures and are, therefore, readable with
+.BR cat (1).
+
+You can also write to some of the files to reconfigure the subsystem or
+switch certain features on or off.
+.TP
+.I /proc/scsi/scsi
+This is a listing of all SCSI devices known to the kernel.
+The listing is similar to the one seen during bootup.
+scsi currently supports only the \fIadd-single-device\fP command which
+allows root to add a hotplugged device to the list of known devices.
+
+The command
+.in +4n
+.nf
+
+echo \(aqscsi add-single-device 1 0 5 0\(aq > /proc/scsi/scsi
+
+.fi
+.in
+will cause
+host scsi1 to scan on SCSI channel 0 for a device on ID 5 LUN 0.
+If there
+is already a device known on this address or the address is invalid, an
+error will be returned.
+.TP
+.I /proc/scsi/[drivername]
+\fI[drivername]\fP can currently be NCR53c7xx, aha152x, aha1542, aha1740,
+aic7xxx, buslogic, eata_dma, eata_pio, fdomain, in2000, pas16, qlogic,
+scsi_debug, seagate, t128, u15-24f, ultrastore, or wd7000.
+These directories show up for all drivers that registered at least one
+SCSI HBA.
+Every directory contains one file per registered host.
+Every host-file is named after the number the host was assigned during
+initialization.
+
+Reading these files will usually show driver and host configuration,
+statistics, and so on.
+
+Writing to these files allows different things on different hosts.
+For example, with the \fIlatency\fP and \fInolatency\fP commands,
+root can switch on and off command latency measurement code in the
+eata_dma driver.
+With the \fIlockup\fP and \fIunlock\fP commands,
+root can control bus lockups simulated by the scsi_debug driver.
+.TP
+.I /proc/self
+This directory refers to the process accessing the
+.I /proc
+filesystem,
+and is identical to the
+.I /proc
+directory named by the process ID of the same process.
+.TP
+.I /proc/slabinfo
+Information about kernel caches.
+Since Linux 2.6.16 this file is present only if the
+.B CONFIG_SLAB
+kernel configuration option is enabled.
+The columns in
+.I /proc/slabinfo
+are:
+.in +4n
+.nf
+
+cache-name
+num-active-objs
+total-objs
+object-size
+num-active-slabs
+total-slabs
+num-pages-per-slab
+.fi
+.in
+
+See
+.BR slabinfo (5)
+for details.
+.TP
+.I /proc/stat
+kernel/system statistics.
+Varies with architecture.
+Common
+entries include:
+.RS
+.TP
+\fIcpu  3357 0 4313 1362393\fP
+The amount of time, measured in units of
+USER_HZ (1/100ths of a second on most architectures, use
+.IR sysconf(_SC_CLK_TCK)
+to obtain the right value),
+.\" 1024 on Alpha and ia64
+that the system spent in various states:
+.RS
+.TP
+.I user
+(1) Time spent in user mode.
+.TP
+.I nice
+(2) Time spent in user mode with low priority (nice).
+.TP
+.I system
+(3) Time spent in system mode.
+.TP
+.I idle
+(4) Time spent in the idle task.
+.\" FIXME . Actually, the following info about the /proc/stat 'cpu' field
+.\"       does not seem to be quite right (at least in 2.6.12 or 3.6):
+.\"       the idle time in /proc/uptime does not quite match this value
+This value should be USER_HZ times the
+second entry in the
+.I /proc/uptime
+pseudo-file.
+.TP
+.IR iowait " (since Linux 2.5.41)"
+(5) Time waiting for I/O to complete.
+.TP
+.IR irq " (since Linux 2.6.0-test4)"
+(6) Time servicing interrupts.
+.TP
+.IR softirq " (since Linux 2.6.0-test4)"
+(7) Time servicing softirqs.
+.TP
+.IR steal " (since Linux 2.6.11)"
+(8) Stolen time, which is the time spent in other operating systems when
+running in a virtualized environment
+.TP
+.IR guest " (since Linux 2.6.24)"
+(9) Time spent running a virtual CPU for guest
+operating systems under the control of the Linux kernel.
+.\" See Changelog entry for 5e84cfde51cf303d368fcb48f22059f37b3872de
+.TP
+.IR guest_nice " (since Linux 2.6.33)"
+.\" commit ce0e7b28fb75cb003cfc8d0238613aaf1c55e797
+(10) Time spent running a niced guest (virtual CPU for guest
+operating systems under the control of the Linux kernel).
+.RE
+.TP
+\fIpage 5741 1808\fP
+The number of pages the system paged in and the number that were paged
+out (from disk).
+.TP
+\fIswap 1 0\fP
+The number of swap pages that have been brought in and out.
+.TP
+.\" FIXME . The following is not the full picture for the 'intr' of
+.\"       /proc/stat on 2.6:
+\fIintr 1462898\fP
+This line shows counts of interrupts serviced since boot time,
+for each of the possible system interrupts.
+The first column is the total of all interrupts serviced
+including unnumbered architecture specific interrupts;
+each subsequent column is the total for that particular numbered interrupt.
+Unnumbered interrupts are not shown, only summed into the total.
+.TP
+\fIdisk_io: (2,0):(31,30,5764,1,2) (3,0):\fP...
+(major,disk_idx):(noinfo, read_io_ops, blks_read, write_io_ops, blks_written)
+.br
+(Linux 2.4 only)
+.TP
+\fIctxt 115315\fP
+The number of context switches that the system underwent.
+.TP
+\fIbtime 769041601\fP
+boot time, in seconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
+.TP
+\fIprocesses 86031\fP
+Number of forks since boot.
+.TP
+\fIprocs_running 6\fP
+Number of processes in runnable state.
+(Linux 2.5.45 onward.)
+.TP
+\fIprocs_blocked 2\fP
+Number of processes blocked waiting for I/O to complete.
+(Linux 2.5.45 onward.)
+.RE
+.TP
+.I /proc/swaps
+Swap areas in use.
+See also
+.BR swapon (8).
+.TP
+.I /proc/sys
+This directory (present since 1.3.57) contains a number of files
+and subdirectories corresponding to kernel variables.
+These variables can be read and sometimes modified using
+the \fI/proc\fP filesystem, and the (deprecated)
+.BR sysctl (2)
+system call.
+
+String values may be terminated by either \(aq\\0\(aq or \(aq\\n\(aq.
+
+Integer and long values may be written either in decimal or in
+hexadecimal notation (e.g. 0x3FFF).
+When writing multiple integer or long values, these may be separated
+by any of the following whitespace characters:
+\(aq\ \(aq, \(aq\\t\(aq, or \(aq\\n\(aq.
+Using other separators leads to the error
+.BR EINVAL .
+.TP
+.IR /proc/sys/abi " (since Linux 2.4.10)"
+This directory may contain files with application binary information.
+.\" On some systems, it is not present.
+See the Linux kernel source file
+.I Documentation/sysctl/abi.txt
+for more information.
+.TP
+.I /proc/sys/debug
+This directory may be empty.
+.TP
+.I /proc/sys/dev
+This directory contains device-specific information (e.g.,
+.IR dev/cdrom/info ).
+On
+some systems, it may be empty.
+.TP
+.I /proc/sys/fs
+This directory contains the files and subdirectories for kernel variables
+related to filesystems.
+.TP
+.I /proc/sys/fs/binfmt_misc
+Documentation for files in this directory can be found
+in the Linux kernel sources in
+.IR Documentation/binfmt_misc.txt .
+.TP
+.IR /proc/sys/fs/dentry-state " (since Linux 2.2)"
+This file contains information about the status of the
+directory cache (dcache).
+The file contains six numbers,
+.IR nr_dentry ", " nr_unused ", " age_limit " (age in seconds), "
+.I want_pages
+(pages requested by system) and two dummy values.
+.RS
+.IP * 2
+.I nr_dentry
+is the number of allocated dentries (dcache entries).
+This field is unused in Linux 2.2.
+.IP *
+.I nr_unused
+is the number of unused dentries.
+.IP *
+.I age_limit
+.\" looks like this is unused in kernels 2.2 to 2.6
+is the age in seconds after which dcache entries
+can be reclaimed when memory is short.
+.IP *
+.I want_pages
+.\" looks like this is unused in kernels 2.2 to 2.6
+is nonzero when the kernel has called shrink_dcache_pages() and the
+dcache isn't pruned yet.
+.RE
+.TP
+.I /proc/sys/fs/dir-notify-enable
+This file can be used to disable or enable the
+.I dnotify
+interface described in
+.BR fcntl (2)
+on a system-wide basis.
+A value of 0 in this file disables the interface,
+and a value of 1 enables it.
+.TP
+.I /proc/sys/fs/dquot-max
+This file shows the maximum number of cached disk quota entries.
+On some (2.4) systems, it is not present.
+If the number of free cached disk quota entries is very low and
+you have some awesome number of simultaneous system users,
+you might want to raise the limit.
+.TP
+.I /proc/sys/fs/dquot-nr
+This file shows the number of allocated disk quota
+entries and the number of free disk quota entries.
+.TP
+.IR /proc/sys/fs/epoll " (since Linux 2.6.28)"
+This directory contains the file
+.IR max_user_watches ,
+which can be used to limit the amount of kernel memory consumed by the
+.I epoll
+interface.
+For further details, see
+.BR epoll (7).
+.TP
+.I /proc/sys/fs/file-max
+This file defines
+a system-wide limit on the number of open files for all processes.
+System calls that fail when encountering this limit fail with the error
+.BR ENFILE .
+(See also
+.BR setrlimit (2),
+which can be used by a process to set the per-process limit,
+.BR RLIMIT_NOFILE ,
+on the number of files it may open.)
+If you get lots
+of error messages in the kernel log about running out of file handles
+(look for "VFS: file-max limit <number> reached"),
+try increasing this value:
+.br
+
+.br
+.nf
+.ft CW
+    echo 100000 > /proc/sys/fs/file-max
+.fi
+.ft
+
+Privileged processes
+.RB ( CAP_SYS_ADMIN )
+can override the
+.I file-max
+limit.
+.TP
+.I /proc/sys/fs/file-nr
+This (read-only) file contains three numbers:
+the number of allocated file handles
+(i.e., the number of files presently opened);
+the number of free file handles;
+and the maximum number of file handles (i.e., the same value as
+.IR /proc/sys/fs/file-max ).
+If the number of allocated file handles is close to the
+maximum, you should consider increasing the maximum.
+Before Linux 2.6,
+the kernel allocated file handles dynamically,
+but it didn't free them again.
+Instead the free file handles were kept in a list for reallocation;
+the "free file handles" value indicates the size of that list.
+A large number of free file handles indicates that there was
+a past peak in the usage of open file handles.
+Since Linux 2.6, the kernel does deallocate freed file handles,
+and the "free file handles" value is always zero.
+.TP
+.IR /proc/sys/fs/inode-max " (only present until Linux 2.2)"
+This file contains the maximum number of in-memory inodes.
+This value should be 3-4 times larger
+than the value in
+.IR file-max ,
+since \fIstdin\fP, \fIstdout\fP
+and network sockets also need an inode to handle them.
+When you regularly run out of inodes, you need to increase this value.
+
+Starting with Linux 2.4,
+there is no longer a static limit on the number of inodes,
+and this file is removed.
+.TP
+.I /proc/sys/fs/inode-nr
+This file contains the first two values from
+.IR inode-state .
+.TP
+.I /proc/sys/fs/inode-state
+This file
+contains seven numbers:
+.IR nr_inodes ,
+.IR nr_free_inodes ,
+.IR preshrink ,
+and four dummy values (always zero).
+
+.I nr_inodes
+is the number of inodes the system has allocated.
+.\" This can be slightly more than
+.\" .I inode-max
+.\" because Linux allocates them one page full at a time.
+.I nr_free_inodes
+represents the number of free inodes.
+
+.I preshrink
+is nonzero when the
+.I nr_inodes
+>
+.I inode-max
+and the system needs to prune the inode list instead of allocating more;
+since Linux 2.4, this field is a dummy value (always zero).
+.TP
+.IR /proc/sys/fs/inotify " (since Linux 2.6.13)"
+This directory contains files
+.IR max_queued_events ", " max_user_instances ", and " max_user_watches ,
+that can be used to limit the amount of kernel memory consumed by the
+.I inotify
+interface.
+For further details, see
+.BR inotify (7).
+.TP
+.I /proc/sys/fs/lease-break-time
+This file specifies the grace period that the kernel grants to a process
+holding a file lease
+.RB ( fcntl (2))
+after it has sent a signal to that process notifying it
+that another process is waiting to open the file.
+If the lease holder does not remove or downgrade the lease within
+this grace period, the kernel forcibly breaks the lease.
+.TP
+.I /proc/sys/fs/leases-enable
+This file can be used to enable or disable file leases
+.RB ( fcntl (2))
+on a system-wide basis.
+If this file contains the value 0, leases are disabled.
+A nonzero value enables leases.
+.TP
+.IR /proc/sys/fs/mqueue " (since Linux 2.6.6)"
+This directory contains files
+.IR msg_max ", " msgsize_max ", and " queues_max ,
+controlling the resources used by POSIX message queues.
+See
+.BR mq_overview (7)
+for details.
+.TP
+.IR /proc/sys/fs/nr_open " (since Linux 2.6.25)
+.\" commit 9cfe015aa424b3c003baba3841a60dd9b5ad319b
+This file imposes ceiling on the value to which the
+.BR RLIMIT_NOFILE
+resource limit can be raised (see
+.BR getrlimit (2)).
+This ceiling is enforced for both unprivileged and privileged process.
+The default value in this file is 1048576.
+(Before Linux 2.6.25, the ceiling for
+.BR RLIMIT_NOFILE
+was hard-coded to the same value.)
+.TP
+.IR /proc/sys/fs/overflowgid " and " /proc/sys/fs/overflowuid
+These files
+allow you to change the value of the fixed UID and GID.
+The default is 65534.
+Some filesystems support only 16-bit UIDs and GIDs, although in Linux
+UIDs and GIDs are 32 bits.
+When one of these filesystems is mounted
+with writes enabled, any UID or GID that would exceed 65535 is translated
+to the overflow value before being written to disk.
+.TP
+.IR /proc/sys/fs/pipe-max-size " (since Linux 2.6.35)"
+The value in this file defines an upper limit for raising the capacity
+of a pipe using the
+.BR fcntl (2)
+.B F_SETPIPE_SZ
+operation.
+This limit applies only to unprivileged processes.
+The default value for this file is 1,048,576.
+The value assigned to this file may be rounded upward,
+to reflect the value actually employed for a convenient implementation.
+To determine the rounded-up value,
+display the contents of this file after assigning a value to it.
+The minimum value that can be assigned to this file is the system page size.
+.TP
+.IR /proc/sys/fs/protected_hardlinks " (since Linux 3.6)"
+.\" commit 800179c9b8a1e796e441674776d11cd4c05d61d7
+When the value in this file is 0,
+no restrictions are placed on the creation of hard links
+(i.e., this is the historical behavior before Linux 3.6).
+When the value in this file is 1,
+a hard link can be created to a target file
+only if one of the following conditions is true:
+.RS
+.IP * 3
+The caller has the
+.BR CAP_FOWNER
+capability.
+.IP *
+The filesystem UID of the process creating the link matches
+the owner (UID) of the target file
+(as described in
+.BR credentials (7),
+a process's filesystem UID is normally the same as its effective UID).
+.IP *
+All of the following conditions are true:
+.RS 4
+.IP \(bu 3
+the target is a regular file;
+.IP \(bu
+the target file does not have its set-user-ID mode bit enabled;
+.IP \(bu
+the target file does not have both its set-group-ID and
+group-executable mode bits enabled; and
+.IP \(bu
+the caller has permission to read and write the target file
+(either via the file's permissions mask or because it has
+suitable capabilities).
+.RE
+.RE
+.IP
+The default value in this file is 0.
+Setting the value to 1
+prevents a longstanding class of security issues caused by
+hard-link-based time-of-check, time-of-use races,
+most commonly seen in world-writable directories such as
+.IR /tmp .
+The common method of exploiting this flaw
+is to cross privilege boundaries when following a given hard link
+(i.e., a root process follows a hard link created by another user).
+Additionally, on systems without separated partitions,
+this stops unauthorized users from "pinning" vulnerable set-user-ID and
+set-group-ID files against being upgraded by
+the administrator, or linking to special files.
+.TP
+.IR /proc/sys/fs/protected_symlinks " (since Linux 3.6)"
+.\" commit 800179c9b8a1e796e441674776d11cd4c05d61d7
+When the value in this file is 0,
+no restrictions are placed on following symbolic links
+(i.e., this is the historical behavior before Linux 3.6).
+When the value in this file is 1, symbolic links are followed only
+in the following circumstances:
+.RS
+.IP * 3
+the filesystem UID of the process following the link matches
+the owner (UID) of the symbolic link
+(as described in
+.BR credentials (7),
+a process's filesystem UID is normally the same as its effective UID);
+.IP *
+the link is not in a sticky world-writable directory; or
+.IP *
+the symbolic link and its parent directory have the same owner (UID)
+.RE
+.IP
+A system call that fails to follow a symbolic link
+because of the above restrictions returns the error
+.BR EACCES
+in
+.IR errno .
+.IP
+The default value in this file is 0.
+Setting the value to 1 avoids a longstanding class of security issues
+based on time-of-check, time-of-use races when accessing symbolic links.
+.TP
+.IR /proc/sys/fs/suid_dumpable " (since Linux 2.6.13)"
+.\" The following is based on text from Documentation/sysctl/kernel.txt
+The value in this file is assigned to a process's "dumpable" flag
+in the circumstances described in
+.BR prctl (2).
+In effect,
+the value in this file determines whether core dump files are
+produced for set-user-ID or otherwise protected/tainted binaries.
+Three different integer values can be specified:
+.RS
+.TP
+\fI0\ (default)\fP
+This provides the traditional (pre-Linux 2.6.13) behavior.
+A core dump will not be produced for a process which has
+changed credentials (by calling
+.BR seteuid (2),
+.BR setgid (2),
+or similar, or by executing a set-user-ID or set-group-ID program)
+or whose binary does not have read permission enabled.
+.TP
+\fI1\ ("debug")\fP
+All processes dump core when possible.
+The core dump is owned by the filesystem user ID of the dumping process
+and no security is applied.
+This is intended for system debugging situations only.
+Ptrace is unchecked.
+.TP
+\fI2\ ("suidsafe")\fP
+Any binary which normally would not be dumped (see "0" above)
+is dumped readable by root only.
+This allows the user to remove the core dump file but not to read it.
+For security reasons core dumps in this mode will not overwrite one
+another or other files.
+This mode is appropriate when administrators are
+attempting to debug problems in a normal environment.
+.IP
+Additionally, since Linux 3.6,
+.\" 9520628e8ceb69fa9a4aee6b57f22675d9e1b709
+.I /proc/sys/kernel/core_pattern
+must either be an absolute pathname
+or a pipe command, as detailed in
+.BR core (5).
+Warnings will be written to the kernel log if
+.I core_pattern
+does not follow these rules, and no core dump will be produced.
+.\" 54b501992dd2a839e94e76aa392c392b55080ce8
+.RE
+.TP
+.I /proc/sys/fs/super-max
+This file
+controls the maximum number of superblocks, and
+thus the maximum number of mounted filesystems the kernel
+can have.
+You need increase only
+.I super-max
+if you need to mount more filesystems than the current value in
+.I super-max
+allows you to.
+.TP
+.I /proc/sys/fs/super-nr
+This file
+contains the number of filesystems currently mounted.
+.TP
+.I /proc/sys/kernel
+This directory contains files controlling a range of kernel parameters,
+as described below.
+.TP
+.I /proc/sys/kernel/acct
+This file
+contains three numbers:
+.IR highwater ,
+.IR lowwater ,
+and
+.IR frequency .
+If BSD-style process accounting is enabled, these values control
+its behavior.
+If free space on filesystem where the log lives goes below
+.I lowwater
+percent, accounting suspends.
+If free space gets above
+.I highwater
+percent, accounting resumes.
+.I frequency
+determines
+how often the kernel checks the amount of free space (value is in
+seconds).
+Default values are 4, 2 and 30.
+That is, suspend accounting if 2% or less space is free; resume it
+if 4% or more space is free; consider information about amount of free space
+valid for 30 seconds.
+.TP
+.IR /proc/sys/kernel/auto_msgmni " (Linux 2.6.27 to 3.18)"
+.\" commit 9eefe520c814f6f62c5d36a2ddcd3fb99dfdb30e (introduces feature)
+.\" commit 0050ee059f7fc86b1df2527aaa14ed5dc72f9973 (rendered redundant)
+From Linux 2.6.27 to 3.18,
+this file was used to control recomputing of the value in
+.IR /proc/sys/kernel/msgmni
+upon the addition or removal of memory or upon IPC namespace creation/removal.
+Echoing "1" into this file enabled
+.I msgmni
+automatic recomputing (and triggered a recomputation of
+.I msgmni
+based on the current amount of available memory and number of IPC namespaces).
+Echoing "0" disabled automatic recomputing.
+(Automatic recomputing was also disabled if a value was explicitly assigned to
+.IR /proc/sys/kernel/msgmni .)
+The default value in
+.I auto_msgmni
+was 1.
+
+Since Linux 3.19, the content of this file has no effect (because
+.IR msgmni
+.\" FIXME Must document the 3.19 'msgmni' changes.
+defaults to near the maximum value possible),
+and reads from this file always return the value "0".
+.TP
+.IR /proc/sys/kernel/cap_last_cap " (since Linux 3.2)"
+See
+.BR capabilities (7).
+.TP
+.IR /proc/sys/kernel/cap-bound " (from Linux 2.2 to 2.6.24)"
+This file holds the value of the kernel
+.I "capability bounding set"
+(expressed as a signed decimal number).
+This set is ANDed against the capabilities permitted to a process
+during
+.BR execve (2).
+Starting with Linux 2.6.25,
+the system-wide capability bounding set disappeared,
+and was replaced by a per-thread bounding set; see
+.BR capabilities (7).
+.TP
+.I /proc/sys/kernel/core_pattern
+See
+.BR core (5).
+.TP
+.I /proc/sys/kernel/core_uses_pid
+See
+.BR core (5).
+.TP
+.I /proc/sys/kernel/ctrl-alt-del
+This file
+controls the handling of Ctrl-Alt-Del from the keyboard.
+When the value in this file is 0, Ctrl-Alt-Del is trapped and
+sent to the
+.BR init (1)
+program to handle a graceful restart.
+When the value is greater than zero, Linux's reaction to a Vulcan
+Nerve Pinch (tm) will be an immediate reboot, without even
+syncing its dirty buffers.
+Note: when a program (like dosemu) has the keyboard in "raw"
+mode, the ctrl-alt-del is intercepted by the program before it
+ever reaches the kernel tty layer, and it's up to the program
+to decide what to do with it.
+.TP
+.IR /proc/sys/kernel/dmesg_restrict " (since Linux 2.6.37)"
+The value in this file determines who can see kernel syslog contents.
+A value of 0 in this file imposes no restrictions.
+If the value is 1, only privileged users can read the kernel syslog.
+(See
+.BR syslog (2)
+for more details.)
+Since Linux 3.4,
+.\" commit 620f6e8e855d6d447688a5f67a4e176944a084e8
+only users with the
+.BR CAP_SYS_ADMIN
+capability may change the value in this file.
+.TP
+.IR /proc/sys/kernel/domainname " and " /proc/sys/kernel/hostname
+can be used to set the NIS/YP domainname and the
+hostname of your box in exactly the same way as the commands
+.BR domainname (1)
+and
+.BR hostname (1),
+that is:
+
+.in +4n
+.nf
+.RB "#" " echo \(aqdarkstar\(aq > /proc/sys/kernel/hostname"
+.RB "#" " echo \(aqmydomain\(aq > /proc/sys/kernel/domainname"
+.fi
+.in
+
+has the same effect as
+
+.in +4n
+.nf
+.RB "#" " hostname \(aqdarkstar\(aq"
+.RB "#" " domainname \(aqmydomain\(aq"
+.fi
+.in
+
+Note, however, that the classic darkstar.frop.org has the
+hostname "darkstar" and DNS (Internet Domain Name Server)
+domainname "frop.org", not to be confused with the NIS (Network
+Information Service) or YP (Yellow Pages) domainname.
+These two
+domain names are in general different.
+For a detailed discussion
+see the
+.BR hostname (1)
+man page.
+.TP
+.I /proc/sys/kernel/hotplug
+This file
+contains the path for the hotplug policy agent.
+The default value in this file is
+.IR /sbin/hotplug .
+.TP
+.I /proc/sys/kernel/htab-reclaim
+(PowerPC only) If this file is set to a nonzero value,
+the PowerPC htab
+(see kernel file
+.IR Documentation/powerpc/ppc_htab.txt )
+is pruned
+each time the system hits the idle loop.
+.TP
+.IR /proc/sys/kernel/kptr_restrict " (since Linux 2.6.38)"
+.\" 455cd5ab305c90ffc422dd2e0fb634730942b257
+The value in this file determines whether kernel addresses are exposed via
+.I /proc
+files and other interfaces.
+A value of 0 in this file imposes no restrictions.
+If the value is 1, kernel pointers printed using the
+.I %pK
+format specifier will be replaced with zeros unless the user has the
+.BR CAP_SYSLOG
+capability.
+If the value is 2, kernel pointers printed using the
+.I %pK
+format specifier will be replaced with zeros regardless
+of the user's capabilities.
+The initial default value for this file was 1,
+but the default was changed
+.\" commit 411f05f123cbd7f8aa1edcae86970755a6e2a9d9
+to 0 in Linux 2.6.39.
+Since Linux 3.4,
+.\" commit 620f6e8e855d6d447688a5f67a4e176944a084e8
+only users with the
+.BR CAP_SYS_ADMIN
+capability can change the value in this file.
+.TP
+.I /proc/sys/kernel/l2cr
+(PowerPC only) This file
+contains a flag that controls the L2 cache of G3 processor
+boards.
+If 0, the cache is disabled.
+Enabled if nonzero.
+.TP
+.I /proc/sys/kernel/modprobe
+This file contains the path for the kernel module loader.
+The default value is
+.IR /sbin/modprobe .
+The file is present only if the kernel is built with the
+.B CONFIG_MODULES
+.RB ( CONFIG_KMOD
+in Linux 2.6.26 and earlier)
+option enabled.
+It is described by the Linux kernel source file
+.I Documentation/kmod.txt
+(present only in kernel 2.4 and earlier).
+.TP
+.IR /proc/sys/kernel/modules_disabled " (since Linux 2.6.31)"
+.\" 3d43321b7015387cfebbe26436d0e9d299162ea1
+.\" From Documentation/sysctl/kernel.txt
+A toggle value indicating if modules are allowed to be loaded
+in an otherwise modular kernel.
+This toggle defaults to off (0), but can be set true (1).
+Once true, modules can be neither loaded nor unloaded,
+and the toggle cannot be set back to false.
+The file is present only if the kernel is built with the
+.B CONFIG_MODULES
+option enabled.
+.TP
+.IR /proc/sys/kernel/msgmax " (since Linux 2.2)"
+This file defines
+a system-wide limit specifying the maximum number of bytes in
+a single message written on a System V message queue.
+.TP
+.IR /proc/sys/kernel/msgmni " (since Linux 2.4)"
+This file defines the system-wide limit on the number of
+message queue identifiers.
+See also
+.IR /proc/sys/kernel/auto_msgmni .
+.TP
+.IR /proc/sys/kernel/msgmnb " (since Linux 2.2)"
+This file defines a system-wide parameter used to initialize the
+.I msg_qbytes
+setting for subsequently created message queues.
+The
+.I msg_qbytes
+setting specifies the maximum number of bytes that may be written to the
+message queue.
+.TP
+.IR /proc/sys/kernel/ngroups_max " (since Linux 2.6.4)"
+This is a read-only file that displays the upper limit on the
+number of a process's group memberships.
+.TP
+.IR /proc/sys/kernel/ostype " and " /proc/sys/kernel/osrelease
+These files
+give substrings of
+.IR /proc/version .
+.TP
+.IR /proc/sys/kernel/overflowgid " and " /proc/sys/kernel/overflowuid
+These files duplicate the files
+.I /proc/sys/fs/overflowgid
+and
+.IR /proc/sys/fs/overflowuid .
+.TP
+.I /proc/sys/kernel/panic
+This file gives read/write access to the kernel variable
+.IR panic_timeout .
+If this is zero, the kernel will loop on a panic; if nonzero,
+it indicates that the kernel should autoreboot after this number
+of seconds.
+When you use the
+software watchdog device driver, the recommended setting is 60.
+.TP
+.IR /proc/sys/kernel/panic_on_oops " (since Linux 2.5.68)"
+This file controls the kernel's behavior when an oops
+or BUG is encountered.
+If this file contains 0, then the system
+tries to continue operation.
+If it contains 1, then the system
+delays a few seconds (to give klogd time to record the oops output)
+and then panics.
+If the
+.I /proc/sys/kernel/panic
+file is also nonzero, then the machine will be rebooted.
+.TP
+.IR /proc/sys/kernel/pid_max " (since Linux 2.5.34)"
+This file specifies the value at which PIDs wrap around
+(i.e., the value in this file is one greater than the maximum PID).
+PIDs greater than this value are not allocated;
+thus, the value in this file also acts as a system-wide limit
+on the total number of processes and threads.
+The default value for this file, 32768,
+results in the same range of PIDs as on earlier kernels.
+On 32-bit platforms, 32768 is the maximum value for
+.IR pid_max .
+On 64-bit systems,
+.I pid_max
+can be set to any value up to 2^22
+.RB ( PID_MAX_LIMIT ,
+approximately 4 million).
+.\" Prior to 2.6.10, pid_max could also be raised above 32768 on 32-bit
+.\" platforms, but this broke /proc/[pid]
+.\" See http://marc.theaimsgroup.com/?l=linux-kernel&m=109513010926152&w=2
+.TP
+.IR /proc/sys/kernel/powersave-nap " (PowerPC only)"
+This file contains a flag.
+If set, Linux-PPC will use the "nap" mode of
+powersaving,
+otherwise the "doze" mode will be used.
+.TP
+.I /proc/sys/kernel/printk
+See
+.BR syslog (2).
+.TP
+.IR /proc/sys/kernel/pty " (since Linux 2.6.4)"
+This directory contains two files relating to the number of UNIX 98
+pseudoterminals (see
+.BR pts (4))
+on the system.
+.TP
+.I /proc/sys/kernel/pty/max
+This file defines the maximum number of pseudoterminals.
+.TP
+.I /proc/sys/kernel/pty/nr
+This read-only file
+indicates how many pseudoterminals are currently in use.
+.TP
+.I /proc/sys/kernel/random
+This directory
+contains various parameters controlling the operation of the file
+.IR /dev/random .
+See
+.BR random (4)
+for further information.
+.TP
+.IR /proc/sys/kernel/random/uuid " (since Linux 2.4)"
+Each read from this read-only file returns a randomly generated 128-bit UUID,
+as a string in the standard UUID format.
+.TP
+.IR /proc/sys/kernel/randomize_va_space " (since Linux 2.6.12)"
+.\" Some further details can be found in Documentation/sysctl/kernel.txt
+Select the address space layout randomization (ASLR) policy for the system
+(on architectures that support ASLR).
+Three values are supported for this file:
+.RS
+.IP 0 3
+Turn ASLR off.
+This is the default for architectures that don't support ASLR,
+and when the kernel is booted with the
+.I norandmaps
+parameter.
+.IP 1
+Make the addresses of
+.BR mmap (2)
+allocations, the stack, and the VDSO page randomized.
+Among other things, this means that shared libraries will be
+loaded at randomized addresses.
+The text segment of PIE-linked binaries will also be loaded
+at a randomized address.
+This value is the default if the kernel was configured with
+.BR CONFIG_COMPAT_BRK .
+.IP 2
+(Since Linux 2.6.25)
+.\" commit c1d171a002942ea2d93b4fbd0c9583c56fce0772
+Also support heap randomization.
+This value is the default if the kernel was not configured with
+.BR CONFIG_COMPAT_BRK .
+.RE
+.TP
+.I /proc/sys/kernel/real-root-dev
+This file is documented in the Linux kernel source file
+.IR Documentation/initrd.txt .
+.TP
+.IR /proc/sys/kernel/reboot-cmd " (Sparc only) "
+This file seems to be a way to give an argument to the SPARC
+ROM/Flash boot loader.
+Maybe to tell it what to do after
+rebooting?
+.TP
+.I /proc/sys/kernel/rtsig-max
+(Only in kernels up to and including 2.6.7; see
+.BR setrlimit (2))
+This file can be used to tune the maximum number
+of POSIX real-time (queued) signals that can be outstanding
+in the system.
+.TP
+.I /proc/sys/kernel/rtsig-nr
+(Only in kernels up to and including 2.6.7.)
+This file shows the number POSIX real-time signals currently queued.
+.TP
+.IR /proc/sys/kernel/sched_rr_timeslice_ms " (since Linux 3.9)"
+See
+.BR sched_rr_get_interval (2).
+.TP
+.IR /proc/sys/kernel/sched_rt_period_us " (Since Linux 2.6.25)"
+See
+.BR sched (7).
+.TP
+.IR /proc/sys/kernel/sched_rt_runtime_us " (Since Linux 2.6.25)"
+See
+.BR sched (7).
+.TP
+.IR /proc/sys/kernel/sem " (since Linux 2.4)"
+This file contains 4 numbers defining limits for System V IPC semaphores.
+These fields are, in order:
+.RS
+.IP SEMMSL 8
+The maximum semaphores per semaphore set.
+.IP SEMMNS 8
+A system-wide limit on the number of semaphores in all semaphore sets.
+.IP SEMOPM 8
+The maximum number of operations that may be specified in a
+.BR semop (2)
+call.
+.IP SEMMNI 8
+A system-wide limit on the maximum number of semaphore identifiers.
+.RE
+.TP
+.I /proc/sys/kernel/sg-big-buff
+This file
+shows the size of the generic SCSI device (sg) buffer.
+You can't tune it just yet, but you could change it at
+compile time by editing
+.I include/scsi/sg.h
+and changing
+the value of
+.BR SG_BIG_BUFF .
+However, there shouldn't be any reason to change this value.
+.TP
+.IR /proc/sys/kernel/shm_rmid_forced " (since Linux 3.1)"
+.\" commit b34a6b1da371ed8af1221459a18c67970f7e3d53
+.\" See also Documentation/sysctl/kernel.txt
+If this file is set to 1, all System V shared memory segments will
+be marked for destruction as soon as the number of attached processes
+falls to zero;
+in other words, it is no longer possible to create shared memory segments
+that exist independently of any attached process.
+.IP
+The effect is as though a
+.BR shmctl (2)
+.B IPC_RMID
+is performed on all existing segments as well as all segments
+created in the future (until this file is reset to 0).
+Note that existing segments that are attached to no process will be
+immediately destroyed when this file is set to 1.
+Setting this option will also destroy segments that were created,
+but never attached,
+upon termination of the process that created the segment with
+.BR shmget (2).
+.IP
+Setting this file to 1 provides a way of ensuring that
+all System V shared memory segments are counted against the
+resource usage and resource limits (see the description of
+.B RLIMIT_AS
+in
+.BR getrlimit (2))
+of at least one process.
+.IP
+Because setting this file to 1 produces behavior that is nonstandard
+and could also break existing applications,
+the default value in this file is 0.
+Only set this file to 1 if you have a good understanding
+of the semantics of the applications using
+System V shared memory on your system.
+.TP
+.IR /proc/sys/kernel/shmall " (since Linux 2.2)"
+This file
+contains the system-wide limit on the total number of pages of
+System V shared memory.
+.TP
+.IR /proc/sys/kernel/shmmax " (since Linux 2.2)"
+This file
+can be used to query and set the run-time limit
+on the maximum (System V IPC) shared memory segment size that can be
+created.
+Shared memory segments up to 1GB are now supported in the
+kernel.
+This value defaults to
+.BR SHMMAX .
+.TP
+.IR /proc/sys/kernel/shmmni " (since Linux 2.4)"
+This file
+specifies the system-wide maximum number of System V shared memory
+segments that can be created.
+.TP
+.IR /proc/sys/kernel/sysctl_writes_strict " (since Linux 3.16)"
+.\" commit f88083005ab319abba5d0b2e4e997558245493c8
+.\" commit 2ca9bb456ada8bcbdc8f77f8fc78207653bbaa92
+.\" commit f4aacea2f5d1a5f7e3154e967d70cf3f711bcd61
+.\" commit 24fe831c17ab8149413874f2fd4e5c8a41fcd294
+The value in this file determines how the file offset affects
+the behavior of updating entries in files under
+.IR /proc/sys .
+The file has three possible values:
+.RS
+.TP 4
+\-1
+This provides legacy handling, with no printk warnings.
+Each
+.BR write (2)
+must fully contain the value to be written,
+and multiple writes on the same file descriptor
+will overwrite the entire value, regardless of the file position.
+.TP
+0
+(default) This provides the same behavior as for \-1,
+but printk warnings are written for processes that
+perform writes when the file offset is not 0.
+.TP
+1
+Respect the file offset when writing strings into
+.I /proc/sys
+files.
+Multiple writes will
+.I append
+to the value buffer.
+Anything written beyond the maximum length
+of the value buffer will be ignored.
+Writes to numeric
+.I /proc/sys
+entries must always be at file offset 0 and the value must be
+fully contained in the buffer provided to
+.BR write (2).
+.\" FIXME .
+.\"     With /proc/sys/kernel/sysctl_writes_strict==1, writes at an
+.\"     offset other than 0 do not generate an error. Instead, the
+.\"     write() succeeds, but the file is left unmodified.
+.\"     This is surprising. The behavior may change in the future.
+.\"     See thread.gmane.org/gmane.linux.man/9197
+.\"		From: Michael Kerrisk (man-pages <mtk.manpages@...>
+.\"		Subject: sysctl_writes_strict documentation + an oddity?
+.\"		Newsgroups: gmane.linux.man, gmane.linux.kernel
+.\"		Date: 2015-05-09 08:54:11 GMT
+.RE
+.TP
+.I /proc/sys/kernel/sysrq
+This file controls the functions allowed to be invoked by the SysRq key.
+By default,
+the file contains 1 meaning that every possible SysRq request is allowed
+(in older kernel versions, SysRq was disabled by default,
+and you were required to specifically enable it at run-time,
+but this is not the case any more).
+Possible values in this file are:
+.RS
+.TP 5
+0
+Disable sysrq completely
+.TP
+1
+Enable all functions of sysrq
+.TP
+> 1
+Bit mask of allowed sysrq functions, as follows:
+.PD 0
+.RS
+.TP 5
+\ \ 2
+Enable control of console logging level
+.TP
+\ \ 4
+Enable control of keyboard (SAK, unraw)
+.TP
+\ \ 8
+Enable debugging dumps of processes etc.
+.TP
+\ 16
+Enable sync command
+.TP
+\ 32
+Enable remount read-only
+.TP
+\ 64
+Enable signaling of processes (term, kill, oom-kill)
+.TP
+128
+Allow reboot/poweroff
+.TP
+256
+Allow nicing of all real-time tasks
+.RE
+.PD
+.RE
+.IP
+This file is present only if the
+.B CONFIG_MAGIC_SYSRQ
+kernel configuration option is enabled.
+For further details see the Linux kernel source file
+.IR Documentation/sysrq.txt .
+.TP
+.I /proc/sys/kernel/version
+This file contains a string such as:
+
+    #5 Wed Feb 25 21:49:24 MET 1998
+
+The "#5" means that
+this is the fifth kernel built from this source base and the
+date following it indicates the time the kernel was built.
+.TP
+.IR /proc/sys/kernel/threads-max " (since Linux 2.3.11)"
+.\" The following is based on Documentation/sysctl/kernel.txt
+This file specifies the system-wide limit on the number of
+threads (tasks) that can be created on the system.
+
+Since Linux 4.1,
+.\" commit 230633d109e35b0a24277498e773edeb79b4a331
+the value that can be written to
+.I threads-max
+is bounded.
+The minimum value that can be written is 20.
+The maximum value that can be written is given by the
+constant
+.B FUTEX_TID_MASK
+(0x3fffffff).
+If a value outside of this range is written to
+.IR threads-max ,
+the error
+.B EINVAL
+occurs.
+
+The value written is checked against the available RAM pages.
+If the thread structures would occupy too much (more than 1/8th)
+of the available RAM pages,
+.I threads-max
+is reduced accordingly.
+.TP
+.IR /proc/sys/kernel/yama/ptrace_scope " (since Linux 3.5)"
+See
+.BR ptrace (2).
+.TP
+.IR /proc/sys/kernel/zero-paged " (PowerPC only) "
+This file
+contains a flag.
+When enabled (nonzero), Linux-PPC will pre-zero pages in
+the idle loop, possibly speeding up get_free_pages.
+.TP
+.I /proc/sys/net
+This directory contains networking stuff.
+Explanations for some of the files under this directory can be found in
+.BR tcp (7)
+and
+.BR ip (7).
+.TP
+.B /proc/sys/net/core/bpf_jit_enable
+See
+.BR bpf (2).
+.TP
+.I /proc/sys/net/core/somaxconn
+This file defines a ceiling value for the
+.I backlog
+argument of
+.BR listen (2);
+see the
+.BR listen (2)
+manual page for details.
+.TP
+.I /proc/sys/proc
+This directory may be empty.
+.TP
+.I /proc/sys/sunrpc
+This directory supports Sun remote procedure call for network filesystem
+(NFS).
+On some systems, it is not present.
+.TP
+.I /proc/sys/vm
+This directory contains files for memory management tuning, buffer and
+cache management.
+.TP
+.IR /proc/sys/vm/compact_memory " (since Linux 2.6.35)"
+When 1 is written to this file, all zones are compacted such that free
+memory is available in contiguous blocks where possible.
+The effect of this action can be seen by examining
+.IR /proc/buddyinfo .
+.IP
+Only present if the kernel was configured with
+.BR CONFIG_COMPACTION .
+.TP
+.IR /proc/sys/vm/drop_caches " (since Linux 2.6.16)"
+Writing to this file causes the kernel to drop clean caches, dentries, and
+inodes from memory, causing that memory to become free.
+This can be useful for memory management testing and
+performing reproducible filesystem benchmarks.
+Because writing to this file causes the benefits of caching to be lost,
+it can degrade overall system performance.
+
+To free pagecache, use:
+
+    echo 1 > /proc/sys/vm/drop_caches
+
+To free dentries and inodes, use:
+
+    echo 2 > /proc/sys/vm/drop_caches
+
+To free pagecache, dentries and inodes, use:
+
+    echo 3 > /proc/sys/vm/drop_caches
+
+Because writing to this file is a nondestructive operation and dirty objects
+are not freeable, the
+user should run
+.BR sync (1)
+first.
+.TP
+.IR /proc/sys/vm/legacy_va_layout " (since Linux 2.6.9)"
+.\" The following is from Documentation/filesystems/proc.txt
+If nonzero, this disables the new 32-bit memory-mapping layout;
+the kernel will use the legacy (2.4) layout for all processes.
+.TP
+.IR /proc/sys/vm/memory_failure_early_kill " (since Linux 2.6.32)"
+.\" The following is based on the text in Documentation/sysctl/vm.txt
+Control how to kill processes when an uncorrected memory error
+(typically a 2-bit error in a memory module)
+that cannot be handled by the kernel
+is detected in the background by hardware.
+In some cases (like the page still having a valid copy on disk),
+the kernel will handle the failure
+transparently without affecting any applications.
+But if there is no other up-to-date copy of the data,
+it will kill processes to prevent any data corruptions from propagating.
+
+The file has one of the following values:
+.RS
+.IP 1: 4
+Kill all processes that have the corrupted-and-not-reloadable page mapped
+as soon as the corruption is detected.
+Note this is not supported for a few types of pages, like kernel internally
+allocated data or the swap cache, but works for the majority of user pages.
+.IP 0: 4
+Only unmap the corrupted page from all processes and kill only a process
+that tries to access it.
+.RE
+.IP
+The kill is performed using a
+.B SIGBUS
+signal with
+.I si_code
+set to
+.BR BUS_MCEERR_AO .
+Processes can handle this if they want to; see
+.BR sigaction (2)
+for more details.
+
+This feature is active only on architectures/platforms with advanced machine
+check handling and depends on the hardware capabilities.
+
+Applications can override the
+.I memory_failure_early_kill
+setting individually with the
+.BR prctl (2)
+.B PR_MCE_KILL
+operation.
+.IP
+Only present if the kernel was configured with
+.BR CONFIG_MEMORY_FAILURE .
+.TP
+.IR /proc/sys/vm/memory_failure_recovery " (since Linux 2.6.32)"
+.\" The following is based on the text in Documentation/sysctl/vm.txt
+Enable memory failure recovery (when supported by the platform)
+.RS
+.IP 1: 4
+Attempt recovery.
+.IP 0: 4
+Always panic on a memory failure.
+.RE
+.IP
+Only present if the kernel was configured with
+.BR CONFIG_MEMORY_FAILURE .
+.TP
+.IR /proc/sys/vm/oom_dump_tasks " (since Linux 2.6.25)"
+.\" The following is from Documentation/sysctl/vm.txt
+Enables a system-wide task dump (excluding kernel threads) to be
+produced when the kernel performs an OOM-killing.
+The dump includes the following information
+for each task (thread, process):
+thread ID, real user ID, thread group ID (process ID),
+virtual memory size, resident set size,
+the CPU that the task is scheduled on,
+oom_adj score (see the description of
+.IR /proc/[pid]/oom_adj ),
+and command name.
+This is helpful to determine why the OOM-killer was invoked
+and to identify the rogue task that caused it.
+
+If this contains the value zero, this information is suppressed.
+On very large systems with thousands of tasks,
+it may not be feasible to dump the memory state information for each one.
+Such systems should not be forced to incur a performance penalty in
+OOM situations when the information may not be desired.
+
+If this is set to nonzero, this information is shown whenever the
+OOM-killer actually kills a memory-hogging task.
+
+The default value is 0.
+.TP
+.IR /proc/sys/vm/oom_kill_allocating_task " (since Linux 2.6.24)"
+.\" The following is from Documentation/sysctl/vm.txt
+This enables or disables killing the OOM-triggering task in
+out-of-memory situations.
+
+If this is set to zero, the OOM-killer will scan through the entire
+tasklist and select a task based on heuristics to kill.
+This normally selects a rogue memory-hogging task that
+frees up a large amount of memory when killed.
+
+If this is set to nonzero, the OOM-killer simply kills the task that
+triggered the out-of-memory condition.
+This avoids a possibly expensive tasklist scan.
+
+If
+.I /proc/sys/vm/panic_on_oom
+is nonzero, it takes precedence over whatever value is used in
+.IR /proc/sys/vm/oom_kill_allocating_task .
+
+The default value is 0.
+.TP
+.IR /proc/sys/vm/overcommit_kbytes " (since Linux 3.14)"
+.\" commit 49f0ce5f92321cdcf741e35f385669a421013cb7
+This writable file provides an alternative to
+.IR /proc/sys/vm/overcommit_ratio
+for controlling the
+.I CommitLimit
+when
+.IR /proc/sys/vm/overcommit_memory
+has the value 2.
+It allows the amount of memory overcommitting to be specified as
+an absolute value (in kB),
+rather than as a percentage, as is done with
+.IR overcommit_ratio .
+This allows for finer-grained control of
+.IR CommitLimit
+on systems with extremely large memory sizes.
+
+Only one of
+.IR overcommit_kbytes
+or
+.IR overcommit_ratio
+can have an effect:
+if
+.IR overcommit_kbytes
+has a nonzero value, then it is used to calculate
+.IR CommitLimit ,
+otherwise
+.IR overcommit_ratio
+is used.
+Writing a value to either of these files causes the
+value in the other file to be set to zero.
+.TP
+.I /proc/sys/vm/overcommit_memory
+This file contains the kernel virtual memory accounting mode.
+Values are:
+.RS
+.IP
+0: heuristic overcommit (this is the default)
+.br
+1: always overcommit, never check
+.br
+2: always check, never overcommit
+.RE
+.IP
+In mode 0, calls of
+.BR mmap (2)
+with
+.B MAP_NORESERVE
+are not checked, and the default check is very weak,
+leading to the risk of getting a process "OOM-killed".
+Under Linux 2.4, any nonzero value implies mode 1.
+
+In mode 2 (available since Linux 2.6), the total virtual address space
+that can be allocated
+.RI ( CommitLimit
+in
+.IR /proc/meminfo )
+is calculated as
+
+    CommitLimit = (total_RAM - total_huge_TLB) *
+                  overcommit_ratio / 100 + total_swap
+
+where:
+.RS 12
+.IP * 3
+.I total_RAM
+is the total amount of RAM on the system;
+.IP *
+.I total_huge_TLB
+is the amount of memory set aside for huge pages;
+.IP *
+.I overcommit_ratio
+is the value in
+.IR /proc/sys/vm/overcommit_ratio ;
+and
+.IP *
+.I total_swap
+is the amount of swap space.
+.RE
+.IP
+For example, on a system with 16GB of physical RAM, 16GB
+of swap, no space dedicated to huge pages, and an
+.I overcommit_ratio
+of 50, this formula yields a
+.I CommitLimit
+of 24GB.
+
+Since Linux 3.14, if the value in
+.I /proc/sys/vm/overcommit_kbytes
+is nonzero, then
+.I CommitLimit
+is instead calculated as:
+
+    CommitLimit = overcommit_kbytes + total_swap
+.TP
+.IR /proc/sys/vm/overcommit_ratio " (since Linux 2.6.0)"
+This writable file defines a percentage by which memory
+can be overcommitted.
+The default value in the file is 50.
+See the description of
+.IR /proc/sys/vm/overcommit_memory .
+.TP
+.IR /proc/sys/vm/panic_on_oom " (since Linux 2.6.18)"
+.\" The following is adapted from Documentation/sysctl/vm.txt
+This enables or disables a kernel panic in
+an out-of-memory situation.
+
+If this file is set to the value 0,
+the kernel's OOM-killer will kill some rogue process.
+Usually, the OOM-killer is able to kill a rogue process and the
+system will survive.
+
+If this file is set to the value 1,
+then the kernel normally panics when out-of-memory happens.
+However, if a process limits allocations to certain nodes
+using memory policies
+.RB ( mbind (2)
+.BR MPOL_BIND )
+or cpusets
+.RB ( cpuset (7))
+and those nodes reach memory exhaustion status,
+one process may be killed by the OOM-killer.
+No panic occurs in this case:
+because other nodes' memory may be free,
+this means the system as a whole may not have reached
+an out-of-memory situation yet.
+
+If this file is set to the value 2,
+the kernel always panics when an out-of-memory condition occurs.
+
+The default value is 0.
+1 and 2 are for failover of clustering.
+Select either according to your policy of failover.
+.TP
+.IR /proc/sys/vm/swappiness
+.\" The following is from Documentation/sysctl/vm.txt
+The value in this file controls how aggressively the kernel will swap
+memory pages.
+Higher values increase aggressiveness, lower values
+decrease aggressiveness.
+The default value is 60.
+.TP
+.IR /proc/sysrq-trigger " (since Linux 2.4.21)"
+Writing a character to this file triggers the same SysRq function as
+typing ALT-SysRq-<character> (see the description of
+.IR /proc/sys/kernel/sysrq ).
+This file is normally writable only by
+.IR root .
+For further details see the Linux kernel source file
+.IR Documentation/sysrq.txt .
+.TP
+.I /proc/sysvipc
+Subdirectory containing the pseudo-files
+.IR msg ", " sem " and " shm "."
+These files list the System V Interprocess Communication (IPC) objects
+(respectively: message queues, semaphores, and shared memory)
+that currently exist on the system,
+providing similar information to that available via
+.BR ipcs (1).
+These files have headers and are formatted (one IPC object per line)
+for easy understanding.
+.BR svipc (7)
+provides further background on the information shown by these files.
+.TP
+.IR /proc/thread-self " (since Linux 3.17)"
+.\" commit 0097875bd41528922fb3bb5f348c53f17e00e2fd
+This directory refers to the thread accessing the
+.I /proc
+filesystem,
+and is identical to the
+.I /proc/self/task/[tid]
+directory named by the process thread ID
+.RI ( [tid] )
+of the same thread.
+.TP
+.IR /proc/timer_list " (since Linux 2.6.21)"
+.\" commit 289f480af87e45f7a6de6ba9b4c061c2e259fe98
+This read-only file exposes a list of all currently pending
+(high-resolution) timers,
+all clock-event sources, and their parameters in a human-readable form.
+.TP
+.IR /proc/timer_stats " (since Linux 2.6.21)"
+.\" commit 82f67cd9fca8c8762c15ba7ed0d5747588c1e221
+.\"	Date:   Fri Feb 16 01:28:13 2007 -0800
+.\" Text largely derived from Documentation/timers/timer_stats.txt
+This is a debugging facility to make timer (ab)use in a Linux
+system visible to kernel and user-space developers.
+It can be used by kernel and user-space developers to verify that
+their code does not make undue use of timers.
+The goal is to avoid unnecessary wakeups,
+thereby optimizing power consumption.
+
+If enabled in the kernel
+.RB ( CONFIG_TIMER_STATS ),
+but not used,
+it has almost zero runtime overhead and a relatively small
+data-structure overhead.
+Even if collection is enabled at runtime, overhead is low:
+all the locking is per-CPU and lookup is hashed.
+
+The
+.I /proc/timer_stats
+file is used both to control sampling facility and to read out the
+sampled information.
+
+The timer_stats functionality is inactive on bootup.
+A sampling period can be started using the following command:
+
+    # echo 1 > /proc/timer_stats
+
+The following command stops a sampling period:
+
+    # echo 0 > /proc/timer_stats
+
+The statistics can be retrieved by:
+
+    $ cat /proc/timer_stats
+
+While sampling is enabled, each readout from
+.I /proc/timer_stats
+will see
+newly updated statistics.
+Once sampling is disabled, the sampled information
+is kept until a new sample period is started.
+This allows multiple readouts.
+
+Sample output from
+.IR /proc/timer_stats :
+
+.nf
+.RS -4
+.RB $ " cat /proc/timer_stats"
+Timer Stats Version: v0.3
+Sample period: 1.764 s
+Collection: active
+  255,     0 swapper/3        hrtimer_start_range_ns (tick_sched_timer)
+   71,     0 swapper/1        hrtimer_start_range_ns (tick_sched_timer)
+   58,     0 swapper/0        hrtimer_start_range_ns (tick_sched_timer)
+    4,  1694 gnome-shell      mod_delayed_work_on (delayed_work_timer_fn)
+   17,     7 rcu_sched        rcu_gp_kthread (process_timeout)
+\&...
+    1,  4911 kworker/u16:0    mod_delayed_work_on (delayed_work_timer_fn)
+   1D,  2522 kworker/0:0      queue_delayed_work_on (delayed_work_timer_fn)
+1029 total events, 583.333 events/sec
+.fi
+.RE
+.IP
+The output columns are:
+.RS
+.IP * 3
+a count of the number of events,
+optionally (since Linux 2.6.23) followed by the letter \(aqD\(aq
+.\" commit c5c061b8f9726bc2c25e19dec227933a13d1e6b7 deferrable timers
+if this is a deferrable timer;
+.IP *
+the PID of the process that initialized the timer;
+.IP *
+the name of the process that initialized the timer;
+.IP *
+the function where the timer was initialized; and
+.IP *
+(in parentheses)
+the callback function that is associated with the timer.
+.RE
+.TP
+.I /proc/tty
+Subdirectory containing the pseudo-files and subdirectories for
+tty drivers and line disciplines.
+.TP
+.I /proc/uptime
+This file contains two numbers: the uptime of the system (seconds),
+and the amount of time spent in idle process (seconds).
+.TP
+.I /proc/version
+This string identifies the kernel version that is currently running.
+It includes the contents of
+.IR /proc/sys/kernel/ostype ,
+.I /proc/sys/kernel/osrelease
+and
+.IR /proc/sys/kernel/version .
+For example:
+.nf
+.in -2
+.ft CW
+Linux version 1.0.9 (quinlan@phaze) #1 Sat May 14 01:51:54 EDT 1994
+.ft
+.in +2
+.fi
+.\" FIXME 2.6.13 seems to have /proc/vmcore implemented; document this
+.\" 	See Documentation/kdump/kdump.txt
+.\"	commit 666bfddbe8b8fd4fd44617d6c55193d5ac7edb29
+.\" 	Needs CONFIG_VMCORE
+.\"
+.TP
+.IR /proc/vmstat " (since Linux 2.6.0)"
+This file displays various virtual memory statistics.
+Each line of this file contains a single name-value pair,
+delimited by white space.
+Some files are present only if the kernel was configured with
+suitable options.
+(In some cases, the options required for particular files have changed
+across kernel versions, so they are not listed here.
+Details can be found by consulting the kernel source code.)
+The following fields may be present:
+.\" FIXME We need explanations for each of these fields...
+.RS
+.TP
+.IR nr_free_pages " (since Linux 2.6.31)"
+.\" commit d23ad42324cc4378132e51f2fc5c9ba6cbe75182
+.TP
+.IR nr_alloc_batch " (since Linux 3.12)"
+.\" commit 81c0a2bb515fd4daae8cab64352877480792b515
+.TP
+.IR nr_inactive_anon " (since Linux 2.6.28)"
+.\" commit 4f98a2fee8acdb4ac84545df98cccecfd130f8db
+.TP
+.IR nr_active_anon " (since Linux 2.6.28)"
+.\" commit 4f98a2fee8acdb4ac84545df98cccecfd130f8db
+.TP
+.IR nr_inactive_file " (since Linux 2.6.28)"
+.\" commit 4f98a2fee8acdb4ac84545df98cccecfd130f8db
+.TP
+.IR nr_active_file " (since Linux 2.6.28)"
+.\" commit 4f98a2fee8acdb4ac84545df98cccecfd130f8db
+.TP
+.IR nr_unevictable " (since Linux 2.6.28)"
+.\" commit 7b854121eb3e5ba0241882ff939e2c485228c9c5
+.TP
+.IR nr_mlock " (since Linux 2.6.28)"
+.\" commit 5344b7e648980cc2ca613ec03a56a8222ff48820
+.TP
+.IR nr_anon_pages " (since Linux 2.6.18)"
+.\" commit f3dbd34460ff54962d3e3244b6bcb7f5295356e6
+.TP
+.IR nr_mapped " (since Linux 2.6.0)"
+.TP
+.IR nr_file_pages " (since Linux 2.6.18)"
+.\" commit 347ce434d57da80fd5809c0c836f206a50999c26
+.TP
+.IR nr_dirty " (since Linux 2.6.0)"
+.TP
+.IR nr_writeback " (since Linux 2.6.0)"
+.TP
+.IR nr_slab_reclaimable " (since Linux 2.6.19)"
+.\" commit 972d1a7b140569084439a81265a0f15b74e924e0
+.\" Linux 2.6.0 had nr_slab
+.TP
+.IR nr_slab_unreclaimable " (since Linux 2.6.19)"
+.\" commit 972d1a7b140569084439a81265a0f15b74e924e0
+.TP
+.IR nr_page_table_pages " (since Linux 2.6.0)"
+.TP
+.IR nr_kernel_stack " (since Linux 2.6.32)"
+.\" commit c6a7f5728a1db45d30df55a01adc130b4ab0327c
+Amount of memory allocated to kernel stacks.
+.TP
+.IR nr_unstable " (since Linux 2.6.0)"
+.TP
+.IR nr_bounce " (since Linux 2.6.12)"
+.\" commit edfbe2b0038723e5699ab22695ccd62b5542a5c1
+.TP
+.IR nr_vmscan_write " (since Linux 2.6.19)"
+.\" commit e129b5c23c2b471d47f1c5d2b8b193fc2034af43
+.TP
+.IR nr_vmscan_immediate_reclaim " (since Linux 3.2)"
+.\" commit 49ea7eb65e7c5060807fb9312b1ad4c3eab82e2c
+.TP
+.IR nr_writeback_temp " (since Linux 2.6.26)"
+.\" commit fc3ba692a4d19019387c5acaea63131f9eab05dd
+.TP
+.IR nr_isolated_anon " (since Linux 2.6.32)"
+.\" commit a731286de62294b63d8ceb3c5914ac52cc17e690
+.TP
+.IR nr_isolated_file " (since Linux 2.6.32)"
+.\" commit a731286de62294b63d8ceb3c5914ac52cc17e690
+.TP
+.IR nr_shmem " (since Linux 2.6.32)"
+.\" commit 4b02108ac1b3354a22b0d83c684797692efdc395
+Pages used by shmem and tmpfs.
+.TP
+.IR nr_dirtied " (since Linux 2.6.37)"
+.\" commit ea941f0e2a8c02ae876cd73deb4e1557248f258c
+.TP
+.IR nr_written " (since Linux 2.6.37)"
+.\" commit ea941f0e2a8c02ae876cd73deb4e1557248f258c
+.TP
+.IR nr_pages_scanned " (since Linux 3.17)"
+.\" commit 0d5d823ab4e608ec7b52ac4410de4cb74bbe0edd
+.TP
+.IR numa_hit " (since Linux 2.6.18)"
+.\" commit ca889e6c45e0b112cb2ca9d35afc66297519b5d5
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_NUMA .
+.TP
+.IR numa_miss " (since Linux 2.6.18)"
+.\" commit ca889e6c45e0b112cb2ca9d35afc66297519b5d5
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_NUMA .
+.TP
+.IR numa_foreign " (since Linux 2.6.18)"
+.\" commit ca889e6c45e0b112cb2ca9d35afc66297519b5d5
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_NUMA .
+.TP
+.IR numa_interleave " (since Linux 2.6.18)"
+.\" commit ca889e6c45e0b112cb2ca9d35afc66297519b5d5
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_NUMA .
+.TP
+.IR numa_local " (since Linux 2.6.18)"
+.\" commit ca889e6c45e0b112cb2ca9d35afc66297519b5d5
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_NUMA .
+.TP
+.IR numa_other " (since Linux 2.6.18)"
+.\" commit ca889e6c45e0b112cb2ca9d35afc66297519b5d5
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_NUMA .
+.TP
+.IR workingset_refault " (since Linux 3.15)"
+.\" commit a528910e12ec7ee203095eb1711468a66b9b60b0
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR workingset_activate " (since Linux 3.15)"
+.\" commit a528910e12ec7ee203095eb1711468a66b9b60b0
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR workingset_nodereclaim " (since Linux 3.15)"
+.\" commit 449dd6984d0e47643c04c807f609dd56d48d5bcc
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR nr_anon_transparent_hugepages " (since Linux 2.6.38)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR nr_free_cma " (since Linux 3.7)"
+.\" commit d1ce749a0db12202b711d1aba1d29e823034648d
+Number of free CMA (Contiguous Memory Allocator) pages.
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR nr_dirty_threshold " (since Linux 2.6.37)"
+.\" commit 79da826aee6a10902ef411bc65864bd02102fa83
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR nr_dirty_background_threshold " (since Linux 2.6.37)"
+.\" commit 79da826aee6a10902ef411bc65864bd02102fa83
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgpgin " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgpgout " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pswpin " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pswpout " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgalloc_dma " (since Linux 2.6.5)"
+.\" Linux 2.6.0 had pgalloc
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgalloc_dma32 " (since Linux 2.6.16)"
+.\" commit 9328b8faae922e52073785ed6c1eaa8565648a0e
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgalloc_normal " (since Linux 2.6.5)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgalloc_high " (since Linux 2.6.5)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_HIGHMEM .
+.TP
+.IR pgalloc_movable " (since Linux 2.6.23)"
+.\" commit 2a1e274acf0b1c192face19a4be7c12d4503eaaf
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgfree " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgactivate " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgdeactivate " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgfault " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgmajfault " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgrefill_dma " (since Linux 2.6.5)"
+.\" Linux 2.6.0 had pgrefill
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgrefill_dma32 " (since Linux 2.6.16)"
+.\" commit 9328b8faae922e52073785ed6c1eaa8565648a0e
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgrefill_normal " (since Linux 2.6.5)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgrefill_high " (since Linux 2.6.5)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_HIGHMEM .
+.TP
+.IR pgrefill_movable " (since Linux 2.6.23)"
+.\" commit 2a1e274acf0b1c192face19a4be7c12d4503eaaf
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.\" Formerly there were
+.\"     pgsteal_high
+.\"     pgsteal_normal
+.\"     pgsteal_dma32
+.\"     pgsteal_dma
+.\" These were split out into pgsteal_kswapd* and pgsteal_direct*
+.\" in commit 904249aa68010c8e223263c922fcbb840a3f42e4
+.TP
+.IR pgsteal_kswapd_dma " (since Linux 3.4)"
+.\" commit 904249aa68010c8e223263c922fcbb840a3f42e4
+.\" Linux 2.6.0 had pgsteal
+.\" Present only if the kernel was configured with
+.\" .\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgsteal_kswapd_dma32 " (since Linux 3.4)"
+.\" commit 904249aa68010c8e223263c922fcbb840a3f42e4
+.\" commit 9328b8faae922e52073785ed6c1eaa8565648a0e
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgsteal_kswapd_normal " (since Linux 3.4)"
+.\" commit 904249aa68010c8e223263c922fcbb840a3f42e4
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgsteal_kswapd_high " (since Linux 3.4)"
+.\" commit 904249aa68010c8e223263c922fcbb840a3f42e4
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_HIGHMEM .
+.TP
+.IR pgsteal_kswapd_movable " (since Linux 3.4)"
+.\" commit 904249aa68010c8e223263c922fcbb840a3f42e4
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgsteal_direct_dma
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgsteal_direct_dma32 " (since Linux 3.4)"
+.\" commit 904249aa68010c8e223263c922fcbb840a3f42e4
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgsteal_direct_normal " (since Linux 3.4)"
+.\" commit 904249aa68010c8e223263c922fcbb840a3f42e4
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgsteal_direct_high " (since Linux 3.4)"
+.\" commit 904249aa68010c8e223263c922fcbb840a3f42e4
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_HIGHMEM .
+.TP
+.IR pgsteal_direct_movable " (since Linux 2.6.23)"
+.\" commit 2a1e274acf0b1c192face19a4be7c12d4503eaaf
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgscan_kswapd_dma
+.\" Linux 2.6.0 had pgscan
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgscan_kswapd_dma32 " (since Linux 2.6.16)"
+.\" commit 9328b8faae922e52073785ed6c1eaa8565648a0e
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgscan_kswapd_normal " (since Linux 2.6.5)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgscan_kswapd_high
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_HIGHMEM .
+.TP
+.IR pgscan_kswapd_movable " (since Linux 2.6.23)"
+.\" commit 2a1e274acf0b1c192face19a4be7c12d4503eaaf
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgscan_direct_dma
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgscan_direct_dma32 " (since Linux 2.6.16)"
+.\" commit 9328b8faae922e52073785ed6c1eaa8565648a0e
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgscan_direct_normal
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgscan_direct_high
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_HIGHMEM .
+.TP
+.IR pgscan_direct_movable " (since Linux 2.6.23)"
+.\" commit 2a1e274acf0b1c192face19a4be7c12d4503eaaf
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgscan_direct_throttle " (since Linux 3.6)"
+.\" commit 68243e76ee343d63c6cf76978588a885951e2818
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR zone_reclaim_failed " (since linux 2.6.31)"
+.\" commit 24cf72518c79cdcda486ed26074ff8151291cf65
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_NUMA .
+.TP
+.IR pginodesteal " (since linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR slabs_scanned " (since linux 2.6.5)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR kswapd_inodesteal " (since linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR kswapd_low_wmark_hit_quickly " (since 2.6.33)"
+.\" commit bb3ab596832b920c703d1aea1ce76d69c0f71fb7
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR kswapd_high_wmark_hit_quickly " (since 2.6.33)"
+.\" commit bb3ab596832b920c703d1aea1ce76d69c0f71fb7
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pageoutrun " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR allocstall " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR pgrotated " (since Linux 2.6.0)"
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR drop_pagecache " (since Linux 3.15)"
+.\" commit 5509a5d27b971a90b940e148ca9ca53312e4fa7a
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR drop_slab " (since Linux 3.15)"
+.\" commit 5509a5d27b971a90b940e148ca9ca53312e4fa7a
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR numa_pte_updates " (since Linux 3.8)"
+.\" commit 03c5a6e16322c997bf8f264851bfa3f532ad515f
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_NUMA_BALANCING .
+.TP
+.IR numa_huge_pte_updates " (since Linux 3.13)"
+.\" commit 72403b4a0fbdf433c1fe0127e49864658f6f6468
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_NUMA_BALANCING .
+.TP
+.IR numa_hint_faults " (since Linux 3.8)"
+.\" commit 03c5a6e16322c997bf8f264851bfa3f532ad515f
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_NUMA_BALANCING .
+.TP
+.IR numa_hint_faults_local " (since Linux 3.8)"
+.\" commit 03c5a6e16322c997bf8f264851bfa3f532ad515f
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_NUMA_BALANCING .
+.TP
+.IR numa_pages_migrated " (since Linux 3.8)"
+.\" commit 03c5a6e16322c997bf8f264851bfa3f532ad515f
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_NUMA_BALANCING
+.\" and
+.\" .BR CONFIG_NUMA_BALANCING .
+.TP
+.IR pgmigrate_success " (since Linux 3.8)"
+.\" commit 5647bc293ab15f66a7b1cda850c5e9d162a6c7c2
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_MIGRATION .
+.TP
+.IR pgmigrate_fail " (since Linux 3.8)"
+.\" commit 5647bc293ab15f66a7b1cda850c5e9d162a6c7c2
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_MIGRATION .
+.TP
+.IR compact_migrate_scanned " (since Linux 3.8)"
+.\" commit 397487db696cae0b026a474a5cd66f4e372995e6
+.\" Linux 3.8 dropped compact_blocks_moved, compact_pages_moved, and
+.\"           compact_pagemigrate_failed
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_COMPACTION .
+.TP
+.IR compact_free_scanned " (since Linux 3.8)"
+.\" commit 397487db696cae0b026a474a5cd66f4e372995e6
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_COMPACTION .
+.TP
+.IR compact_isolated " (since Linux 3.8)"
+.\" commit 397487db696cae0b026a474a5cd66f4e372995e6
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_COMPACTION .
+.TP
+.IR compact_stall " (since Linux 2.6.35)"
+.\" commit 56de7263fcf3eb10c8dcdf8d59a9cec831795f3f
+See the kernel source file
+.IR Documentation/vm/transhuge.txt .
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_COMPACTION .
+.TP
+.IR compact_fail " (since Linux 2.6.35)"
+.\" commit 56de7263fcf3eb10c8dcdf8d59a9cec831795f3f
+See the kernel source file
+.IR Documentation/vm/transhuge.txt .
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_COMPACTION .
+.TP
+.IR compact_success " (since Linux 2.6.35)"
+.\" commit 56de7263fcf3eb10c8dcdf8d59a9cec831795f3f
+See the kernel source file
+.IR Documentation/vm/transhuge.txt .
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_COMPACTION .
+.TP
+.IR htlb_buddy_alloc_success " (since Linux 2.6.26)"
+.\" commit 3b1163006332302117b1b2acf226d4014ff46525
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_HUGETLB_PAGE .
+.TP
+.IR htlb_buddy_alloc_fail " (since Linux 2.6.26)"
+.\" commit 3b1163006332302117b1b2acf226d4014ff46525
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_HUGETLB_PAGE .
+.TP
+.IR unevictable_pgs_culled " (since Linux 2.6.28)"
+.\" commit bbfd28eee9fbd73e780b19beb3dc562befbb94fa
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR unevictable_pgs_scanned " (since Linux 2.6.28)"
+.\" commit bbfd28eee9fbd73e780b19beb3dc562befbb94fa
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR unevictable_pgs_rescued " (since Linux 2.6.28)"
+.\" commit bbfd28eee9fbd73e780b19beb3dc562befbb94fa
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR unevictable_pgs_mlocked " (since Linux 2.6.28)"
+.\" commit 5344b7e648980cc2ca613ec03a56a8222ff48820
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR unevictable_pgs_munlocked " (since Linux 2.6.28)"
+.\" commit 5344b7e648980cc2ca613ec03a56a8222ff48820
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR unevictable_pgs_cleared " (since Linux 2.6.28)"
+.\" commit 5344b7e648980cc2ca613ec03a56a8222ff48820
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.TP
+.IR unevictable_pgs_stranded " (since Linux 2.6.28)"
+.\" commit 5344b7e648980cc2ca613ec03a56a8222ff48820
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS .
+.\" Linux 3.7 removed unevictable_pgs_mlockfreed
+.TP
+.IR thp_fault_alloc " (since Linux 2.6.39)"
+.\" commit 81ab4201fb7d91d6b0cd9ad5b4b16776e4bed145
+See the kernel source file
+.IR Documentation/vm/transhuge.txt .
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_TRANSPARENT_HUGEPAGE .
+.TP
+.IR thp_fault_fallback " (since Linux 2.6.39)"
+.\" commit 81ab4201fb7d91d6b0cd9ad5b4b16776e4bed145
+See the kernel source file
+.IR Documentation/vm/transhuge.txt .
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_TRANSPARENT_HUGEPAGE .
+.TP
+.IR thp_collapse_alloc " (since Linux 2.6.39)"
+.\" commit 81ab4201fb7d91d6b0cd9ad5b4b16776e4bed145
+See the kernel source file
+.IR Documentation/vm/transhuge.txt .
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_TRANSPARENT_HUGEPAGE .
+.TP
+.IR thp_collapse_alloc_failed " (since Linux 2.6.39)"
+.\" commit 81ab4201fb7d91d6b0cd9ad5b4b16776e4bed145
+See the kernel source file
+.IR Documentation/vm/transhuge.txt .
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_TRANSPARENT_HUGEPAGE .
+.TP
+.IR thp_split " (since Linux 2.6.39)"
+.\" commit 81ab4201fb7d91d6b0cd9ad5b4b16776e4bed145
+See the kernel source file
+.IR Documentation/vm/transhuge.txt .
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_TRANSPARENT_HUGEPAGE .
+.TP
+.IR thp_zero_page_alloc " (since Linux 3.8)"
+.\" commit d8a8e1f0da3d29d7268b3300c96a059d63901b76
+See the kernel source file
+.IR Documentation/vm/transhuge.txt .
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_TRANSPARENT_HUGEPAGE .
+.TP
+.IR thp_zero_page_alloc_failed " (since Linux 3.8)"
+.\" commit d8a8e1f0da3d29d7268b3300c96a059d63901b76
+See the kernel source file
+.IR Documentation/vm/transhuge.txt .
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_TRANSPARENT_HUGEPAGE .
+.TP
+.IR balloon_inflate " (since Linux 3.18)"
+.\" commit 09316c09dde33aae14f34489d9e3d243ec0d5938
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_MEMORY_BALLOON .
+.TP
+.IR balloon_deflate " (since Linux 3.18)"
+.\" commit 09316c09dde33aae14f34489d9e3d243ec0d5938
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS
+.\" and
+.\" .BR CONFIG_MEMORY_BALLOON .
+.TP
+.IR balloon_migrate " (since Linux 3.18)"
+.\" commit 09316c09dde33aae14f34489d9e3d243ec0d5938
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_VM_EVENT_COUNTERS ,
+.\" .BR CONFIG_MEMORY_BALLOON ,
+.\" and
+.\" .BR CONFIG_BALLOON_COMPACTION .
+.TP
+.IR nr_tlb_remote_flush " (since Linux 3.12)"
+.\" commit 9824cf9753ecbe8f5b47aa9b2f218207defea211
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_DEBUG_TLBFLUSH
+.\" and
+.\" .BR CONFIG_SMP .
+.TP
+.IR nr_tlb_remote_flush_received " (since Linux 3.12)"
+.\" commit 9824cf9753ecbe8f5b47aa9b2f218207defea211
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_DEBUG_TLBFLUSH
+.\" and
+.\" .BR CONFIG_SMP .
+.TP
+.IR nr_tlb_local_flush_all " (since Linux 3.12)"
+.\" commit 9824cf9753ecbe8f5b47aa9b2f218207defea211
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_DEBUG_TLBFLUSH .
+.TP
+.IR nr_tlb_local_flush_one " (since Linux 3.12)"
+.\" commit 9824cf9753ecbe8f5b47aa9b2f218207defea211
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_DEBUG_TLBFLUSH .
+.TP
+.IR vmacache_find_calls " (since Linux 3.16)"
+.\" commit 4f115147ff802267d0aa41e361c5aa5bd933d896
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_DEBUG_VM_VMACACHE .
+.TP
+.IR vmacache_find_hits " (since Linux 3.16)"
+.\" commit 4f115147ff802267d0aa41e361c5aa5bd933d896
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_DEBUG_VM_VMACACHE .
+.TP
+.IR vmacache_full_flushes " (since Linux 3.19)"
+.\" commit f5f302e21257ebb0c074bbafc37606c26d28cc3d
+.\" Present only if the kernel was configured with
+.\" .BR CONFIG_DEBUG_VM_VMACACHE .
+.RE
+.TP
+.IR /proc/zoneinfo " (since Linux 2.6.13)"
+This file display information about memory zones.
+This is useful for analyzing virtual memory behavior.
+.\" FIXME more should be said about /proc/zoneinfo
+.SH NOTES
+Many strings (i.e., the environment and command line) are in
+the internal format, with subfields terminated by null bytes (\(aq\\0\(aq),
+so you
+may find that things are more readable if you use \fIod \-c\fP or \fItr
+"\\000" "\\n"\fP to read them.
+Alternatively, \fIecho \`cat <file>\`\fP works well.
+
+This manual page is incomplete, possibly inaccurate, and is the kind
+of thing that needs to be updated very often.
+.\" .SH ACKNOWLEDGEMENTS
+.\" The material on /proc/sys/fs and /proc/sys/kernel is closely based on
+.\" kernel source documentation files written by Rik van Riel.
+.SH SEE ALSO
+.BR cat (1),
+.BR dmesg (1),
+.BR find (1),
+.BR free (1),
+.BR ps (1),
+.BR tr (1),
+.BR uptime (1),
+.BR chroot (2),
+.BR mmap (2),
+.BR readlink (2),
+.BR syslog (2),
+.BR slabinfo (5),
+.BR hier (7),
+.BR namespaces (7),
+.BR time (7),
+.BR arp (8),
+.BR hdparm (8),
+.BR ifconfig (8),
+.BR init (1),
+.BR lsmod (8),
+.BR lspci (8),
+.BR mount (8),
+.BR netstat (8),
+.BR procinfo (8),
+.BR route (8),
+.BR sysctl (8)
+
+The Linux kernel source files:
+.IR Documentation/filesystems/proc.txt
+.IR Documentation/sysctl/fs.txt ,
+.IR Documentation/sysctl/kernel.txt ,
+.IR Documentation/sysctl/net.txt ,
+and
+.IR Documentation/sysctl/vm.txt .

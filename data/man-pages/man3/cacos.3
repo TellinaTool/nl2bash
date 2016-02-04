@@ -1,0 +1,88 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" and Copyright (C) 2011 Michael Kerrisk <mtk.manpages@gamil.com>
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.TH CACOS 3 2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+cacos, cacosf, cacosl \- complex arc cosine
+.SH SYNOPSIS
+.B #include <complex.h>
+.sp
+.BI "double complex cacos(double complex " z );
+.br
+.BI "float complex cacosf(float complex " z );
+.br
+.BI "long double complex cacosl(long double complex " z );
+.sp
+Link with \fI\-lm\fP.
+.SH DESCRIPTION
+These functions calculate the complex arc cosine of
+.IR z .
+If \fIy\ =\ cacos(z)\fP, then \fIz\ =\ ccos(y)\fP.
+The real part of
+.I y
+is chosen in the interval [0,pi].
+.LP
+One has:
+.nf
+
+    cacos(z) = \-i * clog(z + i * csqrt(1 \- z * z))
+.fi
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw28 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR cacos (),
+.BR cacosf (),
+.BR cacosl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+.SH EXAMPLE
+.nf
+/* Link with "\-lm" */
+
+#include <complex.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int
+main(int argc, char *argv[])
+{
+    double complex z, c, f;
+    double complex i = I;
+
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <real> <imag>\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    z = atof(argv[1]) + atof(argv[2]) * I;
+
+    c = cacos(z);
+
+    printf("cacos() = %6.3f %6.3f*i\\n", creal(c), cimag(c));
+
+    f = \-i * clog(z + i * csqrt(1 \- z * z));
+
+    printf("formula = %6.3f %6.3f*i\\n", creal(f), cimag(f));
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR ccos (3),
+.BR clog (3),
+.BR complex (7)

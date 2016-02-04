@@ -1,0 +1,79 @@
+.\" This man page was written by Jeremy Phelps <jphelps@notreached.net>.
+.\" Notes added - aeb
+.\"
+.\" %%%LICENSE_START(FREELY_REDISTRIBUTABLE)
+.\" Redistribute and revise at will.
+.\" %%%LICENSE_END
+.\"
+.TH PTS 4 2002-10-09 "Linux" "Linux Programmer's Manual"
+.SH NAME
+ptmx, pts \- pseudoterminal master and slave
+.SH DESCRIPTION
+The file
+.I /dev/ptmx
+is a character file with major number 5 and
+minor number 2, usually of mode 0666 and owner.group of root.root.
+It is used to create a pseudoterminal master and slave pair.
+.PP
+When a process opens
+.IR /dev/ptmx ,
+it gets a file
+descriptor for a pseudoterminal master (PTM),
+and a pseudoterminal slave (PTS) device is created in the
+.I /dev/pts
+directory.
+Each file descriptor obtained by opening
+.IR /dev/ptmx
+is an independent PTM with its own associated PTS, whose path can
+be found by passing the file descriptor to
+.BR ptsname (3).
+.PP
+Before opening the pseudoterminal slave, you must pass the master's file
+descriptor to
+.BR grantpt (3)
+and
+.BR unlockpt (3).
+.PP
+Once both the pseudoterminal master and slave are open, the slave provides
+processes with an interface that is identical to that of a real terminal.
+.PP
+Data written to the slave is presented on the master file descriptor as input.
+Data written to the master is presented to the slave as input.
+.PP
+In practice, pseudoterminals are used for implementing terminal emulators
+such as
+.BR xterm (1),
+in which data read from the pseudoterminal master is interpreted by the
+application in the same way
+a real terminal would interpret the data, and for implementing remote-login
+programs such as
+.BR sshd (8),
+in which data read from the pseudoterminal master is sent across the network
+to a client program that is connected to a terminal or terminal emulator.
+.PP
+Pseudoterminals can also be used to send input to programs that normally
+refuse to read input from pipes (such as
+.BR su (1),
+and
+.BR passwd (1)).
+.SH FILES
+.IR /dev/ptmx ,
+.I /dev/pts/*
+.SH NOTES
+The Linux support for the above (known as UNIX 98 pseudoterminal naming)
+is done using the
+.I devpts
+filesystem, that should be mounted on
+.IR /dev/pts .
+.LP
+Before this UNIX 98 scheme, master pseudoterminals were called
+.IR /dev/ptyp0 ", ..."
+and slave pseudoterminals
+.IR /dev/ttyp0 ", ..."
+and one needed lots of preallocated device nodes.
+.SH SEE ALSO
+.BR getpt (3),
+.BR grantpt (3),
+.BR ptsname (3),
+.BR unlockpt (3),
+.BR pty (7)

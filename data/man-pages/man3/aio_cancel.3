@@ -1,0 +1,139 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH AIO_CANCEL 3 2015-03-02  "" "Linux Programmer's Manual"
+.SH NAME
+aio_cancel \- cancel an outstanding asynchronous I/O request
+.SH SYNOPSIS
+.B "#include <aio.h>"
+.sp
+.BI "int aio_cancel(int " fd ", struct aiocb *" aiocbp );
+.sp
+Link with \fI\-lrt\fP.
+.SH DESCRIPTION
+The
+.BR aio_cancel ()
+function attempts to cancel outstanding asynchronous I/O requests
+for the file descriptor
+.IR fd .
+If
+.I aiocbp
+is NULL, all such requests are canceled.
+Otherwise, only the request
+described by the control block pointed to by
+.I aiocbp
+is canceled.
+(See
+.BR aio (7)
+for a description of the
+.I aiocb
+structure.)
+.LP
+Normal asynchronous notification occurs for canceled requests (see
+.BR aio (7)
+and
+.BR sigevent (7)).
+The request return status
+.RB ( aio_return (3))
+is set to \-1, and the request error status
+.RB ( aio_error (3))
+is set to
+.BR ECANCELED .
+The control block of requests that cannot be canceled is not changed.
+.LP
+If the request could not be canceled,
+then it will terminate in the usual way after performing the I/O operation.
+(In this case,
+.BR aio_error (3)
+will return the status
+.BR EINPROGRESSS .)
+.LP
+If
+.I aiocbp
+is not NULL, and
+.I fd
+differs from the file descriptor with which the asynchronous operation
+was initiated, unspecified results occur.
+.LP
+Which operations are cancelable is implementation-defined.
+.\" FreeBSD: not those on raw disk devices.
+.SH RETURN VALUE
+The
+.BR aio_cancel ()
+function returns one of the following values:
+.TP
+.B AIO_CANCELED
+All requests were successfully canceled.
+.TP
+.B AIO_NOTCANCELED
+At least one of the
+requests specified was not canceled because it was in progress.
+In this case, one may check the status of individual requests using
+.BR aio_error (3).
+.TP
+.B AIO_ALLDONE
+All requests had already been completed before the call.
+.TP
+\-1
+An error occurred.
+The cause of the error can be found by inspecting
+.IR errno .
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor.
+.TP
+.B ENOSYS
+.BR aio_cancel ()
+is not implemented.
+.SH VERSIONS
+The
+.BR aio_cancel ()
+function is available since glibc 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR aio_cancel ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH EXAMPLE
+See
+.BR aio (7).
+.SH SEE ALSO
+.BR aio_error (3),
+.BR aio_fsync (3),
+.BR aio_read (3),
+.BR aio_return (3),
+.BR aio_suspend (3),
+.BR aio_write (3),
+.BR lio_listio (3),
+.BR aio (7)

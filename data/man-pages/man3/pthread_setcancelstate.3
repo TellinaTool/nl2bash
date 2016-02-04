@@ -1,0 +1,207 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_SETCANCELSTATE 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_setcancelstate, pthread_setcanceltype \-
+set cancelability state and type
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.BI "int pthread_setcancelstate(int " state ", int *" oldstate );
+.BI "int pthread_setcanceltype(int " type ", int *" oldtype );
+.sp
+Compile and link with \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+The
+.BR pthread_setcancelstate ()
+sets the cancelability state of the calling thread to the value
+given in
+.IR state .
+The previous cancelability state of the thread is returned
+in the buffer pointed to by
+.IR oldstate .
+The
+.I state
+argument must have one of the following values:
+.TP
+.B PTHREAD_CANCEL_ENABLE
+The thread is cancelable.
+This is the default cancelability state in all new threads,
+including the initial thread.
+The thread's cancelability type determines when a cancelable thread
+will respond to a cancellation request.
+.TP
+.B PTHREAD_CANCEL_DISABLE
+The thread is not cancelable.
+If a cancellation request is received,
+it is blocked until cancelability is enabled.
+.PP
+The
+.BR pthread_setcanceltype ()
+sets the cancelability type of the calling thread to the value
+given in
+.IR type .
+The previous cancelability type of the thread is returned
+in the buffer pointed to by
+.IR oldtype .
+The
+.I type
+argument must have one of the following values:
+.TP
+.B PTHREAD_CANCEL_DEFERRED
+A cancellation request is deferred until the thread next calls
+a function that is a cancellation point (see
+.BR pthreads (7)).
+This is the default cancelability type in all new threads,
+including the initial thread.
+.TP
+.B PTHREAD_CANCEL_ASYNCHRONOUS
+The thread can be canceled at any time.
+(Typically,
+it will be canceled immediately upon receiving a cancellation request,
+but the system doesn't guarantee this.)
+.PP
+The set-and-get operation performed by each of these functions
+is atomic with respect to other threads in the process
+calling the same function.
+.SH RETURN VALUE
+On success, these functions return 0;
+on error, they return a nonzero error number.
+.SH ERRORS
+The
+.BR pthread_setcancelstate ()
+can fail with the following error:
+.TP
+.B EINVAL
+Invalid value for
+.IR state .
+.PP
+The
+.BR pthread_setcanceltype ()
+can fail with the following error:
+.TP
+.B EINVAL
+Invalid value for
+.IR type .
+.\" .SH VERSIONS
+.\" Available since glibc 2.0
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.ad l
+.TS
+allbox;
+lb lb lb
+lw25 l l.
+Interface	Attribute	Value
+T{
+.BR pthread_setcancelstate (),
+.BR pthread_setcanceltype ()
+T}	Thread safety	T{
+MT-Safe
+T}
+T{
+.BR pthread_setcancelstate (),
+.BR pthread_setcanceltype ()
+T}	Async-cancel-safety	T{
+AC-Safe
+T}
+.TE
+.ad
+.hy
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+For details of what happens when a thread is canceled, see
+.BR pthread_cancel (3).
+
+Briefly disabling cancelability is useful
+if a thread performs some critical action
+that must not be interrupted by a cancellation request.
+Beware of disabling cancelability for long periods,
+or around operations that may block for long periods,
+since that will render the thread unresponsive to cancellation requests.
+.SS Asynchronous cancelability
+Setting the cancelability type to
+.B PTHREAD_CANCEL_ASYNCHRONOUS
+is rarely useful.
+Since the thread could be canceled at
+.I any
+time, it cannot safely reserve resources (e.g., allocating memory with
+.BR malloc (3)),
+acquire mutexes, semaphores, or locks, and so on.
+Reserving resources is unsafe because the application has no way of
+knowing what the state of these resources is when the thread is canceled;
+that is, did cancellation occur before the resources were reserved,
+while they were reserved, or after they were released?
+Furthermore, some internal data structures
+(e.g., the linked list of free blocks managed by the
+.BR malloc (3)
+family of functions) may be left in an inconsistent state
+if cancellation occurs in the middle of the function call.
+Consequently, clean-up handlers cease to be useful.
+
+Functions that can be safely asynchronously canceled are called
+.IR "async-cancel-safe functions" .
+POSIX.1-2001 and POSIX.1-2008 require only that
+.BR pthread_cancel (3),
+.BR pthread_setcancelstate (),
+and
+.BR pthread_setcanceltype ()
+be async-cancel-safe.
+In general, other library functions
+can't be safely called from an asynchronously cancelable thread.
+
+One of the few circumstances in which asynchronous cancelability is useful
+is for cancellation of a thread that is in a pure compute-bound loop.
+.SS Portability notes
+The Linux threading implementations permit the
+.I oldstate
+argument of
+.BR pthread_setcancelstate ()
+to be NULL, in which case the information about the previous
+cancelability state is not returned to the caller.
+Many other implementations also permit a NULL
+.I oldstat
+argument,
+.\" It looks like at least Solaris, FreeBSD and Tru64 support this.
+but POSIX.1 does not specify this point,
+so portable applications should always specify a non-NULL value in
+.IR oldstate .
+A precisely analogous set of statements applies for the
+.I oldtype
+argument of
+.BR pthread_setcanceltype ().
+.SH EXAMPLE
+See
+.BR pthread_cancel (3).
+.SH SEE ALSO
+.BR pthread_cancel (3),
+.BR pthread_cleanup_push (3),
+.BR pthread_testcancel (3),
+.BR pthreads (7)

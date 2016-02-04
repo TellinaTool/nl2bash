@@ -1,0 +1,274 @@
+.\" Copyright (c) 1983, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)truncate.2	6.9 (Berkeley) 3/10/91
+.\"
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-10-22 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1998-12-21 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 2002-01-07 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2002-04-06 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.TH TRUNCATE 2 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+truncate, ftruncate \- truncate a file to a specified length
+.SH SYNOPSIS
+.B #include <unistd.h>
+.br
+.B #include <sys/types.h>
+.sp
+.BI "int truncate(const char *" path ", off_t " length );
+.br
+.BI "int ftruncate(int " fd ", off_t " length );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.ad l
+.PD 0
+.sp
+.BR truncate ():
+.RS 4
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.br
+|| /* Since glibc 2.12: */ _POSIX_C_SOURCE\ >=\ 200809L
+.RE
+.sp
+.BR ftruncate ():
+.RS 4
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.br
+|| /* Since glibc 2.3.5: */ _POSIX_C_SOURCE\ >=\ 200112L
+.RE
+.PD
+.ad b
+.SH DESCRIPTION
+The
+.BR truncate ()
+and
+.BR ftruncate ()
+functions cause the regular file named by
+.I path
+or referenced by
+.I fd
+to be truncated to a size of precisely
+.I length
+bytes.
+.LP
+If the file previously was larger than this size, the extra data is lost.
+If the file previously was shorter, it is extended, and
+the extended part reads as null bytes (\(aq\\0\(aq).
+.LP
+The file offset is not changed.
+.LP
+If the size changed, then the st_ctime and st_mtime fields
+(respectively, time of last status change and
+time of last modification; see
+.BR stat (2))
+for the file are updated,
+and the set-user-ID and set-group-ID mode bits may be cleared.
+.LP
+With
+.BR ftruncate (),
+the file must be open for writing; with
+.BR truncate (),
+the file must be writable.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+For
+.BR truncate ():
+.TP
+.B EACCES
+Search permission is denied for a component of the path prefix,
+or the named file is not writable by the user.
+(See also
+.BR path_resolution (7).)
+.TP
+.B EFAULT
+The argument
+.I path
+points outside the process's allocated address space.
+.TP
+.B EFBIG
+The argument
+.I length
+is larger than the maximum file size. (XSI)
+.TP
+.B EINTR
+While blocked waiting to complete,
+the call was interrupted by a signal handler; see
+.BR fcntl (2)
+and
+.BR signal (7).
+.TP
+.B EINVAL
+The argument
+.I length
+is negative or larger than the maximum file size.
+.TP
+.B EIO
+An I/O error occurred updating the inode.
+.TP
+.B EISDIR
+The named file is a directory.
+.TP
+.B ELOOP
+Too many symbolic links were encountered in translating the pathname.
+.TP
+.B ENAMETOOLONG
+A component of a pathname exceeded 255 characters,
+or an entire pathname exceeded 1023 characters.
+.TP
+.B ENOENT
+The named file does not exist.
+.TP
+.B ENOTDIR
+A component of the path prefix is not a directory.
+.TP
+.B EPERM
+.\" This happens for at least MSDOS and VFAT filesystems
+.\" on kernel 2.6.13
+The underlying filesystem does not support extending
+a file beyond its current size.
+.TP
+.B EPERM
+The operation was prevented by a file seal; see
+.BR fcntl (2).
+.TP
+.B EROFS
+The named file resides on a read-only filesystem.
+.TP
+.B ETXTBSY
+The file is an executable file that is being executed.
+.PP
+For
+.BR ftruncate ()
+the same errors apply, but instead of things that can be wrong with
+.IR path ,
+we now have things that can be wrong with the file descriptor,
+.IR fd :
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor.
+.TP
+.BR EBADF " or " EINVAL
+.I fd
+is not open for writing.
+.TP
+.B EINVAL
+.I fd
+does not reference a regular file.
+.TP
+.BR EINVAL " or " EBADF
+The file descriptor
+.I fd
+is not open for writing.
+POSIX permits, and portable applications should handle,
+either error for this case.
+(Linux produces
+.BR EINVAL .)
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008,
+4.4BSD, SVr4 (these calls first appeared in 4.2BSD).
+.\" POSIX.1-1996 has
+.\" .BR ftruncate ().
+.\" POSIX.1-2001 also has
+.\" .BR truncate (),
+.\" as an XSI extension.
+.\" .LP
+.\" SVr4 documents additional
+.\" .BR truncate ()
+.\" error conditions EMFILE, EMULTIHP, ENFILE, ENOLINK.  SVr4 documents for
+.\" .BR ftruncate ()
+.\" an additional EAGAIN error condition.
+.SH NOTES
+The details in DESCRIPTION are for XSI-compliant systems.
+For non-XSI-compliant systems, the POSIX standard allows
+two behaviors for
+.BR ftruncate ()
+when
+.I length
+exceeds the file length
+(note that
+.BR truncate ()
+is not specified at all in such an environment):
+either returning an error, or extending the file.
+Like most UNIX implementations, Linux follows the XSI requirement
+when dealing with native filesystems.
+However, some nonnative filesystems do not permit
+.BR truncate ()
+and
+.BR ftruncate ()
+to be used to extend a file beyond its current length:
+a notable example on Linux is VFAT.
+.\" At the very least: OSF/1, Solaris 7, and FreeBSD conform, mtk, Jan 2002
+
+The original Linux
+.BR truncate ()
+and
+.BR ftruncate ()
+system calls were not designed to handle large file offsets.
+Consequently, Linux 2.4 added
+.BR truncate64 ()
+and
+.BR ftruncate64 ()
+system calls that handle large files.
+However, these details can be ignored by applications using glibc, whose
+wrapper functions transparently employ the more recent system calls
+where they are available.
+
+On some 32-bit architectures,
+the calling signature for these system calls differ,
+for the reasons described in
+.BR syscall (2).
+.SH BUGS
+A header file bug in glibc 2.12 meant that the minimum value of
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=12037
+.BR _POSIX_C_SOURCE
+required to expose the declaration of
+.BR ftruncate ()
+was 200809L instead of 200112L.
+This has been fixed in later glibc versions.
+.SH SEE ALSO
+.BR open (2),
+.BR stat (2),
+.BR path_resolution (7)

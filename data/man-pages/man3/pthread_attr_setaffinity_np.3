@@ -1,0 +1,137 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_ATTR_SETAFFINITY_NP 3 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_attr_setaffinity_np, pthread_attr_getaffinity_np \- set/get
+CPU affinity attribute in thread attributes object
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "             /* See feature_test_macros(7) */"
+.B #include <pthread.h>
+
+.BI "int pthread_attr_setaffinity_np(pthread_attr_t *" attr ,
+.BI "                   size_t " cpusetsize ", const cpu_set_t *" cpuset );
+.BI "int pthread_attr_getaffinity_np(const pthread_attr_t *" attr ,
+.BI "                   size_t " cpusetsize ", cpu_set_t *" cpuset );
+.sp
+Compile and link with \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+The
+.BR pthread_attr_setaffinity_np ()
+function
+sets the CPU affinity mask attribute of the
+thread attributes object referred to by
+.I attr
+to the value specified in
+.IR cpuset .
+This attribute determines the CPU affinity mask
+of a thread created using the thread attributes object
+.IR attr .
+
+The
+.BR pthread_attr_getaffinity_np ()
+function
+returns the CPU affinity mask attribute of the thread attributes object
+referred to by
+.IR attr
+in the buffer pointed to by
+.IR cpuset .
+
+The argument
+.I cpusetsize
+is the length (in bytes) of the buffer pointed to by
+.IR cpuset .
+Typically, this argument would be specified as
+.IR sizeof(cpu_set_t) .
+
+For more details on CPU affinity masks, see
+.BR sched_setaffinity (2).
+For a description of a set of macros
+that can be used to manipulate and inspect CPU sets, see
+.BR CPU_SET (3).
+.SH RETURN VALUE
+On success, these functions return 0;
+on error, they return a nonzero error number.
+.SH ERRORS
+.TP
+.BR EINVAL
+.RB ( pthread_attr_setaffinity_np ())
+.I cpuset
+specified a CPU that was outside the set supported by the kernel.
+(The kernel configuration option
+.BR CONFIG_NR_CPUS
+defines the range of the set supported by the kernel data type
+.\" cpumask_t
+used to represent CPU sets.)
+.\" The raw sched_getaffinity() system call returns the size (in bytes)
+.\" of the cpumask_t type.
+.TP
+.B EINVAL
+.RB ( pthread_attr_getaffinity_np ())
+A CPU in the affinity mask of the thread attributes object referred to by
+.I attr
+lies outside the range specified by
+.IR cpusetsize
+(i.e.,
+.IR cpuset / cpusetsize
+is too small).
+.TP
+.B ENOMEM
+.RB ( pthread_attr_setaffinity_np ())
+Could not allocate memory.
+.SH VERSIONS
+These functions are provided by glibc since version 2.3.4.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw30 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_attr_setaffinity_np (),
+.BR pthread_attr_getaffinity_np ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+These functions are nonstandard GNU extensions;
+hence the suffix "_np" (nonportable) in the names.
+.SH NOTES
+In glibc 2.3.3 only,
+versions of these functions were provided that did not have a
+.I cpusetsize
+argument.
+Instead the CPU set size given to the underlying system calls was always
+.IR sizeof(cpu_set_t) .
+.SH SEE ALSO
+.BR sched_setaffinity (2),
+.BR pthread_attr_init (3),
+.BR pthread_setaffinity_np (3),
+.BR cpuset (7),
+.BR pthreads (7)

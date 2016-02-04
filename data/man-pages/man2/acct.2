@@ -1,0 +1,144 @@
+.\" Copyright (c) 1993 Michael Haardt
+.\" (michael@moria.de),
+.\" Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1993-07-22 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1993-08-10 by Alan Cox <iiitac@pyramid.swansea.ac.uk>
+.\" Modified 1998-11-04 by Tigran Aivazian <tigran@sco.com>
+.\" Modified 2004-05-27, 2004-06-17, 2004-06-23 by Michael Kerrisk
+.\"
+.TH ACCT 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+acct \- switch process accounting on or off
+.SH SYNOPSIS
+.ad l
+.nf
+.B #include <unistd.h>
+.sp
+.BI "int acct(const char *" filename );
+.fi
+.ad b
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR acct ():
+_BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE\ <\ 500)
+.SH DESCRIPTION
+The
+.BR acct ()
+system call enables or disables process accounting.
+If called with the name of an existing file as its argument,
+accounting is turned on,
+and records for each terminating process are appended to
+.I filename
+as it terminates.
+An argument of NULL causes accounting to be turned off.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EACCES
+Write permission is denied for the specified file,
+or search permission is denied for one of the directories
+in the path prefix of
+.I filename
+(see also
+.BR path_resolution (7)),
+or
+.I filename
+is not a regular file.
+.TP
+.B EFAULT
+.I filename
+points outside your accessible address space.
+.TP
+.B EIO
+Error writing to the file
+.IR filename .
+.TP
+.B EISDIR
+.I filename
+is a directory.
+.TP
+.B ELOOP
+Too many symbolic links were encountered in resolving
+.IR filename .
+.TP
+.B ENAMETOOLONG
+.I filename
+was too long.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENOENT
+The specified filename does not exist.
+.TP
+.B ENOMEM
+Out of memory.
+.TP
+.B ENOSYS
+BSD process accounting has not been enabled when the operating system
+kernel was compiled.
+The kernel configuration parameter controlling this feature is
+.BR CONFIG_BSD_PROCESS_ACCT .
+.TP
+.B ENOTDIR
+A component used as a directory in
+.I filename
+is not in fact a directory.
+.TP
+.B EPERM
+The calling process has insufficient privilege to enable process accounting.
+On Linux the
+.B CAP_SYS_PACCT
+capability is required.
+.TP
+.B EROFS
+.I filename
+refers to a file on a read-only filesystem.
+.TP
+.B EUSERS
+There are no more free file structures or we ran out of memory.
+.SH CONFORMING TO
+SVr4, 4.3BSD (but not POSIX).
+.\" SVr4 documents an EBUSY error condition, but no EISDIR or ENOSYS.
+.\" Also AIX and HP-UX document EBUSY (attempt is made
+.\" to enable accounting when it is already enabled), as does Solaris
+.\" (attempt is made to enable accounting using the same file that is
+.\" currently being used).
+.SH NOTES
+No accounting is produced for programs running when a system crash occurs.
+In particular, nonterminating processes are never accounted for.
+
+The structure of the records written to the accounting file is described in
+.BR acct (5).
+.SH SEE ALSO
+.BR acct (5)

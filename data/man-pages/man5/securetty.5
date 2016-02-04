@@ -1,0 +1,54 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"     Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sun Jul 25 11:06:27 1993 by Rik Faith (faith@cs.unc.edu)
+.TH SECURETTY 5 2015-03-29 "Linux" "Linux Programmer's Manual"
+.SH NAME
+securetty \- file which lists terminals from which root can log in
+.SH DESCRIPTION
+The file
+.I /etc/securetty
+contains the names of terminals
+(one per line, without leading
+.IR /dev/ )
+which are considered secure for the transmission of certain authentication
+tokens.
+.P
+It is used by (some versions of)
+.BR login (1)
+to restrict the terminals
+on which root is allowed to login.
+See
+.BR login.defs (5)
+if you use the shadow suite.
+.P
+On PAM enabled systems, it is used for the same purpose by
+.BR pam_securetty (8)
+to restrict the terminals on which empty passwords are accepted.
+.SH FILES
+.I /etc/securetty
+.SH SEE ALSO
+.BR login (1),
+.BR login.defs (5),
+.BR pam_securetty (8)

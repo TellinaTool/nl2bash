@@ -1,0 +1,180 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-03-29, David Metcalfe
+.\" Modified 1993-07-24, Rik Faith (faith@cs.unc.edu)
+.\" Modified 2003-10-25, Walter Harms
+.\"
+.TH ATEXIT 3  2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+atexit \- register a function to be called at normal process termination
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "int atexit(void (*" function )(void));
+.fi
+.SH DESCRIPTION
+The
+.BR atexit ()
+function registers the given
+.I function
+to be
+called at normal process termination, either via
+.BR exit (3)
+or via return from the program's
+.IR main ().
+Functions so registered are called in
+the reverse order of their registration; no arguments are passed.
+
+The same function may be registered multiple times:
+it is called once for each registration.
+.LP
+POSIX.1 requires that an implementation allow at least
+.\" POSIX.1-2001, POSIX.1-2008
+.B ATEXIT_MAX
+(32) such functions to be registered.
+The actual limit supported by an implementation can be obtained using
+.BR sysconf (3).
+.LP
+When a child process is created via
+.BR fork (2),
+it inherits copies of its parent's registrations.
+Upon a successful call to one of the
+.BR exec (3)
+functions,
+all registrations are removed.
+.SH RETURN VALUE
+The
+.BR atexit ()
+function returns the value 0 if successful; otherwise
+it returns a nonzero value.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR atexit ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
+.SH NOTES
+Functions registered using
+.BR atexit ()
+(and
+.BR on_exit (3))
+are not called if a process terminates abnormally because
+of the delivery of a signal.
+
+If one of the functions registered functions calls
+.BR _exit (2),
+then any remaining functions are not invoked,
+and the other process termination steps performed by
+.BR exit (3)
+are not performed.
+
+POSIX.1 says that the result of calling
+.\" POSIX.1-2001, POSIX.1-2008
+.BR exit (3)
+more than once (i.e., calling
+.BR exit (3)
+within a function registered using
+.BR atexit ())
+is undefined.
+On some systems (but not Linux), this can result in an infinite recursion;
+.\" This can happen on OpenBSD 4.2 for example, and is documented
+.\" as occurring on FreeBSD as well.
+.\" Glibc does "the Right Thing" -- invocation of the remaining
+.\" exit handlers carries on as normal.
+portable programs should not invoke
+.BR exit (3)
+inside a function registered using
+.BR atexit ().
+
+The
+.BR atexit ()
+and
+.BR on_exit (3)
+functions register functions on the same list:
+at normal process termination,
+the registered functions are invoked in reverse order
+of their registration by these two functions.
+
+According to POSIX.1, the result is undefined if
+.BR longjmp (3)
+is used to terminate execution of one of the functions registered
+.BR atexit ().
+.\" In glibc, things seem to be handled okay
+.SS Linux notes
+Since glibc 2.2.3,
+.BR atexit ()
+(and
+.BR on_exit (3))
+can be used within a shared library to establish functions
+that are called when the shared library is unloaded.
+.SH EXAMPLE
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+void
+bye(void)
+{
+    printf("That was all, folks\en");
+}
+
+int
+main(void)
+{
+    long a;
+    int i;
+
+    a = sysconf(_SC_ATEXIT_MAX);
+    printf("ATEXIT_MAX = %ld\en", a);
+
+    i = atexit(bye);
+    if (i != 0) {
+        fprintf(stderr, "cannot set exit function\en");
+        exit(EXIT_FAILURE);
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR _exit (2),
+.BR dlopen (3),
+.BR exit (3),
+.BR on_exit (3)

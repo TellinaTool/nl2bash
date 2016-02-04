@@ -1,0 +1,146 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_JOIN 3 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_join \- join with a terminated thread
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.BI "int pthread_join(pthread_t " thread ", void **" retval );
+.fi
+.sp
+Compile and link with \fI\-pthread\fP.
+.SH DESCRIPTION
+The
+.BR pthread_join ()
+function waits for the thread specified by
+.IR thread
+to terminate.
+If that thread has already terminated, then
+.BR pthread_join ()
+returns immediately.
+The thread specified by
+.I thread
+must be joinable.
+
+If
+.I retval
+is not NULL, then
+.BR pthread_join ()
+copies the exit status of the target thread
+(i.e., the value that the target thread supplied to
+.BR pthread_exit (3))
+into the location pointed to by
+.IR *retval .
+If the target thread was canceled, then
+.B PTHREAD_CANCELED
+is placed in
+.IR *retval .
+
+If multiple threads simultaneously try to join with the same thread,
+the results are undefined.
+If the thread calling
+.BR pthread_join ()
+is canceled, then the target thread will remain joinable
+(i.e., it will not be detached).
+.SH RETURN VALUE
+On success,
+.BR pthread_join ()
+returns 0;
+on error, it returns an error number.
+.SH ERRORS
+.TP
+.B EDEADLK
+A deadlock was detected
+.\" The following verified by testing on glibc 2.8/NPTL:
+(e.g., two threads tried to join with each other);
+or
+.\" The following verified by testing on glibc 2.8/NPTL:
+.I thread
+specifies the calling thread.
+.TP
+.B EINVAL
+.I thread
+is not a joinable thread.
+.TP
+.B EINVAL
+Another thread is already waiting to join with this thread.
+.\" POSIX.1-2001 does not specify this error case.
+.TP
+.B ESRCH
+No thread with the ID
+.I thread
+could be found.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_join ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+After a successful call to
+.BR pthread_join (),
+the caller is guaranteed that the target thread has terminated.
+
+Joining with a thread that has previously been joined results in
+undefined behavior.
+
+Failure to join with a thread that is joinable
+(i.e., one that is not detached),
+produces a "zombie thread".
+Avoid doing this,
+since each zombie thread consumes some system resources,
+and when enough zombie threads have accumulated,
+it will no longer be possible to create new threads (or processes).
+
+There is no pthreads analog of
+.IR "waitpid(-1,\ &status,\ 0)" ,
+that is, "join with any terminated thread".
+If you believe you need this functionality,
+you probably need to rethink your application design.
+
+All of the threads in a process are peers:
+any thread can join with any other thread in the process.
+.SH EXAMPLE
+See
+.BR pthread_create (3).
+.SH SEE ALSO
+.BR pthread_cancel (3),
+.BR pthread_create (3),
+.BR pthread_detach (3),
+.BR pthread_exit (3),
+.BR pthread_tryjoin_np (3),
+.BR pthreads (7)

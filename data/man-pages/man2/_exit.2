@@ -1,0 +1,134 @@
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"             and Copyright (C) 1993 Michael Haardt, Ian Jackson.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Wed Jul 21 23:02:38 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 2001-11-17, aeb
+.\"
+.TH _EXIT 2 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+_exit, _Exit \- terminate the calling process
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.BI "void _exit(int " status );
+.sp
+.B #include <stdlib.h>
+.sp
+.BI "void _Exit(int " status );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR _Exit ():
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad
+.SH DESCRIPTION
+The function
+.BR _exit ()
+terminates the calling process "immediately".
+Any open file descriptors
+belonging to the process are closed; any children of the process are
+inherited by process 1,
+.IR init ,
+and the process's parent is sent a
+.B SIGCHLD
+signal.
+.LP
+The value
+.I status
+is returned to the parent process as the process's exit status, and
+can be collected using one of the
+.BR wait (2)
+family of calls.
+.LP
+The function
+.BR _Exit ()
+is equivalent to
+.BR _exit ().
+.SH RETURN VALUE
+These functions do not return.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+The function
+.BR _Exit ()
+was introduced by C99.
+.SH NOTES
+For a discussion on the effects of an exit, the transmission of
+exit status, zombie processes, signals sent, and so on, see
+.BR exit (3).
+.LP
+The function
+.BR _exit ()
+is like
+.BR exit (3),
+but does not call any
+functions registered with
+.BR atexit (3)
+or
+.BR on_exit (3).
+Open
+.BR stdio (3)
+streams are not flushed.
+On the other hand,
+.BR _exit ()
+does close open file descriptors, and this may cause an unknown delay,
+waiting for pending output to finish.
+If the delay is undesired,
+it may be useful to call functions like
+.BR tcflush (3)
+before calling
+.BR _exit ().
+Whether any pending I/O is canceled, and which pending I/O may be
+canceled upon
+.BR _exit (),
+is implementation-dependent.
+.SS C library/kernel differences
+In glibc up to version 2.3, the
+.BR _exit ()
+wrapper function invoked the kernel system call of the same name.
+Since glibc 2.3, the wrapper function invokes
+.BR exit_group (2),
+in order to terminate all of the threads in a process.
+.SH SEE ALSO
+.BR execve (2),
+.BR exit_group (2),
+.BR fork (2),
+.BR kill (2),
+.BR wait (2),
+.BR wait4 (2),
+.BR waitpid (2),
+.BR atexit (3),
+.BR exit (3),
+.BR on_exit (3),
+.BR termios (3)

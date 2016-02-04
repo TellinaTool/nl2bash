@@ -1,0 +1,162 @@
+.\" Copyright (C) 2002 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Inspired by a page written by Walter Harms.
+.\"
+.TH GETFSENT 3 2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getfsent, getfsspec, getfsfile, setfsent, endfsent \- handle fstab entries
+.SH SYNOPSIS
+.B #include <fstab.h>
+.sp
+.B "void endfsent(void);"
+.sp
+.B "struct fstab *getfsent(void);"
+.sp
+.BI "struct fstab *getfsfile(const char *" mount_point );
+.sp
+.BI "struct fstab *getfsspec(const char *" special_file );
+.sp
+.B "int setfsent(void);"
+.SH DESCRIPTION
+These functions read from the file
+.IR /etc/fstab .
+The
+.IR "struct fstab"
+is defined by:
+.LP
+.in +4n
+.nf
+struct fstab {
+    char       *fs_spec;       /* block device name */
+    char       *fs_file;       /* mount point */
+    char       *fs_vfstype;    /* file-system type */
+    char       *fs_mntops;     /* mount options */
+    const char *fs_type;       /* rw/rq/ro/sw/xx option */
+    int         fs_freq;       /* dump frequency, in days */
+    int         fs_passno;     /* pass number on parallel dump */
+};
+.fi
+.in
+.PP
+Here the field
+.I fs_type
+contains (on a *BSD system)
+one of the five strings "rw", "rq", "ro", "sw", "xx"
+(read-write, read-write with quota, read-only, swap, ignore).
+
+The function
+.BR setfsent ()
+opens the file when required and positions it at the first line.
+.LP
+The function
+.BR getfsent ()
+parses the next line from the file.
+(After opening it when required.)
+.LP
+The function
+.BR endfsent ()
+closes the file when required.
+.LP
+The function
+.BR getfsspec ()
+searches the file from the start and returns the first entry found
+for which the
+.I fs_spec
+field matches the
+.I special_file
+argument.
+.LP
+The function
+.BR getfsfile ()
+searches the file from the start and returns the first entry found
+for which the
+.I fs_file
+field matches the
+.I mount_point
+argument.
+.SH RETURN VALUE
+Upon success, the functions
+.BR getfsent (),
+.BR getfsfile (),
+and
+.BR getfsspec ()
+return a pointer to a
+.IR "struct fstab" ,
+while
+.BR setfsent ()
+returns 1.
+Upon failure or end-of-file, these functions return NULL and 0, respectively.
+.\" .SH HISTORY
+.\" The
+.\" .BR getfsent ()
+.\" function appeared in 4.0BSD; the other four functions appeared in 4.3BSD.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lbw24
+l l l.
+Interface	Attribute	Value
+T{
+.BR endfsent (),
+.br
+.BR setfsent ()
+T}	Thread safety	MT-Unsafe race:fsent
+T{
+.BR getfsent (),
+.br
+.BR getfsspec (),
+.br
+.BR getfsfile ()
+T}	Thread safety	MT-Unsafe race:fsent locale
+.TE
+.SH CONFORMING TO
+These functions are not in POSIX.1.
+Several operating systems have them, for example,
+*BSD, SunOS, Digital UNIX, AIX (which also has a
+.BR getfstype ()).
+HP-UX has functions of the same names,
+that however use a
+.IR "struct checklist"
+instead of a
+.IR "struct fstab" ,
+and calls these functions obsolete, superseded by
+.BR getmntent (3).
+.SH NOTES
+These functions are not thread-safe.
+.LP
+Since Linux allows mounting a block special device in several places,
+and since several devices can have the same mount point, where the
+last device with a given mount point is the interesting one,
+while
+.BR getfsfile ()
+and
+.BR getfsspec ()
+only return the first occurrence, these two functions are not suitable
+for use under Linux.
+.SH SEE ALSO
+.BR getmntent (3),
+.BR fstab (5)

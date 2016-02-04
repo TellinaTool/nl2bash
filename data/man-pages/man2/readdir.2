@@ -1,0 +1,129 @@
+.\" Copyright (C) 1995 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Written 11 June 1995 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 22 July 1995 by Michael Chastain <mec@duracef.shout.net>:
+.\"   In 1.3.X, returns only one entry each time; return value is different.
+.\" Modified 2004-12-01, mtk, fixed headers listed in SYNOPSIS
+.\"
+.TH READDIR 2  2013-06-21 "Linux" "Linux Programmer's Manual"
+.SH NAME
+readdir \- read directory entry
+.SH SYNOPSIS
+.nf
+.sp
+.BI "int readdir(unsigned int " fd ", struct old_linux_dirent *" dirp ","
+.BI "            unsigned int " count );
+.fi
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+This is not the function you are interested in.
+Look at
+.BR readdir (3)
+for the POSIX conforming C library interface.
+This page documents the bare kernel system call interface,
+which is superseded by
+.BR getdents (2).
+.PP
+.BR readdir ()
+reads one
+.I old_linux_dirent
+structure from the directory
+referred to by the file descriptor
+.I fd
+into the buffer pointed to by
+.IR dirp .
+The argument
+.I count
+is ignored; at most one
+.I old_linux_dirent
+structure is read.
+.PP
+The
+.I old_linux_dirent
+structure is declared as follows:
+.PP
+.in +4n
+.nf
+struct old_linux_dirent {
+    long  d_ino;              /* inode number */
+    off_t d_off;              /* offset to this \fIold_linux_dirent\fP */
+    unsigned short d_reclen;  /* length of this \fId_name\fP */
+    char  d_name[NAME_MAX+1]; /* filename (null-terminated) */
+}
+.fi
+.in
+.PP
+.I d_ino
+is an inode number.
+.I d_off
+is the distance from the start of the directory to this
+.IR old_linux_dirent .
+.I d_reclen
+is the size of
+.IR d_name ,
+not counting the terminating null byte (\(aq\\0\(aq).
+.I d_name
+is a null-terminated filename.
+.SH RETURN VALUE
+On success, 1 is returned.
+On end of directory, 0 is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EBADF
+Invalid file descriptor
+.IR fd .
+.TP
+.B EFAULT
+Argument points outside the calling process's address space.
+.TP
+.B EINVAL
+Result buffer is too small.
+.TP
+.B ENOENT
+No such directory.
+.TP
+.B ENOTDIR
+File descriptor does not refer to a directory.
+.SH CONFORMING TO
+This system call is Linux-specific.
+.SH NOTES
+Glibc does not provide a wrapper for this system call; call it using
+.BR syscall (2).
+You will need to define the
+.I old_linux_dirent
+structure yourself.
+However, probably you should use
+.BR readdir (3)
+instead.
+
+This system call does not exist on x86-64.
+.SH SEE ALSO
+.BR getdents (2),
+.BR readdir (3)

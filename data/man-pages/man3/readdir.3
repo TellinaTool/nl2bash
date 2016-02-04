@@ -1,0 +1,283 @@
+.\" Copyright (C) 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 16:09:49 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 11 June 1995 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified 22 July 1996 by Andries Brouwer (aeb@cwi.nl)
+.\" 2007-07-30 Ulrich Drepper <drepper@redhat.com>, mtk:
+.\"     Rework discussion of nonstandard structure fields.
+.\" 2008-09-11, mtk, Document readdir_r().
+.\"
+.TH READDIR 3  2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+readdir, readdir_r \- read a directory
+.SH SYNOPSIS
+.nf
+.B #include <dirent.h>
+.sp
+.BI "struct dirent *readdir(DIR *" dirp );
+.sp
+.BI "int readdir_r(DIR *" dirp ", struct dirent *" entry \
+", struct dirent **" result );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.ad l
+.in
+.sp
+.BR readdir_r ():
+.RS 4
+_POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _BSD_SOURCE ||
+_SVID_SOURCE || _POSIX_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR readdir ()
+function returns a pointer to a \fIdirent\fP structure
+representing the next directory entry in the directory stream pointed
+to by \fIdirp\fP.
+It returns NULL on reaching the end of the directory stream or if
+an error occurred.
+.PP
+On Linux, the
+.I dirent
+structure is defined as follows:
+.PP
+.in +4n
+.nf
+struct dirent {
+    ino_t          d_ino;       /* inode number */
+    off_t          d_off;       /* not an offset; see NOTES */
+    unsigned short d_reclen;    /* length of this record */
+    unsigned char  d_type;      /* type of file; not supported
+                                   by all filesystem types */
+    char           d_name[256]; /* filename */
+};
+.fi
+.in
+.PP
+The only fields in the
+.I dirent
+structure that are mandated by POSIX.1 are:
+.IR d_name [],
+of unspecified size, with at most
+.B NAME_MAX
+characters preceding the terminating null byte (\(aq\\0\(aq);
+and (as an XSI extension)
+.IR d_ino .
+The other fields are unstandardized, and not present on all systems;
+see NOTES below for some further details.
+.PP
+The data returned by
+.BR readdir ()
+may be overwritten by subsequent calls to
+.BR readdir ()
+for the same directory stream.
+
+The
+.BR readdir_r ()
+function is a reentrant version of
+.BR readdir ().
+It reads the next directory entry from the directory stream
+.IR dirp ,
+and returns it in the caller-allocated buffer pointed to by
+.IR entry .
+(See NOTES for information on allocating this buffer.)
+A pointer to the returned item is placed in
+.IR *result ;
+if the end of the directory stream was encountered,
+then NULL is instead returned in
+.IR *result .
+.SH RETURN VALUE
+On success,
+.BR readdir ()
+returns a pointer to a
+.I dirent
+structure.
+(This structure may be statically allocated; do not attempt to
+.BR free (3)
+it.)
+If the end of the directory stream is reached, NULL is returned and
+.I errno
+is not changed.
+If an error occurs, NULL is returned and
+.I errno
+is set appropriately.
+
+The
+.BR readdir_r ()
+function returns 0 on success.
+On error, it returns a positive error number (listed under ERRORS).
+If the end of the directory stream is reached,
+.BR readdir_r ()
+returns 0, and returns NULL in
+.IR *result .
+.SH ERRORS
+.TP
+.B EBADF
+Invalid directory stream descriptor \fIdirp\fP.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR readdir ()
+T}	Thread safety	MT-Unsafe race:dirstream
+T{
+.BR readdir_r ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+.SH NOTES
+Only the fields
+.I d_name
+and
+.I d_ino
+are specified in POSIX.1.
+.\" POSIX.1-2001, POSIX.1-2008
+The remaining fields are available on many, but not all systems.
+Under glibc,
+programs can check for the availability of the fields not defined
+in POSIX.1 by testing whether the macros
+.BR _DIRENT_HAVE_D_NAMLEN ,
+.BR _DIRENT_HAVE_D_RECLEN ,
+.BR _DIRENT_HAVE_D_OFF ,
+or
+.B _DIRENT_HAVE_D_TYPE
+are defined.
+
+The value returned in
+.I d_off
+is the same as would be returned by calling
+.BR telldir (3)
+at the current position in the directory stream.
+Be aware that despite its type and name, the
+.I d_off
+field is seldom any kind of directory offset on modern filesystems.
+.\" https://lwn.net/Articles/544298/
+Applications should treat this field as an opaque value,
+making no assumptions about its contents; see also
+.BR telldir (3).
+
+Other than Linux, the
+.I d_type
+field is available mainly only on BSD systems.
+This field makes it possible to avoid the expense of calling
+.BR lstat (2)
+if further actions depend on the type of the file.
+If the
+.B _BSD_SOURCE
+feature test macro is defined,
+then glibc defines the following macro constants
+for the value returned in
+.IR d_type :
+.TP 12
+.B DT_BLK
+This is a block device.
+.TP
+.B DT_CHR
+This is a character device.
+.TP
+.B DT_DIR
+This is a directory.
+.TP
+.B DT_FIFO
+This is a named pipe (FIFO).
+.TP
+.B DT_LNK
+This is a symbolic link.
+.TP
+.B DT_REG
+This is a regular file.
+.TP
+.B DT_SOCK
+This is a UNIX domain socket.
+.TP
+.B DT_UNKNOWN
+The file type is unknown.
+.\" The glibc manual says that on some systems this is the only
+.\" value returned
+.PP
+If the file type could not be determined, the value
+.B DT_UNKNOWN
+is returned in
+.IR d_type .
+
+Currently,
+.\" kernel 2.6.27
+.\" The same sentence is in getdents.2
+only some filesystems (among them: Btrfs, ext2, ext3, and ext4)
+have full support for returning the file type in
+.IR d_type .
+All applications must properly handle a return of
+.BR DT_UNKNOWN .
+
+Since POSIX.1 does not specify the size of the
+.I d_name
+field, and other nonstandard fields may precede that field within the
+.I dirent
+structure, portable applications that use
+.BR readdir_r ()
+should allocate the buffer whose address is passed in
+.IR entry
+as follows:
+.in +4n
+.nf
+
+name_max = pathconf(dirpath, _PC_NAME_MAX);
+if (name_max == \-1)         /* Limit not defined, or error */
+    name_max = 255;         /* Take a guess */
+len = offsetof(struct dirent, d_name) + name_max + 1;
+entryp = malloc(len);
+
+.fi
+.in
+(POSIX.1 requires that
+.I d_name
+is the last field in a
+.IR "struct dirent" .)
+.SH SEE ALSO
+.BR getdents (2),
+.BR read (2),
+.BR closedir (3),
+.BR dirfd (3),
+.BR ftw (3),
+.BR offsetof (3),
+.BR opendir (3),
+.BR rewinddir (3),
+.BR scandir (3),
+.BR seekdir (3),
+.BR telldir (3)

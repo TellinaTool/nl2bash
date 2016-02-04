@@ -1,0 +1,358 @@
+.\" Copyright (C) 2012 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" A few fragments remain from a version
+.\" Copyright (C) 1996 Free Software Foundation, Inc.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH INIT_MODULE 2 2014-05-10 "Linux" "Linux Programmer's Manual"
+.SH NAME
+init_module, finit_module \- load a kernel module
+.SH SYNOPSIS
+.nf
+.BI "int init_module(void *" module_image ", unsigned long " len ,
+.BI "                const char *" param_values );
+
+.BI "int finit_module(int " fd ", const char *" param_values ,
+.BI "                 int " flags );
+.fi
+
+.IR Note :
+glibc provides no header file declaration of
+.BR init_module ()
+and no wrapper function for
+.BR finit_module ();
+see NOTES.
+.SH DESCRIPTION
+.BR init_module ()
+loads an ELF image into kernel space,
+performs any necessary symbol relocations,
+initializes module parameters to values provided by the caller,
+and then runs the module's
+.I init
+function.
+This system call requires privilege.
+
+The
+.I module_image
+argument points to a buffer containing the binary image
+to be loaded;
+.I len
+specifies the size of that buffer.
+The module image should be a valid ELF image, built for the running kernel.
+
+The
+.I param_values
+argument is a string containing space-delimited specifications of the
+values for module parameters (defined inside the module using
+.BR module_param ()
+and
+.BR module_param_array ()).
+The kernel parses this string and initializes the specified
+parameters.
+Each of the parameter specifications has the form:
+
+.RI "        " name [\c
+.BI = value\c
+.RB [ ,\c
+.IR value ...]]
+
+The parameter
+.I name
+is one of those defined within the module using
+.IR module_param ()
+(see the Linux kernel source file
+.IR include/linux/moduleparam.h ).
+The parameter
+.I value
+is optional in the case of
+.I bool
+and
+.I invbool
+parameters.
+Values for array parameters are specified as a comma-separated list.
+.SS finit_module()
+The
+.BR finit_module ()
+.\" commit 34e1169d996ab148490c01b65b4ee371cf8ffba2
+.\" https://lwn.net/Articles/519010/
+system call is like
+.BR init_module (),
+but reads the module to be loaded from the file descriptor
+.IR fd .
+It is useful when the authenticity of a kernel module
+can be determined from its location in the filesystem;
+in cases where that is possible,
+the overhead of using cryptographically signed modules to
+determine the authenticity of a module can be avoided.
+The
+.I param_values
+argument is as for
+.BR init_module ().
+
+The
+.I flags
+argument modifies the operation of
+.BR finit_module ().
+It is a bit mask value created by ORing
+together zero or more of the following flags:
+.\" commit 2f3238aebedb243804f58d62d57244edec4149b2
+.TP
+.B MODULE_INIT_IGNORE_MODVERSIONS
+Ignore symbol version hashes.
+.TP
+.B MODULE_INIT_IGNORE_VERMAGIC
+Ignore kernel version magic.
+.PP
+There are some safety checks built into a module to ensure that
+it matches the kernel against which it is loaded.
+.\" http://www.tldp.org/HOWTO/Module-HOWTO/basekerncompat.html
+.\" is dated, but informative
+These checks are recorded when the module is built and
+verified when the module is loaded.
+First, the module records a "vermagic" string containing
+the kernel version number and prominent features (such as the CPU type).
+Second, if the module was built with the
+.B CONFIG_MODVERSIONS
+configuration option enabled,
+a version hash is recorded for each symbol the module uses.
+This hash is based on the types of the arguments and return value
+for the function named by the symbol.
+In this case, the kernel version number within the
+"vermagic" string is ignored,
+as the symbol version hashes are assumed to be sufficiently reliable.
+
+Using the
+.B MODULE_INIT_IGNORE_VERMAGIC
+flag indicates that the "vermagic" string is to be ignored, and the
+.B MODULE_INIT_IGNORE_MODVERSIONS
+flag indicates that the symbol version hashes are to be ignored.
+If the kernel is built to permit forced loading (i.e., configured with
+.BR CONFIG_MODULE_FORCE_LOAD ),
+then loading will continue, otherwise it will fail with
+.B ENOEXEC
+as expected for malformed modules.
+.SH RETURN VALUE
+On success, these system calls return 0.
+On error, \-1 is returned and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.BR EBADMSG " (since Linux 3.7)"
+Module signature is misformatted.
+.TP
+.B EBUSY
+Timeout while trying to resolve a symbol reference by this module.
+.TP
+.B EFAULT
+An address argument referred to a location that
+is outside the process's accessible address space.
+.TP
+.BR ENOKEY " (since Linux 3.7)"
+.\" commit 48ba2462ace6072741fd8d0058207d630ce93bf1
+.\" commit 1d0059f3a468825b5fc5405c636a2f6e02707ffa
+.\" commit 106a4ee258d14818467829bf0e12aeae14c16cd7
+Module signature is invalid or
+the kernel does not have a key for this module.
+This error is returned only if the kernel was configured with
+.BR CONFIG_MODULE_SIG_FORCE ;
+if the kernel was not configured with this option,
+then an invalid or unsigned module simply taints the kernel.
+.TP
+.B ENOMEM
+Out of memory.
+.TP
+.B EPERM
+The caller was not privileged
+(did not have the
+.B CAP_SYS_MODULE
+capability),
+or module loading is disabled
+(see
+.IR /proc/sys/kernel/modules_disabled
+in
+.BR proc (5)).
+.PP
+The following errors may additionally occur for
+.BR init_module ():
+.TP
+.B EEXIST
+A module with this name is already loaded.
+.TP
+.B EINVAL
+.I param_values
+is invalid, or some part of the ELF image in
+.IR module_image
+contains inconsistencies.
+.\" .TP
+.\" .BR EINVAL " (Linux 2.4 and earlier)"
+.\" Some
+.\" .I image
+.\" slot is filled in incorrectly,
+.\" .I image\->name
+.\" does not correspond to the original module name, some
+.\" .I image\->deps
+.\" entry does not correspond to a loaded module,
+.\" or some other similar inconsistency.
+.TP
+.B ENOEXEC
+The binary image supplied in
+.I module_image
+is not an ELF image,
+or is an ELF image that is invalid or for a different architecture.
+.PP
+The following errors may additionally occur for
+.BR finit_module ():
+.TP
+.B EBADF
+The file referred to by
+.I fd
+is not opened for reading.
+.TP
+.B EFBIG
+The file referred to by
+.I fd
+is too large.
+.TP
+.B EINVAL
+.I flags
+is invalid.
+.TP
+.B ENOEXEC
+.I fd
+does not refer to an open file.
+.PP
+In addition to the above errors, if the module's
+.I init
+function is executed and returns an error, then
+.BR init_module ()
+or
+.BR finit_module ()
+fails and
+.I errno
+is set to the value returned by the
+.I init
+function.
+.SH VERSIONS
+.BR finit_module ()
+is available since Linux 3.8.
+.SH CONFORMING TO
+.BR init_module ()
+and
+.BR finit_module ()
+are Linux-specific.
+.SH NOTES
+The
+.BR init_module ()
+system call is not supported by glibc.
+No declaration is provided in glibc headers, but,
+through a quirk of history, glibc does export an ABI for this system call.
+Therefore, in order to employ this system call,
+it is sufficient to manually declare the interface in your code;
+alternatively, you can invoke the system call using
+.BR syscall (2).
+
+Glibc does not provide a wrapper for
+.BR finit_module ();
+call it using
+.BR syscall (2).
+
+Information about currently loaded modules can be found in
+.IR /proc/modules
+and in the file trees under the per-module subdirectories under
+.IR /sys/module .
+
+See the Linux kernel source file
+.I include/linux/module.h
+for some useful background information.
+.SS Linux 2.4 and earlier
+.PP
+In Linux 2.4 and earlier, the
+.BR init_module ()
+system call was rather different:
+
+.B "    #include <linux/module.h>"
+
+.BI "    int init_module(const char *" name ", struct module *" image );
+
+(User-space applications can detect which version of
+.BR init_module ()
+is available by calling
+.BR query_module ();
+the latter call fails with the error
+.BR ENOSYS
+on Linux 2.6 and later.)
+
+The older version of the system call
+loads the relocated module image pointed to by
+.I image
+into kernel space and runs the module's
+.I init
+function.
+The caller is responsible for providing the relocated image (since
+Linux 2.6, the
+.BR init_module ()
+system call does the relocation).
+.PP
+The module image begins with a module structure and is followed by
+code and data as appropriate.
+Since Linux 2.2, the module structure is defined as follows:
+.PP
+.in +4n
+.nf
+struct module {
+    unsigned long         size_of_struct;
+    struct module        *next;
+    const char           *name;
+    unsigned long         size;
+    long                  usecount;
+    unsigned long         flags;
+    unsigned int          nsyms;
+    unsigned int          ndeps;
+    struct module_symbol *syms;
+    struct module_ref    *deps;
+    struct module_ref    *refs;
+    int                 (*init)(void);
+    void                (*cleanup)(void);
+    const struct exception_table_entry *ex_table_start;
+    const struct exception_table_entry *ex_table_end;
+#ifdef __alpha__
+    unsigned long gp;
+#endif
+};
+.fi
+.in
+.PP
+All of the pointer fields, with the exception of
+.I next
+and
+.IR refs ,
+are expected to point within the module body and be
+initialized as appropriate for kernel space, that is, relocated with
+the rest of the module.
+.SH SEE ALSO
+.BR create_module (2),
+.BR delete_module (2),
+.BR query_module (2),
+.BR lsmod (8),
+.BR modprobe (8)

@@ -1,0 +1,114 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH MBLEN 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+mblen \- determine number of bytes in next multibyte character
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "int mblen(const char *" s ", size_t " n );
+.fi
+.SH DESCRIPTION
+If
+.I s
+is not NULL, the
+.BR mblen ()
+function inspects at most
+.I n
+bytes of the multibyte string starting at
+.I s
+and extracts the
+next complete multibyte character.
+It uses a static anonymous shift state known only to the
+.BR mblen ()
+function.
+If the multibyte character is not the null wide
+character, it returns the number of bytes that were consumed from
+.IR s .
+If the multibyte character is the null wide character, it returns 0.
+.PP
+If the
+.IR n
+bytes starting at
+.I s
+do not contain a complete multibyte
+character,
+.BR mblen ()
+returns \-1.
+This can happen even if
+.I n
+is greater than or equal to
+.IR MB_CUR_MAX ,
+if the multibyte string contains redundant shift sequences.
+.PP
+If the multibyte string starting at
+.I s
+contains an invalid multibyte
+sequence before the next complete character,
+.BR mblen ()
+also returns \-1.
+.PP
+If
+.I s
+is NULL, the
+.BR mblen ()
+function
+.\" The Dinkumware doc and the Single UNIX specification say this, but
+.\" glibc doesn't implement this.
+resets the shift state, known to only this function, to the initial state, and
+returns nonzero if the encoding has nontrivial shift state, or zero if the
+encoding is stateless.
+.SH RETURN VALUE
+The
+.BR mblen ()
+function returns the number of
+bytes parsed from the multibyte
+sequence starting at
+.IR s ,
+if a non-null wide character was recognized.
+It returns 0, if a null wide character was recognized.
+It returns \-1, if an
+invalid multibyte sequence was encountered or if it couldn't parse a complete
+multibyte character.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR mblen ()
+T}	Thread safety	MT-Unsafe race
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR mblen ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.PP
+The function
+.BR mbrlen (3)
+provides a better interface to the same
+functionality.
+.SH SEE ALSO
+.BR mbrlen (3)

@@ -1,0 +1,91 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 19:01:20 1993 by Rik Faith (faith@cs.unc.edu)
+.TH LOCALECONV 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+localeconv \- get numeric formatting information
+.SH SYNOPSIS
+.nf
+.B #include <locale.h>
+.sp
+.B struct lconv *localeconv(void);
+.fi
+.SH DESCRIPTION
+The
+.BR localeconv ()
+function returns a pointer to a
+.I struct lconv
+for the current locale.
+This structure is shown in
+.BR locale (7),
+and contains all values associated with the locale categories
+.B LC_NUMERIC
+and
+.BR LC_MONETARY .
+Programs may also use the functions
+.BR printf (3)
+and
+.BR strfmon (3),
+which behave according to the actual locale in use.
+.SH RETURN VALUE
+The
+.BR localeconv ()
+function returns a pointer to a filled in
+.IR "struct lconv" .
+This structure may be (in glibc,
+.IR is )
+statically allocated, and may be overwritten by subsequent calls.
+According to POSIX,
+the caller should not modify the contents of this structure.
+The
+.BR localeconv ()
+function always succeeds.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR localeconv ()
+T}	Thread safety	MT-Unsafe race:localeconv locale
+.TE
+.SH CONFORMING TO
+C89, C99.
+.SH BUGS
+The
+.BR printf (3)
+family of functions may or may not honor the current locale.
+.SH SEE ALSO
+.BR locale (1),
+.BR localedef (1),
+.BR isalpha (3),
+.BR nl_langinfo (3),
+.BR setlocale (3),
+.BR strcoll (3),
+.BR strftime (3),
+.BR locale (7)

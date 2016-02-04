@@ -1,0 +1,396 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\" and Copyright (C) 2014 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 17:28:34 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Sun Jun 01 17:16:34 1997 by Jochen Hein
+.\"   <jochen.hein@delphi.central.de>
+.\" Modified Thu Apr 25 00:43:19 2002 by Bruno Haible <bruno@clisp.org>
+.\"
+.TH LOCALE 7  2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+locale \- description of multilanguage support
+.SH SYNOPSIS
+.nf
+.B #include <locale.h>
+.fi
+.SH DESCRIPTION
+A locale is a set of language and cultural rules.
+These cover aspects
+such as language for messages, different character sets, lexicographic
+conventions, and so on.
+A program needs to be able to determine its locale
+and act accordingly to be portable to different cultures.
+.PP
+The header
+.I <locale.h>
+declares data types, functions and macros which are useful in this
+task.
+.PP
+The functions it declares are
+.BR setlocale (3)
+to set the current locale, and
+.BR localeconv (3)
+to get information about number formatting.
+.PP
+There are different categories for locale information a program might
+need; they are declared as macros.
+Using them as the first argument
+to the
+.BR setlocale (3)
+function, it is possible to set one of these to the desired locale:
+.TP
+.BR LC_ADDRESS " (GNU extension, since glibc 2.2)"
+.\" See ISO/IEC Technical Report 14652
+Change settings that describe the formats (e.g., postal addresses)
+used to describe locations and geography-related items.
+Applications that need this information can use
+.BR nl_langinfo (3)
+to retrieve nonstandard elements, such as
+.B _NL_ADDRESS_COUNTRY_NAME
+(country name, in the language of the locale)
+and
+.B _NL_ADDRESS_LANG_NAME
+(language name, in the language of the locale),
+which return strings such as "Deutschland" and "Deutsch"
+(for German-language locales).
+(Other element names are listed in
+.IR <langinfo.h> .)
+.TP
+.B LC_COLLATE
+This category governs the collation rules used for
+sorting and regular expressions,
+including character equivalence classes and
+multicharacter collating elements.
+This locale category changes the behavior of the functions
+.BR strcoll (3)
+and
+.BR strxfrm (3),
+which are used to compare strings in the local alphabet.
+For example,
+the German sharp s is sorted as "ss".
+.TP
+.B LC_CTYPE
+This category determines the interpretation of byte sequences as characters
+(e.g., single versus multibyte characters), character classifications
+(e.g., alphabetic or digit), and the behavior of character classes.
+On glibc systems, this category also determines
+the character transliteration rules for
+.BR iconv (1)
+and
+.BR iconv (3).
+It changes the behavior of the character handling and
+classification functions, such as
+.BR isupper (3)
+and
+.BR toupper (3),
+and the multibyte character functions such as
+.BR mblen (3)
+or
+.BR wctomb (3).
+.TP
+.BR LC_IDENTIFICATION " (GNU extension, since glibc 2.2)"
+.\" See ISO/IEC Technical Report 14652
+Change settings that relate to the metadata for the locale.
+Applications that need this information can use
+.BR nl_langinfo (3)
+to retrieve nonstandard elements, such as
+.B _NL_IDENTIFICATION_TITLE
+(title of this locale document)
+and
+.B _NL_IDENTIFICATION_TERRITORY
+(geographical territory to which this locale document applies),
+which might return strings such as "English locale for the USA"
+and "USA".
+(Other element names are listed in
+.IR <langinfo.h> .)
+.TP
+.B LC_MONETARY
+This category determines the formatting used for
+monetary-related numeric values.
+This changes the information returned by
+.BR localeconv (3),
+which describes the way numbers are usually printed, with details such
+as decimal point versus decimal comma.
+This information is internally
+used by the function
+.BR strfmon (3).
+.TP
+.B LC_MESSAGES
+This category affects the language in which messages are displayed
+and what an affirmative or negative answer looks like.
+The GNU C library contains the
+.BR gettext (3),
+.BR ngettext (3),
+and
+.BR rpmatch (3)
+functions to ease the use of this information.
+The GNU gettext family of
+functions also obey the environment variable
+.BR LANGUAGE
+(containing a colon-separated list of locales)
+if the category is set to a valid locale other than
+.BR """C""" .
+This category also affects the behavior of
+.BR catopen (3).
+.TP
+.BR LC_MEASUREMENT " (GNU extension, since glibc 2.2)"
+Change the settings relating to the measurement system in the locale
+(i.e., metric versus US customary units).
+Applications can use
+.BR nl_langinfo (3)
+to retrieve the nonstandard
+.B _NL_MEASUREMENT_MEASUREMENT
+element, which returns a pointer to a character
+that has the value 1 (metric) or 2 (US customary units).
+.TP
+.BR LC_NAME " (GNU extension, since glibc 2.2)"
+.\" See ISO/IEC Technical Report 14652
+Change settings that describe the formats used to address persons.
+Applications that need this information can use
+.BR nl_langinfo (3)
+to retrieve nonstandard elements, such as
+.B _NL_NAME_NAME_MR
+(general salutation for men)
+and
+.B _NL_NAME_NAME_MS
+(general salutation for women)
+elements, which return strings such as "Herr" and "Frau"
+(for German-language locales).
+(Other element names are listed in
+.IR <langinfo.h> .)
+.TP
+.B LC_NUMERIC
+This category determines the formatting rules used for nonmonetary
+numeric values\(emfor example,
+the thousands separator and the radix character
+(a period in most English-speaking countries,
+but a comma in many other regions).
+It affects functions such as
+.BR printf (3),
+.BR scanf (3),
+and
+.BR strtod (3).
+This information can also be read with the
+.BR localeconv (3)
+function.
+.TP
+.BR LC_PAPER " (GNU extension, since glibc 2.2)"
+.\" See ISO/IEC Technical Report 14652
+Change the settings relating to the dimensions of the standard paper size
+(e.g., US letter versus A4).
+Applications that need the dimensions can obtain them by using
+.BR nl_langinfo (3)
+to retrieve the nonstandard
+.B _NL_PAPER_WIDTH
+and
+.B _NL_PAPER_HEIGHT
+elements, which return
+.I int
+values specifying the dimensions in millimeters.
+.TP
+.BR LC_TELEPHONE " (GNU extension, since glibc 2.2)"
+.\" See ISO/IEC Technical Report 14652
+Change settings that describe the formats to be used with telephone services.
+Applications that need this information can use
+.BR nl_langinfo (3)
+to retrieve nonstandard elements, such as
+.B _NL_TELEPHONE_INT_PREFIX
+(international prefix used to call numbers in this locale),
+which returns a string such as "49" (for Germany).
+(Other element names are listed in
+.IR <langinfo.h> .)
+.TP
+.B LC_TIME
+This category governs the formatting used for date and time values.
+For example, most of Europe uses a 24-hour clock versus the
+12-hour clock used in the United States.
+The setting of this category affects the behavior of functions such as
+.BR strftime (3)
+and
+.BR strptime (3).
+.TP
+.B LC_ALL
+All of the above.
+.PP
+If the second argument to
+.BR setlocale (3)
+is an empty string,
+.BR """""" ,
+for the default locale, it is determined using the following steps:
+.IP 1.
+If there is a non-null environment variable
+.BR LC_ALL ,
+the value of
+.B LC_ALL
+is used.
+.IP 2.
+If an environment variable with the same name as one of the categories
+above exists and is non-null, its value is used for that category.
+.IP 3.
+If there is a non-null environment variable
+.BR LANG ,
+the value of
+.B LANG
+is used.
+.PP
+Values about local numeric formatting is made available in a
+.I struct lconv
+returned by the
+.BR localeconv (3)
+function, which has the following declaration:
+.in +2n
+.nf
+
+struct lconv {
+
+    /* Numeric (nonmonetary) information */
+
+    char *decimal_point;     /* Radix character */
+    char *thousands_sep;     /* Separator for digit groups to left
+                                of radix character */
+    char *grouping; /* Each element is the number of digits in a
+                       group; elements with higher indices are
+                       further left.  An element with value CHAR_MAX
+                       means that no further grouping is done.  An
+                       element with value 0 means that the previous
+                       element is used for all groups further left. */
+
+    /* Remaining fields are for monetary information */
+
+    char *int_curr_symbol;   /* First three chars are a currency symbol
+                                from ISO 4217.  Fourth char is the
+                                separator.  Fifth char is \(aq\\0\(aq. */
+    char *currency_symbol;   /* Local currency symbol */
+    char *mon_decimal_point; /* Radix character */
+    char *mon_thousands_sep; /* Like \fIthousands_sep\fP above */
+    char *mon_grouping;      /* Like \fIgrouping\fP above */
+    char *positive_sign;     /* Sign for positive values */
+    char *negative_sign;     /* Sign for negative values */
+    char  int_frac_digits;   /* International fractional digits */
+    char  frac_digits;       /* Local fractional digits */
+    char  p_cs_precedes;     /* 1 if currency_symbol precedes a
+                                positive value, 0 if succeeds */
+    char  p_sep_by_space;    /* 1 if a space separates currency_symbol
+                                from a positive value */
+    char  n_cs_precedes;     /* 1 if currency_symbol precedes a
+                                negative value, 0 if succeeds */
+    char  n_sep_by_space;    /* 1 if a space separates currency_symbol
+                                from a negative value */
+    /* Positive and negative sign positions:
+       0 Parentheses surround the quantity and currency_symbol.
+       1 The sign string precedes the quantity and currency_symbol.
+       2 The sign string succeeds the quantity and currency_symbol.
+       3 The sign string immediately precedes the currency_symbol.
+       4 The sign string immediately succeeds the currency_symbol. */
+    char  p_sign_posn;
+    char  n_sign_posn;
+};
+.fi
+.in
+.SS POSIX.1-2008 extensions to the locale API
+POSIX.1-2008 standardized a number of extensions to the locale API,
+based on implementations that first appeared in version 2.3
+of the GNU C library.
+These extensions are designed to address the problem that
+the traditional locale APIs do not mix well with multithreaded applications
+and with applications that must deal with multiple locales.
+
+The extensions take the form of new functions for creating and
+manipulating locale objects
+.RB ( newlocale (3),
+.BR freelocale (3),
+.BR duplocale (3),
+and
+.BR uselocale (3))
+and various new library functions with the suffix "_l" (e.g.,
+.BR toupper_l (3))
+that extend the traditional locale-dependent APIs (e.g.,
+.BR toupper (3))
+to allow the specification of a locale object that should apply when
+executing the function.
+.SH ENVIRONMENT
+The following environment variable is used by
+.BR newlocale (3)
+and
+.BR setlocale (3),
+and thus affects all unprivileged localized programs:
+.TP
+.B LOCPATH
+A list of pathnames, separated by colons (\(aq:\(aq),
+that should be used to find locale data.
+If this variable is set,
+only the individual compiled locale data files from
+.I LOCPATH
+and the system default locale data path are used;
+any available locale archives are not used (see
+.BR localedef (1)).
+The individual compiled locale data files are searched for under
+subdirectories which depend on the currently used locale.
+For example, when
+.I en_GB.UTF-8
+is used for a category, the following subdirectories are searched for,
+in this order:
+.IR en_GB.UTF-8 ,
+.IR en_GB.utf8 ,
+.IR en_GB ,
+.IR en.UTF-8 ,
+.IR en.utf8 ,
+and
+.IR en .
+.SH FILES
+.TP
+.I /usr/lib/locale/locale-archive
+Usual default locale archive location.
+.TP
+.I /usr/lib/locale
+Usual default path for compiled individual locale files.
+.SH CONFORMING TO
+POSIX.1-2001.
+.\"
+.\" The GNU gettext functions are specified in LI18NUX2000.
+.SH SEE ALSO
+.BR iconv (1),
+.BR locale (1),
+.BR localedef (1),
+.BR catopen (3),
+.BR gettext (3),
+.BR iconv (3),
+.BR localeconv (3),
+.BR mbstowcs (3),
+.BR newlocale (3),
+.BR ngettext (3),
+.BR nl_langinfo (3),
+.BR rpmatch (3),
+.BR setlocale (3),
+.BR strcoll (3),
+.BR strfmon (3),
+.BR strftime (3),
+.BR strxfrm (3),
+.BR uselocale (3),
+.BR wcstombs (3),
+.BR locale (5),
+.BR charsets (7),
+.BR unicode (7),
+.BR utf-8 (7)

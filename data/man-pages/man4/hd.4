@@ -1,0 +1,109 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"     Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 16:56:20 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Mon Oct 21 21:38:51 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" (and some more by aeb)
+.\"
+.TH HD 4 1992-12-17 "Linux" "Linux Programmer's Manual"
+.SH NAME
+hd \- MFM/IDE hard disk devices
+.SH DESCRIPTION
+The
+.B hd*
+devices are block devices to access MFM/IDE hard disk drives
+in raw mode.
+The master drive on the primary IDE controller (major device
+number 3) is
+.BR hda ;
+the slave drive is
+.BR hdb .
+The master drive of the second controller (major device number 22)
+is
+.B hdc
+and the slave is
+.BR hdd .
+.LP
+General IDE block device names have the form
+.BI hd X\c
+, or
+.BI hd XP\c
+, where
+.I X
+is a letter denoting the physical drive, and
+.I P
+is a number denoting the partition on that physical drive.
+The first form,
+.BI hd X\c
+, is used to address the whole drive.
+Partition numbers are assigned in the order the partitions
+are discovered, and only nonempty, nonextended partitions
+get a number.
+However, partition numbers 1-4 are given to the
+four partitions described in the MBR (the "primary" partitions),
+regardless of whether they are unused or extended.
+Thus, the first logical partition will be
+.BI hd X 5\c
+\&.
+Both DOS-type partitioning and BSD-disklabel partitioning are supported.
+You can have at most 63 partitions on an IDE disk.
+.LP
+For example,
+.I /dev/hda
+refers to all of the first IDE drive in the system; and
+.I /dev/hdb3
+refers to the third DOS "primary" partition on the second one.
+.LP
+They are typically created by:
+.RS
+.sp
+mknod \-m 660 /dev/hda b 3 0
+.br
+mknod \-m 660 /dev/hda1 b 3 1
+.br
+mknod \-m 660 /dev/hda2 b 3 2
+.br
+\&...
+.br
+mknod \-m 660 /dev/hda8 b 3 8
+.br
+mknod \-m 660 /dev/hdb b 3 64
+.br
+mknod \-m 660 /dev/hdb1 b 3 65
+.br
+mknod \-m 660 /dev/hdb2 b 3 66
+.br
+\&...
+.br
+mknod \-m 660 /dev/hdb8 b 3 72
+.br
+chown root:disk /dev/hd*
+.RE
+.SH FILES
+/dev/hd*
+.SH SEE ALSO
+.BR chown (1),
+.BR mknod (1),
+.BR sd (4),
+.BR mount (8)

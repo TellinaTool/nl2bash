@@ -1,0 +1,428 @@
+.\" Copyright (c) 1998, 1999 Thorsten Kukuk (kukuk@vt.uni-paderborn.de)
+.\" Copyright (c) 2011, Mark R. Bannister <cambridge@users.sourceforge.net>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH NSSWITCH.CONF 5 2015-12-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+nsswitch.conf \- Name Service Switch configuration file
+.SH DESCRIPTION
+The Name Service Switch (NSS) configuration file,
+.IR /etc/nsswitch.conf ,
+is used by the GNU C Library to determine
+the sources from which to obtain name-service information in
+a range of categories,
+and in what order.
+Each category of information is identified by a database name.
+.LP
+The file is plain ASCII text, with columns separated by spaces or tab
+characters.
+The first column specifies the database name.
+The remaining columns describe the order of sources to query and a
+limited set of actions that can be performed by lookup result.
+.LP
+The following databases are understood by the GNU C Library:
+.TP 12
+.B aliases
+Mail aliases, used by
+.BR getaliasent (3)
+and related functions.
+.TP
+.B ethers
+Ethernet numbers.
+.TP
+.B group
+Groups of users, used by
+.BR getgrent (3)
+and related functions.
+.TP
+.B hosts
+Host names and numbers, used by
+.BR gethostbyname (3)
+and related functions.
+.TP
+.B initgroups
+Supplementary group access list, used by
+.BR getgrouplist (3)
+function.
+.TP
+.B netgroup
+Network-wide list of hosts and users, used for access rules.
+C libraries before glibc 2.1 supported netgroups only over NIS.
+.TP
+.B networks
+Network names and numbers, used by
+.BR getnetent (3)
+and related functions.
+.TP
+.B passwd
+User passwords, used by
+.BR getpwent (3)
+and related functions.
+.TP
+.B protocols
+Network protocols, used by
+.BR getprotoent (3)
+and related functions.
+.TP
+.B publickey
+Public and secret keys for Secure_RPC used by NFS and NIS+.
+.TP
+.B rpc
+Remote procedure call names and numbers, used by
+.BR getrpcbyname (3)
+and related functions.
+.TP
+.B services
+Network services, used by
+.BR getservent (3)
+and related functions.
+.TP
+.B shadow
+Shadow user passwords, used by
+.BR getspnam (3)
+and related functions.
+.LP
+Here is an example
+.I /etc/nsswitch.conf
+file:
+.LP
+.RS 4
+.PD 0
+.TP 16
+passwd:
+compat
+.TP
+group:
+compat
+.TP
+shadow:
+compat
+.sp 1n
+.TP
+hosts:
+dns [!UNAVAIL=return] files
+.TP
+networks:
+nis [NOTFOUND=return] files
+.TP
+ethers:
+nis [NOTFOUND=return] files
+.TP
+protocols:
+nis [NOTFOUND=return] files
+.TP
+rpc:
+nis [NOTFOUND=return] files
+.TP
+services:
+nis [NOTFOUND=return] files
+.PD
+.RE
+.LP
+The first column is the database name.
+The remaining columns specify:
+.IP * 3
+One or more service specifications, for example, "files", "db", or "nis".
+The order of the services on the line determines the order in which
+those services will be queried, in turn, until a result is found.
+.IP *
+Optional actions to perform if a particular result is obtained
+from the preceding service, for example, "[NOTFOUND=return]".
+.LP
+The service specifications supported on your system depend on the
+presence of shared libraries, and are therefore extensible.
+Libraries called
+.IB /lib/libnss_SERVICE.so. X
+will provide the named
+.IR SERVICE .
+On a standard installation, you can use
+"files", "db", "nis", and "nisplus".
+For the
+.B hosts
+database, you can additionally specify "dns".
+For the
+.BR passwd ,
+.BR group ,
+and
+.BR shadow
+databases, you can additionally specify
+"compat" (see
+.B "Compatibility mode"
+below).
+The version number
+.B X
+may be 1 for glibc 2.0, or 2 for glibc 2.1 and later.
+On systems with additional libraries installed, you may have access to
+further services such as "hesiod", "ldap", "winbind" and "wins".
+.LP
+An action may also be specified following a service specification.
+The action modifies the behavior following a result obtained
+from the preceding data source.
+Action items take the general form:
+.LP
+.RS 4
+.RI [ STATUS = ACTION ]
+.br
+.RI [! STATUS = ACTION ]
+.RE
+.LP
+where
+.LP
+.RS 4
+.I STATUS
+=>
+.B success
+|
+.B notfound
+|
+.B unavail
+|
+.B tryagain
+.br
+.I ACTION
+=>
+.B return
+|
+.B continue
+.RE
+.LP
+The ! negates the test, matching all possible results except the
+one specified.
+The case of the keywords is not significant.
+.LP
+The
+.I STATUS
+value is matched against the result of the lookup function called by
+the preceding service specification, and can be one of:
+.RS 4
+.TP 12
+.B success
+No error occurred and the requested entry is returned.
+The default action for this condition is "return".
+.TP
+.B notfound
+The lookup succeeded, but the requested entry was not found.
+The default action for this condition is "continue".
+.TP
+.B unavail
+The service is permanently unavailable.
+This can mean either that the
+required file cannot be read, or, for network services, that the server
+is not available or does not allow queries.
+The default action for this condition is "continue".
+.TP
+.B tryagain
+The service is temporarily unavailable.
+This could mean a file is
+locked or a server currently cannot accept more connections.
+The default action for this condition is "continue".
+.RE
+.LP
+The
+.I ACTION
+value can be one of:
+.RS 4
+.TP 12
+.B return
+Return a result now.
+Do not call any further lookup functions.
+However, for compatibility reasons, if this is the selected action for the
+.B group
+database and the
+.B notfound
+status, and the configuration file does not contain the
+.B initgroups
+line, the next lookup function is always called,
+without affecting the search result.
+.TP
+.B continue
+Call the next lookup function.
+.RE
+.SS Compatibility mode (compat)
+The NSS "compat" service is similar to "files" except that it
+additionally permits special entries in corresponding files
+for granting users or members of netgroups access to the system.
+The following entries are valid in this mode:
+.RS 4
+.LP
+For
+.B passwd
+and
+.B shadow
+databases:
+.RS 4
+.TP 12
+.BI + user
+Include the specified
+.I user
+from the NIS passwd/shadow map.
+.TP
+.BI +@ netgroup
+Include all users in the given
+.IR netgroup .
+.TP
+.BI \- user
+Exclude the specified
+.I user
+from the NIS passwd/shadow map.
+.TP
+.BI \-@ netgroup
+Exclude all users in the given
+.IR netgroup .
+.TP
+.B +
+Include every user, except previously excluded ones, from the
+NIS passwd/shadow map.
+.RE
+.LP
+For
+.B group
+database:
+.RS 4
+.TP 12
+.BI + group
+Include the specified
+.I group
+from the NIS group map.
+.TP
+.BI \- group
+Exclude the specified
+.I group
+from the NIS group map.
+.TP
+.B +
+Include every group, except previously excluded ones, from the
+NIS group map.
+.RE
+.RE
+.LP
+By default, the source is "nis", but this may be
+overridden by specifying any NSS service except "compat" itself
+as the source for the pseudo-databases
+.BR passwd_compat ,
+.BR group_compat ,
+and
+.BR shadow_compat .
+.SH FILES
+A service named
+.I SERVICE
+is implemented by a shared object library named
+.IB libnss_SERVICE.so. X
+that resides in
+.IR /lib .
+.RS 4
+.TP 25
+.PD 0
+.I /etc/nsswitch.conf
+NSS configuration file.
+.TP
+.IB /lib/libnss_compat.so. X
+implements "compat" source.
+.TP
+.IB /lib/libnss_db.so. X
+implements "db" source.
+.TP
+.IB /lib/libnss_dns.so. X
+implements "dns" source.
+.TP
+.IB /lib/libnss_files.so. X
+implements "files" source.
+.TP
+.IB /lib/libnss_hesiod.so. X
+implements "hesiod" source.
+.TP
+.IB /lib/libnss_nis.so. X
+implements "nis" source.
+.TP
+.IB /lib/libnss_nisplus.so. X
+implements "nisplus" source.
+.PD
+.RE
+.LP
+The following files are read when "files" source is specified
+for respective databases:
+.RS 4
+.TP 12
+.PD 0
+.B aliases
+.I /etc/aliases
+.TP
+.B ethers
+.I /etc/ethers
+.TP
+.B group
+.I /etc/group
+.TP
+.B hosts
+.I /etc/hosts
+.TP
+.B initgroups
+.I /etc/group
+.TP
+.B netgroup
+.I /etc/netgroup
+.TP
+.B networks
+.I /etc/networks
+.TP
+.B passwd
+.I /etc/passwd
+.TP
+.B protocols
+.I /etc/protocols
+.TP
+.B publickey
+.I /etc/publickey
+.TP
+.B rpc
+.I /etc/rpc
+.TP
+.B services
+.I /etc/services
+.TP
+.B shadow
+.I /etc/shadow
+.PD
+.RE
+.SH NOTES
+Within each process that uses
+.BR nsswitch.conf ,
+the entire file is read only once.
+If the file is later changed, the
+process will continue using the old configuration.
+.LP
+Traditionally, there was only a single source for service information,
+often in the form of a single configuration
+file (e.g., \fI/etc/passwd\fP).
+However, as other name services, such as the Network Information
+Service (NIS) and the Domain Name Service (DNS), became popular,
+a method was needed
+that would be more flexible than fixed search orders coded into
+the C library.
+The Name Service Switch mechanism,
+which was based on the mechanism used by
+Sun Microsystems in the Solaris 2 C library,
+introduced a cleaner solution to the problem.
+.SH SEE ALSO
+.BR getent (1),
+.BR nss (5)

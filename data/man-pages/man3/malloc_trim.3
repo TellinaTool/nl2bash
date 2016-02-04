@@ -1,0 +1,94 @@
+'\" t
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH MALLOC_TRIM 3  2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+malloc_trim \- release free memory from the top of the heap
+.SH SYNOPSIS
+.B #include <malloc.h>
+
+.BI "int malloc_trim(size_t "  pad );
+.SH DESCRIPTION
+The
+.BR malloc_trim ()
+function attempts to release free memory at the top of the heap
+(by calling
+.BR sbrk (2)
+with a suitable argument).
+
+The
+.I pad
+argument specifies the amount of free space to leave untrimmed
+at the top of the heap.
+If this argument is 0, only the minimum amount of memory is maintained
+at the top of the heap (i.e., one page or less).
+A nonzero argument can be used to maintain some trailing space
+at the top of the heap in order to allow future allocations
+to be made without having to extend the heap with
+.BR sbrk (2).
+.SH RETURN VALUE
+The
+.BR malloc_trim ()
+function returns 1 if memory was actually released back to the system,
+or 0 if it was not possible to release any memory.
+.SH ERRORS
+No errors are defined.
+.\" .SH VERSIONS
+.\" Available already in glibc 2.0, possibly earlier
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR malloc_trim ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+This function is a GNU extension.
+.SH NOTES
+This function is automatically called by
+.BR free (3)
+in certain circumstances; see the discussion of
+.B M_TOP_PAD
+and
+.B M_TRIM_THRESHOLD
+in
+.BR mallopt (3).
+
+This function cannot release free memory located at places
+other than the top of the heap.
+
+This function releases only memory in the main arena.
+.\" malloc/malloc.c::mTRIm():
+.\"     return result | (av == &main_arena ? sYSTRIm (pad, av) : 0);
+.SH SEE ALSO
+.BR sbrk (2),
+.BR malloc (3),
+.BR mallopt (3)

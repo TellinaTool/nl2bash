@@ -1,0 +1,221 @@
+.\" This manpage is Copyright (C) 1996 Austin Donnelly <and1000@cam.ac.uk>,
+.\" with additional material Copyright (c) 1995 Martin Schulze
+.\"     <joey@infodrom.north.de>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"   This manpage was made by merging two independently written manpages,
+.\"   one written by Martin Schulze (18 Oct 95), the other written by
+.\"   Austin Donnelly, (9 Jan 96).
+.\"
+.\" Thu Jan 11 12:14:41 1996 Austin Donnelly  <and1000@cam.ac.uk>
+.\"   * Merged two services(5) manpages
+.\"
+.TH SERVICES 5 2010-05-22 "Linux" "Linux Programmer's Manual"
+.SH NAME
+services \- Internet network services list
+.SH DESCRIPTION
+.B services
+is a plain ASCII file providing a mapping between human-friendly textual
+names for internet services, and their underlying assigned port
+numbers and protocol types.
+Every networking program should look into
+this file to get the port number (and protocol) for its service.
+The C library routines
+.BR getservent (3),
+.BR getservbyname (3),
+.BR getservbyport (3),
+.BR setservent (3),
+and
+.BR endservent (3)
+support querying this file from programs.
+
+Port numbers are assigned by the IANA (Internet Assigned Numbers
+Authority), and their current policy is to assign both TCP and UDP
+protocols when assigning a port number.
+Therefore, most entries will
+have two entries, even for TCP-only services.
+
+Port numbers below 1024 (so-called "low numbered" ports) can be
+bound to only by root (see
+.BR bind (2),
+.BR tcp (7),
+and
+.BR udp (7)).
+This is so clients connecting to low numbered ports can trust
+that the service running on the port is the standard implementation,
+and not a rogue service run by a user of the machine.
+Well-known port numbers specified by the IANA are normally
+located in this root-only space.
+
+The presence of an entry for a service in the
+.B services
+file does not necessarily mean that the service is currently running
+on the machine.
+See
+.BR inetd.conf (5)
+for the configuration of Internet services offered.
+Note that not all
+networking services are started by
+.BR inetd (8),
+and so won't appear in
+.BR inetd.conf (5).
+In particular, news (NNTP) and mail (SMTP) servers are often
+initialized from the system boot scripts.
+
+The location of the
+.B services
+file is defined by
+.B _PATH_SERVICES
+in
+.IR <netdb.h> "."
+This is usually set to
+.IR /etc/services "."
+
+Each line describes one service, and is of the form:
+.IP
+\f2service-name\ \ \ port\f3/\f2protocol\ \ \ \f1[\f2aliases ...\f1]
+.TP
+where:
+.TP 10
+.I service-name
+is the friendly name the service is known by and looked up under.
+It is case sensitive.
+Often, the client program is named after the
+.IR service-name "."
+.TP
+.I port
+is the port number (in decimal) to use for this service.
+.TP
+.I protocol
+is the type of protocol to be used.
+This field should match an entry
+in the
+.BR protocols (5)
+file.
+Typical values include
+.B tcp
+and
+.BR udp .
+.TP
+.I aliases
+is an optional space or tab separated list of other names for this
+service.
+Again, the names are case
+sensitive.
+.PP
+Either spaces or tabs may be used to separate the fields.
+
+Comments are started by the hash sign (#) and continue until the end
+of the line.
+Blank lines are skipped.
+
+The
+.I service-name
+should begin in the first column of the file, since leading spaces are
+not stripped.
+.I service-names
+can be any printable characters excluding space and tab.
+However, a conservative choice of characters should be used to minimize
+compatibility problems.
+For example, a\-z, 0\-9, and hyphen (\-) would seem a
+sensible choice.
+
+Lines not matching this format should not be present in the
+file.
+(Currently, they are silently skipped by
+.BR getservent (3),
+.BR getservbyname (3),
+and
+.BR getservbyport (3).
+However, this behavior should not be relied on.)
+
+.\" The following is not true as at glibc 2.8 (a line with a comma is
+.\" ignored by getservent()); it's not clear if/when it was ever true.
+.\"   As a backward compatibility feature, the slash (/) between the
+.\"   .I port
+.\"   number and
+.\"   .I protocol
+.\"   name can in fact be either a slash or a comma (,).
+.\"   Use of the comma in
+.\"   modern installations is deprecated.
+.\"
+This file might be distributed over a network using a network-wide
+naming service like Yellow Pages/NIS or BIND/Hesiod.
+
+A sample
+.B services
+file might look like this:
+.RS
+.ft CW
+.nf
+.sp
+netstat         15/tcp
+qotd            17/tcp          quote
+msp             18/tcp          # message send protocol
+msp             18/udp          # message send protocol
+chargen         19/tcp          ttytst source
+chargen         19/udp          ttytst source
+ftp             21/tcp
+# 22 \- unassigned
+telnet          23/tcp
+.fi
+.ft
+.RE
+.SH FILES
+.TP
+.I /etc/services
+The Internet network services list
+.TP
+.I <netdb.h>
+Definition of
+.B _PATH_SERVICES
+.\" .SH BUGS
+.\" It's not clear when/if the following was ever true;
+.\" it isn't true for glibc 2.8:
+.\"    There is a maximum of 35 aliases, due to the way the
+.\"    .BR getservent (3)
+.\"    code is written.
+.\"
+.\" It's not clear when/if the following was ever true;
+.\" it isn't true for glibc 2.8:
+.\"    Lines longer than
+.\"    .B BUFSIZ
+.\"    (currently 1024) characters will be ignored by
+.\"    .BR getservent (3),
+.\"    .BR getservbyname (3),
+.\"    and
+.\"    .BR getservbyport (3).
+.\"    However, this will also cause the next line to be mis-parsed.
+.SH SEE ALSO
+.BR listen (2),
+.BR endservent (3),
+.BR getservbyname (3),
+.BR getservbyport (3),
+.BR getservent (3),
+.BR setservent (3),
+.BR inetd.conf (5),
+.BR protocols (5),
+.BR inetd (8)
+
+Assigned Numbers RFC, most recently RFC\ 1700, (AKA STD0002).

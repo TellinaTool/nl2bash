@@ -1,0 +1,126 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH AIO_FSYNC 3 2015-03-02  "" "Linux Programmer's Manual"
+.SH NAME
+aio_fsync \- asynchronous file synchronization
+.SH SYNOPSIS
+.B "#include <aio.h>"
+.sp
+.BI "int aio_fsync(int " op ", struct aiocb *" aiocbp );
+.sp
+Link with \fI\-lrt\fP.
+.SH DESCRIPTION
+The
+.BR aio_fsync ()
+function does a sync on all outstanding asynchronous I/O operations
+associated with
+.IR aiocbp\->aio_fildes .
+(See
+.BR aio (7)
+for a description of the
+.I aiocb
+structure.)
+.LP
+More precisely, if
+.I op
+is
+.BR O_SYNC ,
+then all currently queued I/O operations shall be
+completed as if by a call of
+.BR fsync (2),
+and if
+.I op
+is
+.BR O_DSYNC ,
+this call is the asynchronous analog of
+.BR fdatasync (2).
+
+Note that this is a request only; it does not wait for I/O completion.
+.LP
+Apart from
+.IR aio_fildes ,
+the only field in the structure pointed to by
+.I aiocbp
+that is used by this call is the
+.I aio_sigevent
+field (a
+.I sigevent
+structure, described in
+.BR sigevent (7)),
+which indicates the desired type of asynchronous notification at completion.
+All other fields are ignored.
+.SH RETURN VALUE
+On success (the sync request was successfully queued)
+this function returns 0.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EAGAIN
+Out of resources.
+.TP
+.B EBADF
+.I aio_fildes
+is not a valid file descriptor open for writing.
+.TP
+.B EINVAL
+Synchronized I/O is not supported for this file, or
+.I op
+is not
+.B O_SYNC
+or
+.BR O_DSYNC .
+.TP
+.B ENOSYS
+.BR aio_fsync ()
+is not implemented.
+.SH VERSIONS
+The
+.BR aio_fsync ()
+function is available since glibc 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR aio_fsync ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH SEE ALSO
+.BR aio_cancel (3),
+.BR aio_error (3),
+.BR aio_read (3),
+.BR aio_return (3),
+.BR aio_suspend (3),
+.BR aio_write (3),
+.BR lio_listio (3),
+.BR aio (7),
+.BR sigevent (7)

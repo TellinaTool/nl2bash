@@ -1,0 +1,150 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\" and Copyright (C) 2010 Michael kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH AIO_SUSPEND 3 2015-03-02  "" "Linux Programmer's Manual"
+.SH NAME
+aio_suspend \- wait for asynchronous I/O operation or timeout
+.SH SYNOPSIS
+.nf
+.sp
+.B "#include <aio.h>"
+.sp
+.BI "int aio_suspend(const struct aiocb * const " aiocb_list [],
+.br
+.BI "                int " nitems ", const struct timespec *" timeout );
+.sp
+Link with \fI\-lrt\fP.
+.fi
+.SH DESCRIPTION
+The
+.BR aio_suspend ()
+function suspends the calling thread until one of the following occurs:
+.IP * 3
+One or more of the asynchronous I/O requests in the list
+.I aiocb_list
+has completed.
+.IP *
+A signal is delivered.
+.IP *
+.I timeout
+is not NULL and the specified time interval has passed.
+(For details of the
+.I timespec
+structure, see
+.BR nanosleep (2).)
+.LP
+The
+.I nitems
+argument specifies the number of items in
+.IR aiocb_list .
+Each item in the list pointed to by
+.I aiocb_list
+must be either NULL (and then is ignored),
+or a pointer to a control block on which I/O was initiated using
+.BR aio_read (3),
+.BR aio_write (3),
+or
+.BR lio_listio (3).
+(See
+.BR aio (7)
+for a description of the
+.I aiocb
+structure.)
+.LP
+If
+.B CLOCK_MONOTONIC
+is supported, this clock is used to measure
+the timeout interval (see
+.BR clock_gettime (3)).
+.SH RETURN VALUE
+If this function returns after completion of one of the I/O
+requests specified in
+.IR aiocb_list ,
+0 is returned.
+Otherwise, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EAGAIN
+The call timed out before any of the indicated operations
+had completed.
+.TP
+.B EINTR
+The call was ended by signal
+(possibly the completion signal of one of the operations we were
+waiting for); see
+.BR signal (7).
+.TP
+.B ENOSYS
+.BR aio_suspend ()
+is not implemented.
+.SH VERSIONS
+The
+.BR aio_suspend ()
+function is available since glibc 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR aio_suspend ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+One can achieve polling by using a non-NULL
+.I timeout
+that specifies a zero time interval.
+
+If one or more of the asynchronous I/O operations specified in
+.IR aiocb_list
+has already completed at the time of the call to
+.BR aio_suspend (),
+then the call returns immediately.
+
+To determine which I/O operations have completed
+after a successful return from
+.BR aio_suspend (),
+use
+.BR aio_error (3)
+to scan the list of
+.I aiocb
+structures pointed to by
+.IR aiocb_list .
+.SH SEE ALSO
+.BR aio_cancel (3),
+.BR aio_error (3),
+.BR aio_fsync (3),
+.BR aio_read (3),
+.BR aio_return (3),
+.BR aio_write (3),
+.BR lio_listio (3),
+.BR aio (7),
+.BR time (7)

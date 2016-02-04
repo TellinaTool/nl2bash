@@ -1,0 +1,89 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WCSNCMP 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcsncmp \- compare two fixed-size wide-character strings
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "int wcsncmp(const wchar_t *" s1 ", const wchar_t *" s2 ", size_t " n );
+.fi
+.SH DESCRIPTION
+The
+.BR wcsncmp ()
+function is the wide-character equivalent of the
+.BR strncmp (3)
+function.
+It compares the wide-character string pointed to by
+.I s1
+and the
+wide-character string pointed to by
+.IR s2 ,
+but at most
+.I n
+wide
+characters from each string.
+In each string, the comparison extends only up
+to the first occurrence of a null wide character (L\(aq\\0\(aq), if any.
+.SH RETURN VALUE
+The
+.BR wcsncmp ()
+function returns zero if the wide-character strings at
+.I s1
+and
+.IR s2 ,
+truncated to at most length
+.IR n ,
+are equal.
+It returns an integer greater than zero if at the first differing position
+.I i
+.RI ( i
+<
+.IR n ),
+the corresponding wide-character
+.I s1[i]
+is
+greater than
+.IR s2[i] .
+It returns an integer less than zero if at the first
+differing position
+.I i
+.RI (i
+<
+.IR n ),
+the corresponding
+wide-character
+.I s1[i]
+is less than
+.IR s2[i] .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcsncmp ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH SEE ALSO
+.BR strncmp (3),
+.BR wcsncasecmp (3)

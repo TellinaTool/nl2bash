@@ -1,0 +1,68 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH WCSCPY 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+wcscpy \- copy a wide-character string
+.SH SYNOPSIS
+.nf
+.B #include <wchar.h>
+.sp
+.BI "wchar_t *wcscpy(wchar_t *" dest ", const wchar_t *" src );
+.fi
+.SH DESCRIPTION
+The
+.BR wcscpy ()
+function is the wide-character equivalent
+of the
+.BR strcpy (3)
+function.
+It copies the wide-character string pointed to by
+.IR src ,
+including the terminating null wide character (L\(aq\\0\(aq),
+to the array pointed to by
+.IR dest .
+.PP
+The strings may not overlap.
+.PP
+The programmer must ensure that there is
+room for at least
+.IR "wcslen(src)+1"
+wide characters at
+.IR dest .
+.SH RETURN VALUE
+.BR wcscpy ()
+returns
+.IR dest .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR wcscpy ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH SEE ALSO
+.BR strcpy (3),
+.BR wcpcpy (3),
+.BR wcscat (3),
+.BR wcsdup (3),
+.BR wmemcpy (3)

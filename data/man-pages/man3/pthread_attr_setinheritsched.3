@@ -1,0 +1,155 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_ATTR_SETINHERITSCHED 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_attr_setinheritsched, pthread_attr_getinheritsched \- set/get
+inherit-scheduler attribute in thread attributes object
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.BI "int pthread_attr_setinheritsched(pthread_attr_t *" attr ,
+.BI "                                 int " inheritsched );
+.BI "int pthread_attr_getinheritsched(const pthread_attr_t *" attr ,
+.BI "                                 int *" inheritsched );
+.sp
+Compile and link with \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+The
+.BR pthread_attr_setinheritsched ()
+function sets the inherit-scheduler attribute of the
+thread attributes object referred to by
+.IR attr
+to the value specified in
+.IR inheritsched .
+The inherit-scheduler attribute determines whether a thread created using
+the thread attributes object
+.I attr
+will inherit its scheduling attributes from the calling thread
+or whether it will take them from
+.IR attr .
+
+The following scheduling attributes are affected by the
+inherit-scheduler attribute:
+scheduling policy
+.RB ( pthread_attr_setschedpolicy (3)),
+scheduling priority
+.RB ( pthread_attr_setschedparam (3)),
+and contention scope
+.RB ( pthread_attr_setscope (3)).
+
+The following values may be specified in
+.IR inheritsched :
+.TP
+.B PTHREAD_INHERIT_SCHED
+Threads that are created using
+.I attr
+inherit scheduling attributes from the creating thread;
+the scheduling attributes in
+.I attr
+are ignored.
+.TP
+.B PTHREAD_EXPLICIT_SCHED
+Threads that are created using
+.I attr
+take their scheduling attributes from the values specified
+by the attributes object.
+.\" FIXME Document the defaults for scheduler settings
+.PP
+The default setting of the inherit-scheduler attribute in
+a newly initialized thread attributes object is
+.BR PTHREAD_INHERIT_SCHED .
+
+The
+.BR pthread_attr_getinheritsched ()
+returns the inherit-scheduler attribute of the thread attributes object
+.IR attr
+in the buffer pointed to by
+.IR inheritsched .
+.SH RETURN VALUE
+On success, these functions return 0;
+on error, they return a nonzero error number.
+.SH ERRORS
+.BR pthread_attr_setinheritsched ()
+can fail with the following error:
+.TP
+.B EINVAL
+Invalid value in
+.IR inheritsched .
+.PP
+POSIX.1 also documents an optional
+.B ENOTSUP
+error ("attempt was made to set the attribute to an unsupported value") for
+.BR pthread_attr_setinheritsched ().
+.\" .SH VERSIONS
+.\" Available since glibc 2.0.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw31 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pthread_attr_setinheritsched (),
+.BR pthread_attr_getinheritsched ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH BUGS
+As at glibc 2.8, if a thread attributes object is initialized using
+.BR pthread_attr_init (3),
+then the scheduling policy of the attributes object is set to
+.BR SCHED_OTHER
+and the scheduling priority is set to 0.
+However, if the inherit-scheduler attribute is then set to
+.BR PTHREAD_EXPLICIT_SCHED ,
+then a thread created using the attribute object
+wrongly inherits its scheduling attributes from the creating thread.
+This bug does not occur if either the scheduling policy or
+scheduling priority attribute is explicitly set
+in the thread attributes object before calling
+.BR pthread_create (3).
+.\" FIXME . Track status of the following bug:
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=7007
+.SH EXAMPLE
+See
+.BR pthread_setschedparam (3).
+.SH SEE ALSO
+.ad l
+.nh
+.BR pthread_attr_init (3),
+.BR pthread_attr_setschedparam (3),
+.BR pthread_attr_setschedpolicy (3),
+.BR pthread_attr_setscope (3),
+.BR pthread_create (3),
+.BR pthread_setschedparam (3),
+.BR pthread_setschedprio (3),
+.BR pthreads (7),
+.BR sched (7)

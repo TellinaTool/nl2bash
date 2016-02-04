@@ -1,0 +1,139 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 18:42:59 1993 by Rik Faith (faith@cs.unc.edu)
+.TH PUTS 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+fputc, fputs, putc, putchar, puts \- output of characters and strings
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.sp
+.BI "int fputc(int " c ", FILE *" stream );
+
+.BI "int fputs(const char *" "s" ", FILE *" "stream" );
+
+.BI "int putc(int " c ", FILE *" stream );
+
+.BI "int putchar(int " c );
+
+.BI "int puts(const char *" "s" );
+.fi
+.SH DESCRIPTION
+.BR fputc ()
+writes the character
+.IR c ,
+cast to an
+.IR "unsigned char" ,
+to
+.IR stream .
+.PP
+.BR fputs ()
+writes the string
+.I s
+to
+.IR stream ,
+without its terminating null byte (\(aq\e0\(aq).
+.PP
+.BR putc ()
+is equivalent to
+.BR fputc ()
+except that it may be implemented as a macro which evaluates
+.I stream
+more than once.
+.PP
+.BI "putchar(" c )
+is equivalent to
+.BI "putc(" c ", " stdout ).
+.PP
+.BR puts ()
+writes the string
+.I s
+and a trailing newline
+to
+.IR stdout .
+.PP
+Calls to the functions described here can be mixed with each other and with
+calls to other output functions from the
+.I stdio
+library for the same output stream.
+.PP
+For nonlocking counterparts, see
+.BR unlocked_stdio (3).
+.SH RETURN VALUE
+.BR fputc (),
+.BR putc ()
+and
+.BR putchar ()
+return the character written as an
+.I unsigned char
+cast to an
+.I int
+or
+.B EOF
+on error.
+.PP
+.BR puts ()
+and
+.BR fputs ()
+return a nonnegative number on success, or
+.B EOF
+on error.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw25 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR fputc (),
+.BR fputs (),
+.BR putc (),
+.BR putchar (),
+.BR puts ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99.
+.SH BUGS
+It is not advisable to mix calls to output functions from the
+.I stdio
+library with low-level calls to
+.BR write (2)
+for the file descriptor associated with the same output stream; the results
+will be undefined and very probably not what you want.
+.SH SEE ALSO
+.BR write (2),
+.BR ferror (3),
+.BR fgets (3),
+.BR fopen (3),
+.BR fputwc (3),
+.BR fputws (3),
+.BR fseek (3),
+.BR fwrite (3),
+.BR putwchar (3),
+.BR scanf (3),
+.BR unlocked_stdio (3)

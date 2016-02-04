@@ -1,0 +1,606 @@
+'\" t
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH MALLOPT 3  2015-12-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+mallopt \- set memory allocation parameters
+.SH SYNOPSIS
+.B #include <malloc.h>
+
+.BI "int mallopt(int " param ", int " value );
+.SH DESCRIPTION
+The
+.BR mallopt ()
+function adjusts parameters that control the behavior of the
+memory-allocation functions (see
+.BR malloc (3)).
+The
+.IR param
+argument specifies the parameter to be modified, and
+.I value
+specifies the new value for that parameter.
+
+The following values can be specified for
+.IR param :
+.TP
+.BR M_ARENA_MAX
+This is the maximum number of arenas that can be created.
+The value of
+.B M_ARENA_TEST
+is not used when
+.B M_ARENA_MAX
+is defined.
+An arena represents a pool of memory that can be used by
+.BR malloc (3)
+(and similar) calls to service allocation requests.
+Arenas are thread safe and
+therefore may have multiple concurrent memory requests.
+The trade-off is between the number of threads and the number of arenas.
+The more arenas you have, the lower the per-thread contention,
+but the higher the memory usage.
+This parameter has been available since glibc 2.10 via
+.BR \-\-enable\-experimental\-malloc ,
+and since glibc 2.15 by default.
+In some versions of the allocator there was no limit on the number
+of created arenas (e.g., CentOS 5, RHEL 5).
+
+When employing newer glibc versions, applications may in
+some cases exhibit high contention when accessing arenas.
+In these cases, it may be beneficial to increase
+.B M_ARENA_MAX
+to match the number of threads.
+This is similar in behavior to strategies taken by tcmalloc and jemalloc
+(e.g., per-thread allocation pools).
+.TP
+.BR M_ARENA_TEST
+This is the limit, in number of arenas created, at which the system
+configuration will be examined to evaluate a hard limit on the
+number of created arenas.
+The computed limit is implementation-defined
+and is usually a multiple of the number of available CPUs.
+Once the limit is computed, the result is final and constrains
+the total number of arenas.
+See
+.B M_ARENA_MAX
+for the definition of an arena.
+This parameter has been available since glibc 2.10 via
+.BR \-\-enable\-experimental\-malloc ,
+and since glibc 2.15 by default.
+.TP
+.BR M_CHECK_ACTION
+Setting this parameter controls how glibc responds when various kinds
+of programming errors are detected (e.g., freeing the same pointer twice).
+The 3 least significant bits (2, 1, and 0) of the value assigned
+to this parameter determine the glibc behavior, as follows:
+.RS
+.TP
+Bit 0
+If this bit is set, then print a one-line message on
+.I stderr
+that provides details about the error.
+The message starts with the string "***\ glibc detected\ ***",
+followed by the program name,
+the name of the memory-allocation function in which the error was detected,
+a brief description of the error,
+and the memory address where the error was detected.
+.TP
+Bit 1
+If this bit is set, then,
+after printing any error message specified by bit 0,
+the program is terminated by calling
+.BR abort (3).
+In glibc versions since 2.4,
+if bit 0 is also set,
+then, between printing the error message and aborting,
+the program also prints a stack trace in the manner of
+.BR backtrace (3),
+and prints the process's memory mapping in the style of
+.IR /proc/[pid]/maps
+(see
+.BR proc (5)).
+.TP
+Bit 2 (since glibc 2.4)
+This bit has an effect only if bit 0 is also set.
+If this bit is set,
+then the one-line message describing the error is simplified
+to contain just the name of the function where the error
+was detected and the brief description of the error.
+.RE
+.IP
+The remaining bits in
+.I value
+are ignored.
+.IP
+Combining the above details,
+the following numeric values are meaningful for
+.BR M_CHECK_ACTION :
+.RS 12
+.IP 0 3
+Ignore error conditions; continue execution (with undefined results).
+.IP 1
+Print a detailed error message and continue execution.
+.IP 2
+Abort the program.
+.IP 3
+Print detailed error message, stack trace, and memory mappings,
+and abort the program.
+.IP 5
+Print a simple error message and continue execution.
+.IP 7
+Print simple error message, stack trace, and memory mappings,
+and abort the program.
+.RE
+.IP
+Since glibc 2.3.4, the default value for the
+.BR M_CHECK_ACTION
+parameter is 3.
+In glibc version 2.3.3 and earlier, the default value is 1.
+.IP
+Using a nonzero
+.B M_CHECK_ACTION
+value can be useful because otherwise a crash may happen much later,
+and the true cause of the problem is then very hard to track down.
+.TP
+.BR M_MMAP_MAX
+.\" The following text adapted from comments in the glibc source:
+This parameter specifies the maximum number of allocation requests that
+may be simultaneously serviced using
+.BR mmap (2).
+This parameter exists because some systems have a limited number
+of internal tables for use by
+.BR mmap (2),
+and using more than a few of them may degrade performance.
+.IP
+The default value is 65,536,
+a value which has no special significance and
+which servers only as a safeguard.
+Setting this parameter to 0 disables the use of
+.BR mmap (2)
+for servicing large allocation requests.
+.TP
+.BR M_MMAP_THRESHOLD
+For allocations greater than or equal to the limit specified (in bytes) by
+.BR M_MMAP_THRESHOLD
+that can't be satisfied from the free list,
+the memory-allocation functions employ
+.BR mmap (2)
+instead of increasing the program break using
+.BR sbrk (2).
+.IP
+Allocating memory using
+.BR mmap (2)
+has the significant advantage that the allocated memory blocks
+can always be independently released back to the system.
+(By contrast,
+the heap can be trimmed only if memory is freed at the top end.)
+On the other hand, there are some disadvantages to the use of
+.BR mmap (2):
+deallocated space is not placed on the free list
+for reuse by later allocations;
+memory may be wasted because
+.BR mmap (2)
+allocations must be page-aligned;
+and the kernel must perform the expensive task of zeroing out
+memory allocated via
+.BR mmap (2).
+Balancing these factors leads to a default setting of 128*1024 for the
+.BR M_MMAP_THRESHOLD
+parameter.
+.IP
+The lower limit for this parameter is 0.
+The upper limit is
+.BR DEFAULT_MMAP_THRESHOLD_MAX :
+512*1024 on 32-bit systems or
+.IR 4*1024*1024*sizeof(long)
+on 64-bit systems.
+.IP
+.IR Note:
+Nowadays, glibc uses a dynamic mmap threshold by default.
+The initial value of the threshold is 128*1024,
+but when blocks larger than the current threshold and less than or equal to
+.BR DEFAULT_MMAP_THRESHOLD_MAX
+are freed,
+the threshold is adjusted upward to the size of the freed block.
+When dynamic mmap thresholding is in effect,
+the threshold for trimming the heap is also dynamically adjusted
+to be twice the dynamic mmap threshold.
+Dynamic adjustment of the mmap threshold is disabled if any of the
+.BR M_TRIM_THRESHOLD ,
+.BR M_TOP_PAD ,
+.BR M_MMAP_THRESHOLD ,
+or
+.BR M_MMAP_MAX
+parameters is set.
+.TP
+.BR M_MXFAST " (since glibc 2.3)"
+.\" The following text adapted from comments in the glibc sources:
+Set the upper limit for memory allocation requests that are satisfied
+using "fastbins".
+(The measurement unit for this parameter is bytes.)
+Fastbins are storage areas that hold deallocated blocks of memory
+of the same size without merging adjacent free blocks.
+Subsequent reallocation of blocks of the same size can be handled
+very quickly by allocating from the fastbin,
+although memory fragmentation and the overall memory footprint
+of the program can increase.
+The default value for this parameter is
+.IR "64*sizeof(size_t)/4"
+(i.e., 64 on 32-bit architectures).
+The range for this parameter is 0 to
+.IR "80*sizeof(size_t)/4" .
+Setting
+.B M_MXFAST
+to 0 disables the use of fastbins.
+.TP
+.BR M_PERTURB " (since glibc 2.4)"
+If this parameter is set to a nonzero value,
+then bytes of allocated memory (other than allocations via
+.BR calloc (3))
+are initialized to the complement of the value
+in the least significant byte of
+.IR value ,
+and when allocated memory is released using
+.BR free (3),
+the freed bytes are set to the least significant byte of
+.IR value .
+This can be useful for detecting errors where programs
+incorrectly rely on allocated memory being initialized to zero,
+or reuse values in memory that has already been freed.
+.TP
+.BR M_TOP_PAD
+This parameter defines the amount of padding to employ when calling
+.BR sbrk (2)
+to modify the program break.
+(The measurement unit for this parameter is bytes.)
+This parameter has an effect in the following circumstances:
+.RS
+.IP * 3
+When the program break is increased, then
+.BR M_TOP_PAD
+bytes are added to the
+.BR sbrk (2)
+request.
+.IP *
+When the heap is trimmed as a consequence of calling
+.BR free (3)
+(see the discussion of
+.BR M_TRIM_THRESHOLD )
+this much free space is preserved at the top of the heap.
+.RE
+.IP
+In either case,
+the amount of padding is always rounded to a system page boundary.
+.IP
+Modifying
+.BR M_TOP_PAD
+is a trade-off between increasing the number of system calls
+(when the parameter is set low)
+and wasting unused memory at the top of the heap
+(when the parameter is set high).
+.IP
+The default value for this parameter is 128*1024.
+.\" DEFAULT_TOP_PAD in glibc source
+.TP
+.BR M_TRIM_THRESHOLD
+When the amount of contiguous free memory at the top of the heap
+grows sufficiently large,
+.BR free (3)
+employs
+.BR sbrk (2)
+to release this memory back to the system.
+(This can be useful in programs that continue to execute for
+a long period after freeing a significant amount of memory.)
+The
+.BR M_TRIM_THRESHOLD
+parameter specifies the minimum size (in bytes) that
+this block of memory must reach before
+.BR sbrk (2)
+is used to trim the heap.
+.IP
+The default value for this parameter is 128*1024.
+Setting
+.BR M_TRIM_THRESHOLD
+to \-1 disables trimming completely.
+.IP
+Modifying
+.BR M_TRIM_THRESHOLD
+is a trade-off between increasing the number of system calls
+(when the parameter is set low)
+and wasting unused memory at the top of the heap
+(when the parameter is set high).
+.\"
+.SS Environment variables
+A number of environment variables can be defined
+to modify some of the same parameters as are controlled by
+.BR mallopt ().
+Using these variables has the advantage that the source code
+of the program need not be changed.
+To be effective, these variables must be defined before the
+first call to a memory-allocation function.
+(If the same parameters are adjusted via
+.BR mallopt (),
+then the
+.BR mallopt ()
+settings take precedence.)
+For security reasons,
+these variables are ignored in set-user-ID and set-group-ID programs.
+
+The environment variables are as follows
+(note the trailing underscore at the end of the name of some variables):
+.TP
+.BR MALLOC_ARENA_MAX
+Controls the same parameter as
+.BR mallopt ()
+.BR M_ARENA_MAX .
+.TP
+.BR MALLOC_ARENA_TEST
+Controls the same parameter as
+.BR mallopt ()
+.BR M_ARENA_TEST .
+.TP
+.BR MALLOC_CHECK_
+This environment variable controls the same parameter as
+.BR mallopt ()
+.BR M_CHECK_ACTION .
+If this variable is set to a nonzero value,
+then a special implementation of the memory-allocation functions is used.
+(This is accomplished using the
+.BR malloc_hook (3)
+feature.)
+This implementation performs additional error checking,
+but is slower
+.\" On glibc 2.12/x86, a simple malloc()+free() loop is about 70% slower
+.\" when MALLOC_CHECK_ was set.
+than the standard set of memory-allocation functions.
+(This implementation does not detect all possible errors;
+memory leaks can still occur.)
+.IP
+The value assigned to this environment variable should be a single digit,
+whose meaning is as described for
+.BR M_CHECK_ACTION .
+Any characters beyond the initial digit are ignored.
+.IP
+For security reasons, the effect of
+.BR MALLOC_CHECK_
+is disabled by default for set-user-ID and set-group-ID programs.
+However, if the file
+.IR /etc/suid\-debug
+exists (the content of the file is irrelevant), then
+.BR MALLOC_CHECK_
+also has an effect for set-user-ID and set-group-ID programs.
+.TP
+.BR MALLOC_MMAP_MAX_
+Controls the same parameter as
+.BR mallopt ()
+.BR M_MMAP_MAX .
+.TP
+.BR MALLOC_MMAP_THRESHOLD_
+Controls the same parameter as
+.BR mallopt ()
+.BR M_MMAP_THRESHOLD .
+.TP
+.BR MALLOC_PERTURB_
+Controls the same parameter as
+.BR mallopt ()
+.BR M_PERTURB .
+.TP
+.BR MALLOC_TRIM_THRESHOLD_
+Controls the same parameter as
+.BR mallopt ()
+.BR M_TRIM_THRESHOLD .
+.TP
+.BR MALLOC_TOP_PAD_
+Controls the same parameter as
+.BR mallopt ()
+.BR M_TOP_PAD .
+.SH RETURN VALUE
+On success,
+.BR mallopt ()
+returns 1.
+On error, it returns 0.
+.SH ERRORS
+On error,
+.I errno
+is
+.I not
+set.
+.\" .SH VERSIONS
+.\" Available already in glibc 2.0, possibly earlier
+.SH CONFORMING TO
+This function is not specified by POSIX or the C standards.
+A similar function exists on many System V derivatives,
+but the range of values for
+.IR param
+varies across systems.
+The SVID defined options
+.BR M_MXFAST ,
+.BR M_NLBLKS ,
+.BR M_GRAIN ,
+and
+.BR M_KEEP ,
+but only the first of these is implemented in glibc.
+.\" .SH NOTES
+.SH BUGS
+Specifying an invalid value for
+.I param
+does not generate an error.
+
+A calculation error within the glibc implementation means that
+a call of the form:
+.\" FIXME . This looks buggy:
+.\" setting the M_MXFAST limit rounds up:    (s + SIZE_SZ) & ~MALLOC_ALIGN_MASK)
+.\" malloc requests are rounded up:
+.\"    (req) + SIZE_SZ + MALLOC_ALIGN_MASK) & ~MALLOC_ALIGN_MASK
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=12129
+.nf
+
+    mallopt(M_MXFAST, n)
+
+.fi
+does not result in fastbins being employed for all allocations of size up to
+.IR n .
+To ensure desired results,
+.I n
+should be rounded up to the next multiple greater than or equal to
+.IR (2k+1)*sizeof(size_t) ,
+where
+.I k
+is an integer.
+.\" Bins are multiples of 2 * sizeof(size_t) + sizeof(size_t)
+
+If
+.BR mallopt ()
+is used to set
+.BR M_PERTURB ,
+then, as expected, the bytes of allocated memory are initialized
+to the complement of the byte in
+.IR value ,
+and when that memory is freed,
+the bytes of the region are initialized to the byte specified in
+.IR value .
+However, there is an
+.RI off-by- sizeof(size_t)
+error in the implementation:
+.\" FIXME . http://sources.redhat.com/bugzilla/show_bug.cgi?id=12140
+instead of initializing precisely the block of memory
+being freed by the call
+.IR free(p) ,
+the block starting at
+.I p+sizeof(size_t)
+is initialized.
+.SH EXAMPLE
+The program below demonstrates the use of
+.BR M_CHECK_ACTION .
+If the program is supplied with an (integer) command-line argument,
+then that argument is used to set the
+.BR M_CHECK_ACTION
+parameter.
+The program then allocates a block of memory,
+and frees it twice (an error).
+
+The following shell session shows what happens when we run this program
+under glibc, with the default value for
+.BR M_CHECK_ACTION :
+.in +4n
+.nf
+
+$ \fB./a.out\fP
+main(): returned from first free() call
+*** glibc detected *** ./a.out: double free or corruption (top): 0x09d30008 ***
+======= Backtrace: =========
+/lib/libc.so.6(+0x6c501)[0x523501]
+/lib/libc.so.6(+0x6dd70)[0x524d70]
+/lib/libc.so.6(cfree+0x6d)[0x527e5d]
+\&./a.out[0x80485db]
+/lib/libc.so.6(__libc_start_main+0xe7)[0x4cdce7]
+\&./a.out[0x8048471]
+======= Memory map: ========
+001e4000\-001fe000 r\-xp 00000000 08:06 1083555    /lib/libgcc_s.so.1
+001fe000\-001ff000 r\-\-p 00019000 08:06 1083555    /lib/libgcc_s.so.1
+[some lines omitted]
+b7814000\-b7817000 rw\-p 00000000 00:00 0
+bff53000\-bff74000 rw\-p 00000000 00:00 0          [stack]
+Aborted (core dumped)
+.fi
+.in
+.PP
+The following runs show the results when employing other values for
+.BR M_CHECK_ACTION :
+.PP
+.in +4n
+.nf
+$ \fB./a.out 1\fP             # Diagnose error and continue
+main(): returned from first free() call
+*** glibc detected *** ./a.out: double free or corruption (top): 0x09cbe008 ***
+main(): returned from second free() call
+$ \fB./a.out 2\fP             # Abort without error message
+main(): returned from first free() call
+Aborted (core dumped)
+$ \fB./a.out 0\fP             # Ignore error and continue
+main(): returned from first free() call
+main(): returned from second free() call
+.fi
+.in
+.PP
+The next run shows how to set the same parameter using the
+.B MALLOC_CHECK_
+environment variable:
+.PP
+.in +4n
+.nf
+$ \fBMALLOC_CHECK_=1 ./a.out\fP
+main(): returned from first free() call
+*** glibc detected *** ./a.out: free(): invalid pointer: 0x092c2008 ***
+main(): returned from second free() call
+.fi
+.in
+.SS Program source
+\&
+.nf
+#include <malloc.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+    char *p;
+
+    if (argc > 1) {
+        if (mallopt(M_CHECK_ACTION, atoi(argv[1])) != 1) {
+            fprintf(stderr, "mallopt() failed");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    p = malloc(1000);
+    if (p == NULL) {
+        fprintf(stderr, "malloc() failed");
+        exit(EXIT_FAILURE);
+    }
+
+    free(p);
+    printf("main(): returned from first free() call\\n");
+
+    free(p);
+    printf("main(): returned from second free() call\\n");
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.ad l
+.nh
+.BR mmap (2),
+.BR sbrk (2),
+.BR mallinfo (3),
+.BR malloc (3),
+.BR malloc_hook (3),
+.BR malloc_info (3),
+.BR malloc_stats (3),
+.BR malloc_trim (3),
+.BR mcheck (3),
+.BR mtrace (3),
+.BR posix_memalign (3)

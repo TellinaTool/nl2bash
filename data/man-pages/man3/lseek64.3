@@ -1,0 +1,178 @@
+.\" Copyright 2004 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH LSEEK64 3 2015-04-19 "Linux" "Linux Programmer's Manual"
+.SH NAME
+lseek64 \- reposition 64-bit read/write file offset
+.SH SYNOPSIS
+.BR "#define _LARGEFILE64_SOURCE" "     /* See feature_test_macros(7) */"
+.br
+.B #include <sys/types.h>
+.br
+.B #include <unistd.h>
+.sp
+.BI "off64_t lseek64(int " fd ", off64_t " offset ", int " whence );
+.SH DESCRIPTION
+The
+.BR lseek (2)
+family of functions reposition the offset of the open file associated
+with the file descriptor
+.I fd
+to
+.I offset
+bytes relative to the start, current position, or end of the file,
+when
+.I whence
+has the value
+.BR SEEK_SET ,
+.BR SEEK_CUR ,
+or
+.BR SEEK_END ,
+respectively.
+.LP
+For more details, return value, and errors, see
+.BR lseek (2).
+.PP
+Four interfaces are available:
+.BR lseek (2),
+.BR lseek64 (),
+.BR llseek (2),
+and
+.BR _llseek (2).
+.SS lseek()
+Prototype:
+.nf
+.sp
+.in +4n
+.BI "off_t lseek(int " fd ", off_t " offset ", int " whence );
+.in
+.fi
+.sp
+.BR lseek (2)
+uses the type
+.IR off_t .
+This is a 32-bit signed type on 32-bit architectures, unless one
+compiles with
+.nf
+.sp
+.in +4n
+#define _FILE_OFFSET_BITS 64
+.in
+.sp
+.fi
+in which case it is a 64-bit signed type.
+.SS lseek64()
+Prototype:
+.nf
+.sp
+.in +4n
+.BI "off64_t lseek64(int " fd ", off64_t " offset ", int " whence );
+.in
+.fi
+.sp
+The library routine
+.BR lseek64 ()
+uses a 64-bit type even when
+.I off_t
+is a 32-bit type.
+Its prototype (and the type
+.IR off64_t )
+is available only when one compiles with
+.nf
+.sp
+.in +4n
+#define _LARGEFILE64_SOURCE
+.in
+.sp
+.fi
+The function
+.BR lseek64 ()
+.\" in glibc 2.0.94, not in 2.0.6
+is available since glibc 2.1, and is defined to be an alias for
+.BR llseek ().
+.SS llseek()
+Prototype:
+.nf
+.sp
+.in +4n
+.BI "loff_t llseek(int " fd ", loff_t " offset ", int " whence );
+.in
+.fi
+.sp
+The type
+.I loff_t
+is a 64-bit signed type.
+The library routine
+.BR llseek ()
+.\" in libc 5.0.9, not in 4.7.6
+is available in glibc and works without special defines.
+However, the glibc headers do not provide a prototype.
+Users should add
+the above prototype, or something equivalent, to their own source.
+When users complained about data loss caused by a miscompilation of
+.BR e2fsck (8),
+glibc 2.1.3 added the link-time warning
+.sp
+.in +4n
+"the \`llseek\' function may be dangerous; use \`lseek64\' instead."
+.in
+.sp
+This makes this function unusable if one desires a warning-free
+compilation.
+.SS _llseek()
+On 32-bit architectures,
+this is the system call that is used to implement all of the above functions.
+The prototype is:
+.nf
+.sp
+.in +4n
+.BI "int _llseek(int " fd ", off_t " offset_hi ", off_t " offset_lo ,
+.BI "            loff_t *" result ", int " whence );
+.in
+.fi
+.sp
+For more details, see
+.BR llseek (2).
+
+64-bit systems don't need an
+.BR _llseek ()
+system call.
+Instead, they have an
+.BR lseek (2)
+system call that supports 64-bit file offsets.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR lseek64 ()
+T}	Thread safety	MT-Safe
+.TE
+.SH SEE ALSO
+.BR llseek (2),
+.BR lseek (2)

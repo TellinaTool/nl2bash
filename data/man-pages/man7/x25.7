@@ -1,0 +1,126 @@
+.\" This man page is Copyright (C) 1998 Heiner Eisen.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" $Id: x25.7,v 1.4 1999/05/18 10:35:12 freitag Exp $
+.\"
+.TH X25 7 2012-08-05 "Linux" "Linux Programmer's Manual"
+.SH NAME
+x25 \- ITU-T X.25 / ISO-8208 protocol interface.
+.SH SYNOPSIS
+.B #include <sys/socket.h>
+.br
+.B #include <linux/x25.h>
+.sp
+.B x25_socket = socket(AF_X25, SOCK_SEQPACKET, 0);
+.SH DESCRIPTION
+X25 sockets provide an interface to the X.25 packet layer protocol.
+This allows applications to
+communicate over a public X.25 data network as standardized by
+International Telecommunication Union's recommendation X.25
+(X.25 DTE-DCE mode).
+X25 sockets can also be used for communication
+without an intermediate X.25 network (X.25 DTE-DTE mode) as described
+in ISO-8208.
+.PP
+Message boundaries are preserved \(em a
+.BR read (2)
+from a socket will
+retrieve the same chunk of data as output with the corresponding
+.BR write (2)
+to the peer socket.
+When necessary, the kernel takes care
+of segmenting and reassembling long messages by means of
+the X.25 M-bit.
+There is no hard-coded upper limit for the
+message size.
+However, reassembling of a long message might fail if
+there is a temporary lack of system resources or when other constraints
+(such as socket memory or buffer size limits) become effective.
+If that
+occurs, the X.25 connection will be reset.
+.SS Socket addresses
+The
+.B AF_X25
+socket address family uses the
+.I struct sockaddr_x25
+for representing network addresses as defined in ITU-T
+recommendation X.121.
+.PP
+.in +4n
+.nf
+struct sockaddr_x25 {
+    sa_family_t sx25_family;    /* must be AF_X25 */
+    x25_address sx25_addr;      /* X.121 Address */
+};
+.fi
+.in
+.PP
+.I sx25_addr
+contains a char array
+.I x25_addr[]
+to be interpreted as a null-terminated string.
+.I sx25_addr.x25_addr[]
+consists of up to 15 (not counting the terminating null byte) ASCII
+characters forming the X.121 address.
+Only the decimal digit characters from \(aq0\(aq to \(aq9\(aq are allowed.
+.SS Socket options
+The following X.25-specific socket options can be set by using
+.BR setsockopt (2)
+and read with
+.BR getsockopt (2)
+with the
+.I level
+argument set to
+.BR SOL_X25 .
+.TP
+.B X25_QBITINCL
+Controls whether the X.25 Q-bit (Qualified Data Bit) is accessible by the
+user.
+It expects an integer argument.
+If set to 0 (default),
+the Q-bit is never set for outgoing packets and the Q-bit of incoming
+packets is ignored.
+If set to 1, an additional first byte is prepended
+to each message read from or written to the socket.
+For data read from
+the socket, a 0 first byte indicates that the Q-bits of the corresponding
+incoming data packets were not set.
+A first byte with value 1 indicates
+that the Q-bit of the corresponding incoming data packets was set.
+If the first byte of the data written to the socket is 1, the Q-bit of the
+corresponding outgoing data packets will be set.
+If the first byte is 0,
+the Q-bit will not be set.
+.SH VERSIONS
+The AF_X25 protocol family is a new feature of Linux 2.2.
+.SH BUGS
+Plenty, as the X.25 PLP implementation is
+.BR CONFIG_EXPERIMENTAL .
+.PP
+This man page is incomplete.
+.PP
+There is no dedicated application programmer's header file yet;
+you need to include the kernel header file
+.IR <linux/x25.h> .
+.B CONFIG_EXPERIMENTAL
+might also imply that future versions of the
+interface are not binary compatible.
+.PP
+X.25 N-Reset events are not propagated to the user process yet.
+Thus,
+if a reset occurred, data might be lost without notice.
+.SH SEE ALSO
+.BR socket (2),
+.BR socket (7)
+.PP
+Jonathan Simon Naylor:
+\(lqThe Re-Analysis and Re-Implementation of X.25.\(rq
+The URL is
+.UR ftp://ftp.pspt.fi\:/pub\:/ham\:/linux\:/ax25\:/x25doc.tgz
+.UE .

@@ -1,0 +1,67 @@
+.\" Copyright 2004 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH POW10 3  2015-03-02 "" "Linux Programmer's Manual"
+.SH NAME
+pow10, pow10f, pow10l \- base-10 power functions
+.SH SYNOPSIS
+.nf
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.B #include <math.h>
+.sp
+.BI "double pow10(double " x );
+.br
+.BI "float pow10f(float " x );
+.br
+.BI "long double pow10l(long double " x );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.SH DESCRIPTION
+These functions return the value of 10 raised to the power
+.IR x .
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw28 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR pow10 (),
+.BR pow10f (),
+.BR pow10l ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+This is a GNU extension.
+.SH NOTES
+These functions are identical to the functions listed under
+.BR exp10 (3).
+.SH SEE ALSO
+.BR exp10 (3),
+.BR pow (3)

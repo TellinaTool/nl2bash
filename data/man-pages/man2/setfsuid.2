@@ -1,0 +1,135 @@
+.\" Copyright (C) 1995, Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Created   1995-08-06 Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\" Modified  2000-07-01 aeb
+.\" Modified  2002-07-23 aeb
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"
+.TH SETFSUID 2 2013-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+setfsuid \- set user identity used for filesystem checks
+.SH SYNOPSIS
+.B #include <sys/fsuid.h>
+.sp
+.BI "int setfsuid(uid_t " fsuid );
+.SH DESCRIPTION
+The system call
+.BR setfsuid ()
+changes the value of the caller's filesystem user ID\(emthe
+user ID that the Linux kernel uses to check for all accesses
+to the filesystem.
+Normally, the value of
+the filesystem user ID
+will shadow the value of the effective user ID.
+In fact, whenever the
+effective user ID is changed,
+the filesystem user ID
+will also be changed to the new value of the effective user ID.
+
+Explicit calls to
+.BR setfsuid ()
+and
+.BR setfsgid (2)
+are usually used only by programs such as the Linux NFS server that
+need to change what user and group ID is used for file access without a
+corresponding change in the real and effective user and group IDs.
+A change in the normal user IDs for a program such as the NFS server
+is a security hole that can expose it to unwanted signals.
+(But see below.)
+
+.BR setfsuid ()
+will succeed only if the caller is the superuser or if
+.I fsuid
+matches either the caller's real user ID, effective user ID,
+saved set-user-ID, or current filesystem user ID.
+.SH RETURN VALUE
+On both success and failure,
+this call returns the previous filesystem user ID of the caller.
+.SH VERSIONS
+This system call is present in Linux since version 1.2.
+.\" This system call is present since Linux 1.1.44
+.\" and in libc since libc 4.7.6.
+.SH CONFORMING TO
+.BR setfsuid ()
+is Linux-specific and should not be used in programs intended
+to be portable.
+.SH NOTES
+When glibc determines that the argument is not a valid user ID,
+it will return \-1 and set \fIerrno\fP to
+.B EINVAL
+without attempting
+the system call.
+.LP
+At the time when this system call was introduced, one process
+could send a signal to another process with the same effective user ID.
+This meant that if a privileged process changed its effective user ID
+for the purpose of file permission checking,
+then it could become vulnerable to receiving signals
+sent by another (unprivileged) process with the same user ID.
+The filesystem user ID attribute was thus added to allow a process to
+change its user ID for the purposes of file permission checking without
+at the same time becoming vulnerable to receiving unwanted signals.
+Since Linux 2.0, signal permission handling is different (see
+.BR kill (2)),
+with the result that a process change can change its effective user ID
+without being vulnerable to receiving signals from unwanted processes.
+Thus,
+.BR setfsuid ()
+is nowadays unneeded and should be avoided in new applications
+(likewise for
+.BR setfsgid (2)).
+
+The original Linux
+.BR setfsuid ()
+system call supported only 16-bit user IDs.
+Subsequently, Linux 2.4 added
+.BR setfsuid32 ()
+supporting 32-bit IDs.
+The glibc
+.BR setfsuid ()
+wrapper function transparently deals with the variation across kernel versions.
+.SH BUGS
+No error indications of any kind are returned to the caller,
+and the fact that both successful and unsuccessful calls return
+the same value makes it impossible to directly determine
+whether the call succeeded or failed.
+Instead, the caller must resort to looking at the return value
+from a further call such as
+.IR setfsuid(\-1)
+(which will always fail), in order to determine if a preceding call to
+.BR setfsuid ()
+changed the filesystem user ID.
+At the very
+least,
+.B EPERM
+should be returned when the call fails (because the caller lacks the
+.B CAP_SETUID
+capability).
+.SH SEE ALSO
+.BR kill (2),
+.BR setfsgid (2),
+.BR capabilities (7),
+.BR credentials (7)

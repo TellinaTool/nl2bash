@@ -1,0 +1,254 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright (C) 2008, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:48:48 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 980310, aeb
+.\" Modified 990328, aeb
+.\" 2008-06-19, mtk, Added mkostemp(); various other changes
+.\"
+.TH MKSTEMP 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+mkstemp, mkostemp, mkstemps, mkostemps \- create a unique temporary file
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.sp
+.BI "int mkstemp(char *" template );
+.sp
+.BI "int mkostemp(char *" template ", int " flags );
+.sp
+.BI "int mkstemps(char *" template ", int " suffixlen );
+.sp
+.BI "int mkostemps(char *" template ", int " suffixlen ", int " flags );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR mkstemp ():
+.ad l
+.RS 4
+.PD 0
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.br
+|| /* Since glibc 2.12: */ _POSIX_C_SOURCE\ >=\ 200112L
+.PD
+.RE
+.ad b
+.PP
+.BR mkostemp ():
+_GNU_SOURCE
+.br
+.BR mkstemps ():
+_BSD_SOURCE || _SVID_SOURCE
+.br
+.BR mkostemps ():
+_GNU_SOURCE
+.SH DESCRIPTION
+The
+.BR mkstemp ()
+function generates a unique temporary filename from
+.IR template ,
+creates and opens the file,
+and returns an open file descriptor for the file.
+
+The last six characters of
+.I template
+must be "XXXXXX" and these are replaced with a string that makes the
+filename unique.
+Since it will be modified,
+.I template
+must not be a string constant, but should be declared as a character array.
+
+The file is created with
+permissions 0600, that is, read plus write for owner only.
+The returned file descriptor provides both read and write access to the file.
+The file is opened with the
+.BR open (2)
+.B O_EXCL
+flag, guaranteeing that the caller is the process that creates the file.
+
+The
+.BR mkostemp ()
+function is like
+.BR mkstemp (),
+with the difference that the following bits\(emwith the same meaning as for
+.BR open (2)\(emmay
+be specified in
+.IR flags :
+.BR O_APPEND ,
+.BR O_CLOEXEC ,
+and
+.BR O_SYNC .
+Note that when creating the file,
+.BR mkostemp ()
+includes the values
+.BR O_RDWR ,
+.BR O_CREAT ,
+and
+.BR O_EXCL
+in the
+.I flags
+argument given to
+.BR open (2);
+including these values in the
+.I flags
+argument given to
+.BR mkostemp ()
+is unnecessary, and produces errors on some
+.\" Reportedly, FreeBSD
+systems.
+
+The
+.BR mkstemps ()
+function is like
+.BR mkstemp (),
+except that the string in
+.I template
+contains a suffix of
+.I suffixlen
+characters.
+Thus,
+.I template
+is of the form
+.IR "prefixXXXXXXsuffix" ,
+and the string XXXXXX is modified as for
+.BR mkstemp ().
+
+The
+.BR mkostemps ()
+function is to
+.BR mkstemps ()
+as
+.BR mkostemp ()
+is to
+.BR mkstemp ().
+.SH RETURN VALUE
+On success, these functions return the file descriptor
+of the temporary file.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EEXIST
+Could not create a unique temporary filename.
+Now the contents of \fItemplate\fP are undefined.
+.TP
+.B EINVAL
+For
+.BR mkstemp ()
+and
+.BR mkostemp ():
+The last six characters of \fItemplate\fP were not XXXXXX;
+now \fItemplate\fP is unchanged.
+.sp
+For
+.BR mkstemps ()
+and
+.BR mkostemps ():
+.I template
+is less than
+.I "(6 + suffixlen)"
+characters long, or the last 6 characters before the suffix in
+.I template
+were not XXXXXX.
+.PP
+These functions may also fail with any of the errors described for
+.BR open (2).
+.SH VERSIONS
+.BR mkostemp ()
+is available since glibc 2.7.
+.BR mkstemps ()
+and
+.BR mkostemps ()
+are available since glibc 2.11.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw23 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR mkstemp (),
+.BR mkostemp (),
+.br
+.BR mkstemps (),
+.BR mkostemps ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+.BR mkstemp ():
+4.3BSD, POSIX.1-2001.
+
+.BR mkstemps ():
+unstandardized, but appears on several other systems.
+.\" mkstemps() appears to be at least on the BSDs, Mac OS X, Solaris,
+.\" and Tru64.
+
+.BR mkostemp ()
+and
+.BR mkostemps ():
+are glibc extensions.
+.SH NOTES
+In glibc versions 2.06 and earlier, the file is created with permissions 0666,
+that is, read and write for all users.
+This old behavior may be
+a security risk, especially since other UNIX flavors use 0600,
+and somebody might overlook this detail when porting programs.
+POSIX.1-2008 adds a requirement that the file be created with mode 0600.
+
+More generally, the POSIX specification of
+.BR mkstemp ()
+does not say anything
+about file modes, so the application should make sure its
+file mode creation mask (see
+.BR umask (2))
+is set appropriately before calling
+.BR mkstemp ()
+(and
+.BR mkostemp ()).
+.\"
+.\" The prototype for
+.\" .BR mkstemp ()
+.\" is in
+.\" .I <unistd.h>
+.\" for libc4, libc5, glibc1; glibc2 follows POSIX.1 and has the prototype in
+.\" .IR <stdlib.h> .
+.SH SEE ALSO
+.BR mkdtemp (3),
+.BR mktemp (3),
+.BR tempnam (3),
+.BR tmpfile (3),
+.BR tmpnam (3)

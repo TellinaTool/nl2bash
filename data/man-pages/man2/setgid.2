@@ -1,0 +1,106 @@
+.\" Copyright (C), 1994, Graeme W. Wilford. (Wilf.)
+.\" and Copyright (C) 2010, 2015, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Fri Jul 29th 12:56:44 BST 1994  Wilf. <G.Wilford@ee.surrey.ac.uk>
+.\" Modified 1997-01-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2002-03-09 by aeb
+.\"
+.TH SETGID 2 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+setgid \- set group identity
+.SH SYNOPSIS
+.B #include <sys/types.h>
+.br
+.B #include <unistd.h>
+.sp
+.BI "int setgid(gid_t " gid );
+.SH DESCRIPTION
+.BR setgid ()
+sets the effective group ID of the calling process.
+If the caller is privileged (has the
+CAP_SETGID
+capability), the real GID and saved set-group-ID are also set.
+
+Under Linux,
+.BR setgid ()
+is implemented like the POSIX version with the
+.B _POSIX_SAVED_IDS
+feature.
+This allows a set-group-ID program that is not set-user-ID-root
+to drop all of its group
+privileges, do some un-privileged work, and then reengage the original
+effective group ID in a secure manner.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EINVAL
+The group ID specified in
+.I gid
+is not valid in this user namespace.
+.TP
+.B EPERM
+The calling process is not privileged (does not have the
+\fBCAP_SETGID\fP capability), and
+.I gid
+does not match the real group ID or saved set-group-ID of
+the calling process.
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, SVr4.
+.SH NOTES
+The original Linux
+.BR setgid ()
+system call supported only 16-bit group IDs.
+Subsequently, Linux 2.4 added
+.BR setgid32 ()
+supporting 32-bit IDs.
+The glibc
+.BR setgid ()
+wrapper function transparently deals with the variation across kernel versions.
+.\"
+.SS C library/kernel differences
+At the kernel level, user IDs and group IDs are a per-thread attribute.
+However, POSIX requires that all threads in a process
+share the same credentials.
+The NPTL threading implementation handles the POSIX requirements by
+providing wrapper functions for
+the various system calls that change process UIDs and GIDs.
+These wrapper functions (including the one for
+.BR setgid ())
+employ a signal-based technique to ensure
+that when one thread changes credentials,
+all of the other threads in the process also change their credentials.
+For details, see
+.BR nptl (7).
+.SH SEE ALSO
+.BR getgid (2),
+.BR setegid (2),
+.BR setregid (2),
+.BR capabilities (7),
+.BR credentials (7),
+.BR user_namespaces (7)

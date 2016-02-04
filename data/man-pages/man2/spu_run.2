@@ -1,0 +1,268 @@
+.\" Copyright (c) International Business Machines Corp., 2006
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+.\" the GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" HISTORY:
+.\" 2005-09-28, created by Arnd Bergmann <arndb@de.ibm.com>
+.\" 2006-06-16, revised by Eduardo M. Fleury <efleury@br.ibm.com>
+.\" 2007-07-10, some polishing by mtk
+.\" 2007-09-28, updates for newer kernels, added example
+.\"             by Jeremy Kerr <jk@ozlabs.org>
+.\"
+.TH SPU_RUN 2 2012-08-05 Linux "Linux Programmer's Manual"
+.SH NAME
+spu_run \- execute an SPU context
+.SH SYNOPSIS
+.nf
+.B #include <sys/spu.h>
+
+.BI "int spu_run(int " fd ", unsigned int *" npc \
+", unsigned int *" event ");"
+.fi
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+The
+.BR spu_run ()
+system call is used on PowerPC machines that implement the
+Cell Broadband Engine Architecture in order to access Synergistic
+Processor Units (SPUs).
+The
+.I fd
+argument is a file descriptor returned by
+.BR spu_create (2)
+that refers to a specific SPU context.
+When the context gets scheduled to a physical SPU,
+it starts execution at the instruction pointer passed in
+.IR npc .
+
+Execution of SPU code happens synchronously, meaning that
+.BR spu_run ()
+blocks while the SPU is still running.
+If there is a need
+to execute SPU code in parallel with other code on either the
+main CPU or other SPUs, a new thread of execution must be created
+first (e.g., using
+.BR pthread_create (3)).
+
+When
+.BR spu_run ()
+returns, the current value of the SPU program counter is written to
+.IR npc ,
+so successive calls to
+.BR spu_run ()
+can use the same
+.I npc
+pointer.
+
+The
+.I event
+argument provides a buffer for an extended status code.
+If the SPU
+context was created with the
+.B SPU_CREATE_EVENTS_ENABLED
+flag, then this buffer is populated by the Linux kernel before
+.BR spu_run ()
+returns.
+
+The status code may be one (or more) of the following constants:
+.TP
+.B SPE_EVENT_DMA_ALIGNMENT
+A DMA alignment error occurred.
+.TP
+.B SPE_EVENT_INVALID_DMA
+An invalid MFC DMA command was attempted.
+.TP
+.B SPE_EVENT_SPE_DATA_STORAGE
+A DMA storage error occurred.
+.TP
+.B SPE_EVENT_SPE_ERROR
+An illegal instruction was executed.
+.PP
+NULL
+is a valid value for the
+.I event
+argument.
+In this case, the events will not be reported to the calling process.
+.SH RETURN VALUE
+On success,
+.BR spu_run ()
+returns the value of the
+.I spu_status
+register.
+On error, it returns \-1 and sets
+.I errno
+to one of the error codes listed below.
+
+The
+.I spu_status
+register value is a bit mask of status codes and
+optionally a 14-bit code returned from the
+.BR stop-and-signal
+instruction on the SPU.
+The bit masks for the status codes
+are:
+.TP
+.B 0x02
+SPU was stopped by a
+.BR stop-and-signal
+instruction.
+.TP
+.B 0x04
+SPU was stopped by a
+.BR halt
+instruction.
+.TP
+.B 0x08
+SPU is waiting for a channel.
+.TP
+.B 0x10
+SPU is in single-step mode.
+.TP
+.B 0x20
+SPU has tried to execute an invalid instruction.
+.TP
+.B 0x40
+SPU has tried to access an invalid channel.
+.TP
+.B 0x3fff0000
+The bits masked with this value contain the code returned from a
+.BR stop-and-signal
+instruction.
+These bits are valid only if the 0x02 bit is set.
+.PP
+If
+.BR spu_run ()
+has not returned an error, one or more bits among the lower eight
+ones are always set.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor.
+.TP
+.B EFAULT
+.I npc
+is not a valid pointer, or
+.I event
+is non-NULL and an invalid pointer.
+.TP
+.B EINTR
+A signal occurred while
+.BR spu_run ()
+was in progress; see
+.BR signal (7).
+The
+.I npc
+value has been updated to the new program counter value if
+necessary.
+.TP
+.B EINVAL
+.I fd
+is not a valid file descriptor returned from
+.BR spu_create (2).
+.TP
+.B ENOMEM
+There was not enough memory available to handle a page fault
+resulting from a Memory Flow Controller (MFC) direct memory access.
+.TP
+.B ENOSYS
+The functionality is not provided by the current system, because
+either the hardware does not provide SPUs or the spufs module is not
+loaded.
+.SH VERSIONS
+The
+.BR spu_run ()
+system call was added to Linux in kernel 2.6.16.
+.SH CONFORMING TO
+This call is Linux-specific and implemented only by the PowerPC
+architecture.
+Programs using this system call are not portable.
+.SH NOTES
+Glibc does not provide a wrapper for this system call; call it using
+.BR syscall (2).
+Note however, that
+.BR spu_run ()
+is meant to be used from libraries that implement a more abstract
+interface to SPUs, not to be used from regular applications.
+See
+.UR http://www.bsc.es\:/projects\:/deepcomputing\:/linuxoncell/
+.UE
+for the recommended libraries.
+.SH EXAMPLE
+The following is an example of running a simple, one-instruction SPU
+program with the
+.BR spu_run ()
+system call.
+
+.nf
+#include <stdlib.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
+#define handle_error(msg) \\
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+int main(void)
+{
+    int context, fd, spu_status;
+    uint32_t instruction, npc;
+
+    context = spu_create("/spu/example\-context", 0, 0755);
+    if (context == \-1)
+        handle_error("spu_create");
+
+    /* write a \(aqstop 0x1234\(aq instruction to the SPU\(aqs
+     * local store memory
+     */
+    instruction = 0x00001234;
+
+    fd = open("/spu/example\-context/mem", O_RDWR);
+    if (fd == \-1)
+        handle_error("open");
+    write(fd, &instruction, sizeof(instruction));
+
+    /* set npc to the starting instruction address of the
+     * SPU program. Since we wrote the instruction at the
+     * start of the mem file, the entry point will be 0x0
+     */
+    npc = 0;
+
+    spu_status = spu_run(context, &npc, NULL);
+    if (spu_status == \-1)
+        handle_error("open");
+
+    /* we should see a status code of 0x1234002:
+     *   0x00000002 (spu was stopped due to stop\-and\-signal)
+     * | 0x12340000 (the stop\-and\-signal code)
+     */
+    printf("SPU Status: 0x%08x\\n", spu_status);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.\" .SH AUTHORS
+.\" Arnd Bergmann <arndb@de.ibm.com>, Jeremy Kerr <jk@ozlabs.org>
+.SH SEE ALSO
+.BR close (2),
+.BR spu_create (2),
+.BR capabilities (7),
+.BR spufs (7)

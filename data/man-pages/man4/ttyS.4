@@ -1,0 +1,54 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"     Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 17:03:24 1993 by Rik Faith (faith@cs.unc.edu)
+.TH TTYS 4 1992-12-19 "Linux" "Linux Programmer's Manual"
+.SH NAME
+ttyS \- serial terminal lines
+.SH DESCRIPTION
+.B ttyS[0\-3]
+are character devices for the serial terminal lines.
+.LP
+They are typically created by:
+.RS
+.sp
+mknod \-m 660 /dev/ttyS0 c 4 64 # base address 0x3f8
+.br
+mknod \-m 660 /dev/ttyS1 c 4 65 # base address 0x2f8
+.br
+mknod \-m 660 /dev/ttyS2 c 4 66 # base address 0x3e8
+.br
+mknod \-m 660 /dev/ttyS3 c 4 67 # base address 0x2e8
+.br
+chown root:tty /dev/ttyS[0\-3]
+.RE
+.SH FILES
+/dev/ttyS[0\-3]
+.SH SEE ALSO
+.BR chown (1),
+.BR mknod (1),
+.BR tty (4),
+.BR agetty (8),
+.BR mingetty (8),
+.BR setserial (8)

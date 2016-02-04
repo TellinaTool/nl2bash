@@ -1,0 +1,84 @@
+.\" Copyright (c) 2015, IBM Corporation.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of
+.\" this manual under the conditions for verbatim copying, provided that
+.\" the entire resulting derived work is distributed under the terms of
+.\" a permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume.
+.\" no responsibility for errors or omissions, or for damages resulting.
+.\" from the use of the information contained herein.  The author(s) may.
+.\" not have taken the same level of care in the production of this.
+.\" manual, which is licensed free of charge, as they might when working.
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH __PPC_YIELD 3 2015-08-05 "GNU C Library" "Linux Programmer's\
+Manual"
+.SH NAME
+__ppc_yield, __ppc_mdoio, __ppc_mdoom \-
+Hint the processor to release shared resources
+.SH SYNOPSIS
+.B #include <sys/platform/ppc.h>
+.sp
+.B void __ppc_yield(void);
+.br
+.B void __ppc_mdoio(void);
+.br
+.B void __ppc_mdoom(void);
+.SH DESCRIPTION
+These functions
+provide hints about the usage of resources that are shared with other
+processors on the Power architecture.
+They can be used, for example, if a program waiting on a lock intends
+to divert the shared resources to be used by other processors.
+.P
+.BR __ppc_yield ()
+provides a hint that performance will probably be improved if shared
+resources dedicated to the executing processor are released for use by
+other processors.
+.P
+.BR __ppc_mdoio ()
+provides a hint that performance will probably be improved if shared
+resources dedicated to the executing processor are released until all
+outstanding storage accesses to caching-inhibited storage have been
+completed.
+.P
+.BR __ppc_mdoom ()
+provides a hint that performance will probably be improved if shared
+resources dedicated to the executing processor are released until all
+outstanding storage accesses to cacheable storage for which the data
+is not in the cache have been completed.
+.SH VERSIONS
+These functions first appeared in glibc in version 2.18.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.ad l
+.TS
+allbox;
+lbw29 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR __ppc_yield (),
+.BR __ppc_mdoio (),
+.BR __ppc_mdoom ()
+T}	Thread safety	MT-Safe
+.TE
+.ad
+.SH CONFORMING TO
+These functions are nonstandard GNU extensions.
+.SH SEE ALSO
+.BR __ppc_set_ppr_med (3)
+
+.IR "Power ISA, Book\ II - Section\ 3.2 (""or"" architecture)"

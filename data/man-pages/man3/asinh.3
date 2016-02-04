@@ -1,0 +1,130 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2002-07-27 by Walter Harms
+.\" 	(walter.harms@informatik.uni-oldenburg.de)
+.\"
+.TH ASINH 3  2015-04-19 "GNU"  "Linux Programmer's Manual"
+.SH NAME
+asinh, asinhf, asinhl \- inverse hyperbolic sine function
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "double asinh(double " x );
+.br
+.BI "float asinhf(float " x );
+.br
+.BI "long double asinhl(long double " x );
+.fi
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR asinh ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.br
+.BR asinhf (),
+.BR asinhl ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad b
+.SH DESCRIPTION
+These functions calculate the inverse hyperbolic sine of
+.IR x ;
+that is the value whose hyperbolic sine is
+.IR x .
+.SH RETURN VALUE
+On success, these functions return the inverse hyperbolic sine of
+.IR x .
+
+If
+.I x
+is a NaN, a NaN is returned.
+
+If
+.I x
+is +0 (\-0), +0 (\-0) is returned.
+
+If
+.I x
+is positive infinity (negative infinity),
+positive infinity (negative infinity) is returned.
+.\"
+.\" POSIX.1-2001 documents an optional range error for subnormal x;
+.\" glibc 2.8 does not do this.
+.SH ERRORS
+No errors occur.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw27 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR asinh (),
+.BR asinhf (),
+.BR asinhl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+
+The variant returning
+.I double
+also conforms to
+SVr4, 4.3BSD, C89.
+.SH SEE ALSO
+.BR acosh (3),
+.BR atanh (3),
+.BR casinh (3),
+.BR cosh (3),
+.BR sinh (3),
+.BR tanh (3)

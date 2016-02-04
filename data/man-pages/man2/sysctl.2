@@ -1,0 +1,182 @@
+.\" Copyright (C) 1996 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Written 11 April 1996 by Andries Brouwer <aeb@cwi.nl>
+.\" 960412: Added comments from Stephen Tweedie
+.\" Modified Tue Oct 22 22:28:41 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Mon Jan  5 20:31:04 1998 by aeb.
+.\"
+.TH SYSCTL 2 2012-12-22 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sysctl \- read/write system parameters
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.br
+.B #include <linux/sysctl.h>
+.sp
+.BI "int _sysctl(struct __sysctl_args *" args );
+.fi
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+.B Do not use this system call!
+See NOTES.
+
+The
+.BR _sysctl ()
+call reads and/or writes kernel parameters.
+For example, the hostname,
+or the maximum number of open files.
+The argument has the form
+.PP
+.in +4n
+.nf
+struct __sysctl_args {
+    int    *name;    /* integer vector describing variable */
+    int     nlen;    /* length of this vector */
+    void   *oldval;  /* 0 or address where to store old value */
+    size_t *oldlenp; /* available room for old value,
+                        overwritten by actual size of old value */
+    void   *newval;  /* 0 or address of new value */
+    size_t  newlen;  /* size of new value */
+};
+.fi
+.in
+.PP
+This call does a search in a tree structure, possibly resembling
+a directory tree under
+.IR /proc/sys ,
+and if the requested item is found calls some appropriate routine
+to read or modify the value.
+.SH RETURN VALUE
+Upon successful completion,
+.BR _sysctl ()
+returns 0.
+Otherwise, a value of \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EFAULT
+The invocation asked for the previous value by setting
+.I oldval
+non-NULL, but allowed zero room in
+.IR oldlenp .
+.TP
+.B ENOTDIR
+.I name
+was not found.
+.TP
+.BR EACCES ", " EPERM
+No search permission for one of the encountered "directories",
+or no read permission where
+.I oldval
+was nonzero, or no write permission where
+.I newval
+was nonzero.
+.SH CONFORMING TO
+This call is Linux-specific, and should not be used in programs
+intended to be portable.
+A
+.BR sysctl ()
+call has been present in Linux since version 1.3.57.
+It originated in
+4.4BSD.
+Only Linux has the
+.I /proc/sys
+mirror, and the object naming schemes differ between Linux and 4.4BSD,
+but the declaration of the
+.BR sysctl ()
+function is the same in both.
+.SH NOTES
+Glibc does not provide a wrapper for this system call; call it using
+.BR syscall (2).
+Or rather...
+.I don't
+call it:
+use of this system call has long been discouraged,
+and it is so unloved that
+\fBit is likely to disappear in a future kernel version\fP.
+.\" See http://lwn.net/Articles/247243/
+Since Linux 2.6.24,
+uses of this system call result in warnings in the kernel log.
+.\" Though comments in suggest that it is needed by old glibc binaries,
+.\" so maybe it's not going away.
+Remove it from your programs now; use the
+.I /proc/sys
+interface instead.
+
+This system call is available only if the kernel was configured with the
+.B CONFIG_SYSCTL_SYSCALL
+option.
+.SH BUGS
+The object names vary between kernel versions,
+making this system call worthless for applications.
+.PP
+Not all available objects are properly documented.
+.PP
+It is not yet possible to change operating system by writing to
+.IR /proc/sys/kernel/ostype .
+.SH EXAMPLE
+.nf
+#define _GNU_SOURCE
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <linux/sysctl.h>
+
+int _sysctl(struct __sysctl_args *args );
+
+#define OSNAMESZ 100
+
+int
+main(void)
+{
+    struct __sysctl_args args;
+    char osname[OSNAMESZ];
+    size_t osnamelth;
+    int name[] = { CTL_KERN, KERN_OSTYPE };
+
+    memset(&args, 0, sizeof(struct __sysctl_args));
+    args.name = name;
+    args.nlen = sizeof(name)/sizeof(name[0]);
+    args.oldval = osname;
+    args.oldlenp = &osnamelth;
+
+    osnamelth = sizeof(osname);
+
+    if (syscall(SYS__sysctl, &args) == \-1) {
+        perror("_sysctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("This machine is running %*s\\n", osnamelth, osname);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR proc (5)

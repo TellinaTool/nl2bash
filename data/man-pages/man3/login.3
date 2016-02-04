@@ -1,0 +1,167 @@
+.\" Derived from text written by Martin Schulze (or taken from glibc.info)
+.\" and text written by Paul Thompson - both copyright 2002.
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH LOGIN 3 2015-04-19 "GNU" "Linux Programmer's Manual"
+.SH NAME
+login, logout \- write utmp and wtmp entries
+.SH SYNOPSIS
+.B #include <utmp.h>
+.sp
+.BI "void login(const struct utmp *" ut );
+.sp
+.BI "int logout(const char *" ut_line );
+.sp
+Link with \fI\-lutil\fP.
+.SH DESCRIPTION
+The utmp file records who is currently using the system.
+The wtmp file records all logins and logouts.
+See
+.BR utmp (5).
+.LP
+The function
+.BR login ()
+takes the supplied
+.IR "struct utmp" ,
+.IR ut ,
+and writes it to both the utmp and the wtmp file.
+.LP
+The function
+.BR logout ()
+clears the entry in the utmp file again.
+.SS GNU details
+More precisely,
+.BR login ()
+takes the argument
+.I ut
+struct, fills the field
+.I ut\->ut_type
+(if there is such a field) with the value
+.BR USER_PROCESS ,
+and fills the field
+.I ut\->ut_pid
+(if there is such a field) with the process ID of the calling process.
+Then it tries to fill the field
+.IR ut\->ut_line .
+It takes the first of
+.IR stdin ,
+.IR stdout ,
+.I stderr
+that is a terminal, and
+stores the corresponding pathname minus a possible leading
+.I /dev/
+into this field, and then writes the struct to the utmp file.
+On the other hand,
+if no terminal name was found, this field is filled with "???"
+and the struct is not written to the utmp file.
+After this, the struct is written to the wtmp file.
+.LP
+The
+.BR logout ()
+function searches the utmp file for an entry matching the
+.I ut_line
+argument.
+If a record is found, it is updated by zeroing out the
+.I ut_name
+and
+.I ut_host
+fields, updating the
+.I ut_tv
+timestamp field and setting
+.I ut_type
+(if there is such a field) to
+.BR DEAD_PROCESS .
+.SH RETURN VALUE
+The
+.BR logout ()
+function returns 1 if the entry was successfully written to the
+database, or 0 if an error occurred.
+.SH FILES
+.TP
+.I /var/run/utmp
+user accounting database, configured through
+.B _PATH_UTMP
+in
+.I <paths.h>
+.TP
+.I /var/log/wtmp
+user accounting log file, configured through
+.B _PATH_WTMP
+in
+.I <paths.h>
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lbw20
+l l l.
+Interface	Attribute	Value
+T{
+.BR login (),
+.br
+.BR logout ()
+T}	Thread safety	T{
+MT-Unsafe race:utent
+.br
+sig:ALRM timer
+T}
+.TE
+
+In the above table,
+.I utent
+in
+.I race:utent
+signifies that if any of the functions
+.BR setutent (3),
+.BR getutent (3),
+or
+.BR endutent (3)
+are used in parallel in different threads of a program,
+then data races could occur.
+.BR login (3)
+and
+.BR logout (3)
+calls those functions,
+so we use race:utent to remind users.
+.SH CONFORMING TO
+Not in POSIX.1.
+Present on the BSDs.
+.SH NOTES
+Note that the
+member
+.I ut_user
+of
+.I struct utmp
+is called
+.I ut_name
+in BSD.
+Therefore,
+.I ut_name
+is defined as an alias for
+.I ut_user
+in
+.IR <utmp.h> .
+.SH SEE ALSO
+.BR getutent (3),
+.BR utmp (5)

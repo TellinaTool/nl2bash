@@ -1,0 +1,232 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sun Jul 25 10:54:31 1993, Rik Faith (faith@cs.unc.edu)
+.TH STRING 3  2014-01-04 "" "Linux Programmer's Manual"
+.SH NAME
+stpcpy, strcasecmp, strcat, strchr, strcmp, strcoll, strcpy, strcspn,
+strdup, strfry, strlen, strncat, strncmp, strncpy, strncasecmp, strpbrk,
+strrchr, strsep, strspn, strstr, strtok, strxfrm, index, rindex
+\- string operations
+.SH SYNOPSIS
+.B #include <strings.h>
+.TP
+.BI "int strcasecmp(const char *" s1 ", const char *" s2 );
+Compare the strings
+.I s1
+and
+.I s2
+ignoring case.
+.TP
+.BI "int strncasecmp(const char *" s1 ", const char *" s2 ", size_t " n );
+Compare the first
+.I n
+characters of the strings
+.I s1
+and
+.I s2
+ignoring case.
+.TP
+.BI "char *index(const char *" s ", int " c );
+Return a pointer to the first occurrence of the character
+.I c
+in the string
+.IR s .
+.TP
+.BI "char *rindex(const char *" s ", int " c );
+Return a pointer to the last occurrence of the character
+.I c
+in the string
+.IR s .
+.TP
+.B #include <string.h>
+.TP
+.BI "char *stpcpy(char *" dest ", const char *" src );
+Copy a string from
+.I src
+to
+.IR dest ,
+returning a pointer to the end of the resulting string at
+.IR dest .
+.TP
+.BI "char *strcat(char *" dest ", const char *" src );
+Append the string
+.I src
+to the string
+.IR dest ,
+returning a pointer
+.IR dest .
+.TP
+.BI "char *strchr(const char *" s ", int " c );
+Return a pointer to the first occurrence of the character
+.I c
+in the string
+.IR s .
+.TP
+.BI "int strcmp(const char *" s1 ", const char *" s2 );
+Compare the strings
+.I s1
+with
+.IR s2 .
+.TP
+.BI "int strcoll(const char *" s1 ", const char *" s2 );
+Compare the strings
+.I s1
+with
+.I s2
+using the current locale.
+.TP
+.BI "char *strcpy(char *" dest ", const char *" src );
+Copy the string
+.I src
+to
+.IR dest ,
+returning a pointer to the start of
+.IR dest .
+.TP
+.BI "size_t strcspn(const char *" s ", const char *" reject );
+Calculate the length of the initial segment of the string
+.I s
+which does not contain any of bytes in the string
+.IR reject ,
+.TP
+.BI "char *strdup(const char *" s );
+Return a duplicate of the string
+.I s
+in memory allocated using
+.BR malloc (3).
+.TP
+.BI "char *strfry(char *" string );
+Randomly swap the characters in
+.IR string .
+.TP
+.BI "size_t strlen(const char *" s );
+Return the length of the string
+.IR s .
+.TP
+.BI "char *strncat(char *" dest ", const char *" src ", size_t " n );
+Append at most
+.I n
+characters from the string
+.I src
+to the string
+.IR dest ,
+returning a pointer to
+.IR dest .
+.TP
+.BI "int strncmp(const char *" s1 ", const char *" s2 ", size_t " n );
+Compare at most
+.I n
+bytes of the strings
+.I s1
+and
+.IR s2 .
+.TP
+.BI "char *strncpy(char *" dest ", const char *" src ", size_t " n );
+Copy at most
+.I n
+bytes from string
+.I src
+to
+.IR dest ,
+returning a pointer to the start of
+.IR dest .
+.TP
+.BI "char *strpbrk(const char *" s ", const char *" accept );
+Return a pointer to the first occurrence in the string
+.I s
+of one of the bytes in the string
+.IR accept .
+.TP
+.BI "char *strrchr(const char *" s ", int " c );
+Return a pointer to the last occurrence of the character
+.I c
+in the string
+.IR s .
+.TP
+.BI "char *strsep(char **" stringp ", const char *" delim );
+Extract the initial token in
+.I stringp
+that is delimited by one of the bytes in
+.IR delim .
+.TP
+.BI "size_t strspn(const char *" s ", const char *" accept );
+Calculate the length of the starting segment in the string
+.I s
+that consists entirely of bytes in
+.IR accept .
+.TP
+.BI "char *strstr(const char *" haystack ", const char *" needle );
+Find the first occurrence of the substring
+.I needle
+in the string
+.IR haystack ,
+returning a pointer to the found substring.
+.TP
+.BI "char *strtok(char *" s ", const char *" delim );
+Extract tokens from the string
+.I s
+that are delimited by one of the bytes in
+.IR delim .
+.TP
+.BI "size_t strxfrm(char *" dest ", const char *" src ", size_t " n );
+Transforms
+.I src
+to the current locale and copies the first
+.I n
+characters to
+.IR dest .
+.SH DESCRIPTION
+The string functions perform string operations on null-terminated
+strings.
+See the individual man pages for descriptions of each function.
+.SH SEE ALSO
+.BR index (3),
+.BR rindex (3),
+.BR stpcpy (3),
+.BR strcasecmp (3),
+.BR strcat (3),
+.BR strchr (3),
+.BR strcmp (3),
+.BR strcoll (3),
+.BR strcpy (3),
+.BR strcspn (3),
+.BR strdup (3),
+.BR strfry (3),
+.BR strlen (3),
+.BR strncasecmp (3),
+.BR strncat (3),
+.BR strncmp (3),
+.BR strncpy (3),
+.BR strpbrk (3),
+.BR strrchr (3),
+.BR strsep (3),
+.BR strspn (3),
+.BR strstr (3),
+.BR strtok (3),
+.BR strxfrm (3)

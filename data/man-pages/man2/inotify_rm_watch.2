@@ -1,0 +1,74 @@
+.\" Copyright (C) 2005 Robert Love
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2005-07-19 Robert Love <rlove@rlove.org> - initial version
+.\" 2006-02-07 mtk, minor changes
+.\"
+.TH INOTIFY_RM_WATCH 2 2010-10-15 "Linux" "Linux Programmer's Manual"
+.SH NAME
+inotify_rm_watch \- remove an existing watch from an inotify instance
+.SH SYNOPSIS
+.B #include <sys/inotify.h>
+.sp
+.BI "int inotify_rm_watch(int " fd ", int " wd );
+.\" Before glibc 2.10, the second argument was types as uint32_t.
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=7040
+.SH DESCRIPTION
+.BR inotify_rm_watch ()
+removes the watch associated with the watch descriptor
+.I wd
+from the inotify instance associated with the file descriptor
+.IR fd .
+
+Removing a watch causes an
+.B IN_IGNORED
+event to be generated for this watch descriptor.
+(See
+.BR inotify (7).)
+.SH RETURN VALUE
+On success,
+.BR inotify_rm_watch ()
+returns zero.
+On error, \-1 is returned and
+.I errno
+is set to indicate the cause of the error.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor.
+.TP
+.B EINVAL
+The watch descriptor
+.I wd
+is not valid; or
+.I fd
+is not an inotify file descriptor.
+.SH VERSIONS
+Inotify was merged into the 2.6.13 Linux kernel.
+.SH CONFORMING TO
+This system call is Linux-specific.
+.SH SEE ALSO
+.BR inotify_add_watch (2),
+.BR inotify_init (2),
+.BR inotify (7)

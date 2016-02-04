@@ -1,0 +1,88 @@
+.\" Copyright (C), 1995, Graeme W. Wilford. (Wilf.)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Wed Jun 14 16:10:28 BST 1995 Wilf. (G.Wilford@@ee.surrey.ac.uk)
+.\"
+.TH RE_COMP 3 2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+re_comp, re_exec \- BSD regex functions
+.SH SYNOPSIS
+.B #define _REGEX_RE_COMP
+.br
+.B #include <sys/types.h>
+.br
+.B #include <regex.h>
+.sp
+.BI "char *re_comp(const char *" regex );
+.sp
+.BI "int re_exec(const char *" string );
+.SH DESCRIPTION
+.BR re_comp ()
+is used to compile the null-terminated regular expression pointed to by
+.IR regex .
+The compiled pattern occupies a static area, the pattern buffer,
+which is overwritten by subsequent use of
+.BR re_comp ().
+If
+.I regex
+is NULL,
+no operation is performed and the pattern buffer's contents are not
+altered.
+
+.BR re_exec ()
+is used to assess whether the null-terminated string pointed to by
+.I string
+matches the previously compiled
+.IR regex .
+.SH RETURN VALUE
+.BR re_comp ()
+returns NULL on successful compilation of
+.I regex
+otherwise it returns a pointer to an appropriate error message.
+
+.BR re_exec ()
+returns 1 for a successful match, zero for failure.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw20 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR re_comp (),
+.BR re_exec ()
+T}	Thread safety	MT-Unsafe
+.TE
+.SH CONFORMING TO
+4.3BSD.
+.SH NOTES
+These functions are obsolete; the functions documented in
+.BR regcomp (3)
+should be used instead.
+.SH SEE ALSO
+.BR regcomp (3),
+.BR regex (7),
+GNU regex manual

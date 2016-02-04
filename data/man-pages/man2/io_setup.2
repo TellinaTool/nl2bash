@@ -1,0 +1,103 @@
+.\" Copyright (C) 2003 Free Software Foundation, Inc.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" This file is distributed according to the GNU General Public License.
+.\" %%%LICENSE_END
+.\"
+.TH IO_SETUP 2 2013-06-21 "Linux" "Linux Programmer's Manual"
+.SH NAME
+io_setup \- create an asynchronous I/O context
+.SH SYNOPSIS
+.nf
+.BR "#include <linux/aio_abi.h>" "          /* Defines needed types */"
+
+.BI "int io_setup(unsigned " nr_events ", aio_context_t *" ctx_idp );
+.fi
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+.PP
+The
+.BR io_setup ()
+system call
+creates an asynchronous I/O context suitable for concurrently processing
+\fInr_events\fP operations.
+The
+.I ctx_idp
+argument must not point to an AIO context that already exists, and must
+be initialized to 0 prior to the call.
+On successful creation of the AIO context, \fI*ctx_idp\fP is filled in
+with the resulting handle.
+.SH RETURN VALUE
+On success,
+.BR io_setup ()
+returns 0.
+For the failure return, see NOTES.
+.SH ERRORS
+.TP
+.B EAGAIN
+The specified \fInr_events\fP exceeds the user's limit of available events,
+as defined in
+.IR /proc/sys/fs/aio-max-nr .
+.TP
+.B EFAULT
+An invalid pointer is passed for \fIctx_idp\fP.
+.TP
+.B EINVAL
+\fIctx_idp\fP is not initialized, or the specified \fInr_events\fP
+exceeds internal limits.
+\fInr_events\fP should be greater than 0.
+.TP
+.B ENOMEM
+Insufficient kernel resources are available.
+.TP
+.B ENOSYS
+.BR io_setup ()
+is not implemented on this architecture.
+.SH VERSIONS
+.PP
+The asynchronous I/O system calls first appeared in Linux 2.5.
+.SH CONFORMING TO
+.PP
+.BR io_setup ()
+is Linux-specific and should not be used in programs
+that are intended to be portable.
+.SH NOTES
+Glibc does not provide a wrapper function for this system call.
+You could invoke it using
+.BR syscall (2).
+But instead, you probably want to use the
+.BR io_setup ()
+wrapper function provided by
+.\" http://git.fedorahosted.org/git/?p=libaio.git
+.IR libaio .
+
+Note that the
+.I libaio
+wrapper function uses a different type
+.RI ( "io_context_t\ *" )
+.\" But glibc is confused, since <libaio.h> uses 'io_context_t' to declare
+.\" the system call.
+for the
+.I ctx_idp
+argument.
+Note also that the
+.I libaio
+wrapper does not follow the usual C library conventions for indicating errors:
+on error it returns a negated error number
+(the negative of one of the values listed in ERRORS).
+If the system call is invoked via
+.BR syscall (2),
+then the return value follows the usual conventions for
+indicating an error: \-1, with
+.I errno
+set to a (positive) value that indicates the error.
+.SH SEE ALSO
+.BR io_cancel (2),
+.BR io_destroy (2),
+.BR io_getevents (2),
+.BR io_submit (2),
+.BR aio (7)
+.\" .SH AUTHOR
+.\" Kent Yoder.

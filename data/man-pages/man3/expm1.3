@@ -1,0 +1,185 @@
+.\" Copyright 1995 Jim Van Zandt <jrv@vanzandt.mv.com>
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2002-07-27 Walter Harms
+.\" 	(walter.harms@informatik.uni-oldenburg.de)
+.\"
+.TH EXPM1 3  2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+expm1, expm1f, expm1l \- exponential minus 1
+.SH SYNOPSIS
+.nf
+.B #include <math.h>
+.sp
+.BI "double expm1(double " x );
+.br
+.BI "float expm1f(float " x );
+.br
+.BI "long double expm1l(long double " x );
+.sp
+.fi
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR expm1 ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.br
+.BR expm1f (),
+.BR expm1l ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad b
+.SH DESCRIPTION
+These functions return a value equivalent to
+.nf
+
+    exp(x) \- 1
+
+.fi
+The result is computed in a way that is accurate even if the value of
+.I x
+is near
+zero\(ema case where
+.I "exp(x) \- 1"
+would be inaccurate due to
+subtraction of two numbers that are nearly equal.
+.SH RETURN VALUE
+On success, these functions return
+.IR "exp(x)\ \-\ 1" .
+
+If
+.I x
+is a NaN,
+a NaN is returned.
+
+If
+.I x
+is +0 (\-0),
++0 (\-0) is returned.
+
+If
+.I x
+is positive infinity, positive infinity is returned.
+
+If
+.I x
+is negative infinity, \-1 is returned.
+
+If the result overflows, a range error occurs,
+and the functions return
+.RB - HUGE_VAL ,
+.RB - HUGE_VALF ,
+or
+.RB - HUGE_VALL ,
+respectively.
+.SH ERRORS
+See
+.BR math_error (7)
+for information on how to determine whether an error has occurred
+when calling these functions.
+.PP
+The following errors can occur:
+.TP
+Range error, overflow
+.I errno
+is set to
+.BR ERANGE
+(but see BUGS).
+An overflow floating-point exception
+.RB ( FE_OVERFLOW )
+is raised.
+.\"
+.\" POSIX.1 specifies an optional range error (underflow) if
+.\" x is subnormal.  Glibc does not implement this.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw27 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR expm1 (),
+.BR expm1f (),
+.BR expm1l ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+.\" BSD.
+.SH BUGS
+For some large negative
+.I x
+values (where the function result approaches \-1),
+.BR expm1 ()
+raises a bogus underflow floating-point exception.
+.\" FIXME .
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6778
+
+For some large positive
+.I x
+values,
+.BR expm1 ()
+raises a bogus invalid floating-point exception in addition to the expected
+overflow exception, and returns a NaN instead of positive infinity.
+.\" FIXME .
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6814
+.\" e.g., expm1(1e5) through expm1(1.00199970127e5),
+.\" but not expm1(1.00199970128e5) and beyond.
+
+Before version 2.11,
+.\" It looks like the fix was in 2.11, or possibly 2.12.
+.\" I have no test system for 2.11, but 2.12 passes.
+.\" From the source (sysdeps/i386/fpu/s_expm1.S) it looks
+.\" like the changes were in 2.11.
+the glibc implementation did not set
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=6788
+.I errno
+to
+.B ERANGE
+when a range error occurred.
+.SH SEE ALSO
+.BR exp (3),
+.BR log (3),
+.BR log1p (3)

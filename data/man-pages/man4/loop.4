@@ -1,0 +1,293 @@
+.\" Copyright 2002 Urs Thuermann (urs@isnogud.escape.de)
+.\" and Copyright 2015 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\" %%%LICENSE_END
+.\"
+.TH LOOP 4 2015-05-07 "Linux" "Linux Programmer's Manual"
+.SH NAME
+loop, loop-control \- loop devices
+.SH SYNOPSIS
+#include <linux/loop.h>
+.SH DESCRIPTION
+The loop device is a block device that maps its data blocks not to a
+physical device such as a hard disk or optical disk drive,
+but to the blocks of
+a regular file in a filesystem or to another block device.
+This can be useful for example to provide a block device for a filesystem
+image stored in a file, so that it can be mounted with the
+.BR mount (8)
+command.
+You could do
+.nf
+.IP
+$ \fBdd if=/dev/zero of=file.img bs=1MiB count=10\fP
+$ \fBsudo losetup /dev/loop4 file.img \fP
+$ \fBsudo mkfs -t ext4 /dev/loop4\fP
+$ \fBsudo mkdir /myloopdev\fP
+$ \fBsudo mount /dev/loop4 /myloopdev\fP
+.fi
+.LP
+See
+.BR losetup (8)
+for another example.
+
+A transfer function can be specified for each loop device for
+encryption and decryption purposes.
+
+The following
+.BR ioctl (2)
+operations are provided by the loop block device:
+.TP
+.B LOOP_SET_FD
+Associate the loop device with the open file whose file descriptor is
+passed as the (third)
+.BR ioctl (2)
+argument.
+.TP
+.B LOOP_CLR_FD
+Disassociate the loop device from any file descriptor.
+.TP
+.B LOOP_SET_STATUS
+Set the status of the loop device using the (third)
+.BR ioctl (2)
+argument.
+This argument is a pointer to
+.I loop_info
+structure, defined in
+.I <linux/loop.h>
+as:
+
+.nf
+.in +4n
+struct loop_info {
+    int           lo_number;            /* ioctl r/o */
+    dev_t         lo_device;            /* ioctl r/o */
+    unsigned long lo_inode;             /* ioctl r/o */
+    dev_t         lo_rdevice;           /* ioctl r/o */
+    int           lo_offset;
+    int           lo_encrypt_type;
+    int           lo_encrypt_key_size;  /* ioctl w/o */
+    int           lo_flags;             /* ioctl r/o */
+    char          lo_name[LO_NAME_SIZE];
+    unsigned char lo_encrypt_key[LO_KEY_SIZE];
+                                        /* ioctl w/o */
+    unsigned long lo_init[2];
+    char          reserved[4];
+};
+.in
+.fi
+
+The encryption type
+.RI ( lo_encrypt_type )
+should be one of
+.BR LO_CRYPT_NONE ,
+.BR LO_CRYPT_XOR ,
+.BR LO_CRYPT_DES ,
+.BR LO_CRYPT_FISH2 ,
+.BR LO_CRYPT_BLOW ,
+.BR LO_CRYPT_CAST128 ,
+.BR LO_CRYPT_IDEA ,
+.BR LO_CRYPT_DUMMY ,
+.BR LO_CRYPT_SKIPJACK ,
+or (since Linux 2.6.0)
+.BR LO_CRYPT_CRYPTOAPI .
+
+The
+.I lo_flags
+field is a bit mask that can include zero or more of the following:
+.RS
+.TP
+.BR LO_FLAGS_READ_ONLY
+The loopback device is read-only.
+.TP
+.BR LO_FLAGS_AUTOCLEAR " (since Linux 2.6.25)"
+.\" commit 96c5865559cee0f9cbc5173f3c949f6ce3525581
+The loopback device will autodestruct on last close.
+.TP
+.BR LO_FLAGS_PARTSCAN " (since Linux 3.2)"
+.\" commit e03c8dd14915fabc101aa495828d58598dc5af98
+Allow automatic partition scanning.
+.RE
+.TP
+.B LOOP_GET_STATUS
+Get the status of the loop device.
+The (third)
+.BR ioctl (2)
+argument must be a pointer to a
+.IR "struct loop_info" .
+.TP
+.BR LOOP_CHANGE_FD " (since Linux 2.6.5)"
+Switch the backing store of the loop device to the new file identified
+file descriptor specified in the (third)
+.BR ioctl (2)
+argument, which is an integer.
+This operation is possible only if the loop device is read-only and
+the new backing store is the same size and type as the old backing store.
+.TP
+.BR LOOP_SET_CAPACITY " (since Linux 2.6.30)"
+.\" commit 53d6660836f233df66490707365ab177e5fb2bb4
+Resize a live loop device.
+One can change the size of the underlying backing store and then use this
+operation so that the loop driver learns about the new size.
+This operation takes no argument.
+.PP
+Since Linux 2.6, there are two new
+.BR ioctl (2)
+operations:
+.TP
+.BR LOOP_SET_STATUS64 ", " LOOP_GET_STATUS64
+These are similar to
+.BR LOOP_SET_STATUS " and " LOOP_GET_STATUS
+described above but use the
+.I loop_info64
+structure,
+which has some additional fields and a larger range for some other fields:
+
+.nf
+.in +4n
+struct loop_info64 {
+    uint64_t lo_device;                   /* ioctl r/o */
+    uint64_t lo_inode;                    /* ioctl r/o */
+    uint64_t lo_rdevice;                  /* ioctl r/o */
+    uint64_t lo_offset;
+    uint64_t lo_sizelimit;/* bytes, 0 == max available */
+    uint32_t lo_number;                   /* ioctl r/o */
+    uint32_t lo_encrypt_type;
+    uint32_t lo_encrypt_key_size;         /* ioctl w/o */
+    uint32_t lo_flags;                    /* ioctl r/o */
+    uint8_t  lo_file_name[LO_NAME_SIZE];
+    uint8_t  lo_crypt_name[LO_NAME_SIZE];
+    uint8_t  lo_encrypt_key[LO_KEY_SIZE]; /* ioctl w/o */
+    uint64_t lo_init[2];
+};
+.in
+.fi
+.SS /dev/loop-control
+Since Linux 3.1,
+.\" commit 770fe30a46a12b6fb6b63fbe1737654d28e84844
+the kernel provides the
+.I /dev/loop-control
+device, which permits an application to dynamically find a free device,
+and to add and remove loop devices from the system.
+To perform these operations, one first opens
+.IR /dev/loop-control
+and then employs one of the following
+.BR ioctl (2)
+operations:
+.TP
+.B LOOP_CTL_GET_FREE
+Allocate or find a free loop device for use.
+On success, the device number is returned as the result of the call.
+This operation takes no argument.
+.TP
+.B LOOP_CTL_ADD
+Add the new loop device whose device number is specified
+as a long integer in the third
+.BR ioctl (2)
+argument.
+On success, the device index is returned as the result of the call.
+If the device is already allocated, the call fails with the error
+.BR EEXIST .
+.TP
+.B LOOP_CTL_REMOVE
+Remove the loop device whose device number is specified
+as a long integer in the third
+.BR ioctl (2)
+argument.
+On success, the device number is returned as the result of the call.
+If the device is in use, the call fails with the error
+.BR EBUSY .
+.SH EXAMPLE
+The program below uses the
+.I /dev/loop-control
+device to find a free loop device, opens the loop device,
+opens a file to be used as the underlying storage for the device,
+and then associates the loop device with the backing store.
+The following shell session demonstrates the use of the program:
+
+.nf
+.in +4n
+$ \fBdd if=/dev/zero of=file.img bs=1MiB count=10\fP
+10+0 records in
+10+0 records out
+10485760 bytes (10 MB) copied, 0.00609385 s, 1.7 GB/s
+$ \fBsudo ./mnt_loop file.img\fP
+loopname = /dev/loop5
+.in
+.fi
+.SS Program source
+\&
+.nf
+#include <fcntl.h>
+#include <linux/loop.h>
+#include <sys/ioctl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \\
+                        } while (0)
+
+int
+main(int argc, char *argv[])
+{
+    int loopctlfd, loopfd, backingfile;
+    long devnr;
+    char loopname[4096];
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s backing\-file\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    loopctlfd = open("/dev/loop\-control", O_RDWR);
+    if (loopctlfd == \-1)
+        errExit("open: /dev/loop\-control");
+
+    devnr = ioctl(loopctlfd, LOOP_CTL_GET_FREE);
+    if (devnr == \-1)
+        errExit("ioctl\-LOOP_CTL_GET_FREE");
+
+    sprintf(loopname, "/dev/loop%ld", devnr);
+    printf("loopname = %s\\n", loopname);
+
+    loopfd = open(loopname, O_RDWR);
+    if (loopfd == \-1)
+        errExit("open: loopname");
+
+    backingfile = open(argv[1], O_RDWR);
+    if (backingfile == \-1)
+        errExit("open: backing\-file");
+
+    if (ioctl(loopfd, LOOP_SET_FD, backingfile) == \-1)
+        errExit("ioctl\-LOOP_SET_FD");
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH FILES
+.IR /dev/loop* :
+the loop block special device files
+.SH "SEE ALSO"
+.BR losetup (8),
+.BR mount (8)

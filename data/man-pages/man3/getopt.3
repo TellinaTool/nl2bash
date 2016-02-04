@@ -1,0 +1,527 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 19:27:50 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Mon Aug 30 22:02:34 1995 by Jim Van Zandt <jrv@vanzandt.mv.com>
+.\"  longindex is a pointer, has_arg can take 3 values, using consistent
+.\"  names for optstring and longindex, "\n" in formats fixed.  Documenting
+.\"  opterr and getopt_long_only.  Clarified explanations (borrowing heavily
+.\"  from the source code).
+.\" Modified 8 May 1998 by Joseph S. Myers (jsm28@cam.ac.uk)
+.\" Modified 990715, aeb: changed `EOF' into `-1' since that is what POSIX
+.\"  says; moreover, EOF is not defined in <unistd.h>.
+.\" Modified 2002-02-16, joey: added information about nonexistent
+.\"  option character and colon as first option character
+.\" Modified 2004-07-28, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added text to explain how to order both '[-+]' and ':' at
+.\"		the start of optstring
+.\" Modified 2006-12-15, mtk, Added getopt() example program.
+.\"
+.TH GETOPT 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+getopt, getopt_long, getopt_long_only,
+optarg, optind, opterr, optopt \- Parse command-line options
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.sp
+.BI "int getopt(int " argc ", char * const " argv[] ,
+.BI "           const char *" optstring );
+.sp
+.BI "extern char *" optarg ;
+.BI "extern int " optind ", " opterr ", " optopt ;
+.sp
+.B #include <getopt.h>
+.sp
+.BI "int getopt_long(int " argc ", char * const " argv[] ,
+.BI "           const char *" optstring ,
+.BI "           const struct option *" longopts ", int *" longindex );
+.sp
+.BI "int getopt_long_only(int " argc ", char * const " argv[] ,
+.BI "           const char *" optstring ,
+.BI "           const struct option *" longopts ", int *" longindex );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.ad l
+.in
+.sp
+.BR getopt ():
+_POSIX_C_SOURCE\ >=\ 2 || _XOPEN_SOURCE
+.br
+.BR getopt_long (),
+.BR getopt_long_only ():
+_GNU_SOURCE
+.ad b
+.SH DESCRIPTION
+The
+.BR getopt ()
+function parses the command-line arguments.
+Its arguments
+.I argc
+and
+.I argv
+are the argument count and array as passed to the
+.IR main ()
+function on program invocation.
+An element of \fIargv\fP that starts with \(aq\-\(aq
+(and is not exactly "\-" or "\-\-")
+is an option element.
+The characters of this element
+(aside from the initial \(aq\-\(aq) are option characters.
+If
+.BR getopt ()
+is called repeatedly, it returns successively each of the option characters
+from each of the option elements.
+.PP
+The variable
+.I optind
+is the index of the next element to be processed in
+.IR argv .
+The system initializes this value to 1.
+The caller can reset it to 1 to restart scanning of the same
+.IR argv ,
+or when scanning a new argument vector.
+.PP
+If
+.BR getopt ()
+finds another option character, it returns that
+character, updating the external variable \fIoptind\fP and a static
+variable \fInextchar\fP so that the next call to
+.BR getopt ()
+can
+resume the scan with the following option character or
+\fIargv\fP-element.
+.PP
+If there are no more option characters,
+.BR getopt ()
+returns \-1.
+Then \fIoptind\fP is the index in \fIargv\fP of the first
+\fIargv\fP-element that is not an option.
+.PP
+.I optstring
+is a string containing the legitimate option characters.
+If such a
+character is followed by a colon, the option requires an argument, so
+.BR getopt ()
+places a pointer to the following text in the same
+\fIargv\fP-element, or the text of the following \fIargv\fP-element, in
+.IR optarg .
+Two colons mean an option takes
+an optional arg; if there is text in the current \fIargv\fP-element
+(i.e., in the same word as the option name itself, for example, "\-oarg"),
+then it is returned in \fIoptarg\fP, otherwise \fIoptarg\fP is set to zero.
+This is a GNU extension.
+If
+.I optstring
+contains
+.B W
+followed by a semicolon, then
+.B \-W foo
+is treated as the long option
+.BR \-\-foo .
+(The
+.B \-W
+option is reserved by POSIX.2 for implementation extensions.)
+This behavior is a GNU extension, not available with libraries before
+glibc 2.
+.PP
+By default,
+.BR getopt ()
+permutes the contents of \fIargv\fP as it
+scans, so that eventually all the nonoptions are at the end.
+Two other modes are also implemented.
+If the first character of
+\fIoptstring\fP is \(aq+\(aq or the environment variable
+.B POSIXLY_CORRECT
+is set, then option processing stops as soon as a nonoption argument is
+encountered.
+If the first character of \fIoptstring\fP is \(aq\-\(aq, then
+each nonoption \fIargv\fP-element is handled as if it were the argument of
+an option with character code 1.  (This is used by programs that were
+written to expect options and other \fIargv\fP-elements in any order
+and that care about the ordering of the two.)
+The special argument "\-\-" forces an end of option-scanning regardless
+of the scanning mode.
+.PP
+If
+.BR getopt ()
+does not recognize an option character, it prints an
+error message to \fIstderr\fP, stores the character in \fIoptopt\fP, and
+returns \(aq?\(aq.
+The calling program may prevent the error message by
+setting \fIopterr\fP to 0.
+.PP
+If
+.BR getopt ()
+finds an option character in \fIargv\fP that was not
+included in \fIoptstring\fP, or if it detects a missing option argument,
+it returns \(aq?\(aq and sets the external variable \fIoptopt\fP to the
+actual option character.
+If the first character
+(following any optional \(aq+\(aq or \(aq\-\(aq described above)
+of \fIoptstring\fP
+is a colon (\(aq:\(aq), then
+.BR getopt ()
+returns \(aq:\(aq instead of \(aq?\(aq to
+indicate a missing option argument.
+If an error was detected, and
+the first character of \fIoptstring\fP is not a colon, and
+the external variable \fIopterr\fP is nonzero (which is the default),
+.BR getopt ()
+prints an error message.
+.SS getopt_long() and getopt_long_only()
+The
+.BR getopt_long ()
+function works like
+.BR getopt ()
+except that it also accepts long options, started with two dashes.
+(If the program accepts only long options, then
+.I optstring
+should be specified as an empty string (""), not NULL.)
+Long option names may be abbreviated if the abbreviation is
+unique or is an exact match for some defined option.
+A long option
+may take a parameter, of the form
+.B \-\-arg=param
+or
+.BR "\-\-arg param" .
+.PP
+.I longopts
+is a pointer to the first element of an array of
+.I struct option
+declared in
+.I <getopt.h>
+as
+.in +4n
+.nf
+.sp
+struct option {
+    const char *name;
+    int         has_arg;
+    int        *flag;
+    int         val;
+};
+.fi
+.in
+.PP
+The meanings of the different fields are:
+.TP
+.I name
+is the name of the long option.
+.TP
+.I has_arg
+is:
+\fBno_argument\fP (or 0) if the option does not take an argument;
+\fBrequired_argument\fP (or 1) if the option requires an argument; or
+\fBoptional_argument\fP (or 2) if the option takes an optional argument.
+.TP
+.I flag
+specifies how results are returned for a long option.
+If \fIflag\fP
+is NULL, then
+.BR getopt_long ()
+returns \fIval\fP.
+(For example, the calling program may set \fIval\fP to the equivalent short
+option character.)
+Otherwise,
+.BR getopt_long ()
+returns 0, and
+\fIflag\fP points to a variable which is set to \fIval\fP if the
+option is found, but left unchanged if the option is not found.
+.TP
+\fIval\fP
+is the value to return, or to load into the variable pointed
+to by \fIflag\fP.
+.PP
+The last element of the array has to be filled with zeros.
+.PP
+If \fIlongindex\fP is not NULL, it
+points to a variable which is set to the index of the long option relative to
+.IR longopts .
+.PP
+.BR getopt_long_only ()
+is like
+.BR getopt_long (),
+but \(aq\-\(aq as well
+as "\-\-" can indicate a long option.
+If an option that starts with \(aq\-\(aq
+(not "\-\-") doesn't match a long option, but does match a short option,
+it is parsed as a short option instead.
+.SH RETURN VALUE
+If an option was successfully found, then
+.BR getopt ()
+returns the option character.
+If all command-line options have been parsed, then
+.BR getopt ()
+returns \-1.
+If
+.BR getopt ()
+encounters an option character that was not in
+.IR optstring ,
+then \(aq?\(aq is returned.
+If
+.BR getopt ()
+encounters an option with a missing argument,
+then the return value depends on the first character in
+.IR optstring :
+if it is \(aq:\(aq, then \(aq:\(aq is returned; otherwise \(aq?\(aq is returned.
+.PP
+.BR getopt_long ()
+and
+.BR getopt_long_only ()
+also return the option
+character when a short option is recognized.
+For a long option, they
+return \fIval\fP if \fIflag\fP is NULL, and 0 otherwise.
+Error and \-1 returns are the same as for
+.BR getopt (),
+plus \(aq?\(aq for an
+ambiguous match or an extraneous parameter.
+.SH ENVIRONMENT
+.TP
+.B POSIXLY_CORRECT
+If this is set, then option processing stops as soon as a nonoption
+argument is encountered.
+.TP
+.B _<PID>_GNU_nonoption_argv_flags_
+This variable was used by
+.BR bash (1)
+2.0 to communicate to glibc which arguments are the results of
+wildcard expansion and so should not be considered as options.
+This behavior was removed in
+.BR bash (1)
+version 2.01, but the support remains in glibc.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw24 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getopt (),
+.BR getopt_long (),
+.BR getopt_long_only ()
+T}	Thread safety	MT-Unsafe race:getopt env
+.TE
+.SH CONFORMING TO
+.TP
+.BR getopt ():
+POSIX.1-2001, POSIX.1-2008, and POSIX.2,
+provided the environment variable
+.B POSIXLY_CORRECT
+is set.
+Otherwise, the elements of \fIargv\fP aren't really
+.IR const ,
+because we permute them.
+We pretend they're
+.I const
+in the prototype to be compatible with other systems.
+
+The use of \(aq+\(aq and \(aq\-\(aq in
+.I optstring
+is a GNU extension.
+
+On some older implementations,
+.BR getopt ()
+was declared in
+.IR <stdio.h> .
+SUSv1 permitted the declaration to appear in either
+.I <unistd.h>
+or
+.IR <stdio.h> .
+POSIX.1-2001 marked the use of
+.I <stdio.h>
+for this purpose as LEGACY.
+POSIX.1-2001 does not allow the declaration to appear in
+.IR <stdio.h> .
+.TP
+.BR getopt_long "() and " getopt_long_only ():
+These functions are GNU extensions.
+.SH NOTES
+A program that scans multiple argument vectors,
+or rescans the same vector more than once,
+and wants to make use of GNU extensions such as \(aq+\(aq
+and \(aq\-\(aq at the start of
+.IR optstring ,
+or changes the value of
+.B POSIXLY_CORRECT
+between scans,
+must reinitialize
+.BR getopt ()
+by resetting
+.I optind
+to 0, rather than the traditional value of 1.
+(Resetting to 0 forces the invocation of an internal initialization
+routine that rechecks
+.B POSIXLY_CORRECT
+and checks for GNU extensions in
+.IR optstring .)
+.SH EXAMPLE
+.SS getopt()
+The following trivial example program uses
+.BR getopt ()
+to handle two program options:
+.IR \-n ,
+with no associated value; and
+.IR "\-t val" ,
+which expects an associated value.
+.nf
+.sp
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int
+main(int argc, char *argv[])
+{
+    int flags, opt;
+    int nsecs, tfnd;
+
+    nsecs = 0;
+    tfnd = 0;
+    flags = 0;
+    while ((opt = getopt(argc, argv, "nt:")) != \-1) {
+        switch (opt) {
+        case \(aqn\(aq:
+            flags = 1;
+            break;
+        case \(aqt\(aq:
+            nsecs = atoi(optarg);
+            tfnd = 1;
+            break;
+        default: /* \(aq?\(aq */
+            fprintf(stderr, "Usage: %s [\-t nsecs] [\-n] name\\n",
+                    argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    printf("flags=%d; tfnd=%d; nsecs=%d; optind=%d\\n",
+            flags, tfnd, nsecs, optind);
+
+    if (optind >= argc) {
+        fprintf(stderr, "Expected argument after options\\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("name argument = %s\\n", argv[optind]);
+
+    /* Other code omitted */
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SS getopt_long()
+The following example program illustrates the use of
+.BR getopt_long ()
+with most of its features.
+.nf
+.sp
+#include <stdio.h>     /* for printf */
+#include <stdlib.h>    /* for exit */
+#include <getopt.h>
+
+int
+main(int argc, char **argv)
+{
+    int c;
+    int digit_optind = 0;
+
+    while (1) {
+        int this_option_optind = optind ? optind : 1;
+        int option_index = 0;
+        static struct option long_options[] = {
+            {"add",     required_argument, 0,  0 },
+            {"append",  no_argument,       0,  0 },
+            {"delete",  required_argument, 0,  0 },
+            {"verbose", no_argument,       0,  0 },
+            {"create",  required_argument, 0, \(aqc\(aq},
+            {"file",    required_argument, 0,  0 },
+            {0,         0,                 0,  0 }
+        };
+
+        c = getopt_long(argc, argv, "abc:d:012",
+                 long_options, &option_index);
+        if (c == \-1)
+            break;
+
+        switch (c) {
+        case 0:
+            printf("option %s", long_options[option_index].name);
+            if (optarg)
+                printf(" with arg %s", optarg);
+            printf("\\n");
+            break;
+
+        case \(aq0\(aq:
+        case \(aq1\(aq:
+        case \(aq2\(aq:
+            if (digit_optind != 0 && digit_optind != this_option_optind)
+              printf("digits occur in two different argv\-elements.\\n");
+            digit_optind = this_option_optind;
+            printf("option %c\\n", c);
+            break;
+
+        case \(aqa\(aq:
+            printf("option a\\n");
+            break;
+
+        case \(aqb\(aq:
+            printf("option b\\n");
+            break;
+
+        case \(aqc\(aq:
+            printf("option c with value \(aq%s\(aq\\n", optarg);
+            break;
+
+        case \(aqd\(aq:
+            printf("option d with value \(aq%s\(aq\\n", optarg);
+            break;
+
+        case \(aq?\(aq:
+            break;
+
+        default:
+            printf("?? getopt returned character code 0%o ??\\n", c);
+        }
+    }
+
+    if (optind < argc) {
+        printf("non\-option ARGV\-elements: ");
+        while (optind < argc)
+            printf("%s ", argv[optind++]);
+        printf("\\n");
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR getopt (1),
+.BR getsubopt (3)

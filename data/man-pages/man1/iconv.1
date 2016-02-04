@@ -1,0 +1,204 @@
+'\" t -*- coding: UTF-8 -*-
+.\"
+.\" Copyright (C) 2014 Marko Myllynen <myllynen@redhat.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH ICONV 1 2014-07-08 "GNU" "Linux User Manual"
+.SH NAME
+iconv \- convert text from one character encoding to another
+.SH SYNOPSIS
+.B iconv
+.RI [ options ]
+.RI "[-f " from-encoding "]"
+.RI "[-t " to-encoding "]"
+.RI [ inputfile ]...
+.SH DESCRIPTION
+The
+.B iconv
+program reads in text in one encoding and outputs the text in another
+encoding.
+If no input files are given, or if it is given as a dash (\-),
+.B iconv
+reads from standard input.
+If no output file is given,
+.B iconv
+writes to standard output.
+.PP
+If no
+.I from-encoding
+is given, the default is derived
+from the current locale's character encoding.
+If no
+.I to-encoding
+is given, the default is derived
+from the current locale's character
+encoding.
+.SH OPTIONS
+.TP
+.BI \-f " from-encoding" ", \-\-from-code=" from-encoding
+Use
+.I from-encoding
+for input characters.
+.TP
+.BI \-t " to-encoding" ", \-\-to-code=" to-encoding
+Use
+.I to-encoding
+for output characters.
+
+If the string
+.BR //IGNORE
+is appended to
+.IR to-encoding ,
+characters that cannot be converted are discarded and an error is
+printed after conversion.
+
+If the string
+.BR //TRANSLIT
+is appended to
+.IR to-encoding ,
+characters being converted are transliterated when needed and possible.
+This means that when a character cannot be represented in the target
+character set, it can be approximated through one or several similar
+looking characters.
+Characters that are outside of the target character set and cannot be
+transliterated are replaced with a question mark (?) in the output.
+.TP
+.BR \-l ", " \-\-list
+List all known character set encodings.
+.TP
+.B "\-c"
+Silently discard characters that cannot be converted instead of
+terminating when encountering such characters.
+.TP
+.BI \-o " outputfile" ", \-\-output=" outputfile
+Use
+.I outputfile
+for output.
+.TP
+.BR \-s ", " \-\-silent
+This option is ignored; it is provided only for compatibility.
+.TP
+.B "\-\-verbose"
+Print progress information on standard error when processing
+multiple files.
+.TP
+.BR \-? ", " \-\-help
+Print a usage summary and exit.
+.TP
+.B "\-\-usage"
+Print a short usage summary and exit.
+.TP
+.BR \-V ", " \-\-version
+Print the version number, license, and disclaimer of warranty for
+.BR iconv .
+.SH EXIT STATUS
+Zero on success, non-zero on errors.
+.SH ENVIRONMENT
+Internally, the
+.B iconv
+program uses the
+.BR iconv (3)
+function which in turn uses
+.I gconv
+modules (dynamically loaded shared libraries)
+to convert to and from a character set.
+Before calling
+.BR iconv (3),
+the
+.B iconv
+program must first allocate a conversion descriptor using
+.BR iconv_open (3).
+The operation of the latter function is influenced by the setting of the
+.B GCONV_PATH
+environment variable:
+.IP * 3
+If
+.B GCONV_PATH
+is not set,
+.BR iconv_open (3)
+loads the system gconv module configuration cache file created by
+.BR iconvconfig (8)
+and then, based on the configuration,
+loads the gconv modules needed to perform the conversion.
+If the system gconv module configuration cache file is not available
+then the system gconv module configuration file is used.
+.IP *
+If
+.B GCONV_PATH
+is defined (as a colon-separated list of pathnames),
+the system gconv module configuration cache is not used.
+Instead,
+.BR iconv_open (3)
+first tries to load the configuration files by searching the directories in
+.BR GCONV_PATH
+in order,
+followed by the system default gconv module configuration file.
+If a directory does not contain a gconv module configuration file,
+any gconv modules that it may contain are ignored.
+If a directory contains a gconv module configuration file
+and it is determined that a module needed for this conversion is
+available in the directory,
+then the needed module is loaded from that directory,
+the order being such that the first suitable module found in
+.B GCONV_PATH
+is used.
+This allows users to use custom modules and even replace system-provided
+modules by providing such modules in
+.B GCONV_PATH
+directories.
+.SH FILES
+.TP
+.I /usr/lib/gconv
+Usual default gconv module path.
+.TP
+.I /usr/lib/gconv/gconv-modules
+Usual system default gconv module configuration file.
+.TP
+.I /usr/lib/gconv/gconv-modules.cache
+Usual system gconv module configuration cache.
+.SH CONFORMING TO
+POSIX.1-2001.
+.SH EXAMPLE
+Convert text from the ISO 8859-15 character encoding to UTF-8:
+
+.in +4n
+.nf
+$ \fBiconv \-f ISO\-8859\-15 -t UTF\-8 < input.txt > output.txt\fP
+.fi
+.in
+.PP
+The next example converts from UTF-8 to ASCII, transliterating when
+possible:
+
+.in +4n
+.nf
+$ \fBecho abc ß α € àḃç | iconv \-f UTF\-8 \-t ASCII//TRANSLIT\fP
+abc ss ? EUR abc
+.fi
+.in
+.SH SEE ALSO
+.BR locale (1),
+.BR iconv (3),
+.BR nl_langinfo (3),
+.BR charsets (7),
+.BR iconvconfig (8)

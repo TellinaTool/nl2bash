@@ -1,0 +1,173 @@
+.\" Copyright (c) 1995 Peter Tobias <tobias@et-inf.fho-emden.de>
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" This file may be distributed under the GNU General Public License.
+.\" %%%LICENSE_END
+.TH HOSTS.EQUIV 5 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+hosts.equiv \- list of hosts and users that are granted "trusted"
+.B r
+command access to your system
+.SH DESCRIPTION
+The file
+.I /etc/hosts.equiv
+allows or denies hosts and users to use
+the \fBr\fP-commands (e.g.,
+.BR rlogin ,
+.BR rsh ,
+or
+.BR rcp )
+without
+supplying a password.
+.PP
+The file uses the following format:
+.TP
+\fI+|[\-]hostname|+@netgroup|\-@netgroup\fP \fI[+|[\-]username|+@netgroup|\-@netgroup]\fP
+.PP
+The
+.I hostname
+is the name of a host which is logically equivalent
+to the local host.
+Users logged into that host are allowed to access
+like-named user accounts on the local host without supplying a password.
+The
+.I hostname
+may be (optionally) preceded by a plus (+) sign.
+If the plus sign is used alone, it allows any host to access your system.
+You can explicitly deny access to a host by preceding the
+.I hostname
+by a minus (\-) sign.
+Users from that host must always supply additional credentials,
+including possibly a password. For security reasons you should always
+use the FQDN of the hostname and not the short hostname.
+.PP
+The
+.I username
+entry grants a specific user access to all user
+accounts (except root) without supplying a password.
+That means the
+user is NOT restricted to like-named accounts.
+The
+.I username
+may
+be (optionally) preceded by a plus (+) sign.
+You can also explicitly
+deny access to a specific user by preceding the
+.I username
+with
+a minus (\-) sign.
+This says that the user is not trusted no matter
+what other entries for that host exist.
+.PP
+Netgroups can be specified by preceding the netgroup by an @ sign.
+.PP
+Be extremely careful when using the plus (+) sign.
+A simple typographical
+error could result in a standalone plus sign.
+A standalone plus sign is
+a wildcard character that means "any host"!
+.SH FILES
+.I /etc/hosts.equiv
+.SH NOTES
+Some systems will honor the contents of this file only when it has owner
+root and no write permission for anybody else.
+Some exceptionally
+paranoid systems even require that there be no other hard links to the file.
+.PP
+Modern systems use the Pluggable Authentication Modules library (PAM).
+With PAM a standalone plus sign is considered a wildcard
+character which means "any host" only when the word
+.I promiscuous
+is added to the auth component line in your PAM file for
+the particular service
+.RB "(e.g., " rlogin ).
+.SH EXAMPLE
+Below are some example
+.I /etc/host.equiv
+or
+.I ~/.rhosts
+files.
+
+Allow any user to log in from any host:
+
+    +
+
+Allow any user from
+.I host
+with a matching local account to log in:
+
+    host
+
+Note: the use of
+.I +host
+is never a valid syntax,
+including attempting to specify that any user from the host is allowed.
+
+Allow any user from
+.I host
+to log in:
+
+    host +
+
+Note: this is distinct from the previous example
+since it does not require a matching local account.
+
+Allow
+.I user
+from
+.I host
+to log in as any non-root user:
+
+    host user
+
+Allow all users with matching local accounts from
+.I host
+to log in except for
+.IR baduser :
+
+    host \-baduser
+    host
+
+Deny all users from
+.IR host :
+
+    \-host
+
+Note: the use of
+.I "\-host\ \-user"
+is never a valid syntax,
+including attempting to specify that a particular user from the host
+is not trusted.
+
+Allow all users with matching local accounts on all hosts in a
+.IR netgroup :
+
+    +@netgroup
+
+Disallow all users on all hosts in a
+.IR netgroup :
+
+    \-@netgroup
+
+Allow all users in a
+.I netgroup
+to log in from
+.IR host
+as any non-root user:
+
+    host +@netgroup
+
+Allow all users with matching local accounts on all hosts in a
+.I netgroup
+except
+.IR baduser :
+
+    +@netgroup \-baduser
+    +@netgroup
+
+Note: the deny statements must always precede the allow statements because
+the file is processed sequentially until the first matching rule is found.
+.SH SEE ALSO
+.BR rhosts (5),
+.BR rlogind (8),
+.BR rshd (8)

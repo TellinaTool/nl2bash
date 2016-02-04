@@ -1,0 +1,274 @@
+.\" Copyright (c) International Business Machines Corp., 2006
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+.\" the GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" HISTORY:
+.\" 2005-09-28, created by Arnd Bergmann <arndb@de.ibm.com>
+.\" 2006-06-16, revised by Eduardo M. Fleury <efleury@br.ibm.com>
+.\" 2007-07-10, some polishing by mtk
+.\" 2007-09-28, updates for newer kernels by Jeremy Kerr <jk@ozlabs.org>
+.\"
+.TH SPU_CREATE 2 2015-12-28 Linux "Linux Programmer's Manual"
+.SH NAME
+spu_create \- create a new spu context
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.B #include <sys/spu.h>
+
+.BI "int spu_create(const char *" pathname ", int " flags ", mode_t " mode ");"
+.BI "int spu_create(const char *" pathname ", int " flags ", mode_t " mode ","
+.BI "               int " neighbor_fd ");"
+.fi
+
+.IR Note :
+There is no glibc wrapper for this system call; see NOTES.
+.SH DESCRIPTION
+The
+.BR spu_create ()
+system call is used on PowerPC machines that implement the
+Cell Broadband Engine Architecture in order to access Synergistic
+Processor Units (SPUs).
+It creates a new logical context for an SPU in
+.I pathname
+and returns a file descriptor associated with it.
+.I pathname
+must refer to a nonexistent directory in the mount point of
+the SPU filesystem
+.RB ( spufs ).
+If
+.BR spu_create ()
+is successful, a directory is created at
+.I pathname
+and it is populated with the files described in
+.BR spufs (7).
+
+When a context is created,
+the returned file descriptor can only be passed to
+.BR spu_run (2),
+used as the
+.I dirfd
+argument to the
+.B *at
+family of system calls (e.g.,
+.BR openat (2)),
+or closed;
+other operations are not defined.
+A logical SPU
+context is destroyed (along with all files created within the context's
+.I pathname
+directory) once the last reference to the context has gone;
+this usually occurs when the file descriptor returned by
+.BR spu_create ()
+is closed.
+
+The
+.I flags
+argument can be zero or any bitwise OR-ed
+combination of the following constants:
+.TP
+.B SPU_CREATE_EVENTS_ENABLED
+Rather than using signals for reporting DMA errors, use the
+.I event
+argument to
+.BR spu_run (2).
+.TP
+.B SPU_CREATE_GANG
+Create an SPU gang instead of a context.
+(A gang is a group of SPU contexts that are
+functionally related to each other and which share common scheduling
+parameters\(empriority and policy.
+In the future, gang scheduling may be implemented causing
+the group to be switched in and out as a single unit.)
+
+A new directory will be created at the location specified by the
+.I pathname
+argument.
+This gang may be used to hold other SPU contexts, by providing
+a pathname that is within the gang directory to further calls to
+.BR spu_create ().
+.TP
+.B SPU_CREATE_NOSCHED
+Create a context that is not affected by the SPU scheduler.
+Once the context is run,
+it will not be scheduled out until it is destroyed by
+the creating process.
+
+Because the context cannot be removed from the SPU, some functionality
+is disabled for
+.BR SPU_CREATE_NOSCHED
+contexts.
+Only a subset of the files will be
+available in this context directory in
+.BR spufs .
+Additionally,
+.BR SPU_CREATE_NOSCHED
+contexts cannot dump a core file when crashing.
+
+Creating
+.BR SPU_CREATE_NOSCHED
+contexts requires the
+.B CAP_SYS_NICE
+capability.
+.TP
+.B SPU_CREATE_ISOLATE
+Create an isolated SPU context.
+Isolated contexts are protected from some
+PPE (PowerPC Processing Element)
+operations,
+such as access to the SPU local store and the NPC register.
+
+Creating
+.B SPU_CREATE_ISOLATE
+contexts also requires the
+.B SPU_CREATE_NOSCHED
+flag.
+.TP
+.B SPU_CREATE_AFFINITY_SPU
+Create a context with affinity to another SPU context.
+This affinity information is used within the SPU scheduling algorithm.
+Using this flag requires that a file descriptor referring to
+the other SPU context be passed in the
+.I neighbor_fd
+argument.
+.TP
+.B SPU_CREATE_AFFINITY_MEM
+Create a context with affinity to system memory.
+This affinity information
+is used within the SPU scheduling algorithm.
+.PP
+The
+.I mode
+argument (minus any bits set in the process's
+.BR umask (2))
+specifies the permissions used for creating the new directory in
+.BR spufs .
+See
+.BR stat (2)
+for a full list of the possible
+.I mode
+values.
+.SH RETURN VALUE
+On success,
+.BR spu_create ()
+returns a new file descriptor.
+On error, \-1 is returned, and
+.I errno
+is set to one of the error codes listed below.
+.SH ERRORS
+.TP
+.B EACCES
+The current user does not have write access to the
+.BR spufs (7)
+mount point.
+.TP
+.B EEXIST
+An SPU context already exists at the given pathname.
+.TP
+.B EFAULT
+.I pathname
+is not a valid string pointer in the
+calling process's address space.
+.TP
+.B EINVAL
+.I pathname
+is not a directory in the
+.BR spufs (7)
+mount point, or invalid flags have been provided.
+.TP
+.B ELOOP
+Too many symbolic links were found while resolving
+.IR pathname .
+.TP
+.B EMFILE
+The per-process limit on the number of open file descriptors has been reached.
+.TP
+.B ENAMETOOLONG
+.I pathname
+is too long.
+.TP
+.B ENFILE
+The system-wide limit on the total number of open files has been reached.
+.TP
+.B ENODEV
+An isolated context was requested, but the hardware does not support
+SPU isolation.
+.TP
+.B ENOENT
+Part of
+.I pathname
+could not be resolved.
+.TP
+.B ENOMEM
+The kernel could not allocate all resources required.
+.TP
+.B ENOSPC
+There are not enough SPU resources available to create
+a new context or the user-specific limit for the number
+of SPU contexts has been reached.
+.TP
+.B ENOSYS
+The functionality is not provided by the current system, because
+either the hardware does not provide SPUs or the spufs module is not
+loaded.
+.TP
+.B ENOTDIR
+A part of
+.I pathname
+is not a directory.
+.TP
+.B EPERM
+The
+.I SPU_CREATE_NOSCHED
+flag has been given, but the user does not have the
+.B CAP_SYS_NICE
+capability.
+.SH FILES
+.I pathname
+must point to a location beneath the mount point of
+.BR spufs .
+By convention, it gets mounted in
+.IR /spu .
+.SH VERSIONS
+The
+.BR spu_create ()
+system call was added to Linux in kernel 2.6.16.
+.SH CONFORMING TO
+This call is Linux-specific and implemented only on the PowerPC
+architecture.
+Programs using this system call are not portable.
+.SH NOTES
+Glibc does not provide a wrapper for this system call; call it using
+.BR syscall (2).
+Note however, that
+.BR spu_create ()
+is meant to be used from libraries that implement a more abstract
+interface to SPUs, not to be used from regular applications.
+See
+.UR http://www.bsc.es\:/projects\:/deepcomputing\:/linuxoncell/
+.UE
+for the recommended libraries.
+.SH EXAMPLE
+See
+.BR spu_run (2)
+for an example of the use of
+.BR spu_create ()
+.SH SEE ALSO
+.BR close (2),
+.BR spu_run (2),
+.BR capabilities (7),
+.BR spufs (7)

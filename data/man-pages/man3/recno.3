@@ -1,0 +1,232 @@
+.\" Copyright (c) 1990, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"	@(#)recno.3	8.5 (Berkeley) 8/18/94
+.\"
+.TH RECNO 3 2012-04-23 "" "Linux Programmer's Manual"
+.UC 7
+.SH NAME
+recno \- record number database access method
+.SH SYNOPSIS
+.nf
+.ft B
+#include <sys/types.h>
+#include <db.h>
+.ft R
+.fi
+.SH DESCRIPTION
+.IR "Note well" :
+This page documents interfaces provided in glibc up until version 2.1.
+Since version 2.2, glibc no longer provides these interfaces.
+Probably, you are looking for the APIs provided by the
+.I libdb
+library instead.
+
+The routine
+.BR dbopen (3)
+is the library interface to database files.
+One of the supported file formats is record number files.
+The general description of the database access methods is in
+.BR dbopen (3),
+this manual page describes only the recno-specific information.
+.PP
+The record number data structure is either variable or fixed-length
+records stored in a flat-file format, accessed by the logical record
+number.
+The existence of record number five implies the existence of records
+one through four, and the deletion of record number one causes
+record number five to be renumbered to record number four, as well
+as the cursor, if positioned after record number one, to shift down
+one record.
+.PP
+The recno access-method-specific data structure provided to
+.BR dbopen (3)
+is defined in the
+.I <db.h>
+include file as follows:
+.PP
+.in +4n
+.nf
+typedef struct {
+    unsigned long flags;
+    unsigned int  cachesize;
+    unsigned int  psize;
+    int           lorder;
+    size_t        reclen;
+    unsigned char bval;
+    char         *bfname;
+} RECNOINFO;
+.fi
+.in
+.PP
+The elements of this structure are defined as follows:
+.TP
+.I flags
+The flag value is specified by ORing
+any of the following values:
+.RS
+.TP
+.B R_FIXEDLEN
+The records are fixed-length, not byte delimited.
+The structure element
+.I reclen
+specifies the length of the record, and the structure element
+.I bval
+is used as the pad character.
+Any records, inserted into the database, that are less than
+.I reclen
+bytes long are automatically padded.
+.TP
+.B R_NOKEY
+In the interface specified by
+.BR dbopen (3),
+the sequential record retrieval fills in both the caller's key and
+data structures.
+If the
+.B R_NOKEY
+flag is specified, the
+.I cursor
+routines are not required to fill in the key structure.
+This permits applications to retrieve records at the end of files without
+reading all of the intervening records.
+.TP
+.B R_SNAPSHOT
+This flag requires that a snapshot of the file be taken when
+.BR dbopen (3)
+is called, instead of permitting any unmodified records to be read from
+the original file.
+.RE
+.TP
+.I cachesize
+A suggested maximum size, in bytes, of the memory cache.
+This value is
+.B only
+advisory, and the access method will allocate more memory rather than fail.
+If
+.I cachesize
+is  0 (no size is specified), a default cache is used.
+.TP
+.I psize
+The recno access method stores the in-memory copies of its records
+in a btree.
+This value is the size (in bytes) of the pages used for nodes in that tree.
+If
+.I psize
+is 0 (no page size is specified), a page size is chosen based on the
+underlying filesystem I/O block size.
+See
+.BR btree (3)
+for more information.
+.TP
+.I lorder
+The byte order for integers in the stored database metadata.
+The number should represent the order as an integer; for example,
+big endian order would be the number 4,321.
+If
+.I lorder
+is 0 (no order is specified), the current host order is used.
+.TP
+.I reclen
+The length of a fixed-length record.
+.TP
+.I bval
+The delimiting byte to be used to mark the end of a record for
+variable-length records, and the pad character for fixed-length
+records.
+If no value is specified, newlines ("\en") are used to mark the end
+of variable-length records and fixed-length records are padded with
+spaces.
+.TP
+.I bfname
+The recno access method stores the in-memory copies of its records
+in a btree.
+If
+.I bfname
+is non-NULL, it specifies the name of the btree file,
+as if specified as the filename for a
+.BR dbopen (3)
+of a btree file.
+.PP
+The data part of the key/data pair used by the
+.I recno
+access method
+is the same as other access methods.
+The key is different.
+The
+.I data
+field of the key should be a pointer to a memory location of type
+.IR recno_t ,
+as defined in the
+.I <db.h>
+include file.
+This type is normally the largest unsigned integral type available to
+the implementation.
+The
+.I size
+field of the key should be the size of that type.
+.PP
+Because there can be no metadata associated with the underlying
+recno access method files, any changes made to the default values
+(e.g., fixed record length or byte separator value) must be explicitly
+specified each time the file is opened.
+.PP
+In the interface specified by
+.BR dbopen (3),
+using the
+.I put
+interface to create a new record will cause the creation of multiple,
+empty records if the record number is more than one greater than the
+largest record currently in the database.
+.SH ERRORS
+The
+.I recno
+access method routines may fail and set
+.I errno
+for any of the errors specified for the library routine
+.BR dbopen (3)
+or the following:
+.TP
+.B EINVAL
+An attempt was made to add a record to a fixed-length database that
+was too large to fit.
+.SH BUGS
+Only big and little endian byte order is supported.
+.SH SEE ALSO
+.BR btree (3),
+.BR dbopen (3),
+.BR hash (3),
+.BR mpool (3)
+
+.IR "Document Processing in a Relational Database System" ,
+Michael Stonebraker, Heidi Stettner, Joseph Kalash, Antonin Guttman,
+Nadene Lynn, Memorandum No. UCB/ERL M82/32, May 1982.

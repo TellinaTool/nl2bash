@@ -1,0 +1,134 @@
+.\" Copyright (C) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2007-10-23 mtk: moved the _syscallN specific material to the
+.\"     new _syscall(2) page, and substantially enhanced and rewrote
+.\"     the remaining material on this page.
+.\"
+.TH INTRO 2 2014-02-20 "Linux" "Linux Programmer's Manual"
+.SH NAME
+intro \- introduction to system calls
+.SH DESCRIPTION
+Section 2 of the manual describes the Linux system calls.
+A system call is an entry point into the Linux kernel.
+Usually, system calls are not invoked directly:
+instead, most system calls have corresponding C library
+wrapper functions which perform the steps required
+(e.g., trapping to kernel mode) in order to invoke
+the system call.
+Thus, making a system call looks the same as invoking a normal
+library function.
+
+In many cases, the C library wrapper function does nothing more than:
+.IP * 3
+copying arguments and the unique system call number to the
+registers where the kernel expects them;
+.IP *
+trapping to kernel mode,
+at which point the kernel does the real work of the system call;
+.IP *
+setting
+.I errno
+if the system call returns an error number when the kernel returns the
+CPU to user mode.
+.LP
+However, in a few cases, a wrapper function may do rather more than this,
+for example, performing some preprocessing
+of the arguments before trapping to kernel mode,
+or postprocessing of values returned by the system call.
+Where this is the case, the manual pages in Section 2 generally
+try to note the details of both the (usually GNU) C library API
+interface and the raw system call.
+Most commonly, the main DESCRIPTION will focus on the C library interface,
+and differences for the system call are covered in the NOTES section.
+
+For a list of the Linux system calls, see
+.BR syscalls (2).
+.SH RETURN VALUE
+On error, most system calls return a negative error number
+(i.e., the negated value of one of the constants described in
+.BR errno (3)).
+The C library wrapper hides this detail from the caller: when a
+system call returns a negative value, the wrapper copies the
+absolute value into the
+.I errno
+variable, and returns \-1 as the return value of the wrapper.
+
+The value returned by a successful system call depends on the call.
+Many system calls return 0 on success, but some can return nonzero
+values from a successful call.
+The details are described in the individual manual pages.
+
+In some cases,
+the programmer must define a feature test macro in order to obtain
+the declaration of a system call from the header file specified
+in the man page SYNOPSIS section.
+(Where required, these feature test macros must be defined before including
+.I any
+header files.)
+In such cases, the required macro is described in the man page.
+For further information on feature test macros, see
+.BR feature_test_macros (7).
+.SH CONFORMING TO
+Certain terms and abbreviations are used to indicate UNIX variants
+and standards to which calls in this section conform.
+See
+.BR standards (7).
+.SH NOTES
+.SS Calling directly
+In most cases, it is unnecessary to invoke a system call directly,
+but there are times when the Standard C library does not implement
+a nice wrapper function for you.
+In this case, the programmer must manually invoke the system call using
+.BR syscall (2).
+Historically, this was also possible using one of the _syscall macros
+described in
+.BR _syscall (2).
+.SS Authors and copyright conditions
+Look at the header of the manual page source for the author(s) and copyright
+conditions.
+Note that these can be different from page to page!
+.SH SEE ALSO
+.ad l
+.nh
+.BR _syscall (2),
+.BR syscall (2),
+.BR syscalls (2),
+.BR errno (3),
+.BR intro (3),
+.BR capabilities (7),
+.BR credentials (7),
+.BR feature_test_macros (7),
+.BR mq_overview (7),
+.BR path_resolution (7),
+.BR pipe (7),
+.BR pty (7),
+.BR sem_overview (7),
+.BR shm_overview (7),
+.BR signal (7),
+.BR socket (7),
+.BR standards (7),
+.BR svipc (7),
+.BR symlink (7),
+.BR time (7)

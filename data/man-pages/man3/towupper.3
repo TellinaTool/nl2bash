@@ -1,0 +1,128 @@
+
+.\" and Copyright (C) 2014 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH TOWUPPER 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+towupper, towupper_l \- convert a wide character to uppercase
+.SH SYNOPSIS
+.nf
+.B #include <wctype.h>
+.sp
+.BI "wint_t towupper(wint_t " wc );
+
+.BI "wint_t towupper_l(wint_t " wc ", locale_t " locale );
+.fi
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR towupper_l ():
+.PD 0
+.RS 4
+.TP
+Since glibc 2.10:
+_XOPEN_SOURCE\ >=\ 700
+.TP
+Before glibc 2.10:
+_GNU_SOURCE
+.RE
+.PD
+.SH DESCRIPTION
+The
+.BR towupper ()
+function is the wide-character equivalent of the
+.BR toupper (3)
+function.
+If
+.I wc
+is a lowercase wide character,
+and there exists an uppercase equivalent in the current locale,
+it returns the uppercase equivalent of
+.IR wc .
+In all other cases,
+.I wc
+is returned unchanged.
+
+The
+.BR towupper_l ()
+function performs the same task,
+but performs the conversion based on the character type information in
+the locale specified by
+.IR locale .
+The behavior of
+.BR towupper_l ()
+is undefined if
+.I locale
+is the special locale object
+.BR LC_GLOBAL_LOCALE
+(see
+.BR duplocale (3))
+or is not a valid locale object handle.
+
+The argument
+.I wc
+must be representable as a
+.IR wchar_t
+and be a valid character in the locale or be the value
+.BR WEOF .
+.SH RETURN VALUE
+If
+.I wc
+was convertible to uppercase,
+.BR towupper ()
+returns its uppercase equivalent;
+otherwise it returns
+.IR wc .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR towupper ()
+T}	Thread safety	MT-Safe locale
+T{
+.BR towupper_l ()
+T}	Thread safety	MT-Safe
+.TE
+.SH VERSIONS
+The
+.BR towupper_l ()
+function first appeared in glibc 2.3.
+.SH CONFORMING TO
+.BR towupper ():
+C99, POSIX.1-2001 (XSI);
+present as an XSI extension in POSIX.1-2008, but marked obsolete.
+
+.BR towupper_l ():
+POSIX.1-2008.
+.SH NOTES
+The behavior of these functions depends on the
+.B LC_CTYPE
+category of the locale.
+.PP
+These functions are not very appropriate for dealing with Unicode characters,
+because Unicode knows about three cases: upper, lower and title case.
+.SH SEE ALSO
+.BR iswupper (3),
+.BR towctrans (3),
+.BR towlower (3),
+.BR locale (7)

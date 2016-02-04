@@ -1,0 +1,258 @@
+.\" Michael Haardt (michael@cantor.informatik.rwth.aachen.de)
+.\"     Sat Sep  3 22:00:30 MET DST 1994
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Sun Feb 19 21:32:25 1995, faith@cs.unc.edu edited details away
+.\"
+.\" TO DO: This manual page should go more into detail how DES is perturbed,
+.\" which string will be encrypted, and what determines the repetition factor.
+.\" Is a simple repetition using ECB used, or something more advanced?  I hope
+.\" the presented explanations are at least better than nothing, but by no
+.\" means enough.
+.\"
+.\" added _XOPEN_SOURCE, aeb, 970705
+.\" added GNU MD5 stuff, aeb, 011223
+.\"
+.TH CRYPT 3 2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+crypt, crypt_r \- password and data encryption
+.SH SYNOPSIS
+.nf
+.BR "#define _XOPEN_SOURCE" "       /* See feature_test_macros(7) */"
+.br
+.B #include <unistd.h>
+.sp
+.BI "char *crypt(const char *" key ", const char *" salt );
+.sp
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.br
+.B #include <crypt.h>
+.sp
+.BI "char *crypt_r(const char *" key ", const char *" salt ,
+.BI "              struct crypt_data *" data );
+.fi
+.sp
+Link with \fI\-lcrypt\fP.
+.SH DESCRIPTION
+.BR crypt ()
+is the password encryption function.
+It is based on the Data Encryption
+Standard algorithm with variations intended (among other things) to
+discourage use of hardware implementations of a key search.
+.PP
+.I key
+is a user's typed password.
+.PP
+.I salt
+is a two-character string chosen from the set
+[\fBa\-zA\-Z0\-9./\fP].
+This string is used to
+perturb the algorithm in one of 4096 different ways.
+.PP
+By taking the lowest 7 bits of each of the first eight characters of the
+.IR key ,
+a 56-bit key is obtained.
+This 56-bit key is used to encrypt repeatedly a
+constant string (usually a string consisting of all zeros).
+The returned
+value points to the encrypted password, a series of 13 printable ASCII
+characters (the first two characters represent the salt itself).
+The return value points to static data whose content is
+overwritten by each call.
+.PP
+Warning: The key space consists of
+.if t 2\s-2\u56\s0\d
+.if n 2**56
+equal 7.2e16 possible values.
+Exhaustive searches of this key space are
+possible using massively parallel computers.
+Software, such as
+.BR crack (1),
+is available which will search the portion of this key space that is
+generally used by humans for passwords.
+Hence, password selection should,
+at minimum, avoid common words and names.
+The use of a
+.BR passwd (1)
+program that checks for crackable passwords during the selection process is
+recommended.
+.PP
+The DES algorithm itself has a few quirks which make the use of the
+.BR crypt ()
+interface a very poor choice for anything other than password
+authentication.
+If you are planning on using the
+.BR crypt ()
+interface for a cryptography project, don't do it: get a good book on
+encryption and one of the widely available DES libraries.
+
+.BR crypt_r ()
+is a reentrant version of
+.BR crypt ().
+The structure pointed to by
+.I data
+is used to store result data and bookkeeping information.
+Other than allocating it,
+the only thing that the caller should do with this structure is to set
+.I data->initialized
+to zero before the first call to
+.BR crypt_r ().
+.SH RETURN VALUE
+On success, a pointer to the encrypted password is returned.
+On error, NULL is returned.
+.SH ERRORS
+.TP
+.B EINVAL
+.I salt
+has the wrong format.
+.TP
+.B ENOSYS
+The
+.BR crypt ()
+function was not implemented, probably because of U.S.A. export restrictions.
+.\" This level of detail is not necessary in this man page. . .
+.\" .PP
+.\" When encrypting a plain text P using DES with the key K results in the
+.\" encrypted text C, then the complementary plain text P' being encrypted
+.\" using the complementary key K' will result in the complementary encrypted
+.\" text C'.
+.\" .PP
+.\" Weak keys are keys which stay invariant under the DES key transformation.
+.\" The four known weak keys 0101010101010101, fefefefefefefefe,
+.\" 1f1f1f1f0e0e0e0e and e0e0e0e0f1f1f1f1 must be avoided.
+.\" .PP
+.\" There are six known half weak key pairs, which keys lead to the same
+.\" encrypted data.  Keys which are part of such key clusters should be
+.\" avoided.
+.\" Sorry, I could not find out what they are.
+.\""
+.\" .PP
+.\" Heavily redundant data causes trouble with DES encryption, when used in the
+.\" .I codebook
+.\" mode that
+.\" .BR crypt ()
+.\" implements.  The
+.\" .BR crypt ()
+.\" interface should be used only for its intended purpose of password
+.\" verification, and should not be used as part of a data encryption tool.
+.\" .PP
+.\" The first and last three output bits of the fourth S-box can be
+.\" represented as function of their input bits.  Empiric studies have
+.\" shown that S-boxes partially compute the same output for similar input.
+.\" It is suspected that this may contain a back door which could allow the
+.\" NSA to decrypt DES encrypted data.
+.\" .PP
+.\" Making encrypted data computed using crypt() publicly available has
+.\" to be considered insecure for the given reasons.
+.TP
+.B EPERM
+.I /proc/sys/crypto/fips_enabled
+has a nonzero value,
+and an attempt was made to use a weak encryption type, such as DES.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR crypt ()
+T}	Thread safety	MT-Unsafe race:crypt
+T{
+.BR crypt_r ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+.BR crypt ():
+POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
+.BR crypt_r ()
+is a GNU extension.
+.SH NOTES
+.SS Glibc notes
+The glibc2 version of this function supports additional
+encryption algorithms.
+
+If
+.I salt
+is a character string starting with the characters "$\fIid\fP$"
+followed by a string terminated by "$":
+.RS
+
+$\fIid\fP$\fIsalt\fP$\fIencrypted\fP
+
+.RE
+then instead of using the DES machine,
+.I id
+identifies the encryption method used and this then determines how the rest
+of the password string is interpreted.
+The following values of
+.I id
+are supported:
+.RS
+.TS
+l l.
+ID  | Method
+_
+1   | MD5
+2a  | Blowfish (not in mainline glibc; added in some
+    | Linux distributions)
+.\" openSUSE has Blowfish, but AFAICS, this option is not supported
+.\" natively by glibc -- mtk, Jul 08
+.\"
+.\" md5 | Sun MD5
+.\" glibc doesn't appear to natively support Sun MD5; I don't know
+.\" if any distros add the support.
+5   | SHA-256 (since glibc 2.7)
+6   | SHA-512 (since glibc 2.7)
+.TE
+.RE
+
+So $5$\fIsalt\fP$\fIencrypted\fP is an SHA-256 encoded
+password and $6$\fIsalt\fP$\fIencrypted\fP is an
+SHA-512 encoded one.
+
+"\fIsalt\fP" stands for the up to 16 characters
+following "$\fIid\fP$" in the salt.
+The encrypted part of the password string is the actual computed password.
+The size of this string is fixed:
+.TS
+l l.
+MD5     | 22 characters
+SHA-256 | 43 characters
+SHA-512 | 86 characters
+.TE
+
+The characters in "\fIsalt\fP" and "\fIencrypted\fP" are drawn from the set
+[\fBa\-zA\-Z0\-9./\fP].
+In the MD5 and SHA implementations the entire
+.I key
+is significant (instead of only the first
+8 bytes in DES).
+.SH SEE ALSO
+.BR login (1),
+.BR passwd (1),
+.BR encrypt (3),
+.BR getpass (3),
+.BR passwd (5)

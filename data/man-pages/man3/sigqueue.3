@@ -1,0 +1,173 @@
+.\" Copyright (c) 2002 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" added note on self-signaling, aeb, 2002-06-07
+.\" added note on CAP_KILL, mtk, 2004-06-16
+.\"
+.TH SIGQUEUE 3 2015-07-23 "Linux" "Linux Programmer's Manual"
+.SH NAME
+sigqueue \- queue a signal and data to a process
+.SH SYNOPSIS
+.B #include <signal.h>
+.sp
+.BI "int sigqueue(pid_t " pid ", int " sig ", const union sigval " value );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR sigqueue ():
+_POSIX_C_SOURCE\ >=\ 199309L
+.SH DESCRIPTION
+.BR sigqueue ()
+sends the signal specified in
+.I sig
+to the process whose PID is given in
+.IR pid .
+The permissions required to send a signal are the same as for
+.BR kill (2).
+As with
+.BR kill (2),
+the null signal (0) can be used to check if a process with a given
+PID exists.
+.PP
+The
+.I value
+argument is used to specify an accompanying item of data (either an integer
+or a pointer value) to be sent with the signal, and has the following type:
+.sp
+.in +4n
+.nf
+union sigval {
+    int   sival_int;
+    void *sival_ptr;
+};
+.fi
+.in
+
+If the receiving process has installed a handler for this signal using the
+.B SA_SIGINFO
+flag to
+.BR sigaction (2),
+then it can obtain this data via the
+.I si_value
+field of the
+.I siginfo_t
+structure passed as the second argument to the handler.
+Furthermore, the
+.I si_code
+field of that structure will be set to
+.BR SI_QUEUE .
+.SH RETURN VALUE
+On success,
+.BR sigqueue ()
+returns 0, indicating that the signal was successfully
+queued to the receiving process.
+Otherwise, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EAGAIN
+The limit of signals which may be queued has been reached.
+(See
+.BR signal (7)
+for further information.)
+.TP
+.B EINVAL
+.I sig
+was invalid.
+.TP
+.B EPERM
+The process does not have permission to send the signal
+to the receiving process.
+For the required permissions, see
+.BR kill (2).
+.TP
+.B ESRCH
+No process has a PID matching
+.IR pid .
+.SH VERSIONS
+.BR sigqueue ()
+and the underlying
+.BR rt_sigqueueinfo ()
+system call first appeared in Linux 2.2.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR sigqueue ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+If this function results in the sending of a signal to the process
+that invoked it, and that signal was not blocked by the calling thread,
+and no other threads were willing to handle this signal (either by
+having it unblocked, or by waiting for it using
+.BR sigwait (3)),
+then at least some signal must be delivered to this thread before this
+function returns.
+.SS C library/kernel differences
+On Linux,
+.BR sigqueue ()
+is implemented using the
+.BR rt_sigqueueinfo (2)
+system call.
+The system call differs in its third argument, which is the
+.I siginfo_t
+structure that will be supplied to the receiving process's
+signal handler or returned by the receiving process's
+.BR sigtimedwait (2)
+call.
+Inside the glibc
+.BR sigqueue ()
+wrapper, this argument,
+.IR uinfo ,
+is initialized as follows:
+.in +4n
+.nf
+
+uinfo.si_signo = sig;      /* Argument supplied to sigqueue() */
+uinfo.si_code = SI_QUEUE;
+uinfo.si_pid = getpid();   /* Process ID of sender */
+uinfo.si_uid = getuid();   /* Real UID of sender */
+uinfo.si_value = val;      /* Argument supplied to sigqueue() */
+.fi
+.in
+.SH SEE ALSO
+.BR kill (2),
+.BR rt_sigqueueinfo (2),
+.BR sigaction (2),
+.BR signal (2),
+.BR pthread_sigqueue (3),
+.BR sigwait (3),
+.BR signal (7)

@@ -1,0 +1,73 @@
+.\" This man page is Copyright (C) 1999 Claus Fischer.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" 990620 - page created - aeb@cwi.nl
+.\"
+.\" FIXME . Add example programs to this page?
+.TH FIFO 7 2008-12-03 "Linux" "Linux Programmer's Manual"
+.SH NAME
+fifo \- first-in first-out special file, named pipe
+.SH DESCRIPTION
+A FIFO special file (a named pipe) is similar to a pipe,
+except that it is accessed as part of the filesystem.
+It can be opened by multiple processes for reading or
+writing.
+When processes are exchanging data via the FIFO,
+the kernel passes all data internally without writing it
+to the filesystem.
+Thus, the FIFO special file has no
+contents on the filesystem; the filesystem entry merely
+serves as a reference point so that processes can access
+the pipe using a name in the filesystem.
+.PP
+The kernel maintains exactly one pipe object for each
+FIFO special file that is opened by at least one process.
+The FIFO must be opened on both ends (reading and writing)
+before data can be passed.
+Normally, opening the FIFO blocks
+until the other end is opened also.
+.PP
+A process can open a FIFO in nonblocking mode.
+In this
+case, opening for read-only will succeed even if no-one has
+opened on the write side yet, opening for write-only will
+fail with
+.B ENXIO
+(no such device or address) unless the other
+end has already been opened.
+.PP
+Under Linux, opening a FIFO for read and write will succeed
+both in blocking and nonblocking mode.
+POSIX leaves this
+behavior undefined.
+This can be used to open a FIFO for
+writing while there are no readers available.
+A process
+that uses both ends of the connection in order to communicate
+with itself should be very careful to avoid deadlocks.
+.SH NOTES
+When a process tries to write to a FIFO that is not opened
+for read on the other side, the process is sent a
+.B SIGPIPE
+signal.
+
+FIFO special files can be created by
+.BR mkfifo (3),
+and are indicated by
+.IR "ls \-l"
+with the file type \(aqp\(aq.
+.SH SEE ALSO
+.BR mkfifo (1),
+.BR open (2),
+.BR pipe (2),
+.BR sigaction (2),
+.BR signal (2),
+.BR socketpair (2),
+.BR mkfifo (3),
+.BR pipe (7)

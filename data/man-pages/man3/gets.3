@@ -1,0 +1,120 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Wed Jul 28 11:12:07 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Fri Sep  8 15:48:13 1995 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified 2013-12-31, David Malcolm <dmalcolm@redhat.com>
+.\"     Split gets(3) into its own page; fgetc() et al. move to fgetc(3)
+.TH GETS 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+gets \- get a string from standard input (DEPRECATED)
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.sp
+.BI "char *gets(char *" "s" );
+.fi
+.SH DESCRIPTION
+.IR "Never use this function" .
+
+.BR gets ()
+reads a line from
+.I stdin
+into the buffer pointed to by
+.I s
+until either a terminating newline or
+.BR EOF ,
+which it replaces with a null byte (\(aq\e0\(aq).
+No check for buffer overrun is performed (see BUGS below).
+.SH RETURN VALUE
+.BR gets ()
+returns
+.I s
+on success, and NULL
+on error or when end of file occurs while no characters have been read.
+However, given the lack of buffer overrun checking, there can be no
+guarantees that the function will even return.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR gets ()
+T}	Thread safety	MT-Safe
+.TE
+
+.SH CONFORMING TO
+C89, C99, POSIX.1-2001.
+
+LSB deprecates
+.BR gets ().
+POSIX.1-2008 marks
+.BR gets ()
+obsolescent.
+ISO C11 removes the specification of
+.BR gets ()
+from the C language, and since version 2.16,
+glibc header files don't expose the function declaration if the
+.B _ISOC11_SOURCE
+feature test macro is defined.
+.SH BUGS
+Never use
+.BR gets ().
+Because it is impossible to tell without knowing the data in advance how many
+characters
+.BR gets ()
+will read, and because
+.BR gets ()
+will continue to store characters past the end of the buffer,
+it is extremely dangerous to use.
+It has been used to break computer security.
+Use
+.BR fgets ()
+instead.
+
+For more information, see CWE-242 (aka "Use of Inherently Dangerous
+Function") at
+http://cwe.mitre.org/data/definitions/242.html
+.SH SEE ALSO
+.BR read (2),
+.BR write (2),
+.BR ferror (3),
+.BR fgetc (3),
+.BR fgets (3),
+.BR fgetwc (3),
+.BR fgetws (3),
+.BR fopen (3),
+.BR fread (3),
+.BR fseek (3),
+.BR getline (3),
+.BR getwchar (3),
+.BR puts (3),
+.BR scanf (3),
+.BR ungetwc (3),
+.BR unlocked_stdio (3),
+.BR feature_test_macros (7)

@@ -1,0 +1,134 @@
+.\" This page was taken from the 4.4BSD-Lite CDROM (BSD license)
+.\"
+.\" %%%LICENSE_START(BSD_ONELINE_CDROM)
+.\" This page was taken from the 4.4BSD-Lite CDROM (BSD license)
+.\" %%%LICENSE_END
+.\"
+.\" @(#)getrpcent.3n	2.2 88/08/02 4.0 RPCSRC; from 1.11 88/03/14 SMI
+.TH GETRPCENT 3 2015-07-23 "" "Linux Programmer's Manual"
+.SH NAME
+getrpcent, getrpcbyname, getrpcbynumber, setrpcent, endrpcent \- get
+RPC entry
+.SH SYNOPSIS
+.nf
+.B #include <netdb.h>
+
+.BI "struct rpcent *getrpcent(void);"
+
+.BI "struct rpcent *getrpcbyname(const char *" name );
+
+.BI "struct rpcent *getrpcbynumber(int " number );
+
+.BI "void setrpcent(int " stayopen );
+
+.BI "void endrpcent(void);"
+.fi
+.SH DESCRIPTION
+.LP
+The
+.BR getrpcent (),
+.BR getrpcbyname (),
+and
+.BR getrpcbynumber ()
+functions each return a pointer to an object with the
+following structure containing the broken-out
+fields of an entry in the RPC program number data base.
+.in +4n
+.nf
+
+struct rpcent {
+    char  *r_name;     /* name of server for this RPC program */
+    char **r_aliases;  /* alias list */
+    long   r_number;   /* RPC program number */
+};
+.fi
+.in
+.LP
+The members of this structure are:
+.RS 4
+.TP 12
+.I r_name
+The name of the server for this RPC program.
+.TP
+.I r_aliases
+A NULL-terminated list of alternate names for the RPC program.
+.TP
+.I r_number
+The RPC program number for this service.
+.RE
+.LP
+The
+.BR getrpcent ()
+function reads the next entry from the database.
+A connection is opened to the database if necessary.
+.LP
+The
+.BR setrpcent ()
+function opens a connection to the database,
+and sets the next entry to the first entry.
+If
+.I stayopen
+is nonzero,
+then the connection to the database
+will not be closed between calls to one of the
+.BR getrpc* ()
+functions.
+.LP
+The
+.BR endrpcent ()
+function closes the connection to the database.
+.LP
+The
+.BR getrpcbyname ()
+and
+.BR getrpcbynumber ()
+functions sequentially search from the beginning
+of the file until a matching RPC program name or
+program number is found, or until end-of-file is encountered.
+.SH RETURN VALUE
+On success,
+.BR getrpcent (),
+.BR getrpcbyname (),
+and
+.BR getrpcbynumber ()
+return a pointer to a statically allocated
+.I rpcent
+structure.
+NULL is returned on EOF or error.
+.SH FILES
+.TP
+.I /etc/rpc
+RPC program number database.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw28 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR getrpcent (),
+.BR getrpcbyname (),
+.br
+.BR getrpcbynumber ()
+T}	Thread safety	MT-Unsafe
+T{
+.BR setrpcent (),
+.BR endrpcent ()
+T}	Thread safety	MT-Safe locale
+.TE
+
+.SH CONFORMING TO
+Not in POSIX.1.
+Present on the BSDs, Solaris, and many other systems.
+.SH BUGS
+All information
+is contained in a static area
+so it must be copied if it is
+to be saved.
+.SH SEE ALSO
+.BR getrpcent_r (3),
+.BR rpc (5),
+.BR rpcinfo (8),
+.BR ypserv (8)

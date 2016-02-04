@@ -1,0 +1,96 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH MAKEDEV 3 2015-03-02 "Linux" "Linux Programmer's Manual"
+.SH NAME
+makedev, major, minor \- manage a device number
+.SH SYNOPSIS
+.nf
+.BR "#define _BSD_SOURCE" "             /* See feature_test_macros(7) */"
+.B #include <sys/types.h>
+
+.BI "dev_t makedev(unsigned int " maj ", unsigned int " min );
+
+.BI "unsigned int major(dev_t " dev );
+.BI "unsigned int minor(dev_t " dev );
+.fi
+.SH DESCRIPTION
+A device ID consists of two parts:
+a major ID, identifying the class of the device,
+and a minor ID, identifying a specific instance of a device in that class.
+A device ID is represented using the type
+.IR dev_t .
+
+Given major and minor device IDs,
+.BR makedev ()
+combines these to produce a device ID, returned as the function result.
+This device ID can be given to
+.BR mknod (2),
+for example.
+
+The
+.BR major ()
+and
+.BR minor ()
+functions perform the converse task: given a device ID,
+they return, respectively, the major and minor components.
+These macros can be useful to, for example,
+decompose the device IDs in the structure returned by
+.BR stat (2).
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw27 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR makedev (),
+.BR major (),
+.BR minor ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+The
+.BR makedev (),
+.BR major (),
+and
+.BR minor ()
+functions are not specified in POSIX.1,
+but are present on many other systems.
+.\" The BSDs, HP-UX, Solaris, AIX, Irix
+.SH NOTES
+These interfaces are defined as macros.
+Since glibc 2.3.3,
+they have been aliases for three GNU-specific functions:
+.BR gnu_dev_makedev (),
+.BR gnu_dev_major (),
+and
+.BR gnu_dev_minor ().
+The latter names are exported, but the traditional names are more portable.
+.SH SEE ALSO
+.BR mknod (2),
+.BR stat (2)

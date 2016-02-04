@@ -1,0 +1,119 @@
+.\" Copyright (C) Andreas Gruenbacher, February 2001
+.\" Copyright (C) Silicon Graphics Inc, September 2001
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.TH REMOVEXATTR 2 2015-05-07 "Linux" "Linux Programmer's Manual"
+.SH NAME
+removexattr, lremovexattr, fremovexattr \- remove an extended attribute
+.SH SYNOPSIS
+.fam C
+.nf
+.B #include <sys/types.h>
+.B #include <sys/xattr.h>
+.sp
+.BI "int removexattr(const char\ *" path ", const char\ *" name );
+.BI "int lremovexattr(const char\ *" path ", const char\ *" name );
+.BI "int fremovexattr(int " fd ", const char\ *" name );
+.fi
+.fam T
+.SH DESCRIPTION
+Extended attributes are
+.IR name : value
+pairs associated with inodes (files, directories, symbolic links, etc.).
+They are extensions to the normal attributes which are associated
+with all inodes in the system (i.e., the
+.BR stat (2)
+data).
+A complete overview of extended attributes concepts can be found in
+.BR xattr (7).
+.PP
+.BR removexattr ()
+removes the extended attribute identified by
+.I name
+and associated with the given
+.I path
+in the filesystem.
+.PP
+.BR lremovexattr ()
+is identical to
+.BR removexattr (),
+except in the case of a symbolic link, where the extended attribute is
+removed from the link itself, not the file that it refers to.
+.PP
+.BR fremovexattr ()
+is identical to
+.BR removexattr (),
+only the extended attribute is removed from the open file referred to by
+.I fd
+(as returned by
+.BR open (2))
+in place of
+.IR path .
+.PP
+An extended attribute name is a null-terminated string.
+The
+.I name
+includes a namespace prefix; there may be several, disjoint
+namespaces associated with an individual inode.
+.SH RETURN VALUE
+On success, zero is returned.
+On failure, \-1 is returned and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B ENOATTR
+The named attribute does not exist.
+.RB ( ENOATTR
+is defined to be a synonym for
+.BR ENODATA
+in
+.IR <attr/xattr.h> .)
+.TP
+.B ENOTSUP
+Extended attributes are not supported by the filesystem, or are disabled.
+.PP
+In addition, the errors documented in
+.BR stat (2)
+can also occur.
+.SH VERSIONS
+These system calls have been available on Linux since kernel 2.4;
+glibc support is provided since version 2.3.
+.SH CONFORMING TO
+These system calls are Linux-specific.
+.\" .SH AUTHORS
+.\" Andreas Gruenbacher,
+.\" .RI < a.gruenbacher@computer.org >
+.\" and the SGI XFS development team,
+.\" .RI < linux-xfs@oss.sgi.com >.
+.\" Please send any bug reports or comments to these addresses.
+.SH SEE ALSO
+.BR getfattr (1),
+.BR setfattr (1),
+.BR getxattr (2),
+.BR listxattr (2),
+.BR open (2),
+.BR setxattr (2),
+.BR stat (2),
+.BR symlink (7),
+.BR xattr (7)

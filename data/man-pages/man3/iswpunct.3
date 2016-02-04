@@ -1,0 +1,87 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.TH ISWPUNCT 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+iswpunct \- test for punctuation or symbolic wide character
+.SH SYNOPSIS
+.nf
+.B #include <wctype.h>
+.sp
+.BI "int iswpunct(wint_t " wc );
+.fi
+.SH DESCRIPTION
+The
+.BR iswpunct ()
+function is the wide-character equivalent of the
+.BR ispunct (3)
+function.
+It tests whether
+.I wc
+is a wide character
+belonging to the wide-character class "punct".
+.PP
+The wide-character class "punct" is a subclass of the wide-character class
+"graph", and therefore also a subclass of the wide-character class "print".
+.PP
+The wide-character class "punct" is disjoint from the wide-character class
+"alnum" and therefore also disjoint from its subclasses "alpha", "upper",
+"lower", "digit", "xdigit".
+.PP
+Being a subclass of the wide-character class "print",
+the wide-character class
+"punct" is disjoint from the wide-character class "cntrl".
+.PP
+Being a subclass of the wide-character class "graph",
+the wide-character class
+"punct" is disjoint from the wide-character class "space" and its subclass
+"blank".
+.SH RETURN VALUE
+The
+.BR iswpunct ()
+function returns nonzero
+if
+.I wc
+is a wide-character
+belonging to the wide-character class "punct".
+Otherwise, it returns zero.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR iswpunct ()
+T}	Thread safety	MT-Safe locale
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C99.
+.SH NOTES
+The behavior of
+.BR iswpunct ()
+depends on the
+.B LC_CTYPE
+category of the
+current locale.
+.PP
+This function's name is a misnomer when dealing with Unicode characters,
+because the wide-character class "punct" contains both punctuation characters
+and symbol (math, currency, etc.) characters.
+.SH SEE ALSO
+.BR ispunct (3),
+.BR iswctype (3)

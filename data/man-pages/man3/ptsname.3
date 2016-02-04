@@ -1,0 +1,114 @@
+.\" %%%LICENSE_START(PUBLIC_DOMAIN)
+.\" This page is in the public domain. - aeb
+.\" %%%LICENSE_END
+.\"
+.\" 2004-12-17, mtk, added description of ptsname_r() + ERRORS
+.\"
+.TH PTSNAME 3 2015-08-08 "" "Linux Programmer's Manual"
+.SH NAME
+ptsname, ptsname_r \- get the name of the slave pseudoterminal
+.SH SYNOPSIS
+.nf
+.BR "#define _XOPEN_SOURCE" "       /* See feature_test_macros(7) */"
+.br
+.B #include <stdlib.h>
+.sp
+.BI "char *ptsname(int " fd ");"
+.sp
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.br
+.B #include <stdlib.h>
+.sp
+.BI "int ptsname_r(int " fd ", char *" buf ", size_t " buflen ");"
+.fi
+.SH DESCRIPTION
+The
+.BR ptsname ()
+function returns the name of the slave pseudoterminal device
+corresponding to the master referred to by
+.IR fd .
+
+The
+.BR ptsname_r ()
+function is the reentrant equivalent of
+.BR ptsname ().
+It returns the name of the slave pseudoterminal device as a
+null-terminated string in the buffer pointed to by
+.IR buf .
+The
+.I buflen
+argument specifies the number of bytes available in
+.IR buf .
+.SH RETURN VALUE
+On success,
+.BR ptsname ()
+returns a pointer to a string in static storage which will be
+overwritten by subsequent calls.
+This pointer must not be freed.
+On failure, NULL is returned.
+
+On success,
+.BR ptsname_r ()
+returns 0.
+On failure, a nonzero value is returned
+and
+.I errno
+is set to indicate the error.
+.\" In fact the errno value is also returned as the function
+.\" result -- MTK, Dec 04
+.SH ERRORS
+.TP
+.B EINVAL
+.RB ( ptsname_r ()
+only)
+.I buf
+is NULL.
+.TP
+.B ENOTTY
+.I fd
+does not refer to a pseudoterminal master device.
+.TP
+.B ERANGE
+.RB ( ptsname_r ()
+only)
+.I buf
+is too small.
+.SH VERSIONS
+.BR ptsname ()
+is provided in glibc since version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR ptsname ()
+T}	Thread safety	MT-Unsafe race:ptsname
+T{
+.BR ptsname_r ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+
+.BR ptsname ()
+is part of the UNIX 98 pseudoterminal support (see
+.BR pts (4)).
+
+.BR ptsname_r ()
+is a Linux extension.
+A version of this function is documented on Tru64 and HP-UX, but
+on those implementations, \-1 is returned on error, with
+.I errno
+set to indicate the error.
+Avoid using this function in portable programs.
+.SH SEE ALSO
+.BR grantpt (3),
+.BR posix_openpt (3),
+.BR ttyname (3),
+.BR unlockpt (3),
+.BR pts (4),
+.BR pty (7)

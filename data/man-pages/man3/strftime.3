@@ -1,0 +1,585 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"     GNU texinfo documentation on glibc date/time functions.
+.\" Modified Sat Jul 24 18:03:44 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Applied fix by Wolfgang Franke, aeb, 961011
+.\" Corrected return value, aeb, 970307
+.\" Added Single UNIX Spec conversions and %z, aeb/esr, 990329.
+.\" 2005-11-22 mtk, added Glibc Notes covering optional 'flag' and
+.\"           'width' components of conversion specifications.
+.\"
+.TH STRFTIME 3  2015-03-02 "GNU" "Linux Programmer's Manual"
+.SH NAME
+strftime \- format date and time
+.SH SYNOPSIS
+.nf
+.B #include <time.h>
+.sp
+.BI "size_t strftime(char *" s ", size_t " max ", const char *" format ,
+.BI "                const struct tm *" tm );
+.fi
+.SH DESCRIPTION
+The
+.BR strftime ()
+function formats the broken-down time
+.I tm
+according to the format specification
+.I format
+and places the
+result in the character array
+.I s
+of size
+.IR max .
+.\" FIXME . POSIX says: Local timezone information is used as though
+.\" strftime() called tzset().  But this doesn't appear to be the case
+.PP
+The format specification is a null-terminated string and may contain
+special character sequences called
+.IR "conversion specifications",
+each of which is introduced by a \(aq%\(aq character and terminated by
+some other character known as a
+.IR "conversion specifier character".
+All other character sequences are
+.IR "ordinary character sequences".
+.PP
+The characters of ordinary character sequences (including the null byte)
+are copied verbatim from
+.I format
+to
+.IR s .
+However, the characters
+of conversion specifications are replaced as follows:
+.TP
+.B %a
+The abbreviated name of the day of the week according to the current locale.
+.TP
+.B %A
+The full name of the day of the week according to the current locale.
+.TP
+.B %b
+The abbreviated month name according to the current locale.
+.TP
+.B %B
+The full month name according to the current locale.
+.TP
+.B %c
+The preferred date and time representation for the current locale.
+.TP
+.B %C
+The century number (year/100) as a 2-digit integer. (SU)
+.TP
+.B %d
+The day of the month as a decimal number (range 01 to 31).
+.TP
+.B %D
+Equivalent to
+.BR %m/%d/%y .
+(Yecch\(emfor Americans only.
+Americans should note that in other countries
+.B %d/%m/%y
+is rather common.
+This means that in international context this format is
+ambiguous and should not be used.) (SU)
+.TP
+.B %e
+Like
+.BR %d ,
+the day of the month as a decimal number, but a leading
+zero is replaced by a space. (SU)
+.TP
+.B %E
+Modifier: use alternative format, see below. (SU)
+.TP
+.B %F
+Equivalent to
+.B %Y-%m-%d
+(the ISO\ 8601 date format). (C99)
+.TP
+.B %G
+The ISO\ 8601 week-based year (see NOTES) with century as a decimal number.
+The 4-digit year corresponding to the ISO week number (see
+.BR %V ).
+This has the same format and value as
+.BR %Y ,
+except that if the ISO week number belongs to the previous or next year,
+that year is used instead. (TZ)
+.TP
+.B %g
+Like
+.BR %G ,
+but without century, that is, with a 2-digit year (00-99). (TZ)
+.TP
+.B %h
+Equivalent to
+.BR %b .
+(SU)
+.TP
+.B %H
+The hour as a decimal number using a 24-hour clock (range 00 to 23).
+.TP
+.B %I
+The hour as a decimal number using a 12-hour clock (range 01 to 12).
+.TP
+.B %j
+The day of the year as a decimal number (range 001 to 366).
+.TP
+.B %k
+The hour (24-hour clock) as a decimal number (range 0 to 23);
+single digits are preceded by a blank.
+(See also
+.BR %H .)
+(TZ)
+.TP
+.B %l
+The hour (12-hour clock) as a decimal number (range 1 to 12);
+single digits are preceded by a blank.
+(See also
+.BR %I .)
+(TZ)
+.TP
+.B %m
+The month as a decimal number (range 01 to 12).
+.TP
+.B %M
+The minute as a decimal number (range 00 to 59).
+.TP
+.B %n
+A newline character. (SU)
+.TP
+.B %O
+Modifier: use alternative format, see below. (SU)
+.TP
+.B %p
+Either "AM" or "PM" according to the given time value, or the
+corresponding strings for the current locale.
+Noon is treated as "PM" and midnight as "AM".
+.TP
+.B %P
+Like
+.B %p
+but in lowercase: "am" or "pm" or a corresponding
+string for the current locale. (GNU)
+.TP
+.B %r
+The time in a.m. or p.m. notation.
+In the POSIX locale this is equivalent to
+.BR "%I:%M:%S %p" .
+(SU)
+.TP
+.B %R
+The time in 24-hour notation
+.RB ( %H:%M ).
+(SU)
+For a version including the seconds, see
+.B %T
+below.
+.TP
+.B %s
+The number of seconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC). (TZ)
+.TP
+.B %S
+The second as a decimal number (range 00 to 60).
+(The range is up to 60 to allow for occasional leap seconds.)
+.TP
+.B %t
+A tab character. (SU)
+.TP
+.B %T
+The time in 24-hour notation
+.RB ( %H:%M:%S ).
+(SU)
+.TP
+.B %u
+The day of the week as a decimal, range 1 to 7, Monday being 1.
+See also
+.BR %w .
+(SU)
+.TP
+.B %U
+The week number of the current year as a decimal number,
+range 00 to 53, starting with the first Sunday as the first day
+of week 01.
+See also
+.B %V
+and
+.BR %W .
+.TP
+.B %V
+The ISO\ 8601 week number (see NOTES) of the current year as a decimal number,
+range 01 to 53, where week 1 is the first week that has at least
+4 days in the new year.
+See also
+.B %U
+and
+.BR %W .
+(SU)
+.TP
+.B %w
+The day of the week as a decimal, range 0 to 6, Sunday being 0.
+See also
+.BR %u .
+.TP
+.B %W
+The week number of the current year as a decimal number,
+range 00 to 53, starting with the first Monday as the first day of week 01.
+.TP
+.B %x
+The preferred date representation for the current locale without the time.
+.TP
+.B %X
+The preferred time representation for the current locale without the date.
+.TP
+.B %y
+The year as a decimal number without a century (range 00 to 99).
+.TP
+.B %Y
+The year as a decimal number including the century.
+.TP
+.B %z
+The
+.I +hhmm
+or
+.I -hhmm
+numeric timezone (that is, the hour and minute offset from UTC). (SU)
+.TP
+.B %Z
+The timezone name or abbreviation.
+.TP
+.B %+
+.\" Nov 05 -- Not in Linux/glibc, but is in some BSDs (according to
+.\" their man pages)
+The date and time in
+.BR date (1)
+format. (TZ)
+(Not supported in glibc2.)
+.TP
+.B %%
+A literal \(aq%\(aq character.
+.PP
+Some conversion specifications can be modified by preceding the
+conversion specifier character by the
+.B E
+or
+.B O
+.I modifier
+to indicate that an alternative format should be used.
+If the alternative format or specification does not exist for
+the current locale, the behavior will be as if the unmodified
+conversion specification were used. (SU)
+The Single UNIX Specification mentions
+.BR %Ec ,
+.BR %EC ,
+.BR %Ex ,
+.BR %EX ,
+.BR %Ey ,
+.BR %EY ,
+.BR %Od ,
+.BR %Oe ,
+.BR %OH ,
+.BR %OI ,
+.BR %Om ,
+.BR %OM ,
+.BR %OS ,
+.BR %Ou ,
+.BR %OU ,
+.BR %OV ,
+.BR %Ow ,
+.BR %OW ,
+.BR %Oy ,
+where the effect of the
+.B O
+modifier is to use
+alternative numeric symbols (say, roman numerals), and that of the
+E modifier is to use a locale-dependent alternative representation.
+.PP
+The broken-down time structure
+.I tm
+is defined in
+.IR <time.h> .
+See also
+.BR ctime (3).
+.SH RETURN VALUE
+Provided that the result string,
+including the terminating null byte, does not exceed
+.I max
+bytes,
+.BR strftime ()
+returns the number of bytes (excluding the terminating null byte)
+placed in the array
+.IR s .
+If the length of the result string (including the terminating null byte)
+would exceed
+.I max
+bytes, then
+.BR strftime ()
+returns 0, and the contents of the array are undefined.
+.\" (This behavior applies since at least libc 4.4.4;
+.\" very old versions of libc, such as libc 4.4.1,
+.\" would return
+.\" .I max
+.\" if the array was too small.)
+.LP
+Note that the return value 0 does not necessarily indicate an error.
+For example, in many locales
+.B %p
+yields an empty string.
+An empty
+.I format
+string will likewise yield an empty string.
+.SH ENVIRONMENT
+The environment variables
+.B TZ
+and
+.B LC_TIME
+are used.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lb lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR strftime ()
+T}	Thread safety	MT-Safe env locale
+.TE
+.SH CONFORMING TO
+SVr4, C89, C99.
+.\" FIXME strftime() is in POSIX.1-2001 and POSIX.1-2008, but the details
+.\" in the standards changed across kernel versions. Investigate and
+.\" write up.
+There are strict inclusions between the set of conversions
+given in ANSI C (unmarked), those given in the Single UNIX Specification
+(marked SU), those given in Olson's timezone package (marked TZ),
+and those given in glibc (marked GNU), except that
+.B %+
+is not supported in glibc2.
+On the other hand glibc2 has several more extensions.
+POSIX.1 only refers to ANSI C; POSIX.2 describes under
+.BR date (1)
+several extensions that could apply to
+.BR strftime ()
+as well.
+The
+.B %F
+conversion is in C99 and POSIX.1-2001.
+
+In SUSv2, the
+.B %S
+specifier allowed a range of 00 to 61,
+to allow for the theoretical possibility of a minute that
+included a double leap second
+(there never has been such a minute).
+.SH NOTES
+.SS ISO 8601 week dates
+.BR %G ,
+.BR %g ,
+and
+.BR %V
+yield values calculated from the week-based year defined by the
+ISO\ 8601 standard.
+In this system, weeks start on a Monday, and are numbered from 01,
+for the first week, up to 52 or 53, for the last week.
+Week 1 is the first week where four or more days fall within the
+new year (or, synonymously, week 01 is:
+the first week of the year that contains a Thursday;
+or, the week that has 4 January in it).
+When three of fewer days of the first calendar week of the new year fall
+within that year,
+then the ISO 8601 week-based system counts those days as part of week 53
+of the preceding year.
+For example, 1 January 2010 is a Friday,
+meaning that just three days of that calendar week fall in 2010.
+Thus, the ISO\ 8601 week-based system considers these days to be part of
+week 53
+.RB ( %V )
+of the year 2009
+.RB ( %G );
+week 01 of ISO\ 8601 year 2010 starts on Monday, 4 January 2010.
+.SS Glibc notes
+Glibc provides some extensions for conversion specifications.
+(These extensions are not specified in POSIX.1-2001, but a few other
+systems provide similar features.)
+.\" HP-UX and Tru64 also have features like this.
+Between the \(aq%\(aq character and the conversion specifier character,
+an optional
+.I flag
+and field
+.I width
+may be specified.
+(These precede the
+.B E
+or
+.B O
+modifiers, if present.)
+
+The following flag characters are permitted:
+.TP
+.B _
+(underscore)
+Pad a numeric result string with spaces.
+.TP
+.B \-
+(dash)
+Do not pad a numeric result string.
+.TP
+.B 0
+Pad a numeric result string with zeros even if the conversion
+specifier character uses space-padding by default.
+.TP
+.B ^
+Convert alphabetic characters in result string to uppercase.
+.TP
+.B #
+Swap the case of the result string.
+(This flag works only with certain conversion specifier characters,
+and of these, it is only really useful with
+.BR %Z .)
+.PP
+An optional decimal width specifier may follow the (possibly absent) flag.
+If the natural size of the field is smaller than this width,
+then the result string is padded (on the left) to the specified width.
+.SH BUGS
+If the output string would exceed
+.I max
+bytes,
+.I errno
+is
+.I not
+set.
+This makes it impossible to distinguish this error case from cases where the
+.I format
+string legitimately produces a zero-length output string.
+POSIX.1-2001
+does
+.I not
+specify any
+.I errno
+settings for
+.BR strftime ().
+
+Some buggy versions of
+.BR gcc (1)
+complain about the use of
+.BR %c :
+.IR "warning: `%c' yields only last 2 digits of year in some locales" .
+Of course programmers are encouraged to use
+.BR %c ,
+it gives the preferred date and time representation.
+One meets all kinds of strange obfuscations
+to circumvent this
+.BR gcc (1)
+problem.
+A relatively clean one is to add an
+intermediate function
+.in +4n
+.nf
+
+size_t
+my_strftime(char *s, size_t max, const char *fmt,
+            const struct tm *tm)
+{
+    return strftime(s, max, fmt, tm);
+}
+.fi
+.in
+
+Nowadays,
+.BR gcc (1)
+provides the
+.IR \-Wno\-format\-y2k
+option to prevent the warning,
+so that the above workaround is no longer required.
+.SH EXAMPLE
+.BR "RFC\ 2822-compliant date format"
+(with an English locale for %a and %b)
+.PP
+.in +2n
+"%a,\ %d\ %b\ %Y\ %T\ %z"
+.PP
+.BR "RFC\ 822-compliant date format"
+(with an English locale for %a and %b)
+.PP
+.in +2n
+"%a,\ %d\ %b\ %y\ %T\ %z"
+.SS Example program
+The program below can be used to experiment with
+.BR strftime ().
+.PP
+Some examples of the result string produced by the glibc implementation of
+.BR strftime ()
+are as follows:
+.in +4n
+.nf
+
+.RB "$" " ./a.out \(aq%m\(aq"
+Result string is "11"
+.RB "$" " ./a.out \(aq%5m\(aq"
+Result string is "00011"
+.RB "$" " ./a.out \(aq%_5m\(aq"
+Result string is "   11"
+.fi
+.in
+.SS Program source
+.nf
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+    char outstr[200];
+    time_t t;
+    struct tm *tmp;
+
+    t = time(NULL);
+    tmp = localtime(&t);
+    if (tmp == NULL) {
+        perror("localtime");
+        exit(EXIT_FAILURE);
+    }
+
+    if (strftime(outstr, sizeof(outstr), argv[1], tmp) == 0) {
+        fprintf(stderr, "strftime returned 0");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Result string is \\"%s\\"\\n", outstr);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR date (1),
+.BR time (2),
+.BR ctime (3),
+.BR setlocale (3),
+.BR sprintf (3),
+.BR strptime (3)

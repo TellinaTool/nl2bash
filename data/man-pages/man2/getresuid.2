@@ -1,0 +1,91 @@
+.\" Copyright (C) 1997 Andries Brouwer (aeb@cwi.nl)
+.\" and Copyright (c) 2007, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified, 2003-05-26, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"
+.TH GETRESUID 2 2010-11-22 "Linux" "Linux Programmer's Manual"
+.SH NAME
+getresuid, getresgid \- get real, effective and saved user/group IDs
+.SH SYNOPSIS
+.BR "#define _GNU_SOURCE" "         /* See feature_test_macros(7) */"
+.br
+.B #include <unistd.h>
+.sp
+.BI "int getresuid(uid_t *" ruid ", uid_t *" euid ", uid_t *" suid );
+.br
+.BI "int getresgid(gid_t *" rgid ", gid_t *" egid ", gid_t *" sgid );
+.SH DESCRIPTION
+.BR getresuid ()
+returns the real UID, the effective UID, and the saved set-user-ID
+of the calling process, in the arguments
+.IR ruid ,
+.IR euid ,
+and
+.IR suid ,
+respectively.
+.BR getresgid ()
+performs the analogous task for the process's group IDs.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.TP
+.B EFAULT
+One of the arguments specified an address outside the calling program's
+address space.
+.SH VERSIONS
+These system calls appeared on Linux starting with kernel 2.1.44.
+
+The prototypes are given by glibc since version 2.3.2,
+provided
+.B _GNU_SOURCE
+is defined.
+.SH CONFORMING TO
+These calls are nonstandard;
+they also appear on HP-UX and some of the BSDs.
+.SH NOTES
+The original Linux
+.BR getresuid ()
+and
+.BR getresgid ()
+system calls supported only 16-bit user and group IDs.
+Subsequently, Linux 2.4 added
+.BR getresuid32 ()
+and
+.BR getresgid32 (),
+supporting 32-bit IDs.
+The glibc
+.BR getresuid ()
+and
+.BR getresgid ()
+wrapper functions transparently deal with the variations across kernel versions.
+.SH SEE ALSO
+.BR getuid (2),
+.BR setresuid (2),
+.BR setreuid (2),
+.BR setuid (2),
+.BR credentials (7)

@@ -1,0 +1,176 @@
+.\" Copyright (c) 1995 James R. Van Zandt <jrv@vanzandt.mv.com>
+.\" Sat Feb 18 09:11:07 EST 1995
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified, Sun Feb 26 15:08:05 1995, faith@cs.unc.edu
+.\" 2007-12-17, Samuel Thibault <samuel.thibault@ens-lyon.org>:
+.\"     document the VT_GETHIFONTMASK ioctl
+.\" "
+.TH VCS 4 2007-12-17 "Linux" "Linux Programmer's Manual"
+.SH NAME
+vcs, vcsa \- virtual console memory
+.SH DESCRIPTION
+.I /dev/vcs0
+is a character device with major number 7 and minor number
+0, usually of mode 0644 and owner root.tty.
+It refers to the memory of the currently
+displayed virtual console terminal.
+.LP
+.I /dev/vcs[1\-63]
+are character devices for virtual console
+terminals, they have major number 7 and minor number 1 to 63, usually
+mode 0644 and owner root.tty.
+.IR /dev/vcsa[0\-63]
+are the same, but
+using
+.IR "unsigned short" s
+(in host byte order) that include attributes,
+and prefixed with four bytes giving the screen
+dimensions and cursor position:
+.IR lines ,
+.IR columns ,
+.IR x ,
+.IR y .
+.RI ( x
+=
+.I y
+= 0 at the top left corner of the screen.)
+
+When a 512-character font is loaded,
+the 9th bit position can be fetched by applying the
+.BR ioctl (2)
+.B VT_GETHIFONTMASK
+operation
+(available in Linux kernels 2.6.18 and above)
+on
+.IR /dev/tty[1\-63] ;
+the value is returned in the
+.I "unsigned short"
+pointed to by the third
+.BR ioctl (2)
+argument.
+.PP
+These devices replace the screendump
+.BR ioctl (2)
+operations of
+.BR console (4),
+so the system
+administrator can control access using filesystem permissions.
+.PP
+The devices for the first eight virtual consoles may be created by:
+
+.nf
+    for x in 0 1 2 3 4 5 6 7 8; do
+        mknod \-m 644 /dev/vcs$x c 7 $x;
+        mknod \-m 644 /dev/vcsa$x c 7 $[$x+128];
+    done
+    chown root:tty /dev/vcs*
+.fi
+
+No
+.BR ioctl (2)
+requests are supported.
+.SH FILES
+/dev/vcs[0\-63]
+.br
+/dev/vcsa[0\-63]
+.\" .SH AUTHOR
+.\" Andries Brouwer <aeb@cwi.nl>
+.SH VERSIONS
+Introduced with version 1.1.92 of the Linux kernel.
+.SH EXAMPLE
+You may do a screendump on vt3 by switching to vt1 and typing
+
+    cat /dev/vcs3 >foo
+
+Note that the output does not contain
+newline characters, so some processing may be required, like
+in
+
+    fold \-w 81 /dev/vcs3 | lpr
+
+or (horrors)
+
+    xetterm \-dump 3 \-file /proc/self/fd/1
+
+The
+.I /dev/vcsa0
+device is used for Braille support.
+
+This program displays the character and screen attributes under the
+cursor of the second virtual console, then changes the background color
+there:
+
+.nf
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/vt.h>
+
+int
+main(void)
+{
+    int fd;
+    char *device = "/dev/vcsa2";
+    char *console = "/dev/tty2";
+    struct {unsigned char lines, cols, x, y;} scrn;
+    unsigned short s;
+    unsigned short mask;
+    unsigned char ch, attrib;
+
+    fd = open(console, O_RDWR);
+    if (fd < 0) {
+        perror(console);
+        exit(EXIT_FAILURE);
+    }
+    if (ioctl(fd, VT_GETHIFONTMASK, &mask) < 0) {
+        perror("VT_GETHIFONTMASK");
+        exit(EXIT_FAILURE);
+    }
+    (void) close(fd);
+    fd = open(device, O_RDWR);
+    if (fd < 0) {
+        perror(device);
+        exit(EXIT_FAILURE);
+    }
+    (void) read(fd, &scrn, 4);
+    (void) lseek(fd, 4 + 2*(scrn.y*scrn.cols + scrn.x), 0);
+    (void) read(fd, &s, 2);
+    ch = s & 0xff;
+    if (attrib & mask)
+        ch |= 0x100;
+    attrib = ((s & ~mask) >> 8);
+    printf("ch=\(aq%c\(aq attrib=0x%02x\\n", ch, attrib);
+    attrib ^= 0x10;
+    (void) lseek(fd, \-1, 1);
+    (void) write(fd, &attrib, 1);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR console (4),
+.BR tty (4),
+.BR ttyS (4),
+.BR gpm (8)

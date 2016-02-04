@@ -1,0 +1,165 @@
+.\" Copyright (c) 2008, Linux Foundation, written by Michael Kerrisk
+.\" <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH CLOCK_GETCPUCLOCKID 3 2015-08-08 "Linux" "Linux Programmer's Manual"
+.SH NAME
+clock_getcpuclockid \- obtain ID of a process CPU-time clock
+.SH SYNOPSIS
+.B #include <time.h>
+.nf
+.sp
+.BI "int clock_getcpuclockid(pid_t " pid ", clockid_t *" clock_id );
+.fi
+.sp
+Link with \fI\-lrt\fP (only for glibc versions before 2.17).
+.sp
+.ad l
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.BR clock_getcpuclockid ():
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _POSIX_C_SOURCE\ >=\ 200112L
+.RE
+.ad
+.SH DESCRIPTION
+The
+.BR clock_getcpuclockid ()
+function obtains the ID of the CPU-time clock of the process whose ID is
+.IR pid ,
+and returns it in the location pointed to by
+.IR clock_id .
+If
+.I pid
+is zero, then the clock ID of the CPU-time clock
+of the calling process is returned.
+.SH RETURN VALUE
+On success,
+.BR clock_getcpuclockid ()
+returns 0;
+on error, it returns one of the positive error numbers listed in ERRORS.
+.SH ERRORS
+.TP
+.B ENOSYS
+The kernel does not support obtaining the per-process
+CPU-time clock of another process, and
+.I pid
+does not specify the calling process.
+.TP
+.B EPERM
+The caller does not have permission to access
+the CPU-time clock of the process specified by
+.IR pid .
+(Specified in POSIX.1-2001;
+does not occur on Linux unless the kernel does not support
+obtaining the per-process CPU-time clock of another process.)
+.TP
+.B ESRCH
+There is no process with the ID
+.IR pid .
+.SH VERSIONS
+The
+.BR clock_getcpuclockid ()
+function is available in glibc since version 2.2.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw21 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR clock_getcpuclockid ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008.
+.SH NOTES
+Calling
+.BR clock_gettime (2)
+with the clock ID obtained by a call to
+.BR clock_getcpuclockid ()
+with a
+.I pid
+of 0,
+is the same as using the clock ID
+.BR CLOCK_PROCESS_CPUTIME_ID .
+.SH EXAMPLE
+The example program below obtains the
+CPU-time clock ID of the process whose ID is given on the command line,
+and then uses
+.BR clock_gettime (2)
+to obtain the time on that clock.
+An example run is the following:
+.in +4n
+.nf
+
+.RB "$" " ./a.out 1" "                 # Show CPU clock of init process"
+CPU-time clock for PID 1 is 2.213466748 seconds
+.fi
+.in
+.SS Program source
+\&
+.nf
+#define _XOPEN_SOURCE 600
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
+
+int
+main(int argc, char *argv[])
+{
+    clockid_t clockid;
+    struct timespec ts;
+
+    if (argc != 2) {
+        fprintf(stderr, "%s <process\-ID>\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    if (clock_getcpuclockid(atoi(argv[1]), &clockid) != 0) {
+        perror("clock_getcpuclockid");
+        exit(EXIT_FAILURE);
+    }
+
+    if (clock_gettime(clockid, &ts) == \-1) {
+        perror("clock_gettime");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("CPU-time clock for PID %s is %ld.%09ld seconds\\n",
+            argv[1], (long) ts.tv_sec, (long) ts.tv_nsec);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR clock_getres (2),
+.BR timer_create (2),
+.BR pthread_getcpuclockid (3),
+.BR time (7)

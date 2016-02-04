@@ -1,0 +1,208 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" Based on glibc infopages
+.\"
+.TH NEXTAFTER 3 2015-04-19 "GNU" "Linux Programmer's Manual"
+.SH NAME
+nextafter, nextafterf, nextafterl, nexttoward, nexttowardf, nexttowardl \-
+floating-point number manipulation
+.SH SYNOPSIS
+.B #include <math.h>
+.sp
+.BI "double nextafter(double " x ", double " y );
+.br
+.BI "float nextafterf(float " x ", float " y );
+.br
+.BI "long double nextafterl(long double " x ", long double " y );
+.sp
+.BI "double nexttoward(double " x ", long double " y );
+.br
+.BI "float nexttowardf(float " x ", long double " y );
+.br
+.BI "long double nexttowardl(long double " x ", long double " y );
+.sp
+Link with \fI\-lm\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR nextafter ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED ||
+_ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.br
+.BR nextafterf (),
+.BR nextafterl ():
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.br
+.BR nexttoward (),
+.BR nexttowardf (),
+.BR nexttowardl ():
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L;
+.br
+or
+.I cc\ -std=c99
+.RE
+.ad b
+.SH DESCRIPTION
+The
+.BR nextafter (),
+.BR nextafterf (),
+and
+.BR nextafterl ()
+functions return the next representable floating-point value following
+.I x
+in the direction of
+.IR y .
+If
+.I y
+is less than
+.IR x ,
+these functions will return the largest representable number less than
+.IR x .
+
+If
+.I x
+equals
+.IR y ,
+the functions return
+.IR y .
+
+The
+.BR nexttoward (),
+.BR nexttowardf (),
+and
+.BR nexttowardl ()
+functions do the same as the corresponding
+.BR nextafter ()
+functions, except that they have a
+.I "long double"
+second argument.
+.SH RETURN VALUE
+On success,
+these functions return the next representable floating-point value after
+.I x
+in the direction of
+.IR y .
+
+If
+.I x
+equals
+.IR y ,
+then
+.I y
+(cast to the same type as
+.IR x )
+is returned.
+
+If
+.I x
+or
+.I y
+is a NaN,
+a NaN is returned.
+
+If
+.I x
+is finite,
+.\" e.g., DBL_MAX
+and the result would overflow,
+a range error occurs,
+and the functions return
+.BR HUGE_VAL ,
+.BR HUGE_VALF ,
+or
+.BR HUGE_VALL ,
+respectively, with the correct mathematical sign.
+
+If
+.I x
+is not equal to
+.IR y ,
+and the correct function result would be subnormal, zero, or underflow,
+a range error occurs,
+and either the correct value (if it can be represented),
+or 0.0, is returned.
+.SH ERRORS
+See
+.BR math_error (7)
+for information on how to determine whether an error has occurred
+when calling these functions.
+.PP
+The following errors can occur:
+.TP
+Range error: result overflow
+.\" e.g., nextafter(DBL_MAX, HUGE_VAL);
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+An overflow floating-point exception
+.RB ( FE_OVERFLOW )
+is raised.
+.TP
+Range error: result is subnormal or underflows
+.\" e.g., nextafter(DBL_MIN, 0.0);
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+An underflow floating-point exception
+.RB ( FE_UNDERFLOW )
+is raised.
+.PP
+These functions do not set
+.IR errno .
+.\" FIXME . Is it intentional that these functions do not set errno?
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6799
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw28 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR nextafter (),
+.BR nextafterf (),
+.br
+.BR nextafterl (),
+.BR nexttoward (),
+.br
+.BR nexttowardf (),
+.BR nexttowardl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+This function is defined in IEC 559 (and the appendix with
+recommended functions in IEEE 754/IEEE 854).
+.SH BUGS
+In glibc version 2.5 and earlier, these functions do not raise an underflow
+floating-point
+.RB ( FE_UNDERFLOW )
+exception when an underflow occurs.
+.SH SEE ALSO
+.BR nearbyint (3)

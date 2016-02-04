@@ -1,0 +1,477 @@
+.\" Copyright (c) 1983, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-10-22 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Oct 1998 by Andi Kleen
+.\" Modified Oct 2003 by aeb
+.\" Modified 2004-07-01 by mtk
+.\"
+.TH SEND 2 2015-12-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+send, sendto, sendmsg \- send a message on a socket
+.SH SYNOPSIS
+.nf
+.B #include <sys/types.h>
+.B #include <sys/socket.h>
+.sp
+.BI "ssize_t send(int " sockfd ", const void *" buf ", size_t " len \
+", int " flags );
+
+.BI "ssize_t sendto(int " sockfd ", const void *" buf ", size_t " len \
+", int " flags ,
+.BI "               const struct sockaddr *" dest_addr ", socklen_t " addrlen );
+
+.BI "ssize_t sendmsg(int " sockfd ", const struct msghdr *" msg \
+", int " flags );
+.fi
+.SH DESCRIPTION
+The system calls
+.BR send (),
+.BR sendto (),
+and
+.BR sendmsg ()
+are used to transmit a message to another socket.
+.PP
+The
+.BR send ()
+call may be used only when the socket is in a
+.I connected
+state (so that the intended recipient is known).
+The only difference between
+.BR send ()
+and
+.BR write (2)
+is the presence of
+.IR flags .
+With a zero
+.I flags
+argument,
+.BR send ()
+is equivalent to
+.BR write (2).
+Also, the following call
+
+    send(sockfd, buf, len, flags);
+
+is equivalent to
+
+    sendto(sockfd, buf, len, flags, NULL, 0);
+.PP
+The argument
+.I sockfd
+is the file descriptor of the sending socket.
+.PP
+If
+.BR sendto ()
+is used on a connection-mode
+.RB ( SOCK_STREAM ,
+.BR SOCK_SEQPACKET )
+socket, the arguments
+.I dest_addr
+and
+.I addrlen
+are ignored (and the error
+.B EISCONN
+may be returned when they are
+not NULL and 0), and the error
+.B ENOTCONN
+is returned when the socket was not actually connected.
+Otherwise, the address of the target is given by
+.I dest_addr
+with
+.I addrlen
+specifying its size.
+For
+.BR sendmsg (),
+the address of the target is given by
+.IR msg.msg_name ,
+with
+.I msg.msg_namelen
+specifying its size.
+.PP
+For
+.BR send ()
+and
+.BR sendto (),
+the message is found in
+.I buf
+and has length
+.IR len .
+For
+.BR sendmsg (),
+the message is pointed to by the elements of the array
+.IR msg.msg_iov .
+The
+.BR sendmsg ()
+call also allows sending ancillary data (also known as control information).
+.PP
+If the message is too long to pass atomically through the
+underlying protocol, the error
+.B EMSGSIZE
+is returned, and the message is not transmitted.
+.PP
+No indication of failure to deliver is implicit in a
+.BR send ().
+Locally detected errors are indicated by a return value of \-1.
+.PP
+When the message does not fit into the send buffer of the socket,
+.BR send ()
+normally blocks, unless the socket has been placed in nonblocking I/O
+mode.
+In nonblocking mode it would fail with the error
+.B EAGAIN
+or
+.B EWOULDBLOCK
+in this case.
+The
+.BR select (2)
+call may be used to determine when it is possible to send more data.
+.SS The flags argument
+The
+.I flags
+argument is the bitwise OR
+of zero or more of the following flags.
+.\" FIXME . ? document MSG_PROXY (which went away in 2.3.15)
+.TP
+.BR MSG_CONFIRM " (since Linux 2.3.15)"
+Tell the link layer that forward progress happened: you got a successful
+reply from the other side.
+If the link layer doesn't get this
+it will regularly reprobe the neighbor (e.g., via a unicast ARP).
+Only valid on
+.B SOCK_DGRAM
+and
+.B SOCK_RAW
+sockets and currently implemented only for IPv4 and IPv6.
+See
+.BR arp (7)
+for details.
+.TP
+.B MSG_DONTROUTE
+Don't use a gateway to send out the packet, send to hosts only on
+directly connected networks.
+This is usually used only
+by diagnostic or routing programs.
+This is defined only for protocol
+families that route; packet sockets don't.
+.TP
+.BR MSG_DONTWAIT " (since Linux 2.2)"
+Enables nonblocking operation; if the operation would block,
+.B EAGAIN
+or
+.B EWOULDBLOCK
+is returned.
+This provides similar behavior to setting the
+.B O_NONBLOCK
+flag (via the
+.BR fcntl (2)
+.B F_SETFL
+operation), but differs in that
+.B MSG_DONTWAIT
+is a per-call option, whereas
+.B O_NONBLOCK
+is a setting on the open file description (see
+.BR open (2)),
+which will affect all threads in the calling process
+and as well as other processes that hold file descriptors
+referring to the same open file description.
+.TP
+.BR MSG_EOR " (since Linux 2.2)"
+Terminates a record (when this notion is supported, as for sockets of type
+.BR SOCK_SEQPACKET ).
+.TP
+.BR MSG_MORE " (since Linux 2.4.4)"
+The caller has more data to send.
+This flag is used with TCP sockets to obtain the same effect
+as the
+.B TCP_CORK
+socket option (see
+.BR tcp (7)),
+with the difference that this flag can be set on a per-call basis.
+
+Since Linux 2.6, this flag is also supported for UDP sockets, and informs
+the kernel to package all of the data sent in calls with this flag set
+into a single datagram which is transmitted only when a call is performed
+that does not specify this flag.
+(See also the
+.B UDP_CORK
+socket option described in
+.BR udp (7).)
+.TP
+.BR MSG_NOSIGNAL " (since Linux 2.2)"
+Don't generate a
+.B SIGPIPE
+signal if the peer on a stream-oriented socket has closed the connection.
+The
+.B EPIPE
+error is still returned.
+This provides similar behavior to using
+.BR sigaction (2)
+to ignore
+.BR SIGPIPE ,
+but, whereas
+.B MSG_NOSIGNAL
+is a per-call feature,
+ignoring
+.B SIGPIPE
+sets a process attribute that affects all threads in the process.
+.TP
+.B MSG_OOB
+Sends
+.I out-of-band
+data on sockets that support this notion (e.g., of type
+.BR SOCK_STREAM );
+the underlying protocol must also support
+.I out-of-band
+data.
+.SS sendmsg()
+The definition of the
+.I msghdr
+structure employed by
+.BR sendmsg ()
+is as follows:
+.in +4n
+.nf
+
+struct msghdr {
+    void         *msg_name;       /* optional address */
+    socklen_t     msg_namelen;    /* size of address */
+    struct iovec *msg_iov;        /* scatter/gather array */
+    size_t        msg_iovlen;     /* # elements in msg_iov */
+    void         *msg_control;    /* ancillary data, see below */
+    size_t        msg_controllen; /* ancillary data buffer len */
+    int           msg_flags;      /* flags (unused) */
+};
+.fi
+.in
+.PP
+The
+.I msg_name
+field is used on an unconnected socket to specify the target
+address for a datagram.
+It points to a buffer containing the address; the
+.I msg_namelen
+field should be set to the size of the address.
+For a connected socket, these fields should be specified as NULL and 0,
+respectively.
+
+The
+.I msg_iov
+and
+.I msg_iovlen
+fields specify scatter-gather locations, as for
+.BR writev (2).
+
+You may send control information using the
+.I msg_control
+and
+.I msg_controllen
+members.
+The maximum control buffer length the kernel can process is limited
+per socket by the value in
+.IR /proc/sys/net/core/optmem_max ;
+see
+.BR socket (7).
+
+The
+.I msg_flags
+field is ignored.
+.\" Still to be documented:
+.\"  Send file descriptors and user credentials using the
+.\"  msg_control* fields.
+.SH RETURN VALUE
+On success, these calls return the number of bytes sent.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+These are some standard errors generated by the socket layer.
+Additional errors
+may be generated and returned from the underlying protocol modules;
+see their respective manual pages.
+.TP
+.B EACCES
+(For UNIX domain sockets, which are identified by pathname)
+Write permission is denied on the destination socket file,
+or search permission is denied for one of the directories
+the path prefix.
+(See
+.BR path_resolution (7).)
+.sp
+(For UDP sockets) An attempt was made to send to a
+network/broadcast address as though it was a unicast address.
+.TP
+.BR EAGAIN " or " EWOULDBLOCK
+.\" Actually EAGAIN on Linux
+The socket is marked nonblocking and the requested operation
+would block.
+POSIX.1-2001 allows either error to be returned for this case,
+and does not require these constants to have the same value,
+so a portable application should check for both possibilities.
+.TP
+.B EAGAIN
+(Internet domain datagram sockets)
+The socket referred to by
+.I sockfd
+had not previously been bound to an address and,
+upon attempting to bind it to an ephemeral port,
+it was determined that all port numbers in the ephemeral port range
+are currently in use.
+See the discussion of
+.I /proc/sys/net/ipv4/ip_local_port_range
+in
+.BR ip (7).
+.TP
+.B EBADF
+.I sockfd
+is not a valid open file descriptor.
+.TP
+.B ECONNRESET
+Connection reset by peer.
+.TP
+.B EDESTADDRREQ
+The socket is not connection-mode, and no peer address is set.
+.TP
+.B EFAULT
+An invalid user space address was specified for an argument.
+.TP
+.B EINTR
+A signal occurred before any data was transmitted; see
+.BR signal (7).
+.TP
+.B EINVAL
+Invalid argument passed.
+.TP
+.B EISCONN
+The connection-mode socket was connected already but a
+recipient was specified.
+(Now either this error is returned, or the recipient specification
+is ignored.)
+.TP
+.B EMSGSIZE
+The socket type
+.\" (e.g., SOCK_DGRAM )
+requires that message be sent atomically, and the size
+of the message to be sent made this impossible.
+.TP
+.B ENOBUFS
+The output queue for a network interface was full.
+This generally indicates that the interface has stopped sending,
+but may be caused by transient congestion.
+(Normally, this does not occur in Linux.
+Packets are just silently dropped
+when a device queue overflows.)
+.TP
+.B ENOMEM
+No memory available.
+.TP
+.B ENOTCONN
+The socket is not connected, and no target has been given.
+.TP
+.B ENOTSOCK
+The file descriptor
+.I sockfd
+does not refer to a socket.
+.TP
+.B EOPNOTSUPP
+Some bit in the
+.I flags
+argument is inappropriate for the socket type.
+.TP
+.B EPIPE
+The local end has been shut down on a connection oriented socket.
+In this case, the process
+will also receive a
+.B SIGPIPE
+unless
+.B MSG_NOSIGNAL
+is set.
+.SH CONFORMING TO
+4.4BSD, SVr4, POSIX.1-2001.
+These interfaces first appeared in 4.2BSD.
+.LP
+POSIX.1-2001 describes only the
+.B MSG_OOB
+and
+.B MSG_EOR
+flags.
+POSIX.1-2008 adds a specification of
+.BR MSG_NOSIGNAL .
+The
+.B MSG_CONFIRM
+flag is a Linux extension.
+.SH NOTES
+According to POSIX.1-2001, the
+.I msg_controllen
+field of the
+.I msghdr
+structure should be typed as
+.IR socklen_t ,
+but glibc currently types it as
+.IR size_t .
+.\" glibc bug raised 12 Mar 2006
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=2448
+.\" The problem is an underlying kernel issue: the size of the
+.\" __kernel_size_t type used to type this field varies
+.\" across architectures, but socklen_t is always 32 bits.
+
+See
+.BR sendmmsg (2)
+for information about a Linux-specific system call
+that can be used to transmit multiple datagrams in a single call.
+.SH BUGS
+Linux may return
+.B EPIPE
+instead of
+.BR ENOTCONN .
+.SH EXAMPLE
+An example of the use of
+.BR sendto ()
+is shown in
+.BR getaddrinfo (3).
+.SH SEE ALSO
+.BR fcntl (2),
+.BR getsockopt (2),
+.BR recv (2),
+.BR select (2),
+.BR sendfile (2),
+.BR sendmmsg (2),
+.BR shutdown (2),
+.BR socket (2),
+.BR write (2),
+.BR cmsg (3),
+.BR ip (7),
+.BR socket (7),
+.BR tcp (7),
+.BR udp (7)

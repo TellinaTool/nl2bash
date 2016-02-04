@@ -1,0 +1,85 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" and Copyright (C) 2011 Michael Kerrisk <mtk.manpages@gamil.com>
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.TH CATAN 3 2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+catan, catanf, catanl \- complex arc tangents
+.SH SYNOPSIS
+.B #include <complex.h>
+.sp
+.BI "double complex catan(double complex " z );
+.br
+.BI "float complex catanf(float complex " z );
+.br
+.BI "long double complex catanl(long double complex " z );
+.sp
+Link with \fI\-lm\fP.
+.SH DESCRIPTION
+These functions calculate the complex arc tangent of
+.IR z .
+If \fIy\ =\ catan(z)\fP, then \fIz\ =\ ctan(y)\fP.
+The real part of y is chosen in the interval [\-pi/2,pi/2].
+.LP
+One has:
+.nf
+
+    catan(z) = (clog(1 + i * z) \- clog(1 \- i * z)) / (2 * i)
+.fi
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw27 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR catan (),
+.BR catanf (),
+.BR catanl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+.SH EXAMPLE
+.nf
+/* Link with "\-lm" */
+
+#include <complex.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int
+main(int argc, char *argv[])
+{
+    double complex z, c, f;
+    double complex i = I;
+
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <real> <imag>\\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    z = atof(argv[1]) + atof(argv[2]) * I;
+
+    c = catan(z);
+    printf("catan() = %6.3f %6.3f*i\\n", creal(c), cimag(c));
+
+    f = (clog(1 + i * z) \- clog(1 \- i * z)) / (2 * i);
+    printf("formula = %6.3f %6.3f*i\\n", creal(f2), cimag(f2));
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH SEE ALSO
+.BR ccos (3),
+.BR clog (3),
+.BR ctan (3),
+.BR complex (7)

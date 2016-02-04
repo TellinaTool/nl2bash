@@ -1,0 +1,54 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.TH CASIN 3 2015-04-19 "" "Linux Programmer's Manual"
+.SH NAME
+casin, casinf, casinl \- complex arc sine
+.SH SYNOPSIS
+.B #include <complex.h>
+.sp
+.BI "double complex casin(double complex " z );
+.br
+.BI "float complex casinf(float complex " z );
+.br
+.BI "long double complex casinl(long double complex " z );
+.sp
+Link with \fI\-lm\fP.
+.SH DESCRIPTION
+These functions calculate the complex arc sine of
+.IR z .
+If \fIy\ =\ casin(z)\fP, then \fIz\ =\ csin(y)\fP.
+The real part of
+.I y
+is chosen in the interval [\-pi/2,pi/2].
+.LP
+One has:
+.nf
+
+    casin(z) = \-i clog(iz + csqrt(1 \- z * z))
+.fi
+.SH VERSIONS
+These functions first appeared in glibc in version 2.1.
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw28 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR casin (),
+.BR casinf (),
+.BR casinl ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+C99, POSIX.1-2001, POSIX.1-2008.
+.SH SEE ALSO
+.BR clog (3),
+.BR csin (3),
+.BR complex (7)

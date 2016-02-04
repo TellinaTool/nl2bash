@@ -1,0 +1,130 @@
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1997-08-25 by Nicolás Lichtmaier <nick@debian.org>
+.\" Modified 2004-06-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2008-11-27 by mtk
+.\"
+.TH GETDOMAINNAME 2 2012-10-25 "Linux" "Linux Programmer's Manual"
+.SH NAME
+getdomainname, setdomainname \- get/set NIS domain name
+.SH SYNOPSIS
+.B #include <unistd.h>
+.sp
+.BI "int getdomainname(char *" name ", size_t " len );
+.br
+.BI "int setdomainname(const char *" name ", size_t " len );
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR getdomainname (),
+.BR setdomainname ():
+.RS 4
+_BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE\ <\ 500)
+.RE
+.ad
+.SH DESCRIPTION
+These functions are used to access or to change the NIS domain name of the
+host system.
+
+.BR setdomainname ()
+sets the domain name to the value given in the character array
+.IR name .
+The
+.I len
+argument specifies the number of bytes in
+.IR name .
+(Thus,
+.I name
+does not require a terminating null byte.)
+
+.BR getdomainname ()
+returns the null-terminated domain name in the character array
+.IR name ,
+which has a length of
+.I len
+bytes.
+If the null-terminated domain name requires more than \fIlen\fP bytes,
+.BR getdomainname ()
+returns the first \fIlen\fP bytes (glibc) or gives an error (libc).
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set appropriately.
+.SH ERRORS
+.BR setdomainname ()
+can fail with the following errors:
+.TP
+.B EFAULT
+.I name
+pointed outside of user address space.
+.TP
+.B EINVAL
+.I len
+was negative or too large.
+.TP
+.B EPERM
+the caller is unprivileged (Linux: does not have the
+.B CAP_SYS_ADMIN
+capability).
+.PP
+.BR getdomainname ()
+can fail with the following errors:
+.TP
+.B EINVAL
+For
+.BR getdomainname ()
+under libc:
+.I name
+is NULL or
+.I name
+is longer than
+.I len
+bytes.
+.SH CONFORMING TO
+POSIX does not specify these calls.
+.\" But they appear on most systems...
+.SH NOTES
+Since Linux 1.0, the limit on the length of a domain name,
+including the terminating null byte, is 64 bytes.
+In older kernels, it was 8 bytes.
+
+On most Linux architectures (including x86),
+there is no
+.BR getdomainname ()
+system call; instead, glibc implements
+.BR getdomainname ()
+as a library function that returns a copy of the
+.I domainname
+field returned from a call to
+.BR uname (2).
+.SH SEE ALSO
+.BR gethostname (2),
+.BR sethostname (2),
+.BR uname (2)

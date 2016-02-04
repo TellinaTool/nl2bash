@@ -1,0 +1,122 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.TH PTHREAD_CLEANUP_PUSH_DEFER_NP 3 2014-05-28 "Linux" "Linux Programmer's Manual"
+.SH NAME
+pthread_cleanup_push_defer_np, pthread_cleanup_pop_restore_np \- push and pop
+thread cancellation clean-up handlers while saving cancelability type
+.SH SYNOPSIS
+.nf
+.B #include <pthread.h>
+
+.BI "void pthread_cleanup_push_defer_np(void (*" routine ")(void *),"
+.BI "                                   void *" arg );
+.BI "void pthread_cleanup_pop_restore_np(int " execute );
+.fi
+.sp
+Compile and link with \fI\-pthread\fP.
+.sp
+.in -4n
+Feature Test Macro Requirements for glibc (see
+.BR feature_test_macros (7)):
+.in
+.sp
+.ad l
+.BR pthread_cleanup_push_defer_np (),
+.BR pthread_cleanup_pop_defer_np ():
+.RS 4
+_GNU_SOURCE
+.RE
+.ad
+.SH DESCRIPTION
+These functions are the same as
+.BR pthread_cleanup_push (3)
+and
+.BR pthread_cleanup_pop (3),
+except for the differences noted on this page.
+
+Like
+.BR pthread_cleanup_push (3),
+.BR pthread_cleanup_push_defer_np ()
+pushes
+.I routine
+onto the thread's stack of cancellation clean-up handlers.
+In addition, it also saves the thread's current cancelability type,
+and sets the cancelability type to "deferred" (see
+.BR pthread_setcanceltype (3));
+this ensures that cancellation clean-up will occur
+even if the thread's cancelability type was "asynchronous"
+before the call.
+
+Like
+.BR pthread_cleanup_pop (3),
+.BR pthread_cleanup_pop_restore_np ()
+pops the top-most clean-up handler from the thread's
+stack of cancellation clean-up handlers.
+In addition, it restores the thread's cancelability
+type to its value at the time of the matching
+.BR pthread_cleanup_push_defer_np ().
+
+The caller must ensure that calls to these
+functions are paired within the same function,
+and at the same lexical nesting level.
+Other restrictions apply, as described in
+.BR pthread_cleanup_push (3).
+
+This sequence of calls:
+
+.in +4n
+.nf
+pthread_cleanup_push_defer_np(routine, arg);
+pthread_cleanup_pop_restore_np(execute);
+.fi
+.in
+
+is equivalent to (but shorter and more efficient than):
+
+.\" As far as I can see, LinuxThreads reverses the two substeps
+.\" in the push and pop below.
+.in +4n
+.nf
+int oldtype;
+
+pthread_cleanup_push(routine, arg);
+pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &oldtype);
+\&...
+pthread_setcanceltype(oldtype, NULL);
+pthread_cleanup_pop(execute);
+.fi
+.in
+.\" SH VERSIONS
+.\" Available since glibc 2.0
+.SH CONFORMING TO
+These functions are nonstandard GNU extensions;
+hence the suffix "_np" (nonportable) in the names.
+.SH SEE ALSO
+.BR pthread_cancel (3),
+.BR pthread_cleanup_push (3),
+.BR pthread_setcancelstate (3),
+.BR pthread_testcancel (3),
+.BR pthreads (7)

@@ -1,0 +1,190 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:11:47 1993 by Rik Faith (faith@cs.unc.edu)
+.\" 2007-06-15, Marc Boyer <marc.boyer@enseeiht.fr> + mtk
+.\"     Improve discussion of strncat().
+.TH STRCAT 3  2015-08-08 "GNU" "Linux Programmer's Manual"
+.SH NAME
+strcat, strncat \- concatenate two strings
+.SH SYNOPSIS
+.nf
+.B #include <string.h>
+.sp
+.BI "char *strcat(char *" dest ", const char *" src );
+.sp
+.BI "char *strncat(char *" dest ", const char *" src ", size_t " n );
+.fi
+.SH DESCRIPTION
+The
+.BR strcat ()
+function appends the
+.I src
+string to the
+.I dest
+string,
+overwriting the terminating null byte (\(aq\\0\(aq) at the end of
+.IR dest ,
+and then adds a terminating null byte.
+The strings may not overlap, and the
+.I dest
+string must have
+enough space for the result.
+If
+.I dest
+is not large enough, program behavior is unpredictable;
+.IR "buffer overruns are a favorite avenue for attacking secure programs" .
+.PP
+The
+.BR strncat ()
+function is similar, except that
+.IP * 3
+it will use at most
+.I n
+bytes from
+.IR src ;
+and
+.IP *
+.I src
+does not need to be null-terminated if it contains
+.I n
+or more bytes.
+.PP
+As with
+.BR strcat (),
+the resulting string in
+.I dest
+is always null-terminated.
+.PP
+If
+.IR src
+contains
+.I n
+or more bytes,
+.BR strncat ()
+writes
+.I n+1
+bytes to
+.I dest
+.RI ( n
+from
+.I src
+plus the terminating null byte).
+Therefore, the size of
+.I dest
+must be at least
+.IR "strlen(dest)+n+1" .
+
+A simple implementation of
+.BR strncat ()
+might be:
+.in +4n
+.nf
+
+char *
+strncat(char *dest, const char *src, size_t n)
+{
+    size_t dest_len = strlen(dest);
+    size_t i;
+
+    for (i = 0 ; i < n && src[i] != \(aq\\0\(aq ; i++)
+        dest[dest_len + i] = src[i];
+    dest[dest_len + i] = \(aq\\0\(aq;
+
+    return dest;
+}
+.fi
+.in
+.SH RETURN VALUE
+The
+.BR strcat ()
+and
+.BR strncat ()
+functions return a pointer to the resulting string
+.IR dest .
+.SH ATTRIBUTES
+For an explanation of the terms used in this section, see
+.BR attributes (7).
+.TS
+allbox;
+lbw19 lb lb
+l l l.
+Interface	Attribute	Value
+T{
+.BR strcat (),
+.BR strncat ()
+T}	Thread safety	MT-Safe
+.TE
+.SH CONFORMING TO
+POSIX.1-2001, POSIX.1-2008, C89, C99, SVr4, 4.3BSD.
+.SH NOTES
+Some systems (the BSDs, Solaris, and others) provide the following function:
+
+    size_t strlcat(char *dest, const char *src, size_t size);
+
+This function appends the null-terminated string
+.I src
+to the string
+.IR dest ,
+copying at most
+.IR "size\-strlen(dest)\-1"
+from
+.IR src ,
+and adds a terminating null byte to the result,
+.I unless
+.IR size
+is less than
+.IR strlen(dest) .
+This function fixes the buffer overrun problem of
+.BR strcat (),
+but the caller must still handle the possibility of data loss if
+.I size
+is too small.
+The function returns the length of the string
+.BR strlcat ()
+tried to create; if the return value is greater than or equal to
+.IR size ,
+data loss occurred.
+If data loss matters, the caller
+.I must
+either check the arguments before the call, or test the function return value.
+.BR strlcat ()
+is not present in glibc and is not standardized by POSIX,
+.\" https://lwn.net/Articles/506530/
+but is available on Linux via the
+.IR libbsd
+library.
+.SH SEE ALSO
+.BR bcopy (3),
+.BR memccpy (3),
+.BR memcpy (3),
+.BR strcpy (3),
+.BR string (3),
+.BR strncpy (3),
+.BR wcscat (3),
+.BR wcsncat (3)

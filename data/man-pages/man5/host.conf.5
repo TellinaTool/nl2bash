@@ -1,0 +1,212 @@
+.\" Copyright (c) 1997 Martin Schulze (joey@infodrom.north.de)
+.\" Much of the text is copied from the manpage of resolv+(8).
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2003-08-23 Martin Schulze <joey@infodrom.org> Updated according to glibc 2.3.2
+.TH HOST.CONF 5 2015-07-23 "Linux" "Linux System Administration"
+.SH NAME
+host.conf \- resolver configuration file
+.SH DESCRIPTION
+The file
+.I /etc/host.conf
+contains configuration information specific to the resolver library.
+It should contain one configuration keyword per line, followed by
+appropriate configuration information.
+The following keywords are recognized:
+.TP
+.I trim
+This keyword may be listed more than once.
+Each time it should be
+followed by a list of domains, separated by colons (\(aq:\(aq), semicolons
+(\(aq;\(aq) or commas (\(aq,\(aq), with the leading dot.
+When set, the
+resolver library will automatically trim the given domain name from the
+end of any hostname resolved via DNS.
+This is intended for use with
+local hosts and domains.
+(Related note: trim will not affect hostnames
+gathered via NIS or the hosts file.
+Care should be taken to
+ensure that the first hostname for each entry in the hosts file is
+fully qualified or unqualified, as appropriate for the local
+installation.)
+.TP
+.I multi
+Valid values are
+.IR on " and " off .
+If set to
+.IR on ,
+the resolver library will return all valid addresses for a host that
+appears in the
+.I /etc/hosts
+file,
+instead of only the first.
+This is
+.I off
+by default, as it may cause a substantial performance loss at sites
+with large hosts files.
+.TP
+.I reorder
+Valid values are
+.IR on " and " off .
+If set to
+.IR on ,
+the resolver library
+will attempt to reorder host addresses so that local addresses
+(i.e., on the same subnet) are listed first when a
+.BR gethostbyname (3)
+is performed.
+Reordering is done for all lookup methods.
+The default value is
+.IR off .
+.SH ENVIRONMENT
+The following environment variables can be used to allow users to
+override the behavior which is configured in
+.IR /etc/host.conf :
+.TP
+.B RESOLV_HOST_CONF
+If set, this variable points to a file that should be read instead of
+.IR /etc/host.conf .
+.TP
+.B RESOLV_MULTI
+Overrides the
+.I multi
+command.
+.TP
+.B RESOLV_REORDER
+Overrides the
+.I reorder
+command.
+.TP
+.B RESOLV_ADD_TRIM_DOMAINS
+A list of domains,  separated by colons (\(aq:\(aq), semicolons (\(aq;\(aq) or
+commas (\(aq,\(aq), with the leading dot, which will be added to the list of
+domains that should be trimmed.
+.TP
+.B RESOLV_OVERRIDE_TRIM_DOMAINS
+A list of domains,  separated by colons (\(aq:\(aq), semicolons (\(aq;\(aq) or
+commas (\(aq,\(aq), with the leading dot, which will replace the list of
+domains that should be trimmed.
+Overrides the
+.I trim
+command.
+.SH FILES
+.TP
+.I /etc/host.conf
+Resolver configuration file
+.TP
+.I /etc/resolv.conf
+Resolver configuration file
+.TP
+.I /etc/hosts
+Local hosts database
+.SH NOTES
+The following differences exist compared to the original implementation.
+A new command
+.I spoof
+and a new environment variable
+.B RESOLV_SPOOF_CHECK
+can take arguments like
+.IR off ", " nowarn " and " warn .
+Line comments can appear anywhere and not only at the beginning of a line.
+.SS Historical
+The
+.BR nsswitch.conf (5)
+file is the modern way of controlling the order of host lookups.
+.PP
+In glibc 2.4 and earlier, the following keyword is recognized:
+.TP
+.I order
+This keyword specifies how host lookups are to be performed.
+It should be followed by one or more lookup methods, separated by commas.
+Valid methods are
+.IR bind ", " hosts ", and " nis .
+.TP
+.B RESOLV_SERV_ORDER
+Overrides the order command.
+.PP
+Since glibc 2.0.7, the following keywords and environment variable have
+been recognized but never implemented:
+.TP
+.I nospoof
+Valid values are
+.IR on " and " off .
+If set to
+.IR on ,
+the resolver library will attempt to prevent hostname spoofing to
+enhance the security of
+.BR rlogin " and " rsh .
+It works as follows: after performing a host address lookup,
+the resolver library will perform a hostname lookup for that address.
+If the two hostnames
+do not match, the query will fail.
+The default value is
+.IR off .
+.TP
+.I spoofalert
+Valid values are
+.IR on " and " off .
+If this option is set to
+.I on
+and the
+.I nospoof
+option is also set,
+the resolver library will log a warning of the error via the
+syslog facility.
+The default value is
+.IR off .
+.TP
+.I spoof
+Valid values are
+.IR off ", " nowarn ", and " warn .
+If this option is set to
+.IR off ,
+spoofed addresses are permitted and no warnings will be emitted
+via the syslog facility.
+If this option is set to
+.IR warn ,
+the resolver library will attempt to prevent hostname spoofing to
+enhance the security and log a warning of the error via the syslog
+facility.
+If this option is set to
+.IR nowarn ,
+the resolver library will attempt to prevent hostname spoofing to
+enhance the security but not emit warnings via the syslog facility.
+Setting this option to anything else is equal to setting it to
+.IR nowarn .
+.TP
+.B RESOLV_SPOOF_CHECK
+Overrides the
+.IR nospoof ", " spoofalert, " and " spoof
+commands in the same way as the
+.I spoof
+command is parsed.
+Valid values are
+.IR off ", " nowarn, " and " warn .
+.SH SEE ALSO
+.BR gethostbyname (3),
+.BR hosts (5),
+.BR nsswitch.conf (5),
+.BR resolv.conf (5),
+.BR hostname (7),
+.BR named (8)
