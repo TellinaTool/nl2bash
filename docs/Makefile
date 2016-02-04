@@ -1,9 +1,9 @@
 .PHONY: all clean
 
-all: relatedwork.pdf
+all: writeup.pdf
 
-relatedwork.pdf: relatedwork.tex bibliography.bib
-	latexmk -pdf -pdflatex='pdflatex -interaction nonstopmode' '$<'
+writeup.pdf: $(wildcard *.tex) bibliography.bib
+	latexmk -pdf -pdflatex='pdflatex -interaction nonstopmode' 'writeup.tex'
 
 clean:
 	$(RM) *.pdf *.bbl *.blg *.log *.fls *.out *.aux *.fdb_latexmk
