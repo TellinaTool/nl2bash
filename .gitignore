@@ -14,3 +14,8 @@
 
 # IDE junk
 *.sublime-*
+
+# Python
+__pycache__
+*.pyc
+/src/model.py
