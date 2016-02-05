@@ -11,3 +11,6 @@
 
 # Ignore the uncompressed StackOverflow data
 *.sqlite
+
+# IDE junk
+*.sublime-*
