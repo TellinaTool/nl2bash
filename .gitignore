@@ -11,3 +11,11 @@
 
 # Ignore the uncompressed StackOverflow data
 *.sqlite
+
+# IDE junk
+*.sublime-*
+
+# Python
+__pycache__
+*.pyc
+/src/model.py
