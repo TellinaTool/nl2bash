@@ -1,0 +1,20 @@
+\section{Natural Language Based CLI Framework}
+
+The natural language based command line interpreter we plan to develop consists of two key components: (1) an intermediate logic representation based on which Linux commands are generated and (2) a semantic parser that effectively maps the natural language commands issued by users to this intermediate representation. Especially, our initial pilot system is restricted to cover only file system operations. We restrict the domain with the hope that it can be expressed with tractable logic as well as to reduce the degree of ambiguity in the natural language command.
+
+\subsection{Intermediate Representation of File Operations}
+\label{subsec:represent}
+Our ideal intermediate representation is one based on which the executable commands can be deterministically generated, but is also reasonably similar to natural language semantics such that an accurate translation is not beyond hope.
+\paragraph{Representation of File System}
+\paragraph{Representation of File Operations}
+Since the number of Linux commands and options is large even in domain-specific scenarios, it is difficult for a human designer to hand-code all the generation rules. We plan to semi-automate this step by adding information extracted from the Linux man pages\footnote{\url{http://linux.die.net/man/}}.
+
+\subsection{Natural Language Command Interpreter}
+We plan to train the natural language command interpreter in a supervised setting, assuming a set of natural language and Linux command pairs are available. The intermediate logic representation, however, remains as latent variables in our model. We score a natural language to logical representation mapping based on the following features:
+\begin{itemize}
+	\item association of key words/phrases to partial logical formulas
+	\item association between partial logical formulas (e.g. how often do they combined in valid commands)
+	\item if the ground truth command can be generated from the logic representation
+	\item complexity of the logical formulas and the commands generated from them.
+\end{itemize}
+The weights of these features are learned using the training set.
