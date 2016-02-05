@@ -7,7 +7,7 @@ The natural language based command line interpreter we plan to develop consists 
 Our ideal intermediate representation is one based on which the executable commands can be deterministically generated, but is also reasonably similar to natural language semantics such that an accurate translation is not beyond hope.
 \paragraph{Representation of File System}
 \paragraph{Representation of File Operations}
-Since the number of Linux commands and options is large even in domain-specific scenarios, it is difficult for a human designer to hand-code all the generation rules. We plan to semi-automate this step by adding information extracted from the Linux man pages\footnote{\url{http://linux.die.net/man/}}.
+Since the number of Linux commands and options is large even in domain-specific scenarios, it is difficult for a human designer to hand-code all of the generation rules. We plan to semi-automate this step by adding information extracted from the Linux man pages\footnote{\url{http://linux.die.net/man/}}.
 
 \subsection{Natural Language Command Interpreter}
 We plan to train the natural language command interpreter in a supervised setting, assuming a set of natural language and Linux command pairs are available. The intermediate logic representation, however, remains as latent variables in our model. We score a natural language to logical representation mapping based on the following features:
