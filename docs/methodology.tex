@@ -1,4 +1,55 @@
 %!TEX root=writeup.tex
 \section{Methodology}
 
-How will we evaluate our technique?
+Our key research question is:
+%
+\begin{quote}
+    Can the tool described thus far improve the speed with which programmers
+    accomplish tasks with the command line?
+\end{quote}
+%
+To answer this question we plan to conduct a small pilot user study. Programmers
+will be asked to accomplish various tasks at the command line. They will be
+divided into two groups: one group will be allowed to use our tool, and the
+other will be allowed to use the internet. Both groups will be allowed the use
+of manpages and will be allowed to experiment by running their commands.
+
+We hypothesize that our tool will improve the speed with which programmers
+devise solutions without impeding the correctness of those solutions.
+
+\paragraph{Task} The programmers will each be asked to perform a small number of
+tasks using the command line. The tasks will be drawn from our collected data.
+A straightforward one-line solution exists for each task, although that solution
+may use exotic commands or flags. The tasks will not be inputs that the tool has
+been trained on. Some example tasks are listed in \autoref{fig:sample-tasks}. We
+will not impose any specific time limit on the participants.
+
+\begin{figure}
+    \begin{framed}
+    \begin{itemize}
+        \item In the current directory, recursively find all files with ``conf''
+            in the filename
+        \item Recursively remove all empty sub-directories from a directory tree
+        \item Find files that are not executable
+        \item Find the 100 biggest files on your system
+        \item Make a tar archive of a folder, excluding .png files
+    \end{itemize}
+    \end{framed}
+    \caption{Sample tasks for the proposed user study.}
+    \label{fig:sample-tasks}
+\end{figure}
+
+\paragraph{Participants} The participants in the study will be undergraduate and
+graduate students. They will be proficient command-line users, but not
+necessarily experts. We expect to perform the study with five participants in
+each group.
+
+\paragraph{Measurements} We will primarily measure two things:
+\begin{enumerate}
+    \item How long do participants take to perform each task?
+    \item Are the participants' solutions correct?
+\end{enumerate}
+We will measure the participants' speed by having them specifically indicate
+when they have completed each task. We will measure correctness by having them
+save the output from each task; we will compare that output against the correct
+solution.
