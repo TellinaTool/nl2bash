@@ -4,6 +4,12 @@
 \usepackage{hyperref}
 \usepackage{framed}
 
+% Fix for footnotes inside \begin{tabular}; see
+% https://tex.stackexchange.com/questions/109467/footnote-in-tabular-environment
+\usepackage{footnote}
+\makesavenoteenv{tabular}
+\makesavenoteenv{table}
+
 \newcommand{\todo}[1]{{\bf \{TODO: {#1}\}}}
 % \newcommand{\todo}[1]{\relax}
 
