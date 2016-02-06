@@ -37,6 +37,8 @@ class ArgInfo(object):
             return " " + self.info[0].upper()
 
 def mkarg(x):
+    if x is None:
+        return empty()
     if isinstance(x, ArgInfo):
         return x
     if isinstance(x, str):
@@ -78,21 +80,21 @@ TAR_ARGS = [dash + main_cmd + v + f
 TOOLS = [
     Tool("find"  , flags=seq(hole("path"),
         seq(
-            optional(arg("-not")),
+            optional("-not"),
             case(
-                seq(arg("-name"), hole("pattern")),
-                seq(arg("-iname"), hole("pattern")),
-                seq(arg("-mtime"), hole("time")),
-                seq(arg("-size"), hole("n")),
-                seq(arg("-exec"), hole("cmd ';'")))),
+                seq("-name", hole("pattern")),
+                seq("-iname", hole("pattern")),
+                seq("-mtime", hole("time")),
+                seq("-size", hole("n")),
+                seq("-exec", hole("cmd ';'")))),
         case(
             empty(),
-            arg("-delete")))),
+            "-delete"))),
     Tool("ls"    , flags=case("-l", "-la")),
     # Tool("sed"   , flags=hole("s/pat/repl/")),
     # Tool("awk"   , flags=hole("script")),
-    Tool("grep"  , flags=seq(optional(arg("-e")), optional(arg("-i")), optional(arg("-v")), optional(arg("-r")), hole("regex"))),
-    Tool("fgrep"  , flags=seq(optional(arg("-v")), optional(arg("-i")), optional(arg("-r")), hole("string"))),
+    Tool("grep"  , flags=seq(optional("-e"), optional("-i"), optional("-v"), optional("-r"), hole("regex"))),
+    Tool("fgrep"  , flags=seq(optional("-v"), optional("-i"), optional("-r"), hole("string"))),
     Tool("xargs" , flags=seq(optional("-0"), optional("-n1"), hole("cmd"))),
     Tool("rsync" , flags=empty()),
     Tool("scp"   , flags=optional("-R")),
@@ -101,9 +103,9 @@ TOOLS = [
     Tool("head"  , flags=optional(seq("-n", hole("n")))),
     Tool("tail"  , flags=optional(seq("-n", hole("n")))),
     Tool("rm"    , flags=case(
-        seq(arg("-f"),  hole("file")),
-        seq(arg("-r"),  hole("file_or_dir")),
-        seq(arg("-rf"), hole("file_or_dir")))),
+        seq("-f",  hole("file")),
+        seq("-r",  hole("file_or_dir")),
+        seq("-rf", hole("file_or_dir")))),
     Tool("rmdir" , flags=empty()),
     Tool("mv"    , flags=empty()),
     Tool("cp"    , flags=optional("-R")),
