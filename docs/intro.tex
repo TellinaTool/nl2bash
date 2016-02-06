@@ -23,6 +23,14 @@ the users have clear ideas about their goals and can often express them succinct
     Copy folder recursively, excluding some folders%
         \footnote{\url{https://stackoverflow.com/questions/2193584/copy-folder-recursively-excluding-some-folders}} &
         \texttt{rsync -av --exclude='path1/to/exclude' --exclude='path2/to/exclude' source destination} \\
+    \hline
+    Find the 100 biggest files on your system%
+        \footnote{\url{http://pro-toolz.net/data/programming/bash/important_shell_commands.html}}&
+        \texttt{find / -type f -ls | awk '{print $7,$11}' | sort -n | tail -100} \\
+    \hline
+    Find the most recently modified files in a directory and all subdirectories%
+        \footnote{\url{http://www.bashoneliners.com/oneliners/oneliner/80/}}&
+        \texttt{find /path/to/dir -type f -mtime -7 -print0 | xargs -0 ls -lt | head} \\
 \end{tabular}
 % \caption{Natural language description and command line pairs crawled from StackOverflow.}
 % \end{table}
