@@ -9,7 +9,7 @@
 The command line interface (CLI) enables users to perform a rich set of actions including file system manipulation, remote control, system configuration, and more. CLI programming is considered an important software development skill; many companies expect CLI proficiency when hiring new software engineers. CLI programming also greatly boost productivity in several other professions, such as research scientists, physicians and students. People in such professions typically have experimental results and other relevant information stored on hard disks, and need to repeatedly perform file operations to retrieve and update those information. Most of these operations can be succinctly represented in a short command line.
 
 Nevertheless, the rich vocabulary available to CLI users requires a high degree of memorization and familiarity, and as a result, new users often find it difficult to master. On the other hand, % many CLI tasks can be expressed succinctly in natural language
-the users are clear about their goals and can often express them succinctly in natural language~\cite{Myers:2004:NPL:1015864.1015888}. Thus, there is great value in convering natural language commands into CLI programs~\cite{Pederson-Report,Manaris:1994:DNL:198125.198137,ZOLTANFORD1991527}. The table below shows a few examples of natural language descriptions paired up with executable commands. The examples are gathered from StackOverflow\footnote{\url{https://stackoverflow.com}}, UnixExchange\footnote{\url{http://unix.stackexchange.com/questions/tagged/bash}} and other online resources.
+the users are clear about their goals and can often express them succinctly in natural language~\cite{Myers:2004:NPL:1015864.1015888}. Thus, there is great value in automatically converting natural language commands into CLI programs~\cite{Pederson-Report,Manaris:1994:DNL:198125.198137,ZOLTANFORD1991527}. The table below shows a few examples of natural language descriptions paired up with executable commands. The examples are gathered from StackOverflow\footnote{\url{https://stackoverflow.com}}, UnixExchange\footnote{\url{http://unix.stackexchange.com/questions/tagged/bash}} and other online resources.
 
 \begin{center}
 % \begin{table}[ht]
@@ -23,14 +23,6 @@ the users are clear about their goals and can often express them succinctly in n
     Copy folder recursively, excluding some folders%
         \footnote{\url{https://stackoverflow.com/questions/2193584/copy-folder-recursively-excluding-some-folders}} &
         \texttt{rsync -av --exclude='path1/to/exclude' --exclude='path2/to/exclude' source destination} \\
-    \hline
-    Find the 100 biggest files on your system%
-        \footnote{\url{http://pro-toolz.net/data/programming/bash/important_shell_commands.html}}&
-        \texttt{find / -type f -ls | awk '{print $7,$11}' | sort -n | tail -100} \\
-    \hline
-    Find the most recently modified files in a directory and all subdirectories%
-        \footnote{\url{http://www.bashoneliners.com/oneliners/oneliner/80/}}&
-        \texttt{find /path/to/dir -type f -mtime -7 -print0 | xargs -0 ls -lt | head} \\
 \end{tabular}
 % \caption{Natural language description and command line pairs crawled from StackOverflow.}
 % \end{table}
@@ -38,7 +30,10 @@ the users are clear about their goals and can often express them succinctly in n
 
 % Online forums such as StackOverflow\footnote{\url{https://stackoverflow.com}}, UnixExchange\footnote{\url{http://unix.stackexchange.com/questions/tagged/bash}} and BashOneLiner\footnote{\url{http://www.bashoneliners.com/oneliners/oneliner/popular/}} provide a large set of simple questions and proposed solutions. For example:
 
-Given natural language descriptions of a task (such as those on the left), we desire system to translate these descriptions into executable commands (such as those on the right). Natural language programming techniques has have shown promise in several domains, including database queries~\cite{DBLP:journals/pvldb/LiJ14, DBLP:conf/sigmod/GulwaniM14}, text editing~\cite{DBLP:journals/corr/DesaiGHJKMRR15} and smart phone scripting~\cite{DBLP:conf/mobisys/LeGS13}. Two factors make this problem challenging:
+Given natural language descriptions of a task (such as those on the left), we desire a system to automatically translate them into executable commands (such as those on the right). 
+% Natural language programming techniques 
+Previous research of domain-specific natural language programming have shown promise in several prototypes, including database queries~\cite{DBLP:journals/pvldb/LiJ14, DBLP:conf/sigmod/GulwaniM14}, text editing~\cite{DBLP:journals/corr/DesaiGHJKMRR15} and smart phone scripting~\cite{DBLP:conf/mobisys/LeGS13}. 
+There are a few factors that make command line operations challenging, specifically:
 \begin{itemize}
 \item \textbf{Ambiguity.} Natural language descriptions are inherently ambiguous. Though several techniques including interactive disambiguation~\cite{DBLP:journals/pvldb/LiJ14} and keyword-based translation~\cite{DBLP:conf/sigmod/GulwaniM14} have been proposed, there are still no general techniques that can handle all inputs. Unfortunately, partial and ill-formed descriptions are common in command line questions. Even in the examples above, the askers have omitted many details such as the names of the folders to operate on.
 \item \textbf{Richness in basic operations.} Unlike other domains like database queries, which are complex in their program structure but simple in atomic operations, command line programs are often simple in structure but complex in basic operations. The set of CLI commands is very large.
