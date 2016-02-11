@@ -11,8 +11,8 @@ The command line interface (CLI) enables users to perform a rich set of actions 
 Nevertheless, the rich vocabulary available to CLI users requires a high degree of memorization and familiarity, and as a result, new users often find it difficult to master. On the other hand, % many CLI tasks can be expressed succinctly in natural language
 the users who are clear about their goals can often express them succinctly in natural language~\cite{Myers:2004:NPL:1015864.1015888}. Thus, there is great value in automatically converting natural language commands into CLI programs~\cite{Pederson-Report,zoltan1991get,Manaris:1994:DNL:198125.198137}. The table below shows a few examples of natural language descriptions paired up with executable commands. The examples are gathered from StackOverflow
 %\footnote{\url{https://stackoverflow.com}}
-, UnixExchange 
-%\footnote{\url{http://unix.stackexchange.com/questions/tagged/bash}} 
+, UnixExchange
+%\footnote{\url{http://unix.stackexchange.com/questions/tagged/bash}}
 and other online resources.
 
 \begin{center}
@@ -42,13 +42,13 @@ and other online resources.
 
 % Online forums such as StackOverflow\footnote{\url{https://stackoverflow.com}}, UnixExchange\footnote{\url{http://unix.stackexchange.com/questions/tagged/bash}} and BashOneLiner\footnote{\url{http://www.bashoneliners.com/oneliners/oneliner/popular/}} provide a large set of simple questions and proposed solutions. For example:
 
-Given natural language descriptions of a task (such as those on the left), we desire a system to automatically translate them into executable commands (such as those on the right). 
-% Natural language programming techniques 
-Previous research have shown promise of natural language programming in several domains, including database queries~\cite{DBLP:journals/pvldb/LiJ14, DBLP:conf/sigmod/GulwaniM14}, text editing~\cite{DBLP:journals/corr/DesaiGHJKMRR15} and smart phone scripting~\cite{DBLP:conf/mobisys/LeGS13}. 
+Given natural language descriptions of a task (such as those on the left), we desire a system to automatically translate them into executable commands (such as those on the right).
+% Natural language programming techniques
+Previous research have shown promise of natural language programming in several domains, including database queries~\cite{DBLP:journals/pvldb/LiJ14, DBLP:conf/sigmod/GulwaniM14}, text editing~\cite{DBLP:journals/corr/DesaiGHJKMRR15} and smart phone scripting~\cite{DBLP:conf/mobisys/LeGS13}.
 There are a few factors that make command line operations challenging, specifically:
 \begin{itemize}
 \item \textbf{Ambiguity in natural language.} Natural language descriptions are inherently ambiguous. Although techniques such as keyword-based translation~\cite{DBLP:conf/sigmod/GulwaniM14}, semantic parsing~\citep{Zettlemoyer05learningto}, and interactive disambiguation~\cite{DBLP:journals/pvldb/LiJ14} have been proposed, state-of-the-art natural language processing approaches are still error prone and cover limited set of linguistic phenomena.
-% there are still no general techniques that can handle all inputs. 
+% there are still no general techniques that can handle all inputs.
 Unfortunately, partial and ill-formed descriptions are common in command line questions. It can be seen from the examples above that users turned to omit many details such as the names of the directories, which seems natural to skip in conversations but are in fact essential to program synthesis. In the last two examples shown above, the system needs to figure out that ``biggest'' triggers the operations of sorting the files based on the size attribute and ``most recently'' requires filtering the files based on the modification time. Both operations are related to the lexical meanings of the words in an obscure way.
 
 \item \textbf{Richness in basic operations.} Different from domains such as database queries, which are complex in their program structure but simple in the atomic operations, command line programs are often simple in structure but complex in basic operations. The large and growing set of basic operations makes it impossible for synthesizer designers to define a fixed target language set as required by existing approaches, and this makes it hard for existing approach to properly address the CLI program synthesis challenges.
