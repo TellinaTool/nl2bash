@@ -1,0 +1,66 @@
+.Dd 9/11/15
+.Dt SSH-KEYCHAIN 8
+.Os Darwin
+.Sh NAME
+.Nm ssh-keychain.dylib
+.Nd smartcard/keychain support library
+.Sh DESCRIPTION
+The ssh-keychain.dylib library is used as a PKCS11 module replacement for family of ssh tools. It provides
+cerfiticates on smartcards and/or user keychains.
+.Sh OVERVIEW
+By default, only valid certificates available on all smartcards currently inserted into attached readers. If certificates
+on user keychains are desired, configuration of
+.Nm
+is necessary. This is also true if there is a need to limit which smartcard
+certificates are provided.
+To select certificates which should be provided, it is necessary to know public key hash of such certificates.
+This hash is usually in hexadecimal string form, without leading
+.Em 0x .
+To determine such hash for certificate on smartcard,
+.Em sc_auth hash
+command can be used. For certificates in user keychains, it is the value of
+.Em hpky
+attribute from
+.Em security find-certificate
+output.
+.Sh ENVIRONMENT
+Configuration passed as environment variable has always precedence over configuration file. There
+is just one available variable - 
+.Em KEYCHAIN_CERTIFICATES .
+It should contain semicolon-separated list of public key hashes of certificates which
+should be provided to the ssh tools.
+.Sh CONFIG FILE
+If no enviroment variable configuration is provided,
+.Nm
+looks for configuration file located at
+.Em ~/.ssh/sshkeychain.plist
+This file is standard property-list and should contain string value named
+.Em KeychainCertificates.
+Its value is expected to be semicolon-separated list of public key hashes which should be exposed to ssh tools.
+.Em KeychainCertificates
+can be also an array where each item corresponds to the one public key hash.
+.Sh EXAMPLES
+.Bl -tag -width Ds
+.Bd -unfilled
+.It Ev Environment:
+KEYCHAIN_CERTIFICATES="AE31125DA4AAA294A4FED97B815D7F8DD1A78FF3;168D2C4CDDFCDADD465BAF3E6BCFE8193D8D42D1"
+ssh -o PKCS11Provider=/usr/lib/ssh-keychain.dylib machine
+.Ed
+.Bd -unfilled
+.It Ev Configuration plist:
+{
+    "KeychainCertificates" => [
+        0 => "AE31125DA4AAA294A4FED97B815D7F8DD1A78FF3"
+        1 => "168D2C4CDDFCDADD465BAF3E6BCFE8193D8D42D1"
+    ]
+}
+.Ed
+.El
+.Sh FILES
+.Bl -tag -width "~/.ssh/sshkeychain.plist" -compact
+.It Pa ~/.ssh/sshkeychain.plist
+.El
+.Sh SEE ALSO
+.Xr sc_auth 8 ,
+.Xr ssh-add 1 ,
+.Xr ssh_config 5
