@@ -22,11 +22,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Main.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Main.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Main.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="152" column="0" selection-start-line="152" selection-start-column="0" selection-end-line="152" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.9064449">
+              <caret line="176" column="15" selection-start-line="176" selection-start-column="15" selection-end-line="176" selection-end-column="15" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -34,11 +34,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="synopsis.jj" pinned="false" current-in-tab="true">
+      <file leaf-file-name="synopsis.jj" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/parser/synopsis.jj">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="5.3950105">
-              <caret line="173" column="1" selection-start-line="173" selection-start-column="1" selection-end-line="173" selection-end-column="1" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="105" column="67" selection-start-line="105" selection-start-column="67" selection-end-line="105" selection-end-column="67" />
               <folding />
             </state>
           </provider>
@@ -48,14 +48,20 @@
         <entry file="file://$PROJECT_DIR$/src/parser/SynopParser.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="86" column="7" selection-start-line="86" selection-start-column="7" selection-end-line="86" selection-end-column="7" />
+              <caret line="14" column="29" selection-start-line="14" selection-start-column="29" selection-end-line="14" selection-end-column="29" />
               <folding>
-                <element signature="e#0#11071#0" expanded="true" />
+                <element signature="e#0#11640#0" expanded="true" />
                 <element signature="imports" expanded="true" />
-                <element signature="e#1903#1914#0" expanded="true" />
-                <element signature="e#2675#2686#0" expanded="true" />
-                <element signature="e#6805#6806#0" expanded="true" />
-                <element signature="e#6834#6835#0" expanded="true" />
+                <element signature="e#1511#1522#0" expanded="true" />
+                <element signature="e#2214#2225#0" expanded="true" />
+                <element signature="e#2986#2997#0" expanded="true" />
+                <element signature="e#4706#4717#0" expanded="true" />
+                <element signature="e#7204#7205#0" expanded="true" />
+                <element signature="e#7283#7284#0" expanded="true" />
+                <element signature="e#7374#7375#0" expanded="true" />
+                <element signature="e#7403#7404#0" expanded="true" />
+                <element signature="e#7938#7939#0" expanded="true" />
+                <element signature="e#7969#7970#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -65,7 +71,7 @@
         <entry file="file://$PROJECT_DIR$/src/parser/SynopParserConstants.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="13" column="17" selection-start-line="13" selection-start-column="17" selection-end-line="13" selection-end-column="17" />
+              <caret line="16" column="17" selection-start-line="16" selection-start-column="17" selection-end-line="16" selection-end-column="17" />
               <folding />
             </state>
           </provider>
@@ -85,7 +91,7 @@
         <entry file="file://$PROJECT_DIR$/src/cmd/Cmd.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="43" column="0" selection-start-line="43" selection-start-column="0" selection-end-line="43" selection-end-column="0" />
+              <caret line="15" column="41" selection-start-line="15" selection-start-column="30" selection-end-line="15" selection-end-column="41" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -585,12 +591,18 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="15" column="78" selection-start-line="15" selection-start-column="78" selection-end-line="15" selection-end-column="78" />
           <folding>
-            <element signature="e#0#11071#0" expanded="true" />
+            <element signature="e#0#11640#0" expanded="true" />
             <element signature="imports" expanded="true" />
-            <element signature="e#1903#1914#0" expanded="true" />
-            <element signature="e#2675#2686#0" expanded="true" />
-            <element signature="e#6805#6806#0" expanded="true" />
-            <element signature="e#6834#6835#0" expanded="true" />
+            <element signature="e#1511#1522#0" expanded="true" />
+            <element signature="e#2214#2225#0" expanded="true" />
+            <element signature="e#2986#2997#0" expanded="true" />
+            <element signature="e#4706#4717#0" expanded="true" />
+            <element signature="e#7204#7205#0" expanded="true" />
+            <element signature="e#7283#7284#0" expanded="true" />
+            <element signature="e#7374#7375#0" expanded="true" />
+            <element signature="e#7403#7404#0" expanded="true" />
+            <element signature="e#7938#7939#0" expanded="true" />
+            <element signature="e#7969#7970#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -723,7 +735,15 @@
     <entry file="file://$PROJECT_DIR$/src/parser/SynopParserConstants.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="13" column="17" selection-start-line="13" selection-start-column="17" selection-end-line="13" selection-end-column="17" />
+          <caret line="16" column="17" selection-start-line="16" selection-start-column="17" selection-end-line="16" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/parser/synopsis.jj">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="105" column="67" selection-start-line="105" selection-start-column="67" selection-end-line="105" selection-end-column="67" />
           <folding />
         </state>
       </provider>
@@ -731,7 +751,7 @@
     <entry file="file://$PROJECT_DIR$/src/cmd/Cmd.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="43" column="0" selection-start-line="43" selection-start-column="0" selection-end-line="43" selection-end-column="0" />
+          <caret line="15" column="41" selection-start-line="15" selection-start-column="30" selection-end-line="15" selection-end-column="41" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -741,33 +761,31 @@
     <entry file="file://$PROJECT_DIR$/src/parser/SynopParser.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="86" column="7" selection-start-line="86" selection-start-column="7" selection-end-line="86" selection-end-column="7" />
+          <caret line="14" column="29" selection-start-line="14" selection-start-column="29" selection-end-line="14" selection-end-column="29" />
           <folding>
-            <element signature="e#0#11071#0" expanded="true" />
+            <element signature="e#0#11640#0" expanded="true" />
             <element signature="imports" expanded="true" />
-            <element signature="e#1903#1914#0" expanded="true" />
-            <element signature="e#2675#2686#0" expanded="true" />
-            <element signature="e#6805#6806#0" expanded="true" />
-            <element signature="e#6834#6835#0" expanded="true" />
+            <element signature="e#1511#1522#0" expanded="true" />
+            <element signature="e#2214#2225#0" expanded="true" />
+            <element signature="e#2986#2997#0" expanded="true" />
+            <element signature="e#4706#4717#0" expanded="true" />
+            <element signature="e#7204#7205#0" expanded="true" />
+            <element signature="e#7283#7284#0" expanded="true" />
+            <element signature="e#7374#7375#0" expanded="true" />
+            <element signature="e#7403#7404#0" expanded="true" />
+            <element signature="e#7938#7939#0" expanded="true" />
+            <element signature="e#7969#7970#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Main.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="152" column="0" selection-start-line="152" selection-start-column="0" selection-end-line="152" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.9064449">
+          <caret line="176" column="15" selection-start-line="176" selection-start-column="15" selection-end-line="176" selection-end-column="15" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/parser/synopsis.jj">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="5.3950105">
-          <caret line="173" column="1" selection-start-line="173" selection-start-column="1" selection-end-line="173" selection-end-column="1" />
-          <folding />
         </state>
       </provider>
     </entry>

@@ -18,7 +18,7 @@ public class Main {
         File[] files = new File("../data/plain-man").listFiles();
 
         if (trySmallExample) {
-            parseFile(new File("../data/plain-man/find.1.txt"));
+            parseFile(new File("../data/plain-man/grep.1.txt"));
             return;
         }
 
@@ -37,6 +37,7 @@ public class Main {
         int i = 0;
         while (i < lines.size()) {
             if (lines.get(i).startsWith("NAME")) {
+                // segmenting the name section
                 int l = i + 1;
                 i ++;
                 while (i < lines.size() && indentCount(lines.get(i)) != 0) {
@@ -46,6 +47,7 @@ public class Main {
                 manpage.setName(name.getKey(), name.getValue());
                 continue;
             } else if (i < lines.size() && lines.get(i).startsWith("SYNOPSIS")) {
+                // segmenting the synopsis section
                 int l = i + 1;
                 i ++;
                 while (indentCount(lines.get(i)) != 0) {
@@ -53,12 +55,20 @@ public class Main {
                 }
                 List<Pair<String, Cmd.CmdOp>> options = parseSynopsis(manpage.getName(), lines.subList(l,i));
             } else if (i < lines.size() && lines.get(i).startsWith("DESCRIPTION")) {
+                // segmenting the description section
                 int l = i + 1;
                 i ++;
                 while(indentCount(lines.get(i)) != 0 || lines.get(i).equals("")) {
                     i ++;
                 }
-                parseDescription(lines.subList(l, i));
+                Pair<String, List<Pair<String, String>>> descSec = parseDescription(lines.subList(l, i));
+            } else if (i < lines.size() && lines.get(i).startsWith("EXAMPLES")) {
+                int l = i + 1;
+                i ++;
+                while (indentCount(lines.get(i)) != 0 || lines.get(i).equals("")) {
+                    i ++;
+                }
+                parseExample(lines.subList(l, i));
             }
             i ++;
         }
@@ -87,8 +97,6 @@ public class Main {
             if (s.trim().equals("")) continue;
             aliases.add(s.trim());
         }
-        //System.out.println("[Name] " + aliases.stream().reduce(" ", String::concat).trim());
-        //System.out.println("[Desc] " + description);
         return new Pair<>(aliases, description);
     }
 
@@ -126,27 +134,50 @@ public class Main {
         return null;
     }
 
-    private static List<Pair<String, String>> parseDescription(List<String> lines) {
+    /**
+     * Parse descriptions in the
+     * @param lines representing the body of descriptions of a file
+     * @return a Pair:
+     *      the key of the pair is an overview of the description,
+     *      the value is a list of pairs, (optionName, optionDescription)
+     */
+    private static Pair<String, List<Pair<String, String>>> parseDescription(List<String> lines) {
+        // parse descriptions
         int i = 0, l = i;
+        String instrdesc = "";
         while (i < lines.size()) {
             if ((indentCount(lines.get(i)) == 5) && lines.get(i).trim().startsWith("-"))
                 break;
             else
                 i ++;
         }
+        instrdesc = lines.subList(l, i-2).stream().reduce("", (x,y) -> x + "\n" + y).replaceFirst("\\s+$", "");
 
-        System.out.println(lines.subList(l, i).stream().reduce(">", (x,y) -> x + "\n[" + indentCount(y) + "]" + y));
+        // start parsing options
+        List<Pair<String, String>> optionList = new ArrayList<>();
 
+        while (i < lines.size()) {
+            if (!(indentCount(lines.get(i)) == 5 && lines.get(i).trim().startsWith("-")))
+                break;
+            String optionName = lines.get(i).trim().split("  ")[0];
+            System.out.println(optionName);
+            l = i;
+            i ++;
+            while (i < lines.size() && !(indentCount(lines.get(i)) == 5)) {
+                i ++;
+            }
+            String optionDesc = lines.subList(l, i).stream().reduce("", (x,y) -> x + "\n" + y);
+            System.out.println(optionDesc);
+            optionList.add(new Pair(optionName, optionDesc));
+        }
+        return new Pair(instrdesc, optionList);
+    }
+
+    private static List<Pair<String, String>> parseExample(List<String> lines) {
+        // TODO
         return new ArrayList<>();
     }
 
     private static int indentCount(String s) { return s.indexOf(s.trim()); }
-
-    private static String printList(List l) {
-        String s = "";
-        for (Object i : l)
-            s += i.toString() + " ";
-        return s;
-    }
 
 }
