@@ -102,12 +102,12 @@ Cmd.Fl fl() : { Token s; }
 }
 
 Cmd.Ar ar() : { Token s; } {
-    s = <IDENTIFIER> { Cmd.Ar ar = new Cmd.Ar(); ar.name = s.toString(); return ar; }
+    (s = <IDENTIFIER> { return new Cmd.Ar(s.toString()); }
+    | "<" s = <IDENTIFIER> ">" { return new Cmd.Ar(s.toString()); })
 }
 
 Cmd.CmdOp singleOp() : { Cmd.CmdOp result; Token s; List<Cmd.CmdOp> temp = new ArrayList<Cmd.CmdOp>(); Cmd.Flv2 flagv2;} {
-    ((s = <IDENTIFIER> { result = new Cmd.Ar(s.toString()); }
-      ( s = "..." {Cmd.Ar ar = new Cmd.Ar(((Cmd.Ar)result).name); ar.isList = true; result = ar; })? )
+    ((result = ar() ( s = "..." {Cmd.Ar ar = new Cmd.Ar(((Cmd.Ar)result).name); ar.isList = true; result = ar; })?)
     | s = <FLAG> {
             String flagName = s.toString().substring(s.toString().indexOf("-") + 1);
             if (flagName.length() == 1)
@@ -144,8 +144,9 @@ Cmd.CmdOp singleOp() : { Cmd.CmdOp result; Token s; List<Cmd.CmdOp> temp = new A
     | ("--" s = <IDENTIFIER> { flagv2 = new Cmd.Flv2(s.toString()); }
            (("[" "=" s = <IDENTIFIER> "]" { flagv2.setName(s.toString(), true); })
             | ("=" s = <IDENTIFIER>) { flagv2.setName(s.toString(), false); } )?) { result = flagv2; }
+    | ("{" result=compoundOp() "}")
     ) {
-           return result;
+        return result;
     }
 }
 
