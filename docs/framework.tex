@@ -13,17 +13,52 @@
     \label{fig:arch}
 \end{figure}
 
-The natural language based command line interpreter we plan to develop consists of three key components: 1) an intermediate logic representation based on which Linux commands are generated, 2) a learnig algorithm that can extend basic operations of the intermediate language with provided natural language manuscript and 3) a semantic parser that effectively maps the natural language commands issued by users to this intermediate representation. Especially, our initial pilot system is restricted to cover only file system operations, including file lookup, directory tree transformation, file content transformation, file property modifications. We restrict the domain in the hope that it can be expressed with tractable logic as well as to reduce the degree of ambiguity in the natural language command.
+The natural language based command line interpreter we plan to develop consists of three key components: 1) an intermediate language  based on which Linux commands are generated, 2) a learning algorithm that can learn primitive commands of the intermediate language with provided man pages and 3) a semantic parser that effectively maps the natural language commands issued by users to this intermediate representation. Especially, our initial pilot system is restricted to cover only file system operations, including file lookup, directory tree transformation, file content transformation, file property modifications. We restrict the domain in the hope that it can be expressed with tractable logic as well as to reduce the degree of ambiguity in the natural language command.
 
-\subsection{Intermediate Representation of File Operations}
+\subsection{Language Design}
 \label{subsec:represent}
-Our ideal intermediate representation is one based on which the executable commands can be deterministically generated, but is also reasonably similar to natural language semantics such that an accurate translation is not beyond hope.
-\paragraph{Representation of File System}
-We plan to represent the file system as a tree, such that leaf nodes represent regular files and others are directories. Properties and file contents are represented as attributes of node. With this presentation, we can reduce the file system manipulation problem to tree transformation problem.
-\paragraph{Representation of File Operations}
-File operations contains 1) structural transformation operations and 2) basic CLI operations. The first set of operations are designed to perform tree structure transformation, and they are used to hide lower-level command line program implementations. While the second are basic operations related to file property lookup (e.g. lookup the access date of a file).
+An ideal intermediate language for the CLI programs should be 1) expressive enough so that it covers many interesting real world cases, 2) concise enough for the synthesizer to efficiently synthesize and 3) extensible, so that different people targeting different command line applications and use different sets of primitive commands.
 
-Since the number of basic Linux commands and options is large even in domain-specific scenarios, it is difficult for a human designer to hand-code all of the generation rules. We plan to semi-automate this step by adding information extracted from the Linux man pages\footnote{\url{http://linux.die.net/man/}} and make the language extensible.
+Concretely, the syntax of the intermediate language design is presented below.
+
+\begin{figure}
+\[
+\begin{array}{rlll}
+\multicolumn{3}{l}{\textbf{Program}}\\
+\mathit{p} & := & \mathit{value} \\
+    &  & \mathit{cmd}~\overline{\mathit{flag}}~\overline{\mathit{arg}} & \textrm{(Program)}\\
+    &  & \mathit{p} ~\|~ \mathbf{xarg}~\mathit{p} & \textrm{(Pipelined program)}\\
+\mathit{value} & := & \mathsf{date} ~|~ \mathsf{filename} ~|~ ... & \textrm{(Primitive values)}\\
+\mathit{arg} & := & \epsilon ~|~ \mathit{value} ~|~ \mathit{hole} & \textrm{(Arguments)}\\
+\mathit{cmd}^{*} & := & \mathsf{find} ~|~ \mathsf{grep} ~|~ ... & \textrm{(Commands)}\\
+\mathit{flag}^{*} & := & \epsilon ~|~ -f ~|~ -h ~|~ ... & \textrm{(Flags)}\\
+\multicolumn{3}{l}{\textbf{Command Signature}}\\
+\mathit{sig} & := & \mathsf{name}~\mathit{option}:\tau & \textrm{(Command signature)}\\
+\mathit{option} &:= & \mathsf{flagname} & \textrm{(Command option)}\\
+                &   & \mathsf{argname}[\tau]\\
+                &   & \mathit{option}~\mathbf{or}~\mathit{option}\\
+                &   & [ \mathit{option} ]\\
+\multicolumn{3}{l}{\textbf{Rules}}\\
+\mathit{rule}^{*} &:=& \mathsf{find}~f[\mathsf{File}] : \mathsf{File}\\
+                  &  & \mathit{date}~\mathit{-d} : \mathsf{void}\\
+                  &  & \mathit{date}~\mathit{-u} : \mathsf{Date}\\
+                  &  & ...\\
+\multicolumn{3}{l}{\textbf{Type}}\\
+\tau_0 & := & \mathsf{void} ~|~ \mathsf{File} & \textrm{(Primitive types)}\\
+       &     & |~ \mathsf{Date} ~|~ \mathsf{Permission} ~|~ \mathsf{Size} ~|~ ... \\
+\tau & := & \tau_0 ~|~ \tau_0\rightarrow \tau_0 & \textrm{(Type)}
+\end{array}
+\]
+\caption{Intermediate Language}
+\label{fig:lang}
+\end{figure}
+
+
+The first part of our language is the program syntax (labeled as \textbf{Program}), defines how a program can be formed: a CLI program can be 1) refer to a value, 2) call a primitive command, and 3) pipelining two programs and passing the result of the first program as the argument of the second program.
+
+The rest of the language are designed to help check well-formedness of a given CLI program. The command signature defines how a rule can be written, the rules (\textbf{Rule}) defines which primitive programs are valid. Then, with the help of the types in our program, we can check the type of a program $p$ to ensure that a command line program is well-formed.
+
+Since the number of basic Linux commands and options is large even in domain-specific scenarios, it is difficult for a human designer to hand-code all of the generation rules. We plan to semi-automate this step by adding information extracted from the Linux man pages\footnote{\url{http://linux.die.net/man/}} and make the language extensible. Concretely, we shall parse the man page to generate primitive commands, flags and checking rules for each command (all non-terminals labeled with * in Figure~\ref{fig:lang} will be automatically learned from man page). And with this language design, users can extend the basic language by providing man pages.
 
 \subsection{Natural Language Command Interpreter}
 We train the natural language command interpreter using a set of natural language and Linux command line pairs. In addition, we also use the Linux man pages as supplementary training materials. The intermediate logic representation, however, remains as latent variables in our model. We score a natural language to logical representation mapping based on the following features:
