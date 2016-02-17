@@ -60,6 +60,19 @@ when they have completed each task. We will measure correctness by having them
 save the output from each task; we will compare that output against the correct
 solution.
 
+\paragraph{Internal Measures} Additionally, we plan to quantify several internal
+measures about the tool:
+\begin{enumerate}\itemsep-1pt
+    \item Performance: how long does training take to produce a model? How
+        long does the tool take to answer a query?
+    \item For a large number of hand-picked inputs, how often does the
+        tool produce a correct answer?
+    \item How often is the output close to correct, requiring only small
+        adjustment? (``Small adjustment'' is defined as removing flags or
+        changing arguments. Adding an argument, changing a command, or
+        adding a pipe operator are not small adjustments.)
+\end{enumerate}
+
 \subsection{Results}
 
 \todo{No results yet!}
