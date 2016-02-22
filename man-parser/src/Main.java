@@ -1,4 +1,5 @@
 import cmd.Cmd;
+import com.sun.org.apache.bcel.internal.ExceptionConstants;
 import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
 import javafx.util.Pair;
 
@@ -54,7 +55,10 @@ public class Main {
                     i ++;
                 }
                 List<Pair<String, Cmd.CmdOp>> options = parseSynopsis(manpage.getName(), lines.subList(l,i));
-            } else if (i < lines.size() && lines.get(i).startsWith("DESCRIPTION")) {
+                for (Pair<String, Cmd.CmdOp> pair : options) {
+                    manpage.optionLists.add(pair.getValue());
+                }
+            } else if (i < lines.size() && (lines.get(i).startsWith("DESCRIPTION"))) {
                 // segmenting the description section
                 int l = i + 1;
                 i ++;
@@ -62,6 +66,35 @@ public class Main {
                     i ++;
                 }
                 Pair<String, List<Pair<String, String>>> descSec = parseDescription(lines.subList(l, i));
+                manpage.description += descSec.getKey();
+                for (Pair<String, String> desc : descSec.getValue()) {
+                    String optionPart = desc.getKey();
+                    int inOuterLevel = 0;
+                    boolean added = false;
+                    for (int k = 0; k < optionPart.length(); k ++) {
+                        if (optionPart.charAt(k) == ',' && inOuterLevel == 0) {
+                            try {
+                                manpage.optionDesc.add(
+                                    new Pair(parseSynopsisInstance(optionPart.substring(0, k)), desc.getValue()));
+                                added = true;
+                            } catch (Exception e) {
+                                continue;
+                            }
+                        } else if (optionPart.charAt(k) == '[') {
+                            inOuterLevel ++;
+                        } else if (optionPart.charAt(k) == '[') {
+                            inOuterLevel --;
+                        }
+                    }
+                    if (! added) {
+                        try {
+                            manpage.optionDesc.add(
+                                    new Pair(parseSynopsisInstance(optionPart), desc.getValue()));
+                        } catch (Exception e) {
+                            continue;
+                        }
+                    }
+                }
             } else if (i < lines.size() && lines.get(i).startsWith("EXAMPLES")) {
                 int l = i + 1;
                 i ++;
@@ -72,6 +105,8 @@ public class Main {
             }
             i ++;
         }
+
+        System.out.println(manpage.toString());
         return manpage;
     }
 
@@ -127,7 +162,7 @@ public class Main {
         String name = "";
         try {
             Cmd.CmdOp op = new SynopParser(new java.io.StringReader(line)).compoundOp();
-            System.out.println(op.toString());
+            return op;
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -160,14 +195,14 @@ public class Main {
             if (!(indentCount(lines.get(i)) == 5 && lines.get(i).trim().startsWith("-")))
                 break;
             String optionName = lines.get(i).trim().split("  ")[0];
-            System.out.println(optionName);
+            //System.out.println(optionName);
             l = i;
             i ++;
             while (i < lines.size() && !(indentCount(lines.get(i)) == 5)) {
                 i ++;
             }
             String optionDesc = lines.subList(l, i).stream().reduce("", (x,y) -> x + "\n" + y);
-            System.out.println(optionDesc);
+            //System.out.println(optionDesc);
             optionList.add(new Pair(optionName, optionDesc));
         }
         return new Pair(instrdesc, optionList);

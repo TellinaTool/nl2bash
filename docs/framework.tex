@@ -27,7 +27,7 @@ Concretely, the syntax of the intermediate language design is presented below.
 \multicolumn{3}{l}{\textbf{Program}}\\
 \mathit{p} & := & \mathit{value} \\
     &  & \mathit{cmd}~\overline{\mathit{flag}}~\overline{\mathit{arg}} & \textrm{(Program)}\\
-    &  & \mathit{p} ~\|~ \mathbf{xarg}~\mathit{p} & \textrm{(Pipelined program)}\\
+    &  & \mathit{p} ~\| ~\mathit{p} & \textrm{(Pipelined program)}\\
 \mathit{value} & := & \mathsf{date} ~|~ \mathsf{filename} ~|~ ... & \textrm{(Primitive values)}\\
 \mathit{arg} & := & \epsilon ~|~ \mathit{value} ~|~ \mathit{hole} & \textrm{(Arguments)}\\
 \mathit{cmd}^{*} & := & \mathsf{find} ~|~ \mathsf{grep} ~|~ ... & \textrm{(Commands)}\\

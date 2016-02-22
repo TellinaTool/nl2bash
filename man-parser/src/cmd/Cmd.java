@@ -1,5 +1,7 @@
 package cmd;
 
+import javafx.util.Pair;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -10,10 +12,11 @@ import java.util.Optional;
 public class Cmd {
 
     public static class ManPage {
-        List<String> aliases = new ArrayList<>();
-        String description = "";
+        public List<String> aliases = new ArrayList<>();
+        public String description = "";
         // one option may have more than once synopsis
-        List<List<Cmd.CmdOp>> optionLists = new ArrayList<>();
+        public List<Cmd.CmdOp> optionLists = new ArrayList<>();
+        public List<Pair<Cmd.CmdOp, String>> optionDesc = new ArrayList<>();
 
         public void setName(List<String> aliases, String description) {
             this.aliases = aliases;
@@ -23,11 +26,15 @@ public class Cmd {
         public String getName() { return this.aliases.get(0); }
 
         public String toString() {
-            String s = aliases.stream().reduce("", String::concat) + "\r\n";
-            for (List<Cmd.CmdOp> list : optionLists) {
-                for (Cmd.CmdOp op : list)
+            String s = "  " + aliases.stream().reduce("", String::concat) + "\r\n";
+            s+="Synopsis\r\n";
+            for (Cmd.CmdOp op : optionLists) {
                     s += op.toString() + "  ";
                 s += "\r\n";
+            }
+            s += "Description\r\n";
+            for (Pair p : optionDesc) {
+                s += p.getKey().toString() + " :: " + p.getValue().toString();
             }
             return s;
         }
@@ -37,7 +44,12 @@ public class Cmd {
     // flag of form -flagname
     public static class Fl implements CmdOp {
         public String flagName;
-        public Fl(String s) { this.flagName = s; }
+        public Fl(String s) {
+            this.flagName = s;
+            if (this.flagName.startsWith("-")) {
+                this.flagName = this.flagName.substring(1);
+            }
+        }
         public Fl() {}
         public String toString() {
             String flag = "-" + flagName;
