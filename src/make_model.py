@@ -104,11 +104,11 @@ def run():
         word, term = k
         if question_word_counts[word] < 5 or code_term_counts[term] < 5:
             continue
-        scores[word][term] = count / question_word_counts[word]
+        scores[word][term] = (count + 0.0) / question_word_counts[word]
 
     print("scores = {}".format(repr(dict(scores))))
-    print("word_freqs = {}".format(repr({ w : count/word_total for w,count in question_word_counts.items() })))
-    print("code_freqs = {}".format(repr({ t : count/term_total for t,count in code_term_counts.items() })))
+    print("word_freqs = {}".format(repr({ w : (count + 0.0)/word_total for w,count in question_word_counts.items() })))
+    print("code_freqs = {}".format(repr({ t : (count + 0.0)/term_total for t,count in code_term_counts.items() })))
 
 if __name__ == "__main__":
     run()
