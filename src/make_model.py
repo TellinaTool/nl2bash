@@ -1,16 +1,20 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
+from __future__ import print_function
 """
 Usage:
-    $ python3 script.py 'db.sqlite3db'
+    $ python make_model.py <path-to-sqlite-db-file>
 """
 
 # builtin
 import collections
-import html
+# import html
+import HTMLParser
 import re
 import shlex
 import sqlite3
 import sys
+
+html = HTMLParser.HTMLParser()
 
 CODE_REGEX = re.compile(r"<pre><code>([^<]+)<\/code><\/pre>")
 def extract_code(text):
