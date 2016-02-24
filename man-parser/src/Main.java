@@ -1,6 +1,4 @@
 import cmd.Cmd;
-import com.sun.org.apache.bcel.internal.ExceptionConstants;
-import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
 import javafx.util.Pair;
 
 import java.io.File;
@@ -9,6 +7,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import parser.*;
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.*;
 
 public class Main {
 
@@ -19,7 +19,10 @@ public class Main {
         File[] files = new File("../data/plain-man").listFiles();
 
         if (trySmallExample) {
-            parseFile(new File("../data/plain-man/grep.1.txt"));
+            Cmd.ManPage man = parseFile(new File("../data/plain-man/xargs.1.txt"));
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonInString = mapper.writeValueAsString(man);
+            System.out.println(jsonInString);
             return;
         }
 
@@ -75,9 +78,9 @@ public class Main {
                         if (optionPart.charAt(k) == ',' && inOuterLevel == 0) {
                             try {
                                 manpage.optionDesc.add(
-                                    new Pair(parseSynopsisInstance(optionPart.substring(0, k)), desc.getValue()));
+                                    new Cmd.DescriptionPair(parseSynopsisInstance(optionPart.substring(0, k)), desc.getValue()));
                                 added = true;
-                            } catch (Exception e) {
+                            } catch (ParseException e) {
                                 continue;
                             }
                         } else if (optionPart.charAt(k) == '[') {
@@ -89,8 +92,8 @@ public class Main {
                     if (! added) {
                         try {
                             manpage.optionDesc.add(
-                                    new Pair(parseSynopsisInstance(optionPart), desc.getValue()));
-                        } catch (Exception e) {
+                                    new Cmd.DescriptionPair(parseSynopsisInstance(optionPart), desc.getValue()));
+                        } catch (ParseException e) {
                             continue;
                         }
                     }
@@ -147,26 +150,27 @@ public class Main {
                 i ++;
             }
             List<String> subContent = secContent.subList(l, i);
+
             if (subContent.size() == 0)
                 System.err.println("[Error@ParseSynopsis] An empty synopsis.");
 
             String cmdRaw = subContent.stream().reduce(" ", String::concat).replaceAll("\\s+", " ").trim();
             String cmdName = cmdRaw.split("\\s+")[0];
             cmdRaw = cmdRaw.substring(cmdRaw.indexOf(cmdName) + cmdName.length()).trim();
-            result.add(new Pair(cmdName, parseSynopsisInstance(cmdRaw)));
+            try {
+                result.add(new Pair(cmdName, parseSynopsisInstance(cmdRaw)));
+            } catch (ParseException e) {
+                continue;
+            }
         }
         return result;
     }
 
-    private static Cmd.CmdOp parseSynopsisInstance(String line) {
+    private static Cmd.CmdOp parseSynopsisInstance(String line) throws ParseException {
         String name = "";
-        try {
-            Cmd.CmdOp op = new SynopParser(new java.io.StringReader(line)).compoundOp();
-            return op;
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return null;
+        Cmd.CmdOp op = new SynopParser(new java.io.StringReader(line)).compoundOp();
+        return op;
+
     }
 
     /**
@@ -180,8 +184,11 @@ public class Main {
         // parse descriptions
         int i = 0, l = i;
         String instrdesc = "";
+
+        int baseIndention = indentCount(lines.get(0));
+
         while (i < lines.size()) {
-            if ((indentCount(lines.get(i)) == 5) && lines.get(i).trim().startsWith("-"))
+            if ((indentCount(lines.get(i)) == baseIndention) && lines.get(i).trim().startsWith("-"))
                 break;
             else
                 i ++;
@@ -192,13 +199,13 @@ public class Main {
         List<Pair<String, String>> optionList = new ArrayList<>();
 
         while (i < lines.size()) {
-            if (!(indentCount(lines.get(i)) == 5 && lines.get(i).trim().startsWith("-")))
+            if (!(indentCount(lines.get(i)) == baseIndention && lines.get(i).trim().startsWith("-")))
                 break;
             String optionName = lines.get(i).trim().split("  ")[0];
             //System.out.println(optionName);
             l = i;
             i ++;
-            while (i < lines.size() && !(indentCount(lines.get(i)) == 5)) {
+            while (i < lines.size() && !(indentCount(lines.get(i)) == baseIndention)) {
                 i ++;
             }
             String optionDesc = lines.subList(l, i).stream().reduce("", (x,y) -> x + "\n" + y);
