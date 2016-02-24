@@ -5,7 +5,7 @@ NAME
      xargs -- construct argument list(s) and execute utility
 
 SYNOPSIS
-     xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr]
+    xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr]
            [-L number] [-n number [-x]] [-P maxprocs] [-s size]
            [utility [argument ...]]
 
