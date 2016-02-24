@@ -6,7 +6,7 @@ data/stackoverflow/stackoverflow.sqlite: data/stackoverflow/stackoverflow.sqlite
 	unxz --force --keep $<
 
 src/model.py: src/make_model.py data/stackoverflow/stackoverflow.sqlite
-	python3 $^ >/tmp/f && mv /tmp/f $@
+	python $^ >/tmp/f && mv /tmp/f $@
 
 clean:
 	$(RM) data/stackoverflow/stackoverflow.sqlite

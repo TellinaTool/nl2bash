@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
+from __future__ import print_function
 
 import collections
 

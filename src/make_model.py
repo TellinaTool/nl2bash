@@ -1,16 +1,20 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
+from __future__ import print_function
 """
 Usage:
-    $ python3 script.py 'db.sqlite3db'
+    $ python make_model.py <path-to-sqlite-db-file>
 """
 
 # builtin
 import collections
-import html
+# import html
+import HTMLParser
 import re
 import shlex
 import sqlite3
 import sys
+
+html = HTMLParser.HTMLParser()
 
 CODE_REGEX = re.compile(r"<pre><code>([^<]+)<\/code><\/pre>")
 def extract_code(text):
@@ -100,11 +104,11 @@ def run():
         word, term = k
         if question_word_counts[word] < 5 or code_term_counts[term] < 5:
             continue
-        scores[word][term] = count / question_word_counts[word]
+        scores[word][term] = (count + 0.0) / question_word_counts[word]
 
     print("scores = {}".format(repr(dict(scores))))
-    print("word_freqs = {}".format(repr({ w : count/word_total for w,count in question_word_counts.items() })))
-    print("code_freqs = {}".format(repr({ t : count/term_total for t,count in code_term_counts.items() })))
+    print("word_freqs = {}".format(repr({ w : (count + 0.0)/word_total for w,count in question_word_counts.items() })))
+    print("code_freqs = {}".format(repr({ t : (count + 0.0)/term_total for t,count in code_term_counts.items() })))
 
 if __name__ == "__main__":
     run()
