@@ -16,7 +16,7 @@ public class Cmd {
         public String description = "";
         // one option may have more than once synopsis
         public List<Cmd.CmdOp> optionLists = new ArrayList<>();
-        public List<Pair<Cmd.CmdOp, String>> optionDesc = new ArrayList<>();
+        public List<DescriptionPair> optionDesc = new ArrayList<>();
 
         public void setName(List<String> aliases, String description) {
             this.aliases = aliases;
@@ -33,8 +33,8 @@ public class Cmd {
                 s += "\r\n";
             }
             s += "Description\r\n";
-            for (Pair p : optionDesc) {
-                s += p.getKey().toString() + " :: " + p.getValue().toString();
+            for (DescriptionPair p : optionDesc) {
+                s += p.toString();
             }
             return s;
         }
@@ -84,6 +84,7 @@ public class Cmd {
         }
     }
     public static class Opt implements CmdOp {
+        public String type = "optional";
         public CmdOp cmd;
         public Opt(CmdOp cmd) { this.cmd = cmd; }
         public Opt() {}
@@ -92,29 +93,52 @@ public class Cmd {
         }
     }
     public static class Ar implements CmdOp {
-        public String name;
+        public String type = "argument";
+        public String argname;
         public boolean isList = false;
         public Ar() {};
-        public Ar(String s) { this.name = s; }
+        public Ar(String s) { this.argname = s; }
         public String toString() {
-            if (isList) return name + "...";
-            else return name;
+            if (isList) return argname + "...";
+            else return argname;
         }
     }
     public static class Compound implements CmdOp {
+        public String type = "compound";
         public List<CmdOp> cmds = new ArrayList<>();
         public Compound(List<CmdOp> cmds) { this.cmds = cmds; }
         public String toString() { return cmds.stream().map(cmd -> cmd.toString()).reduce(" ", (x,y) -> x + " " + y); }
     }
     public static class Exclusive implements CmdOp {
-        public List<CmdOp> args = new ArrayList<>();
-        public Exclusive(List<CmdOp> cmds) { this.args = cmds; }
+        public String type = "eclusive";
+        public List<CmdOp> cmds = new ArrayList<>();
+        public Exclusive(List<CmdOp> cmds) { this.cmds = cmds; }
         public String toString() {
             String s = "";
-            for (CmdOp flg : args) {
+            for (CmdOp flg : cmds) {
                 s += flg + " | ";
             }
             return s;
+        }
+    }
+
+    public static class DescriptionPair {
+        public String name;
+        public Cmd.CmdOp option;
+        public String description;
+
+        public DescriptionPair(Pair<Cmd.CmdOp, String> p) {
+            this(p.getKey(), p.getValue());
+        }
+
+        public DescriptionPair(Cmd.CmdOp fst, String desc) {
+            this.name = fst.toString();
+            this.option = fst;
+            this.description = desc;
+        }
+
+        public String toString() {
+            return  option.toString() + " :: " + description;
         }
     }
 }
