@@ -53,7 +53,7 @@ System.out.println(s.toString()); {if ("" != null) return new Cmd.Fl(s.toString(
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case 36:{
         s = jj_consume_token(36);
-Cmd.Ar ar = new Cmd.Ar(((Cmd.Ar)result).name); ar.isList = true; result = ar;
+Cmd.Ar ar = new Cmd.Ar(((Cmd.Ar)result).argname); ar.isList = true; result = ar;
         break;
         }
       default:

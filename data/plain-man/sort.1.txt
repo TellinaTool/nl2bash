@@ -6,7 +6,7 @@ NAME
        sort - sort lines of text files
 
 SYNOPSIS
-       sort [OPTION]... [FILE]...
+       sort [-bdfgiMnrckmosStTuz] [FILE ...]
 
 DESCRIPTION
        Write sorted concatenation of all FILE(s) to standard output.
@@ -72,7 +72,8 @@ DESCRIPTION
        -z, --zero-terminated
               end lines with 0 byte, not newline
 
-       --help display this help and exit
+       --help 
+              display this help and exit
 
        --version
               output version information and exit
