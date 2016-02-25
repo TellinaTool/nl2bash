@@ -107,7 +107,7 @@ Cmd.Ar ar() : { Token s; } {
 }
 
 Cmd.CmdOp singleOp() : { Cmd.CmdOp result; Token s; List<Cmd.CmdOp> temp = new ArrayList<Cmd.CmdOp>(); Cmd.Flv2 flagv2;} {
-    ((result = ar() ( s = "..." {Cmd.Ar ar = new Cmd.Ar(((Cmd.Ar)result).argname); ar.isList = true; result = ar; })?)
+    ((result = ar() ( s = "..." {Cmd.Ar ar = new Cmd.Ar(((Cmd.Ar)result).arg_name); ar.isList = true; result = ar; })?)
     | s = <FLAG> {
             String flagName = s.toString().substring(s.toString().indexOf("-") + 1);
             if (flagName.length() == 1)
@@ -124,14 +124,14 @@ Cmd.CmdOp singleOp() : { Cmd.CmdOp result; Token s; List<Cmd.CmdOp> temp = new A
             boolean resultSet = false;
             if (result instanceof Cmd.Compound) {
                 boolean allFlags = true;
-                for (Cmd.CmdOp cmd : ((Cmd.Compound)result).cmds) {
+                for (Cmd.CmdOp cmd : ((Cmd.Compound)result).commands) {
                     if (! (cmd instanceof Cmd.Fl)) {
                         allFlags = false;
                     }
                 }
                 if (allFlags == true) {
                     List<Cmd.CmdOp> cmdops = new ArrayList<Cmd.CmdOp>();
-                    for (Cmd.CmdOp c : ((Cmd.Compound)result).cmds) {
+                    for (Cmd.CmdOp c : ((Cmd.Compound)result).commands) {
                         cmdops.add(new Cmd.Opt(c));
                     }
                     result = new Cmd.Compound(cmdops);

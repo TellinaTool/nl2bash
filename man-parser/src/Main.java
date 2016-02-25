@@ -1,11 +1,16 @@
 import cmd.Cmd;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import javafx.util.Pair;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import parser.*;
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.*;
@@ -14,7 +19,12 @@ public class Main {
 
     static boolean trySmallExample = true;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ParseException {
+
+        jsonPrimitiveGrammar("grammar.txt");
+
+        /*String s = SmallTask.processWierdThing("wierddata");
+        System.out.println(s);
 
         File[] files = new File("../data/plain-man").listFiles();
 
@@ -30,7 +40,43 @@ public class Main {
             if (! f.getName().matches("\\w*\\.\\d\\.txt"))
                 continue;
             parseFile(f);
+        }*/
+    }
+
+    public static String jsonPrimitiveGrammar(String path) throws IOException, ParseException {
+        List<String> lines = Files.readAllLines(Paths.get(path));
+        int i = 0;
+        List<Cmd.Command> commands = new ArrayList<>();
+        while (i < lines.size()) {
+            if (lines.get(i).startsWith("PrimitiveCmd")) {
+                i ++;
+                int l = i;
+                while (i < lines.size()) {
+                    if (indentCount(lines.get(i)) == 0 && !lines.get(i).equals(""))
+                        break;
+                    i ++;
+                }
+                System.out.println(l + " " + i);
+                List<String> primitives = lines.subList(l, i).stream().filter(s -> !s.equals("")).collect(Collectors.toList());
+                for (String s : primitives) {
+                    System.out.println(s);
+                    String name = s.trim().split("\\s+")[0];
+                    String raw = s.substring(s.indexOf(name) + name.length()).trim();
+                    commands.add(new Cmd.Command(name, parseSynopsisInstance(raw)));
+                }
+            }
+            i ++;
         }
+        for (Cmd.Command cmd : commands) {
+            System.out.println("=== \n" + cmd.toString());
+        }
+
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        String jsonInString = mapper.writeValueAsString(commands);
+        System.out.println(jsonInString);
+        return "";
     }
 
     public static Cmd.ManPage parseFile(File file) throws IOException {

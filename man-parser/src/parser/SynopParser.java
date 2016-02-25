@@ -53,7 +53,7 @@ System.out.println(s.toString()); {if ("" != null) return new Cmd.Fl(s.toString(
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case 36:{
         s = jj_consume_token(36);
-Cmd.Ar ar = new Cmd.Ar(((Cmd.Ar)result).argname); ar.isList = true; result = ar;
+Cmd.Ar ar = new Cmd.Ar(((Cmd.Ar)result).arg_name); ar.isList = true; result = ar;
         break;
         }
       default:
@@ -83,14 +83,14 @@ String flagName = s.toString().substring(s.toString().indexOf("-") + 1);
 boolean resultSet = false;
             if (result instanceof Cmd.Compound) {
                 boolean allFlags = true;
-                for (Cmd.CmdOp cmd : ((Cmd.Compound)result).cmds) {
+                for (Cmd.CmdOp cmd : ((Cmd.Compound)result).commands) {
                     if (! (cmd instanceof Cmd.Fl)) {
                         allFlags = false;
                     }
                 }
                 if (allFlags == true) {
                     List<Cmd.CmdOp> cmdops = new ArrayList<Cmd.CmdOp>();
-                    for (Cmd.CmdOp c : ((Cmd.Compound)result).cmds) {
+                    for (Cmd.CmdOp c : ((Cmd.Compound)result).commands) {
                         cmdops.add(new Cmd.Opt(c));
                     }
                     result = new Cmd.Compound(cmdops);

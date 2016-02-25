@@ -1,0 +1,38 @@
+type ::= File
+				 Number
+				 Time
+				 String
+				 Permission
+
+file, source, target, directory ::= {file_path}
+number, n, num ::= {number}
+gname ::= {group name}
+pattern ::= {GNU pattern}
+uname ::= {user name}
+mode ::= {permission mode}
+
+CompoundCmd ::=
+				PrimitiveCmd
+				cmd || cmd
+
+PrimitiveCmd ::=
+
+				find [-H | -L | -P] [-EXdsx] [-f path] path ... [ -true ] [ -false ] [ -Bmin n ] [ -Bnewer file ] [ -Btime n ] [ -acl ] [ -amin n ] [ -anewer file ] [ -cmin n ] [ -cnewer file ] [ -ctime n ] [ -d ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime n ] [ -name pattern ] [ -newer file ] [ -newerXY file ] [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -path pattern ] [ -perm mode ] [ -print ] [ -print0 ] [ -prune ] [ -regex pattern ] [ -samefile name ] [ -size n ] [ -type t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ]
+
+				find [-H | -L | -P] [-EXdsx] -f path 	[path ...] [ -true ] [ -false ] [ -Bmin n ] [ -Bnewer file ] [ -Btime n ] [ -acl ] [ -amin n ] [ -anewer file ] [ -cmin n ] [ -cnewer file ] [ -ctime n ] [ -d ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime n ] [ -name pattern ] [ -newer file ] [ -newerXY file ] [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -path pattern ] [ -perm mode ] [ -print ] [ -print0 ] [ -prune ] [ -regex pattern ] [ -samefile name ] [ -size n ] [ -type t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ]
+
+				mv [-f | -i | -n] [-v] source target
+
+				mv [-f | -i | -n] [-v] source ... directory
+
+				sort [-bdfgiMnrckmosStTuz] [file ...]
+
+				grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C[num]] [-e pattern] [-f file] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
+
+				cp [-R [-H | -L | -P]] [-fi | -n] [-apvX] source_file target_file
+
+				cp [-R [-H | -L | -P]] [-fi | -n] [-apvX] source_file ... target_directory
+
+				ls [-ABCFGHLOPRSTUW@abcdefghiklmnopqrstuwx1] [file ...]
+
+				xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr] [-L number] [-n number [-x]] [-P maxprocs] [-s size]
