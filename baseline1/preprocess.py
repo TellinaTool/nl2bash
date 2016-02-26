@@ -78,8 +78,8 @@ STOPWORDS = {"a", "an", "the",
              "for",
              "to",
              "but"}
-STOPWORDS |= { ",", ".", "!", "?", ";", ":"}
-STOPWORDS |= { "bash", "shell", "script" }
+STOPWORDS |= { ",", ".", "!", "?", ";", ":", "\/", "\\/"}
+STOPWORDS |= {"mac", "os", "x", "linux", "bash", "command", "shell", "script" }
 STOPWORDS -= { "not", "no" }
 
 def tokenize_question(q):
@@ -119,8 +119,18 @@ def run():
 
         if not is_oneliner(extracted_code):
             continue
-       
-        words = [w.lower() for w in stanford_lemmatize(question_title.strip())]
+      
+        question_title = question_title.lower()
+        question_title = question_title.replace("\\/", " ") 
+        question_title = question_title.replace("\/", " ")
+        question_title = question_title.replace("in bash", "")
+        question_title = question_title.replace("in linux", "")
+        question_title = question_title.replace("in mac os", "")
+        question_title = question_title.replace("for linux", "")
+        question_title = question_title.replace("for mac os", "")
+        question_title = question_title.replace("command line", "")
+        question_title = question_title.replace("in command line", "")
+        words = [w for w in stanford_lemmatize(question_title.strip())]
         words = [w for w in words if not w in STOPWORDS]
         # print("{}".format(words), file=sys.stderr)
         try:
