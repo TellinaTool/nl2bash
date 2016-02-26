@@ -11,6 +11,7 @@ import collections
 import HTMLParser
 import re
 import shlex
+import string
 import sqlite3
 import sys
 sys.path.append("/home/xilin/Packages")
@@ -59,10 +60,10 @@ WORD_REGEX = re.compile(r"\w*-?\w+")
 #               "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves" }
 STOPWORDS = {"a", "an", "the", 
              "be", "'s", "been", "being", "was", "were", "here", "there", "do", "how", 
-             "i", "i'd", "i'll", "i'm", "i've", "me", "my", "myself",
+             "i", "i'd", "i'll", "i'm", "i've", "me", "my", "myself", 
              "can", "could", "did", "do", "does", "doing", 
-             "must", "should", "would",
-             "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves".
+             "must", "should", "would", 
+             "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves", 
              "he", "he'd", "he'll", "he's", "her", "here", "here's", "hers", "herself", "him", "himself", "his",
              "she", "she'd", "she'll", "she's",
              "it", "it's", "its", "itself",
@@ -73,10 +74,11 @@ STOPWORDS = {"a", "an", "the",
              "what", "what's",
              "which",
              "how", "how's",
-             "command".
+             "command",
              "for",
              "to",
              "but"}
+STOPWORDS |= { ",", ".", "!", "?", ";", '"', "'", "`", ":"}
 STOPWORDS |= { "bash", "shell", "script" }
 STOPWORDS -= { "not", "no" }
 
@@ -110,8 +112,8 @@ def run():
 
     print("Gathering stats from {}...".format(in_sqlite), file=sys.stderr)
     
-    questionFile = open("../data/stackoverflow/questions", 'w')
-    commandFile = open("../data/stackoverflow/commands", 'w')
+    questionFile = open("../data/baseline1/questions", 'w')
+    commandFile = open("../data/baseline1/commands", 'w')
 
     for question_title, extracted_code in all_samples(in_sqlite):
 
