@@ -14,8 +14,13 @@ import shlex
 import string
 import sqlite3
 import sys
+
+# 3rd party
 sys.path.append("/home/xilin/Packages")
 from semantics.lexical import stanford_tokenize, stanford_lemmatize
+
+# local
+import bash
 
 html = HTMLParser.HTMLParser()
 
@@ -97,7 +102,12 @@ PROMPT_REGEX = re.compile(r"^\s*\S*\$>?")
 # CODE_STOPWORDS = { "|", ";", "[", "]", "[[", "]]", "{", "}", "(", ")", "=", ">", "<", ">>" }
 def tokenize_code(code):
     code = PROMPT_REGEX.sub("", code)
-    return shlex.split(code, comments=True)
+    for cmd in bash.parse(str(code)):
+        args = cmd[1:]
+        cmd = cmd[0]
+        yield cmd
+        for arg in args:
+            yield cmd + ":::" + arg
 
 def is_oneliner(code):
     return "\n" not in code.strip()
