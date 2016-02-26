@@ -9,6 +9,7 @@ Our key research question is:
 \end{quote}
 
 \subsection{Methodology}
+\label{subsec:methodology}
 
 To answer this question we plan to conduct a small pilot user study. Programmers
 will be asked to accomplish various tasks at the command line. They will be
@@ -109,5 +110,41 @@ measures about the tool:
 \end{enumerate}
 
 \subsection{Results}
+
+\begin{table}
+    \begin{center}
+    \begin{tabular}{lrr}
+        \textbf{Input} & \textbf{Time (s)} & \textbf{Quality} \\
+        \hline
+        - & - & - \\
+        - & - & - \\
+        - & - & - \\
+        - & - & - \\
+        - & - & - \\
+    \end{tabular}
+    \end{center}
+    \caption{Performance and manual inspection data. The ``Input'' column lists
+        natural-language inputs to the tool. The ``Time (s)'' column lists times
+        (in seconds) to produce an answer. The ``Quality'' column indicates
+        whether the output was correct, almost correct, or incorrect.}
+\end{table}
+
+\begin{table}
+    \begin{center}
+    \begin{tabular}{lrr}
+        \textbf{Task/Setup} & \textbf{Without (s)} & \textbf{With (s)} \\
+        \hline
+        $T_1 S_1$, $T_2 S_2$ & - & - \\
+        $T_1 S_2$, $T_2 S_1$ & - & - \\
+        $T_2 S_1$, $T_1 S_2$ & - & - \\
+        $T_2 S_2$, $T_1 S_1$ & - & - \\
+    \end{tabular}
+    \end{center}
+    \caption{User study results. The ``Task/Setup'' column corresponds to the
+        groups outlined in \autoref{subsec:methodology}. The ``Without (s)''
+        column shows the average time taken by participants on the task with
+        setup 1 (manpages+internet). The ``With (s)'' column shows the average
+        time taken by participants on the task with setup 2 (manpages+tool).}
+\end{table}
 
 \todo{No results yet!}
