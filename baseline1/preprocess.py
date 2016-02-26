@@ -77,10 +77,11 @@ def run():
         if not is_oneliner(extracted_code):
             continue
        
-        words = [w.lower() for w in stanford_lemmatize(question_title)]
+        words = [w.lower() for w in stanford_lemmatize(question_title.strip())]
+        words = [w for w in words if not w in ['a', 'an', 'the']]
         # print("{}".format(words), file=sys.stderr)
         try:
-            terms = tokenize_code(extracted_code)
+            terms = tokenize_code(extracted_code.strip())
         except ValueError as e:
             # print("unable to parse question {}: {} [err={}]".format(repr(question_title), repr(extracted_code), e), file=sys.stderr)
             terms = []
