@@ -1,0 +1,5111 @@
+[{
+	"type": "command",
+	"name": "find",
+	"option": {
+		"type": "compound_options",
+		"commands": [{
+			"type": "optional_option",
+			"cmd": {
+				"type": "exclusive_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "H"
+				}, {
+					"type": "flag_option",
+					"flag_name": "L"
+				}, {
+					"type": "flag_option",
+					"flag_name": "P"
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "E"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "X"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "s"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "x"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "f"
+				}, {
+					"type": "argument_option",
+					"arg_name": "path",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "argument_option",
+			"arg_name": "path",
+			"arg_type": "Unknown",
+			"isList": true
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "f"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "s"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "B"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "B"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "B"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "c"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "c"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "c"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "c"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "flag_option",
+				"flag_name": "d"
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "h"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "d"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "m"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "y"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "f"
+					}, {
+						"type": "flag_option",
+						"flag_name": "s"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "y"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "type",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "g"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "d"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "gname",
+					"arg_type": "Groupname",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "g"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "o"
+					}, {
+						"type": "flag_option",
+						"flag_name": "u"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "gname",
+					"arg_type": "Groupname",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "g"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "_"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "_"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "c"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "u"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "g"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "x"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}, {
+						"type": "flag_option",
+						"flag_name": "o"
+					}, {
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "k"
+					}, {
+						"type": "flag_option",
+						"flag_name": "s"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "s"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "x"
+					}, {
+						"type": "flag_option",
+						"flag_name": "d"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "d"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "m"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "X"
+					}, {
+						"type": "flag_option",
+						"flag_name": "Y"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "g"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "g"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "_"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "_"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "c"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "f"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "s"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "mode",
+					"arg_type": "PermissionMode",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "0"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "g"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "x"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "s"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "f"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "name",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "s"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "z"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "y"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "t",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "u"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "d"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "uname",
+					"arg_type": "Username",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "u"
+					}, {
+						"type": "flag_option",
+						"flag_name": "s"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "uname",
+					"arg_type": "Username",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}, {
+						"type": "flag_option",
+						"flag_name": "o"
+					}, {
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "x"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "x"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "name",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}]
+	}
+}, {
+	"type": "command",
+	"name": "find",
+	"option": {
+		"type": "compound_options",
+		"commands": [{
+			"type": "optional_option",
+			"cmd": {
+				"type": "exclusive_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "H"
+				}, {
+					"type": "flag_option",
+					"flag_name": "L"
+				}, {
+					"type": "flag_option",
+					"flag_name": "P"
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "E"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "X"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "s"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "x"
+				}
+			}]
+		}, {
+			"type": "flag_option",
+			"flag_name": "f"
+		}, {
+			"type": "argument_option",
+			"arg_name": "path",
+			"arg_type": "Unknown",
+			"isList": false
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "argument_option",
+				"arg_name": "path",
+				"arg_type": "Unknown",
+				"isList": true
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "f"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "s"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "B"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "B"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "B"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "c"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "c"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "c"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "c"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "flag_option",
+				"flag_name": "d"
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "h"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "d"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "m"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "y"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "f"
+					}, {
+						"type": "flag_option",
+						"flag_name": "s"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "y"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "type",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "g"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "d"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "gname",
+					"arg_type": "Groupname",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "g"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "o"
+					}, {
+						"type": "flag_option",
+						"flag_name": "u"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "gname",
+					"arg_type": "Groupname",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "g"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "_"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "_"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "c"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "u"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "g"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "x"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}, {
+						"type": "flag_option",
+						"flag_name": "o"
+					}, {
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "k"
+					}, {
+						"type": "flag_option",
+						"flag_name": "s"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "s"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "x"
+					}, {
+						"type": "flag_option",
+						"flag_name": "d"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "d"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "m"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "X"
+					}, {
+						"type": "flag_option",
+						"flag_name": "Y"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "g"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "g"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "_"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "_"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "c"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "f"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "s"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "mode",
+					"arg_type": "PermissionMode",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "0"
+				}
+			}]
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "g"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "x"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "s"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "f"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "name",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "s"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "z"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "y"
+					}, {
+						"type": "flag_option",
+						"flag_name": "p"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "t",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "u"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}, {
+						"type": "flag_option",
+						"flag_name": "d"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "uname",
+					"arg_type": "Username",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "u"
+					}, {
+						"type": "flag_option",
+						"flag_name": "s"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "uname",
+					"arg_type": "Username",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "w"
+					}, {
+						"type": "flag_option",
+						"flag_name": "h"
+					}, {
+						"type": "flag_option",
+						"flag_name": "o"
+					}, {
+						"type": "flag_option",
+						"flag_name": "l"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "x"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "x"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "t"
+					}, {
+						"type": "flag_option",
+						"flag_name": "r"
+					}, {
+						"type": "flag_option",
+						"flag_name": "n"
+					}, {
+						"type": "flag_option",
+						"flag_name": "a"
+					}, {
+						"type": "flag_option",
+						"flag_name": "m"
+					}, {
+						"type": "flag_option",
+						"flag_name": "e"
+					}]
+				}, {
+					"type": "argument_option",
+					"arg_name": "name",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}]
+	}
+}, {
+	"type": "command",
+	"name": "mv",
+	"option": {
+		"type": "compound_options",
+		"commands": [{
+			"type": "optional_option",
+			"cmd": {
+				"type": "exclusive_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "f"
+				}, {
+					"type": "flag_option",
+					"flag_name": "i"
+				}, {
+					"type": "flag_option",
+					"flag_name": "n"
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "flag_option",
+				"flag_name": "v"
+			}
+		}, {
+			"type": "argument_option",
+			"arg_name": "source",
+			"arg_type": "File",
+			"isList": false
+		}, {
+			"type": "argument_option",
+			"arg_name": "target",
+			"arg_type": "File",
+			"isList": false
+		}]
+	}
+}, {
+	"type": "command",
+	"name": "mv",
+	"option": {
+		"type": "compound_options",
+		"commands": [{
+			"type": "optional_option",
+			"cmd": {
+				"type": "exclusive_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "f"
+				}, {
+					"type": "flag_option",
+					"flag_name": "i"
+				}, {
+					"type": "flag_option",
+					"flag_name": "n"
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "flag_option",
+				"flag_name": "v"
+			}
+		}, {
+			"type": "argument_option",
+			"arg_name": "source",
+			"arg_type": "File",
+			"isList": true
+		}, {
+			"type": "argument_option",
+			"arg_name": "directory",
+			"arg_type": "Unknown",
+			"isList": false
+		}]
+	}
+}, {
+	"type": "command",
+	"name": "sort",
+	"option": {
+		"type": "compound_options",
+		"commands": [{
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "b"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "f"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "g"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "M"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "c"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "k"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "m"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "s"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "S"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "T"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "z"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "argument_option",
+				"arg_name": "file",
+				"arg_type": "File",
+				"isList": true
+			}
+		}]
+	}
+}, {
+	"type": "command",
+	"name": "grep",
+	"option": {
+		"type": "compound_options",
+		"commands": [{
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "b"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "c"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "D"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "E"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "F"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "G"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "H"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "h"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "I"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "J"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "L"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "m"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "O"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "q"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "R"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "S"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "s"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "U"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "V"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "v"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "w"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "x"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "Z"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "A"
+				}, {
+					"type": "argument_option",
+					"arg_name": "num",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "B"
+				}, {
+					"type": "argument_option",
+					"arg_name": "num",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "C"
+				}, {
+					"type": "optional_option",
+					"cmd": {
+						"type": "argument_option",
+						"arg_name": "num",
+						"arg_type": "Number",
+						"isList": false
+					}
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "e"
+				}, {
+					"type": "argument_option",
+					"arg_name": "pattern",
+					"arg_type": "Pattern",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "f"
+				}, {
+					"type": "argument_option",
+					"arg_name": "file",
+					"arg_type": "File",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "context",
+				"arg_exists": true,
+				"arg_optional": true,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": "num",
+					"arg_type": "Number",
+					"isList": false
+				}
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "label",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
+				}
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "line-buffered",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
+				}
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "null",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
+				}
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "argument_option",
+				"arg_name": "pattern",
+				"arg_type": "Pattern",
+				"isList": false
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "argument_option",
+				"arg_name": "file",
+				"arg_type": "File",
+				"isList": true
+			}
+		}]
+	}
+}, {
+	"type": "command",
+	"name": "cp",
+	"option": {
+		"type": "compound_options",
+		"commands": [{
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "R"
+				}, {
+					"type": "optional_option",
+					"cmd": {
+						"type": "exclusive_options",
+						"commands": [{
+							"type": "flag_option",
+							"flag_name": "H"
+						}, {
+							"type": "flag_option",
+							"flag_name": "L"
+						}, {
+							"type": "flag_option",
+							"flag_name": "P"
+						}]
+					}
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "exclusive_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "f"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}]
+				}, {
+					"type": "flag_option",
+					"flag_name": "n"
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "v"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "X"
+				}
+			}]
+		}, {
+			"type": "argument_option",
+			"arg_name": "source_file",
+			"arg_type": "Unknown",
+			"isList": false
+		}, {
+			"type": "argument_option",
+			"arg_name": "target_file",
+			"arg_type": "Unknown",
+			"isList": false
+		}]
+	}
+}, {
+	"type": "command",
+	"name": "cp",
+	"option": {
+		"type": "compound_options",
+		"commands": [{
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "R"
+				}, {
+					"type": "optional_option",
+					"cmd": {
+						"type": "exclusive_options",
+						"commands": [{
+							"type": "flag_option",
+							"flag_name": "H"
+						}, {
+							"type": "flag_option",
+							"flag_name": "L"
+						}, {
+							"type": "flag_option",
+							"flag_name": "P"
+						}]
+					}
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "exclusive_options",
+				"commands": [{
+					"type": "compound_options",
+					"commands": [{
+						"type": "flag_option",
+						"flag_name": "f"
+					}, {
+						"type": "flag_option",
+						"flag_name": "i"
+					}]
+				}, {
+					"type": "flag_option",
+					"flag_name": "n"
+				}]
+			}
+		}, {
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "v"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "X"
+				}
+			}]
+		}, {
+			"type": "argument_option",
+			"arg_name": "source_file",
+			"arg_type": "Unknown",
+			"isList": true
+		}, {
+			"type": "argument_option",
+			"arg_name": "target_directory",
+			"arg_type": "Unknown",
+			"isList": false
+		}]
+	}
+}, {
+	"type": "command",
+	"name": "ls",
+	"option": {
+		"type": "compound_options",
+		"commands": [{
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "A"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "B"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "C"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "F"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "G"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "H"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "L"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "O"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "P"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "R"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "S"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "T"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "U"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "W"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "@"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "a"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "b"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "c"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "d"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "e"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "f"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "g"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "h"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "i"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "k"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "l"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "m"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "n"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "q"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "r"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "s"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "u"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "w"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "x"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "1"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "argument_option",
+				"arg_name": "file",
+				"arg_type": "File",
+				"isList": true
+			}
+		}]
+	}
+}, {
+	"type": "command",
+	"name": "xargs",
+	"option": {
+		"type": "compound_options",
+		"commands": [{
+			"type": "compound_options",
+			"commands": [{
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "0"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "o"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "p"
+				}
+			}, {
+				"type": "optional_option",
+				"cmd": {
+					"type": "flag_option",
+					"flag_name": "t"
+				}
+			}]
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "E"
+				}, {
+					"type": "argument_option",
+					"arg_name": "eofstr",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "I"
+				}, {
+					"type": "argument_option",
+					"arg_name": "replstr",
+					"arg_type": "Unknown",
+					"isList": false
+				}, {
+					"type": "optional_option",
+					"cmd": {
+						"type": "compound_options",
+						"commands": [{
+							"type": "flag_option",
+							"flag_name": "R"
+						}, {
+							"type": "argument_option",
+							"arg_name": "replacements",
+							"arg_type": "Unknown",
+							"isList": false
+						}]
+					}
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "J"
+				}, {
+					"type": "argument_option",
+					"arg_name": "replstr",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "L"
+				}, {
+					"type": "argument_option",
+					"arg_name": "number",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "n"
+				}, {
+					"type": "argument_option",
+					"arg_name": "number",
+					"arg_type": "Number",
+					"isList": false
+				}, {
+					"type": "optional_option",
+					"cmd": {
+						"type": "flag_option",
+						"flag_name": "x"
+					}
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "P"
+				}, {
+					"type": "argument_option",
+					"arg_name": "maxprocs",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "flag_option",
+					"flag_name": "s"
+				}, {
+					"type": "argument_option",
+					"arg_name": "size",
+					"arg_type": "Size",
+					"isList": false
+				}]
+			}
+		}]
+	}
+}]
