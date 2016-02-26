@@ -32,18 +32,21 @@ Concretely, the syntax of the intermediate language design is presented below.
 \mathit{arg} & := & \epsilon ~|~ \mathit{value} ~|~ \mathit{hole} & \textrm{(Arguments)}\\
 \mathit{cmd}^{*} & := & \mathsf{find} ~|~ \mathsf{grep} ~|~ ... & \textrm{(Commands)}\\
 \mathit{flag}^{*} & := & \epsilon ~|~ -f ~|~ -h ~|~ ... & \textrm{(Flags)}\\
+~\\
 \multicolumn{3}{l}{\textbf{Command Signature}}\\
 \mathit{sig} & := & \mathsf{name}~\mathit{option}:\tau & \textrm{(Command signature)}\\
 \mathit{option} &:= & \mathsf{flagname} & \textrm{(Command option)}\\
                 &   & \mathsf{argname}[\tau]\\
                 &   & \mathit{option}~\mathbf{or}~\mathit{option}\\
                 &   & [ \mathit{option} ]\\
+~\\
 \multicolumn{3}{l}{\textbf{Rules}}\\
 \mathit{rule}^{*} &:=& \mathsf{find}~f[\mathsf{File}] : \mathsf{File}\\
                   &  & \mathit{date}~\mathit{-d} : \mathsf{void}\\
                   &  & \mathit{date}~\mathit{-u} : \mathsf{Date}\\
                   &  & ...\\
-\multicolumn{3}{l}{\textbf{Type}}\\
+~\\
+\multicolumn{3}{l}{\textbf{Types}}\\
 \tau_0 & := & \mathsf{void} ~|~ \mathsf{File} & \textrm{(Primitive types)}\\
        &     & |~ \mathsf{Date} ~|~ \mathsf{Permission} ~|~ \mathsf{Size} ~|~ ... \\
 \tau & := & \tau_0 ~|~ \tau_0\rightarrow \tau_0 & \textrm{(Type)}
