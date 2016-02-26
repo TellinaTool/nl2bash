@@ -40,51 +40,67 @@ public class Cmd {
         }
     }
 
+    public static class Command {
+        public String type = "command";
+        public String name = "";
+        public CmdOp option;
+        public Command() {};
+        public Command(String name, CmdOp op) {
+            this.name = name;
+            this.option = op;
+        }
+        public String toString() {
+            return name + " " + option.toString();
+        }
+    }
+
     public interface CmdOp { }
     // flag of form -flagname
     public static class Fl implements CmdOp {
-        public String flagName;
+        public String type = "flag_option";
+        public String flag_name;
         public Fl(String s) {
-            this.flagName = s;
-            if (this.flagName.startsWith("-")) {
-                this.flagName = this.flagName.substring(1);
+            this.flag_name = s;
+            if (this.flag_name.startsWith("-")) {
+                this.flag_name = this.flag_name.substring(1);
             }
         }
         public Fl() {}
         public String toString() {
-            String flag = "-" + flagName;
+            String flag = "-" + flag_name;
             return flag;
         }
     }
     // another type of flag, with --flagname=arg
     public static class Flv2 implements CmdOp {
-        public String flagName;
+        public String type = "long_flag_option";
+        public String flag_name;
         // whether there exists arg
-        boolean existArg = false;
+        public boolean arg_exists = false;
         // whether the arg is of the form [=XXX] or =XXX
-        boolean isOptionalArg = false;
-        String arg = "";
+        public boolean arg_optional = false;
+        public Ar argument = new Ar();
         public Flv2(String flagname) {
-            this.flagName = flagname;
+            this.flag_name = flagname;
         }
-        public void setName(String arg, boolean isOptionalArg) {
-            this.existArg = true;
-            this.arg = arg;
-            this.isOptionalArg = isOptionalArg;
+        public void setName(String arg, boolean arg_optional) {
+            this.arg_exists = true;
+            this.argument = new Ar(arg);
+            this.arg_optional = arg_optional;
         }
         public String toString() {
-            String result = "--" + flagName.toString();
-            if (existArg) {
-                if (isOptionalArg)
-                    result += "[=" + arg.toString() + "]";
+            String result = "--" + flag_name.toString();
+            if (arg_exists) {
+                if (arg_exists)
+                    result += "[=" + argument.toString() + "]";
                 else
-                    result += "=" + arg.toString();
+                    result += "=" + argument.toString();
             }
             return result;
         }
     }
     public static class Opt implements CmdOp {
-        public String type = "optional";
+        public String type = "optional_option";
         public CmdOp cmd;
         public Opt(CmdOp cmd) { this.cmd = cmd; }
         public Opt() {}
@@ -93,29 +109,56 @@ public class Cmd {
         }
     }
     public static class Ar implements CmdOp {
-        public String type = "argument";
-        public String argname;
+        public String type = "argument_option";
+        public String arg_name;
+        public String arg_type;
         public boolean isList = false;
         public Ar() {};
-        public Ar(String s) { this.argname = s; }
+        public Ar(String s) {
+            this.arg_name = s;
+            if (this.arg_name.equalsIgnoreCase("file")
+                    || this.arg_name.equalsIgnoreCase("f")
+                    || this.arg_name.equalsIgnoreCase("source")
+                    || this.arg_name.equalsIgnoreCase("target")) {
+                arg_type = "File";
+            } else if (this.arg_name.equalsIgnoreCase("number")
+                    || this.arg_name.equalsIgnoreCase("n")
+                    || this.arg_name.equalsIgnoreCase("num")) {
+                arg_type = "Number";
+            } else if (this.arg_name.equalsIgnoreCase("mode")) {
+                arg_type = "PermissionMode";
+            } else if (this.arg_name.equalsIgnoreCase("uname")) {
+                arg_type = "Username";
+            } else if (this.arg_name.equalsIgnoreCase("gname")) {
+                arg_type = "Groupname";
+            } else if (this.arg_name.equalsIgnoreCase("pattern")) {
+                arg_type = "Pattern";
+            } else if (this.arg_name.equalsIgnoreCase("time")) {
+                arg_type = "Time";
+            } else if (this.arg_name.equalsIgnoreCase("size")) {
+                arg_type = "Size";
+            } else {
+                arg_type = "Unknown";
+            }
+        }
         public String toString() {
-            if (isList) return argname + "...";
-            else return argname;
+            if (isList) return arg_name + "...";
+            else return arg_name;
         }
     }
     public static class Compound implements CmdOp {
-        public String type = "compound";
-        public List<CmdOp> cmds = new ArrayList<>();
-        public Compound(List<CmdOp> cmds) { this.cmds = cmds; }
-        public String toString() { return cmds.stream().map(cmd -> cmd.toString()).reduce(" ", (x,y) -> x + " " + y); }
+        public String type = "compound_options";
+        public List<CmdOp> commands = new ArrayList<>();
+        public Compound(List<CmdOp> cmds) { this.commands = cmds; }
+        public String toString() { return commands.stream().map(cmd -> cmd.toString()).reduce(" ", (x,y) -> x + " " + y); }
     }
     public static class Exclusive implements CmdOp {
-        public String type = "eclusive";
-        public List<CmdOp> cmds = new ArrayList<>();
-        public Exclusive(List<CmdOp> cmds) { this.cmds = cmds; }
+        public String type = "exclusive_options";
+        public List<CmdOp> commands = new ArrayList<>();
+        public Exclusive(List<CmdOp> cmds) { this.commands = cmds; }
         public String toString() {
             String s = "";
-            for (CmdOp flg : cmds) {
+            for (CmdOp flg : commands) {
                 s += flg + " | ";
             }
             return s;
