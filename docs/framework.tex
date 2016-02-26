@@ -11,15 +11,12 @@
     \label{fig:arch}
 \end{figure}
 
-The natural language based command line interpreter we plan to develop consists of three key components: 1) an intermediate language  based on which Linux commands are generated and
-% 2) a learning algorithm that can learn primitive commands of the intermediate language with provided man pages and 
-2) a semantic parser that effectively maps the natural language commands issued by users to this intermediate representation. Especially, our initial pilot system is restricted to cover only file system operations, including file lookup, directory tree transformation, file content transformation, file property modifications. We restrict the domain in the hope that it can be expressed with tractable logic as well as to reduce the degree of ambiguity in the natural language command. Section~\ref{subsec:represent} introduces the formal language design and section~\ref{subsec:parser} introduces the approach to train the semantic parser.
+The natural language based command line interpreter we plan to develop consists of two key components: 1) an intermediate language to represent commands and
+2) a semantic parser that maps natural language commands issued by users to this intermediate representation. Our initial pilot system is restricted to cover only file system operations, including file lookup, directory tree transformation, file content transformation, and file property modifications. We restrict the domain in the hope that it can be expressed with tractable logic and to reduce the degree of ambiguity in the natural language command. Section~\ref{subsec:represent} introduces the formal language design---the subset of Bash our tool supports---and section~\ref{subsec:parser} introduces the approach to train the semantic parser.
 
 \subsection{Language Design}
 \label{subsec:represent}
-An ideal intermediate language for the CLI programs should be 1) expressive enough so that it covers many interesting real world cases, 2) concise enough for the synthesizer to efficiently synthesize and 3) extensible, so that different people targeting different command line applications and use different sets of primitive commands.
-
-Concretely, the syntax of the intermediate language design is presented below.
+An ideal intermediate language for the CLI programs should be expressive enough so that it covers many interesting real world cases, concise enough for the synthesizer to efficiently synthesize, and extensible. \autoref{fig:lang} presents the syntax of the intermediate language.
 
 \begin{figure}
 \[
@@ -57,15 +54,15 @@ Concretely, the syntax of the intermediate language design is presented below.
 \end{figure}
 
 
-The first part of our language is the program syntax (labeled as \textbf{Program}), defines how a program can be formed: a CLI program can be 1) refer to a value, 2) call a primitive command, and 3) pipelining two programs and passing the result of the first program as the argument of the second program.
+\textbf{Program} defines how a program can be formed. A CLI program can refer to a value, call a primitive command, or pipeline two programs together.
 
 The rest of the language are designed to help check well-formedness of a given CLI program. The command signature defines how a rule can be written, the rules (\textbf{Rule}) defines which primitive programs are valid. Then, with the help of the types in our program, we can check the type of a program $p$ to ensure that a command line program is well-formed.
 
-Since the number of basic Linux commands and options is large even in domain-specific scenarios, it is difficult for a human designer to hand-code all of the generation rules. We plan to semi-automate this step by adding information extracted from the Linux man pages\footnote{\url{http://linux.die.net/man/}} and make the language extensible. Concretely, we shall parse the man page to generate primitive commands, flags and checking rules for each command (all non-terminals labeled with * in Figure~\ref{fig:lang} will be automatically learned from man page). And with this language design, users can extend the basic language by providing man pages.
+Since the number of basic Linux commands and options is large even in domain-specific scenarios, it is difficult for a human designer to hand-code all of the generation rules. We plan to semi-automate this step by adding information extracted from the Linux man pages\footnote{\url{http://linux.die.net/man/}}. Extending our tool to handle new commands simply requires adding a new man page to the training data.
 
 \subsection{Natural Language Command Interpreter}
 \label{subsec:parser}
-We train the natural language command interpreter using the Linux man pages, in addition to a small set of natural language and command line program pairs. The motivation of adopting man pages as one resource of the training data lies in the fact that gathering sufficient number of of natural language to command line program pairs is expensive. The large volume of Stack Overflow conversations are noisy and only a handful of high-quality training pairs can be confidently extracted. On the other hand, the Linux man pages are well formatted and contains rich natural language text that explains the usage of each command template and its possible arguments. We propose to use the command-explanation pairs extracted from man pages as additional signals to guide the search for high score rankings, thereby remedies the lack of example training pairs.
+We train the natural language command interpreter using the Linux man pages, in addition to a small set of input/output pairs, each consisting of a natural language query and a command line program. The online forum StackOverflow has a large volume of input/output pairs. Unfortunately these conversations are noisy and only a handful of high-quality training pairs can be confidently extracted. In contarst, the Linux man pages are well formatted and contains rich natural language text that explains the usage of each command template and its possible arguments. We propose to use the command-explanation pairs extracted from man pages as additional signals to guide the search for high score rankings, thereby remedies the lack of example training pairs.
 
 We use a linear feature function to score the natural language command to logical representation mappings. The following features are used:
 \begin{itemize}\itemsep-1pt
