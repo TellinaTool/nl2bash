@@ -23,3 +23,6 @@ __pycache__
 # Java
 *.class
 /man-parser/out
+
+# Misc
+.DS_Store
