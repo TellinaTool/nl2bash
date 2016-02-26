@@ -78,7 +78,7 @@ STOPWORDS = {"a", "an", "the",
              "for",
              "to",
              "but"}
-STOPWORDS |= { ",", ".", "!", "?", ";", '"', "'", "`", ":"}
+STOPWORDS |= { ",", ".", "!", "?", ";", ":"}
 STOPWORDS |= { "bash", "shell", "script" }
 STOPWORDS -= { "not", "no" }
 
