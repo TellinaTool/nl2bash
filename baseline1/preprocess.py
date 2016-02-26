@@ -75,11 +75,9 @@ STOPWORDS = {"a", "an", "the",
              "which",
              "how", "how's",
              "command",
-             "for",
-             "to",
              "but"}
 STOPWORDS |= { ",", ".", "!", "?", ";", ":", "\/", "\\/"}
-STOPWORDS |= {"mac", "os", "x", "linux", "bash", "command", "shell", "script" }
+STOPWORDS |= { "mac", "os", "x", "unix", "linux", "cmd", "bat", "bash", "command", "commandline", "command-line", "shell", "script" }
 STOPWORDS -= { "not", "no" }
 
 def tokenize_question(q):
@@ -124,10 +122,13 @@ def run():
         question_title = question_title.replace("\\/", " ") 
         question_title = question_title.replace("\/", " ")
         question_title = question_title.replace("in bash", "")
+        question_title = question_title.replace("in unix", "")
         question_title = question_title.replace("in linux", "")
         question_title = question_title.replace("in mac os", "")
+        question_title = question_title.replace("for unix", "")
         question_title = question_title.replace("for linux", "")
         question_title = question_title.replace("for mac os", "")
+        question_title = question_title.replace("in cmd", "")
         question_title = question_title.replace("command line", "")
         question_title = question_title.replace("in command line", "")
         words = [w for w in stanford_lemmatize(question_title.strip())]
