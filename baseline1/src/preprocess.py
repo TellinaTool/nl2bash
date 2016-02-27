@@ -82,7 +82,7 @@ def run():
     for question_title, extracted_code in all_samples(in_sqlite):
 
         total_count += 1
-
+        
         if not is_oneliner(extracted_code):
             continue
 
