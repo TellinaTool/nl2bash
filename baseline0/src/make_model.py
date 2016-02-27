@@ -23,8 +23,9 @@ html = HTMLParser.HTMLParser()
 
 CODE_REGEX = re.compile(r"<pre><code>([^<]+)<\/code><\/pre>")
 def extract_code(text):
-    match = CODE_REGEX.search(text)
-    return html.unescape(match.group(1).replace("<br>", "\n")) if match else None
+    for match in CODE_REGEX.findall(text):
+        if match.strip():
+            yield html.unescape(match.replace("<br>", "\n"))
 
 def all_samples(sqlite_filename):
     with sqlite3.connect(sqlite_filename, detect_types=sqlite3.PARSE_DECLTYPES) as sqlite_db:
@@ -32,8 +33,7 @@ def all_samples(sqlite_filename):
                 SELECT questions.Title, answers.Body
                 FROM questions, answers
                 WHERE questions.AcceptedAnswerId = answers.Id"""):
-            extracted_code = extract_code(answer_body)
-            if extracted_code:
+            for extracted_code in extract_code(answer_body):
                 yield (question_text, extracted_code)
 
 WORD_REGEX = re.compile(r"\w*-?\w+")
