@@ -85,6 +85,8 @@ STOPWORDS |= { ",", ".", "!", "?", ";", ":", "\/", "\\/"}
 STOPWORDS |= { "mac", "os", "x", "unix", "linux", "cmd", "bat", "bash", "command", "commandline", "command-line", "shell", "script" }
 STOPWORDS -= { "not", "no" }
 
+STOPPHRASE = { 
+			 }
 def tokenize_question(q):
     seq = []
     for word in WORD_REGEX.findall(q.lower()):
@@ -141,7 +143,10 @@ def run():
         question_title = question_title.replace("in cmd", "")
         question_title = question_title.replace("command line", "")
         question_title = question_title.replace("in command line", "")
-        words = [w for w in stanford_lemmatize(question_title.strip())]
+    
+		# required by moses
+		question_title = question_title.replace("<", "-lbc-")
+	    words = [w for w in stanford_lemmatize(question_title.strip())]
         words = [w for w in words if not w in STOPWORDS]
         # print("{}".format(words), file=sys.stderr)
         try:
