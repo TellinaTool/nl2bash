@@ -56,6 +56,7 @@ STOPPHRASE = { "in bash", "in unix", "in linux", "in mac os",
                "for bash", "for unix", "for linux", "for mac os", 
                "in cmd", "command line", "in command line"
              }
+
 def tokenize_question(q):
     seq = []
     for word in WORD_REGEX.findall(q.lower()):
