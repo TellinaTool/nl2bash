@@ -13,7 +13,8 @@ mode ::= {permission mode}
 
 CompoundCmd ::= 
 				PrimitiveCmd
-				cmd || cmd
+				cmd || xarg cmd
+				cmd || xarg sort 
 
 PrimitiveCmd ::=
 
@@ -35,4 +36,3 @@ PrimitiveCmd ::=
 				
 				ls [-ABCFGHLOPRSTUW@abcdefghiklmnopqrstuwx1] [file ...]
 				
-				xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr] [-L number] [-n number [-x]] [-P maxprocs] [-s size]

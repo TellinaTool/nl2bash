@@ -6,14 +6,13 @@
 % What makes it hard?
 % How will we solve it?
 
-The command line interface (CLI) enables users to perform a rich set of actions including file system manipulation, remote control, system configuration, and more. CLI programming is considered an important software development skill; many companies expect CLI proficiency when hiring new software engineers. CLI programming also greatly boosts productivity in other professions, including research science, medicine, and education. Professionals in these fields often have experimental results and other relevant information stored on hard disks, and need to repeatedly perform file operations to retrieve and update that information. Most of these operations can be succinctly represented as short CLI programs.
+The command line interface (CLI) enables users to perform a rich set of actions including file system manipulation, system configuration, batch processing, and more. CLI programming is considered an important software development skill; many companies expect CLI proficiency when hiring new software engineers. CLI programming also greatly boosts productivity in other professions, including research science, medicine, and education. Professionals in these fields often have experimental results and other relevant information stored on hard disks, and need to repeatedly perform file operations to retrieve and update that information. Most of these operations can be succinctly represented as short CLI programs.
 
-Unfortunately, the rich vocabulary available to CLI users requires a high degree of memorization and familiarity. As a result, new users often find it difficult to master. Even experienced CLI programmers often forget the exact options necessary to implement their intents. On the other hand,
-users who are clear about their goals can often express them succinctly in natural language~\cite{Myers:2004:NPL:1015864.1015888}.
-These natural language specifications are precise enough that expert users can
+Unfortunately, the rich vocabulary available to CLI users requires a high degree of memorization and familiarity. As a result, new users often find it difficult to master, and even experienced CLI programmers often forget the exact options necessary to implement their intents. On the other hand, common tasks user performed can be expressed  succinctly in natural language~\cite{Myers:2004:NPL:1015864.1015888}, and
+these natural language specifications are precise enough that expert users can
 usually produce correct solutions---or at least, solutions requiring minimal
 adjustment. The table below shows a few examples of natural language
-descriptions paired up with executable commands. The examples are gathered from
+descriptions paired up with executable command line programs. The examples are gathered from
 StackOverflow, UnixExchange, and other online sources.
 
 \begin{center}
@@ -23,7 +22,7 @@ StackOverflow, UnixExchange, and other online sources.
     \hline \hline
     How to count all the lines of code in a directory recursively?%
         \footnote{\url{https://stackoverflow.com/questions/1358540/how-to-count-all-the-lines-of-code-in-a-directory-recursively}} &
-        \texttt{find . -name '*.php' | xargs wc -l} \\
+        \texttt{find . -name `*.php' | xargs wc -l} \\
     \hline
     Copy folder recursively, excluding some folders%
         \footnote{\url{https://stackoverflow.com/questions/2193584/copy-folder-recursively-excluding-some-folders}} &
@@ -31,7 +30,7 @@ StackOverflow, UnixExchange, and other online sources.
      \hline
      Find the 100 biggest files on your system%
          \footnote{\url{http://pro-toolz.net/data/programming/bash/important_shell_commands.html}}&
-         \texttt{find / -type f -ls | awk '\{print \$7,\$11\}' | sort -n | tail -100} \\
+         \texttt{find / -type f -ls | awk `\{print \$7,\$11\}' | sort -n | tail -100} \\
      \hline
      Find the most recently modified files in a directory and all subdirectories%
          \footnote{\url{http://www.bashoneliners.com/oneliners/oneliner/80/}}&
@@ -51,9 +50,9 @@ There are a few factors that make command line operations challenging, specifica
 \begin{itemize}
 \item \textbf{Ambiguity in natural language.} Natural language descriptions are inherently ambiguous. Although techniques such as keyword-based translation~\cite{DBLP:conf/sigmod/GulwaniM14}, semantic parsing~\citep{Zettlemoyer05learningto}, and interactive disambiguation~\cite{DBLP:journals/pvldb/LiJ14} have been proposed, state-of-the-art natural language processing approaches are still error prone and cover limited set of linguistic phenomena.
 % there are still no general techniques that can handle all inputs.
-Unfortunately, partial and ill-formed descriptions are common in command line questions. It can be seen from the examples above that users turned to omit many details such as the names of the directories, which seems natural to skip in conversations but are in fact essential to program synthesis. In the last two examples shown above, the system needs to figure out that ``biggest'' triggers the operations of sorting the files based on the size attribute and ``most recently'' requires filtering the files based on the modification time. Both operations are related to the lexical meanings of the words in an obscure way.
+Unfortunately, partial and ill-formed descriptions are common in command line questions. It can be seen from the examples above that users tend to omit many details such as the names of the directories, which seems natural to skip in conversations but are in fact essential to program synthesis. In the last two examples shown above, the system needs to figure out that ``biggest'' makes the operations of sorting the files based on the size attribute and ``most recently'' requires filtering the files based on the modification time. Both operations are related to the lexical meanings of the words different ways.
 
-\item \textbf{Richness in basic operations.} Different from domains such as database queries, which are complex in their program structure but simple in the atomic operations, command line programs are often simple in structure but complex in basic operations. The large and growing set of basic operations makes it impossible for synthesizer designers to define a fixed target language set as required by existing approaches, and this makes it hard for existing approach to properly address the CLI program synthesis challenges.
+\item \textbf{Richness in basic operations.} Different from domains such as database queries, which are complex in their program structure but simple in the atomic operations, command line programs are often simple in structure but complex in basic operations. The large set of basic operations are informally described informally in man pages, and as a result, the synthesizer designer will need to manually write down the formal specification to build a synthesizer.
 \end{itemize}
 
 In the next session we briefly describe our tentative approach to the system design.
