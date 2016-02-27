@@ -98,10 +98,10 @@ def run():
         question_title = question_title.replace(">", " rightanglebrc ")
         question_title = question_title.replace("[", " leftsquarebrc ")
         question_title = question_title.replace("]", " rightsquarebrc ")
-        extracted_code = extracted_code.replace("<", " leftanglebrc ")
-        extracted_code = extracted_code.replace(">", " rightanglebrc ")
-        extracted_code = extracted_code.replace("[", " leftsquarebrc ")
-        extracted_code = extracted_code.replace("]", " rightsquarebrc ")
+        # extracted_code = extracted_code.replace("<", " leftanglebrc ")
+        # extracted_code = extracted_code.replace(">", " rightanglebrc ")
+        # extracted_code = extracted_code.replace("[", " leftsquarebrc ")
+        # extracted_code = extracted_code.replace("]", " rightsquarebrc ")
 
         words = [w for w in stanford_lemmatize(question_title.strip())]
         words = [w for w in words if not w in STOPWORDS]
@@ -112,11 +112,11 @@ def run():
             # print("unable to parse question {}: {} [err={}]".format(repr(question_title), repr(extracted_code), e), file=sys.stderr)
             terms = []
 
-        if not terms:
+        if not set(terms):
             continue
 
         questionFile.write("%s\n" % ' '.join(words))
-        commandFile.write("%s\n" % ' '.join(terms))
+        commandFile.write("%s\n" % ' '.join(list(terms)))
 
         count += 1
         if count % 1000 == 0:
