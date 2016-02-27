@@ -7,7 +7,7 @@ Usage:
 
 # builtin
 import sys
-sys.path.append("/home/xilin/kirin/baseline0/src")
+sys.path.append("../baseline0")
 import collections
 import common
 # import html
@@ -27,9 +27,13 @@ import bash
 html = HTMLParser.HTMLParser()
 
 CODE_REGEX = re.compile(r"<pre><code>([^<]+)<\/code><\/pre>")
+# def extract_code(text):
+#     match = CODE_REGEX.search(text)
+#     return html.unescape(match.group(1).replace("<br>", "\n")) if match else None
 def extract_code(text):
-    match = CODE_REGEX.search(text)
-    return html.unescape(match.group(1).replace("<br>", "\n")) if match else None
+    for match in CODE_REGEX.findall(text):
+        if match.strip():
+            yield html.unescape(match.replace("<br>", "\n"))
 
 def all_samples(sqlite_filename):
     with sqlite3.connect(sqlite_filename, detect_types=sqlite3.PARSE_DECLTYPES) as sqlite_db:
@@ -37,9 +41,10 @@ def all_samples(sqlite_filename):
                 SELECT questions.Title, answers.Body
                 FROM questions, answers
                 WHERE questions.AcceptedAnswerId = answers.Id"""):
-            extracted_code = extract_code(answer_body)
-            if extracted_code:
-                yield (question_title, extracted_code)
+            # extracted_code = extract_code(answer_body)
+            # if extracted_code:
+            for extracted_code in extract_code(answer_body):
+                yield (question_text, extracted_code)
 
 WORD_REGEX = re.compile(r"\w*-?\w+")
 # basic stop words list is from http://www.ranks.nl/stopwords/
@@ -89,8 +94,7 @@ def tokenize_code(code):
         cmd = cmd[0]
         yield cmd
         for arg in args:
-            # yield common.mangle_arg(cmd, arg)
-			yield arg
+            yield common.mangle_arg(cmd, arg)
 
 def is_oneliner(code):
     return "\n" not in code.strip()
@@ -106,8 +110,8 @@ def run():
 
     print("Gathering stats from {}...".format(in_sqlite), file=sys.stderr)
 
-    questionFile = open("../data/true.questions", 'w')
-    commandFile = open("../data/true.commands", 'w')
+    questionFile = open("../data/baseline1/questions", 'w')
+    commandFile = open("../data/baseline1/commands", 'w')
 
     for question_title, extracted_code in all_samples(in_sqlite):
 
@@ -123,14 +127,10 @@ def run():
             question_title = question_title.replace(phrase, "")   
     
         # required by moses
-        question_title = question_title.replace("<", " llbcc ")
-        question_title = question_title.replace(">", " rrbcc ")
-        question_title = question_title.replace("[", " llsbcc ")
-        question_title = question_title.replace("]", " rrsbcc ")
-        extracted_code = extracted_code.replace("<", " llbcc ")
-        extracted_code = extracted_code.replace(">", " rrbcc ")
-        extracted_code = extracted_code.replace("[", " llsbcc ")
-        extracted_code = extracted_code.replace("]", " rrsbcc ")
+        question_title = question_title.replace("<", "-lbc-")
+        question_title = question_title.replace(">", "-rbc-")
+        question_title = question_title.replace("[", "-lsbc-")
+        question_title = question_title.replace("]", "-rsbc-")
 
         words = [w for w in stanford_lemmatize(question_title.strip())]
         words = [w for w in words if not w in STOPWORDS]
@@ -149,7 +149,7 @@ def run():
 
         count += 1
         if count % 1000 == 0:
-            print("Processed {} ({} pairs)".format(count, total_count), file=sys.stderr)
+            print("Processed {} ({} pairs)".format(count, len(pairwise_counts)), file=sys.stderr)
 
     questionFile.close()
     commandFile.close()
