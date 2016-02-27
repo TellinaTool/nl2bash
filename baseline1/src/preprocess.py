@@ -6,13 +6,11 @@ Usage:
 """
 
 # builtin
-import sys
-sys.path.append("../../baseline0/src")
 import collections
-import common
 # import html
 import HTMLParser
 import re
+import sys
 import shlex
 import string
 import sqlite3
@@ -21,28 +19,14 @@ import sqlite3
 sys.path.append("/home/xilin/Packages")
 from semantics.lexical import stanford_tokenize, stanford_lemmatize
 
+sys.path.append("../../baseline0/src")
 # local
 import bash
+import common
+from make_model import CODE_REGEX, COMMENT_REGEX, PROMPT_REGEX
+from make_model import extract_code, all_samples, tokenize_code, is_oneliner
 
 html = HTMLParser.HTMLParser()
-
-CODE_REGEX = re.compile(r"<pre><code>([^<]+)<\/code><\/pre>")
-# def extract_code(text):
-#     match = CODE_REGEX.search(text)
-#     return html.unescape(match.group(1).replace("<br>", "\n")) if match else None
-def extract_code(text):
-    for match in CODE_REGEX.findall(text):
-        if match.strip():
-            yield html.unescape(match.replace("<br>", "\n"))
-
-def all_samples(sqlite_filename):
-    with sqlite3.connect(sqlite_filename, detect_types=sqlite3.PARSE_DECLTYPES) as sqlite_db:
-        for (question_title, answer_body) in sqlite_db.cursor().execute("""
-                SELECT questions.Title, answers.Body
-                FROM questions, answers
-                WHERE questions.AcceptedAnswerId = answers.Id"""):
-            for extracted_code in extract_code(answer_body):
-                yield (question_title, extracted_code)
 
 WORD_REGEX = re.compile(r"\w*-?\w+")
 # basic stop words list is from http://www.ranks.nl/stopwords/
@@ -80,22 +64,6 @@ def tokenize_question(q):
             seq.append(word)
     for bigram in zip(seq, seq[1:]):
         yield bigram
-
-COMMENT_REGEX = re.compile(r"\#.*")
-PROMPT_REGEX = re.compile(r"^\s*\S*\$>?")
-# CODE_TERM_REGEX = re.compile(r"(?:\"(?:\\\.|[^\\])*\")|(?:'[^']*')|(\S+)")
-# CODE_STOPWORDS = { "|", ";", "[", "]", "[[", "]]", "{", "}", "(", ")", "=", ">", "<", ">>" }
-def tokenize_code(code):
-    code = PROMPT_REGEX.sub("", code)
-    for cmd in bash.parse(str(code)):
-        args = cmd[1:]
-        cmd = cmd[0]
-        yield cmd
-        for arg in args:
-            yield arg
-
-def is_oneliner(code):
-    return "\n" not in code.strip()
 
 def run():
     in_sqlite = sys.argv[1]
