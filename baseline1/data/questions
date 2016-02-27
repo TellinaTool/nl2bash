@@ -35,7 +35,7 @@ delete all 4 newest directory
 search for file contain line ending -lrb- crlf -rrb- with grep on
 to suppress terminate message after kill
 extract range of line from text file on
-sudo echo `` something '' -rrb- -rrb- etc\/privilegedfile n't work ... alternative
+sudo echo `` something '' - rbc -- rbc - etc\/privilegedfile n't work ... alternative
 to match single quote in sed
 use grep to find content in file and move if match
 possible to detect 32 bite v 64 bite in
@@ -53,7 +53,7 @@ use xarg to copy file have space and quote in name
 write to direct grep datum into date-based filename
 sort file in place use
 search for multiline pattern in file
-escape -lrb- and -rrb- in sed\/shell
+escape - lbc - and - rbc - in sed\/shell
 $ -lcb- 1 + `` $ @ '' -rcb- in bin\/sh
 gnu\/linux tool use for perform search and replace on file
 use mercurial easy way to diff work copy with tip file in default remote repository
@@ -68,7 +68,7 @@ iterate over range of number define by variable
 check syntax without run
 compare string in bourne
 handle `` too many file '' problem when work
-' difference between '' & -rrb- foo '' and '' -rrb- foo 2 -rrb- & 1 ''
+' difference between '' & - rbc - foo '' and '' - rbc - foo 2-rbc - & 1 ''
 to acquire specific revision of newly add file from cv vium
 know file name in
 make xarg execute once for each line of input
@@ -247,7 +247,7 @@ conditional search
 detect if run with administrator privilege under window xp
 pass complete argument list while keep mulitword argument together
 resize list of image in line
-press alt + numeric and get -lrb- arg -lrb- numeric -rrb- -rrb-
+press alt + numeric and get -lrb- arg - lsbc-numeric-rsbc - -rrb-
 substract between column and print with awk
 zsh tab-completion for `` cd ''
 access deny when try to move file with xp
@@ -309,7 +309,7 @@ why n't ` find ' work like expect use - exec
 want to make conditional cronjob
 recursively add subdirectory to path
 write non-ascii character use echo
--lrb- -lrb- -rrb- -rrb- preferable over -lrb- -rrb-
+- lsbc -- lsbc - - rsbc -- rsbc - preferable over - lsbc - - rsbc -
 check file exist and execute if not
 get ` source not find ' error when use source in
 unable to find files\/folders with permission 777 by awk\/sed\/python
@@ -357,7 +357,7 @@ reverse order of line in file
 open file contain word `` exam '' in terminal
 batch to issue to mysql db
 `` cat tmp\/dir :0 ''
-multiple in alias for
+multiple in alias
 strip single and double quote in string use standard only
 ruby on rail specify runner environment
 exclude all `` permission deny '' message from `` find ''
@@ -415,8 +415,8 @@ like to store all argument to into single variable
 tell zsh to write current ' history to history file
 put something in rc to hide text editor -lrb- ~ extension -rrb- file
 find computer ' ip address use
-to use -rrb- in xarg
-- get all file modify after date
+to use - rbc - in xarg
+- get all file modify after - lbc-date-rbc -
 append text to etc\/apt\/sources list from
 progress bar in java
 remove miss file with space in svn
@@ -446,7 +446,7 @@ open file in exist gvim in multiple -lrb- new -rrb- tab
 remove everything except list file with find-command
 and-operator work in find-command
 find - exec -lcb- -rcb- + v xarg
-to pipe result to - character argument option -lrb- without space -rrb-
+to pipe result to -- lbc-character-rbc -- lbc-argument-rbc - option -lrb- without space -rrb-
 recursive file copy and rename on vista
 to attach file use mail on
 odd behavior in remove git
@@ -467,7 +467,7 @@ send output of l to mv
 to split line log file output
 save current directory to history
 use rsync to backup file change within recent period
-java problem run jar file in
+java problem run jar file
 sed line range all last line
 to list all available and alias
 split remain field in sed\/awk
@@ -582,7 +582,7 @@ define variable with or without export
 to pass long string for search and replace in sed or rpl
 write shell-script will email file if file not empty
 to get gcc linker
-` memcache ' not find in php
+` memcache ' not find php
 use powercfg to duplicate currently active power scheme
 automatically time every execute and show prompt
 continuous integration base on maven2
@@ -602,7 +602,7 @@ column to row translation use sed
 alter zsh ' $ path variable in to source
 extract text from hostname
 url filter
-sh exec 2 -rrb- & 1
+sh exec 2-rbc - & 1
 use of c in
 sed multiline replace
 get cpu usage and memory usage of single process on -lrb- ubuntu -rrb-
@@ -916,11 +916,11 @@ scp locate ' output by xarg
 command\/script for accurate history
 kornshell printf - pad string
 encode of file
-bulk insert code before /body tag in 100 file
+bulk insert code before - lbc - body-rbc - tag in 100 file
 iterate over file in directory
 to use sed awk or gawk to print only match
 $ path error on snow leopard or ror install issue bid interpreter
-show only uptime from uptime -lrb- -rrb-
+show only uptime from uptime - lsbc-unix-rsbc -
 why % processor % alway return x86 instead of amd64
 find
 to input special character
@@ -933,7 +933,7 @@ capture output to clipboard
 awk - print next record follow match record
 obtain unmodify argument to `` wrap '' another tool
 simple arithmetic code
-simplify ' ` eval `` $ time $ bin $ bin & -rrb- $ log '' ' and keep work
+simplify ' ` eval `` $ time $ bin $ bin & - rbc - $ log '' ' and keep work
 for search from list of file in directory
 use file contents as argument
 why argc ` int ' -lrb- rather than ` unsign int ' -rrb-
@@ -968,7 +968,7 @@ execute conky with cron job and
 test file date with
 why n't division produce result in program
 to read file with different encoding use awk
-'' -lrb- not find '' error and to write or statement
+'' - lsbc - not find '' error and to write or statement
 check if process run use by process name
 alias of svn pipe to awk
 to read directory name within
@@ -997,7 +997,7 @@ find replace special character in multiple file
 find symlink to certain directory or one of subdir
 to redirect complete output of
 read file line by line expand special character
-within if -lrb- -rrb- block
+within if - lsbc -- rsbc - block
 compile freeimage from source # include freeimage h not find
 to automatically ignore file in grep
 to detect null value in
@@ -1009,7 +1009,7 @@ spawn process after delay
 way to ` uniq ' by column
 search through range of directory
 open terminal window with
-problem for compare difference between two file -lrb- -rrb-
+problem for compare difference between two file - lsbc-linux-rsbc -
 autocomplete for ruby
 have ruby unit test speak result of test
 run xcode tool from terminal window
@@ -1134,7 +1134,7 @@ to enter second parameter on same on window vista
 remove difference in locale between guus and interface of same program
 set value to element of array in function
 java redirect exception to file
-zsh alias - -rrb- function
+zsh alias -- rbc - function
 rearrange column ' element and display count
 grep nearer word from file
 to deal with quote in string when pass string to
@@ -1177,7 +1177,7 @@ run and end -lrb- -rrb- from perl
 use sed to replace string with contents of variable even if ' escape character
 uniq - skip last n characters\/fields when compare line
 replace with sed on leopard n't expect
-find line n't begin with '' -lrb- '' perform action
+find line n't begin with '' - lbc - '' perform action
 basic variable declaration - not find
 to insert string of character in every line of file
 launch url in firefox in background from ubuntu
@@ -1268,7 +1268,7 @@ ps1 setting - to get current folder back as terminal title
 help with if statement and else -lrb- newbie -rrb-
 redirect -lrb- and append -rrb- stdout and stderr to file and terminal
 preserve newline in quote string
-$ -lrb- arithmetic-expression -rrb- v. $ -lrb- -lrb- arithmetic-expression -rrb- -rrb-
+$ - lsbc -- lbc-arithmetic-expression-rbc -- rsbc - v. $ -lrb- -lrb- - lbc-arithmetic-expression-rbc - -rrb- -rrb-
 powershell equivalent of ' & & and operator
 batch rename directory and strip caracter # from name
 xarg not work
@@ -1480,7 +1480,7 @@ to load different zshrc file vium option
 to invoke and store result in variable
 restore postgre backup file use
 pass as argument to
-intelligent thin start with port alias for
+intelligent thin start with port alias
 semaphore utility
 multiple thing in one on
 pipe findstr ' output
@@ -1685,7 +1685,7 @@ merge two list and remove duplicate
 sed + need to remove each line in file begin with ###
 sed + delete line begin with ### include space between line begin and ###
 run external program with php clus
-why ` ' use in -lrb- `` $ var '' = `` value '' -rrb-
+why ` ' use in - lsbc - `` $ var '' = `` value '' - rsbc -
 problem with shell-script while
 to sum column of number
 permission deny on php as
@@ -1706,7 +1706,7 @@ version of tac gunzip content -lrb- like zcat -rrb-
 question about to make filter use
 need will invoke other process\/script and exit invoke process continue run
 calculate mean of column
-set ipv6 in win pe
+set ipv6 win pe
 simply delete bashrc ` return '
 django-admin py not work properly
 arithmetic problem with
@@ -1789,7 +1789,7 @@ way to call ruby1 .9 without load rubygem
 escape \* char in cshell alias
 help run with space in
 option to tell msus installation to specific location
-split address - -rrb- 000e0c7f6676 to 00:0 e :0 c :7 f :66:76
+split address -- rbc - 000e0c7f6676 to 00:0 e :0 c :7 f :66:76
 to read file
 grep - put part of string into variable
 to replace many intermediate blank line with only 1 blank line each
@@ -1802,7 +1802,7 @@ add space to stdout
 start groovy directly from url
 extract all conversation in postfix log from particular client use awk
 to extract quote string use perl\/awk
-xcodebuild - build succeed - -rrb- bus error
+xcodebuild - build succeed -- rbc - bus error
 port to ruby erb template suggestion and advice
 call gawk from r
 rename file keep original unchange
@@ -1873,7 +1873,7 @@ run\/invoke window batch from sh or
 in -lrb- -rrb- execute more than one in pipeline
 filter out directory and extension from find
 call python from without type `` python '' first
-syntax error '' -lrb- -lrb- not find ''
+syntax error '' - lsbc -- lsbc - not find ''
 find where executable present in macosx
 to pipe each result of one to another
 remove duplicate per line
@@ -1888,7 +1888,7 @@ to run without sudo
 way to numeric test
 zip latest commit change only
 use to automate creation of test output
-' difference between -lrb- and -lrb- -lrb-
+' difference between - lsbc - and - lsbc -- lsbc -
 wrap repl use net
 to safely create symlink
 strip hex byte with sed - no match
@@ -1907,7 +1907,7 @@ find all docx file add suffix with
 extract 1 file from tar gz with
 take list of as input try to execute and fail
 copy file different
-to go from multiple line sed in to single line in
+to go from multiple line sed to single line in
 to emulate cp and mv -- parent on osx
 java hang even though ' execution complete
 pipe string with newline to
@@ -1918,7 +1918,7 @@ create shorter version of
 get newest file base on timestamp
 run git pull over all subdirectory
 use redirect to overwrite file from python
-for inline replacement of all newline in file with br n
+for inline replacement of all newline in file with - lbc-br-rbc - n
 partition run total in text file
 to count number of unique value of field in tab-delimited text file
 ampersand in arithmetic evaluation and number with ' mean
@@ -2003,7 +2003,7 @@ sed awk to correct illegal character from xml -lrb- ampersand -rrb-
 move all file of certain file type use svn
 sed to write name of file to html comment
 to read input from stdout of another -lrb- pipe -rrb-
-recursive grep for in cygwin
+recursive grep in cygwin
 simple queue for youtube-dl in
 parse use awk or sed
 to count number of non empty line in file use sed
@@ -2058,7 +2058,7 @@ file search
 filename globb - operate on file start with capital
 to use nest if and perform correct file check
 combine two particular line use sed
-mysterious output for follow by or `
+mysterious output for - lbc-cmd-rbc - follow by or `
 to find time in sh
 problem combine file use cat and zcat in
 make python accessible system wide
@@ -2130,7 +2130,7 @@ gitx equivalent for subversion allow execution
 permission deny when try to open file
 to useradd with multiple parameter
 internationalize
-' best way to convert `` awk ' -lcb- print $ 2 -rrb- -rrb- $ 1 -rcb- ' file '' in perl one-liner
+' best way to convert `` awk ' -lcb- print $ 2 - rbc -- rbc - $ 1 -rcb- ' file '' in perl one-liner
 add thousand of number store in second ` column ' in text file
 get alias from config by regular expression -lrb- bid separate -rrb-
 create symbolic link in in different folder
@@ -2262,7 +2262,7 @@ search and replace text in all file of directory
 any way to supply stdin\/out instead of file to program
 java - use download package without ide
 sed to exclude directory
-mean `` -lrb- -lrb- -lrb- curl http://rvm.io/releases/rvm-install-head -rrb- ''
+mean `` - lbc - - lbc - -lrb- curl http://rvm.io/releases/rvm-install-head -rrb- ''
 clean up filename within directory
 append line at end of each file
 copy with sed ' '
@@ -2270,11 +2270,11 @@ insert -lrb- or append -rrb- line end with trail backslash -lrb- -rrb- use sed
 accept negative double with boost program
 pass argument into sed to delete line
 remove all whitespace in file -
-awk parse error on ' -lrb- ' operator
+awk parse error on ' - lbc - ' operator
 to send list of file in folder to txt file
 to extend duration of audio file
 to call from tcl
-php in
+php
 list file from give user
 parameter problem
 to change file name
@@ -2414,7 +2414,7 @@ some program not accept process substitution for input file
 grep search all file in directory for string1 and string2
 parse output
 extract quote value from multiple line use sed
-problem with -lrb- system - -rrb- wget -rrb- in c + +
+problem with -lrb- system -- rbc-wget -rrb- in c + +
 to adjust display setting of mysql
 format file in 4 column
 why tmux erase terminal contents on editor exit
@@ -2532,7 +2532,7 @@ prevent gnome terminal from exit after execution
 customize zsh ' prompt when display previous exit code
 find exec and echo - -rrb-
 single quote string for sed in makefile
-problem with jboss -rrb- 5 in ubuntu server service
+problem with jboss - rbc - 5 in ubuntu server service
 redirect standard output to log and standard error to error log
 problem print string in
 get wireless ssid through on
@@ -2661,10 +2661,10 @@ descend loop with variable
 greediness in sed
 powershell run java process problem
 why sed line
-to replace all occurence of char like ' -lrb- ' ' -lrb- ' etc with ' -lrb- ' ' -lrb- ' use `` sed '' in file
-delete old -lrb- er -rrb- file from cento tmp directory except certain file still in use
+to replace all occurence of char like ' - lsbc - ' ' -lrb- ' etc with ' - lsbc - ' ' -lrb- ' use `` sed '' in file
+delete old-lsbc-er-rsbc - file from cento tmp directory except certain file still in use
 replace url -lrb- -rrb- relative path with full domain in css file
-2 -rrb- & 1 -rrb- log v -rrb- log 2 -rrb- & 1
+2-rbc - & 1 - rbc - log v - rbc - log 2-rbc - & 1
 python 3.1 syntax error for everything -lrb- -rrb-
 need delete all file except \* pdf
 import multiple sql dump file into mysql database from
@@ -2775,7 +2775,7 @@ to connect to remote server use ssh and get information
 localize
 anyone know to run mongo -- eval
 awk print match line and line before match
-python sy. argv -lrb- 1 -rrb- not pick up option
+python sys.argv-lsbc-1 - rsbc - not pick up option
 convert tally to relative probability
 loop over directory with whitespace
 nest if too many argument
@@ -2832,7 +2832,7 @@ to list file contain string \* not \* contain another string
 need for read name value pair from file
 to run python without type ` python ... '
 alternative to awk
-pipe stdout to multiple process -lrb- zsh -rrb-
+pipe stdout to multiple process - lsbc-zsh-rsbc -
 convenient autocomplete for previously enter like in matlab
 terminal show folder ' last modification date take content into consideration
 give two directory tree find out file differ
@@ -2960,7 +2960,7 @@ shell-scripting split textfile by entry
 emulate `` set - e '' and `` set - '' vium environment
 concatenate -lcb- -rcb- \* -lrb- star -rrb- to xarg and have refer to as special character and not plain character
 use variable in
-output into file -lrb- without -rrb- -rrb- -rrb-
+output into file -lrb- without - rbc -- rbc - -rrb-
 sed find and replace in file and overwrite file doesnt work empty file
 regular expression to extract -lrb- video -rrb- name from html tag
 variable assignment
@@ -2982,7 +2982,7 @@ expand variable
 select rvm gemset in header
 sed code to match http://www.domain.com/ and replace with just in all file in directory
 to wait for remote pid -lrb- telnet -rrb-
-execute custom init for -- login - for example to change to custom directory from shortcut
+execute custom init -- login - for example to change to custom directory from shortcut
 expect input from std cin -lrb- c + + -rrb-
 to make quick backup of untrack file want to delete by git clean
 genius - remove '' '' from bunch of filename
@@ -3045,7 +3045,7 @@ output redirect in to another file iff file exist
 to sort text file accord to character code or ascius code value
 to get base path from path in
 find out where environment variable last set
-ca n't find error in application
+ca n't find error application
 sort use awk
 parameter begin with hyphen ignore
 why descriptor redirection seem inconsistent
@@ -3097,7 +3097,7 @@ remove extension from file without know
 clear ubuntu screen for real
 throw unexpect operator when use mysqldump
 use awk sed or grep to parse url from webpage source
-remove /p tag from grep output
+remove - lbc - p-rbc - tag from grep output
 remove xml tag from
 and return status
 why n't prompt update
@@ -3129,7 +3129,7 @@ tail pipe to grep pipe to another grep seem to pipe too far
 to replace all ' 0xa0 ' char with ' ' in bunch of text file
 eliminate duplicate line and keep last one
 rail to run `` rake '' use
-help s '' -lrb- one -rrb- abc -lrb- two -rrb- '' into `` abc ''
+help s '' - lsbc-one-rsbc - abc - lsbc-two-rsbc - '' into `` abc ''
 wrong in ... please locate error in
 problem run with quote
 gawk - print filename in begin section
@@ -3148,7 +3148,7 @@ cron send output to file email file to
 to only get file name with ` find `
 read whole text file word by word with sort word with
 extract substr from result of cut
-unicode escape sequence in mysql
+unicode escape sequence mysql
 exclude hide file from du output with -- exclude grep - v or sed
 to store actual name of \* url \*
 save wild-card in variable in and evaluate\/expand at runtime
@@ -3188,7 +3188,7 @@ scp three newest file use
 catch mysql output in
 git & ruby unset git variable from inside ruby
 store output of to database
-to convert ascius char to '' uxxx '' unicode notation
+to convert ascius char to '' - lbc-uxxx-rbc - '' unicode notation
 to execute window clus in ruby
 to add watermark to image vium - hopefully use irfanview
 combine file name and content
@@ -3479,13 +3479,13 @@ good example to learn from
 perl mktemp and echo
 http test on something better than curl
 regexp -lrb- sed -rrb- suppress `` no match '' output
-copy png from each dir if png -rrb- 600x600
+copy png from each dir if png - rbc-600x600
 quit putty close run
 to use sed to replace text in subfolder in ubuntu
 to monitor progress of ssh file transfer and output to log file
 hashbang for gnome desktop file
 tool to get nth line from file
-use sed to replace -lrb- with -lrb- php
+use sed to replace - lbc - with - lbc - php
 spurious `` not find '' message -lrb- think -rrb-
 to print file contents with filename before each line
 to get filepath from inside text file and perform operation
@@ -3526,7 +3526,7 @@ ca n't find unexpect operator -lrb- error -rrb-
 ant permission deny problem
 insert quote into string before execution
 use return
-use popen -lrb- -rrb- to open program in
+use popen -lrb- -rrb- to open program
 remove text from console in php
 read filename from xml use xmlstarlet and merge
 unable to run awk as
@@ -3584,7 +3584,7 @@ to find unique value in file with index
 untar multiple tar file over ssh
 pass variable from to gnu screen
 change interpreter
-graphical debugger for
+graphical debugger
 directory variable error
 diff to output only file name
 c # load file from
@@ -3745,7 +3745,7 @@ to display or append several file in terminal use
 force environment variable change to take effect immediately
 to create directory
 timer elapse event fire twice in c # program
-delete interfere with each other in head tag
+delete interfere with each other in - lbc-head-rbc - tag
 print all select field in awk
 use sed to replace text in template file with variable contain quote
 variable with ' - ' -lrb- minus signal -rrb-
@@ -3854,7 +3854,7 @@ simple grep mismatch problem
 to convert '' '' in path name to absolute name in
 howto use syslog for user create
 rename list of file with name from another list
-find and move file with ' -lrb- -rrb- ' in name
+find and move file with ' - lsbc - - rsbc - ' in name
 populate and read array with list of filename
 create large file from window '
 to distinguish file from directory in prompt -lrb- -rrb-
@@ -3896,7 +3896,7 @@ use sed to manipulate variable
 about use of quotation in sed problem
 sed\/awk remove line from pattern to pattern
 take token from string\/array ... not sure
-'' -lrb- -lrb- -rrb- '' mean
+'' - lbc - -lrb- -rrb- '' mean
 sum up number base on word use awk
 get `` previous execute '' in
 delete line with sepific occurance pattern in sed
@@ -3905,7 +3905,7 @@ perl or sed insert on new line after find phrase
 execute for several line in vim
 problem with return variable
 run\/execute php with parameter
--lrb- ctrl-c -rrb- = = sigint -lrb- ctrl-x -rrb- = =
+- lsbc-ctrl-c-rsbc - = = sigint - lsbc-ctrl-x-rsbc - = =
 to compare directory recursively
 alway echo in conditional statement
 small install in sh
@@ -3938,7 +3938,7 @@ get amount of memory process usage from ` p aux ' output with awk in mb
 limit output to terminal width
 sed delete all line in file use sentinel value
 call in matlab
-simpler way to update mongodb collection in just one line -lrb- in -rrb-
+simpler way to update mongodb collection in just one line -lrb- -rrb-
 zsh ` rvm-prompt ` on rh prompt not refresh
 ` sed ` work ` sed - ` return error
 put ip address into variable better way
@@ -4076,7 +4076,7 @@ batch file set double quote variable
 stdout to file1 stderr to file2 both correctly interleave to stdout and file
 execute exe or file on remote window machine from \* nix
 - to detect whether apt-get require reboot
-edit ipa plist file in
+edit ipa plist file
 run full through remote ssh
 apply same on different input file to different output file
 substitute string in place of variable in
@@ -4086,7 +4086,7 @@ bash\/awk extract html metada need to remove whitespace and write to file
 flock exit if ca n't acquire lock
 unable to echo specific line to vb file
 get on lion to ignore d file during tab completion
-$ -lrb- -lrb- expr -rrb- -rrb- equivalent to $ -lrb- expr -rrb-
+$ -lrb- -lrb- expr -rrb- -rrb- equivalent to $ - lsbc - expr - rsbc -
 regex to catch comment line of conf file
 use awk to grab random line and append to new column
 to read manifest mf file from jar use
@@ -4127,7 +4127,7 @@ read million of file -lrb- in certain order -rrb- and put into one big file -- f
 why echo construct not work
 to diff top line of two file without intermediate file
 change \* foo to \* bar one-liner
-follow -lrb- some -rrb- -rrb- file1 file2
+follow -lrb- some -rrb- - rbc - file1 file2
 pass variable to nawk
 make title of directory date
 add ` watch ' to
@@ -4143,7 +4143,7 @@ simple redirection question pass line in file as argument to
 to change name on file with same name differ case
 mkdir return
 to know long process have run
-pass parameter securely with % -lrb- -rrb- in ruby
+pass parameter securely with % x-lsbc -- rsbc - in ruby
 explicitly set svn password when check out repository from
 run argument
 happen if name function with name of binary locate in path
@@ -4251,7 +4251,7 @@ to keep backslash when read from file
 export
 specify '' - '' in sed pattern
 sed use part of regular expression to parse text
-assign `` key -- -rrb- value '' in new array base on old array
+assign `` key -- rbc - value '' in new array base on old array
 devise utility with one simple line
 set generate variable
 find return path with lead ' ' eliminate character from return string
@@ -4329,7 +4329,7 @@ call ` mv ' from python popen with wildcard
 preserve remote filename when download file use curl
 average of list of float point number
 create structure -lrb- datastructure -rrb- in
-unix\/bash add column contain same value in file with -rrb- 1m column
+unix\/bash add column contain same value in file with - rbc-1m column
 error while load share library
 specify multiple possible pattern for single
 search log file for string with
@@ -4397,7 +4397,7 @@ virtualenvwrapper sh function not available
 add new column to file
 to list all element find in long list format
 while line number in file smaller than
-grep for specific sentence contain -lrb- -rrb-
+grep for specific sentence contain - lsbc -- rsbc -
 to remove tab from blank line use sed
 parse argument from for
 very strange redirect stdout and stderr issue someone explain
@@ -4420,7 +4420,7 @@ join all file in directory with separator
 run terminal from java and send to
 eval inside quote
 evaluate expression and assign value to variable
-run automatically - -rrb- to view sqlite database for android
+run automatically -- rbc - to view sqlite database for android
 batch file use sed in window - unexpect append instead of replace
 browser unable to open php page
 to only print line with unique field
@@ -4471,13 +4471,13 @@ run `` git status '' against repository locate elsewhere in system
 tell find to print list of file base on result of run pipeline on each file
 purpose of double angle bracket on
 whitespace concatenation
-'' -rrb- & '' mean when follow by file name
+'' - rbc - & '' mean when follow by file name
 why change with `` sed '' vium putty not reflect in cpanel
 regard
 dialog -- menu select option
 sed to replace specific value after find specific pattern
 sed\/grep - filter out content
-find entry in log file within -lrb- timespan -rrb- -lrb- eg last hour -rrb-
+find entry in log file within - lsbc-timespan-rsbc - -lrb- eg last hour -rrb-
 to disable ` zip ' warn
 visual c + + compiler -lrb- cl exe -rrb- redirect obj file
 connect variable with string
@@ -4525,7 +4525,7 @@ with conditional echo
 to get line from file where particular string repeat more than once in each line
 use regex or something else for search for file extension
 to get size of file in vb.net
-pass stdout as file name for util -lrb- answer use name pipe -rrb-
+pass stdout as file name for util - lsbc-answer use name pipes-rsbc -
 to make short delay
 extract many line out of huge text file
 selective print between regexp
@@ -4551,7 +4551,7 @@ search and replace within specific htaccess file -
 sed to edit line have some contents need to remain after substitution
 json config to variable
 find and replace -lrb- difficult issue ... need help -rrb-
-replace r from variable exist in file write use html textarea /textarea
+replace r from variable exist in file write use html - lbc-textarea-rbc -- lbc - textarea-rbc -
 match suffix in string
 to extend __ git get `` not find ''
 pattern match
@@ -4603,7 +4603,7 @@ awk\/sed regex extract column have delimiter
 to find line with exact one word
 auto-add svn with whitespace
 to remove file start with particular letter
-splite file at line contain ' -rrb- ' character
+splite file at line contain ' - rbc - ' character
 to prevent ' while loop from trim whitespace
 use expr to double single integer argument
 rename file by add character use sed
@@ -4625,7 +4625,7 @@ print time from external server
 replace use sed
 suspend process run inside console2
 window batch file to read all super hide file\/directory
-direct stderr to stdout $ command-name 2 -rrb- & 1 n't stderr get print to terminal by default
+direct stderr to stdout $ command-name 2-rbc - & 1 n't stderr get print to terminal by default
 redirect output into variable and standard output in ksh
 recursive model not load use find -lrb- ` all ' -rrb- or read -lrb- null id -rrb- in cake
 to find amount of space in directory or partition directory in
@@ -4710,7 +4710,7 @@ to delete html meta tag use sed
 need way to find all file contain odd ^ m invisible character
 move all line begin in ` foobar ' to end of file
 1 not find
-on lack of `` int main -lrb- int argc char \* argv -lrb- -rrb- -rrb- '' knowledge
+on lack of `` int main -lrb- int argc char \* argv-lsbc -- rsbc - -rrb- '' knowledge
 find punctuation and count number of each from
 shell\/awk work fine on ubuntu\/mint not work properly on red hat
 split string to array use awk
@@ -4789,7 +4789,7 @@ get pid from p - ef grep keyword
 profile set not work for path - ps1
 traverse directory use
 exit with background process
-fail in work in
+fail in work
 find contents of line by match column number
 best practice for pass single line of input to ' stdin use
 cut part of string
@@ -4920,7 +4920,7 @@ to display output and store at same time
 keychain security tool work with find-internet-passwords not find-generic-passwords
 rsync incremental file list output no actual copy
 variable within multiple quote
-$ -lcb- array -lrb- three -rrb- -rcb-
+$ -lcb- array-lsbc-three-rsbc - -rcb-
 sed - know match text as test before real substitution
 keytool usage with runtime getruntime -lrb- -rrb- exec -lrb- -rrb- under
 time output process
@@ -4986,7 +4986,7 @@ zsh and dynamic variable
 generic for run java class in right path
 - subtract 2 variable
 grep - b emulation with ring buffer awk
-why fail when use # in arg
+why fail when use # arg
 use sed remove all char in line after give position until '' ''
 provide user authentication use
 extract optional value from string
@@ -5139,7 +5139,7 @@ continu on error
 find and replace
 back date in on solari 5.10
 split for word separate with semicolon
-sed\/regex to match ' -lrb- ' or ' -rrb- ' in string
+sed\/regex to match ' - lbc - ' or ' - rbc - ' in string
 redirect output of c program to another c program with under
 escape php variable in sed from ruby
 rbenv and two version of heroku client
@@ -5194,7 +5194,7 @@ use sed\/awk to limit\/parse output of ldap dn '
 possible to find\/replace some character in file use some
 xarg to pipe output of l
 for inline
-file parse -lrb- newbie -rrb-
+file parse - lsbc-newbie-rsbc -
 ldconfig - ld not know library type
 extract mail id from
 to set up proxy vium
@@ -5224,7 +5224,7 @@ get bid substitution on solari 10 bourne
 awk expression to get particular pattern from give input
 - search for text in file and store into variable
 identify common element in multiple file
-move multiple file in subdirectory -lrb- and\/or split string by multichar delimeter -rrb- -lrb- -rrb-
+move multiple file in subdirectory -lrb- and\/or split string by multichar delimeter -rrb- - lsbc-bash-rsbc -
 to trim character after particular length from 1st word of every line
 batch resize image into new folder use imagemagick
 batch - file search
@@ -5404,15 +5404,15 @@ to check wether server reachable
 find and replace variable contain non-escaped character with sed
 make grep stop after first non-matching line
 git clone - supress `` appear to have clone empty repository '' warn
--lrb- bid number on
-why get unexpect -rrb- character in tr
+- lsbc - bid number on
+why get unexpect - rsbc - character in tr
 string explode
 to print out large file sort with size in human readable format
 vlc program
 corrupt path
 whoamus n't equal php whoamus
 single to remove file have ' 3 ' in
-unable to understand -lrb- - t 0 -rrb- inside
+unable to understand - lsbc -- t 0-rsbc - inside
 sed text replace
 sed androidmanifest for version
 make work correctly when input url as argument
@@ -5464,7 +5464,7 @@ understand of ` set -- ` wrong
 sort file and dump into file
 use\/add to msysgit
 programmatically start su session run and remain at root prompt
-execute perl in without specify perl
+execute perl without specify perl
 programmatically load new process in new gnu screen window
 pipe subversion revision number to diff
 for file in directory ignore folder
@@ -5543,7 +5543,7 @@ to get one column from csv file of variable row lenght
 compile apple framework for simple program
 rsync to get list of only file name
 word count of each line in
-regex replace ' -lrb- a-z -rrb- '' to -lrb- a-z -rrb- ' - ca n't preserve letter in in string
+regex replace ' - lsbc-a-z-rsbc - '' to - lsbc-a-z-rsbc - ' - ca n't preserve letter in in string
 prevent cassandra from dump hprof file
 to disallow user input '' \* '' and also kind of regular expression check for user input
 svn log retrieve between line where find specific word
@@ -5586,7 +5586,7 @@ who give most beautiful one-liner solution
 concatenation two string without use variable
 get average word per file
 to print out specific field in awk
-osx to write full path of all directory contents of folder contain -rrb- 50k file & folder to txt
+osx to write full path of all directory contents of folder contain - rbc-50k file & folder to txt
 use awk within loop to replace field
 run within another
 not operator in regex
@@ -5669,7 +5669,7 @@ $ home assignment and execution
 convert space-delimited string into array
 to copy file with ksh to new directory after download
 to return from source function in source code
-to replace line start with -rrb- with 15 column of same line by awk
+to replace line start with - rbc - with 15 column of same line by awk
 to get time -lrb- ' % t ' -rrb- to reformat output -lrb- - instead of -rrb-
 to get file name use
 replace something with string and sed - e
@@ -5700,7 +5700,7 @@ if else statement
 set variable with information inside file
 to write take optional input argument
 automate delphus 2010 project build with msbuild
-`` 2 -lrb- & 1 '' redirect in bourne
+`` 2-lbc - & 1 '' redirect in bourne
 access mamp ' mysql from terminal
 why awk print entire line instead of first field
 mysqlworkbench without root access
@@ -5773,7 +5773,7 @@ ca n't match program to ' total from double tab press
 assign output of into array
 get perl output into variable
 php exec -lrb- -rrb- return value
-- trouble result with if -lrb- -rrb- -lrb- -rrb-
+- trouble result with if - lsbc - - rsbc - - lsbc - - rsbc -
 why slash need
 - create path of folder and file
 untar tar bz file
@@ -5786,7 +5786,7 @@ rename file with parameter of another
 - one line query
 cp dir recursivly exclude 2 subdir
 execute php vium ssh
-extract file name base on date -lrb- -rrb-
+extract file name base on date - lsbc-shell-rsbc -
 variable from stdin
 ' error in
 emac shell-command output `` not set terminal process group '' and `` no job control in ''
@@ -5800,7 +5800,7 @@ sed substitution with backslash in pattern
 to delete common file from two folder
 why python not work
 grep with regex crop text
-syntax error in -lrb- -lrb- conditional expression with
+syntax error in - lsbc -- lsbc - conditional expression with
 case in both test - n and test - z true
 use find to count file by date
 escape backslash in variable
@@ -5841,7 +5841,7 @@ vim search for epoch time string pipe to date - d and return date into file
 wrong with sed expression
 to use sed one-liner to parse `` rec id = 1 & name = zz & age = 21 '' into `` 1 zz 21 ''
 wildcard with parameter expansion
-convert `` b -lrb- c -rrb- d '' format file to csv file
+convert `` b - lsbc-c-rsbc - d '' format file to csv file
 replace work if type manually not in
 add new line to large file every n character in terminal -lrb- one liner sed -rrb-
 to insert text at begin of file
@@ -5875,13 +5875,13 @@ insert element -lrb- string -rrb- within exist xml tag use regex
 set up alias for `` git last '' accept number as argument
 regex and - multiple recursive rename
 suffix '' + '' and '' - '' after job id of background job mean
-switch over to zsh break rail in
+switch over to zsh break rail
 osx ` watch '
 pass argument to run by redirect to
 run process wait on input in background without pause and without send input
 find\/sed recursively search\/replace string in file only for line match particular regexp
 pattern match in
-why space after ' -lrb- ' and before ' -rrb- ' in
+why space after ' - lsbc - ' and before ' - rsbc - ' in
 create rotate backup on remote disk
 envsetup sh execute lunch
 parse file contain non-printable ascius character
@@ -5919,7 +5919,7 @@ to smart append ld in when nounset
 python library allow to easily print ascii-art text
 extract average time from ping - c
 to read datum from daughter file and append to end of parent file use
-` if -lrb- - e file txt -rrb- ` not work
+` if - lsbc -- e file.txt-rsbc - ` not work
 -- exclude in tar when use like `` tar cvfz xxx -- exclude ' yyy \*\* ' ''
 use output of -lrb- with pipe -rrb- as parameter for another
 to merge two file with awk
@@ -5930,13 +5930,13 @@ useless use of ` cat `
 sed delete previous line
 place letter next to variable
 add wait between parallel process
-why quote removal n't perform between -lrb- -lrb- ... -rrb- -rrb-
+why quote removal n't perform between - lsbc -- lsbc - ... - rsbc -- rsbc -
 howto create trim directory tree while use wget for ftp download
 stdout to file from read content
 get individual k v field from single line
 iteration over file and modyfy filename
 update cnf auto with last character of hostname
-sed to append comment after -lrb- xml -lrb- something -rrb-
+sed to append comment after - lbc - xml - lsbc-something - rbc -
 to use grep style '' - w '' option in perl sed
 insert result of several on file as part of sed stream
 why execute git in git hook stop rest of hook from finish
@@ -6003,7 +6003,7 @@ awk last argument before nf
 search for string and echo only line only
 pane title in tmux
 convert output into json and serve over http on fly
-why ` rsync -lrb- ... -rrb- path\/to\/somedir path\/to\/otherdir ` leave with ` path\/to\/otherdir somedir ` not synce file from ` somedir ` into ` otherdir `
+why ` rsync - lbc - ... - rbc - path\/to\/somedir path\/to\/otherdir ` leave with ` path\/to\/otherdir somedir ` not synce file from ` somedir ` into ` otherdir `
 - list and sort file and size and by name and size
 to truncate quote string in file
 use sed to replace pattern cause extra character to appear
@@ -6231,7 +6231,7 @@ about and subshell
 tweak ` cd ' and tab completion to recognize spell mistake
 to use in makefile
 regex in sed to replace part of url give specific format
-awk - save variable with getline -lrb- `` file '' to array
+awk - save variable with getline - lbc - `` file '' to array
 vlc to capture first frame of video - ca n't get to work
 ' $ ' mean
 to make \* = ' \* '
@@ -6301,7 +6301,7 @@ replace fix amount of text in large file
 method to remove single line paragraph from text file
 fill out blank space in text file with word from line above
 to get day of year in
-get text between first occurance of two string -lrb- -rrb-
+get text between first occurance of two string - lsbc-shell-rsbc -
 parameter list with double quote not pass through properly
 single line create file with content
 pick random unique line from text file in
@@ -6347,7 +6347,7 @@ change prompt in new
 ssh n't prompt for password in
 awk divide sum of column by number of line in file
 awk date to epoch
-compare two parameter use '' -lrb- '' in
+compare two parameter use '' - lbc - '' in
 regular expression for find escape apostrophe ' around contraction
 move thing in terminal base on name
 n't work on tcsh set kk = ` cd $ pwd `
@@ -6522,7 +6522,7 @@ to launch msconfig exe from java
 python installation mess on not run python
 replace all file of certain type in all directory and subdirectory
 find last commit in git repo contain certain string pattern
-mutus word completion for
+mutus word completion
 find and replace in specific column
 why ` getopt ' within function fail to work
 forget export variable
@@ -6644,7 +6644,7 @@ run write on window
 to prepend text to file
 run constant number of php on server
 call perl replacement from within script\/function
-unexpect operator -lrb- git in bourne ` if ' conditional statement
+unexpect operator - lsbc - git in bourne ` if ' conditional statement
 remove partial string in
 or syntax calculate next ascius character
 use to compare two file and write new file
@@ -6816,7 +6816,7 @@ redirect output of p get process id and kill process use
 to fix sed inplace replacement and ubuntu issue
 case insensitive match in solari awk regex match
 column manipulation
-c to mysql -rrb- mode in promt
+c to mysql-rbc - mode in promt
 to run sunspot reindex in background for every four hour
 short\/long option with option argument - some sort of convention
 make ignore pattern -lrb- e.g. svn -rrb- folder when autocomplete directory name
@@ -6954,7 +6954,7 @@ solari find ' print option
 alias -lrb- -rrb-
 valid\/robust pattern to find absolute path of execute
 sed to extract till first space after 2nd word
-easiest method for remove html\/xml tag from single-line output
+easiest method for remove html\/xml - lbc-tags-rbc - from single-line output
 execute local with javascript in chrome
 to get 10th group value in sed
 if statement
@@ -7053,7 +7053,7 @@ to convert all file in directory to file of same name of different format
 use awk to extract row record contain specific word
 rsync copy over only certain type of file use include option
 sed to search after n no. of line
-refresh after install virtualenvwrapper -lrb- without restart -rrb-
+refresh after install virtualenvwrapper - lsbc-without restart shell-rsbc -
 get md5sum of all file in folder
 filter stdout
 to delete row start with `` c '' with awk
@@ -7158,7 +7158,7 @@ python - c and ` while `
 delete first line of file if ' empty
 remote ssh and execution use and expect
 remove space from column of csv file
-wrong line number with multiline grep - p -lrb- perl extension -rrb- match
+wrong line number with multiline grep - p - lsbc - perl extension - rsbc - match
 retrieve r output in php
 print variable to end of file use sed
 ignore error for particular
@@ -7245,7 +7245,7 @@ use awk to create csv line
 repeat input redirection to c + + executable
 check if directory exist recursively reverse path
 rrdtool gprint format with printf
-to remove character not -lrb- acgtn -rrb- with sed
+to remove character not - lsbc-acgtn-rsbc - with sed
 why directly run not work `` python py ''
 android notification through adb
 to use sed to search and replace recursively in subdirectory
@@ -7264,7 +7264,7 @@ to grep - o without - o
 strange behavior
 call interactive over ssh
 generate error while try to append text to file
-nf -rrb- 0 check two time on program environment
+nf - rbc - 0 check two time on program environment
 to remove duplicate from file and write to same file
 sed and regex to prepend line
 regular expression save specific part of file to variable
@@ -7404,7 +7404,7 @@ retreive information from text file
 sed\/awk to search and replace\/insert text in file
 run individual work not when combine in why
 to extract text from string use sed
-why 2 -rrb- & 1 need to come before -lrb- pipe -rrb- after '' -rrb- myfile '' -lrb- redirect to file -rrb-
+why 2-rbc - & 1 need to come before -lrb- pipe -rrb- after '' - rbc - myfile '' -lrb- redirect to file -rrb-
 `` exception handle '' in
 git autocompletion look weird -lrb- and only half-functional -rrb-
 quotation
@@ -7421,7 +7421,7 @@ remove line contain non-english -lrb- ascius -rrb- character from file
 to improve perl\/bash one-liner to deserialize json datum
 write to excel sheet use
 print file in binary form -lrb- 1 and 0 -rrb-
-in grep why need to escape -lrb- while not for -rrb-
+in grep why need to escape - lsbc - while not for - rsbc -
 way to pipe result of bundle show jquery-rails into gnome-open
 regular expression to parse common name from distinguish name
 php mysqlus fail work vium web server and work in local
@@ -7432,7 +7432,7 @@ sed replace path in bashrc
 sed one-liner - find delimiter pair surround keyword
 to use grep or awk to extract specific block from file
 to pipe in ubuntu
-append ruby partial w -lrb- ' -lrb- % = character -rrb- to end of file with sed
+append ruby partial w -lrb- ' - lbc - % = character -rrb- to end of file with sed
 read any one key
 combine some datum from multiple line
 file test conditional
@@ -7459,7 +7459,7 @@ print specific field from specific line in delimit type file
 awk search value and get column
 write pull all of http://whatever.com/something out of file
 awk - use particular line again to match with pattern
-add column to any position in file -lrb- use awk or sed -rrb-
+add column to any position in file - lsbc-use awk or sed-rsbc -
 shellscript read variable from file
 make head stop wait for input
 delete invisible directory after git clone
@@ -7511,7 +7511,7 @@ need to match or replace asterisk \* in batch environmental variable use only na
 find last occurrence out of multiple occurrence of regexp use sed
 wildcard expansion
 awk to skip blank line
-extract table from html with sed magic
+extract - lbc-table-rbc - from html with sed magic
 execute after run `` exit '' in
 regex find and replace over multus line in
 execute within php
@@ -7675,7 +7675,7 @@ pipe multiple to single
 append file contents as parameter
 ruby exception best to to handle unset environment variable
 create alias with variable in terminal
-scalum see class from file in mode
+scalum see class from file mode
 handle space with ` cp '
 find all audio file in folder use
 awk-sed join of 3 table with one nearly identical column ... surely easier than python
@@ -7773,7 +7773,7 @@ awk c\/c + + java function in entirety
 check queue depth use language
 `` fus line not find ''
 on not able to run
-cron alarm clock mint stop suddenly -lrb- solve -rrb-
+cron alarm clock mint stop suddenly - lsbc-solved-rsbc -
 possible to use two different field separator in awk and store value from both in variable
 to have customize log format for `` set - ''
 osx use variable in expect
@@ -7784,7 +7784,7 @@ cpu time of process in android
 alias send `` alias '' to background
 store path
 move only mp3 within multiple directory to single folder
-in android give -lrb- not find
+in android give - lsbc - not find
 extract value from text file with awk
 to escape '' in sed on window
 count access to file from apache access log use
@@ -7876,7 +7876,7 @@ to run task and shutdown after task
 maven system variable
 replace 3 line with another line sed syntax
 recursive search and replace with and '
-$ follow by char in argument in c
+$ follow by char argument in c
 use awk to pull specific line from file
 to find and execute file
 copy contents of file start from regex word to end of file
@@ -7888,7 +7888,7 @@ sed\/awk capitallize everything between pattern and lowercase small word
 url encode value of capture from successful match in perl oneliner
 powershell why need to escape double-dash parameter in $ arg
 get folder hierarchy with or php
-replace -lrb- -rrb- bracket use sed
+replace - lsbc -- rsbc - bracket use sed
 way to redirect output to different place with different filter
 cygwin ssh shortcut from window desktop
 sed regex pattern for some tricky line -lrb- inus section -rrb-
@@ -7896,7 +7896,7 @@ copy contents of xml tag into new set of xml tag
 - compare same file of different dat
 delete line from text file contain any string from another file use sed\/awk\/etc
 to redirect repo sync output into file
-difference between '' -rrb- '' and '' & -rrb- ''
+difference between '' - rbc - '' and '' & - rbc - ''
 use in awk
 input file take from line return value
 sed merge 2 line after pttern
@@ -7944,7 +7944,7 @@ rearrange file contents in n number of column
 field contain field separator as string to apply awk correctly in case
 entity framework 5 nuget console
 echo literal string
-mean -lrb- - ge unexpect operator
+mean - lsbc - - ge unexpect operator
 use unset v. set variable to empty
 run application locate in directory from path environment variable
 zsh to get back ` unexpand '
@@ -8045,7 +8045,7 @@ to find line from first file appear most frequently in second file
 multiline log file process with sed and regex
 find not chdir to directory error message after delete directory
 awk display match regex -lrb- multiline -rrb-
-tr - cd ' -lrb- -lrb- digit -rrb- -rrb- ' only provide one digit
+tr - cd ' - lsbc -- lsbc - digit - rsbc -- rsbc - ' only provide one digit
 evaluate substitution and replace on
 value suppose to get from apple ' core datum utility tutorial
 to add column to column family in hbase
@@ -8065,7 +8065,7 @@ to write to open multiple file in vim use splits and tab
 replace executable path with variable
 java and
 split table file accord to modification in specific column
-space in php argument call from
+space php argument call from
 capture error and output to log
 regex to match string not end in pattern
 find word have more than two letter not start with specific two letter use glob pattern for file match for tcsh
@@ -8094,7 +8094,7 @@ sed - replace character between two string with another string
 kill process
 to delete all cjk text appear immediately after particular symbol
 set different umask for file and folder
-why -lrb- a-za-z0-9 -rrb- \* match space between non-ascii letter in sed
+why - lsbc-a-za-z0-9 - rsbc - \* match space between non-ascii letter in sed
 set variable in by run
 want to edit file in place -lrb- substitute column value -rrb- base on value in another column in same file
 nonzero return code although find - exec rm work
@@ -8320,7 +8320,7 @@ to delete all text appear between two symbol with sed
 append to middle of line in textfile sed
 grep specific text from log
 awk - combine line variable & print as column
-remove -lrb- strong-tag in text-file with sed
+remove - lbc - strong-tag in text-file with sed
 awk sed - compare text withe file search for string look for repeat instance on same file add some word at eol
 segmentation fault when loop through directory with
 convert argument into array
@@ -8556,7 +8556,7 @@ quote array expansion
 remove line feed -lrb- s -rrb- from start of specific file
 to execute diff on output of two without create temporary file
 to get info from multiple server
-copy specific file in
+copy specific file
 issue with set $ path directory
 copy only file not folder structure from directory
 check if file in give directory -lrb- or sub-directory -rrb-
@@ -8735,7 +8735,7 @@ start remote python application through ssh and get pid
 remove all duplicate entry in field
 sed get line begin with `` rim-cod - ''
 awk - change date of second
-line -lrb- miss ` -rrb- ' debug help please
+line - lsbc - miss ` - rsbc - ' debug help please
 substitute into double quote
 use quote in grep\/cut in
 get output of in haxe
@@ -9177,7 +9177,7 @@ validate mysql username and password
 delete column from text file with sed
 ' wrong with
 sed in build
-'' -lrb- head tail -rrb- -lrb- file '' work
+'' -lrb- head tail -rrb- - lbc - file '' work
 awk remove space from output
 create output file base from two file base on column match
 redirect stderr to stdout in c
@@ -9191,7 +9191,7 @@ to install postgresql - fail
 l all file in directory plus all file in directory one level down
 pipe after split return value
 set variable from file where string contain asterisk
-read number from file until line -lrb- n
+read number from file until line - lbc - n
 to display argument in
 need to merge two file and create new file
 match list from one file1 extract correspond line form file 2
@@ -9205,7 +9205,7 @@ write output to file with tabs\/text add in ksh
 start tmux with cmus opend through
 awk split file by seperator and count
 find ignore first filename search for
-`` mysqldump -rrb- mysql '' throw error why
+`` mysqldump - rbc - mysql '' throw error why
 grep datum between 2 pattern in
 unable to display option argument in
 df extract `` name '' and `` available space ''
@@ -9213,7 +9213,7 @@ to count number of file in each directory
 insert character at certain position in csv line
 to solve permission when run from java
 sed to find only even number in give file use sed
-print line if $ 2 -lrb- 25 from text file with sed or awk
+print line if $ 2-lbc-25 from text file with sed or awk
 to execute sh for all file in current directory
 unable to create md5sum file need to create manually far too labour-intensive
 modify text within file use sed or awk
@@ -9235,7 +9235,7 @@ meteorj call from server
 postgresql - create user and database from fail
 - to retrieve single line from file
 pass filename with apostrophe into scp use python
-why choose `` a. out file '' over `` a. out -lrb- file '' or vice versa c + +
+why choose `` a. out file '' over `` a. out - lbc - file '' or vice versa c + +
 to remove first part of string
 use grep to search for year from 1900 to 2100
 pass multiple argument vium in r
@@ -9423,13 +9423,13 @@ split string variable through
 regular expression to extract percentage
 why sed work directly and ca n't work when write in file
 merge two line generate from contig fa
-to pass '' \* '' in argument
+to pass '' \* '' argument
 find file contain exactly two forward slash
 get word between quote
 swap two string simultaneously
 strange behavior in variable
 turn on -
-remove everything after /html
+remove everything after - lbc - html-rbc -
 to send value to zenity progress bar
 why non-escaped double-quoted path work for test not for alias
 escape `` return '' function in
@@ -9457,7 +9457,7 @@ zip recursively each file in dir where name of file have space in
 java character encode
 terminal and color output
 - exclude directory in `` for file in $ -lrb- find ... -rrb- ''
-awk field separator -lrb- -rrb-
+awk field separator - lsbc - - rsbc -
 try to remove window file path from file like '' abc '' not sure need to use
 fastest way to ping network range and return responsive host
 give space in 5th column with awk
@@ -9492,9 +9492,9 @@ ignore case when remove duplicate use awk
 extract td\/tr from html
 try to extract number from plist with grep
 - write contents of variable to specific place in file
-render utf-16be in
+render utf-16be
 add day of week to date in text file
-difference between ` sed - ' and ` sed ... -rrb- file '
+difference between ` sed - ' and ` sed ... - rbc - file '
 regular expression parameter to file
 change user and group of android app file to replicate issue user have
 ca n't see `` escape '' color in terminal
@@ -9573,7 +9573,7 @@ pipe output to bc calculator
 copy current at prompt to clipboard
 happen when pipe char directly follow by redirection
 simulate key press use
-to fix zsh correct ` deploy ' to ' _ deploy ' -lrb- nya -rrb-
+to fix zsh correct ` deploy ' to ' _ deploy ' - lsbc-nyae-rsbc -
 convert xml file to trectext format
 to get valid font name on system use in xresource config
 curl post binary variable
@@ -9715,10 +9715,10 @@ error in use if condition
 use awk to get percentile of line in file
 delete line contain specific string in
 use default write on plist for exist element in array
-use sed to replace h1 ... /h1 with h2 ... /h2
+use sed to replace - lbc-h1-rbc - ... - lbc - h1-rbc - with - lbc-h2-rbc - ... - lbc - h2-rbc -
 tail - f into grep into cut not work properly
 read first 8 character of text file with
-to calculate age from system date use awk -rrb-
+to calculate age from system date use awk-rbc -
 change dhcp ip range in virbr0 ' xml file use virsh
 to use outlook switch in prompt from form
 bc total count
@@ -9797,7 +9797,7 @@ to strip double quote in awk single liner and drop first record
 awk compare value with input
 to tell if process last line of input in powershell cmdlet
 batch remove file extension osx
-make 2 ajax request for treatment
+make 2 ajax request treatment
 awk ignore case
 to remove duplicate occurrence in file
 field separator
@@ -9862,7 +9862,7 @@ paste
 run junit test class inside one-jar with junit outside jar
 need regular expression for extract datum and write to file
 take input literally -lrb- i.e. keep quote etc. intact -rrb-
-if -lrb- `` $ var '' -rrb- mean
+if - lsbc - `` $ var '' - rsbc - mean
 delete line if $ 4 one
 to replace pattern in one file with contents of another file use sed
 have trouble run android sdk tool on ubuntu 12.10
@@ -9930,7 +9930,7 @@ to split large file into many small file use
 launch minecraft from python\/c + +
 run program in background use screen
 awk search line withe file
-use sed to change cr lf to symbol
+use sed to change - lbc-cr-rbc -- lbc-lf-rbc - to symbol
 sort by first column textually and by second numerically with ` sort '
 run from wrong name error
 sort file base on length of char in first column\/row
@@ -9978,7 +9978,7 @@ give two directory know subdirectory differ
 use awk to merge two file associate number
 write multiple file with sed from pattern match
 to display all line of file with two certain string
-zend framework module in
+zend framework module
 system diagnostic process specify module not find -lrb- 0x8007007e -rrb-
 awk to grep datum between two multi-line pattern base on condition
 sed for parse multiline
@@ -9993,7 +9993,7 @@ weird behavior with diff grep sed
 to catch input from python
 sed with regexp for different situation
 total size of file in current directory match regular expression
-if -lrb- -lrb- `` $ '' = = \* `` $ b '' \* -rrb- -rrb- alway true even when n't
+if - lsbc -- lsbc - `` $ '' = = \* `` $ b '' \* - rsbc -- rsbc - alway true even when n't
 sed delimiter option
 execute upon file creation
 pass arg for when go thru pipe
@@ -10037,7 +10037,7 @@ get java to output to log when run from batch
 file `` call '' or not to `` call ''
 awk matchings\/joining two file for 1 variable
 vim red highlight $ -lrb- -rrb-
-export work in not in
+export work not in
 not assign output of `` python - v '' to variable
 awk 2 file find and update min\/max value
 grep part of nth line
@@ -10076,7 +10076,7 @@ awk syntax error awk line 29 syntax error at or near
 xpath to list available tag non recursively -lrb- use xmllint in -rrb-
 mutiple xml block in same file export vium
 compare $ var to
-`` die '' signal handler for
+`` die '' signal handler
 good way to capture standard error and standard output
 to copy multiple file from different directory use cp variable and bracket
 parse xml - subtract value from tag
@@ -10296,7 +10296,7 @@ sed - modify single character in first column without touch other
 to insert char after specify number
 add line at top and bottom of file before send to pipe
 use find result when directory have space in name
-if last char of line -lrb- 0-9 -rrb-
+if last char of line - lsbc-0-9-rsbc -
 delimiter substitution exclude character inside string column
 append to top of large file
 try to delete non ascius character only
@@ -10376,7 +10376,7 @@ to exclude few folder level in find result -
 weird behavior of wildcharacter \* in
 to count number of word from string use
 to implement query in perl
-vim portable way to edit '' -lrb- 1 -rrb- '' when `` 1 '' exist
+vim portable way to edit '' - lsbc-1-rsbc - '' when `` 1 '' exist
 source from perl
 possible to configure tab completion with powertab for aliase function
 dialog input box problem
@@ -10389,7 +10389,7 @@ grant not work in mysql
 to grep cut from delimit column file
 to write
 use awk to replace only once delimiter between $ 4 and $ 5
-for -rrb- stdout and -rrb- stdout + stderr
+for - rbc-stdout and - rbc-stdout + stderr
 glassfish die and not start again
 pass environmental variable into sh in procfile
 to remove non-ascii char use sed
@@ -10525,7 +10525,7 @@ lose control after fork -lrb- -rrb-
 call from arbitrary directory
 pipe to multiple file not stdout
 to start jenkin on different port rather than 8080 use prompt in window
-pass ' -lrb- ' and ' -rrb- ' to
+pass ' - lbc - ' and ' - rbc - ' to
 track monitor system
 associative array ' '' key -lrb- -rrb- ''
 test for video file fail
@@ -10590,7 +10590,7 @@ rename file to match directory name
 replace character 92-97 in position `` '' on line
 why s $ g replace first character
 to get android system boot time
-arithmetic expression -lrb- -lrb- in compound statement -lrb- -lrb- return true
+arithmetic expression -lrb- -lrb- in compound statement - lsbc -- lsbc - return true
 bsd sed unable to replace all '' ,0 ''
 android emulator - build
 pipe directly to executable
@@ -10606,7 +10606,7 @@ to use cut to show all column except indicate
 create environment in c use execl and fork -lrb- -rrb-
 understand flag to pass to compiler
 selective print
-catch error with glassfish -lrb- return code in pipe -rrb-
+catch error with glassfish - lsbc-return code in pipes-rsbc -
 to list all export function
 to list include function
 delete column with awk or sed
@@ -10638,7 +10638,7 @@ to get difference -lrb- only addition -rrb- between two file
 awk 4th column everything match wildcard before @
 regular expression to segregate between good word and bid one
 awk merge column from file
-keep content of text with specific same column in
+keep content of text with specific same column
 use sed or awk alter first field in delimit line
 need help in l - ltr
 use sed to remove text between = and space unexpect behavior
@@ -10646,13 +10646,13 @@ reinsert delimiter after use awk and sort
 replace miss content with sed
 delete line from file at specify line number in bourne
 list all word in text file with occurrence count
-feel confuse on awk regular expression match digit -lrb- 0-9 -rrb-
+feel confuse on awk regular expression match digit - lsbc-0-9-rsbc -
 pass variable from python to
 to change file name in loop
 grep for multiple string in single line
 to share screen output of run process
 echo contents of file into email subject
-delete whole line contain multiple word in
+delete whole line contain multiple word
 - copy file of same extension locate in several subdirectory into single directly
 xcode tool -lrb- xcode 4.6 -rrb- run unit test from terminal
 limit sed print section of file btw 2 regexp to first occurrence
@@ -10732,7 +10732,7 @@ sort text file by certain field in place in shell\/python
 sum column base on flag
 split file in word
 replace character with sed
-rail on window strange response like -lrb- 1m -lrb- 36m -lrb- 2.0 m -rrb- -lrb- 0m -lrb- 1m
+rail on window strange response like - lsbc-1m-lsbc-36m -lrb- 2.0 m -rrb- - lsbc-0m - lsbc-1m
 sed insert '' ''
 awk
 to display only last field
@@ -10826,7 +10826,7 @@ awk word frequency from one text file to ouput into myfile txt
 to get information about cluster
 count element array n't begin with specific character
 use awk to print column if only meet criterion
-use '' echo append -rrb- -rrb- file '' recursively
+use '' echo append - rbc -- rbc - file '' recursively
 create file
 awk to work on multiple file txt in folder and subfolder
 grep - print all line contain ` cat ' as second word
@@ -10911,7 +10911,7 @@ to copy to clipboard current path
 use sed to delete item in list
 print array element on separate line
 column by column comparison
-to replace -lrb- 10-15 -rrb- to 10 11 12 .15
+to replace - lsbc-10-15-rsbc - to 10 11 12 .15
 to remove column from multiple file use sed
 redirect log output to another terminal
 need to replace line from one file base on another file
@@ -10930,7 +10930,7 @@ last element in array syntax error
 use grep to extract first word after match
 unit of measure regex manipulation
 to remove pad from awk
-to print everything inside -lrb- -rrb- only
+to print everything inside - lsbc -- rsbc - only
 to update output
 sed find replace string with special character
 apache log analysis unique visitor by date by
@@ -11029,7 +11029,7 @@ use wget to `` checkout '' svn repository
 get first n occurance of uniq line not only one
 pass multiple variable to ssh
 awk or statement
-keep all line with -rrb- 2 duplicate base on one column
+keep all line with - rbc-2 duplicate base on one column
 remove group of space
 rsync to amazon ec2 instance
 assign multiword string to array element
@@ -11148,7 +11148,7 @@ store file contents to variable in
 for send email not work in python subprocess call
 python not execute `` mail '' properly
 to concatenate string format with printf
-miss ' -rrb- '
+miss ' - rsbc - '
 compile java file from - external library classpath
 to get count of duplicate string in set use grep uniq and awk
 delete string with sed regex
@@ -11176,7 +11176,7 @@ remove everything around give pattern
 multiple if condition
 loop through line in csv file with
 execute dynamic use mix quote and asterix
-retrieve file name for bash\/shell programe
+retrieve file name programe
 format result inside for loop from l
 get previous date
 string format
@@ -11228,7 +11228,7 @@ find file have change in last 24 hour
 sed awk perl or other for de-interleaving text file
 grep while avoid ` too many argument '
 to print use awk text from many file in different way -lrb- by file name position in argc -rrb-
-match digit in -lrb- g -rrb- awk
+match digit in - lsbc-g-rsbc-awk
 to tail fifo currently write to and tail fifo again grepp for different text
 mutt wo n't send attachment
 filter `` bid path '' result in mdfind
@@ -11404,7 +11404,7 @@ sort file base on column in another file
 to correctly split with awk
 delete match line with sed
 to truncate\/cut part of string
-parse if -lrb- `` $ s1 '' = = `` s2 '' -rrb- as
+parse if - lsbc - `` $ s1 '' = = `` s2 '' - rsbc - as
 exec to launch php as background process
 use cut into with variable
 -- replace string from previous and execute
@@ -11506,7 +11506,7 @@ to read file from another file
 to substitute -rcb- -lcb- with -rcb- -lcb- with gsub
 add visible sign in pdf from use imagemagick
 awk ' possibility of have output reflect input with regards to field separation
-use sed to replace ^ -lrb- -lrb- s3b with blank space
+use sed to replace ^ - lsbc - -lrb- s3b with blank space
 remove first column leave remain line untouch in awk
 possible to create non-child process inside
 read fail after tcpreplay with error 0 resource temporarily unavailabl
@@ -11551,7 +11551,7 @@ modify only one column of big file and keep field seperator same
 pattern match on oozie log
 android system property - unsett on
 shc on show ` kill 9 ' error
-- multiple test -lrb- -lrb- expression -rrb- -rrb-
+- multiple test - lsbc -- lsbc-expressions-rsbc -- rsbc -
 to cut particular piece of datum and store in string in
 print variable `` $ 1 '' as string
 get hardware ids\/serial number through prompt
@@ -11567,7 +11567,7 @@ to get particular word from particular line from output of in
 perl one liner + regular expression to match part of word
 comparison in variable assignment
 clone from github when password have in
-pass ' -lrb- single quote character -rrb- as argument -lrb- -rrb-
+pass ' - lsbc-single quote character-rsbc - as argument - lsbc-bash shell-rsbc -
 - quickly determine number of line in file start with uppercase
 change specific line in file to something include line
 redirect time gcc output to file
@@ -11605,7 +11605,7 @@ need to convert below awk into sed
 to retrieve url from string in
 shuffle with awk
 python shebang problem with import module -lrb- and choose correct interpreter -rrb-
-why sort f -rrb- f will delete everything
+why sort f - rbc-f will delete everything
 to compare consecutive case sensitive word with awk
 provide input to c program from
 flow control
@@ -11646,7 +11646,7 @@ when have git log print out as oneline reverse
 remove unicode line separator
 extract specific line from file use awk
 batch start not open program
-to define custom ` textwidth ` for in vim edit mode
+to define custom ` textwidth ` in vim edit mode
 sql plus\/shell extra newline print
 to arrange line in ascend order
 error
@@ -11840,7 +11840,7 @@ switch user in vagrant bootstrap
 need to know status of rsync on machine
 parallelize md5sum checksum on many file
 - remove all file in one directory from another directory
-trouble with strcat -lrb- c -rrb-
+trouble with strcat - lsbc-c - rsbc -
 use multiple condition in ` test '
 file manipulation
 to calculate specific field for similar dataline in multiple file
@@ -11966,7 +11966,7 @@ move file from directory and all subdirectory
 check number of file subdirectory - provide wrong variable result when subdirectory search for not exist
 if file exist read line \* \* than continue to next line
 call `` exit '' from within
-pass arg -lrb- -rrb- to java app with space
+pass args-lsbc -- rsbc - to java app with space
 why find - not - name '' \* '' not exclude hide file
 list path with find when filename contain space
 extract string from text file with space delimiter
@@ -11999,7 +11999,7 @@ why if statement stop while loop
 sum two field separately
 provide partial input to
 textutil convert font to helvetica-light instead of helvetica
-compgen to get rid of warn message -lrb- option may not work as expect -rrb-
+compgen to get rid of warn message - lsbc-option may not work as expect-rsbc -
 pass variable to -lrb- -rrb-
 tar not find in archive error use regular expression
 install rvm synchronization of local port tree fail rsync
@@ -12014,9 +12014,9 @@ remove lead zero from array variable
 extract email adress from csv file
 find and replace one csv from another csv
 cut & to field 1 & 2 from file and use as pattern for line in file and echo result
--lrb- = expression not complete more token expect ksh
+i-lbc - = expression not complete more token expect ksh
 sort xml file base on content within tag
-difference between -lrb- -rrb- and -lrb- -rrb- in `` if '' condition
+difference between - lsbc -- rsbc - and -lrb- -rrb- in `` if '' condition
 replace match column use sed\/awk
 to awk date from
 about `` sed ''
@@ -12079,14 +12079,14 @@ find specific file in
 awk partly string match -lrb- if column partly match -rrb-
 to create folder for user at login and set access permission
 to use eval to force variable update
-run sqlite3 with python in
+run sqlite3 with python
 background process will kill current process
 parse url from text file to array
 split string contain pipe character
 xarg repeat copy file base on text file input
 go execute
 replace every occurrence of char except when ' in pattern
-dot space -lrb- -lrb- dot -rrb- -lrb- space -rrb- -lrb- filename -rrb- -rrb-
+dot space -lrb- - lsbc-dot-rsbc -- lsbc-space-rsbc -- lsbc-filename-rsbc - -rrb-
 replace word after multiple space
 run sh or file from terminal
 code run fine in xcode error out on
@@ -12171,7 +12171,7 @@ to combine substitution and regex
 replace consecutive '' n '' with only one '' n '' from string in variable
 ' difference between `` grep - e '' and `` grep - e ''
 to solve `` bid interpreter no such file or directory ''
-to run by just type name as oppose to sh -lrb- scriptname -rrb-
+to run by just type name as oppose to sh - lsbc-scriptname-rsbc -
 print first c style comment from file
 get datum from text file
 to get original system after overwrite with function
@@ -12207,13 +12207,13 @@ use awk to parse through two file ignore value
 replace ip with server name in fping output
 unexpect token ` ' error in for loop
 backspace in file
-gzip merge set of small file -lrb- -lrb- 64mb -rrb- into several larger file -lrb- 64mb or 128mb -rrb-
+gzip merge set of small file -lrb- - lbc-64mb -rrb- into several larger file -lrb- 64mb or 128mb -rrb-
 change path from slash to backslash in file with powershell
 ksh best way to append one file to another inside of pipe
 not execute from some directory even though directory add to `` path '' variable
 remove line with specific pattern in one field
 prompt\/bat file - create new folder name with today ' date
-to use `` read '' read whole line datum end with cr lf under
+to use `` read '' read whole line datum end with - lbc-cr-rbc -- lbc-lf-rbc - under
 incorrect result of
 to redirect output terminal help document of git -lrb- or any other -rrb- to text file have bold font word in
 insert line in iptable ' file
@@ -12255,7 +12255,7 @@ get specific part of text from file base on in-line date
 to set next operation input equal to output of prvious operation
 delete line with specific pattern
 pass two value from awk to
-set pid of search run process -lrb- p - ea grep search -rcb- -rrb- in
+set pid of search run process -lrb- p - ea grep - lbc-search-rbc - -rcb- -rrb- in
 use awk if condition together with in array condition
 syntax for change activerecord datum type on
 remove last 14 digit from string and underscore if 14 digit
@@ -12278,7 +12278,7 @@ run by php exec -lrb- -rrb- not redirection properly
 grep output with multiple color
 start perl vium `` window '' through cygwin
 append text to file without line break
-when deal with number when -lrb- -lrb- -rrb- -rrb- prefer over -lrb- -lrb- -rrb- -rrb-
+when deal with number when - lsbc -- lsbc - - rsbc -- rsbc - prefer over -lrb- -lrb- -rrb- -rrb-
 get file name time stamp and md5 checksum from log file
 escape entire url for use in regex
 print first to nth column in line iteratively
@@ -12301,7 +12301,7 @@ use filename output by `` grep '' as argument to another program
 to delete date txt file as part of under
 permanent removal of all ime
 extract line with specific pattern in separate file
-anyone explain fully adb sendevent -lrb- device -rrb- -lrb- type -rrb- -lrb- code -rrb- -lrb- value -rrb-
+anyone explain fully adb sendevent - lsbc-device-rsbc - - lsbc-type-rsbc - - lsbc-code-rsbc - - lsbc-value-rsbc -
 to move file from one folder to another folder in remote machine without log in
 install ruby vium rvm n't run -lrb- say nomemoryerror -rrb-
 reorder line with specific pattern in text file
@@ -12406,7 +12406,7 @@ find everything minify
 modify xml tag with specific pattern by regex tool
 replace forward slash with double backslash enclose in double quote
 get value of parent model with backbone j
-list file match pattern when too many for globb
+list file match pattern when too many globb
 begin and end of word in sed and grep
 to process file concurrently with
 print record number with prefix
@@ -12449,7 +12449,7 @@ separate string to variable
 eval throw log on console-how to suppress
 unable to redirect stderr\/stdout to dev\/null in
 sort and make unique text not by entire line string position
-get error ksh -lrb- 7 -rrb- test argument expect
+get error ksh-lsbc-7-rsbc - test argument expect
 extract specific line of datum from log file
 use operator with scalum process builder
 rsync not synce properly
@@ -12494,7 +12494,7 @@ add common name in column - awk
 add line in file from another file use awk or sed
 recursive change sed grep and sed
 store nest argument in variable
-to split\/cut video use vlc in after every n minute
+to split\/cut video use vlc after every n minute
 in to make comand2 as continue for comand1
 run python through php and redirect stdout stderr to file
 indent multi-line output in
@@ -12691,7 +12691,7 @@ get line by unique portion of line and display only first occurrence of unique p
 dump file from in different directory from where python run
 debian variable substitution error
 copy array with empty element
-use -rrb- dev\/null when set variable
+use - rbc - dev\/null when set variable
 to run cd with -lrb- outside of subshell -rrb-
 symlink break right after creation
 remove last line of text file instead of append one
@@ -12751,7 +12751,7 @@ java program work on window not
 use sed to extract email address
 ask mongodb if master out of bashscript
 ca n't save console output as ruby variable
-change '' path '' value with different string depend on last line
+change '' - lbc-path-rbc - '' value with different string depend on last line
 to add blank line after every grep result use perl
 change environment variable value during execution
 not start program with parameter
@@ -12854,7 +12854,7 @@ why `` extra character after '' error show for sed show
 -lrb- -rrb- to remove default ` newline ' operator in
 run function with different user
 read argument as
-alternative for sed ... -lrb- -lrb- -rrb- and sed
+alternative for sed ... - lbc - -lrb- -rrb- and sed
 invoke java app from
 fabric sudo as another user with root privilege
 use sed to print line start with two different pattern
@@ -12927,7 +12927,7 @@ send use runtime n't anything and no exception even
 to append contents of multiple file into one file
 to apply diff sql into mysql database from
 to redirect all output to dev\/null
-freena rsync error some files\/attrs not transfer -lrb- see previous error -rrb- -lrb- code 23 -rrb- at main c -lrb- 1053 -rrb- -lrb- sender = 3.0.9 -rrb-
+freena rsync error some files\/attrs not transfer -lrb- see previous error -rrb- -lrb- code 23 -rrb- at main c -lrb- 1053 -rrb- - lsbc-sender = 3.0.9-rsbc -
 to generate list with brace expansion in specific order
 format awk output
 work in not in
@@ -13006,7 +13006,7 @@ regular expression to extract text from xml-ish datum use gnu sed
 use variable with sed
 select unique row of flat file
 conditional in awk while select line
-- n't recognize if -lrb- $ # = 0 -rrb-
+- n't recognize if-lsbc - $ # = 0-rsbc -
 awk not concatenate string
 printf backslash new line
 function - return parent file path
@@ -13084,7 +13084,7 @@ replace line in file use sed line have move portion in center of
 replace 5 dot with single space
 sed output blank
 clear notification use adb
-strange behavior export classpath = $ -lrb- jar = -lrb- lib \* jar -rrb- if = echo `` $ -lcb- jar -lrb- \* -rrb- -rcb- '' -rrb-
+strange behavior export classpath = $ -lrb- jar = -lrb- lib \* jar -rrb- if = echo `` $ -lcb- jars-lsbc - \* - rsbc - -rcb- '' -rrb-
 to remove commit file no longer in work directory
 have execute multiple program as separate process
 git branch variable shortcut
@@ -13098,7 +13098,7 @@ fast way of find line in one file not in another
 parse variable in
 sed multiple character inside getop
 awk not work when use variable in comparison
-ignore error message from yum -lrb- when package already install -rrb- -
+ignore error message from yum - lsbc-when package already installed-rsbc - -
 to save stderr and stdout of pipeline on file
 why sed not accept variable
 redirect string to file path read from input as string
@@ -13308,9 +13308,9 @@ prevent infinite loop in powershell
 split file base on text inside file
 need to append output from python to file
 merge 2 together
-subprocess module from python fail to run like '' cmd1 cmd2 ''
+subprocess module from python fail to run like '' - lbc-cmd1-rbc - - lbc-cmd2-rbc - ''
 to exit from oracle error when use wait statement
-why pattern match for -lrb- \* -lrb- -lrb- class -rrb- -rrb- -rrb- foobar slow
+why pattern match for -lrb- \* - lsbc -- lsbc - class - rsbc -- rsbc - -rrb- foobar slow
 case insensitive l
 append repeat text use sed or awk
 regexp for remove html garbage from string
@@ -13395,9 +13395,9 @@ sed not work with variable
 linux-about sort output
 execute read
 pass one parameter want multiple
-sed replace '' -rrb- '' to '' -rrb- ''
+sed replace '' - rbc - '' to '' - rbc - ''
 use to read file `` grep '' with line against file
-work in give ` no such file or directory '
+work give ` no such file or directory '
 use variable ' value to use variable value
 awk search and print number of line base on column of another file
 generate diff between two asymmetric file
@@ -13419,7 +13419,7 @@ multiply every nth field ... elegantly
 run ssh and immediately execute
 wildcard not globb file
 suppress verbose output of in python
-why ` top grep -rrb- file ' not work
+why ` top grep - rbc - file ' not work
 to take file input in perl from user
 to use perl one-liner as alias
 to add empty line in text file use
@@ -13439,9 +13439,9 @@ why get `` sh 1 syntax error unterminate quote string '' when run python program
 edit phone list pattern use regex
 use sudo in service start censto
 to set environment variable
-parameter not pass to copyfile sh 1 copyfile sh -lrb- d not find
+parameter not pass to copyfile sh 1 copyfile sh - lsbc-d not find
 escape ` test ' keywork in
-grep to get div content
+grep to get - lbc-div-rbc - content
 use fgrep to find multiple word -lrb- korn -rrb-
 parallel tar with split for large folder
 sed - add text to variable
@@ -13460,7 +13460,7 @@ create class file from with package dependency
 to find file name ignore case sensitivity
 gfortran fatal error no input file compilation terminate
 to sort output datum into column and row
-sort array of mix datum -lrb- -rrb-
+sort array of mix datum - lsbc-bash-rsbc -
 replace
 create subversion on cento
 if match print all use awk
@@ -13483,7 +13483,7 @@ error execute
 to use property = value in clus common library
 get text from response of
 redirect output of for loop
-ssh host -lrb- sh - not work with expect
+ssh host - lbc - sh - not work with expect
 file stupid simplify
 multiple file as argument
 to tell tail not to wait for parameter
@@ -13539,7 +13539,7 @@ kornshell -lrb- ksh -rrb- listing\/sorting file
 find filter and copy - trouble with space
 $ random function not random terminal
 display output without lowercase letter
-way to automate -lrb- y\/n -rrb- prompt when install package from
+way to automate - lsbc-y\/n-rsbc - prompt when install package from
 bufferedwriter through not write to file
 tar directory n't store full absolute path in archive
 use of sed -lrb- -rrb-
@@ -13564,7 +13564,7 @@ pipe stdout to paste
 try to remove file and parent directory
 search for string and delete duplicate and add new line to second and last line of text use
 why wo n't ruby execute
-trouble run android in
+trouble run android
 tell sed where exactly to append string
 modify list of file accord to date
 split namefile in
@@ -13602,7 +13602,7 @@ to convert utf-8 to unicode
 batch rename file
 to change some symbol -lrb- e.g. `` space '' -rrb- to other symbol
 sort filename without lead zero
-parse html on to capture text in strong /strong
+parse html on to capture text in - lbc-strong-rbc -- lbc - strong-rbc -
 diff multiple original versus backup
 expr error
 return as variable
@@ -13708,7 +13708,7 @@ sed multiline regular expression issue
 - find file in directory exclude directory y
 take two line as input
 nohup not work inside for loop
-sed refuse to replace pattern - -rrb- file -lrb- encode -rrb- error
+sed refuse to replace pattern -- rbc - file -lrb- encode -rrb- error
 to find common word in multiple file
 convert decimal number to hexadecimal and binary in
 get folder name and rename file name tr
@@ -13776,12 +13776,12 @@ compile corba idl file error
 print actual field delimiter value not regular expression
 to move file with adb
 display first part of file use bsd head
-sh -lrb- program -rrb- & & -lrb- program -rrb- v. if -lrb- program -rrb- -lrb- program -rrb-
+sh - lsbc - program - rsbc - & & - lsbc - program - rsbc - v. if - lsbc - program - rsbc - - lsbc - program - rsbc -
 effective user id not change after make file own by root
 replace 5th and 6th `` word '' in line of text file with variable
 loop through file not contain certain text in makefile
 work with array inside expect
-significance of echo start cat -rrb- -rrb- log
+significance of echo start cat-rbc -- rbc-log
 use invert match and substitute
 to list all exception and number of occurrence
 to run at certain time
@@ -13920,7 +13920,7 @@ keep real value use awk format convertor
 android get project name
 class ` app ' not find while run cakephp
 multiple condition in if
-to use variable in sed ' 3d ' log\/file2 txt -rrb- log\/file8 txt
+to use variable in sed ' 3d ' log\/file2 txt - rbc - log\/file8 txt
 clear cache in remote server use ssh
 remove list of word from filename
 to grep for first instance of pattern among multiple pattern
@@ -13939,7 +13939,7 @@ to remove specific number from file with
 to convert string to integer
 use wildcard and grep
 ` l $ variable ' not list folder contents
-alias -- -rrb- `` less '' latest file in directory
+alias -- rbc - `` less '' latest file in directory
 rm except last 5 file
 to avoid sql file from folder
 run from any directory
@@ -13996,7 +13996,7 @@ use sed to fill blank with 0 ' -lrb- zero ' -rrb-
 paste and execute external
 to run java class file from compile by eclipse external jar problem
 use awk to limit flag base on two column of file
-proper way to specify `` usage '' in argument for java main method
+proper way to specify `` usage '' argument for java main method
 parse log file
 program `` bid number '' error
 increment 1 in sixth column after every twenty line
@@ -14005,7 +14005,7 @@ replace pattern use sed
 add curly brace to string after match -lrb- sed -rrb-
 store result of in variable
 to change directory through file
-to split file into smaller file -lrb- one file per line -rrb- -lrb- split n't work -rrb-
+to split file into smaller file -lrb- one file per line -rrb- - lsbc-split n't work-rsbc -
 awk repeat read for all line
 sed delete character between two string
 to extract text from column and feed to code on -lrb- -rrb-
@@ -14087,7 +14087,7 @@ autocd & tab-complete ignore specific folder in $ path
 get word without character
 press enter key use separate line
 grep html tag in multiple line
-if -lrb- `` $ -lcb- - # \* -rcb- '' = `` $ - '' -rrb- mean
+if - lsbc - `` $ -lcb- - # \* -rcb- '' = `` $ - '' - rsbc - mean
 more effective use of sed awk
 change csv file delimiter
 download database sql file from server
@@ -14259,7 +14259,7 @@ parse functionality in
 why find find git directory
 ca n't access element in array create by ouput of l in
 better way to check to see if user member of group y on without use getent
-execute multiple after -lrb- test
+execute multiple after - lsbc - test
 subshell parenthese -lrb- -rrb- v dollar-parenthese $ -lrb- -rrb-
 replace single space in every entry of aray with tab use perl use sed-like
 sed and perl not replace letter in file
@@ -14305,7 +14305,7 @@ extract string from output console
 sed with more than 100000 character
 parse json datum columnwise in
 to insert newline in already exist string on
-to set value for array use setenv
+to set value array use setenv
 speed up parse perforce changes\/describe output
 why file and directory with space in name ignore
 not start loop if no file in directory
@@ -14335,7 +14335,7 @@ why quote fail
 awk\/perl select different field and combine
 replace control character and space with escape sequence
 make automate and read current time
-change output filename in -lrb- split -rrb-
+change output filename in - lsbc-split-rsbc -
 to access variable name make up by various string in
 why n't database work in python\/django app
 remove numerical value lesser than precede value
@@ -14383,7 +14383,7 @@ extract one column of csv file
 pass argument to
 find utf-8 string in all file under directory
 just want list \* lua file and luac to \* ttt
-if fus -lrb- too many argument
+if fus - lsbc - too many argument
 text process ... print 1st occurance of pattern1 and 8th and 9th occurance of pattern 2
 ssh sed not change variable correctly
 to extract datum -lrb- user name -rrb- from webpage
@@ -14504,7 +14504,7 @@ grepp for certain extension with arbitrary depth
 grep stop at first match
 sed replace text match complicate regex pattern
 use find in to identify correct permission
-parse json array ` paste ' for variable
+parse json array ` paste ' variable
 run four process parallel
 code confusion
 automate mkdir chmod and scp across all server
@@ -14536,7 +14536,7 @@ writt content in window format
 search pattern contain forward slash use awk
 count total byte in big file between two char match some rule by line
 why wc add plus one
-use grep - rl '' -lrb- search -rrb- '' open each file find in notepad + +
+use grep - rl '' - lsbc-search-rsbc - '' open each file find in notepad + +
 move file per folder
 expand date in set up with configuration file
 awk split string into piece
@@ -14592,7 +14592,7 @@ sort file accord to pattern
 to create pseudo terminal pair from
 to bulk open all file with specific name
 `` grep '' have maximum of file handle
-format output in column -lrb- grep sed awk -rrb-
+format output in column - lsbc-bash grep sed awk-rsbc -
 delete row if second column value repeat
 explain $ -lcb- var - val -rcb- and $ -lcb- var + val -rcb-
 miss line content when read file with
@@ -14614,7 +14614,7 @@ bulk edit file through
 compare two file with different coulmn
 edit path variable to include variable
 to restrict length of string present in line use
-print specific letter of `` l -1 '' -lrb- sed awk grep -rrb-
+print specific letter of `` l -1 '' - lsbc-bash sed awk grep-rsbc -
 to substitute word in git history & properly debug relate problem
 delete every other row in csv file use awk or grep
 to grep for '' local '' in all perl file in current directory
@@ -14701,7 +14701,7 @@ regex match address
 have one folder with file have same name different file
 read in from stdin from execute with xarg
 cat file to variable
-1 -rrb- dev\/null 2 -rrb- & 1 & pid1 = $ mean
+1-rbc - dev\/null 2-rbc - & 1 & pid1 = $ mean
 change reference variable
 save cpu\/memory trend in file
 regex n't work with sed
@@ -14721,7 +14721,7 @@ append column on right to awk file after match pattern
 ask for user to input title want to compare `` input '' with text file
 - to print difference between two text file
 remove git username form git
-dummy filesize after `` cat dev\/null -rrb- logfile log ''
+dummy filesize after `` cat dev\/null - rbc - logfile log ''
 - to merge two file use awk
 transfer file between folder
 print ping response time while higher than fix value include date
@@ -14749,8 +14749,8 @@ copy unique file to new location
 remove variable from array
 find and replace part of string use in xml file
 to quote symbol inside $ -lrb- -rrb-
-to add line break before each set of cjk character -lrb- -lrb- o200 - o377 -rrb- -rrb- with sed
-execute for each ip find in grep -lrb- solve -rrb-
+to add line break before each set of cjk character -lrb- - lsbc - o200 - o377-rsbc - -rrb- with sed
+execute for each ip find in grep - lsbc-solved-rsbc -
 use to find line number of string in file
 to rename file from
 double quote and $ remove exactly one digit
@@ -14806,7 +14806,7 @@ query between precise time
 grep with upper bind for middle of search pattern
 to set php path when directly run php in prompt
 list of file
-execute on amazon server with error -lrb- error spawn eacce -rrb- in right path
+execute on amazon server with error - lsbc-error spawn eacces-rsbc - in right path
 remove lead space with sed
 extract part from string and create csv
 sed insert before first match
@@ -14816,12 +14816,12 @@ awk loop multiple line
 use find on in to find integer
 please help to remove specific line from text
 pass multiple argument to c program
-sipp open file limit -rrb- fd
+sipp open file limit - rbc - fd
 perl int handler and stderr redirection
 - detect file date time change so copy or move now once
 to splice two source of datum -lrb- or append argument to dynamic argument list -rrb-
 search and replace value in-between quote
-` sh ` equivalent to ' ` -lrb- -lrb- -lrb- ' redirection operator
+` sh ` equivalent to ' ` - lbc -- lbc -- lbc - ' redirection operator
 bre to match up to empty space at end of line
 incrementation break
 issue with homebrew install on
@@ -14829,7 +14829,7 @@ use sed to append string with value within string
 error `` syntax of incorrect '' when rename file
 prompt give different output than git
 make alias point to link in zsh-shell -lrb- on -rrb-
-sed insert right after body...
+sed insert right after - lbc-body ... - rbc -
 set titlestr in vimrc to simply filename edit
 to see editor set
 empty folder with system with php
@@ -14877,7 +14877,7 @@ pass variable from function
 redirect java output with -lrb- liquibase -rrb-
 regex replace hyphen in attribute name only
 to sort uniq and display line appear more than time
-if -lrb- -lrb- $ - ne 0 -rrb- -rrb- mean in ksh
+if - lsbc -- lsbc - $ - ne 0 - rsbc -- rsbc - mean in ksh
 try to creat and publish git repository use git apus ca n't get to use variable in
 - loop through directory
 to read user input when pipe to
@@ -15035,7 +15035,7 @@ to -lrb- not -rrb- pass empty quote variable as argument to
 perl regex work in not when execute on
 replace number with sed
 wget n't work with plunder.com
-redirection issue /dev/null & - 2 -rrb- & - &
+redirection issue - lbc - dev\/null 1-rbc - & - 2-rbc - & - &
 awk for save read pattern in diferent field
 link list insertion in c
 r 3.0 compatible way to get color in r interpreter
@@ -15081,7 +15081,7 @@ cut delimit fragment of each string
 to make non block
 basic expr not work
 to toggle airplane mode in window 8 from or powershell
-simple program print third character of string use -lrb- -lrb- -rrb- -rrb- -lrb- compare to method -rrb-
+simple program print third character of string use - lsbc -- lsbc - - rsbc -- rsbc - -lrb- compare to method -rrb-
 delete file name by number
 awk reduce decimal for single multiple input value
 grep - regular expression - match till specific word
@@ -15179,7 +15179,7 @@ get size and other info with `` du ''
 terminal give `` unknown option on - gf '' error with youtube video stream use youtube-dl and mplayer
 to rename of multiple file use
 to modify php array element in hundred of file
-grep filename -lrb- asterisk -rrb- return unexpect result
+grep filename-lsbc-asterisk-rsbc - return unexpect result
 to check whehter row of file within row of another file
 suppress verbose xpath output
 sed not seem to match pattern to line
@@ -15262,7 +15262,7 @@ add new line use awk sed
 table format output with printf
 check for exit status of multi-pipe chain
 to make substitution in `` live '' pipe
-to ignore event designator when appear in
+to ignore event designator when appear
 to use name of input file in sed replace
 to use sed to replace config file ' variable
 rapidxml not parse when call with
@@ -15316,7 +15316,7 @@ cat unexpect output
 blank arguement in ocaml in string concatenation
 need perl one-liner regex to get rid of if condition syntax error from file
 ca n't override pom property on while execute release perform
-possible to pipe multiple in ` if ' statement -lrb- -rrb-
+possible to pipe multiple in ` if ' statement - lsbc-bash script-rsbc -
 use awk sed to parse update puppet file
 ` better ' way to find list of file in directory tree
 syntax error with awk
@@ -15339,7 +15339,7 @@ locate work
 uncomment config line base on regex with string replace
 sed to search 2 pattern if first pattern not exist print second pattern
 exec and if not work exec other without show error
-exclude arrow pattern '' - -rrb- '' use grep
+exclude arrow pattern '' -- rbc - '' use grep
 tell make to ignore environment variable
 aw interface `` as not find ''
 call from inside awk and pass some awk variable to
@@ -15467,7 +15467,7 @@ non-greedy regular expression match for multicharacter delimiter in awk
 find specific datum from output use awk
 replace line in php file with sed from
 put variable into sed with
-eval `` echo ` string ' -rrb- -rrb- file '' statement with literal quote
+eval `` echo ` string ' - rbc -- rbc - file '' statement with literal quote
 l grep file with name pattern into one line
 terminate tcpdump in and continue execute next
 to extract compress directory to specific filename
@@ -15626,7 +15626,7 @@ to get absolute path of file ` % ~ dpnx1 `
 print line last word twice
 split csv file into part copy header
 why ' $ _ ' same as $ argv in perl one-liner
-php -lrb- ` whoamus l var\/lib\/nagios3 2 -rrb- & 1 ' -rrb- permission deny whilst fine in
+php -lrb- ` whoamus l var\/lib\/nagios3 2-rbc - & 1 ' -rrb- permission deny whilst fine in
 merge two unsort text file base on first column of first one and preserve order
 to remove line above and below inverse grep match
 escape quote while call sed from r
@@ -15688,7 +15688,7 @@ replace letter in word at reverse sed
 install pip portably on usb drive
 format line use
 parse large xml file for specific instance of repeat element
-parse optarg inside case with regular expression and -lrb- -lrb- -rrb- -rrb- '
+parse optarg inside case with regular expression and - lsbc -- lsbc - - rsbc -- rsbc - '
 unix-expect capture output of as expect variable
 if - if nothing provide
 to set input into integer form
@@ -15960,7 +15960,7 @@ to convert jpg file in subfolder to one each pdf file in one step
 replace string with more than one character
 to list -lrb- for give two directory -rrb- directory with same name and relative path under tree
 regex in awk ' not accept lazy selection
-- -lrb- @ binary operator expect
+- - lsbc - @ binary operator expect
 to expand item of tuple as argument system call
 pipe list of file into program
 ssh to run remote exist on remote server when switch user
@@ -15972,7 +15972,7 @@ use curl to download dropbox folder vium share link -lrb- not public link -rrb-
 script\/terminal to convert px value to dp in xml
 partial download with wget
 to find out latest file name from website use
-awk not capture z use regex -lrb- 0-z -rrb- range
+awk not capture z use regex - lsbc-0-z-rsbc - range
 escape sql parameter in pipeline
 ' difference
 to count item in json object use
@@ -15992,7 +15992,7 @@ download all file of certain type without directory
 use youtube-dl to download new video from channel
 exit -lrb- 0 -rrb- in c only work occasionally
 osx terminal for find file with multiple criterion
-understand sed\/awk ^ and -lrb- -rrb-
+understand sed\/awk ^ and - lsbc - - rsbc -
 get permission deny error at try to run c pthread program
 clus way to simultaneously create and set permission on file without repeat filename
 to use -- login by default with capistrano 3 + sshkit + rvm
@@ -16126,7 +16126,7 @@ control cursor
 to awk or grep variable without use echo
 export etc\/environment variable to current environment from
 find file in give subdirectory from
-integer expression expect -lrb- not understand -rrb-
+integer expression expect - lsbc-bash not understand - rsbc -
 perl stderr print in wrong order with tee
 import whole file as one string
 access user define environment variable in c program
@@ -16165,7 +16165,7 @@ to get newline character into
 to decrypt ae password
 cut part of subtitle file use ffmpeg
 use first field in awk as file name
-riddle concern stream redirection ` cat -rrb- y -lrb- `
+riddle concern stream redirection ` cat - rbc - y - lbc - `
 to copy specific line from file
 refer to match string in regex in sed
 path matter launch exe from c #
@@ -16184,11 +16184,11 @@ to list only file name in hdf
 leave variable in memory after execution
 why function l -lcb- l -rcb- hang in
 add additional newline between each line
-corrupt zip file after send vium ftp in -lrb- -rrb-
+corrupt zip file after send vium ftp -lrb- -rrb-
 to hide verbose of `` find '' in ubuntu
 to replace all function call with another call
 script\/linux for alter text file
-show only subdirectory in
+show only subdirectory
 delete line from file in file b
 replace regex group with sed
 to up count version number
@@ -16224,7 +16224,7 @@ distinguish sign char from name of variable
 line and string position of grep match
 remove unneed context line from diff output -lrb- use sed -rrb-
 remove duplicate row from notepad + +
--rrb-
+- rbc -
 use to rename folder with specific extension
 launch handle escape character
 insert string store in variable to in
@@ -16295,12 +16295,12 @@ use sed\/regex to find last multiline match
 to grep column
 waitpid not appear to wate
 to grep `` ohn '' in certain column
-200 -rrb- `` $ somefile '' accomplish
+200-rbc - `` $ somefile '' accomplish
 write to csv use sed not work as expect
 use python to dynamically create alias
 why sed match minimum and not maximum string
 remove part of file name
-why n't -lrb- work to read in file from -lrb- simple python code -rrb-
+why n't - lbc - work to read in file from -lrb- simple python code -rrb-
 sed with arbitrary variable might contain slash
 dump all output to one file
 remove sgid bite only to file -lrb- excludig folder -rrb-
@@ -16333,7 +16333,7 @@ use to call 2 matlab file where 2nd file depend on 1st one
 read file and display only relevant line use grep
 to list all directory in present work directory
 multiple possible value for variable in
-use of -lrb- in while loop
+use of - lbc - in while loop
 get username and process id of process
 sed insert content of file after first pattern match
 sum of maximum of each row
@@ -16367,7 +16367,7 @@ extract line between two line number in
 heroku remote wo n't delete
 use awk print all line after regular expression and change output field separator
 find and grep together
-& -rrb- redirection not work
+& - rbc - redirection not work
 to use store procedure prompt
 node j with argument not work
 return multiple attribute with perl ' xpath
@@ -16418,7 +16418,7 @@ pipe string from program output
 try to print line by specific column value in awk
 use argument in tmux
 substitution when have quote
-remove optional integer colon prefix
+remove optional - lbc-integer-rbc -- lbc-colon-rbc - prefix
 find user in xml-file and return in variable
 to get username from know uid apus
 to use stat inside awk
@@ -16511,7 +16511,7 @@ to echo $ variable into text file within loop
 stop from modify host file
 to format date for tar backup
 get ascius character similar to output of ` tree '
-operator `` 2 -rrb- -rrb- '' in
+operator `` 2-rbc -- rbc - '' in
 no output from - c over ssh
 to run awk in window
 to include library when compile with visual studio on
@@ -16538,9 +16538,9 @@ create git alias to append to gitignore
 to receive number of specific entry from xml-file
 simple too many argument
 echo show up in p
-` echo prefix = ~ node -rrb- -rrb- ~ npmrc ` mean
+` echo prefix = ~ node - rbc -- rbc - ~ npmrc ` mean
 output text auto update to screen and file
-grep $ value ` grep $ value2 ` `` - nest grep
+grep $ value ` grep $ value2 ` - lbc-command-rbc - `` - nest grep
 find number of update available
 kill remote process by ssh
 to repeat all line contain tag segment so only one segment appear tag on each line
@@ -16556,7 +16556,7 @@ insert field after match pattern
 run ssh-agent auto in zsh environment
 create '' '' delimit list use awk
 awk print second column of last line
--rrb- &
+- rbc - &
 extract string between 2 character
 get rsync in ansible to work with vagrant
 parse file line by line for key character in string and copy line
@@ -16567,7 +16567,7 @@ in python delete single quote
 grep ip adress with open port nmap
 stop curl output to screen
 to get directory name use filename
-in `` 2 -rrb- & 1 & ''
+in `` 2-rbc - & 1 & ''
 search string and replace correspond number in window env
 stay in current directory after
 recursively change file extension
@@ -16594,7 +16594,7 @@ replace first column csv with variable
 echo username full name and login time from finger into column use on opensuse13 .1
 awk fail to retrieve token
 source from within emac to load environmental variable
-pass parameter to through input redirection -lrb- -lrb- -rrb-
+pass parameter to through input redirection -lrb- - lbc - -rrb-
 try catch
 to write autorun every 10 min
 zsh prompt not seem to work even when set prompt
@@ -16604,7 +16604,7 @@ bind
 create file with grep search in folder where search
 join two file together -lrb- awk -rrb-
 weird awk syntax mean
-use native library in
+use native library
 variable assignment in kornshell
 escape exclamation mark in ssh remote call to awk
 remove double line in whole file omit first n character in each line
@@ -16643,7 +16643,7 @@ extract last block of datum in file use awk
 to extract integer or decimal at begin of each input line use linux\/unix utility
 to remove file whose name start with ' - '
 copy file use wildcard in window without append
-if -lrb- `` $ hostname '' = '' -lrb- none -rrb- '' -rrb- comparison n't work
+if - lsbc - `` $ hostname '' = '' -lrb- none -rrb- '' - rsbc - comparison n't work
 to transform string ` 3.11.0.17.16 ` into ` 3.11.0-17-generic `
 to update from within
 store result of wc in variable
@@ -16684,7 +16684,7 @@ to zip more than one file in one folder in
 copy contents from directory1 to directory 2 replace duplicate
 to remove all line in file contain variable only when locate on line somewhere between brace
 run to set up dotfile and ca n't undo
-why var = '' '' -lrb- - n $ var -rrb- & & echo t echo f return f
+why var = '' '' - lsbc - - n $ var - rsbc - & & echo t echo f return f
 confirm in right folder with wildcard
 delete all break symbolic link with line
 awk not list multiple match pattern
@@ -16716,7 +16716,7 @@ get list of argument send to
 problem with groupadd
 appear when array create from readarray not manually declare
 not get imgur v3 apus request to authorize use curl or other utility
-awk search line for bracket e.g -lrb-
+awk search line for bracket e.g - lsbc -
 not read properly
 to know when tar finish
 tar unable to find file in archive
@@ -16786,7 +16786,7 @@ difference between & & and in c and
 popen not pull in argument
 awk match line with at least 2 digit and at least 2 letter in any order
 get string from 1d array of char
-2 -rrb- & 1 mean
+2-rbc - & 1 mean
 grep regex to find specific occurence
 mv give same file error
 change wifus wpa2 passkey from
@@ -16873,7 +16873,7 @@ print out only first column in non-standard csv file
 run java file with parameter on
 delete space in specific column use sed or cut
 replace follow equal sign consistently while skip specific instance of key = value
-equivalent of -lrb- -lrb- -rrb- for sh
+equivalent of - lbc - -lrb- -rrb- for sh
 to read email from
 curl different from curl assign to variable
 find directory with name match pattern and move
@@ -16893,7 +16893,7 @@ osx teminal to kill all process with same name
 rename file in directory to specific prefix
 awk - to `` include '' file -lrb- similar to one available in gawk -rrb-
 to read man page
-maintain list of program n't want make to compile change with -rrb- -rrb- and sed instead of edit makefile
+maintain list of program n't want make to compile change with - rbc -- rbc - and sed instead of edit makefile
 to delete string present in parameter from file
 output result of function into sed parameter
 call form javascript form browser
@@ -16983,7 +16983,7 @@ to add some datum from variable to begin of all line in csv file
 convert tab-separated value -lrb- tsv -rrb- file to comma-separated value -lrb- csv -rrb- file
 copy text between two string in file use
 array - something with member move position
-file existence check miss -rrb-
+file existence check miss - rsbc -
 use grep and tr in shebang
 difference between -lrb- -rrb- & and -lrb- & -rrb-
 grep for multiple pattern with option for each pattern
@@ -16999,7 +16999,7 @@ problem get size of array
 execute multiple python
 echo variable with space overlap string
 remote rsync in parallel
-text comparison with grep -lrb- a. txt contian word b. txt contain string if string from b. txt contain word form - -rrb- output -rrb-
+text comparison with grep -lrb- a. txt contian word b. txt contain string if string from b. txt contain word form -- rbc - output -rrb-
 add gem in heroku
 - d option format of date
 excecute in `` screen ''
@@ -17070,12 +17070,12 @@ delete all reoccurrence of first line in file use sed
 sed uppercase line if start with uppercase character
 run process as admin qt
 modify file in place use
-ksh calculate percentage of colum where value -lrb- 2
+ksh calculate percentage of colum where value - lbc - 2
 best way to print regex hit
 get field form json and asign to variable
 to ignore directory and certain pattern when supply argument
 to get field participate in 'n' record in file use awk when some other field have same value in all 'n' record
-search for file with pattern -lrb- a-z -rrb-
+search for file with pattern - lsbc-a-z-rsbc -
 ' wrong with if elif statement
 filter word start and end with hyphen not when ' find in middle
 scp variant of mv
@@ -17113,7 +17113,7 @@ why for loop run and reset in awk
 use selfwritten sh file in another sh file
 fire php from window
 grep begin with string1 end with first occurence of string2
-to implement & -rrb- and & -rrb- -rrb- in program
+to implement & - rbc - and & - rbc -- rbc - in program
 to replace entire sentence with space in
 change contents of text file
 to avoid create nohup out and in case where output will generate
@@ -17218,7 +17218,7 @@ ruby bundle ssh and jenkin
 pipe with egrep not work as expect
 use variable as directory path to redirect output
 to extract substr with sed first occurence only
-to cat -lrb- eof -rrb- file contain code in
+to cat - lbc -- lbc-eof - rbc -- rbc - file contain code in
 extract one pattern or another from output - not entire line
 to use sed to delete every other line upto give line number
 sort array possible duplicate
@@ -17290,7 +17290,7 @@ ffmpeg not work with filename have whitespace
 to get pid of process run in background exec by in php
 + to cut partial number from long number -lrb- version number -rrb-
 - '' event not find when try to run java program
--lrb- - d not find
+- lsbc -- d not find
 to use find - exec and tr to process large number of file
 parse value from output use awk
 run from ruby file and capture output
@@ -17302,7 +17302,7 @@ use while django development server run -lrb- picture provide -rrb-
 batch rename file with modification time restriction
 round minute to 5
 why ` printf ` return 1
-paste chunk of text from stdin to specific location in file -lrb- solve -rrb-
+paste chunk of text from stdin to specific location in file - lsbc-solved-rsbc -
 mysqldump not find xampp
 regex replace -lrb- sed or perl -rrb- with variable capture
 remove line with certain field
@@ -17379,7 +17379,7 @@ built-in alway fail with specific error code
 php exec sudo\/exim
 doesnt work properly when schedule
 possible to access environment variable without ' $ '
-anchor inside of -lrb- -rrb- in sed
+anchor inside of - lsbc - - rsbc - in sed
 to rename file name base on nth occurence
 find image greater than 500x500 move to some folder -lrb- find + xarg + mv -rrb-
 to pass over authentication window from with terminal
@@ -17405,7 +17405,7 @@ to get list of file name and sentence contain specific search string
 - make directory if n't exist
 to run profile inside in ubuntu
 openssl to run check
-dateformat -lrb- date -rrb- t -lrb- time -rrb- z to normal datetime
+dateformat - lsbc-date-rsbc-t-lsbc-time-rsbc-z to normal datetime
 to select all number from file
 to get first non comment line number in file
 awk column replacement line numbr different between file
@@ -17521,7 +17521,7 @@ sed - insert text after other text
 read file with loop
 s regular expression
 replace particular multiline pattern use awk
-- sftp - -rrb- if copy remove
+- sftp -- rbc - if copy remove
 get iterm to use newer version of brew show change user ' on osx
 in ruby - error `` not find ''
 sum group loop
@@ -17617,7 +17617,7 @@ sort uniq pipethrough usage
 not assign variable
 use to feed input to
 to extract word between two non character pattern
--lrb- -lrb- -rrb- -rrb- to operate string line if pattern find
+- lsbc -- lsbc - - rsbc -- rsbc - to operate string line if pattern find
 to use augtool without lense
 create sql query use awk grep
 count specific number from column from input file
@@ -17838,7 +17838,7 @@ trouble formulate regular expression for use with sed to extract column value
 execute in nodej
 get first file of give extension from folder
 ostype not available in sh -lrb- ell -rrb-
-if -lrb- 0 -rrb- return true why
+if - lsbc - 0 - rsbc - return true why
 use http for ftp server
 suppress content type information when call php from
 to print out file same when use cmp
@@ -17938,7 +17938,7 @@ match multiline string at return certain line if pattern match otherwise return 
 source - c '' ''
 to get part of string with regular expression in bin\/sh
 to remove html tag use sed
-python not print list only print type
+python not print list only print - lbc-type ` list ' - rbc -
 perl to replace string in file with paragraph
 sed with regular expression
 read trace file from ns2 use gawk
@@ -17992,7 +17992,7 @@ try to add char to end of each line in give file
 to filter file
 paste and awk error inside perl
 return value of bash\/dialog -- checklist
-why when run sh - c -lrb- -rrb- wo n't accept any positional parameter
+why when run sh - c - lsbc-script-rsbc - wo n't accept any positional parameter
 quote regular expression
 insert line base on pattern use awk
 delete line in file base on another file
@@ -18079,7 +18079,7 @@ make prompt smaller
 variable substr of variable
 edit font-size and font-family option in css file use sed
 display multiple file
-why able to evaluate '' /html $ var /html '' under certain condition not other
+why able to evaluate '' - lbc - html-rbc - $ var - lbc - html-rbc - '' under certain condition not other
 add pipe as first byte in first record
 to change timestamp format
 - compare two file and align line by line
@@ -18230,7 +18230,7 @@ rename file
 pass variable from java to
 tr not work as expect
 sed remove hex-character -lrb- s -rrb- within first n character of file
-batch file write to file -rrb- -rrb- unexpect at time
+batch file write to file - rbc -- rbc - unexpect at time
 file-handling example problem
 makefile mirror grow tree through process
 issue execute runtime getruntime -lrb- -rrb- exec awk
@@ -18303,7 +18303,7 @@ monitor long run thread
 why below code stop with exit 1
 dir in window
 exclude column when paste two datum file
-subl shortcut not find in
+subl shortcut not find
 echo $ http as plain text
 recursively copy user-executable file
 bundle install not run from post-update hook
@@ -18319,7 +18319,7 @@ to execute and save in text file through java
 to loop over file of same format
 pass variable from local server to remote server
 add datum from different file and append text -
-read print new line to prevent
+- lbc-read-rbc - print new line to prevent
 to match and keep first number in line use sed
 remove every character in txt n't enclose by pipe -lrb- -rrb- or where line start with #
 break subtitle before hyphen
@@ -18403,7 +18403,7 @@ awk to average over column from multiple file
 append datestamp to file name after archive
 variable substitution
 to divide variable by 10
-android emulator -lrb- xcb -rrb- error in ubuntu 14.04
+android emulator - lsbc-xcb-rsbc - error in ubuntu 14.04
 mysql set foreign = 0 not work from or
 pattern match
 - replace string with sed
@@ -18443,7 +18443,7 @@ compare 2 date in -lrb- date in git log format -rrb-
 join 2 file base on field in column
 use for loop variable several time in same statement
 match pattern contain parenthesis with sed
-use of if -lrb- -lrb- -rrb- -rrb- -lrb- -rrb-
+use of if - lsbc -- lsbc - - rsbc -- rsbc - -lrb- -rrb-
 to run r through python by pass argument
 multiply pattern match in sed address to print
 to extract all value for give key of json file
@@ -18592,7 +18592,7 @@ curl - upload excel file over ftp
 convert exponent to integer
 to pass variable from to regex
 use grep to check file content in hide directory
-get string inside quotation mark in awk
+get string inside quotation mark awk
 provide password in and execute
 to print gunzip filename and select row - continuation
 get process name from remote machine
@@ -18679,7 +18679,7 @@ why ab say tr ` a-z ' ` a-z ' require quote
 split word inside for loop
 to use extend pattern to match file from current directory and from one of subdirectory
 jenkin substr environment variable
-to check if string begin with particular string -rrb-
+to check if string begin with particular string-rbc -
 sed replace domain in url
 to output use echo
 to validate csv field
@@ -18815,7 +18815,7 @@ to run main class from jar
 delete all line match give begin and 2 possible end
 mosquitto-client obtain refuse connection
 wrong with sed
-fuse filesystem - -rrb- configure brak dostępu
+fuse filesystem -- rbc - configure brak dostępu
 use sed -lrb- or awk or maybe perl one-liner -rrb- to get value from specific column in file and use to find line in file b
 no such file or directory error
 merge sort gzipp file
@@ -18870,7 +18870,7 @@ run three program in or for record cpu utilization while program run
 in ensure all character in variable pass literally
 compare two file for duplicate string use
 use variable in replace instead of string in awk
-input from terminal -lrb- -lrb- -lrb-
+input from terminal - lbc -- lbc -- lbc -
 override random point in file
 to set path on window through r `` ''
 ksh pipe stderr and stdout into variable
@@ -18878,7 +18878,7 @@ find and replace use sed
 know ssh disconect and retry with
 ignore first row still print during pattern match use awk
 run on remote server and pass argument to
-to use grep with o option and -lrb- -rrb-
+to use grep with o option and - lsbc - - rsbc -
 prepend \*\* heredoc \*\* to file
 display absolute path with symlink resolve in prompt
 use wget from sh
@@ -19010,7 +19010,7 @@ awk to generate sequence number base on start and end range
 xcodebuild fail to build from terminal succeed from xcode
 sublime text build system and echo
 to use to find line give pattern to comment out
-run 2 or more in different terminal window -lrb- -rrb-
+run 2 or more in different terminal window - lsbc-mac-rsbc -
 specifiy file in specific directory in sed
 copy last into clipboard
 awk or sed use to search word between two string
@@ -19116,7 +19116,7 @@ replace string present on first line file
 run powershell in batch file
 sed to remove entire line match specific string
 create installation with python csv module
-to provide path to class in java in
+to provide path to class in java
 kill previous instance at first time if run
 to print concatenate string in column in mysql
 add new column to file base on another file
@@ -19134,7 +19134,7 @@ copy line base on match pattern
 pass list of argument to in
 short to find total size of file match wild card
 rename datum use grep
-search for pattern '' = -lrb- char -rrb- -lrb- string -rrb- '' use awk in file
+search for pattern '' = - lsbc-char-rsbc -- lsbc-string-rsbc - '' use awk in file
 `` find '' ignore '' - type f '' option
 sed replace only in even number line of file when replace write in file
 append directory path and filename
@@ -19148,7 +19148,7 @@ concatenate text file
 sed to search for multiple word and remove line
 regexp to get website name from link
 to use vim list in python
-why -lrb- $ value - lt 10 -rrb- in result in not find
+why - lsbc - $ value - lt 10-rsbc - in result in not find
 print log record within time interval use sed
 filter out substr from string only once
 remove duplicate
@@ -19163,7 +19163,7 @@ move to previous region in \* nix screen
 bash\/sh cron not write
 kill process use sh and
 pass one to another one on terminal
--lrb- - gt unary operator expect
+- lsbc - - gt unary operator expect
 mysql escape - sign
 to sort give directory by time and list down size of files\/directories
 sort file name ascend where name have dash
@@ -19459,7 +19459,7 @@ check for error with - e
 parse and replace multiple line with sed
 argument without value
 bind c -
-why `` test blah '' expression true
+why `` test - lbc-blah-rbc - '' expression true
 window powershell shortcut for change directory
 256 color in zsh-syntax-highlighting
 awk ignore print single column sh - c
@@ -19511,7 +19511,7 @@ batch file use of `` for '' for appointment of two variable
 search for regular expression with symbol '
 to compress list of file
 update xml attribute use sed -lrb- window + cygwin and -rrb-
-why have to eval to -rrb-
+why have to eval to - rbc -
 why eval mess up printf ' n ' and where to find info on eval
 any one give solution for sort
 continue eval saga to eval printf single quote
@@ -19523,7 +19523,7 @@ and variable substitution for file with space in name application for gpsbabel
 value too great for base -lrb- error token `` 3applicationdesktop '' -rrb-
 regex not tolerant to space in minify file
 hide error message
-use sed to match any character and carriage return inbetween anystr and -lrb-
+use sed to match any character and carriage return inbetween anystr and - lsbc -
 open multiple terminal tab execute and continue work on
 mysql n't launch
 to output difference between two text file
@@ -19556,7 +19556,7 @@ to change net framework v2 .0 to v4 .0 for isapus and cgus restriction feature i
 convert json object to key = value format in jq
 set relative alias in zsh
 to kill process run from disconnect ssh
-convert mp3 - -rrb- video with static image -lrb- ffmpeg\/libav & -rrb-
+convert mp3 -- rbc - video with static image -lrb- ffmpeg\/libav & -rrb-
 possible to remove remote repository on github through
 summarize total size of file under ownership of specific user
 attach to process in eclipse
@@ -19578,7 +19578,7 @@ error in
 get ip from address arp - not show device
 run bsub from perl
 to sort over two column with exponent
-apple installer help for
+apple installer help
 sftp return number of file in remote directory
 ca n't access
 add json array element with jq -lrb- cmdline -rrb-
@@ -19627,7 +19627,7 @@ awk to set record separator as multiple consecutive empty line or line only incu
 check all file with grep in
 to print range of column in csv in awk
 why n't find - name '' \* txt '' rm remove all txt file in current directory
-grep from tag to /tag through multiple line and look for special string inside
+grep from - lbc-tag-rbc - to - lbc - tag-rbc - through multiple line and look for special string inside
 aroma installer issue
 window software load time
 if grep value greater than 1000
@@ -19639,9 +19639,9 @@ json format each object in line
 run in cygwin
 - archive and compress file in subdirectory only with certain filename
 - redirect string to file
-after use ` exec 1 -rrb- file ` stop redirection of stdout to file and restore normal operation of stdout
+after use ` exec 1-rbc-file ` stop redirection of stdout to file and restore normal operation of stdout
 find all exclude '' ''
-grep log for ip in format -lrb- client 123.456.78.90 -rrb-
+grep log for ip in format - lsbc-client 123.456.78.90-rsbc -
 to use sed to change java package declaration in batch way
 remove last 7 line of file
 concatenate string with literal inline and without space use
@@ -19694,7 +19694,7 @@ find h file use iregex
 list file 100 per each press
 awk after grep print value when grep return nothing
 to delete first occurence of bibtex entry use sed
--- -lrb- too many argument
+-- - lsbc - too many argument
 merge two sort file use awk or python
 echo v save to variable
 filter output and push filter datum into array with
@@ -19890,7 +19890,7 @@ establish multiple secure identity with git
 why set - e true & & false & & true not exit
 count directory on
 grep phone number format in different way
-'' -lrb- -lrb- -lrb- '' mean on and where document
+'' - lbc -- lbc -- lbc - '' mean on and where document
 not delete file even when log in as administrator
 access $ variable with pipe statement
 not login to mysql in mamp vium
@@ -19904,7 +19904,7 @@ to add version function when write own
 grepp regex from zip file
 define variable
 regular expression not work right
-why use -lrb- -lrb- -rrb- in cause syntax error
+why use - lbc - -lrb- -rrb- in cause syntax error
 to read file from with list of file
 extract specific line -lrb- index give -rrb- from file -lrb- string -rrb-
 awk system -lrb- -rrb- call w\/variable
@@ -19977,7 +19977,7 @@ to tar multiple file with find
 tar file preserve full path to stop
 in ruby extract tar archive stream directly to filesystem
 efficiently move million of file -lrb- 100gb -rrb- to new server
-to write directory -lrb- not just file in -rrb- to tar gz file in golang
+to write directory - lsbc-not just file in - rsbc - to tar gz file in golang
 create and read tar bz2 file in perl
 tar tgz autoconf n't configure properly
 when execute `` tar '' on directory with over billion file process stay in d status
