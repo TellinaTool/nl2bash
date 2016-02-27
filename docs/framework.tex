@@ -18,14 +18,13 @@ The natural language based command line interpreter we plan to develop consists 
 
 \subsection{Language Design}
 \label{subsec:represent}
-An ideal intermediate language for the CLI programs should be expressive enough so that it covers many interesting real world cases, concise enough for the synthesizer to efficiently synthesize, and extensible. \autoref{fig:lang} presents the syntax of the intermediate language.
+An ideal intermediate language for the CLI programs should be expressive enough so that it covers many interesting real world cases, and concise enough for the synthesizer to efficiently synthesize. \autoref{fig:lang} presents the syntax of the intermediate language.
 
 \begin{figure}[ht]
 \[
 \begin{array}{rlll}
 \multicolumn{3}{l}{\textbf{Program}}\\
-\mathit{p} & := & \mathit{value} \\
-    &  & \mathit{cmd}~\overline{\mathit{option}} & \textrm{(Program)}\\
+\mathit{p} & :=  & \mathit{cmd}~\overline{\mathit{option}} & \textrm{(Program)}\\
     &  & \mathit{p} ~\|~ \mathsf{xargs} ~\mathit{p} & \textrm{(Pi)} \\
 \mathit{option} & := & \mathit{flag} & \textrm{(Commandd options)}\\
                 &    & \mathit{val}\\
@@ -53,9 +52,28 @@ An ideal intermediate language for the CLI programs should be expressive enough 
 \end{figure}
 
 
-\textbf{Program} defines how a program can be formed. A CLI program can refer to a value, call a primitive command, or pipeline two programs together.
+\textbf{Program} defines the formation rules for a program: i.e. a CLI program is either a primitive command or the pipeline of two programs. However, not all of programs that can be represented by the syntax is valid, e.g. the program \code{find -goal} is well formed under the syntax, but it is not a valid real CLI program, as the \code{goal} flag is not part of the command \code{find}. Thus, command signature is introduced to check the well-formedness of a given CLI program. 
 
-The rest of the language are designed to help check well-formedness of a given CLI program. The command signature defines how a rule can be written, the rules (\textbf{Rule}) defines which primitive programs are valid. Then, with the help of the types in our program, we can check the type of a program $p$ to ensure that a command line program is well-formed.
+The command signature defines the usage of a certain command: a CLI program is well formed only if it follows its corresponding structure. Besides, types help restrict usage of values in a program as other typed languages. Figure~\ref{fig:cmdsig} shows the signature of some commands used in our system. With this signature, a CLI program \code{mv -f -v a.txt b.txt} is will formed as it is captured by the signature of \code{mv}.
+
+\begin{figure}[ht]
+\[
+\begin{array}{l}
+
+\code{mv [-f | -i | -n] [-v] source:File target:File}\\
+\code{mv [-f | -i | -n] [-v] source:File ... directory:File}\\
+\code{sort [-bdfgiMnrckmosStTuz] [file:File ...]}\\
+\code{grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num:Number]} (... rest~omitted)\\
+\code{cp [-R [-H | -L | -P]] [-fi | -n] [-apvX] source\_file:File target\_file:File}\\
+\code{cp [-R [-H | -L | -P]] [-fi | -n] [-apvX] source\_file:File ... target\_directory:File}\\
+\code{ls [-ABCFGHLOPRSTUW\@abcdefghiklmnopqrstuwx1] [file:File ...]}\\
+...
+\end{array}
+\]
+\vspace{-15pt}
+\caption{Examples of some command signatures.}
+\label{fig:cmdsig}
+\end{figure}
 
 Since the number of basic Linux commands and options is large even in domain-specific scenarios, it is difficult for a human designer to hand-code all of the generation rules. We plan to semi-automate this step by adding information extracted from the Linux man pages\footnote{\url{http://linux.die.net/man/}}. Extending our tool to handle new commands simply requires adding a new man page to the training data.
 
