@@ -69,7 +69,7 @@ STOPWORDS -= { "not", "no" }
 STOPPHRASE = { "in bash", "in unix", "in linux", "in mac os", 
                "for bash", "for unix", "for linux", "for mac os", 
                "in cmd", "command line", "in command line"
-			 }
+             }
 def tokenize_question(q):
     seq = []
     for word in WORD_REGEX.findall(q.lower()):
@@ -122,13 +122,13 @@ def run():
         for phrase in STOPPHRASE:
             question_title = question_title.replace(phrase, "")   
     
-		# required by moses
-		question_title = question_title.replace("<", " -lbc- ")
-        question_title = question_title.replace(">", " -rbc- ")
-        question_title = qusetion_title.replace("[", " -lsbc- ")
-        question_title = question_title.replace("]", " -rsbc- ")
+        # required by moses
+        question_title = question_title.replace("<", "-lbc-")
+        question_title = question_title.replace(">", "-rbc-")
+        question_title = question_title.replace("[", "-lsbc-")
+        question_title = question_title.replace("]", "-rsbc-")
 
-	    words = [w for w in stanford_lemmatize(question_title.strip())]
+        words = [w for w in stanford_lemmatize(question_title.strip())]
         words = [w for w in words if not w in STOPWORDS]
         # print("{}".format(words), file=sys.stderr)
         try:
