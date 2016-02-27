@@ -6,14 +6,16 @@ Usage:
 """
 
 # builtin
+import sys
+sys.path.append("../baseline0")
 import collections
+import common
 # import html
 import HTMLParser
 import re
 import shlex
 import string
 import sqlite3
-import sys
 
 # 3rd party
 sys.path.append("/home/xilin/Packages")
@@ -87,7 +89,7 @@ def tokenize_code(code):
         cmd = cmd[0]
         yield cmd
         for arg in args:
-            yield cmd + ":::" + arg
+            yield common.mangle_arg(cmd, arg)
 
 def is_oneliner(code):
     return "\n" not in code.strip()
@@ -95,6 +97,7 @@ def is_oneliner(code):
 def run():
     in_sqlite = sys.argv[1]
 
+    total_count = 0
     count = 0
     question_word_counts = collections.defaultdict(int)
     code_term_counts = collections.defaultdict(int)
@@ -106,6 +109,8 @@ def run():
     commandFile = open("../data/baseline1/commands", 'w')
 
     for question_title, extracted_code in all_samples(in_sqlite):
+
+        total_count += 1
 
         if not is_oneliner(extracted_code):
             continue
@@ -130,6 +135,9 @@ def run():
         except ValueError as e:
             # print("unable to parse question {}: {} [err={}]".format(repr(question_title), repr(extracted_code), e), file=sys.stderr)
             terms = []
+
+        if not terms:
+            continue
 
         questionFile.write("%s\n" % ' '.join(words))
         commandFile.write("%s\n" % ' '.join(terms))
