@@ -72,11 +72,9 @@ def hole(name):
 
 Tool = collections.namedtuple("Tool", ["name", "flags"])
 
-TAR_ARGS = [dash + main_cmd + v + f
-    for dash in ["-", ""]
-    for main_cmd in "xct"
-    for v in ["v", ""]
-    for f in ["f", ""]]
+TAR_ARGS_NO_F = seq(optional("-v"), optional(case("-z", "-j")))
+TAR_F = optional(seq("-f", hole("file.tar")))
+TAR_ARGS = seq(TAR_ARGS_NO_F, TAR_F)
 
 TOOLS = [
     Tool("find"  , flags=seq(hole("path"),
@@ -99,7 +97,10 @@ TOOLS = [
     Tool("xargs" , flags=seq(optional("-0"), optional("-n1"), hole("cmd"))),
     Tool("rsync" , flags=empty()),
     Tool("scp"   , flags=optional("-R")),
-    Tool("tar"   , flags=case(*[(seq(arg(a), optional(hole("archive.tar"))) if "f" in a else arg(a)) for a in TAR_ARGS])),
+    Tool("tar"   , flags=case(
+        seq("-c", TAR_ARGS, "PATH"),
+        seq(case("-r", "-u"), TAR_ARGS_NO_F, TAR_F, "PATH"),
+        seq(case("-x", "-t"), TAR_ARGS))),
     Tool("sort"  , flags=seq(optional("-n"), optional("-u"))),
     Tool("head"  , flags=optional(seq("-n", hole("n")))),
     Tool("tail"  , flags=optional(seq("-n", hole("n")))),
