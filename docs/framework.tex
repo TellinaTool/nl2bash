@@ -1,3 +1,4 @@
+%!TEX root=writeup.tex
 \section{Natural Language Based CLI Framework}
 \label{sec:framework}
 
@@ -19,38 +20,35 @@ The natural language based command line interpreter we plan to develop consists 
 \label{subsec:represent}
 An ideal intermediate language for the CLI programs should be expressive enough so that it covers many interesting real world cases, concise enough for the synthesizer to efficiently synthesize, and extensible. \autoref{fig:lang} presents the syntax of the intermediate language.
 
-\begin{figure}
+\begin{figure}[ht]
 \[
 \begin{array}{rlll}
 \multicolumn{3}{l}{\textbf{Program}}\\
 \mathit{p} & := & \mathit{value} \\
-    &  & \mathit{cmd}~\overline{\mathit{flag}}~\overline{\mathit{arg}} & \textrm{(Program)}\\
-    &  & \mathit{p} ~\| ~\mathit{p} & \textrm{(Pipelined program)}\\
-\mathit{value} & := & \mathsf{date} ~|~ \mathsf{filename} ~|~ ... & \textrm{(Primitive values)}\\
-\mathit{arg} & := & \epsilon ~|~ \mathit{value} ~|~ \mathit{hole} & \textrm{(Arguments)}\\
-\mathit{cmd}^{*} & := & \mathsf{find} ~|~ \mathsf{grep} ~|~ ... & \textrm{(Commands)}\\
-\mathit{flag}^{*} & := & \epsilon ~|~ -f ~|~ -h ~|~ ... & \textrm{(Flags)}\\
+    &  & \mathit{cmd}~\overline{\mathit{option}} & \textrm{(Program)}\\
+    &  & \mathit{p} ~\|~ \mathsf{xargs} ~\mathit{p} & \textrm{(Pi)} \\
+\mathit{option} & := & \mathit{flag} & \textrm{(Commandd options)}\\
+                &    & \mathit{val}\\
+\mathit{cmd} & := & ... & \textrm{(Command names)}\\
+\mathit{flag} & := & ... & \textrm{(Flag names)}\\
+\mathit{val} & := & ...  & \textrm{(Primitive values)}\\
 ~\\
 \multicolumn{3}{l}{\textbf{Command Signature}}\\
-\mathit{sig} & := & \mathsf{name}~\mathit{option}:\tau & \textrm{(Command signature)}\\
-\mathit{option} &:= & \mathsf{flagname} & \textrm{(Command option)}\\
-                &   & \mathsf{argname}[\tau]\\
-                &   & \mathit{option}~\mathbf{or}~\mathit{option}\\
-                &   & [ \mathit{option} ]\\
+\mathit{sig} & := & \mathit{name}~\mathit{op} & \textrm{(Command signature)}\\
+\mathit{op} &:= & \mathit{flag} & \textrm{(Command option)}\\
+                &   & \mathit{arg}[\tau]\\
+                &   & \mathit{op}~|~\mathit{op}\\
+                &   & [ \mathit{op} ]\\
 ~\\
 \multicolumn{3}{l}{\textbf{Rules}}\\
-\mathit{rule}^{*} &:=& \mathsf{find}~f[\mathsf{File}] : \mathsf{File}\\
-                  &  & \mathit{date}~\mathit{-d} : \mathsf{void}\\
-                  &  & \mathit{date}~\mathit{-u} : \mathsf{Date}\\
-                  &  & ...\\
+\mathit{rule}^{*} &:=& \mathit{cmd}~\overline{\mathit{option}} : \tau & \textrm{(Command typing rule)}\\
 ~\\
 \multicolumn{3}{l}{\textbf{Types}}\\
-\tau_0 & := & \mathsf{void} ~|~ \mathsf{File} & \textrm{(Primitive types)}\\
-       &     & |~ \mathsf{Date} ~|~ \mathsf{Permission} ~|~ \mathsf{Size} ~|~ ... \\
-\tau & := & \tau_0 ~|~ \tau_0\rightarrow \tau_0 & \textrm{(Type)}
+\tau_0 & := & \mathsf{void} ~|~ \mathsf{File} ~|~ \mathsf{Date} ~|~ ...& \textrm{(Primitive types)}\\
+\tau & := & \tau_0 ~|~ (\bar{\tau}_0)\rightarrow \tau_0 & \textrm{(Type)}
 \end{array}
 \]
-\caption{Intermediate Language}
+\caption{Intermediate Language syntax, where $\mathit{cmd}$ ranges over strings presernting command names, $\mathit{flag}$ are strings presenting flag names, $\mathit{val}$ presents values in bash programs, and $\mathit{arg}$ represents meta-argument names.}
 \label{fig:lang}
 \end{figure}
 
