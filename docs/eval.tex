@@ -111,22 +111,101 @@ measures about the tool:
 
 \subsection{Results}
 
+The current prototype differs somewhat from the vision put forward in
+\autoref{sec:framework}. While we can automatically parse many manpages, this is
+not connected to the tool---instead, the output grammar is defined by a limited
+set of hand-written rules. Additionally, the scoring function is based on simple
+co-occurrence of English words and bash tokens.
+
+\autoref{tbl:stats} shows a few simple statistics about the training data and
+output. In the StackOverflow dataset we downloaded%
+\footnote{\url{https://archive.org/details/stackexchange}, retrieved Jan. 21,
+2016} there are 42111 questions having accepted answers tagged with one of the
+tags ``bash,'' ``sh,'' ``shell,'' ``zsh,'' ``command-line,'' ``awk,'' ``sed,''
+``xargs,'' ``tar,'' ``rsync,'' ``scp,'' ``mv,'' or ``cp''. From the accepted
+answer of each question we extract every code snippet and pair it with the
+question title, resulting in zero or more (title, code) pairs. In total there
+are 75518 such pairs. Of these, only 29880 parse as legal bash code (after
+removing comments and fake ``\$'' prompts at the beginnings of lines).
+
+Training the entire model---which is very simple for co-occurrence---takes only
+44 seconds.
+
+\autoref{tbl:manual-inspection} shows the top-ranked result for a few very
+simple inputs. Performance numbers are relatively static since performance
+depends largely on the length of the input string and the complexity of the
+output grammer. Since the grammar is hand-coded right now, the tool does not
+have many options to consider.
+
+Examples 1 and 2 are mostly correct. The inclusion of the \texttt{-v} flag is
+optional and the inclusion of the \texttt{-z} flag might be a mistake if the
+target archive was not compressed with GZip.
+
+Example 3 is also mostly correct. The question did not specify anything about
+filtering files by name, but \texttt{find} with the \texttt{-delete} flag is
+one way to accomplish this task. A solution using \texttt{rm} appears third in
+the rankings, after an erroneous suggestion involving \texttt{xargs}.
+
+Example 4 is correct. It is unclear whether \texttt{-e} and \texttt{-i} flags
+are the right thing to do, but a recursive \texttt{grep} is a very good way to
+answer this query.
+
+Example 5 is incorrect. The tool did not assign a high enough weight to the word
+``remote,'' and so it missed the correct answer which uses \texttt{scp}. The
+correct answer appears third in the rankings, below another incorrect answer
+involving \texttt{find}.
+
+These preliminary results suggest a better scoring metric is needed. The
+co-occurrence model gives too much weight to common commands such as
+\texttt{find} and \texttt{cp} for specialized queries, and is too likely to
+return extraneous flags. Additionally, we need a way to identify words or
+phrases that appear in the question and should appear in the answer, such as
+``ERROR'' from example 4.
+
+\begin{table}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \begin{center}
+        \begin{tabular}[t]{lr}
+            \textbf{Stat} & \textbf{Value} \\
+            \hline
+            \# of questions                & 42111 \\
+            \# of (question, answer) pairs & 75518 \\
+            \# of parseable pairs          & 29880 \\
+        \end{tabular}
+        \end{center}
+        \caption{Training data statistics}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \begin{center}
+        \begin{tabular}[t]{lr}
+            \textbf{Stat} & \textbf{Value} \\
+            \hline
+            Training time & 44 s \\
+        \end{tabular}
+        \end{center}
+        \caption{Learning statistics}
+    \end{subfigure}
+    \caption{Various internal statistics about the tool and the training data.}
+    \label{tbl:stats}
+\end{table}
+
 \begin{table}
     \begin{center}
-    \begin{tabular}{lrr}
-        \textbf{Input} & \textbf{Time (s)} & \textbf{Quality} \\
+    \begin{tabular}{rlrl}
+        \# & \textbf{Input} & \textbf{Time (s)} & \textbf{Output} \\
         \hline
-        - & - & - \\
-        - & - & - \\
-        - & - & - \\
-        - & - & - \\
-        - & - & - \\
+        1  & ``extract a tar archive'' & 0.23 & \texttt{tar -x -v -z -f FILE.TAR} \\
+        2  & ``create a tar archive''  & 0.22 & \texttt{tar -c -v -z -f FILE.TAR} \\
+        3  & ``recursively delete files from a directory'' & 0.24 & \texttt{find PATH -name PATTERN -delete} \\
+        4  & ``locate files containing the string ERROR''  & 0.24 & \texttt{grep -e -i -r REGEX PATH} \\
+        5  & ``copy a directory to a remote machine'' & 0.23 & \texttt{cp -R PATH DEST} \\
     \end{tabular}
     \end{center}
     \caption{Performance and manual inspection data. The ``Input'' column lists
         natural-language inputs to the tool. The ``Time (s)'' column lists times
-        (in seconds) to produce an answer. The ``Quality'' column indicates
-        whether the output was correct, almost correct, or incorrect.}
+        (in seconds) to produce an answer. The ``Output'' column shows the
+        tool's top-ranked result.}
+    \label{tbl:manual-inspection}
 \end{table}
 
 \begin{table}
@@ -146,5 +225,3 @@ measures about the tool:
         setup 1 (manpages+internet). The ``With (s)'' column shows the average
         time taken by participants on the task with setup 2 (manpages+tool).}
 \end{table}
-
-\todo{No results yet!}
