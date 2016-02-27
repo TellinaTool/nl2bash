@@ -18,7 +18,7 @@
 # Python
 __pycache__
 *.pyc
-/src/model.py
+/baseline0/src/model.py
 
 # Java
 *.class
