@@ -7,7 +7,7 @@ Usage:
 
 # builtin
 import sys
-sys.path.append("../baseline0")
+sys.path.append("../../baseline0/src")
 import collections
 import common
 # import html
@@ -41,10 +41,8 @@ def all_samples(sqlite_filename):
                 SELECT questions.Title, answers.Body
                 FROM questions, answers
                 WHERE questions.AcceptedAnswerId = answers.Id"""):
-            # extracted_code = extract_code(answer_body)
-            # if extracted_code:
             for extracted_code in extract_code(answer_body):
-                yield (question_text, extracted_code)
+                yield (question_title, extracted_code)
 
 WORD_REGEX = re.compile(r"\w*-?\w+")
 # basic stop words list is from http://www.ranks.nl/stopwords/
@@ -94,7 +92,7 @@ def tokenize_code(code):
         cmd = cmd[0]
         yield cmd
         for arg in args:
-            yield common.mangle_arg(cmd, arg)
+            yield arg
 
 def is_oneliner(code):
     return "\n" not in code.strip()
@@ -110,8 +108,8 @@ def run():
 
     print("Gathering stats from {}...".format(in_sqlite), file=sys.stderr)
 
-    questionFile = open("../data/baseline1/questions", 'w')
-    commandFile = open("../data/baseline1/commands", 'w')
+    questionFile = open("../data/true.questions", 'w')
+    commandFile = open("../data/true.commands", 'w')
 
     for question_title, extracted_code in all_samples(in_sqlite):
 
@@ -127,10 +125,14 @@ def run():
             question_title = question_title.replace(phrase, "")   
     
         # required by moses
-        question_title = question_title.replace("<", "-lbc-")
-        question_title = question_title.replace(">", "-rbc-")
-        question_title = question_title.replace("[", "-lsbc-")
-        question_title = question_title.replace("]", "-rsbc-")
+        question_title = question_title.replace("<", " leftanglebrc ")
+        question_title = question_title.replace(">", " rightanglebrc ")
+        question_title = question_title.replace("[", " leftsquarebrc ")
+        question_title = question_title.replace("]", " rightsquarebrc ")
+        extracted_code = extracted_code.replace("<", " leftanglebrc ")
+        extracted_code = extracted_code.replace(">", " rightanglebrc ")
+        extracted_code = extracted_code.replace("[", " leftsquarebrc ")
+        extracted_code = extracted_code.replace("]", " rightsquarebrc ")
 
         words = [w for w in stanford_lemmatize(question_title.strip())]
         words = [w for w in words if not w in STOPWORDS]
@@ -149,7 +151,7 @@ def run():
 
         count += 1
         if count % 1000 == 0:
-            print("Processed {} ({} pairs)".format(count, len(pairwise_counts)), file=sys.stderr)
+            print("Processed {} ({} pairs)".format(count, total_count), file=sys.stderr)
 
     questionFile.close()
     commandFile.close()
