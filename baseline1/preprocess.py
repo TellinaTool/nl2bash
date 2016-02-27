@@ -37,9 +37,10 @@ def all_samples(sqlite_filename):
                 SELECT questions.Title, answers.Body
                 FROM questions, answers
                 WHERE questions.AcceptedAnswerId = answers.Id"""):
-            extracted_code = extract_code(answer_body)
-            if extracted_code:
-                yield (question_title, extracted_code)
+            # extracted_code = extract_code(answer_body)
+            # if extracted_code:
+            for extracted_code in extract_code(answer_body):
+                yield (question_text, extracted_code)
 
 WORD_REGEX = re.compile(r"\w*-?\w+")
 # basic stop words list is from http://www.ranks.nl/stopwords/
