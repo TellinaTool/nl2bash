@@ -63,7 +63,9 @@ STOPWORDS |= { ",", ".", "!", "?", ";", ":", "\/", "\\/"}
 STOPWORDS |= { "mac", "os", "x", "unix", "linux", "cmd", "bat", "bash", "command", "commandline", "command-line", "shell", "script" }
 STOPWORDS -= { "not", "no" }
 
-STOPPHRASE = { 
+STOPPHRASE = { "in bash", "in unix", "in linux", "in mac os", 
+               "for bash", "for unix", "for linux", "for mac os", 
+               "in cmd", "command line", "in command line"
 			 }
 def tokenize_question(q):
     seq = []
@@ -110,21 +112,16 @@ def run():
 
         question_title = question_title.lower()
         question_title = question_title.replace("\\/", " ")
-        question_title = question_title.replace("\/", " ")
-        question_title = question_title.replace("in bash", "")
-        question_title = question_title.replace("in unix", "")
-        question_title = question_title.replace("in linux", "")
-        question_title = question_title.replace("in mac os", "")
-        question_title = question_title.replace("for bash", "")
-        question_title = question_title.replace("for unix", "")
-        question_title = question_title.replace("for linux", "")
-        question_title = question_title.replace("for mac os", "")
-        question_title = question_title.replace("in cmd", "")
-        question_title = question_title.replace("command line", "")
-        question_title = question_title.replace("in command line", "")
+        question_title = question_title.replace("\/", " ")     
+        for phrase in STOPPHRASE:
+            question_title = question_title.replace(phrase, "")   
     
 		# required by moses
 		question_title = question_title.replace("<", "-lbc-")
+        question_title = question_title.replace(">", "-rbc-")
+        question_title = qusetion_title.replace("[", "-lsbc-")
+        question_title = question_title.replace("]", "-rsbc-")
+
 	    words = [w for w in stanford_lemmatize(question_title.strip())]
         words = [w for w in words if not w in STOPWORDS]
         # print("{}".format(words), file=sys.stderr)
