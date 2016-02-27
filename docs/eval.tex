@@ -189,16 +189,36 @@ phrases that appear in the question and should appear in the answer, such as
     \label{tbl:stats}
 \end{table}
 
-\begin{table}[ht]
+
+% \begin{table}
+%     \begin{center}
+%     \begin{tabular}{rlrl}
+%         \# & \textbf{Input} & \textbf{Time (s)} & \textbf{Output} \\
+%         \hline
+%         1  & ``extract a tar archive'' & 0.23 & \texttt{tar -x -v -z -f FILE.TAR} \\
+%         2  & ``create a tar archive''  & 0.22 & \texttt{tar -c -v -z -f FILE.TAR} \\
+%         3  & ``recursively delete files from a directory'' & 0.24 & \texttt{find PATH -name PATTERN -delete} \\
+%         4  & ``locate files containing the string ERROR''  & 0.24 & \texttt{grep -e -i -r REGEX PATH} \\
+%         5  & ``copy a directory to a remote machine'' & 0.23 & \texttt{cp -R PATH DEST} \\
+%     \end{tabular}
+%     \end{center}
+%     \caption{Performance and manual inspection data. The ``Input'' column lists
+%         natural-language inputs to the tool. The ``Time (s)'' column lists times
+%         (in seconds) to produce an answer. The ``Output'' column shows the
+%         tool's top-ranked result.}
+%     \label{tbl:manual-inspection}
+% \end{table}
+
+\begin{table}
     \begin{center}
-    \begin{tabular}{rlrl}
-        \# & \textbf{Input} & \textbf{Time (s)} & \textbf{Output} \\
+    \begin{tabular}{llll}
+        \# & \textbf{Input} & \textbf{Output} &{\textbf{IBM Model 4}}\\
         \hline
-        1  & ``extract a tar archive'' & 0.23 & \texttt{tar -x -v -z -f FILE.TAR} \\
-        2  & ``create a tar archive''  & 0.22 & \texttt{tar -c -v -z -f FILE.TAR} \\
-        3  & ``recursively delete files from a directory'' & 0.24 & \texttt{find PATH -name PATTERN -delete} \\
-        4  & ``locate files containing the string ERROR''  & 0.24 & \texttt{grep -e -i -r REGEX PATH} \\
-        5  & ``copy a directory to a remote machine'' & 0.23 & \texttt{cp -R PATH DEST} \\
+        1  & ``extract a tar archive'' & \code{tar -x -v -z -f FILE.TAR} & \code{grep -o -P tar} \\
+        2  & ``create a tar archive''  & \code{tar -c -v -z -f FILE.TAR} & \code{tar -c -f test/foo/test.tar} \\
+        3  & ``recursively delete files from a directory'' & \code{find PATH -name PATTERN -delete} & \code{find [} \\
+        4  & ``locate files containing the string ERROR''  & \code{grep -e -i -r REGEX PATH} & \code{-or -name \$0 ERROR} \\
+        5  & ``copy a directory to a remote machine'' & \code{cp -R PATH DEST} & \code{rsync -a find `find} \\
     \end{tabular}
     \end{center}
     \caption{Performance and manual inspection data. The ``Input'' column lists
