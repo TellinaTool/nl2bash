@@ -27,9 +27,13 @@ import bash
 html = HTMLParser.HTMLParser()
 
 CODE_REGEX = re.compile(r"<pre><code>([^<]+)<\/code><\/pre>")
+# def extract_code(text):
+#     match = CODE_REGEX.search(text)
+#     return html.unescape(match.group(1).replace("<br>", "\n")) if match else None
 def extract_code(text):
-    match = CODE_REGEX.search(text)
-    return html.unescape(match.group(1).replace("<br>", "\n")) if match else None
+    for match in CODE_REGEX.findall(text):
+        if match.strip():
+            yield html.unescape(match.replace("<br>", "\n"))
 
 def all_samples(sqlite_filename):
     with sqlite3.connect(sqlite_filename, detect_types=sqlite3.PARSE_DECLTYPES) as sqlite_db:
