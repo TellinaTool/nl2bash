@@ -1,33 +1,34 @@
 import collections
 
 from model import scores, code_freqs
+import common
 
 class ArgInfo(object):
     def __init__(self, type, *args):
         self.type = type
         self.info = args
-    def score(self, word):
+    def score(self, root_cmd, word):
         if self.type == "seq":
-            return sum(part.score(word) for part in self.info)
+            return sum(part.score(root_cmd, word) for part in self.info)
         elif self.type == "case":
-            return max(part.score(word) for part in self.info)
+            return max(part.score(root_cmd, word) for part in self.info)
         elif self.type == "empty":
             return 0
         elif self.type == "arg":
-            argname = self.info[0]
+            argname = common.mangle_arg(root_cmd, self.info[0])
             return scores.get(word, {}).get(argname, 0) * (1-code_freqs.get(argname, 0))
         elif self.type == "hole":
             return 0
-    def propose_incantation(self, total_score, score_func):
+    def propose_incantation(self, root_cmd, total_score, score_func):
         if self.type == "seq":
-            return "".join(x.propose_incantation(total_score, score_func) for x in self.info)
+            return "".join(x.propose_incantation(root_cmd, total_score, score_func) for x in self.info)
         elif self.type == "case":
             empty_is_option = any(x.type == "empty" for x in self.info)
             best_option = max(((x, score_func(x)) for x in self.info), key=lambda x: x[1])
             if best_option[1] < total_score/10: # total hack
                 return ""
             else:
-                return best_option[0].propose_incantation(total_score, score_func)
+                return best_option[0].propose_incantation(root_cmd, total_score, score_func)
         elif self.type == "empty":
             return ""
         elif self.type == "arg":

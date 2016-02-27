@@ -9,10 +9,15 @@ Usage:
 import collections
 # import html
 import HTMLParser
+import os
 import re
-import shlex
 import sqlite3
 import sys
+
+# local
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "..", "baseline1"))
+import bash
+import common
 
 html = HTMLParser.HTMLParser()
 
@@ -51,7 +56,12 @@ PROMPT_REGEX = re.compile(r"^\s*\S*\$>?")
 # CODE_STOPWORDS = { "|", ";", "[", "]", "[[", "]]", "{", "}", "(", ")", "=", ">", "<", ">>" }
 def tokenize_code(code):
     code = PROMPT_REGEX.sub("", code)
-    return shlex.split(code, comments=True)
+    for cmd in bash.parse(str(code)):
+        args = cmd[1:]
+        cmd = cmd[0]
+        yield cmd
+        for arg in args:
+            yield common.mangle_arg(cmd, arg)
 
 def is_oneliner(code):
     return "\n" not in code.strip()
@@ -65,12 +75,12 @@ def run():
     pairwise_counts = collections.defaultdict(int)
 
     print("Gathering stats from {}...".format(in_sqlite), file=sys.stderr)
-    
+
     for question_title, extracted_code in all_samples(in_sqlite):
 
         if not is_oneliner(extracted_code):
             continue
-    
+
         words = set(tokenize_question(question_title))
         try:
             terms = set(tokenize_code(extracted_code))
@@ -92,15 +102,6 @@ def run():
 
         if count % 1000 == 0:
             print("Processed {} ({} pairs)".format(count, len(pairwise_counts)), file=sys.stderr)
-    
-	# save the questions and commands
-	# questionFile = open("../data/stackoverflow/questions.txt", 'w')
-    # commandFile = open("../data/stackoverflow/commands.txt", 'w')	
-	# for question_title, extracted_code in all_samples(in_sqlite):
-	# 	questionFile.write("%s\n" % question_title)
-    #     commandFile.write("%s\n" % extracted_code.strip())    
-    # questionFile.close()
-    # commandFile.close()
 
     word_total = sum(question_word_counts.values())
     term_total = sum(code_term_counts.values())
