@@ -43,7 +43,7 @@ def parse(code):
                     args = []
                     for part in parts[1:]:
                         if part.kind == "word":
-                            if cmd == "tar" and all(c in "xtcjzvf" for c in part.word):
+                            if cmd == "tar" and all(c in "xtcrujzvf" for c in part.word):
                                 args += ["-" + c for c in part.word]
                             elif cmd != "find":
                                 args += list(split_flags(part.word))
