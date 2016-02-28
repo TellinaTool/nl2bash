@@ -19,12 +19,12 @@ import sqlite3
 sys.path.append("/home/xilin/Packages")
 from semantics.lexical import stanford_tokenize, stanford_lemmatize
 
-sys.path.append("../../baseline0/src")
+sys.path.append("../baseline0/src")
 # local
 import bash
 import common
 from make_model import CODE_REGEX, COMMENT_REGEX, PROMPT_REGEX
-from make_model import extract_code, all_samples, tokenize_code, is_oneliner
+from make_model import extract_code, all_samples, is_oneliner
 
 html = HTMLParser.HTMLParser()
 
@@ -66,6 +66,16 @@ def tokenize_question(q):
     for bigram in zip(seq, seq[1:]):
         yield bigram
 
+def tokenize_code(code):
+    code = PROMPT_REGEX.sub("", code)
+    for cmd in bash.parse(str(code)):
+        args = cmd[1:]
+        cmd = cmd[0]
+        # print("cmd:{}".format(cmd), file=sys.stderr)
+        yield cmd
+        for arg in args:
+            yield arg
+
 def run():
     in_sqlite = sys.argv[1]
 
@@ -77,8 +87,8 @@ def run():
 
     print("Gathering stats from {}...".format(in_sqlite), file=sys.stderr)
 
-    questionFile = open("../data/true.questions", 'w')
-    commandFile = open("../data/true.commands", 'w')
+    questionFile = open("data/true.questions", 'w')
+    commandFile = open("data/true.commands", 'w')
 
     for question_title, extracted_code in all_samples(in_sqlite):
 
@@ -98,25 +108,25 @@ def run():
         question_title = question_title.replace(">", " rightanglebrc ")
         question_title = question_title.replace("[", " leftsquarebrc ")
         question_title = question_title.replace("]", " rightsquarebrc ")
-        # extracted_code = extracted_code.replace("<", " leftanglebrc ")
-        # extracted_code = extracted_code.replace(">", " rightanglebrc ")
-        # extracted_code = extracted_code.replace("[", " leftsquarebrc ")
-        # extracted_code = extracted_code.replace("]", " rightsquarebrc ")
+        extracted_code = extracted_code.replace("<", " leftanglebrc ")
+        extracted_code = extracted_code.replace(">", " rightanglebrc ")
+        extracted_code = extracted_code.replace("[", " leftsquarebrc ")
+        extracted_code = extracted_code.replace("]", " rightsquarebrc ")
 
         words = [w for w in stanford_lemmatize(question_title.strip())]
         words = [w for w in words if not w in STOPWORDS]
-        # print("{}".format(words), file=sys.stderr)
         try:
-            terms = tokenize_code(extracted_code.strip())
+            terms = list(tokenize_code(extracted_code.strip()))
         except ValueError as e:
             # print("unable to parse question {}: {} [err={}]".format(repr(question_title), repr(extracted_code), e), file=sys.stderr)
             terms = []
-
-        if not set(terms):
+        
+        if len(terms) == 0:
             continue
-
+        # print ("{}".format(len(terms)), file=sys.stderr)
+        # print ("{}".format(terms), file=sys.stderr)
         questionFile.write("%s\n" % ' '.join(words))
-        commandFile.write("%s\n" % ' '.join(list(terms)))
+        commandFile.write("%s\n" % ' '.join(terms))
 
         count += 1
         if count % 1000 == 0:
