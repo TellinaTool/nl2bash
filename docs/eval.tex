@@ -162,6 +162,7 @@ return extraneous flags. Additionally, we need a way to identify words or
 phrases that appear in the question and should appear in the answer, such as
 ``ERROR'' from example 4.
 
+
 \begin{table}
     \begin{subfigure}[b]{0.48\textwidth}
         \begin{center}
@@ -206,6 +207,43 @@ phrases that appear in the question and should appear in the answer, such as
         (in seconds) to produce an answer. The ``Output'' column shows the
         tool's top-ranked result.}
     \label{tbl:manual-inspection}
+\end{table}
+
+\paragraph{Sequence-to-sequence Baseline Results} Another baseline model we have 
+set up for this problem is the classical natural language machine translation 
+model (IBM Model 4\footnote{\url{https://en.wikipedia.org/wiki/IBM_alignment_models\#Model_4}}). 
+This model treats the command line programs as a foreign language, and translates 
+the English commands into it using probabilistic sequence modeling. We trained a 
+naive translation model (without fine tuning the parameters) using the dataset shown
+in table~\ref{tbl:stats}. The results are shown in table~\ref{tbl:manual-inspection-ibm4}.
+Compared to the rule-based model introduced above, we observed that it is very common for 
+the sequence-based model to generate ungrammatical commands, since the output decoding 
+is sequential and does not obey any constraints of the grammatical structure. Yet surprisingly, 
+it almost generates command no.2 completely correct, and correctly suggested the head 
+command of command no.5. Especially, command no.5 is easy to trick a system into suggesting 
+``\texttt{cp}''. However, since IBM Model 4 handles multi-to-multi word mappings, it is 
+able to capture the relation between ``copy ... to a remote machine'' and ``\texttt{rsync}''.
+Based on the comparison above, we think a good model for this problem should combine the
+strength of both rule-based modeling and probabilistic multi-to-multi mapping learnt
+from data.
+
+\begin{table}
+    \begin{center}
+    \begin{tabular}{rlrl}
+        \# & \textbf{Input} & \textbf{Time (s)} &{IBM Model 4} \\
+        \hline
+        1  & ``extract a tar archive'' & $>$ 1 & \texttt{grep -o -P tar} \\
+        2  & ``create a tar archive''  & $>$ 1 & \texttt{tar -c -f test/foo/test.tar} \\
+        3  & ``recursively delete files from a directory'' & $>$ 1 & \texttt{find [} \\
+        4  & ``locate files containing the string ERROR''  & $>$ 1 & \texttt{-or -name \$0 ERROR} \\
+        5  & ``copy a directory to a remote machine'' & $>$ 1 & \texttt{rsync -a find `find} \\
+    \end{tabular}
+    \end{center}
+    \caption{Sequence-to-sequence translation based results by IBM Model 4. The ``Input'' column lists
+        natural-language inputs to the tool. The ``Time (s)'' column lists times
+        (in seconds) to produce an answer. The ``Output'' column shows the
+        tool's top-ranked result.}
+    \label{tbl:manual-inspection-ibm4}
 \end{table}
 
 \begin{table}
