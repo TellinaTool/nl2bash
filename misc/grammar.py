@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+import collections
 import os
-import glob
 import json
 import sys
 
@@ -135,32 +135,42 @@ class Enumerator(object):
         return set(self._legal_tokens())
 
 def make_grammar_from_options(x):
-    if "type" in x:
-        if x["type"] == "argument":
-            return Grammar(Grammar.HOLE)
-        elif x["type"] == "compound":
-            return Grammar(Grammar.PERM, *[make_grammar_from_options(o) for o in x["cmds"]])
-        elif x["type"] == "optional":
-            return Grammar(Grammar.CASES, Grammar(Grammar.EMPTY), make_grammar_from_options(x["cmd"]))
-        elif x["type"] == "eclusive": # sic
-            return Grammar(Grammar.CASES, *[make_grammar_from_options(o) for o in x["cmds"]])
-        else:
-            raise Exception("unknown type: {}".format(x["type"]))
+    if x["type"] == "compound_options":
+        return Grammar(Grammar.PERM, *[make_grammar_from_options(o) for o in x["commands"]])
+    elif x["type"] == "optional_option":
+        return Grammar(Grammar.CASES, Grammar(Grammar.EMPTY), make_grammar_from_options(x["cmd"]))
+    elif x["type"] == "exclusive_options": # sic
+        return Grammar(Grammar.CASES, *[make_grammar_from_options(o) for o in x["commands"]])
+    elif x["type"] == "flag_option":
+        g = Grammar(Grammar.EXACT, "-" + x["flag_name"])
+    elif x["type"] == "long_flag_option":
+        g = Grammar(Grammar.EXACT, "--" + x["flag_name"])
+    elif x["type"] == "argument_option":
+        return Grammar(Grammar.HOLE) # TODO: record type, description, etc...
     else:
-        return Grammar(Grammar.EXACT, "-" + x["flagName"])
+        raise Exception("unknown type: {}".format(x["type"]))
 
-def make_grammar_from_json_syntax(syntax):
-    g = Grammar(Grammar.CASES, *[Grammar(Grammar.EXACT, alias) for alias in syntax["aliases"]])
-    g = Grammar(Grammar.SEQ, g, *[make_grammar_from_options(x) for x in syntax["optionLists"]])
+    # has arg?
+    if "arg_exists" in x and x["arg_exists"]:
+        g = Grammar(Grammar.SEQ, g, make_grammar_from_options(x["argument"]))
     return g
 
-def load_syntax(root_dir):
+def make_grammar_from_json_syntax(syntax):
+    g = Grammar(Grammar.EXACT, syntax["name"])
+    g = Grammar(Grammar.SEQ, g, make_grammar_from_options(syntax["option"]))
+    return g
+
+def load_syntax(json_files):
     simple_cmds = []
-    for jsonfile in glob.glob(os.path.join(root_dir, "*.json")):
+    counts = collections.defaultdict(int)
+    for jsonfile in json_files:
+        print("loading from {}".format(jsonfile))
         with open(jsonfile, "r") as f:
             syntax = json.loads(f.read())
-        simple_cmds.append(make_grammar_from_json_syntax(syntax))
-        print("loaded {}".format(syntax["name"]))
+        for cmd in syntax:
+            simple_cmds.append(make_grammar_from_json_syntax(cmd))
+            counts[cmd["name"]] += 1
+            print(" --> loaded {} ({})".format(cmd["name"], counts[cmd["name"]]))
     return Grammar(Grammar.CASES, *simple_cmds)
 
 def make_full_grammar(simple_grammar, max_pipeline_depth):
@@ -174,7 +184,7 @@ def make_full_grammar(simple_grammar, max_pipeline_depth):
     return grammar
 
 if __name__ == "__main__":
-    simple_grammar = load_syntax(os.path.join(os.path.dirname(__file__), "..", "data", "jsonman"))
+    simple_grammar = load_syntax([os.path.join(os.path.dirname(__file__), "..", "data", "primitive_cmds_grammar.json")])
     grammar = make_full_grammar(simple_grammar, max_pipeline_depth=3)
 
     e = Enumerator(grammar)
