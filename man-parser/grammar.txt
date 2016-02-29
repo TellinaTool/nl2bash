@@ -5,7 +5,7 @@ type ::= File
 				 Permission
 
 file, source, target, directory ::= {file_path}
-number, n, num ::= {number}
+size, number, n, num ::= {number}
 gname ::= {group name}
 pattern ::= {GNU pattern}
 uname ::= {user name}
@@ -13,13 +13,14 @@ mode ::= {permission mode}
 
 CompoundCmd ::=
 				PrimitiveCmd
-				cmd || cmd
+				cmd || xarg cmd
+				cmd || xarg sort
 
 PrimitiveCmd ::=
 
-				find [-H | -L | -P] [-EXdsx] [-f path] path ... [ -true ] [ -false ] [ -Bmin n ] [ -Bnewer file ] [ -Btime n ] [ -acl ] [ -amin n ] [ -anewer file ] [ -cmin n ] [ -cnewer file ] [ -ctime n ] [ -d ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime n ] [ -name pattern ] [ -newer file ] [ -newerXY file ] [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -path pattern ] [ -perm mode ] [ -print ] [ -print0 ] [ -prune ] [ -regex pattern ] [ -samefile name ] [ -size n ] [ -type t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ]
+				find [-H | -L | -P] [-EXdsx] [-f path] path ... [ -true ] [ -false ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime n ] [ -name pattern ] [ -newer file ] [ -newerXY file ] [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -path pattern ] [ -perm mode ] [ -print ] [ -print0 ] [ -prune ] [ -regex pattern ] [ -samefile name ] [ -size size ] [ -type t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ]
 
-				find [-H | -L | -P] [-EXdsx] -f path 	[path ...] [ -true ] [ -false ] [ -Bmin n ] [ -Bnewer file ] [ -Btime n ] [ -acl ] [ -amin n ] [ -anewer file ] [ -cmin n ] [ -cnewer file ] [ -ctime n ] [ -d ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime n ] [ -name pattern ] [ -newer file ] [ -newerXY file ] [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -path pattern ] [ -perm mode ] [ -print ] [ -print0 ] [ -prune ] [ -regex pattern ] [ -samefile name ] [ -size n ] [ -type t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ]
+				find [-H | -L | -P] [-EXdsx] -f path 	[path ...] [ -true ] [ -false ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [ -cmin n ] [ -cnewer file ] [ -ctime time ] [ -d ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -newerXY file ] [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -path pattern ] [ -perm mode ] [ -print ] [ -print0 ] [ -prune ] [ -regex pattern ] [ -samefile name ] [ -size size ] [ -type t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ]
 
 				mv [-f | -i | -n] [-v] source target
 
@@ -35,4 +36,13 @@ PrimitiveCmd ::=
 
 				ls [-ABCFGHLOPRSTUW@abcdefghiklmnopqrstuwx1] [file ...]
 
-				xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr] [-L number] [-n number [-x]] [-P maxprocs] [-s size]
+				tar -c [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format format] [ -f file] [ -H] [ -h] [ -I] [ --include pattern] [ -j] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [ -y] [ -z] [ -Z] [files | directories]
+
+     		    tar -r -f archive-file [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format format] [ -f file] [ -H] [ -h] [ -I] [ --include pattern] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [files | directories]
+
+         		tar -u -f archive-file [ -b blocksize] [ -C directory] [ --exclude pattern] [ --format format] [ -f file] [ -I] [ --include pattern] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [files | directories]
+
+     	    	tar -t [ -b blocksize] [ -C directory] [ --exclude pattern] [ -f file] [ -I] [ --include pattern] [ -l] [ -O] [ --options options] [ -P] [ -q] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename]  [patterns]
+
+     		    tar -x [ -b blocksize] [ -C directory] [ --chroot] [ --exclude pattern] [ -f file] [ -I] [ --include pattern] [ -k] [ --keep-newer-files] [ -l] [ -m] [ --numeric-owner] [ -O] [ -o] [ --options options] [ -P] [ -p] [ -q] [ -S] [ --strip-components count] [ -s pattern] [ -T filename] [ -U] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [patterns]
+
