@@ -23,16 +23,21 @@ DESCRIPTION
 
      The other synopsis forms show the preferred usage.  The first option to
      tar is a mode indicator from the following list:
-     -c      Create a new archive containing the specified items.
-     -r      Like -c, but new entries are appended to the archive.  Note that
+     -c
+            Create a new archive containing the specified items.
+     -r
+            Like -c, but new entries are appended to the archive.  Note that
              this only works on uncompressed archives stored in regular files.
              The -f option is required.
-     -t      List archive contents to stdout.
-     -u      Like -r, but new entries are added only if they have a modifica-
+     -t
+            List archive contents to stdout.
+     -u
+             Like -r, but new entries are added only if they have a modifica-
              tion date newer than the corresponding entry in the archive.
              Note that this only works on uncompressed archives stored in reg-
              ular files.  The -f option is required.
-     -x      Extract to disk from the archive.  If a file with the same name
+     -x
+            Extract to disk from the archive.  If a file with the same name
              appears more than once in the archive, each copy will be
              extracted, with later copies overwriting (replacing) earlier
              copies.
@@ -102,13 +107,16 @@ OPTIONS
              Read the archive from or write the archive to the specified file.
              The filename can be - for standard input or standard output.
 
-     -H      (c and r mode only) Symbolic links named on the command line will
+     -H
+             (c and r mode only) Symbolic links named on the command line will
              be followed; the target of the link will be archived, not the
              link itself.
 
-     -h      (c and r mode only) Synonym for -L.
+     -h
+             (c and r mode only) Synonym for -L.
 
-     -I      Synonym for -T.
+     -I
+             Synonym for -T.
 
      --include pattern
              Process only files or directories that match the specified pat-
@@ -121,12 +129,14 @@ OPTIONS
              creates a new archive new.tar containing only the entries from
              old.tgz containing the string `foo'.
 
-     -j      (c mode only) Compress the resulting archive with bzip2(1).  In
+     -j
+            (c mode only) Compress the resulting archive with bzip2(1).  In
              extract or list modes, this option is ignored.  Note that, unlike
              other tar implementations, this implementation recognizes bzip2
              compression automatically when reading archives.
 
-     -k      (x mode only) Do not overwrite existing files.  In particular, if
+     -k
+            (x mode only) Do not overwrite existing files.  In particular, if
              a file appears more than once in an archive, later copies will
              not overwrite earlier copies.
 
@@ -134,16 +144,20 @@ OPTIONS
              (x mode only) Do not overwrite existing files that are newer than
              the versions appearing in the archive being extracted.
 
-     -L      (c and r mode only) All symbolic links will be followed.  Nor-
+     -L
+            (c and r mode only) All symbolic links will be followed.  Nor-
              mally, symbolic links are archived as such.  With this option,
              the target of the link will be archived instead.
 
-     -l      This is a synonym for the --check-links option.
+     -l
+            This is a synonym for the --check-links option.
 
-     -m      (x mode only) Do not extract modification time.  By default, the
+     -m
+            (x mode only) Do not extract modification time.  By default, the
              modification time is set to the time stored in the archive.
 
-     -n      (c, r, u modes only) Do not recursively archive the contents of
+     -n
+            (c, r, u modes only) Do not recursively archive the contents of
              directories.
 
      --newer date
@@ -166,7 +180,8 @@ OPTIONS
              (c and r modes only) Honor the nodump file flag by skipping this
              file.
 
-     --null  (use with -I, -T, or -X) Filenames or patterns are separated by
+     --null
+             (use with -I, -T, or -X) Filenames or patterns are separated by
              null characters, not by newlines.  This is often used to read
              filenames output by the -print0 option to find(1).
 
@@ -174,21 +189,25 @@ OPTIONS
              (x mode only) Ignore symbolic user and group names when restoring
              archives to disk, only numeric uid and gid values will be obeyed.
 
-     -O      (x, t modes only) In extract (-x) mode, files will be written to
+     -O
+             (x, t modes only) In extract (-x) mode, files will be written to
              standard out rather than being extracted to disk.  In list (-t)
              mode, the file listing will be written to stderr rather than the
              usual stdout.
 
-     -o      (x mode) Use the user and group of the user running the program
+     -o
+             (x mode) Use the user and group of the user running the program
              rather than those specified in the archive.  Note that this has
              no significance unless -p is specified, and the program is being
              run by the root user.  In this case, the file modes and flags
              from the archive will be restored, but ACLs or owner information
              in the archive will be discarded.
 
-     -o      (c, r, u mode) A synonym for --format ustar
+     -o
+                (c, r, u mode) A synonym for --format ustar
 
      --one-file-system
+
              (c, r, and u modes) Do not cross mount points.
 
      --options options
@@ -243,14 +262,16 @@ OPTIONS
              If a provided option is not supported by any module, that is a
              fatal error.
 
-     -P      Preserve pathnames.  By default, absolute pathnames (those that
+     -P
+            Preserve pathnames.  By default, absolute pathnames (those that
              begin with a / character) have the leading slash removed both
              when creating archives and extracting from them.  Also, tar will
              refuse to extract archive entries whose pathnames contain .. or
              whose target directory would be altered by a symlink.  This
              option suppresses these behaviors.
 
-     -p      (x mode only) Preserve file permissions.  Attempt to restore the
+     -p
+            (x mode only) Preserve file permissions.  Attempt to restore the
              full permissions, including owner, file modes, file flags and
              ACLs, if available, for each item extracted from the archive.  By
              default, newly-created files are owned by the user running tar,
@@ -259,7 +280,7 @@ OPTIONS
              is being run by root, the default is to restore the owner unless
              the -o option is also specified.
 
-     -q (--fast-read)
+     -q
              (x and t mode only) Extract or list only the first archive entry
              that matches each pattern or filename operand.  Exit as soon as
              each specified pattern or filename has been matched.  By default,
@@ -268,7 +289,8 @@ OPTIONS
              entries overwrite earlier entries.  This option is provided as a
              performance optimization.
 
-     -S      (x mode only) Extract files as sparse files.  For every block on
+     -S
+            (x mode only) Extract files as sparse files.  For every block on
              disk, check first if it contains only NULL bytes and seek over it
              otherwise.  This works similiar to the conv=sparse option of dd.
 
@@ -294,6 +316,7 @@ OPTIONS
              be printed to standard error.
 
      -T filename
+
              In x or t mode, tar will read the list of names to be extracted
              from filename.  In c mode, tar will read names to be archived
              from filename.  The special name ``-C'' on a line by itself will
@@ -302,7 +325,8 @@ OPTIONS
              unless --null is specified.  Note that --null also disables the
              special handling of lines containing ``-C''.
 
-     -U      (x mode only) Unlink files before creating them.  Without this
+     -U
+             (x mode only) Unlink files before creating them.  Without this
              option, tar overwrites existing files, which preserves existing
              hardlinks.  With this option, existing hardlinks will be broken,
              as will any symlink that would affect the location of an
@@ -312,7 +336,8 @@ OPTIONS
              Pipe the input (in x or t mode) or the output (in c mode) through
              program instead of using the builtin compression support.
 
-     -v      Produce verbose output.  In create and extract modes, tar will
+     -v
+            Produce verbose output.  In create and extract modes, tar will
              list each file name as it is read from or written to the archive.
              In list mode, tar will produce output similar to that of ls(1).
              Additional -v options will provide additional detail.
@@ -320,23 +345,27 @@ OPTIONS
      --version
              Print version of tar and libarchive, and exit.
 
-     -w      Ask for confirmation for every action.
+     -w
+            Ask for confirmation for every action.
 
      -X filename
              Read a list of exclusion patterns from the specified file.  See
-             --exclude for more information about the handling of exclusions.
+             exclude for more information about the handling of exclusions.
 
-     -y      (c mode only) Compress the resulting archive with bzip2(1).  In
+     -y
+            (c mode only) Compress the resulting archive with bzip2(1).  In
              extract or list modes, this option is ignored.  Note that, unlike
              other tar implementations, this implementation recognizes bzip2
              compression automatically when reading archives.
 
-     -z      (c mode only) Compress the resulting archive with gzip(1).  In
+     -z
+            (c mode only) Compress the resulting archive with gzip(1).  In
              extract or list modes, this option is ignored.  Note that, unlike
              other tar implementations, this implementation recognizes gzip
              compression automatically when reading archives.
 
-     -Z      (c mode only) Compress the resulting archive with compress(1).
+     -Z
+            (c mode only) Compress the resulting archive with compress(1).
              In extract or list modes, this option is ignored.  Note that,
              unlike other tar implementations, this implementation recognizes
              compress compression automatically when reading archives.
