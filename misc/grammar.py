@@ -6,13 +6,6 @@ import glob
 import json
 import sys
 
-class CommandGenerator(object):
-    """Class to generate commands"""
-    def pick_token(self, so_far, choices):
-        return choices[0]
-    def pick_arg(self, so_far):
-        return "ARG"
-
 class Grammar(object):
     EMPTY = 0
     CASES = 1
