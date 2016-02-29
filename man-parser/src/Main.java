@@ -21,6 +21,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException, ParseException {
 
+        //SmallTask.extractOptionsFrom("tar.1.txt");
+
         jsonPrimitiveGrammar("grammar.txt");
 
         /*String s = SmallTask.processWierdThing("wierddata");
@@ -265,6 +267,7 @@ public class Main {
         // TODO
         return new ArrayList<>();
     }
+
 
     private static int indentCount(String s) { return s.indexOf(s.trim()); }
 
