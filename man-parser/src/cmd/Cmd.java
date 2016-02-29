@@ -116,14 +116,23 @@ public class Cmd {
         public Ar() {};
         public Ar(String s) {
             this.arg_name = s;
+
+            if (this.arg_name.equalsIgnoreCase("files") || this.arg_name.equalsIgnoreCase("directories")) {
+                this.arg_type = "File";
+            }
+
             if (this.arg_name.equalsIgnoreCase("file")
                     || this.arg_name.equalsIgnoreCase("f")
                     || this.arg_name.equalsIgnoreCase("source")
-                    || this.arg_name.equalsIgnoreCase("target")) {
+                    || this.arg_name.equalsIgnoreCase("target")
+                    || this.arg_name.equalsIgnoreCase("filename")
+                    || this.arg_name.equalsIgnoreCase("directory")) {
                 arg_type = "File";
             } else if (this.arg_name.equalsIgnoreCase("number")
                     || this.arg_name.equalsIgnoreCase("n")
-                    || this.arg_name.equalsIgnoreCase("num")) {
+                    || this.arg_name.equalsIgnoreCase("num")
+                    || this.arg_name.equalsIgnoreCase("blocksize")
+                    || this.arg_name.equalsIgnoreCase("count")) {
                 arg_type = "Number";
             } else if (this.arg_name.equalsIgnoreCase("mode")) {
                 arg_type = "PermissionMode";
