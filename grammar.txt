@@ -13,8 +13,8 @@ mode ::= {permission mode}
 
 CompoundCmd ::= 
 				PrimitiveCmd
-				cmd || xarg cmd
-				cmd || xarg sort 
+				cmd | xarg cmd
+				cmd | xarg sort 
 
 PrimitiveCmd ::=
 
@@ -35,4 +35,17 @@ PrimitiveCmd ::=
 				cp [-R [-H | -L | -P]] [-fi | -n] [-apvX] source_file ... target_directory
 				
 				ls [-ABCFGHLOPRSTUW@abcdefghiklmnopqrstuwx1] [file ...]
+
+				tar -c [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format format] [ -f file] [ -H] [ -h] [ -I] [ --include pattern] [ -j] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [ -y] [ -z] [ -Z] [files | directories]
+     
+     		tar -r -f archive-file [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format format] [ -f file] [ -H] [ -h] [ -I] [ --include pattern] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [files | directories]
+     
+     		tar -u -f archive-file [ -b blocksize] [ -C directory] [ --exclude pattern] [ --format format] [ -f file] [ -I] [ --include pattern] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [files | directories]
+     
+     		tar -t [ -b blocksize] [ -C directory] [ --exclude pattern] [ -f file] [ -I] [ --include pattern] [ -l] [ -O] [ --options options] [ -P] [ -q] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename]  [patterns]
+     
+     		tar -x [ -b blocksize] [ -C directory] [ --chroot] [ --exclude pattern] [ -f file] [ -I] [ --include pattern] [ -k] [ --keep-newer-files] [ -l] [ -m] [ --numeric-owner] [ -O] [ -o] [ --options options] [ -P] [ -p] [ -q] [ -S] [ --strip-components count] [ -s pattern] [ -T filename] [ -U] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [patterns]
+
+     		xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr] [-L number] [-n number [-x]] [-P maxprocs] [-s size] [utility [argument ...]]
+
 				
