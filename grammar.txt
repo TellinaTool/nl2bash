@@ -13,8 +13,8 @@ mode ::= {permission mode}
 
 CompoundCmd ::= 
 				PrimitiveCmd
-				cmd || xarg cmd
-				cmd || xarg sort 
+				cmd | xarg cmd
+				cmd | xarg sort 
 
 PrimitiveCmd ::=
 
@@ -45,5 +45,7 @@ PrimitiveCmd ::=
      		tar -t [ -b blocksize] [ -C directory] [ --exclude pattern] [ -f file] [ -I] [ --include pattern] [ -l] [ -O] [ --options options] [ -P] [ -q] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename]  [patterns]
      
      		tar -x [ -b blocksize] [ -C directory] [ --chroot] [ --exclude pattern] [ -f file] [ -I] [ --include pattern] [ -k] [ --keep-newer-files] [ -l] [ -m] [ --numeric-owner] [ -O] [ -o] [ --options options] [ -P] [ -p] [ -q] [ -S] [ --strip-components count] [ -s pattern] [ -T filename] [ -U] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [patterns]
+
+     		xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr] [-L number] [-n number [-x]] [-P maxprocs] [-s size] [utility [argument ...]]
 
 				
