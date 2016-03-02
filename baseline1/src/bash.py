@@ -13,8 +13,13 @@ import bashlex.ast
 DEBUG = False
 
 def split_flags(word):
-    """turns -xyz into -x, -y, -z"""
-    if word.startswith("-"):
+    if word.startswith("--"):
+        for flag in word.split('='):
+            yield flag
+    elif word.startswith("-"):
+        """
+        turns -xyz into -x, -y, -z
+        """
         for flag in word[1:]:
             yield "-" + flag
     else:
