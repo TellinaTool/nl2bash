@@ -13,7 +13,7 @@ import bashlex.ast
 
 DEBUG = False
 
-COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d)+$")
+COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d+)$")
 def split_flags(cmd, word):
     if cmd == "tar" and all(c in "xtcrujzvf" for c in word):
         for c in word:
@@ -95,5 +95,6 @@ if __name__ == "__main__":
     test_split_flags("tar", "czvf", ["-c", "-z", "-v", "-f"])
     test_split_flags("find", "-iname", ["-iname"])
     test_split_flags("xargs", "-n1", ["-n", "1"])
+    test_split_flags("nice", "-n20", ["-n", "20"])
     for cmd in parse(" ".join(sys.argv[1:])):
         print(cmd)
