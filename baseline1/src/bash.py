@@ -74,7 +74,7 @@ def parse(code):
                     args = []
                     for part in parts[1:]:
                         if part.kind == "word":
-                            if cmd == "xargs" and part.word in ["find", "mv", "cp", "tar", "rm"]:
+                            if cmd in ["xargs", "time", "nohup", "nice"] and part.word in ["find", "mv", "cp", "tar", "rm"]:
                                 self.simplecmds.append([cmd] + args)
                                 args = []
                                 cmd = part.word
