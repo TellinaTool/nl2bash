@@ -57,8 +57,8 @@ def parse(code):
     """
     try:
         parts = bashlex.parse(code)
-    except:
-        if DEBUG: print("warning: failed to parse {}".format(repr(code)), file=sys.stderr)
+    except Exception as e:
+        if DEBUG: print("warning: failed to parse {} ({}: {})".format(repr(code), type(e), e), file=sys.stderr)
         return
 
     if DEBUG: print("parsed: {}".format(repr(code)), file=sys.stderr)
