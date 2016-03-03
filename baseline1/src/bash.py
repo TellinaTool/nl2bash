@@ -15,6 +15,7 @@ DEBUG = False
 
 COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d+)$")
 def split_flags(cmd, word):
+
     if cmd == "tar" and all(c in "xtcrujzvf" for c in word):
         for c in word:
             yield "-" + c
@@ -41,6 +42,7 @@ def split_flags(cmd, word):
             yield word
     else:
         yield word
+
 
 def test_split_flags(cmd, flag, expected):
     print(" --> testing flag splitting on {} {}... ".format(cmd, flag), end="")
