@@ -152,7 +152,7 @@ class Parser(object):
                         cell.addTermToLastPhrase(term, (last_cell, last_group),
                                                  self.score_tool(term))
                         cell_group.addCell(cell)
-
+            # TODO: set backtracking right
             print(cell.term, file=sys.stderr)
             self.enumerator.push(cell.term)
 
