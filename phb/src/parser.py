@@ -12,12 +12,14 @@ from grammar import *
 class Cell(object):
     def __init__(self, t, b, score, words):
         self.phrases = [t]
+        self.size = 1
         self.backpointer = b
         self.score = score
         self.uncovered_words = set(words)
 
     def addTerm(self, t, b, (s, w_covered)):
         self.phrases.append(t)
+        self.size += 1
         self.backpointer = b
         self.score += s
         for w in w_covered:
@@ -25,6 +27,7 @@ class Cell(object):
 
     def addTermToLastPhrase(self, t, b, (s, w_covered)):
         self.phrases[-1].append(t)
+        self.size += 1
         self.backpointer = b
         self.score += s
         for w in w_covered:
@@ -62,20 +65,31 @@ class CellGroup(object):
                 self.max_cell = c
                 self.max_score = c.score
 
+    def commandLen(self):
+        return self.cells[0].size
+
     def tailTerm(self):
         if len(self.cells) < 1:
             print("Error: empty cell group doesn't have a tail token", file=sys.stderr)
             sys.exit(1)
         return self.cells[0].phrases[-1][-1]
 
+    def toString(self):
+        return self.cells[0].toString()
+
 class Parser(object):
-    def __init__(self, n):
+    """
+    :param n:   upperbound on the size of the phrases considered
+    :param cl:  upperbound on the length of possible commands
+    """
+    def __init__(self, n, cl):
         self.max_phrase_length = n
         self.enumerator = None
         self.P2TScores = None
         self.T2PScores = None
         self.redundant_word_score = 1e-5
         self.ungrounded_token_score = -1e-5
+        self.max_command_length = cl
 
     def make_grammar(self, grammarFile):
         simple_grammar = load_syntax(grammarFile)
@@ -131,7 +145,7 @@ class Parser(object):
             stack.append(CellGroup(cell))
 
         while stack:
-            last_group = stack.pop()
+            last_group = stack[-1]
 
             # enumerating
             term = last_group.tailTerm()
@@ -165,7 +179,7 @@ class Parser(object):
 
 if __name__ == "__main__":
     nl_cmd = sys.argv[1]
-    parser = Parser(2)
+    parser = Parser(2, 10)
     parser.make_grammar(["../../data/primitive_cmds_grammar.json"])
     parser.make_phrase_table("../../data/phrase-table.gz")
     parser.parse(nl_cmd)
