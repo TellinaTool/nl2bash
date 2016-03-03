@@ -71,84 +71,70 @@
 			"arg_type": "Unknown",
 			"isList": true
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "true",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "u"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "f"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "false",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "l"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "s"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "B"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "not",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
+				}, {
+					"type": "argument_option",
+					"arg_name": "findexp",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "long_flag_option",
+					"flag_name": "Bmin",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -161,26 +147,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "B"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "Bnewer",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -193,70 +169,52 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "B"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "Btime",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
-					"arg_name": "time",
-					"arg_type": "Time",
+					"arg_name": "n",
+					"arg_type": "Number",
 					"isList": false
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "acl",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "c"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "l"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "amin",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -269,26 +227,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "anewer",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -301,20 +249,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "c"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "cmin",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -327,26 +271,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "c"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "cnewer",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -359,130 +293,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "c"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
-				}, {
-					"type": "argument_option",
-					"arg_name": "time",
-					"arg_type": "Time",
-					"isList": false
-				}]
-			}
-		}, {
-			"type": "optional_option",
-			"cmd": {
-				"type": "flag_option",
-				"flag_name": "d"
-			}
-		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "l"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
-		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "h"
-				}
-			}]
-		}, {
-			"type": "optional_option",
-			"cmd": {
-				"type": "compound_options",
-				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "d"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "ctime",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -491,63 +311,98 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "d",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "m"
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "delete",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "depth",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "y"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "f"
-					}, {
-						"type": "flag_option",
-						"flag_name": "s"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "y"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "depth",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "empty",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
+				}
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "long_flag_option",
+					"flag_name": "fstype",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "type",
@@ -560,17 +415,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "g"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "d"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "gid",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "gname",
@@ -583,23 +437,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "g"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "o"
-					}, {
-						"type": "flag_option",
-						"flag_name": "u"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "group",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "gname",
@@ -608,147 +455,34 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "ignore_readdir_race",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "g"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "_"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "_"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "c"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "ilname",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -761,26 +495,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "ilname",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -793,23 +517,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "iname",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -822,20 +539,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "u"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "inum",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -848,23 +561,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "ipath",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -877,26 +583,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "g"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "x"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "iregex",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -909,38 +605,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}, {
-						"type": "flag_option",
-						"flag_name": "o"
-					}, {
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "iwholename",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -953,23 +627,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "k"
-					}, {
-						"type": "flag_option",
-						"flag_name": "s"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "links",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -982,23 +649,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "lname",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1007,51 +667,34 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "l"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "ls",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "s"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "x"
-					}, {
-						"type": "flag_option",
-						"flag_name": "d"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "maxdepth",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1064,32 +707,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "d"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "mindepth",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1102,20 +729,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "mmin",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1128,26 +751,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "mnewer",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -1156,60 +769,34 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "m"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "mount",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "u"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "mtime",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1222,20 +809,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "name",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1248,23 +831,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "newer",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -1277,29 +853,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "X"
-					}, {
-						"type": "flag_option",
-						"flag_name": "Y"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "newerXY",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -1308,276 +871,76 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "nogroup",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "g"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "u"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "noignore_readdir_race",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "g"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "_"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "_"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "c"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "noleaf",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "l"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "f"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "nouser",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "u"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "s"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "path",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1590,20 +953,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "perm",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "mode",
@@ -1612,132 +971,62 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "print",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "print0",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "0"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "prune",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "u"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "g"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "x"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "regex",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1750,32 +1039,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "s"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "f"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "samefile",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "name",
@@ -1788,24 +1061,20 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "s"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "z"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "size",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
-					"arg_name": "size",
-					"arg_type": "Size",
+					"arg_name": "n",
+					"arg_type": "Number",
 					"isList": false
 				}]
 			}
@@ -1814,20 +1083,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "y"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "type",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "t",
@@ -1840,17 +1105,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "u"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "d"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "uid",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "uname",
@@ -1863,20 +1127,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "u"
-					}, {
-						"type": "flag_option",
-						"flag_name": "s"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "user",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "uname",
@@ -1889,35 +1149,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}, {
-						"type": "flag_option",
-						"flag_name": "o"
-					}, {
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "wholename",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1926,72 +1167,34 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "x"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "xattr",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "x"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "xattrname",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "name",
@@ -2071,84 +1274,70 @@
 				"isList": true
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "true",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "u"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "f"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "false",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "l"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "s"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "B"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "not",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
+				}, {
+					"type": "argument_option",
+					"arg_name": "findexp",
+					"arg_type": "Unknown",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "long_flag_option",
+					"flag_name": "Bmin",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -2161,26 +1350,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "B"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "Bnewer",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -2193,70 +1372,52 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "B"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "Btime",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
-					"arg_name": "time",
-					"arg_type": "Time",
+					"arg_name": "n",
+					"arg_type": "Number",
 					"isList": false
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "acl",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "c"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "l"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "amin",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -2269,26 +1430,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "anewer",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -2301,20 +1452,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "c"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "cmin",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -2327,26 +1474,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "c"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "cnewer",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -2359,130 +1496,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "c"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
-				}, {
-					"type": "argument_option",
-					"arg_name": "time",
-					"arg_type": "Time",
-					"isList": false
-				}]
-			}
-		}, {
-			"type": "optional_option",
-			"cmd": {
-				"type": "flag_option",
-				"flag_name": "d"
-			}
-		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "l"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
-		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "h"
-				}
-			}]
-		}, {
-			"type": "optional_option",
-			"cmd": {
-				"type": "compound_options",
-				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "d"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "ctime",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -2491,63 +1514,98 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "d",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "m"
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "delete",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "depth",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "y"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "f"
-					}, {
-						"type": "flag_option",
-						"flag_name": "s"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "y"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "depth",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
+				}, {
+					"type": "argument_option",
+					"arg_name": "n",
+					"arg_type": "Number",
+					"isList": false
+				}]
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "empty",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
+				}
+			}
+		}, {
+			"type": "optional_option",
+			"cmd": {
+				"type": "compound_options",
+				"commands": [{
+					"type": "long_flag_option",
+					"flag_name": "fstype",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "type",
@@ -2560,17 +1618,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "g"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "d"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "gid",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "gname",
@@ -2583,23 +1640,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "g"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "o"
-					}, {
-						"type": "flag_option",
-						"flag_name": "u"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "group",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "gname",
@@ -2608,147 +1658,34 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "ignore_readdir_race",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "g"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "_"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "_"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "c"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "ilname",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -2761,26 +1698,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "ilname",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -2793,23 +1720,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "iname",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -2822,20 +1742,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "u"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "inum",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -2848,23 +1764,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "ipath",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -2877,26 +1786,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "g"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "x"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "iregex",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -2909,38 +1808,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}, {
-						"type": "flag_option",
-						"flag_name": "o"
-					}, {
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "iwholename",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -2953,23 +1830,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "k"
-					}, {
-						"type": "flag_option",
-						"flag_name": "s"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "links",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -2982,23 +1852,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "lname",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -3007,51 +1870,34 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "l"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "ls",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "s"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "x"
-					}, {
-						"type": "flag_option",
-						"flag_name": "d"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "maxdepth",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -3064,32 +1910,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "d"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "mindepth",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -3102,20 +1932,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "mmin",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -3128,26 +1954,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "mnewer",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -3156,64 +1972,38 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "m"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "mount",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "u"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "mtime",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
-					"arg_name": "time",
-					"arg_type": "Time",
+					"arg_name": "n",
+					"arg_type": "Number",
 					"isList": false
 				}]
 			}
@@ -3222,20 +2012,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "name",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -3248,23 +2034,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "newer",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -3277,29 +2056,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "X"
-					}, {
-						"type": "flag_option",
-						"flag_name": "Y"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "newerXY",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -3308,276 +2074,76 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "nogroup",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "g"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "u"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "noignore_readdir_race",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "g"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "_"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "d"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "_"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "c"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "noleaf",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "l"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "f"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "nouser",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "o"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "u"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "s"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "path",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -3590,20 +2156,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "perm",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "mode",
@@ -3612,132 +2174,62 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "print",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "print0",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "i"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "0"
-				}
-			}]
+			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "p"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "prune",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "u"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "n"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "e"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "g"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "x"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "regex",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -3750,32 +2242,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "s"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "f"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "samefile",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "name",
@@ -3788,24 +2264,20 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "s"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "z"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "size",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
-					"arg_name": "size",
-					"arg_type": "Size",
+					"arg_name": "n",
+					"arg_type": "Number",
 					"isList": false
 				}]
 			}
@@ -3814,20 +2286,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "y"
-					}, {
-						"type": "flag_option",
-						"flag_name": "p"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "type",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "t",
@@ -3840,17 +2308,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "u"
-					}, {
-						"type": "flag_option",
-						"flag_name": "i"
-					}, {
-						"type": "flag_option",
-						"flag_name": "d"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "uid",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "uname",
@@ -3863,20 +2330,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "u"
-					}, {
-						"type": "flag_option",
-						"flag_name": "s"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "user",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "uname",
@@ -3889,35 +2352,16 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "w"
-					}, {
-						"type": "flag_option",
-						"flag_name": "h"
-					}, {
-						"type": "flag_option",
-						"flag_name": "o"
-					}, {
-						"type": "flag_option",
-						"flag_name": "l"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "wholename",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -3926,72 +2370,34 @@
 				}]
 			}
 		}, {
-			"type": "compound_options",
-			"commands": [{
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "x"
+			"type": "optional_option",
+			"cmd": {
+				"type": "long_flag_option",
+				"flag_name": "xattr",
+				"arg_exists": false,
+				"arg_optional": false,
+				"argument": {
+					"type": "argument_option",
+					"arg_name": null,
+					"arg_type": null,
+					"isList": false
 				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "a"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "t"
-				}
-			}, {
-				"type": "optional_option",
-				"cmd": {
-					"type": "flag_option",
-					"flag_name": "r"
-				}
-			}]
+			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "compound_options",
-					"commands": [{
-						"type": "flag_option",
-						"flag_name": "x"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "t"
-					}, {
-						"type": "flag_option",
-						"flag_name": "r"
-					}, {
-						"type": "flag_option",
-						"flag_name": "n"
-					}, {
-						"type": "flag_option",
-						"flag_name": "a"
-					}, {
-						"type": "flag_option",
-						"flag_name": "m"
-					}, {
-						"type": "flag_option",
-						"flag_name": "e"
-					}]
+					"type": "long_flag_option",
+					"flag_name": "xattrname",
+					"arg_exists": false,
+					"arg_optional": false,
+					"argument": {
+						"type": "argument_option",
+						"arg_name": null,
+						"arg_type": null,
+						"isList": false
+					}
 				}, {
 					"type": "argument_option",
 					"arg_name": "name",
