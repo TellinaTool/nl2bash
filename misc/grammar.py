@@ -18,84 +18,71 @@ class Grammar(object):
         self.kind = kind
         self.args = args
 
-class Enumerator(object):
-    EOF = 0
-    HOLE = 1
-
-    def __init__(self, grammar, *args):
-        if isinstance(grammar, Grammar):
-            self.kind = grammar.kind
-            self.arbitrary = False
-            self.tok = None
-            self.sub_enums = []
-            if grammar.kind == Grammar.EMPTY:
-                pass
-            elif grammar.kind == Grammar.CASES:
-                self.sub_enums = [Enumerator(g) for g in grammar.args]
-            elif grammar.kind == Grammar.SEQ:
-                self.sub_enums = [Enumerator(g) for g in grammar.args]
-            elif grammar.kind == Grammar.PERM:
-                self.sub_enums = [Enumerator(g) for g in grammar.args]
-            elif grammar.kind == Grammar.EXACT:
-                self.tok = grammar.args[0]
-            elif grammar.kind == Grammar.HOLE:
-                self.arbitrary = True
-            else:
-                raise Exception("unknown kind {}".format(grammar.kind))
+class EnumeratorState(object):
+    @staticmethod
+    def from_grammar(grammar):
+        if grammar.kind == Grammar.EMPTY:
+            return EnumeratorState(Grammar.EMPTY)
+        elif grammar.kind in [Grammar.CASES, Grammar.SEQ, Grammar.PERM]:
+            return EnumeratorState(grammar.kind, [EnumeratorState.from_grammar(g) for g in grammar.args])
+        elif grammar.kind == Grammar.EXACT:
+            return EnumeratorState(Grammar.EXACT, tok=grammar.args[0])
+        elif grammar.kind == Grammar.HOLE:
+            return EnumeratorState(Grammar.HOLE)
         else:
-            assert grammar in [Grammar.CASES, Grammar.SEQ, Grammar.PERM]
-            self.kind = grammar
-            self.sub_enums = args
+            raise Exception("unknown kind {}".format(grammar.kind))
+
+    def __init__(self, kind, sub_states=None, tok=None):
+        self.kind = kind
+        self.sub_states = sub_states or []
+        self.tok = tok
 
     def __str__(self):
         if self.kind == Grammar.EMPTY:
             return "e"
         elif self.kind == Grammar.CASES:
-            return "Cases({})".format(" | ".join(str(e) for e in self.sub_enums))
+            return "Cases({})".format(" | ".join(str(e) for e in self.sub_states))
         elif self.kind == Grammar.SEQ:
-            return " ".join(str(e) for e in self.sub_enums)
+            return " ".join(str(e) for e in self.sub_states)
         elif self.kind == Grammar.PERM:
-            return "Perm({})".format(", ".join(str(e) for e in self.sub_enums))
+            return "Perm({})".format(", ".join(str(e) for e in self.sub_states))
         elif self.kind == Grammar.EXACT:
             return repr(self.tok)
         elif self.kind == Grammar.HOLE:
             return "_"
 
-    # alter state
+    # token -> EnumeratorState
     def push(self, token):
         assert token in self._legal_tokens(), "grammar {} cannot accept token {}".format(self, token)
         if self.kind == Grammar.EMPTY:
             pass
         elif self.kind == Grammar.CASES:
-            self.sub_enums = [e for e in self.sub_enums if e.allows(token)]
-            for e in self.sub_enums:
-                e.push(token)
+            return EnumeratorState(Grammar.CASES, [e.push(token) for e in self.sub_states if e.allows(token)])
         elif self.kind == Grammar.SEQ:
             i = 0
+            new_state = None
             while True:
-                if self.sub_enums[i].allows(token):
-                    self.sub_enums[i].push(token)
+                if self.sub_states[i].allows(token):
+                    new_state = self.sub_states[i].push(token)
                     break
                 else:
-                    assert self.sub_enums[i].allow_eof()
+                    assert self.sub_states[i].allow_eof()
                     i += 1
-            self.sub_enums = self.sub_enums[i:]
-            if not self.sub_enums:
-                self.kind = Grammar.EMPTY # consume this production
+            if new_state:
+                return EnumeratorState(Grammar.SEQ, [new_state] + self.sub_states[i+1:])
+            else:
+                return EnumeratorState(Grammar.EMPTY, [])
         elif self.kind == Grammar.PERM:
-            pos = [e for e in self.sub_enums if e.allows(token)]
-            neg = [e for e in self.sub_enums if not e.allows(token)]
-            for e in pos:
-                e.push(token)
+            pos = [e.push(token) for e in self.sub_states if e.allows(token)]
+            neg = [e for e in self.sub_states if not e.allows(token)]
             assert len(pos) > 0
-            e1 = pos[0] if len(pos) == 1 else Enumerator(Grammar.PERM, *pos)
-            e2 = Grammar.EMPTY if len(neg) == 0 else neg[0] if len(neg) == 1 else Enumerator(Grammar.PERM, *neg)
-            self.kind = Grammar.SEQ
-            self.sub_enums = [e1, e2]
+            e1 = pos[0] if len(pos) == 1 else EnumeratorState(Grammar.PERM, pos)
+            e2 = Grammar.EMPTY if len(neg) == 0 else neg[0] if len(neg) == 1 else EnumeratorState(Grammar.PERM, neg)
+            return EnumeratorState(Grammar.SEQ, [e1, e2])
         elif self.kind == Grammar.EXACT:
-            self.kind = Grammar.EMPTY # consume this production
+            return EnumeratorState(Grammar.EMPTY) # consume this production
         elif self.kind == Grammar.HOLE:
-            self.kind = Grammar.EMPTY # consume this production
+            return EnumeratorState(Grammar.EMPTY) # consume this production
         else:
             raise Exception("unknown kind {}".format(self.kind))
 
@@ -110,11 +97,11 @@ class Enumerator(object):
         if self.kind == Grammar.EMPTY:
             yield Enumerator.EOF
         elif self.kind in [Grammar.CASES, Grammar.PERM]:
-            for enum in self.sub_enums:
+            for enum in self.sub_states:
                 for tok in enum._legal_tokens():
                     yield tok
         elif self.kind == Grammar.SEQ:
-            for enum in self.sub_enums:
+            for enum in self.sub_states:
                 eof = False
                 for tok in enum._legal_tokens():
                     if tok == Enumerator.EOF:
@@ -133,6 +120,41 @@ class Enumerator(object):
             raise Exception("unknown kind {}".format(self.kind))
     def legal_tokens(self):
         return set(self._legal_tokens())
+
+class Enumerator(object):
+    EOF = 0
+    HOLE = 1
+
+    def __init__(self, arg):
+        if isinstance(arg, Grammar):
+            self.state_stack = [EnumeratorState.from_grammar(arg)]
+        elif isinstance(arg, list):
+            self.state_stack = list(arg)
+        else:
+            raise Exception("cannot make enumerator of {}".format(arg))
+
+    def __str__(self):
+        return str(self.state_stack[-1])
+
+    # alter state
+    def push(self, token):
+        self.state_stack.append(self.state_stack[-1].push(token))
+    def pop(self):
+        del self.state_stack[-1]
+
+    # make a fresh copy of this enumerator
+    def copy(self):
+        return Enumerator(self.state_stack)
+
+    # query state
+    def allow_eof(self):
+        return self.state_stack[-1].allow_eof()
+    def allow_arbitrary(self):
+        return self.state_stack[-1].allow_arbitrary()
+    def allows(self, token):
+        return self.state_stack[-1].allows(token)
+    def legal_tokens(self):
+        return self.state_stack[-1].legal_tokens()
 
 def make_grammar_from_options(x):
     if x["type"] == "compound_options":
