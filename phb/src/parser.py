@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import collections
+import copy
 import gzip
 import sys
 sys.path.append("../../misc")
@@ -15,15 +16,57 @@ class Cell(object):
         self.score = score
         self.uncovered_words = set(words)
 
-    def addTerm(self, t, b, s):
+    def addTerm(self, t, b, (s, w_covered)):
         self.phrases.append(t)
         self.backpointer = b
         self.score += s
+        for w in w_covered:
+            self.uncovered_words.remove(w)
 
-    def addTermToLastPhrase(self, t, b, s):
+    def addTermToLastPhrase(self, t, b, (s, w_covered)):
         self.phrases[-1].append(t)
         self.backpointer = b
         self.score += s
+        for w in w_covered:
+            self.uncovered_words.remove(w)
+
+    def finalizeScoring(self, redundant_word_score):
+        self.score -= redundant_word_score * len(self.uncovered_words)
+
+    def toString(self):
+        return ' '.join(self.phrases)
+
+# A cell group contains different chunking of the same partial command
+class CellGroup(object):
+    def __init__(self, c):
+        self.cells = []
+        self.max_cell = None
+        self.max_score = 0.0
+        if c:
+            self.cells.append(c)
+            self.max_cell = c
+            self.max_score = c.score
+
+    def addCell(self, c):
+        self.cells.append(c)
+        if c.score > self.max_score:
+            self.max_cell = c
+            self.max_score = c.score
+
+    def finalizeScoring(self, redundant_word_score):
+        for c in self.cells:
+            c.finalizeScoring(redundant_word_score)
+        self.max_score = 0.0
+        for c in self.cells:
+            if c.score > self.max_score:
+                self.max_cell = c
+                self.max_score = c.score
+
+    def tailTerm(self):
+        if len(self.cells) < 1:
+            print("Error: empty cell group doesn't have a tail token", file=sys.stderr)
+            sys.exit(1)
+        return self.cells[0].phrases[-1][-1]
 
 class Parser(object):
     def __init__(self, n):
@@ -31,7 +74,7 @@ class Parser(object):
         self.enumerator = None
         self.P2TScores = None
         self.T2PScores = None
-        self.redundant_phrase_score = 1e-5
+        self.redundant_word_score = 1e-5
         self.ungrounded_token_score = -1e-5
 
     def make_grammar(self, grammarFile):
@@ -65,29 +108,60 @@ class Parser(object):
                     covered_words.add(word)
         return max, covered_words
 
-    def isActive(self, cell):
+    def openToMerge(self, cell):
+        if len(cell.phrases) == 0:
+            # empty cell
+            return False
         return len(cell.phrases[-1]) < self.max_phrase_length
 
     def parse(self, sent):
-        words = sent.split()
+        self.words = sent.split()
 
         # DFS
         start_cell = Cell("__START_SYMBOL__", None,
-                          self.score_tool("__START_SYMBOL__"), words)
+                          self.score_tool("__START_SYMBOL__"), self.words)
+        start_group = CellGroup(start_cell)
         last_cell = start_cell
-        final_cells = []
-        stack = [Cell(term, last_cell, self.score_tool(term), words) \
-                 for term in self.enumerator.legal_tokens()]
+        last_group = start_group
+        final_group = []
+        stack = []
+        for term in self.enumerator.legal_tokens():
+            cell = copy.deepcopy(last_cell)
+            cell.addTerm(term, (last_cell, last_group), self.score_tool(term))
+            stack.append(CellGroup(cell))
 
         while stack:
-            term = stack.pop()
+            last_group = stack.pop()
 
             # enumerating
+            term = last_group.tailTerm()
             if term == "*":
                 self.enumerator.push(Enumerator.HOLE)
-            print(term, file=sys.stderr)
-            self.enumerator.push(term)
-        self.enumerator.push(Enumerator.EOF)
+            else:
+                self.enumerator.push(term)
+
+            for term in self.enumerator.legal_tokens():
+                cell_group = CellGroup()
+                # add all possible chunkings
+                for last_cell in last_group:
+                    cell = copy.deepcopy(last_cell)
+                    cell.addTerm(term, (last_cell, last_group), self.score_tool(term))
+                    cell_group.addCell(cell)
+                    if self.openToMerge(last_cell):
+                        cell = copy.deepcopy(last_cell)
+                        cell.addTermToLastPhrase(term, (last_cell, last_group),
+                                                 self.score_tool(term))
+                        cell_group.addCell(cell)
+
+            print(cell.term, file=sys.stderr)
+            self.enumerator.push(cell.term)
+
+        # Rank and print all parses
+        for cell_group in final_group:
+            cell_group.finalizeScoring(self.redundant_word_score)
+        for cell_group in sorted(final_group, key=lambda x:x.max_score, reverse=True):
+            print("{}:\t\t{}".format(cell_group.max_cell.toString(), cell_group.max_score),
+                  file=sys.stderr)
 
 if __name__ == "__main__":
     nl_cmd = sys.argv[1]
