@@ -55,7 +55,7 @@ class EnumeratorState(object):
     def push(self, token):
         assert token in self._legal_tokens(), "grammar {} cannot accept token {}".format(self, token)
         if self.kind == Grammar.EMPTY:
-            pass
+            return self
         elif self.kind == Grammar.CASES:
             return EnumeratorState(Grammar.CASES, [e.push(token) for e in self.sub_states if e.allows(token)])
         elif self.kind == Grammar.SEQ:
