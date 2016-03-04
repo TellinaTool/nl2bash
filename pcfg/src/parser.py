@@ -10,6 +10,7 @@ sys.path.append("../../misc")
 from grammar import *
 
 class Rule(object):
+
     def __init__(self, parent, child):
         self.parent = parent
         self.child = child
@@ -19,59 +20,60 @@ class Rule(object):
 
 class Cell(object):
 
-    def __init__(self, t, bp, s, w_uc):
+    def __init__(self, t, bp, (s, w_c), w_uc):
         """
-        :member terms: new term string assumed by this cell
-        :member backpointer: pointer to parent cell
-        :member score: score of the partial command parse up to this cell
-        :member left_nl_words: uncovered natural language words up to this cell
+        :member terms:          new term string assumed by this cell
+        :member backpointer:    pointer to parent cell
+        :member isEOF:          if cell is terminable
+        :member score:          score of the partial command parse up to this cell
+        :member left_nl_words:  uncovered natural language words up to this cell
+        :member features:       features of the partial command parse up to this cell
         """
         self.term = t
         self.backpointer = bp
-        self.rules = [Rule(bp.term, t)]
+        self.length = bp.length + 1 if bp else 0
         self.score = s
         self.isEOF = False
         self.left_nl_words = set(w_uc)
+        for w in w_c:
+            if w in self.left_nl_words:
+                self.left_nl_words.remove(w)
 
-    def addTerm(self, t, b, (s, w_covered)):
-        self.phrases.append(t)
-        self.size += 1
-        self.backpointer = b
-        self.score += s
-        for w in w_covered:
-            self.uncovered_words.remove(w)
-
-    def addTermToLastPhrase(self, t, b, (s, w_covered)):
-        self.phrases[-1].append(t)
-        self.size += 1
-        self.backpointer = b
-        self.score += s
-        for w in w_covered:
-            self.uncovered_words.remove(w)
+        self.features = []
 
     def finalizeScoring(self, redundant_word_score):
-        self.score -= redundant_word_score * len(self.uncovered_words)
+        self.score -= redundant_word_score * len(self.left_nl_words)
 
-    def toString(self):
-        return ' '.join(self.phrases)
+    def genCommand(self):
+        if self.term == Enumerator.HOLE:
+            command = ["*"]
+        else:
+            command = [self.term]
+        bp = self.backpointer
+        while (bp):
+            if bp.term == Enumerator.HOLE:
+                command.insert(0, "*")
+            else:
+                command.insert(0, bp.term)
+            bp = bp.backpointer
+        print("{}".format(command), file=sys.stderr)
+        return ' '.join(command)
 
-class Parser(object):
-    """
-    :param n:   upperbound on the size of the phrases considered
-    :param cl:  upperbound on the length of possible commands
-    """
-    def __init__(self, n, cl):
-        self.enumerator = None
+class Parser(Enumerator):
+
+    def __init__(self, grammar, min_cl=2, max_cl=10):
+        """
+        :param grammar:
+        :param min_cl: minimum number of tokens in command
+        :param max_cl: maximum number of tokens in command
+        """
+        Enumerator.__init__(self, grammar)
         self.P2TScores = None
         self.T2PScores = None
         self.redundant_word_score = 1e-5
         self.ungrounded_token_score = -1e-5
-        self.max_command_length = cl
-
-    def make_grammar(self, grammarFile):
-        simple_grammar = load_syntax(grammarFile)
-        grammar = make_full_grammar(simple_grammar, max_pipeline_depth=3)
-        self.enumerator = Enumerator(grammar)
+        self.min_command_length = min_cl
+        self.max_command_length = max_cl
 
     def make_phrase_table(self, inputFile):
         self.P2TScores = collections.defaultdict(dict)
@@ -87,11 +89,11 @@ class Parser(object):
                 self.P2TScores[nl_phrase][cmd_snippet] = lex_nl_cmd
                 self.T2PScores[cmd_snippet][nl_phrase] = lex_nl_cmd
 
-    def score_tool(self, rule, words):
-        term = rule.child                 #TODO: consider other methods for rule scoring
+    def score_tool(self, term, words):
+        #TODO: consider other methods for rule scoring
         covered_words = set()
         if not term in self.T2PScores:
-            return self.ungrounded_token_score
+            return self.ungrounded_token_score, words
         max = 0.0
         for word in words:
             if word in self.T2PScores[term]:
@@ -103,15 +105,59 @@ class Parser(object):
     def parse(self, sent):
         words = sent.split()
 
-        # Entry cell_table[i] stores the parseTree for command tokens [0 ... i]
-        cell_table = collections.defaultdict(dict)
+        # DFS
 
+        final_cells = []                # tail cells of all legal commands
 
+        stack = []
+        for term in self.legal_tokens():
+            score, w_c = self.score_tool(term, words)
+            cell = Cell(term, None, (score, w_c), words)
+            stack.append(cell)
 
+        while(stack):
+            # choose term
+            cell = stack.pop()
+
+            # update enumerator
+            term = cell.term
+            if term == "*":
+                self.push(Enumerator.HOLE)
+            else:
+                self.push(term)
+
+            # yield legal command
+            if cell.length > self.min_command_length and self.allow_eof():
+                final_cells.append(cell)
+                # print("{}:\t\t{}".format(cell.genCommand(), cell.score),
+                #   file=sys.stderr)
+
+            # maximum depth reached, backtrack
+            if cell.length == self.max_command_length:
+                self.pop()
+
+            # no options left, backtrack
+            if not self.legal_tokens():
+                self.pop()
+
+            # look ahead one step
+            for term in self.legal_tokens():
+                child_cell = Cell(term, cell, self.score_tool(term, words), cell.left_nl_words)
+                stack.append(child_cell)
+
+        # Rank and print all parses
+        for cell in final_cells:
+            cell.finalizeScoring(self.redundant_word_score)
+        for cell in sorted(final_cells, key=lambda x:x.score, reverse=True):
+            print("{}:\t\t{}".format(cell.genCommand(), cell.score),
+                  file=sys.stderr)
 
 if __name__ == "__main__":
     nl_cmd = sys.argv[1]
-    parser = Parser(2, 10)
-    parser.make_grammar(["../../data/primitive_cmds_grammar.json"])
+
+    simple_grammar = load_syntax([os.path.join(os.path.dirname(__file__), "..", "..", "data", "primitive_cmds_grammar.json")])
+    grammar = make_full_grammar(simple_grammar, max_pipeline_depth=3)
+
+    parser = Parser(grammar)
     parser.make_phrase_table("../../data/phrase-table.gz")
     parser.parse(nl_cmd)
