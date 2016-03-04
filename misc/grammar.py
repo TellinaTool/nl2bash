@@ -77,7 +77,7 @@ class EnumeratorState(object):
             neg = [e for e in self.sub_states if not e.allows(token)]
             assert len(pos) > 0
             e1 = pos[0] if len(pos) == 1 else EnumeratorState(Grammar.PERM, pos)
-            e2 = Grammar.EMPTY if len(neg) == 0 else neg[0] if len(neg) == 1 else EnumeratorState(Grammar.PERM, neg)
+            e2 = EnumeratorState(Grammar.EMPTY) if len(neg) == 0 else neg[0] if len(neg) == 1 else EnumeratorState(Grammar.PERM, neg)
             return EnumeratorState(Grammar.SEQ, [e1, e2])
         elif self.kind == Grammar.EXACT:
             return EnumeratorState(Grammar.EMPTY) # consume this production
