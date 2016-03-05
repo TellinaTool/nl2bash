@@ -57,7 +57,7 @@ class Cell(object):
                 command.insert(0, bp.term)
             bp = bp.backpointer
         print("{}".format(command), file=sys.stderr)
-        return ' '.join(command)
+        return ' '.join(command[1:])
 
 class Parser(Enumerator):
 
@@ -105,45 +105,12 @@ class Parser(Enumerator):
     def parse(self, sent):
         words = sent.split()
 
-        # DFS
-
+        start_cell = Cell("__START_SYMBOL__", None,
+                          (0.0, set()), words)
         final_cells = []                # tail cells of all legal commands
 
-        stack = []
-        for term in self.legal_tokens():
-            score, w_c = self.score_tool(term, words)
-            cell = Cell(term, None, (score, w_c), words)
-            stack.append(cell)
-
-        while(stack):
-            # choose term
-            cell = stack.pop()
-
-            # update enumerator
-            term = cell.term
-            if term == "*":
-                self.push(Enumerator.HOLE)
-            else:
-                self.push(term)
-
-            # yield legal command
-            if cell.length > self.min_command_length and self.allow_eof():
-                final_cells.append(cell)
-                # print("{}:\t\t{}".format(cell.genCommand(), cell.score),
-                #   file=sys.stderr)
-
-            # maximum depth reached, backtrack
-            if cell.length == self.max_command_length:
-                self.pop()
-
-            # no options left, backtrack
-            if not self.legal_tokens():
-                self.pop()
-
-            # look ahead one step
-            for term in self.legal_tokens():
-                child_cell = Cell(term, cell, self.score_tool(term, words), cell.left_nl_words)
-                stack.append(child_cell)
+        # DFS
+        self.dfs(start_cell, words, final_cells)
 
         # Rank and print all parses
         for cell in final_cells:
@@ -151,6 +118,47 @@ class Parser(Enumerator):
         for cell in sorted(final_cells, key=lambda x:x.score, reverse=True):
             print("{}:\t\t{}".format(cell.genCommand(), cell.score),
                   file=sys.stderr)
+
+    def dfs(self, cell, words, final_cells):
+
+        term = cell.term
+
+        # update enumerator
+        if term == "__START_SYMBOL__":
+            pass
+        else:
+            enum_term = Enumerator.HOLE if term == "*" else term
+            if self.allows(enum_term):
+                self.push(enum_term)
+            else:
+                return
+
+        # yield legal command
+        if cell.length > self.min_command_length and self.allow_eof():
+            final_cells.append(cell)
+            print("{}:\t\t{}".format(cell.genCommand(), cell.score),
+              file=sys.stderr)
+            return
+
+        # maximum depth reached, backtrack
+        if cell.length == self.max_command_length:
+            return
+
+        # no options left, backtrack
+        if not self.legal_tokens():
+            return
+
+        # look ahead one step
+        for term in self.legal_tokens():
+            # skip <EOF> character
+            if term == Enumerator.EOF:
+                continue
+                #TODO: handle compound commands
+            if term == "|":
+                continue
+            child_cell = Cell(term, cell, self.score_tool(term, words), cell.left_nl_words)
+            self.dfs(child_cell, words, final_cells)
+
 
 if __name__ == "__main__":
     nl_cmd = sys.argv[1]
