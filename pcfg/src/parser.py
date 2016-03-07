@@ -185,7 +185,10 @@ if __name__ == "__main__":
                                                "..", "..", "data", "primitive_cmds_grammar.json")])
     grammar = make_full_grammar(simple_grammar, max_pipeline_depth=3)
 
+    # minimum number of tokens in command = 2
+    # maximum number of tokens in command = 3
     parser = Parser(grammar, 2, 3)
     parser.make_phrase_table(os.path.join(os.path.dirname(__file__),
                                            "..", "..", "data", "phrase-table.gz"))
+
     parser.parse(nl_cmd)
