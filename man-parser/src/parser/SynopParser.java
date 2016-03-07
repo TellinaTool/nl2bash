@@ -7,6 +7,12 @@ import cmd.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class SynopParser implements SynopParserConstants {
 
@@ -65,7 +71,20 @@ Cmd.Ar ar = new Cmd.Ar(((Cmd.Ar)result).arg_name); ar.isList = true; result = ar
     case FLAG:{
       s = jj_consume_token(FLAG);
 String flagName = s.toString().substring(s.toString().indexOf("-") + 1);
-            if (flagName.length() == 1)
+
+            boolean belongsToWierdData = false;
+            try {
+                List<String> lines = Files.readAllLines(Paths.get("./wierddata"));
+                for (String u : lines) {
+                    if (u.startsWith("-" + flagName)) {
+                        belongsToWierdData = true;
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (flagName.length() == 1 || belongsToWierdData)
                 result = new Cmd.Fl(s.toString());
             else {
                 List<Cmd.CmdOp> flags = new ArrayList<Cmd.CmdOp>();
