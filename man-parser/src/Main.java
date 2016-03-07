@@ -55,12 +55,18 @@ public class Main {
                 i ++;
                 int l = i;
                 while (i < lines.size()) {
-                    if (indentCount(lines.get(i)) == 0 && !lines.get(i).equals(""))
+                    if (indentCount(lines.get(i)) == 0 && !lines.get(i).trim().equals(""))
                         break;
                     i ++;
                 }
-                System.out.println(l + " " + i);
-                List<String> primitives = lines.subList(l, i).stream().filter(s -> !s.equals("")).collect(Collectors.toList());
+                System.out.println(+ l + " " + i);
+
+                List<String> primitives = lines.subList(l, i)
+                        .stream().filter(s -> !s.trim().equals("")).map(s -> s.trim()).collect(Collectors.toList());
+
+                for (String s : primitives)
+                    System.out.println("> " + s);
+
                 for (String s : primitives) {
                     System.out.println(s);
                     String name = s.trim().split("\\s+")[0];
