@@ -5,6 +5,7 @@ from __future__ import print_function
 import collections
 import copy
 import gzip
+import os
 import sys
 sys.path.append("../../misc")
 from grammar import *
@@ -81,27 +82,27 @@ class Parser(Enumerator):
         with gzip.open(inputFile, 'rb') as f:
             for line in f.readlines():
                 parts = line.strip().split("|||")
-                nl_phrase = parts[0]
-                cmd_snippet = parts[1]
+                nl_phrase = parts[0].strip()
+                cmd_snippet = parts[1].strip()
                 phi_cmd_nl, lex_cmd_nl, phi_nl_cmd, lex_nl_cmd = \
                     [float(s) for s in parts[2].split()]
                 # symmetric scoring
                 self.P2TScores[nl_phrase][cmd_snippet] = lex_nl_cmd
                 self.T2PScores[cmd_snippet][nl_phrase] = lex_nl_cmd
+        # print("{}".format(self.T2PScores.keys()), file=sys.stderr)
 
     def score_tool(self, term, words):
         #TODO: consider other methods for rule scoring
         covered_words = set()
         if not term in self.T2PScores:
-            return self.ungrounded_token_score, words
+            return self.ungrounded_token_score, set()
         max = 0.0
         for word in words:
             if word in self.T2PScores[term]:
                 if self.T2PScores[term][word] > max:
                     max = self.T2PScores[term][word]
-                    print("{} {}".format(term, word), file=sys.stderr)
                     covered_words.add(word)
-        # print("{}".format(covered_words), file=sys.stderr)
+        # print("score_tool(covered_words){}".format(covered_words), file=sys.stderr)
         return max, covered_words
 
     def parse(self, sent):
@@ -120,7 +121,7 @@ class Parser(Enumerator):
         for cell in final_cells:
             cell.finalizeScoring(self.redundant_word_score)
         for cell in sorted(final_cells, key=lambda x:x.score, reverse=True)[:20]:
-            print("{}:\t\t{}\t{}".format(cell.genCommand(), cell.score, cell.length),
+            print("{}:\t\t{}\t{}\t{}".format(cell.genCommand(), cell.score, cell.length, cell.left_nl_words),
                   file=sys.stderr)
 
     def dfs(self, cell, words, final_cells):
