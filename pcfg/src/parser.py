@@ -39,8 +39,8 @@ class Cell(object):
         self.backpointer = bp
         self.length = bp.length + 1 if bp else 0
         self.score = bp.score + s if bp else 0
-        self.cnl_words = bp.cnl_words if bp else set()
-        self.lnl_words = bp.lnl_words if bp else set(w_uc)
+        self.cnl_words = copy.deepcopy(bp.cnl_words) if bp else set()
+        self.lnl_words = copy.deepcopy(bp.lnl_words) if bp else set(w_uc)
         for w in w_c:
             self.cnl_words.add(w)
         for w in w_c:
