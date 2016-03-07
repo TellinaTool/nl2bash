@@ -67,7 +67,7 @@ class Cell(object):
         featureSet = copy.deepcopy(self.features)
         bp = self.backpointer
         while (bp):
-            featureSet.update(self.features)
+            featureSet.update(bp.features)
             bp = bp.backpointer
         return featureSet
 
