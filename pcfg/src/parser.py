@@ -23,34 +23,42 @@ class Rule(object):
 
 class Cell(object):
 
-    def __init__(self, t, p, bp, s, w_c, w_uc):
+    def __init__(self, t, p, bp, s):
         """
         :member terms:          new term string consumed by this cell
         :member p:              pointer to parent cell in the syntax tree
         :member backpointer:    pointer to last cell sequentially
         :member isEOF:          if cell is terminable
         :member score:          score of the partial command parse
-        :member cnl_words:      covered natural language words up to this cell
-        :member lnl_words:      uncovered natural language words up to this cell
+        :member covered_words:  natural language words covered by this cell
         :member features:       features of the partial command parse up to this cell
         """
         self.term = t
         self.parent = p
         self.backpointer = bp
         self.length = bp.length + 1 if bp else 0
-        self.score = bp.score + s if bp else 0
-        self.cnl_words = copy.deepcopy(bp.cnl_words) if bp else set()
-        self.lnl_words = copy.deepcopy(bp.lnl_words) if bp else set(w_uc)
-        for w in w_c:
-            self.cnl_words.add(w)
-        for w in w_c:
-            if w in self.lnl_words:
-                self.lnl_words.remove(w)
+        self.score = bp.score + sum(s.values()) if bp else 0
+        self.covered_words = set(s.keys())
+
+        # INEFFICIENT
+        # self.cnl_words = copy.deepcopy(bp.cnl_words) if bp else set()
+        # self.lnl_words = copy.deepcopy(bp.lnl_words) if bp else set(w_uc)
+        # for w in w_c:
+        #     self.cnl_words.add(w)
+        # for w in w_c:
+        #     if w in self.lnl_words:
+        #         self.lnl_words.remove(w)
 
         self.features = []
 
-    def finalizeScoring(self, redundant_word_score):
-        self.score += redundant_word_score * len(self.lnl_words)
+    # natural language words covered by the partial command up to this cell so far
+    def cnl_words(self):
+        covered_words = copy.deepcopy(self.covered_words)
+        bp = self.backpointer
+        while (bp):
+            covered_words |= bp.covered_words
+            bp = bp.backpointer
+        return covered_words
 
     def genCommand(self):
         if self.term == Enumerator.HOLE:
@@ -97,25 +105,31 @@ class Parser(Enumerator):
                 self.P2TScores[nl_phrase][cmd_snippet] = lex_nl_cmd
                 self.T2PScores[cmd_snippet][nl_phrase] = lex_nl_cmd
 
-    def score_tool(self, term, words):
+    def local_score(self, term, words):
         # TODO: consider other methods for rule scoring
         covered_words = set()
         if not term in self.T2PScores:
-            return self.ungrounded_token_score, set()
-        max = 0.0
+            return {}
+        score = {}
+        # max = 0.0
         for word in words:
             if word in self.T2PScores[term]:
-                if self.T2PScores[term][word] > max:
-                    max = self.T2PScores[term][word]
-                    covered_words.add(word)
-        # print("score_tool(covered_words){}".format(covered_words),
+                # if self.T2PScores[term][word] > max:
+                #     max = self.T2PScores[term][word]
+                #     covered_words.add(word)
+                score[word] = self.T2PScores[term][word]
+        # print("local_score(covered_words){}".format(covered_words),
         #       file=sys.stderr)
-        return max, covered_words
+        return score
+
+    def final_score(self, cell, words):
+        cell.score += self.redundant_word_score * len(set(words) - cell.cnl_words())
 
     def parse(self, sent, top_K=50):
         words = sent.split()
+        word_set = set(words)
 
-        start_cell = Cell("__START_SYMBOL__", None, None, 0.0, set(), words)
+        start_cell = Cell("__START_SYMBOL__", None, None, {})
         final_cells = []                # store tail cells of all legal commands
 
         print("Enumerating all commands up to length {}".format(
@@ -130,11 +144,12 @@ class Parser(Enumerator):
 
         # Rank and print all parses
         for cell in final_cells:
-            cell.finalizeScoring(self.redundant_word_score)
+            self.final_score(cell, words)
+
         for cell in sorted(final_cells, key=lambda x:x.score, reverse=True)[:top_K]:
             print("{}:\t\t{}\t{}\t{}\t{}".format(cell.genCommand(), cell.score,
-                                             cell.length, cell.cnl_words, cell.lnl_words),
-                  file=sys.stderr)
+                    cell.length, cell.cnl_words(), word_set-cell.cnl_words()),
+                    file=sys.stderr)
 
     def dfs(self, cell, words, final_cells):
 
@@ -169,8 +184,8 @@ class Parser(Enumerator):
 
         # look ahead one step
         for term in self.legal_tokens():
-            score, covered_words = self.score_tool(term, words)
-            child_cell = Cell(term, None, cell, score, covered_words, cell.lnl_words)
+            score = self.local_score(term, words)
+            child_cell = Cell(term, None, cell, score)
             self.dfs(child_cell, words, final_cells)
 
         if term != "__START_SYMBOL__":
