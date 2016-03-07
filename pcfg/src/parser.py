@@ -23,7 +23,7 @@ class Rule(object):
 
 class Cell(object):
 
-    def __init__(self, t, p, bp, s):
+    def __init__(self, t, p, bp, ff):
         """
         :member terms:          new term string consumed by this cell
         :member p:              pointer to parent cell in the syntax tree
@@ -37,8 +37,8 @@ class Cell(object):
         self.parent = p
         self.backpointer = bp
         self.length = bp.length + 1 if bp else 0
-        self.score = bp.score + sum(s.values()) if bp else 0
-        self.covered_words = set(s.keys())
+        self.score = bp.score + sum(ff.values()) if bp else 0
+        self.covered_words = set(ff.keys())
 
         # INEFFICIENT
         # self.cnl_words = copy.deepcopy(bp.cnl_words) if bp else set()
@@ -49,9 +49,11 @@ class Cell(object):
         #     if w in self.lnl_words:
         #         self.lnl_words.remove(w)
 
-        self.features = []
+        self.features = {}
+        for w in ff:
+            self.features["{}->{}".format(w, self.term)] = ff[w]
 
-    # natural language words covered by the partial command up to this cell so far
+    # natural language words covered by the partial command up to this cell
     def cnl_words(self):
         covered_words = copy.deepcopy(self.covered_words)
         bp = self.backpointer
@@ -59,6 +61,15 @@ class Cell(object):
             covered_words |= bp.covered_words
             bp = bp.backpointer
         return covered_words
+
+    # set of features extracted from the partial command up to this cell
+    def featureSet(self):
+        featureSet = copy.deepcopy(self.features)
+        bp = self.backpointer
+        while (bp):
+            featureSet.update(self.features)
+            bp = bp.backpointer
+        return featureSet
 
     def genCommand(self):
         if self.term == Enumerator.HOLE:
@@ -72,7 +83,6 @@ class Cell(object):
             else:
                 command.insert(0, bp.term)
             bp = bp.backpointer
-        # print("{}".format(command), file=sys.stderr)
         return ' '.join(command[1:])
 
 class Parser(Enumerator):
@@ -110,17 +120,17 @@ class Parser(Enumerator):
         covered_words = set()
         if not term in self.T2PScores:
             return {}
-        score = {}
+        fired_features = {}
         # max = 0.0
         for word in words:
             if word in self.T2PScores[term]:
                 # if self.T2PScores[term][word] > max:
                 #     max = self.T2PScores[term][word]
                 #     covered_words.add(word)
-                score[word] = self.T2PScores[term][word]
+                fired_features[word] = self.T2PScores[term][word]
         # print("local_score(covered_words){}".format(covered_words),
         #       file=sys.stderr)
-        return score
+        return fired_features
 
     def final_score(self, cell, words):
         cell.score += self.redundant_word_score * len(set(words) - cell.cnl_words())
@@ -147,8 +157,8 @@ class Parser(Enumerator):
             self.final_score(cell, words)
 
         for cell in sorted(final_cells, key=lambda x:x.score, reverse=True)[:top_K]:
-            print("{}:\t\t{}\t{}\t{}\t{}".format(cell.genCommand(), cell.score,
-                    cell.length, cell.cnl_words(), word_set-cell.cnl_words()),
+            print("{}:\t\t{}\t{}\t{}\t{}\t{}".format(cell.genCommand(), cell.score,
+                    cell.length, cell.cnl_words(), word_set-cell.cnl_words(), cell.featureSet()),
                     file=sys.stderr)
 
     def dfs(self, cell, words, final_cells):
@@ -184,8 +194,8 @@ class Parser(Enumerator):
 
         # look ahead one step
         for term in self.legal_tokens():
-            score = self.local_score(term, words)
-            child_cell = Cell(term, None, cell, score)
+            fired_features = self.local_score(term, words)
+            child_cell = Cell(term, None, cell, fired_features)
             self.dfs(child_cell, words, final_cells)
 
         if term != "__START_SYMBOL__":
