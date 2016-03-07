@@ -27,9 +27,9 @@ public class Main {
         jsonPrimitiveGrammar("../grammar.txt");
 
         /*String s = SmallTask.processWierdThing("wierddata");
-        System.out.println(s);
+        System.out.println(s);*/
 
-        File[] files = new File("../data/plain-man").listFiles();
+        /*File[] files = new File("../data/plain-man").listFiles();
 
         if (trySmallExample) {
             Cmd.ManPage man = parseFile(new File("../data/plain-man/xargs.1.txt"));

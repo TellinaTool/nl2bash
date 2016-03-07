@@ -73,46 +73,22 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "true",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "true"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "false",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "false"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "not",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "not"
 				}, {
 					"type": "argument_option",
 					"arg_name": "findexp",
@@ -125,16 +101,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "Bmin",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "Bmin"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -147,16 +115,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "Bnewer",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "Bnewer"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -169,16 +129,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "Btime",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "Btime"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -189,32 +141,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "acl",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "acl"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "amin",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "amin"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -227,16 +163,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "anewer",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "anewer"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -249,16 +177,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "cmin",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "cmin"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -271,16 +191,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "cnewer",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "cnewer"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -293,16 +205,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "ctime",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "ctime"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -313,60 +217,28 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "d",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "d"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "delete",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "delete"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "depth",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "depth"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "depth",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "depth"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -377,32 +249,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "empty",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "empty"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "fstype",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "fstype"
 				}, {
 					"type": "argument_option",
 					"arg_name": "type",
@@ -415,16 +271,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "gid",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "gid"
 				}, {
 					"type": "argument_option",
 					"arg_name": "gname",
@@ -437,16 +285,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "group",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "group"
 				}, {
 					"type": "argument_option",
 					"arg_name": "gname",
@@ -457,32 +297,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "ignore_readdir_race",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "ignore_readdir_race"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "ilname",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "ilname"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -495,16 +319,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "ilname",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "ilname"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -517,16 +333,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "iname",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "iname"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -539,16 +347,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "inum",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "inum"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -561,16 +361,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "ipath",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "ipath"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -583,16 +375,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "iregex",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "iregex"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -605,16 +389,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "iwholename",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "iwholename"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -627,16 +403,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "links",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "links"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -649,16 +417,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "lname",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "lname"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -669,32 +429,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "ls",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "ls"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "maxdepth",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "maxdepth"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -707,16 +451,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "mindepth",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "mindepth"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -729,16 +465,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "mmin",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "mmin"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -751,16 +479,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "mnewer",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "mnewer"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -771,32 +491,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "mount",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "mount"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "mtime",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "mtime"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -809,16 +513,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "name",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "name"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -831,16 +527,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "newer",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "newer"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -853,16 +541,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "newerXY",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "newerXY"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -873,74 +553,34 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "nogroup",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "nogroup"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "noignore_readdir_race",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "noignore_readdir_race"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "noleaf",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "noleaf"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "nouser",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "nouser"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "path",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "path"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -953,16 +593,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "perm",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "perm"
 				}, {
 					"type": "argument_option",
 					"arg_name": "mode",
@@ -973,60 +605,28 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "print",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "print"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "print0",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "print0"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "prune",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "prune"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "regex",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "regex"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1039,16 +639,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "samefile",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "samefile"
 				}, {
 					"type": "argument_option",
 					"arg_name": "name",
@@ -1061,16 +653,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "size",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "size"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1083,16 +667,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "type",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "type"
 				}, {
 					"type": "argument_option",
 					"arg_name": "t",
@@ -1105,16 +681,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "uid",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "uid"
 				}, {
 					"type": "argument_option",
 					"arg_name": "uname",
@@ -1127,16 +695,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "user",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "user"
 				}, {
 					"type": "argument_option",
 					"arg_name": "uname",
@@ -1149,16 +709,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "wholename",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "wholename"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1169,32 +721,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "xattr",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "xattr"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "xattrname",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "xattrname"
 				}, {
 					"type": "argument_option",
 					"arg_name": "name",
@@ -1276,46 +812,22 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "true",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "true"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "false",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "false"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "not",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "not"
 				}, {
 					"type": "argument_option",
 					"arg_name": "findexp",
@@ -1328,16 +840,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "Bmin",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "Bmin"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1350,16 +854,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "Bnewer",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "Bnewer"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -1372,16 +868,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "Btime",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "Btime"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1392,32 +880,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "acl",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "acl"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "amin",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "amin"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1430,16 +902,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "anewer",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "anewer"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -1452,16 +916,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "cmin",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "cmin"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1474,16 +930,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "cnewer",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "cnewer"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -1496,16 +944,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "ctime",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "ctime"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1516,60 +956,28 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "d",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "d"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "delete",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "delete"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "depth",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "depth"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "depth",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "depth"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1580,32 +988,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "empty",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "empty"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "fstype",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "fstype"
 				}, {
 					"type": "argument_option",
 					"arg_name": "type",
@@ -1618,16 +1010,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "gid",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "gid"
 				}, {
 					"type": "argument_option",
 					"arg_name": "gname",
@@ -1640,16 +1024,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "group",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "group"
 				}, {
 					"type": "argument_option",
 					"arg_name": "gname",
@@ -1660,32 +1036,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "ignore_readdir_race",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "ignore_readdir_race"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "ilname",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "ilname"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1698,16 +1058,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "ilname",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "ilname"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1720,16 +1072,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "iname",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "iname"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1742,16 +1086,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "inum",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "inum"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1764,16 +1100,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "ipath",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "ipath"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1786,16 +1114,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "iregex",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "iregex"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1808,16 +1128,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "iwholename",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "iwholename"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1830,16 +1142,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "links",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "links"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1852,16 +1156,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "lname",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "lname"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -1872,32 +1168,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "ls",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "ls"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "maxdepth",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "maxdepth"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1910,16 +1190,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "mindepth",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "mindepth"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1932,16 +1204,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "mmin",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "mmin"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -1954,16 +1218,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "mnewer",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "mnewer"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -1974,32 +1230,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "mount",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "mount"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "mtime",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "mtime"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -2012,16 +1252,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "name",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "name"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -2034,16 +1266,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "newer",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "newer"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -2056,16 +1280,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "newerXY",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "newerXY"
 				}, {
 					"type": "argument_option",
 					"arg_name": "file",
@@ -2076,74 +1292,34 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "nogroup",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "nogroup"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "noignore_readdir_race",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "noignore_readdir_race"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "noleaf",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "noleaf"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "nouser",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "nouser"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "path",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "path"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -2156,16 +1332,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "perm",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "perm"
 				}, {
 					"type": "argument_option",
 					"arg_name": "mode",
@@ -2176,60 +1344,28 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "print",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "print"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "print0",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "print0"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "prune",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "prune"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "regex",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "regex"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -2242,16 +1378,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "samefile",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "samefile"
 				}, {
 					"type": "argument_option",
 					"arg_name": "name",
@@ -2264,16 +1392,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "size",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "size"
 				}, {
 					"type": "argument_option",
 					"arg_name": "n",
@@ -2286,16 +1406,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "type",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "type"
 				}, {
 					"type": "argument_option",
 					"arg_name": "t",
@@ -2308,16 +1420,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "uid",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "uid"
 				}, {
 					"type": "argument_option",
 					"arg_name": "uname",
@@ -2330,16 +1434,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "user",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "user"
 				}, {
 					"type": "argument_option",
 					"arg_name": "uname",
@@ -2352,16 +1448,8 @@
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "wholename",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "wholename"
 				}, {
 					"type": "argument_option",
 					"arg_name": "pattern",
@@ -2372,32 +1460,16 @@
 		}, {
 			"type": "optional_option",
 			"cmd": {
-				"type": "long_flag_option",
-				"flag_name": "xattr",
-				"arg_exists": false,
-				"arg_optional": false,
-				"argument": {
-					"type": "argument_option",
-					"arg_name": null,
-					"arg_type": null,
-					"isList": false
-				}
+				"type": "flag_option",
+				"flag_name": "xattr"
 			}
 		}, {
 			"type": "optional_option",
 			"cmd": {
 				"type": "compound_options",
 				"commands": [{
-					"type": "long_flag_option",
-					"flag_name": "xattrname",
-					"arg_exists": false,
-					"arg_optional": false,
-					"argument": {
-						"type": "argument_option",
-						"arg_name": null,
-						"arg_type": null,
-						"isList": false
-					}
+					"type": "flag_option",
+					"flag_name": "xattrname"
 				}, {
 					"type": "argument_option",
 					"arg_name": "name",
