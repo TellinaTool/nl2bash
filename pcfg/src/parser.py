@@ -6,6 +6,8 @@ import collections
 import copy
 import gzip
 import os
+import Queue
+import random
 import sys
 sys.path.append("../../misc")
 import time
@@ -53,6 +55,10 @@ class Cell(object):
         for w in ff:
             self.features["{}->{}".format(w, self.term)] = ff[w]
 
+    # beam search
+    def __cmp__(self, other):
+        return cmp(other.score + random.random() / 1e10, self.score)
+
     # natural language words covered by the partial command up to this cell
     def cnl_words(self):
         covered_words = copy.deepcopy(self.covered_words)
@@ -87,7 +93,7 @@ class Cell(object):
 
 class Parser(Enumerator):
 
-    def __init__(self, grammar, min_cl=2, max_cl=10):
+    def __init__(self, grammar, min_cl=2, max_cl=10, beam_size=10):
         """
         :param grammar:
         :param min_cl: minimum number of tokens in command
@@ -100,6 +106,7 @@ class Parser(Enumerator):
         self.ungrounded_token_score = -1e-5
         self.min_command_length = min_cl
         self.max_command_length = max_cl
+        self.beam_size = beam_size
 
     def make_phrase_table(self, inputFile):
         self.P2TScores = collections.defaultdict(dict)
@@ -193,10 +200,15 @@ class Parser(Enumerator):
                 return
 
         # look ahead one step
+        queue = Queue.PriorityQueue()
         for term in self.legal_tokens():
             fired_features = self.local_score(term, words)
             child_cell = Cell(term, None, cell, fired_features)
-            self.dfs(child_cell, words, final_cells)
+            queue.put(child_cell)
+        for i in xrange(self.beam_size):
+            if queue.empty():
+                break
+            self.dfs(queue.get(), words, final_cells)
 
         if term != "__START_SYMBOL__":
             self.pop()
@@ -212,7 +224,8 @@ if __name__ == "__main__":
 
     # minimum number of tokens in command = 2
     # maximum number of tokens in command = 3
-    parser = Parser(grammar, 2, 3)
+    # beam size = 10
+    parser = Parser(grammar, 2, 5, 10)
     parser.make_phrase_table(os.path.join(os.path.dirname(__file__),
                                            "..", "..", "data", "phrase-table.gz"))
 
