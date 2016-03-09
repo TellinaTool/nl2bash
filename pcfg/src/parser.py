@@ -51,7 +51,7 @@ class Cell(object):
             self.features.add(feature)
         self.feature_vector = None
 
-    # beam search
+    # n-best search
     def __cmp__(self, other):
         return cmp(other.score + random.random() / 1e10, self.score)
 
@@ -74,11 +74,12 @@ class Cell(object):
         return featureSet
 
     def featureVector(self, feature_index):
-        if not self.feature_vector:
+        if self.feature_vector == None:
             self.feature_vector = ss.csr_matrix((1, len(feature_index)))
             for feature in self.featureSet():
-                ind = feature_index[feature]
-                self.feature_vector[0, ind] = 1
+                if feature in feature_index:
+                    ind = feature_index[feature]
+                    self.feature_vector[0, ind] = 1
         return self.feature_vector
 
     def getCommand(self):
@@ -109,9 +110,13 @@ class Parser(Enumerator):
         self.max_command_length = max_cl
         self.beam_size = beam_size
 
+        # hyperparameters
+        self.__feature_freq_thresh__ = 3
+
         # params
-        self.__feature_index__ = {}
-        self.__tuple_template__ = "({}, {})" #tuple_template
+        self.__feature_index__ = None
+        self.__feature_freq__ = None
+        self.__tuple_template__ = tuple_template
 
         self.redundant_word_score = 0.0
         self.ungrounded_token_score = -1e-5
@@ -127,23 +132,23 @@ class Parser(Enumerator):
                     [float(s) for s in parts[2].split()]
                 self.T2PScores[cmd_snippet][nl_phrase] = lex_nl_cmd
                 feature = self.__tuple_template__.format(cmd_snippet, nl_phrase)
-                self.update_feature_index(feature)
-
-        self.weights = ss.csr_matrix((1, len(self.__feature_index__)))
-
-        for cmd_snippet in self.T2PScores:
-            for nl_phrase in self.T2PScores[cmd_snippet]:
-                feature = self.__tuple_template__.format(cmd_snippet, nl_phrase)
-                ind = self.__feature_index__[feature]
-                self.weights[0, ind] = self.T2PScores[cmd_snippet][nl_phrase]
 
     def create_feature_index(self, dataset):
         if not self.__feature_index__:
             self.__feature_index__ = {}
+        if not self.__feature_freq__:
+            self.__feature_freq__ = collections.defaultdict(int)
         for example in dataset:
             features = example.featureSet()
             for feature in features:
-                self.update_feature_index(feature)
+                self.__feature_freq__[feature] += 1
+
+        for feature in self.__feature_freq__:
+            if self.__feature_freq__[feature] < self.__feature_freq_thresh__:
+                continue
+            self.update_feature_index(feature)
+
+        print("{} features in total".format(len(self.__feature_index__)))
 
     def update_feature_index(self, feat):
         if not feat in self.__feature_index__:
@@ -159,9 +164,10 @@ class Parser(Enumerator):
         for word in words:
             if word in self.T2PScores[term]:
                 feature = self.__tuple_template__.format(term, word)
-                ind = self.__feature_index__[feature]
-                features[feature] = self.weights[0, ind]
-                covered_words.add(word)
+                if feature in self.__feature_index__:
+                    ind = self.__feature_index__[feature]
+                    features[feature] = self.weights[0, ind]
+                    covered_words.add(word)
         return features, covered_words
 
     def final_score(self, cell, words):
@@ -173,7 +179,14 @@ class Parser(Enumerator):
         self.create_feature_index(dataset)
 
         # initialization
+        self.weights = ss.csr_matrix((1, len(self.__feature_index__)))
 
+        for cmd_snippet in self.T2PScores:
+            for nl_phrase in self.T2PScores[cmd_snippet]:
+                feature = self.__tuple_template__.format(cmd_snippet, nl_phrase)
+                if feature in self.__feature_index__:
+                    ind = self.__feature_index__[feature]
+                    self.weights[0, ind] = self.T2PScores[cmd_snippet][nl_phrase]
 
         # Perceptron
         num_correct = 0
@@ -186,9 +199,14 @@ class Parser(Enumerator):
                 top_K_parses = self.parse(example.sent, top_K, False)
 
                 # Update
+                print("question:\t{}".format(example.sent))
                 print("predict_parse:\t{}".format(top_K_parses[0].getCommand()))
                 print("actual_parse:\t{}".format(example.cmd))
+                print()
                 if top_K_parses[0].getCommand() != example.cmd:
+                    # print(self.weights.shape)
+                    # print(example.featureVector(self.__feature_index__).shape)
+                    # print(top_K_parses[0].featureVector(self.__feature_index__).shape)
                     self.weights = self.weights + example.featureVector(self.__feature_index__) \
                                    - top_K_parses[0].featureVector(self.__feature_index__)
                 else:
@@ -196,7 +214,7 @@ class Parser(Enumerator):
 
             end_time_i = time.time()
             print("training time = %ds" % (end_time_i - start_time_i))
-            print("training accuracy = %f" % (num_correct + 0.0) / len(dataset))
+            print("training accuracy = %f" % ((num_correct + 0.0) / len(dataset)))
         end_time = time.time()
         print("total training time = %ds" % (end_time - start_time))
 
@@ -310,8 +328,7 @@ if __name__ == "__main__":
     questionFile = "../../baseline1/data/true.questions"
     commandFile = "../../baseline1/data/true.commands"
 
-    # dataset = readTrainExamples(questionFile, commandFile)
-    # parser.train(dataset[:10], 1, 1)
+    dataset = readTrainExamples(questionFile, commandFile)
+    parser.train(dataset, 1, 1)
 
-    parser.parse(nl_cmd)
     parser.parse(nl_cmd)
