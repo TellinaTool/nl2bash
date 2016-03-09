@@ -140,7 +140,10 @@ class Enumerator(object):
     def push(self, token):
         self.state_stack.append(self.state_stack[-1].push(token))
     def pop(self):
+        assert len(self.state_stack) > 1, "cannot pop() this enumerator"
         del self.state_stack[-1]
+    def reset(self):
+        self.state_stack = [self.state_stack[0]]
 
     # make a fresh copy of this enumerator
     def copy(self):

@@ -111,7 +111,7 @@ class Parser(Enumerator):
 
         # params
         self.__feature_index__ = {}
-        self.__tuple_template__ = tuple_template
+        self.__tuple_template__ = "({}, {})" #tuple_template
 
         self.redundant_word_score = 0.0
         self.ungrounded_token_score = -1e-5
@@ -288,7 +288,7 @@ class Parser(Enumerator):
                 break
             self.dfs(queue.get(), words, final_cells)
 
-        if term != "__START_SYMBOL__":
+        if cell.term != "__START_SYMBOL__":
             self.pop()
         return
 
