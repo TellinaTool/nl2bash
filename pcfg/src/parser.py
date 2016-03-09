@@ -9,6 +9,7 @@ import gzip
 import os
 import Queue
 import random
+from random import shuffle
 import sys
 sys.path.append("../..")
 sys.path.append("../../misc")
@@ -194,6 +195,10 @@ class Parser(Enumerator):
         start_time = time.time()
         for t in xrange(T):
             print("Iteration {}:".format(t))
+
+            # shuffle dataset
+            shuffle(dataset)
+
             start_time_t = time.time()
             for i in xrange(len(dataset)):
                 example = dataset[i]
