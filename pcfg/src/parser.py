@@ -35,6 +35,9 @@ class Cell(object):
         self.backpointer = bp
         self.length = bp.length + 1 if bp else 0
         self.score = bp.score + sum(ff.values()) if bp else 0
+        # for key in ff:
+        #     if key.startswith("cp"):
+        #         print(self.score)
         self.covered_words = w_c
 
         # INEFFICIENT
@@ -112,6 +115,7 @@ class Parser(Enumerator):
 
         # hyperparameters
         self.__feature_freq_thresh__ = 3
+        self.step_size = 0.1
 
         # params
         self.__feature_index__ = None
@@ -156,18 +160,14 @@ class Parser(Enumerator):
 
     def local_score(self, term, words):
         # TODO: consider more complex features
-        covered_words = set()
-        if not term in self.T2PScores:
-            return {}, set()
         features = {}
         covered_words = set()
         for word in words:
-            if word in self.T2PScores[term]:
-                feature = self.__tuple_template__.format(term, word)
-                if feature in self.__feature_index__:
-                    ind = self.__feature_index__[feature]
-                    features[feature] = self.weights[0, ind]
-                    covered_words.add(word)
+            feature = self.__tuple_template__.format(term, word)
+            if feature in self.__feature_index__:
+                ind = self.__feature_index__[feature]
+                features[feature] = self.weights[0, ind]
+                covered_words.add(word)
         return features, covered_words
 
     def final_score(self, cell, words):
@@ -192,28 +192,29 @@ class Parser(Enumerator):
         num_correct = 0
 
         start_time = time.time()
-        for i in xrange(T):
-            print("Iteration {}:".format(i))
-            start_time_i = time.time()
-            for example in dataset:
+        for t in xrange(T):
+            print("Iteration {}:".format(t))
+            start_time_t = time.time()
+            for i in xrange(len(dataset)):
+                example = dataset[i]
                 top_K_parses = self.parse(example.sent, top_K, False)
 
                 # Update
-                print("question:\t{}".format(example.sent))
-                print("predict_parse:\t{}".format(top_K_parses[0].getCommand()))
+                print("question.{}:\t{}".format(i, example.sent))
+                print("predict_parse:\t{} ({})".format(top_K_parses[0].getCommand(), top_K_parses[0].score))
                 print("actual_parse:\t{}".format(example.cmd))
                 print()
                 if top_K_parses[0].getCommand() != example.cmd:
                     # print(self.weights.shape)
                     # print(example.featureVector(self.__feature_index__).shape)
                     # print(top_K_parses[0].featureVector(self.__feature_index__).shape)
-                    self.weights = self.weights + example.featureVector(self.__feature_index__) \
-                                   - top_K_parses[0].featureVector(self.__feature_index__)
+                    self.weights = self.weights + self.step_size * (example.featureVector(self.__feature_index__)
+                                   - top_K_parses[0].featureVector(self.__feature_index__))
                 else:
                     num_correct += 1
 
-            end_time_i = time.time()
-            print("training time = %ds" % (end_time_i - start_time_i))
+            end_time_t = time.time()
+            print("training time = %ds" % (end_time_t - start_time_t))
             print("training accuracy = %f" % ((num_correct + 0.0) / len(dataset)))
         end_time = time.time()
         print("total training time = %ds" % (end_time - start_time))
@@ -277,7 +278,7 @@ class Parser(Enumerator):
             return
 
         # yield legal command
-        if cell.length > self.min_command_length and self.allow_eof():
+        if cell.length >= self.min_command_length and self.allow_eof():
             final_cells.append(cell)
 
         # maximum depth reached, backtrack
@@ -300,6 +301,9 @@ class Parser(Enumerator):
         for term in self.legal_tokens():
             local_features, covered_words = self.local_score(term, words)
             child_cell = Cell(term, None, cell, local_features, covered_words)
+            # if child_cell.score != cell.score:
+            #     print("cell score = {}".format(cell.score))
+            #     print("child cell score = {}".format(child_cell.score))
             queue.put(child_cell)
         for i in xrange(self.beam_size):
             if queue.empty():
@@ -321,7 +325,7 @@ if __name__ == "__main__":
     # minimum number of tokens in command = 2
     # maximum number of tokens in command = 3
     # beam size = 10
-    parser = Parser(grammar, 2, 5, 4)
+    parser = Parser(grammar, 2, 5, 7)
     parser.make_phrase_table(os.path.join(os.path.dirname(__file__),
                                            "..", "..", "data", "phrase-table.gz"))
 
@@ -329,6 +333,6 @@ if __name__ == "__main__":
     commandFile = "../../baseline1/data/true.commands"
 
     dataset = readTrainExamples(questionFile, commandFile)
-    parser.train(dataset, 1, 1)
+    parser.train(dataset, 10, 1)
 
     parser.parse(nl_cmd)
