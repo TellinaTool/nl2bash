@@ -161,7 +161,7 @@ def make_grammar_from_options(x):
         return Grammar(Grammar.PERM, *[make_grammar_from_options(o) for o in x["commands"]])
     elif x["type"] == "optional_option":
         return Grammar(Grammar.CASES, Grammar(Grammar.EMPTY), make_grammar_from_options(x["cmd"]))
-    elif x["type"] == "exclusive_options": # sic
+    elif x["type"] == "exclusive_options":
         return Grammar(Grammar.CASES, *[make_grammar_from_options(o) for o in x["commands"]])
     elif x["type"] == "flag_option":
         g = Grammar(Grammar.EXACT, "-" + x["flag_name"])
