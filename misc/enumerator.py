@@ -7,6 +7,7 @@ import os
 import json
 import sys
 
+# given a number num, generate space of size length
 def indent_count_to_string(num):
     s = ""
     for i in range(0, num):
@@ -15,101 +16,92 @@ def indent_count_to_string(num):
 
 # the AST for the command line structure
 class Program(object):
-    def __init__(self, commands, parent):
+    def __init__(self, commands):
         self.commands = commands
-        self.parent = parent
+        for cmd in self.commands:
+            setattr(cmd, "parent", self)
     def pretty_print(self, indent_count):
         indent = indent_count_to_string(indent_count)
-        result = indent + "[Program]"
+        result = indent + "[Program]" + "\n"
         for c in self.commands:
-            result = result + "\n" + c.pretty_print(indent_count + 1)
-        return result
+            result = result + c.pretty_print(indent_count + 1) + "\n"
+        return result.rstrip()
 
 class Cmd(object):
-    def __init__(self, name, option, parent):
+    def __init__(self, name, option):
         self.name = name
         self.option = option
-        self.parent = parent
+        setattr(self.option, "parent", self)
     def pretty_print(self, indent_count):
         indent = indent_count_to_string(indent_count)
-        result = indent + "[Cmd] " + self.name
-        if (not self.option == None):
-            result = result + "\n" + self.option.pretty_print(indent_count + 1)
-        return result
+        result = indent + "[Cmd] " + self.name + "\n"
+        result = result +  self.option.pretty_print(indent_count + 1) + "\n"
+        return result.rstrip()
 
 class FlagOp(object):
+    def __init__(self, name):
+        self.name = name
+    def pretty_print(self, indent_count):
+        indent = indent_count_to_string(indent_count)
+        result = indent + "[FlagOp] " + self.name
+        return result
+
+class LongFlagOp(object):
     def __init__(self, name, arg):
         self.name = name
         self.arg = arg
+        if (not self.arg == None):
+            setattr(self.arg, "parent", self)
     def pretty_print(self, indent_count):
         indent = indent_count_to_string(indent_count)
-        result = indent + "[FlagOp]"
-        result = result + "\n" + indent + self.name + "  " + self.arg
-        return result
+        result = indent + "[LongFlagOp] " + self.name + "\n"
+        if (not self.arg == None):
+            result = result + self.arg.pretty_print(indent_count + 1) + "\n"
+        return result.rstrip()
 
 class ArgOp(object):
-    def __init__(self, name, is_list):
+    def __init__(self, name, ty, is_list):
         self.name = name
+        self.ty = ty
         self.is_list = is_list
     def pretty_print(self, indent_count):
         indent = indent_count_to_string(indent_count)
-        result = indent + "[ArgOp]"
-        result = result + "\n" + indent + self.name
-        return result
+        result = indent + "[ArgOp] " + self.name 
+        return result.rstrip()
 
 class OptionalOp(object):
     def __init__(self, option):
         self.option = option
+        setattr(self.option, "parent", self)
     def pretty_print(self, indent_count):
         indent = indent_count_to_string(indent_count)
-        result = indent + "[OptionalOp]"
-        result = result + "\n" + option.pretty_print(indent_count + 1)
-        return result
+        result = indent + "[OptionalOp]" + "\n"
+        result = result + self.option.pretty_print(indent_count + 1) + "\n"
+        return result.rstrip()
 
 class SeqOp(object):
     def __init__(self, options):
         self.options = options
+        for option in self.options:
+            setattr(option, "parent", self.options)
     def pretty_print(self, indent_count):
         indent = indent_count_to_string(indent_count)
-        result = indent + "[SeqOp]"
-        for c in options:
-            result = result + "\n" + c.pretty_print(indent_count + 1)
-        return result
+        result = indent + "[SeqOp]" + "\n" 
+        for c in self.options:
+            result = result + c.pretty_print(indent_count + 1) + "\n"
+        return result.rstrip()
 
 class CaseOp(object):
     def __init__(self, options):
         self.options = options
+        for option in self.options:
+            setattr(option, "parent", self.options)
     def pretty_print(self, indent_count):
         indent = indent_count_to_string(indent_count)
-        result = indent + "[CaseOp]"
-        for c in options:
-            result = result + "\n" + c.pretty_print(indent_count + 1)
-        return result
-
-'''
-def load_syntax(json_files):
-    simple_cmds = []
-    counts = collections.defaultdict(int)
-    for jsonfile in json_files:
-        print("loading from {}".format(jsonfile))
-        with open(jsonfile, "r") as f:
-            syntax = json.loads(f.read())
-        for cmd in syntax:
-            simple_cmds.append(make_grammar_from_json_syntax(cmd))
-            counts[cmd["name"]] += 1
-            print(" --> loaded {} ({})".format(cmd["name"], counts[cmd["name"]]))
-    return Grammar(Grammar.CASES, *simple_cmds)
-
-def make_full_grammar(simple_grammar, max_pipeline_depth):
-    pipe = Grammar(Grammar.EXACT, "|")
-    def make_pipeline(g, n):
-        return Grammar(Grammar.SEQ, g, *([Grammar(Grammar.SEQ, pipe, g)] * n))
-
-    grammar = simple_grammar
-    for n in range(max_pipeline_depth + 1):
-        grammar = Grammar(Grammar.CASES, grammar, make_pipeline(simple_grammar, n))
-    return grammar
-'''
+        result = indent + "[CaseOp]" + "\n"
+        for c in self.options:
+            result = result + c.pretty_print(indent_count + 1) + "\n"
+        return result.rstrip()
 
 def load_syntax(json_files):
     simple_cmds = []
@@ -119,42 +111,42 @@ def load_syntax(json_files):
         with open(jsonfile, "r") as f:
             syntax = json.loads(f.read())
         for cmd in syntax:
-            simple_cmds.append(make_grammar_from_json_syntax(cmd))
+            c = make_grammar_from_json_syntax(cmd)
+            simple_cmds.append(c)
             counts[cmd["name"]] += 1
             print(" > loaded {} ({})".format(cmd["name"], counts[cmd["name"]]))
-    return Program(simple_cmds, parent=None)
+    return Program(simple_cmds)
 
 def make_grammar_from_json_syntax(syntax):
-    g = Cmd(name=syntax["name"], option=None, parent=None)
-    g.options = make_grammar_from_options(syntax["option"])
+    g = Cmd(name=syntax["name"], option=make_grammar_from_options(syntax["option"]))
     return g
 
 def make_grammar_from_options(x):
     if x["type"] == "compound_options":
         return SeqOp([make_grammar_from_options(o) for o in x["commands"]])
     elif x["type"] == "optional_option":
-        return OptionalOp(Grammar.CASES, Grammar(Grammar.EMPTY), make_grammar_from_options(x["cmd"]))
-    elif x["type"] == "exclusive_options": # sic
-        return Grammar(Grammar.CASES, *[make_grammar_from_options(o) for o in x["commands"]])
+        return OptionalOp(make_grammar_from_options(x["cmd"]))
+    elif x["type"] == "exclusive_options":
+        return CaseOp([make_grammar_from_options(o) for o in x["commands"]])
     elif x["type"] == "flag_option":
-        g = Grammar(Grammar.EXACT, "-" + x["flag_name"])
+        return FlagOp(x["flag_name"])
     elif x["type"] == "long_flag_option":
-        g = Grammar(Grammar.EXACT, "--" + x["flag_name"])
+        g = LongFlagOp(x["flag_name"], None)
+        if x["arg_exists"]:
+            if x["arg_optional"]:
+                setattr(g, "arg", OptionalOp(make_grammar_from_options(x["argument"])))
+            else:
+                setattr(g, "arg", make_grammar_from_options(x["argument"]))
+        return g
     elif x["type"] == "argument_option":
-        return Grammar(Grammar.HOLE) # TODO: record type, description, etc...
+        return ArgOp(x["arg_name"], x["arg_type"], x["isList"])
     else:
         raise Exception("unknown type: {}".format(x["type"]))
-
-    # has arg?
-    if "arg_exists" in x and x["arg_exists"]:
-        g = Grammar(Grammar.SEQ, g, make_grammar_from_options(x["argument"]))
     return g
-
-
 
 if __name__ == "__main__":
     simple_grammar = load_syntax([os.path.join(os.path.dirname(__file__), "..", "data", "primitive_cmds_grammar.json")])
-    print (simple_grammar.pretty_print(0))
+    #print (simple_grammar.pretty_print(0))
     '''
     grammar = make_full_grammar(simple_grammar, max_pipeline_depth=3)
 
