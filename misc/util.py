@@ -26,7 +26,7 @@ class Example(object):
         return self.features
 
     def featureVector(self, feature_index):
-        if not self.feature_vector:
+        if self.feature_vector == None:
             self.feature_vector = ss.csr_matrix((1, len(feature_index)))
             for feature in self.featureSet():
                 if feature in feature_index:
@@ -44,6 +44,8 @@ def readTrainExamples(questionFile, commandFile):
 
     dataset = []
     for i in xrange(len(questions)):
+        if not commands[i].strip().split()[0] in ["find", "mv", "sort", "grep", "cp", "ls", "tar"]:
+            continue
         example = Example(questions[i].strip(), commands[i].strip())
         dataset.append(example)
 
