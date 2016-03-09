@@ -221,6 +221,9 @@ if __name__ == "__main__":
         print("choices: {}".format(", ".join(choices)))
         try:
             inp = raw_input("> ")
+            if inp == "$":
+                print(e)
+                continue
             if inp == "*":
                 inp = Enumerator.HOLE
             e.push(inp)
