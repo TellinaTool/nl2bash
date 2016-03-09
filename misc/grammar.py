@@ -159,14 +159,25 @@ class Enumerator(object):
     def legal_tokens(self):
         return self.state_stack[-1].legal_tokens()
 
-def make_grammar_from_options(x):
+def make_grammar_from_options(x, seen=None):
+    if seen is None:
+        seen = set()
     if x["type"] == "compound_options":
-        return Grammar(Grammar.SEQ, *[make_grammar_from_options(o) for o in x["commands"]])
+        return Grammar(Grammar.SEQ, *[make_grammar_from_options(o, seen=seen) for o in x["commands"]])
     elif x["type"] == "optional_option":
-        return Grammar(Grammar.CASES, Grammar(Grammar.EMPTY), make_grammar_from_options(x["cmd"]))
+        flag_name = None
+        if x["cmd"]["type"] == "flag_option":
+            flag_name = x["cmd"]["flag_name"]
+        elif x["cmd"]["type"] == "compound_options" and x["cmd"]["commands"][0]["type"] == "flag_option":
+            flag_name = x["cmd"]["commands"][0]["flag_name"]
+        if flag_name is not None and flag_name in seen:
+            print("skipping duplicate flag -{}".format(flag_name), file=sys.stderr)
+            return Grammar(Grammar.EMPTY)
+        return Grammar(Grammar.CASES, Grammar(Grammar.EMPTY), make_grammar_from_options(x["cmd"], seen=seen))
     elif x["type"] == "exclusive_options":
-        return Grammar(Grammar.CASES, *[make_grammar_from_options(o) for o in x["commands"]])
+        return Grammar(Grammar.CASES, *[make_grammar_from_options(o, seen=set(seen)) for o in x["commands"]])
     elif x["type"] == "flag_option":
+        seen.add(x["flag_name"])
         g = Grammar(Grammar.EXACT, "-" + x["flag_name"])
     elif x["type"] == "long_flag_option":
         g = Grammar(Grammar.EXACT, "--" + x["flag_name"])
@@ -177,7 +188,7 @@ def make_grammar_from_options(x):
 
     # has arg?
     if "arg_exists" in x and x["arg_exists"]:
-        g = Grammar(Grammar.SEQ, g, make_grammar_from_options(x["argument"]))
+        g = Grammar(Grammar.SEQ, g, make_grammar_from_options(x["argument"], seen=seen))
     return g
 
 def make_grammar_from_json_syntax(syntax):
