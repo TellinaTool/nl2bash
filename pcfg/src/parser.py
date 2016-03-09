@@ -129,6 +129,14 @@ class Parser(Enumerator):
                 feature = self.__tuple_template__.format(cmd_snippet, nl_phrase)
                 self.update_feature_index(feature)
 
+        self.weights = ss.csr_matrix((1, len(self.__feature_index__)))
+
+        for cmd_snippet in self.T2PScores:
+            for nl_phrase in self.T2PScores[cmd_snippet]:
+                feature = self.__tuple_template__.format(cmd_snippet, nl_phrase)
+                ind = self.__feature_index__[feature]
+                self.weights[0, ind] = self.T2PScores[cmd_snippet][nl_phrase]
+
     def create_feature_index(self, dataset):
         if not self.__feature_index__:
             self.__feature_index__ = {}
@@ -165,13 +173,7 @@ class Parser(Enumerator):
         self.create_feature_index(dataset)
 
         # initialization
-        self.weights = ss.csr_matrix((1, len(self.__feature_index__)))
 
-        for cmd_snippet in self.T2PScores:
-            for nl_phrase in self.T2PScores[cmd_snippet]:
-                feature = self.__tuple_template__.format(cmd_snippet, nl_phrase)
-                ind = self.__feature_index__[feature]
-                self.weights[0, ind] = self.T2PScores[cmd_snippet][nl_phrase]
 
         # Perceptron
         num_correct = 0
@@ -308,7 +310,8 @@ if __name__ == "__main__":
     questionFile = "../../baseline1/data/true.questions"
     commandFile = "../../baseline1/data/true.commands"
 
-    dataset = readTrainExamples(questionFile, commandFile)
-    parser.train(dataset[:10], 1, 1)
+    # dataset = readTrainExamples(questionFile, commandFile)
+    # parser.train(dataset[:10], 1, 1)
 
+    parser.parse(nl_cmd)
     parser.parse(nl_cmd)
