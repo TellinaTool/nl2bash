@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
+import collections
 import scipy.sparse as ss
 import sys
 
+head_arg_template = "{}:::{}"
 tuple_template = "{}->{}"
 
 class Example(object):
@@ -16,22 +18,27 @@ class Example(object):
 
     def featureSet(self):
         if not self.features:
-            self.features = set()
-            words = self.sent.split()
+            features = collections.defaultdict(int)
+            words = set(self.sent.split())
             terms = self.cmd.split()
+            head_cmd = terms[0]
             for term in terms:
                 for word in words:
+                    # feature = tuple_template.format(
+                    #    head_arg_template.format(head_cmd, term), word)
                     feature = tuple_template.format(term, word)
-                    self.features.add(feature)
+                    features[feature] += 1
+            self.features = features
         return self.features
 
     def featureVector(self, feature_index):
         if self.feature_vector == None:
-            self.feature_vector = ss.csr_matrix((1, len(feature_index)))
+            feature_vector = ss.lil_matrix((1, len(feature_index)))
             for feature in self.featureSet():
                 if feature in feature_index:
                     ind = feature_index[feature]
-                    self.feature_vector[0, ind] = 1
+                    feature_vector[0, ind] = 1
+            self.feature_vector = feature_vector.tocsr()
         return self.feature_vector
 
 def readTrainExamples(questionFile, commandFile):
