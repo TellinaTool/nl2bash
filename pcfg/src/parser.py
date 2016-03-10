@@ -2,26 +2,24 @@
 
 from __future__ import print_function
 
-import collections
+import Queue
 import cPickle as pickle
 import copy
 import gzip
 import os
-import Queue
 import random
-from random import shuffle
 import sys
+from random import shuffle
 sys.path.append("../..")
-sys.path.append("../../misc")
-import scipy.sparse as ss
 import time
 
-from grammar import *
-from util import *
+from misc.grammar import *
+from misc.bleu import BLEU
+from misc.util import *
 
 class Cell(object):
 
-    def __init__(self, t, p, bp, ff, w_c):
+    def __init__(self, t, p, bp, w_c, ff, weights):
         """
         :member terms:          new term string consumed by this cell
         :member p:              pointer to parent cell in the syntax tree
@@ -29,16 +27,17 @@ class Cell(object):
         :member isEOF:          if cell is terminable
         :member score:          score of the partial command parse
         :member covered_words:  natural language words covered by this cell
-        :member features:       features of the partial command parse up to this cell
+        :member features:       features counts of the partial command parse up to this cell
+        :member feature_vector: sparse vector representation of features
         """
         self.term = t
         self.parent = p
         self.backpointer = bp
         self.length = bp.length + 1 if bp else 0
-        self.score = bp.score + sum(ff.values()) if bp else 0
-        # for key in ff:
-        #     if key.startswith("cp"):
-        #         print(self.score)
+        self.features = ff
+        # self.feature_vector = ff + bp.feature_vector if bp else ff
+        # self.score = self.feature_vector().dot(weights.T)[0, 0]
+        self.score = bp.score + sum([weights[f]*ff[f] for f in ff]) if bp else 0
         self.covered_words = w_c
 
         # INEFFICIENT
@@ -50,16 +49,61 @@ class Cell(object):
         #     if w in self.lnl_words:
         #         self.lnl_words.remove(w)
 
-        self.features = set()
-        for feature in ff:
-            self.features.add(feature)
-        self.feature_vector = None
+        # self.IS_HEAD = False
+        self.IS_START = False
 
     # n-best search
     def __cmp__(self, other):
         return cmp(other.score + random.random() / 1e10, self.score)
 
-    # natural language words covered by the partial command up to this cell
+    def is_eof(self):
+        return self.term == Enumerator.EOF
+
+    def is_head(self):
+        if not self.backpointer:
+            return False
+        return self.backpointer.is_start()
+        # return self.IS_HEAD
+
+    # def setHead(self):
+    #     self.IS_HEAD = True
+
+    def is_start(self):
+        return self.IS_START
+
+    def set_start(self):
+        self.IS_START = True
+
+    def get_terms(self):
+        if self.term == Enumerator.HOLE:
+            terms = ["*"]
+        else:
+            terms = [self.term]
+        bp = self.backpointer
+        while (not bp.is_start()):
+            if bp.term == Enumerator.HOLE:
+                terms.insert(0, "*")
+            else:
+                terms.insert(0, bp.term)
+            bp = bp.backpointer
+        return terms
+
+    def get_command(self):
+        if self.term == Enumerator.HOLE:
+            command = ["*"]
+        else:
+            command = [self.term]
+        bp = self.backpointer
+        while (not bp.is_start()):
+            if bp.term == Enumerator.HOLE:
+                command.insert(0, "*")
+            else:
+                command.insert(0, bp.term)
+            bp = bp.backpointer
+        return ' '.join(command)
+
+    # cell features
+
     def cnl_words(self):
         covered_words = copy.deepcopy(self.covered_words)
         bp = self.backpointer
@@ -68,37 +112,20 @@ class Cell(object):
             bp = bp.backpointer
         return covered_words
 
-    # set of features extracted from the partial command up to this cell
-    def featureSet(self):
-        featureSet = copy.deepcopy(self.features)
+    def cmd_arg(self):
+        return head_arg_template.format(self.parent.term, self.term)
+
+    def feature_set(self):
+        features = collections.defaultdict(int)
         bp = self.backpointer
         while (bp):
-            featureSet |= bp.features
+            for f in bp.features:
+                features[f] += bp.features[f]
             bp = bp.backpointer
-        return featureSet
+        return features
 
-    def featureVector(self, feature_index):
-        if self.feature_vector == None:
-            self.feature_vector = ss.csr_matrix((1, len(feature_index)))
-            for feature in self.featureSet():
-                if feature in feature_index:
-                    ind = feature_index[feature]
-                    self.feature_vector[0, ind] = 1
+    def feature_vector(self):
         return self.feature_vector
-
-    def getCommand(self):
-        if self.term == Enumerator.HOLE:
-            command = ["*"]
-        else:
-            command = [self.term]
-        bp = self.backpointer
-        while (bp):
-            if bp.term == Enumerator.HOLE:
-                command.insert(0, "*")
-            else:
-                command.insert(0, bp.term)
-            bp = bp.backpointer
-        return ' '.join(command[1:])
 
 class Parser(Enumerator):
 
@@ -116,12 +143,14 @@ class Parser(Enumerator):
 
         # hyperparameters
         self.__feature_freq_thresh__ = 3
-        self.step_size = 0.1
+        self.step_size = 0.01
 
         # params
         self.__feature_index__ = None
         self.__feature_freq__ = None
+        self.weights = None
         self.__tuple_template__ = tuple_template
+        self.__head_arg_template__ = head_arg_template
 
         self.redundant_word_score = 0.0
         self.ungrounded_token_score = -1e-5
@@ -136,15 +165,16 @@ class Parser(Enumerator):
                 phi_cmd_nl, lex_cmd_nl, phi_nl_cmd, lex_nl_cmd = \
                     [float(s) for s in parts[2].split()]
                 self.T2PScores[cmd_snippet][nl_phrase] = lex_nl_cmd
-                feature = self.__tuple_template__.format(cmd_snippet, nl_phrase)
 
     def create_feature_index(self, dataset):
         if not self.__feature_index__:
             self.__feature_index__ = {}
         if not self.__feature_freq__:
             self.__feature_freq__ = collections.defaultdict(int)
+        if not self.weights:
+            self.weights = {}
         for example in dataset:
-            features = example.featureSet()
+            features = example.feature_set()
             for feature in features:
                 self.__feature_freq__[feature] += 1
 
@@ -152,23 +182,32 @@ class Parser(Enumerator):
             if self.__feature_freq__[feature] < self.__feature_freq_thresh__:
                 continue
             self.update_feature_index(feature)
+        self.featureDim = len(self.__feature_index__)
 
-        print("{} features in total".format(len(self.__feature_index__)))
+        print("{} features in total".format(self.featureDim))
 
     def update_feature_index(self, feat):
         if not feat in self.__feature_index__:
             self.__feature_index__[feat] = len(self.__feature_index__)
+            self.weights[feat] = 0.0
 
-    def local_score(self, term, words):
+    def local_score(self, cell, words):
         # TODO: consider more complex features
-        features = {}
+        # features = ss.lil_matrix((1, self.featureDim))
+        features = collections.defaultdict(int)
         covered_words = set()
+
         for word in words:
-            feature = self.__tuple_template__.format(term, word)
+            # if cell.is_start():
+            #     feature = self.__tuple_template__.format(cell.term, word)
+            # else:
+            #     feature = self.__tuple_template__.format(cell.cmd_arg(), word)
+            feature = self.__tuple_template__.format(cell.term, word)
+
             if feature in self.__feature_index__:
-                ind = self.__feature_index__[feature]
-                features[feature] = self.weights[0, ind]
+                features[feature] += 1
                 covered_words.add(word)
+
         return features, covered_words
 
     def final_score(self, cell, words):
@@ -180,21 +219,20 @@ class Parser(Enumerator):
         self.create_feature_index(dataset)
 
         # initialization
-        self.weights = ss.csr_matrix((1, len(self.__feature_index__)))
-
         for cmd_snippet in self.T2PScores:
             for nl_phrase in self.T2PScores[cmd_snippet]:
                 feature = self.__tuple_template__.format(cmd_snippet, nl_phrase)
                 if feature in self.__feature_index__:
-                    ind = self.__feature_index__[feature]
-                    self.weights[0, ind] = self.T2PScores[cmd_snippet][nl_phrase]
+                    # ind = self.__feature_index__[feature]
+                    self.weights[feature] = self.T2PScores[cmd_snippet][nl_phrase]
 
         # Perceptron
-        num_correct = 0
 
         start_time = time.time()
         for t in xrange(T):
             print("Iteration {}:".format(t))
+            num_correct = 0
+            bleu_total = 0.0
 
             # shuffle dataset
             shuffle(dataset)
@@ -202,25 +240,40 @@ class Parser(Enumerator):
             start_time_t = time.time()
             for i in xrange(len(dataset)):
                 example = dataset[i]
+                print("question.{}:\t{}".format(i, example.sent))
+
                 top_K_parses = self.parse(example.sent, top_K, False)
 
                 # Update
-                print("question.{}:\t{}".format(i, example.sent))
-                print("predict_parse:\t{} ({})".format(top_K_parses[0].getCommand(), top_K_parses[0].score))
-                print("actual_parse:\t{}".format(example.cmd))
-                print()
-                if top_K_parses[0].getCommand() != example.cmd:
-                    # print(self.weights.shape)
-                    # print(example.featureVector(self.__feature_index__).shape)
-                    # print(top_K_parses[0].featureVector(self.__feature_index__).shape)
-                    self.weights = self.weights + self.step_size * (example.featureVector(self.__feature_index__)
-                                   - top_K_parses[0].featureVector(self.__feature_index__))
+                if top_K_parses[0].get_command() != example.cmd:
+                    pred_feature = top_K_parses[0].feature_set()
+                    gt_feature = example.feature_set()
+                    for feat in gt_feature:
+                        if not feat in self.__feature_index__:
+                            continue
+                        self.weights[feat] += self.step_size * gt_feature[feat]
+                    for feat in pred_feature:
+                        if not feat in self.__feature_index__:
+                            continue
+                        self.weights[feat] -= self.step_size * pred_feature[feat]
+                    # self.weights = self.weights + self.step_size * (example.feature_vector(self.__feature_index__)
+                    #                - top_K_parses[0].feature_vector())
                 else:
                     num_correct += 1
+
+                bleu = BLEU.compute(top_K_parses[0].get_terms(), [example.get_terms()], weights=[0.25, 0.25, 0.25, 0.25])
+                bleu_total += bleu
+
+                print("predict_parse:\t{} ({})".format(top_K_parses[0].get_command(), top_K_parses[0].score))
+                print("actual_parse:\t{}".format(example.cmd))
+                print("bleu score:\t{}".format(bleu))
+                print()
 
             end_time_t = time.time()
             print("training time = %ds" % (end_time_t - start_time_t))
             print("training accuracy = %f" % ((num_correct + 0.0) / len(dataset)))
+            print("training average bleu score = %f" % (bleu_total / len(dataset)))
+
         end_time = time.time()
         print("total training time = %ds" % (end_time - start_time))
 
@@ -228,6 +281,7 @@ class Parser(Enumerator):
             pickle.dump([self.weights,
                          self.__feature_index__,
                          self.__tuple_template__,
+                         self.__head_arg_template__,
                          self.redundant_word_score,
                          self.ungrounded_token_score
                         ], o_f)
@@ -236,7 +290,9 @@ class Parser(Enumerator):
         words = sent.split()
         word_set = set(words)
 
-        start_cell = Cell("__START_SYMBOL__", None, None, {}, set())
+        start_cell = Cell("__START_SYMBOL__", None, None, set(),
+                          {}, self.weights)
+        start_cell.set_start()
         final_cells = []                # store tail cells of all legal commands
 
         if verbose:
@@ -245,7 +301,11 @@ class Parser(Enumerator):
 
         # DFS
         start_time = time.time()
-        self.dfs(start_cell, words, final_cells)
+        for term in self.legal_tokens():
+            local_features, covered_words = self.local_score(start_cell, word_set)
+            child_cell = Cell(term, start_cell, start_cell, covered_words,
+                              local_features, self.weights)
+            self.dfs(child_cell, word_set, final_cells)
         end_time = time.time()
         if verbose:
             print("total # of parses: %d" % len(final_cells), file=sys.stderr)
@@ -263,60 +323,66 @@ class Parser(Enumerator):
         for i in xrange(top_K):
             cell = sorted_cells.get()
             if verbose:
-                print("{}:\t\t{}\t{}\t{}\t{}\t{}".format(cell.getCommand(), cell.score,
-                        cell.length, cell.cnl_words(), word_set-cell.cnl_words(), cell.featureSet()),
+                print("{}:\t\t{}\t{}\t{}\t{}\t{}".format(cell.get_command(), cell.score,
+                        cell.length, cell.cnl_words(), word_set-cell.cnl_words(), cell.feature_set()),
                         file=sys.stderr)
             top_K_parses.append(cell)
 
         return top_K_parses
 
-    def dfs(self, cell, words, final_cells):
+    def dfs(self, cell, word_set, final_cells):
 
         term = cell.term
 
+        # mark head command
+        if cell.is_head():
+            self.head_cell = cell
+        cell.parent = self.head_cell
+
         # skip <EOF> character
-        if term == Enumerator.EOF:
+        if cell.is_eof():
             return
 
         # TODO: handle compound commands
         if term == "|":
             return
 
-        # yield legal command
-        if cell.length >= self.min_command_length and self.allow_eof():
-            final_cells.append(cell)
-
         # maximum depth reached, backtrack
         if cell.length == self.max_command_length:
             return
 
         # update enumerator
-        if term != "__START_SYMBOL__":
-            if self.allows(term):
-                # print("{}".format(self.legal_tokens()), file=sys.stderr)
-                self.push(term)
-            else:
-                # print("Not allowed {}".format(self.legal_tokens()), file=sys.stderr)
-                # print("Error: shouldn't happen!", file=sys.stderr)
-                sys.exit(1)
-                return
+        if self.allows(term):
+            self.push(term)
+        else:
+            print("Error: not allowed {}".format(self.legal_tokens()), file=sys.stderr)
+            sys.exit(1)
+            return
+
+        # yield legal command
+        if cell.length >= self.min_command_length and self.allow_eof():
+            final_cells.append(cell)
 
         # look ahead one step
         queue = Queue.PriorityQueue()
+
+        # Enumerator.HOLE priority
+        # if self.allow_arbitrary():
+        #     term = Enumerator.HOLE
+        #     local_features, covered_words = self.local_score(cell, words)
+        #     child_cell = Cell(term, None, cell, covered_words, local_features, self.weights)
+        #     self.dfs(child_cell, words, final_cells)
+
         for term in self.legal_tokens():
-            local_features, covered_words = self.local_score(term, words)
-            child_cell = Cell(term, None, cell, local_features, covered_words)
-            # if child_cell.score != cell.score:
-            #     print("cell score = {}".format(cell.score))
-            #     print("child cell score = {}".format(child_cell.score))
+            local_features, covered_words = self.local_score(cell, word_set)
+            child_cell = Cell(term, None, cell, covered_words, local_features, self.weights)
             queue.put(child_cell)
         for i in xrange(self.beam_size):
             if queue.empty():
                 break
-            self.dfs(queue.get(), words, final_cells)
+            self.dfs(queue.get(), word_set, final_cells)
 
-        if cell.term != "__START_SYMBOL__":
-            self.pop()
+        self.pop()
         return
 
 
@@ -337,7 +403,7 @@ if __name__ == "__main__":
     questionFile = "../../baseline1/data/true.questions"
     commandFile = "../../baseline1/data/true.commands"
 
-    dataset = readTrainExamples(questionFile, commandFile)
+    dataset = read_train_examples(questionFile, commandFile)
     parser.train(dataset, 10, 1)
 
     parser.parse(nl_cmd)
