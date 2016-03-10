@@ -2,22 +2,20 @@
 
 from __future__ import print_function
 
-import collections
+import Queue
 import cPickle as pickle
 import copy
 import gzip
 import os
-import Queue
 import random
-from random import shuffle
 import sys
+from random import shuffle
 sys.path.append("../..")
-sys.path.append("../../misc")
-import scipy.sparse as ss
 import time
 
-from grammar import *
-from util import *
+from misc.grammar import *
+from misc.bleu import BLEU
+from misc.util import *
 
 class Cell(object):
 
@@ -73,8 +71,19 @@ class Cell(object):
     def setStart(self):
         self.IS_START = True
 
-    def cmd_arg(self):
-        return head_arg_template.format(self.parent.term, self.term)
+    def getCommand(self):
+        if self.term == Enumerator.HOLE:
+            command = ["*"]
+        else:
+            command = [self.term]
+        bp = self.backpointer
+        while (not bp.isStart()):
+            if bp.term == Enumerator.HOLE:
+                command.insert(0, "*")
+            else:
+                command.insert(0, bp.term)
+            bp = bp.backpointer
+        return ' '.join(command)
 
     # natural language words covered by the partial command up to this cell
     def cnl_words(self):
@@ -84,6 +93,24 @@ class Cell(object):
             covered_words |= bp.covered_words
             bp = bp.backpointer
         return covered_words
+
+    def Terms(self):
+        if self.term == Enumerator.HOLE:
+            terms = ["*"]
+        else:
+            terms = [self.term]
+        bp = self.backpointer
+        while (not bp.isStart()):
+            if bp.term == Enumerator.HOLE:
+                terms.insert(0, "*")
+            else:
+                terms.insert(0, bp.term)
+            bp = bp.backpointer
+        return terms
+
+    # feature extraction
+    def cmd_arg(self):
+        return head_arg_template.format(self.parent.term, self.term)
 
     def featureSet(self):
         features = collections.defaultdict(int)
@@ -96,20 +123,6 @@ class Cell(object):
 
     def featureVector(self):
         return self.feature_vector
-
-    def getCommand(self):
-        if self.term == Enumerator.HOLE:
-            command = ["*"]
-        else:
-            command = [self.term]
-        bp = self.backpointer
-        while (bp):
-            if bp.term == Enumerator.HOLE:
-                command.insert(0, "*")
-            else:
-                command.insert(0, bp.term)
-            bp = bp.backpointer
-        return ' '.join(command[1:])
 
 class Parser(Enumerator):
 
@@ -212,6 +225,7 @@ class Parser(Enumerator):
 
         # Perceptron
         num_correct = 0
+        bleu_total = 0.0
 
         start_time = time.time()
         for t in xrange(T):
@@ -244,13 +258,18 @@ class Parser(Enumerator):
                 else:
                     num_correct += 1
 
+                bleu = BLEU.compute(top_K_parses[0].Terms(), [example.Terms()], weights=[0.25, 0.25, 0.25, 0.25])
+                bleu_total += bleu
+
                 print("predict_parse:\t{} ({})".format(top_K_parses[0].getCommand(), top_K_parses[0].score))
                 print("actual_parse:\t{}".format(example.cmd))
+                print("bleu score:\t{}".format(bleu))
                 print()
 
             end_time_t = time.time()
             print("training time = %ds" % (end_time_t - start_time_t))
             print("training accuracy = %f" % ((num_correct + 0.0) / len(dataset)))
+            print("training average bleu score = %f" % (bleu_total / len(dataset)))
         end_time = time.time()
         print("total training time = %ds" % (end_time - start_time))
 
