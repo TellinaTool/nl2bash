@@ -18,22 +18,22 @@ class Example(object):
         self.features = None
         self.feature_vector = None
 
-    def Words(self):
+    def get_words(self):
         if self.words == None:
             self.words = set(self.sent.split())
         return self.words
 
-    def Terms(self):
+    def get_terms(self):
         if self.terms == None:
             self.terms = self.cmd.split()
             self.head_cmd = self.terms[0]
         return self.terms
 
-    def featureSet(self):
+    def feature_set(self):
         if self.features == None:
             features = collections.defaultdict(int)
-            for term in self.Terms():
-                for word in self.Words():
+            for term in self.get_terms():
+                for word in self.get_words():
                     # feature = tuple_template.format(
                     #    head_arg_template.format(head_cmd, term), word)
                     feature = tuple_template.format(term, word)
@@ -41,17 +41,17 @@ class Example(object):
             self.features = features
         return self.features
 
-    def featureVector(self, feature_index):
+    def feature_vector(self, feature_index):
         if self.feature_vector == None:
             feature_vector = ss.lil_matrix((1, len(feature_index)))
-            for feature in self.featureSet():
+            for feature in self.feature_set():
                 if feature in feature_index:
                     ind = feature_index[feature]
                     feature_vector[0, ind] = 1
             self.feature_vector = feature_vector.tocsr()
         return self.feature_vector
 
-def readTrainExamples(questionFile, commandFile):
+def read_train_examples(questionFile, commandFile):
     with open(questionFile) as f:
         questions = f.readlines()
     with open(commandFile) as f:
