@@ -273,6 +273,7 @@ class Parser(Enumerator):
             print("training time = %ds" % (end_time_t - start_time_t))
             print("training accuracy = %f" % ((num_correct + 0.0) / len(dataset)))
             print("training average bleu score = %f" % (bleu_total / len(dataset)))
+
         end_time = time.time()
         print("total training time = %ds" % (end_time - start_time))
 
