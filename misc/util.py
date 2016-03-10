@@ -63,7 +63,7 @@ def readTrainExamples(questionFile, commandFile):
     for i in xrange(len(questions)):
         if not commands[i].strip().split()[0] in ["find", "mv", "sort", "grep", "cp", "ls", "tar"]:
             continue
-        if len(questions[i].split()) < 3:
+        if len(questions[i].split()) < 4:
             continue
         if len(commands[i]) > 50:
             continue
