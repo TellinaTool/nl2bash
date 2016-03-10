@@ -17,6 +17,7 @@ def indent_count_to_string(num):
 # the AST for the command line structure
 class Program(object):
     def __init__(self, commands):
+        self.parent = self
         self.commands = commands
         for cmd in self.commands:
             setattr(cmd, "parent", self)
@@ -26,6 +27,20 @@ class Program(object):
         for c in self.commands:
             result = result + c.pretty_print(indent_count + 1) + "\n"
         return result.rstrip()
+    def next_node(self, looked): 
+    # what is the next node after visiting this node
+        next = []
+        next.append("<DONE>")
+        for cmd in self.commands:
+            if not cmd in looked:
+                next.append(*cmd.get_node(looked))
+        return next
+    def get_node(self, looked): 
+    # get the first terminal value starting from this node
+        return self.next_node(looked)
+    def leave_node(self, looked, last): 
+    # after traveral all subtress of this node, seek the next tree to traverse
+        return self.next_node(looked)
 
 class Cmd(object):
     def __init__(self, name, option):
@@ -37,6 +52,16 @@ class Cmd(object):
         result = indent + "[Cmd] " + self.name + "\n"
         result = result +  self.option.pretty_print(indent_count + 1) + "\n"
         return result.rstrip()
+    def next_node(self, looked):
+        looked.append(self)
+        return self.option.get_node(looked)
+    def get_node(self, looked):
+        return [self]
+    def leave_node(self, looked, last):
+        looked.append(self)
+        return self.parent.leave_node(looked, Cmd)
+    def __str__(self):
+        return self.name
 
 class FlagOp(object):
     def __init__(self, name):
@@ -45,6 +70,17 @@ class FlagOp(object):
         indent = indent_count_to_string(indent_count)
         result = indent + "[FlagOp] " + self.name
         return result
+    def get_node(self, looked):
+        return [self]
+    def next_node(self, looked):
+        if not self in looked:
+            looked.append(self)
+        return self.leave_node(looked, self)
+    def leave_node(self, looked, last):
+        looked.append(self)
+        return self.parent.leave_node(looked, self)
+    def __str__(self):
+        return self.name
 
 class LongFlagOp(object):
     def __init__(self, name, arg):
@@ -58,6 +94,19 @@ class LongFlagOp(object):
         if (not self.arg == None):
             result = result + self.arg.pretty_print(indent_count + 1) + "\n"
         return result.rstrip()
+    def get_node(self, looked):
+        return [self]
+    def next_node(self, looked):
+        looked.append(self)
+        if not self.arg == None:
+            return self.arg.get(looked)
+        else:
+            return self.leave_node(looked, self)
+    def leave_node(self, looked, last):
+        looked.append(self)
+        return self.parent.leave_node(looked, self)
+    def __str__(self):
+        return self.name
 
 class ArgOp(object):
     def __init__(self, name, ty, is_list):
@@ -68,6 +117,21 @@ class ArgOp(object):
         indent = indent_count_to_string(indent_count)
         result = indent + "[ArgOp] " + self.name 
         return result.rstrip()
+    def get_node(self, looked):
+        return [self]
+    def next_node(self, looked):
+        #TODO: allow a list of file
+        looked.append(self)
+        result = []
+        #if self.is_list:
+        #    result.append(self)
+        result.extend(self.leave_node(looked, self))
+        return result
+    def leave_node(self, looked, last):
+        looked.append(self)
+        return self.parent.leave_node(looked, self)
+    def __str__(self):
+        return self.name
 
 class OptionalOp(object):
     def __init__(self, option):
@@ -78,31 +142,71 @@ class OptionalOp(object):
         result = indent + "[OptionalOp]" + "\n"
         result = result + self.option.pretty_print(indent_count + 1) + "\n"
         return result.rstrip()
+    def get_node(self, looked):
+        return self.next_node(looked)
+    def next_node(self, looked):
+        looked.append(self)
+        result = []
+        result.extend(self.option.get_node(looked))        
+        result.extend(self.leave_node(looked, self))
+        return result
+    def leave_node(self, looked, last):
+        looked.append(self)
+        return self.parent.leave_node(looked, self)
 
 class SeqOp(object):
     def __init__(self, options):
         self.options = options
         for option in self.options:
-            setattr(option, "parent", self.options)
+            setattr(option, "parent", self)
     def pretty_print(self, indent_count):
         indent = indent_count_to_string(indent_count)
         result = indent + "[SeqOp]" + "\n" 
         for c in self.options:
             result = result + c.pretty_print(indent_count + 1) + "\n"
         return result.rstrip()
+    def get_node(self, looked):
+        return self.next_node(looked)
+    def next_node(self, looked):
+        looked.append(self)
+        if self.options[-1] in looked:
+            return self.leave_node(looked, self)
+        last = self.options[-1]
+        for cmd in reversed(self.options):
+            if cmd in looked:
+                return last.get_node(looked)
+            last = cmd
+        return last.get_node(looked)
+    def leave_node(self, looked, last):
+        looked.append(self)
+        if last == self:
+            return self.parent.leave_node(looked, last)
+        return self.next_node(looked)
 
 class CaseOp(object):
     def __init__(self, options):
         self.options = options
         for option in self.options:
-            setattr(option, "parent", self.options)
+            setattr(option, "parent", self)
     def pretty_print(self, indent_count):
         indent = indent_count_to_string(indent_count)
         result = indent + "[CaseOp]" + "\n"
         for c in self.options:
             result = result + c.pretty_print(indent_count + 1) + "\n"
         return result.rstrip()
+    def get_node(self, looked):
+        return self.next_node(looked)
+    def next_node(self, looked):
+        looked.append(self)
+        result = []
+        for x in self.options:
+            result.extend(x.get_node(looked))
+        return result
+    def leave_node(self, looked, last):
+        looked.append(self)
+        return self.parent.leave_node(looked, self)
 
+# classes to build tree from json file
 def load_syntax(json_files):
     simple_cmds = []
     counts = collections.defaultdict(int)
@@ -144,28 +248,67 @@ def make_grammar_from_options(x):
         raise Exception("unknown type: {}".format(x["type"]))
     return g
 
-if __name__ == "__main__":
-    simple_grammar = load_syntax([os.path.join(os.path.dirname(__file__), "..", "data", "primitive_cmds_grammar.json")])
-    #print (simple_grammar.pretty_print(0))
-    '''
-    grammar = make_full_grammar(simple_grammar, max_pipeline_depth=3)
+# the enumerator class
+class Enumerator(object):
+    def __init__(self, grammar):
+        self.grammar = grammar
+        self.history = [grammar]
+    def step_back(self):
+        if len(self.history) > 1:
+        #check whether the list is empty 
+            self.history.pop()
+    def choices(self):
+        # use list to avoid the argument being the alias of history
+        return self.history[-1].next_node(list(self.history))
+    def make_choice(self, i):
+        self.history.append(self.choices()[i]);
+    # the return value should be a list of indices
+    def choice_indices(self, text):
+        choice_list = self.choices()
+        indices = []
+        for i, x in enumerate(choice_list):
+            if str(x) == text:
+                indices.append(i)
+        return indices
+    def deepcopy(self):
+        enum = Enumerator(self.grammar)
+        enum.history = list(self.history)
+        return enum
 
-    e = Enumerator(grammar)
+class Interface(object):
+    def __init__(self, grammar):
+        self.enumerators = []
+        self.enumerators.append(Enumerator(grammar))
+    def text_choices(self):
+        text_choices = []
+        for enumerator in self.enumerators:
+            for state in enumerator.choices():
+                if not any(x == str(state) for x in text_choices):
+                    text_choices.append(str(state))
+        return text_choices
+    def make_choice(self, input):
+        if not input in self.text_choices():
+            raise NameError("[" + input + "]" + ' is not a valid choice')
+        new_enumerators = []
+        for enumerator in self.enumerators:
+            indices = enumerator.choice_indices(input)
+            for i in indices:
+                e = enumerator.deepcopy()
+                e.make_choice(i)
+                new_enumerators.append(e)
+        self.enumerators = new_enumerators
+    def is_valid_choice(self, example):
+        return (example in self.text_choices())
+
+if __name__ == "__main__":
+    g = load_syntax([os.path.join(os.path.dirname(__file__), "..", "data", "primitive_cmds_grammar.json")])
+    interface = Interface(g)
     while True:
-        choices = list(e.legal_tokens())
-        if Enumerator.HOLE in choices:
-            choices.remove(Enumerator.HOLE)
-            choices.append("*")
-        if Enumerator.EOF in choices:
-            choices.remove(Enumerator.EOF)
-            choices.append("<EOF>")
-        print("choices: {}".format(", ".join(choices)))
+        print("choices: {}".format(", ".join(interface.text_choices())))
         try:
             inp = raw_input("> ")
-            if inp == "*":
-                inp = Enumerator.HOLE
-            e.push(inp)
+            if interface.is_valid_choice("<DONE>") and inp == "<DONE>":
+                break
+            interface.make_choice(inp)
         except EOFError as ex:
             break
-    e.push(Enumerator.EOF)
-    '''
