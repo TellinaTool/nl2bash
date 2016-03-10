@@ -13,17 +13,27 @@ class Example(object):
     def __init__(self, sent, cmd):
         self.sent = sent
         self.cmd = cmd
+        self.words = None
+        self.terms = None
         self.features = None
         self.feature_vector = None
 
+    def Words(self):
+        if self.words == None:
+            self.words = set(self.sent.split())
+        return self.words
+
+    def Terms(self):
+        if self.terms == None:
+            self.terms = self.cmd.split()
+            self.head_cmd = self.terms[0]
+        return self.terms
+
     def featureSet(self):
-        if not self.features:
+        if self.features == None:
             features = collections.defaultdict(int)
-            words = set(self.sent.split())
-            terms = self.cmd.split()
-            head_cmd = terms[0]
-            for term in terms:
-                for word in words:
+            for term in self.Terms():
+                for word in self.Words():
                     # feature = tuple_template.format(
                     #    head_arg_template.format(head_cmd, term), word)
                     feature = tuple_template.format(term, word)
@@ -52,6 +62,10 @@ def readTrainExamples(questionFile, commandFile):
     dataset = []
     for i in xrange(len(questions)):
         if not commands[i].strip().split()[0] in ["find", "mv", "sort", "grep", "cp", "ls", "tar"]:
+            continue
+        if len(questions[i].split()) < 3:
+            continue
+        if len(commands[i]) > 50:
             continue
         example = Example(questions[i].strip(), commands[i].strip())
         dataset.append(example)
