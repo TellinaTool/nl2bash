@@ -224,12 +224,12 @@ class Parser(Enumerator):
                     self.weights[feature] = self.T2PScores[cmd_snippet][nl_phrase]
 
         # Perceptron
-        num_correct = 0
-        bleu_total = 0.0
 
         start_time = time.time()
         for t in xrange(T):
             print("Iteration {}:".format(t))
+            num_correct = 0
+            bleu_total = 0.0
 
             # shuffle dataset
             shuffle(dataset)
