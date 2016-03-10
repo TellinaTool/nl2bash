@@ -87,10 +87,10 @@ bleu score:     0.302137539736
 
 # requires to know difference betwee "file" and "directory"
 
-question.1585:  to execute output of command within current
-predict_parse:  grep -O -v * (2.1663869)
-actual_parse:   ls sed ... source /dev/stdin
-bleu score:     0.156196996846
+question.669:   to only find file in give directory and ignore subdirectory use
+predict_parse:  find -f * (7.2128681)
+actual_parse:   find /dev -maxdepth 1 -name abc-*
+bleu score:     0.302137539736
 
 # requires to understand difference between "directory" and "subdirectory"
 
