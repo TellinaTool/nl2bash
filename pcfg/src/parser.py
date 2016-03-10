@@ -36,7 +36,7 @@ class Cell(object):
         self.length = bp.length + 1 if bp else 0
         self.features = ff
         # self.feature_vector = ff + bp.feature_vector if bp else ff
-        # self.score = self.featureVector().dot(weights.T)[0, 0]
+        # self.score = self.feature_vector().dot(weights.T)[0, 0]
         self.score = bp.score + sum([weights[f]*ff[f] for f in ff]) if bp else 0
         self.covered_words = w_c
 
@@ -56,28 +56,45 @@ class Cell(object):
     def __cmp__(self, other):
         return cmp(other.score + random.random() / 1e10, self.score)
 
-    def isHead(self):
+    def is_eof(self):
+        return self.term == Enumerator.EOF
+
+    def is_head(self):
         if not self.backpointer:
             return False
-        return self.backpointer.isStart()
+        return self.backpointer.is_start()
         # return self.IS_HEAD
 
     # def setHead(self):
     #     self.IS_HEAD = True
 
-    def isStart(self):
+    def is_start(self):
         return self.IS_START
 
-    def setStart(self):
+    def set_start(self):
         self.IS_START = True
 
-    def getCommand(self):
+    def get_terms(self):
+        if self.term == Enumerator.HOLE:
+            terms = ["*"]
+        else:
+            terms = [self.term]
+        bp = self.backpointer
+        while (not bp.is_start()):
+            if bp.term == Enumerator.HOLE:
+                terms.insert(0, "*")
+            else:
+                terms.insert(0, bp.term)
+            bp = bp.backpointer
+        return terms
+
+    def get_command(self):
         if self.term == Enumerator.HOLE:
             command = ["*"]
         else:
             command = [self.term]
         bp = self.backpointer
-        while (not bp.isStart()):
+        while (not bp.is_start()):
             if bp.term == Enumerator.HOLE:
                 command.insert(0, "*")
             else:
@@ -85,7 +102,8 @@ class Cell(object):
             bp = bp.backpointer
         return ' '.join(command)
 
-    # natural language words covered by the partial command up to this cell
+    # cell features
+
     def cnl_words(self):
         covered_words = copy.deepcopy(self.covered_words)
         bp = self.backpointer
@@ -94,25 +112,10 @@ class Cell(object):
             bp = bp.backpointer
         return covered_words
 
-    def Terms(self):
-        if self.term == Enumerator.HOLE:
-            terms = ["*"]
-        else:
-            terms = [self.term]
-        bp = self.backpointer
-        while (not bp.isStart()):
-            if bp.term == Enumerator.HOLE:
-                terms.insert(0, "*")
-            else:
-                terms.insert(0, bp.term)
-            bp = bp.backpointer
-        return terms
-
-    # feature extraction
     def cmd_arg(self):
         return head_arg_template.format(self.parent.term, self.term)
 
-    def featureSet(self):
+    def feature_set(self):
         features = collections.defaultdict(int)
         bp = self.backpointer
         while (bp):
@@ -121,7 +124,7 @@ class Cell(object):
             bp = bp.backpointer
         return features
 
-    def featureVector(self):
+    def feature_vector(self):
         return self.feature_vector
 
 class Parser(Enumerator):
@@ -171,7 +174,7 @@ class Parser(Enumerator):
         if not self.weights:
             self.weights = {}
         for example in dataset:
-            features = example.featureSet()
+            features = example.feature_set()
             for feature in features:
                 self.__feature_freq__[feature] += 1
 
@@ -195,7 +198,7 @@ class Parser(Enumerator):
         covered_words = set()
 
         for word in words:
-            # if cell.isStart():
+            # if cell.is_start():
             #     feature = self.__tuple_template__.format(cell.term, word)
             # else:
             #     feature = self.__tuple_template__.format(cell.cmd_arg(), word)
@@ -242,9 +245,9 @@ class Parser(Enumerator):
                 top_K_parses = self.parse(example.sent, top_K, False)
 
                 # Update
-                if top_K_parses[0].getCommand() != example.cmd:
-                    pred_feature = top_K_parses[0].featureSet()
-                    gt_feature = example.featureSet()
+                if top_K_parses[0].get_command() != example.cmd:
+                    pred_feature = top_K_parses[0].feature_set()
+                    gt_feature = example.feature_set()
                     for feat in gt_feature:
                         if not feat in self.__feature_index__:
                             continue
@@ -253,15 +256,15 @@ class Parser(Enumerator):
                         if not feat in self.__feature_index__:
                             continue
                         self.weights[feat] -= self.step_size * pred_feature[feat]
-                    # self.weights = self.weights + self.step_size * (example.featureVector(self.__feature_index__)
-                    #                - top_K_parses[0].featureVector())
+                    # self.weights = self.weights + self.step_size * (example.feature_vector(self.__feature_index__)
+                    #                - top_K_parses[0].feature_vector())
                 else:
                     num_correct += 1
 
-                bleu = BLEU.compute(top_K_parses[0].Terms(), [example.Terms()], weights=[0.25, 0.25, 0.25, 0.25])
+                bleu = BLEU.compute(top_K_parses[0].get_terms(), [example.get_terms()], weights=[0.25, 0.25, 0.25, 0.25])
                 bleu_total += bleu
 
-                print("predict_parse:\t{} ({})".format(top_K_parses[0].getCommand(), top_K_parses[0].score))
+                print("predict_parse:\t{} ({})".format(top_K_parses[0].get_command(), top_K_parses[0].score))
                 print("actual_parse:\t{}".format(example.cmd))
                 print("bleu score:\t{}".format(bleu))
                 print()
@@ -288,7 +291,7 @@ class Parser(Enumerator):
 
         start_cell = Cell("__START_SYMBOL__", None, None, set(),
                           {}, self.weights)
-        start_cell.setStart()
+        start_cell.set_start()
         final_cells = []                # store tail cells of all legal commands
 
         if verbose:
@@ -319,8 +322,8 @@ class Parser(Enumerator):
         for i in xrange(top_K):
             cell = sorted_cells.get()
             if verbose:
-                print("{}:\t\t{}\t{}\t{}\t{}\t{}".format(cell.getCommand(), cell.score,
-                        cell.length, cell.cnl_words(), word_set-cell.cnl_words(), cell.featureSet()),
+                print("{}:\t\t{}\t{}\t{}\t{}\t{}".format(cell.get_command(), cell.score,
+                        cell.length, cell.cnl_words(), word_set-cell.cnl_words(), cell.feature_set()),
                         file=sys.stderr)
             top_K_parses.append(cell)
 
@@ -331,12 +334,12 @@ class Parser(Enumerator):
         term = cell.term
 
         # mark head command
-        if cell.isHead():
+        if cell.is_head():
             self.head_cell = cell
         cell.parent = self.head_cell
 
         # skip <EOF> character
-        if term == Enumerator.EOF:
+        if cell.is_eof():
             return
 
         # TODO: handle compound commands
@@ -399,7 +402,7 @@ if __name__ == "__main__":
     questionFile = "../../baseline1/data/true.questions"
     commandFile = "../../baseline1/data/true.commands"
 
-    dataset = readTrainExamples(questionFile, commandFile)
+    dataset = read_train_examples(questionFile, commandFile)
     parser.train(dataset, 10, 1)
 
     parser.parse(nl_cmd)
