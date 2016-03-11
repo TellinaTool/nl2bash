@@ -37,7 +37,7 @@ class Example(object):
                     # feature = tuple_template.format(
                     #    head_arg_template.format(head_cmd, term), word)
                     feature = tuple_template.format(term, word)
-                    features[feature] += 1
+                    features[feature] = 1
             self.features = features
         return self.features
 
