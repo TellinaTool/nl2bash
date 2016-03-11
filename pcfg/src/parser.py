@@ -247,14 +247,16 @@ class Parser(Enumerator):
                 # Update
                 if top_K_parses[0].get_command() != example.cmd:
                     pred_feature = top_K_parses[0].feature_set()
+                    print(pred_feature)
                     gt_feature = example.feature_set()
+                    print(gt_feature)
                     for feat in gt_feature:
-                        if not feat in self.__feature_index__:
-                            continue
+                        # if not feat in self.__feature_index__:
+                        #     continue
                         self.weights[feat] += self.step_size * gt_feature[feat]
                     for feat in pred_feature:
-                        if not feat in self.__feature_index__:
-                            continue
+                        # if not feat in self.__feature_index__:
+                        #     continue
                         self.weights[feat] -= self.step_size * pred_feature[feat]
                     # self.weights = self.weights + self.step_size * (example.feature_vector(self.__feature_index__)
                     #                - top_K_parses[0].feature_vector())
