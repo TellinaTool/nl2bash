@@ -29,7 +29,17 @@ class Example(object):
             self.head_cmd = self.terms[0]
         return self.terms
 
-    def feature_set(self):
+    def feature_set0(self):
+        features = collections.defaultdict(int)
+        for term in self.get_terms():
+            for word in self.get_words():
+                # feature = tuple_template.format(
+                #    head_arg_template.format(head_cmd, term), word)
+                feature = tuple_template.format(term, word)
+                features[feature] = 1
+        return features
+
+    def feature_set(self, pmis, feature_index):
         if self.features == None:
             features = collections.defaultdict(int)
             for term in self.get_terms():
@@ -37,7 +47,10 @@ class Example(object):
                     # feature = tuple_template.format(
                     #    head_arg_template.format(head_cmd, term), word)
                     feature = tuple_template.format(term, word)
-                    features[feature] = 1
+                    if not feature in feature_index:
+                        continue
+                    pmi = pmis[term][word]
+                    features[feature] = pmi
             self.features = features
         return self.features
 
@@ -61,6 +74,8 @@ def read_train_examples(questionFile, commandFile):
 
     dataset = []
     for i in xrange(len(questions)):
+        if "perl" in questions[i]:
+            continue
         if questions[i].startswith("ca n't"):
             continue
         if len(questions[i].split()) < 4:
