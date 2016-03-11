@@ -61,11 +61,15 @@ def read_train_examples(questionFile, commandFile):
 
     dataset = []
     for i in xrange(len(questions)):
-        if not commands[i].strip().split()[0] in ["find", "mv", "sort", "grep", "cp", "ls", "tar"]:
+        if questions[i].startswith("ca n't"):
             continue
         if len(questions[i].split()) < 4:
             continue
+        if len(commands[i].split()) < 4:
+            continue
         if len(commands[i]) > 50:
+            continue
+        if not commands[i].strip().split()[0] in ["find", "mv", "sort", "grep", "cp", "ls", "tar"]:
             continue
         example = Example(questions[i].strip(), commands[i].strip())
         dataset.append(example)
