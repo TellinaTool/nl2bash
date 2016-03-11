@@ -307,7 +307,7 @@ if __name__ == "__main__":
         print("choices: {}".format(", ".join(interface.text_choices())))
         try:
             inp = raw_input("> ")
-            if interface.is_valid_choice("<DONE>") and inp == "<DONE>":
+            if inp == "<DONE>" and interface.is_valid_choice("<DONE>"):
                 break
             interface.make_choice(inp)
         except EOFError as ex:
