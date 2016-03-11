@@ -131,7 +131,7 @@ class Parser(Enumerator):
 
         # hyperparameters
         self.__feature_freq_thresh__ = 1
-        self.step_size = 1
+        self.step_size = 0.01
 
         # params
         self.__term_index__ = None
@@ -447,6 +447,6 @@ if __name__ == "__main__":
     commandFile = "../../data/train/true.commands"
 
     dataset = read_train_examples(questionFile, commandFile)
-    parser.train(dataset[:1], 1, 1)
+    parser.train(dataset[:1200], 1, 1)
 
     parser.parse(nl_cmd)
