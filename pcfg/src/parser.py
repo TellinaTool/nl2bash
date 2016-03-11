@@ -143,7 +143,7 @@ class Parser(Enumerator):
 
         # hyperparameters
         self.__feature_freq_thresh__ = 1
-        self.step_size = 0.01
+        self.step_size = 0.1
 
         # params
         self.__feature_index__ = None
