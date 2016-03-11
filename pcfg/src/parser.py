@@ -142,7 +142,7 @@ class Parser(Enumerator):
         self.beam_size = beam_size
 
         # hyperparameters
-        self.__feature_freq_thresh__ = 3
+        self.__feature_freq_thresh__ = 1
         self.step_size = 0.01
 
         # params
@@ -347,10 +347,6 @@ class Parser(Enumerator):
         if term == "|":
             return
 
-        # maximum depth reached, backtrack
-        if cell.length == self.max_command_length:
-            return
-
         # update enumerator
         if self.allows(term):
             self.push(term)
@@ -362,6 +358,11 @@ class Parser(Enumerator):
         # yield legal command
         if cell.length >= self.min_command_length and self.allow_eof():
             final_cells.append(cell)
+
+        # maximum depth reached, backtrack
+        if cell.length == self.max_command_length:
+            self.pop()
+            return
 
         # look ahead one step
         queue = Queue.PriorityQueue()
@@ -400,10 +401,10 @@ if __name__ == "__main__":
     parser.make_phrase_table(os.path.join(os.path.dirname(__file__),
                                            "..", "..", "data", "phrase-table.gz"))
 
-    questionFile = "../../baseline1/data/true.questions"
-    commandFile = "../../baseline1/data/true.commands"
+    questionFile = "../../data/train/true.questions"
+    commandFile = "../../data/train/true.commands"
 
     dataset = read_train_examples(questionFile, commandFile)
-    parser.train(dataset, 10, 1)
+    parser.train(dataset[:1], 10, 1)
 
     parser.parse(nl_cmd)
