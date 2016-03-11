@@ -38,7 +38,8 @@ public class Main {
                     "../data/plain-man/xargs.1.txt",
                     "../data/plain-man/sort.1.txt",
                     "../data/plain-man/cp.1.txt",
-                    "../data/plain-man/ls.1.txt"
+                    "../data/plain-man/ls.1.txt",
+                    "../data/plain-man/tar.1.txt"
             };
             List<Cmd.ManPage> manPages = new ArrayList<>();
             for (String f : targetFiles) {
