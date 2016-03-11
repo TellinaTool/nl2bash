@@ -130,7 +130,7 @@ class Parser(Enumerator):
         self.beam_size = beam_size
 
         # hyperparameters
-        self.__feature_freq_thresh__ = 1
+        self.__feature_freq_thresh__ = 3
         self.step_size = 0.01
 
         # params
@@ -148,7 +148,7 @@ class Parser(Enumerator):
         # self.__unknown_combination_feat__ = "__unknown_combination_feat__"
         # self.__unknown_term_word_feat__ = "__unknown_term_word_feat__"
 
-    def make_phrase_table(self, inputFile):
+    def read_phrase_table(self, inputFile):
         self.T2PScores = collections.defaultdict(dict)
         with gzip.open(inputFile, 'rb') as f:
             for line in f.readlines():
@@ -158,6 +158,10 @@ class Parser(Enumerator):
                 phi_cmd_nl, lex_cmd_nl, phi_nl_cmd, lex_nl_cmd = \
                     [float(s) for s in parts[2].split()]
                 self.T2PScores[cmd_snippet][nl_phrase] = lex_nl_cmd
+
+    def read_pmi_table(self, inputFile):
+        with open(inputFile) as f:
+            self.pmis = pickle.load(f)
 
     def create_feature_index(self, dataset):
         if not self.__term_index__:
@@ -173,7 +177,7 @@ class Parser(Enumerator):
         for example in dataset:
             terms = example.get_terms()
             words = example.get_words()
-            features = example.feature_set()
+            features = example.feature_set0()
             for term in terms:
                 self.update_term_index(term)
             for word in words:
@@ -211,26 +215,26 @@ class Parser(Enumerator):
         features = collections.defaultdict(int)
         covered_words = set()
 
-        if not term in self.__term_index__:
-            term = "unk_term"
+        # if not term in self.__term_index__:
+        #     term = "unk_term"
 
         for word in words:
-            # feature = self.__tuple_template__.format(cell.term, word)
-            # if feature in self.__feature_index__:
-            #     features[feature] += 1
-            #     covered_words.add(word)
-            if not word in self.__word_index__:
-                word = "unk_word"
-
             feature = self.__tuple_template__.format(term, word)
+            if feature in self.__feature_index__:
+                pmi = self.pmis[term][word]
+                features[feature] = pmi
+                covered_words.add(word)
+            # if not word in self.__word_index__:
+            #     word = "unk_word"
+
 
             # growing feature set on the fly
-            if not feature in self.__feature_index__:
-                self.update_feature_index(feature)
-
-            features[feature] = 1
-            if not word == "unk_word":
-                covered_words.add(word)
+            # feature = self.__tuple_template__.format(term, word)
+            # if not feature in self.__feature_index__:
+            #     self.update_feature_index(feature)
+            # features[feature] = 1
+            # if not word == "unk_word":
+            #     covered_words.add(word)
 
         return features, covered_words
 
@@ -240,7 +244,7 @@ class Parser(Enumerator):
 
     def score_example(self, example):
         score = 0.0
-        for feature in example.feature_set():
+        for feature in example.feature_set(self.pmis, self.__feature_index__):
             score += self.weights[feature]
         return score
 
@@ -278,8 +282,8 @@ class Parser(Enumerator):
                 # Update
                 if top_K_parses[0].get_command() != example.cmd:
                     pred_feature = top_K_parses[0].feature_set()
-                    # print(top_K_parses[0].get_command(), pred_feature)
-                    gt_feature = example.feature_set()
+                    # print(pred_feature)
+                    gt_feature = example.feature_set(self.pmis, self.__feature_index__)
                     # print(gt_feature)
                     for feat in gt_feature:
                         self.weights[feat] += 2 * self.step_size * gt_feature[feat]
@@ -440,13 +444,19 @@ if __name__ == "__main__":
     # maximum number of tokens in command = 3
     # beam size = 10
     parser = Parser(grammar, 2, 5, 7)
-    parser.make_phrase_table(os.path.join(os.path.dirname(__file__),
+    parser.read_phrase_table(os.path.join(os.path.dirname(__file__),
                                            "..", "..", "data", "phrase-table.gz"))
+    parser.read_pmi_table(os.path.join(os.path.dirname(__file__),
+                                       "..", "model", "pmi.cpkl"))
 
     questionFile = "../../data/train/true.questions"
     commandFile = "../../data/train/true.commands"
 
     dataset = read_train_examples(questionFile, commandFile)
+<<<<<<< HEAD
     parser.train(dataset[:1200], 1, 1)
+=======
+    parser.train(dataset, 1, 1)
+>>>>>>> 0734aeda381c77259217d3f31d157706a8021bcc
 
     parser.parse(nl_cmd)
