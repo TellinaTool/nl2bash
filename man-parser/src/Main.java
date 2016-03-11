@@ -24,17 +24,28 @@ public class Main {
         // // summarizing options of the file tar.1.txt
         // SmallTask.extractOptionsFrom("../data/plain-man/tar.1.txt");
 
-        jsonPrimitiveGrammar("../grammar.txt");
+        //jsonPrimitiveGrammar("../grammar.txt");
 
         /*String s = SmallTask.processWierdThing("wierddata");
         System.out.println(s);*/
 
-        /*File[] files = new File("../data/plain-man").listFiles();
+        File[] files = new File("../data/plain-man").listFiles();
 
         if (trySmallExample) {
-            Cmd.ManPage man = parseFile(new File("../data/plain-man/xargs.1.txt"));
+            String[] targetFiles = {
+                    "../data/plain-man/grep.1.txt",
+                    "../data/plain-man/find.1.txt",
+                    "../data/plain-man/xargs.1.txt",
+                    "../data/plain-man/sort.1.txt",
+                    "../data/plain-man/cp.1.txt",
+                    "../data/plain-man/ls.1.txt"
+            };
+            List<Cmd.ManPage> manPages = new ArrayList<>();
+            for (String f : targetFiles) {
+                manPages.add(parseFile(new File(f)));
+            }
             ObjectMapper mapper = new ObjectMapper();
-            String jsonInString = mapper.writeValueAsString(man);
+            String jsonInString = mapper.writeValueAsString(manPages);
             System.out.println(jsonInString);
             return;
         }
@@ -43,7 +54,7 @@ public class Main {
             if (! f.getName().matches("\\w*\\.\\d\\.txt"))
                 continue;
             parseFile(f);
-        }*/
+        }
     }
 
     public static String jsonPrimitiveGrammar(String path) throws IOException, ParseException {

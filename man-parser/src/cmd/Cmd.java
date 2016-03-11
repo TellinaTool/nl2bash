@@ -12,6 +12,7 @@ import java.util.Optional;
 public class Cmd {
 
     public static class ManPage {
+        String type = "manpage";
         public List<String> aliases = new ArrayList<>();
         public String description = "";
         // one option may have more than once synopsis
@@ -175,6 +176,7 @@ public class Cmd {
     }
 
     public static class DescriptionPair {
+        String type = "option_description_pair";
         public String name;
         public Cmd.CmdOp option;
         public String description;
