@@ -34,7 +34,7 @@ public class Main {
         if (trySmallExample) {
             String[] targetFiles = {
                     "../data/plain-man/grep.1.txt",
-                    "../data/plain-man/find.1.txt",
+                    "../data/plain-man/find_cheat.1.txt",
                     "../data/plain-man/xargs.1.txt",
                     "../data/plain-man/sort.1.txt",
                     "../data/plain-man/cp.1.txt",
