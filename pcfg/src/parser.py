@@ -350,8 +350,8 @@ class Parser(Enumerator):
                 break
             cell = sorted_cells.get()
             if verbose:
-                print("no.{}\t{}:\t\t{}\t{}\t{}\t{}\t{}".format(i, cell.get_command(), cell.score,
-                        cell.length, cell.cnl_words(), word_set-cell.cnl_words(), cell.feature_set()))
+                print("no.{}\t{}:\t\t{}\t{}\t{}\t{}".format(i, cell.get_command(), cell.score,
+                        cell.length, cell.cnl_words(), word_set-cell.cnl_words()))
             top_K_parses.append(cell)
 
         return top_K_parses
@@ -453,10 +453,6 @@ if __name__ == "__main__":
     commandFile = "../../data/train/true.commands"
 
     dataset = read_train_examples(questionFile, commandFile)
-<<<<<<< HEAD
-    parser.train(dataset[:1200], 1, 1)
-=======
     parser.train(dataset, 1, 1)
->>>>>>> 0734aeda381c77259217d3f31d157706a8021bcc
 
     parser.parse(nl_cmd)
