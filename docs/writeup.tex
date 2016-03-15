@@ -7,6 +7,8 @@
 \usepackage{subcaption}
 \usepackage{listings}
 
+\usepackage[linesnumbered,ruled]{algorithm2e}
+
 % Fix for footnotes inside \begin{tabular}; see
 % https://tex.stackexchange.com/questions/109467/footnote-in-tabular-environment
 \usepackage{footnote}
@@ -23,10 +25,11 @@
 \begin{document}
 \maketitle
 
-\input{intro.tex}
-\input{framework.tex}
-\input{eval.tex}
-\input{relatedwork.tex}
+\input{intro}
+\input{framework}
+\input{experiments}
+\input{eval}
+\input{relatedwork}
 
 \bibliographystyle{abbrv}
 \bibliography{bibliography}

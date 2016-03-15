@@ -1,5 +1,5 @@
 %!TEX root=writeup.tex
-\section{Natural Language To Linux Command Translation Framework}
+\section{Natural Language To Bash Command Translation Framework}
 \label{sec:framework}
 
 \begin{figure}[h]
@@ -13,8 +13,9 @@
     \label{fig:arch}
 \end{figure}
 
-The natural language based command line interpreter we plan to develop consists of two key components: 1) an intermediate language to represent commands and
-2) a semantic parser that maps natural language commands issued by users to this intermediate representation. Our initial pilot system is restricted to cover only file system operations, including file lookup, directory tree transformation, file content transformation, and file property modifications. We restrict the domain in the hope that it can be expressed with tractable logic and to reduce the degree of ambiguity in the natural language command. Section~\ref{subsec:represent} introduces the formal language design---the subset of Bash our tool supports---and section~\ref{subsec:parser} introduces the approach to train the semantic parser.
+The natural language to Linux command line translation framework we developed consists of two key components: 
+1) an intermediate language to represent commands and
+2) an algorithm that maps the natural language commands given by users to this intermediate representation. Our initial pilot system is restricted to cover only file system operations, including file lookup, directory tree transformation, file content transformation, and file property modifications. We restrict the domain in the hope that it can be expressed with tractable logic and to reduce the degree of ambiguity in the natural language command. Section~\ref{subsec:represent} introduces the formal language design---the subset of Bash our tool supports---and section~\ref{subsec:parser} introduces the approach to train the semantic parser.
 
 \input{dsl}
 \input{translation}
