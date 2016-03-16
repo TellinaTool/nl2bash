@@ -20,7 +20,6 @@ The greedy procedure for bash command enumeration and feature extraction is summ
 \SetKwFunction{ExtractFeat}{ExtractFeatures}
 \SetKwFunction{TopKBest}{TopKBestNextTerms}
 \SetKwFunction{EndOfCmd}{IsEndOfCmd}
-% \SetKwFunction{AccFeat}{AccFeaturesWithBacktracking}
 \SetKwFunction{PrintCmd}{GetCmdAndFeaturesWithBacktracking}
 
 \Input{nl\_cmd, HeadCmdSet}
@@ -31,7 +30,7 @@ The greedy procedure for bash command enumeration and feature extraction is summ
 }
 \SetKwProg{fun}{Procedure}{}{}
 \fun{\DFS{term, nl\_cmd}}{	
-	\ExtractFeat{term, nl\_cmd} \\
+	term.features = \ExtractFeat{term, nl\_cmd} \\
 	\If {\EndOfCmd{term}} {
 		CmdsAndFeatures $\leftarrow$ CmdsAndFeatures + \\
 			\PrintCmd{term}
@@ -53,17 +52,19 @@ The greedy procedure for bash command enumeration and feature extraction is summ
 
 \subsubsection{Features}
 \label{subsec:feature}
-The following features are used:
-\begin{itemize}\itemsep-1pt
-	\item association of key words/phrases to partial expressions
-	\item association between partial expressions (e.g. how often do they combined in valid commands)
-	\item similarity of key words/phrases in the command to the man page explanation text of a partial expression
-	\item complexity of the logical formulas and the commands generated from them.
-\end{itemize}
-We use the structured perception algorithm to learn weights of the scoring function from the example pairs. In the training process, the input are pairs collected from StackOverflow, and the target is to learn a scoring functions to evaluate the correspondence between the a natural language sentence and a CLI program. In each training iteration, top ranked logical form are selected and the weights are updated based on its similarity to the ground truth logical form. 
+% The following features are used:
+% \begin{itemize}\itemsep-1pt
+%	\item association of key words/phrases to partial expressions
+%  	\item association between partial expressions (e.g. how often do they combined in valid commands)
+%	\item similarity of key words/phrases in the command to the man page explanation text of a partial expression
+%	\item complexity of the logical formulas and the commands generated from them.
+% \end{itemize}
+As shown in the bottom function in alg.~\ref{alg:decoding}, the current feature set only consists of simple term-word tuples. We replaced any term unseen in the training set with the ``unk\_term'' symbol and any word unseen with the ``unk\_word'' symbol. To discriminate important tuples from unimportant ones, we assigned each feature its PMI value.
 
 \subsubsection{Training}
 \label{subsec:training}
+
+We use the structured perception algorithm to learn weights of the scoring function from the example pairs. In the training process, the input are pairs collected from StackOverflow, and the target is to learn a scoring functions to evaluate the correspondence between the a natural language sentence and a CLI program. In each training iteration, top ranked logical form are selected and the weights are updated based on its similarity to the ground truth logical form. 
 
 \begin{algorithm} 
 \label{alg:training}
