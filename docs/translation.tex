@@ -1,3 +1,4 @@
+%!TEX root=writeup.tex
 \subsection{Natural Language to Bash Command Translation}
 \label{subsec:parser}
 
@@ -68,7 +69,7 @@ As shown in the bottom function in alg.~\ref{alg:decoding}, the current feature 
 	P(w) &= \frac{count\_of\_w}{total\_count\_of\_words}.
 \end{align}
 
-The PMI value measures the association between a pair of term and word based on the training set. It has the effect of down-weighting uninformative tuples such as ``(\texttt{find}, and)''. However, we also noticed some anomalies associated with this approach. For example, the tuple ``(\texttt{-f}, file) has a very low PMI value, although the \texttt{-f} option literally refers to a file. This is because the word ``file'' occurs in almost every training example in our dataset (with and without \texttt{-f} present). Therefore simple example-level occurrence measure wasn't able to reveal the connection between \texttt{-f} and ``file''. What we actually need is statistical alignment, which infers the probability of the alignment between each term and word in every example, instead of doing exhaustive pair-up. The design of this alignment algorithm is left to future work. 
+The PMI value measures the association between a pair of term and word based on the training set. It has the effect of down-weighting uninformative tuples such as ``(\texttt{find}, and)''. However, we also noticed some anomalies associated with this approach. For example, the tuple ``(\texttt{-f}, file)'' has a very low PMI value, although the \texttt{-f} option literally refers to a file. This is because the word ``file'' occurs in almost every training example in our dataset (with and without \texttt{-f} present). Therefore simple example-level occurrence measure wasn't able to reveal the connection between \texttt{-f} and ``file''. What we actually need is statistical alignment, which infers the probability of the alignment between each term and word in every example, instead of doing exhaustive pair-up. The design of this alignment algorithm is left to future work. 
 
 \subsubsection{Training}
 \label{subsec:training}

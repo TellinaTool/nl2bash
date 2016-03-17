@@ -41,6 +41,8 @@ class Program(object):
     def leave_node(self, looked, last): 
     # after traveral all subtress of this node, seek the next tree to traverse
         return self.next_node(looked)
+    def __str__(self):
+        return "<BEGIN>"
 
 class Cmd(object):
     def __init__(self, name, option):
@@ -80,7 +82,7 @@ class FlagOp(object):
         looked.append(self)
         return self.parent.leave_node(looked, self)
     def __str__(self):
-        return self.name
+        return "-" + self.name
 
 class LongFlagOp(object):
     def __init__(self, name, arg):
@@ -106,7 +108,7 @@ class LongFlagOp(object):
         looked.append(self)
         return self.parent.leave_node(looked, self)
     def __str__(self):
-        return self.name
+        return "--"+self.name
 
 class ArgOp(object):
     def __init__(self, name, ty, is_list):
@@ -277,6 +279,11 @@ class Enumerator(object):
 
 class Interface(object):
     def __init__(self, grammar):
+        # specially used for enumerating "|" between commands,
+        # if we don't use this, just ingore the command
+        # the interface start with the pipeline_state, 
+        # as it is expecting the first argument a command name
+        self.pipeline_state = True
         self.enumerators = []
         self.enumerators.append(Enumerator(grammar))
     def text_choices(self):
@@ -297,18 +304,67 @@ class Interface(object):
                 e.make_choice(i)
                 new_enumerators.append(e)
         self.enumerators = new_enumerators
+    def text_choices_alter(self):
+        text_choices = []
+        # in pipleline_state, the next expected command is a new command
+        if self.pipeline_state:
+            for enumerator in self.enumerators:
+                for state in enumerator.choices():
+                    if isinstance(state, Cmd) and not any(x == str(state) for x in text_choices):
+                        text_choices.append(str(state))
+            return text_choices
+        # otherwise, we perform enumeration normally
+        cmd_include = False
+        for enumerator in self.enumerators:
+            for state in enumerator.choices():
+                if isinstance(state, Cmd):
+                    cmd_include = True
+                    continue
+                if not any(x == str(state) for x in text_choices):
+                    text_choices.append(str(state))
+        if cmd_include:
+            text_choices.append("|")
+        return text_choices
+    def make_choice_alter(self, input):
+        if not input in self.text_choices_alter():
+            raise NameError("[" + input + "]" + ' is not a valid choice')
+        if input == "|":
+            # keep all primitive enumerators untouched
+            self.pipeline_state = True
+            return
+        else:
+            self.pipeline_state = False
+
+        new_enumerators = []
+        for enumerator in self.enumerators:
+            indices = enumerator.choice_indices(input)
+            for i in indices:
+                e = enumerator.deepcopy()
+                e.make_choice(i)
+                new_enumerators.append(e)
+        self.enumerators = new_enumerators
     def is_valid_choice(self, example):
         return (example in self.text_choices())
+    def deep_copy(self):
+        interface = Interface(None)
+        interface.enumerators = []
+        for e in self.enumerators:
+            interface.enumerators.append(e.deepcopy())
+        return interface
+    def get_history(self):
+        # only return the result of the first one
+        return self.enumerators[0].history
 
 if __name__ == "__main__":
     g = load_syntax([os.path.join(os.path.dirname(__file__), "..", "data", "primitive_cmds_grammar.json")])
     interface = Interface(g)
     while True:
-        print("choices: {}".format(", ".join(interface.text_choices())))
+        print("choices: {}".format(", ".join(interface.text_choices_alter())))
         try:
             inp = raw_input("> ")
             if inp == "<DONE>" and interface.is_valid_choice("<DONE>"):
+                print("choices: {}".format(", ".join(map(str,interface.get_history()))))
                 break
-            interface.make_choice(inp)
+            interface.make_choice_alter(inp)
         except EOFError as ex:
             break
