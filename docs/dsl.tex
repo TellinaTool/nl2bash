@@ -1,13 +1,25 @@
+%!TEX root=writeup.tex
 \subsection{Language Design}
 \label{subsec:represent}
-An ideal intermediate language for the CLI programs should be expressive enough so that it covers many interesting real world cases, and concise enough for the synthesizer to efficiently synthesize. \autoref{fig:lang} presents the syntax of the intermediate language.
+
+Since different bash commands are designed by different developers, the synthax for bash commands is not informative enough for synthesis (as it does not provide enough constraints on which commands are well formed), it is necessary to provide a more strict language design for bash commands which reflects more syntactical constraints to ease the translation task.
+
+\begin{figure}[ht]
+\[
+\mathit{bash} := \mathit{word}~(~\mathit{word}~)^{*}
+\]
+\vspace{-20pt}
+\caption{Original bash syntax}
+\end{figure}
+
+The key design tradeoff for the language is the level of declarativity. The more declarative the langauge is, it is easier to perform translation, e.g. if \code{max} is provided as a primitive of the language, it is possible to direct translate descriptions with notion of maxinum into a command using the primitive \code{max}, on the other hand, if it is not provided, the command should be achieved using \code{sort} following by \code{first} to acheive the same goal, which is less straightforward compared to the first case. However, when the language is too declarative, collecting training data are harder, as it is harder to transform real bash commands in the dataset to its intermediate representation. In our design, we choose the latter case, to make the language designed to be closer to the original bash commands, so that we can directly parse a bash command into its intermediate representation, which provides us a larger set of traning data. \autoref{fig:lang} presents the syntax of the intermediate language.
 
 \begin{figure}[ht]
 \[
 \begin{array}{rlll}
 \multicolumn{3}{l}{\textbf{Program}}\\
 \mathit{p} & :=  & \mathit{cmd}~\overline{\mathit{option}} & \textrm{(Program)}\\
-    &  & \mathit{p} ~\|~ \mathsf{xargs} ~\mathit{p} & \textrm{(Pipelined programs)} \\
+    &  & \mathit{p} ~|~ \mathit{p} & \textrm{(Pipelined programs)} \\
 \mathit{option} & := & \mathit{flag} & \textrm{(Command flag)}\\
                 &    & \mathit{val} & \textrm{(Value)}\\
 \mathit{cmd} & := & ... & \textrm{(Command names)}\\
@@ -17,8 +29,9 @@ An ideal intermediate language for the CLI programs should be expressive enough 
 \multicolumn{3}{l}{\textbf{Command Signature}}\\
 \mathit{sig} & := & \mathit{name}~\mathit{op} & \textrm{(Command signature)}\\
 \mathit{op} &:= & \mathit{flag} & \textrm{(Flag)}\\
-                &   & \mathit{arg}[\tau] & \textrm{(Argument)}\\
-                &   & \mathit{arg}[\tau] ...& \textrm{(Argument list)}\\
+                &   & \mathit{arg}:\tau & \textrm{(Argument)}\\
+                &   & \mathit{arg}:\tau~...& \textrm{(Argument list)}\\
+                &   & \mathit{op}~\mathit{op} & \textrm{(Sequential options)}\\
                 &   & \mathit{op}~|~\mathit{op} & \textrm{(Exclusive options)}\\
                 &   & [ \mathit{op} ] & \textrm{(Optional options)}\\
 ~\\
@@ -26,7 +39,7 @@ An ideal intermediate language for the CLI programs should be expressive enough 
 \mathit{rule}^{*} &:=& \mathit{cmd}~\overline{\mathit{option}} : \tau & \textrm{(Command typing rule)}\\
 ~\\
 \multicolumn{3}{l}{\textbf{Types}}\\
-\tau_0 & := & \mathsf{void} ~|~ \mathsf{File} ~|~ \mathsf{Date} ~|~ ...& \textrm{(Primitive types)}\\
+\tau_0 & := & \mathsf{void},~ \mathsf{File},~ \mathsf{Date},~\mathsf{Perm} ...& \textrm{(Primitive types)}\\
 \tau & := & \tau_0 ~|~ (\bar{\tau}_0)\rightarrow \tau_0 & \textrm{(Type)}
 \end{array}
 \]
@@ -35,9 +48,9 @@ An ideal intermediate language for the CLI programs should be expressive enough 
 \end{figure}
 
 
-\textbf{Program} defines the formation rules for a program: i.e. a CLI program is either a primitive command or the pipeline of two programs. However, not all of programs that can be represented by the syntax is valid, e.g. the program \code{find -goal} is well formed under the syntax, but it is not a valid real CLI program, as the \code{goal} flag is not part of the command \code{find}. Thus, command signature is introduced to check the well-formedness of a given CLI program. 
+In the intermediate language, \textit{Program} defines the formation rules for a command: i.e. a command is either a primitive command or the pipeline of two programs. However, not all of programs that can be represented by the syntax is valid, e.g. the program \code{find -goal} is well formed under the syntax, but it is not a valid real CLI program, as the \code{goal} flag is not part of the command \code{find}. Thus, \textit{command signatures} are introduced to check the well-formedness of a given bash command.
 
-The command signature defines the usage of a certain command: a CLI program is well formed only if it follows its corresponding structure. Besides, types help restrict usage of values in a program as other typed languages. Figure~\ref{fig:cmdsig} shows the signature of some commands used in our system. With this signature, a CLI program \code{mv -f -v a.txt b.txt} is will formed as it is captured by the signature of \code{mv}.
+\textit{Command signature} in \autoref{fig:lang} defines the usages for certain commands: a command is well formed only if it follows its corresponding structure. \textit{types} reflect the type of an argument, helping restrict usage of values in a command as types used in other typed languages. Figure~\ref{fig:cmdsig} shows the signature of some commands used in our system. With this signature, the command \code{mv -f -v a.txt b.txt} is will formed as it is captured by the signature of \code{mv}.
 
 \begin{figure}[ht]
 \[
