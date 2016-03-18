@@ -73,11 +73,32 @@ The PMI value measures the association between a pair of term and word based on 
 
 \subsubsection{Training data}
 
-The trade-off of choosing training data is between the data size and the data quality. On the one hand, the online forum StackOverflow has a large volume of question/command pairs (~30,000 raw data, and ~2,000 after simple cleaning), but these data are noisy: some of the questions are not well described and the expert obtained the questioner's intent though conversations, and as a result, the text/command pairs obtained are of low quality (not well corresponded). On the other hand, a relatively small amount of clean data can be obtained by manually collecting from tutorials or forums. These data are of relatively high quality, but the data size is pretty small (~200).
+Our training data comes from question-answer pairs from StackOverflow%
+\footnote{\url{https://archive.org/details/stackexchange}, retrieved Jan. 21,
+2016}. In the initial dataset there are 42111 questions having accepted answers
+tagged with one of the
+tags ``bash,'' ``sh,'' ``shell,'' ``zsh,'' ``command-line,'' ``awk,'' ``sed,''
+``xargs,'' ``tar,'' ``rsync,'' ``scp,'' ``mv,'' or ``cp''. From the accepted
+answer of each question we extract every code snippet and pair it with the
+question title, resulting in zero or more (title, code) pairs. In total there
+are 75518 such pairs. Of these, only 29880 parse as legal bash code (after
+removing comments and fake ``\$'' prompts at the beginnings of lines).
 
-Between these two choices, we choose the former, as we consider larger dataset can cover more command grammars and contain enough interesting patterns for the model to learn from. Specifically, we collected ~30,000 text/command pairs from StackOverflow, and perform an initial data cleaning before training, the details of data cleaning is presented below.
+Unfortunately, the StackOverflow data are very noisy: some of the questions are not well described and the expert obtained the questioner's intent though conversations. As a result, the text/command pairs obtained are of low quality (not well corresponded). On the other hand, a relatively small amount of clean data can be obtained by manually collecting from tutorials or forums. These data are of relatively high quality, but we were only able to collect roughly 200 such examples.
 
-\todo{describe data cleaning}
+We opted to use the StackOverflow dataset, as we believed that a larger dataset
+could compensate for the noise. To combat the problem we also performed
+additional cleaning:
+\begin{itemize}
+	\item Removed punctuation, stop words, and stop phrases (such as ``bash'',
+		``how'', and ``in command line''). The English words ``not'' and ``no''%
+		---which are traditionally used as stop words in information retrieval%
+		---are \emph{not} removed during this step, as have relevant meaning.
+	\item Lemmatized words using the Stanford CoreNLP library~%
+		\footnote{\url{https://stanfordnlp.github.io/CoreNLP/}}
+	\item Bash code spanning more than one line is ignored
+	\item Bash redirect removal; \code{cat >/dev/null} becomes simply \code{cat}
+\end{itemize}
 
 \subsubsection{Training}
 \label{subsec:training}

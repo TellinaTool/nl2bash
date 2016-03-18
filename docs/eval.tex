@@ -118,15 +118,7 @@ set of hand-written rules. Additionally, the scoring function is based on simple
 co-occurrence of English words and bash tokens.
 
 \autoref{tbl:stats} shows a few simple statistics about the training data and
-output. In the StackOverflow dataset we downloaded%
-\footnote{\url{https://archive.org/details/stackexchange}, retrieved Jan. 21,
-2016} there are 42111 questions having accepted answers tagged with one of the
-tags ``bash,'' ``sh,'' ``shell,'' ``zsh,'' ``command-line,'' ``awk,'' ``sed,''
-``xargs,'' ``tar,'' ``rsync,'' ``scp,'' ``mv,'' or ``cp''. From the accepted
-answer of each question we extract every code snippet and pair it with the
-question title, resulting in zero or more (title, code) pairs. In total there
-are 75518 such pairs. Of these, only 29880 parse as legal bash code (after
-removing comments and fake ``\$'' prompts at the beginnings of lines).
+output.
 
 Training the entire model---which is very simple for co-occurrence---takes only
 44 seconds.
