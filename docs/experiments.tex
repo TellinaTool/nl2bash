@@ -12,6 +12,4 @@ The trade-off of choosing training data is between the data size and the data qu
 
 Between these two choices, we choose the former, as we consider larger dataset can cover more command grammars and contain enough interesting patterns for the model to learn from. Specifically, we collected ~30,000 text/command pairs from StackOverflow, and perform an initial data cleaning before training, the details of data cleaning is presented below.
 
-\todo{Adding them into future work section.} Linux man pages are well formatted and contains rich natural language text that explains the usage of each command template and its possible arguments. We propose to use the command-explanation pairs extracted from man pages as additional signals to guide the search for high score rankings, thereby remedies the lack of well-formed training pairs.
-
 \subsection{Data Cleaning and Preprocessing}

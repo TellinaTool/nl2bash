@@ -1,8 +1,10 @@
 \section{Future Work}
 
-Automatically generating bash commands based on natural language descriptions is a non-trivial AI task that fuses both natural language processing and program synthesis techniques. 
+Automatically generating bash commands based on natural language descriptions is a non-trivial AI task that fuses both natural language processing and program synthesis techniques. We are planning to do the following works atop of the current framework.
 
 \subsection{Data Acquisition}
+
+Linux man pages are well formatted and contains rich natural language text that explains the usage of each command template and its possible arguments. We propose to use the command-explanation pairs extracted from man pages as additional signals to guide the search for high score rankings, thereby remedies the lack of well-formed training pairs.
 
 \subsection{Modeling Richer Semantics}
 \label{future:semantics}
