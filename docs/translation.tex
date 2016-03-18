@@ -71,6 +71,14 @@ As shown in the bottom function in alg.~\ref{alg:decoding}, the feature set cons
 
 The PMI value measures the association between a pair of term and word based on the training set. It has the effect of down-weighting uninformative tuples such as ``(\texttt{find}, and)''---both \<find> and ``and'' are very common tokens. However, we also noticed some anomalies associated with this approach. For example, the tuple ``(\texttt{-f}, file)'' has a very low PMI value, although the \texttt{-f} option generally refers to a file. This is because the word ``file'' occurs in almost every training example in our dataset (with and without \texttt{-f} present). Therefore simple example-level occurrence measure wasn't able to reveal the connection between \texttt{-f} and ``file''. We suspect that statistical alignment, which infers the probability of the alignment between each term and word in every example, would work better than exhaustive pair-up. The design of an alignment algorithm is left to future work.
 
+\subsubsection{Training data}
+
+The trade-off of choosing training data is between the data size and the data quality. On the one hand, the online forum StackOverflow has a large volume of question/command pairs (~30,000 raw data, and ~2,000 after simple cleaning), but these data are noisy: some of the questions are not well described and the expert obtained the questioner's intent though conversations, and as a result, the text/command pairs obtained are of low quality (not well corresponded). On the other hand, a relatively small amount of clean data can be obtained by manually collecting from tutorials or forums. These data are of relatively high quality, but the data size is pretty small (~200).
+
+Between these two choices, we choose the former, as we consider larger dataset can cover more command grammars and contain enough interesting patterns for the model to learn from. Specifically, we collected ~30,000 text/command pairs from StackOverflow, and perform an initial data cleaning before training, the details of data cleaning is presented below.
+
+\todo{describe data cleaning}
+
 \subsubsection{Training}
 \label{subsec:training}
 

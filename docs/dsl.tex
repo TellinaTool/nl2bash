@@ -146,3 +146,12 @@ Our manpage extraction looks at the \<SNYPOSIS> section of the manpage to obtain
 the legal list of flags as well as the names and types of positional arguments.
 The \<DESCRIPTION> section describes each flag in more detail, and from this we
 obtain information about arguments to flags and their types.
+
+Unfortunately, this process is semi-automated instead of fully automated, due to
+the fact that many commands include constraints that are not represented in the
+manpage in a machine-readable manner. For example, the man page of ``find'' uses
+the non-terminal ``expression'' in its grammar in the \<SYNOPSIS> section, and
+describes in text that readers should refer to the \<PRIMARIES> section to learn
+how ``expression'' is expanded into terminals. As a result, we first parse the
+synopsis and then manually clean them before feeding to the system. The only
+command requiring a great deal of cleaning work is ``find''.
