@@ -1,21 +1,23 @@
 %!TEX root=writeup.tex
-\section{Natural Language To Bash Command Translation Framework}
+\section{Approach}
 \label{sec:framework}
 
 \begin{figure}
     \begin{center} \includegraphics[width=4in]{architecture.pdf} \end{center}
-    \caption{The overall architecture of our tool. Offline, the tool learns the
-        valid syntax for common Bash commands using manpages. Both the manpages
-        and a set of input-output examples are used to learn an appropriate
-        scoring function. At runtime, the tool enumerates possible candidate
-        programs using the learned syntax, scores them using the learned scoring
-        function, and presents the top-ranked suggestions to the user.}
+    \caption{The overall architecture of our framework.}
     \label{fig:arch}
 \end{figure}
 
-The natural language to Linux command line translation framework we developed consists of two key components:
-1) an intermediate language to represent commands and
-2) an algorithm that maps the natural language commands given by users to this intermediate representation. Our initial pilot system is restricted to cover only file system operations, including file lookup, directory tree transformation, file content transformation, and file property modifications. We restrict the domain in the hope that it can be expressed with tractable logic and to reduce the degree of ambiguity in the natural language command. Section~\ref{subsec:represent} introduces the formal language design---the subset of Bash our tool supports---and section~\ref{subsec:parser} introduces the approach to train the semantic parser.
+\autoref{fig:arch} shows the major components of our translation framework.
+Offline, the tool learns the syntax of common Bash commands using manpages. Both
+the manpages and input-output examples obtained from StackOverflow are used to
+learn an appropriate scoring function. At runtime, the tool enumerates possible
+candidate programs using the learned syntax, scores them using the learned
+scoring function, and presents the top-ranked suggestions to the user.
+
+Section~\ref{subsec:represent} introduces the subset of Bash our tool supports
+and how we obtain that subset automatically from manpages.
+Section~\ref{subsec:parser} describes training and running the semantic parser.
 
 \input{dsl}
 \input{translation}
