@@ -96,9 +96,29 @@ additional cleaning:
 		---are \emph{not} removed during this step, as have relevant meaning.
 	\item Lemmatized words using the Stanford CoreNLP library~%
 		\footnote{\url{https://stanfordnlp.github.io/CoreNLP/}}
-	\item Bash code spanning more than one line is ignored
-	\item Bash redirect removal; \code{cat >/dev/null} becomes simply \code{cat}
+	\item Bash code spanning more than one line is ignored (this step removes
+		some pairs from the training data)
+	\item Bash redirect removal; e.g., \code{cat >/dev/null} becomes simply \code{cat}
 \end{itemize}
+
+\autoref{tbl:stats} shows a few simple statistics about the training data.
+Training the entire model takes several hours due to the fact that evaluating a
+single input takes roughly 15 seconds.
+
+\begin{table}
+    \begin{center}
+    \begin{tabular}[t]{lr}
+        \hline
+        \# of questions                & 42111 \\
+        \# of (question, answer) pairs & 75518 \\
+        \# of parseable pairs          & 29880 \\
+        \# of clean pairs              & 20032 \\
+        \hline
+    \end{tabular}
+    \end{center}
+    \caption{Training data statistics}
+    \label{tbl:stats}
+\end{table}
 
 \subsubsection{Training}
 \label{subsec:training}

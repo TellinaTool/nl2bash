@@ -1,5 +1,7 @@
 %!TEX root=writeup.tex
 \section{Proposed User Study}
+\label{sec:userstudy}
+
 Our key research question is:
 %
 \begin{quote}
@@ -90,7 +92,27 @@ participants in each group.
 We will measure the participants' speed by having them specifically indicate
 when they have completed each task. We will measure correctness by having them
 save the output from each task; we will compare that output against the correct
-solution.
+solution. \autoref{tbl:user-study-results} shows a placeholder table for what
+numbers we would be interested in reporting.
+
+\begin{table}
+    \begin{center}
+    \begin{tabular}{lrr}
+        \textbf{Task/Setup} & \textbf{Without (s)} & \textbf{With (s)} \\
+        \hline
+        $T_1 S_1$, $T_2 S_2$ & - & - \\
+        $T_1 S_2$, $T_2 S_1$ & - & - \\
+        $T_2 S_1$, $T_1 S_2$ & - & - \\
+        $T_2 S_2$, $T_1 S_1$ & - & - \\
+    \end{tabular}
+    \end{center}
+    \caption{User study results. The ``Task/Setup'' column shows that tasks
+        would be performed under what setups and in what order. The ``Without (s)''
+        column shows the average time taken by participants on the task with
+        setup 1 (manpages+internet). The ``With (s)'' column shows the average
+        time taken by participants on the task with setup 2 (manpages+tool).}
+    \label{tbl:user-study-results}
+\end{table}
 
 \paragraph{Internal Measures} Additionally, we plan to quantify several internal
 measures about the tool:

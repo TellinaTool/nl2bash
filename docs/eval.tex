@@ -1,101 +1,83 @@
 %!TEX root=writeup.tex
 \section{Evaluation}
 
-\autoref{tbl:stats} shows a few simple statistics about the training data and
-output. Training the entire model---which is very simple for co-occurrence---takes only
-44 seconds.
+Our key research question is:
+%
+\begin{quote}
+    Can the tool described thus far improve the speed with which programmers
+    accomplish tasks with the command line?
+\end{quote}
+%
+While we had initially planned a user study to answer this question
+(\autoref{sec:userstudy}), initial tests show that the answer to our question
+for the current iteration of the tool is a definitive ``no.'' Instead, we show
+that our work is a promising start by performing a qualitative evaluation
+against IBM Model 4, an off-the-shelf machine translation algorithm.
 
-\autoref{tbl:manual-inspection} shows the top-ranked result for a few very
-simple inputs. Performance numbers are relatively static since performance
-depends largely on the length of the input string and the complexity of the
-output grammer. Since the grammar is hand-coded right now, the tool does not
-have many options to consider.
+First we present the results from our tool.
+\autoref{tbl:manual-inspection} shows the top-ranked result of our tool for a
+few very simple inputs. For simple inputs, while the tool generally gets the
+command correct, it is often quite wrong about what flags to include.
 
 Examples 1 and 2 are mostly correct. The inclusion of the \texttt{-v} flag is
-optional and the inclusion of the \texttt{-z} flag might be a mistake if the
-target archive was not compressed with GZip.
+optional and the inclusion of the \texttt{-z} flag might be a mistake unless the
+user wants the archive compressed with GZip.
 
-Example 3 is also mostly correct. The question did not specify anything about
-filtering files by name, but \texttt{find} with the \texttt{-delete} flag is
-one way to accomplish this task. A solution using \texttt{rm} appears third in
-the rankings, after an erroneous suggestion involving \texttt{xargs}.
+Example 3 uses \<find> with \<-delete>, but incorrectly passes the \<-X> flag
+which causes \<find> to skip files containing certain escape characters in their
+names.
 
-Example 4 is correct. It is unclear whether \texttt{-e} and \texttt{-i} flags
-are the right thing to do, but a recursive \texttt{grep} is a very good way to
-answer this query.
+Example 4 is wildly incorrect. The \<-I> flag ignores binary files, which may
+be desireable if used in conjuction with \<-r> for recursive search, but \<-r>
+is missing. The \<-i> flag does case-insensitive search, but there is nothing in
+the input to suggest that this is needed. The \<-S> flag indicates that symbolic
+links should be followed, which may be good practice in some cases. The \<-C>
+flag should come with a numeric argument indicating how many lines of context
+to display around matches, but it isn't relevant to this query and a deficiency
+in the manpage parser means we miss the argument entirely.
 
-Example 5 is incorrect. The tool did not assign a high enough weight to the word
-``remote,'' and so it missed the correct answer which uses \texttt{scp}. The
-correct answer appears third in the rankings, below another incorrect answer
-involving \texttt{find}.
+Example 5 is incorrect; \<scp> or \<rsync> is needed instead of \<cp>.
 
-These preliminary results suggest a better scoring metric is needed. The
-co-occurrence model gives too much weight to common commands such as
-\texttt{find} and \texttt{cp} for specialized queries, and is too likely to
-return extraneous flags. Additionally, we need a way to identify words or
-phrases that appear in the question and should appear in the answer, such as
-``ERROR'' from example 4.
-
-
-\begin{table}
-    \begin{subfigure}[b]{0.48\textwidth}
-        \begin{center}
-        \begin{tabular}[t]{lr}
-            \textbf{Stat} & \textbf{Value} \\
-            \hline
-            \# of questions                & 42111 \\
-            \# of (question, answer) pairs & 75518 \\
-            \# of parseable pairs          & 29880 \\
-        \end{tabular}
-        \end{center}
-        \caption{Training data statistics}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.48\textwidth}
-        \begin{center}
-        \begin{tabular}[t]{lr}
-            \textbf{Stat} & \textbf{Value} \\
-            \hline
-            Training time & 44 s \\
-        \end{tabular}
-        \end{center}
-        \caption{Learning statistics}
-    \end{subfigure}
-    \caption{Various internal statistics about the tool and the training data.}
-    \label{tbl:stats}
-\end{table}
+These preliminary results suggest that the tool is easily lured by rare flags,
+when more common ones (or none at all) may be better. Its inability to fill in
+arguments on its own also appears to be a deficiency.
 
 \begin{table}
     \begin{center}
     \begin{tabular}{rlrl}
         \# & \textbf{Input} & \textbf{Time (s)} & \textbf{Output} \\
         \hline
-        1  & ``extract a tar archive'' & 0.23 & \texttt{tar -x -v -z -f FILE.TAR} \\
-        2  & ``create a tar archive''  & 0.22 & \texttt{tar -c -v -z -f FILE.TAR} \\
-        3  & ``recursively delete files from a directory'' & 0.24 & \texttt{find PATH -name PATTERN -delete} \\
-        4  & ``locate files containing the string ERROR''  & 0.24 & \texttt{grep -e -i -r REGEX PATH} \\
-        5  & ``copy a directory to a remote machine'' & 0.23 & \texttt{cp -R PATH DEST} \\
+        1  & ``extract a tar archive'' & 16 & \texttt{tar -x -f * -v} \\
+        2  & ``create a tar archive''  & 13 & \texttt{tar -c -f * -z} \\
+        3  & ``recursively delete files from a directory'' & 14 & \texttt{find -X -f * -delete} \\
+        4  & ``locate files containing the string ERROR''  & 13 & \texttt{grep -I -i -S -C} \\
+        5  & ``copy a directory to a remote machine'' & 9 & \texttt{cp -n -p * *} \\
     \end{tabular}
     \end{center}
     \caption{Performance and manual inspection data. The ``Input'' column lists
         natural-language inputs to the tool. The ``Time (s)'' column lists times
         (in seconds) to produce an answer. The ``Output'' column shows the
-        tool's top-ranked result.}
+        tool's top-ranked result. A \<*> in the output indicates a placeholder
+        for an argument that must be filled in by the user.}
     \label{tbl:manual-inspection}
 \end{table}
 
-\paragraph{Sequence-to-sequence Baseline Results} Another baseline model we have 
-set up for this problem is the classical natural language machine translation 
-model (IBM Model 4\footnote{\url{https://en.wikipedia.org/wiki/IBM_alignment_models\#Model_4}}). 
-This model treats the command line programs as a foreign language, and translates 
-the English commands into it using probabilistic sequence modeling. We trained a 
-naive translation model (without fine tuning the parameters) using the dataset shown
-in table~\ref{tbl:stats}. The results are shown in table~\ref{tbl:manual-inspection-ibm4}.
-Compared to the rule-based model introduced above, we observed that it is very common for 
-the sequence-based model to generate ungrammatical commands, since the output decoding 
-is sequential and does not obey any constraints of the grammatical structure. Yet surprisingly, 
-it almost generates command no.2 completely correct, and correctly suggested the head 
-command of command no.5. Especially, command no.5 is easy to trick a system into suggesting 
-``\texttt{cp}''. However, since IBM Model 4 handles multi-to-multi word mappings, it is 
+\paragraph{IBM Model 4} Another baseline model we have
+set up for this problem is the classical natural language machine translation
+model IBM Model 4\footnote{\url{https://en.wikipedia.org/wiki/IBM_alignment_models\#Model_4}}.
+This model treats the command line programs as a foreign language, and translates
+the English commands into it using probabilistic sequence modeling. We trained a
+naive translation model (without fine tuning the parameters) using the same dataset as our tool.
+The results are shown in table~\ref{tbl:manual-inspection-ibm4}.
+Compared to the output produced by our tool, we observed that it is very common for
+the sequence-based model to generate ungrammatical commands, since the output decoding
+is sequential and does not obey any constraints of the grammatical structure. Yet surprisingly,
+it almost generates command 2 completely correct. We suspect this is because
+\<tar> is a frequent source of confusion; there is more data in the StackOverflow
+dataset for \<tar> than for most other commands.
+
+This model also correctly suggested the head
+command of command 5. Since IBM Model 4 handles multi-to-multi word mappings, it is
 able to capture the relation between ``copy ... to a remote machine'' and ``\texttt{rsync}''.
 Based on the comparison above, we think a good model for this problem should combine the
 strength of both rule-based modeling and probabilistic multi-to-multi mapping learnt
@@ -103,37 +85,18 @@ from data.
 
 \begin{table}
     \begin{center}
-    \begin{tabular}{rlrl}
-        \# & \textbf{Input} & \textbf{Time (s)} &{IBM Model 4} \\
+    \begin{tabular}{rll}
+        \# & \textbf{Input} &{IBM Model 4} \\
         \hline
-        1  & ``extract a tar archive'' & $>$ 1 & \texttt{grep -o -P tar} \\
-        2  & ``create a tar archive''  & $>$ 1 & \texttt{tar -c -f test/foo/test.tar} \\
-        3  & ``recursively delete files from a directory'' & $>$ 1 & \texttt{find [} \\
-        4  & ``locate files containing the string ERROR''  & $>$ 1 & \texttt{-or -name \$0 ERROR} \\
-        5  & ``copy a directory to a remote machine'' & $>$ 1 & \texttt{rsync -a find `find} \\
+        1  & ``extract a tar archive'' & \texttt{grep -o -P tar} \\
+        2  & ``create a tar archive''  & \texttt{tar -c -f test/foo/test.tar} \\
+        3  & ``recursively delete files from a directory'' & \texttt{find [} \\
+        4  & ``locate files containing the string ERROR''  & \texttt{-or -name \$0 ERROR} \\
+        5  & ``copy a directory to a remote machine'' & \texttt{rsync -a find `find} \\
     \end{tabular}
     \end{center}
     \caption{Sequence-to-sequence translation based results by IBM Model 4. The ``Input'' column lists
-        natural-language inputs to the tool. The ``Time (s)'' column lists times
-        (in seconds) to produce an answer. The ``Output'' column shows the
+        natural-language inputs to the tool. The ``Output'' column shows the
         tool's top-ranked result.}
     \label{tbl:manual-inspection-ibm4}
-\end{table}
-
-\begin{table}
-    \begin{center}
-    \begin{tabular}{lrr}
-        \textbf{Task/Setup} & \textbf{Without (s)} & \textbf{With (s)} \\
-        \hline
-        $T_1 S_1$, $T_2 S_2$ & - & - \\
-        $T_1 S_2$, $T_2 S_1$ & - & - \\
-        $T_2 S_1$, $T_1 S_2$ & - & - \\
-        $T_2 S_2$, $T_1 S_1$ & - & - \\
-    \end{tabular}
-    \end{center}
-    \caption{User study results. The ``Task/Setup'' column corresponds to the
-        groups outlined in \autoref{subsec:methodology}. The ``Without (s)''
-        column shows the average time taken by participants on the task with
-        setup 1 (manpages+internet). The ``With (s)'' column shows the average
-        time taken by participants on the task with setup 2 (manpages+tool).}
 \end{table}
