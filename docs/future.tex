@@ -1,0 +1,38 @@
+%!TEX root=writeup.tex
+\section{Discussion and Future Work}
+
+This section reports the problems in our approach that lead to an unsatisfactory result, and explains how the issues might be mitigated.
+
+\subsection{Dataset}
+
+Using only noisy StackOverflow data leads to a poorly trained model. The data size is not big enough to cover the enormous space of Bash commands sufficiently; many relevant flags and combinations do not appear at all in the training data.
+
+Based on this observation, we are planning to 1) enrich the current training data set with more (possibly noisy) examples to enhance the coverage of bash command usage and 2) collect a small but high quality data used as a separate training data source. Additional possible data sources are listed below.
+\begin{itemize}\itemsep-1pt
+\item \textit{SuperUser forum.} SuperUser contains similar data to StackOverflow, but more specialized for system users. It can be used as complementary data to enrich the training data set.
+\item \textit{Examples from Linux man page.} Manpages often contain a section providing examples to demonstrate the usage of the command. Though small in number, these examples are high quality training data.
+\item \textit{Tutorial Examples.} Online bash command tutorials\footnote{e.g., http://ryanstutorials.net/linuxtutorial/filemanipulation.php or http://www.ee.surrey.ac.uk/Teaching/Unix/} often contain a small set of clean explanation/command pairs.
+\item \textit{Collecting data form users.} A final possibility of obtaining high quality data is to collect it directly from users who are familiar with bash commands. A ``command line programming challenge'' could be hosted to attract users to write bash commands for our pre-selected natural language descriptions.
+\end{itemize}
+
+\subsection{Training Features}
+\label{future:features}
+
+In our current state of model training, only text-term co-occurrence features are used and this limits the potential of the model. More complex features might lead to better behavior from the trained model. A few ideas are listed here.
+\begin{itemize}\itemsep-1pt
+\item \textit{Naturalness.} Naturalness is of a command is measured by co-occurrences of terms in a command. The inspiration of using this feature is that some generated commands contains unnatural term combinations. For example, our tool outputs \code{grep -i -l -o -w} for the input ``find all files from that contain word eth0''. The combination of \code{-l} and \code{-i} in the output is very rare, and so perhaps should be given a penalty.
+\item \textit{TF-IDF scoring with man page.} Man pages provide explanations of all the options (flags, arguments) that can appear in a command. The text that describes these flags could be used to generate additional features for scoring candidate commands. We propose using TF-IDF to find flags from the man pages relevant to the user's input. This feature can help expose options that do not appear in the training data.
+\end{itemize}
+
+\subsection{Modeling Values}
+\label{future:semantics}
+
+In the current translation system, arguments in an generated command are not values extracted from the text but a dummy value \<*> that we expect users to fill in manually. Based on our observation on text/command pairs in the data set, values in a command often come from one of two sources: 1) a numeric or ordinal value in the text, e.g. a number ``100'' or a string ``foo.txt'', or 2) an implicit value requiring domain knowledge, e.g. ``current directory'' corresponds to ``.'' and ``home folder'' to ``$\sim$''.
+
+To enable a program to instantiate arguments during translation, one could:
+\begin{itemize}\itemsep-1pt
+\item train a model to extract noun phrases in a command that represent values, which can be trained from the same StackOverflow data we already have, and
+\item encode domain knowledge about values as a dictionary that maps concepts into concrete values, for instance file name, file date, file size, folder, subfolder, hidden file, executable file, etc.
+\end{itemize}
+
+In some cases, the description text provided by the user may be ambiguous or unclear, as in the example of ``how to copy a log file to another directory''. This input does not specify what concrete file or folder to use. Thus, an interactive phase can be added to ask user to disambiguate the value in the question. For example, in this case, when the probability of ``the log file'' to be the actual value is low, we shall ask the user a question ``What does `the log file' in the question stand for?'', and the user may answer ``xxx.log'' so that the actual value to patch in the command can be obtained.
