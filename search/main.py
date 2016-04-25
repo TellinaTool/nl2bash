@@ -6,6 +6,7 @@ import glob
 # 3rd party
 import nltk
 from nltk.stem.porter import PorterStemmer
+nltk.download('punkt')
 
 cmd_docs = { }
 flag_docs = { }

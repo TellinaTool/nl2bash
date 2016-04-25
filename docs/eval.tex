@@ -1,5 +1,5 @@
 %!TEX root=writeup.tex
-\section{Experimental Evaluation}
+\section{Evaluation}
 
 Our key research question is:
 %
@@ -7,221 +7,77 @@ Our key research question is:
     Can the tool described thus far improve the speed with which programmers
     accomplish tasks with the command line?
 \end{quote}
+%
+While we had initially planned a user study to answer this question
+(\autoref{sec:userstudy}), initial tests show that the answer to our question
+for the current iteration of the tool is a definitive ``no.'' Instead, we show
+that our work is a promising start by performing a qualitative evaluation
+against IBM Model 4, an off-the-shelf machine translation algorithm.
 
-\subsection{Methodology}
-\label{subsec:methodology}
-
-To answer this question we plan to conduct a small pilot user study. Programmers
-will be asked to accomplish various tasks at the command line. They will be
-divided into two groups: one group will be allowed to use our tool, and the
-other will be allowed to use the internet. Both groups will be allowed the use
-of manpages and will be allowed to experiment by running their commands.
-
-We hypothesize that our tool will improve the speed with which programmers
-devise solutions without impeding the correctness of those solutions.
-
-\paragraph{Task} The programmers will each be asked to perform a small number of
-tasks using the command line. The tasks are shown in \autoref{fig:tasks} and
-will be drawn from our collected data. Importantly, these tasks will be set
-aside before training the tool; they will not be examples the tool has seen
-before.
-
-There are several confounding factors to account for: some tasks may be easier
-than others, some participants may be more experienced than others, and the
-tasks may become easier for the participants as they progres. To control for
-these, the tasks have been randomly split into two blocks $T_1$ and $T_2$.
-Each participant will each block under one of two setups:
-\begin{itemize}
-    \item $S_1$ --- access to local manpages and the internet
-    \item $S_2$ --- access to local manpages and our tool
-\end{itemize}
-
-There are four possible combinations of (block, setup) assignments and
-orderings; participants will be randomly assigned to one of these four groups:
-\begin{itemize}
-    \item $T_1 S_1$, $T_2 S_2$ --- task 1 under setup 1 followed by task 2 under setup 2
-    \item $T_1 S_2$, $T_2 S_1$ --- task 1 under setup 2 followed by task 2 under setup 1
-    \item $T_2 S_1$, $T_1 S_2$ --- task 2 under setup 1 followed by task 1 under setup 2
-    \item $T_2 S_2$, $T_1 S_1$ --- task 2 under setup 2 followed by task 1 under setup 1
-\end{itemize}
-
-While the tasks all have one-line solutions, those solutions may involve exotic
-commands or flags. The programmers will be allowed to produce multi-line scripts
-as solutions, provided that those scripts correctly automate the task. We will
-not impose any specific time limit on the participants.
-
-\begin{figure}[ht]
-    \begin{subfigure}[b]{0.48\textwidth}
-        \begin{framed}
-        \begin{itemize}\itemsep-1pt
-            \item In the current directory, recursively find all files with ``conf''
-                in the filename
-            \item Recursively remove all empty sub-directories from a directory tree
-            \item Find files that are not executable
-            \item Find the 100 biggest files on your system
-            \item Make a tar archive of a folder, excluding .png files
-        \end{itemize}
-        \end{framed}
-        \caption{Task set $T_1$}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.48\textwidth}
-        \begin{framed}
-        \begin{itemize}\itemsep-1pt
-            \item ...
-            \item ...
-            \item ...
-            \item ...
-            \item ...
-        \end{itemize}
-        \end{framed}
-        \caption{Task set $T_2$}
-    \end{subfigure}
-    \caption{Tasks for the user study, randomly divided into two groups.}
-    \vspace{-10pt}
-    \label{fig:tasks}
-\end{figure}
-
-\paragraph{Participants} The participants in the study will be undergraduate and
-graduate students. They will be proficient command-line users, but not
-necessarily experts. We expect to perform the study with at least five
-participants in each group.
-
-\paragraph{Measurements} We will primarily measure two things:
-\begin{enumerate}\itemsep-1pt
-    \item How long do participants take to perform each task?
-    \item Are the participants' solutions correct?
-\end{enumerate}
-We will measure the participants' speed by having them specifically indicate
-when they have completed each task. We will measure correctness by having them
-save the output from each task; we will compare that output against the correct
-solution.
-
-\paragraph{Internal Measures} Additionally, we plan to quantify several internal
-measures about the tool:
-\begin{enumerate}\itemsep-1pt
-    \item Performance: how long does training take to produce a model? How
-        long does the tool take to answer a query?
-    \item For a large number of hand-picked inputs, how often does the
-        tool produce a correct answer?
-    \item How often is the output close to correct, requiring only small
-        adjustment? (``Small adjustment'' is defined as removing flags or
-        changing arguments. Adding an argument, changing a command, or
-        adding a pipe operator are not small adjustments.)
-\end{enumerate}
-
-\subsection{Results}
-
-The current prototype differs somewhat from the vision put forward in
-\autoref{sec:framework}. While we can automatically parse many manpages, this is
-not connected to the tool---instead, the output grammar is defined by a limited
-set of hand-written rules. Additionally, the scoring function is based on simple
-co-occurrence of English words and bash tokens.
-
-\autoref{tbl:stats} shows a few simple statistics about the training data and
-output. In the StackOverflow dataset we downloaded%
-\footnote{\url{https://archive.org/details/stackexchange}, retrieved Jan. 21,
-2016} there are 42111 questions having accepted answers tagged with one of the
-tags ``bash,'' ``sh,'' ``shell,'' ``zsh,'' ``command-line,'' ``awk,'' ``sed,''
-``xargs,'' ``tar,'' ``rsync,'' ``scp,'' ``mv,'' or ``cp''. From the accepted
-answer of each question we extract every code snippet and pair it with the
-question title, resulting in zero or more (title, code) pairs. In total there
-are 75518 such pairs. Of these, only 29880 parse as legal bash code (after
-removing comments and fake ``\$'' prompts at the beginnings of lines).
-
-Training the entire model---which is very simple for co-occurrence---takes only
-44 seconds.
-
-\autoref{tbl:manual-inspection} shows the top-ranked result for a few very
-simple inputs. Performance numbers are relatively static since performance
-depends largely on the length of the input string and the complexity of the
-output grammer. Since the grammar is hand-coded right now, the tool does not
-have many options to consider.
+First we present the results from our tool.
+\autoref{tbl:manual-inspection} shows the top-ranked result of our tool for a
+few very simple inputs. For simple inputs, while the tool generally gets the
+command correct, it is often quite wrong about what flags to include.
 
 Examples 1 and 2 are mostly correct. The inclusion of the \texttt{-v} flag is
-optional and the inclusion of the \texttt{-z} flag might be a mistake if the
-target archive was not compressed with GZip.
+optional and the inclusion of the \texttt{-z} flag might be a mistake unless the
+user wants the archive compressed with GZip.
 
-Example 3 is also mostly correct. The question did not specify anything about
-filtering files by name, but \texttt{find} with the \texttt{-delete} flag is
-one way to accomplish this task. A solution using \texttt{rm} appears third in
-the rankings, after an erroneous suggestion involving \texttt{xargs}.
+Example 3 uses \<find> with \<-delete>, but incorrectly passes the \<-X> flag
+which causes \<find> to skip files containing certain escape characters in their
+names.
 
-Example 4 is correct. It is unclear whether \texttt{-e} and \texttt{-i} flags
-are the right thing to do, but a recursive \texttt{grep} is a very good way to
-answer this query.
+Example 4 is wildly incorrect. The \<-I> flag ignores binary files, which may
+be desireable if used in conjuction with \<-r> for recursive search, but \<-r>
+is missing. The \<-i> flag does case-insensitive search, but there is nothing in
+the input to suggest that this is needed. The \<-S> flag indicates that symbolic
+links should be followed, which may be good practice in some cases. The \<-C>
+flag should come with a numeric argument indicating how many lines of context
+to display around matches, but it isn't relevant to this query and a deficiency
+in the manpage parser means we miss the argument entirely.
 
-Example 5 is incorrect. The tool did not assign a high enough weight to the word
-``remote,'' and so it missed the correct answer which uses \texttt{scp}. The
-correct answer appears third in the rankings, below another incorrect answer
-involving \texttt{find}.
+Example 5 is incorrect; \<scp> or \<rsync> is needed instead of \<cp>.
 
-These preliminary results suggest a better scoring metric is needed. The
-co-occurrence model gives too much weight to common commands such as
-\texttt{find} and \texttt{cp} for specialized queries, and is too likely to
-return extraneous flags. Additionally, we need a way to identify words or
-phrases that appear in the question and should appear in the answer, such as
-``ERROR'' from example 4.
-
-
-\begin{table}
-    \begin{subfigure}[b]{0.48\textwidth}
-        \begin{center}
-        \begin{tabular}[t]{lr}
-            \textbf{Stat} & \textbf{Value} \\
-            \hline
-            \# of questions                & 42111 \\
-            \# of (question, answer) pairs & 75518 \\
-            \# of parseable pairs          & 29880 \\
-        \end{tabular}
-        \end{center}
-        \caption{Training data statistics}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.48\textwidth}
-        \begin{center}
-        \begin{tabular}[t]{lr}
-            \textbf{Stat} & \textbf{Value} \\
-            \hline
-            Training time & 44 s \\
-        \end{tabular}
-        \end{center}
-        \caption{Learning statistics}
-    \end{subfigure}
-    \caption{Various internal statistics about the tool and the training data.}
-    \label{tbl:stats}
-\end{table}
+These preliminary results suggest that the tool is easily lured by rare flags,
+when more common ones (or none at all) may be better. Its inability to fill in
+arguments on its own also appears to be a deficiency.
 
 \begin{table}
     \begin{center}
     \begin{tabular}{rlrl}
         \# & \textbf{Input} & \textbf{Time (s)} & \textbf{Output} \\
         \hline
-        1  & ``extract a tar archive'' & 0.23 & \texttt{tar -x -v -z -f FILE.TAR} \\
-        2  & ``create a tar archive''  & 0.22 & \texttt{tar -c -v -z -f FILE.TAR} \\
-        3  & ``recursively delete files from a directory'' & 0.24 & \texttt{find PATH -name PATTERN -delete} \\
-        4  & ``locate files containing the string ERROR''  & 0.24 & \texttt{grep -e -i -r REGEX PATH} \\
-        5  & ``copy a directory to a remote machine'' & 0.23 & \texttt{cp -R PATH DEST} \\
+        1  & ``extract a tar archive'' & 16 & \texttt{tar -x -f * -v} \\
+        2  & ``create a tar archive''  & 13 & \texttt{tar -c -f * -z} \\
+        3  & ``recursively delete files from a directory'' & 14 & \texttt{find -X -f * -delete} \\
+        4  & ``locate files containing the string ERROR''  & 13 & \texttt{grep -I -i -S -C} \\
+        5  & ``copy a directory to a remote machine'' & 9 & \texttt{cp -n -p * *} \\
     \end{tabular}
     \end{center}
     \caption{Performance and manual inspection data. The ``Input'' column lists
         natural-language inputs to the tool. The ``Time (s)'' column lists times
         (in seconds) to produce an answer. The ``Output'' column shows the
-        tool's top-ranked result.}
+        tool's top-ranked result. A \<*> in the output indicates a placeholder
+        for an argument that must be filled in by the user.}
     \label{tbl:manual-inspection}
 \end{table}
 
-\paragraph{Sequence-to-sequence Baseline Results} Another baseline model we have 
-set up for this problem is the classical natural language machine translation 
-model (IBM Model 4\footnote{\url{https://en.wikipedia.org/wiki/IBM_alignment_models\#Model_4}}). 
-This model treats the command line programs as a foreign language, and translates 
-the English commands into it using probabilistic sequence modeling. We trained a 
-naive translation model (without fine tuning the parameters) using the dataset shown
-in table~\ref{tbl:stats}. The results are shown in table~\ref{tbl:manual-inspection-ibm4}.
-Compared to the rule-based model introduced above, we observed that it is very common for 
-the sequence-based model to generate ungrammatical commands, since the output decoding 
-is sequential and does not obey any constraints of the grammatical structure. Yet surprisingly, 
-it almost generates command no.2 completely correct, and correctly suggested the head 
-command of command no.5. Especially, command no.5 is easy to trick a system into suggesting 
-``\texttt{cp}''. However, since IBM Model 4 handles multi-to-multi word mappings, it is 
+\paragraph{IBM Model 4} Another baseline model we have
+set up for this problem is the classical natural language machine translation
+model IBM Model 4\footnote{\url{https://en.wikipedia.org/wiki/IBM_alignment_models\#Model_4}}.
+This model treats the command line programs as a foreign language, and translates
+the English commands into it using probabilistic sequence modeling. We trained a
+naive translation model (without fine tuning the parameters) using the same dataset as our tool.
+The results are shown in table~\ref{tbl:manual-inspection-ibm4}.
+Compared to the output produced by our tool, we observed that it is very common for
+the sequence-based model to generate ungrammatical commands, since the output decoding
+is sequential and does not obey any constraints of the grammatical structure. Yet surprisingly,
+it almost generates command 2 completely correct. We suspect this is because
+\<tar> is a frequent source of confusion; there is more data in the StackOverflow
+dataset for \<tar> than for most other commands.
+
+This model also correctly suggested the head
+command of command 5. Since IBM Model 4 handles multi-to-multi word mappings, it is
 able to capture the relation between ``copy ... to a remote machine'' and ``\texttt{rsync}''.
 Based on the comparison above, we think a good model for this problem should combine the
 strength of both rule-based modeling and probabilistic multi-to-multi mapping learnt
@@ -229,37 +85,18 @@ from data.
 
 \begin{table}
     \begin{center}
-    \begin{tabular}{rlrl}
-        \# & \textbf{Input} & \textbf{Time (s)} &{IBM Model 4} \\
+    \begin{tabular}{rll}
+        \# & \textbf{Input} &{IBM Model 4} \\
         \hline
-        1  & ``extract a tar archive'' & $>$ 1 & \texttt{grep -o -P tar} \\
-        2  & ``create a tar archive''  & $>$ 1 & \texttt{tar -c -f test/foo/test.tar} \\
-        3  & ``recursively delete files from a directory'' & $>$ 1 & \texttt{find [} \\
-        4  & ``locate files containing the string ERROR''  & $>$ 1 & \texttt{-or -name \$0 ERROR} \\
-        5  & ``copy a directory to a remote machine'' & $>$ 1 & \texttt{rsync -a find `find} \\
+        1  & ``extract a tar archive'' & \texttt{grep -o -P tar} \\
+        2  & ``create a tar archive''  & \texttt{tar -c -f test/foo/test.tar} \\
+        3  & ``recursively delete files from a directory'' & \texttt{find [} \\
+        4  & ``locate files containing the string ERROR''  & \texttt{-or -name \$0 ERROR} \\
+        5  & ``copy a directory to a remote machine'' & \texttt{rsync -a find `find} \\
     \end{tabular}
     \end{center}
     \caption{Sequence-to-sequence translation based results by IBM Model 4. The ``Input'' column lists
-        natural-language inputs to the tool. The ``Time (s)'' column lists times
-        (in seconds) to produce an answer. The ``Output'' column shows the
+        natural-language inputs to the tool. The ``Output'' column shows the
         tool's top-ranked result.}
     \label{tbl:manual-inspection-ibm4}
-\end{table}
-
-\begin{table}
-    \begin{center}
-    \begin{tabular}{lrr}
-        \textbf{Task/Setup} & \textbf{Without (s)} & \textbf{With (s)} \\
-        \hline
-        $T_1 S_1$, $T_2 S_2$ & - & - \\
-        $T_1 S_2$, $T_2 S_1$ & - & - \\
-        $T_2 S_1$, $T_1 S_2$ & - & - \\
-        $T_2 S_2$, $T_1 S_1$ & - & - \\
-    \end{tabular}
-    \end{center}
-    \caption{User study results. The ``Task/Setup'' column corresponds to the
-        groups outlined in \autoref{subsec:methodology}. The ``Without (s)''
-        column shows the average time taken by participants on the task with
-        setup 1 (manpages+internet). The ``With (s)'' column shows the average
-        time taken by participants on the task with setup 2 (manpages+tool).}
 \end{table}
