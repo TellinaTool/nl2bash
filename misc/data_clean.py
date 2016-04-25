@@ -46,16 +46,21 @@ STOPWORDS = {"a", "an", "the",
              "what", "what's",
              "which",
              "how", "how's",
-             "command",
              "but"}
-STOPWORDS |= { ",", ".", "!", "?", ";", ":", "\/", "\\/"}
-STOPWORDS |= { "mac", "os", "x", "unix", "linux", "cmd", "bat", "bash", "command", "commandline", "command-line", "shell", "script" }
+STOPWORDS |= { ",", ".", "!", "?", ";", ":", "\/", "\\/", "--"}
+STOPWORDS |= { "mac", "os", "x", "unix", "linux", "cmd", "bat", "bash", "commandline", "command-line", "shell", "script", "shell-script" }
 STOPWORDS -= { "not", "no" }
 
-STOPPHRASE = { "in bash", "in unix", "in linux", "in mac os", 
+STOPPHRASE = [ "in bash command", "in linux command line", "in unix command line",
+               "in linux command", "in unix command", "in command line",
+               "in linux shell", "in unix shell", "in os shell", "in mac os shell",
+               "in shell script", "in shell-script", "in bash shell", "in shell",
+               "in shell command",
+               "in bash", "in unix", "in linux", "with linux","in mac os", 
                "for bash", "for unix", "for linux", "for mac os", 
-               "in cmd", "command line", "in command line"
-             }
+               "in cmd", "in commandline", "in command-line"
+               "commandline", "command line"
+             ]
 
 def tokenize_question(q):
     seq = []
@@ -87,9 +92,7 @@ def run():
 
     print("Gathering stats from {}...".format(in_sqlite), file=sys.stderr)
 
-    questionFile = open("data/true.questions", 'w')
-    commandFile = open("data/true.commands", 'w')
-
+    question_command_pairs = []
     for question_title, extracted_code in all_samples(in_sqlite):
 
         total_count += 1
@@ -108,30 +111,42 @@ def run():
         question_title = question_title.replace(">", " rightanglebrc ")
         question_title = question_title.replace("[", " leftsquarebrc ")
         question_title = question_title.replace("]", " rightsquarebrc ")
-        extracted_code = extracted_code.replace("<", " leftanglebrc ")
-        extracted_code = extracted_code.replace(">", " rightanglebrc ")
-        extracted_code = extracted_code.replace("[", " leftsquarebrc ")
-        extracted_code = extracted_code.replace("]", " rightsquarebrc ")
 
         words = [w for w in stanford_lemmatize(question_title.strip())]
         words = [w for w in words if not w in STOPWORDS]
         try:
             terms = list(tokenize_code(extracted_code.strip()))
+            terms = [t.replace("<", " leftanglebrc ") for t in terms]
+            terms = [t.replace(">", " rightanglebrc ") for t in terms]
+            terms = [t.replace("[", " leftsquarebrc ") for t in terms]
+            terms = [t.replace("]", " rightsquarebrc ") for t in terms]
         except ValueError as e:
             # print("unable to parse question {}: {} [err={}]".format(repr(question_title), repr(extracted_code), e), file=sys.stderr)
             terms = []
         
         if len(terms) == 0:
             continue
+        if terms[0].startswith("-"):
+            continue
+        question_command_pairs.append((question_title, extracted_code, ' '.join(words), ' '.join(terms)))        
         # print ("{}".format(len(terms)), file=sys.stderr)
         # print ("{}".format(terms), file=sys.stderr)
-        questionFile.write("%s\n" % ' '.join(words))
-        commandFile.write("%s\n" % ' '.join(terms))
 
         count += 1
         if count % 1000 == 0:
             print("Processed {} ({} pairs)".format(count, total_count), file=sys.stderr)
 
+    origQuestionFile = open("../data/superuser/questions.txt", 'w')
+    origCommandFile = open("../data/superuser/commands.txt", 'w')
+    questionFile = open("../data/superuser/true.questions", 'w')
+    commandFile = open("../data/superuser/true.commands", 'w')
+    for question_title, extracted_code, question, command in sorted(question_command_pairs, key=lambda x:x[3]):
+        origQuestionFile.write("%s\n" % question_title.encode('utf-8'))
+        origCommandFile.write("%s\n" % extracted_code.encode('utf-8'))
+        questionFile.write("%s\n" % question.encode('utf-8'))
+        commandFile.write("%s\n" % command.encode('utf-8'))
+    origQuestionFile.close()
+    origCommandFile.close()
     questionFile.close()
     commandFile.close()
 
