@@ -47,6 +47,10 @@
 
 \documentclass{sig-alternate-05-2015}
 
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
 \newcommand{\ktnote}[1]{\textcolor{blue}{#1}}
 \newcommand{\eat}[1]{\ignorespaces}
 
@@ -145,7 +149,7 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{Incremental Bash Synthesis from Natural Language\cut{\titlenote{(Produces the permission block, and
+\title{Shell Command Synthesis from Natural Language\cut{\titlenote{(Produces the permission block, and
 copyright information). For use with
 SIG-ALTERNATE.CLS. Supported by ACM.}}}
 \cut{\subtitle{[Extended Abstract]
@@ -284,7 +288,7 @@ one who did all the really hard work.}\\
 % We no longer use \terms command
 %\terms{Theory}
 
-\keywords{bash programming, program synthesis, natural language processing, crowdsourcing}
+\keywords{bash program synthesis, natural language processing (NLP), machine learning, crowdsourcing}
 
 \input{introduction}
 \input{relwork}
@@ -292,6 +296,7 @@ one who did all the really hard work.}\\
 % \input{evaluation}
 % \input{result}
 \input{conclusion}
+\input{open}
 %\end{document}  % This is where a 'short' article might terminate
 
 %ACKNOWLEDGMENTS are optional
