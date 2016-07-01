@@ -1,23 +1,8 @@
 \section{Background and Related Work}
-Typically, the body of a paper is organized
-into a hierarchical structure, with numbered or unnumbered
-headings for sections, subsections, sub-subsections, and even
-smaller sections.  The command \texttt{{\char'134}section} that
-precedes this paragraph is part of such a
-hierarchy.\footnote{This is the second footnote.  It
-starts a series of three footnotes that add nothing
-informational, but just give an idea of how footnotes work
-and look. It is a wordy one, just so you see
-how a longish one plays out.} \LaTeX\ handles the numbering
-and placement of these headings for you, when you use
-the appropriate heading commands around the titles
-of the headings.  If you want a sub-subsection or
-smaller part to be unnumbered in your output, simply append an
-asterisk to the command name.  Examples of both
-numbered and unnumbered headings will appear throughout the
-balance of this sample document.
+The idea of natural language based computer interface was born even before the born even before the UNIX sytem was released~\cite{sammet1966use,Ballard:1979:PNL:800177.810072}. The central idea was to build compilers that compile natural language into lower-level instructions. However, NLP techniques were preliminary back then, and those systems, relying on manually engineered templates and grammars, had failed to handle the rich semantics and ambiguity in natural languages. 
+% Besides, some researchers pointed out that making machines to understand our native tongue is a fruitless trial for it lacks mathematical support and programming languages remains simple in the formal system. In short, it was easier for people to learn how to program than for machines to learn natural language. 
 
-Because the entire article is contained in
-the \textbf{document} environment, you can indicate the
-start of a new paragraph with a blank line in your
-input file; that is why this sentence forms a separate paragraph.
+While it may be unrealistic (and also fruitless~\cite{Dijkstra:1978:FNL:647639.760596}) to adopt natural language as a programming language, recent work have shown promise on synthesizing high-level code snippets from natural language descriptions~\cite{gulwani2010dimensions,DBLP:journals/corr/DesaiGHJKMRR15}.  
+% and can be furthur improved through interaction with users~\cite{DBLP:conf/sigmod/GulwaniM14,DBLP:journals/pvldb/LiJ14}.
+Despite the initial success of natural language interface to database~\cite{Popescu:2003:TTN:604045.604070,DBLP:journals/pvldb/LiJ14} and commercial applications~\cite{DBLP:conf/mobisys/LeGS13,DBLP:conf/acl/QuirkMG15}, trials on synthesizing shell commands from natural language have shown that the task is extremely difficult~\cite{bashsynthesis,cozzie2011macho,cozzie2012macho,Pedersen-Report}. In contrast to the previously introduced programming by natural language techniques, Macho~\cite{cozzie2011macho} is a system that extracts program specifications from natural language text such as the Linux man-pages\footnote{https://www.kernel.org/doc/man-pages/}, and generates candidate programs from the specification. However, the report only presented qualitative evaluation on generating the head commands.~\cite{cozzie2012macho} combines the natural language specifications with an example given by the user, and shows that the combination effectively prunes the search space, but the results were still limited to commands of length 2 or smaller.~\cite{bashsynthesis} attempted to synthesis file system operation commands using StackOverflow question-answer pairs, and have succeed in generating commands of length 5 or smaller. However, due to the lack of high-quality training data, big challenge still remains for the system to be practically useful.
+
