@@ -1,13 +1,18 @@
 \section{Problem and Motivation}
 
-The UNIX shell acts as an interface between the user and the kernel. It provides an environment that takes user commands and performs a variety of different tasks, including file system operations, gathering/summarizing information, network configuration, and more. Shell scripting is useful to automate repetitive tasks and is an important skill for system administrators
-% \footnote{\url{https://www.quora.com/Is-bash-script-important-for-Linux-administration}}. 
-Other users can benefit from it as well, since some tasks take quite a bit longer to be done in a GUI than in the shell, for instance, {\it looking for files named in a specific pattern}.
+The UNIX shell acts as an interface between the user and the kernel. It provides an environment that takes user commands and performs a variety of different tasks, including file system operations, gathering/summarizing information, network configuration, and more. Shell scripting is useful to automate repetitive tasks and can be useful to a wide range of users, for even some daily tasks take quite a bit longer to be done in a GUI than in the shell, for instance, {\it looking for files that hasn't been accessed for a certain amount of time}.
 
-Unfortunately, learning shell scripting puts an unnecessary burden on the users\footnote{The number of commands available on a Linux system differs drastically depending on the distro and packages installed. Commonly used commands s.a. {\tt find} can take more than 40 options, which is difficult to learn and to memorize.}, and even experienced IT professionals struggle to memorize every option necessary to carry out their intents. Previous study have shown that end-users can benefit from programming environments that are more natural and closer to the way they think about the task~\cite{Myers:2004:NPL:1015864.1015888}. In an ideal scenario, the user could ``speak" to the kernel the same way he/she is speaking to another human being. In fact, many commonly performed system operations can be concisely described in short English sentences. Table~\ref{table:examples} shows a few of such examples.
-
+Shell commands are complex and non-uniform, 
+%\footnote{The number of commands available on a Linux system differs drastically depending on the distro and packages installed. Commonly used commands s.a. {\tt find} can take more than 40 options, which is difficult to learn and to memorize.}
+and even experienced IT professionals struggle to memorize every option necessary to carry out their intent. Previous study have shown that end-users can benefit from programming environments that are more natural and closer to the way they think about the task~\cite{Myers:2004:NPL:1015864.1015888}. We propose to let users express their intent in English, and to automatically translate them to shell commands.
+% In an ideal scenario, the user could ``speak" to the kernel the same way he/she is speaking to another human being. In fact, many commonly performed system operations can be concisely described in short English sentences. 
+Table~\ref{table:examples} shows a few of such examples.
+ 
+Following recent work in programming by natural language (PBNL)~\cite{DBLP:conf/mobisys/LeGS13,DBLP:journals/corr/DesaiGHJKMRR15}, we train our model with shell commands paired with natural language descriptions using statistical machine learning methods. Previously, similar approaches have succeeded in translating natural language into database queries~\cite{DBLP:journals/pvldb/LiJ14} and API calls (e.g. Microsoft Excel string manipulation and IFTTT recipes) ~\cite{DBLP:conf/sigmod/GulwaniM14,DBLP:conf/acl/QuirkMG15}. The UNIX shell is likely to be more challenging because it is an extremely rich set of API functions, and it permits command cascades of unlimited depth through the ``pipe" mechanism.
+% On one hand, it is possible that data-driven PBNL techniques could also succeed in shell commands synthesis. On the other hand, training a shell command synthesizer would require much more data than previous applications, such as database interface~\cite{DBLP:journals/pvldb/LiJ14} and Microsoft Excel string manipulation~\cite{DBLP:conf/sigmod/GulwaniM14}. Besides, shell , which further complicates the search space.
+% and there is great value in providing a natural language interface to functions that is inefficient to be carried out with GUI. Especially
 \begin{center}
-\begin{table}[ht]
+\begin{table}[t]
 \begin{tabular}{p{1.5in}p{1.5in}}
     \textbf{Natural Language} & \textbf{Command} \\
     \hline \hline
@@ -21,7 +26,7 @@ Unfortunately, learning shell scripting puts an unnecessary burden on the users\
          &
          \texttt{find . -type f -exec ls -s {} \; | sort -n -r | head -5} \\
      \hline
-     find files and directories modified in last 7 days%
+     find files and directories modified in the last 7 days%
          % \footnote{\url{http://www.bashoneliners.com/oneliners/oneliner/80/}}
          &
          \texttt{find . -mtime -7} \\
@@ -30,9 +35,4 @@ Unfortunately, learning shell scripting puts an unnecessary burden on the users\
 \label{table:examples}
 \end{table}
 \end{center}
-
-% While it may be unrealistic to simply adopt natural language as a programming language~\cite{Dijkstra:1978:FNL:647639.760596}, 
-Recent work in programming by natural language (PBNL)~\cite{DBLP:journals/pvldb/LiJ14,DBLP:journals/corr/DesaiGHJKMRR15,DBLP:conf/acl/QuirkMG15} has proven effective in synthesizing query language and API calls. Powered by statistical machine learning techniques, these systems are trained with a reasonable amount of code snippets paired with their natural language descriptions~\cite{DBLP:conf/mobisys/LeGS13,DBLP:journals/corr/DesaiGHJKMRR15}, The UNIX shell command system is an extremely rich set of API functions, and therefore requires more data to train a synthesizer. In our work, three approaches are essential to build one that is practically useful. First, we hire part-time programmers to collect shell commands and their natural language descriptions from the massive amount of shell-scripting tutorials and forums online, which gives us a dataset orders of magnitude larger than those in previous works. Second, we restrict the domain to only commonly used file system operations. We measure the ``commonness" based on the statistics of shell commands occurred in the crowdsourcing data. Third, we make use of state-of-the-art natural language semantic parsing techniques to boost the search efficiency~\cite{Zettlemoyer05learningto,lewis2015joint}, which potentially allows us to explore a much richer semantic space.
-
-% and there is great value in providing a natural language interface to functions that is inefficient to be carried out with GUI. Especially
 
