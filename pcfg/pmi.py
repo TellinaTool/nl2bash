@@ -1,5 +1,6 @@
+#!/usr/bin/env python
+
 import cPickle as pickle
-import collections
 import sys
 sys.path.append("../../")
 from misc.util import *
