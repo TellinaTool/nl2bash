@@ -75,6 +75,8 @@ def create_vocabulary(vocabulary_path, data_path, max_vocabulary_size,
     normalize_digits: Boolean; if true, all digits are replaced by 0s.
   """
   if not gfile.Exists(vocabulary_path):
+    if data_path.endswith(".cm"):
+        normalize_digits = False
     print("Creating vocabulary %s from data %s" % (vocabulary_path, data_path))
     vocab = {}
     with gfile.GFile(data_path, mode="rb") as f:
@@ -181,7 +183,7 @@ def data_to_toknl_ids(data_path, target_path, vocabulary_path,
         counter = 0
         for line in data_file:
           counter += 1
-          if counter % 100000 == 0:
+          if counter % 1000 == 0:
             print("  tokenizing line %d" % counter)
           toknl_ids = sentence_to_toknl_ids(line, vocab, tokenizer,
                                             normalize_digits)
@@ -208,8 +210,8 @@ def prepare_data(data_dir, nl_vocabulary_size, cm_vocabulary_size, tokenizers=(N
       (6) path to the Command vocabulary file.
   """
   # Get data to the specified directory.
-  train_path = data_dir + "train"
-  dev_path = data_dir + "dev"
+  train_path = data_dir + "/train"
+  dev_path = data_dir + "/dev"
 
   # Create vocabularies of the appropriate sizes.
   cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocabulary_size)
