@@ -208,8 +208,8 @@ def prepare_data(data_dir, nl_vocabulary_size, cm_vocabulary_size, tokenizers=(N
       (6) path to the Command vocabulary file.
   """
   # Get data to the specified directory.
-  train_path = data_dir + "train"
-  dev_path = data_dir + "dev"
+  train_path = data_dir + "/train"
+  dev_path = data_dir + "/dev"
 
   # Create vocabularies of the appropriate sizes.
   cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocabulary_size)
