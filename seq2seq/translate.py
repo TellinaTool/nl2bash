@@ -215,7 +215,7 @@ def decode():
     nl_vocab_path = os.path.join(FLAGS.data_dir,
                                  "vocab%d.nl" % FLAGS.nl_vocab_size)
     cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm" % FLAGS.cmFre_vocab_size)
+                                 "vocab%d.cm" % FLAGS.cm_vocab_size)
     nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
     _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
