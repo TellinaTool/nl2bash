@@ -2,6 +2,14 @@
 
 This folder has scripts and data related to StackOverflow.
 
+Download the raw dump:
+
+`wget https://archive.org/download/stackexchange/stackoverflow.com-Posts.7z`
+
+Run:
+
+`python stackoverflow-xml-to-sqlite.py stackoverflow.com-Posts.7z stackoverflow.sqlite.xz`
+
 Contents:
 
  - `stackoverflow-xml-to-sqlite.py`: converts the raw StackOverflow XML data
