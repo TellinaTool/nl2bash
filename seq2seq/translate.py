@@ -159,6 +159,15 @@ def train():
     step_time, loss = 0.0, 0.0
     current_step = 0
     previous_losses = []
+
+    # Load Vocabularies for evaluation on dev set at each checkpoint
+    nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.nl" % FLAGS.nl_vocab_size)
+    cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.cm" % FLAGS.cmFre_vocab_size)
+    nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
+    _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+
     while True:
       # Choose a bucket according to data distribution. We pick a random number
       # in [0, 1] and use the corresponding interval in train_buckets_scale.
@@ -204,6 +213,8 @@ def train():
           print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
         sys.stdout.flush()
 
+def batch_decode(model):
+
 
 def decode():
   with tf.Session() as sess:
@@ -240,7 +251,7 @@ def decode():
       # If there is an EOS symbol in outputs, cut them at that point.
       if data_utils.EOS_ID in outputs:
         outputs = outputs[:outputs.index(data_utils.EOS_ID)]
-      # Print out French sentence corresponding to outputs.
+      # Print out command corresponding to outputs.
       print(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
       print("> ", end="")
       sys.stdout.flush()
