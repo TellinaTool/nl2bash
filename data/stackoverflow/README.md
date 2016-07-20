@@ -8,7 +8,7 @@ Download the raw dump:
 
 Run:
 
-`python stackoverflow-xml-to-sqlite.py stackoverflow.com-Posts.7z stackoverflow.sqlite.xz`
+`python3 script.py 'Posts.xml' 'stackoverflow.sqlite.db'`
 
 Contents:
 
