@@ -94,7 +94,7 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
       vocab_list = vocab_list[:max_vocabulary_size]
     with gfile.GFile(vocabulary_path, mode="wb") as vocab_file:
       for w in vocab_list:
-        vocab_file.write(w + b"\n")
+        vocab_file.write(w.decode().encode('utf-8') + b"\n")
 
 
 def initialize_vocabulary(vocabulary_path):
@@ -175,16 +175,15 @@ def data_to_token_ids(data, target_path, vocabulary_path,
   if not gfile.Exists(target_path):
     print("Tokenizing data (%d)" % len(data))
     vocab, _ = initialize_vocabulary(vocabulary_path)
-    with gfile.GFile(data, mode="rb") as data_file:
-      with gfile.GFile(target_path, mode="w") as tokens_file:
-        counter = 0
-        for line in data_file:
-          counter += 1
-          if counter % 1000 == 0:
-            print("  tokenizing line %d" % counter)
-          token_ids = sentence_to_token_ids(line, vocab, tokenizer,
-                                            normalize_digits)
-          tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
+    with gfile.GFile(target_path, mode="w") as tokens_file:
+      counter = 0
+      for line in data:
+        counter += 1
+        if counter % 1000 == 0:
+          print("  tokenizing line %d" % counter)
+        token_ids = sentence_to_token_ids(line, vocab, tokenizer,
+                                          normalize_digits)
+        tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
 
 
 def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size, tokenizers=(None, None)):
