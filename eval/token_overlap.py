@@ -11,7 +11,7 @@ class TokenOverlap(object):
         overlap_score = 0.0
         for i in xrange(min(gt_num_cmds, pred_num_cmds)):
             overlap_score += TokenOverlap.cmd_overlap_score(gt_cmd_list[i], pred_cmd_list[i])
-        return overlap_score / gt_num_cmds
+        return overlap_score / max(gt_num_cmds, pred_num_cmds)
 
     @staticmethod
     def get_command_list(cmd):
