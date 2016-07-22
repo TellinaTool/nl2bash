@@ -130,6 +130,11 @@ def create_model(session, forward_only):
   return model
 
 
+# TODO: n-fold cross-validation
+def cross_validation():
+  pass
+
+
 def train(train_set, dev_set):
   with tf.Session() as sess:
     # Create model.
@@ -154,7 +159,7 @@ def train(train_set, dev_set):
     nl_vocab_path = os.path.join(FLAGS.data_dir,
                                  "vocab%d.nl" % FLAGS.nl_vocab_size)
     cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm" % FLAGS.cmFre_vocab_size)
+                                 "vocab%d.cm" % FLAGS.cm_vocab_size)
     nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
     _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
@@ -207,21 +212,27 @@ def train(train_set, dev_set):
           print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
           # Compute loss on development set
-          print(output_logits)
-          # This is a greedy decoder - outputs are just argmaxes of output_logits.
-          outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
-          # If there is an EOS symbol in outputs, cut them at that point.
-          if data_utils.EOS_ID in outputs:
-            outputs = outputs[:outputs.index(data_utils.EOS_ID)]
-          # Print out command corresponding to outputs.
-          print(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
+          ground_truths = token_ids_to_sentence(decoder_inputs, rev_cm_vocab)
+          predictions = batch_decode(output_logits, rev_cm_vocab)
         sys.stdout.flush()
 
-
-# TODO: n-fold cross-validation
-def cross_validation():
-  pass
-
+def token_ids_to_sentence(decoder_inputs, rev_cm_vocab):
+  print(len(decoder_inputs))
+  print(len(decoder_inputs[0]))
+  print(len(decoder_inputs[0][0]))
+  
+def batch_decode(output_logits, rev_cm_vocab):
+  batch_size = len(output_logits[0])
+  batch_outputs = []
+  for i in xrange(batch_size):
+    # This is a greedy decoder - outputs are just argmaxes of output_logits.
+    outputs = [int(np.argmax(logit[i], axis=1)) for logit in output_logits]
+    # If there is an EOS symbol in outputs, cut them at that point.
+    if data_utils.EOS_ID in outputs:
+      outputs = outputs[:outputs.index(data_utils.EOS_ID)]
+    # Print out command corresponding to outputs.
+    batch_outputs.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
+  return batch_outputs
 
 def decode():
   with tf.Session() as sess:
@@ -263,10 +274,6 @@ def decode():
       print("> ", end="")
       sys.stdout.flush()
       sentence = sys.stdin.readline()
-
-
-def dev_performance(dev_set):
-  pass
 
 
 def process_data():
