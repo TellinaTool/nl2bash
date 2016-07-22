@@ -75,8 +75,8 @@ def create_vocabulary(vocabulary_path, data_path, max_vocabulary_size,
     normalize_digits: Boolean; if true, all digits are replaced by 0s.
   """
   if not gfile.Exists(vocabulary_path):
-    if data_path.endswith(".cm"):
-        normalize_digits = False
+    # if data_path.endswith(".cm"):
+    normalize_digits = False
     print("Creating vocabulary %s from data %s" % (vocabulary_path, data_path))
     vocab = {}
     with gfile.GFile(data_path, mode="rb") as f:
