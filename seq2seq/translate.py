@@ -36,6 +36,7 @@ import os
 import random
 import sys
 import time
+import cPickle as pickle
 
 import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
@@ -54,8 +55,8 @@ tf.app.flags.DEFINE_integer("batch_size", 64,
                             "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("size", 100, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
-tf.app.flags.DEFINE_integer("nl_vocab_size", 3200, "English vocabulary size.")
-tf.app.flags.DEFINE_integer("cm_vocab_size", 3200, "Bash vocabulary size.")
+tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
+tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
 tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
@@ -129,23 +130,12 @@ def create_model(session, forward_only):
   return model
 
 
-def train():
-  """Train a en->fr translation model using WMT data."""
-  # Prepare WMT data.
-  print("Preparing data in %s" % FLAGS.data_dir)
-  nl_train, cm_train, nl_dev, cm_dev, _, _ = data_utils.prepare_data(
-      FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
-
+def train(train_set, dev_set):
   with tf.Session() as sess:
     # Create model.
     print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.size))
     model = create_model(sess, False)
 
-    # Read data into buckets and compute their sizes.
-    print ("Reading development and training data (limit: %d)."
-           % FLAGS.max_train_data_size)
-    dev_set = read_data(nl_dev, cm_dev)
-    train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
     train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
     train_total_size = float(sum(train_bucket_sizes))
 
@@ -187,19 +177,23 @@ def train():
 
       # Once in a while, we save checkpoint, print statistics, and run evals.
       if current_step % FLAGS.steps_per_checkpoint == 0:
+
         # Print statistics for the previous epoch.
         perplexity = math.exp(loss) if loss < 300 else float('inf')
         print ("global step %d learning rate %.4f step-time %.2f perplexity "
                "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
                          step_time, perplexity))
-        # Decrease learning rate if no improvement was seen over last 3 times.
+
+        # Decrease learning rate if no improvement of loss was seen over last 3 times.
         if len(previous_losses) > 2 and loss > max(previous_losses[-3:]):
           sess.run(model.learning_rate_decay_op)
         previous_losses.append(loss)
+
         # Save checkpoint and zero timer and loss.
         checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
         model.saver.save(sess, checkpoint_path, global_step=model.global_step)
         step_time, loss = 0.0, 0.0
+
         # Run evals on development set and print their perplexity.
         for bucket_id in xrange(len(_buckets)):
           if len(dev_set[bucket_id]) == 0:
@@ -207,13 +201,26 @@ def train():
             continue
           encoder_inputs, decoder_inputs, target_weights = model.get_batch(
               dev_set, bucket_id)
-          _, eval_loss, _ = model.step(sess, encoder_inputs, decoder_inputs,
+          _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                        target_weights, bucket_id, True)
           eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
           print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
+
+          # Compute loss on development set
+          print(output_logits)
+          # This is a greedy decoder - outputs are just argmaxes of output_logits.
+          outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
+          # If there is an EOS symbol in outputs, cut them at that point.
+          if data_utils.EOS_ID in outputs:
+            outputs = outputs[:outputs.index(data_utils.EOS_ID)]
+          # Print out command corresponding to outputs.
+          print(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
         sys.stdout.flush()
 
-def batch_decode(model):
+
+# TODO: n-fold cross-validation
+def cross_validation():
+  pass
 
 
 def decode():
@@ -236,13 +243,13 @@ def decode():
     sentence = sys.stdin.readline()
     while sentence:
       # Get token-ids for the input sentence.
-      toknl_ids = data_utils.sentence_to_toknl_ids(tf.compat.as_bytes(sentence), nl_vocab)
+      token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab)
       # Which bucket does it belong to?
       bucket_id = min([b for b in xrange(len(_buckets))
-                       if _buckets[b][0] > len(toknl_ids)])
+                       if _buckets[b][0] > len(token_ids)])
       # Get a 1-element batch to feed the sentence to the model.
       encoder_inputs, decoder_inputs, target_weights = model.get_batch(
-          {bucket_id: [(toknl_ids, [])]}, bucket_id)
+          {bucket_id: [(token_ids, [])]}, bucket_id)
       # Get output logits for the sentence.
       _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                        target_weights, bucket_id, True)
@@ -257,6 +264,52 @@ def decode():
       sys.stdout.flush()
       sentence = sys.stdin.readline()
 
+
+def dev_performance(dev_set):
+  pass
+
+
+def process_data():
+  print("Preparing data in %s" % FLAGS.data_dir)
+
+  with open(FLAGS.data_dir + "data.dat") as f:
+    data = pickle.load(f)
+
+  numFolds = len(data)
+
+  train_cm_list = []
+  train_nl_list = []
+  dev_cm_list = []
+  dev_nl_list = []
+  test_cm_list = []
+  test_nl_list = []
+  for i in xrange(numFolds):
+      if i < numFolds - 2:
+          for nl, cmd in data[i]:
+              train_cm_list.append(cmd)
+              train_nl_list.append(nl)
+      elif i == numFolds - 2:
+          for nl, cmd in data[i]:
+              dev_cm_list.append(cmd)
+              dev_nl_list.append(nl)
+      elif i == numFolds - 1:
+          for nl, cmd in data[i]:
+              test_cm_list.append(cmd)
+              test_nl_list.append(nl)
+
+  train_dev_test = {}
+  train_dev_test["train"] = [train_cm_list, train_nl_list]
+  train_dev_test["dev"] = [dev_cm_list, dev_nl_list]
+  train_dev_test["test"] = [test_cm_list, test_nl_list]
+
+  nl_train, cm_train, nl_dev, cm_dev, nl_test, cm_test, _, _ = data_utils.prepare_data(
+      train_dev_test, FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+
+  train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
+  dev_set = read_data(nl_dev, cm_dev)
+  test_set = read_data(nl_test, nl_test)
+
+  return train_set, dev_set, test_set
 
 def self_test():
   """Test the translation model."""
@@ -277,14 +330,14 @@ def self_test():
       model.step(sess, encoder_inputs, decoder_inputs, target_weights,
                  bucket_id, False)
 
-
 def main(_):
   if FLAGS.self_test:
     self_test()
   elif FLAGS.decode:
     decode()
   else:
-    train()
+    train_set, dev_set, _ = process_data()
+    train(train_set, dev_set)
 
 if __name__ == "__main__":
   tf.app.run()
