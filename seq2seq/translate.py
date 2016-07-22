@@ -35,12 +35,13 @@ import math
 import os
 import random
 import sys
+sys.path.append("../eval")
 import time
 import cPickle as pickle
 
 import numpy as np
 
-from eval.token_overlap import TokenOverlap
+from token_overlap import TokenOverlap
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
