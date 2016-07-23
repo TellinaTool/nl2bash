@@ -66,17 +66,14 @@ def bash_tokenizer(cmd):
     try:
         parts = bashlex.parse(cmd)
     except bashlex.tokenizer.MatchedPairError, e:
-        return bash_tokenizer(cmd)
+        return basic_tokenizer(cmd)
     except bashlex.errors.ParsingError, e:
-        return bash_tokenizer(cmd)
+        return basic_tokenizer(cmd)
     except NotImplementedError, e:
-        return bash_tokenizer(cmd)
+        return basic_tokenizer(cmd)
 
-    try:
-        for part in parts:
-            parse(part, tokens)
-    except RuntimeError, e:
-        return bash_tokenizer(cmd)
+    for part in parts:
+        parse(part, tokens)
 
     return tokens
 
