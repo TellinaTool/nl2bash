@@ -71,11 +71,12 @@ def bash_tokenizer(cmd):
         return bash_tokenizer(cmd)
     except NotImplementedError, e:
         return bash_tokenizer(cmd)
+
+    try:
+        for part in parts:
+            parse(part, tokens)
     except RuntimeError, e:
         return bash_tokenizer(cmd)
-
-    for part in parts:
-        parse(part, tokens)
 
     return tokens
 
