@@ -63,7 +63,12 @@ def bash_tokenizer(cmd):
                 for child in node.parts:
                     parse(child, tokens)
 
-    for part in bashlex.parse(cmd):
+    try:
+        parts = bashlex.parse(cmd)
+    except bashlex.tokenizer.MatchedPairError, e:
+        parts = []
+
+    for part in parts:
         parse(part, tokens)
 
     return tokens
@@ -158,10 +163,13 @@ def sentence_to_token_ids(sentence, vocabulary,
       a list of integers, the token-ids for the sentence.
     """
 
-    if tokenizer:
-        words = tokenizer(sentence)
-    else:
-        words = basic_tokenizer(sentence)
+
+    words = tokenizer(sentence) if tokenizer else words = basic_tokenizer(sentence)
+
+    # Downgrade to basic tokenizer in case the bash tool failed to parse
+    if not words:
+        words = bash_tokenizer(sentence)
+
     if not normalize_digits:
         return [vocabulary.get(w, UNK_ID) for w in words]
     # Normalize digits by 0 before looking words up in the vocabulary.
