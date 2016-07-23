@@ -59,8 +59,9 @@ def bash_tokenizer(cmd):
         if node.kind == "word":
             tokens.append(node.word)
         else:
-            for child in node.parts:
-                parse(child, tokens)
+            if hasattr(node, 'parts'):
+                for child in node.parts:
+                    parse(child, tokens)
 
     for part in bashlex.parse(cmd):
         parse(part, tokens)
