@@ -84,7 +84,7 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                 print("  processing line %d" % counter)
             tokens = tokenizer(line) if tokenizer else basic_tokenizer(line)
             for w in tokens:
-                word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits else w
+                word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
                 if word in vocab:
                     vocab[word] += 1
                 else:
@@ -186,7 +186,7 @@ def data_to_token_ids(data, target_path, vocabulary_path,
                 tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
 
 
-def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size, tokenizers=(None, None)):
+def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size, tokenizers=(bash_tokenizer, bash_tokenizer)):
     """Get data into data_dir, create vocabularies and tokenize data.
 
     Args:
@@ -224,7 +224,7 @@ def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size, tokeniz
     # Create vocabularies of the appropriate sizes.
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocabulary_size)
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocabulary_size)
-    create_vocabulary(cm_vocab_path, train_cm_list, cm_vocabulary_size, tokenizers[1], False)
+    create_vocabulary(cm_vocab_path, train_cm_list, cm_vocabulary_size, tokenizers[1], True)
     create_vocabulary(nl_vocab_path, train_nl_list, nl_vocabulary_size, tokenizers[0], True)
 
     # Create token ids for the training data.
