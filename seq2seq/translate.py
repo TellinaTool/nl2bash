@@ -279,8 +279,11 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
         assert(len(ground_truths) == len(predictions))
         for i in xrange(len(ground_truths)):
             sent = sentences[i]
+            if sent == "na":
+                continue
             gt = ground_truths[i]
             pred = predictions[i]
+            print("Example %d" % i)
             print("English: " + sent)
             print("Ground truth: " + gt)
             print("Prediction: " + pred)
