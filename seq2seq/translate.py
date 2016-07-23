@@ -248,11 +248,13 @@ def token_ids_to_sentences(decoder_inputs, rev_cm_vocab):
 
 def batch_decode(output_logits, rev_cm_vocab):
     batch_size = len(output_logits[0])
+    print(batch_size)
+    print(len(output_logits[0][0]))
     # This is a greedy decoder - outputs are just argmaxes of output_logits.
     predictions = [np.argmax(logit, axis=1) for logit in output_logits]
     batch_outputs = []
     for i in xrange(batch_size):
-        outputs = [int(pred[i]) for pred in predictions]
+        outputs = [pred[i] for pred in predictions]
         # If there is an EOS symbol in outputs, cut them at that point.
         if data_utils.EOS_ID in outputs:
             outputs = outputs[:outputs.index(data_utils.EOS_ID)]
