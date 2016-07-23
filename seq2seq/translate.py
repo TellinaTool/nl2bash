@@ -216,8 +216,8 @@ def train(train_set, dev_set):
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
-                eval(dev_set)
-                
+                eval_set(sess, model, dev_set, rev_cm_vocab)
+
                 sys.stdout.flush()
 
 
@@ -248,7 +248,33 @@ def batch_decode(output_logits, rev_cm_vocab):
         batch_outputs.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
     return batch_outputs
 
-def eval(dev_set):
+def eval_set(sess, model, dev_set, rev_cm_vocab):
+    score = 0.0
+    num_eval = 0
+    for bucket_id in xrange(len(_buckets)):
+        if len(dev_set[bucket_id]) == 0:
+            print("  eval: empty bucket %d" % (bucket_id))
+            continue
+        encoder_inputs, decoder_inputs, target_weights = model.get_batch(
+                    dev_set, bucket_id)
+        _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
+                                                 target_weights, bucket_id, True)
+        ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab)
+        predictions = batch_decode(output_logits, rev_cm_vocab)
+        assert (len(ground_truths) == len(predictions))
+        for i in xrange(len(ground_truths)):
+            gt = ground_truths[i]
+            pred = predictions[i]
+            print(gt)
+            print(pred)
+            if score >= 0:
+                score += TokenOverlap.compute(gt, pred)
+                num_eval += 1
+                print(score)
+
+        print("token overlap %.2f" % score/num_eval)
+
+def eval():
     with tf.Session() as sess:
         # Create model and load parameters.
         model = create_model(sess, True)
@@ -259,35 +285,13 @@ def eval(dev_set):
                                      "vocab%d.nl" % FLAGS.nl_vocab_size)
         cm_vocab_path = os.path.join(FLAGS.data_dir,
                                      "vocab%d.cm" % FLAGS.cm_vocab_size)
-        nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
+
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
         _, dev_set, _ = process_data()
 
-        score = 0.0
-        num_eval = 0
-        for bucket_id in xrange(len(_buckets)):
-            if len(dev_set[bucket_id]) == 0:
-                print("  eval: empty bucket %d" % (bucket_id))
-                continue
-            encoder_inputs, decoder_inputs, target_weights = model.get_batch(
-                        dev_set, bucket_id)
-            _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
-                                                     target_weights, bucket_id, True)
-            ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab)
-            predictions = batch_decode(output_logits, rev_cm_vocab)
-            assert (len(ground_truths) == len(predictions))
-            for i in xrange(len(ground_truths)):
-                gt = ground_truths[i]
-                pred = predictions[i]
-                print(gt)
-                print(pred)
-                if score >= 0:
-                    score += TokenOverlap.compute(gt, pred)
-                    num_eval += 1
-                    print(score)
+        eval_set(sess, model, dev_set, rev_cm_vocab)
 
-        print("token overlap %.2f" % score/num_eval)
 
 def decode():
     with tf.Session() as sess:
