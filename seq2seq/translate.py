@@ -66,6 +66,8 @@ tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
+tf.app.flags.DEFINE_boolean("eval", False,
+                            "Set to True for quantitive evaluation.")
 tf.app.flags.DEFINE_boolean("decode", False,
                             "Set to True for interactive decoding.")
 tf.app.flags.DEFINE_boolean("self_test", False,
@@ -213,23 +215,6 @@ def train(train_set, dev_set):
                                                              target_weights, bucket_id, True)
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
-
-                    # Compute loss on development set
-                    ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab)
-                    predictions = batch_decode(output_logits, rev_cm_vocab)
-                    assert (len(ground_truths) == len(predictions))
-                    score = 0.0
-                    num_eval = 0
-                    for i in xrange(len(ground_truths)):
-                        gt = ground_truths[i]
-                        pred = predictions[i]
-                        print(gt)
-                        print(pred)
-                        if score >= 0:
-                            score += TokenOverlap.compute(gt, pred)
-                            num_eval += 1
-                            print(score)
-                    print("        bucket %d token overlap %.2f" % (bucket_id, score/num_eval))
                 sys.stdout.flush()
 
 
@@ -260,6 +245,24 @@ def batch_decode(output_logits, rev_cm_vocab):
         batch_outputs.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
     return batch_outputs
 
+def eval(model, dev_set):
+    """ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab)
+    predictions = batch_decode(output_logits, rev_cm_vocab)
+    assert (len(ground_truths) == len(predictions))
+    score = 0.0
+    num_eval = 0
+    for i in xrange(len(ground_truths)):
+        gt = ground_truths[i]
+        pred = predictions[i]
+        print(gt)
+        print(pred)
+        if score >= 0:
+            score += TokenOverlap.compute(gt, pred)
+            num_eval += 1
+            print(score)
+    print("        bucket %d token overlap %.2f" % (bucket_id, score/num_eval))
+    """
+    pass
 
 def decode():
     with tf.Session() as sess:
@@ -369,6 +372,8 @@ def self_test():
 def main(_):
     if FLAGS.self_test:
         self_test()
+    elif FLAGS.eval:
+        eval()
     elif FLAGS.decode:
         decode()
     else:
