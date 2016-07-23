@@ -53,8 +53,19 @@ def basic_tokenizer(sentence):
 
 
 def bash_tokenizer(cmd):
-    return bashlex.split(cmd)
+    tokens = []
 
+    def parse(node, tokens):
+        if node.kind == "word":
+            tokens.append(node.word)
+        else:
+            for child in node.parts:
+                parse(child, tokens)
+
+    for part in bashlex.parse(cmd):
+        parse(part, tokens)
+
+    return tokens
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                       tokenizer=None, normalize_digits=True):
@@ -186,7 +197,8 @@ def data_to_token_ids(data, target_path, vocabulary_path,
                 tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
 
 
-def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size, tokenizers=(bash_tokenizer, bash_tokenizer)):
+def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size,
+                 tokenizers=(basic_tokenizer, bash_tokenizer)):
     """Get data into data_dir, create vocabularies and tokenize data.
 
     Args:
