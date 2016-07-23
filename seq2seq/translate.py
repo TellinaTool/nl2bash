@@ -215,6 +215,9 @@ def train(train_set, dev_set):
                                                              target_weights, bucket_id, True)
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
+
+                eval(dev_set)
+                
                 sys.stdout.flush()
 
 
@@ -245,24 +248,46 @@ def batch_decode(output_logits, rev_cm_vocab):
         batch_outputs.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
     return batch_outputs
 
-def eval(model, dev_set):
-    """ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab)
-    predictions = batch_decode(output_logits, rev_cm_vocab)
-    assert (len(ground_truths) == len(predictions))
-    score = 0.0
-    num_eval = 0
-    for i in xrange(len(ground_truths)):
-        gt = ground_truths[i]
-        pred = predictions[i]
-        print(gt)
-        print(pred)
-        if score >= 0:
-            score += TokenOverlap.compute(gt, pred)
-            num_eval += 1
-            print(score)
-    print("        bucket %d token overlap %.2f" % (bucket_id, score/num_eval))
-    """
-    pass
+def eval(dev_set):
+    with tf.Session() as sess:
+        # Create model and load parameters.
+        model = create_model(sess, True)
+        model.batch_size = 1  # We decode one sentence at a time.
+
+        # Load vocabularies.
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
+        nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
+        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+
+        _, dev_set, _ = process_data()
+
+        score = 0.0
+        num_eval = 0
+        for bucket_id in xrange(len(_buckets)):
+            if len(dev_set[bucket_id]) == 0:
+                print("  eval: empty bucket %d" % (bucket_id))
+                continue
+            encoder_inputs, decoder_inputs, target_weights = model.get_batch(
+                        dev_set, bucket_id)
+            _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
+                                                     target_weights, bucket_id, True)
+            ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab)
+            predictions = batch_decode(output_logits, rev_cm_vocab)
+            assert (len(ground_truths) == len(predictions))
+            for i in xrange(len(ground_truths)):
+                gt = ground_truths[i]
+                pred = predictions[i]
+                print(gt)
+                print(pred)
+                if score >= 0:
+                    score += TokenOverlap.compute(gt, pred)
+                    num_eval += 1
+                    print(score)
+
+        print("token overlap %.2f" % score/num_eval)
 
 def decode():
     with tf.Session() as sess:
@@ -307,46 +332,54 @@ def decode():
 
 
 def process_data():
-    print("Preparing data in %s" % FLAGS.data_dir)
+    if not os.path.exists(FLAGS.data_dir + "data.processed.dat"):
+        print("Preparing data in %s" % FLAGS.data_dir)
 
-    with open(FLAGS.data_dir + "data.dat") as f:
-        data = pickle.load(f)
+        with open(FLAGS.data_dir + "data.dat") as f:
+            data = pickle.load(f)
 
-    numFolds = len(data)
+        numFolds = len(data)
 
-    train_cm_list = []
-    train_nl_list = []
-    dev_cm_list = []
-    dev_nl_list = []
-    test_cm_list = []
-    test_nl_list = []
-    for i in xrange(numFolds):
-        if i < numFolds - 2:
-            for nl, cmd in data[i]:
-                train_cm_list.append(cmd)
-                train_nl_list.append(nl)
-        elif i == numFolds - 2:
-            for nl, cmd in data[i]:
-                dev_cm_list.append(cmd)
-                dev_nl_list.append(nl)
-        elif i == numFolds - 1:
-            for nl, cmd in data[i]:
-                test_cm_list.append(cmd)
-                test_nl_list.append(nl)
+        train_cm_list = []
+        train_nl_list = []
+        dev_cm_list = []
+        dev_nl_list = []
+        test_cm_list = []
+        test_nl_list = []
+        for i in xrange(numFolds):
+            if i < numFolds - 2:
+                for nl, cmd in data[i]:
+                    train_cm_list.append(cmd)
+                    train_nl_list.append(nl)
+            elif i == numFolds - 2:
+                for nl, cmd in data[i]:
+                    dev_cm_list.append(cmd)
+                    dev_nl_list.append(nl)
+            elif i == numFolds - 1:
+                for nl, cmd in data[i]:
+                    test_cm_list.append(cmd)
+                    test_nl_list.append(nl)
 
-    train_dev_test = {}
-    train_dev_test["train"] = [train_cm_list, train_nl_list]
-    train_dev_test["dev"] = [dev_cm_list, dev_nl_list]
-    train_dev_test["test"] = [test_cm_list, test_nl_list]
+        train_dev_test = {}
+        train_dev_test["train"] = [train_cm_list, train_nl_list]
+        train_dev_test["dev"] = [dev_cm_list, dev_nl_list]
+        train_dev_test["test"] = [test_cm_list, test_nl_list]
 
-    nl_train, cm_train, nl_dev, cm_dev, nl_test, cm_test, _, _ = data_utils.prepare_data(
-        train_dev_test, FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+        nl_train, cm_train, nl_dev, cm_dev, nl_test, cm_test, _, _ = data_utils.prepare_data(
+            train_dev_test, FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
 
-    train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
-    dev_set = read_data(nl_dev, cm_dev)
-    test_set = read_data(nl_test, nl_test)
+        train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
+        dev_set = read_data(nl_dev, cm_dev)
+        test_set = read_data(nl_test, nl_test)
 
-    return train_set, dev_set, test_set
+        with open(FLAGS.data_dir + "data.processed.dat", 'wb') as o_f:
+            pickle.dump((train_set, dev_set, test_set), o_f)
+        return train_set, dev_set, test_set
+    else:
+        print("Loading data from %s" % FLAGS.data_dir)
+
+        with open(FLAGS.data_dir + "data.processed.dat", 'rb') as f:
+            return pickle.load(f)
 
 
 def self_test():
