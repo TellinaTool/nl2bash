@@ -217,8 +217,8 @@ def train(train_set, dev_set):
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
                 # eval_set(sess, model, dev_set, rev_cm_vocab)
-                eval()
-                
+                # eval()
+
                 sys.stdout.flush()
 
 
