@@ -216,7 +216,7 @@ def train(train_set, dev_set):
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
-                # eval_set(sess, model, dev_set, rev_cm_vocab)
+                # eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab)
                 # eval()
 
                 sys.stdout.flush()
@@ -275,6 +275,7 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
             print("English: " + sent)
             print("Ground truth: " + gt)
             print("Prediction: " + pred)
+            print()
             score = TokenOverlap.compute(gt, pred)
             if score >= 0:
                 total_score += score
@@ -289,11 +290,14 @@ def eval():
         model = create_model(sess, True)
 
         # Load vocabularies.
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
         cm_vocab_path = os.path.join(FLAGS.data_dir,
                                      "vocab%d.cm" % FLAGS.cm_vocab_size)
+        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = process_data()
-        eval_set(sess, model, dev_set, rev_cm_vocab)
+        eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab)
 
 
 def decode():
