@@ -222,16 +222,19 @@ def train(train_set, dev_set):
                 sys.stdout.flush()
 
 
-def token_ids_to_sentences(decoder_inputs, rev_cm_vocab):
-    batch_size = len(decoder_inputs[0])
+def token_ids_to_sentences(inputs, rev_vocab, ):
+    batch_size = len(inputs[0])
     sentences = []
     for i in xrange(batch_size):
-        outputs = [decoder_input[i] for decoder_input in decoder_inputs[1:]]
+        outputs = [decoder_input[i] for decoder_input in inputs[1:]]
         # If there is an EOS symbol in outputs, cut them at that point.
         if data_utils.EOS_ID in outputs:
             outputs = outputs[:outputs.index(data_utils.EOS_ID)]
+        # If there is a PAD symbol in outputs, cut them at that point.
+        if data_utils.PAD_ID in outputs:
+            outputs = outputs[:outputs.index(data_utils.PAD_ID)]
         # Print out command corresponding to outputs.
-        sentences.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
+        sentences.append(" ".join([tf.compat.as_str(rev_vocab[output]) for output in outputs]))
     return sentences
 
 
@@ -263,6 +266,9 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
                     dev_set, bucket_id)
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                                  target_weights, bucket_id, True)
+        rev_encoder_inputs = []
+        for i in xrange(len(encoder_inputs)-1, -1, -1):
+            rev_encoder_inputs.append(encoder_inputs[i])
         sentences = token_ids_to_sentences(encoder_inputs, rev_nl_vocab)
         ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab)
         predictions = batch_decode(output_logits, rev_cm_vocab)
