@@ -222,11 +222,14 @@ def train(train_set, dev_set):
                 sys.stdout.flush()
 
 
-def token_ids_to_sentences(inputs, rev_vocab, ):
+def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
     batch_size = len(inputs[0])
     sentences = []
     for i in xrange(batch_size):
-        outputs = [decoder_input[i] for decoder_input in inputs[1:]]
+        if headAppended:
+            outputs = [decoder_input[i] for decoder_input in inputs[1:]]
+        else:
+            outputs = [decoder_input[i] for decoder_input in inputs]
         # If there is an EOS symbol in outputs, cut them at that point.
         if data_utils.EOS_ID in outputs:
             outputs = outputs[:outputs.index(data_utils.EOS_ID)]
@@ -270,7 +273,7 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
         for i in xrange(len(encoder_inputs)-1, -1, -1):
             rev_encoder_inputs.append(encoder_inputs[i])
         sentences = token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)
-        ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab)
+        ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab, True)
         predictions = batch_decode(output_logits, rev_cm_vocab)
         assert(len(sentences) == len(predictions))
         assert(len(ground_truths) == len(predictions))
