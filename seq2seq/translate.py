@@ -344,6 +344,7 @@ def process_data():
             data = pickle.load(f)
 
         numFolds = len(data)
+        print("%d folds" % numFolds)
 
         train_cm_list = []
         train_nl_list = []
