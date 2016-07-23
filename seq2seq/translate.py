@@ -269,18 +269,18 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
         assert(len(sentences) == len(predictions))
         assert(len(ground_truths) == len(predictions))
         for i in xrange(len(ground_truths)):
-            sent = ground_truths[i]
+            sent = sentences[i]
             gt = ground_truths[i]
             pred = predictions[i]
             print("English: " + sent)
             print("Ground truth: " + gt)
             print("Prediction: " + pred)
-            print()
             score = TokenOverlap.compute(gt, pred)
             if score >= 0:
                 total_score += score
                 num_eval += 1
                 print("token-overlap score: %.2f" % score)
+            print()
 
     print("Average token-overlap score %.2f" % (total_score/num_eval))
 
