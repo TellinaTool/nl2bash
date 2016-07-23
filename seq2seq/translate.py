@@ -58,8 +58,8 @@ tf.app.flags.DEFINE_integer("batch_size", 64,
                             "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("size", 100, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
-tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
-tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
+tf.app.flags.DEFINE_integer("nl_vocab_size", 40000, "English vocabulary size.")
+tf.app.flags.DEFINE_integer("cm_vocab_size", 40000, "Bash vocabulary size.")
 tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
@@ -284,8 +284,6 @@ def eval():
         model = create_model(sess, True)
 
         # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
         cm_vocab_path = os.path.join(FLAGS.data_dir,
                                      "vocab%d.cm" % FLAGS.cm_vocab_size)
 
