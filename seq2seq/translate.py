@@ -257,6 +257,7 @@ def eval_set(sess, model, dev_set, rev_cm_vocab):
             continue
         else:
             print("eval: bucket %d" % (bucket_id))
+        model.batch_size = len(dev_set[bucket_id])
         encoder_inputs, decoder_inputs, target_weights = model.get_batch(
                     dev_set, bucket_id)
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
@@ -281,7 +282,6 @@ def eval():
     with tf.Session() as sess:
         # Create model and load parameters.
         model = create_model(sess, True)
-        model.batch_size = 1  # We decode one sentence at a time.
 
         # Load vocabularies.
         nl_vocab_path = os.path.join(FLAGS.data_dir,
