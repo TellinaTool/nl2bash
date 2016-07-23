@@ -219,14 +219,17 @@ def train(train_set, dev_set):
                     predictions = batch_decode(output_logits, rev_cm_vocab)
                     assert (len(ground_truths) == len(predictions))
                     score = 0.0
+                    num_eval = 0
                     for i in xrange(len(ground_truths)):
                         gt = ground_truths[i]
-                        pred = ground_truths[i]
+                        pred = predictions[i]
                         print(gt)
                         print(pred)
-                        score += TokenOverlap.compute(gt, pred)
-                        print(score)
-                    print("        bucket %d token overlap %.2f" % (bucket_id, score/len(ground_truths)))
+                        if score >= 0:
+                            score += TokenOverlap.compute(gt, pred)
+                            num_eval += 1
+                            print(score)
+                    print("        bucket %d token overlap %.2f" % (bucket_id, score/num_eval))
                 sys.stdout.flush()
 
 
