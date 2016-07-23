@@ -283,7 +283,7 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
                 continue
             gt = ground_truths[i]
             pred = predictions[i]
-            print("Example %d" % i)
+            print("Example %d" % (num_eval + 1))
             print("English: " + sent)
             print("Ground truth: " + gt)
             print("Prediction: " + pred)
