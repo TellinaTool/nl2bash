@@ -94,7 +94,7 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             vocab_list = vocab_list[:max_vocabulary_size]
         with gfile.GFile(vocabulary_path, mode="wb") as vocab_file:
             for w in vocab_list:
-                vocab_file.write(w.decode().encode('utf-8') + b"\n")
+                vocab_file.write(w.encode('utf-8') + b"\n")
 
 
 def initialize_vocabulary(vocabulary_path):
