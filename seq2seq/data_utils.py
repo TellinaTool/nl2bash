@@ -47,12 +47,13 @@ _DIGIT_RE = re.compile(br"\d")
 def basic_tokenizer(sentence):
     """Very basic tokenizer: split the sentence into a list of tokens."""
     words = []
-    for space_separated_fragment in sentence.strip().split():
+    for space_separated_fragment in sentence.replace('\n', ' ').strip().split():
         words.extend(re.split(_WORD_SPLIT, space_separated_fragment))
     return [w.lower() for w in words if w]
 
 
 def bash_tokenizer(cmd):
+    cmd = cmd.replace('\n', ' ').strip()
     tokens = []
 
     def parse(node, tokens):
@@ -62,7 +63,6 @@ def bash_tokenizer(cmd):
             if hasattr(node, 'parts'):
                 for child in node.parts:
                     parse(child, tokens)
-
     try:
         parts = bashlex.parse(cmd)
     except bashlex.tokenizer.MatchedPairError, e:
