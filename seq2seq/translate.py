@@ -275,7 +275,7 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
             print("English: " + sent)
             print("Ground truth: " + gt)
             print("Prediction: " + pred)
-            print
+            print()
             score = TokenOverlap.compute(gt, pred)
             if score >= 0:
                 total_score += score
