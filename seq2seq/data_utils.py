@@ -82,6 +82,7 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             counter += 1
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
+            print(line)
             tokens = tokenizer(line) if tokenizer else basic_tokenizer(line)
             for w in tokens:
                 word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
