@@ -168,16 +168,7 @@ def sentence_to_token_ids(sentence, vocabulary,
       a list of integers, the token-ids for the sentence.
     """
 
-<<<<<<< HEAD
-
     words = tokenizer(sentence) if tokenizer else basic_tokenizer(sentence)
-
-    # Downgrade to basic tokenizer in case the bash tool failed to parse
-    if not words:
-        words = bash_tokenizer(sentence)
-=======
-    words = tokenizer(sentence) if tokenizer else basic_tokenizer(sentence)
->>>>>>> 7024ca43ba34871d730be131cb95e81ba6b77ce8
 
     if not normalize_digits:
         return [vocabulary.get(w, UNK_ID) for w in words]
