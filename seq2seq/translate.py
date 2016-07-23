@@ -249,35 +249,39 @@ def batch_decode(output_logits, rev_cm_vocab):
         batch_outputs.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
     return batch_outputs
 
-def eval_set(sess, model, dev_set, rev_cm_vocab):
+def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
     total_score = 0.0
     num_eval = 0
     for bucket_id in xrange(len(_buckets)):
         if len(dev_set[bucket_id]) == 0:
-            print("eval: empty bucket %d" % (bucket_id))
+            # print("eval: empty bucket %d" % (bucket_id))
             continue
-        else:
-            print("eval: bucket %d" % (bucket_id))
+        # else:
+        #     print("eval: bucket %d" % (bucket_id))
         model.batch_size = len(dev_set[bucket_id])
         encoder_inputs, decoder_inputs, target_weights = model.get_batch(
                     dev_set, bucket_id)
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                                  target_weights, bucket_id, True)
+        sentences = token_ids_to_sentences(encoder_inputs, rev_nl_vocab)
         ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab)
         predictions = batch_decode(output_logits, rev_cm_vocab)
-        assert (len(ground_truths) == len(predictions))
+        assert(len(sentences) == len(predictions))
+        assert(len(ground_truths) == len(predictions))
         for i in xrange(len(ground_truths)):
+            sent = ground_truths[i]
             gt = ground_truths[i]
             pred = predictions[i]
-            print(gt)
-            print(pred)
+            print("English: " + sent)
+            print("Ground truth: " + gt)
+            print("Prediction: " + pred)
             score = TokenOverlap.compute(gt, pred)
             if score >= 0:
                 total_score += score
                 num_eval += 1
-                print(score)
+                print("token-overlap score: %.2f" % score)
 
-    print("token overlap %.2f" % (total_score/num_eval))
+    print("Average token-overlap score %.2f" % (total_score/num_eval))
 
 def eval():
     with tf.Session() as sess:
@@ -287,11 +291,8 @@ def eval():
         # Load vocabularies.
         cm_vocab_path = os.path.join(FLAGS.data_dir,
                                      "vocab%d.cm" % FLAGS.cm_vocab_size)
-
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-
         _, dev_set, _ = process_data()
-
         eval_set(sess, model, dev_set, rev_cm_vocab)
 
 
