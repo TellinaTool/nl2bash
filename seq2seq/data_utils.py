@@ -67,7 +67,7 @@ def bash_tokenizer(cmd):
         parts = bashlex.parse(cmd)
     except bashlex.tokenizer.MatchedPairError, e:
         parts = []
-    except bashlex.errors.ParsingError. e:
+    except bashlex.errors.ParsingError, e:
         parts = []
 
     for part in parts:
