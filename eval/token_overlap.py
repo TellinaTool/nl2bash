@@ -20,7 +20,7 @@ class TokenOverlap(object):
         for i in xrange(min(gt_num_cmds, pred_num_cmds)):
             overlap_score += TokenOverlap.cmd_overlap_score(gt_cmd_list[i], pred_cmd_list[i])
         if max(gt_num_cmds, pred_num_cmds) == 0:
-            # ignore non-grammatical ground truth
+            # ignore ground truth that contains a list of commands
             return -1
         else:
             return overlap_score / max(gt_num_cmds, pred_num_cmds)
@@ -36,8 +36,8 @@ class TokenOverlap(object):
         elif parse[0].kind == "command":
             command_list = [parse[0]]
         else:
-            print "Unrecognized node type: " + parse[0].kind
-            print parse[0]
+            # print "Unrecognized node type: " + parse[0].kind
+            print "Skipped: ground truth contains multiple statements"
         return command_list
 
     @staticmethod
