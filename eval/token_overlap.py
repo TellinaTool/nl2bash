@@ -5,13 +5,18 @@ class TokenOverlap(object):
     @staticmethod
     def compute(gt, pred):
         gt_cmd_list = TokenOverlap.get_command_list(gt)
-        pred_cmd_list = TokenOverlap.get_command_list(pred)
+        # pred_cmd_list = TokenOverlap.get_command_list(pred)
+        pred_cmd_list = TokenOverlap.get_command_list_rule_based(pred)
         gt_num_cmds = len(gt_cmd_list)
         pred_num_cmds = len(pred_cmd_list)
         overlap_score = 0.0
         for i in xrange(min(gt_num_cmds, pred_num_cmds)):
             overlap_score += TokenOverlap.cmd_overlap_score(gt_cmd_list[i], pred_cmd_list[i])
-        return overlap_score / max(gt_num_cmds, pred_num_cmds)
+        if max(gt_num_cmds, pred_num_cmds) == 0:
+            # ignore non-grammatical ground truth
+            return -1
+        else:
+            return overlap_score / max(gt_num_cmds, pred_num_cmds)
 
     @staticmethod
     def get_command_list(cmd):
@@ -25,10 +30,15 @@ class TokenOverlap(object):
             command_list = [parse[0]]
         else:
             print "Unrecognized node type: " + parse[0].kind
+            print parse[0]
         return command_list
+
+    @staticmethod
+    def get_command_list_rule_based(cmd):
+        return cmd.split('|')
 
     @staticmethod
     def cmd_overlap_score(gt, pred):
         gt_token_set = set([n.word for n in gt.parts if n.kind == "word"])
-        pred_token_set = set([n.word for n in pred.parts if n.kind == "word"])
+        pred_token_set = set(pred.split())
         return (len(gt_token_set & pred_token_set) + 0.0) / len(gt_token_set | pred_token_set)
