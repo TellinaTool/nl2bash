@@ -249,12 +249,14 @@ def batch_decode(output_logits, rev_cm_vocab):
     return batch_outputs
 
 def eval_set(sess, model, dev_set, rev_cm_vocab):
-    score = 0.0
+    total_score = 0.0
     num_eval = 0
     for bucket_id in xrange(len(_buckets)):
         if len(dev_set[bucket_id]) == 0:
-            print("  eval: empty bucket %d" % (bucket_id))
+            print("eval: empty bucket %d" % (bucket_id))
             continue
+        else:
+            print("eval: bucket %d" % (bucket_id))
         encoder_inputs, decoder_inputs, target_weights = model.get_batch(
                     dev_set, bucket_id)
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
@@ -267,12 +269,13 @@ def eval_set(sess, model, dev_set, rev_cm_vocab):
             pred = predictions[i]
             print(gt)
             print(pred)
+            score = TokenOverlap.compute(gt, pred)
             if score >= 0:
-                score += TokenOverlap.compute(gt, pred)
+                total_score += score
                 num_eval += 1
                 print(score)
 
-        print("token overlap %.2f" % (score/num_eval))
+    print("token overlap %.2f" % (total_score/num_eval))
 
 def eval():
     with tf.Session() as sess:
