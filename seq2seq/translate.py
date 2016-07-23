@@ -75,7 +75,7 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(5, 10), (10, 15), (20, 25), (30, 40), (40, 50)]
+_buckets = [(10, 5), (10, 10), (10, 15), (20, 25), (30, 40), (40, 50)]
 
 
 def read_data(source_path, target_path, max_size=None):
@@ -237,7 +237,7 @@ def token_ids_to_sentences(decoder_inputs, rev_cm_vocab):
     batch_size = len(decoder_inputs[0])
     sentences = []
     for i in xrange(batch_size):
-        outputs = [decoder_input[i] for decoder_input in decoder_inputs]
+        outputs = [decoder_input[i] for decoder_input in decoder_inputs[1:]]
         # If there is an EOS symbol in outputs, cut them at that point.
         if data_utils.EOS_ID in outputs:
             outputs = outputs[:outputs.index(data_utils.EOS_ID)]
@@ -252,7 +252,7 @@ def batch_decode(output_logits, rev_cm_vocab):
     predictions = [np.argmax(logit, axis=1) for logit in output_logits]
     batch_outputs = []
     for i in xrange(batch_size):
-        outputs = [pred[i] for pred in predictions]
+        outputs = [int(pred[i]) for pred in predictions]
         # If there is an EOS symbol in outputs, cut them at that point.
         if data_utils.EOS_ID in outputs:
             outputs = outputs[:outputs.index(data_utils.EOS_ID)]
