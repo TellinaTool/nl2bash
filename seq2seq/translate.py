@@ -272,7 +272,7 @@ def eval_set(sess, model, dev_set, rev_cm_vocab):
                 num_eval += 1
                 print(score)
 
-        print("token overlap %.2f" % score/num_eval)
+        print("token overlap %.2f" % (score/num_eval))
 
 def eval():
     with tf.Session() as sess:
