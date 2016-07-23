@@ -216,8 +216,9 @@ def train(train_set, dev_set):
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
-                eval_set(sess, model, dev_set, rev_cm_vocab)
-
+                # eval_set(sess, model, dev_set, rev_cm_vocab)
+                eval()
+                
                 sys.stdout.flush()
 
 
