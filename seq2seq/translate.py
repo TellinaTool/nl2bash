@@ -269,7 +269,7 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
         rev_encoder_inputs = []
         for i in xrange(len(encoder_inputs)-1, -1, -1):
             rev_encoder_inputs.append(encoder_inputs[i])
-        sentences = token_ids_to_sentences(encoder_inputs, rev_nl_vocab)
+        sentences = token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)
         ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab)
         predictions = batch_decode(output_logits, rev_cm_vocab)
         assert(len(sentences) == len(predictions))
