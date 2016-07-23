@@ -165,7 +165,7 @@ def sentence_to_token_ids(sentence, vocabulary,
     """
 
 
-    words = tokenizer(sentence) if tokenizer else words = basic_tokenizer(sentence)
+    words = tokenizer(sentence) if tokenizer else basic_tokenizer(sentence)
 
     # Downgrade to basic tokenizer in case the bash tool failed to parse
     if not words:
