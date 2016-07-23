@@ -246,7 +246,7 @@ def token_ids_to_sentences(decoder_inputs, rev_cm_vocab):
 def batch_decode(output_logits, rev_cm_vocab):
     batch_size = len(output_logits[0])
     # This is a greedy decoder - outputs are just argmaxes of output_logits.
-    predictions = [int(np.argmax(logit, axis=1)) for logit in output_logits]
+    predictions = [np.argmax(logit, axis=1) for logit in output_logits]
     batch_outputs = []
     for i in xrange(batch_size):
         outputs = [pred[i] for pred in predictions]
