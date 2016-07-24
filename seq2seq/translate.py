@@ -165,7 +165,7 @@ def train(train_set, dev_set):
                                      "vocab%d.nl" % FLAGS.nl_vocab_size)
         cm_vocab_path = os.path.join(FLAGS.data_dir,
                                      "vocab%d.cm" % FLAGS.cm_vocab_size)
-        nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
+        nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
         while True:
@@ -216,8 +216,7 @@ def train(train_set, dev_set):
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
-                # eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab)
-                # eval()
+                eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab)
 
                 sys.stdout.flush()
 
@@ -254,6 +253,7 @@ def batch_decode(output_logits, rev_cm_vocab):
         # Print out command corresponding to outputs.
         batch_outputs.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
     return batch_outputs
+
 
 def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
     total_score = 0.0
@@ -296,6 +296,13 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
 
     print("Average token-overlap score %.2f" % (total_score/num_eval))
 
+
+def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab):
+    # Create model and load parameters.
+    model = create_model(sess, True)
+    eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab)
+
+
 def eval():
     with tf.Session() as sess:
         # Create model and load parameters.
@@ -309,6 +316,7 @@ def eval():
         _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = process_data()
+
         eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab)
 
 
