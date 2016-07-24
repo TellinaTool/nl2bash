@@ -215,8 +215,7 @@ def train(train_set, dev_set):
                                                              target_weights, bucket_id, True)
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
-
-                eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab)
+                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, False)
 
                 sys.stdout.flush()
 
@@ -255,7 +254,7 @@ def batch_decode(output_logits, rev_cm_vocab):
     return batch_outputs
 
 
-def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
+def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
     total_score = 0.0
     num_eval = 0
     for bucket_id in xrange(len(_buckets)):
@@ -283,24 +282,21 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab):
                 continue
             gt = ground_truths[i]
             pred = predictions[i]
-            print("Example %d" % (num_eval + 1))
-            print("English: " + sent)
-            print("Ground truth: " + gt)
-            print("Prediction: " + pred)
+            if verbose:
+                print("Example %d" % (num_eval + 1))
+                print("English: " + sent)
+                print("Ground truth: " + gt)
+                print("Prediction: " + pred)
             score = TokenOverlap.compute(gt, pred)
             if score >= 0:
                 total_score += score
                 num_eval += 1
-                print("token-overlap score: %.2f" % score)
-            print()
+                if verbose:
+                    print("token-overlap score: %.2f" % score)
+            if verbose:
+                print()
 
     print("Average token-overlap score %.2f" % (total_score/num_eval))
-
-
-def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab):
-    # Create model and load parameters.
-    model = create_model(sess, True)
-    eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab)
 
 
 def eval():
