@@ -105,12 +105,15 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                 print("  processing line %d" % counter)
             print(line)
             tokens = tokenizer(line) if tokenizer else basic_tokenizer(line)
+            str = ""
             for w in tokens:
                 word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
                 if word in vocab:
                     vocab[word] += 1
                 else:
                     vocab[word] = 1
+                str += w + ' '
+            print(str)
         vocab_list = _START_VOCAB + sorted(vocab, key=vocab.get, reverse=True)
         if len(vocab_list) > max_vocabulary_size:
             vocab_list = vocab_list[:max_vocabulary_size]
