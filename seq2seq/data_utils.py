@@ -38,7 +38,7 @@ EOS_ID = 2
 UNK_ID = 3
 
 # Regular expressions used to tokenize.
-_WORD_SPLIT = re.compile(b"(,\s)")
+_WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"]|[\)|\]|\}|\>|\'|\"]$")
 _DIGIT_RE = re.compile(br"\d")
 
 
