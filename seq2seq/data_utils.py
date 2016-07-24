@@ -39,26 +39,32 @@ UNK_ID = 3
 
 # Regular expressions used to tokenize.
 _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
+# _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
 _DIGIT_RE = re.compile(br"\d")
 
 
-# URLs for WMT data.
-
-def basic_tokenizer(sentence):
+def basic_tokenizer(sentence, normalize_digits=True):
     """Very basic tokenizer: split the sentence into a list of tokens."""
     words = []
     for space_separated_fragment in sentence.replace('\n', ' ').strip().split():
         words.extend(re.split(_WORD_SPLIT, space_separated_fragment))
-    return [w.lower() for w in words if w]
+    normalized_words = []
+    for i in xrange(len(words)):
+        w = words[i].lower() if i == 0 else words[i]
+        word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
+        normalized_words.append(word)
+    return normalized_words
 
 
-def bash_tokenizer(cmd):
+def bash_tokenizer(cmd, normalize_digits=True):
     cmd = cmd.replace('\n', ' ').strip()
     tokens = []
 
     def parse(node, tokens):
         if node.kind == "word":
-            tokens.append(node.word)
+            w = node.word
+            word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
+            tokens.append(word)
         else:
             if hasattr(node, 'parts'):
                 for child in node.parts:
@@ -66,11 +72,11 @@ def bash_tokenizer(cmd):
     try:
         parts = bashlex.parse(cmd)
     except bashlex.tokenizer.MatchedPairError, e:
-        return basic_tokenizer(cmd)
+        return basic_tokenizer(cmd, normalize_digits)
     except bashlex.errors.ParsingError, e:
-        return basic_tokenizer(cmd)
+        return basic_tokenizer(cmd, normalize_digits)
     except NotImplementedError, e:
-        return basic_tokenizer(cmd)
+        return basic_tokenizer(cmd, normalize_digits)
 
     for part in parts:
         parse(part, tokens)
@@ -78,7 +84,7 @@ def bash_tokenizer(cmd):
     return tokens
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
-                      tokenizer=None, normalize_digits=True):
+                      tokenizer, normalize_digits=True):
     """Create vocabulary file (if it does not exist yet) from data file.
 
     Data file is assumed to contain one sentence per line. Each sentence is
@@ -103,9 +109,8 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             counter += 1
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
-            tokens = tokenizer(line) if tokenizer else basic_tokenizer(line)
-            for w in tokens:
-                word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
+            tokens = tokenizer(line, normalize_digits)
+            for word in tokens:
                 if word in vocab:
                     vocab[word] += 1
                 else:
@@ -149,7 +154,7 @@ def initialize_vocabulary(vocabulary_path):
 
 
 def sentence_to_token_ids(sentence, vocabulary,
-                          tokenizer=None, normalize_digits=True):
+                          tokenizer, normalize_digits=True):
     """Convert a string to list of integers representing token-ids.
 
     For example, a sentence "I have a dog" may become tokenized into
@@ -167,7 +172,7 @@ def sentence_to_token_ids(sentence, vocabulary,
       a list of integers, the token-ids for the sentence.
     """
 
-    words = tokenizer(sentence) if tokenizer else basic_tokenizer(sentence)
+    words = tokenizer(sentence, normalize_digits)
 
     if not normalize_digits:
         return [vocabulary.get(w, UNK_ID) for w in words]
@@ -176,7 +181,7 @@ def sentence_to_token_ids(sentence, vocabulary,
 
 
 def data_to_token_ids(data, target_path, vocabulary_path,
-                      tokenizer=None, normalize_digits=True):
+                      tokenizer, normalize_digits=True):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
