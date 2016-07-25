@@ -65,6 +65,9 @@ def bash_tokenizer(cmd, normalize_digits=True):
             w = node.word
             word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
             tokens.append(word)
+        elif node.kind == "pipe":
+            w = node.pipe
+            tokens.append(w)
         else:
             if hasattr(node, 'parts'):
                 for child in node.parts:
