@@ -73,6 +73,7 @@ class Seq2SeqModel(object):
     """
     self.source_vocab_size = source_vocab_size
     self.target_vocab_size = target_vocab_size
+    self.size = size
     self.buckets = buckets
     self.batch_size = batch_size
     self.learning_rate = tf.Variable(float(learning_rate), trainable=False)
@@ -85,9 +86,13 @@ class Seq2SeqModel(object):
     softmax_loss_function = None
     # Sampled softmax only makes sense if we sample less than vocabulary size.
     if num_samples > 0 and num_samples < self.target_vocab_size:
-      w = tf.get_variable("proj_w", [size, self.target_vocab_size])
+      try:
+        w = tf.get_variable("proj_w", [size, self.target_vocab_size])
+        b = tf.get_variable("proj_b", [self.target_vocab_size])
+      except ValueError, e:
+        w = [v for v in tf.all_variables() if v.name == "proj_w:0"][0]
+        b = [v for v in tf.all_variables() if v.name == "proj_b:0"][0]
       w_t = tf.transpose(w)
-      b = tf.get_variable("proj_b", [self.target_vocab_size])
       output_projection = (w, b)
 
       def sampled_loss(inputs, labels):
@@ -106,7 +111,7 @@ class Seq2SeqModel(object):
 
     # The seq2seq function: we use embedding for the input and attention.
     def seq2seq_f(encoder_inputs, decoder_inputs, do_decode):
-      return tf.nn.seq2seq.embedding_attention_seq2seq(
+        return tf.nn.seq2seq.embedding_attention_seq2seq(
           encoder_inputs, decoder_inputs, cell,
           num_encoder_symbols=source_vocab_size,
           num_decoder_symbols=target_vocab_size,
