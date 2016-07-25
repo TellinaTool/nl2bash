@@ -140,7 +140,7 @@ def cross_validation():
     pass
 
 
-def train(train_set, dev_set):
+def train(train_set, dev_set, num_iter):
     with tf.Session() as sess:
         # Create model.
         print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.size))
@@ -168,7 +168,7 @@ def train(train_set, dev_set):
         nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
-        while True:
+        for t in xrange(num_iter):
             # Choose a bucket according to data distribution. We pick a random number
             # in [0, 1] and use the corresponding interval in train_buckets_scale.
             random_number_01 = np.random.random_sample()
@@ -215,7 +215,7 @@ def train(train_set, dev_set):
                                                              target_weights, bucket_id, True)
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
-                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, False)
+                # eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=False)
 
                 sys.stdout.flush()
 
@@ -267,7 +267,7 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
         encoder_inputs, decoder_inputs, target_weights = model.get_batch(
                     dev_set, bucket_id)
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
-                                                 target_weights, bucket_id, True)
+                                         target_weights, bucket_id, True)
         rev_encoder_inputs = []
         for i in xrange(len(encoder_inputs)-1, -1, -1):
             rev_encoder_inputs.append(encoder_inputs[i])
@@ -282,21 +282,26 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
                 continue
             gt = ground_truths[i]
             pred = predictions[i]
-            if verbose:
-                print("Example %d" % (num_eval + 1))
-                print("English: " + sent)
-                print("Ground truth: " + gt)
-                print("Prediction: " + pred)
             score = TokenOverlap.compute(gt, pred)
-            if score >= 0:
+            if score != -1:
                 total_score += score
                 num_eval += 1
                 if verbose:
+                    print("Example %d" % (num_eval + 1))
+                    print("English: " + sent)
+                    print("Ground truth: " + gt)
+                    print("Prediction: " + pred)
                     print("token-overlap score: %.2f" % score)
-            if verbose:
-                print()
+                    print()
 
-    print("Average token-overlap score %.2f" % (total_score/num_eval))
+    print("Average token-overlap score %.2f (%d examples evaluated)" % (total_score/num_eval, num_eval))
+    print()
+
+
+def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
+    # Create model and load parameters.
+    model = create_model(sess, True)
+    eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
 
 
 def eval():
@@ -315,6 +320,14 @@ def eval():
 
         eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab)
 
+
+def train_and_eval(train_set, dev_set):
+    num_iter = 1000
+    for i in xrange(30):
+        train(train_set, dev_set, num_iter)
+        tf.reset_default_graph()
+        eval()
+        tf.reset_default_graph()
 
 def decode():
     with tf.Session() as sess:
@@ -439,7 +452,7 @@ def main(_):
         decode()
     else:
         train_set, dev_set, _ = process_data()
-        train(train_set, dev_set)
+        train_and_eval(train_set, dev_set)
 
 
 if __name__ == "__main__":
