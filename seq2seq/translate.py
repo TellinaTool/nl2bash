@@ -287,7 +287,7 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
                 total_score += score
                 num_eval += 1
                 if verbose:
-                    print("Example %d" % (num_eval + 1))
+                    print("Example %d" % num_eval)
                     print("English: " + sent)
                     print("Ground truth: " + gt)
                     print("Prediction: " + pred)

@@ -21,7 +21,7 @@ from semantics.lexical import stanford_tokenize, stanford_lemmatize
 
 sys.path.append("../baseline0/src")
 # local
-import bash
+import common.bash
 import common
 from make_model import CODE_REGEX, COMMENT_REGEX, PROMPT_REGEX
 from make_model import extract_code, all_samples, is_oneliner
@@ -73,7 +73,7 @@ def tokenize_question(q):
 
 def tokenize_code(code):
     code = PROMPT_REGEX.sub("", code)
-    for cmd in bash.parse(str(code)):
+    for cmd in common.bash.parse(str(code)):
         args = cmd[1:]
         cmd = cmd[0]
         # print("cmd:{}".format(cmd), file=sys.stderr)
