@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 
 DATADIR=$1
 MODELDIR=$2
