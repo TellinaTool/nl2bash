@@ -41,6 +41,7 @@ class TokenOverlap(object):
             if verbose:
                 print "Unrecognized node type: " + parse[0].kind
                 print "Skipped: ground truth contains multiple statements"
+                print
         return command_list
 
     @staticmethod
@@ -52,6 +53,6 @@ class TokenOverlap(object):
         if hasattr(gt, 'parts'):
             gt_token_set = set([n.word for n in gt.parts if n.kind == "word"])
         else:
-            gt_token_set = set(bash_tokenizer(gt.split))
-        pred_token_set = set(bash_tokenizer(pred.split))
+            gt_token_set = set(bash_tokenizer(gt))
+        pred_token_set = set(bash_tokenizer(pred))
         return (len(gt_token_set & pred_token_set) + 0.0) / len(gt_token_set | pred_token_set)
