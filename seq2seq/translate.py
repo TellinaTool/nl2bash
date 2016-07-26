@@ -323,7 +323,7 @@ def eval():
 
 def train_and_eval(train_set, dev_set):
     num_iter = 1000
-    for i in xrange(4):
+    for i in xrange(5):
         train(train_set, dev_set, num_iter)
         tf.reset_default_graph()
         eval()
