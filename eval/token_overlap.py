@@ -37,11 +37,20 @@ class TokenOverlap(object):
                     command_list.append(node)
         elif parse[0].kind == "command":
             command_list = [parse[0]]
+        elif parse[0].kind == "list":
+            if len(parse[0].parts) == 2:
+                # command + operator
+                for node in parse[0].parts:
+                    if node.kind == "command":
+                        command_list.append(node)
+            else:
+                if verbose:
+                    print "Skipped: ground truth contains multiple statements"
+                    print
         else:
             if verbose:
                 print "Unrecognized node type: " + parse[0].kind
-                print "Skipped: ground truth contains multiple statements"
-                print
+                print 
         return command_list
 
     @staticmethod
