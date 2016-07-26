@@ -42,6 +42,7 @@ class TokenOverlap(object):
             if verbose:
                 print "Unrecognized node type: " + parse[0].kind
                 print "Skipped: ground truth contains multiple statements"
+                print
         return command_list
 
     @staticmethod

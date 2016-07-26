@@ -259,15 +259,14 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_eval = 0
     for bucket_id in xrange(len(_buckets)):
         if len(dev_set[bucket_id]) == 0:
-            # print("eval: empty bucket %d" % (bucket_id))
             continue
-        # else:
-        #     print("eval: bucket %d" % (bucket_id))
         model.batch_size = len(dev_set[bucket_id])
+
         encoder_inputs, decoder_inputs, target_weights = model.get_batch(
                     dev_set, bucket_id)
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                          target_weights, bucket_id, True)
+
         rev_encoder_inputs = []
         for i in xrange(len(encoder_inputs)-1, -1, -1):
             rev_encoder_inputs.append(encoder_inputs[i])
@@ -318,7 +317,11 @@ def eval():
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = process_data()
 
+<<<<<<< HEAD
         eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, False)
+=======
+        eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, True)
+>>>>>>> 6b8c7489035043c06cbfcb05ba9967a7c01890c1
 
 
 def train_and_eval(train_set, dev_set):
