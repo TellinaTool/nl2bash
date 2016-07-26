@@ -310,10 +310,10 @@ def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
     eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
 
 
-def eval():
+def eval(verbose=True):
     with tf.Session() as sess:
         # Create model and load parameters.
-        model = create_model(sess, True)
+        model = create_model(sess, forward_only=True)
 
         # Load vocabularies.
         nl_vocab_path = os.path.join(FLAGS.data_dir,
@@ -324,7 +324,7 @@ def eval():
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = process_data()
 
-        eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, True)
+        eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
 
 
 def train_and_eval(train_set, dev_set):
@@ -332,7 +332,7 @@ def train_and_eval(train_set, dev_set):
     for i in xrange(5):
         train(train_set, dev_set, num_iter)
         tf.reset_default_graph()
-        eval()
+        eval(False)
         tf.reset_default_graph()
 
 def decode():
