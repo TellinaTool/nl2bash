@@ -257,7 +257,9 @@ def batch_decode(output_logits, rev_cm_vocab):
 
 def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
     total_score = 0.0
+    num_correct = 0.0
     num_eval = 0
+
     for bucket_id in xrange(len(_buckets)):
         if len(dev_set[bucket_id]) == 0:
             continue
@@ -283,9 +285,10 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
             gt = ground_truths[i]
             pred = predictions[i]
             score = TokenOverlap.compute(gt, pred, verbose)
-            # if score != -1:
-            if True:
+            if score != -1:
                 total_score += score
+                if score == 1:
+                    num_correct += 1
                 num_eval += 1
                 if verbose:
                     print("Example %d" % num_eval)
@@ -295,7 +298,9 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
                     print("token-overlap score: %.2f" % score)
                     print()
 
-    print("Average token-overlap score %.2f (%d examples evaluated)" % (total_score/num_eval, num_eval))
+    print("%d examples evaluated" % num_eval)
+    print("Accuracy = %.2f" % (num_correct/num_eval))
+    print("Average token-overlap score = %.2f" % (total_score/num_eval))
     print()
 
 
