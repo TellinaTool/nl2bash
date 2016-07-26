@@ -278,11 +278,6 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
         sentences = token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)
         ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab, True)
         assert(len(sentences) == len(ground_truths))
-        if verbose:
-            print("Example %d" % num_eval)
-            print("English: " + sent)
-            print("Ground truth: " + gt)
-
         predictions = batch_decode(output_logits, rev_cm_vocab)
         assert(len(ground_truths) == len(predictions))
         for i in xrange(len(ground_truths)):
@@ -298,6 +293,9 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
                     num_correct += 1
                 num_eval += 1
                 if verbose:
+                    print("Example %d" % num_eval)
+                    print("English: " + sent)
+                    print("Ground truth: " + gt)
                     print("Prediction: " + pred)
                     print("token-overlap score: %.2f" % score)
                     print()
