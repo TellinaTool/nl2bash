@@ -47,11 +47,11 @@ class TokenOverlap(object):
             else:
                 if verbose:
                     print "Skipped: ground truth contains multiple statements"
-                    print
+                    # return TokenOverlap.get_command_list_rule_based(cmd)
         else:
             if verbose:
                 print "Unrecognized node type: " + parse[0].kind
-                print 
+                # return TokenOverlap.get_command_list_rule_based(cmd)
         return command_list
 
     @staticmethod
