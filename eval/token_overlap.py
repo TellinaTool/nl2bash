@@ -50,7 +50,7 @@ class TokenOverlap(object):
         else:
             if verbose:
                 print "Unrecognized node type: " + parse[0].kind
-                print 
+                print
         return command_list
 
     @staticmethod
