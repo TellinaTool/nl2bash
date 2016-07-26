@@ -318,7 +318,7 @@ def eval():
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = process_data()
 
-        eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab)
+        eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, False)
 
 
 def train_and_eval(train_set, dev_set):
