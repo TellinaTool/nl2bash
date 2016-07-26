@@ -1,0 +1,2 @@
+bashlex
+pylzma

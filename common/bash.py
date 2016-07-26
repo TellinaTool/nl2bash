@@ -37,6 +37,8 @@ def basic_tokenizer(sentence, normalize_digits=True):
 def bash_tokenizer(cmd, normalize_digits=True):
     cmd = cmd.replace('\n', ' ').strip()
     tokens = []
+    if not cmd:
+        return tokens
 
     def parse(node, tokens):
         if node.kind == "word":
@@ -58,6 +60,9 @@ def bash_tokenizer(cmd, normalize_digits=True):
         return basic_tokenizer(cmd, normalize_digits)
     except NotImplementedError, e:
         return basic_tokenizer(cmd, normalize_digits)
+    except IndexError, e:
+        # empty command
+        return None
     except AttributeError, e:
         # not a bash command
         return None

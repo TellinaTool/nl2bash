@@ -1,0 +1,2582 @@
+Reading model parameters from ../model/seq2seq/translate.ckpt-5000
+Loading data from ../data/reader/
+Example 1
+English: list files in the current directory and below
+Ground truth: find -ls
+Prediction: find . _UNK -name .
+token-overlap score: 0.20
+
+Example 2
+English: list files in the current directory and below
+Ground truth: find -ls
+Prediction: find . _UNK -name .
+token-overlap score: 0.20
+
+Example 3
+English: display all the files in the current folder
+Ground truth: find . | xargs echo
+Prediction: find . | awk { print "FILE:" $_NUM }
+token-overlap score: 0.50
+
+Example 4
+English: find and delete the file with inode number _NUM_NUM_NUM_NUM_NUM_NUM_NUM
+Ground truth: find ./ -inum _NUM_NUM_NUM_NUM_NUM_NUM_NUM -delete
+Prediction: find . -inum _NUM_NUM_NUM_NUM_NUM_NUM -exec rm {}
+token-overlap score: 0.20
+
+Example 5
+English: find files with inode number _NUM_NUM_NUM_NUM_NUM_NUM
+Ground truth: find / -inum _NUM_NUM_NUM_NUM_NUM_NUM
+Prediction: find -inum _NUM_NUM_NUM_NUM_NUM_NUM
+token-overlap score: 0.75
+
+Example 6
+English: find List of directories with _UNK _UNK _UNK
+Ground truth: find -maxdepth _NUM -type d | sort |
+Prediction: find . -maxdepth _NUM -name mydir -type d -exec echo
+token-overlap score: 0.17
+
+Example 7
+English: find all files/directories under current directory
+Ground truth: find _UNK | xargs _UNK
+Prediction: find | xargs
+token-overlap score: 0.50
+
+Example 8
+English: search for all files with same inode _UNK
+Ground truth: find . -inum _UNK
+Prediction: find . -type f -exec grep [] {} ;
+token-overlap score: 0.20
+
+Example 9
+English: find files with the setuid or _UNK bit set
+Ground truth: find . -perm _UNK -o -perm _UNK
+Prediction: find / -perm -or -nogroup
+token-overlap score: 0.25
+
+Example 10
+English: _UNK whether a file has _NUM_NUM_NUM_NUM permissions
+Ground truth: find myfile -perm _NUM_NUM_NUM_NUM -print
+Prediction: find / -perm _NUM_NUM_NUM_NUM -type d
+token-overlap score: 0.38
+
+Example 11
+English: find all .mp_NUM files starting from the current directory
+Ground truth: find . -type f -iname *.mp_NUM
+Prediction: find . -type f -name *.java
+token-overlap score: 0.50
+
+Example 12
+English: just find directories and skip file names
+Ground truth: find / -type d -name apt -ls
+Prediction: find / -name sum.java
+token-overlap score: 0.38
+
+Example 13
+English: find files/directories under /tmp smaller than _NUM_NUM_NUM bytes
+Ground truth: find /tmp -size _UNK
+Prediction: find /path -type f _UNK
+token-overlap score: 0.29
+
+Example 14
+English: search for all files with same inode _UNK
+Ground truth: find . -inum _UNK
+Prediction: find . -type f -exec grep [] {} ;
+token-overlap score: 0.20
+
+Example 15
+English: find and delete the file with inode number _NUM_NUM_NUM_NUM_NUM_NUM_NUM
+Ground truth: find ./ -inum _NUM_NUM_NUM_NUM_NUM_NUM_NUM -delete
+Prediction: find . -inum _NUM_NUM_NUM_NUM_NUM_NUM -exec rm {}
+token-overlap score: 0.20
+
+Example 16
+English: remove files _UNK named  _UNK 
+Ground truth: find . -name -F -exec rm {} ;
+Prediction: find . -name somefiles-*-.txt -maxdepth _NUM -f {} ; |
+token-overlap score: 0.18
+
+Example 17
+English: search for regular file foo ignoring case
+Ground truth: find . -iname foo -type f
+Prediction: find . -iname filename.txt
+token-overlap score: 0.43
+
+Example 18
+English: find all .mp_NUM files starting from the current directory
+Ground truth: find . -type f -iname *.mp_NUM
+Prediction: find . -type f -name *.java
+token-overlap score: 0.50
+
+Example 19
+English: check if myfile has _NUM_NUM_NUM_NUM permissions
+Ground truth: find myfile -perm _NUM_NUM_NUM_NUM -print
+Prediction: find / -type f -perm _NUM_NUM_NUM -exec chmod _NUM_NUM_NUM {}
+token-overlap score: 0.17
+
+Example 20
+English: search for all files with same inode _UNK
+Ground truth: find . -inum _UNK
+Prediction: find . -type f -exec grep [] {} ;
+token-overlap score: 0.20
+
+Example 21
+English: find List of directories with _UNK _UNK _UNK
+Ground truth: find -maxdepth _NUM -type d | sort |
+Prediction: find . -maxdepth _NUM -name mydir -type d -exec echo
+token-overlap score: 0.17
+
+Example 22
+English: exclude directory from find . command
+Ground truth: find ! -path dir_NUM -iname *.mp_NUM
+Prediction: find . -path ./misc -prune -o -iname example.com -print
+token-overlap score: 0.25
+
+Example 23
+English: force delete all files in the current folder
+Ground truth: find . | xargs -i rm -f {}
+Prediction: find . -exec rm {} ;
+token-overlap score: 0.20
+
+Example 24
+English: force delete all files in the current folder
+Ground truth: find . | xargs -i rm -f {}
+Prediction: find . -exec rm {} ;
+token-overlap score: 0.20
+
+Example 25
+English: find files with inode number _NUM_NUM_NUM_NUM_NUM_NUM
+Ground truth: find / -inum _NUM_NUM_NUM_NUM_NUM_NUM
+Prediction: find -inum _NUM_NUM_NUM_NUM_NUM_NUM
+token-overlap score: 0.75
+
+Example 26
+English: exclude directory from find . command
+Ground truth: find ! -path dir_NUM -iname *.mp_NUM
+Prediction: find . -path ./misc -prune -o -iname example.com -print
+token-overlap score: 0.25
+
+Example 27
+English: just find directories and skip file names
+Ground truth: find / -type d -name apt -ls
+Prediction: find / -name sum.java
+token-overlap score: 0.38
+
+Example 28
+English: just find directories and skip file names
+Ground truth: find / -type d -name apt -ls
+Prediction: find / -name sum.java
+token-overlap score: 0.38
+
+Example 29
+English: find List directory with _UNK count
+Ground truth: find -maxdepth _NUM -type d | sort |
+Prediction: find . -name Chapter* -type f
+token-overlap score: 0.07
+
+Example 30
+English: search /etc for files modified within the last day
+Ground truth: find /etc -type f -ctime _UNK
+Prediction: find . -mtime +_NUM
+token-overlap score: 0.11
+
+Example 31
+English: _UNK whether a file has _NUM_NUM_NUM_NUM permissions
+Ground truth: find myfile -perm _NUM_NUM_NUM_NUM -print
+Prediction: find / -perm _NUM_NUM_NUM_NUM -type d
+token-overlap score: 0.38
+
+Example 32
+English: find List of directory with _UNK file count
+Ground truth: find -maxdepth _NUM -type d | sort |
+Prediction: find . -name openssl
+token-overlap score: 0.04
+
+Example 33
+English: find all files that have the SUID bit set
+Ground truth: find / -perm -u+s -print
+Prediction: find / -perm -u+s
+token-overlap score: 0.80
+
+Example 34
+English: force delete all files in the current folder
+Ground truth: find . | xargs -i rm -f {}
+Prediction: find . -exec rm {} ;
+token-overlap score: 0.20
+
+Example 35
+English: find List directory with _UNK count
+Ground truth: find -maxdepth _NUM -type d | sort |
+Prediction: find . -name Chapter* -type f
+token-overlap score: 0.07
+
+Example 36
+English: find List empty directories
+Ground truth: find -maxdepth _NUM -type d | sort |
+Prediction: find . -type d  
+token-overlap score: 0.17
+
+Example 37
+English: _UNK whether a file has _NUM_NUM_NUM_NUM permissions
+Ground truth: find myfile -perm _NUM_NUM_NUM_NUM -print
+Prediction: find / -perm _NUM_NUM_NUM_NUM -type d
+token-overlap score: 0.38
+
+Example 38
+English: search /etc for files modified within the last day
+Ground truth: find /etc -type f -ctime _UNK
+Prediction: find . -mtime +_NUM
+token-overlap score: 0.11
+
+Example 39
+English: find all *.m_NUMa files under /home/family/Music directory
+Ground truth: find /home/family/Music -type f -name *.m_NUMa _UNK
+Prediction: find dir -type f -name *.ext
+token-overlap score: 0.44
+
+Example 40
+English: find List empty directories
+Ground truth: find -maxdepth _NUM -type d | sort |
+Prediction: find . -type d  
+token-overlap score: 0.17
+
+Example 41
+English: search /path/to/your/directory for *.avi and *.flv files
+Ground truth: find /path/to/your/directory -regex .*\.\(avi\|flv\)
+Prediction: find foo foo | more
+token-overlap score: 0.10
+
+Example 42
+English: locate files with user permissions rwx owned by _UNK
+Ground truth: find . -user _UNK -perm _UNK
+Prediction: find / -user _NUM_NUM_NUM_NUM -exec ls -x {} ;
+token-overlap score: 0.18
+
+Example 43
+English: move all regular files under current directory to ./newdir
+Ground truth: find ./ -type f -print | xargs -i mv -f {} ./newdir
+Prediction: find . -type f _UNK | xargs _UNK -i mv {} mv {} mv ;
+token-overlap score: 0.50
+
+Example 44
+English: exclude directory from find . command
+Ground truth: find build -not ( -path _UNK -prune ) -name *.js
+Prediction: find . -path ./misc -prune -o -iname example.com -print
+token-overlap score: 0.20
+
+Example 45
+English: delete all .svn directories under current directory
+Ground truth: find . -type d -name .svn _UNK | xargs _UNK rm -rf
+Prediction: find . -type d -name .svn -exec rm {} ;
+token-overlap score: 0.30
+
+Example 46
+English: remove all CVS directories in the current directory tree
+Ground truth: find . -type d -name CVS -exec rm -r {} ;
+Prediction: find . -type d _UNK | xargs _UNK rm rm
+token-overlap score: 0.18
+
+Example 47
+English: list all non-hidden files in ~/junk
+Ground truth: find ~/junk -name * -exec ls -l {} ;
+Prediction: find . | egrep -i
+token-overlap score: 0.06
+
+Example 48
+English: tar all the regular java files to _UNK
+Ground truth: find . -type f -name *.java | xargs tar cvf _UNK
+Prediction: find . -type f -exec echo {} ;
+token-overlap score: 0.22
+
+Example 49
+English: find UTF-_NUM files with BOM
+Ground truth: find -type f _UNK | xargs _UNK grep -l _UNK | sed _UNK
+Prediction: find . -type f _UNK | xargs _UNK awk /^\xEF\xBB\xBF/ {print FILENAME} {nextfile}
+token-overlap score: 0.34
+
+Example 50
+English: list all non-hidden files in ~/junk
+Ground truth: find ~/junk -name * -exec ls -l {} ;
+Prediction: find . | egrep -i
+token-overlap score: 0.06
+
+Example 51
+English: update or create _UNK that the regular java files
+Ground truth: find . -type f -name *.java | xargs tar rvf _UNK
+Prediction: find ./ -type f -name core -exec grep -i {} ;
+token-overlap score: 0.17
+
+Example 52
+English: exclude directory from find . command
+Ground truth: find build -not ( -path _UNK -prune ) -name *.js
+Prediction: find . -path ./misc -prune -o -iname example.com -print
+token-overlap score: 0.20
+
+Example 53
+English: tar all the regular java files to _UNK
+Ground truth: find . -type f -name *.java | xargs tar cvf _UNK
+Prediction: find . -type f -exec echo {} ;
+token-overlap score: 0.22
+
+Example 54
+English: delete all .svn directories under current directory
+Ground truth: find . -type d -name .svn _UNK | xargs _UNK rm -rf
+Prediction: find . -type d -name .svn -exec rm {} ;
+token-overlap score: 0.30
+
+Example 55
+English: identify CMS version/releases accross all your _UNK _UNK
+Ground truth: find /var/www/vhosts/*/httpdocs/ -type f -wholename _UNK -exec grep -H _UNK {} ;
+Prediction: find /home/*/public_html/ -maxdepth _NUM -name query
+token-overlap score: 0.07
+
+Example 56
+English: list all non-hidden files in ~/junk
+Ground truth: find ~/junk -name * -exec ls -l {} ;
+Prediction: find . | egrep -i
+token-overlap score: 0.06
+
+Example 57
+English: remove all CVS directories in the current directory tree
+Ground truth: find . -type d -name CVS -exec rm -r {} ;
+Prediction: find . -type d _UNK | xargs _UNK rm rm
+token-overlap score: 0.18
+
+Example 58
+English: perform a white space _UNK search for all files/directories under current directory
+Ground truth: find . _UNK | xargs _UNK
+Prediction: find . -name *.php | xargs grep -l | grep -l | grep -l
+token-overlap score: 0.16
+
+Example 59
+English: find a file  foo.bar  without searching _UNK or mounted filesystems
+Ground truth: find / -name foo.bar -print -xdev
+Prediction: find / -path /proc -prune -o ( -path ./tmp/* -or -path /foo/bar/myfile ) -prune -o ( -iname *.txt ) -prune -o ( -iname *.txt )
+token-overlap score: 0.12
+
+Example 60
+English: search the .c files residing in the _UNK directory tree for lines beginning with  _UNK 
+Ground truth: find _UNK -name *.c _UNK | xargs _UNK grep _UNK
+Prediction: find /home/*/public_html/ -name *.xml | xargs _UNK grep -i
+token-overlap score: 0.54
+
+Example 61
+English: search for  mystring  in all *.txt files under current directory
+Ground truth: find . -name *.txt | xargs egrep mystring
+Prediction: find . -name *.txt _UNK | xargs _UNK grep mystring
+token-overlap score: 0.60
+
+Skipped: ground truth contains multiple statements
+Example 62
+English: find all text files which have extra extensions in the current folder
+Ground truth: find . -name *.text -exec $SHELL -c _UNK $SHELL {} ; -print
+Prediction: find . -name *.text -exec sh -c sh {} ;
+token-overlap score: -1.00
+
+Example 63
+English: search the current directory for files whose names start with  messages.  ignoring SVN files
+Ground truth: find ( -name messages.* ! -path _UNK ) -exec grep -Iw uint {} +
+Prediction: find . -type f _UNK | xargs _UNK egrep -Iw _UNK | grep -Ev _UNK | grep -Ev _UNK | grep -Ev .svn|.git|.anythingElseIwannaIgnore
+token-overlap score: 0.02
+
+Example 64
+English: change permissions to _NUM_NUM_NUM for all regular files in and below the current directory
+Ground truth: find . -type f -print | sed -e _UNK -e _UNK | xargs chmod _NUM_NUM_NUM
+Prediction: find . -type f -exec chmod _NUM_NUM_NUM {} ;
+token-overlap score: 0.15
+
+Example 65
+English: find all *.java files under current directory and archive them to _UNK
+Ground truth: find . -type f -name *.java | xargs tar rvf _UNK
+Prediction: find . -name *.java -exec grep -i {} +
+token-overlap score: 0.18
+
+Example 66
+English: display all the files in the current folder excluding those which are present in  ./src/emacs  folder
+Ground truth: find . -path ./src/emacs -prune -o -print
+Prediction: find . ! -name secret -a -type f -print
+token-overlap score: 0.23
+
+Example 67
+English: find & _UNK _UNK to a File and Print the _UNK Using sed _UNK
+Ground truth: find . -type f -name *.txt -exec sed -n _UNK thegeekstuff.txt
+Prediction: find . -type f -exec echo -c foo {} ; -exec grep u=rwx,g=rx,o=x {} ; -exec grep u=rwx,g=rx,o=x {} ;
+token-overlap score: 0.29
+
+Example 68
+English: list all regular files under current directory ensuring white space safety
+Ground truth: find . -type f _UNK | xargs _UNK -n _NUM
+Prediction: find . -type f _UNK | xargs _UNK ls -l
+token-overlap score: 0.67
+
+Example 69
+English: find all the files which are modified in last _NUM hour
+Ground truth: find / -mmin _UNK
+Prediction: find / -amin +_NUM
+token-overlap score: 0.33
+
+Example 70
+English: find files on the system modified more than _NUM_NUM minutes ago
+Ground truth: find / -mmin +_NUM_NUM
+Prediction: find / -amin _NUM_NUM
+token-overlap score: 0.33
+
+Example 71
+English: find all the files in file system which are modified in last _NUM hour
+Ground truth: find / -mmin _UNK
+Prediction: find / -mmin _UNK
+token-overlap score: 1.00
+
+Example 72
+English: finding files which contain  some string  using find and grep  without showing the matching line
+Ground truth: find . -type f _UNK | xargs _UNK grep -l some string
+Prediction: find . -type f -name *.php -exec grep -H -H {} ;
+token-overlap score: 0.18
+
+Example 73
+English: find all files in the file system with the SUID bit
+Ground truth: find / -perm -u+s -print
+Prediction: find / -perm -u+s
+token-overlap score: 0.80
+
+Example 74
+English: search the /tmp/ directory recursively for files matching regular expression  _UNK 
+Ground truth: find /tmp -regex _UNK
+Prediction: find /usr/src -name myfile[_NUM-_NUM][_NUM-_NUM] | grep -v ^./pdfs/ | grep Exception
+token-overlap score: 0.05
+
+Example 75
+English: modify the permission of all the php files in a directory and dispaly the total count of files modified
+Ground truth: find . -name *.php -exec chmod _NUM_NUM_NUM {} ; -exec _UNK {} ; | wc -l
+Prediction: find . -name *.php -type f -exec chmod _NUM_NUM_NUM {} ; -print | wc _UNK chmod -k
+token-overlap score: 0.43
+
+Example 76
+English: calculate the total size of all *.jpg files in the directory tree
+Ground truth: find . -type f -iname *.jpg -ls | awk _UNK | _UNK
+Prediction: find . -name *jpg -exec du -k {} ; | grep { total += $_NUM } END { print total/_NUM_NUM_NUM_NUM " Mb total" }
+token-overlap score: 0.05
+
+Example 77
+English: find all files that are readable or writable by their owner
+Ground truth: find . -perm +_NUM_NUM_NUM -print
+Prediction: find ! -perm +_NUM_NUM_NUM_NUM -o -perm _UNK
+token-overlap score: 0.22
+
+Example 78
+English: search for MP_NUM files in the current folder and subfolders exclude dir_NUM AND dir_NUM
+Ground truth: find ! -path dir_NUM ! -path dir_NUM -iname *.mp_NUM
+Prediction: find . -path a.txt -not -path a.txt -o -path .DS_Store
+token-overlap score: 0.18
+
+Example 79
+English: search in root   /   directory downwards all files which have exactly _NUM links
+Ground truth: find / -links _NUM -print
+Prediction: find / -links _NUM -print
+token-overlap score: 1.00
+
+Example 80
+English: search the current directory tree for files last accessed more than _NUM_NUM days ago
+Ground truth: find . -atime +_NUM_NUM
+Prediction: find . -atime +_NUM_NUM -f
+token-overlap score: 0.80
+
+Example 81
+English: search for a word in all files in some directory
+Ground truth: find /directory/containing/files -type f -exec grep -H pattern_to_search {} +
+Prediction: find /directory/containing/files -type f -exec grep -H linux {} ;
+token-overlap score: 0.73
+
+Example 82
+English: find *.java files under current directory and compress them to _UNK
+Ground truth: find . -type f -name *.java | xargs rvf _UNK
+Prediction: find . -type f -name *.java -exec rename -i {} ; | tr
+token-overlap score: 0.30
+
+Example 83
+English: search the current directory recursively for regular files last modified more than _NUM days ago
+Ground truth: find . type -f -mtime +_NUM
+Prediction: find . -mtime +_NUM -type f
+token-overlap score: 0.50
+
+Example 84
+English: find all the files in the current directory with _UNK _UNK in their names
+Ground truth: find . -maxdepth _NUM -iname *linkin park*
+Prediction: find . -name *[_NUMk]*
+token-overlap score: 0.22
+
+Example 85
+English: display all mp_NUM files in the file system which have not been accessed in the last _NUM_NUM hours
+Ground truth: find / -name _UNK -atime +_NUM_NUM -type f
+Prediction: find / -type f -atime +_NUM -print
+token-overlap score: 0.50
+
+Example 86
+English: display a long listing of all the files in the home folder which are bigger than _NUM_NUM_NUMMB
+Ground truth: find /home -size +_NUM_NUM_NUMM -exec ls -sh {} ;
+Prediction: find ~ -size +_NUM_NUM_NUMM -exec ls -l {} ;
+token-overlap score: 0.60
+
+Example 87
+English: display all the files in the current folder along with the hidden files with the depth
+Ground truth: find . _UNK name * _UNK print _UNK -name .* _UNK print -depth
+Prediction: find . -name .*
+token-overlap score: 0.44
+
+Example 88
+English: search for a specific word in all the regular/normal files in the current folder
+Ground truth: find . -type f | xargs grep magic
+Prediction: find . -type f -exec grep -il needle {} ;
+token-overlap score: 0.22
+
+Example 89
+English: find all files that are readable or writable by their owner
+Ground truth: find . -perm +_NUM_NUM_NUM -print
+Prediction: find ! -perm +_NUM_NUM_NUM_NUM -o -perm _UNK
+token-overlap score: 0.22
+
+Example 90
+English: search for all the files in a directory which have been modified in the last _NUM days
+Ground truth: find $dir -mtime _UNK
+Prediction: find $dir -mtime _UNK
+token-overlap score: 1.00
+
+Example 91
+English: search for all the files in a directory which have been modified in the last _NUM days
+Ground truth: find $dir -mtime _UNK
+Prediction: find $dir -mtime _UNK
+token-overlap score: 1.00
+
+Example 92
+English: search a file in the current folder which starts with test and ends with two digits
+Ground truth: find . -regex _UNK
+Prediction: find . -regextype sed -regex ./test[_NUM-_NUM]{_NUM}.txt
+token-overlap score: 0.43
+
+Example 93
+English: display all files in current directory discard any errors and save the output to a file
+Ground truth: find . | grep -v _UNK
+Prediction: find | grep { print $_NUM }
+token-overlap score: 0.32
+
+Example 94
+English: search the regular files of the current directory tree for string  whatever 
+Ground truth: find . -type f | xargs grep whatever
+Prediction: find . -type f -exec grep -H foo {} ; -print | grep \n grep foo
+token-overlap score: 0.30
+
+Example 95
+English: print the list of files in the current directory tree skipping SVN files
+Ground truth: find . -path */.svn* -prune -o -print
+Prediction: find . -name .svn -a -type d -prune -o -print
+token-overlap score: 0.42
+
+Example 96
+English: append *.java files from the current directory tree to tar archive  _UNK 
+Ground truth: find . -type f -name *.java | xargs tar rvf _UNK
+Prediction: find . -type f -name  ! -name .svn -o -name .svn )
+token-overlap score: 0.25
+
+Example 97
+English: list all regular files in and below the home directory that were modified more than _NUM years ago
+Ground truth: find ~ -type f -mtime +_NUM_NUM_NUM_NUM | xargs -r ls -l
+Prediction: find ~ -type f -mtime +_NUM_NUM_NUM_NUM -exec ls -l {} ;
+token-overlap score: 0.30
+
+Example 98
+English: list all files in the current directory tree except for those in the ./src/emacs directory
+Ground truth: find . -path ./src/emacs -prune -o -print
+Prediction: find . | grep -v whatever
+token-overlap score: 0.14
+
+Example 99
+English: find all normal/regular files in the entire file system having the word  filename  in their name
+Ground truth: find / -type f -iname filename
+Prediction: find / -type f -name *.php
+token-overlap score: 0.50
+
+Example 100
+English: search the current directory for files whose names start with  messages.  ignoring SVN and CVS files
+Ground truth: find ( -name messages.* ! -path _UNK ! -path _UNK ) -exec grep -Iw uint {} +
+Prediction: find . ( -name teste.tex -o -iname .*myfile[_NUM-_NUM]\{_NUM,_NUM\} )
+token-overlap score: 0.17
+
+Example 101
+English: find a file  _UNK  in the current folder and delete it
+Ground truth: find . -name -F -exec rm {} ;
+Prediction: find ./ -name *~ -exec rm -rf
+token-overlap score: 0.40
+
+Example 102
+English: display the list of all the text files present in the current directory excluding the search in certain paths
+Ground truth: find . -type f -name *.txt ! -path ./Movies/* ! -path ./Downloads/* ! -path ./Music/* -ls
+Prediction: find . -type f -name *.txt ! -path /_NUM_NUM_Recommended* ! -path ./Movies/* ! -path ./Movies/* ! -path ./Downloads/* -print
+token-overlap score: 0.71
+
+Example 103
+English: find files in the current directory and sub-directories  whose content was updated within the last hour
+Ground truth: find . -mmin _UNK
+Prediction: find . _UNK +_NUM_NUM _UNK | xargs file
+token-overlap score: 0.30
+
+Example 104
+English: search /var for files matching regular expression  _UNK 
+Ground truth: find /var -regex _UNK
+Prediction: find /dir | grep pattern -path something
+token-overlap score: 0.10
+
+Example 105
+English: to list the files in the  /usr  directory tree that were modified exactly five minutes ago
+Ground truth: find /usr -mmin _NUM
+Prediction: find /usr -newermt +_NUM_NUMm
+token-overlap score: 0.33
+
+Example 106
+English: find all files/directories greater than _NUM_NUM_NUMMB and print their list along with their size in /root/big.txt file
+Ground truth: find ( -size +_NUM_NUM_NUMM -fprintf /root/big.txt %-_NUM_NUMs %p\n )
+Prediction: find /usr/local -size +_NUM_NUM_NUM_NUM_NUMk -exec ls -l {} ;
+token-overlap score: 0.14
+
+Example 107
+English: find & calculate total number of _UNK in all .txt file from current directory
+Ground truth: find . -type f -name *.txt -exec wc -w {} ; | awk {total += $_NUM} END{print total}
+Prediction: find . -type f -name * -exec du -c {} ; | awk find .
+token-overlap score: 0.33
+
+Example 108
+English: find all files/directories under /myfiles that were accessed more than _NUM_NUM days ago
+Ground truth: find /myfiles -atime +_NUM_NUM
+Prediction: find /mydir_NUM -mtime +_NUM_NUM
+token-overlap score: 0.33
+
+Example 109
+English: find all the files in the current folder and display adding quotations to each file
+Ground truth: find . -exec echo -n _UNK ;
+Prediction: find . -exec echo -n ; | tr \n
+token-overlap score: 0.42
+
+Example 110
+English: save the list of files modified within a fortnight ago to  deploy.txt 
+Ground truth: find . -type f -mtime _UNK
+Prediction: find . -type f -mtime _UNK | sed s|./||
+token-overlap score: 0.20
+
+Example 111
+English: locate files whose status was changed less than _NUM day ago
+Ground truth: find . -ctime _UNK -print
+Prediction: find -x -cmin _UNK
+token-overlap score: 0.29
+
+Example 112
+English: search for a specific word in all the regular/normal files in the current folder
+Ground truth: find . -type f | xargs grep magic
+Prediction: find . -type f -exec grep -il needle {} ;
+token-overlap score: 0.22
+
+Example 113
+English: find files in the /var/log folder which were modified an hour or more ago
+Ground truth: find /var/log/ -mmin +_NUM_NUM
+Prediction: find /var/log/ -mtime +_NUM -mtime _UNK
+token-overlap score: 0.29
+
+Example 114
+English: find all the files which are accessed _NUM_NUM days back
+Ground truth: find / -atime _NUM_NUM
+Prediction: find / -atime _NUM_NUM
+token-overlap score: 1.00
+
+Example 115
+English: find all *.m_NUMa files under /home/family/Music directory and convert them to ogg
+Ground truth: find /home/family/Music -name *.m_NUMa _UNK | xargs _UNK -i ffmpeg -i {} -acodec libvorbis -aq _NUM -vn -ac _NUM {}.ogg
+Prediction: find /home/family/Music -name *.m_NUMa | xargs -I{} ffmpeg ffmpeg ffmpeg ffmpeg {} | xargs -I{} ffmpeg ffmpeg
+token-overlap score: 0.34
+
+Example 116
+English: search for word linux in all the regular/normal files in the folder mail
+Ground truth: find _UNK -type f | xargs grep _UNK
+Prediction: find /etc/ -type f -name * -exec grep -H linux ;
+token-overlap score: 0.14
+
+Example 117
+English: find all the files in the folder _UNK which have been modified in _UNK last _NUM_NUM minutes
+Ground truth: find /home/calvin/ -mmin _UNK
+Prediction: find /usr/bin -amin _UNK
+token-overlap score: 0.33
+
+Example 118
+English: find all files in the current directory with default depth size and compress them to _UNK file
+Ground truth: find . -depth _UNK | cpio --null -o
+Prediction: find ./ -type f -size _NUM_NUM_NUM_NUM-_NUM_NUM-_NUM_NUM -exec /usr/bin/unzip -s {} ; -exec gzip -s {} ; -exec gzip {} ; -exec gzip {} ; -exec
+token-overlap score: 0.04
+
+Example 119
+English: find all the files which have been changed after the modification of a file
+Ground truth: find -cnewer _UNK
+Prediction: find /etc -cmin sum.java
+token-overlap score: 0.17
+
+Example 120
+English: search all files in the current directory tree that are named  whatever  for  _UNK 
+Ground truth: find -name whatever -exec grep --with-filename _UNK {} ;
+Prediction: find . -name whatever | xargs grep whatever
+token-overlap score: 0.17
+
+Example 121
+English: find all the files in file system which are accessed _NUM_NUM days back
+Ground truth: find / -atime _NUM_NUM
+Prediction: find / -atime _NUM_NUM
+token-overlap score: 1.00
+
+Example 122
+English: find all regular files whose names contain  @  in directory tree ~/$folder
+Ground truth: find ~/$folder -name *@* -type f _UNK
+Prediction: find ~/$folder -name *@* -type f
+token-overlap score: 0.86
+
+Example 123
+English: search for MP_NUM files in the current folder and subfolders exclude dir_NUM AND dir_NUM
+Ground truth: find ! -path dir_NUM ! -path dir_NUM -iname *.mp_NUM
+Prediction: find . -path a.txt -not -path a.txt -o -path .DS_Store
+token-overlap score: 0.18
+
+Example 124
+English: search the regular files of the current directory tree for string  whatever 
+Ground truth: find . -type f | xargs grep whatever
+Prediction: find . -type f -exec grep -H foo {} ; -print | grep \n grep foo
+token-overlap score: 0.30
+
+Example 125
+English: find all the files in current folder which have been updated in the last _NUM_NUM minutes
+Ground truth: find . -mmin _UNK
+Prediction: find . -amin _UNK
+token-overlap score: 0.60
+
+Example 126
+English: find all jpg or png images modified in the last week
+Ground truth: find . -mtime _UNK ( *.jpg -o -name *.png )
+Prediction: find . -type f -mtime _NUM -exec ls {} ;
+token-overlap score: 0.20
+
+Example 127
+English: find files on the system modified more than _NUM_NUM minutes ago
+Ground truth: find / -mmin +_NUM_NUM
+Prediction: find / -amin _NUM_NUM
+token-overlap score: 0.33
+
+Example 128
+English: list the z* links in the /usr/bin directory with inode information and the file to which it points to
+Ground truth: find /usr/bin -type l -name z* -ls
+Prediction: find /usr/bin -type l -name z*
+token-overlap score: 0.86
+
+Example 129
+English: search the current directory recursively for regular files last accessed _NUM minutes ago
+Ground truth: find . type -f -amin _NUM
+Prediction: find . type -f -amin +_NUM
+token-overlap score: 0.71
+
+Example 130
+English: find files with SGID  _NUM_NUM_NUM_NUM  and _UNK  permssions set in the file system
+Ground truth: find / ( -perm _UNK -o -perm _UNK ) -ls
+Prediction: find / / -path foo.bar -nouser
+token-overlap score: 0.20
+
+Example 131
+English: display all files in the current folder which end with extension  myfile  followed by two digits
+Ground truth: find . -regex _UNK
+Prediction: find . -name fileA_*
+token-overlap score: 0.33
+
+Example 132
+English: search the /path/to/directory tree for regular files modified _NUM_NUM days ago and then remove them
+Ground truth: find /path/to/directory -type f -mtime _NUM_NUM -exec rm -f {} ;
+Prediction: find -mtime _NUM -type f -mtime _NUM
+token-overlap score: 0.36
+
+Example 133
+English: remove trailing white spaces from all files under current directory ignoring .git and .svn directories
+Ground truth: find . -not ( -name .svn -prune -o -name .git -prune ) -type f _UNK | xargs _UNK sed -i  -E s/[[:space:]]*$//
+Prediction: find . -type f -not -name .git -prune -o -name .git -prune ) -exec bash {} ;
+token-overlap score: 0.33
+
+Example 134
+English: find a file  foo.bar  without searching _UNK or mounted filesystems
+Ground truth: find / -name foo.bar -print -xdev
+Prediction: find / -path /proc -prune -o ( -path ./tmp/* -or -path /foo/bar/myfile ) -prune -o ( -iname *.txt ) -prune -o ( -iname *.txt )
+token-overlap score: 0.12
+
+Example 135
+English: list all *.txt files/directories under current directory ensuring white space safety
+Ground truth: find . -name *.txt _UNK | xargs _UNK -n _NUM echo
+Prediction: find -exec echo {} ; -exec echo {} . {} ; -exec grep -l {} ;
+token-overlap score: 0.10
+
+Example 136
+English: find & calculate total number of _UNK in all .txt file from current directory
+Ground truth: find . -type f -name *.txt -exec wc -w {} ; | awk {total += $_NUM} END{print total}
+Prediction: find . -type f -name * -exec du -c {} ; | awk find .
+token-overlap score: 0.33
+
+Example 137
+English: search the home directory for files accessed more than _NUM_NUM days ago
+Ground truth: find ~/ -atime +_NUM_NUM
+Prediction: find $HOME -atime +_NUM_NUM
+token-overlap score: 0.60
+
+Example 138
+English: find all the files in a folder which have been modified from the start of the day
+Ground truth: find /tmp/test/* -daystart -mtime _UNK
+Prediction: find /tmp/test/* -daystart -mtime _NUM
+token-overlap score: 0.67
+
+Example 139
+English: display all the files in the current folder excluding those which are present in  ./src/emacs  folder
+Ground truth: find . -path ./src/emacs -prune -o -print
+Prediction: find . ! -name secret -a -type f -print
+token-overlap score: 0.23
+
+Example 140
+English: find all files/directories under /myfiles that were accessed more than _NUM_NUM days ago
+Ground truth: find /myfiles -atime +_NUM_NUM
+Prediction: find /mydir_NUM -mtime +_NUM_NUM
+token-overlap score: 0.33
+
+Example 141
+English: find files with SGID  _NUM_NUM_NUM_NUM  and _UNK  permssions set in the file system
+Ground truth: find / ( -perm _UNK -o -perm _UNK ) -ls
+Prediction: find / / -path foo.bar -nouser
+token-overlap score: 0.20
+
+Example 142
+English: find all _UNK  case insensitive  files under current directory and _UNK the _UNK provided by them
+Ground truth: find -iname _UNK | xargs -I {} _UNK {} _UNK
+Prediction: find . -iname *foobar* | xargs -r -r | parallel
+token-overlap score: 0.20
+
+Example 143
+English: search the current directory for files whose names start with  messages.  ignoring SVN files
+Ground truth: find ( -name messages.* ! -path _UNK ) -exec grep -Iw uint {} +
+Prediction: find . -type f _UNK | xargs _UNK egrep -Iw _UNK | grep -Ev _UNK | grep -Ev _UNK | grep -Ev .svn|.git|.anythingElseIwannaIgnore
+token-overlap score: 0.02
+
+Example 144
+English: find foo  Foo  FOo  FOO  etc.  but only dirs
+Ground truth: find . -iname foo -type d
+Prediction: find . -maxdepth _NUM -exec grep text {} ;
+token-overlap score: 0.17
+
+Example 145
+English: find all js files under the build direcotry except _UNK directory
+Ground truth: find build -not ( -path _UNK -prune ) -name *.js
+Prediction: find /myfiles -type f -name *.ext -exec echo -c {}
+token-overlap score: 0.12
+
+Example 146
+English: find all foo.bar files in the entire file system and which are present in the same partition as root
+Ground truth: find / -name foo.bar -print -xdev
+Prediction: find / -name *.mp_NUM -print
+token-overlap score: 0.57
+
+Example 147
+English: search for the word  foo  in all the regular/normal files in the directory  /path/to/dir 
+Ground truth: find /path/to/dir -type f _UNK | xargs _UNK grep -l foo
+Prediction: find /path/to/dir -type f -exec grep -H foo {} ; -print
+token-overlap score: 0.18
+
+Example 148
+English: search the current directory for files whose names start with  messages.  ignoring SVN files
+Ground truth: find ( -name messages.* ! -path _UNK ) -exec grep -Iw uint {} +
+Prediction: find . -type f _UNK | xargs _UNK egrep -Iw _UNK | grep -Ev _UNK | grep -Ev _UNK | grep -Ev .svn|.git|.anythingElseIwannaIgnore
+token-overlap score: 0.02
+
+Example 149
+English: find all directories that names are  apt  and display details
+Ground truth: find / -type d -name apt -ls
+Prediction: find / -type d ! -name /etc/.
+token-overlap score: 0.56
+
+Example 150
+English: search the current directory tree for all files matching either pattern  *.rb  or pattern  *.py 
+Ground truth: find . -name *.rb -or -name *.py
+Prediction: find . -name *.rb -o -name *.rb
+token-overlap score: 0.57
+
+Example 151
+English: remove all files _UNK older than _NUM_NUM days in  /tmp 
+Ground truth: find /tmp -type f -mtime +_NUM_NUM -exec rm -f {} ;
+Prediction: find /tmp -type f -ctime +_NUM_NUM _UNK | xargs rm
+token-overlap score: 0.21
+
+Example 152
+English: find all the files which are modified in last _NUM hour in entire file system
+Ground truth: find / -mmin _UNK
+Prediction: find / -mmin _UNK
+token-overlap score: 1.00
+
+Example 153
+English: find all the javascript files in the current folder excluding those that are in a specific path
+Ground truth: find ./ -not -path _UNK -name *.js | xargs grep _UNK
+Prediction: find . ( -name secret -prune -o -print
+token-overlap score: 0.08
+
+Example 154
+English: search the current directory recursively for regular files modified _NUM days ago
+Ground truth: find . type -f -mtime _NUM
+Prediction: find . -mtime _NUM -type f
+token-overlap score: 0.50
+
+Example 155
+English: find all the files in current folder which have been updated in the last _NUM_NUM minutes
+Ground truth: find . -mmin _UNK
+Prediction: find . -amin _UNK
+token-overlap score: 0.60
+
+Example 156
+English: search the pattern _UNK in all the  .c  files in the folder _UNK
+Ground truth: find _UNK -name *.c _UNK | xargs _UNK grep _UNK
+Prediction: find /store/_NUM_NUM -name *.c -exec grep -H foo {} ;
+token-overlap score: 0.15
+
+Example 157
+English: search the current directory tree for all files matching either pattern  *.rb  or pattern  *.py 
+Ground truth: find . -name *.rb -or -name *.py
+Prediction: find . -name *.rb -o -name *.rb
+token-overlap score: 0.57
+
+Example 158
+English: find all files in the folder  myfiles  which have not been accessed in the last _NUM_NUM*_NUM_NUM hours
+Ground truth: find /myfiles -atime +_NUM_NUM
+Prediction: find /myfiles -type f -atime +_NUM_NUM -iname *.c
+token-overlap score: 0.50
+
+Example 159
+English: to list the files in the  /usr  directory tree that were modified exactly five minutes ago
+Ground truth: find /usr -mmin _NUM
+Prediction: find /usr -newermt +_NUM_NUMm
+token-overlap score: 0.33
+
+Example 160
+English: calculate the total size of all *.jpg files in the directory tree
+Ground truth: find . -type f -iname *.jpg -ls | awk _UNK | _UNK
+Prediction: find . -name *jpg -exec du -k {} ; | grep { total += $_NUM } END { print total/_NUM_NUM_NUM_NUM " Mb total" }
+token-overlap score: 0.05
+
+Example 161
+English: find *.java files under current directory and compress them to _UNK
+Ground truth: find . -type f -name *.java | xargs tar rvf _UNK
+Prediction: find . -type f -name *.java -exec rename -i {} ; | tr
+token-overlap score: 0.30
+
+Example 162
+English: search the current directory tree for all .java files newer than the file build.xml
+Ground truth: find . -name *.java -newer build.xml -print
+Prediction: find . -name *.pdf -print
+token-overlap score: 0.50
+
+Example 163
+English: search all files in the current directory tree that are named  whatever  for  _UNK 
+Ground truth: find -name whatever -exec grep --with-filename _UNK {} ;
+Prediction: find . -name whatever | xargs grep whatever
+token-overlap score: 0.17
+
+Example 164
+English: display all the files in the current folder which are present in the path  ./src/emacs 
+Ground truth: find . -path ./src/emacs -prune -o -print
+Prediction: find . -path ./sr*sc
+token-overlap score: 0.38
+
+Example 165
+English: search for all the files in a directory which have been modified in the last _NUM days
+Ground truth: find $dir -mtime _UNK
+Prediction: find $dir -mtime _UNK
+token-overlap score: 1.00
+
+Example 166
+English: serach in root directory all files which have more than _NUM links
+Ground truth: find / -links +_NUM -print
+Prediction: find / -type f -mtime +_NUM -exec ls -lh ;
+token-overlap score: 0.27
+
+Example 167
+English: find all files/directories under /myfiles that were accessed more than _NUM_NUM days ago
+Ground truth: find /myfiles -atime +_NUM_NUM
+Prediction: find /mydir_NUM -mtime +_NUM_NUM
+token-overlap score: 0.33
+
+Example 168
+English: print the list of .txt files under and below the current directory
+Ground truth: find . -name *.txt _UNK | xargs _UNK -n _NUM echo
+Prediction: find . -name *.txt
+token-overlap score: 0.40
+
+Example 169
+English: find files whose content was modified at least _NUM minute ago
+Ground truth: find ./ -mmin +_NUM
+Prediction: find . . -atime +_NUM -print
+token-overlap score: 0.29
+
+Example 170
+English: display all mp_NUM files in the file system which have not been accessed in the last _NUM_NUM hours
+Ground truth: find / -name _UNK -atime +_NUM_NUM -type f
+Prediction: find / -type f -atime +_NUM -print
+token-overlap score: 0.50
+
+Example 171
+English: search the .c files residing in the _UNK directory tree for lines beginning with  _UNK 
+Ground truth: find _UNK -name *.c _UNK | xargs _UNK grep _UNK
+Prediction: find /home/*/public_html/ -name *.xml | xargs _UNK grep -i
+token-overlap score: 0.54
+
+Example 172
+English: search all files in the current directory tree that are named  whatever  for  _UNK 
+Ground truth: find -name whatever -exec grep --with-filename _UNK {} ;
+Prediction: find . -name whatever | xargs grep whatever
+token-overlap score: 0.17
+
+Example 173
+English: display all files in the current folder which do not match the regular expression
+Ground truth: find . -not -regex .*test.*
+Prediction: find . ! -regex .*test.*
+token-overlap score: 0.67
+
+Example 174
+English: print the list of .txt files under and below the current directory
+Ground truth: find . -name *.txt _UNK | xargs _UNK -n _NUM echo
+Prediction: find . -name *.txt
+token-overlap score: 0.40
+
+Example 175
+English: find all foo.bar files in the entire file system and which are present in the same partition as root
+Ground truth: find / -name foo.bar -print -xdev
+Prediction: find / -name *.mp_NUM -print
+token-overlap score: 0.57
+
+Example 176
+English: find all the files in entire file system which are accessed _NUM_NUM days back
+Ground truth: find / -atime _NUM_NUM
+Prediction: find / -atime _NUM_NUM
+token-overlap score: 1.00
+
+Example 177
+English: find out all hard links in the /home directory to file_NUM
+Ground truth: find /home -xdev -samefile file_NUM
+Prediction: find /home -type l -group file_NUM | xargs rm
+token-overlap score: 0.19
+
+Example 178
+English: find all _UNK  case insensitive  files under current directory and _UNK the _UNK provided by them
+Ground truth: find -iname _UNK | xargs -I {} _UNK {} _UNK
+Prediction: find . -iname *foobar* | xargs -r -r | parallel
+token-overlap score: 0.20
+
+Example 179
+English: list all regular files in and below the home directory that were modified more than _NUM years ago
+Ground truth: find ~ -type f -mtime +_NUM_NUM_NUM_NUM | xargs -r ls -l
+Prediction: find ~ -type f -mtime +_NUM_NUM_NUM_NUM -exec ls -l {} ;
+token-overlap score: 0.30
+
+Example 180
+English: create a tar archive with all *.java files under the current directory
+Ground truth: find . -type f -name *.java | xargs tar cvf _UNK
+Prediction: find . -name *.java -exec sed -i -i {} ;
+token-overlap score: 0.20
+
+Example 181
+English: find all files that were accessed in the last _NUM_NUM days
+Ground truth: find / -atime _NUM_NUM
+Prediction: find -anewer /etc/hosts -type f
+token-overlap score: 0.12
+
+Example 182
+English: find files in /tmp directory that named are core and _UNK them
+Ground truth: find /tmp -name core -type f -print | xargs /bin/rm -f
+Prediction: find /usr/src -size _UNK | xargs grep -v /
+token-overlap score: 0.13
+
+Example 183
+English: find all the files in the current directory with _UNK _UNK in their names
+Ground truth: find . -maxdepth _NUM -iname *linkin park*
+Prediction: find . -name *[_NUMk]*
+token-overlap score: 0.22
+
+Example 184
+English: display the _NUM smallest files in the current directory and its sub-directories
+Ground truth: find . -type f -exec ls -s {} ; | sort -n | head _UNK
+Prediction: find . -type f -exec echo -s {} ; | sort -n -r | tail _UNK
+token-overlap score: 0.59
+
+Example 185
+English: find *.java files under current directory and compress them to _UNK
+Ground truth: find . -type f -name *.java | xargs tar rvf _UNK
+Prediction: find . -type f -name *.java -exec rename -i {} ; | tr
+token-overlap score: 0.30
+
+Example 186
+English: find all files that were accessed in the last _NUM_NUM days
+Ground truth: find / -atime _NUM_NUM
+Prediction: find -anewer /etc/hosts -type f
+token-overlap score: 0.12
+
+Example 187
+English: change the user and group of all files and directories under /var/www to _UNK
+Ground truth: find /var/www _UNK | xargs _UNK chown _UNK
+Prediction: find /var/www -exec sudo chown -R {} ;
+token-overlap score: 0.12
+
+Example 188
+English: print the list of non-hidden directories in the current directory
+Ground truth: find -type d -maxdepth _NUM ! -name .* -printf %fn
+Prediction: find . ! -name . -type d
+token-overlap score: 0.45
+
+Example 189
+English: find & calculate total number of _UNK in all .txt file from current directory
+Ground truth: find . -type f -name *.txt -exec wc -w {} ; | awk {total += $_NUM} END{print total}
+Prediction: find . -type f -name * -exec du -c {} ; | awk find .
+token-overlap score: 0.33
+
+Example 190
+English: find all files in a directory with default depth size and compress them to _UNK file
+Ground truth: find _UNK -depth _UNK | cpio --null -o
+Prediction: find ~ -size $i -exec /usr/bin/unzip -s {} ; -exec gzip -s {} ; -exec gzip {} ;
+token-overlap score: 0.05
+
+Example 191
+English: to list the files in the  /usr  directory tree that were modified exactly five minutes ago
+Ground truth: find /usr -mmin _NUM
+Prediction: find /usr -newermt +_NUM_NUMm
+token-overlap score: 0.33
+
+Example 192
+English: search for mp_NUM files in the folder _UNK which are smaller than _NUMMB
+Ground truth: find _UNK -name *.mp_NUM -size _UNK
+Prediction: find /apps -name *.mp_NUM _UNK
+token-overlap score: 0.67
+
+Example 193
+English: list files cart_NUM  cart_NUM  ...  cart_NUM in directory ~/junk
+Ground truth: find ~/junk -name cart[_NUM-_NUM] -exec ls -l {} ;
+Prediction: find ~/junk -name *.html -a -wholename _NUM_NUM_NUM -a -empty
+token-overlap score: 0.23
+
+Example 194
+English: search the current directory tree for all files except SVN ones
+Ground truth: find . ! -regex _UNK
+Prediction: find . -not -iwholename *.svn*
+token-overlap score: 0.25
+
+Example 195
+English: find all files/directories under /myfiles that were accessed more than _NUM_NUM days ago
+Ground truth: find /myfiles -atime +_NUM_NUM
+Prediction: find /mydir_NUM -mtime +_NUM_NUM
+token-overlap score: 0.33
+
+Example 196
+English: search the current directory recursively for files containing  needle text 
+Ground truth: find . -type f _UNK | xargs _UNK grep -I needle text
+Prediction: find . -type f -exec grep text {} ; -exec grep text {} ; -exec grep needle text {} ;
+token-overlap score: 0.20
+
+Example 197
+English: find *.java files under current directory and compress them to _UNK
+Ground truth: find . -type f -name *.java | xargs cvf _UNK
+Prediction: find . -type f -name *.java -exec rename -i {} ; | tr
+token-overlap score: 0.30
+
+Example 198
+English: display list of all the regular/normal files in the current folder which start with  my 
+Ground truth: find . -name my* -type f -ls
+Prediction: find -type f -name *.csv -exec ls -l {} ;
+token-overlap score: 0.33
+
+Example 199
+English: list all *.txt files/directories under current directory ensuring white space safety
+Ground truth: find . -name *.txt _UNK | xargs _UNK -n _NUM echo
+Prediction: find -exec echo {} ; -exec echo {} . {} ; -exec grep -l {} ;
+token-overlap score: 0.10
+
+Example 200
+English: find the top _NUM small files
+Ground truth: find . -type f -exec ls -s {} ; | sort -n | head _UNK
+Prediction: find / -type f -size _NUM_NUM_NUM -exec ls {} ; -exec ls {} ;
+token-overlap score: 0.18
+
+Example 201
+English: list all _UNK and _UNK regular files found in the current directory tree
+Ground truth: find . ( -name _UNK -o -name _UNK ) -type f -ls
+Prediction: find . -type f -exec echo {} ;
+token-overlap score: 0.33
+
+Example 202
+English: display the files which are changed after the modification of a give file
+Ground truth: find -cnewer sum.java
+Prediction: find / -newer sum.java
+token-overlap score: 0.40
+
+Example 203
+English: change permissions to _NUM_NUM_NUM for all subdirectories of the current directory
+Ground truth: find . -type d -print | sed -e _UNK -e _UNK | xargs chmod _NUM_NUM_NUM
+Prediction: find . -type d -mindepth _NUM -exec chmod _NUM_NUM_NUM {} ;
+token-overlap score: 0.12
+
+Example 204
+English: copy a whole directory tree skipping files residing on other files systems to _UNK
+Ground truth: find ./ -mount -depth -print | cpio -pdm _UNK
+Prediction: find $dir -type f -exec bash -c $to_dir {} + | tr --null xyz.c
+token-overlap score: 0.04
+
+Example 205
+English: find all *.java files under current directory and archive them to _UNK
+Ground truth: find . -type f -name *.java | xargs tar rvf _UNK
+Prediction: find . -name *.java -exec grep -i {} +
+token-overlap score: 0.18
+
+Example 206
+English: find all the files in entire file system which are accessed _NUM_NUM days back
+Ground truth: find / -atime _NUM_NUM
+Prediction: find / -atime _NUM_NUM
+token-overlap score: 1.00
+
+Example 207
+English: list all *.txt files/directories under current directory ensuring white space safety
+Ground truth: find . -name *.txt _UNK | xargs _UNK -n _NUM echo
+Prediction: find -exec echo {} ; -exec echo {} . {} ; -exec grep -l {} ;
+token-overlap score: 0.10
+
+Example 208
+English: find all directories in the current directory tree with  _UNK  in their names
+Ground truth: find . -type d -iname _UNK
+Prediction: find . -type d -name * * -exec sh -c {} ;
+token-overlap score: 0.33
+
+Example 209
+English: remove all directories found in directory tree $LOGDIR that were modified more than _NUM days ago
+Ground truth: find $LOGDIR -type d -mtime +_NUM -exec rm -f {} ;
+Prediction: find $LOGDIR -type d -mtime +_NUM -exec rm {} ;
+token-overlap score: 0.90
+
+Example 210
+English: find all the files in the file system which have been modified in the last _NUM_NUM minutes
+Ground truth: find / -mmin _UNK
+Prediction: find / -mmin _UNK
+token-overlap score: 1.00
+
+Example 211
+English: find all files that were last accessed more than _NUM days ago under /home
+Ground truth: find /home -atime +_NUM
+Prediction: find -used +_NUM -type f -atime +_NUM
+token-overlap score: 0.43
+
+Example 212
+English: find all files that are readable or writable by their owner
+Ground truth: find . -perm +_NUM_NUM_NUM -print
+Prediction: find ! -perm +_NUM_NUM_NUM_NUM -o -perm _UNK
+token-overlap score: 0.22
+
+Example 213
+English: save the list of all regular files accessed less than _NUM_NUM days ago as  _UNK 
+Ground truth: find / -type f -atime _UNK
+Prediction: find /usr/bin -type f -atime _UNK
+token-overlap score: 0.71
+
+Example 214
+English: display a long listing of all the xls or csv files in the entire file system
+Ground truth: find / -regex _UNK
+Prediction: find / -type f ( -name *.png -o -name myfile[_NUM-_NUM] ) -exec ls -l {} ;
+token-overlap score: 0.13
+
+Example 215
+English: display all the files in the entire file system which have set uid bit set
+Ground truth: find / -perm -u+s -print
+Prediction: find / -perm _NUM_NUM_NUM_NUM
+token-overlap score: 0.50
+
+Example 216
+English: compress in parallel regular files in the current directory tree that were last modified more than _NUM days ago
+Ground truth: find . -type f -mtime +_NUM | tee compressedP.list | xargs -I{} _UNK compress {}
+Prediction: find . -type f -mtime +_NUM | parallel compress
+token-overlap score: 0.33
+
+Example 217
+English: find files named  core  in or below the directory /tmp and delete them
+Ground truth: find /tmp -name core -type f _UNK | xargs _UNK /bin/rm -f
+Prediction: find /tmp -depth -name core -type f -delete
+token-overlap score: 0.33
+
+Example 218
+English: remove all directories called  test  from the current directory tree
+Ground truth: find . -name test -type d -exec rm -r {} ;
+Prediction: find . -name test -type d -delete
+token-overlap score: 0.55
+
+Example 219
+English: find *.java files under current directory and compress them to _UNK
+Ground truth: find . -type f -name *.java | xargs rvf _UNK
+Prediction: find . -type f -name *.java -exec rename -i {} ; | tr
+token-overlap score: 0.30
+
+Example 220
+English: show _UNK detailed output for all files named  something 
+Ground truth: find . -name something -exec ls -l {} ;
+Prediction: find foo -name *.jpg -print | grep -H -H filename
+token-overlap score: 0.09
+
+Example 221
+English: display the list of all the text files present in the current directory excluding the search in certain paths
+Ground truth: find . -type f -name *.txt ! -path ./Movies/* ! -path ./Downloads/* ! -path ./Music/* -ls
+Prediction: find . -type f -name *.txt ! -path /_NUM_NUM_Recommended* ! -path ./Movies/* ! -path ./Movies/* ! -path ./Downloads/* -print
+token-overlap score: 0.71
+
+Example 222
+English: display the count of all the files which have a specific extension in the current folder
+Ground truth: find . -name _UNK -print | wc -l
+Prediction: find . -name filename including space -exec wc -l {} ;
+token-overlap score: 0.12
+
+Example 223
+English: find all the text files which are present in the current directory _UNK files
+Ground truth: find . -type f ( -iname *.txt ! -iname .* )
+Prediction: find . -name *.js -exec mv {} . . -type f
+token-overlap score: 0.29
+
+Example 224
+English: to find out httpd.log file in /home/web-server/ directory without case i.e. match httpd.log  _UNK  _UNK case
+Ground truth: find /home/web-server/ -type f -iname httpd.log
+Prediction: find /home/web-server/ -iname file.txt
+token-overlap score: 0.43
+
+Example 225
+English: find all files/directories matching the regex pattern  _UNK  under current directory
+Ground truth: find . -regex _UNK
+Prediction: find . -name pattern -exec grep -i {} ;
+token-overlap score: 0.20
+
+Example 226
+English: find regular files modified less than _NUM_NUM days ago stripping ./ from each file name
+Ground truth: find . -type f -mtime _UNK | cut _UNK _NUM-
+Prediction: find -mtime +_NUM_NUM_NUM_NUM -type f
+token-overlap score: 0.29
+
+Example 227
+English: find all directories in the current directory tree with  _UNK  in their names
+Ground truth: find . -type d -iname _UNK
+Prediction: find . -type d -name * * -exec sh -c {} ;
+token-overlap score: 0.33
+
+Example 228
+English: find all the core files in the temp folder and force delete them
+Ground truth: find /tmp -name core -type f -print | xargs /bin/rm -f
+Prediction: find /tmp -name core -exec rm -f -f -f -f -f -f -f
+token-overlap score: 0.20
+
+Example 229
+English: serach for all the files containing grep in man _UNK
+Ground truth: find /usr/share/man/ -regex _UNK
+Prediction: find -iname /tmp | xargs _UNK grep : | xargs | xargs
+token-overlap score: 0.04
+
+Example 230
+English: search the current directory tree for all files except SVN ones
+Ground truth: find . ! -regex _UNK
+Prediction: find . -not -iwholename *.svn*
+token-overlap score: 0.25
+
+Example 231
+English: find both .py files and files with the word  python  in the name
+Ground truth: find / -regex _UNK
+Prediction: find . -name *python* -exec grep -i {} ;
+token-overlap score: 0.09
+
+Example 232
+English: finding files which contain  some string  using find and grep  without showing the matching line
+Ground truth: find . -type f _UNK | xargs _UNK grep -l some string
+Prediction: find . -type f -name *.php -exec grep -H -H {} ;
+token-overlap score: 0.18
+
+Example 233
+English: print the sizes of all files from the current directory tree
+Ground truth: find . -iname *.jpg -type f -printf _UNK
+Prediction: find . -name * -exec echo {} +
+token-overlap score: 0.14
+
+Example 234
+English: search for MP_NUM files in the current folder and subfolders exclude dir_NUM AND dir_NUM
+Ground truth: find ! -path dir_NUM ! -path dir_NUM -iname *.mp_NUM
+Prediction: find . -path a.txt -not -path a.txt -o -path .DS_Store
+token-overlap score: 0.18
+
+Example 235
+English: find all the files in the current folder that have been accessed in today
+Ground truth: find -atime _NUM
+Prediction: find . -atime +_NUM -print
+token-overlap score: 0.33
+
+Example 236
+English: search the current directory recursively for regular files modified _NUM days ago
+Ground truth: find . type -f -mtime _NUM
+Prediction: find . -mtime _NUM -type f
+token-overlap score: 0.50
+
+Example 237
+English: display all files in the current folder which end with extension  myfile  followed by two digits
+Ground truth: find . -regex _UNK
+Prediction: find . -name fileA_*
+token-overlap score: 0.33
+
+Example 238
+English: search the current directory tree for all files matching regular expression  _UNK 
+Ground truth: find . -regex _UNK
+Prediction: find . -name myfile[_NUM-_NUM][_NUM-_NUM] | grep -P
+token-overlap score: 0.17
+
+Example 239
+English: modify the permission of all the php files in a directory and dispaly the total count of files modified
+Ground truth: find . -name *.php -exec chmod _NUM_NUM_NUM {} ; -exec _UNK {} ; | wc -l
+Prediction: find . -name *.php -type f -exec chmod _NUM_NUM_NUM {} ; -print | wc _UNK chmod -k
+token-overlap score: 0.43
+
+Example 240
+English: display a long list of all the jpg files in the home folder
+Ground truth: find ~ -iname *.jpg -exec ls {} ;
+Prediction: find ~ -name *.png -exec ls -l {} ;
+token-overlap score: 0.50
+
+Example 241
+English: find all the javascript files in the current folder excluding those that are in a specific path
+Ground truth: find ./ -not -path _UNK -name *.js | xargs grep _UNK
+Prediction: find . ( -name secret -prune -o -print
+token-overlap score: 0.08
+
+Example 242
+English: find a file  _UNK  in the current folder and delete it
+Ground truth: find . -name -F -exec rm {} ;
+Prediction: find ./ -name *~ -exec rm -rf
+token-overlap score: 0.40
+
+Example 243
+English: display the count of all the files which have a specific extension in the current folder
+Ground truth: find . -name _UNK -print | wc -l
+Prediction: find . -name filename including space -exec wc -l {} ;
+token-overlap score: 0.12
+
+Example 244
+English: find all the files in current folder which have been updated in the last _NUM_NUM minutes
+Ground truth: find . -mmin _UNK
+Prediction: find . -amin _UNK
+token-overlap score: 0.60
+
+Example 245
+English: count the total number of lines in all HTML files under /usr/src that contain string  foo 
+Ground truth: time find /usr/src -name  *.html    xargs /usr/bin/grep -l  foo    wc -l
+Prediction: find /usr/src -name *.html -exec grep -H foo {} ; | wc -l
+token-overlap score: 0.18
+
+Example 246
+English: display all files in the current folder which do not match the regular expression
+Ground truth: find . -not -regex .*test.*
+Prediction: find . ! -regex .*test.*
+token-overlap score: 0.67
+
+Example 247
+English: find *.java files under current directory and compress them to _UNK
+Ground truth: find . -type f -name *.java | xargs rvf _UNK
+Prediction: find . -type f -name *.java -exec rename -i {} ; | tr
+token-overlap score: 0.30
+
+Example 248
+English: find all the files in the current folder which have the name _UNK or _UNK in them
+Ground truth: find . -regex _UNK
+Prediction: find . -name image*.png | xargs grep -liwZ _
+token-overlap score: 0.17
+
+Example 249
+English: search the current directory recursively for regular files last accessed _NUM minutes ago
+Ground truth: find . type -f -amin _NUM
+Prediction: find . type -f -amin +_NUM
+token-overlap score: 0.71
+
+Example 250
+English: list regular files under the current directory ending in .mbox putting a null between each file found
+Ground truth: find . -type f -wholename *.mbox _UNK
+Prediction: find . -type f _UNK | xargs _UNK grep echo
+token-overlap score: 0.36
+
+Example 251
+English: calculate the total size of all *.jpg files in the directory tree
+Ground truth: find . -type f -iname *.jpg -ls | awk _UNK | _UNK
+Prediction: find . -name *jpg -exec du -k {} ; | grep { total += $_NUM } END { print total/_NUM_NUM_NUM_NUM " Mb total" }
+token-overlap score: 0.05
+
+Example 252
+English: find all the files in the current folder which have a specific permission
+Ground truth: find . -perm _NUM_NUM_NUM -print
+Prediction: find ./ -perm _NUM_NUM_NUM
+token-overlap score: 0.50
+
+Example 253
+English: find all files/directories under current directory that were modified exactly _NUM_NUM minutes ago
+Ground truth: find . -mmin _NUM_NUM
+Prediction: find . -amin _NUM_NUM
+token-overlap score: 0.60
+
+Example 254
+English: print all file/directory names with white space safety under the /proc directory
+Ground truth: find /proc _UNK | xargs _UNK
+Prediction: find /proc | xargs
+token-overlap score: 0.58
+
+Example 255
+English: find regular which case-insensitive name is foo in current directory
+Ground truth: find . -iname foo -type f
+Prediction: find . -type f -name *.js
+token-overlap score: 0.50
+
+Example 256
+English: count the total number of lines in all HTML files under /usr/src that contain string  foo 
+Ground truth: time find /usr/src -name  *.html    xargs /usr/bin/grep -l  foo    wc -l
+Prediction: find /usr/src -name *.html -exec grep -H foo {} ; | wc -l
+token-overlap score: 0.18
+
+Example 257
+English: search all regular files in the /var/log directory tree for string  _NUM_NUM:_NUM_NUM 
+Ground truth: find /var/log/ -type f -exec grep -H _UNK {} ;
+Prediction: find /usr/bin -type f -exec tar -H hi.dat {} ;
+token-overlap score: 0.50
+
+Example 258
+English: find files in the current directory and sub-directories  whose content was updated within the last hour
+Ground truth: find . -mmin _UNK
+Prediction: find . _UNK +_NUM_NUM _UNK | xargs file
+token-overlap score: 0.30
+
+Example 259
+English: find all JPG files under the  $SOURCE  directory and below
+Ground truth: find $SOURCE -type f -iname *.jpg
+Prediction: find /home -name *.tmp
+token-overlap score: 0.11
+
+Example 260
+English: find all the files in the file system which have been modified in the last _NUM_NUM minutes
+Ground truth: find / -mmin _UNK
+Prediction: find / -mmin _UNK
+token-overlap score: 1.00
+
+Example 261
+English: find a file  foo.bar  without searching _UNK or mounted filesystems
+Ground truth: find / -name foo.bar -print -xdev
+Prediction: find / -path /proc -prune -o ( -path ./tmp/* -or -path /foo/bar/myfile ) -prune -o ( -iname *.txt ) -prune -o ( -iname *.txt )
+token-overlap score: 0.12
+
+Example 262
+English: display all files in current directory discard any errors and save the output to a file
+Ground truth: find . | grep -v _UNK
+Prediction: find | grep { print $_NUM }
+token-overlap score: 0.32
+
+Example 263
+English: find all the _UNK files in current folder and copy them to _UNK folder _UNK
+Ground truth: find -name _UNK _UNK | xargs _UNK -I {} cp {} _UNK
+Prediction: find . -maxdepth _NUM -exec cp -i $verbose {} +
+token-overlap score: 0.04
+
+Example 264
+English: all .jpg or .png images modified in the past week
+Ground truth: find . -mtime _UNK ( *.jpg -o -name *.png )
+Prediction: find ./ -mtime _NUM -o -name *.png -o -name *.jpg -print
+token-overlap score: 0.50
+
+Example 265
+English: find all the files in the current folder which have a specific permission
+Ground truth: find . -perm _NUM_NUM_NUM -print
+Prediction: find ./ -perm _NUM_NUM_NUM
+token-overlap score: 0.50
+
+Example 266
+English: find foo  Foo  FOo  FOO  etc.  but only dirs
+Ground truth: find . -iname foo -type d
+Prediction: find . -maxdepth _NUM -exec grep text {} ;
+token-overlap score: 0.17
+
+Example 267
+English: search the current directory tree for all files except SVN ones
+Ground truth: find . ! -regex _UNK
+Prediction: find . -not -iwholename *.svn*
+token-overlap score: 0.25
+
+Example 268
+English: list first _NUM files named  something  that are found under current directory
+Ground truth: find . -name something -print | head -n _NUM
+Prediction: find . -type f -name *.html -exec sed -i $_NUM != "" {print; if(NR > _NUM) exit; } {} ;
+token-overlap score: 0.08
+
+Example 269
+English: remove all files _UNK older than _NUM_NUM days in  /tmp 
+Ground truth: find /tmp -type f -mtime +_NUM_NUM -exec rm -f {} ;
+Prediction: find /tmp -type f -ctime +_NUM_NUM _UNK | xargs rm
+token-overlap score: 0.21
+
+Example 270
+English: search the .c files residing in the _UNK directory tree for lines beginning with  _UNK 
+Ground truth: find _UNK -name *.c _UNK | xargs _UNK grep _UNK
+Prediction: find /home/*/public_html/ -name *.xml | xargs _UNK grep -i
+token-overlap score: 0.54
+
+Example 271
+English: find all regular files in the the user's _UNK directory and search for the word  Linux 
+Ground truth: find _UNK -type f | xargs grep _UNK
+Prediction: find -maxdepth _NUM -type f
+token-overlap score: 0.25
+
+Example 272
+English: find regular which case-insensitive name is foo in current directory
+Ground truth: find . -iname foo -type f
+Prediction: find . -type f -name *.js
+token-overlap score: 0.50
+
+Example 273
+English: search the current directory recursively for regular files last modified more than _NUM days ago
+Ground truth: find . type -f -mtime +_NUM
+Prediction: find . -mtime +_NUM -type f
+token-overlap score: 0.50
+
+Example 274
+English: find all the files which are modified in last _NUM hour
+Ground truth: find / -mmin _UNK
+Prediction: find / -amin +_NUM
+token-overlap score: 0.33
+
+Example 275
+English: find all the files in file system which are modified in last _NUM hour
+Ground truth: find / -mmin _UNK
+Prediction: find / -mmin _UNK
+token-overlap score: 1.00
+
+Example 276
+English: print the sizes of all files from the current directory tree
+Ground truth: find . -iname *.jpg -type f -printf _UNK
+Prediction: find . -name * -exec echo {} +
+token-overlap score: 0.14
+
+Example 277
+English: find all files under the current directory whose pathnames do not end with  _UNK  ignoring the case
+Ground truth: find . -maxdepth _NUM -not -iwholename _UNK
+Prediction: find . -type f -not ! ! ! ! ! -size _UNK | xargs _UNK rm
+token-overlap score: 0.18
+
+Example 278
+English: find all files/directories under /myfiles that were accessed more than _NUM_NUM days ago
+Ground truth: find /myfiles -atime +_NUM_NUM
+Prediction: find /mydir_NUM -mtime +_NUM_NUM
+token-overlap score: 0.33
+
+Example 279
+English: search for all the files in a directory which have been modified in the last _NUM days
+Ground truth: find $dir -mtime _UNK
+Prediction: find $dir -mtime _UNK
+token-overlap score: 1.00
+
+Example 280
+English: display all the files in the entire file system which have set uid bit set
+Ground truth: find / -perm -u+s -print
+Prediction: find / -perm _NUM_NUM_NUM_NUM
+token-overlap score: 0.50
+
+Example 281
+English: find *.java files under current directory and compress them to _UNK
+Ground truth: find . -type f -name *.java | xargs tar rvf _UNK
+Prediction: find . -type f -name *.java -exec rename -i {} ; | tr
+token-overlap score: 0.30
+
+Example 282
+English: find in a directory for all the regular files starting with the name  linux 
+Ground truth: find /root -type f -iname _UNK
+Prediction: find /usr/local -type f -name foo
+token-overlap score: 0.33
+
+Example 283
+English: search the .c files residing in the _UNK directory tree for lines beginning with  _UNK 
+Ground truth: find _UNK -name *.c _UNK | xargs _UNK grep _UNK
+Prediction: find /home/*/public_html/ -name *.xml | xargs _UNK grep -i
+token-overlap score: 0.54
+
+Example 284
+English: search the current directory recursively for regular files modified _NUM days ago
+Ground truth: find . type -f -mtime _NUM
+Prediction: find . -mtime _NUM -type f
+token-overlap score: 0.50
+
+Example 285
+English: find all JPG files under the  $SOURCE  directory and below
+Ground truth: find $SOURCE -type f -iname *.jpg
+Prediction: find /home -name *.tmp
+token-overlap score: 0.11
+
+Skipped: ground truth contains multiple statements
+Example 286
+English: search the .VER files from the current directory tree for Perl regular expression  _UNK 
+Ground truth: find . -name *.VER -exec grep -P _UNK {} ; -print
+Prediction: find . -name test | xargs grep whatever
+token-overlap score: -1.00
+
+Example 287
+English: find foo  Foo  FOo  FOO  etc.  but only dirs
+Ground truth: find . -iname foo -type d
+Prediction: find . -maxdepth _NUM -exec grep text {} ;
+token-overlap score: 0.17
+
+Example 288
+English: display all the files in the current folder excluding those which are present in  ./src/emacs  folder
+Ground truth: find . -path ./src/emacs -prune -o -print
+Prediction: find . ! -name secret -a -type f -print
+token-overlap score: 0.23
+
+Example 289
+English: all .jpg or .png images modified in the past week
+Ground truth: find . -mtime _UNK ( *.jpg -o -name *.png )
+Prediction: find ./ -mtime _NUM -o -name *.png -o -name *.jpg -print
+token-overlap score: 0.50
+
+Example 290
+English: change the ownership of all regular/normal files in the current directory
+Ground truth: find . -type f | xargs chown username
+Prediction: find . -exec chown aluno_NUM {} ;
+token-overlap score: 0.12
+
+Example 291
+English: find all the core files in the temp folder and force delete them
+Ground truth: find /tmp -name core -type f -print | xargs /bin/rm -f
+Prediction: find /tmp -name core -exec rm -f -f -f -f -f -f -f
+token-overlap score: 0.20
+
+Example 292
+English: find files in the current directory and sub-directories  whose content was updated within the last hour
+Ground truth: find . -mmin _UNK
+Prediction: find . _UNK +_NUM_NUM _UNK | xargs file
+token-overlap score: 0.30
+
+Example 293
+English: display all files in the current folder which do not match the regular expression
+Ground truth: find . -not -regex .*test.*
+Prediction: find . ! -regex .*test.*
+token-overlap score: 0.67
+
+Example 294
+English: find all foo.bar files in the entire file system and which are present in the same partition as root
+Ground truth: find / -name foo.bar -print -xdev
+Prediction: find / -name *.mp_NUM -print
+token-overlap score: 0.57
+
+Example 295
+English: find files with SGID  _NUM_NUM_NUM_NUM  and _UNK  permssions set in the file system
+Ground truth: find / ( -perm _UNK -o -perm _UNK ) -ls
+Prediction: find / / -path foo.bar -nouser
+token-overlap score: 0.20
+
+Example 296
+English: find files in the /var/log folder which were modified an hour or more ago
+Ground truth: find /var/log/ -mmin +_NUM_NUM
+Prediction: find /var/log/ -mtime +_NUM -mtime _UNK
+token-overlap score: 0.29
+
+Example 297
+English: find all files in the file system which have been accessed in the last _NUM_NUM hours
+Ground truth: find / -atime _NUM
+Prediction: find / -type f -atime _UNK
+token-overlap score: 0.43
+
+Example 298
+English: display a long list of all the jpg files in the home folder
+Ground truth: find ~ -iname *.jpg -exec ls {} ;
+Prediction: find ~ -name *.png -exec ls -l {} ;
+token-overlap score: 0.50
+
+Example 299
+English: finding files only in current directory not searching on subdirectories
+Ground truth: find . -type f -cmin _NUM_NUM -prune
+Prediction: find . -maxdepth _NUM -type f -newer first_file
+token-overlap score: 0.36
+
+Example 300
+English: execute the file utility for each file found under /etc and below
+Ground truth: find /etc _UNK | xargs _UNK file
+Prediction: find /etc -name Chapter_NUM -type f
+token-overlap score: 0.14
+
+Example 301
+English: display all the files in the current folder which are present in the path  ./src/emacs 
+Ground truth: find . -path ./src/emacs -prune -o -print
+Prediction: find . -path ./sr*sc
+token-overlap score: 0.38
+
+Example 302
+English: search the regular files of the current directory tree for string  whatever 
+Ground truth: find . -type f | xargs grep whatever
+Prediction: find . -type f -exec grep -H foo {} ; -print | grep \n grep foo
+token-overlap score: 0.30
+
+Example 303
+English: display all the files in the /usr folder which have the permissions _NUM_NUM_NUM
+Ground truth: find /usr -perm _NUM_NUM_NUM_NUM -print
+Prediction: find /usr -perm _NUM_NUM_NUM_NUM
+token-overlap score: 0.80
+
+Example 304
+English: count the total number of lines in all HTML files under /usr/src that contain string  foo 
+Ground truth: time find /usr/src -name  *.html    xargs /usr/bin/grep -l  foo    wc -l
+Prediction: find /usr/src -name *.html -exec grep -H foo {} ; | wc -l
+token-overlap score: 0.18
+
+Example 305
+English: search the .c files residing in the _UNK directory tree for lines beginning with  _UNK 
+Ground truth: find _UNK -name *.c _UNK | xargs _UNK grep _UNK
+Prediction: find /home/*/public_html/ -name *.xml | xargs _UNK grep -i
+token-overlap score: 0.54
+
+Example 306
+English: count line numbers on files and _UNK each count along with individual file name
+Ground truth: find _UNK -name *.txt | xargs grep -c _UNK
+Prediction: find . -name *.php -exec wc -l {} ; -exec wc -l {} ;
+token-overlap score: 0.10
+
+Example 307
+English: search for all the files in man _UNK and return the manual page for grep
+Ground truth: find /usr/share/man/ -regex _UNK
+Prediction: find . -type f -name aa -print
+token-overlap score: 0.10
+
+Example 308
+English: find all files/directories matching the regex pattern  _UNK  under current directory
+Ground truth: find . -regex _UNK
+Prediction: find . -name pattern -exec grep -i {} ;
+token-overlap score: 0.20
+
+Example 309
+English: search the current directory tree for all files except SVN ones
+Ground truth: find . ! -regex _UNK
+Prediction: find . -not -iwholename *.svn*
+token-overlap score: 0.25
+
+Example 310
+English: find all the files in the current folder that have been modified in the last _NUM_NUM*_NUM hours
+Ground truth: find ./ -mtime _UNK
+Prediction: find -mtime +_NUM
+token-overlap score: 0.40
+
+Example 311
+English: find foo  Foo  FOo  FOO  etc.  but only files
+Ground truth: find . -iname foo -type f
+Prediction: find . -maxdepth _NUM -exec grep text {} ;
+token-overlap score: 0.17
+
+Example 312
+English: find & calculate total number of _UNK in all .txt file from current directory
+Ground truth: find . -type f -name *.txt -exec wc -w {} ; | awk {total += $_NUM} END{print total}
+Prediction: find . -type f -name * -exec du -c {} ; | awk find .
+token-overlap score: 0.33
+
+Example 313
+English: search for all perl files in the folder /nas/projects/mgmt/scripts/perl which have been modified yesterday
+Ground truth: find /nas/projects/mgmt/scripts/perl -mtime _NUM -daystart -iname *.pl
+Prediction: find /home/you -mtime _NUM -daystart -mtime _NUM -daystart -type f -iname  -daystart -mtime _NUM
+token-overlap score: 0.50
+
+Example 314
+English: find the top _NUM small files
+Ground truth: find . -type f -exec ls -s {} ; | sort -n | head _UNK
+Prediction: find / -type f -size _NUM_NUM_NUM -exec ls {} ; -exec ls {} ;
+token-overlap score: 0.18
+
+Example 315
+English: display all the files in the current folder excluding those which are present in  ./src/emacs  folder
+Ground truth: find . -path ./src/emacs -prune -o -print
+Prediction: find . ! -name secret -a -type f -print
+token-overlap score: 0.23
+
+Example 316
+English: display all the files in the entire file system which have set uid bit set
+Ground truth: find / -perm -u+s -print
+Prediction: find / -perm _NUM_NUM_NUM_NUM
+token-overlap score: 0.50
+
+Example 317
+English: find all *foo* files/directories under current directory and copy them to _UNK
+Ground truth: find . -name *foo* | sed -e _UNK -e _UNK -e _UNK | xargs cp _UNK
+Prediction: find . -name *~ | xargs cp -t ~/foo/bar
+token-overlap score: 0.20
+
+Example 318
+English: find files in the /var/log folder which were modified between _NUM_NUM minutes and _NUM_NUM minutes ago
+Ground truth: find /var/log/ -mmin _UNK -mmin +_NUM_NUM
+Prediction: find -mmin *blah* -mmin +_NUM -mtime _UNK -print
+token-overlap score: 0.33
+
+Example 319
+English: print all file/directory names with white space safety under the /proc directory
+Ground truth: find /proc _UNK | xargs _UNK
+Prediction: find /proc | xargs
+token-overlap score: 0.58
+
+Example 320
+English: search for a word in all the .C files in the current directory
+Ground truth: find . -name *.c -exec grep _UNK _UNK {} ;
+Prediction: find . -type f -exec grep -il foo {} ;
+token-overlap score: 0.42
+
+Example 321
+English: find  $i  files under current directory and search for  _UNK  in those files
+Ground truth: find . -name $i -type f -print | xargs egrep -n _UNK
+Prediction: find . -name *.mov -exec grep something {} ;
+token-overlap score: 0.12
+
+Example 322
+English: rename file extensions for files with specific extension in the current folder
+Ground truth: find . -name *.andnav | rename s/.andnav$/.tile/
+Prediction: find . -name *.andnav | rename -d
+token-overlap score: 0.67
+
+Example 323
+English: find all the files in the current directory and sub-directories whose status was changed after _UNK was modified
+Ground truth: find -cnewer _UNK
+Prediction: find . -name foo.txt -not /home/peter
+token-overlap score: 0.12
+
+Example 324
+English: find *.java files under current directory and compress them to _UNK
+Ground truth: find . -type f -name *.java | xargs cvf _UNK
+Prediction: find . -type f -name *.java -exec rename -i {} ; | tr
+token-overlap score: 0.30
+
+Example 325
+English: search for word linux in all the regular/normal files in the folder mail
+Ground truth: find _UNK -type f | xargs grep _UNK
+Prediction: find /etc/ -type f -name * -exec grep -H linux ;
+token-overlap score: 0.14
+
+Example 326
+English: search the current directory recursively for regular files last accessed more than _NUM minutes ago
+Ground truth: find . type -f -amin +_NUM
+Prediction: find . type -f -amin +_NUM
+token-overlap score: 1.00
+
+Example 327
+English: search the current directory tree for all .java files newer than the file build.xml
+Ground truth: find . -name *.java -newer build.xml -print
+Prediction: find . -name *.pdf -print
+token-overlap score: 0.50
+
+Example 328
+English: search for a word in all the .C files in the current directory
+Ground truth: find . -name *.c -exec grep _UNK _UNK {} ;
+Prediction: find . -type f -exec grep -il foo {} ;
+token-overlap score: 0.42
+
+Example 329
+English: find regular files modified within the last ten minutes under /etc
+Ground truth: find /etc -type f -mmin _UNK
+Prediction: find /home/www/ -type f -mtime _NUM _UNK
+token-overlap score: 0.44
+
+Example 330
+English: list first _NUM files named  something  that are found under current directory
+Ground truth: find . -name something -print | head -n _NUM
+Prediction: find . -type f -name *.html -exec sed -i $_NUM != "" {print; if(NR > _NUM) exit; } {} ;
+token-overlap score: 0.08
+
+Example 331
+English: remove all directories found in directory tree $LOGDIR that were modified more than _NUM days ago
+Ground truth: find $LOGDIR -type d -mtime +_NUM -exec rm -f {} ;
+Prediction: find $LOGDIR -type d -mtime +_NUM -exec rm {} ;
+token-overlap score: 0.90
+
+Example 332
+English: find the  param_NUM  string in regular files under and below /var
+Ground truth: find /var -type f | xargs grep param_NUM
+Prediction: find /var -type f -exec grep -H param_NUM {} ; -print
+token-overlap score: 0.20
+
+Example 333
+English: find not case sensitive all directories that names are  apt 
+Ground truth: find / -type d -iname apt
+Prediction: find / -type d -iname apt -ls
+token-overlap score: 0.86
+
+Example 334
+English: search a file in the current folder which starts with test and ends with two digits
+Ground truth: find . -regex _UNK
+Prediction: find . -regextype sed -regex ./test[_NUM-_NUM]{_NUM}.txt
+token-overlap score: 0.43
+
+Example 335
+English: print _UNK file information for regular files found under the home directory whose names start with my
+Ground truth: find . -name my* -type f -ls
+Prediction: find $dir -type f -exec echo {} ;
+token-overlap score: 0.27
+
+Example 336
+English: display all files in the current folder which end with extension  myfile  followed by two digits
+Ground truth: find . -regex _UNK
+Prediction: find . -name fileA_*
+token-overlap score: 0.33
+
+Example 337
+English: search the /dir directory tree for files whose names match regular expression  _UNK 
+Ground truth: find /dir -regex _UNK
+Prediction: find /dir -name whatever -printf %fn
+token-overlap score: 0.25
+
+Example 338
+English: search the current directory tree for all .java files newer than the file build.xml
+Ground truth: find . -name *.java -newer build.xml -print
+Prediction: find . -name *.pdf -print
+token-overlap score: 0.50
+
+Example 339
+English: search for MP_NUM files in the current folder and subfolders exclude dir_NUM AND dir_NUM
+Ground truth: find ! -path dir_NUM ! -path dir_NUM -iname *.mp_NUM
+Prediction: find . -path a.txt -not -path a.txt -o -path .DS_Store
+token-overlap score: 0.18
+
+Example 340
+English: find all the text files in the current folder and do not search in the sub directories
+Ground truth: find -maxdepth _NUM -iname *.txt
+Prediction: find . -name bin -type f ( -name *.txt )
+token-overlap score: 0.18
+
+Example 341
+English: find all files in the file system with the SUID bit
+Ground truth: find / -perm -u+s -print
+Prediction: find / -perm -u+s
+token-overlap score: 0.80
+
+Example 342
+English: find all files in the current folder which do not have a specific permission and do not search in the subfolder
+Ground truth: find . -maxdepth _NUM ! -perm _UNK
+Prediction: find . -maxdepth _NUM -type f -perm -uga=x
+token-overlap score: 0.50
+
+Example 343
+English: find all files that are present in the current folder in a specific path and do not display the other files
+Ground truth: find . -path ./src/emacs -prune -o -print
+Prediction: find ./ -type f -regex .*test.* -printf *target* -printf *foo*
+token-overlap score: 0.07
+
+Example 344
+English: find all the files in a folder which have not been modified in the last _NUM hours   _NUM_NUM_NUM minutes  
+Ground truth: find /path/to/files -mmin +_NUM_NUM_NUM
+Prediction: find /tmp/test/* -mtime +_NUM
+token-overlap score: 0.14
+
+Example 345
+English: list all files/directories under /data_NUM/Marcel which are greater than _NUM_NUM_NUM_NUM_NUM_NUM bytes and were modified or accessed more than _NUM year ago
+Ground truth: find /data_NUM/Marcel -size +_NUM_NUM_NUM_NUM ( -mtime +_NUM_NUM_NUM -o -atime +_NUM_NUM_NUM ) -ls
+Prediction: find /mydir +_NUM_NUM_NUM_NUM_NUMc ( -name -atime +_NUM -o -ls ) -ls ) -ls
+token-overlap score: 0.36
+
+Example 346
+English: find within a directory called _UNK  only those mp_NUM files that have a size less than _NUM_NUM_NUM_NUM _UNK     _NUMMB 
+Ground truth: find _UNK -name *.mp_NUM -size _UNK
+Prediction: find / -name Metallica* -or -name Metallica*
+token-overlap score: 0.25
+
+Example 347
+English: find all the file which name  name can contains space  end with c or h and content contain  thing 
+Ground truth: find . -name *.[ch] _UNK | xargs -r _UNK grep -l thing
+Prediction: find . -name *.[ch] | rename rename mystring
+token-overlap score: 0.40
+
+Example 348
+English: find all the files in the current directory which have a specific word in them and do not search in the sub folders
+Ground truth: find -maxdepth _NUM -iname *target*
+Prediction: find -maxdepth _NUM -type f
+token-overlap score: 0.43
+
+Example 349
+English: find recursively all files matching pattern  file??  in the xargstest/ directory and print a sorted list of them
+Ground truth: find xargstest/ -name file?? | sort
+Prediction: find /usr/src -name file?? -exec echo {} ;
+token-overlap score: 0.19
+
+Example 350
+English: sort and display the file name and creation month of top _NUM_NUM files in the entire file system  _UNK in the order of month  
+Ground truth: find / -type f -printf n%Ab %p | head -n _NUM_NUM | sort _UNK
+Prediction: find / -type f -exec ls -s {} ; | sort -n _NUM_NUM
+token-overlap score: 0.29
+
+Example 351
+English: find recursively all files matching pattern  file??  in the xargstest/ directory and print a sorted list of them
+Ground truth: find xargstest/ -name file?? | sort
+Prediction: find /usr/src -name file?? -exec echo {} ;
+token-overlap score: 0.19
+
+Example 352
+English: find all the _UNK files in the current folder which have a size of _NUM_NUMKB and display a long listing details of them
+Ground truth: find . -type f -size +_NUM_NUM_NUM_NUM_NUM -exec ls -al {} ;
+Prediction: find . -type f -size _NUM_NUM_NUM_NUM -ls
+token-overlap score: 0.42
+
+Example 353
+English: display all the text files in the current folder which have been modified in the last _UNK minute   _NUM_NUM _UNK  
+Ground truth: find . -mmin _UNK
+Prediction: find . -name *.txt -printf magic
+token-overlap score: 0.25
+
+Example 354
+English: find files matching the regex  _UNK  in their contents and append the list of these files to _UNK
+Ground truth: find . -exec grep -l -e _UNK {} ;
+Prediction: find . -name $_NUM -exec sed -i s/toreplace/replaced/g {} ;
+token-overlap score: 0.31
+
+Example 355
+English: find files in the current directory with pattern   *.[ch]  which are contain _UNK string and print file names which can contain spaces
+Ground truth: find . -name *.[ch] _UNK | xargs -r _UNK grep -l thing
+Prediction: find . -name *.[ch] | xargs grep -l thing
+token-overlap score: 0.73
+
+Example 356
+English: create a backup of all the files in the file system which belong to the suer edwarda to the floppy
+Ground truth: find / -user edwarda -print | cpio _UNK
+Prediction: find / -user edwarda -print | xargs tar filename _UNK
+token-overlap score: 0.60
+
+Example 357
+English: this find command ignore the case when searching for file name   to ignore the case in this example all .py & _UNK file will search
+Ground truth: find . -type f -iname *.py
+Prediction: find $directory -type f -iname _UNK -exec chmod _NUM_NUM_NUM {} ;
+token-overlap score: 0.33
+
+Example 358
+English: find all files in and under the current directory that have read  write and execute permissions set for all users
+Ground truth: find . -perm _NUM_NUM_NUM -print
+Prediction: find . ( -perm _NUM_NUM_NUM ) -exec chmod _NUM_NUM_NUM {} ;
+token-overlap score: 0.44
+
+Example 359
+English: search the /var/www/ tree for files owned by root or _UNK group and change their group to  apache 
+Ground truth: find /var/www -group root -o -nogroup _UNK | xargs _UNK chown _UNK
+Prediction: find / -user root -name FindCommandExamples.txt
+token-overlap score: 0.09
+
+Example 360
+English: find all files in current directory which belong to a specific user and having the permission read  write execute to the user
+Ground truth: find . -user _UNK -perm _UNK
+Prediction: find . -user john
+token-overlap score: 0.50
+
+Example 361
+English: display all the text files in the current folder which have been modified in the last _UNK minute   _NUM_NUM _UNK  
+Ground truth: find . -mmin _UNK
+Prediction: find . -name *.txt -printf magic
+token-overlap score: 0.25
+
+Example 362
+English: find all files and directories under the current directory and display the inode of each one  using the stat command on FreeBSD/OSX
+Ground truth: find . _UNK | xargs _UNK stat -f _UNK
+Prediction: find . -exec wc ;
+token-overlap score: 0.20
+
+Example 363
+English: find all files/directories under $_NUM which have at least execute permission for their owner and set execute permission for group for these files/directories
+Ground truth: find $_NUM -perm -u+x -exec chmod g+x {} ;
+Prediction: find $_NUM -perm -u+x _UNK | xargs chmod g+x
+token-overlap score: 0.22
+
+Example 364
+English: find files/directories that is under group  root  or have no group and set their group to  apache 
+Ground truth: find /var/www -group root -o -nogroup _UNK | xargs _UNK chown _UNK
+Prediction: find / -group / -group file
+token-overlap score: 0.11
+
+Example 365
+English: find all files in the current folder which do not have a specific permission and do not search in the subfolder
+Ground truth: find . -maxdepth _NUM ! -perm _UNK
+Prediction: find . -maxdepth _NUM -type f -perm -uga=x
+token-overlap score: 0.50
+
+Example 366
+English: find recursively all files matching pattern  file??  in the xargstest/ directory and print a sorted list of them
+Ground truth: find xargstest/ -name file?? | sort
+Prediction: find /usr/src -name file?? -exec echo {} ;
+token-overlap score: 0.19
+
+Example 367
+English: find all the perl files in the current folder  print_NUM is used to handle files with new lines in their names or only spaces
+Ground truth: find . -type f -name *.pl _UNK
+Prediction: find . -name *.pl _UNK | xargs _UNK rm {}
+token-overlap score: 0.36
+
+Example 368
+English: find all files in the current folder which do not have a specific permission and do not search in the subfolder
+Ground truth: find . -maxdepth _NUM ! -perm _UNK
+Prediction: find . -maxdepth _NUM -type f -perm -uga=x
+token-overlap score: 0.50
+
+Example 369
+English: find all files in current directory which belong to a specific user and having the permission read  write execute to the user
+Ground truth: find . -user _UNK -perm _UNK
+Prediction: find . -user john
+token-overlap score: 0.50
+
+Skipped: ground truth contains multiple statements
+Example 370
+English: test if files named  something  were found in _UNK
+Ground truth:  [ ! -z  find  _UNK  -name  _UNK  ]  && echo  _UNK     echo  _UNK _UNK 
+Prediction: find -H *test* | sort
+token-overlap score: -1.00
+
+Example 371
+English: find within a directory called _UNK  only those mp_NUM files that have a size less than _NUM_NUM_NUM_NUM _UNK     _NUMMB 
+Ground truth: find _UNK -name *.mp_NUM -size _UNK
+Prediction: find / -name Metallica* -or -name Metallica*
+token-overlap score: 0.25
+
+Example 372
+English: find files matching the regex  _UNK  in their contents and append the list of these files to _UNK
+Ground truth: find . -exec grep -l -e _UNK {} ;
+Prediction: find . -name $_NUM -exec sed -i s/toreplace/replaced/g {} ;
+token-overlap score: 0.31
+
+Example 373
+English: display a long listing of all the temp files whose size is _NUM bytes and which have not been accessed in the last _NUM_NUM days
+Ground truth: find /tmp -size _NUM -atime +_NUM_NUM -exec ls -l {} ;
+Prediction: find /mydir_NUM -size +_NUM_NUM_NUM_NUM -ls
+token-overlap score: 0.15
+
+Example 374
+English: search for all the directories in a folder and limit the search to current folder and give them as input to the python script
+Ground truth: find /stuff -type d -printf _UNK | xargs _UNK script.py
+Prediction: find /stuff -maxdepth _NUM -type d -exec script.py -c script.py ;
+token-overlap score: 0.18
+
+Example 375
+English: this find command ignore the case when searching for file name   to ignore the case in this example all .py & _UNK file will search
+Ground truth: find . -type f -iname *.py
+Prediction: find $directory -type f -iname _UNK -exec chmod _NUM_NUM_NUM {} ;
+token-overlap score: 0.33
+
+Example 376
+English: find all regular/normal files in the current folder whose name has the word _UNK or picture and which have been modified in the last _NUM_NUM minutes
+Ground truth: find . ( -iname *photo* -or -name *picture* ) -and ! -type d -and -mmin _UNK
+Prediction: find . -type f -name *.conf -mmin _UNK
+token-overlap score: 0.38
+
+Example 377
+English: print the list of all files in the current directory except for SVN  CVS  GIT  and binary files
+Ground truth: find . -not ( -name .svn -prune -o -name .git -prune -o -name CVS -prune ) -type f _UNK | xargs _UNK file -n | grep -v binary | cut -d : _UNK
+Prediction: find . ! -type d ! -size .*myfile[_NUM-_NUM]\{_NUM,_NUM\} ) ! -regex *_NUM_NUM_NUM_NUM*
+token-overlap score: 0.05
+
+Example 378
+English: find all the files in a folder which have not been modified in the last _NUM hours   _NUM_NUM_NUM minutes  
+Ground truth: find /path/to/files -mmin +_NUM_NUM_NUM
+Prediction: find /tmp/test/* -mtime +_NUM
+token-overlap score: 0.14
+
+Example 379
+English: list all files/directories under /data_NUM/Marcel which are greater than _NUM_NUM_NUM_NUM_NUM_NUM bytes and were modified or accessed more than _NUM year ago
+Ground truth: find /data_NUM/Marcel -size +_NUM_NUM_NUM_NUM ( -mtime +_NUM_NUM_NUM -o -atime +_NUM_NUM_NUM ) -ls
+Prediction: find /mydir +_NUM_NUM_NUM_NUM_NUMc ( -name -atime +_NUM -o -ls ) -ls ) -ls
+token-overlap score: 0.36
+
+Example 380
+English: find all the files in the current folder that have been accessed in today from the start of the day
+Ground truth: find -daystart -atime _NUM
+Prediction: find -mtime _NUM -daystart
+token-overlap score: 0.60
+
+Example 381
+English: find all the files in the current directory which have a specific word in them and do not search in the sub folders
+Ground truth: find -maxdepth _NUM -iname *target*
+Prediction: find -maxdepth _NUM -type f
+token-overlap score: 0.43
+
+Example 382
+English: find all regular/normal files in the current folder whose name has the word _UNK or picture and which have been modified in the last _NUM_NUM minutes
+Ground truth: find . ( -iname *photo* -or -name *picture* ) -and ! -type d -and -mmin _UNK
+Prediction: find . -type f -name *.conf -mmin _UNK
+token-overlap score: 0.38
+
+Example 383
+English: search for all files named foo  FOO  or any other combination of uppercase and lowercase characters beneath the current directory
+Ground truth: find . -iname foo -type f
+Prediction: find . -name foo
+token-overlap score: 0.43
+
+Example 384
+English: find all files named  something  in the current folder and below and run them through the ls -l command  one by one
+Ground truth: find . -name something -exec ls -l {} ;
+Prediction: find . -name something | xargs _UNK ls -l
+token-overlap score: 0.25
+
+Example 385
+English: find all the directories in the folder $LOGDIR which have been modified in the last _NUM days and delete them
+Ground truth: find $LOGDIR -type d -mtime +_NUM -exec rm -f {} ;
+Prediction: find /home -type d -mtime +_NUM -exec rm {} ;
+token-overlap score: 0.73
+
+Example 386
+English: find all the _UNK files in the current folder which have a size of _NUM_NUMKB and display a long listing details of them
+Ground truth: find . -type f -size +_NUM_NUM_NUM_NUM_NUM -exec ls -al {} ;
+Prediction: find . -type f -size _NUM_NUM_NUM_NUM -ls
+token-overlap score: 0.42
+
+Example 387
+English: search all the  .sh  files in the /usr folder and follow the symbolic links to their original file
+Ground truth: find /usr -follow -name *.sh
+Prediction: find /usr -lname path/to/foo.txt -print
+token-overlap score: 0.25
+
+Example 388
+English: list all files/directories under /data_NUM/Marcel which are greater than _NUM_NUM_NUM_NUM_NUM_NUM bytes and were modified or accessed more than _NUM year ago
+Ground truth: find /data_NUM/Marcel -size +_NUM_NUM_NUM_NUM ( -mtime +_NUM_NUM_NUM -o -atime +_NUM_NUM_NUM ) -ls
+Prediction: find /mydir +_NUM_NUM_NUM_NUM_NUMc ( -name -atime +_NUM -o -ls ) -ls ) -ls
+token-overlap score: 0.36
+
+Example 389
+English: find all the file which name  name can contains space  end with c or h and content contain  thing 
+Ground truth: find . -name *.[ch] _UNK | xargs -r _UNK grep -l thing
+Prediction: find . -name *.[ch] | rename rename mystring
+token-overlap score: 0.40
+
+Example 390
+English: find all files in the current folder which do not have a specific permission and do not search in the subfolder
+Ground truth: find . -maxdepth _NUM ! -perm _UNK
+Prediction: find . -maxdepth _NUM -type f -perm -uga=x
+token-overlap score: 0.50
+
+Example 391
+English: find all files in current directory which belong to a specific user and having the permission read  write execute to the user
+Ground truth: find . -user _UNK -perm _UNK
+Prediction: find . -user john
+token-overlap score: 0.50
+
+Example 392
+English: find all files in current directory which belong to a specific user and having the permission read  write execute to the user
+Ground truth: find . -user _UNK -perm _UNK
+Prediction: find . -user john
+token-overlap score: 0.50
+
+Example 393
+English: this find command ignore the case when searching for file name   to ignore the case in this example all .py & _UNK file will search
+Ground truth: find . -type f -iname *.py
+Prediction: find $directory -type f -iname _UNK -exec chmod _NUM_NUM_NUM {} ;
+token-overlap score: 0.33
+
+Example 394
+English: display all the files in the current folder that are at least one week old  _NUM days  but less then _NUM_NUM days old
+Ground truth: find . -mtime +_NUM_NUM -a -mtime _UNK _UNK
+Prediction: find . -type f -atime _NUM_NUM _UNK | xargs _UNK -I {}
+token-overlap score: 0.15
+
+Example 395
+English: search the current directory tree for files whose names begin with  my  and end with  p  followed by any character
+Ground truth: find . -regex .*/my.*p.$
+Prediction: find . -name my* -exec grep -H string ;
+token-overlap score: 0.20
+
+Example 396
+English: find all the files in the current folder that have been accessed in today from the start of the day
+Ground truth: find -daystart -atime _NUM
+Prediction: find -mtime _NUM -daystart
+token-overlap score: 0.60
+
+Example 397
+English: find all the files in the current folder that have been accessed in today from the start of the day
+Ground truth: find -daystart -atime _NUM
+Prediction: find -mtime _NUM -daystart
+token-overlap score: 0.60
+
+Example 398
+English: search all the  .sh  files in the /usr folder and follow the symbolic links to their original file
+Ground truth: find /usr -follow -name *.sh
+Prediction: find /usr -lname path/to/foo.txt -print
+token-overlap score: 0.25
+
+Example 399
+English: search for all directories named foo  FOO  or any other combination of uppercase and lowercase characters beneath the current directory
+Ground truth: find . -iname foo -type d
+Prediction: find . -iname foo
+token-overlap score: 0.67
+
+Example 400
+English: search for all directories named foo  FOO  or any other combination of uppercase and lowercase characters beneath the current directory
+Ground truth: find . -iname foo -type d
+Prediction: find . -iname foo
+token-overlap score: 0.67
+
+Example 401
+English: find all files in and under the current directory that have read  write and execute permissions set for all users
+Ground truth: find . -perm _NUM_NUM_NUM -print
+Prediction: find . ( -perm _NUM_NUM_NUM ) -exec chmod _NUM_NUM_NUM {} ;
+token-overlap score: 0.44
+
+Example 402
+English: find all the directories in the current folder which have been modified in _NUM_NUM hours and move them to the folder /path/to/target-dir
+Ground truth: find . -type d -mtime _UNK -exec mv -t /path/to/target-dir {} +
+Prediction: find . -depth -type d -mtime _NUM _UNK | xargs _UNK mv -t /path/to/target-dir
+token-overlap score: 0.21
+
+Example 403
+English: find files matching the regex  _UNK  in their contents and append the list of these files to _UNK
+Ground truth: find . -exec grep -l -e _UNK {} ;
+Prediction: find . -name $_NUM -exec sed -i s/toreplace/replaced/g {} ;
+token-overlap score: 0.31
+
+Example 404
+English: change permissions for all PHP files under the current directory tree to _NUM_NUM_NUM and print the number of files changed
+Ground truth: find . -name *.php -exec chmod _NUM_NUM_NUM {} ; -exec _UNK {} ; | wc -l
+Prediction: find . -name *.php -exec chmod _NUM_NUM_NUM {} + | sh
+token-overlap score: 0.40
+
+Example 405
+English: search in the current directory and all sub-directories except ./D for the file hi.dat using the _UNK _UNK _UNK of the shell
+Ground truth: _UNK -s _UNK find _UNK  -name hi.dat
+Prediction: find . -name myfile -prune -o -name foo -exec grep -H {} ;
+token-overlap score: 0.14
+
+Example 406
+English: sort and display the file name and creation month of top _NUM_NUM files in the entire file system  _UNK in the order of month  
+Ground truth: find / -type f -printf n%Ab %p | head -n _NUM_NUM | sort _UNK
+Prediction: find / -type f -exec ls -s {} ; | sort -n _NUM_NUM
+token-overlap score: 0.29
+
+Skipped: ground truth contains multiple statements
+Example 407
+English: test if files named  something  were found in _UNK
+Ground truth:  [ ! -z  find  _UNK  -name  _UNK  ]  && echo  _UNK     echo  _UNK _UNK 
+Prediction: find -H *test* | sort
+token-overlap score: -1.00
+
+Example 408
+English: find directories in the current directory tree that were modified within the last _NUM_NUM hours and move them to /path/to/target-dir
+Ground truth: find . -type d -mtime _NUM -exec mv {} /path/to/target-dir ;
+Prediction: find . -depth -type d -mtime _NUM _UNK | xargs _UNK mv -t /path/to/target-dir
+token-overlap score: 0.25
+
+Example 409
+English: sort and display the file name and creation month of top _NUM_NUM files in the entire file system  _UNK in the order of month  
+Ground truth: find / -type f -printf n%Ab %p | head -n _NUM_NUM | sort _UNK
+Prediction: find / -type f -exec ls -s {} ; | sort -n _NUM_NUM
+token-overlap score: 0.29
+
+Example 410
+English: find directories in the current directory tree that were modified within the last _NUM_NUM hours and move them to /path/to/target-dir
+Ground truth: find . -type d -mtime _UNK -exec mv -t /path/to/target-dir {} +
+Prediction: find . -depth -type d -mtime _NUM _UNK | xargs _UNK mv -t /path/to/target-dir
+token-overlap score: 0.21
+
+Example 411
+English: change permissions for all PHP files under the current directory tree to _NUM_NUM_NUM and print the number of files changed
+Ground truth: find . -name *.php -exec chmod _NUM_NUM_NUM {} ; -exec _UNK {} ; | wc -l
+Prediction: find . -name *.php -exec chmod _NUM_NUM_NUM {} + | sh
+token-overlap score: 0.40
+
+Example 412
+English: find all the directories in the current folder which have been modified in _NUM_NUM hours and move them to the folder /path/to/target-dir
+Ground truth: find . -type d -mtime _UNK -exec mv -t /path/to/target-dir {} +
+Prediction: find . -depth -type d -mtime _NUM _UNK | xargs _UNK mv -t /path/to/target-dir
+token-overlap score: 0.21
+
+Example 413
+English: create a backup of all the files in the file system which belong to the suer edwarda to the floppy
+Ground truth: find / -user edwarda -print | cpio _UNK
+Prediction: find / -user edwarda -print | xargs tar filename _UNK
+token-overlap score: 0.60
+
+Example 414
+English: find all the files in the folder  myfiles  which have not been accessed in the last _NUM_NUM days
+Ground truth: find /myfiles -atime +_NUM_NUM
+Prediction: find /myfiles -type f -atime _UNK
+token-overlap score: 0.43
+
+Example 415
+English: find files in the current directory with pattern   *.[ch]  which are contain _UNK string and print file names which can contain spaces
+Ground truth: find . -name *.[ch] _UNK | xargs -r _UNK grep -l thing
+Prediction: find . -name *.[ch] | xargs grep -l thing
+token-overlap score: 0.73
+
+Example 416
+English: search the current directory tree for files whose names begin with  my  and end with  p  followed by any character
+Ground truth: find . -regex .*/my.*p.$
+Prediction: find . -name my* -exec grep -H string ;
+token-overlap score: 0.20
+
+Example 417
+English: find all the directories in the current folder which begin with the words  kt  and end with a digit
+Ground truth: find . -regex _UNK
+Prediction: find . -name . -type d -exec grep -i {} ;
+token-overlap score: 0.18
+
+Example 418
+English: search in the entire file system for the files firefox  thunderbird  seamonkey and display all the files expect those having the words  _NUM_NUM_Recommended  or  _UNK   discard all the errors during search 
+Ground truth: sudo find /   -name firefox -o -name thunderbird -o -name seamonkey \  -type f _UNK -v  _UNK 
+Prediction: find / -name foo -o -name work -o -name filename )
+token-overlap score: 0.24
+
+Example 419
+English: find all the directories with the name  c  in the current folder which are at least _NUM levels deep and which are not present in the path  /p/ 
+Ground truth: find -mindepth _NUM -type d ! -path */p/* -name c -print
+Prediction: find -mindepth _NUM -type d -path */p/* -prune -o -name c -print
+token-overlap score: 0.77
+
+Example 420
+English: find all the php files in current folder which have been modified in the last _NUM_NUM hours and search for a specific word in all of them and display the matched _UNK _UNK display color on the matched word
+Ground truth: find . _UNK *.php -mtime _UNK -exec grep -Hin _UNK joomla {} ;
+Prediction: find . -name *.php -mtime +_NUM
+token-overlap score: 0.33
+
+Example 421
+English: search for a pattern in all the python files in the current folder. and save the output to output.txt _UNK print_NUM is used to handle files with newlines in their names
+Ground truth: find . -name *.py _UNK | xargs _UNK grep something
+Prediction: find . -name *.py -type f -exec sh -c pattern {} ;
+token-overlap score: 0.17
+
+Example 422
+English: find all the video files which are bigger than _NUM_NUM MB which have not been modified in the last _NUM_NUM days but have been changed in the last _NUM_NUM_NUM days in /tmp and /var/tmp folder home folders
+Ground truth: find /tmp /var/tmp ~ -type f -size +_NUM_NUMM -mtime +_NUM_NUM -ctime _UNK -exec file _UNK -i -- {} + | sed -n _UNK
+Prediction: find . -mtime +_NUM_NUM -daystart -ctime _UNK -daystart -type f
+token-overlap score: 0.17
+
+Example 423
+English: search in the entire file system for the files firefox  thunderbird  seamonkey and display all the files expect those having the words  _NUM_NUM_Recommended  or  _UNK   discard all the errors during search 
+Ground truth: sudo find /   -name firefox -o -name thunderbird -o -name seamonkey \  -type f _UNK -v  _UNK 
+Prediction: find / -name foo -o -name work -o -name filename )
+token-overlap score: 0.24
+
+Example 424
+English: find all the directories with the name  c  in the current folder which are at least _NUM levels deep and which are not present in the path  /p/ 
+Ground truth: find -mindepth _NUM -type d ! -path */p/* -name c -print
+Prediction: find -mindepth _NUM -type d -path */p/* -prune -o -name c -print
+token-overlap score: 0.77
+
+Example 425
+English: find all files under the current directory  redirecting error messages to the output and filtering any lines containing the text  Permission _UNK  writing the _UNK output to some_file
+Ground truth: find . | grep -v Permission denied
+Prediction: find . | grep -v _NUM
+token-overlap score: 0.70
+
+Example 426
+English: search for a pattern in all the python files in the current folder. and save the output to output.txt _UNK print_NUM is used to handle files with newlines in their names
+Ground truth: find . -name *.py _UNK | xargs _UNK grep something
+Prediction: find . -name *.py -type f -exec sh -c pattern {} ;
+token-overlap score: 0.17
+
+Example 427
+English: find all the files in the current folder which have been modified for the _UNK that are at least one week old  _NUM days  but less then _NUM_NUM days old
+Ground truth: find . -mtime +_NUM_NUM -a -mtime _UNK _UNK
+Prediction: find . -type f -atime +_NUM _UNK | xargs _UNK -I {} .
+token-overlap score: 0.15
+
+Example 428
+English: find all the video files which are bigger than _NUM_NUM MB which have not been modified in the last _NUM_NUM days but have been changed in the last _NUM_NUM_NUM days in /tmp and /var/tmp folder home folders
+Ground truth: find /tmp /var/tmp ~ -type f -size +_NUM_NUMM -mtime +_NUM_NUM -ctime _UNK -exec file _UNK -i -- {} + | sed -n _UNK
+Prediction: find . -mtime +_NUM_NUM -daystart -ctime _UNK -daystart -type f
+token-overlap score: 0.17
+
+Example 429
+English: find all files under the current directory  redirecting error messages to the output and filtering any lines containing the text  Permission _UNK  writing the _UNK output to some_file
+Ground truth: find . | grep -v Permission denied
+Prediction: find . | grep -v _NUM
+token-overlap score: 0.70
+
+Average token-overlap score 0.34 (429 examples evaluated)
+

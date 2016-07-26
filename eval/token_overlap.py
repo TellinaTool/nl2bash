@@ -52,11 +52,12 @@ class TokenOverlap(object):
             if verbose:
                 print "Unrecognized node type: " + parse[0].kind
                 # return TokenOverlap.get_command_list_rule_based(cmd)
-        return command_list
+        return [command for command in command_list if command]
 
     @staticmethod
     def get_command_list_rule_based(cmd):
-        return cmd.split('|')
+        command_list = cmd.split('|')
+        return [command for command in command_list if command]
 
     @staticmethod
     def cmd_overlap_score(gt, pred):
