@@ -282,7 +282,8 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
             gt = ground_truths[i]
             pred = predictions[i]
             score = TokenOverlap.compute(gt, pred, verbose)
-            if score != -1:
+            # if score != -1:
+            if True:
                 total_score += score
                 num_eval += 1
                 if verbose:
@@ -317,11 +318,7 @@ def eval():
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = process_data()
 
-<<<<<<< HEAD
-        eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, False)
-=======
         eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, True)
->>>>>>> 6b8c7489035043c06cbfcb05ba9967a7c01890c1
 
 
 def train_and_eval(train_set, dev_set):
