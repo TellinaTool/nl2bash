@@ -66,6 +66,8 @@ tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
+tf.app.flags.DEFINE_boolean("lstm", False,
+                            "Set to True for training with LSTM cells.")
 tf.app.flags.DEFINE_boolean("eval", False,
                             "Set to True for quantitive evaluation.")
 tf.app.flags.DEFINE_boolean("decode", False,
@@ -125,7 +127,7 @@ def create_model(session, forward_only):
         FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
         FLAGS.learning_rate, FLAGS.learning_rate_decay_factor,
         forward_only=forward_only,
-        use_lstm=True)
+        use_lstm=FLAGS.lstm)
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
