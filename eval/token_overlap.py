@@ -1,11 +1,13 @@
 import bashlex
 
+from common.bash import bash_tokenizer
+
 class TokenOverlap(object):
 
     @staticmethod
-    def compute(gt, pred):
+    def compute(gt, pred, verbose=False):
         try:
-            gt_cmd_list = TokenOverlap.get_command_list(gt)
+            gt_cmd_list = TokenOverlap.get_command_list(gt, verbose)
         except bashlex.errors.ParsingError, e:
             gt_cmd_list = TokenOverlap.get_command_list_rule_based(gt)
         except bashlex.tokenizer.MatchedPairError, e:
@@ -15,18 +17,18 @@ class TokenOverlap(object):
         pred_cmd_list = TokenOverlap.get_command_list_rule_based(pred)
 
         gt_num_cmds = len(gt_cmd_list)
-        pred_num_cmds = len(pred_cmd_list)
-        overlap_score = 0.0
-        for i in xrange(min(gt_num_cmds, pred_num_cmds)):
-            overlap_score += TokenOverlap.cmd_overlap_score(gt_cmd_list[i], pred_cmd_list[i])
         if gt_num_cmds == 0:
             # ignore ground truth that contains a list of commands
             return -1
         else:
+            pred_num_cmds = len(pred_cmd_list)
+            overlap_score = 0.0
+            for i in xrange(min(gt_num_cmds, pred_num_cmds)):
+                overlap_score += TokenOverlap.cmd_overlap_score(gt_cmd_list[i], pred_cmd_list[i])
             return overlap_score / max(gt_num_cmds, pred_num_cmds)
 
     @staticmethod
-    def get_command_list(cmd):
+    def get_command_list(cmd, verbose=False):
         parse = bashlex.parse(cmd)
         command_list = []
         if parse[0].kind == "pipeline":
@@ -36,8 +38,9 @@ class TokenOverlap(object):
         elif parse[0].kind == "command":
             command_list = [parse[0]]
         else:
-            # print "Unrecognized node type: " + parse[0].kind
-            print "Skipped: ground truth contains multiple statements"
+            if verbose:
+                print "Unrecognized node type: " + parse[0].kind
+                print "Skipped: ground truth contains multiple statements"
         return command_list
 
     @staticmethod
@@ -49,6 +52,6 @@ class TokenOverlap(object):
         if hasattr(gt, 'parts'):
             gt_token_set = set([n.word for n in gt.parts if n.kind == "word"])
         else:
-            gt_token_set = set(gt.split())
-        pred_token_set = set(pred.split())
+            gt_token_set = set(bash_tokenizer(gt.split))
+        pred_token_set = set(bash_tokenizer(pred.split))
         return (len(gt_token_set & pred_token_set) + 0.0) / len(gt_token_set | pred_token_set)

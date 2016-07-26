@@ -282,7 +282,7 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
                 continue
             gt = ground_truths[i]
             pred = predictions[i]
-            score = TokenOverlap.compute(gt, pred)
+            score = TokenOverlap.compute(gt, pred, verbose)
             if score != -1:
                 total_score += score
                 num_eval += 1
