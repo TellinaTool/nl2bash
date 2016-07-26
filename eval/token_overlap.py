@@ -1,6 +1,7 @@
 import bashlex
-
-from common.bash import bash_tokenizer
+import sys
+sys.path.append("../common")
+from bash import bash_tokenizer
 
 class TokenOverlap(object):
 
@@ -52,6 +53,6 @@ class TokenOverlap(object):
         if hasattr(gt, 'parts'):
             gt_token_set = set([n.word for n in gt.parts if n.kind == "word"])
         else:
-            gt_token_set = set(bash_tokenizer(gt.split))
-        pred_token_set = set(bash_tokenizer(pred.split))
+            gt_token_set = set(bash_tokenizer(gt))
+        pred_token_set = set(bash_tokenizer(pred))
         return (len(gt_token_set & pred_token_set) + 0.0) / len(gt_token_set | pred_token_set)
