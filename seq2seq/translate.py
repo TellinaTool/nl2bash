@@ -459,7 +459,7 @@ def main(_):
             self_test()
         elif FLAGS.eval:
             eval()
-        elif FLAGS.decode:cd 
+        elif FLAGS.decode: 
             decode()
         else:
             train_set, dev_set, _ = process_data()
