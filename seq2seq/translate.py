@@ -314,7 +314,7 @@ def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
 
 def eval(verbose=True):
-    with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
         # Create model and load parameters.
         model = create_model(sess, forward_only=True)
 
@@ -339,7 +339,7 @@ def train_and_eval(train_set, dev_set):
         tf.reset_default_graph()
 
 def decode():
-    with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
         # Create model and load parameters.
         model = create_model(sess, True)
         model.batch_size = 1  # We decode one sentence at a time.
@@ -434,7 +434,7 @@ def process_data():
 
 def self_test():
     """Test the translation model."""
-    with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
         print("Self-test for neural translation model.")
         # Create model with vocabularies of 10, 2 small buckets, 2 layers of 32.
         model = seq2seq_model.Seq2SeqModel(10, 10, [(3, 3), (6, 6)], 32, 2,
@@ -459,7 +459,7 @@ def main(_):
             self_test()
         elif FLAGS.eval:
             eval()
-        elif FLAGS.decode: 
+        elif FLAGS.decode:
             decode()
         else:
             train_set, dev_set, _ = process_data()
