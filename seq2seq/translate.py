@@ -66,6 +66,10 @@ tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
+tf.app.flags.DEFINE_integer("steps_per_milestone", 2000,
+                            "How many training steps to do per dev-set evaluation")
+tf.app.flags.DEFINE_integer("num_milestones", 2,
+                            "How many dev-set evaluation to be performed during training")
 tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
 tf.app.flags.DEFINE_boolean("log_device_placement", False,
                             "Set to True for logging device placement.")
@@ -335,8 +339,8 @@ def eval(verbose=True):
 
 
 def train_and_eval(train_set, dev_set):
-    num_iter = 1000
-    for i in xrange(5):
+    num_iter = FLAGS.steps_per_milestone
+    for i in xrange(FLAGS.num_milestones):
         train(train_set, dev_set, num_iter)
         tf.reset_default_graph()
         eval(False)
