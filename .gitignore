@@ -8,6 +8,7 @@
 *.pdf
 *.synctex.gz
 *.out
+*.dvi
 
 # Ignore the uncompressed StackOverflow data
 *.sqlite
@@ -26,3 +27,4 @@ __pycache__
 
 # Misc
 .DS_Store
+*.key
