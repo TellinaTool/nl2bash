@@ -66,6 +66,7 @@ tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
+tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
 tf.app.flags.DEFINE_boolean("lstm", False,
                             "Set to True for training with LSTM cells.")
 tf.app.flags.DEFINE_boolean("eval", False,
@@ -144,7 +145,7 @@ def cross_validation():
 
 
 def train(train_set, dev_set, num_iter):
-    with tf.Session() as sess:
+    with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
         # Create model.
         print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.size))
         model = create_model(sess, False)
@@ -313,7 +314,7 @@ def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
 
 def eval(verbose=True):
-    with tf.Session() as sess:
+    with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
         # Create model and load parameters.
         model = create_model(sess, forward_only=True)
 
@@ -338,7 +339,7 @@ def train_and_eval(train_set, dev_set):
         tf.reset_default_graph()
 
 def decode():
-    with tf.Session() as sess:
+    with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
         # Create model and load parameters.
         model = create_model(sess, True)
         model.batch_size = 1  # We decode one sentence at a time.
@@ -433,7 +434,7 @@ def process_data():
 
 def self_test():
     """Test the translation model."""
-    with tf.Session() as sess:
+    with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
         print("Self-test for neural translation model.")
         # Create model with vocabularies of 10, 2 small buckets, 2 layers of 32.
         model = seq2seq_model.Seq2SeqModel(10, 10, [(3, 3), (6, 6)], 32, 2,
@@ -452,15 +453,17 @@ def self_test():
 
 
 def main(_):
-    if FLAGS.self_test:
-        self_test()
-    elif FLAGS.eval:
-        eval()
-    elif FLAGS.decode:
-        decode()
-    else:
-        train_set, dev_set, _ = process_data()
-        train_and_eval(train_set, dev_set)
+    # set GPU device
+    with tf.device('/gpu:%d' % FLAGS.gpu):
+        if FLAGS.self_test:
+            self_test()
+        elif FLAGS.eval:
+            eval()
+        elif FLAGS.decode:cd 
+            decode()
+        else:
+            train_set, dev_set, _ = process_data()
+            train_and_eval(train_set, dev_set)
 
 
 if __name__ == "__main__":
