@@ -67,6 +67,8 @@ tf.app.flags.DEFINE_integer("max_train_data_size", 0,
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
 tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
+tf.app.flags.DEFINE_boolean("log_device_placement", False,
+                            "Set to True for logging device placement.")
 tf.app.flags.DEFINE_boolean("lstm", False,
                             "Set to True for training with LSTM cells.")
 tf.app.flags.DEFINE_boolean("eval", False,
@@ -145,7 +147,8 @@ def cross_validation():
 
 
 def train(train_set, dev_set, num_iter):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                                          log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.size))
         model = create_model(sess, False)
@@ -314,7 +317,8 @@ def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
 
 def eval(verbose=True):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                                          log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         model = create_model(sess, forward_only=True)
 
@@ -339,7 +343,8 @@ def train_and_eval(train_set, dev_set):
         tf.reset_default_graph()
 
 def decode():
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                                          log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         model = create_model(sess, True)
         model.batch_size = 1  # We decode one sentence at a time.
@@ -434,7 +439,8 @@ def process_data():
 
 def self_test():
     """Test the translation model."""
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                                          log_device_placement=FLAGS.log_device_placement)) as sess:
         print("Self-test for neural translation model.")
         # Create model with vocabularies of 10, 2 small buckets, 2 layers of 32.
         model = seq2seq_model.Seq2SeqModel(10, 10, [(3, 3), (6, 6)], 32, 2,
