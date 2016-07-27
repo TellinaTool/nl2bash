@@ -292,7 +292,7 @@ class Seq2SeqModel(object):
       batch_weights.append(batch_weight)
     return batch_encoder_inputs, batch_decoder_inputs, batch_weights
 
-  def get_batch(self, data, bucket_id, random_choice):
+  def get_batch(self, data, bucket_id):
     """Get a random batch of data from the specified bucket, prepare for step.
 
     To feed data in step(..) it must be a list of batch-major vectors, while
