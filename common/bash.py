@@ -22,7 +22,7 @@ _DIGIT_RE = re.compile(br"\d")
 
 _NUM = b"_NUM"
 
-def basic_tokenizer(sentence, normalize_digits=True):
+def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
     """Very basic tokenizer: split the sentence into a list of tokens."""
     words = []
     for space_separated_fragment in sentence.replace('\n', ' ').strip().split():
@@ -31,6 +31,10 @@ def basic_tokenizer(sentence, normalize_digits=True):
     for i in xrange(len(words)):
         w = words[i].lower() if i == 0 else words[i]
         word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
+        if lower_case:
+            # remove typing error
+            if word[0].isupper() and word[1:].islower():
+                word = word.lower()
         normalized_words.append(word)
     return normalized_words
 
@@ -55,11 +59,11 @@ def bash_tokenizer(cmd, normalize_digits=True):
     try:
         parts = bashlex.parse(cmd)
     except bashlex.tokenizer.MatchedPairError, e:
-        return basic_tokenizer(cmd, normalize_digits)
+        return basic_tokenizer(cmd, normalize_digits, False)
     except bashlex.errors.ParsingError, e:
-        return basic_tokenizer(cmd, normalize_digits)
+        return basic_tokenizer(cmd, normalize_digits, False)
     except NotImplementedError, e:
-        return basic_tokenizer(cmd, normalize_digits)
+        return basic_tokenizer(cmd, normalize_digits, False)
     except IndexError, e:
         # empty command
         return None
