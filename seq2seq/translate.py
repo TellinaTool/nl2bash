@@ -70,6 +70,15 @@ tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
+tf.app.flags.DEFINE_integer("steps_per_milestone", 2000,
+                            "How many training steps to do per dev-set evaluation")
+tf.app.flags.DEFINE_integer("num_milestones", 2,
+                            "How many dev-set evaluation to be performed during training")
+tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
+tf.app.flags.DEFINE_boolean("log_device_placement", False,
+                            "Set to True for logging device placement.")
+tf.app.flags.DEFINE_boolean("lstm", False,
+                            "Set to True for training with LSTM cells.")
 tf.app.flags.DEFINE_boolean("eval", False,
                             "Set to True for quantitive evaluation.")
 tf.app.flags.DEFINE_boolean("decode", False,
@@ -128,8 +137,13 @@ def create_model(session, forward_only):
         FLAGS.nl_vocab_size, FLAGS.cm_vocab_size, _buckets,
         FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
         FLAGS.learning_rate, FLAGS.learning_rate_decay_factor,
+<<<<<<< HEAD
         FLAGS.input_keep_prob, FLAGS.output_keep_prob,
         forward_only=forward_only)
+=======
+        forward_only=forward_only,
+        use_lstm=FLAGS.lstm)
+>>>>>>> 41d752df4c5b2b374e4663ccef7931458adb319a
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
@@ -145,8 +159,9 @@ def cross_validation():
     pass
 
 
-def train(train_set, dev_set):
-    with tf.Session() as sess:
+def train(train_set, dev_set, num_iter):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                                          log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.size))
         model = create_model(sess, False)
@@ -173,7 +188,7 @@ def train(train_set, dev_set):
         nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
-        while True:
+        for t in xrange(num_iter):
             # Choose a bucket according to data distribution. We pick a random number
             # in [0, 1] and use the corresponding interval in train_buckets_scale.
             random_number_01 = np.random.random_sample()
@@ -220,7 +235,7 @@ def train(train_set, dev_set):
                                                              target_weights, bucket_id, True)
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
-                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, False)
+                # eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=False)
 
                 sys.stdout.flush()
 
@@ -261,25 +276,26 @@ def batch_decode(output_logits, rev_cm_vocab):
 
 def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
     total_score = 0.0
+    num_correct = 0.0
     num_eval = 0
+
     for bucket_id in xrange(len(_buckets)):
         if len(dev_set[bucket_id]) == 0:
-            # print("eval: empty bucket %d" % (bucket_id))
             continue
-        # else:
-        #     print("eval: bucket %d" % (bucket_id))
         model.batch_size = len(dev_set[bucket_id])
-        encoder_inputs, decoder_inputs, target_weights = model.get_batch(
+
+        encoder_inputs, decoder_inputs, target_weights = model.get_bucket(
                     dev_set, bucket_id)
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
-                                                 target_weights, bucket_id, True)
+                                         target_weights, bucket_id, True)
+
         rev_encoder_inputs = []
         for i in xrange(len(encoder_inputs)-1, -1, -1):
             rev_encoder_inputs.append(encoder_inputs[i])
         sentences = token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)
         ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab, True)
+        assert(len(sentences) == len(ground_truths))
         predictions = batch_decode(output_logits, rev_cm_vocab)
-        assert(len(sentences) == len(predictions))
         assert(len(ground_truths) == len(predictions))
         for i in xrange(len(ground_truths)):
             sent = sentences[i]
@@ -287,27 +303,37 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
                 continue
             gt = ground_truths[i]
             pred = predictions[i]
-            if verbose:
-                print("Example %d" % (num_eval + 1))
-                print("English: " + sent)
-                print("Ground truth: " + gt)
-                print("Prediction: " + pred)
-            score = TokenOverlap.compute(gt, pred)
-            if score >= 0:
+            score = TokenOverlap.compute(gt, pred, verbose)
+            if score != -1:
                 total_score += score
+                if score == 1:
+                    num_correct += 1
                 num_eval += 1
                 if verbose:
+                    print("Example %d" % num_eval)
+                    print("English: " + sent)
+                    print("Ground truth: " + gt)
+                    print("Prediction: " + pred)
                     print("token-overlap score: %.2f" % score)
-            if verbose:
-                print()
+                    print()
 
-    print("Average token-overlap score %.2f" % (total_score/num_eval))
+    print("%d examples evaluated" % num_eval)
+    print("Accuracy = %.2f" % (num_correct/num_eval))
+    print("Average token-overlap score = %.2f" % (total_score/num_eval))
+    print()
 
 
-def eval():
-    with tf.Session() as sess:
+def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
+    # Create model and load parameters.
+    model = create_model(sess, True)
+    eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
+
+
+def eval(verbose=True):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                                          log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model = create_model(sess, True)
+        model = create_model(sess, forward_only=True)
 
         # Load vocabularies.
         nl_vocab_path = os.path.join(FLAGS.data_dir,
@@ -318,11 +344,20 @@ def eval():
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = process_data()
 
-        eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab)
+        eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
 
+
+def train_and_eval(train_set, dev_set):
+    num_iter = FLAGS.steps_per_milestone
+    for i in xrange(FLAGS.num_milestones):
+        train(train_set, dev_set, num_iter)
+        tf.reset_default_graph()
+        eval(False)
+        tf.reset_default_graph()
 
 def decode():
-    with tf.Session() as sess:
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                                          log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         model = create_model(sess, True)
         model.batch_size = 1  # We decode one sentence at a time.
@@ -417,7 +452,8 @@ def process_data():
 
 def self_test():
     """Test the translation model."""
-    with tf.Session() as sess:
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                                          log_device_placement=FLAGS.log_device_placement)) as sess:
         print("Self-test for neural translation model.")
         # Create model with vocabularies of 10, 2 small buckets, 2 layers of 32.
         model = seq2seq_model.Seq2SeqModel(10, 10, [(3, 3), (6, 6)], 32, 2,
@@ -436,15 +472,17 @@ def self_test():
 
 
 def main(_):
-    if FLAGS.self_test:
-        self_test()
-    elif FLAGS.eval:
-        eval()
-    elif FLAGS.decode:
-        decode()
-    else:
-        train_set, dev_set, _ = process_data()
-        train(train_set, dev_set)
+    # set GPU device
+    with tf.device('/gpu:%d' % FLAGS.gpu):
+        if FLAGS.self_test:
+            self_test()
+        elif FLAGS.eval:
+            eval()
+        elif FLAGS.decode:
+            decode()
+        else:
+            train_set, dev_set, _ = process_data()
+            train_and_eval(train_set, dev_set)
 
 
 if __name__ == "__main__":

@@ -20,7 +20,10 @@ from __future__ import print_function
 
 import os
 import re
-import bashlex
+import sys
+sys.path.append("../common")
+
+from bash import basic_tokenizer, bash_tokenizer
 
 from tensorflow.python.platform import gfile
 
@@ -32,56 +35,13 @@ _UNK = b"_UNK"
 _NUM = b"_NUM"
 _START_VOCAB = [_PAD, _GO, _EOS, _UNK]
 
+# Regular expressions used to tokenize.
+_DIGIT_RE = re.compile(br"\d")
+
 PAD_ID = 0
 GO_ID = 1
 EOS_ID = 2
 UNK_ID = 3
-
-# Regular expressions used to tokenize.
-_WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
-# _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
-_DIGIT_RE = re.compile(br"\d")
-
-
-def basic_tokenizer(sentence, normalize_digits=True):
-    """Very basic tokenizer: split the sentence into a list of tokens."""
-    words = []
-    for space_separated_fragment in sentence.replace('\n', ' ').strip().split():
-        words.extend(re.split(_WORD_SPLIT, space_separated_fragment))
-    normalized_words = []
-    for i in xrange(len(words)):
-        w = words[i].lower() if i == 0 else words[i]
-        word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
-        normalized_words.append(word)
-    return normalized_words
-
-
-def bash_tokenizer(cmd, normalize_digits=True):
-    cmd = cmd.replace('\n', ' ').strip()
-    tokens = []
-
-    def parse(node, tokens):
-        if node.kind == "word":
-            w = node.word
-            word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
-            tokens.append(word)
-        else:
-            if hasattr(node, 'parts'):
-                for child in node.parts:
-                    parse(child, tokens)
-    try:
-        parts = bashlex.parse(cmd)
-    except bashlex.tokenizer.MatchedPairError, e:
-        return basic_tokenizer(cmd, normalize_digits)
-    except bashlex.errors.ParsingError, e:
-        return basic_tokenizer(cmd, normalize_digits)
-    except NotImplementedError, e:
-        return basic_tokenizer(cmd, normalize_digits)
-
-    for part in parts:
-        parse(part, tokens)
-
-    return tokens
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                       tokenizer, normalize_digits=True):
@@ -120,7 +80,7 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             vocab_list = vocab_list[:max_vocabulary_size]
         with gfile.GFile(vocabulary_path, mode="wb") as vocab_file:
             for w in vocab_list:
-                vocab_file.write(w.decode().encode('utf-8') + b"\n")
+                vocab_file.write(w.encode('utf-8') + b"\n")
 
 
 def initialize_vocabulary(vocabulary_path):
@@ -177,7 +137,8 @@ def sentence_to_token_ids(sentence, vocabulary,
     if not normalize_digits:
         return [vocabulary.get(w, UNK_ID) for w in words]
     # Normalize digits by 0 before looking words up in the vocabulary.
-    return [vocabulary.get(re.sub(_DIGIT_RE, b"0", w), UNK_ID) for w in words]
+    # return [vocabulary.get(re.sub(_DIGIT_RE, b"0", w), UNK_ID) for w in words]
+    return [vocabulary.get(re.sub(_DIGIT_RE, _NUM, w), UNK_ID) for w in words]
 
 
 def data_to_token_ids(data, target_path, vocabulary_path,
