@@ -47,8 +47,8 @@ class Seq2SeqModel(object):
 
   def __init__(self, source_vocab_size, target_vocab_size, buckets, size,
                num_layers, max_gradient_norm, batch_size, learning_rate,
-               learning_rate_decay_factor, use_lstm=False,
-               num_samples=512, forward_only=False):
+               learning_rate_decay_factor, input_keep_prob, output_keep_prob,
+               use_lstm=False, num_samples=512, forward_only=False):
     """Create the model.
 
     Args:
@@ -108,7 +108,8 @@ class Seq2SeqModel(object):
     cell = single_cell
     if num_layers > 1:
       cell = tf.nn.rnn_cell.MultiRNNCell([single_cell] * num_layers)
-
+    if input_keep_prob < 1 or output_keep_prob < 1:
+        cell = tf.nn.rnn_cell.DropoutWrapper(cell, input_keep_prob=input_keep_prob, output_keep_prob=output_keep_prob)
     # The seq2seq function: we use embedding for the input and attention.
     def seq2seq_f(encoder_inputs, decoder_inputs, do_decode):
         return tf.nn.seq2seq.embedding_attention_seq2seq(
@@ -161,6 +162,7 @@ class Seq2SeqModel(object):
     if not forward_only:
       self.gradient_norms = []
       self.updates = []
+      # opt = tf.train.GradientDescentOptimizer(self.learning_rate)
       opt = tf.train.AdamOptimizer(self.learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08)
       for b in xrange(len(buckets)):
         gradients = tf.gradients(self.losses[b], params)
