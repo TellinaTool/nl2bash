@@ -14,6 +14,66 @@ import bashlex.ast
 DEBUG = False
 
 COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d+)$")
+
+# Regular expressions used to tokenize.
+_WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
+# _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
+_DIGIT_RE = re.compile(br"\d")
+
+_NUM = b"_NUM"
+
+def basic_tokenizer(sentence, normalize_digits=True):
+    """Very basic tokenizer: split the sentence into a list of tokens."""
+    words = []
+    for space_separated_fragment in sentence.replace('\n', ' ').strip().split():
+        words.extend(re.split(_WORD_SPLIT, space_separated_fragment))
+    normalized_words = []
+    for i in xrange(len(words)):
+        w = words[i].lower() if i == 0 else words[i]
+        word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
+        normalized_words.append(word)
+    return normalized_words
+
+def bash_tokenizer(cmd, normalize_digits=True):
+    cmd = cmd.replace('\n', ' ').strip()
+    tokens = []
+    if not cmd:
+        return tokens
+
+    def parse(node, tokens):
+        if node.kind == "word":
+            w = node.word
+            word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
+            tokens.append(word)
+        elif node.kind == "pipe":
+            w = node.pipe
+            tokens.append(w)
+        else:
+            if hasattr(node, 'parts'):
+                for child in node.parts:
+                    parse(child, tokens)
+    try:
+        parts = bashlex.parse(cmd)
+    except bashlex.tokenizer.MatchedPairError, e:
+        return basic_tokenizer(cmd, normalize_digits)
+    except bashlex.errors.ParsingError, e:
+        return basic_tokenizer(cmd, normalize_digits)
+    except NotImplementedError, e:
+        return basic_tokenizer(cmd, normalize_digits)
+    except IndexError, e:
+        # empty command
+        return None
+    except AttributeError, e:
+        # not a bash command
+        return None
+
+    for part in parts:
+        parse(part, tokens)
+
+    return tokens
+
+# -- Outdated ---
+
 def split_flags(cmd, word):
 
     if cmd == "tar" and all(c in "xtcrujzvf" for c in word):
@@ -37,7 +97,6 @@ def split_flags(cmd, word):
             else:
                 for flag in word[1:]:
                     yield "-" + flag
-
         else:
             yield word
     else:
@@ -76,7 +135,8 @@ def parse(code):
                     args = []
                     for part in parts[1:]:
                         if part.kind == "word":
-                            if cmd in ["xargs", "time", "nohup", "nice"] and part.word in ["find", "mv", "cp", "tar", "rm"]:
+                            if cmd in ["xargs", "time", "nohup", "nice"] and \
+                               part.word in ["find", "mv", "cp", "tar", "rm"]:
                                 self.simplecmds.append([cmd] + args)
                                 args = []
                                 cmd = part.word
@@ -88,6 +148,7 @@ def parse(code):
         v.visit(ast)
         for cmd in v.simplecmds:
             yield cmd
+
 
 if __name__ == "__main__":
     # This lets you call `python bash.py "cmd"` to test the parser
