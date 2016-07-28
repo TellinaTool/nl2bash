@@ -52,6 +52,10 @@ import seq2seq_model
 tf.app.flags.DEFINE_float("learning_rate", 0.5, "Learning rate.")
 tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
                           "Learning rate decays by this much.")
+tf.app.flags.DEFINE_float("input_keep_prob", 1.0,
+                          "Dropout: proportion of input units to keep.")
+tf.app.flags.DEFINE_float("output_keep_prob", 1.0,
+                          "Dropout: proportion of output units to keep.")
 tf.app.flags.DEFINE_float("max_gradient_norm", 5.0,
                           "Clip gradients to this norm.")
 tf.app.flags.DEFINE_integer("batch_size", 64,
@@ -133,6 +137,7 @@ def create_model(session, forward_only):
         FLAGS.nl_vocab_size, FLAGS.cm_vocab_size, _buckets,
         FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
         FLAGS.learning_rate, FLAGS.learning_rate_decay_factor,
+        FLAGS.input_keep_prob, FLAGS.output_keep_prob,
         forward_only=forward_only,
         use_lstm=FLAGS.lstm)
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)

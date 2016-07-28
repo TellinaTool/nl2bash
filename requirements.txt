@@ -1,2 +1,5 @@
 bashlex
+<<<<<<< HEAD
+=======
 pylzma
+>>>>>>> 41d752df4c5b2b374e4663ccef7931458adb319a
