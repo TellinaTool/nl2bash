@@ -32,7 +32,7 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
         word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
         if lower_case:
             # remove unnecessary upper cases
-            if word[0].isupper() and word[1:].islower():
+            if len(word) > 1 and word[0].isupper() and word[1:].islower():
                 word = word.lower()
         normalized_words.append(word)
     return normalized_words
