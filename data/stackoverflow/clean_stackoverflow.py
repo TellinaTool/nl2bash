@@ -11,20 +11,16 @@ import collections
 import HTMLParser
 import re
 import sys
-import shlex
-import string
-import sqlite3
 
 # 3rd party
 sys.path.append("/home/xilin/Packages")
-from semantics.lexical import stanford_tokenize, stanford_lemmatize
+from semantics.lexical import stanford_lemmatize
 
 sys.path.append("../baseline0/src")
 # local
-import common.bash
-import common
-from make_model import CODE_REGEX, COMMENT_REGEX, PROMPT_REGEX
-from make_model import extract_code, all_samples, is_oneliner
+import bashlex.bash
+from make_model import PROMPT_REGEX
+from make_model import all_samples, is_oneliner
 
 html = HTMLParser.HTMLParser()
 
@@ -73,7 +69,7 @@ def tokenize_question(q):
 
 def tokenize_code(code):
     code = PROMPT_REGEX.sub("", code)
-    for cmd in common.bash.parse(str(code)):
+    for cmd in bashlex.bash.parse(str(code)):
         args = cmd[1:]
         cmd = cmd[0]
         # print("cmd:{}".format(cmd), file=sys.stderr)
