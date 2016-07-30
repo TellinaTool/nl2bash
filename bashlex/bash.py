@@ -8,7 +8,7 @@ from __future__ import print_function
 import re
 import sys
 
-from bashlex import errors, tokenizer, parser
+from bashlex import ast, errors, tokenizer, parser
 
 DEBUG = False
 
@@ -80,6 +80,18 @@ def bash_tokenizer(cmd, normalize_digits=True):
             if hasattr(node, 'parts') and node.parts and \
                 node.parts[0].kind != "tilde":
                 # commandsubstitution, processsubstitution, parameter
+                if node.parts[0].kind == "processsubstitution":
+                    if '>' in node.word:
+                        tokens.append('>(')
+                        for child in node.parts:
+                            parse(child, tokens)
+                        tokens.append(')')
+                    elif '<' in node.word:
+                        tokens.append('<(')
+                        for child in node.parts:
+                            parse(child, tokens)
+                        tokens.append(')')
+                    return
                 for child in node.parts:
                     parse(child, tokens)
             else:
@@ -104,17 +116,7 @@ def bash_tokenizer(cmd, normalize_digits=True):
             parse(node.command, tokens)
             tokens.append('`')
         elif node.kind == "processsubstitution":
-            if '>' in node.word:
-                tokens.append('>(')
-                parse(node.command, tokens)
-                tokens.append(')')
-            elif '<' in node.word:
-                tokens.append('<(')
-                parse(node.command, tokens)
-                tokens.append(')')
-            else:
-                # unrecognized syntax
-                return None
+            parse(node.command, tokens)
         elif hasattr(node, 'parts'):
             for child in node.parts:
                 parse(child, tokens)
@@ -162,7 +164,7 @@ def bash_tokenizer(cmd, normalize_digits=True):
             tokens.append(None)
 
     try:
-        ast = parser.parse(cmd)
+        bash_ast = parser.parse(cmd)
     except tokenizer.MatchedPairError, e:
         print("Cannot parse: %s - MatchedPairError" % cmd.encode('utf-8'))
         # return basic_tokenizer(cmd, normalize_digits, False)
@@ -184,7 +186,7 @@ def bash_tokenizer(cmd, normalize_digits=True):
         # not a bash command
         return None
 
-    for node in ast:
+    for node in bash_ast:
         parse(node, tokens)
         if None in tokens:
             print("Unsupported: %s" % cmd.encode('utf-8'))
