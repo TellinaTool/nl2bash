@@ -1,8 +1,9 @@
-# commandline-helper
-constructing shell commands from natural language queries
+# Commandline-Helper
 
-Usage: 
+## Install TensorFlow: 
 
-cd pcfg/src/
+Follow the instructions on the [official website](https://www.tensorflow.org/versions/r0.9/get_started/os_setup.html).
 
-python parser.py <your command>
+## Train the model:
+
+`python translate.py --data_dir /path/to/train/set --train_dir /path/to/save/model`
