@@ -59,18 +59,23 @@ def bash_tokenizer(cmd, normalize_digits=True):
     try:
         parts = parser.parse(cmd)
     except tokenizer.MatchedPairError, e:
+        print("Cannot parse: %s - MatchedPairError" % cmd)
         # return basic_tokenizer(cmd, normalize_digits, False)
         return None
     except errors.ParsingError, e:
+        print("Cannot parse: %s - ParsingError" % cmd)
         # return basic_tokenizer(cmd, normalize_digits, False)
         return None
     except NotImplementedError, e:
+        print("Cannot parse: %s - NotImplementedError" % cmd)
         # return basic_tokenizer(cmd, normalize_digits, False)
         return None
     except IndexError, e:
+        print("Cannot parse: %s - IndexError" % cmd)
         # empty command
         return None
     except AttributeError, e:
+        print("Cannot parse: %s - AttributeError" % cmd)
         # not a bash command
         return None
 
