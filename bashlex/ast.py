@@ -88,6 +88,16 @@ class nodevisitor(object):
             if dochild is None or dochild:
                 for child in n.parts:
                     self.visit(child)
+        elif k in ('string'):
+            dochild = self._visitnode(n, n.word)
+            if dochild is None or dochild:
+                for child in n.parts:
+                    self.visit(child)
+        elif k in ('number'):
+            dochild = self._visitnode(n, n.word)
+            if dochild is None or dochild:
+                for child in n.parts:
+                    self.visit(child)
         elif k in ('assignment'):
             dochild = self._visitnode(n, n.word)
             if dochild is None or dochild:

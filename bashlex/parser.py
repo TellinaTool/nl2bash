@@ -640,7 +640,6 @@ class _parser(object):
         # state spills over to the next call to parse on it
         theparser = copy.copy(yaccparser)
         tree = theparser.parse(lexer=self.tok, context=self)
-
         return tree
 
 class _endfinder(ast.nodevisitor):
