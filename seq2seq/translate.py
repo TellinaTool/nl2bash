@@ -65,17 +65,17 @@ tf.app.flags.DEFINE_integer("batch_size", 64,
                             "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("size", 100, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
-tf.app.flags.DEFINE_integer("nl_vocab_size", 40000, "English vocabulary size.")
-tf.app.flags.DEFINE_integer("cm_vocab_size", 40000, "Bash vocabulary size.")
+tf.app.flags.DEFINE_integer("nl_vocab_size", 6000, "English vocabulary size.")
+tf.app.flags.DEFINE_integer("cm_vocab_size", 6000, "Bash vocabulary size.")
 tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
-tf.app.flags.DEFINE_integer("steps_per_milestone", 2000,
+tf.app.flags.DEFINE_integer("steps_per_milestone", 1000,
                             "How many training steps to do per dev-set evaluation")
-tf.app.flags.DEFINE_integer("num_milestones", 2,
+tf.app.flags.DEFINE_integer("num_milestones", 5,
                             "How many dev-set evaluation to be performed during training")
 tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
 tf.app.flags.DEFINE_boolean("log_device_placement", False,
@@ -93,7 +93,7 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(10, 5), (10, 10), (10, 15), (20, 25), (30, 40), (40, 50)]
+_buckets = [(5, 10), (10, 15), (10, 20), (20, 25), (20, 30), (30, 40), (40, 50)]
 
 
 def read_data(source_path, target_path, max_size=None):

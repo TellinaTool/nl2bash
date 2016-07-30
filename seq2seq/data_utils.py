@@ -70,6 +70,8 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
             tokens = tokenizer(line, normalize_digits)
+            # if not tokens:
+            #     print(line)
             for word in tokens:
                 if word in vocab:
                     vocab[word] += 1
