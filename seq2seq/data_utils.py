@@ -23,7 +23,7 @@ import re
 import sys
 sys.path.append("../bashlex")
 
-from bashlex.bash import basic_tokenizer, bash_tokenizer
+from bash import basic_tokenizer, bash_tokenizer
 
 from tensorflow.python.platform import gfile
 
@@ -70,8 +70,8 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
             tokens = tokenizer(line, normalize_digits)
-            # if not tokens:
-            #     print(line)
+            if not tokens:
+                continue
             for word in tokens:
                 if word in vocab:
                     vocab[word] += 1

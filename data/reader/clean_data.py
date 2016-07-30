@@ -4,17 +4,19 @@ import collections
 import cPickle as pickle
 import sqlite3
 import sys
+sys.path.append("..")
+sys.path.append("../../bashlex")
 import random
 
-from bashlex.bash import basic_tokenizer, bash_tokenizer
-from data.utils import ENGLISH_STOPWORDS
+from utils import is_stopword
+from bash import basic_tokenizer, bash_tokenizer
 
 # minimum number of edits two natural language descriptions have to differ to not be considered as duplicates
 EDITDIST_THRESH = 8
 
 def token_overlap(s1, s2):
-    tokens1 = set([w for w in basic_tokenizer(s1) if not w in ENGLISH_STOPWORDS])
-    tokens2 = set([w for w in basic_tokenizer(s2) if not w in ENGLISH_STOPWORDS])
+    tokens1 = set([w for w in basic_tokenizer(s1) if not is_stopword(w)])
+    tokens2 = set([w for w in basic_tokenizer(s2) if not is_stopword(w)])
     return (len(tokens1 & tokens2) + 0.0) / len(tokens1 | tokens2)
 
 def minEditDist(target, source):
@@ -148,10 +150,15 @@ class DBConnection(object):
         for cmd in unique_pairs:
             if not cmd:
                 continue
+            if not self.head_present(cmd, "find"):
+                continue
             tokens = bash_tokenizer(cmd)
             if not tokens:
                 num_errors += 1
                 continue
+            print(cmd.encode('utf-8'))
+            print(' '.join(tokens).encode('utf-8'))
+            print
             for nl in unique_pairs[cmd]:
                 inserted = False
                 for nl2 in desp_dict:
