@@ -1,3 +1,5 @@
+#!/usr/bin/env python2.7
+
 ENGLISH_STOPWORDS = {
     "a", "an", "the",
     "be", "'s", "been",
@@ -30,3 +32,6 @@ ENGLISH_STOPWORDS = {
     "which", "how", "how's",
     "but"
 }
+
+def is_stopword(w):
+    return w in ENGLISH_STOPWORDS
