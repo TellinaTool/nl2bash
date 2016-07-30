@@ -27,10 +27,16 @@ class TokenOverlap(object):
         try:
             parse = parser.parse(cmd)
         except bashlex.errors.ParsingError, e:
+            print("Cannot parse: %s - ParsingError" % cmd.encode('utf-8'))
             return TokenOverlap.get_command_list_rule_based(cmd)
         except bashlex.tokenizer.MatchedPairError, e:
+            print("Cannot parse: %s - MatchedPairError" % cmd.encode('utf-8'))
             return TokenOverlap.get_command_list_rule_based(cmd)
         except NotImplementedError, e:
+            print("Cannot parse: %s - NotImplementedError" % cmd.encode('utf-8'))
+            return TokenOverlap.get_command_list_rule_based(cmd)
+        except AttributeError, e:
+            print("Cannot parse: %s - AttributeError" % cmd.encode('utf-8'))
             return TokenOverlap.get_command_list_rule_based(cmd)
 
         command_list = []
