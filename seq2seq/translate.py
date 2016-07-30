@@ -35,12 +35,15 @@ import math
 import os
 import random
 import sys
+sys.path.append("../bashlex")
 sys.path.append("../eval")
+
 import time
 import cPickle as pickle
 
 import numpy as np
 
+from bash import basic_tokenizer
 from token_overlap import TokenOverlap
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
@@ -372,7 +375,8 @@ def decode():
         sentence = sys.stdin.readline()
         while sentence:
             # Get token-ids for the input sentence.
-            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab)
+            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+                                                         basic_tokenizer)
             # Which bucket does it belong to?
             bucket_id = min([b for b in xrange(len(_buckets))
                              if _buckets[b][0] > len(token_ids)])

@@ -21,7 +21,7 @@ from __future__ import print_function
 import os
 import re
 import sys
-sys.path.append("../common")
+sys.path.append("../bashlex")
 
 from bash import basic_tokenizer, bash_tokenizer
 
