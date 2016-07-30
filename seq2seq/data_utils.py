@@ -23,7 +23,7 @@ import re
 import sys
 sys.path.append("../bashlex")
 
-from bash import basic_tokenizer, bash_tokenizer
+from bashlex.bash import basic_tokenizer, bash_tokenizer
 
 from tensorflow.python.platform import gfile
 
