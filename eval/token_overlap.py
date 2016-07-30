@@ -1,6 +1,7 @@
-import bashlex
 import sys
-sys.path.append("../common")
+sys.path.append("../bashlex")
+import bashlex
+import errors, tokenizer, parser
 from bash import bash_tokenizer
 
 class TokenOverlap(object):
@@ -30,7 +31,7 @@ class TokenOverlap(object):
 
     @staticmethod
     def get_command_list(cmd, verbose=False):
-        parse = bashlex.parse(cmd)
+        parse = parser.parse(cmd)
         command_list = []
         if parse[0].kind == "pipeline":
             for node in parse[0].parts:
