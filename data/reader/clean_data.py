@@ -107,6 +107,12 @@ class DBConnection(object):
 
         self.conn.commit()
 
+    def pairs(self):
+        c = self.conn.cursor()
+        for user, url, nl, cmd, time_stamp in c.execute("SELECT user_id, url, nl, cmd, time_stamp FROM Pairs"):
+            yield (user, url, nl, cmd, time_stamp)
+        c.close()
+
     def unique_pairs(self):
         cmds_dict = collections.defaultdict(list)
         for user, url, nl, cmd, time_stamp in self.pairs():
