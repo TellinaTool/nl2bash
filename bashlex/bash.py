@@ -4,18 +4,17 @@ Functions for parsing bash code. See `parse(code)`
 
 # builtin
 from __future__ import print_function
-import sys
-import re
 
-# 3rd party
-import bashlex
-import bashlex.ast
+import re
+import sys
+
+import errors, tokenizer, parser
 
 DEBUG = False
 
 COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d+)$")
 
-# Regular expressions used to tokenize.
+# Regular expressions used to tokenize an English sentence.
 _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
 # _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
 _DIGIT_RE = re.compile(br"\d")
@@ -32,7 +31,7 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
         w = words[i].lower() if i == 0 else words[i]
         word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not w.startswith('-') else w
         if lower_case:
-            # remove typing error
+            # remove unnecessary upper cases
             if word[0].isupper() and word[1:].islower():
                 word = word.lower()
         normalized_words.append(word)
@@ -56,14 +55,18 @@ def bash_tokenizer(cmd, normalize_digits=True):
             if hasattr(node, 'parts'):
                 for child in node.parts:
                     parse(child, tokens)
+
     try:
-        parts = bashlex.parse(cmd)
-    except bashlex.tokenizer.MatchedPairError, e:
-        return basic_tokenizer(cmd, normalize_digits, False)
-    except bashlex.errors.ParsingError, e:
-        return basic_tokenizer(cmd, normalize_digits, False)
+        parts = parser.parse(cmd)
+    except tokenizer.MatchedPairError, e:
+        # return basic_tokenizer(cmd, normalize_digits, False)
+        return None
+    except errors.ParsingError, e:
+        # return basic_tokenizer(cmd, normalize_digits, False)
+        return None
     except NotImplementedError, e:
-        return basic_tokenizer(cmd, normalize_digits, False)
+        # return basic_tokenizer(cmd, normalize_digits, False)
+        return None
     except IndexError, e:
         # empty command
         return None
@@ -121,7 +124,7 @@ def parse(code):
     Yields all simple bash commands found in the code, e.g. ["ls", "-l"]
     """
     try:
-        parts = bashlex.parse(code)
+        parts = parse(code)
     except Exception as e:
         if DEBUG: print("warning: failed to parse {} ({}: {})".format(repr(code), type(e), e), file=sys.stderr)
         return
@@ -130,7 +133,7 @@ def parse(code):
 
     for ast in parts:
 
-        class Visitor(bashlex.ast.nodevisitor):
+        class Visitor(ast.nodevisitor):
             def __init__(self):
                 self.simplecmds = []
             def visitcommand(self, cmd, parts):
