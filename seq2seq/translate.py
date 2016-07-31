@@ -43,7 +43,7 @@ import cPickle as pickle
 
 import numpy as np
 
-from bash import basic_tokenizer
+from bash import basic_tokenizer, bash_tokenizer
 from token_overlap import TokenOverlap
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
@@ -471,19 +471,20 @@ def bucket_selection(num_buckets=10):
     numFolds = len(data)
     print("%d folds" % numFolds)
 
-    data = []
+    train_data = []
     for i in xrange(numFolds):
         if i < numFolds - 2:
             for nl, cmd in data[i]:
-                data.append((nl, cmd))
+                train_data.append((nl, cmd))
 
-    sorted_data = sorted(data, key=lambda x:(len(x[0]), len(x[1])))
+    sorted_data = sorted(train_data, key=lambda x:(len(basic_tokenizer(x[0])), 
+                                                   len(bash_tokenizer(x[1]))))
     bucket_size = len(sorted_data) / num_buckets
     for i in xrange(num_buckets):
         print(int(bucket_size * (i+1)))
-        mark = sorted_data[int(bucket_size * (i+1))]
+        mark = sorted_data[int(bucket_size * (i+1))-1]
         print(mark)
-        print(len(mark[0]), len(mark[1]))
+        print(len(basic_tokenizer(mark[0])), len(bash_tokenizer(mark[1])))
 
 
 def self_test():
