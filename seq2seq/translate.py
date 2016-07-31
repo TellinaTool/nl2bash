@@ -71,7 +71,7 @@ tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
-tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
+tf.app.flags.DEFINE_integer("steps_per_checkpoint", 100,
                             "How many training steps to do per checkpoint.")
 tf.app.flags.DEFINE_integer("steps_per_milestone", 1000,
                             "How many training steps to do per dev-set evaluation")
@@ -222,7 +222,7 @@ def train(train_set, dev_set, num_iter):
 
                 # Save checkpoint and zero timer and loss.
                 checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
-                model.saver.save(sess, checkpoint_path, global_step=model.global_step)
+                model.saver.save(sess, checkpoint_path, dglobal_step=model.global_step)
                 step_time, loss, dev_loss = 0.0, 0.0, 0.0
 
                 # Run evals on development set and print their perplexity.
@@ -238,17 +238,18 @@ def train(train_set, dev_set, num_iter):
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
-                dev_perplexity = math.exp(dev_loss) if dev_loss < 300 else float('inf')
+                dev_perplexity = math.exp(dev_loss/len(_buckets)) if dev_loss < 300 else float('inf')
                 print("global step %d learning rate %.4f step-time %.2f dev_perplexity "
                       "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
                                 step_time, dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 3 times.
                 if len(previous_dev_losses) > 2 and loss > max(previous_dev_losses[-3:]):
-                    break
+                    return False
                 previous_dev_losses.append(dev_loss)
 
                 sys.stdout.flush()
+    return True
 
 
 def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
@@ -361,10 +362,14 @@ def eval(verbose=True):
 def train_and_eval(train_set, dev_set):
     num_iter = FLAGS.steps_per_milestone
     for i in xrange(FLAGS.num_milestones):
-        train(train_set, dev_set, num_iter)
+        is_learning = train(train_set, dev_set, num_iter)
         tf.reset_default_graph()
         eval(False)
         tf.reset_default_graph()
+
+        if not is_learning:
+            print("Training stopped early for no improvement observed on dev set.")
+            break
 
 def decode():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
