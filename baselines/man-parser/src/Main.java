@@ -19,6 +19,8 @@ public class Main {
 
     static boolean trySmallExample = true;
 
+    static final String PREFIX = "";
+
     public static void main(String[] args) throws IOException, ParseException {
 
         // // summarizing options of the file tar.1.txt
