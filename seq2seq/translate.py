@@ -464,11 +464,14 @@ def process_data():
             return pickle.load(f)
 
 
-def bucket_selection(train_data, num_buckets=10):
+def bucket_selection(data, num_buckets=10):
     buckets = []
-    print(train_data)
-
-
+    sorted_data = sorted(data, key=lambda x:(len(x[0]), len(x[1])))
+    bucket_size = len(sorted_data) / num_buckets
+    for i in xrange(num_buckets):
+        mark = sorted_data[bucket_size * (i+1)]
+        print(len(mark[0]), len(mark[1]))
+        
 
 def self_test():
     """Test the translation model."""
