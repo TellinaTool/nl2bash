@@ -57,7 +57,7 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
         words.extend(re.split(_WORD_SPLIT, space_separated_fragment))
     normalized_words = []
     for i in xrange(len(words)):
-        w = words[i].lower() if i == 0 else words[i]
+        w = words[i].strip()
         word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
         if lower_case:
             # remove unnecessary upper cases
