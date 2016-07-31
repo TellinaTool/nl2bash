@@ -65,8 +65,8 @@ tf.app.flags.DEFINE_integer("batch_size", 64,
                             "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("size", 100, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
-tf.app.flags.DEFINE_integer("nl_vocab_size", 6000, "English vocabulary size.")
-tf.app.flags.DEFINE_integer("cm_vocab_size", 6000, "Bash vocabulary size.")
+tf.app.flags.DEFINE_integer("nl_vocab_size", 150, "English vocabulary size.")
+tf.app.flags.DEFINE_integer("cm_vocab_size", 150, "Bash vocabulary size.")
 tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
@@ -222,7 +222,7 @@ def train(train_set, dev_set, num_iter):
 
                 # Save checkpoint and zero timer and loss.
                 checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
-                model.saver.save(sess, checkpoint_path, dglobal_step=model.global_step)
+                model.saver.save(sess, checkpoint_path, global_step=model.global_step)
                 step_time, loss, dev_loss = 0.0, 0.0, 0.0
 
                 # Run evals on development set and print their perplexity.
@@ -244,7 +244,7 @@ def train(train_set, dev_set, num_iter):
                                 step_time, dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 3 times.
-                if len(previous_dev_losses) > 2 and loss > max(previous_dev_losses[-3:]):
+                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]):
                     return False
                 previous_dev_losses.append(dev_loss)
 
