@@ -71,7 +71,7 @@ tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
-tf.app.flags.DEFINE_integer("steps_per_checkpoint", 100,
+tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
 tf.app.flags.DEFINE_integer("steps_per_milestone", 1000,
                             "How many training steps to do per dev-set evaluation")
@@ -244,7 +244,7 @@ def train(train_set, dev_set, num_iter):
                                 step_time, dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 3 times.
-                if len(previous_dev_losses) > 2 and loss > max(previous_dev_losses[-3:]):
+                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]):
                     return False
                 previous_dev_losses.append(dev_loss)
 
