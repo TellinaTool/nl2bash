@@ -1,20 +1,14 @@
-import bashlex
 import sys
-sys.path.append("../common")
-from bash import bash_tokenizer
+sys.path.append("../bashlex")
+import bashlex
+import errors, tokenizer, parser
+from bash import bash_tokenizer, basic_tokenizer
 
 class TokenOverlap(object):
 
     @staticmethod
     def compute(gt, pred, verbose=False):
-        try:
-            gt_cmd_list = TokenOverlap.get_command_list(gt, verbose)
-        except bashlex.errors.ParsingError, e:
-            gt_cmd_list = TokenOverlap.get_command_list_rule_based(gt)
-        except bashlex.tokenizer.MatchedPairError, e:
-            gt_cmd_list = TokenOverlap.get_command_list_rule_based(gt)
-        except NotImplementedError, e:
-            gt_cmd_list = TokenOverlap.get_command_list_rule_based(gt)
+        gt_cmd_list = TokenOverlap.get_command_list(gt, verbose)
         pred_cmd_list = TokenOverlap.get_command_list_rule_based(pred)
 
         gt_num_cmds = len(gt_cmd_list)
@@ -30,7 +24,17 @@ class TokenOverlap(object):
 
     @staticmethod
     def get_command_list(cmd, verbose=False):
-        parse = bashlex.parse(cmd)
+        try:
+            parse = parser.parse(cmd)
+        except bashlex.errors.ParsingError, e:
+            return TokenOverlap.get_command_list_rule_based(cmd)
+        except bashlex.tokenizer.MatchedPairError, e:
+            return TokenOverlap.get_command_list_rule_based(cmd)
+        except NotImplementedError, e:
+            return TokenOverlap.get_command_list_rule_based(cmd)
+        except AttributeError, e:
+            return TokenOverlap.get_command_list_rule_based(cmd)
+
         command_list = []
         if parse[0].kind == "pipeline":
             for node in parse[0].parts:
@@ -64,6 +68,12 @@ class TokenOverlap(object):
         if hasattr(gt, 'parts'):
             gt_token_set = set([n.word for n in gt.parts if n.kind == "word"])
         else:
-            gt_token_set = set(bash_tokenizer(gt))
-        pred_token_set = set(bash_tokenizer(pred))
+            gt_tokens = bash_tokenizer(gt)
+            if not gt_tokens:
+                gt_tokens = basic_tokenizer(gt)
+            gt_token_set = set(gt_tokens)
+        pred_tokens = bash_tokenizer(pred)
+        if not pred_tokens:
+            pred_tokens = basic_tokenizer(pred)
+        pred_token_set = set(pred_tokens)
         return (len(gt_token_set & pred_token_set) + 0.0) / len(gt_token_set | pred_token_set)

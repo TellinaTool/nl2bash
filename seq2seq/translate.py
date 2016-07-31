@@ -35,12 +35,15 @@ import math
 import os
 import random
 import sys
+sys.path.append("../bashlex")
 sys.path.append("../eval")
+
 import time
 import cPickle as pickle
 
 import numpy as np
 
+from bash import basic_tokenizer, bash_tokenizer
 from token_overlap import TokenOverlap
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
@@ -60,19 +63,19 @@ tf.app.flags.DEFINE_float("max_gradient_norm", 5.0,
                           "Clip gradients to this norm.")
 tf.app.flags.DEFINE_integer("batch_size", 64,
                             "Batch size to use during training.")
-tf.app.flags.DEFINE_integer("size", 100, "Size of each model layer.")
+tf.app.flags.DEFINE_integer("size", 200, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
-tf.app.flags.DEFINE_integer("nl_vocab_size", 40000, "English vocabulary size.")
-tf.app.flags.DEFINE_integer("cm_vocab_size", 40000, "Bash vocabulary size.")
+tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
+tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
 tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
-tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
+tf.app.flags.DEFINE_integer("steps_per_checkpoint", 100,
                             "How many training steps to do per checkpoint.")
-tf.app.flags.DEFINE_integer("steps_per_milestone", 2000,
+tf.app.flags.DEFINE_integer("steps_per_milestone", 1000,
                             "How many training steps to do per dev-set evaluation")
-tf.app.flags.DEFINE_integer("num_milestones", 2,
+tf.app.flags.DEFINE_integer("num_milestones", 5,
                             "How many dev-set evaluation to be performed during training")
 tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
 tf.app.flags.DEFINE_boolean("log_device_placement", False,
@@ -83,6 +86,8 @@ tf.app.flags.DEFINE_boolean("eval", False,
                             "Set to True for quantitive evaluation.")
 tf.app.flags.DEFINE_boolean("decode", False,
                             "Set to True for interactive decoding.")
+tf.app.flags.DEFINE_boolean("bucket_selection", False,
+                            "Run a bucket_selection if this is set to True.")
 tf.app.flags.DEFINE_boolean("self_test", False,
                             "Run a self-test if this is set to True.")
 
@@ -90,8 +95,7 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(10, 5), (10, 10), (10, 15), (20, 25), (30, 40), (40, 50)]
-
+_buckets = [(5, 10), (10, 10), (10, 15), (15, 10), (15, 15), (20, 20), (20, 25), (20, 30), (25, 25), (25, 30)]
 
 def read_data(source_path, target_path, max_size=None):
     """Read data from source and target files and put into buckets.
@@ -175,6 +179,7 @@ def train(train_set, dev_set, num_iter):
         step_time, loss = 0.0, 0.0
         current_step = 0
         previous_losses = []
+        previous_dev_losses = []
 
         # Load Vocabularies for evaluation on dev set at each checkpoint
         nl_vocab_path = os.path.join(FLAGS.data_dir,
@@ -218,8 +223,9 @@ def train(train_set, dev_set, num_iter):
                 # Save checkpoint and zero timer and loss.
                 checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
                 model.saver.save(sess, checkpoint_path, global_step=model.global_step)
-                step_time, loss = 0.0, 0.0
-
+                
+                step_time, loss, dev_loss = 0.0, 0.0, 0.0
+                
                 # Run evals on development set and print their perplexity.
                 for bucket_id in xrange(len(_buckets)):
                     if len(dev_set[bucket_id]) == 0:
@@ -229,11 +235,22 @@ def train(train_set, dev_set, num_iter):
                         dev_set, bucket_id)
                     _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                                              target_weights, bucket_id, True)
+                    dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
-                # eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=False)
+
+                dev_perplexity = math.exp(dev_loss/len(_buckets)) if dev_loss < 300 else float('inf')
+                print("global step %d learning rate %.4f step-time %.2f dev_perplexity "
+                      "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
+                                step_time, dev_perplexity))
+
+                # Early stop if no improvement of dev loss was seen over last 3 times.
+                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]):
+                    return False
+                previous_dev_losses.append(dev_loss)
 
                 sys.stdout.flush()
+    return True
 
 
 def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
@@ -346,10 +363,14 @@ def eval(verbose=True):
 def train_and_eval(train_set, dev_set):
     num_iter = FLAGS.steps_per_milestone
     for i in xrange(FLAGS.num_milestones):
-        train(train_set, dev_set, num_iter)
+        is_learning = train(train_set, dev_set, num_iter)
         tf.reset_default_graph()
         eval(False)
         tf.reset_default_graph()
+
+        if not is_learning:
+            print("Training stopped early for no improvement observed on dev set.")
+            break
 
 def decode():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
@@ -372,7 +393,8 @@ def decode():
         sentence = sys.stdin.readline()
         while sentence:
             # Get token-ids for the input sentence.
-            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab)
+            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+                                                         basic_tokenizer)
             # Which bucket does it belong to?
             bucket_id = min([b for b in xrange(len(_buckets))
                              if _buckets[b][0] > len(token_ids)])
@@ -446,6 +468,29 @@ def process_data():
             return pickle.load(f)
 
 
+def bucket_selection(num_buckets=10):
+    with open(FLAGS.data_dir + "data.dat") as f:
+        data = pickle.load(f)
+
+    numFolds = len(data)
+    print("%d folds" % numFolds)
+
+    train_data = []
+    for i in xrange(numFolds):
+        if i < numFolds - 2:
+            for nl, cmd in data[i]:
+                train_data.append((nl, cmd))
+
+    sorted_data = sorted(train_data, key=lambda x:(len(basic_tokenizer(x[0])), 
+                                                   len(bash_tokenizer(x[1]))))
+    bucket_size = len(sorted_data) / num_buckets
+    for i in xrange(num_buckets):
+        print(int(bucket_size * (i+1)))
+        mark = sorted_data[int(bucket_size * (i+1))-1]
+        print(mark)
+        print(len(basic_tokenizer(mark[0])), len(bash_tokenizer(mark[1])))
+
+
 def self_test():
     """Test the translation model."""
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
@@ -476,6 +521,8 @@ def main(_):
             eval()
         elif FLAGS.decode:
             decode()
+        elif FLAGS.bucket_selection:
+            bucket_selection()
         else:
             train_set, dev_set, _ = process_data()
             train_and_eval(train_set, dev_set)
