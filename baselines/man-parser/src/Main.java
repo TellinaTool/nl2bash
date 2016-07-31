@@ -19,7 +19,7 @@ public class Main {
 
     static boolean trySmallExample = true;
 
-    static final String PREFIX = "";
+    static final String PREFIX = "../../";
 
     public static void main(String[] args) throws IOException, ParseException {
 
@@ -31,17 +31,17 @@ public class Main {
         /*String s = SmallTask.processWierdThing("wierddata");
         System.out.println(s);*/
 
-        File[] files = new File("../data/plain-man").listFiles();
+        File[] files = new File(PREFIX +  "data/plain-man").listFiles();
 
         if (trySmallExample) {
             String[] targetFiles = {
-                    "../data/plain-man/grep.1.txt",
-                    "../data/plain-man/find_cheat.1.txt",
-                    "../data/plain-man/xargs.1.txt",
-                    "../data/plain-man/sort.1.txt",
-                    "../data/plain-man/cp.1.txt",
-                    "../data/plain-man/ls.1.txt",
-                    "../data/plain-man/tar.1.txt"
+                    PREFIX + "data/plain-man/grep.1.txt",
+                    PREFIX + "data/plain-man/find_cheat.1.txt",
+                    PREFIX + "data/plain-man/xargs.1.txt",
+                    PREFIX + "data/plain-man/sort.1.txt",
+                    PREFIX + "data/plain-man/cp.1.txt",
+                    PREFIX + "data/plain-man/ls.1.txt",
+                    PREFIX + "data/plain-man/tar.1.txt"
             };
             List<Cmd.ManPage> manPages = new ArrayList<>();
             for (String f : targetFiles) {
