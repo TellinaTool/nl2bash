@@ -470,6 +470,7 @@ def bucket_selection(data, num_buckets=10):
     for i in xrange(num_buckets):
         print(int(bucket_size * (i+1)))
         mark = sorted_data[int(bucket_size * (i+1))]
+        print(mark)
         print(len(mark[0]), len(mark[1]))
 
 
