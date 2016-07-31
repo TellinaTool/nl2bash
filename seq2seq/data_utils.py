@@ -21,7 +21,7 @@ from __future__ import print_function
 import os
 import re
 import sys
-sys.path.append("../common")
+sys.path.append("../bashlex")
 
 from bash import basic_tokenizer, bash_tokenizer
 
@@ -70,6 +70,8 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
             tokens = tokenizer(line, normalize_digits)
+            if not tokens:
+                continue
             for word in tokens:
                 if word in vocab:
                     vocab[word] += 1
