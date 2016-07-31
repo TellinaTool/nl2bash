@@ -464,7 +464,19 @@ def process_data():
             return pickle.load(f)
 
 
-def bucket_selection(data, num_buckets=10):
+def bucket_selection(num_buckets=10):
+    with open(FLAGS.data_dir + "data.dat") as f:
+        data = pickle.load(f)
+
+    numFolds = len(data)
+    print("%d folds" % numFolds)
+
+    data = []
+    for i in xrange(numFolds):
+        if i < numFolds - 2:
+            for nl, cmd in data[i]:
+                data.append((nl, cmd))
+
     sorted_data = sorted(data, key=lambda x:(len(x[0]), len(x[1])))
     bucket_size = len(sorted_data) / num_buckets
     for i in xrange(num_buckets):
@@ -505,8 +517,7 @@ def main(_):
         elif FLAGS.decode:
             decode()
         elif FLAGS.bucket_selection:
-            train_set, dev_set, _ = process_data()
-            bucket_selection(train_set)
+            bucket_selection()
         else:
             train_set, dev_set, _ = process_data()
             train_and_eval(train_set, dev_set)
