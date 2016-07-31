@@ -86,6 +86,8 @@ tf.app.flags.DEFINE_boolean("eval", False,
                             "Set to True for quantitive evaluation.")
 tf.app.flags.DEFINE_boolean("decode", False,
                             "Set to True for interactive decoding.")
+tf.app.flags.DEFINE_boolean("bucket_selection", False,
+                            "Run a bucket_selection if this is set to True.")
 tf.app.flags.DEFINE_boolean("self_test", False,
                             "Run a self-test if this is set to True.")
 
@@ -93,7 +95,8 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(5, 10), (10, 10), (10, 15), (15, 10), (15, 15), (20, 20), (20, 25), (20, 30), (30, 40), (40, 50)]
+# _buckets = [(5, 10), (10, 10), (10, 15), (15, 10), (15, 15), (20, 20), (20, 25), (20, 30), (30, 40), (40, 50)]
+_buckets = []
 
 
 def read_data(source_path, target_path, max_size=None):
@@ -236,7 +239,7 @@ def train(train_set, dev_set, num_iter):
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
-                    
+
                 dev_perplexity = math.exp(dev_loss) if dev_loss < 300 else float('inf')
                 print("global step %d learning rate %.4f step-time %.2f dev_perplexity "
                       "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
@@ -461,6 +464,12 @@ def process_data():
             return pickle.load(f)
 
 
+def bucket_selection(train_data, num_buckets=10):
+    buckets = []
+    print(train_data)
+
+
+
 def self_test():
     """Test the translation model."""
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
@@ -491,6 +500,9 @@ def main(_):
             eval()
         elif FLAGS.decode:
             decode()
+        elif FLAGS.bucket_selection:
+            train_set, dev_set, _ = process_data()
+            bucket_selection(train_set)
         else:
             train_set, dev_set, _ = process_data()
             train_and_eval(train_set, dev_set)
