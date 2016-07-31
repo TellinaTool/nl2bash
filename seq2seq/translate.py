@@ -178,6 +178,7 @@ def train(train_set, dev_set, num_iter):
         step_time, loss = 0.0, 0.0
         current_step = 0
         previous_losses = []
+        previous_dev_losses = []
 
         # Load Vocabularies for evaluation on dev set at each checkpoint
         nl_vocab_path = os.path.join(FLAGS.data_dir,
@@ -221,7 +222,7 @@ def train(train_set, dev_set, num_iter):
                 # Save checkpoint and zero timer and loss.
                 checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
                 model.saver.save(sess, checkpoint_path, global_step=model.global_step)
-                step_time, loss = 0.0, 0.0
+                step_time, loss, dev_loss = 0.0, 0.0, 0.0
 
                 # Run evals on development set and print their perplexity.
                 for bucket_id in xrange(len(_buckets)):
@@ -232,9 +233,19 @@ def train(train_set, dev_set, num_iter):
                         dev_set, bucket_id)
                     _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                                              target_weights, bucket_id, True)
+                    dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
-                # eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=False)
+                    
+                dev_perplexity = math.exp(dev_loss) if dev_loss < 300 else float('inf')
+                print("global step %d learning rate %.4f step-time %.2f dev_perplexity "
+                      "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
+                                step_time, dev_perplexity))
+
+                # Early stop if no improvement of dev loss was seen over last 3 times.
+                if len(previous_dev_losses) > 2 and loss > max(previous_dev_losses[-3:]):
+                    break
+                previous_dev_losses.append(dev_loss)
 
                 sys.stdout.flush()
 
