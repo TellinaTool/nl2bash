@@ -31,3 +31,6 @@ __pycache__
 temp.txt
 *dump*.txt
 /nl2cmd_paper
+# ideaJ file
+# User-specific stuff:
+baselines/man-parser/.idea/*
