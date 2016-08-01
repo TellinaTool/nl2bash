@@ -30,3 +30,4 @@ __pycache__
 *.key
 temp.txt
 *dump*.txt
+/nl2cmd_paper
