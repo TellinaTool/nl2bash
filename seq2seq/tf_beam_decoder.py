@@ -58,7 +58,7 @@ class BeamDecoder(object):
         if not isinstance(state, tf.Tensor):
             raise ValueError("State should be a sequence or tensor")
 
-        print(state.get_shape())
+        print("state.get_shape() + %s" % state.get_shape())
 
         tensor = state
 
@@ -74,6 +74,8 @@ class BeamDecoder(object):
         res = tf.tile(res, [1, beam_size] + [1] * (tensor_shape.ndims-1))
         res = tf.reshape(res, [-1] + list(dynamic_tensor_shape[1:]))
         res.set_shape([new_first_dim] + list(tensor_shape[1:]))
+
+        print("res.get_shape() + %s" % res.get_shape())
         return res
 
     def wrap_cell(self, cell):

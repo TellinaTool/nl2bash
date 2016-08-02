@@ -633,8 +633,8 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
       of attention_states are not set, or input size cannot be inferred
       from the input.
   """
-  decoder_inputs = [beam_decoder.wrap_input(decoder_inputs)] + [None] * 4
   attention_states = [beam_decoder.wrap_input(attention_states)] + [None] * 4
+  decoder_inputs = [beam_decoder.wrap_input(decoder_inputs)] + [None] * 4
   initial_state = beam_decoder.wrap_state(initial_state)
   cell = beam_decoder.wrap_cell(cell)
   
