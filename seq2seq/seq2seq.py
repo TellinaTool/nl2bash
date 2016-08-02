@@ -493,7 +493,7 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
   if beam_decoder:
     decoder_inputs = [beam_decoder.wrap_input(decoder_inputs)] + [None] * 4
     initial_state = beam_decoder.wrap_state(initial_state)
-    cell = beam_decoder.wrap_cell(cell)
+
   if not decoder_inputs:
     raise ValueError("Must provide at least 1 input to attention decoder.")
   if num_heads < 1:
@@ -953,7 +953,7 @@ def model_with_buckets(encoder_inputs, decoder_inputs, targets, weights,
         if per_example_loss is set, a list of 1D batch-sized float Tensors.
 
   Raises:
-    ValueError: If length of encoder_inputsut, targets, or weights is smaller
+    ValueError: If length of encoder_inputs, targets, or weights is smaller
       than the largest (last) bucket.
   """
   if len(encoder_inputs) < buckets[-1][0]:

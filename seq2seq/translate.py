@@ -145,7 +145,7 @@ def create_model(session, forward_only):
         beam_decoder = BeamDecoder(num_classes=FLAGS.cm_vocab_size,
                                    stop_token=data_utils.EOS_ID,
                                    beam_size=FLAGS.beam_size,
-                                   max_len=10000)
+                                   max_len=50)
     model = seq2seq_model.Seq2SeqModel(
         FLAGS.nl_vocab_size, FLAGS.cm_vocab_size, _buckets,
         FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
@@ -288,6 +288,7 @@ def decode(output_logits, rev_cm_vocab):
         # This is a greedy decoder - outputs are just argmaxes of output_logits.
         outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
     elif FLAGS.decoder == "beam_search":
+
 
     # If there is an EOS symbol in outputs, cut them at that point.
     if data_utils.EOS_ID in outputs:
