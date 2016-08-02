@@ -634,27 +634,27 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
       from the input.
   """
   decoder_inputs = [beam_decoder.wrap_input(decoder_inputs)] + [None] * 4
-  attention_states = [beam_decoder.wrap_input(attention_states)] + [None] * 4
+  attention_states = beam_decoder.wrap_input(attention_states)
   initial_state = beam_decoder.wrap_state(initial_state)
     
   if not decoder_inputs:
     raise ValueError("Must provide at least 1 input to attention decoder.")
   if num_heads < 1:
     raise ValueError("With less than 1 heads, use a non-attention decoder.")
-  if not attention_states[0].get_shape()[1:2].is_fully_defined():
+  if not attention_states.get_shape()[1:2].is_fully_defined():
     raise ValueError("Shape[1] and [2] of attention_states must be known: %s"
-                     % attention_states[0].get_shape())
+                     % attention_states.get_shape())
   if output_size is None:
     output_size = cell.output_size
 
   with variable_scope.variable_scope(scope or "attention_decoder"):
     batch_size = array_ops.shape(decoder_inputs[0][0])[0]  # Needed for reshaping.
-    attn_length = attention_states[0].get_shape()[1].value
-    attn_size = attention_states[0].get_shape()[2].value
+    attn_length = attention_states.get_shape()[1].value
+    attn_size = attention_states.get_shape()[2].value
 
     # To calculate W1 * h_t we use a 1-by-1 convolution, need to reshape before.
     hidden = array_ops.reshape(
-        attention_states[0], [-1, attn_length, 1, attn_size])
+        attention_states, [-1, attn_length, 1, attn_size])
     hidden_features = []
     v = []
     attention_vec_size = attn_size  # Size of query vectors for attention.
