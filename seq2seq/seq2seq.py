@@ -431,6 +431,26 @@ def embedding_tied_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
                                               lambda: decoder(False))
     return outputs_and_state[:-1], outputs_and_state[-1]
 
+def attention(query):
+  shapes = [a.get_shape().as_list() for a in query]
+  raise ValueError(str(shapes))
+  """Put attention masks on hidden using hidden_features and query."""
+  ds = []  # Results of attention reads will be stored here.
+  for a in xrange(num_heads):
+    with variable_scope.variable_scope("Attention_%d" % a):
+      y = linear(query, attention_vec_size, True)
+      y = array_ops.reshape(y, [-1, 1, 1, attention_vec_size])
+      # Attention mask is a softmax of v^T * tanh(...).
+      s = math_ops.reduce_sum(
+          v[a] * math_ops.tanh(hidden_features[a] + y), [2, 3])
+      a = nn_ops.softmax(s)
+      # Now calculate the attention-weighted vector d.
+      d = math_ops.reduce_sum(
+          array_ops.reshape(a, [-1, attn_length, 1, 1]) * hidden,
+          [1, 2])
+      ds.append(array_ops.reshape(d, [-1, attn_size]))
+  return ds
+
 def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
                       output_size=None, num_heads=1, loop_function=None,
                       dtype=dtypes.float32, scope=None,
@@ -512,25 +532,6 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
                                            [attention_vec_size]))
 
     state = initial_state
-
-    def attention(query):
-      """Put attention masks on hidden using hidden_features and query."""
-      ds = []  # Results of attention reads will be stored here.
-      for a in xrange(num_heads):
-        with variable_scope.variable_scope("Attention_%d" % a):
-          y = linear(query, attention_vec_size, True)
-          y = array_ops.reshape(y, [-1, 1, 1, attention_vec_size])
-          # Attention mask is a softmax of v^T * tanh(...).
-          s = math_ops.reduce_sum(
-              v[a] * math_ops.tanh(hidden_features[a] + y), [2, 3])
-          a = nn_ops.softmax(s)
-          # Now calculate the attention-weighted vector d.
-          d = math_ops.reduce_sum(
-              array_ops.reshape(a, [-1, attn_length, 1, 1]) * hidden,
-              [1, 2])
-          ds.append(array_ops.reshape(d, [-1, attn_size]))
-      return ds
-
     outputs = []
     prev = None
     batch_attn_size = array_ops.pack([batch_size, attn_size])
@@ -660,27 +661,6 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
                                            [attention_vec_size]))
 
     state = initial_state
-
-    def attention(query):
-      shapes = [a.get_shape().as_list() for a in query]
-      raise ValueError(str(shapes))
-      """Put attention masks on hidden using hidden_features and query."""
-      ds = []  # Results of attention reads will be stored here.
-      for a in xrange(num_heads):
-        with variable_scope.variable_scope("Attention_%d" % a):
-          y = linear(query, attention_vec_size, True)
-          y = array_ops.reshape(y, [-1, 1, 1, attention_vec_size])
-          # Attention mask is a softmax of v^T * tanh(...).
-          s = math_ops.reduce_sum(
-              v[a] * math_ops.tanh(hidden_features[a] + y), [2, 3])
-          a = nn_ops.softmax(s)
-          # Now calculate the attention-weighted vector d.
-          d = math_ops.reduce_sum(
-              array_ops.reshape(a, [-1, attn_length, 1, 1]) * hidden,
-              [1, 2])
-          ds.append(array_ops.reshape(d, [-1, attn_size]))
-      return ds
-
     outputs = []
     prev = None
     batch_attn_size = array_ops.pack([batch_size, attn_size])
