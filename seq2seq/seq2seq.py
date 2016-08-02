@@ -441,7 +441,7 @@ def _is_sequence(seq):
 
 
 def attention(query):
-  if not type(query) is list:
+  if not _is_sequence(query):
     shapes = [a.get_shape().as_list() for a in [query]]
     raise ValueError(str(shapes))
   else:
