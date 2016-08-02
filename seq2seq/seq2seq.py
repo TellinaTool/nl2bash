@@ -57,9 +57,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import collections
-import six
-
 # We disable pylint because we need python3 compatibility.
 from six.moves import xrange  # pylint: disable=redefined-builtin
 from six.moves import zip     # pylint: disable=redefined-builtin
@@ -435,13 +432,8 @@ def embedding_tied_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
     return outputs_and_state[:-1], outputs_and_state[-1]
 
 
-def _is_sequence(seq):
-  return (isinstance(seq, collections.Sequence)
-          and not isinstance(seq, six.string_types))
-
-
 def attention(query):
-  if not _is_sequence(query):
+  if not rnn_cell._is_sequence(query):
     shapes = [a.get_shape().as_list() for a in [query]]
     raise ValueError(str(shapes))
   else:
@@ -463,6 +455,7 @@ def attention(query):
           [1, 2])
       ds.append(array_ops.reshape(d, [-1, attn_size]))
   return ds
+
 
 def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
                       output_size=None, num_heads=1, loop_function=None,
