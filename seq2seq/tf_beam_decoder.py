@@ -58,7 +58,11 @@ class BeamDecoder(object):
         if not isinstance(state, tf.Tensor):
             raise ValueError("State should be a sequence or tensor")
 
+<<<<<<< HEAD
         print("state.get_shape() + %s" % state.get_shape())
+=======
+        raise ValueError(state.get_shape())
+>>>>>>> 16a22c4be0a525ba025525f34d783a0c8e04f43e
 
         tensor = state
 
@@ -101,6 +105,12 @@ class BeamDecoder(object):
         inputs that are per-batch (e.g. attention targets)
         """
         return self._tile_along_beam(self.beam_size, input)
+
+    def wrap_attention_input(self, attention_input):
+        """
+        Wraps the attention input for use with the beam decoder.
+        """
+        raise NotImplementedError()
 
     def unwrap_output_dense(self, final_state, include_stop_tokens=True):
         """
