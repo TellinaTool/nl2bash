@@ -48,9 +48,10 @@ from token_overlap import TokenOverlap
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
+import seq2seq_model
+from tf_beam_decoder import BeamDecoder
 
 import data_utils
-import seq2seq_model
 
 tf.app.flags.DEFINE_float("learning_rate", 0.5, "Learning rate.")
 tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
@@ -69,6 +70,8 @@ tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
 tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
 tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
+tf.app.flags.DEFINE_string("decoder", "greedy", "Type of decoder to use.")
+tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
@@ -137,13 +140,21 @@ def read_data(source_path, target_path, max_size=None):
 
 def create_model(session, forward_only):
     """Create translation model and initialize or load parameters in session."""
+    beam_decoder = None
+    if FLAGS.decoder == "beam_search":
+        beam_decoder = BeamDecoder(num_classes=FLAGS.cm_vocab_size,
+                                   stop_token=data_utils.EOS_ID,
+                                   beam_size=FLAGS.beam_size,
+                                   max_len=50)
     model = seq2seq_model.Seq2SeqModel(
         FLAGS.nl_vocab_size, FLAGS.cm_vocab_size, _buckets,
         FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
         FLAGS.learning_rate, FLAGS.learning_rate_decay_factor,
         FLAGS.input_keep_prob, FLAGS.output_keep_prob,
         forward_only=forward_only,
-        use_lstm=FLAGS.lstm)
+        use_lstm=FLAGS.lstm,
+        beam_decoder=beam_decoder
+        )
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
@@ -272,18 +283,36 @@ def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
     return sentences
 
 
+def decode(output_logits, rev_cm_vocab):
+    if FLAGS.decoder == "greedy":
+        # This is a greedy decoder - outputs are just argmaxes of output_logits.
+        outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
+    elif FLAGS.decoder == "beam_search":
+        outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
+
+    # If there is an EOS symbol in outputs, cut them at that point.
+    if data_utils.EOS_ID in outputs:
+        outputs = outputs[:outputs.index(data_utils.EOS_ID)]
+    # Print out command corresponding to outputs.
+    return " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
+
+
 def batch_decode(output_logits, rev_cm_vocab):
     batch_size = len(output_logits[0])
-    # This is a greedy decoder - outputs are just argmaxes of output_logits.
-    predictions = [np.argmax(logit, axis=1) for logit in output_logits]
     batch_outputs = []
+    if FLAGS.decoder == "greedy":
+        # This is a greedy decoder - outputs are just argmaxes of output_logits.
+        predictions = [np.argmax(logit, axis=1) for logit in output_logits]
+    elif FLAGS.decoder == "beam_search":
+        outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
+        
     for i in xrange(batch_size):
         outputs = [int(pred[i]) for pred in predictions]
         # If there is an EOS symbol in outputs, cut them at that point.
         if data_utils.EOS_ID in outputs:
             outputs = outputs[:outputs.index(data_utils.EOS_ID)]
-        # Print out command corresponding to outputs.
-        batch_outputs.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
+            # Print out command corresponding to outputs.
+            batch_outputs.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
     return batch_outputs
 
 
@@ -404,13 +433,7 @@ def decode():
             # Get output logits for the sentence.
             _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                              target_weights, bucket_id, True)
-            # This is a greedy decoder - outputs are just argmaxes of output_logits.
-            outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
-            # If there is an EOS symbol in outputs, cut them at that point.
-            if data_utils.EOS_ID in outputs:
-                outputs = outputs[:outputs.index(data_utils.EOS_ID)]
-            # Print out command corresponding to outputs.
-            print(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
+            print(decode(output_logits, rev_cm_vocab))
             print("> ", end="")
             sys.stdout.flush()
             sentence = sys.stdin.readline()
