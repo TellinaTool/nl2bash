@@ -283,12 +283,12 @@ def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
     return sentences
 
 
-def decode(output_logits, rev_cm_vocab):
+def decode(output_logits, rev_cm_vocab, beam_decoder):
     if FLAGS.decoder == "greedy":
         # This is a greedy decoder - outputs are just argmaxes of output_logits.
         outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
     elif FLAGS.decoder == "beam_search":
-        outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
+        outputs = beam_decoder.unwrap_output_dense(outputs[0])
 
     # If there is an EOS symbol in outputs, cut them at that point.
     if data_utils.EOS_ID in outputs:
@@ -297,15 +297,15 @@ def decode(output_logits, rev_cm_vocab):
     return " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
 
 
-def batch_decode(output_logits, rev_cm_vocab):
+def batch_decode(output_logits, rev_cm_vocab, beam_decoder):
     batch_size = len(output_logits[0])
     batch_outputs = []
     if FLAGS.decoder == "greedy":
         # This is a greedy decoder - outputs are just argmaxes of output_logits.
         predictions = [np.argmax(logit, axis=1) for logit in output_logits]
     elif FLAGS.decoder == "beam_search":
-        outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
-        
+        outputs = beam_decoder.unwrap_output_dense(outputs[0]) 
+    
     for i in xrange(batch_size):
         outputs = [int(pred[i]) for pred in predictions]
         # If there is an EOS symbol in outputs, cut them at that point.
@@ -337,7 +337,7 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
         sentences = token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)
         ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab, True)
         assert(len(sentences) == len(ground_truths))
-        predictions = batch_decode(output_logits, rev_cm_vocab)
+        predictions = batch_decode(output_logits, rev_cm_vocab, model.beam_decoder)
         assert(len(ground_truths) == len(predictions))
         for i in xrange(len(ground_truths)):
             sent = sentences[i]
@@ -433,7 +433,7 @@ def decode():
             # Get output logits for the sentence.
             _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                              target_weights, bucket_id, True)
-            print(decode(output_logits, rev_cm_vocab))
+            print(decode(output_logits, rev_cm_vocab, model.beam_decoder))
             print("> ", end="")
             sys.stdout.flush()
             sentence = sys.stdin.readline()
