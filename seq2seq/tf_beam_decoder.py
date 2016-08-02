@@ -58,7 +58,7 @@ class BeamDecoder(object):
         if not isinstance(state, tf.Tensor):
             raise ValueError("State should be a sequence or tensor")
 
-        print("state.get_shape() + %s" % state.get_shape())
+        # print("state.get_shape() + %s" % state.get_shape())
 
         tensor = state
 
