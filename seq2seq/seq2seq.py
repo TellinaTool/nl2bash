@@ -527,6 +527,8 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
     state = initial_state
 
     def attention(query):
+      shapes = [a.get_shape().as_list() for a in query]
+      raise ValueError(str(shapes))
       """Put attention masks on hidden using hidden_features and query."""
       ds = []  # Results of attention reads will be stored here.
       for a in xrange(num_heads):
