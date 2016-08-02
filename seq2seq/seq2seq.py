@@ -626,19 +626,11 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
       of attention_states are not set, or input size cannot be inferred
       from the input.
   """
-<<<<<<< HEAD
-  if beam_decoder:
-    decoder_inputs = [beam_decoder.wrap_input(decoder_inputs)] + [None] * 4
-    attention_states = [beam_decoder.wrap_input(attention_states)] + [None] * 4
-    initial_state = beam_decoder.wrap_state(initial_state)
-    cell = beam_decoder.wrap_cell(cell)
- 
-=======
   decoder_inputs = [beam_decoder.wrap_input(decoder_inputs)] + [None] * 4
   attention_states = [beam_decoder.wrap_input(attention_states)] + [None] * 4
   initial_state = beam_decoder.wrap_state(initial_state)
-    
->>>>>>> 8de7a833c3dbcef623ef11e36697bccbf31daaaf
+  cell = beam_decoder.wrap_cell(cell)
+  
   if not decoder_inputs:
     raise ValueError("Must provide at least 1 input to attention decoder.")
   if num_heads < 1:
