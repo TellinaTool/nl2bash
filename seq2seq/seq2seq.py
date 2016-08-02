@@ -432,8 +432,12 @@ def embedding_tied_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
     return outputs_and_state[:-1], outputs_and_state[-1]
 
 def attention(query):
-  shapes = [a.get_shape().as_list() for a in query]
-  raise ValueError(str(shapes))
+  if not type(query) is list:
+    shapes = [a.get_shape().as_list() for a in [query]]
+    raise ValueError(str(shapes))
+  else:
+    shapes = [a.get_shape().as_list() for a in query]
+    raise ValueError(str(shapes))
   """Put attention masks on hidden using hidden_features and query."""
   ds = []  # Results of attention reads will be stored here.
   for a in xrange(num_heads):
