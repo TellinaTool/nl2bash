@@ -688,14 +688,14 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
         raise ValueError("Could not infer input size from input: %s" % inp.name)
       x = linear([inp[0]] + attns, input_size, True)
       # Run the RNN.
-      cell_output, state = cell(x, state[0])
+      cell_output, state = cell(x, state)
       # Run the attention mechanism.
       if i == 0 and initial_state_attention:
         with variable_scope.variable_scope(variable_scope.get_variable_scope(),
                                            reuse=True):
-          attns = attention(state[0])
+          attns = attention(state)
       else:
-        attns = attention(state[0])
+        attns = attention(state)
 
       with variable_scope.variable_scope("AttnOutputProjection"):
         output = linear([cell_output] + attns, output_size, True)
