@@ -72,6 +72,7 @@ class Seq2SeqModel(object):
       use_lstm: if true, we use LSTM cells instead of GRU cells.
       num_samples: number of samples for sampled softmax.
       forward_only: if set, we do not construct the backward pass in the model.
+      beam_decoder: beam search decoder.
     """
     self.source_vocab_size = source_vocab_size
     self.target_vocab_size = target_vocab_size
@@ -143,6 +144,7 @@ class Seq2SeqModel(object):
 
     # Training outputs and losses.
     if forward_only:
+      # self.outputs:
       self.outputs, self.losses = seq2seq.model_with_buckets(
           self.encoder_inputs, self.decoder_inputs, targets,
           self.target_weights, buckets, lambda x, y: seq2seq_f(x, y, True),

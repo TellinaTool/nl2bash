@@ -37,7 +37,7 @@ class BeamDecoder(object):
     def __init__(self, num_classes, stop_token=0, beam_size=7, max_len=20):
         """
         num_classes: int. Number of output classes used
-        stop_token: int.
+        stop_token: int. Index of stop token in the vocabulary.
         beam_size: int.
         max-len: int or scalar Tensor. If this cell is called recurrently more
             than max_len times in a row, the outputs will not be valid!
