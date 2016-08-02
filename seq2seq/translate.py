@@ -74,7 +74,7 @@ tf.app.flags.DEFINE_string("decoder", "greedy", "Type of decoder to use.")
 tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
-tf.app.flags.DEFINE_integer("steps_per_checkpoint", 100,
+tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
 tf.app.flags.DEFINE_integer("steps_per_milestone", 1000,
                             "How many training steps to do per dev-set evaluation")
@@ -98,7 +98,7 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(5, 10), (10, 10), (10, 15), (15, 10), (15, 15), (20, 20), (20, 25), (20, 30), (25, 25), (25, 30)]
+_buckets = [(5, 10), (10, 15), (15, 10), (10, 20), (15, 15), (20, 25), (20, 30), (30, 40), (40, 50)]
 
 def read_data(source_path, target_path, max_size=None):
     """Read data from source and target files and put into buckets.
