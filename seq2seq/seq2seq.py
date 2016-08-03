@@ -583,7 +583,7 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
 def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell,
                       beam_decoder, output_size=None, num_heads=1,
                       loop_function=None, dtype=dtypes.float32, scope=None,
-                      initial_state_attention=False):
+                      initial_state_attention=False, output_projection=None):
   """RNN beam_search decoder with attention for the sequence-to-sequence model.
 
   In this context "attention" means that, during decoding, the RNN can look up
@@ -614,6 +614,7 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
       states -- useful when we wish to resume decoding from a previously
       stored decoder state and attention states.
     beam_decoder: beam-search decoder.
+    output_projection: project cell output to logits.
 
   Returns:
     A tuple of the form (outputs, state), where:
@@ -654,7 +655,7 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
     output_size = cell.output_size
 
   with variable_scope.variable_scope(scope or "attention_decoder"):
-    batch_size = array_ops.shape(decoder_inputs[0][0])[0]  # Needed for reshaping.
+    batch_size = array_ops.shape(decoder_inputs[0][0])[0]  # (= beam_size * batch_size) Needed for reshaping.
     attn_length = attention_states.get_shape()[1].value
     attn_size = attention_states.get_shape()[2].value
 
@@ -695,10 +696,10 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
       if input_size.value is None:
         raise ValueError("Could not infer input size from input: %s" % inp.name)
       x = linear([inp] + attns, input_size, True)
-      
+     
       # Run the RNN.
       # print("state: %s" % state[-1].get_shape())
-      cell_output, state = cell(x, state)
+      cell_output, state = cell(x, state, output_projection)
       # print("cell state: %s" % state[-1].get_shape())
       # Run the attention mechanism.
       if i == 0 and initial_state_attention:
@@ -791,7 +792,8 @@ def embedding_attention_decoder(decoder_inputs, initial_state, attention_states,
         emb_inp, initial_state, attention_states, cell,
         beam_decoder, output_size=output_size,
         num_heads=num_heads, loop_function=loop_function,
-        initial_state_attention=initial_state_attention
+        initial_state_attention=initial_state_attention,
+        output_projection=output_projection
       )
     else:
       return attention_decoder(
