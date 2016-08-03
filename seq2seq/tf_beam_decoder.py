@@ -167,7 +167,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             past_beam_symbols, # [batch_size*self.beam_size, max_len], right-aligned!!!
             past_beam_logprobs,# [batch_size*self.beam_size]
             past_cell_state,
-                ) = state
+        ) = state
 
         batch_size = tf.shape(past_cand_symbols)[0] # TODO: get as int, if possible
         full_size = batch_size * self.beam_size
