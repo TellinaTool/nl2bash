@@ -73,9 +73,12 @@ class BeamDecoder(object):
         res = tf.expand_dims(tensor, 1)
         res = tf.tile(res, [1, beam_size] + [1] * (tensor_shape.ndims-1))
         res = tf.reshape(res, [-1] + list(dynamic_tensor_shape[1:]))
+        # print("dynamic_tensor_shape[1:] %s" % list(dynamic_tensor_shape[1:]))
+        # print("res.get_shape(): %s" % res.get_shape())
         res.set_shape([new_first_dim] + list(tensor_shape[1:]))
-
-        print("res.get_shape() + %s" % res.get_shape())
+        # print("res.get_shape(): %s" % res.get_shape())
+        
+        # print("res.get_shape() + %s" % res.get_shape())
         return res
 
     def wrap_cell(self, cell):
@@ -91,6 +94,7 @@ class BeamDecoder(object):
             dtype = nest.flatten(state)[0].dtype
         else:
             batch_size = tf.shape(state)[0]
+            # print("batch_size: %s" % state.get_shape())
             dtype = state.dtype
         return dummy._create_state(batch_size, dtype, cell_state=state)
 
