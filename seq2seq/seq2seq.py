@@ -576,6 +576,7 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
         output = linear([cell_output] + attns, output_size, True)
       if loop_function is not None:
         prev = output
+
       outputs.append(output)
 
   return outputs, state
@@ -713,11 +714,15 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
 
       with variable_scope.variable_scope("AttnOutputProjection"):
         output = linear([state[-1][:,:cell.output_size]] + attns, output_size, True)
-        # return top-1 decoding result
-        
 
       if loop_function is not None:
         prev = output
+
+      # return top-1 beam search result
+      output = array_ops.reshape(output, [-1, beam_decoder.beam_size, output_size])
+      output = array_ops.slice(output, [0, 0, 0], [-1, 1, -1])
+      output = array_ops.squeeze(output)
+      
       outputs.append(output)
 
   return outputs, state

@@ -204,7 +204,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         parent_refs_offsets = (tf.range(batch_size * self.beam_size) // self.beam_size) * self.beam_size
         parent_refs = parent_refs + parent_refs_offsets
 
-        symbols_history = tf.gather(past_beam_symbols, parent_refs)
         beam_symbols = tf.concat(1, [past_beam_symbols[:,1:], tf.reshape(symbols, [-1, 1])])
 
         # Handle the output and the cell state shuffling
