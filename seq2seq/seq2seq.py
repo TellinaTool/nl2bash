@@ -584,7 +584,8 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
 def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell,
                       beam_decoder, output_size=None, num_heads=1,
                       loop_function=None, dtype=dtypes.float32, scope=None,
-                      initial_state_attention=False, output_projection=None):
+                      initial_state_attention=False, output_projection=None,
+                      top_k=1):
   """RNN beam_search decoder with attention for the sequence-to-sequence model.
 
   In this context "attention" means that, during decoding, the RNN can look up
@@ -616,6 +617,7 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
       stored decoder state and attention states.
     beam_decoder: beam-search decoder.
     output_projection: project cell output to logits.
+    top_k: top_k logits to return.
 
   Returns:
     A tuple of the form (outputs, state), where:
@@ -699,9 +701,8 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
       x = linear([inp] + attns, input_size, True)
      
       # Run the RNN.
-      # print("state: %s" % state[-1].get_shape())
       cell_output, state = cell(x, state, output_projection=output_projection)
-      # print("cell state: %s" % state[-1].get_shape())
+
       # Run the attention mechanism.
       if i == 0 and initial_state_attention:
         with variable_scope.variable_scope(variable_scope.get_variable_scope(),
@@ -720,9 +721,9 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
 
       # return top-1 beam search result
       output = array_ops.reshape(output, [-1, beam_decoder.beam_size, output_size])
-      output = array_ops.slice(output, [0, 0, 0], [-1, 1, -1])
+      output = array_ops.slice(output, [0, 0, 0], [-1, top_k, -1])
       output = array_ops.squeeze(output)
-      
+
       outputs.append(output)
 
   return outputs, state
