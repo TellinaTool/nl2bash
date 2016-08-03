@@ -699,7 +699,7 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
      
       # Run the RNN.
       # print("state: %s" % state[-1].get_shape())
-      cell_output, state = cell(x, state, output_projection)
+      cell_output, state = cell(x, state, output_projection=output_projection)
       # print("cell state: %s" % state[-1].get_shape())
       # Run the attention mechanism.
       if i == 0 and initial_state_attention:
