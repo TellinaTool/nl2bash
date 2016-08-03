@@ -16,6 +16,8 @@ best_sparse = beam_decoder.unwrap_output_sparse(final_state) # Output, this time
 
 import tensorflow as tf
 
+from tensorflow.python.ops import nn_ops
+
 try:
     from tensorflow.python.util import nest
 except ImportError:
@@ -164,19 +166,23 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self._nondone_mask = tf.reshape(tf.tile(self._nondone_mask, [1, self.beam_size, 1]),
             [-1, self.beam_size*self.num_classes])
 
-    def __call__(self, inputs, state, scope=None):
+    def __call__(self, inputs, state, scope=None, output_projection=None):
         (
             past_cand_symbols, # [batch_size, max_len]
             past_cand_logprobs,# [batch_size]
             past_beam_symbols, # [batch_size*self.beam_size, max_len], right-aligned!!!
             past_beam_logprobs,# [batch_size*self.beam_size]
             past_cell_state,
-                ) = state
+        ) = state
+
         batch_size = tf.shape(past_cand_symbols)[0] # TODO: get as int, if possible
         full_size = batch_size * self.beam_size
         
         cell_inputs = inputs
         cell_outputs, raw_cell_state = self.cell(cell_inputs, past_cell_state)
+
+        if output_projection is not None:
+            cell_outputs = nn_ops.xw_plus_b(cell_outputs, output_projection[0], output_projection[1])
 
         logprobs = tf.nn.log_softmax(cell_outputs)
         
