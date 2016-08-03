@@ -432,13 +432,13 @@ def embedding_tied_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
     return outputs_and_state[:-1], outputs_and_state[-1]
 
 
-def attention(query):
+def attention(query, hidden_features, attention_vec, attention_vec_size, attn_length, attn_size,
+              num_heads, hidden):
   if not rnn_cell._is_sequence(query):
     shapes = [a.get_shape().as_list() for a in [query]]
-    raise ValueError(str(shapes))
   else:
     shapes = [a.get_shape().as_list() for a in query]
-    raise ValueError(str(shapes))
+
   """Put attention masks on hidden using hidden_features and query."""
   ds = []  # Results of attention reads will be stored here.
   for a in xrange(num_heads):
@@ -447,7 +447,7 @@ def attention(query):
       y = array_ops.reshape(y, [-1, 1, 1, attention_vec_size])
       # Attention mask is a softmax of v^T * tanh(...).
       s = math_ops.reduce_sum(
-          v[a] * math_ops.tanh(hidden_features[a] + y), [2, 3])
+          attention_vec[a] * math_ops.tanh(hidden_features[a] + y), [2, 3])
       a = nn_ops.softmax(s)
       # Now calculate the attention-weighted vector d.
       d = math_ops.reduce_sum(
@@ -546,7 +546,8 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
     for a in attns:  # Ensure the second shape of attention vectors is set.
       a.set_shape([None, attn_size])
     if initial_state_attention:
-      attns = attention(initial_state)
+      attns = attention(initial_state, hidden_features, v, attention_vec_size, attn_length, attn_size, 
+                        num_heads, hidden)
     for i, inp in enumerate(decoder_inputs):
       if i > 0:
         variable_scope.get_variable_scope().reuse_variables()
@@ -565,9 +566,11 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
       if i == 0 and initial_state_attention:
         with variable_scope.variable_scope(variable_scope.get_variable_scope(),
                                            reuse=True):
-          attns = attention(state)
+          attns = attention(state, hidden_features, v, attention_vec_size, attn_length, attn_size,
+                            num_heads, hidden)
       else:
-        attns = attention(state)
+        attns = attention(state, hidden_features, v, attention_vec_size, attn_length, attn_size,
+                          num_heads, hidden)
 
       with variable_scope.variable_scope("AttnOutputProjection"):
         output = linear([cell_output] + attns, output_size, True)
@@ -633,7 +636,9 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
       of attention_states are not set, or input size cannot be inferred
       from the input.
   """
+  # print("decoder_inputs: %s" % decoder_inputs)
   decoder_inputs = [beam_decoder.wrap_input(decoder_inputs)] + [None] * 4
+  # print("wrapped_decoder_inputs: %s" % decoder_inputs)
   attention_states = beam_decoder.wrap_input(attention_states)
   initial_state = beam_decoder.wrap_state(initial_state)
   cell = beam_decoder.wrap_cell(cell)
@@ -675,8 +680,9 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
     for a in attns:  # Ensure the second shape of attention vectors is set.
       a.set_shape([None, attn_size])
     if initial_state_attention:
-      attns = attention(initial_state)
-    for i, inp in enumerate(decoder_inputs):
+      attns = attention(initial_state[-1], hidden_features, v, attention_vec_size, attn_length, attn_size,
+                        num_heads, hidden)
+    for i, inp in enumerate(decoder_inputs[0]):
       if i > 0:
         variable_scope.get_variable_scope().reuse_variables()
       # If loop_function is set, we use it instead of decoder_inputs.
@@ -684,25 +690,28 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
         with variable_scope.variable_scope("loop_function", reuse=True):
           inp = loop_function(prev, i)
       # Merge input and previous attentions into one vector of the right size.
-      input_size = inp[0].get_shape().with_rank(2)[1]
+      # print(inp)
+      input_size = inp.get_shape().with_rank(2)[1]
       if input_size.value is None:
         raise ValueError("Could not infer input size from input: %s" % inp.name)
-      x = linear([inp[0]] + attns, input_size, True)
+      x = linear([inp] + attns, input_size, True)
       
       # Run the RNN.
-      print("state: %s" % state.get_shape())
+      # print("state: %s" % state[-1].get_shape())
       cell_output, state = cell(x, state)
-      print("cell state: %s" % state.get_shape())
+      # print("cell state: %s" % state[-1].get_shape())
       # Run the attention mechanism.
       if i == 0 and initial_state_attention:
         with variable_scope.variable_scope(variable_scope.get_variable_scope(),
                                            reuse=True):
-          attns = attention(state)
+          attns = attention(state[-1], hidden_features, v, attention_vec_size, attn_length, attn_size,
+                            num_heads, hidden)
       else:
-        attns = attention(state)
+        attns = attention(state[-1], hidden_features, v, attention_vec_size, attn_length, attn_size,
+                          num_heads, hidden)
 
       with variable_scope.variable_scope("AttnOutputProjection"):
-        output = linear([cell_output] + attns, output_size, True)
+        output = linear([state[-1][:,:cell.output_size]] + attns, output_size, True)
       if loop_function is not None:
         prev = output
       outputs.append(output)
