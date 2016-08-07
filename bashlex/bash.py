@@ -1,5 +1,5 @@
 """
-Functions for parsing bash code. See `parse(code)`
+Simplified bash tokenizer and parser built using bashlex.
 """
 
 # builtin
