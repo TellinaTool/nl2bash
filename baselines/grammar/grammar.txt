@@ -3,7 +3,7 @@ type ::=
 		Directory (directory, exdir)
 		Number (n, num, number, replacements, maxprocs, incr, bytes, count, mask)
 		Time (time, nmin)
-		String (name, eofstr, replstr, string, command, extension, option, uname)
+		String (name, gname, eofstr, replstr, string, command, extension, option, uname)
 		Permission (permmode)
 		Size (size, blocksize)
 		Pattern (pattern)
@@ -71,7 +71,7 @@ PrimitiveCmd ::=
 
 		zip  [-aABcdDeEfFghjklLmoqrRSTuvVwXyz] [AT] [EXCLAIMATION] [DOLLAR]  [--longoption]  [-b path] [-n suffixes] [-t date] [-tt date] [zipfile [file ...]]  [-xi list]
 
-		unzip [-Z] [-cflptTuvz [abjnoqsCKLMVWX] ] file [file ...]  [-x xfile ...] [-d exdir]
+		unzip [-Z] [-cflptTuvz [a] [b] [j] [n] [o] [q] [s] [C] [K] [L] [M] [V] [W] [X] ] file [file ...]  [-x xfile ...] [-d exdir]
 
 		head [ [-n count] | [-c bytes]] [file ...]
 
@@ -83,7 +83,7 @@ PrimitiveCmd ::=
 
 		diff [OPTION ...] file ...
 
-		comm [-123] [-i] file1 file2
+		comm [-ONE] [-TWO] [-THREE] [-i] file1 file2
 
 		awk [ -F fs ] [ -v varEQvalue ] [ [prog ...] | [-f progfile] ] [ file ... ]
 
