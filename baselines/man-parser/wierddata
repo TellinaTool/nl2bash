@@ -10,6 +10,10 @@
 -cmin n
 -cnewer file
 -ctime n
+-exec
+-execdir
+-ok
+-flags
 -d
 -delete
 -depth
@@ -56,3 +60,7 @@
 -wholename pattern
 -xattr
 -xattrname name
+-xi
+-ONE
+-TWO
+-THREE

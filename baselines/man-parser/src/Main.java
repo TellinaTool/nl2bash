@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.*;
 
 public class Main {
 
-    static boolean trySmallExample = true;
+    static boolean trySmallExample = false;
 
     static final String PREFIX = "../../";
 
@@ -26,7 +26,7 @@ public class Main {
         // // summarizing options of the file tar.1.txt
         // SmallTask.extractOptionsFrom("../data/plain-man/tar.1.txt");
 
-        //jsonPrimitiveGrammar("../grammar.txt");
+        jsonPrimitiveGrammar("../grammar/grammar.txt");
 
         /*String s = SmallTask.processWierdThing("wierddata");
         System.out.println(s);*/
@@ -53,11 +53,11 @@ public class Main {
             return;
         }
 
-        for (File f : files) {
-            if (! f.getName().matches("\\w*\\.\\d\\.txt"))
-                continue;
-            parseFile(f);
-        }
+        // for (File f : files) {
+        //    if (! f.getName().matches("\\w*\\.\\d\\.txt"))
+        //        continue;
+        //    parseFile(f);
+        // }
     }
 
     public static String jsonPrimitiveGrammar(String path) throws IOException, ParseException {
@@ -93,7 +93,6 @@ public class Main {
         for (Cmd.Command cmd : commands) {
             System.out.println("=== \n" + cmd.toString());
         }
-
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
@@ -150,6 +149,7 @@ public class Main {
                                     new Cmd.DescriptionPair(parseSynopsisInstance(optionPart.substring(0, k)), desc.getValue()));
                                 added = true;
                             } catch (ParseException e) {
+                                System.out.println("FUCK: " + e);
                                 continue;
                             }
                         } else if (optionPart.charAt(k) == '[') {
