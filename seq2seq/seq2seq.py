@@ -581,6 +581,7 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
 
   return outputs, state
 
+#TODO: complete this function
 def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell,
                       beam_decoder, output_size=None, num_heads=1,
                       loop_function=None, dtype=dtypes.float32, scope=None,
@@ -640,9 +641,7 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
       of attention_states are not set, or input size cannot be inferred
       from the input.
   """
-  # print("decoder_inputs: %s" % decoder_inputs)
   decoder_inputs = [beam_decoder.wrap_input(decoder_inputs)] + [None] * 4
-  # print("wrapped_decoder_inputs: %s" % decoder_inputs)
   attention_states = beam_decoder.wrap_input(attention_states)
   initial_state = beam_decoder.wrap_state(initial_state)
   cell = beam_decoder.wrap_cell(cell)
@@ -657,7 +656,7 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
   if output_size is None:
     output_size = cell.output_size
 
-  with variable_scope.variable_scope(scope or "attention_decoder"):
+  with variable_scope.variable_scope(scope or "attention_beam_decoder"):
     batch_size = array_ops.shape(decoder_inputs[0][0])[0]  # (= beam_size * batch_size) Needed for reshaping.
     attn_length = attention_states.get_shape()[1].value
     attn_size = attention_states.get_shape()[2].value
@@ -689,12 +688,13 @@ def attention_beam_decoder(decoder_inputs, initial_state, attention_states, cell
     for i, inp in enumerate(decoder_inputs[0]):
       if i > 0:
         variable_scope.get_variable_scope().reuse_variables()
+
       # If loop_function is set, we use it instead of decoder_inputs.
       if loop_function is not None and prev is not None:
         with variable_scope.variable_scope("loop_function", reuse=True):
           inp = loop_function(prev, i)
+
       # Merge input and previous attentions into one vector of the right size.
-      # print(inp)
       input_size = inp.get_shape().with_rank(2)[1]
       if input_size.value is None:
         raise ValueError("Could not infer input size from input: %s" % inp.name)
