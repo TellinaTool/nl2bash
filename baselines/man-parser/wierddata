@@ -14,6 +14,7 @@
 -execdir
 -ok
 -flags
+-okdir
 -d
 -delete
 -depth
