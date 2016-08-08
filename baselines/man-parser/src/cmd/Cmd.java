@@ -118,35 +118,62 @@ public class Cmd {
         public Ar(String s) {
             this.arg_name = s;
 
-            if (this.arg_name.equalsIgnoreCase("files") || this.arg_name.equalsIgnoreCase("directories")) {
-                this.arg_type = "File";
-            }
 
             if (this.arg_name.equalsIgnoreCase("file")
                     || this.arg_name.equalsIgnoreCase("f")
-                    || this.arg_name.equalsIgnoreCase("source")
-                    || this.arg_name.equalsIgnoreCase("target")
+                    || this.arg_name.equalsIgnoreCase("source_file")
+                    || this.arg_name.equalsIgnoreCase("target_file")
+                    || this.arg_name.equalsIgnoreCase("xfile")
+                    || this.arg_name.equalsIgnoreCase("file1")
+                    || this.arg_name.equalsIgnoreCase("file2")
                     || this.arg_name.equalsIgnoreCase("filename")
-                    || this.arg_name.equalsIgnoreCase("directory")) {
+                    || this.arg_name.equalsIgnoreCase("directory")
+                    || this.arg_name.equalsIgnoreCase("exdir")
+                    || this.arg_name.equalsIgnoreCase("path")
+                    || this.arg_name.equalsIgnoreCase("progfile")) {
                 arg_type = "File";
             } else if (this.arg_name.equalsIgnoreCase("number")
                     || this.arg_name.equalsIgnoreCase("n")
+                    || this.arg_name.equalsIgnoreCase("replacements")
+                    || this.arg_name.equalsIgnoreCase("maxprocs")
+                    || this.arg_name.equalsIgnoreCase("incr")
+                    || this.arg_name.equalsIgnoreCase("bytes")
+                    || this.arg_name.equalsIgnoreCase("mask")
                     || this.arg_name.equalsIgnoreCase("num")
-                    || this.arg_name.equalsIgnoreCase("blocksize")
-                    || this.arg_name.equalsIgnoreCase("count")) {
+                    || this.arg_name.equalsIgnoreCase("depth")
+                    || this.arg_name.equalsIgnoreCase("MINUSa")
+                    || this.arg_name.equalsIgnoreCase("PLUSa")
+                    || this.arg_name.equalsIgnoreCase("EQUALa")
+                    || this.arg_name.equalsIgnoreCase("count")
+                    || this.arg_name.equalsIgnoreCase("nmin")) {
                 arg_type = "Number";
-            } else if (this.arg_name.equalsIgnoreCase("mode")) {
-                arg_type = "PermissionMode";
-            } else if (this.arg_name.equalsIgnoreCase("uname")) {
-                arg_type = "Username";
-            } else if (this.arg_name.equalsIgnoreCase("gname")) {
-                arg_type = "Groupname";
-            } else if (this.arg_name.equalsIgnoreCase("pattern")) {
+            } else if (this.arg_name.equalsIgnoreCase("permmode")
+                    || this.arg_name.equalsIgnoreCase("MINUSpermmode")
+                    || this.arg_name.equalsIgnoreCase("PLUSpermmode")) {
+                arg_type = "Permission";
+            } else if (this.arg_name.equalsIgnoreCase("uname")
+                    || this.arg_name.equalsIgnoreCase("gname")
+                    || this.arg_name.equalsIgnoreCase("eofstr")
+                    || this.arg_name.equalsIgnoreCase("replstr")
+                    || this.arg_name.equalsIgnoreCase("string")
+                    || this.arg_name.equalsIgnoreCase("command")
+                    || this.arg_name.equalsIgnoreCase("extension")
+                    || this.arg_name.equalsIgnoreCase("option")
+                    || this.arg_name.equalsIgnoreCase("name")) {
+                arg_type = "String";
+            } else if (this.arg_name.equalsIgnoreCase("pattern")
+                    || this.arg_name.equalsIgnoreCase("fs")) {
                 arg_type = "Pattern";
-            } else if (this.arg_name.equalsIgnoreCase("time")) {
+            } else if (this.arg_name.equalsIgnoreCase("time")
+                    || this.arg_name.equalsIgnoreCase("date")) {
                 arg_type = "Time";
-            } else if (this.arg_name.equalsIgnoreCase("size")) {
+            } else if (this.arg_name.equalsIgnoreCase("size")
+                    || this.arg_name.equalsIgnoreCase("blocksize")) {
                 arg_type = "Size";
+            } else if (this.arg_name.equalsIgnoreCase("utility")) {
+                arg_type = "Utility";
+            } else if (this.arg_name.equalsIgnoreCase("argument")) {
+                arg_type = "Argument";
             } else {
                 arg_type = "Unknown";
             }

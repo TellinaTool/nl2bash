@@ -26,14 +26,15 @@ public class Main {
         // // summarizing options of the file tar.1.txt
         // SmallTask.extractOptionsFrom("../data/plain-man/tar.1.txt");
 
-        jsonPrimitiveGrammar("../grammar/grammar.txt");
+        jsonPrimitiveGrammar("../../grammar/grammar.txt");
 
         /*String s = SmallTask.processWierdThing("wierddata");
         System.out.println(s);*/
 
-        File[] files = new File(PREFIX +  "data/plain-man").listFiles();
-
         if (trySmallExample) {
+
+            File[] files = new File(PREFIX +  "data/plain-man").listFiles();
+
             String[] targetFiles = {
                     PREFIX + "data/plain-man/grep.1.txt",
                     PREFIX + "data/plain-man/find_cheat.1.txt",
