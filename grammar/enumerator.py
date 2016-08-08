@@ -6,6 +6,10 @@ import collections
 import os
 import json
 import sys
+import copy
+
+# handle reuse 
+ENABLE_REUSE_FLAGS = False
 
 # given a number num, generate space of size length
 def indent_count_to_string(num):
@@ -35,11 +39,11 @@ class Program(object):
             if not cmd in looked:
                 next.append(*cmd.get_node(looked))
         return next
-    def get_node(self, looked): 
+    def get_node(self, looked):
     # get the first terminal value starting from this node
         return self.next_node(looked)
-    def leave_node(self, looked, last): 
-    # after traveral all subtress of this node, seek the next tree to traverse
+    def leave_node(self, looked, last):
+    # after traversal all subtress of this node, seek the next tree to traverse
         return self.next_node(looked)
     def __str__(self):
         return "<BEGIN>"
@@ -78,6 +82,8 @@ class FlagOp(object):
         if not self in looked:
             looked.append(self)
         return self.leave_node(looked, self)
+    def get_must(self):
+        return [self]
     def leave_node(self, looked, last):
         looked.append(self)
         return self.parent.leave_node(looked, self)
@@ -104,6 +110,8 @@ class LongFlagOp(object):
             return self.arg.get(looked)
         else:
             return self.leave_node(looked, self)
+    def get_must(self):
+        return [self]
     def leave_node(self, looked, last):
         looked.append(self)
         return self.parent.leave_node(looked, self)
@@ -120,6 +128,8 @@ class ArgOp(object):
         result = indent + "[ArgOp] " + self.name 
         return result.rstrip()
     def get_node(self, looked):
+        return [self]
+    def get_must(self):
         return [self]
     def next_node(self, looked):
         #TODO: allow a list of file
@@ -146,6 +156,8 @@ class OptionalOp(object):
         return result.rstrip()
     def get_node(self, looked):
         return self.next_node(looked)
+    def get_must(self):
+        return self.option.get_must()
     def next_node(self, looked):
         looked.append(self)
         result = []
@@ -157,8 +169,12 @@ class OptionalOp(object):
         return self.parent.leave_node(looked, self)
 
 class SeqOp(object):
-    def __init__(self, options):
+    def __init__(self, options):  
         self.options = options
+        if isinstance(self.options[0], OptionalOp):
+            self.order_required = False
+        else:
+            self.order_required = True  
         for option in self.options:
             setattr(option, "parent", self)
     def pretty_print(self, indent_count):
@@ -169,7 +185,21 @@ class SeqOp(object):
         return result.rstrip()
     def get_node(self, looked):
         return self.next_node(looked)
+    def get_must(self):
+        if self.order_required:
+            return self.options[0].get_must()
+        else:
+            result = []
+            for op in self.options:
+                result.extend(op.get_must())
+            return result
     def next_node(self, looked):
+        if self.order_required == False:
+            result = []
+            result.extend(self.get_must())
+            result.extend(self.leave_node(looked, self))
+            return result
+
         looked.append(self)
         if self.options[-1] in looked:
             return self.leave_node(looked, self)
@@ -198,6 +228,11 @@ class CaseOp(object):
         return result.rstrip()
     def get_node(self, looked):
         return self.next_node(looked)
+    def get_must(self):
+        result = []
+        for op in self.options:
+            result.extend(op.get_must())
+        return result
     def next_node(self, looked):
         looked.append(self)
         result = []
@@ -261,7 +296,7 @@ class Enumerator(object):
             self.history.pop()
     def choices(self):
         # use list to avoid the argument being the alias of history
-        return self.history[-1].next_node(list(self.history))
+        return self.history[-1].next_node(copy.deepcopy(self.history))
     def make_choice(self, i):
         self.history.append(self.choices()[i]);
     # the return value should be a list of indices
@@ -274,7 +309,7 @@ class Enumerator(object):
         return indices
     def deepcopy(self):
         enum = Enumerator(self.grammar)
-        enum.history = list(self.history)
+        enum.history = copy.deepcopy(self.history)
         return enum
 
 class Interface(object):
@@ -356,7 +391,7 @@ class Interface(object):
         return self.enumerators[0].history
 
 if __name__ == "__main__":
-    g = load_syntax([os.path.join(os.path.dirname(__file__), "..", "..", "bashlex", "primitive_cmd_grammar.json")])
+    g = load_syntax([os.path.join(os.path.dirname(__file__), "primitive_cmds_grammar.json")])
     interface = Interface(g)
     while True:
         print("choices: {}".format(", ".join(interface.text_choices_alter())))
@@ -365,6 +400,6 @@ if __name__ == "__main__":
             if inp == "<DONE>" and interface.is_valid_choice("<DONE>"):
                 print("choices: {}".format(", ".join(map(str,interface.get_history()))))
                 break
-            interface.make_choice(inp)
+            interface.make_choice_alter(inp)
         except EOFError as ex:
             break
