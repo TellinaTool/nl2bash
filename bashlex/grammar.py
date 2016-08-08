@@ -9,19 +9,17 @@ from __future__ import print_function
 import collections
 import json
 import re
-import ast, parser
-
-_DIGIT_RE = re.compile(br"\d+")
-_NUM = b"_NUM"
+import ast, errors, parser, tokenizer
+from bash import *
 
 # TODO: add stdin & stdout types
 simplified_bash_syntax = [
     "Command ::= SingleCommand | Pipe",
+    "Pipe ::= Command '|' Command",
     "SingleCommand ::= HeadCommand [OptionList]",
     "OptionList ::= Option | OptionList",
     "Option ::= Flag [Argument] | LogicOp Option",
     "Argument ::= SingleArgument | CommandSubstitution | ProcessSubstitution",
-    "Pipe ::= Command '|' Command",
     "CommandSubstitution ::= ` Command `",
     "ProcessSubstitution ::= <( Command ) | >( Command )"
 ]
@@ -41,7 +39,7 @@ arg_syntax = [
 ]
 
 class Node(object):
-    def __init__(self, parent, lsb):
+    def __init__(self, parent=None, lsb=None, kind="", value=""):
         """
         :member kind: ['pipe',
                       'headcommand',
@@ -55,12 +53,14 @@ class Node(object):
                       'processsubstitution'
                      ]
         :member value: string value of the node
+        :member parent: pointer to parent node
+        :member lsb: pointer to left sibling node
         :member children: list of child nodes
         """
         self.parent = parent
         self.lsb = lsb
-        self.kind = ""
-        self.value = ""
+        self.kind = kind
+        self.value = value
         self.children = []
         self.num_child = -1         # default value, permits arbitrary number of children
         self.children_types = []    # a list of allowed types for each child
@@ -70,134 +70,52 @@ class Node(object):
     def addChild(self, child):
         self.children.append(child)
 
-# syntax constraints for different kinds of node
-class HeadCommandNode(Node):
-    def __init__(self, value, parent, lsb):
-        super.__init__(parent, lsb)
-        self.kind = 'headcommand'
-        self.value = value
-        self.children_types = [set('flag, logicop, argument')]
+    def getRightChild(self):
+        if len(self.children) >= 1:
+            return self.children[-1]
+        else:
+            return None
 
-class FlagNode(Node):
-    def __init__(self, value, parent, lsb, num_child, children_types):
-        super.__init__(parent, lsb)
-        self.kind = 'flag'
-        self.value = value
-        self.num_child = num_child
-        self.children_types = children_types
-
+# syntax constraints for different kind of nodes
 class ArgumentNode(Node):
-    def __init__(self, value, parent, lsb):
-        super.__init__(parent, lsb)
-        self.value = value
+    def __init__(self, kind="", value="", parent=None, lsb=None):
+        super.__init__(parent, lsb, kind, value)
         self.num_child = 0
 
-class FileNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'file'
-
-# TODO: extend to model pattern structure
-class PatternNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'pattern'
-
-class NumberNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'number'
-
-class TimeUnitNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'timeunit'
-
-class SizeUnitNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'sizeunit'
-
-class OpNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'op'
-
-class LogicOpNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'logicop'
-        self.num_child = 1
-        self.children_types = [set('flag')]
-
-class NumberExpNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'numberexp'
-        self.num_child = 2
-        self.children_types = [set('op'), set('number')]
-
-class SizeExpNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'sizeexp'
-        self.num_child = 2
-        self.children_types = [set('number'), set('sizeunit')]
-
-class TimeExpNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'timeexp'
-        self.num_child = 2
-        self.children_types = [set('number'), set('timeunit')]
-
-# TODO: model permission pattern structure
-class PermExpNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'permexp'
-
-class UserNameNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'username'
-
-class GroupNameNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'groupname'
-
-class UnknownNode(ArgumentNode):
-    def __init__(self, value, parent, lsb):
-        super.__init__(value, parent, lsb)
-        self.kind = 'unknown'
-
 class PipeNode(Node):
-    def __init__(self, parent, lsb):
+    def __init__(self, parent=None, lsb=None):
         super.__init__(parent, lsb)
         self.kind = 'pipe'
         self.value = '|'
-        self.num_child = 2
-        self.children_types = [set(['pipe', 'headcommand']), set(['pipe', 'headcommand'])]
+        self.children_types = [set(['pipe', 'headcommand'])]
 
 class CommandSubstitutionNode(Node):
-    def __init__(self, parent, lsb):
+    def __init__(self, parent=None, lsb=None):
         super.__init__(parent, lsb)
         self.kind = "commandsubstitution"
-        self.value = ""
         self.num_child = 1
         self.children_types = [set('pipe', 'headcommand')]
 
 class ProcessSubstitutionNode(Node):
-    def __init__(self, parent, lsb):
+    def __init__(self, value, parent=None, lsb=None):
         super.__init__(parent, lsb)
         self.kind = "processsubstitution"
-        self.value = ""
+        if value in ["<", ">"]:
+            self.value = value
+        else:
+            raise ValueError("Value of a processsubstitution has to be '<' or '>'.")
         self.num_child = 1
         self.children_types = [set('pipe', 'headcommand')]
 
+def attach_to_tree(node, parent):
+    node.parent = parent
+    if parent:
+        # non-root node
+        parent.addChild(node)
+        node.lsb = parent.getRightChild()
+
 def pretty_print(node):
-    pass
+
 
 def linear_print(node):
     pass
@@ -207,238 +125,209 @@ def normalize_ast(cmd, normalize_digits):
     Convert the bashlex parse tree of a command into the normalized form.
     :param cmd: bash command to parse
     :param normalize_digits: replace all digits in the tree with the special _NUM symbol
-    :return net
+    :return normalized_tree
     """
 
-    tree = parser.parse(cmd)
-    root = None
+    cmd = cmd.replace('\n', ' ').strip()
+    if not cmd:
+        return None
 
+    def normalize_word(w, normalize_digits):
+        return e.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
 
+    def normalize_command(node, current):
+        attach_point = current
 
+        END_OF_OPTIONS = False
+        END_OF_COMMAND = False
 
-def load_syntax(json_files):
-    simple_cmds = []
-    counts = collections.defaultdict(int)
-    for jsonfile in json_files:
-        print("loading from {}".format(jsonfile))
-        with open(jsonfile, "r") as f:
-            syntax = json.loads(f.read())
-        for cmd in syntax:
-            simple_cmds.append(make_grammar_from_json_syntax(cmd))
-            counts[cmd["name"]] += 1
-            print(" --> loaded {} ({})".format(cmd["name"], counts[cmd["name"]]))
-    return Node(Node.CASES, *simple_cmds)
-
-def make_full_grammar(simple_grammar, max_pipeline_depth):
-    pipe = Node(Node.EXACT, "|")
-    def make_pipeline(g, n):
-        return Node(Node.SEQ, g, *([Node(Node.SEQ, pipe, g)] * n))
-
-    grammar = simple_grammar
-    for n in range(max_pipeline_depth + 1):
-        grammar = Node(Node.CASES, grammar, make_pipeline(simple_grammar, n))
-    return grammar
-
-def make_grammar_from_options(x, seen=None):
-    if seen is None:
-        seen = set()
-    if x["type"] == "compound_options":
-        return Node(Node.SEQ, *[make_grammar_from_options(o, seen=seen) for o in x["commands"]])
-    elif x["type"] == "optional_option":
-        flag_name = None
-        if x["cmd"]["type"] == "flag_option":
-            flag_name = x["cmd"]["flag_name"]
-        elif x["cmd"]["type"] == "compound_options" and x["cmd"]["commands"][0]["type"] == "flag_option":
-            flag_name = x["cmd"]["commands"][0]["flag_name"]
-        if flag_name is not None and flag_name in seen:
-            print("skipping duplicate flag -{}".format(flag_name), file=sys.stderr)
-            return Node(Node.EMPTY)
-        return Node(Node.CASES, Node(Node.EMPTY), make_grammar_from_options(x["cmd"], seen=seen))
-    elif x["type"] == "exclusive_options":
-        return Node(Node.CASES, *[make_grammar_from_options(o, seen=set(seen)) for o in x["commands"]])
-    elif x["type"] == "flag_option":
-        seen.add(x["flag_name"])
-        g = Node(Node.EXACT, "-" + x["flag_name"])
-    elif x["type"] == "long_flag_option":
-        g = Node(Node.EXACT, "--" + x["flag_name"])
-    elif x["type"] == "argument_option":
-        return Node(Node.HOLE) # TODO: record type, description, etc...
-    else:
-        raise Exception("unknown type: {}".format(x["type"]))
-
-    # has arg?
-    if "arg_exists" in x and x["arg_exists"]:
-        g = Node(Node.SEQ, g, make_grammar_from_options(x["argument"], seen=seen))
-    return g
-
-def make_grammar_from_json_syntax(syntax):
-    g = Node(Node.EXACT, syntax["name"])
-    g = Node(Node.SEQ, g, make_grammar_from_options(syntax["option"]))
-    return g
-
-class EnumeratorState(object):
-    @staticmethod
-    def from_grammar(grammar):
-        if grammar.kind == Node.EMPTY:
-            return EnumeratorState(Node.EMPTY)
-        elif grammar.kind in [Node.CASES, Node.SEQ, Node.PERM]:
-            return EnumeratorState(grammar.kind, [EnumeratorState.from_grammar(g) for g in grammar.args])
-        elif grammar.kind == Node.EXACT:
-            return EnumeratorState(Node.EXACT, tok=grammar.args[0])
-        elif grammar.kind == Node.HOLE:
-            return EnumeratorState(Node.HOLE)
-        else:
-            raise Exception("unknown kind {}".format(grammar.kind))
-
-    def __init__(self, kind, sub_states=None, tok=None):
-        self.kind = kind
-        self.sub_states = sub_states or []
-        self.tok = tok
-
-    def __str__(self):
-        if self.kind == Node.EMPTY:
-            return "e"
-        elif self.kind == Node.CASES:
-            return "Cases({})".format(" | ".join(str(e) for e in self.sub_states))
-        elif self.kind == Node.SEQ:
-            return " ".join(str(e) for e in self.sub_states)
-        elif self.kind == Node.PERM:
-            return "Perm({})".format(", ".join(str(e) for e in self.sub_states))
-        elif self.kind == Node.EXACT:
-            return repr(self.tok)
-        elif self.kind == Node.HOLE:
-            return "_"
-
-    # token -> EnumeratorState
-    def push(self, token):
-        assert token in self._legal_tokens(), "grammar {} cannot accept token {}".format(self, token)
-        if self.kind == Node.EMPTY:
-            return self
-        elif self.kind == Node.CASES:
-            return EnumeratorState(Node.CASES, [e.push(token) for e in self.sub_states if e.allows(token)])
-        elif self.kind == Node.SEQ:
-            i = 0
-            new_state = None
-            while True:
-                if self.sub_states[i].allows(token):
-                    new_state = self.sub_states[i].push(token)
-                    break
+        # normalize atomic command
+        for child in node.parts:
+            if END_OF_COMMAND:
+                attach_point = attach_point.parent
+                if attach_point.kind == "flag":
+                    attach_point = attach_point.parent
+                elif attach_point.kind == "headcommand":
+                    pass
                 else:
-                    assert self.sub_states[i].allow_eof()
-                    i += 1
-            if new_state:
-                return EnumeratorState(Node.SEQ, [new_state] + self.sub_states[i+1:])
-            else:
-                return EnumeratorState(Node.EMPTY, [])
-        elif self.kind == Node.PERM:
-            pos = [e.push(token) for e in self.sub_states if e.allows(token)]
-            neg = [e for e in self.sub_states if not e.allows(token)]
-            assert len(pos) > 0
-            e1 = pos[0] if len(pos) == 1 else EnumeratorState(Node.PERM, pos)
-            e2 = EnumeratorState(Node.EMPTY) if len(neg) == 0 else neg[0] if len(neg) == 1 else EnumeratorState(Node.PERM, neg)
-            return EnumeratorState(Node.SEQ, [e1, e2])
-        elif self.kind == Node.EXACT:
-            return EnumeratorState(Node.EMPTY) # consume this production
-        elif self.kind == Node.HOLE:
-            return EnumeratorState(Node.EMPTY) # consume this production
-        else:
-            raise Exception("unknown kind {}".format(self.kind))
-
-    # query state
-    def allow_eof(self):
-        return self.allows(Enumerator.EOF)
-    def allow_arbitrary(self):
-        return self.allows(Enumerator.HOLE)
-    def allows(self, token):
-        return token in self._legal_tokens()
-    def _legal_tokens(self):
-        if self.kind == Node.EMPTY:
-            yield Enumerator.EOF
-        elif self.kind in [Node.CASES, Node.PERM]:
-            for enum in self.sub_states:
-                for tok in enum._legal_tokens():
-                    yield tok
-        elif self.kind == Node.SEQ:
-            for enum in self.sub_states:
-                eof = False
-                for tok in enum._legal_tokens():
-                    if tok == Enumerator.EOF:
-                        eof = True
+                    print('Error: compound command detected.')
+                    print(node)
+                    sys.exit()
+                END_OF_COMMAND = False
+            if child.kind == 'word':
+                if child.word == "--":
+                    END_OF_OPTIONS = True
+                elif child.word == ";":
+                    # handle end of utility introduced by '-exec' and whatnots
+                    END_OF_COMMAND = True
+                elif child.word in head_commands:
+                    if len(child.word) == (child.pos[1] - child.pos[0]):
+                        # not inside quotation marks
+                        normalize(child, attach_point, "headcommand")
+                        attach_point = attach_point.getRightChild()
+                elif is_option(child.word) and not END_OF_OPTIONS:
+                    if attach_point.kind == "flag":
+                        attach_point = attach_point.parent
+                        normalize(child, attach_point, "flag")
+                    elif attach_point.kind == "headcommand":
+                        normalize(child, attach_point, "flag")
                     else:
-                        yield tok
-                if not eof:
-                    break
-            if eof:
-                yield Enumerator.EOF
-        elif self.kind == Node.EXACT:
-            yield self.tok
-        elif self.kind == Node.HOLE:
-            yield Enumerator.HOLE
-        else:
-            raise Exception("unknown kind {}".format(self.kind))
-    def legal_tokens(self):
-        return set(self._legal_tokens())
+                        print("Error: cannot decide where to attach flag node")
+                        print(node)
+                        sys.exit()
+                    attach_point = attach_point.getRightChild()
+                else:
+                    #TODO: handle fine-grained argument types
+                    if attach_point.kind == "argument":
+                        attach_point = attach_point.parent
+                    normalize(child, attach_point, "argument")
+            else:
+                print("Error: unknown type of child of CommandNode")
+                print(node)
+                sys.exit()
 
-class Enumerator(object):
-    EOF = 0
-    HOLE = 1
+    def normalize(node, current, arg_type=""):
+        # recursively normalize each subtree
+        if not type(node) is ast.node:
+            raise ValueError('type(node) is not ast.node')
+        if node.kind == 'word':
+            # assign fine-grained types
+            if hasattr(node, 'parts') and node.parts and \
+                node.parts[0].kind != "tilde":
+                # Compound arguments
+                # commandsubstitution, processsubstitution, parameter
+                if node.parts[0].kind == "processsubstitution":
+                    if '>' in node.word:
+                        norm_node = ProcessSubstitutionNode('>')
+                        attach_to_tree(norm_node, current)
+                        for child in node.parts:
+                            normalize(child, norm_node)
+                    elif '<' in node.word:
+                        norm_node = ProcessSubstitutionNode('<')
+                        attach_to_tree(norm_node, current)
+                        for child in node.parts:
+                            normalize(child, norm_node)
+                elif node.parts[0].kind == "commandsubstitution":
+                    norm_node = CommandSubstitutionNode()
+                    attach_to_tree(norm_node, current)
+                    for child in node.parts:
+                        normalize(child, norm_node)
+                elif node.parts[0].kind == "parameter":
+                    if not node.parts[0].value.isdigit():
+                        value = normalize_word(node.word, normalize_digits)
+                        norm_node = ArgumentNode(kind=arg_type, value=value)
+                        attach_to_tree(norm_node, current)
+                else:
+                    for child in node.parts:
+                        normalize(child, current)
+            else:
+                value = normalize_word(node.word, normalize_digits)
+                norm_node = ArgumentNode(kind=arg_type, value=value)
+                attach_to_tree(norm_node, current)
+        elif node.kind == "pipeline":
+            if len(node.parts) % 2 == 0:
+                print("Error: pipeline node must have odd number of parts")
+                print(node)
+                sys.exit()
+            for child in node.parts:
+                if child.kind == "command":
+                    normalize(child, current)
+                elif child.kind == "pipe":
+                    norm_node = PipeNode()
+                    attach_to_tree(norm_node, current)
+                else:
+                    print("Error: unrecognized type of child of pipeline node")
+                    print(node)
+                    sys.exit()
+        elif node.kind == "list":
+            if len(node.parts) > 2:
+                # multiple commands, not supported
+                raise("Unsupported: list of length >= 2")
+            else:
+                for child in node.parts:
+                    normalize(child, current)
+        elif node.kind == "commandsubstitution" or \
+             node.kind == "processsubstitution":
+            normalize(node.command, current)
+        elif node.kind == "command":
+            normalize_command(node, current)
+        elif hasattr(node, 'parts'):
+            for child in node.parts:
+                # skip current node
+                normalize(child, current)
+        elif node.kind == "operator":
+            raise ValueError("Unsupported: %s" % node.kind)
+        elif node.kind == "parameter":
+            # not supported
+            raise ValueError("Unsupported: parameters")
+        elif node.kind == "redirect":
+            # not supported
+            # if node.type == '>':
+            #     parse(node.input, tokens)
+            #     tokens.append('>')
+            #     parse(node.output, tokens)
+            # elif node.type == '<':
+            #     parse(node.output, tokens)
+            #     tokens.append('<')
+            #     parse(node.input, tokens)
+            raise ValueError("Unsupported: %s" % node.kind)
+        elif node.kind == "for":
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
+        elif node.kind == "if":
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
+        elif node.kind == "while":
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
+        elif node.kind == "until":
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
+        elif node.kind == "assignment":
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
+        elif node.kind == "function":
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
+        elif node.kind == "tilde":
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
+        elif node.kind == "heredoc":
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
 
-    def __init__(self, arg):
-        if isinstance(arg, Node):
-            self.state_stack = [EnumeratorState.from_grammar(arg)]
-        elif isinstance(arg, list):
-            self.state_stack = list(arg)
-        else:
-            raise Exception("cannot make enumerator of {}".format(arg))
+    try:
+        tree = parser.parse(cmd)
+    except tokenizer.MatchedPairError, e:
+        print("Cannot parse: %s - MatchedPairError" % cmd.encode('utf-8'))
+        # return basic_tokenizer(cmd, normalize_digits, False)
+        return None
+    except errors.ParsingError, e:
+        print("Cannot parse: %s - ParsingError" % cmd.encode('utf-8'))
+        # return basic_tokenizer(cmd, normalize_digits, False)
+        return None
+    except NotImplementedError, e:
+        print("Cannot parse: %s - NotImplementedError" % cmd.encode('utf-8'))
+        # return basic_tokenizer(cmd, normalize_digits, False)
+        return None
+    except IndexError, e:
+        print("Cannot parse: %s - IndexError" % cmd.encode('utf-8'))
+        # empty command
+        return None
+    except AttributeError, e:
+        print("Cannot parse: %s - AttributeError" % cmd.encode('utf-8'))
+        # not a bash command
+        return None
 
-    def __str__(self):
-        return str(self.state_stack[-1])
+    if len(tree) > 1:
+        print("Doesn't support command with multiple root nodes: %s" % cmd.encode('utf-8'))
+    normalized_tree = None
+    try:
+        normalize(tree[0], normalized_tree)
+    except ValueError as err:
+        print("%s - %s" % (err.args[0], cmd.encode('utf-8')))
+        return None
 
-    # alter state
-    def push(self, token):
-        self.state_stack.append(self.state_stack[-1].push(token))
-    def pop(self):
-        assert len(self.state_stack) > 1, "cannot pop() this enumerator"
-        del self.state_stack[-1]
-    def reset(self):
-        self.state_stack = [self.state_stack[0]]
+    return normalized_tree
 
-    # make a fresh copy of this enumerator
-    def copy(self):
-        return Enumerator(self.state_stack)
 
-    # query state
-    def allow_eof(self):
-        return self.state_stack[-1].allow_eof()
-    def allow_arbitrary(self):
-        return self.state_stack[-1].allow_arbitrary()
-    def allows(self, token):
-        return self.state_stack[-1].allows(token)
-    def legal_tokens(self):
-        return self.state_stack[-1].legal_tokens()
-
-if __name__ == "__main__":
-    simple_grammar = load_syntax([os.path.join(os.path.dirname(__file__), "..", "data", "primitive_cmds_grammar_v1.json")])
-    grammar = make_full_grammar(simple_grammar, max_pipeline_depth=3)
-
-    e = Enumerator(grammar)
-    while True:
-        choices = list(e.legal_tokens())
-        if Enumerator.HOLE in choices:
-            choices.remove(Enumerator.HOLE)
-            choices.append("*")
-        if Enumerator.EOF in choices:
-            choices.remove(Enumerator.EOF)
-            choices.append("<EOF>")
-        print("choices: {}".format(", ".join(choices)))
-        try:
-            inp = raw_input("> ")
-            if inp == "$":
-                print(e)
-                continue
-            if inp == "*":
-                inp = Enumerator.HOLE
-            e.push(inp)
-        except EOFError as ex:
-            break
-    e.push(Enumerator.EOF)

@@ -28,7 +28,7 @@ class Program(object):
             result = result + c.pretty_print(indent_count + 1) + "\n"
         return result.rstrip()
     def next_node(self, looked): 
-    # what is the next node after visiting this node
+        # what is the next node after visiting this node
         next = []
         next.append("<DONE>")
         for cmd in self.commands:
@@ -356,7 +356,7 @@ class Interface(object):
         return self.enumerators[0].history
 
 if __name__ == "__main__":
-    g = load_syntax([os.path.join(os.path.dirname(__file__), "..", "..", "bashlex", "primitive_cmd_grammar.json")])
+    g = load_syntax([os.path.join(os.path.dirname(__file__), "primitive_cmds_grammar.json")])
     interface = Interface(g)
     while True:
         print("choices: {}".format(", ".join(interface.text_choices_alter())))
