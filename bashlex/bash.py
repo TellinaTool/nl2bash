@@ -91,18 +91,15 @@ def bash_tokenizer(cmd, normalize_digits=True):
                         for child in node.parts:
                             parse(child, tokens)
                         tokens.append(')')
-                    return
-                for child in node.parts:
-                    parse(child, tokens)
+                else:
+                    for child in node.parts:
+                        parse(child, tokens)
             else:
                 w = node.word
                 word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
                 tokens.append(word)
         elif node.kind == "pipe":
             w = node.pipe
-            tokens.append(w)
-        elif node.kind == "operator":
-            w = node.op
             tokens.append(w)
         elif node.kind == "list":
             if len(node.parts) > 2:
@@ -117,9 +114,19 @@ def bash_tokenizer(cmd, normalize_digits=True):
             tokens.append('`')
         elif node.kind == "processsubstitution":
             parse(node.command, tokens)
+        elif node.kind == "parameter":
+            if node.value.isdigit():
+                # not supported
+                tokens.append(None)
+            else:
+                w = node.value
+                tokens.append('$' + w)
         elif hasattr(node, 'parts'):
             for child in node.parts:
                 parse(child, tokens)
+        elif node.kind == "operator":
+            # not supported
+            tokens.append(None)
         elif node.kind == "redirect":
             # not supported
             tokens.append(None)
@@ -152,13 +159,6 @@ def bash_tokenizer(cmd, normalize_digits=True):
         elif node.kind == "tilde":
             # not supported
             tokens.append(None)
-        elif node.kind == "parameter":
-            # not supported
-            if node.value.lower() in ['home', 'dir', 'file', 'path']:
-                w = node.value
-                tokens.append(w)
-            else:
-                tokens.append(None)
         elif node.kind == "heredoc":
             # not supported
             tokens.append(None)
