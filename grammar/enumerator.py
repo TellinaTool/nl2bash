@@ -32,7 +32,7 @@ class Program(object):
             result = result + c.pretty_print(indent_count + 1) + "\n"
         return result.rstrip()
     def next_node(self, looked): 
-    # what is the next node after visiting this node
+        # what is the next node after visiting this node
         next = []
         next.append("<DONE>")
         for cmd in self.commands:
