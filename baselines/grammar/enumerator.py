@@ -356,7 +356,7 @@ class Interface(object):
         return self.enumerators[0].history
 
 if __name__ == "__main__":
-    g = load_syntax([os.path.join(os.path.dirname(__file__), "..", "data", "primitive_cmds_grammar.json")])
+    g = load_syntax([os.path.join(os.path.dirname(__file__), "..", "..", "bashlex", "primitive_cmd_grammar.json")])
     interface = Interface(g)
     while True:
         print("choices: {}".format(", ".join(interface.text_choices_alter())))
@@ -365,6 +365,6 @@ if __name__ == "__main__":
             if inp == "<DONE>" and interface.is_valid_choice("<DONE>"):
                 print("choices: {}".format(", ".join(map(str,interface.get_history()))))
                 break
-            interface.make_choice_alter(inp)
+            interface.make_choice(inp)
         except EOFError as ex:
             break
