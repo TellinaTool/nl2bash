@@ -271,6 +271,7 @@ def normalize_ast(cmd, normalize_digits):
             rsb.lsb = None
             rsb.rsb = None
             node.addChild(rsb)
+            node.rsb = None
 
     def normalize(node, current, arg_type=""):
         # recursively normalize each subtree
