@@ -6,7 +6,12 @@ It also performs some normalization on the command arguments.
 """
 
 from __future__ import print_function
-from bash import *
+import re
+import sys
+
+# bashlex stuff
+import ast, errors, tokenizer, parser
+from bash import _DIGIT_RE, _NUM, is_option, head_commands
 
 # TODO: add stdin & stdout types
 simplified_bash_syntax = [
@@ -34,6 +39,22 @@ arg_syntax = [
     "Unknown"
 ]
 
+unary_logic_operators = set(['!', '-not'])
+
+binary_logic_operators = set([
+    '-and',
+    '-or',
+    '||',
+    '&&',
+    '-o'
+])
+
+def is_unary_logic_op(w):
+    return w in unary_logic_operators
+
+def is_binary_logic_op(w):
+    return w in binary_logic_operators
+
 class Node(object):
     def __init__(self, parent=None, lsb=None, kind="", value=""):
         """
@@ -55,6 +76,7 @@ class Node(object):
         """
         self.parent = parent
         self.lsb = lsb
+        self.rsb = None
         self.kind = kind
         self.value = value
         self.children = []
@@ -66,55 +88,87 @@ class Node(object):
     def addChild(self, child):
         self.children.append(child)
 
+    def getNumChildren(self):
+        return len(self.chidren)
+
     def getRightChild(self):
         if len(self.children) >= 1:
             return self.children[-1]
         else:
             return None
 
+    def getSecond2RightChild(self):
+        if len(self.children) >= 2:
+            return self.children[-2]
+        else:
+            return None
+
+    def removeChild(self, child):
+        self.children.remove(child)
+
+    def removeChildByIndex(self, index):
+        self.children.pop(index)
+
 # syntax constraints for different kind of nodes
 class ArgumentNode(Node):
     def __init__(self, kind="", value="", parent=None, lsb=None):
-        super.__init__(parent, lsb, kind, value)
+        super(ArgumentNode, self).__init__(parent, lsb, kind, value)
         self.num_child = 0
 
-class PipeNode(Node):
+class UnaryLogicOpNode(Node):
+    def __init__(self, value="", parent=None, lsb=None):
+        super(UnaryLogicOpNode, self).__init__( parent, lsb, 'unarylogicop', value)
+        self.num_child = 1
+        self.children_types = [set('flag')]
+
+class BinaryLogicOpNode(Node):
+    def __init__(self, value="", parent=None, lsb=None):
+        super(BinaryLogicOpNode, self).__init__(parent, lsb, 'binarylogicop', value)
+        self.num_child = 2
+        self.children_types = [set('flag'), set('flag')]
+
+class PipelineNode(Node):
     def __init__(self, parent=None, lsb=None):
-        super.__init__(parent, lsb)
-        self.kind = 'pipe'
-        self.value = '|'
-        self.children_types = [set(['pipe', 'headcommand'])]
+        super(PipelineNode, self).__init__(parent, lsb)
+        self.kind = 'pipeline'
+        self.children_types = [set(['headcommand'])]
 
 class CommandSubstitutionNode(Node):
     def __init__(self, parent=None, lsb=None):
-        super.__init__(parent, lsb)
+        super(CommandSubstitutionNode, self).__init__(parent, lsb)
         self.kind = "commandsubstitution"
         self.num_child = 1
-        self.children_types = [set('pipe', 'headcommand')]
+        self.children_types = [set(['pipe', 'headcommand'])]
 
 class ProcessSubstitutionNode(Node):
     def __init__(self, value, parent=None, lsb=None):
-        super.__init__(parent, lsb)
+        super(ProcessSubstitutionNode, self).__init__(parent, lsb)
         self.kind = "processsubstitution"
         if value in ["<", ">"]:
             self.value = value
         else:
             raise ValueError("Value of a processsubstitution has to be '<' or '>'.")
         self.num_child = 1
-        self.children_types = [set('pipe', 'headcommand')]
+        self.children_types = [set(['pipe', 'headcommand'])]
 
-def attach_to_tree(node, parent):
-    node.parent = parent
-    if parent:
-        # non-root node
-        parent.addChild(node)
-        node.lsb = parent.getRightChild()
+def pretty_print(node, depth):
+    print("    " * depth + node.kind.upper() + '(' + node.value + ')')
+    for child in node.children:
+        pretty_print(child, depth+1)
 
-def pretty_print(node):
-
-
-def linear_print(node):
+def linear_print(node, str=''):
     pass
+
+# normalize special command syntax
+def special_command_normalization(cmd):
+    ## the first argument of "tar" is always interpreted as an option
+    tar_fix = re.compile(' tar \w')
+    if cmd.startswith('tar'):
+        cmd = ' ' + cmd
+        for w in re.findall(tar_fix, cmd):
+            cmd = cmd.replace(w, w.replace('tar ', 'tar -'))
+        cmd = cmd.strip()
+    return cmd
 
 def normalize_ast(cmd, normalize_digits):
     """
@@ -125,17 +179,41 @@ def normalize_ast(cmd, normalize_digits):
     """
 
     cmd = cmd.replace('\n', ' ').strip()
+    cmd = special_command_normalization(cmd)
+
     if not cmd:
         return None
 
+    def attach_to_tree(node, parent):
+        node.parent = parent
+        node.lsb = parent.getRightChild()
+        parent.addChild(node)
+        if node.lsb:
+            node.lsb.rsb = node
+
+    def find_attach_point(node, attach_point):
+        if not is_option(node.word):
+            return attach_point
+        if attach_point.kind == "flag":
+            return attach_point.parent
+        elif attach_point.kind == "headcommand":
+            return attach_point
+        else:
+            print("Error: cannot decide where to attach flag node")
+            print(node)
+            sys.exit()
+
     def normalize_word(w, normalize_digits):
-        return e.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
+        return re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
 
     def normalize_command(node, current):
         attach_point = current
 
         END_OF_OPTIONS = False
         END_OF_COMMAND = False
+
+        unary_logic_ops = []
+        binary_logic_ops = []
 
         # normalize atomic command
         for child in node.parts:
@@ -156,31 +234,43 @@ def normalize_ast(cmd, normalize_digits):
                 elif child.word == ";":
                     # handle end of utility introduced by '-exec' and whatnots
                     END_OF_COMMAND = True
+                elif child.word in unary_logic_operators:
+                    attach_point = find_attach_point(child, attach_point)
+                    norm_node = UnaryLogicOpNode(child.word)
+                    attach_to_tree(norm_node, attach_point)
+                    unary_logic_ops.append(norm_node)
+                elif child.word in binary_logic_operators:
+                    attach_point = find_attach_point(child, attach_point)
+                    norm_node = BinaryLogicOpNode(child.word)
+                    attach_to_tree(norm_node, attach_point)
+                    binary_logic_ops.append(norm_node)
                 elif child.word in head_commands:
                     if len(child.word) == (child.pos[1] - child.pos[0]):
                         # not inside quotation marks
                         normalize(child, attach_point, "headcommand")
                         attach_point = attach_point.getRightChild()
                 elif is_option(child.word) and not END_OF_OPTIONS:
-                    if attach_point.kind == "flag":
-                        attach_point = attach_point.parent
-                        normalize(child, attach_point, "flag")
-                    elif attach_point.kind == "headcommand":
-                        normalize(child, attach_point, "flag")
-                    else:
-                        print("Error: cannot decide where to attach flag node")
-                        print(node)
-                        sys.exit()
+                    attach_point = find_attach_point(child, attach_point)
+                    normalize(child, attach_point, "flag")
                     attach_point = attach_point.getRightChild()
                 else:
                     #TODO: handle fine-grained argument types
-                    if attach_point.kind == "argument":
-                        attach_point = attach_point.parent
                     normalize(child, attach_point, "argument")
             else:
                 print("Error: unknown type of child of CommandNode")
                 print(node)
                 sys.exit()
+
+        # process logic operators
+        for node in unary_logic_ops:
+            # change right sibling to child
+            rsb = node.rsb
+            assert(rsb != None)
+            node.parent.removeChild(rsb)
+            rsb.parent = node
+            rsb.lsb = None
+            rsb.rsb = None
+            node.addChild(rsb)
 
     def normalize(node, current, arg_type=""):
         # recursively normalize each subtree
@@ -188,8 +278,7 @@ def normalize_ast(cmd, normalize_digits):
             raise ValueError('type(node) is not ast.node')
         if node.kind == 'word':
             # assign fine-grained types
-            if hasattr(node, 'parts') and node.parts and \
-                node.parts[0].kind != "tilde":
+            if node.parts and node.parts[0].kind != "tilde":
                 # Compound arguments
                 # commandsubstitution, processsubstitution, parameter
                 if node.parts[0].kind == "processsubstitution":
@@ -209,10 +298,10 @@ def normalize_ast(cmd, normalize_digits):
                     for child in node.parts:
                         normalize(child, norm_node)
                 elif node.parts[0].kind == "parameter":
-                    if not node.parts[0].value.isdigit():
-                        value = normalize_word(node.word, normalize_digits)
-                        norm_node = ArgumentNode(kind=arg_type, value=value)
-                        attach_to_tree(norm_node, current)
+                    # if not node.parts[0].value.isdigit():
+                    value = normalize_word(node.word, normalize_digits)
+                    norm_node = ArgumentNode(kind=arg_type, value=value)
+                    attach_to_tree(norm_node, current)
                 else:
                     for child in node.parts:
                         normalize(child, current)
@@ -221,16 +310,17 @@ def normalize_ast(cmd, normalize_digits):
                 norm_node = ArgumentNode(kind=arg_type, value=value)
                 attach_to_tree(norm_node, current)
         elif node.kind == "pipeline":
+            norm_node = PipelineNode()
+            attach_to_tree(norm_node, current)
             if len(node.parts) % 2 == 0:
                 print("Error: pipeline node must have odd number of parts")
                 print(node)
                 sys.exit()
             for child in node.parts:
                 if child.kind == "command":
-                    normalize(child, current)
+                    normalize(child, norm_node)
                 elif child.kind == "pipe":
-                    norm_node = PipeNode()
-                    attach_to_tree(norm_node, current)
+                    pass
                 else:
                     print("Error: unrecognized type of child of pipeline node")
                     print(node)
@@ -317,7 +407,7 @@ def normalize_ast(cmd, normalize_digits):
 
     if len(tree) > 1:
         print("Doesn't support command with multiple root nodes: %s" % cmd.encode('utf-8'))
-    normalized_tree = None
+    normalized_tree = Node(kind="root", value="root")
     try:
         normalize(tree[0], normalized_tree)
     except ValueError as err:
@@ -325,5 +415,12 @@ def normalize_ast(cmd, normalize_digits):
         return None
 
     return normalized_tree
+
+if __name__ == "__main__":
+    cmd = sys.argv[1]
+    norm_tree = normalize_ast(cmd, True)
+    pretty_print(norm_tree, 0)
+    linear_print(norm_tree, '')
+
 
 

@@ -1,10 +1,10 @@
 import copy
 
-from bashlex import ast, flags, tokenizer, errors
+import ast, flags, tokenizer, errors
 
 def _recursiveparse(parserobj, base, sindex, tokenizerargs=None):
     # TODO: fix this hack that prevents mutual import
-    from bashlex import parser
+    import parser
 
     tok = parserobj.tok
 
