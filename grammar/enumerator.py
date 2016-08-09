@@ -135,8 +135,8 @@ class ArgOp(object):
         #TODO: allow a list of file
         looked.append(self)
         result = []
-        #if self.is_list:
-        #    result.append(self)
+        if self.is_list:
+            result.append(self)
         result.extend(self.leave_node(looked, self))
         return result
     def leave_node(self, looked, last):
