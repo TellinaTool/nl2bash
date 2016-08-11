@@ -265,13 +265,33 @@ def normalize_ast(cmd, normalize_digits):
         for node in unary_logic_ops:
             # change right sibling to child
             rsb = node.rsb
+            node.rsb = rsb.rsb
             assert(rsb != None)
             node.parent.removeChild(rsb)
             rsb.parent = node
             rsb.lsb = None
             rsb.rsb = None
             node.addChild(rsb)
-            node.rsb = None
+
+        for node in binary_logic_ops:
+            # change right sibling to Child
+            # change left sibling to child
+            rsb = node.rsb
+            lsb = node.lsb
+            assert (rsb != None)
+            assert (lsb != None)
+            node.rsb = rsb.rsb
+            node.lsb = lsb.lsb
+            node.parent.removeChild(rsb)
+            node.parent.removeChild(lsb)
+            rsb.parent = node
+            lsb.parent = node
+            rsb.lsb = lsb
+            rsb.rsb = None
+            lsb.rsb = rsb
+            lsb.lsb = None
+            node.addChild(lsb)
+            node.addChild(rsb)
 
     def normalize(node, current, arg_type=""):
         # recursively normalize each subtree
