@@ -56,6 +56,12 @@ def is_binary_logic_op(w):
     return w in binary_logic_operators
 
 class Node(object):
+    num_child = -1              # default value = -1, allow arbitrary number of children
+    children_types = []         # list of children types
+                                # a length-one list of representing the common types for each
+                                # child if num_child = -1
+                                # dummy field if num_child = 0
+
     def __init__(self, parent=None, lsb=None, kind="", value=""):
         """
         :member kind: ['pipe',
@@ -80,10 +86,6 @@ class Node(object):
         self.kind = kind
         self.value = value
         self.children = []
-        self.num_child = -1         # default value, permits arbitrary number of children
-        self.children_types = []    # a list of allowed types for each child
-                                    # a single-element list of allowed types for every child if self.num_child = -1
-                                    # dummy field if self.num_child = 0
 
     def addChild(self, child):
         self.children.append(child)
@@ -109,38 +111,70 @@ class Node(object):
     def removeChildByIndex(self, index):
         self.children.pop(index)
 
+    @property
+    def symbol(self):
+        return self.value
+
 # syntax constraints for different kind of nodes
 class ArgumentNode(Node):
+    num_child = 0
+
     def __init__(self, kind="", value="", parent=None, lsb=None):
         super(ArgumentNode, self).__init__(parent, lsb, kind, value)
-        self.num_child = 0
+
+    @property
+    def symbol(self):
+        return self.value
 
 class UnaryLogicOpNode(Node):
+    num_child = 1
+    children_types = [set('flag')]
+
     def __init__(self, value="", parent=None, lsb=None):
         super(UnaryLogicOpNode, self).__init__( parent, lsb, 'unarylogicop', value)
-        self.num_child = 1
-        self.children_types = [set('flag')]
+        
+    @property
+    def symbol(self):
+        return self.value
 
 class BinaryLogicOpNode(Node):
+    num_child = 2
+    children_types = [set('flag'), set('flag')]
+
     def __init__(self, value="", parent=None, lsb=None):
         super(BinaryLogicOpNode, self).__init__(parent, lsb, 'binarylogicop', value)
-        self.num_child = 2
-        self.children_types = [set('flag'), set('flag')]
+
+    @property
+    def symbol(self):
+        return self.value
 
 class PipelineNode(Node):
+    children_types = [set(['headcommand'])]
+
     def __init__(self, parent=None, lsb=None):
         super(PipelineNode, self).__init__(parent, lsb)
         self.kind = 'pipeline'
-        self.children_types = [set(['headcommand'])]
+
+    @property
+    def symbol(self):
+        return self.kind.upper()
 
 class CommandSubstitutionNode(Node):
+    num_child = 1
+    children_types = [set(['pipe', 'headcommand'])]
+
     def __init__(self, parent=None, lsb=None):
         super(CommandSubstitutionNode, self).__init__(parent, lsb)
         self.kind = "commandsubstitution"
-        self.num_child = 1
-        self.children_types = [set(['pipe', 'headcommand'])]
+
+    @property
+    def symbol(self):
+        return self.kind.upper()
 
 class ProcessSubstitutionNode(Node):
+    num_child = 1
+    children_types = [set(['pipe', 'headcommand'])]
+
     def __init__(self, value, parent=None, lsb=None):
         super(ProcessSubstitutionNode, self).__init__(parent, lsb)
         self.kind = "processsubstitution"
@@ -148,15 +182,27 @@ class ProcessSubstitutionNode(Node):
             self.value = value
         else:
             raise ValueError("Value of a processsubstitution has to be '<' or '>'.")
-        self.num_child = 1
-        self.children_types = [set(['pipe', 'headcommand'])]
+
+    @property
+    def symbol(self):
+        return self.kind.upper() + self.value
 
 def pretty_print(node, depth):
     print("    " * depth + node.kind.upper() + '(' + node.value + ')')
     for child in node.children:
         pretty_print(child, depth+1)
 
-def linear_print(node, str=''):
+def linear_print(node, order='dfs', list=[]):
+    # linearize the tree for training
+    if order == 'dfs':
+        list.append(node.symbol)
+        for child in node.children:
+            linear_print(child, order, list)
+        list.append("<NO_EXPAND>")
+    return list
+
+def to_command(node):
+    # convert to an executable command
     pass
 
 # normalize special command syntax
@@ -245,8 +291,7 @@ def normalize_ast(cmd, normalize_digits):
                     attach_to_tree(norm_node, attach_point)
                     binary_logic_ops.append(norm_node)
                 elif child.word in head_commands:
-                    if len(child.word) == (child.pos[1] - child.pos[0]):
-                        # not inside quotation marks
+                    if not with_quotation(child):
                         normalize(child, attach_point, "headcommand")
                         attach_point = attach_point.getRightChild()
                 elif is_option(child.word) and not END_OF_OPTIONS:
@@ -320,14 +365,14 @@ def normalize_ast(cmd, normalize_digits):
                         normalize(child, norm_node)
                 elif node.parts[0].kind == "parameter":
                     # if not node.parts[0].value.isdigit():
-                    value = normalize_word(node.word, normalize_digits)
+                    value = normalize_word(recover_quotation(node), normalize_digits)
                     norm_node = ArgumentNode(kind=arg_type, value=value)
                     attach_to_tree(norm_node, current)
                 else:
                     for child in node.parts:
                         normalize(child, current)
             else:
-                value = normalize_word(node.word, normalize_digits)
+                value = normalize_word(recover_quotation(node), normalize_digits)
                 norm_node = ArgumentNode(kind=arg_type, value=value)
                 attach_to_tree(norm_node, current)
         elif node.kind == "pipeline":
@@ -403,6 +448,15 @@ def normalize_ast(cmd, normalize_digits):
             # not supported
             raise ValueError("Unsupported: %s" % node.kind)
 
+    def with_quotation(node):
+        return (node.pos[1] - node.pos[0] - len(node.word)) == 2
+
+    def recover_quotation(node):
+        if (node.pos[1] - node.pos[0] - len(node.word)) == 2:
+            return cmd[node.pos[0] : node.pos[1]]
+        else:
+            return node.word
+
     try:
         tree = parser.parse(cmd)
     except tokenizer.MatchedPairError, e:
@@ -441,7 +495,7 @@ if __name__ == "__main__":
     cmd = sys.argv[1]
     norm_tree = normalize_ast(cmd, True)
     pretty_print(norm_tree, 0)
-    linear_print(norm_tree, '')
+    print(linear_print(norm_tree, 'dfs', []))
 
 
 
