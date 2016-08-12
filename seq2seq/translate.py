@@ -15,9 +15,8 @@
 
 """Binary for training translation models and decoding from them.
 
-Running this program without --decode will download the WMT corpus into
-the directory specified as --data_dir and tokenize it in a very basic way,
-and then start training a model saving checkpoints to --train_dir.
+Running this program without --decode will read in the raw training data, perform
+tokenization, and then start training a model saving checkpoints to --train_dir.
 
 Running with --decode starts an interactive loop so you can see how
 the current checkpoint translates English sentences into French.
@@ -197,7 +196,7 @@ def train(train_set, dev_set, num_iter):
                                      "vocab%d.nl" % FLAGS.nl_vocab_size)
         cm_vocab_path = os.path.join(FLAGS.data_dir,
                                      "vocab%d.cm" % FLAGS.cm_vocab_size)
-        nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
+        # nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
         for t in xrange(num_iter):
