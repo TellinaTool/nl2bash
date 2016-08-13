@@ -432,7 +432,29 @@ def embedding_tied_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
     return outputs_and_state[:-1], outputs_and_state[-1]
 
 
+def attention(query, hidden_features, attention_vec, attention_vec_size, attn_length, attn_size,
+              num_heads, hidden):
+  if not rnn_cell._is_sequence(query):
+    shapes = [a.get_shape().as_list() for a in [query]]
+  else:
+    shapes = [a.get_shape().as_list() for a in query]
 
+  """Put attention masks on hidden using hidden_features and query."""
+  ds = []  # Results of attention reads will be stored here.
+  for a in xrange(num_heads):
+    with variable_scope.variable_scope("Attention_%d" % a):
+      y = linear(query, attention_vec_size, True)
+      y = array_ops.reshape(y, [-1, 1, 1, attention_vec_size])
+      # Attention mask is a softmax of v^T * tanh(...).
+      s = math_ops.reduce_sum(
+          attention_vec[a] * math_ops.tanh(hidden_features[a] + y), [2, 3])
+      a = nn_ops.softmax(s)
+      # Now calculate the attention-weighted vector d.
+      d = math_ops.reduce_sum(
+          array_ops.reshape(a, [-1, attn_length, 1, 1]) * hidden,
+          [1, 2])
+      ds.append(array_ops.reshape(d, [-1, attn_size]))
+  return ds
 
 
 def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
