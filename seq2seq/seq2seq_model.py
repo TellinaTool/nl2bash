@@ -169,7 +169,6 @@ class Seq2SeqModel(object):
     if not forward_only:
       self.gradient_norms = []
       self.updates = []
-      # opt = tf.train.GradientDescentOptimizer(self.learning_rate)
       opt = tf.train.AdamOptimizer(self.learning_rate, beta1=0.9, beta2=0.999,
                                    epsilon=1e-08)
       for b in xrange(len(buckets)):
