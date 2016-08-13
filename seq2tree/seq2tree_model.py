@@ -110,7 +110,7 @@ class Seq2TreeModel(object):
             else:
                 self.outputs, state = self.basic_tree_decoder(encoder_state)
 
-    def basic_tree_decoder(self, encoder_state):
+    def basic_tree_decoder(self, encoder_state, attention_states=None):
         embeddings = self.target_embeddings()
         embedding_inputs = (tf.nn.embedding_lookup(embeddings, i) for i in self.decoder_inputs)
 
@@ -129,31 +129,17 @@ class Seq2TreeModel(object):
                     stack.pop()
                     input, state = stack[-1]
                     # predict right sibling of current node
-                    output, state = sb_cell(embedding_inputs[input], state)
+                    if self.use_attention:
+                        output, state = 
+                    else:
+                        output, state = sb_cell(embedding_inputs[input], state)
                     stack.pop()
                 else:
                     input, state = stack[-1]
                     # predict first child of current node
-                    output, state = parent_cell(embedding_inputs[input], state)
-
-                outputs.append(output)
-                stack.append([self.decoder_inputs[i+1], state])
-        return outputs, state
-
-    def basic_attention_tree_decoder(self, encoder_state, attention_states):
-        embeddings = self.target_embeddings()
-        embedding_inputs = (tf.nn.embedding_lookup(embeddings, i) for i in self.decoder_inputs)
-
-        parent_cell = self.create_multilayer_cell("lstm")
-        sb_cell = self.create_multilayer_cell("lstm")
-
-        # search control
-        stack = [(self.decoder_inputs[0], encoder_state)]
-
-        with tf.variable_scope("basic_attention_tree_decoder") as scope:
-            outputs = []
-            for i, control_symbol in enumerate(self.decoder_inputs):
-                if i > 0: scope.reuse_variables()
+                    if self.use_attention:
+                    else:
+                        output, state = parent_cell(embedding_inputs[input], state)
 
                 outputs.append(output)
                 stack.append([self.decoder_inputs[i+1], state])
