@@ -91,7 +91,7 @@ class Node(object):
         self.children.append(child)
 
     def getNumChildren(self):
-        return len(self.chidren)
+        return len(self.children)
 
     def getRightChild(self):
         if len(self.children) >= 1:
@@ -105,6 +105,9 @@ class Node(object):
         else:
             return None
 
+    def is_flag(self):
+        return is_option(self.value)
+
     def removeChild(self, child):
         self.children.remove(child)
 
@@ -113,7 +116,7 @@ class Node(object):
 
     @property
     def symbol(self):
-        return self.value
+        return self.kind.upper() + "_" + self.value
 
 # syntax constraints for different kind of nodes
 class ArgumentNode(Node):
@@ -122,20 +125,12 @@ class ArgumentNode(Node):
     def __init__(self, kind="", value="", parent=None, lsb=None):
         super(ArgumentNode, self).__init__(parent, lsb, kind, value)
 
-    @property
-    def symbol(self):
-        return self.value
-
 class UnaryLogicOpNode(Node):
     num_child = 1
     children_types = [set('flag')]
 
     def __init__(self, value="", parent=None, lsb=None):
         super(UnaryLogicOpNode, self).__init__( parent, lsb, 'unarylogicop', value)
-        
-    @property
-    def symbol(self):
-        return self.value
 
 class BinaryLogicOpNode(Node):
     num_child = 2
@@ -144,20 +139,12 @@ class BinaryLogicOpNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(BinaryLogicOpNode, self).__init__(parent, lsb, 'binarylogicop', value)
 
-    @property
-    def symbol(self):
-        return self.value
-
 class PipelineNode(Node):
     children_types = [set(['headcommand'])]
 
     def __init__(self, parent=None, lsb=None):
         super(PipelineNode, self).__init__(parent, lsb)
         self.kind = 'pipeline'
-
-    @property
-    def symbol(self):
-        return self.kind.upper()
 
 class CommandSubstitutionNode(Node):
     num_child = 1
@@ -166,10 +153,6 @@ class CommandSubstitutionNode(Node):
     def __init__(self, parent=None, lsb=None):
         super(CommandSubstitutionNode, self).__init__(parent, lsb)
         self.kind = "commandsubstitution"
-
-    @property
-    def symbol(self):
-        return self.kind.upper()
 
 class ProcessSubstitutionNode(Node):
     num_child = 1
@@ -183,21 +166,17 @@ class ProcessSubstitutionNode(Node):
         else:
             raise ValueError("Value of a processsubstitution has to be '<' or '>'.")
 
-    @property
-    def symbol(self):
-        return self.kind.upper() + self.value
-
 def pretty_print(node, depth):
     print("    " * depth + node.kind.upper() + '(' + node.value + ')')
     for child in node.children:
         pretty_print(child, depth+1)
 
-def linear_print(node, order='dfs', list=[]):
+def to_list(node, order='dfs', list=[]):
     # linearize the tree for training
     if order == 'dfs':
         list.append(node.symbol)
         for child in node.children:
-            linear_print(child, order, list)
+            to_list(child, order, list)
         list.append("<NO_EXPAND>")
     return list
 
@@ -205,8 +184,27 @@ def to_command(node):
     # convert to an executable command
     pass
 
-# normalize special command syntax
+def list_to_tree(list, order='dfs'):
+    # construct a tree from linearized input
+    root = Node(kind="root", value="root")
+    current = root
+    if order == 'dfs':
+        for i in xrange(1, len(list)):
+            symbol = list[i]
+            if symbol == "<NO_EXPAND>":
+                current = current.parent
+            else:
+                kind, value = symbol.split('_', 1)
+                kind = kind.lower()
+                node = Node(kind=kind, value=value)
+                attach_to_tree(node, current)
+                current = node
+    else:
+        raise NotImplementedError
+    return root
+
 def special_command_normalization(cmd):
+    # special normalization for certain commands
     ## the first argument of "tar" is always interpreted as an option
     tar_fix = re.compile(' tar \w')
     if cmd.startswith('tar'):
@@ -215,6 +213,13 @@ def special_command_normalization(cmd):
             cmd = cmd.replace(w, w.replace('tar ', 'tar -'))
         cmd = cmd.strip()
     return cmd
+
+def attach_to_tree(node, parent):
+    node.parent = parent
+    node.lsb = parent.getRightChild()
+    parent.addChild(node)
+    if node.lsb:
+        node.lsb.rsb = node
 
 def normalize_ast(cmd, normalize_digits):
     """
@@ -230,14 +235,7 @@ def normalize_ast(cmd, normalize_digits):
     if not cmd:
         return None
 
-    def attach_to_tree(node, parent):
-        node.parent = parent
-        node.lsb = parent.getRightChild()
-        parent.addChild(node)
-        if node.lsb:
-            node.lsb.rsb = node
-
-    def find_attach_point(node, attach_point):
+    def find_flag_attach_point(node, attach_point):
         if not is_option(node.word):
             return attach_point
         if attach_point.kind == "flag":
@@ -281,12 +279,12 @@ def normalize_ast(cmd, normalize_digits):
                     # handle end of utility introduced by '-exec' and whatnots
                     END_OF_COMMAND = True
                 elif child.word in unary_logic_operators:
-                    attach_point = find_attach_point(child, attach_point)
+                    attach_point = find_flag_attach_point(child, attach_point)
                     norm_node = UnaryLogicOpNode(child.word)
                     attach_to_tree(norm_node, attach_point)
                     unary_logic_ops.append(norm_node)
                 elif child.word in binary_logic_operators:
-                    attach_point = find_attach_point(child, attach_point)
+                    attach_point = find_flag_attach_point(child, attach_point)
                     norm_node = BinaryLogicOpNode(child.word)
                     attach_to_tree(norm_node, attach_point)
                     binary_logic_ops.append(norm_node)
@@ -295,11 +293,13 @@ def normalize_ast(cmd, normalize_digits):
                         normalize(child, attach_point, "headcommand")
                         attach_point = attach_point.getRightChild()
                 elif is_option(child.word) and not END_OF_OPTIONS:
-                    attach_point = find_attach_point(child, attach_point)
+                    attach_point = find_flag_attach_point(child, attach_point)
                     normalize(child, attach_point, "flag")
                     attach_point = attach_point.getRightChild()
                 else:
                     #TODO: handle fine-grained argument types
+                    if attach_point.is_flag() and attach_point.getNumChildren() >= 1:
+                        attach_point = attach_point.parent
                     normalize(child, attach_point, "argument")
             else:
                 print("Error: unknown type of child of CommandNode")
@@ -495,7 +495,8 @@ if __name__ == "__main__":
     cmd = sys.argv[1]
     norm_tree = normalize_ast(cmd, True)
     pretty_print(norm_tree, 0)
-    print(linear_print(norm_tree, 'dfs', []))
-
+    list = to_list(norm_tree, 'dfs', [])
+    print(list)
+    pretty_print(list_to_tree(list), 0)
 
 
