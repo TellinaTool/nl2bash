@@ -28,14 +28,7 @@ from seq2tree_model import Seq2TreeModel
 
 import data_utils
 
-tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
-tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
-tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
-tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
-
-tf.app.flags.DEFINE_string("decoder", "greedy", "Type of decoder to use.")
-tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
-
+# task and flow
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                             "Limit on the size of training data (0: no limit).")
 tf.app.flags.DEFINE_integer("iters_per_checkpoint", 1,
@@ -45,10 +38,6 @@ tf.app.flags.DEFINE_integer("iters_per_milestone", 1,
 tf.app.flags.DEFINE_integer("num_milestones", 10,
                             "How many dev-set evaluation to be performed during training")
 
-tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
-tf.app.flags.DEFINE_boolean("log_device_placement", False,
-                            "Set to True for logging device placement.")
-
 tf.app.flags.DEFINE_boolean("eval", False,
                             "Set to True for quantitive evaluation.")
 tf.app.flags.DEFINE_boolean("decode", False,
@@ -57,6 +46,17 @@ tf.app.flags.DEFINE_boolean("bucket_selection", False,
                             "Run a bucket_selection if this is set to True.")
 tf.app.flags.DEFINE_boolean("self_test", False,
                             "Run a self-test if this is set to True.")
+
+# device
+tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
+tf.app.flags.DEFINE_boolean("log_device_placement", False,
+                            "Set to True for logging device placement.")
+
+# training data property
+tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
+tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
+tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
+tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 
 # learning hyperparameters
 tf.app.flags.DEFINE_string("optimizer", "adam")
@@ -81,6 +81,8 @@ tf.app.flags.DEFINE_integer("size", 200, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
 tf.app.flags.DEFINE_boolean("attention", True, "If set, use attention decoder.")
 
+tf.app.flags.DEFINE_string("decoder", "greedy", "Type of decoder to use.")
+tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -179,6 +181,31 @@ def train_and_eval(train_set, dev_set):
         if not is_learning:
             print("Training stopped early for no improvement observed on dev set.")
             break
+
+
+def read_data(source_path, target_path, max_size=None):
+    """Read data from source and target files and put into buckets.
+    :param source_path: path to the file with token-ids for the source language.
+    :param target_path: path to the file with token-ids for the target language.
+    :param max_size: maximum number of lines to read. Read complete data files if
+        this entry is 0 or None.
+    """
+    data_set = []
+
+    with tf.gfile.GFile(source_path, mode="r") as source_file:
+        with tf.gfile.GFile(target_path, mode="r") as target_file:
+            source, target = source_file.readline(), target_file.readline()
+            counter = 0
+            while source and target and (not max_size or counter < max_size):
+                counter += 1
+                if counter % 1000 == 0:
+                    print("  reading data line %d" % counter)
+                    sys.stdout.flush()
+                source_ids = [int(x) for x in source.split()]
+                target_ids = [int(x) for x in target.split()]
+                data_set.append([source_ids, target_ids])
+            source, target = source_file.readline(), target_file.readline()
+    return data_set
 
 def main(_):
     # set GPU device

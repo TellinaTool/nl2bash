@@ -14,19 +14,21 @@ class Seq2TreeModel(object):
     """Sequence-to-tree model with attention.
     """
 
-    def __init__(self, hyperparams, source, target, forward_only=False):
+    _NO_EXPAND = tf.constant(data_utils._NO_EXPAND)
+
+    def __init__(self, hyperparams, max_source_length, max_target_length, forward_only=False):
         """
         Create the model.
         :param hyperparams: hyperparameters of learning
-        :param sournce: indexed source input (sequentialized)
-        :param target: indexed target input (sequentialized)
+        :param max_source_length: length upper bound of source input.
+        :param max_target_length: length upper bound of target input.
         :param use_attention: if set, use attention
         :param forward_only: if set, we do not construct the backward pass.
         """
 
         self.hyperparams = hyperparams
-        self.source = source
-        self.target = target
+        self.max_source_length = max_source_length
+        self.max_target_length = max_target_length
 
         self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]), trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
@@ -34,6 +36,20 @@ class Seq2TreeModel(object):
         self.global_step = tf.Variable(0, trainable=False)
 
         self.create_graph(forward_only)
+
+
+    def step(self):
+        """Run a step of the model feeding the given inputs.
+        :param session: tensorflow session to use.
+        :param encoder_inputs: list of numpy int vectors to feed as encoder inputs.
+        :param decoder_inputs: list of numpy int vectors to feed as decoder inputs.
+        :param target_weights: list of numpy float vectors to feed as target weights.
+        :param bucket_id: which bucket of the model to use.
+        :param forward_only: whether to do the backward step or only forward.
+        :return (gradient_norm, average_perplexity, outputs)
+        """
+
+        encoder_size =
 
 
     def create_graph(self, forward_only):
@@ -53,10 +69,10 @@ class Seq2TreeModel(object):
         self.encoder_inputs = []  # encoder inputs.
         self.decoder_inputs = []  # decoder inputs (always start with "root").
         self.target_weights = []  # weights at each position of the target sequence.
-        for i in xrange(len(self.source)):
+        for i in xrange(self.max_source_length):
             self.encoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
                                                       name="encoder{0}".format(i)))
-        for i in xrange(len(self.target) + 1):
+        for i in xrange(self.max_target_length + 1):
             self.decoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
                                                       name="decoder{0}".format(i)))
             self.target_weights.append(tf.placeholder(tf.float32, shape=[None],
@@ -161,51 +177,83 @@ class Seq2TreeModel(object):
                     attns = self.attention(encoder_state, hidden_features, attn_vecs, num_heads, hidden)
 
             # search control
+            init_input = embedding_inputs[0]
             if self.use_attention:
-                stack = [(self.decoder_inputs[0], encoder_state, attns)]
+                self.stack = tf.concat(1, [init_input, encoder_state, attns])
             else:
-                stack = [(self.decoder_inputs[0], encoder_state)]
+                self.stack = tf.concat(1, [init_input, encoder_state])
 
             for i, control_symbol in enumerate(self.decoder_inputs):
                 if i > 0: scope.reuse_variables()
 
-                if self.is_no_expand(control_symbol):
-                    stack.pop()     # remove <no_expand> symbol from the stack
-                    # predict right sibling of current node
-                    if self.use_attention:
-                        input, state, attns = stack[-1]
-                        input_embedding = embedding_inputs[input]
-                        output, state, attns = self.attention_cell(sb_cell, input_embedding, state,
-                                                                   attns, (i == 0 and initial_state_attention),
-                                                                   hidden_features, attn_vecs, num_heads, hidden)
-                    else:
-                        input, attns = stack[-1]
-                        input_embedding = embedding_inputs[input]
-                        output, state = sb_cell(input_embedding, state)
-                    stack.pop()     # remove a state from the stack when we have finished
-                                    # generating both its child and right sibling
+                if self.use_attention:
+                    output, state, attns = \
+                        tf.cond(self.is_no_expand(control_symbol),
+                                self.left_to_right_with_attention(
+                                    sb_cell, (i == 0 and initial_state_attention),
+                                    hidden_features, attn_vecs, num_heads, hidden),
+                                self.top_to_bottom_with_attention(
+                                    parent_cell, (i == 0 and initial_state_attention),
+                                    hidden_features, attn_vecs, num_heads, hidden))
+                    if i < len(self.decoder_inputs) - 1:
+                        next_input = embedding_inputs[i+1]
+                        self.push([next_input, state, attns])
                 else:
-                    # predict first child of current node
-                    if self.use_attention:
-                        input, state, attns = stack[-1]
-                        input_embedding = embedding_inputs[input]
-                        output, state, attns = self.attention_cell(parent_cell, input_embedding, state,
-                                                                   attns, (i == 0 and initial_state_attention),
-                                                                   hidden_features, attn_vecs, num_heads, hidden)
-                    else:
-                        input, state = stack[-1]
-                        input_embedding = embedding_inputs[input]
-                        output, state = parent_cell(input_embedding, state)
+                    output, state = tf.cond(self.is_no_expand(control_symbol),
+                                            self.left_to_right(sb_cell),
+                                            self.top_to_bottom(parent_cell))
+                    if i < len(self.decoder_inputs) - 1:
+                        next_input = embedding_inputs[i+1]
+                        self.push([next_input, state])
 
                 outputs.append(output)
 
-                if self.use_attention:
-                    stack.append([self.decoder_inputs[i + 1], state, attns])
-                else:
-                    stack.append([self.decoder_inputs[i + 1], state])
-
         return outputs, state
 
+    def top_to_bottom_with_attention(self, cell, initial_state_attention,
+                                     hidden_features, attn_vecs, num_heads, hidden):
+        input, state, attns = self.peek()
+        output, state, attns = self.attention_cell(input, state, attns,
+                                                   initial_state_attention,
+                                                   hidden_features, attn_vecs, num_heads, hidden)
+        return output, state, attns
+
+    def top_to_bottom(self, cell):
+        input, state = self.peek()
+        output, state = cell(input, state)
+        return output, state
+
+
+    def left_to_right_with_attention(self, cell, initial_state_attention,
+                                     hidden_features, attn_vecs, num_heads, hidden):
+        self.pop()
+        input, state, attns = self.peek()
+        output, state, attns = self.attention_cell(cell, input, state, attns,
+                                                   initial_state_attention,
+                                                   hidden_features, attn_vecs, num_heads, hidden)
+        self.pop()
+        return output, state, attns
+
+    def left_to_right(self, cell):
+        self.pop()
+        input, state = self.peek()
+        output, state = cell(input, state)
+        self.pop()
+        return output, state
+
+    def push(self, states):
+        new_top_state = tf.concat(1, states)
+        self.stack = tf.concat(0, [self.stack, new_top_state])
+
+    def peek(self):
+        top_state = tf.slice(self.stack, [self.stack.get_shape()[0].value-1, 0], [1, self.stack.get_shape()[1].value])
+        if self.use_attention:
+            return tf.split(1, 3, top_state)
+        else:
+            return tf.split(1, 2, top_state)
+
+    def pop(self):
+        self.stack = tf.slice(self.stack, [0, 0], [self.stack.get_shape()[0].value-1, self.stack.get_shape()[1].value])
 
     def attention(self, state, hidden_features, attn_vecs, num_heads, hidden):
         attn_vec_dim = attn_vecs.get_shape()[0].value
@@ -284,7 +332,7 @@ class Seq2TreeModel(object):
 
 
     def is_no_expand(self, ind):
-        return ind == data_utils._NO_EXPAND
+        return tf.equal(ind, Seq2TreeModel._NO_EXPAND)
 
     def source_embeddings(self):
         with tf.variable_scope("source_embeddings"):
