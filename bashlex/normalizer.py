@@ -190,6 +190,8 @@ def list_to_tree(list, order='dfs'):
     current = root
     if order == 'dfs':
         for i in xrange(1, len(list)):
+            if not current:
+                break
             symbol = list[i]
             if symbol == "<NO_EXPAND>":
                 current = current.parent
@@ -497,6 +499,6 @@ if __name__ == "__main__":
     pretty_print(norm_tree, 0)
     list = to_list(norm_tree, 'dfs', [])
     print(list)
-    pretty_print(list_to_tree(list), 0)
+    pretty_print(list_to_tree(list + ['<PAD>', '<PAD>', '<PAD>']), 0)
 
 
