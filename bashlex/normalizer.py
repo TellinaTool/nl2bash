@@ -181,8 +181,37 @@ def to_list(node, order='dfs', list=[]):
     return list
 
 def to_command(node):
-    # convert to an executable command
-    pass
+    cmd = ""
+    # convert a tree to bash command format
+    if node.kind == "root":
+        assert(node.getNumChildren() == 1)
+        cmd = to_command(node.children[0])
+    elif node.kind == "pipeline":
+        assert(node.getNumChildren() > 1)
+        for child in node.children[:-1]:
+            cmd += to_command(child)
+            cmd += " | "
+        cmd += to_command(node.children[-1])
+    elif node.kind == "commandsubstitution":
+        assert(node.getNumChildren() == 1)
+        cmd = "$(" + to_command(node.children[0]) + ")"
+    elif node.kind == "processsubstitution":
+        assert(node.getNumChildren() == 1)
+        cmd = node.value() + "(" + to_command(node.children[0]) + ")"
+    elif node.kind == "headcommand":
+        cmd = node.value + ' '
+        for child in node.children:
+            cmd += to_command(child) + ' '
+        cmd = cmd.strip()
+    elif node.kind == "flag":
+        cmd = node.value + ' '
+        for child in node.children:
+            cmd += to_command(child) + ' '
+        cmd = cmd.strip()
+    elif node.kind == "argument":
+        assert(node.getNumChildren() == 0)
+        cmd = node.value
+    return cmd
 
 def list_to_tree(list, order='dfs'):
     # construct a tree from linearized input
@@ -499,6 +528,9 @@ if __name__ == "__main__":
     pretty_print(norm_tree, 0)
     list = to_list(norm_tree, 'dfs', [])
     print(list)
-    pretty_print(list_to_tree(list + ['<PAD>', '<PAD>', '<PAD>']), 0)
+    tree = list_to_tree(list + ['<PAD>'])
+    pretty_print(tree, 0)
+    print(to_command(tree))
+
 
 
