@@ -11,7 +11,7 @@ import sys
 
 # bashlex stuff
 import ast, errors, tokenizer, parser
-from bash import _DIGIT_RE, _NUM, is_option, head_commands
+from bash import is_option, head_commands, normalize_word, with_quotation
 
 # TODO: add stdin & stdout types
 simplified_bash_syntax = [
@@ -252,11 +252,12 @@ def attach_to_tree(node, parent):
     if node.lsb:
         node.lsb.rsb = node
 
-def normalize_ast(cmd, normalize_digits):
+def normalize_ast(cmd, normalize_digits, recover_quotation=True):
     """
     Convert the bashlex parse tree of a command into the normalized form.
     :param cmd: bash command to parse
     :param normalize_digits: replace all digits in the tree with the special _NUM symbol
+    :param recover_quotation: if set, retain quotation marks in the command
     :return normalized_tree
     """
 
@@ -277,9 +278,6 @@ def normalize_ast(cmd, normalize_digits):
             print("Error: cannot decide where to attach flag node")
             print(node)
             sys.exit()
-
-    def normalize_word(w, normalize_digits):
-        return re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
 
     def normalize_command(node, current):
         attach_point = current
@@ -375,7 +373,7 @@ def normalize_ast(cmd, normalize_digits):
             raise ValueError('type(node) is not ast.node')
         if node.kind == 'word':
             # assign fine-grained types
-            if node.parts and node.parts[0].kind != "tilde":
+            if node.parts:
                 # Compound arguments
                 # commandsubstitution, processsubstitution, parameter
                 if node.parts[0].kind == "processsubstitution":
@@ -394,16 +392,17 @@ def normalize_ast(cmd, normalize_digits):
                     attach_to_tree(norm_node, current)
                     for child in node.parts:
                         normalize(child, norm_node)
-                elif node.parts[0].kind == "parameter":
+                elif node.parts[0].kind == "parameter" or \
+                    node.parts[0].kind == "tilde":
                     # if not node.parts[0].value.isdigit():
-                    value = normalize_word(recover_quotation(node), normalize_digits)
+                    value = normalize_word(node, normalize_digits, recover_quotation)
                     norm_node = ArgumentNode(kind=arg_type, value=value)
                     attach_to_tree(norm_node, current)
                 else:
                     for child in node.parts:
                         normalize(child, current)
             else:
-                value = normalize_word(recover_quotation(node), normalize_digits)
+                value = normalize_word(node, normalize_digits, recover_quotation)
                 norm_node = ArgumentNode(kind=arg_type, value=value)
                 attach_to_tree(norm_node, current)
         elif node.kind == "pipeline":
@@ -439,6 +438,7 @@ def normalize_ast(cmd, normalize_digits):
                 # skip current node
                 normalize(child, current)
         elif node.kind == "operator":
+            # not supported
             raise ValueError("Unsupported: %s" % node.kind)
         elif node.kind == "parameter":
             # not supported
@@ -478,15 +478,6 @@ def normalize_ast(cmd, normalize_digits):
         elif node.kind == "heredoc":
             # not supported
             raise ValueError("Unsupported: %s" % node.kind)
-
-    def with_quotation(node):
-        return (node.pos[1] - node.pos[0] - len(node.word)) == 2
-
-    def recover_quotation(node):
-        if (node.pos[1] - node.pos[0] - len(node.word)) == 2:
-            return cmd[node.pos[0] : node.pos[1]]
-        else:
-            return node.word
 
     try:
         tree = parser.parse(cmd)
