@@ -1,6 +1,6 @@
-import parser
+import bparser
 import tokenizer
 
-parse = parser.parse
-parsesingle = parser.parsesingle
+parse = bparser.parse
+parsesingle = bparser.parsesingle
 split = tokenizer.split

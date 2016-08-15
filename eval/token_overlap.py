@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../bashlex")
 import bashlex
-import errors, tokenizer, parser
+import errors, tokenizer, bparser
 from bash import bash_tokenizer, basic_tokenizer
 
 class TokenOverlap(object):
@@ -25,7 +25,7 @@ class TokenOverlap(object):
     @staticmethod
     def get_command_list(cmd, verbose=False):
         try:
-            parse = parser.parse(cmd)
+            parse = bparser.parse(cmd)
         except bashlex.errors.ParsingError, e:
             return TokenOverlap.get_command_list_rule_based(cmd)
         except bashlex.tokenizer.MatchedPairError, e:
