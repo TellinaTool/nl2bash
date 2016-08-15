@@ -25,7 +25,7 @@ sys.path.append("../bashlex")
 
 from bash import basic_tokenizer, bash_tokenizer
 
-from tensorflow.python.platform import gfile
+import tensorflow as tf
 
 # Special vocabulary symbols - we always put them at the start.
 _PAD = b"_PAD"
@@ -33,7 +33,9 @@ _GO = b"_GO"
 _EOS = b"_EOS"
 _UNK = b"_UNK"
 _NUM = b"_NUM"
-_START_VOCAB = [_PAD, _GO, _EOS, _UNK]
+_NO_EXPAND = b"<NO_EXPAND>"
+
+_START_VOCAB = [_PAD, _GO, _EOS, _UNK, _NO_EXPAND]
 
 # Regular expressions used to tokenize.
 _DIGIT_RE = re.compile(br"\d")
@@ -42,6 +44,7 @@ PAD_ID = 0
 GO_ID = 1
 EOS_ID = 2
 UNK_ID = 3
+NO_EXPAND_ID = 4
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                       tokenizer, normalize_digits=True):
@@ -61,7 +64,7 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
         if None, basic_tokenizer will be used.
       normalize_digits: Boolean; if true, all digits are replaced by 0s.
     """
-    if not gfile.Exists(vocabulary_path):
+    if not tf.gfile.Exists(vocabulary_path):
         print("Creating vocabulary %s from data (%d)" % (vocabulary_path, len(data)))
         vocab = {}
         counter = 0
@@ -69,7 +72,10 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             counter += 1
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
-            tokens = tokenizer(line, normalize_digits)
+            if type(line) is list:
+                tokens = line
+            else:
+                tokens = tokenizer(line, normalize_digits)
             if not tokens:
                 continue
             for word in tokens:
@@ -80,7 +86,7 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
         vocab_list = _START_VOCAB + sorted(vocab, key=vocab.get, reverse=True)
         if len(vocab_list) > max_vocabulary_size:
             vocab_list = vocab_list[:max_vocabulary_size]
-        with gfile.GFile(vocabulary_path, mode="wb") as vocab_file:
+        with tf.gfile.GFile(vocabulary_path, mode="wb") as vocab_file:
             for w in vocab_list:
                 vocab_file.write(w.encode('utf-8') + b"\n")
 
@@ -104,15 +110,34 @@ def initialize_vocabulary(vocabulary_path):
     Raises:
       ValueError: if the provided vocabulary_path does not exist.
     """
-    if gfile.Exists(vocabulary_path):
+    if tf.gfile.Exists(vocabulary_path):
         rev_vocab = []
-        with gfile.GFile(vocabulary_path, mode="rb") as f:
+        with tf.gfile.GFile(vocabulary_path, mode="rb") as f:
             rev_vocab.extend(f.readlines())
         rev_vocab = [line.strip() for line in rev_vocab]
         vocab = dict([(x, y) for (y, x) in enumerate(rev_vocab)])
         return vocab, rev_vocab
     else:
         raise ValueError("Vocabulary file %s not found.", vocabulary_path)
+
+
+def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
+    batch_size = len(inputs[0])
+    sentences = []
+    for i in xrange(batch_size):
+        if headAppended:
+            outputs = [decoder_input[i] for decoder_input in inputs[1:]]
+        else:
+            outputs = [decoder_input[i] for decoder_input in inputs]
+        # If there is an EOS symbol in outputs, cut them at that point.
+        if EOS_ID in outputs:
+            outputs = outputs[:outputs.index(EOS_ID)]
+        # If there is a PAD symbol in outputs, cut them at that point.
+        if PAD_ID in outputs:
+            outputs = outputs[:outputs.index(PAD_ID)]
+        # Print out command corresponding to outputs.
+        sentences.append(" ".join([tf.compat.as_str(rev_vocab[output]) for output in outputs]))
+    return sentences
 
 
 def sentence_to_token_ids(sentence, vocabulary,
@@ -133,8 +158,10 @@ def sentence_to_token_ids(sentence, vocabulary,
     Returns:
       a list of integers, the token-ids for the sentence.
     """
-
-    words = tokenizer(sentence, normalize_digits)
+    if type(sentence) is list:
+        words = sentence
+    else:
+        words = tokenizer(sentence, normalize_digits)
 
     if not normalize_digits:
         return [vocabulary.get(w, UNK_ID) for w in words]
@@ -159,10 +186,10 @@ def data_to_token_ids(data, target_path, vocabulary_path,
         if None, basic_tokenizer will be used.
       normalize_digits: Boolean; if true, all digits are replaced by 0s.
     """
-    if not gfile.Exists(target_path):
+    if not tf.gfile.Exists(target_path):
         print("Tokenizing data (%d)" % len(data))
         vocab, _ = initialize_vocabulary(vocabulary_path)
-        with gfile.GFile(target_path, mode="w") as tokens_file:
+        with tf.gfile.GFile(target_path, mode="w") as tokens_file:
             counter = 0
             for line in data:
                 counter += 1
@@ -188,13 +215,15 @@ def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size,
         if None, basic_tokenizer and bash_tokenizer will be used.
 
     Returns:
-      A tuple of 6 elements:
+      A tuple of 8 elements:
         (1) path to the token-ids for English training data-set,
         (2) path to the token-ids for Command training data-set,
         (3) path to the token-ids for English development data-set,
         (4) path to the token-ids for Command development data-set,
-        (5) path to the English vocabulary file,
-        (6) path to the Command vocabulary file.
+        (5) path to the token-ids for English test data-set,
+        (6) path to the token-ids for Command test data-set,
+        (7) path to the English vocabulary file,
+        (8) path to the Command vocabulary file.
     """
 
     train_cm_list = data['train'][0]

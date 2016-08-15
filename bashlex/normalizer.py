@@ -197,7 +197,7 @@ def to_command(node):
         cmd = "$(" + to_command(node.children[0]) + ")"
     elif node.kind == "processsubstitution":
         assert(node.getNumChildren() == 1)
-        cmd = node.value() + "(" + to_command(node.children[0]) + ")"
+        cmd = node.value + "(" + to_command(node.children[0]) + ")"
     elif node.kind == "headcommand":
         cmd = node.value + ' '
         for child in node.children:

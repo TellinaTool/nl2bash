@@ -6,9 +6,9 @@ def define_input_flags():
     # task and flow
     tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                                 "Limit on the size of training data (0: no limit).")
-    tf.app.flags.DEFINE_integer("iters_per_checkpoint", 1,
+    tf.app.flags.DEFINE_integer("epochs_per_checkpoint", 1,
                                 "How many training steps to do per checkpoint.")
-    tf.app.flags.DEFINE_integer("iters_per_milestone", 1,
+    tf.app.flags.DEFINE_integer("epochs_per_milestone", 1,
                                 "How many training steps to do per dev-set evaluation")
     tf.app.flags.DEFINE_integer("num_milestones", 10,
                                 "How many dev-set evaluation to be performed during training")
@@ -30,6 +30,8 @@ def define_input_flags():
     # training data property
     tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
     tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
+    tf.app.flags.DEFINE_integer("max_nl_length", 40, "maximum length of the English sentence.")
+    tf.app.flags.DEFINE_integer("max_cm_length", 100, "maximum length of the command traversal sequence.")
     tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
     tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 
@@ -56,5 +58,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
     tf.app.flags.DEFINE_boolean("attention", True, "If set, use attention decoder.")
 
-    tf.app.flags.DEFINE_string("decoder", "greedy", "Type of decoder to use.")
+    tf.app.flags.DEFINE_string("decoder_topology", "basic", "structure of the tree RNN")
+    tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
     tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
