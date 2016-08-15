@@ -22,7 +22,7 @@ from random import shuffle
 import tensorflow as tf
 
 import data_utils
-from argparse import define_input_flags
+from parse_args import define_input_flags
 from bash import basic_tokenizer, bash_tokenizer
 from normalizer import to_list, list_to_tree, to_command, pretty_print, normalize_ast
 from seq2tree_model import Seq2TreeModel
