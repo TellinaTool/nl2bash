@@ -32,9 +32,8 @@ head_commands = [
     "zip", "unzip",
     "tar", "sort",
     "head", "tail",
-    "du", "echo",
-    "diff", "comm",
-    "date"
+    "du", "date",
+    "diff", "comm"
 ]
 
 special_operators = [
