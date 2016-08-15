@@ -337,6 +337,8 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                     if attach_point.is_flag() and attach_point.getNumChildren() >= 1:
                         attach_point = attach_point.parent
                     normalize(child, attach_point, "argument")
+            elif child.kind == "assignment":
+                normalize(child, attach_point, "assignment")
             else:
                 print("Error: unknown type of child of CommandNode")
                 print(node)
