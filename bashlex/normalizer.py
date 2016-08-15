@@ -352,8 +352,11 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
         for node in unary_logic_ops:
             # change right sibling to child
             rsb = node.rsb
+            if rsb == None:
+                print("Error: unary logic operator must have a right sibling.")
+                print(node.parent)
+                sys.exit()
             node.rsb = rsb.rsb
-            assert(rsb != None)
             node.parent.removeChild(rsb)
             rsb.parent = node
             rsb.lsb = None
@@ -365,8 +368,10 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
             # change left sibling to child
             rsb = node.rsb
             lsb = node.lsb
-            assert (rsb != None)
-            assert (lsb != None)
+            if rsb == None or lsb == None:
+                print("Error: binary logic operator must have both left and right siblings.")
+                print(node.parent)
+                sys.exit()
             node.rsb = rsb.rsb
             node.lsb = lsb.lsb
             node.parent.removeChild(rsb)
