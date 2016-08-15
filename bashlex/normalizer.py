@@ -273,9 +273,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
         elif attach_point.kind == "headcommand":
             return attach_point
         else:
-            print("Error: cannot decide where to attach flag node")
-            print(node)
-            sys.exit()
+            raise ValueError("Error: cannot decide where to attach flag node")
 
     def normalize_word(node, norm_digit, recover_quote):
         w = recover_quotation(node) if recover_quote else node.word
