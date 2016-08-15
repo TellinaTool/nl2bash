@@ -27,8 +27,6 @@ class Seq2TreeModel(object):
         """
 
         self.hyperparams = hyperparams
-        self.max_source_length = max_source_length
-        self.max_target_length = max_target_length
 
         self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]), trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
@@ -137,6 +135,7 @@ class Seq2TreeModel(object):
         for i in xrange(len(outputs)):
             self.outputs.append((tf.matmul(outputs[i], W) + b))
 
+
     def basic_tree_decoder(self, encoder_state, attention_states=None, num_heads=1,
                            initial_state_attention=False):
         """
@@ -223,7 +222,6 @@ class Seq2TreeModel(object):
         output, state = cell(input, state)
         return output, state
 
-
     def left_to_right_with_attention(self, cell, initial_state_attention,
                                      hidden_features, attn_vecs, num_heads, hidden):
         self.pop()
@@ -254,6 +252,7 @@ class Seq2TreeModel(object):
 
     def pop(self):
         self.stack = tf.slice(self.stack, [0, 0], [self.stack.get_shape()[0].value-1, self.stack.get_shape()[1].value])
+
 
     def attention(self, state, hidden_features, attn_vecs, num_heads, hidden):
         attn_vec_dim = attn_vecs.get_shape()[0].value
@@ -417,3 +416,11 @@ class Seq2TreeModel(object):
     @property
     def target_vocab_size(self):
         return self.hyperparams["target_vocab_size"]
+
+    @property
+    def max_source_length(self):
+        return self.hyperparams["max_source_length"]
+
+    @property
+    def max_target_length(self):
+        return self.hyperparams["max_target_length"]

@@ -263,25 +263,6 @@ def train(train_set, dev_set, num_iter):
     return True
 
 
-def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
-    batch_size = len(inputs[0])
-    sentences = []
-    for i in xrange(batch_size):
-        if headAppended:
-            outputs = [decoder_input[i] for decoder_input in inputs[1:]]
-        else:
-            outputs = [decoder_input[i] for decoder_input in inputs]
-        # If there is an EOS symbol in outputs, cut them at that point.
-        if data_utils.EOS_ID in outputs:
-            outputs = outputs[:outputs.index(data_utils.EOS_ID)]
-        # If there is a PAD symbol in outputs, cut them at that point.
-        if data_utils.PAD_ID in outputs:
-            outputs = outputs[:outputs.index(data_utils.PAD_ID)]
-        # Print out command corresponding to outputs.
-        sentences.append(" ".join([tf.compat.as_str(rev_vocab[output]) for output in outputs]))
-    return sentences
-
-
 def decode(output_logits, rev_cm_vocab, beam_decoder):
     if FLAGS.decoder == "greedy":
         # This is a greedy decoder - outputs are just argmaxes of output_logits.
@@ -332,8 +313,8 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
         rev_encoder_inputs = []
         for i in xrange(len(encoder_inputs)-1, -1, -1):
             rev_encoder_inputs.append(encoder_inputs[i])
-        sentences = token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)
-        ground_truths = token_ids_to_sentences(decoder_inputs, rev_cm_vocab, True)
+        sentences = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)
+        ground_truths = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab, True)
         assert(len(sentences) == len(ground_truths))
         predictions = batch_decode(output_logits, rev_cm_vocab, model.beam_decoder)
         assert(len(ground_truths) == len(predictions))
