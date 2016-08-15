@@ -66,24 +66,24 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
         normalized_words.append(word)
     return normalized_words
 
-def normalize_word(node, norm_digit, recover_quote):
-    w = recover_quotation(node) if recover_quote else node.word
-    return re.sub(_DIGIT_RE, _NUM, w) if norm_digit and not is_option(w) else w
-
-def with_quotation(node):
-    return (node.pos[1] - node.pos[0] - len(node.word)) == 2
-
-def recover_quotation(node):
-    if with_quotation(node):
-        return cmd[node.pos[0] : node.pos[1]]
-    else:
-        return node.word
-
 def bash_tokenizer(cmd, normalize_digits=True, recover_quotation=True):
     cmd = cmd.replace('\n', ' ').strip()
     tokens = []
     if not cmd:
         return tokens
+
+    def normalize_word(node, norm_digit, recover_quote):
+        w = recover_quotation(node) if recover_quote else node.word
+        return re.sub(_DIGIT_RE, _NUM, w) if norm_digit and not is_option(w) else w
+
+    def with_quotation(node):
+        return (node.pos[1] - node.pos[0] - len(node.word)) == 2
+
+    def recover_quotation(node):
+        if with_quotation(node):
+            return cmd[node.pos[0] : node.pos[1]]
+        else:
+            return node.word
 
     def parse(node, tokens):
         if not type(node) is ast.node:
@@ -106,14 +106,14 @@ def bash_tokenizer(cmd, normalize_digits=True, recover_quotation=True):
                 elif node.parts[0].kind == "parameter" or \
                     node.parts[0].kind == "tilde":
                     w = node.word
-                    word = normalize_word(w, normalize_digits, recover_quotation)
+                    word = normalize_word(node, normalize_digits, recover_quotation)
                     tokens.append(word)
                 else:
                     for child in node.parts:
                         parse(child, tokens)
             else:
                 w = node.word
-                word = normalize_word(w, normalize_digits, recover_quotation)
+                word = normalize_word(node, normalize_digits, recover_quotation)
                 tokens.append(word)
         elif node.kind == "pipe":
             w = node.pipe
@@ -123,8 +123,7 @@ def bash_tokenizer(cmd, normalize_digits=True, recover_quotation=True):
                 # multiple commands, not supported
                 tokens.append(None)
             else:
-                for child in node.parts:
-                    parse(child, tokens)
+                parse(node.parts[0], tokens)    # ignoring the ';' operator
         elif node.kind == "commandsubstitution":
             tokens.append('`')
             parse(node.command, tokens)

@@ -11,7 +11,7 @@ import sys
 
 # bashlex stuff
 import ast, errors, tokenizer, parser
-from bash import is_option, head_commands, normalize_word, with_quotation
+from bash import is_option, head_commands, _DIGIT_RE, _NUM
 
 # TODO: add stdin & stdout types
 simplified_bash_syntax = [
@@ -279,6 +279,19 @@ def normalize_ast(cmd, normalize_digits, recover_quotation=True):
             print(node)
             sys.exit()
 
+    def normalize_word(node, norm_digit, recover_quote):
+        w = recover_quotation(node) if recover_quote else node.word
+        return re.sub(_DIGIT_RE, _NUM, w) if norm_digit and not is_option(w) else w
+
+    def with_quotation(node):
+        return (node.pos[1] - node.pos[0] - len(node.word)) == 2
+
+    def recover_quotation(node):
+        if with_quotation(node):
+            return cmd[node.pos[0] : node.pos[1]]
+        else:
+            return node.word
+
     def normalize_command(node, current):
         attach_point = current
 
@@ -426,8 +439,7 @@ def normalize_ast(cmd, normalize_digits, recover_quotation=True):
                 # multiple commands, not supported
                 raise("Unsupported: list of length >= 2")
             else:
-                for child in node.parts:
-                    normalize(child, current)
+                normalize(node.parts[0], current)
         elif node.kind == "commandsubstitution" or \
              node.kind == "processsubstitution":
             normalize(node.command, current)
