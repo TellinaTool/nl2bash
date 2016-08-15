@@ -38,7 +38,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 
     # learning hyperparameters
-    tf.app.flags.DEFINE_string("optimizer", "adam")
+    tf.app.flags.DEFINE_string("optimizer", "adam", "Type of numeric optimization algorithm to use.")
     tf.app.flags.DEFINE_float("learning_rate", 0.5, "Learning rate.")
     tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
                               "Learning rate decays by this much.")
