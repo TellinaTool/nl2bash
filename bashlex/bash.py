@@ -8,7 +8,7 @@ from __future__ import print_function
 import re
 import sys
 
-import ast, errors, tokenizer, bparser
+import bast, errors, tokenizer, bparser
 
 DEBUG = False
 
@@ -86,7 +86,7 @@ def bash_tokenizer(cmd, normalize_digits=True, recover_quotation=True):
             return node.word
 
     def parse(node, tokens):
-        if not type(node) is ast.node:
+        if not type(node) is bast.node:
             tokens.append(str(node))
             return
         if node.kind == "word":

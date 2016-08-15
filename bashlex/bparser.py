@@ -1,6 +1,6 @@
 import os, copy
 
-import yacc, tokenizer, state, ast, subst, flags, errors, heredoc
+import yacc, tokenizer, state, bast, subst, flags, errors, heredoc
 
 def _partsspan(parts):
     return parts[0].pos[0], parts[-1].pos[1]
@@ -21,7 +21,7 @@ def p_inputunit(p):
     if p.lexer._parserstate & flags.parser.CMDSUBST:
         p.lexer._parserstate.add(flags.parser.EOFTOKEN)
 
-    if isinstance(p[1], ast.node):
+    if isinstance(p[1], bast.node):
         p[0] = p[1]
         # accept right here in case the input contains more lines that are
         # not part of the current command
@@ -47,14 +47,14 @@ def p_redirection_heredoc(p):
     parserobj = p.context
     assert isinstance(parserobj, _parser)
 
-    output = ast.node(kind='word', word=p[len(p)-1], parts=[],
-                      pos=p.lexspan(len(p)-1))
+    output = bast.node(kind='word', word=p[len(p) - 1], parts=[],
+                       pos=p.lexspan(len(p)-1))
     if len(p) == 3:
-        p[0] = ast.node(kind='redirect', input=None, type=p[1], heredoc=None,
-                        output=output, pos=(p.lexpos(1), p.endlexpos(2)))
+        p[0] = bast.node(kind='redirect', input=None, type=p[1], heredoc=None,
+                         output=output, pos=(p.lexpos(1), p.endlexpos(2)))
     else:
-        p[0] = ast.node(kind='redirect', input=p[1], type=p[2], heredoc=None,
-                        output=output, pos=(p.lexpos(1), p.endlexpos(3)))
+        p[0] = bast.node(kind='redirect', input=p[1], type=p[2], heredoc=None,
+                         output=output, pos=(p.lexpos(1), p.endlexpos(3)))
 
     if p.slice[len(p)-2].ttype == tokenizer.tokentype.LESS_LESS:
         parserobj.redirstack.append((p[0], False))
@@ -105,14 +105,14 @@ def p_redirection(p):
         output = p[2]
         if p.slice[2].ttype == tokenizer.tokentype.WORD:
             output = _expandword(parserobj, p.slice[2])
-        p[0] = ast.node(kind='redirect', input=None, type=p[1], heredoc=None,
-                        output=output, pos=(p.lexpos(1), p.endlexpos(2)))
+        p[0] = bast.node(kind='redirect', input=None, type=p[1], heredoc=None,
+                         output=output, pos=(p.lexpos(1), p.endlexpos(2)))
     else:
         output = p[3]
         if p.slice[3].ttype == tokenizer.tokentype.WORD:
             output = _expandword(parserobj, p.slice[3])
-        p[0] = ast.node(kind='redirect', input=p[1], type=p[2], heredoc=None,
-                        output=output, pos=(p.lexpos(1), p.endlexpos(3)))
+        p[0] = bast.node(kind='redirect', input=p[1], type=p[2], heredoc=None,
+                         output=output, pos=(p.lexpos(1), p.endlexpos(3)))
 
 def _expandword(parser, tokenword):
     if parser._expansionlimit == -1:
@@ -124,8 +124,8 @@ def _expandword(parser, tokenword):
         # unexpanded word and will be filtered in the limit == 0 condition below
         #
         # (the reason we even expand when limit == 0 is to get quote removal)
-        node = ast.node(kind='word', word=tokenword,
-                        pos=(tokenword.lexpos, tokenword.endlexpos), parts=[])
+        node = bast.node(kind='word', word=tokenword,
+                         pos=(tokenword.lexpos, tokenword.endlexpos), parts=[])
         return node
     else:
         quoted = bool(tokenword.flags & flags.word.QUOTED)
@@ -141,15 +141,15 @@ def _expandword(parser, tokenword):
         if parser._expansionlimit == 0:
             parts = [node for node in parts if 'substitution' not in node.kind]
 
-        node = ast.node(kind='word', word=expandedword,
-                        pos=(tokenword.lexpos, tokenword.endlexpos), parts=parts)
+        node = bast.node(kind='word', word=expandedword,
+                         pos=(tokenword.lexpos, tokenword.endlexpos), parts=parts)
         return node
 
 def p_simple_command_element(p):
     '''simple_command_element : WORD
                               | ASSIGNMENT_WORD
                               | redirection'''
-    if isinstance(p[1], ast.node):
+    if isinstance(p[1], bast.node):
         p[0] = [p[1]]
         return
 
@@ -183,7 +183,7 @@ def p_command(p):
                | shell_command redirection_list
                | function_def
                | coproc'''
-    if isinstance(p[1], ast.node):
+    if isinstance(p[1], bast.node):
         p[0] = p[1]
         if len(p) == 3:
             assert p[0].kind == 'compound'
@@ -191,7 +191,7 @@ def p_command(p):
             assert p[0].pos[0] < p[0].redirects[-1].pos[1]
             p[0].pos = (p[0].pos[0], p[0].redirects[-1].pos[1])
     else:
-        p[0] = ast.node(kind='command', parts=p[1], pos=_partsspan(p[1]))
+        p[0] = bast.node(kind='command', parts=p[1], pos=_partsspan(p[1]))
 
 def p_shell_command(p):
     '''shell_command : for_command
@@ -214,17 +214,17 @@ def p_shell_command(p):
         parts = _makeparts(p)
         kind = parts[0].word
         assert kind in ('while', 'until')
-        p[0] = ast.node(kind='compound',
-                        redirects=[],
-                        list=[ast.node(kind=kind, parts=parts, pos=_partsspan(parts))],
-                        pos=_partsspan(parts))
+        p[0] = bast.node(kind='compound',
+                         redirects=[],
+                         list=[bast.node(kind=kind, parts=parts, pos=_partsspan(parts))],
+                         pos=_partsspan(parts))
 
     assert p[0].kind == 'compound'
 
 def _makeparts(p):
     parts = []
     for i in range(1, len(p)):
-        if isinstance(p[i], ast.node):
+        if isinstance(p[i], bast.node):
             parts.append(p[i])
         elif isinstance(p[i], list):
             parts.extend(p[i])
@@ -233,8 +233,8 @@ def _makeparts(p):
                 parserobj = p.context
                 parts.append(_expandword(parserobj, p.slice[i]))
             else:
-                parts.append(ast.node(kind='reservedword', word=p[i],
-                                      pos=p.lexspan(i)))
+                parts.append(bast.node(kind='reservedword', word=p[i],
+                                       pos=p.lexspan(i)))
         else:
             pass
 
@@ -255,13 +255,13 @@ def p_for_command(p):
     # considered as part of the for loop
     for i, part in enumerate(parts):
         if part.kind == 'operator' and part.op == ';':
-            parts[i] = ast.node(kind='reservedword', word=';', pos=part.pos)
+            parts[i] = bast.node(kind='reservedword', word=';', pos=part.pos)
             break # there could be only one in there...
 
-    p[0] = ast.node(kind='compound',
-                    redirects=[],
-                    list=[ast.node(kind='for', parts=parts, pos=_partsspan(parts))],
-                    pos=_partsspan(parts))
+    p[0] = bast.node(kind='compound',
+                     redirects=[],
+                     list=[bast.node(kind='for', parts=parts, pos=_partsspan(parts))],
+                     pos=_partsspan(parts))
 
 def p_arith_for_command(p):
     '''arith_for_command : FOR ARITH_FOR_EXPRS list_terminator newline_list DO compound_list DONE
@@ -291,10 +291,10 @@ def p_function_def(p):
                     | FUNCTION WORD newline_list function_body'''
     parts = _makeparts(p)
     body = parts[-1]
-    name = parts[ast.findfirstkind(parts, 'word')]
+    name = parts[bast.findfirstkind(parts, 'word')]
 
-    p[0] = ast.node(kind='function', name=name, body=body, parts=parts,
-                    pos=_partsspan(parts))
+    p[0] = bast.node(kind='function', name=name, body=body, parts=parts,
+                     pos=_partsspan(parts))
 
 def p_function_body(p):
     '''function_body : shell_command
@@ -309,11 +309,11 @@ def p_function_body(p):
 
 def p_subshell(p):
     '''subshell : LEFT_PAREN compound_list RIGHT_PAREN'''
-    lparen = ast.node(kind='reservedword', word=p[1], pos=p.lexspan(1))
-    rparen = ast.node(kind='reservedword', word=p[3], pos=p.lexspan(3))
+    lparen = bast.node(kind='reservedword', word=p[1], pos=p.lexspan(1))
+    rparen = bast.node(kind='reservedword', word=p[3], pos=p.lexspan(3))
     parts = [lparen, p[2], rparen]
-    p[0] = ast.node(kind='compound', list=parts, redirects=[],
-                    pos=_partsspan(parts))
+    p[0] = bast.node(kind='compound', list=parts, redirects=[],
+                     pos=_partsspan(parts))
 
 def p_coproc(p):
     '''coproc : COPROC shell_command
@@ -331,18 +331,18 @@ def p_if_command(p):
     # command, because it's not needed later on. if there will be a need
     # we can always add different nodes for elif/else.
     parts = _makeparts(p)
-    p[0] = ast.node(kind='compound',
-                    redirects=[],
-                    list=[ast.node(kind='if', parts=parts, pos=_partsspan(parts))],
-                    pos=_partsspan(parts))
+    p[0] = bast.node(kind='compound',
+                     redirects=[],
+                     list=[bast.node(kind='if', parts=parts, pos=_partsspan(parts))],
+                     pos=_partsspan(parts))
 
 def p_group_command(p):
     '''group_command : LEFT_CURLY compound_list RIGHT_CURLY'''
-    lcurly = ast.node(kind='reservedword', word=p[1], pos=p.lexspan(1))
-    rcurly = ast.node(kind='reservedword', word=p[3], pos=p.lexspan(3))
+    lcurly = bast.node(kind='reservedword', word=p[1], pos=p.lexspan(1))
+    rcurly = bast.node(kind='reservedword', word=p[3], pos=p.lexspan(3))
     parts = [lcurly, p[2], rcurly]
-    p[0] = ast.node(kind='compound', list=parts, redirects=[],
-                    pos=_partsspan(parts))
+    p[0] = bast.node(kind='compound', list=parts, redirects=[],
+                     pos=_partsspan(parts))
 
 def p_arith_command(p):
     '''arith_command : ARITH_CMD'''
@@ -358,10 +358,10 @@ def p_elif_clause(p):
                    | ELIF compound_list THEN compound_list elif_clause'''
     parts = []
     for i in range(1, len(p)):
-        if isinstance(p[i], ast.node):
+        if isinstance(p[i], bast.node):
             parts.append(p[i])
         else:
-            parts.append(ast.node(kind='reservedword', word=p[i], pos=p.lexspan(i)))
+            parts.append(bast.node(kind='reservedword', word=p[i], pos=p.lexspan(i)))
     p[0] = parts
 
 def p_case_clause(p):
@@ -402,7 +402,7 @@ def p_compound_list(p):
     else:
         parts = p[2]
         if len(parts) > 1:
-            p[0] = ast.node(kind='list', parts=parts, pos=_partsspan(parts))
+            p[0] = bast.node(kind='list', parts=parts, pos=_partsspan(parts))
         else:
             p[0] = parts[0]
 
@@ -412,8 +412,8 @@ def p_list0(p):
              | list1 SEMICOLON newline_list'''
     parts = p[1]
     if len(parts) > 1 or p.slice[2].ttype != tokenizer.tokentype.NEWLINE:
-        parts.append(ast.node(kind='operator', op=p[2], pos=p.lexspan(2)))
-        p[0] = ast.node(kind='list', parts=parts, pos=_partsspan(parts))
+        parts.append(bast.node(kind='operator', op=p[2], pos=p.lexspan(2)))
+        p[0] = bast.node(kind='list', parts=parts, pos=_partsspan(parts))
     else:
         p[0] = parts[0]
 
@@ -429,7 +429,7 @@ def p_list1(p):
     else:
         p[0] = p[1]
         # XXX newline
-        p[0].append(ast.node(kind='operator', op=p[2], pos=p.lexspan(2)))
+        p[0].append(bast.node(kind='operator', op=p[2], pos=p.lexspan(2)))
         p[0].extend(p[len(p) - 1])
 
 def p_simple_list_terminator(p):
@@ -442,7 +442,7 @@ def p_list_terminator(p):
                        | SEMICOLON
                        | EOF'''
     if p[1] == ';':
-        p[0] = ast.node(kind='operator', op=';', pos=p.lexspan(1))
+        p[0] = bast.node(kind='operator', op=';', pos=p.lexspan(1))
 
 def p_newline_list(p):
     '''newline_list : empty
@@ -459,8 +459,8 @@ def p_simple_list(p):
     if len(p) == 3 or len(p[1]) > 1:
         parts = p[1]
         if len(p) == 3:
-            parts.append(ast.node(kind='operator', op=p[2], pos=p.lexspan(2)))
-        p[0] = ast.node(kind='list', parts=parts, pos=_partsspan(parts))
+            parts.append(bast.node(kind='operator', op=p[2], pos=p.lexspan(2)))
+        p[0] = bast.node(kind='list', parts=parts, pos=_partsspan(parts))
     else:
         assert len(p[1]) == 1
         p[0] = p[1][0]
@@ -480,7 +480,7 @@ def p_simple_list1(p):
         p[0] = [p[1]]
     else:
         p[0] = p[1]
-        p[0].append(ast.node(kind='operator', op=p[2], pos=p.lexspan(2)))
+        p[0].append(bast.node(kind='operator', op=p[2], pos=p.lexspan(2)))
         p[0].extend(p[len(p) - 1])
 
 def p_pipeline_command(p):
@@ -493,18 +493,18 @@ def p_pipeline_command(p):
         if len(p[1]) == 1:
             p[0] = p[1][0]
         else:
-            p[0] = ast.node(kind='pipeline', parts=p[1],
-                            pos=(p[1][0].pos[0], p[1][-1].pos[1]))
+            p[0] = bast.node(kind='pipeline', parts=p[1],
+                             pos=(p[1][0].pos[0], p[1][-1].pos[1]))
     else:
         # XXX timespec
-        node = ast.node(kind='reservedword', word='!', pos=p.lexspan(1))
+        node = bast.node(kind='reservedword', word='!', pos=p.lexspan(1))
         if p[2].kind == 'pipeline':
             p[0] = p[2]
             p[0].parts.insert(0, node)
             p[0].pos = (p[0].parts[0].pos[0], p[0].parts[-1].pos[1])
         else:
-            p[0] = ast.node(kind='pipeline', parts=[node, p[2]],
-                            pos=(node.pos[0], p[2].pos[1]))
+            p[0] = bast.node(kind='pipeline', parts=[node, p[2]],
+                             pos=(node.pos[0], p[2].pos[1]))
 
 def p_pipeline(p):
     '''pipeline : pipeline BAR newline_list pipeline
@@ -514,7 +514,7 @@ def p_pipeline(p):
         p[0] = [p[1]]
     else:
         p[0] = p[1]
-        p[0].append(ast.node(kind='pipe', pipe=p[2], pos=p.lexspan(2)))
+        p[0].append(bast.node(kind='pipe', pipe=p[2], pos=p.lexspan(2)))
         p[0].extend(p[len(p) - 1])
 
 def p_timespec(p):
@@ -557,7 +557,7 @@ def parsesingle(s, strictmode=True, expansionlimit=None, convertpos=False):
     p = _parser(s, strictmode=strictmode, expansionlimit=expansionlimit)
     tree = p.parse()
     if convertpos:
-        ast.posconverter(s).visit(tree)
+        bast.posconverter(s).visit(tree)
     return tree
 
 def parse(s, strictmode=True, expansionlimit=None, convertpos=False):
@@ -582,7 +582,7 @@ def parse(s, strictmode=True, expansionlimit=None, convertpos=False):
     p = _parser(s, strictmode=strictmode, expansionlimit=expansionlimit)
     parts = [p.parse()]
 
-    class endfinder(ast.nodevisitor):
+    class endfinder(bast.nodevisitor):
         def __init__(self):
             self.end = -1
         def visitheredoc(self, node, value):
@@ -595,10 +595,10 @@ def parse(s, strictmode=True, expansionlimit=None, convertpos=False):
     while index < len(s):
         part = _parser(s[index:], strictmode=strictmode).parse()
 
-        if not isinstance(part, ast.node):
+        if not isinstance(part, bast.node):
             break
 
-        ast.posshifter(index).visit(part)
+        bast.posshifter(index).visit(part)
         parts.append(part)
         ef = _endfinder()
         ef.visit(parts[-1])
@@ -606,7 +606,7 @@ def parse(s, strictmode=True, expansionlimit=None, convertpos=False):
 
     if convertpos:
         for tree in parts:
-            ast.posconverter(s).visit(tree)
+            bast.posconverter(s).visit(tree)
 
     return parts
 
@@ -642,7 +642,7 @@ class _parser(object):
         tree = theparser.parse(lexer=self.tok, context=self)
         return tree
 
-class _endfinder(ast.nodevisitor):
+class _endfinder(bast.nodevisitor):
     '''helper class to find the "real" end pos of a node that contains
     a heredoc. this is a hack because heredoc aren't really part of any node
     since they don't always follow the end of a node and might appear on

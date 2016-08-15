@@ -1,4 +1,4 @@
-from bashlex import ast, errors
+from bashlex import bast, errors
 
 def gatherheredocuments(tokenizer):
     # if we're at the end of the input and we're not strict, allow skipping
@@ -44,8 +44,8 @@ def makeheredoc(tokenizer, redirnode, lineno, killleading):
     endpos = tokenizer._shell_input_line_index - 1
 
     assert hasattr(redirnode, 'heredoc')
-    redirnode.heredoc = ast.node(kind='heredoc', value=document,
-                                 pos=(startpos, endpos))
+    redirnode.heredoc = bast.node(kind='heredoc', value=document,
+                                  pos=(startpos, endpos))
 
     # if the heredoc immediately follows this node, fix its end pos
     if redirnode.pos[1] + 1 == startpos:

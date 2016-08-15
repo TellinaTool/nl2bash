@@ -1,6 +1,6 @@
 import copy
 
-import ast, flags, tokenizer, errors
+import bast, flags, tokenizer, errors
 
 def _recursiveparse(parserobj, base, sindex, tokenizerargs=None):
     # TODO: fix this hack that prevents mutual import
@@ -54,7 +54,7 @@ def _extractcommandsubst(parserobj, string, sindex, sxcommand=False):
     else:
         node, si = _parsedolparen(parserobj, string, sindex)
         si += 1
-        return ast.node(kind='commandsubstitution', command=node, pos=(sindex-2, si)), si
+        return bast.node(kind='commandsubstitution', command=node, pos=(sindex - 2, si)), si
 
 def _extractprocesssubst(parserobj, string, sindex):
     #return _extractdelimitedstring(tok, string, sindex, starter, '(', ')', sxcommand=True)
@@ -151,14 +151,14 @@ def _paramexpand(parserobj, string, sindex):
     c = string[zindex] if zindex < len(string) else None
     if c and c in '0123456789$#?-!*@':
         # XXX 7685
-        node = ast.node(kind='parameter', value=c,
-                        pos=(sindex, zindex+1))
+        node = bast.node(kind='parameter', value=c,
+                         pos=(sindex, zindex+1))
     elif c == '{':
         # XXX 7863
         # TODO not start enough, doesn't consider escaping
         zindex = string.find('}', zindex + 1)
-        node = ast.node(kind='parameter', value=string[sindex+2:zindex],
-                        pos=(sindex, zindex+1))
+        node = bast.node(kind='parameter', value=string[sindex + 2:zindex],
+                         pos=(sindex, zindex+1))
         # TODO
         # return _parameterbraceexpand(string, zindex)
     elif c == '(':
@@ -175,7 +175,7 @@ def _paramexpand(parserobj, string, sindex):
                 break
         temp1 = string[sindex:zindex]
         if temp1:
-            return (ast.node(kind='parameter', value=temp1[1:], pos=(sindex, zindex)),
+            return (bast.node(kind='parameter', value=temp1[1:], pos=(sindex, zindex)),
                     zindex)
 
     if zindex < len(string):
@@ -184,7 +184,7 @@ def _paramexpand(parserobj, string, sindex):
     return node, zindex
 
 def _adjustpositions(node_, base, endlimit):
-    class v(ast.nodevisitor):
+    class v(bast.nodevisitor):
         def visitnode(self, node):
             assert node.pos[1] + base <= endlimit
             node.pos = (node.pos[0] + base, node.pos[1] + base)
@@ -224,8 +224,8 @@ def _expandwordinternal(parserobj, wordtoken, qheredocument, qdoublequotes, quot
 
                 node, sindex[0] = _extractprocesssubst(parserobj, string, tindex)
 
-                parts.append(ast.node(kind='processsubstitution', command=node,
-                                      pos=(tindex - 2, sindex[0])))
+                parts.append(bast.node(kind='processsubstitution', command=node,
+                                       pos=(tindex - 2, sindex[0])))
                 istring += string[tindex - 2:sindex[0]]
                 # goto dollar_add_string
         # TODO
@@ -260,8 +260,8 @@ def _expandwordinternal(parserobj, wordtoken, qheredocument, qdoublequotes, quot
                     i += 1
 
                 if i > sindex[0] and expand:
-                    node = ast.node(kind='tilde', value=string[sindex[0]:i],
-                                    pos=(sindex[0], i))
+                    node = bast.node(kind='tilde', value=string[sindex[0]:i],
+                                     pos=(sindex[0], i))
                     parts.append(node)
                 istring += string[sindex[0]:i]
                 sindex[0] = i
@@ -298,9 +298,9 @@ def _expandwordinternal(parserobj, wordtoken, qheredocument, qdoublequotes, quot
                         # go one past the closing `
                         sindex[0] += 1
 
-                        node = ast.node(kind='commandsubstitution',
-                                        command=command,
-                                        pos=(tindex, sindex[0]))
+                        node = bast.node(kind='commandsubstitution',
+                                         command=command,
+                                         pos=(tindex, sindex[0]))
                         parts.append(node)
                         istring += string[tindex:sindex[0]]
 
@@ -345,7 +345,7 @@ def _expandwordinternal(parserobj, wordtoken, qheredocument, qdoublequotes, quot
             sindex[0] += 1
 
     if parts:
-        class v(ast.nodevisitor):
+        class v(bast.nodevisitor):
             def visitnode(self, node):
                 assert node.pos[1] + wordtoken.lexpos <= wordtoken.endlexpos
                 node.pos = (node.pos[0] + wordtoken.lexpos,
