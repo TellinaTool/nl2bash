@@ -306,9 +306,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                 elif attach_point.kind == "headcommand":
                     pass
                 else:
-                    print('Error: compound command detected.')
-                    print(node)
-                    sys.exit()
+                    raise ValueError('Error: compound command detected.')   # mostly caused by unknown head commands
                 END_OF_COMMAND = False
             if child.kind == 'word':
                 if child.word == "--":
@@ -351,7 +349,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
             if rsb == None:
                 print("Warning: unary logic operator without a right sibling.")
                 print(node.parent)
-                return 
+                return
             node.rsb = rsb.rsb
             node.parent.removeChild(rsb)
             rsb.parent = node
