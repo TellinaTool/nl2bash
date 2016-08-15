@@ -268,8 +268,6 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
         return None
 
     def find_flag_attach_point(node, attach_point):
-        if not is_option(node.word):
-            return attach_point
         if attach_point.kind == "flag":
             return attach_point.parent
         elif attach_point.kind == "headcommand":
