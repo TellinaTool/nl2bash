@@ -10,7 +10,7 @@ import re
 import sys
 
 # bashlex stuff
-import ast, errors, tokenizer, bparser
+import bast, errors, tokenizer, bparser
 from bash import is_option, head_commands, _DIGIT_RE, _NUM
 
 # TODO: add stdin & stdout types
@@ -382,7 +382,7 @@ def normalize_ast(cmd, normalize_digits, recover_quotation=True):
 
     def normalize(node, current, arg_type=""):
         # recursively normalize each subtree
-        if not type(node) is ast.node:
+        if not type(node) is bast.node:
             raise ValueError('type(node) is not ast.node')
         if node.kind == 'word':
             # assign fine-grained types
