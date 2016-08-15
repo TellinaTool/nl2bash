@@ -304,18 +304,24 @@ def process_data():
             for nl, cmd in data[i]:
                 print(cmd)
                 ast = normalize_ast(cmd)
-                train_cm_list.append(to_list(ast))
-                train_nl_list.append(nl)
+                if ast:
+                    cmd_seq = to_list(ast)
+                    train_cm_list.append(cmd_seq)
+                    train_nl_list.append(nl)
         elif i == numFolds - 2:
             for nl, cmd in data[i]:
                 ast = normalize_ast(cmd)
-                dev_cm_list.append(to_list(ast))
-                dev_nl_list.append(nl)
+                if ast:
+                    cmd_seq = to_list(ast)
+                    dev_cm_list.append(cmd_seq)
+                    dev_nl_list.append(nl)
         elif i == numFolds - 1:
             for nl, cmd in data[i]:
                 ast = normalize_ast(cmd)
-                test_cm_list.append(to_list(ast))
-                test_nl_list.append(nl)
+                if ast:
+                    cmd_seq = to_list(ast)
+                    test_cm_list.append(cmd_seq)
+                    test_nl_list.append(nl)
 
     train_dev_test = {}
     train_dev_test["train"] = [train_cm_list, train_nl_list]
