@@ -430,9 +430,8 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                 elif child.kind == "pipe":
                     pass
                 else:
-                    print("Error: unrecognized type of child of pipeline node")
+                    raise ValueError("Error: unrecognized type of child of pipeline node")
                     print(node)
-                    sys.exit()
         elif node.kind == "list":
             if len(node.parts) > 2:
                 # multiple commands, not supported
