@@ -302,6 +302,7 @@ def process_data():
     for i in xrange(numFolds):
         if i < numFolds - 2:
             for nl, cmd in data[i]:
+                print(cmd)
                 ast = normalize_ast(cmd)
                 train_cm_list.append(to_list(ast))
                 train_nl_list.append(nl)
