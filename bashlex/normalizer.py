@@ -46,14 +46,29 @@ binary_logic_operators = set([
     '-or',
     '||',
     '&&',
-    '-o'
+    '-o',
+    '-a'
 ])
 
-def is_unary_logic_op(w):
-    return w in unary_logic_operators
+def is_unary_logic_op(node, parent):
+    if node.word == "!":
+        return parent and parent.kind == "headcommand" and parent.value == "find"
+    return node.word in unary_logic_operators
 
-def is_binary_logic_op(w):
-    return w in binary_logic_operators
+def is_binary_logic_op(node, parent):
+    if node.word == '-o':
+        if parent and parent.kind == "headcommand" and parent.value == "find":
+            node.word = "-or"
+            return True
+        else:
+            return False
+    if node.word == '-a':
+        if parent and parent.kind == "headcommand" and parent.value == "find":
+            node.word = "-and"
+            return True
+        else:
+            return False
+    return node.word in binary_logic_operators
 
 class Node(object):
     num_child = -1              # default value = -1, allow arbitrary number of children
@@ -208,6 +223,17 @@ def to_command(node):
         for child in node.children:
             cmd += to_command(child) + ' '
         cmd = cmd.strip()
+    elif node.kind == "binarylogicop":
+        assert(node.getNumChildren() == 2)
+        cmd += to_command(node.children[0]) + ' '
+        cmd += node.value + ' '
+        cmd += to_command(node.children[1]) + ' '
+        cmd = cmd.strip()
+    elif node.kind == "unarylogicop":
+        assert(node.getNumChildren() == 1)
+        cmd += node.value + ' '
+        cmd += to_command(node.children[0]) + ' '
+        cmd = cmd.strip()
     elif node.kind == "argument":
         assert(node.getNumChildren() == 0)
         cmd = node.value
@@ -297,6 +323,12 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
         unary_logic_ops = []
         binary_logic_ops = []
 
+        def attach_option(node, attach_point):
+            attach_point = find_flag_attach_point(node, attach_point)
+            normalize(node, attach_point, "flag")
+            attach_point = attach_point.getRightChild()
+            return attach_point
+
         # normalize atomic command
         for child in node.parts:
             if END_OF_COMMAND:
@@ -316,22 +348,26 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                     END_OF_COMMAND = True
                 elif child.word in unary_logic_operators:
                     attach_point = find_flag_attach_point(child, attach_point)
-                    norm_node = UnaryLogicOpNode(child.word)
-                    attach_to_tree(norm_node, attach_point)
-                    unary_logic_ops.append(norm_node)
+                    if is_unary_logic_op(child, attach_point):
+                        norm_node = UnaryLogicOpNode(child.word)
+                        attach_to_tree(norm_node, attach_point)
+                        unary_logic_ops.append(norm_node)
+                    else:
+                        attach_point = attach_option(child, attach_point)
                 elif child.word in binary_logic_operators:
                     attach_point = find_flag_attach_point(child, attach_point)
-                    norm_node = BinaryLogicOpNode(child.word)
-                    attach_to_tree(norm_node, attach_point)
-                    binary_logic_ops.append(norm_node)
+                    if is_binary_logic_op(child, attach_point):
+                        norm_node = BinaryLogicOpNode(child.word)
+                        attach_to_tree(norm_node, attach_point)
+                        binary_logic_ops.append(norm_node)
+                    else:
+                        attach_point = attach_option(child, attach_point)
                 elif child.word in head_commands:
                     if not with_quotation(child):
                         normalize(child, attach_point, "headcommand")
                         attach_point = attach_point.getRightChild()
                 elif is_option(child.word) and not END_OF_OPTIONS:
-                    attach_point = find_flag_attach_point(child, attach_point)
-                    normalize(child, attach_point, "flag")
-                    attach_point = attach_point.getRightChild()
+                    attach_point = attach_option(child, attach_point)
                 else:
                     #TODO: handle fine-grained argument types
                     if attach_point.is_flag() and attach_point.getNumChildren() >= 1:
