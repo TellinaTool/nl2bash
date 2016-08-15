@@ -349,9 +349,9 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
             # change right sibling to child
             rsb = node.rsb
             if rsb == None:
-                print("Error: unary logic operator must have a right sibling.")
+                print("Warning: unary logic operator without a right sibling.")
                 print(node.parent)
-                sys.exit()
+                return 
             node.rsb = rsb.rsb
             node.parent.removeChild(rsb)
             rsb.parent = node
