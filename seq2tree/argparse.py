@@ -15,6 +15,8 @@ def define_input_flags():
 
     tf.app.flags.DEFINE_boolean("eval", False,
                                 "Set to True for quantitive evaluation.")
+    tf.app.flags.DEFINE_boolean("process_data", False,
+                                "Set to True for data preprocessing.")
     tf.app.flags.DEFINE_boolean("decode", False,
                                 "Set to True for interactive decoding.")
     tf.app.flags.DEFINE_boolean("bucket_selection", False,

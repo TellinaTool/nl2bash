@@ -88,6 +88,8 @@ tf.app.flags.DEFINE_boolean("eval", False,
                             "Set to True for quantitive evaluation.")
 tf.app.flags.DEFINE_boolean("decode", False,
                             "Set to True for interactive decoding.")
+tf.app.flags.DEFINE_boolean("process_data", False,
+                            "Set to True for data preprocessing.")
 tf.app.flags.DEFINE_boolean("bucket_selection", False,
                             "Run a bucket_selection if this is set to True.")
 tf.app.flags.DEFINE_boolean("self_test", False,
@@ -419,55 +421,56 @@ def decode():
 
 
 def process_data():
-    if not os.path.exists(FLAGS.data_dir + "data.processed.dat"):
-        print("Preparing data in %s" % FLAGS.data_dir)
+    print("Preparing data in %s" % FLAGS.data_dir)
 
-        with open(FLAGS.data_dir + "data.dat") as f:
-            data = pickle.load(f)
+    with open(FLAGS.data_dir + "data.dat") as f:
+        data = pickle.load(f)
 
-        numFolds = len(data)
-        print("%d folds" % numFolds)
+    numFolds = len(data)
+    print("%d folds" % numFolds)
 
-        train_cm_list = []
-        train_nl_list = []
-        dev_cm_list = []
-        dev_nl_list = []
-        test_cm_list = []
-        test_nl_list = []
-        for i in xrange(numFolds):
-            if i < numFolds - 2:
-                for nl, cmd in data[i]:
-                    train_cm_list.append(cmd)
-                    train_nl_list.append(nl)
-            elif i == numFolds - 2:
-                for nl, cmd in data[i]:
-                    dev_cm_list.append(cmd)
-                    dev_nl_list.append(nl)
-            elif i == numFolds - 1:
-                for nl, cmd in data[i]:
-                    test_cm_list.append(cmd)
-                    test_nl_list.append(nl)
+    train_cm_list = []
+    train_nl_list = []
+    dev_cm_list = []
+    dev_nl_list = []
+    test_cm_list = []
+    test_nl_list = []
+    for i in xrange(numFolds):
+        if i < numFolds - 2:
+            for nl, cmd in data[i]:
+                train_cm_list.append(cmd)
+                train_nl_list.append(nl)
+        elif i == numFolds - 2:
+            for nl, cmd in data[i]:
+                dev_cm_list.append(cmd)
+                dev_nl_list.append(nl)
+        elif i == numFolds - 1:
+            for nl, cmd in data[i]:
+                test_cm_list.append(cmd)
+                test_nl_list.append(nl)
 
-        train_dev_test = {}
-        train_dev_test["train"] = [train_cm_list, train_nl_list]
-        train_dev_test["dev"] = [dev_cm_list, dev_nl_list]
-        train_dev_test["test"] = [test_cm_list, test_nl_list]
+    train_dev_test = {}
+    train_dev_test["train"] = [train_cm_list, train_nl_list]
+    train_dev_test["dev"] = [dev_cm_list, dev_nl_list]
+    train_dev_test["test"] = [test_cm_list, test_nl_list]
 
-        nl_train, cm_train, nl_dev, cm_dev, nl_test, cm_test, _, _ = data_utils.prepare_data(
-            train_dev_test, FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+    nl_train, cm_train, nl_dev, cm_dev, nl_test, cm_test, _, _ = data_utils.prepare_data(
+        train_dev_test, FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
 
-        train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
-        dev_set = read_data(nl_dev, cm_dev)
-        test_set = read_data(nl_test, nl_test)
+    train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
+    dev_set = read_data(nl_dev, cm_dev)
+    test_set = read_data(nl_test, nl_test)
 
-        with open(FLAGS.data_dir + "data.processed.dat", 'wb') as o_f:
-            pickle.dump((train_set, dev_set, test_set), o_f)
-        return train_set, dev_set, test_set
-    else:
-        print("Loading data from %s" % FLAGS.data_dir)
+    with open(FLAGS.data_dir + "data.processed.dat", 'wb') as o_f:
+        pickle.dump((train_set, dev_set, test_set), o_f)
+    return train_set, dev_set, test_set
 
-        with open(FLAGS.data_dir + "data.processed.dat", 'rb') as f:
-            return pickle.load(f)
+
+def load_data():
+    print("Loading data from %s" % FLAGS.data_dir)
+
+    with open(FLAGS.data_dir + "data.processed.dat", 'rb') as f:
+        return pickle.load(f)
 
 
 def bucket_selection(num_buckets=10):
@@ -525,8 +528,10 @@ def main(_):
             decode()
         elif FLAGS.bucket_selection:
             bucket_selection()
+        elif FLAGS.process_data:
+            process_data()
         else:
-            train_set, dev_set, _ = process_data()
+            train_set, dev_set, _ = load_data()
             train_and_eval(train_set, dev_set)
 
 
