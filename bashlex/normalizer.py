@@ -10,7 +10,7 @@ import re
 import sys
 
 # bashlex stuff
-import ast, errors, tokenizer, parser
+import ast, errors, tokenizer, bparser
 from bash import is_option, head_commands, _DIGIT_RE, _NUM
 
 # TODO: add stdin & stdout types
@@ -492,7 +492,7 @@ def normalize_ast(cmd, normalize_digits, recover_quotation=True):
             raise ValueError("Unsupported: %s" % node.kind)
 
     try:
-        tree = parser.parse(cmd)
+        tree = bparser.parse(cmd)
     except tokenizer.MatchedPairError, e:
         print("Cannot parse: %s - MatchedPairError" % cmd.encode('utf-8'))
         # return basic_tokenizer(cmd, normalize_digits, False)

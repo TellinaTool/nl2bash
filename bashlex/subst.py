@@ -4,7 +4,7 @@ import ast, flags, tokenizer, errors
 
 def _recursiveparse(parserobj, base, sindex, tokenizerargs=None):
     # TODO: fix this hack that prevents mutual import
-    import parser
+    import bparser
 
     tok = parserobj.tok
 
@@ -18,8 +18,8 @@ def _recursiveparse(parserobj, base, sindex, tokenizerargs=None):
     newlimit = parserobj._expansionlimit
     if newlimit is not None:
         newlimit -= 1
-    p = parser._parser(string, tokenizerargs=tokenizerargs,
-                       expansionlimit=newlimit)
+    p = bparser._parser(string, tokenizerargs=tokenizerargs,
+                        expansionlimit=newlimit)
     node = p.parse()
 
     endp = node.pos[1]

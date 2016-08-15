@@ -8,7 +8,7 @@ from __future__ import print_function
 import re
 import sys
 
-from bashlex import ast, errors, tokenizer, parser
+from bashlex import ast, errors, tokenizer, bparser
 
 DEBUG = False
 
@@ -176,7 +176,7 @@ def bash_tokenizer(cmd, normalize_digits=True, recover_quotation=True):
             tokens.append(None)
 
     try:
-        bash_ast = parser.parse(cmd)
+        bash_ast = bparser.parse(cmd)
     except tokenizer.MatchedPairError, e:
         print("Cannot parse: %s - MatchedPairError" % cmd.encode('utf-8'))
         # return basic_tokenizer(cmd, normalize_digits, False)
