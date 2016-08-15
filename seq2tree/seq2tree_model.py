@@ -4,6 +4,7 @@ from __future__ import division
 from __future__ import print_function
 
 import math
+import numpy as np
 
 import tensorflow as tf
 
@@ -27,6 +28,7 @@ class Seq2TreeModel(object):
         """
 
         self.hyperparams = hyperparams
+        self.batch_size = 1         # left batch_size to be 1
 
         self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]), trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
@@ -36,18 +38,95 @@ class Seq2TreeModel(object):
         self.create_graph(forward_only)
 
 
-    def step(self):
+    def format_example(self, encoder_input, decoder_input):
+        """Prepare data to feed in step()"""
+        encoder_size = self.max_source_length
+        decoder_size = self.max_target_length
+        encoder_inputs = []
+        decoder_inputs = []
+
+        # Encoder inputs are padded and then reversed
+        encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
+        encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
+
+        # Decoder inputs always start with "ROOT" and are padded
+        decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_inputs))
+        decoder_inputs.append(decoder_input + decoder_pad)
+
+        # create batch-major vectors
+        batch_encoder_inputs, batch_decoder_inputs, batch_weights = [], [], []
+
+        # Batch encoder inputs are just re-indexed encoder_inputs.
+        for length_idx in xrange(encoder_size):
+            batch_encoder_inputs.append(
+                np.array([encoder_inputs[batch_idx][length_idx]
+                        for batch_idx in xrange(self.batch_size)], dtype=np.int32))
+
+        # Batch decoder inputs are re-indexed decoder_inputs, we create weights.
+        for length_idx in xrange(decoder_size):
+            batch_decoder_inputs.append(
+                np.array([decoder_inputs[batch_idx][length_idx]
+                        for batch_idx in xrange(self.batch_size)], dtype=np.int32))
+
+            # Create target_weights to be 0 for targets that are padding.
+            batch_weight = np.ones(self.batch_size, dtype=np.float32)
+            for batch_idx in xrange(self.batch_size):
+                # We set weight to 0 if the corresponding target is a PAD symbol.
+                # The corresponding target is decoder_input shifted by 1 forward.
+                if length_idx < decoder_size - 1:
+                    target = decoder_inputs[batch_idx][length_idx + 1]
+                if length_idx == decoder_size - 1 or target == data_utils.PAD_ID:
+                    batch_weight[batch_idx] = 0.0
+            batch_weights.append(batch_weight)
+
+        return batch_encoder_inputs, batch_decoder_inputs, batch_weights
+
+
+    def step(self, session, encoder_inputs, decoder_inputs, target_weights,
+             forward_only):
         """Run a step of the model feeding the given inputs.
         :param session: tensorflow session to use.
         :param encoder_inputs: list of numpy int vectors to feed as encoder inputs.
         :param decoder_inputs: list of numpy int vectors to feed as decoder inputs.
         :param target_weights: list of numpy float vectors to feed as target weights.
-        :param bucket_id: which bucket of the model to use.
         :param forward_only: whether to do the backward step or only forward.
         :return (gradient_norm, average_perplexity, outputs)
         """
 
-        encoder_size =
+        encoder_size = len(encoder_inputs)
+        decoder_size = len(decoder_inputs)
+
+        assert(encoder_size == self.max_source_length)
+        assert(decoder_size == self.max_target_length)
+
+        # Input feed: encoder inputs, decoder inputs, target_weights, as provided.
+        input_feed = {}
+        for l in xrange(encoder_size):
+            input_feed[self.encoder_inputs[l].name] = encoder_inputs[l]
+        for l in xrange(decoder_size):
+            input_feed[self.decoder_inputs[l].name] = decoder_inputs[l]
+            input_feed[self.target_weights[l].name] = target_weights[l]
+
+        # Since our targets are decoder inputs shifted by one, we need one more.
+        last_target = self.decoder_inputs[decoder_size].name
+        input_feed[last_target] = np.zeros([self.batch_size], dtype=np.int32)
+
+        # Output feed: depends on whether we do a backward step or not.
+        if not forward_only:
+            output_feed = [self.updates,            # Update Op that does SGD.
+                           self.gradient_norms,     # Gradient norm.
+                           self.losses]             # Loss for this batch.
+        else:
+            output_feed = [self.losses]  # Loss for this batch.
+            for l in xrange(decoder_size):  # Output logits.
+                output_feed.append(self.outputs[l])
+
+        outputs = session.run(output_feed, input_feed)
+
+        if not forward_only:
+            return outputs[1], outputs[2], None  # Gradient norm, loss, no outputs.
+        else:
+            return None, outputs[0], outputs[1:]  # No gradient norm, loss, outputs.
 
 
     def create_graph(self, forward_only):
