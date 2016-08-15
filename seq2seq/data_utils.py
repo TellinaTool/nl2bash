@@ -29,19 +29,21 @@ import tensorflow as tf
 
 # Special vocabulary symbols - we always put them at the start.
 _PAD = b"_PAD"
-_GO = b"_GO"
+_GO = b"_GO"                # seq2seq
+_ROOT = b"ROOT_"            # seq2tree
 _EOS = b"_EOS"
 _UNK = b"_UNK"
 _NUM = b"_NUM"
 _NO_EXPAND = b"<NO_EXPAND>"
 
-_START_VOCAB = [_PAD, _GO, _EOS, _UNK, _NO_EXPAND]
+_START_VOCAB = [_PAD, _GO, _ROOT, _EOS, _UNK, _NO_EXPAND]
 
 # Regular expressions used to tokenize.
 _DIGIT_RE = re.compile(br"\d")
 
 PAD_ID = 0
 GO_ID = 1
+ROOT_ID = 1
 EOS_ID = 2
 UNK_ID = 3
 NO_EXPAND_ID = 4
@@ -165,8 +167,7 @@ def sentence_to_token_ids(sentence, vocabulary,
 
     if not normalize_digits:
         return [vocabulary.get(w, UNK_ID) for w in words]
-    # Normalize digits by 0 before looking words up in the vocabulary.
-    # return [vocabulary.get(re.sub(_DIGIT_RE, b"0", w), UNK_ID) for w in words]
+
     return [vocabulary.get(re.sub(_DIGIT_RE, _NUM, w), UNK_ID) for w in words]
 
 

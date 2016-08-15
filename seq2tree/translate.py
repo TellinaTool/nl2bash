@@ -201,7 +201,7 @@ def decode():
 
             # Get a 1-element batch to feed the sentence to the model.
             encoder_inputs, decoder_inputs, target_weights = model.format_example(
-                token_ids, [])
+                token_ids, [data_utils._ROOT])
 
             # Get output logits for the sentence.
             _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
@@ -222,7 +222,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     for i in xrange(len(dataset)):
         nl, tree = dataset[i]
 
-        encoder_inputs, decoder_inputs, target_weights = model.format_example(nl, tree)
+        encoder_inputs, decoder_inputs, target_weights = model.format_example(
+            nl, [data_utils._ROOT])
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                          target_weights, forward_only=True)
 

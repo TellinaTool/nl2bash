@@ -513,7 +513,7 @@ def normalize_ast(cmd, normalize_digits):
 
     if len(tree) > 1:
         print("Doesn't support command with multiple root nodes: %s" % cmd.encode('utf-8'))
-    normalized_tree = Node(kind="root", value="root")
+    normalized_tree = Node(kind="root")
     try:
         normalize(tree[0], normalized_tree)
     except ValueError as err:
