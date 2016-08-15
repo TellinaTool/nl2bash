@@ -34,7 +34,7 @@ head_commands = [
     "head", "tail",
     "du", "echo",
     "diff", "comm",
-    "sh", "date"
+    "date"
 ]
 
 special_operators = [
