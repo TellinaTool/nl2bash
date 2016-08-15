@@ -252,7 +252,7 @@ def attach_to_tree(node, parent):
     if node.lsb:
         node.lsb.rsb = node
 
-def normalize_ast(cmd, normalize_digits, recover_quotation=True):
+def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
     """
     Convert the bashlex parse tree of a command into the normalized form.
     :param cmd: bash command to parse
@@ -527,7 +527,7 @@ def normalize_ast(cmd, normalize_digits, recover_quotation=True):
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
-    norm_tree = normalize_ast(cmd, True)
+    norm_tree = normalize_ast(cmd)
     pretty_print(norm_tree, 0)
     list = to_list(norm_tree, 'dfs', [])
     print(list)
