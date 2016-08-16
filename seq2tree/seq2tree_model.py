@@ -28,7 +28,6 @@ class Seq2TreeModel(object):
         """
 
         self.hyperparams = hyperparams
-        self.batch_size = 1         # left batch_size to be 1
 
         self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]), trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
