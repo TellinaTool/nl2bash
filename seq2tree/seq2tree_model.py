@@ -173,9 +173,9 @@ class Seq2TreeModel(object):
     # Create the multi-layer cell for the tree RNN.
     def create_multilayer_cell(self, type):
         if type == "lstm":
-            single_cell = tf.nn.rnn_cell.BasicLSTMCell(self.dim)
+            cell = tf.nn.rnn_cell.BasicLSTMCell(self.dim, state_is_tuple=True)
         if self.num_layers > 1:
-            cell = tf.nn.rnn_cell.MultiRNNCell([single_cell] * self.num_layers)
+            cell = tf.nn.rnn_cell.MultiRNNCell([cell] * self.num_layers)
         if self.input_keep_prob < 1 or self.output_keep_prob < 1:
             cell = tf.nn.rnn_cell.DropoutWrapper(cell,
                                                  input_keep_prob=self.input_keep_prob,
