@@ -34,6 +34,9 @@ class Seq2TreeModel(object):
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
         self.global_step = tf.Variable(0, trainable=False)
 
+        # variable sharing
+        self.attention_cell_vars = False
+
         self.create_graph(forward_only)
 
 
@@ -279,12 +282,10 @@ class Seq2TreeModel(object):
                 if self.use_attention:
                     output, state, attns = \
                         tf.cond(self.is_no_expand(control_symbol),
-                                self.left_to_right_with_attention(
-                                    sb_cell, (i == 0 and initial_state_attention),
-                                    hidden_features, attn_vecs, num_heads, hidden),
-                                self.top_to_bottom_with_attention(
-                                    parent_cell, (i == 0 and initial_state_attention),
-                                    hidden_features, attn_vecs, num_heads, hidden))
+                                lambda: self.left_to_right_with_attention(
+                                    sb_cell, hidden_features, attn_vecs, num_heads, hidden),
+                                lambda: self.top_to_bottom_with_attention(
+                                    parent_cell, hidden_features, attn_vecs, num_heads, hidden))
                     if i < len(self.decoder_inputs) - 1:
                         if feed_previous:
                             next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
@@ -293,8 +294,8 @@ class Seq2TreeModel(object):
                         self.push([next_input, state[0], state[1], attns])
                 else:
                     output, state = tf.cond(self.is_no_expand(control_symbol),
-                                            self.left_to_right(sb_cell),
-                                            self.top_to_bottom(parent_cell))
+                                            lambda: self.left_to_right(sb_cell),
+                                            lambda: self.top_to_bottom(parent_cell))
                     if i < len(self.decoder_inputs) - 1:
                         if feed_previous:
                             next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
@@ -306,11 +307,9 @@ class Seq2TreeModel(object):
 
         return outputs, state
 
-    def top_to_bottom_with_attention(self, cell, initial_state_attention,
-                                     hidden_features, attn_vecs, num_heads, hidden):
+    def top_to_bottom_with_attention(self, cell, hidden_features, attn_vecs, num_heads, hidden):
         input, state, attns = self.peek()
         output, state, attns = self.attention_cell(cell, input, state, attns,
-                                                   initial_state_attention,
                                                    hidden_features, attn_vecs, num_heads, hidden)
         return output, state, attns
 
@@ -319,12 +318,10 @@ class Seq2TreeModel(object):
         output, state = cell(input, state)
         return output, state
 
-    def left_to_right_with_attention(self, cell, initial_state_attention,
-                                     hidden_features, attn_vecs, num_heads, hidden):
+    def left_to_right_with_attention(self, cell, hidden_features, attn_vecs, num_heads, hidden):
         self.pop()
         input, state, attns = self.peek()
         output, state, attns = self.attention_cell(cell, input, state, attns,
-                                                   initial_state_attention,
                                                    hidden_features, attn_vecs, num_heads, hidden)
         self.pop()
         return output, state, attns
@@ -357,7 +354,8 @@ class Seq2TreeModel(object):
 
 
     def attention(self, state, hidden_features, attn_vecs, num_heads, hidden):
-        attn_vec_dim = attn_vecs.get_shape()[0].value
+        assert(len(attn_vecs) > 0)
+        attn_vec_dim = attn_vecs[0].get_shape()[0].value
         attn_length = hidden.get_shape()[1].value
         attn_dim = hidden.get_shape()[3].value
         """Put attention masks on hidden using hidden_features and query."""
@@ -401,15 +399,21 @@ class Seq2TreeModel(object):
         return hidden, hidden_features, attn_vecs
 
 
-    def attention_cell(self, cell, input_embedding, state, attns, initial_state_attention,
+    def attention_cell(self, cell, input_embedding, state, attns,
                        hidden_features, attn_vecs, num_heads, hidden):
-        # attention mechanism on cell and hidden states
-        x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
-        cell_output, state = cell(x, state)
-        # attention mechanism on output state
-        attns = self.attention(state, hidden_features, attn_vecs, num_heads, hidden)
+        with tf.variable_scope("AttnInputProjection"):
+            if self.attention_cell_vars:
+                tf.get_variable_scope().reuse_variables()
+            # attention mechanism on cell and hidden states
+            x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
+            cell_output, state = cell(x, state)
+            attns = self.attention(state, hidden_features, attn_vecs, num_heads, hidden)
         with tf.variable_scope("AttnOutputProjection"):
+            if self.attention_cell_vars:
+                tf.get_variable_scope().reuse_variables()
+            # attention mechanism on output state
             output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
+        self.attention_cell_vars = True
         return output, state, attns
 
 
@@ -439,7 +443,6 @@ class Seq2TreeModel(object):
             embeddings = tf.get_variable("embedding", [self.source_vocab_size,
                                                        self.dim],
                                          initializer=initializer)
-            tf.get_variable_scope().reuse_variables()
             return embeddings
 
     def target_embeddings(self):
@@ -449,7 +452,6 @@ class Seq2TreeModel(object):
             embeddings = tf.get_variable("embedding", [self.target_vocab_size,
                                                        self.dim],
                                          initializer=initializer)
-            tf.get_variable_scope().reuse_variables()
             return embeddings
 
     def output_projection(self):
