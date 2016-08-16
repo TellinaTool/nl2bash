@@ -164,7 +164,7 @@ def sentence_to_token_ids(sentence, vocabulary,
         words = sentence
     else:
         words = tokenizer(sentence, normalize_digits)
-
+    
     if not normalize_digits:
         return [vocabulary.get(w, UNK_ID) for w in words]
 
