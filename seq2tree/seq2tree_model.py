@@ -51,6 +51,7 @@ class Seq2TreeModel(object):
 
         # variable sharing
         self.attention_cell_vars = False
+        self.output_projection_vars = False
 
         self.create_graph(forward_only)
 
@@ -480,14 +481,17 @@ class Seq2TreeModel(object):
 
     def output_projection(self):
         with tf.variable_scope("output_projection"):
+            if self.output_projection_vars:
+                tf.get_variable_scope().reuse_variables()
             w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
             b = tf.get_variable("proj_b", [self.target_vocab_size])
-            tf.get_variable_scope().reuse_variables()
+        self.output_projection_vars = True        
         return (w, b)
 
     def softmax_loss(self):
         if self.use_sampled_softmax():
-            w_t, b = self.output_projection()
+            w, b = self.output_projection()
+            w_t = tf.transpose(w)
 
             def sampled_loss(inputs, labels):
                 labels = tf.reshape(labels, [-1, 1])
