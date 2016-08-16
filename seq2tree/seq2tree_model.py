@@ -373,19 +373,16 @@ class Seq2TreeModel(object):
         self.stack = tf.concat(0, [self.stack, new_top_state])
 
     def peek(self):
-        top_state = tf.slice(self.stack, [self.stack.get_shape()[0].value-1, 0], [1, self.stack.get_shape()[1].value])
         if self.use_attention:
-            return tf.slice(top_state, [0, 0], [1, self.dim]), \
-                   (tf.slice(top_state, [0, self.dim], [1, self.dim]),
-                    tf.slice(top_state, [0, 2 * self.dim], [1, self.dim])), \
-                   tf.slice(top_state, [0, 3 * self.dim], [1, self.stack.get_shape()[1].value - 3 * self.dim])
+            return self.stack[-1, 0:self.dim], (self.stack[-1, self.dim:2*self.dim],
+                                                self.stack[-1, 2*self.dim:3*self.dim]), \
+                   self.stack[-1, 3*self.dim:]
         else:
-            return tf.slice(top_state, [0, 0], [1, self.dim]), \
-                   (tf.slice(top_state, [0, self.dim], [1, self.dim]),
-                    tf.slice(top_state, [0, 2 * self.dim], [1, self.dim]))
+            return self.stack[-1, 0:self.dim], (self.stack[-1, self.dim:2*self.dim],
+                                                self.stack[-1, 2*self.dim:])
 
     def pop(self):
-        return tf.slice(self.stack, [0, 0], [self.stack.get_shape()[0].value-1, self.stack.get_shape()[1].value])
+        return self.stack[:-1, :]
 
 
     def attention(self, state, hidden_features, attn_vecs, num_heads, hidden):
