@@ -190,7 +190,7 @@ class Seq2TreeModel(object):
             encoder_cell,
             embedding_classes=self.source_vocab_size,
             embedding_size=self.dim)
-        encoder_outputs, encoder_state = tf.nn.rnn(encoder_cell,
+        encoder_outputs, (_, encoder_state) = tf.nn.rnn(encoder_cell,
                                                    self.encoder_inputs,
                                                    dtype=tf.float32)
 
@@ -247,7 +247,7 @@ class Seq2TreeModel(object):
 
         with tf.variable_scope("basic_tree_decoder") as scope:
             embeddings = self.target_embeddings()
-            embedding_inputs = (tf.nn.embedding_lookup(embeddings, i) for i in self.decoder_inputs)
+            embedding_inputs = [tf.nn.embedding_lookup(embeddings, i) for i in self.decoder_inputs]
 
             parent_cell = self.create_multilayer_cell("lstm")
             sb_cell = self.create_multilayer_cell("lstm")
@@ -256,8 +256,8 @@ class Seq2TreeModel(object):
             if self.use_attention:
                 hidden, hidden_features, attn_vecs = \
                     self.attention_hidden_layer(attention_states, num_heads)
-                batch_size = attention_states.get_shape()[0].value
-                attn_dim = attention_states.get_shape()[2].value
+                batch_size = tf.shape(attention_states)[0]
+                attn_dim = tf.shape(attention_states)[2]
                 batch_attn_size = tf.pack([batch_size, attn_dim])
                 attns = [tf.zeros(batch_attn_size, dtype=tf.float32)    # initial attention state
                          for _ in xrange(num_heads)]
@@ -267,6 +267,9 @@ class Seq2TreeModel(object):
             # search control
             init_input = embedding_inputs[0]
             if self.use_attention:
+                print(init_input.get_shape())
+                print(encoder_state.get_shape())
+                print(attns.get_shape())
                 self.stack = tf.concat(1, [init_input, encoder_state, attns])
             else:
                 self.stack = tf.concat(1, [init_input, encoder_state])
