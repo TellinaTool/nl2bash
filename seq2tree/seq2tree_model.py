@@ -259,8 +259,8 @@ class Seq2TreeModel(object):
                 batch_size = tf.shape(attention_states)[0]
                 attn_dim = tf.shape(attention_states)[2]
                 batch_attn_size = tf.pack([batch_size, attn_dim])
-                attns = [tf.zeros(batch_attn_size, dtype=tf.float32)    # initial attention state
-                         for _ in xrange(num_heads)]
+                attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)    # initial attention state
+                         for _ in xrange(num_heads)])
                 if initial_state_attention:
                     attns = self.attention(encoder_state, hidden_features, attn_vecs, num_heads, hidden)
 
@@ -344,7 +344,9 @@ class Seq2TreeModel(object):
     def peek(self):
         top_state = tf.slice(self.stack, [self.stack.get_shape()[0].value-1, 0], [1, self.stack.get_shape()[1].value])
         if self.use_attention:
-            return tf.split(1, 3, top_state)
+            return tf.slice(top_state, [0, 0], [1, self.dim]), \
+                   tf.slice(top_state, [0, self.dim], [1, self.dim]), \
+                   tf.slice(top_state, [0, 2 * self.dim], [1, self.stack.get_shape()[1].value - 2 * self.dim])
         else:
             return tf.split(1, 2, top_state)
 
@@ -370,7 +372,7 @@ class Seq2TreeModel(object):
                 d = tf.reduce_sum(tf.reshape(a, [-1, attn_length, 1, 1]) * hidden,
                     [1, 2])
                 ds.append(tf.reshape(d, [-1, attn_dim]))
-        return ds
+        return tf.concat(1, ds)
 
 
     def attention_hidden_layer(self, attention_states, num_heads):
@@ -398,12 +400,12 @@ class Seq2TreeModel(object):
     def attention_cell(self, cell, input_embedding, state, attns, initial_state_attention,
                        hidden_features, attn_vecs, num_heads, hidden):
         # attention mechanism on cell and hidden states
-        x = tf.nn.rnn_cell._linear([input_embedding] + attns, self.dim, True)
+        x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
         cell_output, state = cell(x, state)
         # attention mechanism on output state
         attns = self.attention(state, hidden_features, attn_vecs, num_heads, hidden)
         with tf.variable_scope("AttnOutputProjection"):
-            output = tf.nn.rnn_cell._linear([cell_output] + attns, self.dim, True)
+            output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
         return output, state, attns
 
 
