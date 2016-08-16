@@ -83,13 +83,13 @@ def create_model(session, forward_only):
         session.run(tf.initialize_all_variables())
     return model
 
-def train(train_set, dev_set, num_epochs):
+def train(train_set, dev_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
                                           log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         model = create_model(sess, False)
 
-        loss, dev_loss, epoch_time = 0.0, 0.0, 0.0
+        """loss, dev_loss, epoch_time = 0.0, 0.0, 0.0
         current_step = 0
         previous_losses = []
         previous_dev_losses = []
@@ -102,7 +102,7 @@ def train(train_set, dev_set, num_epochs):
         _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
-        for t in xrange(num_epochs):
+        for t in xrange(FLAGS.num_epochs):
 
             start_time = time.time()
 
@@ -161,6 +161,7 @@ def train(train_set, dev_set, num_epochs):
                 eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, False)
 
                 sys.stdout.flush()
+        """
     return True
 
 
