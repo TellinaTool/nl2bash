@@ -192,7 +192,7 @@ class Seq2TreeModel(object):
             encoder_cell,
             embedding_classes=self.source_vocab_size,
             embedding_size=self.dim)
-        encoder_outputs, (_, encoder_state) = tf.nn.rnn(encoder_cell,
+        encoder_outputs, encoder_state = tf.nn.rnn(encoder_cell,
                                                    self.encoder_inputs,
                                                    dtype=tf.float32)
 
@@ -266,15 +266,13 @@ class Seq2TreeModel(object):
                 attns.set_shape([self.batch_size, num_heads * attention_states.get_shape()[2].value])
                 if initial_state_attention:
                     attns = self.attention(encoder_state, hidden_features, attn_vecs, num_heads, hidden)
+
             # search control
             init_input = embedding_inputs[0]
             if self.use_attention:
-                print(init_input.get_shape())
-                print(encoder_state.get_shape())
-                print(attns.get_shape())
-                self.stack = tf.concat(1, [init_input, encoder_state, attns])
+                self.stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1], attns])
             else:
-                self.stack = tf.concat(1, [init_input, encoder_state])
+                self.stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1]])
 
             for i, control_symbol in enumerate(self.decoder_inputs):
                 if i > 0: scope.reuse_variables()
@@ -293,7 +291,7 @@ class Seq2TreeModel(object):
                             next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
                         else:
                             next_input = embedding_inputs[i+1]
-                        self.push([next_input, state, attns])
+                        self.push([next_input, state[0], state[1], attns])
                 else:
                     output, state = tf.cond(self.is_no_expand(control_symbol),
                                             self.left_to_right(sb_cell),
@@ -303,7 +301,7 @@ class Seq2TreeModel(object):
                             next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
                         else:
                             next_input = embedding_inputs[i+1]
-                        self.push([next_input, state])
+                        self.push([next_input, state[0], state[1]])
 
                 outputs.append(output)
 
@@ -347,13 +345,15 @@ class Seq2TreeModel(object):
         top_state = tf.slice(self.stack, [self.stack.get_shape()[0].value-1, 0], [1, self.stack.get_shape()[1].value])
         if self.use_attention:
             return tf.slice(top_state, [0, 0], [1, self.dim]), \
-                   tf.slice(top_state, [0, self.dim], [1, self.dim]), \
-                   tf.slice(top_state, [0, 2 * self.dim], [1, self.stack.get_shape()[1].value - 2 * self.dim])
+                   (tf.slice(top_state, [0, self.dim], [1, self.dim]),
+                    tf.slice(top_state, [0, 2 * self.dim], [1, self.dim])), \
+                   tf.slice(top_state, [0, 3 * self.dim], [1, self.stack.get_shape()[1].value - 3 * self.dim])
         else:
-            return tf.split(1, 2, top_state)
+            return tf.slice(top_state, [0, 0], [1, self.dim]), \
+                   (tf.slice(top_state, [0, self.dim], [1, self.dim]),
+                    tf.slice(top_state, [0, 2 * self.dim], [1, self.dim]))
 
     def pop(self):
-        print(self.stack.get_shape())
         self.stack = tf.slice(self.stack, [0, 0], [self.stack.get_shape()[0].value-1, self.stack.get_shape()[1].value])
 
 
