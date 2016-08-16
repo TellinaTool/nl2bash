@@ -382,7 +382,7 @@ def train_and_eval(train_set, dev_set):
             print("Training stopped early for no improvement observed on dev set.")
             break
 
-def decode():
+def _decode():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
                                           log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
@@ -525,7 +525,7 @@ def main(_):
         elif FLAGS.eval:
             eval()
         elif FLAGS.decode:
-            decode()
+            _decode()
         elif FLAGS.bucket_selection:
             bucket_selection()
         elif FLAGS.process_data:

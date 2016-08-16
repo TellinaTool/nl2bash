@@ -299,29 +299,37 @@ def process_data():
     dev_nl_list = []
     test_cm_list = []
     test_nl_list = []
+
+    max_cmd_seq_len = 0
     for i in xrange(numFolds):
         if i < numFolds - 2:
             for nl, cmd in data[i]:
-                print(cmd)
                 ast = normalize_ast(cmd)
                 if ast:
-                    cmd_seq = to_list(ast)
+                    cmd_seq = to_list(ast, list=[])
+                    if len(cmd_seq) > max_cmd_seq_len:
+                        max_cmd_seq_len = len(cmd_seq)
                     train_cm_list.append(cmd_seq)
                     train_nl_list.append(nl)
         elif i == numFolds - 2:
             for nl, cmd in data[i]:
                 ast = normalize_ast(cmd)
                 if ast:
-                    cmd_seq = to_list(ast)
+                    cmd_seq = to_list(ast, list=[])
+                    if len(cmd_seq) > max_cmd_seq_len:
+                        max_cmd_seq_len = len(cmd_seq)
                     dev_cm_list.append(cmd_seq)
                     dev_nl_list.append(nl)
         elif i == numFolds - 1:
             for nl, cmd in data[i]:
                 ast = normalize_ast(cmd)
                 if ast:
-                    cmd_seq = to_list(ast)
+                    cmd_seq = to_list(ast, list=[])
+                    if len(cmd_seq) > max_cmd_seq_len:
+                        max_cmd_seq_len = len(cmd_seq)
                     test_cm_list.append(cmd_seq)
                     test_nl_list.append(nl)
+    print("maximum training command sequence length = %d" % max_cmd_seq_len)
 
     train_dev_test = {}
     train_dev_test["train"] = [train_cm_list, train_nl_list]
