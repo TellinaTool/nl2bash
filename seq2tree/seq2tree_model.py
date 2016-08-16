@@ -175,15 +175,18 @@ class Seq2TreeModel(object):
         self.saver = tf.train.Saver(tf.all_variables())
 
     # Create the multi-layer cell for the tree RNN.
-    def create_multilayer_cell(self, type):
-        if type == "lstm":
-            cell = tf.nn.rnn_cell.BasicLSTMCell(self.dim, state_is_tuple=True)
-        if self.num_layers > 1:
-            cell = tf.nn.rnn_cell.MultiRNNCell([cell] * self.num_layers)
-        if self.input_keep_prob < 1 or self.output_keep_prob < 1:
-            cell = tf.nn.rnn_cell.DropoutWrapper(cell,
-                                                 input_keep_prob=self.input_keep_prob,
-                                                 output_keep_prob=self.output_keep_prob)
+    def create_multilayer_cell(self, type, scope, reuse_variables):
+        with tf.variable_scope(scope):
+            if reuse_variables:
+                tf.get_variable_scope().reuse_variables()
+            if type == "lstm":
+                cell = tf.nn.rnn_cell.BasicLSTMCell(self.dim, state_is_tuple=True)
+            if self.num_layers > 1:
+                cell = tf.nn.rnn_cell.MultiRNNCell([cell] * self.num_layers)
+            if self.input_keep_prob < 1 or self.output_keep_prob < 1:
+                cell = tf.nn.rnn_cell.DropoutWrapper(cell,
+                                                     input_keep_prob=self.input_keep_prob,
+                                                     output_keep_prob=self.output_keep_prob)
         return cell
 
 
@@ -253,8 +256,8 @@ class Seq2TreeModel(object):
             embeddings = self.target_embeddings()
             embedding_inputs = [tf.nn.embedding_lookup(embeddings, i) for i in self.decoder_inputs]
 
-            parent_cell = self.create_multilayer_cell("lstm")
-            sb_cell = self.create_multilayer_cell("lstm")
+            parent_cell = self.parent_cell()
+            sb_cell = self.sb_cell()
             outputs = []
 
             if self.use_attention:
@@ -279,44 +282,66 @@ class Seq2TreeModel(object):
             for i, control_symbol in enumerate(self.decoder_inputs):
                 if i > 0: scope.reuse_variables()
 
+                search_left_to_right = self.is_no_expand(control_symbol)
+
+                # self.pop() if current symbol is <NO_EXPAND>
+                self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
+
                 if self.use_attention:
-                    output, state, attns = \
-                        tf.cond(self.is_no_expand(control_symbol),
-                                lambda: self.left_to_right_with_attention(
-                                    sb_cell, hidden_features, attn_vecs, num_heads, hidden),
-                                lambda: self.top_to_bottom_with_attention(
-                                    parent_cell, hidden_features, attn_vecs, num_heads, hidden))
-                    if i < len(self.decoder_inputs) - 1:
-                        if feed_previous:
-                            next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
-                        else:
-                            next_input = embedding_inputs[i+1]
-                        self.push([next_input, state[0], state[1], attns])
+                    input, state, attns = self.peek()
+                    output, state, attns = tf.cond(search_left_to_right,
+                                                   self.attention_cell(parent_cell, input, state, attns,
+                                                   hidden_features, attn_vecs, num_heads, hidden),
+                                                    self.attention_cell(sb_cell, input, state, attns,
+                                                   hidden_features, attn_vecs, num_heads, hidden))
                 else:
-                    output, state = tf.cond(self.is_no_expand(control_symbol),
-                                            lambda: self.left_to_right(sb_cell),
-                                            lambda: self.top_to_bottom(parent_cell))
-                    if i < len(self.decoder_inputs) - 1:
-                        if feed_previous:
-                            next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
-                        else:
-                            next_input = embedding_inputs[i+1]
-                        self.push([next_input, state[0], state[1]])
+                    input, state = self.peek()
+                    output, state = tf.cond(search_left_to_right, parent_cell(input, state),
+                                            sb_cell(input, state))
+
+                # self.pop() if current symbol is <NO_EXPAND>
+                self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
+
+                if i < len(self.decoder_inputs) - 1:
+                    if feed_previous:
+                        next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
+                    else:
+                        next_input = embedding_inputs[i+1]
+
+                if self.use_attention:
+                    self.push([next_input, state[0], state[1], attns])
+                else:
+                    self.push([next_input, state[0], state[1]])
 
                 outputs.append(output)
 
         return outputs, state
+
+    def parent_cell(self):
+        """
+        Used to unroll tree-RNN from top to bottom.
+        """
+        with tf.variable_scope("parent_cell") as scope:
+            cell = self.create_multilayer_cell("lstm", scope, self.parent_cell_vars)
+
+        self.parent_cell_vars = True
+        return cell
+
+    def sb_cell(self):
+        """
+        Used to unroll tree-RNN from left to right.
+        """
+        with tf.variable_scope("sb_cell") as scope:
+            cell = self.create_multilayer_cell("lstm", scope, self.parent_cell_vars)
+
+        self.parent_cell_vars = True
+        return cell
 
     def top_to_bottom_with_attention(self, cell, hidden_features, attn_vecs, num_heads, hidden):
         input, state, attns = self.peek()
         output, state, attns = self.attention_cell(cell, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden)
         return output, state, attns
-
-    def top_to_bottom(self, cell):
-        input, state = self.peek()
-        output, state = cell(input, state)
-        return output, state
 
     def left_to_right_with_attention(self, cell, hidden_features, attn_vecs, num_heads, hidden):
         self.pop()
@@ -325,6 +350,11 @@ class Seq2TreeModel(object):
                                                    hidden_features, attn_vecs, num_heads, hidden)
         self.pop()
         return output, state, attns
+
+    def top_to_bottom(self, cell):
+        input, state = self.peek()
+        output, state = cell(input, state)
+        return output, state
 
     def left_to_right(self, cell):
         self.pop()
@@ -350,7 +380,7 @@ class Seq2TreeModel(object):
                     tf.slice(top_state, [0, 2 * self.dim], [1, self.dim]))
 
     def pop(self):
-        self.stack = tf.slice(self.stack, [0, 0], [self.stack.get_shape()[0].value-1, self.stack.get_shape()[1].value])
+        return tf.slice(self.stack, [0, 0], [self.stack.get_shape()[0].value-1, self.stack.get_shape()[1].value])
 
 
     def attention(self, state, hidden_features, attn_vecs, num_heads, hidden):
