@@ -6,12 +6,27 @@ from __future__ import print_function
 import math
 import numpy as np
 import sys
+import warnings
+import functools
 sys.path.append("../seq2seq")
 
 import tensorflow as tf
 
 import data_utils
 
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+    as deprecated. It will result in a warning being emmitted
+    when the function is used."""
+
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        warnings.simplefilter('always', DeprecationWarning) #turn off filter
+        warnings.warn("Call to deprecated function {}.".format(func.__name__), category=DeprecationWarning, stacklevel=2)
+        warnings.simplefilter('default', DeprecationWarning) #reset filter
+        return func(*args, **kwargs)
+
+    return new_func
 
 class Seq2TreeModel(object):
     """Sequence-to-tree model with attention.
@@ -291,16 +306,16 @@ class Seq2TreeModel(object):
 
                 if self.use_attention:
                     input, state, attns = self.peek()
-                    output, state, attns = tf.cond(search_left_to_right,
+                    output, cell, hidden, attns = tf.cond(search_left_to_right,
                                                    lambda: self.attention_cell(parent_cell, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden),
                                                    lambda: self.attention_cell(sb_cell, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden))
                 else:
                     input, state = self.peek()
-                    output, state = tf.cond(search_left_to_right,
-                                            parent_cell(input, state),
-                                            sb_cell(input, state))
+                    output, cell, hidden = tf.cond(search_left_to_right,
+                                            lambda: self.normal_cell(parent_cell, input, state),
+                                            lambda: self.normal_cell(sb_cell, input, state))
 
                 # self.pop() if current symbol is <NO_EXPAND>
                 self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
@@ -312,13 +327,13 @@ class Seq2TreeModel(object):
                         next_input = embedding_inputs[i+1]
 
                 if self.use_attention:
-                    self.push([next_input, state[0], state[1], attns])
+                    self.push([next_input, cell, hidden, attns])
                 else:
-                    self.push([next_input, state[0], state[1]])
+                    self.push([next_input, cell, hidden])
 
                 outputs.append(output)
 
-        return outputs, state
+        return outputs, tf.nn.rnn_cell.LSTMStateTuple(cell, hidden)
 
     def parent_cell(self):
         """
@@ -340,32 +355,6 @@ class Seq2TreeModel(object):
         self.parent_cell_vars = True
         return cell
 
-    def top_to_bottom_with_attention(self, cell, hidden_features, attn_vecs, num_heads, hidden):
-        input, state, attns = self.peek()
-        output, state, attns = self.attention_cell(cell, input, state, attns,
-                                                   hidden_features, attn_vecs, num_heads, hidden)
-        return output, state, attns
-
-    def left_to_right_with_attention(self, cell, hidden_features, attn_vecs, num_heads, hidden):
-        self.pop()
-        input, state, attns = self.peek()
-        output, state, attns = self.attention_cell(cell, input, state, attns,
-                                                   hidden_features, attn_vecs, num_heads, hidden)
-        self.pop()
-        return output, state, attns
-
-    def top_to_bottom(self, cell):
-        input, state = self.peek()
-        output, state = cell(input, state)
-        return output, state
-
-    def left_to_right(self, cell):
-        self.pop()
-        input, state = self.peek()
-        output, state = cell(input, state)
-        self.pop()
-        return output, state
-
     def push(self, states):
         new_top_state = tf.concat(1, states)
         self.stack = tf.concat(0, [self.stack, new_top_state])
@@ -381,6 +370,10 @@ class Seq2TreeModel(object):
 
     def pop(self):
         return self.stack[:-1, :]
+
+    def normal_cell(self, cell, input, state):
+        output, state = cell(input, state)
+        return output, state[0], state[1]
 
 
     def attention(self, state, hidden_features, attn_vecs, num_heads, hidden):
@@ -509,6 +502,36 @@ class Seq2TreeModel(object):
 
     def use_sampled_softmax(self):
         return self.num_samples > 0 and self.num_samples < self.target_vocab_size
+
+    @deprecated
+    def top_to_bottom_with_attention(self, cell, hidden_features, attn_vecs, num_heads, hidden):
+        input, state, attns = self.peek()
+        output, state, attns = self.attention_cell(cell, input, state, attns,
+                                                   hidden_features, attn_vecs, num_heads, hidden)
+        return output, state, attns
+
+    @deprecated
+    def left_to_right_with_attention(self, cell, hidden_features, attn_vecs, num_heads, hidden):
+        self.pop()
+        input, state, attns = self.peek()
+        output, state, attns = self.attention_cell(cell, input, state, attns,
+                                                   hidden_features, attn_vecs, num_heads, hidden)
+        self.pop()
+        return output, state, attns
+
+    @deprecated
+    def top_to_bottom(self, cell):
+        input, state = self.peek()
+        output, state = cell(input, state)
+        return output, state
+
+    @deprecated
+    def left_to_right(self, cell):
+        self.pop()
+        input, state = self.peek()
+        output, state = cell(input, state)
+        self.pop()
+        return output, state
 
     @property
     def use_attention(self):
