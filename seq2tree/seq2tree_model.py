@@ -17,7 +17,7 @@ class Seq2TreeModel(object):
     """Sequence-to-tree model with attention.
     """
 
-    _NO_EXPAND = tf.constant(data_utils.NO_EXPAND_ID)
+    _NO_EXPAND = tf.constant([data_utils.NO_EXPAND_ID])
 
     def __init__(self, hyperparams, forward_only=False):
         """
@@ -175,10 +175,10 @@ class Seq2TreeModel(object):
         self.saver = tf.train.Saver(tf.all_variables())
 
     # Create the multi-layer cell for the tree RNN.
-    def create_multilayer_cell(self, type, scope, reuse_variables):
+    def create_multilayer_cell(self, type, scope):
         with tf.variable_scope(scope):
-            if reuse_variables:
-                tf.get_variable_scope().reuse_variables()
+            # if reuse_variables:
+            #     tf.get_variable_scope().reuse_variables()
             if type == "lstm":
                 cell = tf.nn.rnn_cell.BasicLSTMCell(self.dim, state_is_tuple=True)
             if self.num_layers > 1:
@@ -192,7 +192,7 @@ class Seq2TreeModel(object):
 
     def forward(self, forward_only):
         # Encoder.
-        encoder_cell = self.create_multilayer_cell("lstm")
+        encoder_cell = self.create_multilayer_cell("lstm", "encoder")
         encoder_cell = tf.nn.rnn_cell.EmbeddingWrapper(
             encoder_cell,
             embedding_classes=self.source_vocab_size,
@@ -278,13 +278,17 @@ class Seq2TreeModel(object):
                 self.stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1], attns])
             else:
                 self.stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1]])
+            self.stack.set_shape([None, self.stack.get_shape()[1].value])
 
             for i, control_symbol in enumerate(self.decoder_inputs):
                 if i > 0: scope.reuse_variables()
 
+                control_symbol.set_shape([self.batch_size])
                 search_left_to_right = self.is_no_expand(control_symbol)
 
                 # self.pop() if current symbol is <NO_EXPAND>
+                print(self.pop().get_shape())
+                print(self.stack.get_shape())
                 self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
 
                 if self.use_attention:
@@ -321,8 +325,8 @@ class Seq2TreeModel(object):
         """
         Used to unroll tree-RNN from top to bottom.
         """
-        with tf.variable_scope("parent_cell") as scope:
-            cell = self.create_multilayer_cell("lstm", scope, self.parent_cell_vars)
+        with tf.variable_scope("decoder_parent_cell") as scope:
+            cell = self.create_multilayer_cell("lstm", scope)
 
         self.parent_cell_vars = True
         return cell
@@ -331,8 +335,8 @@ class Seq2TreeModel(object):
         """
         Used to unroll tree-RNN from left to right.
         """
-        with tf.variable_scope("sb_cell") as scope:
-            cell = self.create_multilayer_cell("lstm", scope, self.parent_cell_vars)
+        with tf.variable_scope("decoder_sb_cell") as scope:
+            cell = self.create_multilayer_cell("lstm", scope)
 
         self.parent_cell_vars = True
         return cell
@@ -464,6 +468,8 @@ class Seq2TreeModel(object):
 
 
     def is_no_expand(self, ind):
+        print(ind.get_shape())
+        print(Seq2TreeModel._NO_EXPAND.get_shape())
         return tf.equal(ind, Seq2TreeModel._NO_EXPAND)
 
     def source_embeddings(self):
