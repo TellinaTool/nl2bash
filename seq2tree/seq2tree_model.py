@@ -128,18 +128,6 @@ class Seq2TreeModel(object):
 
 
     def create_graph(self, forward_only):
-        # Create the multi-layer cell for the tree RNN.
-        def create_multilayer_cell(type):
-            if type == "lstm":
-                single_cell = tf.nn.rnn_cell.BasicLSTMCell(self.dim)
-            if self.num_layers > 1:
-                cell = tf.nn.rnn_cell.MultiRNNCell([single_cell] * self.num_layers)
-            if self.input_keep_prob < 1 or self.output_keep_prob < 1:
-                cell = tf.nn.rnn_cell.DropoutWrapper(cell,
-                                                     input_keep_prob=self.input_keep_prob,
-                                                     output_keep_prob=self.output_keep_prob)
-            return cell
-
         # Feeds for inputs.
         self.encoder_inputs = []  # encoder inputs.
         self.decoder_inputs = []  # decoder inputs (always start with "root").
@@ -181,6 +169,18 @@ class Seq2TreeModel(object):
                                                 global_step=self.global_step))
 
         self.saver = tf.train.Saver(tf.all_variables())
+
+    # Create the multi-layer cell for the tree RNN.
+    def create_multilayer_cell(self, type):
+        if type == "lstm":
+            single_cell = tf.nn.rnn_cell.BasicLSTMCell(self.dim)
+        if self.num_layers > 1:
+            cell = tf.nn.rnn_cell.MultiRNNCell([single_cell] * self.num_layers)
+        if self.input_keep_prob < 1 or self.output_keep_prob < 1:
+            cell = tf.nn.rnn_cell.DropoutWrapper(cell,
+                                                 input_keep_prob=self.input_keep_prob,
+                                                 output_keep_prob=self.output_keep_prob)
+        return cell
 
 
     def forward(self, forward_only):
