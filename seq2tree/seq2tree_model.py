@@ -295,7 +295,7 @@ class Seq2TreeModel(object):
                 self.stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1]])
             self.stack.set_shape([None, self.stack.get_shape()[1].value])
 
-            for i, control_symbol in enumerate(self.decoder_inputs):
+            for i, control_symbol in enumerate(self.decoder_inputs[:-1]):
                 if i > 0: scope.reuse_variables()
 
                 control_symbol.set_shape([self.batch_size])
@@ -320,11 +320,10 @@ class Seq2TreeModel(object):
                 # self.pop() if current symbol is <NO_EXPAND>
                 self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
 
-                if i < len(self.decoder_inputs) - 1:
-                    if feed_previous:
-                        next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
-                    else:
-                        next_input = embedding_inputs[i+1]
+                if feed_previous:
+                    next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
+                else:
+                    next_input = embedding_inputs[i+1]
 
                 if self.use_attention:
                     self.push([next_input, cell, hs, attns])
@@ -441,16 +440,18 @@ class Seq2TreeModel(object):
 
 
     def sequence_loss(self, logits, loss_function):
-        if len(self.targets) != len(logits) or len(self.target_weights) != len(logits):
+        targets = self.targets[:self.max_target_length]
+        weights = self.target_weights[:self.max_target_length]
+        if len(targets) != len(logits) or len(weights) != len(logits):
             raise ValueError("Lengths of logits, targets and target_weights must be the same "
-                             "%d, %d, %d." % (len(logits), len(self.targets), len(self.target_weights)))
+                             "%d, %d, %d." % (len(logits), len(targets), len(weights)))
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
-            for logit, target, weight in zip(logits, self.targets, self.target_weights):
+            for logit, target, weight in zip(logits, targets, weights):
                 crossent = loss_function(logit, target)
                 log_perp_list.append(crossent * weight)
             log_perps = tf.add_n(log_perp_list)
-            total_size = tf.add_n(self.target_weights)
+            total_size = tf.add_n(weights)
             total_size += 1e-12  # Just to avoid division by 0 for all-0 weights.
             log_perps /= total_size
         return log_perps
