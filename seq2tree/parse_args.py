@@ -8,10 +8,8 @@ def define_input_flags():
                                 "Limit on the size of training data (0: no limit).")
     tf.app.flags.DEFINE_integer("epochs_per_checkpoint", 1,
                                 "How many training steps to do per checkpoint.")
-    tf.app.flags.DEFINE_integer("epochs_per_milestone", 1,
-                                "How many training steps to do per dev-set evaluation")
-    tf.app.flags.DEFINE_integer("num_milestones", 10,
-                                "How many dev-set evaluation to be performed during training")
+    tf.app.flags.DEFINE_integer("num_epochs", 10,
+                                "Number of training epochs")
 
     tf.app.flags.DEFINE_boolean("eval", False,
                                 "Set to True for quantitive evaluation.")
@@ -52,7 +50,7 @@ def define_input_flags():
                                 "Proportion of input to keep if dropout is used.")
     tf.app.flags.DEFINE_integer("output_keep_prob", 1.0,
                                 "Proportion of output to keep if dropout is used.")
-    tf.app.flags.DEFINE_integer("size", 300, "Size of each model layer.")
+    tf.app.flags.DEFINE_integer("dim", 300, "Dimension of each model layer.")
     tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
     tf.app.flags.DEFINE_boolean("attention", True, "If set, use attention decoder.")
 

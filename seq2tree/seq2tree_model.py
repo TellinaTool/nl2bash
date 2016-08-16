@@ -17,12 +17,10 @@ class Seq2TreeModel(object):
 
     _NO_EXPAND = tf.constant(data_utils._NO_EXPAND)
 
-    def __init__(self, hyperparams, max_source_length, max_target_length, forward_only=False):
+    def __init__(self, hyperparams, forward_only=False):
         """
         Create the model.
         :param hyperparams: hyperparameters of learning
-        :param max_source_length: length upper bound of source input.
-        :param max_target_length: length upper bound of target input.
         :param use_attention: if set, use attention
         :param forward_only: if set, we do not construct the backward pass.
         """
@@ -157,7 +155,7 @@ class Seq2TreeModel(object):
 
         # Our targets are decoder inputs shifted by one.
         self.targets = [self.decoder_inputs[i + 1]
-                        for i in xrange(len(self.target))]
+                        for i in xrange(self.max_target_length)]
 
         # Training outputs and losses.
         self.forward(forward_only)
