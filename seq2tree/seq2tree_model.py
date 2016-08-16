@@ -306,14 +306,14 @@ class Seq2TreeModel(object):
 
                 if self.use_attention:
                     input, state, attns = self.peek()
-                    output, cell, hidden, attns = tf.cond(search_left_to_right,
+                    output, cell, hs, attns = tf.cond(search_left_to_right,
                                                    lambda: self.attention_cell(parent_cell, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden),
                                                    lambda: self.attention_cell(sb_cell, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden))
                 else:
                     input, state = self.peek()
-                    output, cell, hidden = tf.cond(search_left_to_right,
+                    output, cell, hs = tf.cond(search_left_to_right,
                                             lambda: self.normal_cell(parent_cell, input, state),
                                             lambda: self.normal_cell(sb_cell, input, state))
 
@@ -327,9 +327,9 @@ class Seq2TreeModel(object):
                         next_input = embedding_inputs[i+1]
 
                 if self.use_attention:
-                    self.push([next_input, cell, hidden, attns])
+                    self.push([next_input, cell, hs, attns])
                 else:
-                    self.push([next_input, cell, hidden])
+                    self.push([next_input, cell, hs])
 
                 outputs.append(output)
 
@@ -427,8 +427,6 @@ class Seq2TreeModel(object):
         with tf.variable_scope("AttnInputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
-            print(input_embedding.get_shape())
-            print(attns.get_shape())
             # attention mechanism on cell and hidden states
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             cell_output, state = cell(x, state)
