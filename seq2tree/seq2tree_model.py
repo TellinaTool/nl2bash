@@ -292,11 +292,12 @@ class Seq2TreeModel(object):
                     output, state, attns = tf.cond(search_left_to_right,
                                                    self.attention_cell(parent_cell, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden),
-                                                    self.attention_cell(sb_cell, input, state, attns,
+                                                   self.attention_cell(sb_cell, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden))
                 else:
                     input, state = self.peek()
-                    output, state = tf.cond(search_left_to_right, parent_cell(input, state),
+                    output, state = tf.cond(search_left_to_right,
+                                            parent_cell(input, state),
                                             sb_cell(input, state))
 
                 # self.pop() if current symbol is <NO_EXPAND>
