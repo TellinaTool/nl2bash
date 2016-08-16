@@ -376,7 +376,7 @@ class Seq2TreeModel(object):
                     [1, 2])
                 ds.append(tf.reshape(d, [-1, attn_dim]))
         attns = tf.concat(1, ds)
-        attns.set_shape([None, num_heads * attn_dim])
+        attns.set_shape([self.batch_size, num_heads * attn_dim])
         return attns
 
 
@@ -488,6 +488,10 @@ class Seq2TreeModel(object):
     @property
     def dim(self):
         return self.hyperparams["dim"]
+
+    @property
+    def batch_size(self):
+        return self.hyperparams["batch_size"]
 
     @property
     def input_keep_prob(self):
