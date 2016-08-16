@@ -33,18 +33,18 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
     tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
     tf.app.flags.DEFINE_integer("max_nl_length", 40, "maximum length of the English sentence.")
-    tf.app.flags.DEFINE_integer("max_cm_length", 100, "maximum length of the command traversal sequence.")
+    tf.app.flags.DEFINE_integer("max_cm_length", 80, "maximum length of the command traversal sequence.")
     tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
     tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 
     # learning hyperparameters
     tf.app.flags.DEFINE_string("optimizer", "adam", "Type of numeric optimization algorithm to use.")
-    tf.app.flags.DEFINE_float("learning_rate", 0.5, "Learning rate.")
+    tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
     tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
                               "Learning rate decays by this much.")
     tf.app.flags.DEFINE_float("max_gradient_norm", 5.0,
                               "Clip gradients to this norm.")
-    tf.app.flags.DEFINE_integer("batch_size", 64,
+    tf.app.flags.DEFINE_integer("batch_size", 1,
                                 "Batch size to use during training.")
     tf.app.flags.DEFINE_integer("num_samples", 512,
                                 "Number of samples for sampled softmax.")
@@ -52,7 +52,7 @@ def define_input_flags():
                                 "Proportion of input to keep if dropout is used.")
     tf.app.flags.DEFINE_integer("output_keep_prob", 1.0,
                                 "Proportion of output to keep if dropout is used.")
-    tf.app.flags.DEFINE_integer("size", 200, "Size of each model layer.")
+    tf.app.flags.DEFINE_integer("size", 300, "Size of each model layer.")
     tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
     tf.app.flags.DEFINE_boolean("attention", True, "If set, use attention decoder.")
 
