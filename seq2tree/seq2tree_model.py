@@ -261,7 +261,7 @@ class Seq2TreeModel(object):
                 batch_attn_size = tf.pack([batch_size, attn_dim])
                 attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)    # initial attention state
                          for _ in xrange(num_heads)])
-                attns.set_shape([None, num_heads * attn_dim])
+                attns.set_shape([None, num_heads * attention_states.get_shape()[2].value])
                 if initial_state_attention:
                     attns = self.attention(encoder_state, hidden_features, attn_vecs, num_heads, hidden)
             # search control
