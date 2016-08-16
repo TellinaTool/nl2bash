@@ -287,16 +287,14 @@ class Seq2TreeModel(object):
                 search_left_to_right = self.is_no_expand(control_symbol[0])
 
                 # self.pop() if current symbol is <NO_EXPAND>
-                print(self.pop().get_shape())
-                print(self.stack.get_shape())
                 self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
 
                 if self.use_attention:
                     input, state, attns = self.peek()
                     output, state, attns = tf.cond(search_left_to_right,
-                                                   self.attention_cell(parent_cell, input, state, attns,
+                                                   lambda: self.attention_cell(parent_cell, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden),
-                                                   self.attention_cell(sb_cell, input, state, attns,
+                                                   lambda: self.attention_cell(sb_cell, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden))
                 else:
                     input, state = self.peek()
@@ -374,12 +372,12 @@ class Seq2TreeModel(object):
 
     def peek(self):
         if self.use_attention:
-            return self.stack[-1, 0:self.dim], (self.stack[-1, self.dim:2*self.dim],
-                                                self.stack[-1, 2*self.dim:3*self.dim]), \
-                   self.stack[-1, 3*self.dim:]
+            return self.stack[-2:-1, 0:self.dim], tf.nn.rnn_cell.LSTMStateTuple(self.stack[-2:-1, self.dim:2*self.dim],
+                                                self.stack[-2:-1, 2*self.dim:3*self.dim]), \
+                   self.stack[-2:-1, 3*self.dim:]
         else:
-            return self.stack[-1, 0:self.dim], (self.stack[-1, self.dim:2*self.dim],
-                                                self.stack[-1, 2*self.dim:])
+            return self.stack[-2:-1, 0:self.dim], tf.nn.rnn_cell.LSTMStateTuple(self.stack[-2:-1, self.dim:2*self.dim],
+                                                self.stack[-2:-1, 2*self.dim:])
 
     def pop(self):
         return self.stack[:-1, :]
@@ -436,6 +434,8 @@ class Seq2TreeModel(object):
         with tf.variable_scope("AttnInputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
+            print(input_embedding.get_shape())
+            print(attns.get_shape())
             # attention mechanism on cell and hidden states
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             cell_output, state = cell(x, state)
@@ -446,7 +446,7 @@ class Seq2TreeModel(object):
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
         self.attention_cell_vars = True
-        return output, state, attns
+        return output, state[0], state[1], attns
 
 
     def sequence_loss(self, logits, loss_function):
@@ -466,8 +466,6 @@ class Seq2TreeModel(object):
 
 
     def is_no_expand(self, ind):
-        print(ind.get_shape())
-        print(Seq2TreeModel._NO_EXPAND.get_shape())
         return tf.equal(ind, Seq2TreeModel._NO_EXPAND)
 
     def source_embeddings(self):
