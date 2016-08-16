@@ -89,7 +89,7 @@ def train(train_set, dev_set):
         # Create model.
         model = create_model(sess, False)
 
-        """loss, dev_loss, epoch_time = 0.0, 0.0, 0.0
+        loss, dev_loss, epoch_time = 0.0, 0.0, 0.0
         current_step = 0
         previous_losses = []
         previous_dev_losses = []
@@ -103,6 +103,7 @@ def train(train_set, dev_set):
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
         for t in xrange(FLAGS.num_epochs):
+            print("Epoch %d" % t)
 
             start_time = time.time()
 
@@ -121,8 +122,7 @@ def train(train_set, dev_set):
             epoch_time = time.time() - start_time
 
             # Once in a while, we save checkpoint, print statistics, and run evals.
-            if t % FLAGS.iters_per_checkpoint == 0:
-                print("Epoch %d" % t)
+            """if t % FLAGS.iters_per_checkpoint == 0:
 
                 # Print statistics for the previous epoch.
                 loss /= len(train_set)
@@ -161,7 +161,7 @@ def train(train_set, dev_set):
                 eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, False)
 
                 sys.stdout.flush()
-        """
+            """
     return True
 
 
