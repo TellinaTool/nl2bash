@@ -5,6 +5,8 @@ from __future__ import print_function
 
 import math
 import numpy as np
+import sys
+sys.path.append("../seq2seq")
 
 import tensorflow as tf
 
@@ -15,7 +17,7 @@ class Seq2TreeModel(object):
     """Sequence-to-tree model with attention.
     """
 
-    _NO_EXPAND = tf.constant(data_utils._NO_EXPAND)
+    _NO_EXPAND = tf.constant(data_utils.NO_EXPAND_ID)
 
     def __init__(self, hyperparams, forward_only=False):
         """
