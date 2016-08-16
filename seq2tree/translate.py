@@ -337,7 +337,7 @@ def process_data():
     train_dev_test["test"] = [test_cm_list, test_nl_list]
 
     nl_train, cm_train, nl_dev, cm_dev, nl_test, cm_test, _, _ = data_utils.prepare_data(
-        train_dev_test, FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+        train_dev_test, FLAGS.data_dir + "seq2tree/", FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
 
     train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
     dev_set = read_data(nl_dev, cm_dev)
