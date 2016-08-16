@@ -17,7 +17,7 @@ class Seq2TreeModel(object):
     """Sequence-to-tree model with attention.
     """
 
-    _NO_EXPAND = tf.constant([data_utils.NO_EXPAND_ID])
+    _NO_EXPAND = tf.constant(data_utils.NO_EXPAND_ID)
 
     def __init__(self, hyperparams, forward_only=False):
         """
@@ -284,7 +284,7 @@ class Seq2TreeModel(object):
                 if i > 0: scope.reuse_variables()
 
                 control_symbol.set_shape([self.batch_size])
-                search_left_to_right = self.is_no_expand(control_symbol)
+                search_left_to_right = self.is_no_expand(control_symbol[0])
 
                 # self.pop() if current symbol is <NO_EXPAND>
                 print(self.pop().get_shape())
