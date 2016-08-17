@@ -240,11 +240,10 @@ class Seq2TreeModel(object):
         self.losses = self.sequence_loss(outputs, self.softmax_loss())
 
         # Project decoder outputs for decoding.
-        if forward_only:
-            W, b = self.output_projection()
-            self.outputs = []
-            for i in xrange(len(outputs)):
-                self.outputs.append((tf.matmul(outputs[i], W) + b))
+        W, b = self.output_projection()
+        self.outputs = []
+        for i in xrange(len(outputs)):
+            self.outputs.append((tf.matmul(outputs[i], W) + b))
 
     def basic_tree_decoder(self, encoder_state, attention_states=None, num_heads=1,
                            initial_state_attention=False, feed_previous=False):
