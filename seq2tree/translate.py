@@ -76,19 +76,20 @@ def create_model(session, forward_only):
     model = Seq2TreeModel(params, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
+    global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1])
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
         model.saver.restore(session, ckpt.model_checkpoint_path)
     else:
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
-    return model
+    return model, global_epochs
 
 def train(train_set, dev_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
                                           log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
-        model = create_model(sess, forward_only=False)
+        model, global_epochs = create_model(sess, forward_only=False)
 
         loss, dev_loss, epoch_time = 0.0, 0.0, 0.0
         current_step = 0
@@ -140,7 +141,7 @@ def train(train_set, dev_set):
 
                 # Save checkpoint and zero timer and loss.
                 checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
-                model.saver.save(sess, checkpoint_path, global_step=t+1)
+                model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 
