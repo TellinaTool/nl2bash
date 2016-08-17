@@ -196,47 +196,70 @@ def to_list(node, order='dfs', list=None):
         list.append("<NO_EXPAND>")
     return list
 
-def to_command(node):
+def to_command(node, loose_constraints=False):
     cmd = ""
+    lc = loose_constraints
     # convert a tree to bash command format
     if node.kind == "root":
-        assert(node.getNumChildren() == 1)
-        cmd = to_command(node.children[0])
+        assert(loose_constraints or node.getNumChildren() == 1)
+        if lc:
+            for child in node.children:
+                cmd += to_command(child, lc) + ' '
+        else:
+            cmd = to_command(node.children[0], lc)
     elif node.kind == "pipeline":
-        assert(node.getNumChildren() > 1)
-        for child in node.children[:-1]:
-            cmd += to_command(child)
-            cmd += " | "
-        cmd += to_command(node.children[-1])
+        assert(loose_constraints or node.getNumChildren() > 1)
+        if lc and node.getNumChildren() < 1:
+            cmd += "|"
+        elif lc and node.getNumChildren() == 1:
+            cmd += to_command(node.children[0], lc)
+        else:
+            for child in node.children[:-1]:
+                cmd += to_command(child, lc)
+                cmd += " | "
+            cmd += to_command(node.children[-1], lc)
     elif node.kind == "commandsubstitution":
-        assert(node.getNumChildren() == 1)
-        cmd = "$(" + to_command(node.children[0]) + ")"
+        assert(loose_constraints or node.getNumChildren() == 1)
+        if lc and node.getNumChildren() < 1:
+            cmd = "$(" + ")"
+        else:
+            cmd = "$(" + to_command(node.children[0], lc) + ")"
     elif node.kind == "processsubstitution":
-        assert(node.getNumChildren() == 1)
-        cmd = node.value + "(" + to_command(node.children[0]) + ")"
+        assert(loose_constraints or node.getNumChildren() == 1)
+        if lc and node.getNumChildren() < 1:
+            cmd = node.value + "()"
+        else:
+            cmd = node.value + "(" + to_command(node.children[0], lc) + ")"
     elif node.kind == "headcommand":
         cmd = node.value + ' '
         for child in node.children:
-            cmd += to_command(child) + ' '
+            cmd += to_command(child, lc) + ' '
         cmd = cmd.strip()
     elif node.kind == "flag":
         cmd = node.value + ' '
         for child in node.children:
-            cmd += to_command(child) + ' '
+            cmd += to_command(child, lc) + ' '
         cmd = cmd.strip()
     elif node.kind == "binarylogicop":
-        assert(node.getNumChildren() == 2)
-        cmd += to_command(node.children[0]) + ' '
-        cmd += node.value + ' '
-        cmd += to_command(node.children[1]) + ' '
-        cmd = cmd.strip()
+        assert(loose_constraints or node.getNumChildren() == 2)
+        if lc and node.getNumChildren() < 2:
+            for child in node.children:
+                cmd += to_command(child, lc) + ' '
+        else:
+            cmd += to_command(node.children[0], lc) + ' '
+            cmd += node.value + ' '
+            cmd += to_command(node.children[1], lc) + ' '
+            cmd = cmd.strip()
     elif node.kind == "unarylogicop":
-        assert(node.getNumChildren() == 1)
-        cmd += node.value + ' '
-        cmd += to_command(node.children[0]) + ' '
-        cmd = cmd.strip()
+        assert(loose_constraints or node.getNumChildren() == 1)
+        if lc and node.getNumChildren() < 1:
+            cmd = node.value
+        else:
+            cmd += node.value + ' '
+            cmd += to_command(node.children[0], lc) + ' '
+            cmd = cmd.strip()
     elif node.kind == "argument":
-        assert(node.getNumChildren() == 0)
+        assert(loose_constraints or node.getNumChildren() == 0)
         cmd = node.value
     return cmd
 
