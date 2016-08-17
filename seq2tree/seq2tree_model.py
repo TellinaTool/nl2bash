@@ -47,7 +47,7 @@ class Seq2TreeModel(object):
         self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]), trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
-        self.global_step = tf.Variable(0, trainable=False)
+        self.global_epoch = tf.Variable(0, trainable=False)
 
         # variable sharing
         self.parent_cell_emb_vars = False
@@ -72,7 +72,7 @@ class Seq2TreeModel(object):
         encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
 
         # Decoder inputs always start with "ROOT" and are padded
-        decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_inputs))
+        decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_input))
         decoder_inputs.append(decoder_input + decoder_pad)
 
         # create batch-major vectors
