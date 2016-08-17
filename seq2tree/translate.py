@@ -17,6 +17,7 @@ import time
 import cPickle as pickle
 
 import numpy as np
+from tqdm import tqdm
 from random import sample, shuffle
 
 import tensorflow as tf
@@ -103,6 +104,7 @@ def train(train_set, dev_set):
         _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
+        # dev_set = train_set + dev_set
         for t in xrange(FLAGS.num_epochs):
             print("Epoch %d" % t)
 
@@ -111,7 +113,8 @@ def train(train_set, dev_set):
             # shuffling training examples
             shuffle(train_set)
 
-            for i in xrange(len(train_set)):
+            for i in tqdm(xrange(len(train_set))):
+                time.sleep(0.01)
                 nl, tree = train_set[i]
                 encoder_inputs, decoder_inputs, target_weights = model.format_example(
                     nl, tree)
@@ -141,13 +144,12 @@ def train(train_set, dev_set):
                 model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
-
-                dev_set = train_set + dev_set
+                
                 # Run evals on development set and print the metrics.
                 for i in xrange(len(dev_set)):
                     nl, tree = dev_set[i]
                     encoder_inputs, decoder_inputs, target_weights = model.format_example(
-                        nl, tree)
+                        nl, [data_utils.ROOT_ID])
                     _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                                              target_weights, forward_only=True)
                     dev_loss += eval_loss
@@ -156,11 +158,11 @@ def train(train_set, dev_set):
                 print("dev perplexity %.2f" % dev_ppx)
 
                 # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
-                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[:-3]):
+                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]):
                     return False
                 previous_dev_losses.append(dev_loss)
 
-                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, True)
+                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=False)
 
                 sys.stdout.flush()
       
@@ -171,6 +173,7 @@ def decode(logits, rev_cm_vocab):
     if FLAGS.decoding_algorithm == "greedy":
         outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
     list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
+    print(list)
     tree = list_to_tree(list)
     cmd = to_command(tree, loose_constraints=True)
     return tree, cmd
@@ -227,20 +230,24 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
     for i in xrange(len(dataset)):
         nl, tree = dataset[i]
-
+      
         encoder_inputs, decoder_inputs, target_weights = model.format_example(
-            nl, [data_utils.ROOT_ID])
+            nl, tree)
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                          target_weights, forward_only=True)
 
-        rev_encoder_inputs = []
-        for i in xrange(len(encoder_inputs)-1, -1, -1):
-            rev_encoder_inputs.append(encoder_inputs[i])
-        sentence = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)[0]
-        ground_truth = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
-                                               headAppended=False)[0]
+        # rev_encoder_inputs = []
+        # for i in xrange(len(encoder_inputs)-1, -1, -1):
+        #     rev_encoder_inputs.append(encoder_inputs[i])
+        # sentence = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)[0]
+        # ground_truth = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
+        #                                        headAppended=True)[0]
+        sentence = ' '.join([rev_nl_vocab[i] for i in nl])
+        ground_truth = [rev_cm_vocab[i] for i in tree]
+        gt_tree = list_to_tree(ground_truth)
+        gt_cmd = to_command(gt_tree, loose_constraints=True)
         tree, pred_cmd = decode(output_logits, rev_cm_vocab)
-        score = TokenOverlap.compute(ground_truth, pred_cmd, verbose)
+        score = TokenOverlap.compute(gt_cmd, pred_cmd, verbose)
         total_score += score
         if score == 1:
             num_correct += 1
@@ -248,13 +255,13 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         if verbose:
             print("Example %d" % num_eval)
             print("English: " + sentence)
-            print("Ground truth: " + ground_truth)
+            print("Ground truth: " + gt_cmd)
             print("Prediction: " + pred_cmd)
             print()
             pretty_print(tree, 0)
             print()
-            print("token-overlap score: %.2f" % score)
-            print()
+            # print("token-overlap score: %.2f" % score)
+            # print()
 
     print("%d examples evaluated" % num_eval)
     print("Accuracy = %.2f" % (num_correct/num_eval))
@@ -275,7 +282,7 @@ def eval(verbose=True):
                                      "vocab%d.cm" % FLAGS.cm_vocab_size)
         _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-        _, dev_set, _ = process_data()
+        _, dev_set, _ = load_data()
 
         eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
 

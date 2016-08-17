@@ -190,8 +190,7 @@ class Seq2TreeModel(object):
                                                          self.max_gradient_norm)
 
             self.gradient_norms.append(norm)
-            self.updates.append(opt.apply_gradients(zip(clipped_gradients, params),
-                                                global_step=self.global_step))
+            self.updates.append(opt.apply_gradients(zip(clipped_gradients, params)))
 
         self.saver = tf.train.Saver(tf.all_variables())
 

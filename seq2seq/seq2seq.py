@@ -72,6 +72,8 @@ from tensorflow.python.ops import rnn
 from tensorflow.python.ops import rnn_cell
 from tensorflow.python.ops import variable_scope
 
+from tensorflow.python.util import nest
+
 # TODO(ebrevdo): Remove once _linear is fully deprecated.
 linear = rnn_cell._linear  # pylint: disable=protected-access
 
@@ -436,7 +438,7 @@ def embedding_tied_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
 
 def attention(query, hidden_features, attention_vec, attention_vec_size, attn_length, attn_size,
               num_heads, hidden):
-    if not rnn_cell._is_sequence(query):
+    if not nest.is_sequence(query):
         shapes = [a.get_shape().as_list() for a in [query]]
     else:
         shapes = [a.get_shape().as_list() for a in query]
