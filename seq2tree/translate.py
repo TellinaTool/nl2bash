@@ -17,7 +17,7 @@ import time
 import cPickle as pickle
 
 import numpy as np
-from random import shuffle
+from random import sample, shuffle
 
 import tensorflow as tf
 
@@ -356,11 +356,17 @@ def process_data():
     return train_set, dev_set, test_set
 
 
-def load_data():
+def load_data(sample_size=-1):
     print("Loading data from %s" % FLAGS.data_dir)
 
     with open(FLAGS.data_dir + "data.processed.dat", 'rb') as f:
-        return pickle.load(f)
+        if sample_size == -1:
+            # return complete dataset
+            return pickle.load(f)
+        else:
+            data = pickle.load(f)
+            test_sample_size = sample_size / 4
+            return (sample(data[0], sample_size), sample(data[1], test_sample_size), sample(data[2], test_sample_size))
 
 
 def read_data(source_path, target_path, max_size=None):
@@ -398,6 +404,9 @@ def main(_):
             interactive_decode()
         elif FLAGS.process_data:
             process_data()
+        elif FLAGS.sample_train:
+            train_set, dev_set, _ = load_data(FLAGS.sample_size)
+            train(train_set, dev_set)
         else:
             train_set, dev_set, _ = load_data()
             train(train_set, dev_set)
