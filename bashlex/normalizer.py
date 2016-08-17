@@ -212,6 +212,7 @@ def to_command(node, loose_constraints=False):
         if lc and node.getNumChildren() < 1:
             cmd += "|"
         elif lc and node.getNumChildren() == 1:
+            # treat "single-pipe" as atomic command
             cmd += to_command(node.children[0], lc)
         else:
             for child in node.children[:-1]:
@@ -260,7 +261,13 @@ def to_command(node, loose_constraints=False):
             cmd = cmd.strip()
     elif node.kind == "argument":
         assert(loose_constraints or node.getNumChildren() == 0)
-        cmd = node.value
+        if lc:
+            cmd = node.value + ' '
+            for child in node.children:
+                cmd += to_command(child, lc) + ' '
+            cmd = cmd.strip()
+        else:
+            cmd = node.value
     return cmd
 
 def list_to_tree(list, order='dfs'):
