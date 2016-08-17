@@ -68,11 +68,11 @@ def create_model(session, forward_only):
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
     params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
-    params["attention"] = FLAGS.attention
+    params["use_attention"] = FLAGS.use_attention
 
     params["decoder_topology"] = FLAGS.decoder_topology
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
-    model = Seq2TreeModel(params, forward_only=forward_only)
+    model = Seq2TreeModel(params, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
@@ -87,7 +87,7 @@ def train(train_set, dev_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
                                           log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
-        model = create_model(sess, False)
+        model = create_model(sess, forward_only=False)
 
         loss, dev_loss, epoch_time = 0.0, 0.0, 0.0
         current_step = 0
@@ -122,7 +122,7 @@ def train(train_set, dev_set):
             epoch_time = time.time() - start_time
 
             # Once in a while, we save checkpoint, print statistics, and run evals.
-            """if t % FLAGS.iters_per_checkpoint == 0:
+            if t % FLAGS.epochs_per_checkpoint == 0:
 
                 # Print statistics for the previous epoch.
                 loss /= len(train_set)
@@ -137,7 +137,7 @@ def train(train_set, dev_set):
 
                 # Save checkpoint and zero timer and loss.
                 checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
-                model.saver.save(sess, checkpoint_path, num_epochs=t)
+                model.saver.save(sess, checkpoint_path, global_step=t)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
 
@@ -161,7 +161,7 @@ def train(train_set, dev_set):
                 eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, False)
 
                 sys.stdout.flush()
-            """
+      
     return True
 
 

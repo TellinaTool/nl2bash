@@ -50,6 +50,10 @@ class Seq2TreeModel(object):
         self.global_step = tf.Variable(0, trainable=False)
 
         # variable sharing
+        self.parent_cell_emb_vars = False
+        self.sb_cell_emb_vars = False
+        self.parent_cell_vars = False
+        self.sb_cell_vars = False
         self.attention_cell_vars = False
         self.output_projection_vars = False
 
@@ -169,26 +173,27 @@ class Seq2TreeModel(object):
         self.forward(forward_only)
 
         # Gradients and SGD update operation for training the model
-        params = tf.trainable_variables()
         if not forward_only:
-            self.gradient_norms = []
-            self.updates = []
+            params = tf.trainable_variables()
+            if not forward_only:
+                self.gradient_norms = []
+                self.updates = []
 
-        if self.hyperparams["optimizer"] == "sgd":
-            opt = tf.train.GradientDescentOptimizer(self.learning_rate)
-        elif self.hyperparams["optimizer"] == "adam":
-            opt = tf.train.AdamOptimizer(self.learning_rate, beta1=0.9, beta2=0.999,
+            if self.hyperparams["optimizer"] == "sgd":
+                opt = tf.train.GradientDescentOptimizer(self.learning_rate)
+            elif self.hyperparams["optimizer"] == "adam":
+                opt = tf.train.AdamOptimizer(self.learning_rate, beta1=0.9, beta2=0.999,
                                          epsilon=1e-08)
 
-        gradients = tf.gradients(self.losses, params)
-        clipped_gradients, norm = tf.clip_by_global_norm(gradients,
+            gradients = tf.gradients(self.losses, params)
+            clipped_gradients, norm = tf.clip_by_global_norm(gradients,
                                                          self.max_gradient_norm)
 
-        self.gradient_norms.append(norm)
-        self.updates.append(opt.apply_gradients(zip(clipped_gradients, params),
+            self.gradient_norms.append(norm)
+            self.updates.append(opt.apply_gradients(zip(clipped_gradients, params),
                                                 global_step=self.global_step))
 
-        self.saver = tf.train.Saver(tf.all_variables())
+            self.saver = tf.train.Saver(tf.all_variables())
 
     # Create the multi-layer cell for the tree RNN.
     def create_multilayer_cell(self, type, scope):
@@ -241,7 +246,6 @@ class Seq2TreeModel(object):
             for i in xrange(len(outputs)):
                 self.outputs.append((tf.matmul(outputs[i], W) + b))
 
-
     def basic_tree_decoder(self, encoder_state, attention_states=None, num_heads=1,
                            initial_state_attention=False, feed_previous=False):
         """
@@ -264,7 +268,7 @@ class Seq2TreeModel(object):
                  to obtain distribution over output vocabulary.
         """
 
-        if not attention_states.get_shape()[1:2].is_fully_defined():
+        if self.use_attention and not attention_states.get_shape()[1:2].is_fully_defined():
             raise ValueError("Shape[1] and [2] of attention_states must be known %s"
                              % attention_states.get_shape())
 
@@ -272,8 +276,8 @@ class Seq2TreeModel(object):
             embeddings = self.target_embeddings()
             embedding_inputs = [tf.nn.embedding_lookup(embeddings, i) for i in self.decoder_inputs]
 
-            parent_cell = self.parent_cell()
-            sb_cell = self.sb_cell()
+            parent_cell, parent_scope = self.parent_cell()
+            sb_cell, sb_scope = self.sb_cell()
             outputs = []
 
             if self.use_attention:
@@ -298,29 +302,27 @@ class Seq2TreeModel(object):
 
             for i, control_symbol in enumerate(self.decoder_inputs[:-1]):
                 if i > 0: scope.reuse_variables()
-
                 control_symbol.set_shape([self.batch_size])
                 search_left_to_right = self.is_no_expand(control_symbol[0])
 
-                # self.pop() if current symbol is <NO_EXPAND>
-                # self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
+                # simulate a self.pop() if current symbol is <NO_EXPAND>
+                self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
 
                 if self.use_attention:
                     input, state, attns = self.peek()
                     output, cell, hs, attns = tf.cond(search_left_to_right,
-                                                   lambda: self.attention_cell(parent_cell, input, state, attns,
+                                                   lambda: self.attention_cell(parent_cell, parent_scope, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden),
-                                                   lambda: self.attention_cell(sb_cell, input, state, attns,
+                                                   lambda: self.attention_cell(sb_cell, sb_scope, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden))
                 else:
                     input, state = self.peek()
-                    # output, cell, hs = tf.cond(search_left_to_right,
-                    #                         lambda: self.normal_cell(parent_cell, input, state),
-                    #                         lambda: self.normal_cell(sb_cell, input, state))
-                    output, cell, hs = self.normal_cell(parent_cell, input, state)
+                    output, cell, hs = tf.cond(search_left_to_right,
+                                            lambda: self.normal_cell(parent_cell, parent_scope, input, state),
+                                            lambda: self.normal_cell(sb_cell, sb_scope, input, state))
 
-                # self.pop() if current symbol is <NO_EXPAND>
-                # self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
+                # simulate a self.pop() if current symbol is <NO_EXPAND>
+                self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
 
                 if feed_previous:
                     next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
@@ -333,28 +335,31 @@ class Seq2TreeModel(object):
                     self.push([next_input, cell, hs])
 
                 outputs.append(output)
-
-        return outputs, tf.nn.rnn_cell.LSTMStateTuple(cell, hidden)
+        return outputs, tf.nn.rnn_cell.LSTMStateTuple(cell, hs)
 
     def parent_cell(self):
         """
         Used to unroll tree-RNN from top to bottom.
         """
         with tf.variable_scope("decoder_parent_cell") as scope:
+            if self.parent_cell_emb_vars:
+                tf.get_variable_scope().reuse_variables()
             cell = self.create_multilayer_cell("lstm", scope)
 
-        self.parent_cell_vars = True
-        return cell
+        self.parent_cell_emb_vars = True
+        return cell, scope
 
     def sb_cell(self):
         """
         Used to unroll tree-RNN from left to right.
         """
         with tf.variable_scope("decoder_sb_cell") as scope:
+            if self.sb_cell_emb_vars:
+                tf.get_variable_scope().reuse_variables()
             cell = self.create_multilayer_cell("lstm", scope)
 
-        self.parent_cell_vars = True
-        return cell
+        self.sb_cell_emb_vars = True
+        return cell, scope
 
     def push(self, states):
         new_top_state = tf.concat(1, states)
@@ -362,18 +367,22 @@ class Seq2TreeModel(object):
 
     def peek(self):
         if self.use_attention:
-            return self.stack[-2:-1, 0:self.dim], tf.nn.rnn_cell.LSTMStateTuple(self.stack[-2:-1, self.dim:2*self.dim],
-                                                self.stack[-2:-1, 2*self.dim:3*self.dim]), \
-                   self.stack[-2:-1, 3*self.dim:]
+            return self.stack[-1:, 0:self.dim], tf.nn.rnn_cell.LSTMStateTuple(self.stack[-1:, self.dim:2*self.dim],
+                                                                                self.stack[-1:, 2*self.dim:3*self.dim]), \
+                   self.stack[-1:, 3*self.dim:]
         else:
-            return self.stack[-2:-1, 0:self.dim], tf.nn.rnn_cell.LSTMStateTuple(self.stack[-2:-1, self.dim:2*self.dim],
-                                                self.stack[-2:-1, 2*self.dim:])
+            return self.stack[-1:, 0:self.dim], tf.nn.rnn_cell.LSTMStateTuple(self.stack[-1:, self.dim:2*self.dim],
+                                                                                self.stack[-1:, 2*self.dim:])
 
     def pop(self):
         return self.stack[:-1, :]
 
-    def normal_cell(self, cell, input, state):
-        output, state = cell(input, state)
+    def normal_cell(self, cell, scope, input, state):
+        try:
+            output, state = cell(input, state, scope)
+        except ValueError, e:
+            scope.reuse_variables()
+            output, state = cell(input, state, scope)
         return output, state[0], state[1]
 
 
@@ -423,14 +432,18 @@ class Seq2TreeModel(object):
         return hidden, hidden_features, attn_vecs
 
 
-    def attention_cell(self, cell, input_embedding, state, attns,
+    def attention_cell(self, cell, cell_scope, input_embedding, state, attns,
                        hidden_features, attn_vecs, num_heads, hidden):
         with tf.variable_scope("AttnInputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on cell and hidden states
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
-            cell_output, state = cell(x, state)
+            try:
+                cell_output, state = cell(x, state, cell_scope)
+            except ValueError, e:
+                cell_scope.reuse_variables()
+                cell_output, state = cell(x, state, cell_scope)
             attns = self.attention(state, hidden_features, attn_vecs, num_heads, hidden)
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
@@ -539,7 +552,7 @@ class Seq2TreeModel(object):
 
     @property
     def use_attention(self):
-        return self.hyperparams["attention"]
+        return self.hyperparams["use_attention"]
 
     @property
     def decoder_topology(self):
