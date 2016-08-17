@@ -29,10 +29,10 @@ import tensorflow as tf
 
 # Special vocabulary symbols - we always put them at the start.
 _PAD = b"_PAD"
-_GO = b"_GO"                # seq2seq
-_ROOT = b"ROOT_"            # seq2tree
 _EOS = b"_EOS"
 _UNK = b"_UNK"
+_GO = b"_GO"                # seq2seq
+_ROOT = b"ROOT_"            # seq2tree
 _NUM = b"_NUM"
 _NO_EXPAND = b"<NO_EXPAND>"
 
@@ -43,10 +43,10 @@ _DIGIT_RE = re.compile(br"\d")
 
 PAD_ID = 0
 GO_ID = 1
-ROOT_ID = 1
 EOS_ID = 2
 UNK_ID = 3
 NO_EXPAND_ID = 4
+ROOT_ID = 5
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                       tokenizer, normalize_digits=True):
