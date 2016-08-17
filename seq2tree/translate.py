@@ -176,7 +176,7 @@ def decode(logits, rev_cm_vocab):
     def search_history():
         _list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
         list = []
-        for w in list:
+        for w in _list:
             if w == "_UNK":
                 list.append("ARGUMENT_UNK")
             else:
