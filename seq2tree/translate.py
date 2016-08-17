@@ -146,7 +146,7 @@ def train(train_set, dev_set):
                 for i in xrange(len(dev_set)):
                     nl, tree = dev_set[i]
                     encoder_inputs, decoder_inputs, target_weights = model.format_example(
-                        nl, tree)
+                        nl, [data_utils.ROOT_ID])
                     _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                                              target_weights, forward_only=True)
                     dev_loss += eval_loss
@@ -226,9 +226,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
     for i in xrange(len(dataset)):
         nl, tree = dataset[i]
-
+      
         encoder_inputs, decoder_inputs, target_weights = model.format_example(
-            nl, [data_utils.ROOT_ID])
+            nl, tree)
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                          target_weights, forward_only=True)
 
@@ -237,7 +237,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             rev_encoder_inputs.append(encoder_inputs[i])
         sentence = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)[0]
         ground_truth = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
-                                               headAppended=False)[0]
+                                               headAppended=True)[0]
         tree, pred_cmd = decode(output_logits, rev_cm_vocab)
         score = TokenOverlap.compute(ground_truth, pred_cmd, verbose)
         total_score += score
