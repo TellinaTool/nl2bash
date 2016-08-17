@@ -192,7 +192,7 @@ class Seq2TreeModel(object):
             self.gradient_norms.append(norm)
             self.updates.append(opt.apply_gradients(zip(clipped_gradients, params)))
 
-            self.saver = tf.train.Saver(tf.all_variables())
+        self.saver = tf.train.Saver(tf.all_variables())
 
     # Create the multi-layer cell for the tree RNN.
     def create_multilayer_cell(self, type, scope):
