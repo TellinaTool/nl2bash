@@ -52,7 +52,7 @@ def define_input_flags():
                                 "Proportion of output to keep if dropout is used.")
     tf.app.flags.DEFINE_integer("dim", 300, "Dimension of each model layer.")
     tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
-    tf.app.flags.DEFINE_boolean("attention", False, "If set, use attention decoder.")
+    tf.app.flags.DEFINE_boolean("use_attention", False, "If set, use attention decoder.")
 
     tf.app.flags.DEFINE_string("decoder_topology", "basic", "structure of the tree RNN")
     tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
