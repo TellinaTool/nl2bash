@@ -172,17 +172,21 @@ def train(train_set, dev_set):
 def decode(logits, rev_cm_vocab):
     if FLAGS.decoding_algorithm == "greedy":
         outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
-    _list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
-    list = []
-    for w in list:
-        if w == "_UNK":
-            list.append("ARGUMENT_UNK")
-        else:
-            list.append(w)
-    print(list)
-    tree = list_to_tree(list)
+
+    def search_history():
+        _list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
+        list = []
+        for w in list:
+            if w == "_UNK":
+                list.append("ARGUMENT_UNK")
+            else:
+                list.append(w)
+        return list
+
+    search_history = search_history()
+    tree = list_to_tree(search_history)
     cmd = to_command(tree, loose_constraints=True)
-    return tree, cmd
+    return tree, cmd, "->".join(search_history)
 
 
 def interactive_decode():
@@ -219,7 +223,7 @@ def interactive_decode():
             # Get output logits for the sentence.
             _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                              target_weights, forward_only=True)
-            tree, cmd = decode(output_logits, rev_cm_vocab)
+            tree, cmd, search_history = decode(output_logits, rev_cm_vocab)
             pretty_print(tree, 0)
             print()
             print(cmd)
@@ -252,7 +256,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         ground_truth = [rev_cm_vocab[i] for i in tree]
         gt_tree = list_to_tree(ground_truth)
         gt_cmd = to_command(gt_tree, loose_constraints=True)
-        tree, pred_cmd = decode(output_logits, rev_cm_vocab)
+        tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
         score = TokenOverlap.compute(gt_cmd, pred_cmd, verbose)
         total_score += score
         if score == 1:
@@ -263,7 +267,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             print("English: " + sentence)
             print("Ground truth: " + gt_cmd)
             print("Prediction: " + pred_cmd)
-            print()
+            print("Search history: " + search_history)
+            print("AST: ")
             pretty_print(tree, 0)
             print()
             # print("token-overlap score: %.2f" % score)
