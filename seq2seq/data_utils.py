@@ -36,7 +36,7 @@ _UNK = b"_UNK"
 _NUM = b"_NUM"
 _NO_EXPAND = b"<NO_EXPAND>"
 
-_START_VOCAB = [_PAD, _GO, _EOS, _UNK]
+_START_VOCAB = [_PAD, _EOS, _UNK]
 
 # Regular expressions used to tokenize.
 _DIGIT_RE = re.compile(br"\d")
