@@ -496,11 +496,13 @@ class Seq2TreeModel(object):
 
     def output_projection(self):
         with tf.variable_scope("output_projection"):
-            if self.output_projection_vars:
+            try:
+                w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
+                b = tf.get_variable("proj_b", [self.target_vocab_size])
+            except ValueError, e:
                 tf.get_variable_scope().reuse_variables()
-            w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
-            b = tf.get_variable("proj_b", [self.target_vocab_size])
-        self.output_projection_vars = True        
+                w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
+                b = tf.get_variable("proj_b", [self.target_vocab_size])
         return (w, b)
 
     def softmax_loss(self):
