@@ -137,10 +137,11 @@ def train(train_set, dev_set):
 
                 # Save checkpoint and zero timer and loss.
                 checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
-                model.saver.save(sess, checkpoint_path, global_step=t)
+                model.saver.save(sess, checkpoint_path, global_step=t+1)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
 
+                dev_set = train_set + dev_set
                 # Run evals on development set and print the metrics.
                 for i in xrange(len(dev_set)):
                     nl, tree = dev_set[i]
@@ -158,7 +159,7 @@ def train(train_set, dev_set):
                     return False
                 previous_dev_losses.append(dev_loss)
 
-                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, False)
+                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, True)
 
                 sys.stdout.flush()
       
@@ -168,12 +169,13 @@ def train(train_set, dev_set):
 def decode(logits, rev_cm_vocab):
     if FLAGS.decoding_algorithm == "greedy":
         outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
-    tree = list_to_tree([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
-    cmd = to_command(tree)
+    list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
+    tree = list_to_tree(list)
+    cmd = to_command(tree, loose_constraints=True)
     return tree, cmd
 
 
-def decode():
+def interactive_decode():
     """
     Simple command line decoding interface.
     """
@@ -208,7 +210,9 @@ def decode():
             _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                              target_weights, forward_only=True)
             tree, cmd = decode(output_logits, rev_cm_vocab)
-            pretty_print(cmd)
+            pretty_print(tree, 0)
+            print()
+            print(cmd)
 
             print("> ", end="")
             sys.stdout.flush()
@@ -224,7 +228,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         nl, tree = dataset[i]
 
         encoder_inputs, decoder_inputs, target_weights = model.format_example(
-            nl, [data_utils._ROOT])
+            nl, [data_utils.ROOT_ID])
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                          target_weights, forward_only=True)
 
@@ -234,8 +238,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         sentence = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)[0]
         ground_truth = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
                                                headAppended=False)[0]
-        prediction = decode(output_logits, rev_cm_vocab)
-        score = TokenOverlap.compute(ground_truth, prediction, verbose)
+        tree, pred_cmd = decode(output_logits, rev_cm_vocab)
+        score = TokenOverlap.compute(ground_truth, pred_cmd, verbose)
         total_score += score
         if score == 1:
             num_correct += 1
@@ -244,7 +248,10 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             print("Example %d" % num_eval)
             print("English: " + sentence)
             print("Ground truth: " + ground_truth)
-            print("Prediction: " + prediction)
+            print("Prediction: " + pred_cmd)
+            print()
+            pretty_print(tree, 0)
+            print()
             print("token-overlap score: %.2f" % score)
             print()
 
@@ -388,7 +395,7 @@ def main(_):
         if FLAGS.eval:
             eval()
         elif FLAGS.decode:
-            decode()
+            interactive_decode()
         elif FLAGS.process_data:
             process_data()
         else:
