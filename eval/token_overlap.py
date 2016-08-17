@@ -8,7 +8,7 @@ class TokenOverlap(object):
 
     @staticmethod
     def compute(gt, pred, verbose=False):
-        gt_cmd_list = TokenOverlap.get_command_list(gt, verbose)
+        gt_cmd_list = TokenOverlap.get_command_list_rule_based(gt)
         pred_cmd_list = TokenOverlap.get_command_list_rule_based(pred)
 
         gt_num_cmds = len(gt_cmd_list)
@@ -68,11 +68,11 @@ class TokenOverlap(object):
         if hasattr(gt, 'parts'):
             gt_token_set = set([n.word for n in gt.parts if n.kind == "word"])
         else:
-            gt_tokens = bash_tokenizer(gt)
+            gt_tokens = basic_tokenizer(gt)
             if not gt_tokens:
                 gt_tokens = basic_tokenizer(gt)
             gt_token_set = set(gt_tokens)
-        pred_tokens = bash_tokenizer(pred)
+        pred_tokens = basic_tokenizer(pred)
         if not pred_tokens:
             pred_tokens = basic_tokenizer(pred)
         pred_token_set = set(pred_tokens)
