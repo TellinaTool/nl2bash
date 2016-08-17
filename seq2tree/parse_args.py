@@ -21,6 +21,11 @@ def define_input_flags():
                                 "Run a bucket_selection if this is set to True.")
     tf.app.flags.DEFINE_boolean("self_test", False,
                                 "Run a self-test if this is set to True.")
+    tf.app.flags.DEFINE_boolean("sample_train", False,
+                                "Train on a subset of data if this is set to True.")
+    tf.app.flags.DEFINE_integer("sample_size", 200,
+                                "Training data sample size")
+
 
     # device
     tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
