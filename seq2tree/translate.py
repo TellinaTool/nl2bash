@@ -172,7 +172,13 @@ def train(train_set, dev_set):
 def decode(logits, rev_cm_vocab):
     if FLAGS.decoding_algorithm == "greedy":
         outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
-    list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
+    _list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
+    list = []
+    for w in _list:
+        if w == "_UNK":
+            list.append("ARGUMENT_UNK")
+        else:
+            list.append(w)
     print()
     print(list[:40])
     print()
