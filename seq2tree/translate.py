@@ -173,7 +173,9 @@ def decode(logits, rev_cm_vocab):
     if FLAGS.decoding_algorithm == "greedy":
         outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
     list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
-    # print(list)
+    print()
+    print(list[:40])
+    print()
     tree = list_to_tree(list)
     cmd = to_command(tree, loose_constraints=True)
     return tree, cmd
@@ -186,7 +188,7 @@ def interactive_decode():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
                                           log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model = create_model(sess, True)
+        model, _ = create_model(sess, True)
 
         # Load vocabularies.
         nl_vocab_path = os.path.join(FLAGS.data_dir,
@@ -273,7 +275,7 @@ def eval(verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
                                           log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model = create_model(sess, forward_only=True)
+        model, _ = create_model(sess, forward_only=True)
 
         # Load vocabularies.
         nl_vocab_path = os.path.join(FLAGS.data_dir,
