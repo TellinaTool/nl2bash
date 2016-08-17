@@ -303,7 +303,7 @@ class Seq2TreeModel(object):
                 search_left_to_right = self.is_no_expand(control_symbol[0])
 
                 # self.pop() if current symbol is <NO_EXPAND>
-                self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
+                # self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
 
                 if self.use_attention:
                     input, state, attns = self.peek()
@@ -314,12 +314,13 @@ class Seq2TreeModel(object):
                                                    hidden_features, attn_vecs, num_heads, hidden))
                 else:
                     input, state = self.peek()
-                    output, cell, hs = tf.cond(search_left_to_right,
-                                            lambda: self.normal_cell(parent_cell, input, state),
-                                            lambda: self.normal_cell(sb_cell, input, state))
+                    # output, cell, hs = tf.cond(search_left_to_right,
+                    #                         lambda: self.normal_cell(parent_cell, input, state),
+                    #                         lambda: self.normal_cell(sb_cell, input, state))
+                    output, cell, hs = self.normal_cell(parent_cell, input, state)
 
                 # self.pop() if current symbol is <NO_EXPAND>
-                self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
+                # self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
 
                 if feed_previous:
                     next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
