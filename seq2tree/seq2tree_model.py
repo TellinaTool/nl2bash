@@ -270,6 +270,11 @@ class Seq2TreeModel(object):
             raise ValueError("Shape[1] and [2] of attention_states must be known %s"
                              % attention_states.get_shape())
 
+        if feed_previous:
+            # scope of output_projection is the entire model
+            # hence retrieving variables here
+            W, b = self.output_projection()
+
         with tf.variable_scope("basic_tree_decoder") as scope:
             embeddings = self.target_embeddings()
             embedding_inputs = [tf.nn.embedding_lookup(embeddings, i) for i in self.decoder_inputs]
@@ -324,7 +329,6 @@ class Seq2TreeModel(object):
 
                 if feed_previous:
                     # Project decoder output for next state input.
-                    W, b = self.output_projection()
                     projected_output = tf.matmul(output, W) + b
                     next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(projected_output, 1))
                 else:
