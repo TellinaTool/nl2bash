@@ -68,7 +68,7 @@ def create_model(session, forward_only):
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
     params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
-    params["attention"] = FLAGS.attention
+    params["use_attention"] = FLAGS.use_attention
 
     params["decoder_topology"] = FLAGS.decoder_topology
     params["decoding_algorithm"] = FLAGS.decoding_algorithm

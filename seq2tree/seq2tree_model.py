@@ -538,7 +538,7 @@ class Seq2TreeModel(object):
 
     @property
     def use_attention(self):
-        return self.hyperparams["attention"]
+        return self.hyperparams["use_attention"]
 
     @property
     def decoder_topology(self):
