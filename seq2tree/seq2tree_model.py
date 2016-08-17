@@ -323,7 +323,10 @@ class Seq2TreeModel(object):
                 self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
 
                 if feed_previous:
-                    next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(output, 1))
+                    # Project decoder output for next state input.
+                    W, b = self.output_projection()
+                    projected_output = tf.matmul(output, W) + b
+                    next_input = tf.nn.embedding_lookup(embeddings, tf.argmax(projected_output, 1))
                 else:
                     next_input = embedding_inputs[i+1]
 
