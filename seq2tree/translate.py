@@ -172,7 +172,7 @@ def decode(logits, rev_cm_vocab):
     if FLAGS.decoding_algorithm == "greedy":
         outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
     list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
-    print(list)
+    # print(list)
     tree = list_to_tree(list)
     cmd = to_command(tree, loose_constraints=True)
     return tree, cmd
@@ -372,7 +372,7 @@ def load_data(sample_size=-1):
             return pickle.load(f)
         else:
             data = pickle.load(f)
-            test_sample_size = sample_size / 4
+            test_sample_size = int(sample_size / 4)
             return (sample(data[0], sample_size), sample(data[1], test_sample_size), sample(data[2], test_sample_size))
 
 
