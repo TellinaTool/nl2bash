@@ -275,14 +275,14 @@ class Seq2TreeModel(object):
 
         def peek():
             if self.use_attention:
-                return stack[-1, 0:self.dim], \
-                       tf.nn.rnn_cell.LSTMStateTuple(stack[-1, self.dim:2*self.dim],
-                                                     stack[-1, 2*self.dim:3*self.dim]), \
-                       stack[-1, 3*self.dim:]
+                return stack[-1:, 0:self.dim], \
+                       tf.nn.rnn_cell.LSTMStateTuple(stack[-1:, self.dim:2*self.dim],
+                                                     stack[-1:, 2*self.dim:3*self.dim]), \
+                       stack[-1:, 3*self.dim:]
             else:
-                return stack[-1, 0:self.dim], \
-                       tf.nn.rnn_cell.LSTMStateTuple(stack[-1, self.dim:2*self.dim],
-                                                     stack[-1, 2*self.dim:])
+                return stack[-1:, 0:self.dim], \
+                       tf.nn.rnn_cell.LSTMStateTuple(stack[-1:, self.dim:2*self.dim],
+                                                     stack[-1:, 2*self.dim:])
 
         def pop():
             return stack[:-1, :]
@@ -291,7 +291,7 @@ class Seq2TreeModel(object):
             return tf.concat(0, [cs_stack, state])
 
         def cs_peek():
-            return cs_stack[-1, :]
+            return cs_stack[-1:, :]
 
         def cs_pop():
             return cs_stack[:-1, :]
@@ -331,7 +331,7 @@ class Seq2TreeModel(object):
             init_input = embedding_inputs[0]
             control_symbol = self.decoder_inputs[0]
             # discrete stack mimicking DFS in a discrete space
-            cs_stack = tf.zeros([self.max_target_length, 1])
+            cs_stack = tf.zeros([self.max_target_length, 1], dtype=tf.int32)
             cs_stack = tf.concat(0, [cs_stack, tf.expand_dims(control_symbol, 1)])
 
             # continuous stack used for storing LSTM states, synced with cs_stack
@@ -346,10 +346,9 @@ class Seq2TreeModel(object):
                 if i > 0: scope.reuse_variables()
 
                 if feed_previous:
-                    control_symbol = cs_peek()
+                    control_symbol = cs_peek()[0]
                 else:
                     control_symbol = self.decoder_inputs[i]
-                control_symbol.set_shape([self.batch_size])
 
                 search_left_to_right = self.is_no_expand(control_symbol[0])
 
