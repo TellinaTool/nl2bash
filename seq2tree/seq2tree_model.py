@@ -269,6 +269,33 @@ class Seq2TreeModel(object):
                  to obtain distribution over output vocabulary.
         """
 
+        def push(states):
+            new_top_state = tf.concat(1, states)
+            return tf.concat(0, [stack, new_top_state])
+
+        def peek():
+            if self.use_attention:
+                return stack[-1:, 0:self.dim], \
+                       tf.nn.rnn_cell.LSTMStateTuple(stack[-1:, self.dim:2*self.dim],
+                                                     stack[-1:, 2*self.dim:3*self.dim]), \
+                       stack[-1:, 3*self.dim:]
+            else:
+                return stack[-1:, 0:self.dim], \
+                       tf.nn.rnn_cell.LSTMStateTuple(stack[-1:, self.dim:2*self.dim],
+                                                     stack[-1:, 2*self.dim:])
+
+        def pop():
+            return stack[:-1, :]
+
+        def cs_push(state):
+            return tf.concat(0, [cs_stack, state])
+
+        def cs_peek():
+            return cs_stack[-1, :]
+
+        def cs_pop():
+            return cs_stack[:-1, :]
+
         if self.use_attention and not attention_states.get_shape()[1:2].is_fully_defined():
             raise ValueError("Shape[1] and [2] of attention_states must be known %s"
                              % attention_states.get_shape())
@@ -303,29 +330,35 @@ class Seq2TreeModel(object):
             # search control
             init_input = embedding_inputs[0]
             control_symbol = self.decoder_inputs[0]
-
+            # discrete stack mimicking DFS in a discrete space
+            cs_stack = control_symbol
+            
+            # continuous stack used for storing LSTM states, synced with cs_stack
             if self.use_attention:
-                self.stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1], attns])
+                stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1], attns])
             else:
-                self.stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1]])
-            self.stack.set_shape([None, self.stack.get_shape()[1].value])
+                stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1]])
+            stack.set_shape([None, stack.get_shape()[1].value])
 
             for i, _ in enumerate(self.decoder_inputs[:-1]):
                 if i > 0: scope.reuse_variables()
 
                 if self.use_attention:
-                    input, state, attns = self.peek()
+                    input, state, attns = peek()
                 else:
-                    input, state = self.peek()
+                    input, state = peek()
 
-                if not feed_previous:
+                if feed_previous:
+                    control_symbol = cs_peek()
+                else:
                     control_symbol = self.decoder_inputs[i]
                 control_symbol.set_shape([self.batch_size])
 
                 search_left_to_right = self.is_no_expand(control_symbol[0])
 
-                # simulate a self.pop() if current symbol is <NO_EXPAND>
-                self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
+                # mimick a stack pop if current symbol is <NO_EXPAND>
+                cs_stack = tf.cond(search_left_to_right, lambda: cs_pop(), lambda: cs_stack)
+                stack = tf.cond(search_left_to_right, lambda: pop(), lambda: stack)
 
                 if self.use_attention:
                     output, cell, hs, attns = tf.cond(search_left_to_right,
@@ -338,21 +371,23 @@ class Seq2TreeModel(object):
                         lambda: self.normal_cell(parent_cell, parent_scope, input, state),
                         lambda: self.normal_cell(sb_cell, sb_scope, input, state))
 
-                # simulate a self.pop() if current symbol is <NO_EXPAND>
-                self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
+                # mimick a stack pop if current symbol is <NO_EXPAND>
+                cs_stack = tf.cond(search_left_to_right, lambda: cs_pop(), lambda: cs_stack)
+                stack = tf.cond(search_left_to_right, lambda: pop(), lambda: stack)
 
                 if feed_previous:
                     # Project decoder output for next state input.
                     projected_output = tf.matmul(output, W) + b
                     control_symbol = tf.argmax(projected_output, 1)
                     next_input = tf.nn.embedding_lookup(embeddings, control_symbol)
+                    cs_stack = cs_push(control_symbol)
                 else:
                     next_input = embedding_inputs[i+1]
 
                 if self.use_attention:
-                    self.push([next_input, cell, hs, attns])
+                    stack = push([next_input, cell, hs, attns])
                 else:
-                    self.push([next_input, cell, hs])
+                    stack = push([next_input, cell, hs])
 
                 outputs.append(output)
 
@@ -381,24 +416,6 @@ class Seq2TreeModel(object):
 
         self.sb_cell_emb_vars = True
         return cell, scope
-
-    def push(self, states):
-        new_top_state = tf.concat(1, states)
-        self.stack = tf.concat(0, [self.stack, new_top_state])
-
-    def peek(self):
-        if self.use_attention:
-            return self.stack[-1:, 0:self.dim], \
-                   tf.nn.rnn_cell.LSTMStateTuple(self.stack[-1:, self.dim:2*self.dim],
-                                                 self.stack[-1:, 2*self.dim:3*self.dim]), \
-                   self.stack[-1:, 3*self.dim:]
-        else:
-            return self.stack[-1:, 0:self.dim], \
-                   tf.nn.rnn_cell.LSTMStateTuple(self.stack[-1:, self.dim:2*self.dim],
-                                                 self.stack[-1:, 2*self.dim:])
-
-    def pop(self):
-        return self.stack[:-1, :]
 
     def normal_cell(self, cell, scope, input, state):
         try:
