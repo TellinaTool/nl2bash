@@ -426,9 +426,9 @@ def process_data():
         data_utils.data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
         return nl_ids_path, cm_ids_path
 
-    nl_train, cm_train = format_data(train_path, train_nl_list, train_cm_seq_list)
-    nl_dev, cm_dev = format_data(dev_path, dev_nl_list, dev_cm_seq_list)
-    nl_test, cm_test = format_data(test_path, test_nl_list, test_cm_seq_list)
+    nl_train, cm_train = format_data(train_path, train_nl_list, train_cm_list, train_cm_seq_list)
+    nl_dev, cm_dev = format_data(dev_path, dev_nl_list, dev_cm_list, dev_cm_seq_list)
+    nl_test, cm_test = format_data(test_path, test_nl_list, test_cm_list, test_cm_seq_list)
 
     train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
     dev_set = read_data(nl_dev, cm_dev)
