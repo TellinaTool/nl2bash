@@ -322,10 +322,13 @@ def process_data():
     print("%d folds" % numFolds)
 
     train_cm_list = []
+    train_cm_seq_list = []
     train_nl_list = []
     dev_cm_list = []
+    dev_cm_seq_list = []
     dev_nl_list = []
     test_cm_list = []
+    test_cm_seq_list = []
     test_nl_list = []
 
     max_cmd_seq_len = 0
@@ -337,7 +340,8 @@ def process_data():
                     cmd_seq = to_list(ast, list=[])
                     if len(cmd_seq) > max_cmd_seq_len:
                         max_cmd_seq_len = len(cmd_seq)
-                    train_cm_list.append(cmd_seq)
+                    train_cm_list.append(cmd)
+                    train_cm_seq_list.append(cmd_seq)
                     train_nl_list.append(nl)
         elif i == numFolds - 2:
             for nl, cmd in data[i]:
@@ -346,7 +350,8 @@ def process_data():
                     cmd_seq = to_list(ast, list=[])
                     if len(cmd_seq) > max_cmd_seq_len:
                         max_cmd_seq_len = len(cmd_seq)
-                    dev_cm_list.append(cmd_seq)
+                    dev_cm_list.append(cmd)
+                    dev_cm_seq_list.append(cmd_seq)
                     dev_nl_list.append(nl)
         elif i == numFolds - 1:
             for nl, cmd in data[i]:
@@ -355,24 +360,38 @@ def process_data():
                     cmd_seq = to_list(ast, list=[])
                     if len(cmd_seq) > max_cmd_seq_len:
                         max_cmd_seq_len = len(cmd_seq)
-                    test_cm_list.append(cmd_seq)
+                    test_cm_list.append(cmd)
+                    test_cm_seq_list.append(cmd_seq)
                     test_nl_list.append(nl)
+
     print("maximum training command sequence length = %d" % max_cmd_seq_len)
 
-    train_dev_test = {}
-    train_dev_test["train"] = [train_cm_list, train_nl_list]
-    train_dev_test["dev"] = [dev_cm_list, dev_nl_list]
-    train_dev_test["test"] = [test_cm_list, test_nl_list]
+    data_dir = FLAGS.data_dir + "seq2tree/"
 
-    nl_train, cm_train, nl_dev, cm_dev, nl_test, cm_test, _, _ = data_utils.prepare_data(
-        train_dev_test, FLAGS.data_dir + "seq2tree/", FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+    # Get data to the specified directory.
+    train_path = data_dir + "/train"
+    dev_path = data_dir + "/dev"
+    test_path = data_dir + "/test"
 
-    train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
-    dev_set = read_data(nl_dev, cm_dev)
-    test_set = read_data(nl_test, nl_test)
+    # Create vocabularies of the appropriate sizes.
+    cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % FLAGS.cm_vocab_size)
+    nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % FLAGS.nl_vocab_size)
+    data_utils.create_vocabulary(cm_vocab_path, train_cm_seq_list, FLAGS.cm_vocab_size, bash_tokenizer, True)
+    data_utils.create_vocabulary(nl_vocab_path, train_nl_list, FLAGS.nl_vocab_size, basic_tokenizer, True)
+
+    def format_data(data_path, nl_list, cm_list):
+        cm_ids_path = data_path + (".ids%d.cm" % FLAGS.cm_vocab_size)
+        nl_ids_path = data_path + (".ids%d.nl" % FLAGS.nl_vocab_size)
+        data_utils.data_to_token_ids(cm_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
+        data_utils.data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
+
+    format_data(train_path, train_nl_list, train_cm_seq_list)
+    format_data(dev_path, dev_nl_list, dev_cm_seq_list)
+    format_data(test_path, test_nl_list, test_cm_seq_list)
 
     with open(FLAGS.data_dir + "seq2tree/" + "data.processed.dat", 'wb') as o_f:
         pickle.dump((train_set, dev_set, test_set), o_f)
+
     return train_set, dev_set, test_set
 
 
@@ -398,19 +417,21 @@ def read_data(source_path, target_path, max_size=None):
     """
     data_set = []
 
-    with tf.gfile.GFile(source_path, mode="r") as source_file:
-        with tf.gfile.GFile(target_path, mode="r") as target_file:
-            source, target = source_file.readline(), target_file.readline()
-            counter = 0
-            while source and target and (not max_size or counter < max_size):
-                counter += 1
-                if counter % 1000 == 0:
-                    print("  reading data line %d" % counter)
-                    sys.stdout.flush()
-                source_ids = [int(x) for x in source.split()]
-                target_ids = [int(x) for x in target.split()]
-                data_set.append([source_ids, target_ids])
+    with tf.gfile.GFile(source_path + ".txt", mode="r") as source_txt_file:
+        with tf.gfile.GFile(target_path + ".txt", mode)
+        with tf.gfile.GFile(source_path, mode="r") as source_file:
+            with tf.gfile.GFile(target_path, mode="r") as target_file:
                 source, target = source_file.readline(), target_file.readline()
+                counter = 0
+                while source and target and (not max_size or counter < max_size):
+                    counter += 1
+                    if counter % 1000 == 0:
+                        print("  reading data line %d" % counter)
+                        sys.stdout.flush()
+                    source_ids = [int(x) for x in source.split()]
+                    target_ids = [int(x) for x in target.split()]
+                    data_set.append([source_ids, target_ids])
+                    source, target = source_file.readline(), target_file.readline()
     print("  %d data points read." % len(data_set))
     return data_set
 
