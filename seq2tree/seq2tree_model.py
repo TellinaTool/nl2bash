@@ -22,7 +22,8 @@ def deprecated(func):
     @functools.wraps(func)
     def new_func(*args, **kwargs):
         warnings.simplefilter('always', DeprecationWarning) #turn off filter
-        warnings.warn("Call to deprecated function {}.".format(func.__name__), category=DeprecationWarning, stacklevel=2)
+        warnings.warn("Call to deprecated function {}.".format(func.__name__),
+                      category=DeprecationWarning, stacklevel=2)
         warnings.simplefilter('default', DeprecationWarning) #reset filter
         return func(*args, **kwargs)
 
@@ -314,15 +315,15 @@ class Seq2TreeModel(object):
                 if self.use_attention:
                     input, state, attns = self.peek()
                     output, cell, hs, attns = tf.cond(search_left_to_right,
-                                                   lambda: self.attention_cell(parent_cell, parent_scope, input, state, attns,
+                        lambda: self.attention_cell(parent_cell, parent_scope, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden),
-                                                   lambda: self.attention_cell(sb_cell, sb_scope, input, state, attns,
+                        lambda: self.attention_cell(sb_cell, sb_scope, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden))
                 else:
                     input, state = self.peek()
                     output, cell, hs = tf.cond(search_left_to_right,
-                                            lambda: self.normal_cell(parent_cell, parent_scope, input, state),
-                                            lambda: self.normal_cell(sb_cell, sb_scope, input, state))
+                        lambda: self.normal_cell(parent_cell, parent_scope, input, state),
+                        lambda: self.normal_cell(sb_cell, sb_scope, input, state))
 
                 # simulate a self.pop() if current symbol is <NO_EXPAND>
                 self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
@@ -372,12 +373,14 @@ class Seq2TreeModel(object):
 
     def peek(self):
         if self.use_attention:
-            return self.stack[-1:, 0:self.dim], tf.nn.rnn_cell.LSTMStateTuple(self.stack[-1:, self.dim:2*self.dim],
-                                                                                self.stack[-1:, 2*self.dim:3*self.dim]), \
+            return self.stack[-1:, 0:self.dim], \
+                   tf.nn.rnn_cell.LSTMStateTuple(self.stack[-1:, self.dim:2*self.dim],
+                                                 self.stack[-1:, 2*self.dim:3*self.dim]), \
                    self.stack[-1:, 3*self.dim:]
         else:
-            return self.stack[-1:, 0:self.dim], tf.nn.rnn_cell.LSTMStateTuple(self.stack[-1:, self.dim:2*self.dim],
-                                                                                self.stack[-1:, 2*self.dim:])
+            return self.stack[-1:, 0:self.dim], \
+                   tf.nn.rnn_cell.LSTMStateTuple(self.stack[-1:, self.dim:2*self.dim],
+                                                 self.stack[-1:, 2*self.dim:])
 
     def pop(self):
         return self.stack[:-1, :]
