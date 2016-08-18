@@ -242,7 +242,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         nl, tree = dataset[i]
       
         encoder_inputs, decoder_inputs, target_weights = model.format_example(
-            nl, tree)
+            nl, [data_utils.ROOT_ID])
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                          target_weights, forward_only=True)
 
