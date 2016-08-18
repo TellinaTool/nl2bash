@@ -275,14 +275,14 @@ class Seq2TreeModel(object):
 
         def peek():
             if self.use_attention:
-                return stack[-1:, 0:self.dim], \
-                       tf.nn.rnn_cell.LSTMStateTuple(stack[-1:, self.dim:2*self.dim],
-                                                     stack[-1:, 2*self.dim:3*self.dim]), \
-                       stack[-1:, 3*self.dim:]
+                return stack[-1, 0:self.dim], \
+                       tf.nn.rnn_cell.LSTMStateTuple(stack[-1, self.dim:2*self.dim],
+                                                     stack[-1, 2*self.dim:3*self.dim]), \
+                       stack[-1, 3*self.dim:]
             else:
-                return stack[-1:, 0:self.dim], \
-                       tf.nn.rnn_cell.LSTMStateTuple(stack[-1:, self.dim:2*self.dim],
-                                                     stack[-1:, 2*self.dim:])
+                return stack[-1, 0:self.dim], \
+                       tf.nn.rnn_cell.LSTMStateTuple(stack[-1, self.dim:2*self.dim],
+                                                     stack[-1, 2*self.dim:])
 
         def pop():
             return stack[:-1, :]
@@ -331,15 +331,16 @@ class Seq2TreeModel(object):
             init_input = embedding_inputs[0]
             control_symbol = self.decoder_inputs[0]
             # discrete stack mimicking DFS in a discrete space
-            cs_stack = tf.expand_dims(control_symbol, 1)
-            cs_stack.set_shape([None, 1])
-            
+            cs_stack = tf.zeros([self.max_target_length, 1])
+            cs_stack = tf.concat(0, [cs_stack, tf.expand_dims(control_symbol, 1)])
+
             # continuous stack used for storing LSTM states, synced with cs_stack
             if self.use_attention:
-                stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1], attns])
+                init_stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1], attns])
             else:
-                stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1]])
-            stack.set_shape([None, stack.get_shape()[1].value])
+                init_stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1]])
+            stack = tf.zeros([self.max_target_length, init_stack.get_shape()[1].value])
+            stack = tf.concat(0, [stack, init_stack])
 
             for i, _ in enumerate(self.decoder_inputs[:-1]):
                 if i > 0: scope.reuse_variables()
