@@ -186,7 +186,7 @@ def decode(logits, rev_cm_vocab):
     search_history = search_history()
     tree = list_to_tree(search_history)
     cmd = to_command(tree, loose_constraints=True)
-    return tree, cmd, "->".join(search_history)
+    return tree, cmd, search_history
 
 
 def interactive_decode():
@@ -267,7 +267,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             print("English: " + sentence)
             print("Ground truth: " + gt_cmd)
             print("Prediction: " + pred_cmd)
-            print("Search history: " + search_history)
+            print("Search history (truncated at 25 steps): ")
+            print(" -> ".join(search_history[:25]))
             print("AST: ")
             pretty_print(tree, 0)
             print()
