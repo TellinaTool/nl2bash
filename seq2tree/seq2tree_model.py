@@ -382,7 +382,7 @@ class Seq2TreeModel(object):
                     projected_output = tf.matmul(output, W) + b
                     control_symbol = tf.argmax(projected_output, 1)
                     next_input = tf.nn.embedding_lookup(embeddings, control_symbol)
-                    cs_stack = cs_push(control_symbol)
+                    cs_stack = cs_push(tf.cast(tf.expand_dims(control_symbol, 1), tf.int32))
                 else:
                     next_input = embedding_inputs[i+1]
 
