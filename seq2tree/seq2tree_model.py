@@ -320,9 +320,9 @@ class Seq2TreeModel(object):
 
                 if not feed_previous:
                     control_symbol = self.decoder_inputs[i]
-                    control_symbol.set_shape([self.batch_size])
+                control_symbol.set_shape([self.batch_size])
 
-                search_left_to_right = self.is_no_expand(control_symbol)
+                search_left_to_right = self.is_no_expand(control_symbol[0])
 
                 # simulate a self.pop() if current symbol is <NO_EXPAND>
                 self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
@@ -345,7 +345,7 @@ class Seq2TreeModel(object):
                     # Project decoder output for next state input.
                     projected_output = tf.matmul(output, W) + b
                     control_symbol = tf.argmax(projected_output, 1)
-                    next_input = tf.nn.embedding_lookup(embeddings, output_index)
+                    next_input = tf.nn.embedding_lookup(embeddings, control_symbol)
                 else:
                     next_input = embedding_inputs[i+1]
 
