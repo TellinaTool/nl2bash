@@ -496,7 +496,7 @@ class Seq2TreeModel(object):
 
 
     def is_no_expand(self, ind):
-        return tf.equal(ind, Seq2TreeModel._NO_EXPAND)
+        return tf.equal(tf.cast(ind, tf.int32), Seq2TreeModel._NO_EXPAND)
 
     def source_embeddings(self):
         with tf.variable_scope("source_embeddings"):

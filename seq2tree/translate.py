@@ -224,6 +224,9 @@ def interactive_decode():
             _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                              target_weights, forward_only=True)
             tree, cmd, search_history = decode(output_logits, rev_cm_vocab)
+            print()
+            print("->".join(search_history[:20]))
+            print()
             pretty_print(tree, 0)
             print()
             print(cmd)
