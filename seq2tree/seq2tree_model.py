@@ -308,23 +308,29 @@ class Seq2TreeModel(object):
                 self.stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1]])
             self.stack.set_shape([None, self.stack.get_shape()[1].value])
 
-            for i, control_symbol in enumerate(self.decoder_inputs[:-1]):
+            for i, _ in enumerate(self.decoder_inputs[:-1]):
                 if i > 0: scope.reuse_variables()
+
+                if self.use_attention:
+                    input, state, attns = self.peek()
+                else:
+                    input, state = self.peek()
+
+                control_symbol = input
+
                 control_symbol.set_shape([self.batch_size])
-                search_left_to_right = self.is_no_expand(control_symbol[0])
+                search_left_to_right = self.is_no_expand(control_symbol)
 
                 # simulate a self.pop() if current symbol is <NO_EXPAND>
                 self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda : self.stack)
 
                 if self.use_attention:
-                    input, state, attns = self.peek()
                     output, cell, hs, attns = tf.cond(search_left_to_right,
                         lambda: self.attention_cell(parent_cell, parent_scope, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden),
                         lambda: self.attention_cell(sb_cell, sb_scope, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden))
                 else:
-                    input, state = self.peek()
                     output, cell, hs = tf.cond(search_left_to_right,
                         lambda: self.normal_cell(parent_cell, parent_scope, input, state),
                         lambda: self.normal_cell(sb_cell, sb_scope, input, state))
@@ -345,6 +351,7 @@ class Seq2TreeModel(object):
                     self.push([next_input, cell, hs])
 
                 outputs.append(output)
+
         return outputs, tf.nn.rnn_cell.LSTMStateTuple(cell, hs)
 
     def parent_cell(self):
