@@ -21,10 +21,10 @@ def deprecated(func):
 
     @functools.wraps(func)
     def new_func(*args, **kwargs):
-        warnings.simplefilter('always', DeprecationWarning) #turn off filter
+        warnings.simplefilter('always', DeprecationWarning)     #turn off filter
         warnings.warn("Call to deprecated function {}.".format(func.__name__),
                       category=DeprecationWarning, stacklevel=2)
-        warnings.simplefilter('default', DeprecationWarning) #reset filter
+        warnings.simplefilter('default', DeprecationWarning)    #reset filter
         return func(*args, **kwargs)
 
     return new_func
@@ -59,50 +59,6 @@ class Seq2TreeModel(object):
         self.output_projection_vars = False
 
         self.create_graph(forward_only)
-
-
-    def format_example(self, encoder_input, decoder_input):
-        """Prepare data to feed in step()"""
-        encoder_size = self.max_source_length
-        decoder_size = self.max_target_length
-        encoder_inputs = []
-        decoder_inputs = []
-
-        # Encoder inputs are padded and then reversed
-        encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
-        encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
-
-        # Decoder inputs always start with "ROOT" and are padded
-        decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_input))
-        decoder_inputs.append(decoder_input + decoder_pad)
-
-        # create batch-major vectors
-        batch_encoder_inputs, batch_decoder_inputs, batch_weights = [], [], []
-
-        # Batch encoder inputs are just re-indexed encoder_inputs.
-        for length_idx in xrange(encoder_size):
-            batch_encoder_inputs.append(
-                np.array([encoder_inputs[batch_idx][length_idx]
-                        for batch_idx in xrange(self.batch_size)], dtype=np.int32))
-
-        # Batch decoder inputs are re-indexed decoder_inputs, we create weights.
-        for length_idx in xrange(decoder_size):
-            batch_decoder_inputs.append(
-                np.array([decoder_inputs[batch_idx][length_idx]
-                        for batch_idx in xrange(self.batch_size)], dtype=np.int32))
-
-            # Create target_weights to be 0 for targets that are padding.
-            batch_weight = np.ones(self.batch_size, dtype=np.float32)
-            for batch_idx in xrange(self.batch_size):
-                # We set weight to 0 if the corresponding target is a PAD symbol.
-                # The corresponding target is decoder_input shifted by 1 forward.
-                if length_idx < decoder_size - 1:
-                    target = decoder_inputs[batch_idx][length_idx + 1]
-                if length_idx == decoder_size - 1 or target == data_utils.PAD_ID:
-                    batch_weight[batch_idx] = 0.0
-            batch_weights.append(batch_weight)
-
-        return batch_encoder_inputs, batch_decoder_inputs, batch_weights
 
 
     def step(self, session, encoder_inputs, decoder_inputs, target_weights,
@@ -195,21 +151,6 @@ class Seq2TreeModel(object):
 
         self.saver = tf.train.Saver(tf.all_variables())
 
-    # Create the multi-layer cell for the tree RNN.
-    def create_multilayer_cell(self, type, scope):
-        with tf.variable_scope(scope):
-            # if reuse_variables:
-            #     tf.get_variable_scope().reuse_variables()
-            if type == "lstm":
-                cell = tf.nn.rnn_cell.BasicLSTMCell(self.dim, state_is_tuple=True)
-            if self.num_layers > 1:
-                cell = tf.nn.rnn_cell.MultiRNNCell([cell] * self.num_layers)
-            if self.input_keep_prob < 1 or self.output_keep_prob < 1:
-                cell = tf.nn.rnn_cell.DropoutWrapper(cell,
-                                                     input_keep_prob=self.input_keep_prob,
-                                                     output_keep_prob=self.output_keep_prob)
-        return cell
-
 
     def forward(self, forward_only):
         # Encoder.
@@ -246,6 +187,7 @@ class Seq2TreeModel(object):
         self.outputs = []
         for i in xrange(len(outputs)):
             self.outputs.append((tf.matmul(outputs[i], W) + b))
+
 
     def basic_tree_decoder(self, encoder_state, attention_states=None, num_heads=1,
                            initial_state_attention=False, feed_previous=False):
@@ -393,6 +335,22 @@ class Seq2TreeModel(object):
 
         return outputs, tf.nn.rnn_cell.LSTMStateTuple(cell, hs)
 
+
+    # Create the multi-layer cell for the tree RNN.
+    def create_multilayer_cell(self, type, scope):
+        with tf.variable_scope(scope):
+            # if reuse_variables:
+            #     tf.get_variable_scope().reuse_variables()
+            if type == "lstm":
+                cell = tf.nn.rnn_cell.BasicLSTMCell(self.dim, state_is_tuple=True)
+            if self.num_layers > 1:
+                cell = tf.nn.rnn_cell.MultiRNNCell([cell] * self.num_layers)
+            if self.input_keep_prob < 1 or self.output_keep_prob < 1:
+                cell = tf.nn.rnn_cell.DropoutWrapper(cell,
+                                                     input_keep_prob=self.input_keep_prob,
+                                                     output_keep_prob=self.output_keep_prob)
+        return cell
+
     def parent_cell(self):
         """
         Used to unroll tree-RNN from top to bottom.
@@ -426,6 +384,27 @@ class Seq2TreeModel(object):
         return output, state[0], state[1]
 
 
+    def attention_cell(self, cell, cell_scope, input_embedding, state, attns,
+                       hidden_features, attn_vecs, num_heads, hidden):
+        with tf.variable_scope("AttnInputProjection"):
+            if self.attention_cell_vars:
+                tf.get_variable_scope().reuse_variables()
+            # attention mechanism on cell and hidden states
+            x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
+            try:
+                cell_output, state = cell(x, state, cell_scope)
+            except ValueError, e:
+                cell_scope.reuse_variables()
+                cell_output, state = cell(x, state, cell_scope)
+            attns = self.attention(state, hidden_features, attn_vecs, num_heads, hidden)
+        with tf.variable_scope("AttnOutputProjection"):
+            if self.attention_cell_vars:
+                tf.get_variable_scope().reuse_variables()
+            # attention mechanism on output state
+            output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
+        self.attention_cell_vars = True
+        return output, state[0], state[1], attns
+
     def attention(self, state, hidden_features, attn_vecs, num_heads, hidden):
         assert(len(attn_vecs) > 0)
         attn_vec_dim = attn_vecs[0].get_shape()[0].value
@@ -449,7 +428,6 @@ class Seq2TreeModel(object):
         attns.set_shape([self.batch_size, num_heads * attn_dim])
         return attns
 
-
     def attention_hidden_layer(self, attention_states, num_heads):
         """
         Hidden layer above attention states.
@@ -470,28 +448,6 @@ class Seq2TreeModel(object):
             hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
             attn_vecs.append(tf.get_variable("AttnV_%d" % i, [attn_vec_dim]))
         return hidden, hidden_features, attn_vecs
-
-
-    def attention_cell(self, cell, cell_scope, input_embedding, state, attns,
-                       hidden_features, attn_vecs, num_heads, hidden):
-        with tf.variable_scope("AttnInputProjection"):
-            if self.attention_cell_vars:
-                tf.get_variable_scope().reuse_variables()
-            # attention mechanism on cell and hidden states
-            x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
-            try:
-                cell_output, state = cell(x, state, cell_scope)
-            except ValueError, e:
-                cell_scope.reuse_variables()
-                cell_output, state = cell(x, state, cell_scope)
-            attns = self.attention(state, hidden_features, attn_vecs, num_heads, hidden)
-        with tf.variable_scope("AttnOutputProjection"):
-            if self.attention_cell_vars:
-                tf.get_variable_scope().reuse_variables()
-            # attention mechanism on output state
-            output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
-        self.attention_cell_vars = True
-        return output, state[0], state[1], attns
 
 
     def sequence_loss(self, logits, loss_function):
@@ -563,6 +519,51 @@ class Seq2TreeModel(object):
 
     def use_sampled_softmax(self):
         return self.num_samples > 0 and self.num_samples < self.target_vocab_size
+
+
+    def format_example(self, encoder_input, decoder_input):
+        """Prepare data to feed in step()"""
+        encoder_size = self.max_source_length
+        decoder_size = self.max_target_length
+        encoder_inputs = []
+        decoder_inputs = []
+
+        # Encoder inputs are padded and then reversed
+        encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
+        encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
+
+        # Decoder inputs always start with "ROOT" and are padded
+        decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_input))
+        decoder_inputs.append(decoder_input + decoder_pad)
+
+        # create batch-major vectors
+        batch_encoder_inputs, batch_decoder_inputs, batch_weights = [], [], []
+
+        # Batch encoder inputs are just re-indexed encoder_inputs.
+        for length_idx in xrange(encoder_size):
+            batch_encoder_inputs.append(
+                np.array([encoder_inputs[batch_idx][length_idx]
+                        for batch_idx in xrange(self.batch_size)], dtype=np.int32))
+
+        # Batch decoder inputs are re-indexed decoder_inputs, we create weights.
+        for length_idx in xrange(decoder_size):
+            batch_decoder_inputs.append(
+                np.array([decoder_inputs[batch_idx][length_idx]
+                        for batch_idx in xrange(self.batch_size)], dtype=np.int32))
+
+            # Create target_weights to be 0 for targets that are padding.
+            batch_weight = np.ones(self.batch_size, dtype=np.float32)
+            for batch_idx in xrange(self.batch_size):
+                # We set weight to 0 if the corresponding target is a PAD symbol.
+                # The corresponding target is decoder_input shifted by 1 forward.
+                if length_idx < decoder_size - 1:
+                    target = decoder_inputs[batch_idx][length_idx + 1]
+                if length_idx == decoder_size - 1 or target == data_utils.PAD_ID:
+                    batch_weight[batch_idx] = 0.0
+            batch_weights.append(batch_weight)
+
+        return batch_encoder_inputs, batch_decoder_inputs, batch_weights
+
 
     @deprecated
     def top_to_bottom_with_attention(self, cell, hidden_features, attn_vecs, num_heads, hidden):

@@ -67,7 +67,8 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
       normalize_digits: Boolean; if true, all digits are replaced by 0s.
     """
     if not tf.gfile.Exists(vocabulary_path):
-        print("Creating vocabulary %s from data (%d)" % (vocabulary_path, len(data)))
+        print("Creating vocabulary %s from data (%d)" % (vocabulary_path,
+                                                         len(data)))
         vocab = {}
         counter = 0
         for line in data:
@@ -138,7 +139,8 @@ def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
         if PAD_ID in outputs:
             outputs = outputs[:outputs.index(PAD_ID)]
         # Print out command corresponding to outputs.
-        sentences.append(" ".join([tf.compat.as_str(rev_vocab[output]) for output in outputs]))
+        sentences.append(" ".join([tf.compat.as_str(rev_vocab[output])
+                                   for output in outputs]))
     return sentences
 
 
@@ -190,15 +192,20 @@ def data_to_token_ids(data, target_path, vocabulary_path,
     if not tf.gfile.Exists(target_path):
         print("Tokenizing data (%d)" % len(data))
         vocab, _ = initialize_vocabulary(vocabulary_path)
-        with tf.gfile.GFile(target_path, mode="w") as tokens_file:
-            counter = 0
-            for line in data:
-                counter += 1
-                if counter % 1000 == 0:
-                    print("  tokenizing line %d" % counter)
-                token_ids = sentence_to_token_ids(line, vocab, tokenizer,
-                                                  normalize_digits)
-                tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
+        string_file = tf.gfile.GFile(target_path + ".txt", mode="w")
+        tokens_file = tf.gfile.GFile(target_path, mode="w")
+        counter = 0
+        for line in data:
+            counter += 1
+            if counter % 1000 == 0:
+                print("  tokenizing line %d" % counter)
+            string_file.write(line + "\n")
+            token_ids = sentence_to_token_ids(line, vocab, tokenizer,
+                                              normalize_digits)
+            tokens_file.write(" ".join([str(tok) for tok in token_ids])
+                              + "\n")
+        string_file.close()
+        tokens_file.close()
 
 
 def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size,
@@ -212,8 +219,9 @@ def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size,
       data_dir: directory in which the data sets will be stored.
       nl_vocabulary_size: size of the English vocabulary to create and use.
       cm_vocabulary_size: size of the Command vocabulary to create and use.
-      tokenizers: two functions - one to tokenize each English sentence and one to tokenize each bash command;
-        if None, basic_tokenizer and bash_tokenizer will be used.
+      tokenizers: two functions - one to tokenize each English sentence and
+        one to tokenize each bash command; if None, basic_tokenizer and
+        bash_tokenizer will be used.
 
     Returns:
       A tuple of 8 elements:

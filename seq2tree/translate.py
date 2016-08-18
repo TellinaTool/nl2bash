@@ -85,7 +85,7 @@ def create_model(session, forward_only):
         session.run(tf.initialize_all_variables())
     return model, global_epochs
 
-def train(train_set, dev_set):
+def train(train_set, dev_set, verbose=False):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
                                           log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
@@ -115,7 +115,7 @@ def train(train_set, dev_set):
 
             for i in tqdm(xrange(len(train_set))):
                 time.sleep(0.01)
-                nl, tree = train_set[i]
+                _, _, nl, tree = train_set[i]
                 encoder_inputs, decoder_inputs, target_weights = model.format_example(
                     nl, tree)
                 _, step_loss, _ = model.step(sess, encoder_inputs, decoder_inputs,
@@ -144,25 +144,55 @@ def train(train_set, dev_set):
                 model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
-                
+
                 # Run evals on development set and print the metrics.
+                total_score = 0.0
+                num_correct = 0.0
+                num_eval = 0
                 for i in xrange(len(dev_set)):
-                    nl, tree = dev_set[i]
+                    nl_str, cm_str, nl, tree = dev_set[i]
                     encoder_inputs, decoder_inputs, target_weights = model.format_example(
                         nl, [data_utils.ROOT_ID])
                     _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                                              target_weights, forward_only=True)
                     dev_loss += eval_loss
+
+                    sentence = ' '.join([rev_nl_vocab[i] for i in nl])
+                    ground_truth = [rev_cm_vocab[i] for i in tree]
+                    gt_tree = list_to_tree(ground_truth)
+                    gt_cmd = to_command(gt_tree, loose_constraints=True)
+                    tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
+                    score = TokenOverlap.compute(gt_cmd, pred_cmd, verbose)
+                    total_score += score
+                    if score == 1:
+                        num_correct += 1
+                    num_eval += 1
+                    if verbose:
+                        print("Example %d" % num_eval)
+                        print("English: " + nl_str)
+                        print("Ground truth: " + gt_cmd)
+                        print("Prediction: " + pred_cmd)
+                        print("Search history (truncated at 25 steps): ")
+                        print(" -> ".join(search_history[:25]))
+                        print("AST: ")
+                        pretty_print(tree, 0)
+                        print()
+                        # print("token-overlap score: %.2f" % score)
+                        # print()
+
                 dev_loss /= len(dev_set)
                 dev_ppx = math.exp(dev_loss) if dev_loss < 300 else float('int')
                 print("dev perplexity %.2f" % dev_ppx)
+
+                print("%d examples evaluated" % num_eval)
+                print("Accuracy = %.2f" % (num_correct/num_eval))
+                print("Average token-overlap score = %.2f" % (total_score/num_eval))
+                print()
 
                 # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
                 if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]):
                     return False
                 previous_dev_losses.append(dev_loss)
-
-                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=False)
 
                 sys.stdout.flush()
       
@@ -242,7 +272,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_eval = 0
 
     for i in xrange(len(dataset)):
-        nl, tree = dataset[i]
+        nl_str, cm_str, nl, tree = dataset[i]
       
         encoder_inputs, decoder_inputs, target_weights = model.format_example(
             nl, [data_utils.ROOT_ID])
@@ -267,7 +297,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         num_eval += 1
         if verbose:
             print("Example %d" % num_eval)
+            print("Original English: " + nl_str)
             print("English: " + sentence)
+            print("Original Command: " + cm_str)
             print("Ground truth: " + gt_cmd)
             print("Prediction: " + pred_cmd)
             print("Search history (truncated at 25 steps): ")
@@ -325,10 +357,13 @@ def process_data():
     print("%d folds" % numFolds)
 
     train_cm_list = []
+    train_cm_seq_list = []
     train_nl_list = []
     dev_cm_list = []
+    dev_cm_seq_list = []
     dev_nl_list = []
     test_cm_list = []
+    test_cm_seq_list = []
     test_nl_list = []
 
     max_cmd_seq_len = 0
@@ -340,7 +375,8 @@ def process_data():
                     cmd_seq = to_list(ast, list=[])
                     if len(cmd_seq) > max_cmd_seq_len:
                         max_cmd_seq_len = len(cmd_seq)
-                    train_cm_list.append(cmd_seq)
+                    train_cm_list.append(cmd)
+                    train_cm_seq_list.append(cmd_seq)
                     train_nl_list.append(nl)
         elif i == numFolds - 2:
             for nl, cmd in data[i]:
@@ -349,7 +385,8 @@ def process_data():
                     cmd_seq = to_list(ast, list=[])
                     if len(cmd_seq) > max_cmd_seq_len:
                         max_cmd_seq_len = len(cmd_seq)
-                    dev_cm_list.append(cmd_seq)
+                    dev_cm_list.append(cmd)
+                    dev_cm_seq_list.append(cmd_seq)
                     dev_nl_list.append(nl)
         elif i == numFolds - 1:
             for nl, cmd in data[i]:
@@ -358,17 +395,35 @@ def process_data():
                     cmd_seq = to_list(ast, list=[])
                     if len(cmd_seq) > max_cmd_seq_len:
                         max_cmd_seq_len = len(cmd_seq)
-                    test_cm_list.append(cmd_seq)
+                    test_cm_list.append(cmd)
+                    test_cm_seq_list.append(cmd_seq)
                     test_nl_list.append(nl)
+
     print("maximum training command sequence length = %d" % max_cmd_seq_len)
 
-    train_dev_test = {}
-    train_dev_test["train"] = [train_cm_list, train_nl_list]
-    train_dev_test["dev"] = [dev_cm_list, dev_nl_list]
-    train_dev_test["test"] = [test_cm_list, test_nl_list]
+    data_dir = FLAGS.data_dir + "seq2tree/"
 
-    nl_train, cm_train, nl_dev, cm_dev, nl_test, cm_test, _, _ = data_utils.prepare_data(
-        train_dev_test, FLAGS.data_dir + "seq2tree/", FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+    # Get data to the specified directory.
+    train_path = data_dir + "/train"
+    dev_path = data_dir + "/dev"
+    test_path = data_dir + "/test"
+
+    # Create vocabularies of the appropriate sizes.
+    cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % FLAGS.cm_vocab_size)
+    nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % FLAGS.nl_vocab_size)
+    data_utils.create_vocabulary(cm_vocab_path, train_cm_seq_list, FLAGS.cm_vocab_size, bash_tokenizer, True)
+    data_utils.create_vocabulary(nl_vocab_path, train_nl_list, FLAGS.nl_vocab_size, basic_tokenizer, True)
+
+    def format_data(data_path, nl_list, cm_list):
+        cm_ids_path = data_path + (".ids%d.cm" % FLAGS.cm_vocab_size)
+        nl_ids_path = data_path + (".ids%d.nl" % FLAGS.nl_vocab_size)
+        data_utils.data_to_token_ids(cm_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
+        data_utils.data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
+        return nl_ids_path, cm_ids_path
+
+    nl_train, cm_train = format_data(train_path, train_nl_list, train_cm_seq_list)
+    nl_dev, cm_dev = format_data(dev_path, dev_nl_list, dev_cm_seq_list)
+    nl_test, cm_test = format_data(test_path, test_nl_list, test_cm_seq_list)
 
     train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
     dev_set = read_data(nl_dev, cm_dev)
@@ -376,6 +431,7 @@ def process_data():
 
     with open(FLAGS.data_dir + "seq2tree/" + "data.processed.dat", 'wb') as o_f:
         pickle.dump((train_set, dev_set, test_set), o_f)
+
     return train_set, dev_set, test_set
 
 
@@ -401,19 +457,22 @@ def read_data(source_path, target_path, max_size=None):
     """
     data_set = []
 
-    with tf.gfile.GFile(source_path, mode="r") as source_file:
-        with tf.gfile.GFile(target_path, mode="r") as target_file:
-            source, target = source_file.readline(), target_file.readline()
-            counter = 0
-            while source and target and (not max_size or counter < max_size):
-                counter += 1
-                if counter % 1000 == 0:
-                    print("  reading data line %d" % counter)
-                    sys.stdout.flush()
-                source_ids = [int(x) for x in source.split()]
-                target_ids = [int(x) for x in target.split()]
-                data_set.append([source_ids, target_ids])
-                source, target = source_file.readline(), target_file.readline()
+    with tf.gfile.GFile(source_path + ".txt", mode="r") as source_txt_file:
+        with tf.gfile.GFile(target_path + ".txt", mode="r") as target_txt_file:
+            with tf.gfile.GFile(source_path, mode="r") as source_file:
+                with tf.gfile.GFile(target_path, mode="r") as target_file:
+                    source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
+                    source, target = source_file.readline(), target_file.readline()
+                    counter = 0
+                    while source and target and (not max_size or counter < max_size):
+                        counter += 1
+                        if counter % 1000 == 0:
+                            print("  reading data line %d" % counter)
+                            sys.stdout.flush()
+                        source_ids = [int(x) for x in source.split()]
+                        target_ids = [int(x) for x in target.split()]
+                        data_set.append([source_txt, target_txt, source_ids, target_ids])
+                        source, target = source_file.readline(), target_file.readline()
     print("  %d data points read." % len(data_set))
     return data_set
 
