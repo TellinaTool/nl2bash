@@ -241,6 +241,8 @@ class Seq2TreeModel(object):
 
         # Project decoder outputs for decoding.
         W, b = self.output_projection()
+        print("forward: " + W.name)
+        print("forward: " + b.name)
         self.outputs = []
         for i in xrange(len(outputs)):
             self.outputs.append((tf.matmul(outputs[i], W) + b))
@@ -275,6 +277,8 @@ class Seq2TreeModel(object):
             # scope of output_projection is the entire model
             # hence retrieving variables here
             W, b = self.output_projection()
+            print("basic_tree_encoder: " + W.name)
+            print("basic_tree_encoder: " + b.name)
 
         with tf.variable_scope("basic_tree_decoder") as scope:
             embeddings = self.target_embeddings()
@@ -515,6 +519,8 @@ class Seq2TreeModel(object):
     def softmax_loss(self):
         if self.use_sampled_softmax():
             w, b = self.output_projection()
+            print("softmax_loss: " + w.name)
+            print("softmax_loss: " + b.name)
             w_t = tf.transpose(w)
 
             def sampled_loss(inputs, labels):

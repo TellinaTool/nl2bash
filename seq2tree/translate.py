@@ -215,7 +215,7 @@ def interactive_decode():
             # Get token-ids for the input sentence.
             token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
                                                          basic_tokenizer)
-
+            print(token_ids)
             # Get a 1-element batch to feed the sentence to the model.
             encoder_inputs, decoder_inputs, target_weights = model.format_example(
                 token_ids, [data_utils.ROOT_ID])
