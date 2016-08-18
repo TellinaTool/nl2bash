@@ -291,10 +291,10 @@ class Seq2TreeModel(object):
             return tf.concat(0, [cs_stack, state])
 
         def cs_peek():
-            return cs_stack[-1]
+            return cs_stack[-1, :]
 
         def cs_pop():
-            return cs_stack[:-1]
+            return cs_stack[:-1, :]
 
         if self.use_attention and not attention_states.get_shape()[1:2].is_fully_defined():
             raise ValueError("Shape[1] and [2] of attention_states must be known %s"
@@ -331,7 +331,7 @@ class Seq2TreeModel(object):
             init_input = embedding_inputs[0]
             control_symbol = self.decoder_inputs[0]
             # discrete stack mimicking DFS in a discrete space
-            cs_stack = control_symbol
+            cs_stack = tf.expand_dims(control_symbol, 1)
             
             # continuous stack used for storing LSTM states, synced with cs_stack
             if self.use_attention:
