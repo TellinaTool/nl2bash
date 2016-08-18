@@ -343,11 +343,6 @@ class Seq2TreeModel(object):
             for i, _ in enumerate(self.decoder_inputs[:-1]):
                 if i > 0: scope.reuse_variables()
 
-                if self.use_attention:
-                    input, state, attns = peek()
-                else:
-                    input, state = peek()
-
                 if feed_previous:
                     control_symbol = cs_peek()
                 else:
@@ -362,12 +357,14 @@ class Seq2TreeModel(object):
                 stack = tf.cond(search_left_to_right, lambda: pop(), lambda: stack)
 
                 if self.use_attention:
+                    input, state, attns = peek()
                     output, cell, hs, attns = tf.cond(search_left_to_right,
                         lambda: self.attention_cell(parent_cell, parent_scope, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden),
                         lambda: self.attention_cell(sb_cell, sb_scope, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden))
                 else:
+                    input, state = peek()
                     output, cell, hs = tf.cond(search_left_to_right,
                         lambda: self.normal_cell(parent_cell, parent_scope, input, state),
                         lambda: self.normal_cell(sb_cell, sb_scope, input, state))
