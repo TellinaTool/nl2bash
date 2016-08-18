@@ -357,7 +357,8 @@ class Seq2TreeModel(object):
                 search_left_to_right = self.is_no_expand(control_symbol[0])
 
                 # mimick a stack pop if current symbol is <NO_EXPAND>
-                cs_stack = tf.cond(search_left_to_right, lambda: cs_pop(), lambda: cs_stack)
+                if feed_previous:
+                    cs_stack = tf.cond(search_left_to_right, lambda: cs_pop(), lambda: cs_stack)
                 stack = tf.cond(search_left_to_right, lambda: pop(), lambda: stack)
 
                 if self.use_attention:
@@ -372,7 +373,8 @@ class Seq2TreeModel(object):
                         lambda: self.normal_cell(sb_cell, sb_scope, input, state))
 
                 # mimick a stack pop if current symbol is <NO_EXPAND>
-                cs_stack = tf.cond(search_left_to_right, lambda: cs_pop(), lambda: cs_stack)
+                if feed_previous:
+                    cs_stack = tf.cond(search_left_to_right, lambda: cs_pop(), lambda: cs_stack)
                 stack = tf.cond(search_left_to_right, lambda: pop(), lambda: stack)
 
                 if feed_previous:
