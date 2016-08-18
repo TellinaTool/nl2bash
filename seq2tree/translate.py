@@ -411,11 +411,19 @@ def process_data():
     data_utils.create_vocabulary(cm_vocab_path, train_cm_seq_list, FLAGS.cm_vocab_size, bash_tokenizer, True)
     data_utils.create_vocabulary(nl_vocab_path, train_nl_list, FLAGS.nl_vocab_size, basic_tokenizer, True)
 
-    def format_data(data_path, nl_list, cm_list):
+    def format_data(data_path, nl_list, nl_token_list, cm_list, cm_token_list):
+        cm_path = data_path + (".cm" % FLAGS.cm_vocab_size)
+        nl_path = data_path + (".nl" % FLAGS.nl_vocab_size)
+        with open(cm_path, 'w') as o_f:
+            for cm in cm_list:
+                o_f.write(cm + '\n')
+        with open(nl_path, 'w') as o_f:
+            for nl in nl_list:
+                o_f.write(nl + '\n')
         cm_ids_path = data_path + (".ids%d.cm" % FLAGS.cm_vocab_size)
         nl_ids_path = data_path + (".ids%d.nl" % FLAGS.nl_vocab_size)
-        data_utils.data_to_token_ids(cm_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
-        data_utils.data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
+        data_utils.data_to_token_ids(cm_token_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
+        data_utils.data_to_token_ids(nl_token_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
         return nl_ids_path, cm_ids_path
 
     nl_train, cm_train = format_data(train_path, train_nl_list, train_cm_seq_list)
@@ -442,10 +450,11 @@ def load_data(sample_size=-1):
         else:
             data = pickle.load(f)
             test_sample_size = int(sample_size / 4)
-            return (sample(data[0], sample_size), sample(data[1], test_sample_size), sample(data[2], test_sample_size))
+            return (sample(data[0], sample_size), sample(data[1], test_sample_size),
+                    sample(data[1], test_sample_size))
 
 
-def read_data(source_path, target_path, max_size=None):
+def read_data(source_txt_path, target_txt_path, source_path, target_path, max_size=None):
     """Read data from source and target files and put into buckets.
     :param source_path: path to the file with token-ids for the source language.
     :param target_path: path to the file with token-ids for the target language.
@@ -454,8 +463,10 @@ def read_data(source_path, target_path, max_size=None):
     """
     data_set = []
 
-    with tf.gfile.GFile(source_path + ".txt", mode="r") as source_txt_file:
-        with tf.gfile.GFile(target_path + ".txt", mode="r") as target_txt_file:
+    source_txt_path = '.'.join([source_path.split('.')[0], source_path.split('.')[2]])
+    target_txt_path = '.'.join([source_path.split('.')[0], source_path.split('.')[2]])
+    with tf.gfile.GFile(source_txt_path, mode="r") as source_txt_file:
+        with tf.gfile.GFile(target_txt_path, mode="r") as target_txt_file:
             with tf.gfile.GFile(source_path, mode="r") as source_file:
                 with tf.gfile.GFile(target_path, mode="r") as target_file:
                     source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
