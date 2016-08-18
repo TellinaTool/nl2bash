@@ -192,19 +192,16 @@ def data_to_token_ids(data, target_path, vocabulary_path,
     if not tf.gfile.Exists(target_path):
         print("Tokenizing data (%d)" % len(data))
         vocab, _ = initialize_vocabulary(vocabulary_path)
-        string_file = tf.gfile.GFile(target_path + ".txt", mode="w")
         tokens_file = tf.gfile.GFile(target_path, mode="w")
         counter = 0
         for line in data:
             counter += 1
             if counter % 1000 == 0:
                 print("  tokenizing line %d" % counter)
-            string_file.write(line + "\n")
             token_ids = sentence_to_token_ids(line, vocab, tokenizer,
                                               normalize_digits)
             tokens_file.write(" ".join([str(tok) for tok in token_ids])
                               + "\n")
-        string_file.close()
         tokens_file.close()
 
 
