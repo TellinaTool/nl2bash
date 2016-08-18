@@ -332,6 +332,7 @@ class Seq2TreeModel(object):
             control_symbol = self.decoder_inputs[0]
             # discrete stack mimicking DFS in a discrete space
             cs_stack = tf.expand_dims(control_symbol, 1)
+            cs_stack.set_shape([None, 1])
             
             # continuous stack used for storing LSTM states, synced with cs_stack
             if self.use_attention:
