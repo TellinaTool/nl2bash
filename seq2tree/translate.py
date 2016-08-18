@@ -411,7 +411,7 @@ def process_data():
     data_utils.create_vocabulary(cm_vocab_path, train_cm_seq_list, FLAGS.cm_vocab_size, bash_tokenizer, True)
     data_utils.create_vocabulary(nl_vocab_path, train_nl_list, FLAGS.nl_vocab_size, basic_tokenizer, True)
 
-    def format_data(data_path, nl_list, nl_token_list, cm_list, cm_token_list):
+    def format_data(data_path, nl_list, cm_list, cm_token_list):
         cm_path = data_path + (".cm" % FLAGS.cm_vocab_size)
         nl_path = data_path + (".nl" % FLAGS.nl_vocab_size)
         with open(cm_path, 'w') as o_f:
@@ -423,7 +423,7 @@ def process_data():
         cm_ids_path = data_path + (".ids%d.cm" % FLAGS.cm_vocab_size)
         nl_ids_path = data_path + (".ids%d.nl" % FLAGS.nl_vocab_size)
         data_utils.data_to_token_ids(cm_token_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
-        data_utils.data_to_token_ids(nl_token_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
+        data_utils.data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
         return nl_ids_path, cm_ids_path
 
     nl_train, cm_train = format_data(train_path, train_nl_list, train_cm_seq_list)
