@@ -379,6 +379,13 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
             attach_point = attach_point.getRightChild()
             return attach_point
 
+        def fail_headcommand_attachment_check(err_msg, attach_point, child):
+            msg_head = "Error attaching headcommand: "
+            print(msg_head + err_msg)
+            print(attach_point)
+            print(child)
+            sys.exit()
+
         # normalize atomic command
         for child in node.parts:
             if END_OF_COMMAND:
@@ -413,6 +420,23 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                     else:
                         attach_point = attach_option(child, attach_point)
                 elif bash.is_headcommand(child.word):
+                    if not attach_point.kind in ["root", "pipeline", "commandsubstitution",
+                                                 "processsubstitution"]:
+                        if not attach_point.is_flag():
+                            if attach_point.kind == "headcommand":
+                                if not attach_point.value in ["sh", "csh", "exec", "xargs"]:
+                                    fail_headcommand_attachment_check(
+                                        "parent headcommand does not take utility arguments",
+                                        attach_point, child)
+                            else:
+                                fail_headcommand_attachment_check(
+                                    "headcommand attached to argument",
+                                    attach_point, child)
+                        elif not attach_point.value in ["-exec", "-execdir"]:
+                            fail_headcommand_attachment_check(
+                                    "parent option does not take utility arguments",
+                                    attach_point, child)
+
                     if not with_quotation(child):
                         normalize(child, attach_point, "headcommand")
                         attach_point = attach_point.getRightChild()

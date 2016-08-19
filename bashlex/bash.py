@@ -74,6 +74,9 @@ special_operators = [
 def is_option(word):
     return word.startswith('-')
 
+def is_headcommand(word):
+    return word in head_commands or word in banned_head_commands
+
 def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                     normalize_long_pattern=True):
     """Very basic tokenizer: used for English tokenization."""
