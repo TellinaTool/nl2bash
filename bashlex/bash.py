@@ -93,7 +93,10 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         w = words[i].strip()
         word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
         if ' ' in word:
-            assert(word.startswith('"') and word.endswith('"'))
+            try:
+                assert(word.startswith('"') and word.endswith('"'))
+            except AssertionError, e:
+                print("AssertionError: " + sentence)
             if normalize_long_pattern:
                 word = _LONG_PATTERN
         if lower_case:
