@@ -30,13 +30,35 @@ head_commands = [
     "sed", "awk",
     "ls", "rm",
     "cp", "mv",
-    "cd", "cat",
     "wc", "chmod",
     "tar", "sort",
     "head", "tail"
-    # "zip", "unzip",
-    # "du", "date",
-    # "diff", "comm"
+]
+
+banned_head_commands = [
+    "cd", "mkdir",
+    "du", "uniq",
+    "pwd", "parallel",
+    "perl", "replace",
+    "gzip", "exec",
+    "sh", "bash",
+    "zip", "unzip",
+    "date", "cat",
+    "chown", "chgrp"
+    "diff", "comm",
+    "echo", "mplayer",
+    "tee", "more",
+    "less", "convert",
+    "basename",
+    "process", "python",
+    "man", "csh",
+    "test", "bzip2",
+    "openssl", "kill",
+    "php", "printf",
+    "rmdir", "pdfgrep",
+    "fastqc", "ffmpeg",
+    "cmd2", "command1",
+    "command2"
 ]
 
 special_operators = [
