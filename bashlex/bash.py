@@ -78,8 +78,12 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
     sentence = re.sub('\'d', '\\\'d', sentence)
     sentence = re.sub('\'t', '\\\'t', sentence)
 
-    print(sentence)
-    words = shlex.split(sentence.encode('utf-8'))
+    try:
+        words = shlex.split(sentence.encode('utf-8'))
+    except ValueError, e:
+        print("Shlex ValueError: " + sentence)
+        words = sentence.encode('utf-8').split()
+
     normalized_words = []
     for i in xrange(len(words)):
         w = words[i].strip()
@@ -89,6 +93,7 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
             if len(word) > 1 and word[0].isupper() and word[1:].islower():
                 word = word.lower()
         normalized_words.append(word)
+
     return normalized_words
 
 def basic_tokenizer_regex(sentence, normalize_digits=True, lower_case=True):
