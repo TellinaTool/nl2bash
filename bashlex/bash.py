@@ -17,7 +17,8 @@ COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d+)$")
 
 # Regular expressions used to tokenize an English sentence.
 # _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
-_WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
+# _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
+_WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 _DIGIT_RE = re.compile(br"\d+")
 
 _NUM = b"_NUM"
@@ -54,21 +55,27 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
     """Very basic tokenizer: used for English tokenization."""
     sentence = sentence.replace(',', ' ')  \
             .replace(';', ' ')  \
-            .replace('(', '( ') \
-            .replace('[', '[ ') \
-            .replace('{', '{ ') \
-            .replace(')', '} ') \
-            .replace(']', '] ') \
-            .replace('}', '} ') \
-            .replace('(', '( ') \
+            .replace(': ', ' ') \
             .replace('<', '< ') \
-            .replace('>', '> ') \
+            .replace('>', ' >') \
             .replace('`\'', '"') \
             .replace('``', '"') \
             .replace("''", '"') \
             .replace(' \'', ' "') \
             .replace('\' ', '" ') \
-            .replace('`', '"')
+            .replace('`', '"') \
+            .replace('(', '( ') \
+            .replace('[', '[ ') \
+            .replace('{', '{ ') \
+            .replace(')', ' }') \
+            .replace(']', ' ]') \
+            .replace('}', ' }') \
+            .replace('"(', '( ') \
+            .replace('"[', '[ ') \
+            .replace('"{', '{ ') \
+            .replace(')"', ' }') \
+            .replace(']"', ' ]') \
+            .replace('}"', ' }')
 
     sentence = re.sub('\'$', '"', sentence)
 
@@ -78,11 +85,12 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
     sentence = re.sub('\'d', '\\\'d', sentence)
     sentence = re.sub('\'t', '\\\'t', sentence)
 
-    try:
-        words = shlex.split(sentence.encode('utf-8'))
-    except ValueError, e:
-        print("Shlex ValueError: " + sentence)
-        words = sentence.encode('utf-8').split()
+    # try:
+    #     words = shlex.split(sentence.encode('utf-8'))
+    # except ValueError, e:
+    #     print("Shlex ValueError: " + sentence)
+    #     words = sentence.encode('utf-8').split()
+    words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
 
     normalized_words = []
     for i in xrange(len(words)):

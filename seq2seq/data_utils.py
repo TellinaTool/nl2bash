@@ -42,11 +42,10 @@ _START_VOCAB = [_PAD, _EOS, _UNK]
 _DIGIT_RE = re.compile(br"\d")
 
 PAD_ID = 0
-GO_ID = 1
-EOS_ID = 2
-UNK_ID = 3
-NO_EXPAND_ID = 4
-ROOT_ID = 5
+EOS_ID = 1
+UNK_ID = 2
+NO_EXPAND_ID = 3
+ROOT_ID = 4
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                       tokenizer, normalize_digits=True):
@@ -75,6 +74,7 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             counter += 1
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
+            print(line)
             if type(line) is list:
                 tokens = line
             else:
@@ -91,7 +91,10 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             vocab_list = vocab_list[:max_vocabulary_size]
         with tf.gfile.GFile(vocabulary_path, mode="wb") as vocab_file:
             for w in vocab_list:
-                vocab_file.write(w.encode('utf-8') + b"\n")
+                try:
+                    vocab_file.write(w + b"\n")
+                except Exception:
+                    vocab_file.write(w.encode('utf-8') + b"\n")
 
 
 def initialize_vocabulary(vocabulary_path):
