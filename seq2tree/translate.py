@@ -25,7 +25,7 @@ import tensorflow as tf
 import data_utils
 from parse_args import define_input_flags
 from bash import basic_tokenizer, bash_tokenizer
-from normalizer import to_list, list_to_tree, to_command, pretty_print, normalize_ast
+from normalizer import to_list, list_to_tree, to_command, pretty_print, normalize_ast, all_simple_commands
 from seq2tree_model import Seq2TreeModel
 from token_overlap import TokenOverlap
 
@@ -366,37 +366,28 @@ def process_data():
     test_nl_list = []
 
     max_cmd_seq_len = 0
+
+    def add_to_set(data, nl_list, cm_list, cm_seq_list):
+        for nl, cmd in data[i]:
+            ast = normalize_ast(cmd)
+            if ast:
+                if all_simple_commands(ast):
+                    cmd_seq = to_list(ast, list=[])
+                    if len(cmd_seq) > max_cmd_seq_len:
+                        max_cmd_seq_len = len(cmd_seq)
+                    nl_list.append(nl)
+                    cm_list.append(cmd)
+                    cm_seq_list.append(cmd_seq)
+                else:
+                    print("Rare command: " + cmd)
+
     for i in xrange(numFolds):
         if i < numFolds - 2:
-            for nl, cmd in data[i]:
-                ast = normalize_ast(cmd)
-                if ast:
-                    cmd_seq = to_list(ast, list=[])
-                    if len(cmd_seq) > max_cmd_seq_len:
-                        max_cmd_seq_len = len(cmd_seq)
-                    train_cm_list.append(cmd)
-                    train_cm_seq_list.append(cmd_seq)
-                    train_nl_list.append(nl)
+            add_to_set(data[i], train_nl_list, train_cm_list, train_cm_seq_list)
         elif i == numFolds - 2:
-            for nl, cmd in data[i]:
-                ast = normalize_ast(cmd)
-                if ast:
-                    cmd_seq = to_list(ast, list=[])
-                    if len(cmd_seq) > max_cmd_seq_len:
-                        max_cmd_seq_len = len(cmd_seq)
-                    dev_cm_list.append(cmd)
-                    dev_cm_seq_list.append(cmd_seq)
-                    dev_nl_list.append(nl)
+            add_to_set(data[i], dev_nl_list, dev_cm_list, dev_cm_seq_list)
         elif i == numFolds - 1:
-            for nl, cmd in data[i]:
-                ast = normalize_ast(cmd)
-                if ast:
-                    cmd_seq = to_list(ast, list=[])
-                    if len(cmd_seq) > max_cmd_seq_len:
-                        max_cmd_seq_len = len(cmd_seq)
-                    test_cm_list.append(cmd)
-                    test_cm_seq_list.append(cmd_seq)
-                    test_nl_list.append(nl)
+            add_to_set(data[i], test_nl_list, test_cm_list, dev_cm_seq_list)
 
     print("maximum training command sequence length = %d" % max_cmd_seq_len)
 
