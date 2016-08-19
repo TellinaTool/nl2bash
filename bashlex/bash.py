@@ -79,7 +79,7 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
     sentence = re.sub('\'t', '\\\'t', sentence)
 
     print(sentence)
-    words = shlex.split(sentence)
+    words = shlex.split(sentence.encode('utf-8'))
     normalized_words = []
     for i in xrange(len(words)):
         w = words[i].strip()
