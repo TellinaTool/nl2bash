@@ -336,7 +336,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
     :param recover_quotation: if set, retain quotation marks in the command
     :return normalized_tree
     """
-
+    print(cmd)
     cmd = cmd.replace('\n', ' ').strip()
     cmd = special_command_normalization(cmd)
 
@@ -395,7 +395,8 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                 elif attach_point.kind == "headcommand":
                     pass
                 else:
-                    raise ValueError('Error: compound command detected.')   # mostly caused by unknown head commands
+                    # mostly caused by unknown head commands
+                    raise ValueError('Error: compound command detected.')
                 END_OF_COMMAND = False
             if child.kind == 'word':
                 if child.word == "--":
@@ -624,10 +625,6 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
         print("Cannot parse: %s - AttributeError" % cmd.encode('utf-8'))
         # not a bash command
         return None
-    except HeadCommandAttachmentError, e:
-        print(e.message)
-        print(cmd)
-        sys.exit()
 
     if len(tree) > 1:
         print("Doesn't support command with multiple root nodes: %s" % cmd.encode('utf-8'))
@@ -643,7 +640,6 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
 # --- Debugging ---
 
 class HeadCommandAttachmentError(Exception):
-
     def __init__(self, message, errors=None):
         self.message = message
         self.errors = errors
