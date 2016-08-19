@@ -642,8 +642,9 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
 # --- Debugging ---
 
 class HeadCommandAttachmentError(Exception):
+
     def __init__(self, message, errors=None):
-        super(HeadCommandAttachmentError, self).__init(message)
+        self.message = message
         self.errors = errors
 
 if __name__ == "__main__":
