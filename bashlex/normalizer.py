@@ -77,7 +77,7 @@ def is_binary_logic_op(node, parent):
 def all_simple_commands(ast):
     """Check if an ast contains only high-frequency commands."""
     node = ast
-    if node.type == "headcommand" and not node in bash.head_commands:
+    if node.kind == "headcommand" and not node in bash.head_commands:
         return False
     for child in node.children:
         if not all_simple_commands(child):
@@ -382,7 +382,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
         def fail_headcommand_attachment_check(err_msg, attach_point, child):
             msg_head = "Error attaching headcommand: "
             print(msg_head + err_msg)
-            print(attach_point)
+            print(attach_point.symbol)
             print(child)
             sys.exit()
 
