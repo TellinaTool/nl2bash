@@ -16,7 +16,6 @@ sys.path.append("../grammar")
 # bashlex stuff
 import bast, errors, tokenizer, bparser
 import bash
-import enumerator
 
 # TODO: add stdin & stdout types
 simplified_bash_syntax = [
@@ -605,16 +604,13 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
-    g = enumerator.load_syntax([os.path.join("../grammar", "primitive_cmds_grammar.json")])
-    print(g.pretty_print(0))
     norm_tree = normalize_ast(cmd, g)
-    """pretty_print(norm_tree, 0)
+    pretty_print(norm_tree, 0)
     list = to_list(norm_tree, 'dfs', [])
     print(list)
     tree = list_to_tree(list + ['<PAD>'])
     pretty_print(tree, 0)
     print(to_command(tree))
-    """
 
 
 
