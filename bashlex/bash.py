@@ -22,6 +22,7 @@ _WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 _DIGIT_RE = re.compile(br"\d+")
 
 _NUM = b"_NUM"
+_LONG_PATTERN = b"_LONG_PATTERN"
 
 head_commands = [
     "find", "xargs",
@@ -51,7 +52,8 @@ special_operators = [
 def is_option(word):
     return word.startswith('-')
 
-def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
+def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
+                    normalize_long_pattern=True):
     """Very basic tokenizer: used for English tokenization."""
     sentence = sentence.replace(',', ' ')  \
             .replace(';', ' ')  \
@@ -90,6 +92,10 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
     for i in xrange(len(words)):
         w = words[i].strip()
         word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
+        if ' ' in word:
+            assert(word.startswith('"') and word.endswith('"'))
+            if normalize_long_pattern:
+                word = _LONG_PATTERN
         if lower_case:
             # remove unnecessary upper cases
             if len(word) > 1 and word[0].isupper() and word[1:].islower():
