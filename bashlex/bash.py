@@ -15,8 +15,8 @@ DEBUG = False
 COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d+)$")
 
 # Regular expressions used to tokenize an English sentence.
-_WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
-# _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
+# _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
+_WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
 _DIGIT_RE = re.compile(br"\d+")
 
 _NUM = b"_NUM"
