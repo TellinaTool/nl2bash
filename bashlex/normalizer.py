@@ -384,7 +384,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
             print(msg_head + err_msg)
             print(attach_point.symbol)
             print(child)
-            sys.exit()
+            raise HeadCommandAttachmentError(msg_head + err_msg)
 
         # normalize atomic command
         for child in node.parts:
@@ -624,6 +624,10 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
         print("Cannot parse: %s - AttributeError" % cmd.encode('utf-8'))
         # not a bash command
         return None
+    except HeadCommandAttachmentError, e:
+        print(e.message)
+        print(cmd)
+        sys.exit()
 
     if len(tree) > 1:
         print("Doesn't support command with multiple root nodes: %s" % cmd.encode('utf-8'))
@@ -635,6 +639,13 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
         return None
 
     return normalized_tree
+
+# --- Debugging ---
+
+class HeadCommandAttachmentError(Exception):
+    def __init__(self, message, errors=None):
+        super(HeadCommandAttachmentError, self).__init(message)
+        self.errors = errors
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
