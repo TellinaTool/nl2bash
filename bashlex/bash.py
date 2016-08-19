@@ -69,13 +69,7 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
             .replace('{', '{ ') \
             .replace(')', ' }') \
             .replace(']', ' ]') \
-            .replace('}', ' }') \
-            .replace('"(', '( ') \
-            .replace('"[', '[ ') \
-            .replace('"{', '{ ') \
-            .replace(')"', ' }') \
-            .replace(']"', ' ]') \
-            .replace('}"', ' }')
+            .replace('}', ' }')
 
     sentence = re.sub('\'$', '"', sentence)
 
