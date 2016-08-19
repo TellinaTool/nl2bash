@@ -68,6 +68,7 @@ def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
             .replace('`', '"') \
             .replace('``', '"') \
             .replace("''", '"')
+    sentence = re.sub('\'$', '"', sentence)
     words = shlex.split(sentence)
     normalized_words = []
     for i in xrange(len(words)):
