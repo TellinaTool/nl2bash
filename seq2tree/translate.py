@@ -368,7 +368,7 @@ def process_data():
     max_cmd_seq_len = 0
 
     def add_to_set(data, nl_list, cm_list, cm_seq_list):
-        for nl, cmd in data[i]:
+        for nl, cmd in data:
             ast = normalize_ast(cmd)
             if ast:
                 if all_simple_commands(ast):
