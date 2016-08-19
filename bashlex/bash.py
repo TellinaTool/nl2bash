@@ -6,6 +6,7 @@ Simplified bash tokenizer and parser built using bashlex.
 from __future__ import print_function
 
 import re
+import shlex
 import sys
 
 import bast, errors, tokenizer, bparser
@@ -29,11 +30,11 @@ head_commands = [
     "cp", "mv",
     "cd", "cat",
     "wc", "chmod",
-    "zip", "unzip",
     "tar", "sort",
-    "head", "tail",
-    "du", "date",
-    "diff", "comm"
+    "head", "tail"
+    # "zip", "unzip",
+    # "du", "date",
+    # "diff", "comm"
 ]
 
 special_operators = [
@@ -50,6 +51,35 @@ def is_option(word):
     return word.startswith('-')
 
 def basic_tokenizer(sentence, normalize_digits=True, lower_case=True):
+    """Very basic tokenizer: used for English tokenization."""
+    sentence.replace(',', ' ')  \
+            .replace(';', ' ')  \
+            .replace('(', '( ') \
+            .replace('[', '[ ') \
+            .replace('{', '{ ') \
+            .replace(')', '} ') \
+            .replace(']', '] ') \
+            .replace('}', '} ') \
+            .replace('(', '( ') \
+            .replace('<', '< ') \
+            .replace('>', '> ') \
+            .replace('\'', '"') \
+            .replace('`', '"') \
+            .replace('``', '"') \
+            .replace("''", '"')
+    words = shlex.split(sentence)
+    normalized_words = []
+    for i in xrange(len(words)):
+        w = words[i].strip()
+        word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
+        if lower_case:
+            # remove unnecessary upper cases
+            if len(word) > 1 and word[0].isupper() and word[1:].islower():
+                word = word.lower()
+        normalized_words.append(word)
+    return normalized_words
+
+def basic_tokenizer_regex(sentence, normalize_digits=True, lower_case=True):
     """Very basic tokenizer: used for English tokenization."""
     words = []
     for space_separated_fragment in sentence.replace('\n', ' ').strip().split():

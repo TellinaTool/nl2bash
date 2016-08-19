@@ -220,7 +220,7 @@ def make_full_grammar(simple_grammar, max_pipeline_depth):
     return grammar
 
 if __name__ == "__main__":
-    simple_grammar = load_syntax([os.path.join(os.path.dirname(__file__), "..", "data", "primitive_cmds_grammar.json")])
+    simple_grammar = load_syntax([os.path.join(os.path.dirname(__file__), "primitive_cmds_grammar.json")])
     grammar = make_full_grammar(simple_grammar, max_pipeline_depth=3)
 
     e = Enumerator(grammar)

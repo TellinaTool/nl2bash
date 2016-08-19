@@ -7,12 +7,16 @@ It also performs some normalization on the command arguments.
 """
 
 from __future__ import print_function
+import json
+import os
 import re
 import sys
+sys.path.append("../grammar")
 
 # bashlex stuff
 import bast, errors, tokenizer, bparser
-from bash import is_option, head_commands, _DIGIT_RE, _NUM
+import bash
+import enumerator
 
 # TODO: add stdin & stdout types
 simplified_bash_syntax = [
@@ -122,7 +126,7 @@ class Node(object):
             return None
 
     def is_flag(self):
-        return is_option(self.value)
+        return bash.is_option(self.value)
 
     def removeChild(self, child):
         self.children.remove(child)
@@ -340,7 +344,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
 
     def normalize_word(node, norm_digit, recover_quote):
         w = recover_quotation(node) if recover_quote else node.word
-        return re.sub(_DIGIT_RE, _NUM, w) if norm_digit and not is_option(w) else w
+        return re.sub(bash._DIGIT_RE, bash._NUM, w) if norm_digit and not bash.is_option(w) else w
 
     def with_quotation(node):
         return (node.pos[1] - node.pos[0] - len(node.word)) == 2
@@ -399,11 +403,11 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                         binary_logic_ops.append(norm_node)
                     else:
                         attach_point = attach_option(child, attach_point)
-                elif child.word in head_commands:
+                elif child.word in bash.head_commands:
                     if not with_quotation(child):
                         normalize(child, attach_point, "headcommand")
                         attach_point = attach_point.getRightChild()
-                elif is_option(child.word) and not END_OF_OPTIONS:
+                elif bash.is_option(child.word) and not END_OF_OPTIONS:
                     attach_point = attach_option(child, attach_point)
                 else:
                     #TODO: handle fine-grained argument types
@@ -601,13 +605,16 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
-    norm_tree = normalize_ast(cmd)
-    pretty_print(norm_tree, 0)
+    g = enumerator.load_syntax([os.path.join("../grammar", "primitive_cmds_grammar.json")])
+    print(g.pretty_print(0))
+    norm_tree = normalize_ast(cmd, g)
+    """pretty_print(norm_tree, 0)
     list = to_list(norm_tree, 'dfs', [])
     print(list)
     tree = list_to_tree(list + ['<PAD>'])
     pretty_print(tree, 0)
     print(to_command(tree))
+    """
 
 
 
