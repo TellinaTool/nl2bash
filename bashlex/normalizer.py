@@ -74,6 +74,16 @@ def is_binary_logic_op(node, parent):
             return False
     return node.word in binary_logic_operators
 
+def all_simple_commands(ast):
+    """Check if an ast contains only high-frequency commands."""
+    node = ast
+    if node.type == "headcommand" and not node in bash.head_commands:
+        return False
+    for child in node.children:
+        if not all_simple_commands(child):
+            return False
+    return True
+
 class Node(object):
     num_child = -1              # default value = -1, allow arbitrary number of children
     children_types = []         # list of children types
@@ -402,7 +412,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                         binary_logic_ops.append(norm_node)
                     else:
                         attach_point = attach_option(child, attach_point)
-                elif child.word in bash.head_commands:
+                elif bash.is_headcommand(child.word):
                     if not with_quotation(child):
                         normalize(child, attach_point, "headcommand")
                         attach_point = attach_point.getRightChild()
