@@ -109,7 +109,7 @@ def basic_tokenizer_regex(sentence, normalize_digits=True, lower_case=True):
             # remove unnecessary upper cases
             if len(word) > 1 and word[0].isupper() and word[1:].islower():
                 word = word.lower()
-        normalized_words.append(word)
+        normalized_words.append(word.encode('utf-8'))
     return normalized_words
 
 def bash_tokenizer(cmd, normalize_digits=True, recover_quotation=True):
@@ -250,7 +250,7 @@ def bash_tokenizer(cmd, normalize_digits=True, recover_quotation=True):
             print("Unsupported: %s" % cmd.encode('utf-8'))
             return None
 
-    return tokens
+    return [token.encode('utf-8') for token in tokens]
 
 def reserved_words_signature(cmd):
     tokens = bash_tokenizer(cmd)
