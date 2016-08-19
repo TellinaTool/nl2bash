@@ -76,7 +76,7 @@ def create_model(session, forward_only):
     model = Seq2TreeModel(params, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
-    global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1])
+    global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
         model.saver.restore(session, ckpt.model_checkpoint_path)
@@ -245,7 +245,6 @@ def interactive_decode():
             # Get token-ids for the input sentence.
             token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
                                                          basic_tokenizer)
-            print(token_ids)
             # Get a 1-element batch to feed the sentence to the model.
             encoder_inputs, decoder_inputs, target_weights = model.format_example(
                 token_ids, [data_utils.ROOT_ID])
@@ -297,9 +296,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         num_eval += 1
         if verbose:
             print("Example %d" % num_eval)
-            print("Original English: " + nl_str)
+            print("Original English: " + nl_str.strip())
             print("English: " + sentence)
-            print("Original Command: " + cm_str)
+            print("Original Command: " + cm_str.strip())
             print("Ground truth: " + gt_cmd)
             print("Prediction: " + pred_cmd)
             print("Search history (truncated at 25 steps): ")
@@ -414,18 +413,18 @@ def process_data():
     data_utils.create_vocabulary(cm_vocab_path, train_cm_seq_list, FLAGS.cm_vocab_size, bash_tokenizer, True)
     data_utils.create_vocabulary(nl_vocab_path, train_nl_list, FLAGS.nl_vocab_size, basic_tokenizer, True)
 
-    def format_data(data_path, nl_list, cm_list, cm_token_list):
-        cm_path = data_path + (".cm" % FLAGS.cm_vocab_size)
-        nl_path = data_path + (".nl" % FLAGS.nl_vocab_size)
+    def format_data(data_path, nl_list, cm_list, cm_seq_list):
+        cm_path = data_path + ".cm"
+        nl_path = data_path + ".nl"
         with open(cm_path, 'w') as o_f:
             for cm in cm_list:
-                o_f.write(cm + '\n')
+                o_f.write(cm.encode('utf-8') + '\n')
         with open(nl_path, 'w') as o_f:
             for nl in nl_list:
-                o_f.write(nl + '\n')
+                o_f.write(nl.encode('utf-8') + '\n')
         cm_ids_path = data_path + (".ids%d.cm" % FLAGS.cm_vocab_size)
         nl_ids_path = data_path + (".ids%d.nl" % FLAGS.nl_vocab_size)
-        data_utils.data_to_token_ids(cm_token_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
+        data_utils.data_to_token_ids(cm_seq_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
         data_utils.data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
         return nl_ids_path, cm_ids_path
 
@@ -436,7 +435,7 @@ def process_data():
     train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
     dev_set = read_data(nl_dev, cm_dev)
     test_set = read_data(nl_test, nl_test)
-
+   
     with open(FLAGS.data_dir + "seq2tree/" + "data.processed.dat", 'wb') as o_f:
         pickle.dump((train_set, dev_set, test_set), o_f)
 
@@ -457,7 +456,7 @@ def load_data(sample_size=-1):
                     sample(data[1], test_sample_size))
 
 
-def read_data(source_txt_path, target_txt_path, source_path, target_path, max_size=None):
+def read_data(source_path, target_path, max_size=None):
     """Read data from source and target files and put into buckets.
     :param source_path: path to the file with token-ids for the source language.
     :param target_path: path to the file with token-ids for the target language.
@@ -466,8 +465,8 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path, max_si
     """
     data_set = []
 
-    source_txt_path = '.'.join([source_path.split('.')[0], source_path.split('.')[2]])
-    target_txt_path = '.'.join([source_path.split('.')[0], source_path.split('.')[2]])
+    source_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.', 2)[2]])
+    target_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.', 2)[2]])
     with tf.gfile.GFile(source_txt_path, mode="r") as source_txt_file:
         with tf.gfile.GFile(target_txt_path, mode="r") as target_txt_file:
             with tf.gfile.GFile(source_path, mode="r") as source_file:
@@ -475,7 +474,10 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path, max_si
                     source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
                     source, target = source_file.readline(), target_file.readline()
                     counter = 0
-                    while source and target and (not max_size or counter < max_size):
+                    while source:
+                        assert(target)
+                        if max_size and counter < max_size:
+                            break
                         counter += 1
                         if counter % 1000 == 0:
                             print("  reading data line %d" % counter)
@@ -483,6 +485,7 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path, max_si
                         source_ids = [int(x) for x in source.split()]
                         target_ids = [int(x) for x in target.split()]
                         data_set.append([source_txt, target_txt, source_ids, target_ids])
+                        source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
                         source, target = source_file.readline(), target_file.readline()
     print("  %d data points read." % len(data_set))
     return data_set
