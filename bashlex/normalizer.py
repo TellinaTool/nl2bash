@@ -604,7 +604,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
-    norm_tree = normalize_ast(cmd, g)
+    norm_tree = normalize_ast(cmd)
     pretty_print(norm_tree, 0)
     list = to_list(norm_tree, 'dfs', [])
     print(list)

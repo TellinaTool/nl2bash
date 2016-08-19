@@ -96,7 +96,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             try:
                 assert(word.startswith('"') and word.endswith('"'))
             except AssertionError, e:
-                print("AssertionError: " + sentence)
+                print("AssertionError: " + ' '.join(words))
             if normalize_long_pattern:
                 word = _LONG_PATTERN
         if lower_case:
