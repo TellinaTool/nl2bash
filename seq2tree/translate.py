@@ -157,9 +157,8 @@ def train(train_set, dev_set, verbose=False):
                     _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                                              target_weights, forward_only=True)
                     dev_loss += eval_loss
-
-                    print(tree)
-                    ground_truth = [rev_cm_vocab[i] for i in tree]
+                    
+                    ground_truth = to_search_history([rev_cm_vocab[i] for i in tree])
                     gt_tree = list_to_tree(ground_truth)
                     gt_cmd = to_command(gt_tree, loose_constraints=True)
                     tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
@@ -170,7 +169,7 @@ def train(train_set, dev_set, verbose=False):
                     num_eval += 1
                     if verbose:
                         print("Example %d" % num_eval)
-                        print("English: " + nl_str)
+                        print("English: " + nl_str.strip())
                         print("Ground truth: " + gt_cmd)
                         print("Prediction: " + pred_cmd)
                         print("Search history (truncated at 25 steps): ")
@@ -200,21 +199,20 @@ def train(train_set, dev_set, verbose=False):
     return True
 
 
+def to_search_history(_list):
+    list = []
+    for w in _list:
+        if w == "_UNK":
+            list.append("ARGUMENT_UNK")
+        else:
+            list.append(w)
+    return list
+
 def decode(logits, rev_cm_vocab):
     if FLAGS.decoding_algorithm == "greedy":
         outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
-
-    def search_history():
-        _list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
-        list = []
-        for w in _list:
-            if w == "_UNK":
-                list.append("ARGUMENT_UNK")
-            else:
-                list.append(w)
-        return list
-
-    search_history = search_history()
+    list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
+    search_history = to_search_history(list)
     tree = list_to_tree(search_history)
     cmd = to_command(tree, loose_constraints=True)
     return tree, cmd, search_history
@@ -286,7 +284,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         # ground_truth = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
         #                                        headAppended=True)[0]
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
-        ground_truth = [rev_cm_vocab[i] for i in tree]
+        print([rev_cm_vocab[i] for i in tree])
+        ground_truth = to_search_history([rev_cm_vocab[i] for i in tree])
         print(ground_truth)
         gt_tree = list_to_tree(ground_truth)
         gt_cmd = to_command(gt_tree, loose_constraints=True)
@@ -333,19 +332,6 @@ def eval(verbose=True):
         _, dev_set, _ = load_data()
 
         eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
-
-
-"""def train_and_eval(train_set, dev_set):
-    num_iter = FLAGS.steps_per_milestone
-    for i in xrange(FLAGS.num_milestones):
-        is_learning = train(train_set, dev_set, num_iter)
-        tf.reset_default_graph()
-        eval(False)
-        tf.reset_default_graph()
-        if not is_learning:
-            print("Training stopped early for no improvement observed on dev set.")
-            break
-"""
 
 
 def process_data():
