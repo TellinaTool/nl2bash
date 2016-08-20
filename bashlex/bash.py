@@ -51,6 +51,7 @@ pseudo_head_commands = [
     "replace",
     "mplayer",
     "process",
+    "execute",
     "rmdir",
     "pdfgrep",
     "fastqc",
@@ -66,13 +67,13 @@ def reserved_words():
     return [w.strip() for w in _words]
 
 reserved_words = reserved_words()
-all_utilities = reserved_words[reserved_words.index("alias"):]
+all_utilities = set(reserved_words[reserved_words.index("alias"):])
 
 def is_option(word):
     return word.startswith('-')
 
 def is_headcommand(word):
-    return word in all_utilities
+    return word in all_utilities or word in pseudo_head_commands
 
 def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                     normalize_long_pattern=True):
