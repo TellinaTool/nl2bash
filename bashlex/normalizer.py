@@ -306,6 +306,8 @@ def list_to_tree(list, order='dfs'):
 
 def special_command_normalization(cmd):
     # special normalization for certain commands
+    ## remove all "sudo"'s
+    cmd = cmd.replace("sudo", "")
     ## the first argument of "tar" is always interpreted as an option
     tar_fix = re.compile(' tar \w')
     if cmd.startswith('tar'):
@@ -328,7 +330,8 @@ def make_sibling(lsb, rsb):
     if rsb:
         rsb.lsb = lsb
 
-def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
+def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
+                  recover_quotation=True):
     """
     Convert the bashlex parse tree of a command into the normalized form.
     :param cmd: bash command to parse
@@ -351,8 +354,15 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
         else:
             raise ValueError("Error: cannot decide where to attach flag node")
 
-    def normalize_word(node, norm_digit, recover_quote):
+    def normalize_word(node, norm_digit, norm_long_pattern, recover_quote):
         w = recover_quotation(node) if recover_quote else node.word
+        if ' ' in w:
+            try:
+                assert(w.startswith('"') and w.endswith('"'))
+            except AssertionError, e:
+                print("Quotation Error: space inside word " + w)
+            if norm_long_pattern:
+                w = bash._LONG_PATTERN
         return re.sub(bash._DIGIT_RE, bash._NUM, w) if norm_digit and not bash.is_option(w) else w
 
     def with_quotation(node):
@@ -523,14 +533,16 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                 elif node.parts[0].kind == "parameter" or \
                     node.parts[0].kind == "tilde":
                     # if not node.parts[0].value.isdigit():
-                    value = normalize_word(node, normalize_digits, recover_quotation)
+                    value = normalize_word(node, normalize_digits, normalize_long_pattern,
+                                           recover_quotation)
                     norm_node = ArgumentNode(kind=arg_type, value=value)
                     attach_to_tree(norm_node, current)
                 else:
                     for child in node.parts:
                         normalize(child, current)
             else:
-                value = normalize_word(node, normalize_digits, recover_quotation)
+                value = normalize_word(node, normalize_digits, normalize_long_pattern,
+                                       recover_quotation)
                 norm_node = ArgumentNode(kind=arg_type, value=value)
                 attach_to_tree(norm_node, current)
         elif node.kind == "pipeline":
