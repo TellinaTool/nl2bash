@@ -158,7 +158,7 @@ def train(train_set, dev_set, verbose=False):
                                                              target_weights, forward_only=True)
                     dev_loss += eval_loss
 
-                    sentence = ' '.join([rev_nl_vocab[i] for i in nl])
+                    print(tree)
                     ground_truth = [rev_cm_vocab[i] for i in tree]
                     gt_tree = list_to_tree(ground_truth)
                     gt_cmd = to_command(gt_tree, loose_constraints=True)
