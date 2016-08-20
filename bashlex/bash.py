@@ -17,7 +17,7 @@ COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d+)$")
 
 # Regular expressions used to tokenize an English sentence.
 # _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
-# _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
+_WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
 _WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 _DIGIT_RE = re.compile(br"\d+")
 
@@ -37,6 +37,7 @@ head_commands = [
 
 banned_head_commands = [
     "cd", "mkdir",
+    "basename", "dc",
     "du", "uniq",
     "pwd", "parallel",
     "perl", "replace",
@@ -49,7 +50,6 @@ banned_head_commands = [
     "echo", "mplayer",
     "tee", "more",
     "less", "convert",
-    "basename",
     "process", "python",
     "man", "csh",
     "test", "bzip2",
@@ -121,7 +121,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             try:
                 assert(word.startswith('"') and word.endswith('"'))
             except AssertionError, e:
-                print("AssertionError: " + ' '.join(words))
+                print("Quotation Error: space inside word " + sentence)
             if normalize_long_pattern:
                 word = _LONG_PATTERN
         if lower_case:
@@ -148,14 +148,22 @@ def basic_tokenizer_regex(sentence, normalize_digits=True, lower_case=True):
         normalized_words.append(word.encode('utf-8'))
     return normalized_words
 
-def bash_tokenizer(cmd, normalize_digits=True, recover_quotation=True):
+def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
+                   recover_quotation=True):
     cmd = cmd.replace('\n', ' ').strip()
     tokens = []
     if not cmd:
         return tokens
 
-    def normalize_word(node, norm_digit, recover_quote):
+    def normalize_word(node, norm_digit, norm_long_pattern, recover_quote):
         w = recover_quotation(node) if recover_quote else node.word
+        if ' ' in w:
+            try:
+                assert(w.startswith('"') and w.endswith('"'))
+            except AssertionError, e:
+                print("Quotation Error: space inside word " + w)
+            if norm_long_pattern:
+                w = _LONG_PATTERN
         return re.sub(_DIGIT_RE, _NUM, w) if norm_digit and not is_option(w) else w
 
     def with_quotation(node):
@@ -188,14 +196,16 @@ def bash_tokenizer(cmd, normalize_digits=True, recover_quotation=True):
                 elif node.parts[0].kind == "parameter" or \
                     node.parts[0].kind == "tilde":
                     w = node.word
-                    word = normalize_word(node, normalize_digits, recover_quotation)
+                    word = normalize_word(node, normalize_digits, normalize_long_pattern,
+                                          recover_quotation)
                     tokens.append(word)
                 else:
                     for child in node.parts:
                         parse(child, tokens)
             else:
                 w = node.word
-                word = normalize_word(node, normalize_digits, recover_quotation)
+                word = normalize_word(node, normalize_digits, normalize_long_pattern,
+                                      recover_quotation)
                 tokens.append(word)
         elif node.kind == "pipe":
             w = node.pipe
