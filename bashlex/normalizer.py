@@ -77,7 +77,7 @@ def is_binary_logic_op(node, parent):
 def all_simple_commands(ast):
     """Check if an ast contains only high-frequency commands."""
     node = ast
-    if node.kind == "headcommand" and not node in bash.head_commands:
+    if node.kind == "headcommand" and not node.value in bash.head_commands:
         return False
     for child in node.children:
         if not all_simple_commands(child):
@@ -336,7 +336,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
     :param recover_quotation: if set, retain quotation marks in the command
     :return normalized_tree
     """
-    print(cmd)
+    print(cmd.encode('utf-8'))
     cmd = cmd.replace('\n', ' ').strip()
     cmd = special_command_normalization(cmd)
 
@@ -384,7 +384,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
             print(msg_head + err_msg)
             print(attach_point.symbol)
             print(child)
-            raise HeadCommandAttachmentError(msg_head + err_msg)
+            # raise HeadCommandAttachmentError(msg_head + err_msg)
 
         # normalize atomic command
         for child in node.parts:
@@ -427,7 +427,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                             if attach_point.kind == "headcommand":
                                 if not attach_point.value in ["sh", "csh", "exec", "xargs"]:
                                     fail_headcommand_attachment_check(
-                                        "parent headcommand does not take utility arguments",
+                                        "parent headcommand %s does not take utility arguments" % attach_point.symbol,
                                         attach_point, child)
                             else:
                                 fail_headcommand_attachment_check(
@@ -435,7 +435,7 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                                     attach_point, child)
                         elif not attach_point.value in ["-exec", "-execdir"]:
                             fail_headcommand_attachment_check(
-                                    "parent option does not take utility arguments",
+                                    "parent option %s does not take utility arguments" % attach_point.symbol,
                                     attach_point, child)
 
                     if not with_quotation(child):
