@@ -61,7 +61,7 @@ pseudo_head_commands = [
 ]
 
 def reserved_words():
-    with open("./bash_keywords.txt") as f:
+    with open("/home/xilin/Projects/helper/bashlex/bash_keywords.txt") as f:
         _words = f.readlines()
     return [w.strip() for w in _words]
 
