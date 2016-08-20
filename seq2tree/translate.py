@@ -152,11 +152,12 @@ def train(train_set, dev_set, verbose=False):
                 for i in xrange(len(dev_set)):
                     nl_str, cm_str, nl, tree = dev_set[i]
                     encoder_inputs, decoder_inputs, target_weights = model.format_example(
-                        nl, [data_utils.ROOT_ID])
+                        # nl, [data_utils.ROOT_ID])
+                        nl, tree)
                     _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                                              target_weights, forward_only=True)
                     dev_loss += eval_loss
-
+                    
                     ground_truth = to_search_history([rev_cm_vocab[i] for i in tree])
                     gt_tree = list_to_tree(ground_truth)
                     gt_cmd = to_command(gt_tree, loose_constraints=True)
@@ -283,7 +284,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         # ground_truth = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
         #                                        headAppended=True)[0]
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
+        print([rev_cm_vocab[i] for i in tree])
         ground_truth = to_search_history([rev_cm_vocab[i] for i in tree])
+        print(ground_truth)
         gt_tree = list_to_tree(ground_truth)
         gt_cmd = to_command(gt_tree, loose_constraints=True)
         tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
@@ -352,27 +355,31 @@ def process_data():
 
     max_cmd_seq_len = 0
 
-    def add_to_set(data, nl_list, cm_list, cm_seq_list):
+    def add_to_set(data, nl_list, cm_list, cm_seq_list, max_len):
         for nl, cmd in data:
             ast = normalize_ast(cmd)
             if ast:
                 if all_simple_commands(ast):
                     cmd_seq = to_list(ast, list=[])
-                    if len(cmd_seq) > max_cmd_seq_len:
-                        max_cmd_seq_len = len(cmd_seq)
+                    if len(cmd_seq) > max_len:
+                        max_len = len(cmd_seq)
                     nl_list.append(nl)
                     cm_list.append(cmd)
                     cm_seq_list.append(cmd_seq)
                 else:
-                    print("Rare command: " + cmd)
+                    print("Rare command: " + cmd.encode('utf-8'))
+        return max_len
 
     for i in xrange(numFolds):
         if i < numFolds - 2:
-            add_to_set(data[i], train_nl_list, train_cm_list, train_cm_seq_list)
+            max_cmd_seq_len = add_to_set(data[i], train_nl_list, train_cm_list, train_cm_seq_list,
+                                        max_cmd_seq_len)
         elif i == numFolds - 2:
-            add_to_set(data[i], dev_nl_list, dev_cm_list, dev_cm_seq_list)
+            max_cmd_seq_len = add_to_set(data[i], dev_nl_list, dev_cm_list, dev_cm_seq_list,
+                                        max_cmd_seq_len)
         elif i == numFolds - 1:
-            add_to_set(data[i], test_nl_list, test_cm_list, dev_cm_seq_list)
+            max_cmd_seq_len = add_to_set(data[i], test_nl_list, test_cm_list, test_cm_seq_list,
+                                        max_cmd_seq_len)
 
     print("maximum training command sequence length = %d" % max_cmd_seq_len)
 
@@ -442,7 +449,7 @@ def read_data(source_path, target_path, max_size=None):
     data_set = []
 
     source_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.', 2)[2]])
-    target_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.', 2)[2]])
+    target_txt_path = '.'.join([target_path.rsplit('.', 2)[0], target_path.rsplit('.', 2)[2]])
     with tf.gfile.GFile(source_txt_path, mode="r") as source_txt_file:
         with tf.gfile.GFile(target_txt_path, mode="r") as target_txt_file:
             with tf.gfile.GFile(source_path, mode="r") as source_file:

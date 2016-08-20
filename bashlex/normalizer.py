@@ -77,7 +77,7 @@ def is_binary_logic_op(node, parent):
 def all_simple_commands(ast):
     """Check if an ast contains only high-frequency commands."""
     node = ast
-    if node.type == "headcommand" and not node in bash.head_commands:
+    if node.kind == "headcommand" and not node.value in bash.head_commands:
         return False
     for child in node.children:
         if not all_simple_commands(child):
@@ -339,7 +339,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     :param recover_quotation: if set, retain quotation marks in the command
     :return normalized_tree
     """
-    print(cmd)
+    print(cmd.encode('utf-8'))
     cmd = cmd.replace('\n', ' ').strip()
     cmd = special_command_normalization(cmd)
 
@@ -391,9 +391,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
         def fail_headcommand_attachment_check(err_msg, attach_point, child):
             msg_head = "Error attaching headcommand: "
-            print(attach_point)
+            print(msg_head + err_msg)
+            print(attach_point.symbol)
             print(child)
-            raise HeadCommandAttachmentError(msg_head + err_msg)
+            # raise HeadCommandAttachmentError(msg_head + err_msg)
 
         # normalize atomic command
         for child in node.parts:
@@ -445,7 +446,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                     attach_point, child)
                         elif not attach_point.value in ["-exec", "-execdir"]:
                             # fail_headcommand_attachment_check(
-                            #         "parent option does not take utility arguments",
+                            #         "parent option %s does not take utility arguments" % attach_point.symbol,
                             #         attach_point, child)
                             attach_point = attach_point.parent
 
@@ -659,7 +660,7 @@ class HeadCommandAttachmentError(Exception):
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
-    norm_tree = normalize_ast(cmd, g)
+    norm_tree = normalize_ast(cmd)
     pretty_print(norm_tree, 0)
     list = to_list(norm_tree, 'dfs', [])
     print(list)

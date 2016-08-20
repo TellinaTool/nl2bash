@@ -74,7 +74,6 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             counter += 1
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
-            print(line)
             if type(line) is list:
                 tokens = line
             else:
