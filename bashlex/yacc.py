@@ -86,7 +86,7 @@ pickle_protocol = 0            # Protocol to use when writing pickle files
 
 import re, types, sys, os.path
 
-import utils
+import butils
 
 # Compatibility function for python 2.6/3.0
 if sys.version_info[0] < 3:
@@ -251,8 +251,8 @@ class LRParser:
     def __init__(self,lrtab,errorf):
         # make sure these are immutable
         self.productions = tuple(lrtab.lr_productions)
-        self.action      = utils.frozendict(lrtab.lr_action)
-        self.goto        = utils.frozendict(lrtab.lr_goto)
+        self.action      = butils.frozendict(lrtab.lr_action)
+        self.goto        = butils.frozendict(lrtab.lr_goto)
         self.errorfunc   = errorf
 
     def errok(self):
