@@ -1,4 +1,4 @@
 import flags
-import utils
+import butils
 
-parserstate = lambda: utils.typedset(flags.parser)
+parserstate = lambda: butils.typedset(flags.parser)
