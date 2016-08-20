@@ -425,11 +425,19 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                                                  "processsubstitution"]:
                         if not attach_point.is_flag():
                             if attach_point.kind == "headcommand":
+<<<<<<< HEAD
                                 if not attach_point.value in ["sh", "csh", "exec", "xargs"]:
                                     # fail_headcommand_attachment_check(
                                     #     "parent headcommand %s does not take utility arguments" % attach_point.symbol,
                                     #     attach_point, child)
                                     attach_point = attach_point.parent
+=======
+                                if not attach_point.value in ["sh", "csh", "bash", "exec", "xargs"]:
+                                    fail_headcommand_attachment_check(
+                                        "parent headcommand does not take utility arguments",
+                                        attach_point, child)
+                                    # attach_point = attach_point.parent
+>>>>>>> 8631dbbd541c2dbf049d934f08fafd0ab5d80ab1
                             else:
                                 fail_headcommand_attachment_check(
                                     "headcommand attached to argument",
