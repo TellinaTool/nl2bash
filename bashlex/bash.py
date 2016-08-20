@@ -58,7 +58,7 @@ banned_head_commands = [
     "rmdir", "pdfgrep",
     "fastqc", "ffmpeg",
     "cmd2", "command1",
-    "command2"
+    "command2", "git"
 ]
 
 special_operators = [

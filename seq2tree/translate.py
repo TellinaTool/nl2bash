@@ -429,7 +429,7 @@ def process_data():
 
     train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
     dev_set = read_data(nl_dev, cm_dev)
-    test_set = read_data(nl_test, nl_test)
+    test_set = read_data(nl_test, cm_test)
    
     with open(FLAGS.data_dir + "seq2tree/" + "data.processed.dat", 'wb') as o_f:
         pickle.dump((train_set, dev_set, test_set), o_f)
