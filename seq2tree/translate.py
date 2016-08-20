@@ -152,7 +152,8 @@ def train(train_set, dev_set, verbose=False):
                 for i in xrange(len(dev_set)):
                     nl_str, cm_str, nl, tree = dev_set[i]
                     encoder_inputs, decoder_inputs, target_weights = model.format_example(
-                        nl, [data_utils.ROOT_ID])
+                        # nl, [data_utils.ROOT_ID])
+                        nl, tree)
                     _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                                              target_weights, forward_only=True)
                     dev_loss += eval_loss
@@ -461,7 +462,7 @@ def read_data(source_path, target_path, max_size=None):
     data_set = []
 
     source_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.', 2)[2]])
-    target_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.', 2)[2]])
+    target_txt_path = '.'.join([target_path.rsplit('.', 2)[0], target_path.rsplit('.', 2)[2]])
     with tf.gfile.GFile(source_txt_path, mode="r") as source_txt_file:
         with tf.gfile.GFile(target_txt_path, mode="r") as target_txt_file:
             with tf.gfile.GFile(source_path, mode="r") as source_file:
