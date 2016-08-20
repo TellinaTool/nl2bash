@@ -1,6 +1,6 @@
 import re, collections, enum
 
-import flags, shutils, utils, errors, heredoc, state
+import flags, shutils, butils, errors, heredoc, state
 
 sh_syntaxtab = collections.defaultdict(set)
 
@@ -565,7 +565,7 @@ class tokenizer(object):
                     self._open_brace_count -= 1
                 return self._createtoken(ttype, tokenword)
 
-        tokenword = self._createtoken(tokentype.WORD, tokenword, utils.typedset(wordflags))
+        tokenword = self._createtoken(tokentype.WORD, tokenword, butils.typedset(wordflags))
         if d['dollar_present']:
             tokenword.flags.add(wordflags.HASDOLLAR)
         if d['quoted']:
