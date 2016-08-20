@@ -51,6 +51,7 @@ pseudo_head_commands = [
     "replace",
     "mplayer",
     "process",
+    "execute",
     "rmdir",
     "pdfgrep",
     "fastqc",
