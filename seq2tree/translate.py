@@ -390,7 +390,7 @@ def process_data():
             max_cmd_seq_len = add_to_set(data[i], dev_nl_list, dev_cm_list, dev_cm_seq_list,
                                         max_cmd_seq_len)
         elif i == numFolds - 1:
-            max_cmd_seq_len = add_to_set(data[i], test_nl_list, test_cm_list, dev_cm_seq_list,
+            max_cmd_seq_len = add_to_set(data[i], test_nl_list, test_cm_list, test_cm_seq_list,
                                         max_cmd_seq_len)
 
     print("maximum training command sequence length = %d" % max_cmd_seq_len)

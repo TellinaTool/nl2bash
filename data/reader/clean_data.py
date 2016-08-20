@@ -157,7 +157,7 @@ class DBConnection(object):
                 num_errors += 1
                 continue
             print(cmd.encode('utf-8'))
-            print(' '.join(tokens).encode('utf-8'))
+            print(' '.join(tokens))
             print
             for nl in unique_pairs[cmd]:
                 """inserted = False
