@@ -160,7 +160,7 @@ class DBConnection(object):
             print(' '.join(tokens).encode('utf-8'))
             print
             for nl in unique_pairs[cmd]:
-                inserted = False
+                """inserted = False
                 for nl2 in desp_dict:
                     if token_overlap(nl, nl2) > 0.6:
                         desp_dict[nl2].append((cmd, nl))
@@ -168,6 +168,8 @@ class DBConnection(object):
                         break
                 if not inserted:
                     desp_dict[nl].append((cmd, nl))
+                """
+                desp_dict[nl].append((cmd, nl))
         return desp_dict
 
     def dump_data(self, data_dir, num_folds=10):

@@ -426,17 +426,19 @@ def normalize_ast(cmd, normalize_digits=True, recover_quotation=True):
                         if not attach_point.is_flag():
                             if attach_point.kind == "headcommand":
                                 if not attach_point.value in ["sh", "csh", "exec", "xargs"]:
-                                    fail_headcommand_attachment_check(
-                                        "parent headcommand %s does not take utility arguments" % attach_point.symbol,
-                                        attach_point, child)
+                                    # fail_headcommand_attachment_check(
+                                    #     "parent headcommand %s does not take utility arguments" % attach_point.symbol,
+                                    #     attach_point, child)
+                                    attach_point = attach_point.parent
                             else:
                                 fail_headcommand_attachment_check(
                                     "headcommand attached to argument",
                                     attach_point, child)
                         elif not attach_point.value in ["-exec", "-execdir"]:
-                            fail_headcommand_attachment_check(
-                                    "parent option %s does not take utility arguments" % attach_point.symbol,
-                                    attach_point, child)
+                            # fail_headcommand_attachment_check(
+                            #         "parent option %s does not take utility arguments" % attach_point.symbol,
+                            #         attach_point, child)
+                            attach_point = attach_point.parent
 
                     if not with_quotation(child):
                         normalize(child, attach_point, "headcommand")
@@ -653,6 +655,3 @@ if __name__ == "__main__":
     tree = list_to_tree(list + ['<PAD>'])
     pretty_print(tree, 0)
     print(to_command(tree))
-
-
-
