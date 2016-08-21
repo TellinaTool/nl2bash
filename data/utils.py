@@ -2,8 +2,10 @@
 
 ENGLISH_STOPWORDS = {
     "a", "an", "the",
-    "be", "'s", "been",
+    "be", "is", "been",
     "being", "was", "were",
+    "are", "has", "have",
+    "had",
     "here", "there", "do",
     "how", "i", "i'd",
     "i'll", "i'm", "i've",
