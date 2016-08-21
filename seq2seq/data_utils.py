@@ -48,7 +48,7 @@ NO_EXPAND_ID = 3
 ROOT_ID = 4
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
-                      tokenizer, normalize_digits=True):
+                      tokenizer, normalize_digits=True, min_word_frequency=3):
     """Create vocabulary file (if it does not exist yet) from data file.
 
     Data file is assumed to contain one sentence per line. Each sentence is
@@ -64,6 +64,8 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
       tokenizer: a function to use to tokenize each data sentence;
         if None, basic_tokenizer will be used.
       normalize_digits: Boolean; if true, all digits are replaced by 0s.
+      min_word_frequency: word frequency threshold below which a word is
+        goint to be marked as _UNK.
     """
     if not tf.gfile.Exists(vocabulary_path):
         print("Creating vocabulary %s from data (%d)" % (vocabulary_path,
@@ -77,7 +79,7 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             if type(line) is list:
                 tokens = line
             else:
-                tokens = tokenizer(line, normalize_digits)
+                tokens = tokenizer(line, normalize_digits=normalize_digits)
             if not tokens:
                 continue
             for word in tokens:
@@ -85,7 +87,16 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                     vocab[word] += 1
                 else:
                     vocab[word] = 1
-        vocab_list = _START_VOCAB + sorted(vocab, key=vocab.get, reverse=True)
+
+        sorted_vocab = {}
+        for v in vocab:
+            if vocab[v] >= min_word_frequency:
+                sorted_vocab[v] = vocab[v]
+            else:
+                print("Infrequent token: %s"  % v)
+        sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
+        vocab_list = _START_VOCAB + sorted_vocab
+
         if len(vocab_list) > max_vocabulary_size:
             vocab_list = vocab_list[:max_vocabulary_size]
         with tf.gfile.GFile(vocabulary_path, mode="wb") as vocab_file:
