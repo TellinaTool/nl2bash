@@ -197,10 +197,10 @@ def sentence_to_token_ids(sentence, vocabulary,
             token_ids.append(vocabulary[w])
         else:
             if substitute_type:
-                type = w.split('_')[0]
-                if type == "FLAG":
+                kind = w.split('_')[0].lower()
+                if kind == "flag":
                     token_ids.append(FLAG_ID)
-                elif type == "HEADCOMMAND":
+                elif kind == "headcommand":
                     token_ids.append(UTL_ID)
                 else:
                     token_ids.append(ARG_ID)
