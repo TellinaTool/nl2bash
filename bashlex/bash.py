@@ -120,7 +120,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
 
     normalized_words = []
     for i in xrange(len(words)):
-        w = words[i].strip()
+        word = words[i].strip()
 
         # normalize long patterns
         if ' ' in word and len(word) > 3:
@@ -149,7 +149,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             word = str(word2num[word])
 
         # normalize digits
-        word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
+        word = re.sub(_DIGIT_RE, _NUM, word) if normalize_digits and not is_option(word) else word
 
         # convert possessive expression
         if word.endswith("'s"):

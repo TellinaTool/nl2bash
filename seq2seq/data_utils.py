@@ -48,7 +48,7 @@ NO_EXPAND_ID = 3
 ROOT_ID = 4
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
-                      tokenizer, normalize_digits=True, min_word_frequency=3):
+                      tokenizer, normalize_digits=True, min_word_frequency=2):
     """Create vocabulary file (if it does not exist yet) from data file.
 
     Data file is assumed to contain one sentence per line. Each sentence is
