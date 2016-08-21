@@ -102,7 +102,10 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
             else:
                 print("Infrequent token: %s"  % v)
         sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
-        vocab_list = _START_VOCAB + sorted_vocab
+        vocab_list = list(_START_VOCAB)
+        for v in sorted_vocab:
+            if not v in _START_VOCAB:
+                vocab_list.append(v)
 
         if len(vocab_list) > max_vocabulary_size:
             vocab_list = vocab_list[:max_vocabulary_size]
