@@ -198,16 +198,6 @@ def train(train_set, dev_set, verbose=False):
       
     return True
 
-
-def to_search_history(_list):
-    list = []
-    for w in _list:
-        if w == "_UNK":
-            list.append("ARGUMENT_UNK")
-        else:
-            list.append(w)
-    return list
-
 def decode(logits, rev_cm_vocab):
     if FLAGS.decoding_algorithm == "greedy":
         outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
@@ -358,7 +348,6 @@ def process_data():
             if ast:
                 if all_simple_commands(ast):
                     cmd_seq = to_list(ast, list=[])
-                    cmd_seq = to_search_history(cmd_seq)
                     if len(cmd_seq) > max_len:
                         max_len = len(cmd_seq)
                     nl_list.append(nl)

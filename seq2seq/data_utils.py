@@ -31,12 +31,16 @@ import tensorflow as tf
 _PAD = b"_PAD"
 _EOS = b"_EOS"
 _UNK = b"_UNK"
-_GO = b"_GO"                # seq2seq
-_ROOT = b"ROOT_"            # seq2tree
-_NUM = b"_NUM"
-_NO_EXPAND = b"<NO_EXPAND>"
+_ARG = b"ARGUMENT_UNK"
+_UTL = b"HEADCOMMAND_UNK"
+_FLAG = b"FLAG_UNK"
 
-_START_VOCAB = [_PAD, _EOS, _UNK]
+_NO_EXPAND = b"<NO_EXPAND>"
+_GO = b"_GO"                # seq2seq start symbol
+_ROOT = b"ROOT_"            # seq2tree start symbol
+_NUM = b"_NUM"
+
+_START_VOCAB = [_PAD, _EOS, _UNK, _ARG, _UTL, _FLAG]
 
 # Regular expressions used to tokenize.
 _DIGIT_RE = re.compile(br"\d")
@@ -44,8 +48,11 @@ _DIGIT_RE = re.compile(br"\d")
 PAD_ID = 0
 EOS_ID = 1
 UNK_ID = 2
-NO_EXPAND_ID = 3
-ROOT_ID = 4
+ARG_ID = 3
+UTL_ID = 4
+FLAG_ID = 5
+NO_EXPAND_ID = 6
+ROOT_ID = 7
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                       tokenizer, normalize_digits=True, min_word_frequency=3):
@@ -158,7 +165,9 @@ def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
 
 
 def sentence_to_token_ids(sentence, vocabulary,
-                          tokenizer, normalize_digits=True):
+                          tokenizer,
+                          normalize_digits=True,
+                          substitute_type=False):
     """Convert a string to list of integers representing token-ids.
 
     For example, a sentence "I have a dog" may become tokenized into
@@ -177,13 +186,28 @@ def sentence_to_token_ids(sentence, vocabulary,
     """
     if type(sentence) is list:
         words = sentence
+        substitute_type = True
     else:
         words = tokenizer(sentence, normalize_digits)
-    
-    if not normalize_digits:
-        return [vocabulary.get(w, UNK_ID) for w in words]
 
-    return [vocabulary.get(re.sub(_DIGIT_RE, _NUM, w), UNK_ID) for w in words]
+    token_ids = []
+    for w in words:
+        w = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits else w
+        if w in vocabulary:
+            token_ids.append(vocabulary[w])
+        else:
+            if substitute_type:
+                type = w.split('_')[0]
+                if type == "FLAG":
+                    token_ids.append(FLAG_ID)
+                elif type == "HEADCOMMAND":
+                    token_ids.append(UTL_ID)
+                else:
+                    token_ids.append(ARG_ID)
+            else:
+                token_ids.append(UNK_ID)
+
+    return token_ids
 
 
 def data_to_token_ids(data, target_path, vocabulary_path,
