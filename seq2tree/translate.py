@@ -158,7 +158,7 @@ def train(train_set, dev_set, verbose=False):
                                                              target_weights, forward_only=True)
                     dev_loss += eval_loss
                     
-                    ground_truth = to_search_history([rev_cm_vocab[i] for i in tree])
+                    ground_truth = [rev_cm_vocab[i] for i in tree]
                     gt_tree = list_to_tree(ground_truth)
                     gt_cmd = to_command(gt_tree, loose_constraints=True)
                     tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
@@ -211,8 +211,7 @@ def to_search_history(_list):
 def decode(logits, rev_cm_vocab):
     if FLAGS.decoding_algorithm == "greedy":
         outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
-    list = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
-    search_history = to_search_history(list)
+    search_history = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
     tree = list_to_tree(search_history)
     cmd = to_command(tree, loose_constraints=True)
     return tree, cmd, search_history
@@ -284,9 +283,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         # ground_truth = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
         #                                        headAppended=True)[0]
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
-        print([rev_cm_vocab[i] for i in tree])
-        ground_truth = to_search_history([rev_cm_vocab[i] for i in tree])
-        print(ground_truth)
+        ground_truth = [rev_cm_vocab[i] for i in tree]
         gt_tree = list_to_tree(ground_truth)
         gt_cmd = to_command(gt_tree, loose_constraints=True)
         tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
@@ -361,6 +358,7 @@ def process_data():
             if ast:
                 if all_simple_commands(ast):
                     cmd_seq = to_list(ast, list=[])
+                    cmd_seq = to_search_history(cmd_seq)
                     if len(cmd_seq) > max_len:
                         max_len = len(cmd_seq)
                     nl_list.append(nl)
