@@ -8,8 +8,14 @@ from __future__ import print_function
 import re
 import shlex
 import sys
+sys.path.append("../")
+
+from data.utils import ENGLISH_STOPWORDS, word2num
 
 import bast, errors, tokenizer, bparser
+
+from nltk.stem.wordnet import WordNetLemmatizer
+lmtzr = WordNetLemmatizer()
 
 DEBUG = False
 
@@ -76,7 +82,8 @@ def is_headcommand(word):
     return word in all_utilities or word in pseudo_head_commands
 
 def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
-                    normalize_long_pattern=True):
+                    normalize_long_pattern=True,
+                    lemmatization=True):
     """Very basic tokenizer: used for English tokenization."""
     sentence = sentence.replace(',', ' ')  \
             .replace(';', ' ')  \
@@ -114,36 +121,43 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     normalized_words = []
     for i in xrange(len(words)):
         w = words[i].strip()
-        word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
-        if ' ' in word:
+
+        # normalize long patterns
+        if ' ' in word and len(word) > 3:
             try:
                 assert(word.startswith('"') and word.endswith('"'))
             except AssertionError, e:
                 print("Quotation Error: space inside word " + sentence)
             if normalize_long_pattern:
                 word = _LONG_PATTERN
+
+        # remove unnecessary upper cases
         if lower_case:
-            # remove unnecessary upper cases
             if len(word) > 1 and word[0].isupper() and word[1:].islower():
                 word = word.lower()
-        normalized_words.append(word)
 
-    return normalized_words
+        # lemmatization
+        if lemmatization:
+            word = lmtzr.lemmatize(word)
 
-def basic_tokenizer_regex(sentence, normalize_digits=True, lower_case=True):
-    """Very basic tokenizer: used for English tokenization."""
-    words = []
-    for space_separated_fragment in sentence.replace('\n', ' ').strip().split():
-        words.extend(re.split(_WORD_SPLIT, space_separated_fragment))
-    normalized_words = []
-    for i in xrange(len(words)):
-        w = words[i].strip()
+        # remove English stopwords
+        if word in ENGLISH_STOPWORDS:
+            continue
+
+        # covert number words into numbers
+        if word in word2num:
+            word = str(word2num[word])
+
+        # normalize digits
         word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
-        if lower_case:
-            # remove unnecessary upper cases
-            if len(word) > 1 and word[0].isupper() and word[1:].islower():
-                word = word.lower()
-        normalized_words.append(word.encode('utf-8'))
+
+        # convert possessive expression
+        if word.endswith("'s"):
+            normalized_words.append(word[:-2])
+            normalized_words.append("'s")
+        else:
+            normalized_words.append(word)
+
     return normalized_words
 
 def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
@@ -308,6 +322,22 @@ def reserved_words_signature(cmd):
             reserved_words.add(token)
     signature = ' '.join(list(reserved_words))
     return signature
+
+def basic_tokenizer_regex(sentence, normalize_digits=True, lower_case=True):
+    """Very basic tokenizer: used for English tokenization."""
+    words = []
+    for space_separated_fragment in sentence.replace('\n', ' ').strip().split():
+        words.extend(re.split(_WORD_SPLIT, space_separated_fragment))
+    normalized_words = []
+    for i in xrange(len(words)):
+        w = words[i].strip()
+        word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
+        if lower_case:
+            # remove unnecessary upper cases
+            if len(word) > 1 and word[0].isupper() and word[1:].islower():
+                word = word.lower()
+        normalized_words.append(word.encode('utf-8'))
+    return normalized_words
 
 # -- Outdated ---
 
