@@ -284,7 +284,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         #                                        headAppended=True)[0]
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
         ground_truth = [rev_cm_vocab[i] for i in tree]
+        print(ground_truth)
         gt_tree = list_to_tree(ground_truth)
+        pretty_print(gt_tree, 0)
         gt_cmd = to_command(gt_tree, loose_constraints=True)
         tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
         score = TokenOverlap.compute(gt_cmd, pred_cmd, verbose)
