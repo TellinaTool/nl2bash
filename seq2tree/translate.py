@@ -477,7 +477,7 @@ def main(_):
             train(train_set, dev_set)
         else:
             train_set, dev_set, _ = load_data()
-            train(train_set, dev_set)
+            train(train_set, dev_set, verbose=True)
 
 
 if __name__ == "__main__":
