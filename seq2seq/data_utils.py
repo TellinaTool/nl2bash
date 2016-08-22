@@ -23,7 +23,7 @@ import re
 import sys
 sys.path.append("../bashlex")
 
-from bash import basic_tokenizer, bash_tokenizer
+from bash import is_option, basic_tokenizer, bash_tokenizer
 
 import tensorflow as tf
 
@@ -195,7 +195,7 @@ def sentence_to_token_ids(sentence, vocabulary,
 
     token_ids = []
     for w in words:
-        w = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits else w
+        w = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
         if w in vocabulary:
             token_ids.append(vocabulary[w])
         else:
