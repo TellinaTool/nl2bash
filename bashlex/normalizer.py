@@ -431,7 +431,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         def attach_option(node, attach_point):
             attach_point = find_flag_attach_point(node, attach_point)
             if bash.is_double_option(node.word) or node.word in unary_logic_operators \
-                    or node.word in binary_logic_operators or attach_point.value == "find":
+                    or node.word in binary_logic_operators or attach_point.value == "find"\
+                    or len(node.word) <= 1:
                 normalize(node, attach_point, "flag")
             else:
                 # split flags
