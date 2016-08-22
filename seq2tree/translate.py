@@ -465,6 +465,8 @@ def read_data(source_path, target_path, max_size=None):
 
 def main(_):
     # set GPU device
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(FLAGS.gpu)
+
     with tf.device('/gpu:%d' % FLAGS.gpu):
         if FLAGS.eval:
             eval()
