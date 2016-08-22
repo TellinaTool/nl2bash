@@ -561,14 +561,22 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                             if attach_point.value in ["-exec", "-execdir"]:
                                 new_command_node = copy.deepcopy(node)
                                 new_command_node.parts = []
+                                subcommand_added = False
                                 for j in xrange(i, len(node.parts)):
                                     if node.parts[j].word == ";" or\
                                        node.parts[j].word == "+":
                                         normalize_command(new_command_node, attach_point)
                                         normalize(node.parts[j], attach_point, "argument")
+                                        subcommand_added = True
                                         break
                                     else:
                                         new_command_node.parts.append(node.parts[j])
+                                if not subcommand_added:
+                                    print("Warning: -exec missing ending ';'")
+                                    normalize_command(new_command_node, attach_point)
+                                    new_node = copy.deepcopy(node.parts[-1])
+                                    new_node.word = "\\;"
+                                    normalize(new_node, attach_point, "argument")
                                 i = j
                                 # handle end of utility introduced by '-exec' and whatnots
                                 attach_point = attach_point.parent
