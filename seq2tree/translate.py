@@ -189,8 +189,8 @@ def train(train_set, dev_set, verbose=False):
                 print("Average token-overlap score = %.2f" % (total_score/num_eval))
                 print()
 
-                # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
-                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]):
+                # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
+                if ppx < 1.1 and len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
                     return False
                 previous_dev_losses.append(dev_loss)
 
