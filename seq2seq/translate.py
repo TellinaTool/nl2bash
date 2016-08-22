@@ -403,7 +403,7 @@ def _decode():
         sentence = sys.stdin.readline()
         while sentence:
             # Get token-ids for the input sentence.
-            token_ids = data_utils.sentence_to _token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
                                                          basic_tokenizer)
             # Which bucket does it belong to?
             bucket_id = min([b for b in xrange(len(_buckets))
