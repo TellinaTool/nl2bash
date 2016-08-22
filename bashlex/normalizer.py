@@ -666,7 +666,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         i = 0
         while i < head_command.getNumChildren():
             child = head_command.children[i]
-            print(child.symbol)
             if child.value == "(":
                 stack.append(child)
                 depth += 1
