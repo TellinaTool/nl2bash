@@ -339,6 +339,16 @@ def special_command_normalization(cmd):
     ## remove all "sudo"'s
     cmd = cmd.replace("sudo", "")
 
+    ## remove shell character
+    if cmd.startswith("\$ "):
+        cmd = re.sub("^\$ ", '', cmd)
+    if cmd.startswith("\# "):
+        cmd = re.sub("^\# ", '', cmd)
+    if cmd.startswith("\$find "):
+        cmd = re.sub("^\$find ", "find ", cmd)
+    if cmd.startswith("\#find "):
+        cmd = re.sub("^\#find ", "find ", cmd)
+
     ## correct common spelling errors
     cmd = cmd.replace("-\\(", "\\(")
     cmd = cmd.replace("-\\)", "\\)")
@@ -554,7 +564,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         binary_logic_ops.append(norm_node)
                     else:
                         attach_point = attach_option(child, attach_point)
-                elif bash.is_headcommand(child.word) and not with_quotation(child):
+                elif bash.is_headcommand(child.word) and not with_quotation(child) and \
+                    (attach_point.kind != "headcommand" or attach_point.value in ["sh", "csh", "bash", "exec", "xargs"]):
                     if i > 0:
                         # embedded commands
                         if attach_point.kind == "flag":
@@ -584,21 +595,20 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 # fail_headcommand_attachment_check(
                                 #     "parent option %s does not take utility arguments" % attach_point.symbol,
                                 #     attach_point, child)
-                                attach_point = attach_point.parent
+                                # attach_point = attach_point.parent
                                 new_command_node = copy.deepcopy(node)
                                 new_command_node.parts = node.parts[i:]
                                 normalize_command(new_command_node, attach_point)
                                 i = len(node.parts) - 1
                         elif attach_point.kind == "headcommand":
-                            if not attach_point.value in ["sh", "csh", "bash", "exec", "xargs"]:
-                                fail_headcommand_attachment_check(
-                                    "parent headcommand does not take utility arguments",
-                                    attach_point, child)
-                            else:
-                                new_command_node = copy.deepcopy(node)
-                                new_command_node.parts = node.parts[i:]
-                                normalize_command(new_command_node, attach_point)
-                                i = len(node.parts) - 1
+                            # if not attach_point.value in ["sh", "csh", "bash", "exec", "xargs"]:
+                            #     fail_headcommand_attachment_check(
+                            #         "parent headcommand does not take utility arguments",
+                            #         attach_point, child)
+                            new_command_node = copy.deepcopy(node)
+                            new_command_node.parts = node.parts[i:]
+                            normalize_command(new_command_node, attach_point)
+                            i = len(node.parts) - 1
                         else:
                             fail_headcommand_attachment_check(
                                 "headcommand attached to argument",
@@ -607,7 +617,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         normalize(child, attach_point, "headcommand")
                         attach_point = attach_point.getRightChild()
                         head_commands.append(attach_point)
-
                 elif bash.is_option(child.word) and not END_OF_OPTIONS:
                     attach_point = attach_option(child, attach_point)
                 else:
