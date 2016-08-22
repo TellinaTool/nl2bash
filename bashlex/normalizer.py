@@ -338,6 +338,11 @@ def special_command_normalization(cmd):
     # special normalization for certain commands
     ## remove all "sudo"'s
     cmd = cmd.replace("sudo", "")
+
+    ## correct common spelling errors
+    cmd = cmd.replace("-\\(", "\\(")
+    cmd = cmd.replace("-\\)", "\\)")
+    
     ## the first argument of "tar" is always interpreted as an option
     tar_fix = re.compile(' tar \w')
     if cmd.startswith('tar'):
@@ -665,7 +670,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 rparenth = child
                 new_child = organize_buffer(buffer) if len(buffer) > 1 else buffer[0]
                 buffer = []
-                print(new_child.symbol)
                 i = head_command.substituteParentheses(lparenth, rparenth, new_child)
                 depth -= 1
                 if depth >= 1:
