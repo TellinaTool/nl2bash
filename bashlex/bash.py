@@ -78,6 +78,9 @@ all_utilities = set(reserved_words[reserved_words.index("alias"):])
 def is_option(word):
     return word.startswith('-')
 
+def is_double_option(word):
+    return word.startswith('--')
+
 def is_headcommand(word):
     return word in all_utilities or word in pseudo_head_commands
 
