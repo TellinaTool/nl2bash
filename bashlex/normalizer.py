@@ -409,7 +409,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             return node.word
 
     def with_quotation(node):
-        return (node.pos[1] - node.pos[0] - len(node.word)) == 2
+        return cmd[node.pos[0]] == '"' or cmd[node.pos[1]-1] == '"'
 
     def normalize_command(node, current):
         attach_point = current
@@ -718,6 +718,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 value = normalize_word(node, normalize_digits, normalize_long_pattern,
                                        recover_quotation)
                 norm_node = ArgumentNode(kind=arg_type, value=value)
+                print(norm_node.symbol)
                 attach_to_tree(norm_node, current)
         elif node.kind == "pipeline":
             norm_node = PipelineNode()
