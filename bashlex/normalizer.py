@@ -342,6 +342,7 @@ def special_command_normalization(cmd):
     ## correct common spelling errors
     cmd = cmd.replace("-\\(", "\\(")
     cmd = cmd.replace("-\\)", "\\)")
+    cmd = cmd.replace("\"\\)", " \\)")
 
     ## the first argument of "tar" is always interpreted as an option
     tar_fix = re.compile(' tar \w')
