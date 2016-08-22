@@ -23,7 +23,7 @@ import re
 import sys
 sys.path.append("../bashlex")
 
-from bash import is_option, basic_tokenizer, bash_tokenizer
+from bash import basic_tokenizer, bash_tokenizer
 
 import tensorflow as tf
 
@@ -55,6 +55,9 @@ FLAG_ID = 5
 NO_EXPAND_ID = 6
 GO_ID = 7
 ROOT_ID = 8
+
+def is_option(word):
+    return word.startswith('-') or word.startswith("FLAG_")
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                       tokenizer, normalize_digits=True, min_word_frequency=2):
