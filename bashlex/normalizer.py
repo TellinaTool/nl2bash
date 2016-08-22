@@ -342,7 +342,7 @@ def special_command_normalization(cmd):
     ## correct common spelling errors
     cmd = cmd.replace("-\\(", "\\(")
     cmd = cmd.replace("-\\)", "\\)")
-    
+
     ## the first argument of "tar" is always interpreted as an option
     tar_fix = re.compile(' tar \w')
     if cmd.startswith('tar'):
@@ -429,7 +429,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
         def attach_option(node, attach_point):
             attach_point = find_flag_attach_point(node, attach_point)
-            if not bash.is_double_option(node.word) and not attach_point.value == "find":
+            if bash.is_double_option(node.word) or node.word in unary_logic_operators \
+                    or node.word in binary_logic_operators or attach_point.value == "find":
+                normalize(node, attach_point, "flag")
+            else:
                 # split flags
                 print(node.word)
                 assert(node.word.startswith('-'))
@@ -444,8 +447,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         normalize(new_node, attach_point, "flag")
                         str += new_node.word + ' '
                     print(str)
-            else:
-                normalize(node, attach_point, "flag")
 
             attach_point = attach_point.getRightChild()
             return attach_point
