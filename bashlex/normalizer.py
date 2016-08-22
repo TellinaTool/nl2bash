@@ -431,6 +431,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             attach_point = find_flag_attach_point(node, attach_point)
             if not bash.is_double_option(node.word) and not attach_point.value == "find":
                 # split flags
+                print(node.word)
                 assert(node.word.startswith('-'))
                 options = node.word[1:]
                 if len(options) == 1:
