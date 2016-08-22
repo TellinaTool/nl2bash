@@ -613,26 +613,32 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
         assert(len(parentheses_attach_points) == 0)
 
+        if len(head_commands) == 0:
+            print("Error: command node without head command.")
+            print(node.kind)
+            print(node.parts)
+            return
+
         if len(head_commands) > 1:
             print("Error: multiple headcommands in one command.")
-            for node in head_commands:
-                print(node.symbol)
+            for hc in head_commands:
+                print(hc.symbol)
+            sys.exit()
 
         head_command = head_commands[0]
-        print("head_command[0]")
-        # print(head_command)
-        pretty_print(head_command)
+        # print("head_command[0]")
+        # pretty_print(head_command)
 
         # process unary logic operators
-        for node in unary_logic_ops:
-            adjust_unary_operators(node)
+        for ul in unary_logic_ops:
+            adjust_unary_operators(ul)
 
-        print("unary_logic_ops")
-        pretty_print(head_command)
+        # print("unary_logic_ops")
+        # pretty_print(head_command)
 
         # process binary logic operators
-        for node in binary_logic_ops:
-            adjust_binary_operators(node)
+        for bl in binary_logic_ops:
+            adjust_binary_operators(bl)
 
         # process (embedded) parenthese -- treat as implicit "-and"
         print("Processing parentheses")
@@ -668,13 +674,12 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             elif depth >= 1:
                 stack.append(child)
             i += 1
-        pretty_print(head_command)
 
-        for node in unprocessed_unary_logic_ops:
-            adjust_unary_operators(node)
+        for ul in unprocessed_unary_logic_ops:
+            adjust_unary_operators(ul)
 
-        for node in unprocessed_binary_logic_ops:
-            adjust_binary_operators(node)
+        for bl in unprocessed_binary_logic_ops:
+            adjust_binary_operators(bl)
 
         assert(len(stack) == 0)
         assert(depth == 0)
