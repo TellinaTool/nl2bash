@@ -111,7 +111,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     sentence = re.sub('(,\s+)|(,$)', ' ', sentence)
     sentence = re.sub('(;\s+)|(;$)', ' ', sentence)
     sentence = re.sub('(:\s+)|(:$)', ' ', sentence)
-    sentence = re.sub('(.\s+)|(.$)', ' ', sentence)
+    sentence = re.sub('(\.\s+)|(\.$)', ' ', sentence)
 
     sentence = re.sub('\'s', '\\\'s', sentence)
     sentence = re.sub('\'re', '\\\'re', sentence)
@@ -151,7 +151,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                 word = word + '"'
             msg += word
             print(msg)
-            
+
         # normalize long patterns
         if ' ' in word and len(word) > 3:
             try:
