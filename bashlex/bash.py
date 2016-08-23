@@ -81,6 +81,10 @@ def is_option(word):
 def is_double_option(word):
     return word.startswith('--')
 
+def is_english_word(word):
+    """Check if a token is normal English word."""
+    return bool(re.match('[A-Za-z\-\']+$', word, re.IGNORECASE))
+
 def is_headcommand(word):
     return word in all_utilities or word in pseudo_head_commands
 
@@ -88,10 +92,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                     normalize_long_pattern=True,
                     lemmatization=True):
     """Very basic tokenizer: used for English tokenization."""
-    sentence = sentence.replace(',', ' ')  \
-            .replace(';', ' ')  \
-            .replace(': ', ' ') \
-            .replace('<', '< ') \
+    sentence = sentence.replace('<', '< ') \
             .replace('>', ' >') \
             .replace('`\'', '"') \
             .replace('``', '"') \
@@ -105,8 +106,12 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             .replace(')', ' }') \
             .replace(']', ' ]') \
             .replace('}', ' }')
-
     sentence = re.sub('\'$', '"', sentence)
+
+    sentence = re.sub('(,\s+)|(,$)', ' ', sentence)
+    sentence = re.sub('(;\s+)|(;$)', ' ', sentence)
+    sentence = re.sub('(:\s+)|(:$)', ' ', sentence)
+    sentence = re.sub('(.\s+)|(.$)', ' ', sentence)
 
     sentence = re.sub('\'s', '\\\'s', sentence)
     sentence = re.sub('\'re', '\\\'re', sentence)
@@ -114,11 +119,6 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     sentence = re.sub('\'d', '\\\'d', sentence)
     sentence = re.sub('\'t', '\\\'t', sentence)
 
-    # try:
-    #     words = shlex.split(sentence.encode('utf-8'))
-    # except ValueError, e:
-    #     print("Shlex ValueError: " + sentence)
-    #     words = sentence.encode('utf-8').split()
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
 
     normalized_words = []
@@ -154,6 +154,19 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         # normalize digits
         word = re.sub(_DIGIT_RE, _NUM, word) if normalize_digits and not is_option(word) else word
 
+<<<<<<< HEAD
+=======
+        # normalize regular expressions
+        if not is_english_word(word):
+            str = word + ' -> '
+            if not word.startswith('"'):
+                word = '"' + word
+            if not word.endswith('"'):
+                word = word + '"'
+            str += word
+            print(str)
+            
+>>>>>>> 3f6aec888bd13fd5ceebec016555284ed8138984
         # convert possessive expression
         if word.endswith("'s"):
             normalized_words.append(word[:-2])
