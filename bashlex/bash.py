@@ -163,7 +163,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                 word = word + '"'
             str += word
             print(str)
-            
+
         # convert possessive expression
         if word.endswith("'s"):
             normalized_words.append(word[:-2])
