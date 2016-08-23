@@ -99,13 +99,14 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             .replace('\' ', '" ') \
             .replace('`', '"') \
             .replace('(', '( ') \
-            .replace(')', ' )') 
+            .replace(')', ' )')
             # .replace('[', '[ ') \
             # .replace('{', '{ ') \
             # .replace(']', ' ]') \
             # .replace('}', ' }') \
             # .replace('<', '< ') \
             # .replace('>', ' >')
+    sentence = re.sub('^\'', '"', sentence)
     sentence = re.sub('\'$', '"', sentence)
 
     sentence = re.sub('(,\s+)|(,$)', ' ', sentence)
@@ -144,13 +145,13 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
 
         # normalize regular expressions
         if not is_english_word(word):
-            msg = word + ' -> '
+            # msg = word + ' -> '
             if not word.startswith('"'):
                 word = '"' + word
             if not word.endswith('"'):
                 word = word + '"'
-            msg += word
-            print(msg)
+            # msg += word
+            # print(msg)
 
         # normalize long patterns
         if ' ' in word and len(word) > 3:
