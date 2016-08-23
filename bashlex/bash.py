@@ -19,8 +19,6 @@ lmtzr = WordNetLemmatizer()
 
 DEBUG = False
 
-COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d+)$")
-
 # Regular expressions used to tokenize an English sentence.
 # _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
 _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
@@ -29,6 +27,8 @@ _DIGIT_RE = re.compile(br"\d+")
 
 _NUM = b"_NUM"
 _LONG_PATTERN = b"_LONG_PATTERN"
+
+COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d+)$")
 
 head_commands = [
     "find", "xargs",
@@ -125,15 +125,6 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     for i in xrange(len(words)):
         word = words[i].strip()
 
-        # normalize long patterns
-        if ' ' in word and len(word) > 3:
-            try:
-                assert(word.startswith('"') and word.endswith('"'))
-            except AssertionError, e:
-                print("Quotation Error: space inside word " + sentence)
-            if normalize_long_pattern:
-                word = _LONG_PATTERN
-
         # remove unnecessary upper cases
         if lower_case:
             if len(word) > 1 and word[0].isupper() and word[1:].islower():
@@ -151,18 +142,27 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         if word in word2num:
             word = str(word2num[word])
 
-        # normalize digits
-        word = re.sub(_DIGIT_RE, _NUM, word) if normalize_digits and not is_option(word) else word
-
         # normalize regular expressions
         if not is_english_word(word):
-            str = word + ' -> '
+            msg = word + ' -> '
             if not word.startswith('"'):
                 word = '"' + word
             if not word.endswith('"'):
                 word = word + '"'
-            str += word
-            print(str)
+            msg += word
+            print(msg)
+            
+        # normalize long patterns
+        if ' ' in word and len(word) > 3:
+            try:
+                assert(word.startswith('"') and word.endswith('"'))
+            except AssertionError, e:
+                print("Quotation Error: space inside word " + sentence)
+            if normalize_long_pattern:
+                word = _LONG_PATTERN
+
+        # normalize digits
+        word = re.sub(_DIGIT_RE, _NUM, word) if normalize_digits and not is_option(word) else word
 
         # convert possessive expression
         if word.endswith("'s"):

@@ -43,9 +43,6 @@ _NUM = b"_NUM"
 
 _START_VOCAB = [_PAD, _EOS, _UNK, _ARG, _UTL, _FLAG, _NO_EXPAND, _GO, _ROOT]
 
-# Regular expressions used to tokenize.
-_DIGIT_RE = re.compile(br"\d")
-
 PAD_ID = 0
 EOS_ID = 1
 UNK_ID = 2
@@ -55,6 +52,9 @@ FLAG_ID = 5
 NO_EXPAND_ID = 6
 GO_ID = 7
 ROOT_ID = 8
+
+# Regular expressions used to tokenize.
+_DIGIT_RE = re.compile(br"\d")
 
 def is_option(word):
     return word.startswith('-') or word.startswith("FLAG_")
