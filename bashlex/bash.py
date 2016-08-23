@@ -83,7 +83,7 @@ def is_double_option(word):
 
 def is_english_word(word):
     """Check if a token is normal English word."""
-    return bool(re.match('[A-Za-z\-\']+$', word, re.IGNORECASE))
+    return bool(re.match('[A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
 
 def is_headcommand(word):
     return word in all_utilities or word in pseudo_head_commands
@@ -92,20 +92,20 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                     normalize_long_pattern=True,
                     lemmatization=True):
     """Very basic tokenizer: used for English tokenization."""
-    sentence = sentence.replace('<', '< ') \
-            .replace('>', ' >') \
-            .replace('`\'', '"') \
+    sentence = sentence.replace('`\'', '"') \
             .replace('``', '"') \
             .replace("''", '"') \
             .replace(' \'', ' "') \
             .replace('\' ', '" ') \
             .replace('`', '"') \
             .replace('(', '( ') \
-            .replace('[', '[ ') \
-            .replace('{', '{ ') \
-            .replace(')', ' }') \
-            .replace(']', ' ]') \
-            .replace('}', ' }')
+            .replace(')', ' )') 
+            # .replace('[', '[ ') \
+            # .replace('{', '{ ') \
+            # .replace(']', ' ]') \
+            # .replace('}', ' }') \
+            # .replace('<', '< ') \
+            # .replace('>', ' >')
     sentence = re.sub('\'$', '"', sentence)
 
     sentence = re.sub('(,\s+)|(,$)', ' ', sentence)
