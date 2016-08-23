@@ -68,7 +68,7 @@ pseudo_head_commands = [
 ]
 
 def reserved_words():
-    with open("./bash_keywords.txt") as f:
+    with open("/home/xilin/Projects/helper/bashlex/bash_keywords.txt") as f:
         _words = f.readlines()
     return [w.strip() for w in _words]
 
@@ -123,7 +123,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
 
     normalized_words = []
     for i in xrange(len(words)):
-        w = words[i].strip()
+        word = words[i].strip()
 
         # normalize long patterns
         if ' ' in word and len(word) > 3:

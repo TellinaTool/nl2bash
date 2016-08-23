@@ -34,13 +34,14 @@ _UNK = b"_UNK"
 _ARG = b"ARGUMENT_UNK"
 _UTL = b"HEADCOMMAND_UNK"
 _FLAG = b"FLAG_UNK"
-
 _NO_EXPAND = b"<NO_EXPAND>"
+
 _GO = b"_GO"                # seq2seq start symbol
 _ROOT = b"ROOT_"            # seq2tree start symbol
+
 _NUM = b"_NUM"
 
-_START_VOCAB = [_PAD, _EOS, _UNK, _ARG, _UTL, _FLAG]
+_START_VOCAB = [_PAD, _EOS, _UNK, _ARG, _UTL, _FLAG, _NO_EXPAND, _GO, _ROOT]
 
 # Regular expressions used to tokenize.
 _DIGIT_RE = re.compile(br"\d")
@@ -52,13 +53,14 @@ ARG_ID = 3
 UTL_ID = 4
 FLAG_ID = 5
 NO_EXPAND_ID = 6
-ROOT_ID = 7
+GO_ID = 7
+ROOT_ID = 8
 
 def is_option(word):
     return word.startswith('-') or word.startswith("FLAG_")
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
-                      tokenizer, normalize_digits=True, min_word_frequency=3):
+                      tokenizer, normalize_digits=True, min_word_frequency=2):
     """Create vocabulary file (if it does not exist yet) from data file.
 
     Data file is assumed to contain one sentence per line. Each sentence is
@@ -203,10 +205,10 @@ def sentence_to_token_ids(sentence, vocabulary,
             token_ids.append(vocabulary[w])
         else:
             if substitute_type:
-                type = w.split('_')[0]
-                if type == "FLAG":
+                kind = w.split('_')[0].lower()
+                if kind == "flag":
                     token_ids.append(FLAG_ID)
-                elif type == "HEADCOMMAND":
+                elif kind == "headcommand":
                     token_ids.append(UTL_ID)
                 else:
                     token_ids.append(ARG_ID)
