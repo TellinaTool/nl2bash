@@ -8,9 +8,9 @@ from __future__ import print_function
 import re
 import shlex
 import sys
-sys.path.append("../")
+sys.path.append("../data")
 
-from data.utils import ENGLISH_STOPWORDS, word2num
+from utils import ENGLISH_STOPWORDS, word2num
 
 import bast, errors, tokenizer, bparser
 
