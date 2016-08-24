@@ -117,8 +117,7 @@ def train(train_set, dev_set, verbose=False):
             for i in tqdm(xrange(len(train_set))):
                 time.sleep(0.01)
                 _, _, nl, tree = train_set[i]
-
-               formatted_example = model.format_example(nl, tree)
+                formatted_example = model.format_example(nl, tree)
                 _, step_loss, _ = model.step(sess, formatted_example, forward_only=False)
                 loss += step_loss
                 current_step += 1
