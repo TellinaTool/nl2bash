@@ -188,10 +188,15 @@ class DBConnection(object):
                 cmdsig_dict[cmdsig].append(i)
 
         data = collections.defaultdict(list)
+        added_clusters = set()
         for cmdsig in cmdsig_dict:
             num_cmdsig += 1
             print("Command signature: %s" % cmdsig.encode('utf-8'))
             for i in cmdsig_dict[cmdsig]:
+                if i in added_clusters:
+                    continue
+                else:
+                    added_clusters.add(i)
                 # randomly find a fold to place data point
                 ind = random.randrange(num_folds)
                 bin = data[ind]
