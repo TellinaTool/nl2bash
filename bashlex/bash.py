@@ -19,8 +19,6 @@ lmtzr = WordNetLemmatizer()
 
 DEBUG = False
 
-COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d+)$")
-
 # Regular expressions used to tokenize an English sentence.
 # _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
 _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
@@ -29,6 +27,8 @@ _DIGIT_RE = re.compile(br"\d+")
 
 _NUM = b"_NUM"
 _LONG_PATTERN = b"_LONG_PATTERN"
+
+COMBINED_FLAG_AND_ARG = re.compile(r"^(\-\w)(\d+)$")
 
 head_commands = [
     "find", "xargs",
@@ -69,7 +69,7 @@ pseudo_head_commands = [
 ]
 
 def reserved_words():
-    with open("./bash_keywords.txt") as f:
+    with open("/home/xilin/Projects/helper/bashlex/bash_keywords.txt") as f:
         _words = f.readlines()
     return [w.strip() for w in _words]
 
@@ -82,6 +82,10 @@ def is_option(word):
 def is_double_option(word):
     return word.startswith('--')
 
+def is_english_word(word):
+    """Check if a token is normal English word."""
+    return bool(re.match('[A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
+
 def is_headcommand(word):
     return word in all_utilities or word in pseudo_head_commands
 
@@ -89,25 +93,27 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                     normalize_long_pattern=True,
                     lemmatization=True):
     """Very basic tokenizer: used for English tokenization."""
-    sentence = sentence.replace(',', ' ')  \
-            .replace(';', ' ')  \
-            .replace(': ', ' ') \
-            .replace('<', '< ') \
-            .replace('>', ' >') \
-            .replace('`\'', '"') \
+    sentence = sentence.replace('`\'', '"') \
             .replace('``', '"') \
             .replace("''", '"') \
             .replace(' \'', ' "') \
             .replace('\' ', '" ') \
             .replace('`', '"') \
             .replace('(', '( ') \
-            .replace('[', '[ ') \
-            .replace('{', '{ ') \
-            .replace(')', ' }') \
-            .replace(']', ' ]') \
-            .replace('}', ' }')
-
+            .replace(')', ' )')
+            # .replace('[', '[ ') \
+            # .replace('{', '{ ') \
+            # .replace(']', ' ]') \
+            # .replace('}', ' }') \
+            # .replace('<', '< ') \
+            # .replace('>', ' >')
+    sentence = re.sub('^\'', '"', sentence)
     sentence = re.sub('\'$', '"', sentence)
+
+    sentence = re.sub('(,\s+)|(,$)', ' ', sentence)
+    sentence = re.sub('(;\s+)|(;$)', ' ', sentence)
+    sentence = re.sub('(:\s+)|(:$)', ' ', sentence)
+    sentence = re.sub('(\.\s+)|(\.$)', ' ', sentence)
 
     sentence = re.sub('\'s', '\\\'s', sentence)
     sentence = re.sub('\'re', '\\\'re', sentence)
@@ -115,25 +121,11 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     sentence = re.sub('\'d', '\\\'d', sentence)
     sentence = re.sub('\'t', '\\\'t', sentence)
 
-    # try:
-    #     words = shlex.split(sentence.encode('utf-8'))
-    # except ValueError, e:
-    #     print("Shlex ValueError: " + sentence)
-    #     words = sentence.encode('utf-8').split()
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
 
     normalized_words = []
     for i in xrange(len(words)):
-        w = words[i].strip()
-
-        # normalize long patterns
-        if ' ' in word and len(word) > 3:
-            try:
-                assert(word.startswith('"') and word.endswith('"'))
-            except AssertionError, e:
-                print("Quotation Error: space inside word " + sentence)
-            if normalize_long_pattern:
-                word = _LONG_PATTERN
+        word = words[i].strip()
 
         # remove unnecessary upper cases
         if lower_case:
@@ -152,8 +144,27 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         if word in word2num:
             word = str(word2num[word])
 
+        # normalize regular expressions
+        if not is_english_word(word):
+            # msg = word + ' -> '
+            if not word.startswith('"'):
+                word = '"' + word
+            if not word.endswith('"'):
+                word = word + '"'
+            # msg += word
+            # print(msg)
+
+        # normalize long patterns
+        if ' ' in word and len(word) > 3:
+            try:
+                assert(word.startswith('"') and word.endswith('"'))
+            except AssertionError, e:
+                print("Quotation Error: space inside word " + sentence)
+            if normalize_long_pattern:
+                word = _LONG_PATTERN
+
         # normalize digits
-        word = re.sub(_DIGIT_RE, _NUM, w) if normalize_digits and not is_option(w) else w
+        word = re.sub(_DIGIT_RE, _NUM, word) if normalize_digits and not is_option(word) else word
 
         # convert possessive expression
         if word.endswith("'s"):
