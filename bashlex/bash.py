@@ -38,7 +38,8 @@ head_commands = [
     "cp", "mv",
     "wc", "chmod",
     "tar", "sort",
-    "head", "tail"
+    "head", "tail",
+    "chown"
 ]
 
 special_operators = [
@@ -87,6 +88,20 @@ def is_english_word(word):
 
 def is_headcommand(word):
     return word in all_utilities or word in pseudo_head_commands
+
+def rw_signature(cmd):
+    tokens = bash_tokenizer(cmd)
+    if not tokens:
+        return None
+    reserved_words = set()
+    for token in tokens:
+        if token.startswith('-') or \
+            token in reserved_words or \
+            token in pseudo_head_commands or \
+            token in special_operators:
+            reserved_words.add(token)
+    signature = ' '.join(list(reserved_words))
+    return signature
 
 def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                     normalize_long_pattern=True,
@@ -323,19 +338,6 @@ def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
             return None
 
     return [token.encode('utf-8') for token in tokens]
-
-def reserved_words_signature(cmd):
-    tokens = bash_tokenizer(cmd)
-    if not tokens:
-        return None
-    reserved_words = set()
-    for token in tokens:
-        if token.startswith('-') or \
-           token in head_commands or \
-           token in special_operators:
-            reserved_words.add(token)
-    signature = ' '.join(list(reserved_words))
-    return signature
 
 def basic_tokenizer_regex(sentence, normalize_digits=True, lower_case=True):
     """Very basic tokenizer: used for English tokenization."""

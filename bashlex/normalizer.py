@@ -339,6 +339,11 @@ def special_command_normalization(cmd):
     ## remove all "sudo"'s
     cmd = cmd.replace("sudo", "")
 
+    ## normalize utilities called with full path
+    cmd = cmd.replace("/usr/bin/find", "find")
+    cmd = cmd.replace("~/bin/find", "find")
+    cmd = cmd.replace("/bin/find", "find")
+    
     ## remove shell character
     if cmd.startswith("\$ "):
         cmd = re.sub("^\$ ", '', cmd)
