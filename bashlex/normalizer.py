@@ -343,7 +343,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("/usr/bin/find", "find")
     cmd = cmd.replace("~/bin/find", "find")
     cmd = cmd.replace("/bin/find", "find")
-    
+
     ## remove shell character
     if cmd.startswith("\$ "):
         cmd = re.sub("^\$ ", '', cmd)
