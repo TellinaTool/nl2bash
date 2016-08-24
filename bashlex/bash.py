@@ -93,7 +93,6 @@ def rw_signature(cmd):
     tokens = bash_tokenizer(cmd)
     if not tokens:
         return None
-    reserved_words = set()
     for token in tokens:
         if token.startswith('-') or \
             token in reserved_words or \
