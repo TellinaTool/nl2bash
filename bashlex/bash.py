@@ -93,13 +93,14 @@ def rw_signature(cmd):
     tokens = bash_tokenizer(cmd)
     if not tokens:
         return None
+    rws = set()
     for token in tokens:
         if token.startswith('-') or \
             token in reserved_words or \
             token in pseudo_head_commands or \
             token in special_operators:
             reserved_words.add(token)
-    signature = ' '.join(list(reserved_words))
+    signature = ' '.join(list(rws))
     return signature
 
 def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
