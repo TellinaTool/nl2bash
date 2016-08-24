@@ -38,7 +38,8 @@ head_commands = [
     "cp", "mv",
     "wc", "chmod",
     "tar", "sort",
-    "head", "tail"
+    "head", "tail",
+    "chown"
 ]
 
 special_operators = [

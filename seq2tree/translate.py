@@ -70,6 +70,7 @@ def create_model(session, forward_only):
     params["learning_rate"] = FLAGS.learning_rate
     params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
     params["use_attention"] = FLAGS.use_attention
+    params["use_copy"] = FLAGS.use_copy
 
     params["decoder_topology"] = FLAGS.decoder_topology
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
@@ -116,10 +117,9 @@ def train(train_set, dev_set, verbose=False):
             for i in tqdm(xrange(len(train_set))):
                 time.sleep(0.01)
                 _, _, nl, tree = train_set[i]
-                encoder_inputs, decoder_inputs, target_weights = model.format_example(
-                    nl, tree)
-                _, step_loss, _ = model.step(sess, encoder_inputs, decoder_inputs,
-                                             target_weights, forward_only=False)
+
+               formatted_example = model.format_example(nl, tree)
+                _, step_loss, _ = model.step(sess, formatted_example, forward_only=False)
                 loss += step_loss
                 current_step += 1
 
@@ -151,11 +151,8 @@ def train(train_set, dev_set, verbose=False):
                 num_eval = 0
                 for i in xrange(len(dev_set)):
                     nl_str, cm_str, nl, tree = dev_set[i]
-                    encoder_inputs, decoder_inputs, target_weights = model.format_example(
-                        # nl, [data_utils.ROOT_ID])
-                        nl, tree)
-                    _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
-                                                             target_weights, forward_only=True)
+                    formatted_example = model.format_example(nl, tree)
+                    _, eval_loss, output_logits = model.step(sess, formatted_example, forward_only=True)
                     dev_loss += eval_loss
                     
                     ground_truth = [rev_cm_vocab[i] for i in tree]
@@ -234,12 +231,10 @@ def interactive_decode():
             token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
                                                          basic_tokenizer)
             # Get a 1-element batch to feed the sentence to the model.
-            encoder_inputs, decoder_inputs, target_weights = model.format_example(
-                token_ids, [data_utils.ROOT_ID])
+            formatted_example = model.format_example(token_ids, [data_utils.ROOT_ID])
 
             # Get output logits for the sentence.
-            _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
-                                             target_weights, forward_only=True)
+            _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
             tree, cmd, search_history = decode(output_logits, rev_cm_vocab)
             print()
             print("->".join(search_history[:20]))
@@ -261,10 +256,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     for i in xrange(len(dataset)):
         nl_str, cm_str, nl, tree = dataset[i]
       
-        encoder_inputs, decoder_inputs, target_weights = model.format_example(
+        formatted_example = model.format_example(
             nl, [data_utils.ROOT_ID])
-        _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
-                                         target_weights, forward_only=True)
+        _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
 
         # rev_encoder_inputs = []
         # for i in xrange(len(encoder_inputs)-1, -1, -1):

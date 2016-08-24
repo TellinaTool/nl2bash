@@ -32,6 +32,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("log_device_placement", False,
                                 "Set to True for logging device placement.")
 
+
     # training data property
     tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
     tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
@@ -39,6 +40,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("max_cm_length", 80, "maximum length of the command traversal sequence.")
     tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
     tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
+
 
     # learning hyperparameters
     tf.app.flags.DEFINE_string("optimizer", "adam", "Type of numeric optimization algorithm to use.")
@@ -58,7 +60,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("dim", 300, "Dimension of each model layer.")
     tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
     tf.app.flags.DEFINE_boolean("use_attention", False, "If set, use attention decoder.")
-
+    tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
     tf.app.flags.DEFINE_string("decoder_topology", "basic", "structure of the tree RNN")
     tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
     tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
