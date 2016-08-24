@@ -99,7 +99,7 @@ def rw_signature(cmd):
             token in reserved_words or \
             token in pseudo_head_commands or \
             token in special_operators:
-            reserved_words.add(token)
+            rws.add(token)
     signature = ' '.join(list(rws))
     return signature
 
