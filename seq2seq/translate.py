@@ -43,7 +43,6 @@ import cPickle as pickle
 import numpy as np
 
 from bash import basic_tokenizer, bash_tokenizer
-from token_overlap import TokenOverlap
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf

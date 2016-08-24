@@ -1,8 +1,8 @@
+""" Warning: token-based evaluation is not used in the experiments."""
+
 import sys
 sys.path.append("../bashlex")
-import bashlex
-import errors, tokenizer, bparser
-from bash import bash_tokenizer, basic_tokenizer
+import bash, bashlex
 
 class TokenOverlap(object):
 
@@ -25,7 +25,7 @@ class TokenOverlap(object):
     @staticmethod
     def get_command_list(cmd, verbose=False):
         try:
-            parse = bparser.parse(cmd)
+            parse = bashlex.parse(cmd)
         except bashlex.errors.ParsingError, e:
             return TokenOverlap.get_command_list_rule_based(cmd)
         except bashlex.tokenizer.MatchedPairError, e:
@@ -68,12 +68,12 @@ class TokenOverlap(object):
         if hasattr(gt, 'parts'):
             gt_token_set = set([n.word for n in gt.parts if n.kind == "word"])
         else:
-            gt_tokens = basic_tokenizer(gt)
+            gt_tokens = bash.basic_tokenizer(gt)
             if not gt_tokens:
-                gt_tokens = basic_tokenizer(gt)
+                gt_tokens = bash.basic_tokenizer(gt)
             gt_token_set = set(gt_tokens)
-        pred_tokens = basic_tokenizer(pred)
+        pred_tokens = bash.basic_tokenizer(pred)
         if not pred_tokens:
-            pred_tokens = basic_tokenizer(pred)
+            pred_tokens = bash.basic_tokenizer(pred)
         pred_token_set = set(pred_tokens)
         return (len(gt_token_set & pred_token_set) + 0.0) / len(gt_token_set | pred_token_set)
