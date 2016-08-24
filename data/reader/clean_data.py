@@ -9,7 +9,7 @@ sys.path.append("../../bashlex")
 import random
 
 from utils import is_stopword
-from bash import basic_tokenizer, bash_tokenizer
+from bash import rw_signature, basic_tokenizer, bash_tokenizer
 
 # minimum number of edits two natural language descriptions have to differ to not be considered as duplicates
 EDITDIST_THRESH = 8
@@ -134,7 +134,7 @@ class DBConnection(object):
         for cmd in unique_pairs:
             if not cmd:
                 continue
-            signature = self.reserved_words_signature(cmd)
+            signature = rw_signature(cmd)
             if not signature:
                 num_errors += 1
                 continue
@@ -169,42 +169,50 @@ class DBConnection(object):
                 if not inserted:
                     desp_dict[nl].append((cmd, nl))
                 """
-                desp_dict[nl].append((cmd, nl))
+                desp_dict[nl].append(cmd)
         return desp_dict
 
     def dump_data(self, data_dir, num_folds=10):
-        num_cmd = 0
+        num_cmdsig = 0
         num_pairs = 0
 
+        # First-pass: group pairs by English descriptions
         desp_dict = self.unique_pairs_by_description("find")
+        desp_clusters = desp_dict.items()
+
+        # Second-pass: group English description clusters by command signatures
+        cmdsig_dict = collections.defaultdict(list)
+        for i in xrange(len(desp_clusters)):
+            for cmd in desp_clusters[i][1]:
+                cmdsig = rw_signature(cmd)
+                cmdsig_dict[cmdsig].append(i)
 
         data = collections.defaultdict(list)
-        for query in desp_dict:
-            # if not ("find " in signature or " find" in signature):
-            #     continue
-            # print(signature)
-            print("Query: %s" % query.encode('utf-8'))
-            num_cmd += 1
-            ind = random.randrange(num_folds)
-            bin = data[ind]
-            for cmd, nl in desp_dict[query]:
+        for cmdsig in cmdsig_dict:
+            num_cmdsig += 1
+            print("Command signature: %s" % cmdsig.encode('utf-8'))
+            for i in cmdsig_dict[cmdsig]:
+                # randomly find a fold to place data point
+                ind = random.randrange(num_folds)
+                bin = data[ind]
+
+                nl, cmds = desp_clusters[i]
+                print("desp: %s" % nl.encode('utf-8'))
                 if nl == "NA":
                     continue
-                print("desp: %s" % nl.encode('utf-8'))
-                num_pairs += 1
-                cmd = cmd.strip().replace('\n', ' ').replace('\r', ' ')
-                nl = nl.strip().replace('\n', ' ').replace('\r', ' ')
-                if nl.endswith("."):
-                    nl = nl[:-1]
-                if not type(nl) is unicode:
-                    nl = nl.decode()
-                if not type(cmd) is unicode:
-                    cmd = cmd.decode()
-                bin.append((nl, cmd))
+                for cmd in cmds:
+                    num_pairs += 1
+                    cmd = cmd.strip().replace('\n', ' ').replace('\r', ' ')
+                    nl = nl.strip().replace('\n', ' ').replace('\r', ' ')
+                    if not type(nl) is unicode:
+                        nl = nl.decode()
+                    if not type(cmd) is unicode:
+                        cmd = cmd.decode()
+                    bin.append((nl, cmd))
 
         print("Total number of pairs: %d" % num_pairs)
-        print("Total number of commands: %d" % num_cmd)
-        print("%.2f descriptions per command" % ((num_pairs + 0.0) / num_cmd))
+        print("Total number of command signatures: %d" % num_cmdsig)
+        print("%.2f descriptions per command signature" % ((num_pairs + 0.0) / num_cmdsig))
         with open(data_dir + "/data.dat", 'w') as o_f:
             pickle.dump(data, o_f)
 
