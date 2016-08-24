@@ -190,7 +190,7 @@ class DBConnection(object):
         data = collections.defaultdict(list)
         for cmdsig in cmdsig_dict:
             num_cmdsig += 1
-            print("Command signature: %s" % cmdsig.encode('utf-8'))
+            print("Command signature: %s" % cmdsig)
             for i in cmdsig_dict[cmdsig]:
                 # randomly find a fold to place data point
                 ind = random.randrange(num_folds)
