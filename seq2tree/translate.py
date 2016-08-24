@@ -27,7 +27,6 @@ from parse_args import define_input_flags
 from bash import basic_tokenizer, bash_tokenizer
 from normalizer import to_list, list_to_tree, to_command, pretty_print, normalize_ast, all_simple_commands
 from seq2tree_model import Seq2TreeModel
-from token_overlap import TokenOverlap
 
 FLAGS = tf.app.flags.FLAGS
 

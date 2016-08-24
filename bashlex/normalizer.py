@@ -236,82 +236,85 @@ def to_list(node, order='dfs', list=None):
         list.append("<NO_EXPAND>")
     return list
 
-def to_command(node, loose_constraints=False):
-    cmd = ""
+def to_tokens(node, loose_constraints=False):
+    tokens = []
     lc = loose_constraints
     # convert a tree to bash command format
     if node.kind == "root":
         assert(loose_constraints or node.getNumChildren() == 1)
         if lc:
             for child in node.children:
-                cmd += to_command(child, lc) + ' '
+                tokens += to_tokens(child, lc)
         else:
-            cmd = to_command(node.children[0], lc)
+            tokens = to_tokens(node.children[0], lc)
     elif node.kind == "pipeline":
         assert(loose_constraints or node.getNumChildren() > 1)
         if lc and node.getNumChildren() < 1:
-            cmd += "|"
+            tokens.append("|")
         elif lc and node.getNumChildren() == 1:
             # treat "single-pipe" as atomic command
-            cmd += to_command(node.children[0], lc)
+            tokens += to_tokens(node.children[0], lc)
         else:
             for child in node.children[:-1]:
-                cmd += to_command(child, lc)
-                cmd += " | "
-            cmd += to_command(node.children[-1], lc)
+                tokens += to_tokens(child, lc)
+                tokens.append("|")
+            tokens += to_tokens(node.children[-1], lc)
     elif node.kind == "commandsubstitution":
         assert(loose_constraints or node.getNumChildren() == 1)
         if lc and node.getNumChildren() < 1:
-            cmd = "$(" + ")"
+            tokens += ["$(", ")"]
         else:
-            cmd = "$(" + to_command(node.children[0], lc) + ")"
+            tokens.append("$(")
+            tokens += to_tokens(node.children[0], lc)
+            tokens.append(")")
     elif node.kind == "processsubstitution":
         assert(loose_constraints or node.getNumChildren() == 1)
         if lc and node.getNumChildren() < 1:
-            cmd = node.value + "()"
+            tokens.append(node.value + "(")
+            tokens.append(")")
         else:
-            cmd = node.value + "(" + to_command(node.children[0], lc) + ")"
+            tokens.append(node.value + "(")
+            tokens += to_tokens(node.children[0], lc)
+            tokens.append(")")
     elif node.kind == "headcommand":
-        cmd = node.value + ' '
+        tokens.append(node.value)
         for child in node.children:
-            cmd += to_command(child, lc) + ' '
-        cmd = cmd.strip()
+            tokens += to_tokens(child, lc)
     elif node.kind == "flag":
-        cmd = node.value + ' '
+        tokens.append(node.value)
         for child in node.children:
-            cmd += to_command(child, lc) + ' '
-        cmd = cmd.strip()
+            tokens += to_tokens(child, lc)
     elif node.kind == "binarylogicop":
         assert(loose_constraints or node.getNumChildren() > 1)
         if lc and node.getNumChildren() < 2:
             for child in node.children:
-                cmd += to_command(child, lc) + ' '
+                tokens += to_tokens(child, lc)
         else:
-            cmd += "\\( "
+            tokens.append("\\( ")
             for i in xrange(len(node.children)-1):
-                cmd += to_command(node.children[i], lc) + ' '
-                cmd += node.value + ' '
-            cmd += to_command(node.children[-1], lc) + ' '
-            cmd += "\\)"
-            cmd = cmd.strip()
+                tokens += to_tokens(node.children[i], lc)
+                tokens.append(node.value)
+            tokens += to_tokens(node.children[-1], lc)
+            tokens.append("\\)")
     elif node.kind == "unarylogicop":
         assert(loose_constraints or node.getNumChildren() == 1)
         if lc and node.getNumChildren() < 1:
-            cmd = node.value
+            tokens.append(node.value)
         else:
-            cmd += node.value + ' '
-            cmd += to_command(node.children[0], lc) + ' '
-            cmd = cmd.strip()
+            tokens.append(node.value)
+            tokens += to_tokens(node.children[0], lc)
     elif node.kind == "argument":
         assert(loose_constraints or node.getNumChildren() == 0)
         if lc:
-            cmd = node.value + ' '
+            tokens.append(node.value)
             for child in node.children:
-                cmd += to_command(child, lc) + ' '
-            cmd = cmd.strip()
+                tokens += to_tokens(child, lc)
         else:
-            cmd = node.value
-    return cmd
+            tokens.append(node.value)
+    return tokens
+
+def to_command(cmd, loose_constraints=False):
+    return ' '.join(to_tokens(cmd, loose_constraints))
 
 def list_to_tree(list, order='dfs'):
     # construct a tree from linearized input
@@ -570,7 +573,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     else:
                         attach_point = attach_option(child, attach_point)
                 elif bash.is_headcommand(child.word) and not with_quotation(child) and \
-                    (attach_point.kind != "headcommand" or attach_point.value in ["sh", "csh", "bash", "exec", "xargs"]):
+                    (attach_point.kind != "headcommand" or attach_point.value in
+                        ["sh", "csh", "bash", "exec", "xargs"]):
                     if i > 0:
                         # embedded commands
                         if attach_point.kind == "flag":
@@ -597,19 +601,11 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 # handle end of utility introduced by '-exec' and whatnots
                                 attach_point = attach_point.parent
                             else:
-                                # fail_headcommand_attachment_check(
-                                #     "parent option %s does not take utility arguments" % attach_point.symbol,
-                                #     attach_point, child)
-                                # attach_point = attach_point.parent
                                 new_command_node = copy.deepcopy(node)
                                 new_command_node.parts = node.parts[i:]
                                 normalize_command(new_command_node, attach_point)
                                 i = len(node.parts) - 1
                         elif attach_point.kind == "headcommand":
-                            # if not attach_point.value in ["sh", "csh", "bash", "exec", "xargs"]:
-                            #     fail_headcommand_attachment_check(
-                            #         "parent headcommand does not take utility arguments",
-                            #         attach_point, child)
                             new_command_node = copy.deepcopy(node)
                             new_command_node.parts = node.parts[i:]
                             normalize_command(new_command_node, attach_point)

@@ -2,14 +2,13 @@
 
 import collections
 import cPickle as pickle
+import random
 import sqlite3
 import sys
 sys.path.append("..")
 sys.path.append("../../bashlex")
-import random
 
-from utils import is_stopword
-from bash import rw_signature, basic_tokenizer, bash_tokenizer
+from data_tools import basic_tokenizer, bash_tokenizer, is_stopword
 
 # minimum number of edits two natural language descriptions have to differ to not be considered as duplicates
 EDITDIST_THRESH = 8
