@@ -243,7 +243,7 @@ def to_list(node, order='dfs', list=None):
 def to_template(node, loose_constraints=False):
     # convert a bash AST to a template that contains only reserved words and argument types
     # flags are ordered alphabetically
-    
+
 
 def to_tokens(node, loose_constraints=False):
     # convert a bash AST to a list of tokens
@@ -648,6 +648,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 elif child.word.startswith('-') and not END_OF_OPTIONS:
                     if attach_point.kind == "flag" and attach_point.getNumChildren() == 0 and \
                         any(c.isdigit() for c in child.word):
+                        # "-" is a minus symbol
                         if attach_point.parent.kind == "headcommand":
                             head_cmd = attach_point.parent.value
                             flag = attach_point.value
