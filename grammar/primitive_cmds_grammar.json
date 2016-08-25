@@ -694,7 +694,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -1036,7 +1036,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -1991,7 +1991,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -2333,7 +2333,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -4269,7 +4269,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"tar_format",
-                        "arg_type":"Unknown",
+                        "arg_type":"TarFormat",
                         "isList":false
                      }
                   ]
@@ -4818,7 +4818,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"tar_format",
-                        "arg_type":"Unknown",
+                        "arg_type":"TarFormat",
                         "isList":false
                      }
                   ]

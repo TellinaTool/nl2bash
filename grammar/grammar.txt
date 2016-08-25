@@ -1,15 +1,20 @@
 type ::= 
 		File (file, source_file, target_file, xfile, file1, file2)
 		Directory (directory, exdir)
+		Path (path)
+
+		String (name, gname, eofstr, replstr, string, command, extension, option, uname)
+		Pattern (pattern)
+
 		Number (n, num, number, replacements, maxprocs, incr, bytes, count, mask)
 		Time (time, nmin)
-		String (name, gname, eofstr, replstr, string, command, extension, option, uname)
-		Permission (permmode)
 		Size (size, blocksize)
-		Pattern (pattern)
-		Path (path)
-		TarFormat (tar_format)
 		Date (date)
+
+		Permission (permmode)
+
+		TarFormat (tar_format)
+
 		Utility (utility)
 		Argument (argument)
 
