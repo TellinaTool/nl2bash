@@ -10,7 +10,11 @@ class ManPageLookUp(object):
         return self.table[cmd]["arguments"]
 
     def get_flag_arg_type(self, cmd, flag):
-        return list(self.table[cmd]["flags"][flag])[0]
+        arg_type = self.table[cmd]["flags"][flag]
+        if arg_type:
+            return list(arg_type)[0]
+        else:
+            return None
 
 # classes to build tree from json file
 def load_syntax(json_files):
