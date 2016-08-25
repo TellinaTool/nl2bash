@@ -8,8 +8,6 @@ It also performs some normalization on the command arguments.
 
 from __future__ import print_function
 import copy
-import json
-import os
 import re
 import sys
 sys.path.append("../grammar")
@@ -235,6 +233,9 @@ def to_list(node, order='dfs', list=None):
             to_list(child, order, list)
         list.append("<NO_EXPAND>")
     return list
+
+def to_template(node, loose_constraints=False):
+
 
 def to_tokens(node, loose_constraints=False):
     tokens = []
