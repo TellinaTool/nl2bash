@@ -579,7 +579,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"gname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -597,7 +597,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"gname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -694,7 +694,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -1036,7 +1036,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -1147,7 +1147,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"name",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1201,7 +1201,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"uname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1219,7 +1219,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"uname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1262,7 +1262,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"name",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1876,7 +1876,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"gname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1894,7 +1894,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"gname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1991,7 +1991,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -2333,7 +2333,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -2444,7 +2444,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"name",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -2498,7 +2498,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"uname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -2516,7 +2516,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"uname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -2559,7 +2559,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"name",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -4269,7 +4269,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"tar_format",
-                        "arg_type":"Unknown",
+                        "arg_type":"TarFormat",
                         "isList":false
                      }
                   ]
@@ -4818,7 +4818,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"tar_format",
-                        "arg_type":"Unknown",
+                        "arg_type":"TarFormat",
                         "isList":false
                      }
                   ]
@@ -6452,7 +6452,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"eofstr",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -6470,7 +6470,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"replstr",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      },
                      {
@@ -6506,7 +6506,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"replstr",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -6660,7 +6660,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"string",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -6678,7 +6678,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"string",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -6753,7 +6753,7 @@
             {
                "type":"argument_option",
                "arg_name":"command",
-               "arg_type":"String",
+               "arg_type":"Pattern",
                "isList":false
             },
             {
@@ -6814,7 +6814,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"command",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -6850,7 +6850,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"extension",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -8466,7 +8466,7 @@
                "cmd":{
                   "type":"argument_option",
                   "arg_name":"string",
-                  "arg_type":"String",
+                  "arg_type":"Pattern",
                   "isList":true
                }
             }
@@ -8484,7 +8484,7 @@
                "cmd":{
                   "type":"argument_option",
                   "arg_name":"OPTION",
-                  "arg_type":"String",
+                  "arg_type":"Pattern",
                   "isList":true
                }
             },
@@ -8646,7 +8646,7 @@
                "cmd":{
                   "type":"argument_option",
                   "arg_name":"option",
-                  "arg_type":"String",
+                  "arg_type":"Pattern",
                   "isList":true
                }
             },
