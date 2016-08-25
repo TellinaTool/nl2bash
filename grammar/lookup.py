@@ -6,8 +6,8 @@ class ManPageLookUp(object):
     def __init__(self, path):
         self.table = load_syntax(path)
 
-    def get_arg_type(self, cmd, arg):
-        return list(self.table[cmd]["arguments"][arg])[0]
+    def get_arg_types(self, cmd):
+        return self.table[cmd]["arguments"]
 
     def get_flag_arg_type(self, cmd, flag):
         return list(self.table[cmd]["flags"][flag])[0]
@@ -81,6 +81,7 @@ def make_grammar_from_options(x, command_table):
 
 if __name__ == "__main__":
     man_lookup = ManPageLookUp([os.path.join(os.path.dirname(__file__), "primitive_cmds_grammar.json")])
+    print(man_lookup.get_arg_types("find"))
     while True:
         try:
             cmd = raw_input("> Command:")
