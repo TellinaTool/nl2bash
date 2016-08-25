@@ -8,7 +8,6 @@ It also performs some normalization on the command arguments.
 
 from __future__ import print_function
 import copy
-import json
 import os
 import re
 import sys
@@ -17,6 +16,7 @@ sys.path.append("../grammar")
 # bashlex stuff
 import bast, errors, tokenizer, bparser
 import bash
+from lookup import ManPageLookUp
 
 # TODO: add stdin & stdout types
 simplified_bash_syntax = [
@@ -54,6 +54,9 @@ binary_logic_operators = set([
     '-o',
     '-a'
 ])
+
+man_lookup = ManPageLookUp([os.path.join(os.path.dirname(__file__), "..", "grammar",
+                                         "primitive_cmds_grammar.json")])
 
 def is_unary_logic_op(node, parent):
     if node.word == "!":
@@ -178,8 +181,9 @@ class Node(object):
 class ArgumentNode(Node):
     num_child = 0
 
-    def __init__(self, kind="", value="", parent=None, lsb=None):
+    def __init__(self, kind="", value="", arg_type="", parent=None, lsb=None):
         super(ArgumentNode, self).__init__(parent, lsb, kind, value)
+        self.arg_type = arg_type
 
 class UnaryLogicOpNode(Node):
     num_child = 1
@@ -236,85 +240,102 @@ def to_list(node, order='dfs', list=None):
         list.append("<NO_EXPAND>")
     return list
 
-def to_tokens(node, loose_constraints=False):
-    tokens = []
-    lc = loose_constraints
-    # convert a tree to bash command format
-    if node.kind == "root":
-        assert(loose_constraints or node.getNumChildren() == 1)
-        if lc:
-            for child in node.children:
-                tokens += to_tokens(child, lc)
-        else:
-            tokens = to_tokens(node.children[0], lc)
-    elif node.kind == "pipeline":
-        assert(loose_constraints or node.getNumChildren() > 1)
-        if lc and node.getNumChildren() < 1:
-            tokens.append("|")
-        elif lc and node.getNumChildren() == 1:
-            # treat "single-pipe" as atomic command
-            tokens += to_tokens(node.children[0], lc)
-        else:
-            for child in node.children[:-1]:
-                tokens += to_tokens(child, lc)
-                tokens.append("|")
-            tokens += to_tokens(node.children[-1], lc)
-    elif node.kind == "commandsubstitution":
-        assert(loose_constraints or node.getNumChildren() == 1)
-        if lc and node.getNumChildren() < 1:
-            tokens += ["$(", ")"]
-        else:
-            tokens.append("$(")
-            tokens += to_tokens(node.children[0], lc)
-            tokens.append(")")
-    elif node.kind == "processsubstitution":
-        assert(loose_constraints or node.getNumChildren() == 1)
-        if lc and node.getNumChildren() < 1:
-            tokens.append(node.value + "(")
-            tokens.append(")")
-        else:
-            tokens.append(node.value + "(")
-            tokens += to_tokens(node.children[0], lc)
-            tokens.append(")")
-    elif node.kind == "headcommand":
-        tokens.append(node.value)
-        for child in node.children:
-            tokens += to_tokens(child, lc)
-    elif node.kind == "flag":
-        tokens.append(node.value)
-        for child in node.children:
-            tokens += to_tokens(child, lc)
-    elif node.kind == "binarylogicop":
-        assert(loose_constraints or node.getNumChildren() > 1)
-        if lc and node.getNumChildren() < 2:
-            for child in node.children:
-                tokens += to_tokens(child, lc)
-        else:
-            tokens.append("\\( ")
-            for i in xrange(len(node.children)-1):
-                tokens += to_tokens(node.children[i], lc)
-                tokens.append(node.value)
-            tokens += to_tokens(node.children[-1], lc)
-            tokens.append("\\)")
-    elif node.kind == "unarylogicop":
-        assert(loose_constraints or node.getNumChildren() == 1)
-        if lc and node.getNumChildren() < 1:
-            tokens.append(node.value)
-        else:
-            tokens.append(node.value)
-            tokens += to_tokens(node.children[0], lc)
-    elif node.kind == "argument":
-        assert(loose_constraints or node.getNumChildren() == 0)
-        if lc:
-            tokens.append(node.value)
-            for child in node.children:
-                tokens += to_tokens(child, lc)
-        else:
-            tokens.append(node.value)
-    return tokens
+def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
+              arg_type_only=False):
+    """convert a bash AST to a list of tokens"""
 
-def to_command(cmd, loose_constraints=False):
-    return ' '.join(to_tokens(cmd, loose_constraints))
+    lc = loose_constraints
+    ifo = ignore_flag_order
+    ato = arg_type_only
+
+    def to_tokens_fun(node):
+        tokens = []
+        if node.kind == "root":
+            assert(loose_constraints or node.getNumChildren() == 1)
+            if lc:
+                for child in node.children:
+                    tokens += to_tokens(child)
+            else:
+                tokens = to_tokens(node.children[0])
+        elif node.kind == "pipeline":
+            assert(loose_constraints or node.getNumChildren() > 1)
+            if lc and node.getNumChildren() < 1:
+                tokens.append("|")
+            elif lc and node.getNumChildren() == 1:
+                # treat "single-pipe" as atomic command
+                tokens += to_tokens(node.children[0])
+            else:
+                for child in node.children[:-1]:
+                    tokens += to_tokens(child)
+                    tokens.append("|")
+                tokens += to_tokens(node.children[-1])
+        elif node.kind == "commandsubstitution":
+            assert(loose_constraints or node.getNumChildren() == 1)
+            if lc and node.getNumChildren() < 1:
+                tokens += ["$(", ")"]
+            else:
+                tokens.append("$(")
+                tokens += to_tokens(node.children[0])
+                tokens.append(")")
+        elif node.kind == "processsubstitution":
+            assert(loose_constraints or node.getNumChildren() == 1)
+            if lc and node.getNumChildren() < 1:
+                tokens.append(node.value + "(")
+                tokens.append(")")
+            else:
+                tokens.append(node.value + "(")
+                tokens += to_tokens(node.children[0])
+                tokens.append(")")
+        elif node.kind == "headcommand":
+            tokens.append(node.value)
+            children = sorted(node.children) if ifo else node.children
+            for child in children:
+                tokens += to_tokens(child)
+        elif node.kind == "flag":
+            tokens.append(node.value)
+            for child in node.children:
+                tokens += to_tokens(child)
+        elif node.kind == "binarylogicop":
+            assert(loose_constraints or node.getNumChildren() > 1)
+            if lc and node.getNumChildren() < 2:
+                for child in node.children:
+                    tokens += to_tokens(child)
+            else:
+                tokens.append("\\( ")
+                for i in xrange(len(node.children)-1):
+                    tokens += to_tokens(node.children[i])
+                    tokens.append(node.value)
+                tokens += to_tokens(node.children[-1])
+                tokens.append("\\)")
+        elif node.kind == "unarylogicop":
+            assert(loose_constraints or node.getNumChildren() == 1)
+            if lc and node.getNumChildren() < 1:
+                tokens.append(node.value)
+            else:
+                tokens.append(node.value)
+                tokens += to_tokens(node.children[0])
+        elif node.kind == "argument":
+            assert(loose_constraints or node.getNumChildren() == 0)
+            if ato:
+                tokens.append(node.arg_type)
+            else:
+                tokens.append(node.value)
+            if lc:
+                for child in node.children:
+                    tokens += to_tokens(child)
+        return tokens
+
+    return to_tokens_fun(node)
+
+def to_template(node, loose_constraints=False):
+    # convert a bash AST to a template that contains only reserved words and argument types
+    # flags are ordered alphabetically
+    tokens = to_tokens(node, loose_constraints, ignore_flag_order=True,
+                       arg_type_only=True)
+    return ' '.join(tokens)
+
+def to_command(node, loose_constraints=False, ignore_flag_order=False):
+    return ' '.join(to_tokens(node, loose_constraints, ignore_flag_order))
 
 def list_to_tree(list, order='dfs'):
     # construct a tree from linearized input
@@ -388,6 +409,24 @@ def make_sibling(lsb, rsb):
     if rsb:
         rsb.lsb = lsb
 
+def type_check(word, possible_types):
+    """Heuristically determine argument types."""
+    if word.isdigit() and "Number" in possible_types:
+        return "Number"
+    elif any(c.isdigit for c in word):
+        if word[-1] in ["k", "M", "G", "T", "P"] and "Size" in possible_types:
+            return "Size"
+        if word[-1] in ["s", "m", "h", "d", "w"] and "Time" in possible_types:
+            return "Time"
+    elif "File" in possible_types:
+        return "File"
+    elif "Pattern" in possible_types:
+        return "Pattern"
+    else:
+        print("Unable to decide type for {}".format(word))
+        print(possible_types)
+        sys.exit()
+
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                   recover_quotation=True):
     """
@@ -404,26 +443,16 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     if not cmd:
         return None
 
-    def find_flag_attach_point(node, attach_point):
-        if attach_point.kind == "flag":
-            return find_flag_attach_point(node, attach_point.parent)
-        elif attach_point.kind == "headcommand":
-            return attach_point
-        elif attach_point.kind == "unarylogicop" or \
-            attach_point.kind == "binarylogicop":
-            return attach_point
-        else:
-            raise ValueError("Error: cannot decide where to attach flag node")
-
     def normalize_word(node, norm_digit, norm_long_pattern, recover_quote):
         w = recover_quotation(node) if recover_quote else node.word
-        if ' ' in w:
+        """if ' ' in w:
             try:
                 assert(w.startswith('"') and w.endswith('"'))
             except AssertionError, e:
                 print("Quotation Error: space inside word " + w)
             if norm_long_pattern:
                 w = bash._LONG_PATTERN
+        """
         return re.sub(bash._DIGIT_RE, bash._NUM, w) if norm_digit and not bash.is_option(w) else w
 
     def recover_quotation(node):
@@ -471,12 +500,47 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             attach_point = attach_point.getRightChild()
             return attach_point
 
+        def attach_argument(node, attach_point):
+            if attach_point.kind == "flag":
+                if attach_point.getNumChildren() >= 1:
+                    attach_point = attach_point.parent
+                elif attach_point.parent.kind == "headcommand":
+                    # attach point is flag of some headcommand
+                    head_cmd = attach_point.parent.value
+                    flag = attach_point.value
+                    arg_type = man_lookup.get_flag_arg_type(head_cmd, flag)
+                    if not arg_type:
+                        # attach point flag does not take argument
+                        attach_point = attach_point.parent
+                else:
+                    print("Unrecognized flag attach_point kind: {}".format(attach_point.parent.kind))
+                    sys.exit()
+            elif attach_point.kind == "headcommand":
+                head_cmd = attach_point.value
+                possible_arg_types = man_lookup.get_arg_types(head_cmd)
+                arg_type = type_check(node.word, possible_arg_types)
+            else:
+                print("Unrecognized argument attach_point kind: {}".format(attach_point.parent.kind))
+                sys.exit()
+            normalize(node, attach_point, "argument", arg_type)
+
         def fail_headcommand_attachment_check(err_msg, attach_point, child):
             msg_head = "Error attaching headcommand: "
             print(msg_head + err_msg)
             print(attach_point.symbol)
             print(child)
             # raise HeadCommandAttachmentError(msg_head + err_msg)
+
+        def find_flag_attach_point(node, attach_point):
+            if attach_point.kind == "flag":
+                return find_flag_attach_point(node, attach_point.parent)
+            elif attach_point.kind == "headcommand":
+                return attach_point
+            elif attach_point.kind == "unarylogicop" or \
+                attach_point.kind == "binarylogicop":
+                return attach_point
+            else:
+                raise ValueError("Error: cannot decide where to attach flag node")
 
         def organize_buffer(buffer):
             norm_node = BinaryLogicOpNode(value="-and")
@@ -544,8 +608,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             if node.parent.kind == "binarylogicop" and node.parent.value == "-and":
                 if node.parent.getNumChildren() == 1:
                     node.grandparent().replaceChild(node.parent, node)
-
-            # 写完程序员彻底SB了.
 
         # normalize atomic command
         parentheses_attach_points = []
@@ -618,17 +680,31 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         normalize(child, attach_point, "headcommand")
                         attach_point = attach_point.getRightChild()
                         head_commands.append(attach_point)
-                elif bash.is_option(child.word) and not END_OF_OPTIONS:
-                    attach_point = attach_option(child, attach_point)
+                elif child.word.startswith('-') and not END_OF_OPTIONS:
+                    # check if child is a flag
+                    if attach_point.kind == "flag" and any(c.isdigit() for c in child.word):
+                        if attach_point.parent.kind == "headcommand":
+                            head_cmd = attach_point.parent.value
+                            flag = attach_point.value
+                            arg_type = man_lookup.get_flag_arg_type(head_cmd, flag)
+                            if arg_type and attach_point.getNumChildren() == 0:
+                                # child is an argument starts with a minus symbol
+                                normalize(node, attach_point, "argument", arg_type)
+                            else:
+                                # child is a flag
+                                attach_point = attach_option(child, attach_point)
+                        else:
+                            print("Unrecognized flag attach_point kind: {}".format(attach_point.parent.kind))
+                            sys.exit()
+                    else:
+                        attach_point = attach_option(child, attach_point)
                 else:
-                    #TODO: handle fine-grained argument types
-                    if attach_point.kind == "flag" and attach_point.getNumChildren() >= 1:
-                        attach_point = attach_point.parent
                     if child.word == "(":
                         parentheses_attach_points.append(attach_point)
                     if child.word == ")":
                         attach_point = parentheses_attach_points.pop()
-                    normalize(child, attach_point, "argument")
+                    attach_argument(child, attach_point)
+
             elif child.kind == "assignment":
                 normalize(child, attach_point, "assignment")
             else:
@@ -710,7 +786,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         assert(len(stack) == 0)
         assert(depth == 0)
 
-    def normalize(node, current, arg_type=""):
+    def normalize(node, current, node_kind="", arg_type=""):
         # recursively normalize each subtree
         if not type(node) is bast.node:
             raise ValueError('type(node) is not ast.node')
@@ -737,10 +813,9 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         normalize(child, norm_node)
                 elif node.parts[0].kind == "parameter" or \
                     node.parts[0].kind == "tilde":
-                    # if not node.parts[0].value.isdigit():
                     value = normalize_word(node, normalize_digits, normalize_long_pattern,
                                            recover_quotation)
-                    norm_node = ArgumentNode(kind=arg_type, value=value)
+                    norm_node = ArgumentNode(kind=node_kind, value=value, arg_type=arg_type)
                     attach_to_tree(norm_node, current)
                 else:
                     for child in node.parts:
@@ -748,7 +823,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             else:
                 value = normalize_word(node, normalize_digits, normalize_long_pattern,
                                        recover_quotation)
-                norm_node = ArgumentNode(kind=arg_type, value=value)
+                norm_node = ArgumentNode(kind=node_kind, value=value, arg_type=arg_type)
                 print(norm_node.symbol)
                 attach_to_tree(norm_node, current)
         elif node.kind == "pipeline":

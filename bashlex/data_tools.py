@@ -9,7 +9,7 @@ import re
 import sys
 sys.path.append("../data")
 
-import bash, normalizer, utils
+import bash, normalizer
 import gazetteer
 
 from nltk.stem.wordnet import WordNetLemmatizer
@@ -71,12 +71,12 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             word = lmtzr.lemmatize(word)
 
         # remove English stopwords
-        if word in ENGLISH_STOPWORDS:
+        if word in gazetteer.ENGLISH_STOPWORDS:
             continue
 
         # covert number words into numbers
-        if word in word2num:
-            word = str(word2num[word])
+        if word in gazetteer.word2num:
+            word = str(gazetteer.word2num[word])
 
         # normalize regular expressions
         if not bash.is_english_word(word):
@@ -116,23 +116,8 @@ def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
                          recover_quotation)
     return normalizer.to_tokens(tree)
 
-@utils.deprecated
-def basic_tokenizer_regex(sentence, normalize_digits=True, lower_case=True):
-    """Very basic tokenizer: used for English tokenization."""
-    words = []
-    for space_separated_fragment in sentence.replace('\n', ' ').strip().split():
-        words.extend(re.split(_WORD_SPLIT, space_separated_fragment))
-    normalized_words = []
-    for i in xrange(len(words)):
-        w = words[i].strip()
-        word = re.sub(bash._DIGIT_RE, bash._NUM, w) \
-            if normalize_digits and not bash.is_option(w) else w
-        if lower_case:
-            # remove unnecessary upper cases
-            if len(word) > 1 and word[0].isupper() and word[1:].islower():
-                word = word.lower()
-        normalized_words.append(word.encode('utf-8'))
-    return normalized_words
-
+def bash_signature(cmd):
+    tree = normalizer.normalize_ast(cmd)
+    return normalizer.to_template(tree)
 
 
