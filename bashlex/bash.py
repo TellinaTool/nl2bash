@@ -3,7 +3,8 @@ from __future__ import print_function
 
 import re
 
-import bast, errors, tokenizer, bparser, utils
+import bast, errors, tokenizer, bparser
+from utils import deprecated
 
 _NUM = b"_NUM"
 _LONG_PATTERN = b"_LONG_PATTERN"
@@ -83,7 +84,7 @@ def rw_signature(cmd):
     signature = ' '.join(list(rws))
     return signature
 
-@utils.deprecated
+@deprecated
 def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
                    recover_quotation=True):
     cmd = cmd.replace('\n', ' ').strip()
