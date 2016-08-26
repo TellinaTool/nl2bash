@@ -254,6 +254,9 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
               arg_type_only=False):
     """convert a bash AST to a list of tokens"""
 
+    if not node:
+        return []
+    
     lc = loose_constraints
     ifo = ignore_flag_order
     ato = arg_type_only
