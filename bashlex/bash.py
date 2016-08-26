@@ -45,7 +45,8 @@ pseudo_head_commands = [
     "cmd2",
     "command1",
     "command2",
-    "rename"
+    "rename",
+    "tac"
 ]
 
 def reserved_words():
