@@ -181,20 +181,34 @@ class Node(object):
 class ArgumentNode(Node):
     num_child = 0
 
-    def __init__(self, kind="", value="", arg_type="", parent=None, lsb=None):
-        super(ArgumentNode, self).__init__(parent, lsb, kind, value)
+    def __init__(self, value="", arg_type="", parent=None, lsb=None):
+        super(ArgumentNode, self).__init__(parent, lsb, "argument", value)
         self.arg_type = arg_type
-        # print(self.arg_type)
 
     def getHeadCommand(self):
-        if self.kind == "headcommand":
-            return self
-        if self.kind == "flag" or self.kind == "argument":
-            ancester = self.parent
-            while (ancester and ancester.kind != "headcommand"):
-                # if not head command is detect, return "root"
-                ancester = ancester.parent
-            return ancester
+        ancester = self.parent
+        while (ancester and ancester.kind != "headcommand"):
+            # if not head command is detect, return "root"
+            ancester = ancester.parent
+        return ancester
+
+class FlagNode(Node):
+    def __init__(self, value="", parent=None, lsb=None):
+        super(FlagNode, self).__init__(parent, lsb, "flag", value)
+
+    def getHeadCommand(self):
+        ancester = self.parent
+        while (ancester and ancester.kind != "headcommand"):
+            # if not head command is detect, return "root"
+            ancester = ancester.parent
+        return ancester
+
+class HeadCommandNode(Node):
+    def __init__(self, value="", parent=None, lsb=None):
+        super(HeadCommandNode, self).__init__(parent, lsb, "headcommand", value)
+
+    def getHeadCommand(self):
+        return self
 
 class UnaryLogicOpNode(Node):
     num_child = 1
@@ -203,12 +217,26 @@ class UnaryLogicOpNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(UnaryLogicOpNode, self).__init__( parent, lsb, 'unarylogicop', value)
 
+    def getHeadCommand(self):
+        ancester = self.parent
+        while (ancester and ancester.kind != "headcommand"):
+            # if not head command is detect, return "root"
+            ancester = ancester.parent
+        return ancester
+
 class BinaryLogicOpNode(Node):
     num_child = 2
     children_types = [set('flag'), set('flag')]
 
     def __init__(self, value="", parent=None, lsb=None):
         super(BinaryLogicOpNode, self).__init__(parent, lsb, 'binarylogicop', value)
+
+    def getHeadCommand(self):
+        ancester = self.parent
+        while (ancester and ancester.kind != "headcommand"):
+            # if not head command is detect, return "root"
+            ancester = ancester.parent
+        return ancester
 
 class PipelineNode(Node):
     children_types = [set(['headcommand'])]
@@ -386,9 +414,11 @@ def to_ast(list, order='dfs'):
                     else:
                         print("Warning: to_ast unrecognized argument attachment point {}.".format(current.symbol))
                         arg_type = "Unknown"
-                    node = ArgumentNode(kind=kind, value=value, arg_type=arg_type)
-                elif kind == "flag" or kind == "headcommand":
-                    node = ArgumentNode(kind=kind, value=value)
+                    node = ArgumentNode(value=value, arg_type=arg_type)
+                elif kind == "flag":
+                    node = FlagNode(value=value)
+                elif kind == "headcommand":
+                    node = HeadCommandNode(value=value)
                 else:
                     node = Node(kind=kind, value=value)
                 attach_to_tree(node, current)
@@ -513,85 +543,34 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     def with_quotation(node):
         return cmd[node.pos[0]] in ['"', '\''] or cmd[node.pos[1]-1] in ['"', '\'']
 
-    def normalize_command(node, current):
-        attach_point = current
+    def normalize_argument(node, current, arg_type):
+        value = normalize_word(node, "argument", normalize_digits, normalize_long_pattern,
+                               recover_quotation)
+        norm_node = ArgumentNode(value=value, arg_type=arg_type)
+        attach_to_tree(norm_node, current)
+        return norm_node
 
-        END_OF_OPTIONS = False
+    def normalize_flag(node, current):
+        value = normalize_word(node, "flag", normalize_digits, normalize_long_pattern,
+                               recover_quotation)
+        norm_node = FlagNode(value=value)
+        attach_to_tree(norm_node, current)
+        return norm_node
+
+    def normalize_headcommand(node, current):
+        value = normalize_word(node, "headcommand", normalize_digits, normalize_long_pattern,
+                               recover_quotation)
+        norm_node = HeadCommandNode(value=value)
+        attach_to_tree(norm_node, current)
+        return norm_node
+
+    def normalize_command(node, current):
 
         head_commands = []
         unary_logic_ops = []
         binary_logic_ops = []
         unprocessed_unary_logic_ops = []
         unprocessed_binary_logic_ops = []
-
-        def attach_option(node, attach_point):
-            attach_point = find_flag_attach_point(node, attach_point)
-            if bash.is_double_option(node.word) or node.word in unary_logic_operators \
-                    or node.word in binary_logic_operators or attach_point.value == "find"\
-                    or len(node.word) <= 1:
-                normalize(node, attach_point, "flag")
-            else:
-                # split flags
-                assert(node.word.startswith('-'))
-                options = node.word[1:]
-                if len(options) == 1:
-                    normalize(node, attach_point, "flag")
-                else:
-                    str = options + " splitted into: "
-                    for option in options:
-                        new_node = copy.deepcopy(node)
-                        new_node.word = '-' + option
-                        normalize(new_node, attach_point, "flag")
-                        str += new_node.word + ' '
-                    print(str)
-
-            attach_point = attach_point.getRightChild()
-            return attach_point
-
-        def attach_argument(node, attach_point):
-            if attach_point.kind == "flag" and attach_point.getNumChildren() >= 1:
-                attach_point = attach_point.parent
-
-            if attach_point.kind == "flag":
-                # attach point is flag of some headcommand
-                head_cmd = attach_point.getHeadCommand()
-                flag = attach_point.value
-                arg_type = man_lookup.get_flag_arg_type(head_cmd.value, flag)
-                if not arg_type:
-                    # attach point flag does not take argument
-                    attach_point = attach_point.getHeadCommand()
-                    head_cmd = attach_point.value
-                    possible_arg_types = man_lookup.get_arg_types(head_cmd)
-                    arg_type = type_check(node.word, possible_arg_types)
-            elif attach_point.kind == "headcommand":
-                head_cmd = attach_point.value
-                possible_arg_types = man_lookup.get_arg_types(head_cmd)
-                arg_type = type_check(node.word, possible_arg_types)
-            else:
-                # TODO: this exceptional case is not handled very well
-                # most likely due to assignment node
-                print("Warning: attach_argument - nrecognized argument attachment point kind: {}"
-                      .format(attach_point.kind))
-                arg_type = "Unknown"
-            normalize(node, attach_point, "argument", arg_type)
-
-        def fail_headcommand_attachment_check(err_msg, attach_point, child):
-            msg_head = "Error attaching headcommand: "
-            print(msg_head + err_msg)
-            print(attach_point.symbol)
-            print(child)
-            # raise HeadCommandAttachmentError(msg_head + err_msg)
-
-        def find_flag_attach_point(node, attach_point):
-            if attach_point.kind == "flag":
-                return find_flag_attach_point(node, attach_point.parent)
-            elif attach_point.kind == "headcommand":
-                return attach_point
-            elif attach_point.kind == "unarylogicop" or \
-                attach_point.kind == "binarylogicop":
-                return attach_point
-            else:
-                raise ValueError("Error: cannot decide where to attach flag node")
 
         def organize_buffer(buffer):
             norm_node = BinaryLogicOpNode(value="-and")
@@ -660,51 +639,96 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if node.parent.getNumChildren() == 1:
                     node.grandparent().replaceChild(node.parent, node)
 
+        def attach_flag(node, attach_point_info):
+            attach_point = attach_point_info[0]
+
+            if bash.is_double_option(node.word) or node.word in unary_logic_operators \
+                        or node.word in binary_logic_operators or attach_point.value == "find"\
+                        or len(node.word) <= 1:
+                normalize_flag(node, attach_point)
+            else:
+                # split flags
+                assert(node.word.startswith('-'))
+                options = node.word[1:]
+                if len(options) == 1:
+                    normalize_flag(node, attach_point)
+                else:
+                    str = options + " splitted into: "
+                    for option in options:
+                        new_node = copy.deepcopy(node)
+                        new_node.word = '-' + option
+                        normalize_flag(new_node, attach_point)
+                        str += new_node.word + ' '
+                    print(str)
+
+            head_cmd = attach_point.getHeadCommand().value
+            flag = node.word
+            arg_type = man_lookup.get_flag_arg_type(head_cmd, flag)
+            if arg_type:
+                # flag is expecting an argument
+                attach_point = attach_point.getRightChild()
+                return (attach_point, ["argument"], [arg_type])
+            else:
+                # flag does not take arguments
+                return attach_point_info
+
+        def look_above(attach_point):
+            head_cmd = attach_point.getHeadCommand()
+            arg_types = man_lookup.get_arg_types(head_cmd.value)
+            return (head_cmd, ["flags", "arguments"], arg_types)
+
         # normalize atomic command
         parentheses_attach_points = []
 
-        i = 0
-        while i < len(node.parts):
-            child = node.parts[i]
-            if child.kind == 'word':
-                if child.word == "--":
-                    END_OF_OPTIONS = True
+        # Attach point format: (pointer_to_the_attach_point, ast_node_type, arg_type)
+        attach_point_info = (current, ["headcommand"], [])
 
-                elif child.word in unary_logic_operators:
-                    attach_point = find_flag_attach_point(child, attach_point)
+        ind = 0
+        while ind < len(node.parts):
+            attach_point = attach_point_info[0]
+            possible_node_kinds = attach_point_info[1]
+            possible_arg_types = attach_point_info[2]
+
+            child = node.parts[ind]
+            if child.kind == 'word':
+                # prioritize processing of logic operators
+                if child.word in unary_logic_operators:
                     if is_unary_logic_op(child, attach_point):
                         norm_node = UnaryLogicOpNode(child.word)
                         attach_to_tree(norm_node, attach_point)
                         unary_logic_ops.append(norm_node)
                     else:
-                        attach_point = attach_option(child, attach_point)
-
+                        attach_point_info = attach_flag(child, attach_point_info)
                 elif child.word in binary_logic_operators:
-                    attach_point = find_flag_attach_point(child, attach_point)
                     if is_binary_logic_op(child, attach_point):
                         norm_node = BinaryLogicOpNode(child.word)
                         attach_to_tree(norm_node, attach_point)
                         binary_logic_ops.append(norm_node)
                     else:
-                        attach_point = attach_option(child, attach_point)
+                        attach_point_info = attach_flag(child, attach_point_info)
+                else:
+                    if child.word == "--":
+                        attach_point_info = (attach_point_info[0], ["argument"], attach_point_info[2])
+                        continue
 
-                elif bash.is_headcommand(child.word) and not with_quotation(child) and \
-                    (attach_point.kind != "headcommand" or attach_point.value in
-                        ["sh", "csh", "ksh", "tcsh", "zsh", "bash", "exec", "xargs"]):
-                    if i > 0:
-                        # embedded commands
-                        if attach_point.kind == "flag":
-                            if attach_point.value in ["-exec", "-execdir", "-ok", "-okdir"]:
-                                new_command_node = copy.deepcopy(node)
+                    if len(possible_node_kinds) == 1:
+                        # no ast_node_kind ambiguation
+                        node_kind = possible_node_kinds[0]
+                        if node_kind == "headcommand":
+                            norm_node = normalize_headcommand(child, attach_point)
+                            head_commands.append(norm_node)
+                            head_cmd = norm_node.value
+                            arg_types = man_lookup.get_arg_types(head_cmd)
+                            attach_point_info = (norm_node, ["flag", "argument"], arg_types)
+                        elif node_kind == "argument":
+                            if "utility" in possible_arg_types:
+                                # embedded command leaded by ["-exec", "-execdir", "-ok", "-okdir"]
+                                new_command_node = bast.Node()
                                 new_command_node.parts = []
                                 subcommand_added = False
-                                for j in xrange(i, len(node.parts)):
-                                    if not hasattr(node.parts[j], 'word'):
-                                        # TODO: this exceptional case is not handled very well
-                                        # most likely due to a redirection node
-                                        continue
-                                    elif node.parts[j].word == ";" or\
-                                       node.parts[j].word == "+":
+                                for j in xrange(ind, len(node.parts)):
+                                    if hasattr(node.parts[j], 'word') and \
+                                            (node.parts[j].word == ";" or node.parts[j].word == "+"):
                                         normalize_command(new_command_node, attach_point)
                                         attach_point.value += '::' + node.parts[j].word
                                         subcommand_added = True
@@ -714,61 +738,42 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 if not subcommand_added:
                                     print("Warning: -exec missing ending ';'")
                                     normalize_command(new_command_node, attach_point)
-                                    new_node = copy.deepcopy(node.parts[-1])
-                                    new_node.word = "\\;"
-                                    normalize(new_node, attach_point, "argument")
-                                i = j
-                                # handle end of utility introduced by '-exec' and whatnots
-                                attach_point = attach_point.parent
+                                    attach_point.value += '::' + "\\;"
+                                ind = j
                             else:
-                                # TODO: this exeptional case is not handled very well
-                                # since attachment point flag does not take utility arguments, the token
-                                # is likely to be a normal argument
-                                attach_argument(child, attach_point)
-                        elif attach_point.kind == "headcommand":
-                            new_command_node = copy.deepcopy(node)
-                            new_command_node.parts = node.parts[i:]
-                            normalize_command(new_command_node, attach_point)
-                            i = len(node.parts) - 1
-                        else:
-                            fail_headcommand_attachment_check(
-                                "headcommand attached to argument",
-                                attach_point, child)
+                                arg_type = possible_arg_types[0]
+                                # recurse to main normalization to handle argument with deep structures
+                                normalize(child, attach_point, "argument", arg_type)
+                            attach_point_info = look_above(attach_point)
                     else:
-                        normalize(child, attach_point, "headcommand")
-                        attach_point = attach_point.getRightChild()
-                        head_commands.append(attach_point)
-
-                elif child.word.startswith('-') and not END_OF_OPTIONS:
-                    # check if child is a flag
-                    if attach_point.kind == "flag" and any(c.isdigit() for c in child.word):
-                        head_cmd = attach_point.getHeadCommand()
-                        flag = attach_point.value
-                        arg_type = man_lookup.get_flag_arg_type(head_cmd.value, flag)
-                        if arg_type and attach_point.getNumChildren() == 0:
-                            # child is an argument starts with a minus symbol
-                            normalize(child, attach_point, "argument", arg_type)
-                        else:
+                        # need to decide ast_node_kind
+                        if bash.is_option(child.word) and \
+                                not (attach_point.value in ["head", "tail"] and child.word[1:].isdigit()):
                             # child is a flag
-                            attach_point = attach_option(child, attach_point)
-                    else:
-                        attach_point = attach_option(child, attach_point)
-
-                else:
-                    if child.word == "(":
-                        parentheses_attach_points.append(attach_point)
-                    if child.word == ")":
-                        attach_point = parentheses_attach_points.pop()
-                    attach_argument(child, attach_point)
+                            attach_point_info = attach_flag(child, attach_point_info)
+                        else:
+                            # child is an argument
+                            if "utility" in possible_arg_types:
+                                # embedded command leaded by ["sh", "csh", "ksh", "tcsh",
+                                #                             "zsh", "bash", "exec", "xargs"]
+                                new_command_node = bast.Node()
+                                new_command_node.parts = []
+                                for j in xrange(ind, len(node.parts)):
+                                    new_command_node.parts.append(node.parts[j])
+                                    normalize_command(new_command_node, attach_point)
+                                ind = j
+                            else:
+                                arg_type = type_check(child.word, possible_arg_types)
+                                # recurse to main normalization to handle argument with deep structures
+                                normalize(child, attach_point, "argument", arg_type)
+                            attach_point_info = look_above(attach_point)
 
             elif child.kind == "assignment":
                 normalize(child, attach_point, "assignment")
-            else:
-                # TODO: this corner case is not handled very well
-                # usually caused by "redirect" node
-                normalize(child, attach_point)
+            elif child.kind == "redirect":
+                normalize(child, attach_point, "redirect")
 
-            i += 1
+            ind += 1
 
         assert(len(parentheses_attach_points) == 0)
 
@@ -861,18 +866,12 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         normalize(child, norm_node)
                 elif node.parts[0].kind == "parameter" or \
                     node.parts[0].kind == "tilde":
-                    value = normalize_word(node, "argument", normalize_digits, normalize_long_pattern,
-                                           recover_quotation)
-                    norm_node = ArgumentNode(kind=node_kind, value=value, arg_type=arg_type)
-                    attach_to_tree(norm_node, current)
+                    normalize_argument(node, current, arg_type)
                 else:
                     for child in node.parts:
                         normalize(child, current)
             else:
-                value = normalize_word(node, node_kind, normalize_digits, normalize_long_pattern,
-                                       recover_quotation)
-                norm_node = ArgumentNode(kind=node_kind, value=value, arg_type=arg_type)
-                attach_to_tree(norm_node, current)
+                normalize_argument(node, current, arg_type)
         elif node.kind == "pipeline":
             norm_node = PipelineNode()
             attach_to_tree(norm_node, current)
