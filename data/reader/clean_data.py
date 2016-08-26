@@ -155,9 +155,9 @@ class DBConnection(object):
             if not tokens:
                 num_errors += 1
                 continue
-            print(cmd.encode('utf-8'))
-            print(' '.join(tokens))
-            print
+            # print(cmd.encode('utf-8'))
+            # print(' '.join(tokens))
+            # print
             for nl in unique_pairs[cmd]:
                 """inserted = False
                 for nl2 in desp_dict:
@@ -187,14 +187,14 @@ class DBConnection(object):
                 cmdsig_dict[cmdsig].add(i)
 
         cmdsigs = cmdsig_dict.keys()
-        merged_sigs = list()
+        merged_sigs = set()
         for i in xrange(len(cmdsigs)):
             cmdsig1 = cmdsigs[i]
             for j in xrange(i+1, len(cmdsigs)):
                 cmdsig2 = cmdsigs[j]
                 if cmdsig_dict[cmdsig1] & cmdsig_dict[cmdsig2]:
                     cmdsig_dict[cmdsig2] = cmdsig_dict[cmdsig1] | cmdsig_dict[cmdsig2]
-                    merged_sigs.append(i)
+                    merged_sigs.add(i)
         print("%d unique signatures" % len(cmdsigs))
         remained_sigs = set(xrange(len(cmdsigs))) - merged_sigs
         print("%d signature clusters" % len(remained_sigs))
@@ -214,7 +214,7 @@ class DBConnection(object):
 
             for i in cmdsig_dict[cmdsig]:
                 nl, cmds = desp_clusters[i]
-                print("desp: %s" % nl.encode('utf-8'))
+                # print("desp: %s" % nl.encode('utf-8'))
                 if nl == "NA":
                     continue
                 for cmd in cmds:
