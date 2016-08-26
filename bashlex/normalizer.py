@@ -743,9 +743,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             elif child.kind == "assignment":
                 normalize(child, attach_point, "assignment")
             else:
-                print("Error: unknown type of child of CommandNode")
-                print(node)
-                sys.exit()
+                normalize(child, attach_point)
 
             i += 1
 
