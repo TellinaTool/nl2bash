@@ -881,7 +881,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
              node.kind == "processsubstitution":
             normalize(node.command, current)
         elif node.kind == "command":
-            normalize_command(node, current)
+            try:
+                normalize_command(node, current)
+            except AssertionError, e:
+                raise AssertionError
         elif hasattr(node, 'parts'):
             for child in node.parts:
                 # skip current node
