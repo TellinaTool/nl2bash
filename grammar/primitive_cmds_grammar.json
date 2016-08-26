@@ -1135,7 +1135,7 @@
                   "commands":[
                      {
                         "type":"flag_option",
-                        "flag_name":"-printf"
+                        "flag_name":"printf"
                      },
                      {
                         "type":"argument_option",
