@@ -199,23 +199,18 @@ class DBConnection(object):
         print("%d signature clusters" % (len(cmdsigs) - len(merged_sigs)))
 
         data = collections.defaultdict(list)
-        added_clusters = set()
-        for i in xrange(len(cmdsigs)):
-            if i in merged_sigs:
+        for cmdsig_index in xrange(len(cmdsigs)):
+            if cmdsig_index in merged_sigs:
                 continue
             num_cmdsig += 1
+            # randomly find a fold to place cluster
+            ind = random.randrange(num_folds)
+            bin = data[ind]
 
-            cmdsig = cmdsigs[i]
+            cmdsig = cmdsigs[cmdsig_index]
             print("Command signature: %s" % cmdsig.encode('utf-8'))
+            
             for i in cmdsig_dict[cmdsig]:
-                if i in added_clusters:
-                    continue
-                else:
-                    added_clusters.add(i)
-                # randomly find a fold to place data point
-                ind = random.randrange(num_folds)
-                bin = data[ind]
-
                 nl, cmds = desp_clusters[i]
                 print("desp: %s" % nl.encode('utf-8'))
                 if nl == "NA":
