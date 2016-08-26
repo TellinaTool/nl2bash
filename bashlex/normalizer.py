@@ -743,6 +743,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             elif child.kind == "assignment":
                 normalize(child, attach_point, "assignment")
             else:
+                # TODO: this corner case is not handled very well
+                # usually caused by "redirect" node
                 normalize(child, attach_point)
 
             i += 1
