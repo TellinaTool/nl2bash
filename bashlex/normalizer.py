@@ -454,10 +454,12 @@ def type_check(word, possible_types):
         return "File"
     elif "Pattern" in possible_types:
         return "Pattern"
+    elif "Utility" in possible_types:
+        # TODO: this argument type is not well-handled
+        # This is usuallly third-party utitlies
+        return "Utility"
     else:
-        print("Unable to decide type for {}".format(word))
-        print(possible_types)
-        sys.exit()
+        raise ValueError("Unable to decide type for {}".format(word))
 
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                   recover_quotation=True):
