@@ -1,11 +1,15 @@
 # builtin
 from __future__ import print_function
 
+import os
 import re
 
+<<<<<<< HEAD
 import bast, errors, tokenizer, bparser
 from utils import deprecated
 
+=======
+>>>>>>> 158fd5d05b376bd0657b08cacf45a5a55f5f4abd
 _NUM = b"_NUM"
 _LONG_PATTERN = b"_LONG_PATTERN"
 
@@ -50,7 +54,7 @@ pseudo_head_commands = [
 ]
 
 def reserved_words():
-    with open("/home/xilin/Projects/helper/bashlex/bash_keywords.txt") as f:
+    with open(os.path.join(os.path.dirname(__file__), "bash_keywords.txt")) as f:
         _words = f.readlines()
     return [w.strip() for w in _words]
 
