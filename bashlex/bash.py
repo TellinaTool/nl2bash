@@ -44,7 +44,8 @@ pseudo_head_commands = [
     "ffmpeg",
     "cmd2",
     "command1",
-    "command2"
+    "command2",
+    "rename"
 ]
 
 def reserved_words():
