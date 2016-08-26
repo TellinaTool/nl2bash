@@ -244,7 +244,7 @@ def pretty_print(node, depth=0):
 def to_list(node, order='dfs', list=None):
     # linearize the tree for training
     if order == 'dfs':
-        if node.symbol == "HEADCOMMAND_UNK":
+        if node.kind == "headcommand" and not node.value in bash.head_commands:
             print(list)
             sys.exit()
         list.append(node.symbol)
