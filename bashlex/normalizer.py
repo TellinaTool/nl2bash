@@ -555,6 +555,9 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if not arg_type:
                     # attach point flag does not take argument
                     attach_point = attach_point.getHeadCommand()
+                    head_cmd = attach_point.value
+                    possible_arg_types = man_lookup.get_arg_types(head_cmd)
+                    arg_type = type_check(node.word, possible_arg_types)
             elif attach_point.kind == "headcommand":
                 head_cmd = attach_point.value
                 possible_arg_types = man_lookup.get_arg_types(head_cmd)
