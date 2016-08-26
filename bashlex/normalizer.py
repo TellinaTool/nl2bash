@@ -550,6 +550,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 # TODO: this exception is not handled very well
                 # most likely due to assignment node
                 print("Unrecognized argument attach_point kind: {}".format(attach_point.kind))
+                return 
             normalize(node, attach_point, "argument", arg_type)
 
         def fail_headcommand_attachment_check(err_msg, attach_point, child):
