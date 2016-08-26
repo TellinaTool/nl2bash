@@ -7149,7 +7149,7 @@
    },
    {
       "type":"command",
-      "name":"chmod",
+      "name":"chown",
       "option":{
          "type":"compound_options",
          "commands":[
@@ -7206,8 +7206,8 @@
             },
             {
                "type":"argument_option",
-               "arg_name":"permmode",
-               "arg_type":"Permission",
+               "arg_name":"owner",
+               "arg_type":"Pattern",
                "isList":false
             },
             {
