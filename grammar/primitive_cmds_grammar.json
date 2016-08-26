@@ -1131,6 +1131,24 @@
             {
                "type":"optional_option",
                "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
+                        "flag_name":"-printf"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"pattern",
+                        "arg_type":"Pattern",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
                   "type":"flag_option",
                   "flag_name":"prune"
                }
