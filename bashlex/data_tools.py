@@ -118,6 +118,7 @@ def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
 
 def to_template(cmd):
     tree = normalizer.normalize_ast(cmd)
+    normalizer.pretty_print(tree)
     return normalizer.to_template(tree)
 
 
