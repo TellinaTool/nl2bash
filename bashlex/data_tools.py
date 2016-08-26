@@ -122,4 +122,9 @@ def to_template(cmd, normalize_digits=True, normalize_long_pattern=True,
                          recover_quotation)
     return normalizer.to_template(tree)
 
+if __name__ == "__main__":
+    cmd = sys.argv[1]
+    print(bash_tokenizer(cmd))
+    print(to_template(cmd))
+
 
