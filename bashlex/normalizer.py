@@ -191,7 +191,7 @@ class ArgumentNode(Node):
             return self
         if self.kind == "flag" or self.kind == "argument":
             ancester = self.parent
-            while (ancester and ancester.kind != "headcommand"):
+            while (ancester.parent and ancester.kind != "headcommand"):
                 # if not head command is detect, return "root"
                 ancester = ancester.parent
             return ancester
@@ -340,7 +340,10 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
         elif node.kind == "argument":
             assert(loose_constraints or node.getNumChildren() == 0)
             if ato and not node.arg_type == "ReservedWord":
-                tokens.append(node.arg_type)
+                if loose_constraints and not node.arg_type:
+                    tokens.append("Unknown")
+                else:
+                    tokens.append(node.arg_type)
             else:
                 tokens.append(node.value)
             if lc:
