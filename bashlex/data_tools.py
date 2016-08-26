@@ -116,8 +116,10 @@ def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
                          recover_quotation)
     return normalizer.to_tokens(tree)
 
-def to_template(cmd):
-    tree = normalizer.normalize_ast(cmd)
+def to_template(cmd, normalize_digits=True, normalize_long_pattern=True,
+                   recover_quotation=True):
+    tree = normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,
+                         recover_quotation)
     return normalizer.to_template(tree)
 
 
