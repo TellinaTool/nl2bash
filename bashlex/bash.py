@@ -4,12 +4,6 @@ from __future__ import print_function
 import os
 import re
 
-<<<<<<< HEAD
-import bast, errors, tokenizer, bparser
-from utils import deprecated
-
-=======
->>>>>>> 158fd5d05b376bd0657b08cacf45a5a55f5f4abd
 _NUM = b"_NUM"
 _LONG_PATTERN = b"_LONG_PATTERN"
 
