@@ -12,7 +12,7 @@ class ManPageLookUp(object):
         except KeyError, e:
             # TODO: This exception is not handled very well.
             print("Error: command {} doesn't exist".format(cmd))
-            return collections.defaultdict({"Unknown": None})
+            return {"Unknown": None}
 
     def get_flag_arg_type(self, cmd, flag):
         try:
