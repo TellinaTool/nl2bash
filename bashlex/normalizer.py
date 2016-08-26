@@ -682,7 +682,11 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 new_command_node.parts = []
                                 subcommand_added = False
                                 for j in xrange(i, len(node.parts)):
-                                    if node.parts[j].word == ";" or\
+                                    if not hasattr(node, 'word'):
+                                        # TODO: this exceptional case is not handled very well
+                                        # most likely due to a redirection node
+                                        continue
+                                    elif node.parts[j].word == ";" or\
                                        node.parts[j].word == "+":
                                         normalize_command(new_command_node, attach_point)
                                         normalize(node.parts[j], attach_point, "argument")
