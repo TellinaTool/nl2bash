@@ -377,8 +377,8 @@ def to_ast(list, order='dfs'):
                         head_cmd = current.value
                         arg_type = type_check(value, man_lookup.get_arg_types(head_cmd))
                     else:
-                        print("Unrecognized argument attachment point {}.".format(current.symbol))
-                        sys.exit()
+                        print("Warning: to_ast unrecognized argument attachment point {}.".format(current.symbol))
+                        arg_type = "Unknown"
                     node = ArgumentNode(kind=kind, value=value, arg_type=arg_type)
                 elif kind == "flag" or kind == "headcommand":
                     node = ArgumentNode(kind=kind, value=value)
@@ -759,7 +759,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         # This is usually due to utilities unrecognized by us, e.g. "gen_root.sh".
         if len(head_commands) == 0:
             return
-        
+
         if len(head_commands) > 1:
             print("Error: multiple headcommands in one command.")
             for hc in head_commands:
