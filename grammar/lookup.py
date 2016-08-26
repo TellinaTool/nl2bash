@@ -4,30 +4,35 @@ import os
 
 class ManPageLookUp(object):
     def __init__(self, path):
-        self.table = load_syntax(path)
+        self.table = load_syntax(path, verbose=False)
 
     def get_arg_types(self, cmd):
         return self.table[cmd]["arguments"]
 
     def get_flag_arg_type(self, cmd, flag):
-        arg_type = self.table[cmd]["flags"][flag]
+        try:
+            arg_type = self.table[cmd]["flags"][flag]
+        except KeyError, e:
+            print("Error: {} is not a flag of {}".format(flag, cmd))
         if arg_type:
             return list(arg_type)[0]
         else:
             return None
 
 # classes to build tree from json file
-def load_syntax(json_files):
+def load_syntax(json_files, verbose=True):
     manual_table = collections.defaultdict()
     counts = collections.defaultdict(int)
     for jsonfile in json_files:
-        print("loading from {}".format(jsonfile))
+        if verbose:
+            print("loading from {}".format(jsonfile))
         with open(jsonfile, "r") as f:
             syntax = json.loads(f.read())
         for cmd in syntax:
             make_grammar_from_json_syntax(cmd, manual_table)
             counts[cmd["name"]] += 1
-            print(" > loaded {} ({})".format(cmd["name"], counts[cmd["name"]]))
+            if verbose:
+                print(" > loaded {} ({})".format(cmd["name"], counts[cmd["name"]]))
     return manual_table
 
 def make_grammar_from_json_syntax(cmd, manual_table):
