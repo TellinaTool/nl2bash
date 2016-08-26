@@ -8,7 +8,7 @@ import sys
 sys.path.append("..")
 sys.path.append("../../bashlex")
 
-from data_tools import basic_tokenizer, bash_tokenizer, is_stopword
+from data_tools import basic_tokenizer, bash_tokenizer, is_stopword, to_template
 
 # minimum number of edits two natural language descriptions have to differ to not be considered as duplicates
 EDITDIST_THRESH = 8

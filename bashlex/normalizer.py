@@ -264,7 +264,10 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
     def to_tokens_fun(node):
         tokens = []
         if node.kind == "root":
-            assert(loose_constraints or node.getNumChildren() == 1)
+            try:
+                assert(loose_constraints or node.getNumChildren() == 1)
+            except AssertionError, e:
+                return []
             if lc:
                 for child in node.children:
                     tokens += to_tokens_fun(child)
