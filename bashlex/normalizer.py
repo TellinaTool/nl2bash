@@ -953,9 +953,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         print("Cannot parse: %s - AttributeError" % cmd.encode('utf-8'))
         # not a bash command
         return None
-    except AssertionError, e:
-        print("Cannot parse: %s - AssertionError" % cmd.encode('utf-8'))
-        return None
 
     if len(tree) > 1:
         print("Doesn't support command with multiple root nodes: %s" % cmd.encode('utf-8'))
@@ -963,6 +960,9 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     try:
         normalize(tree[0], normalized_tree)
     except ValueError as err:
+        print("%s - %s" % (err.args[0], cmd.encode('utf-8')))
+        return None
+    except AssertionError as err:
         print("%s - %s" % (err.args[0], cmd.encode('utf-8')))
         return None
 
