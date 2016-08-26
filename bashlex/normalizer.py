@@ -874,7 +874,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         elif node.kind == "list":
             if len(node.parts) > 2:
                 # multiple commands, not supported
-                raise("Unsupported: list of length >= 2")
+                raise ValueError("Unsupported: list of length >= 2")
             else:
                 normalize(node.parts[0], current)
         elif node.kind == "commandsubstitution" or \
