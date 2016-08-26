@@ -547,7 +547,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 possible_arg_types = man_lookup.get_arg_types(head_cmd)
                 arg_type = type_check(node.word, possible_arg_types)
             else:
-                print("Unrecognized argument attach_point kind: {}".format(attach_point.parent.kind))
+                print(node.word)
+                print("Unrecognized argument attach_point kind: {}".format(attach_point.kind))
                 sys.exit()
             normalize(node, attach_point, "argument", arg_type)
 
