@@ -133,7 +133,7 @@ class DBConnection(object):
         for cmd in unique_pairs:
             if not cmd:
                 continue
-            signature = rw_signature(cmd)
+            signature = to_template(cmd)
             if not signature:
                 num_errors += 1
                 continue
@@ -183,7 +183,7 @@ class DBConnection(object):
         cmdsig_dict = collections.defaultdict(list)
         for i in xrange(len(desp_clusters)):
             for cmd in desp_clusters[i][1]:
-                cmdsig = rw_signature(cmd)
+                cmdsig = to_template(cmd)
                 cmdsig_dict[cmdsig].append(i)
 
         data = collections.defaultdict(list)
