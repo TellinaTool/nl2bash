@@ -244,6 +244,9 @@ def pretty_print(node, depth=0):
 def to_list(node, order='dfs', list=None):
     # linearize the tree for training
     if order == 'dfs':
+        if node.symbol == "HEADCOMMAND_UNK":
+            print(list)
+            sys.exit()
         list.append(node.symbol)
         for child in node.children:
             to_list(child, order, list)
@@ -402,9 +405,11 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("sudo", "")
 
     ## normalize utilities called with full path
-    cmd = cmd.replace("/usr/bin/find", "find")
-    cmd = cmd.replace("~/bin/find", "find")
-    cmd = cmd.replace("/bin/find", "find")
+    cmd = cmd.replace("/usr/bin/find ", "find ")
+    cmd = cmd.replace("/bin/find ", "find ")
+    cmd = cmd.replace("/usr/bin/grep ", "grep ")
+    cmd = cmd.replace("/bin/rm ", "rm ")
+    cmd = cmd.replace("/bin/mv ", "mv ")
 
     ## remove shell character
     if cmd.startswith("\$ "):
