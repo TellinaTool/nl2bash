@@ -308,9 +308,15 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
             for child in children:
                 tokens += to_tokens_fun(child)
         elif node.kind == "flag":
-            tokens.append(node.value)
+            if '::' in node.value:
+                value, op = node.value.split('::')
+                tokens.append(value)
+            else:
+                tokens.append(node.value)
             for child in node.children:
                 tokens += to_tokens_fun(child)
+            if '::' in node.value:
+                tokens.append(op)
         elif node.kind == "binarylogicop":
             assert(loose_constraints or node.getNumChildren() > 1)
             if lc and node.getNumChildren() < 2:
@@ -332,7 +338,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                 tokens += to_tokens_fun(node.children[0])
         elif node.kind == "argument":
             assert(loose_constraints or node.getNumChildren() == 0)
-            if ato:
+            if ato and not node.arg_type == "ReservedWord":
                 tokens.append(node.arg_type)
             else:
                 tokens.append(node.value)
@@ -443,6 +449,8 @@ def make_sibling(lsb, rsb):
 
 def type_check(word, possible_types):
     """Heuristically determine argument types."""
+    if word in ["+", ";", "{}"]:
+        return "ReservedWord"
     if word.isdigit() and "Number" in possible_types:
         return "Number"
     elif any(c.isdigit() for c in word):
@@ -554,7 +562,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             else:
                 # TODO: this exceptional case is not handled very well
                 # most likely due to assignment node
-                print("Warning: attach_argument - nrecognized argument attachment point kind: {}".format(attach_point.kind))
+                print("Warning: attach_argument - nrecognized argument attachment point kind: {}"
+                      .format(attach_point.kind))
                 arg_type = "Unknown"
             normalize(node, attach_point, "argument", arg_type)
 
@@ -689,7 +698,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                     elif node.parts[j].word == ";" or\
                                        node.parts[j].word == "+":
                                         normalize_command(new_command_node, attach_point)
-                                        normalize(node.parts[j], attach_point, "argument")
+                                        attach_point.value += '::' + node.parts[j].word
                                         subcommand_added = True
                                         break
                                     else:
