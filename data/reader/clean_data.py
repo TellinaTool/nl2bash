@@ -202,6 +202,7 @@ class DBConnection(object):
         sorted_remained_sigs = sorted(remained_sigs, key=lambda x:len(cmdsig_dict[cmdsigs[x]]), reverse=True)
 
         data = collections.defaultdict(list)
+        num_train = 0
         for cmdsig_index in sorted_remained_sigs:
             num_cmdsig += 1
             cmdsig = cmdsigs[cmdsig_index]
@@ -209,7 +210,10 @@ class DBConnection(object):
                                                       len(cmdsig_dict[cmdsig])))
 
             # randomly find a fold to place cluster
-            ind = random.randrange(num_folds)
+            if num_train < 5000:
+                ind = random.randrange(num_folds - 2)
+            else:
+                ind = random.randrange(num_folds - 2, num_folds)
             bin = data[ind]
 
             for i in cmdsig_dict[cmdsig]:
@@ -219,6 +223,7 @@ class DBConnection(object):
                     continue
                 for cmd in cmds:
                     num_pairs += 1
+                    num_train += 1
                     cmd = cmd.strip().replace('\n', ' ').replace('\r', ' ')
                     nl = nl.strip().replace('\n', ' ').replace('\r', ' ')
                     if not type(nl) is unicode:
