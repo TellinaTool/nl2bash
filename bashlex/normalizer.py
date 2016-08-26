@@ -884,7 +884,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             try:
                 normalize_command(node, current)
             except AssertionError, e:
-                raise AssertionError
+                raise AssertionError("normalized_command AssertionError")
         elif hasattr(node, 'parts'):
             for child in node.parts:
                 # skip current node
