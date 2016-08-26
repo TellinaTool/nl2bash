@@ -755,11 +755,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
         assert(len(parentheses_attach_points) == 0)
 
-        if len(head_commands) == 0:
-            print("Error: command node without head command.")
-            print(node.kind)
-            print(node.parts)
-            return
+        # TODO: some commands get parsed with no head command
+        # This is usually due to utilities unrecognized by us, e.g. "gen_root.sh".
 
         if len(head_commands) > 1:
             print("Error: multiple headcommands in one command.")
