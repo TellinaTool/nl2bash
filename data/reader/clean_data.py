@@ -196,20 +196,22 @@ class DBConnection(object):
                     cmdsig_dict[cmdsig2] = cmdsig_dict[cmdsig1] | cmdsig_dict[cmdsig2]
                     merged_sigs.append(i)
         print("%d unique signatures" % len(cmdsigs))
-        print("%d signature clusters" % (len(cmdsigs) - len(merged_sigs)))
+        remained_sigs = set(xrange(len(cmdsigs))) - merged_sigs
+        print("%d signature clusters" % len(remained_sigs))
+
+        sorted_remained_sigs = sorted(remained_sigs, key=lambda x:len(cmdsig_dict[cmdsigs[x]]), reverse=True)
 
         data = collections.defaultdict(list)
-        for cmdsig_index in xrange(len(cmdsigs)):
-            if cmdsig_index in merged_sigs:
-                continue
+        for cmdsig_index in sorted_remained_sigs:
             num_cmdsig += 1
+            cmdsig = cmdsigs[cmdsig_index]
+            print("Command signature: {} ({})".format(cmdsig.encode('utf-8'),
+                                                      len(cmdsig_dict[cmdsig])))
+
             # randomly find a fold to place cluster
             ind = random.randrange(num_folds)
             bin = data[ind]
 
-            cmdsig = cmdsigs[cmdsig_index]
-            print("Command signature: %s" % cmdsig.encode('utf-8'))
-            
             for i in cmdsig_dict[cmdsig]:
                 nl, cmds = desp_clusters[i]
                 print("desp: %s" % nl.encode('utf-8'))
