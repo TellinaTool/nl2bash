@@ -89,7 +89,8 @@ def make_grammar_from_options(x, command_table):
         raise Exception("unknown type: {}".format(x["type"]))
 
 if __name__ == "__main__":
-    man_lookup = ManPageLookUp([os.path.join(os.path.dirname(__file__), "primitive_cmds_grammar.json")])
+    man_lookup = ManPageLookUp([os.path.join(os.path.dirname(__file__),
+                                             "primitive_cmds_grammar.json")])
     print(man_lookup.get_arg_types("find"))
     while True:
         try:

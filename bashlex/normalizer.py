@@ -511,7 +511,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 normalize(node, attach_point, "flag")
             else:
                 # split flags
-                print(node.word)
                 assert(node.word.startswith('-'))
                 options = node.word[1:]
                 if len(options) == 1:
@@ -765,7 +764,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             adjust_binary_operators(bl)
 
         # process (embedded) parenthese -- treat as implicit "-and"
-        print("Processing parentheses")
         stack = []
         buffer = []
         depth = 0
