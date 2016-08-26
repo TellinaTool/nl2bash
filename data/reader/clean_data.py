@@ -204,13 +204,8 @@ class DBConnection(object):
             if i in merged_sigs:
                 continue
             num_cmdsig += 1
-<<<<<<< HEAD
-            print("Command signature: %s" % cmdsig)
-=======
-
             cmdsig = cmdsigs[i]
             print("Command signature: %s" % cmdsig.encode('utf-8'))
->>>>>>> 2066e535f7b4662ab73f0cac5bf88a4f5cc176ff
             for i in cmdsig_dict[cmdsig]:
                 if i in added_clusters:
                     continue
