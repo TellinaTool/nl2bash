@@ -350,11 +350,11 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
 
     return to_tokens_fun(node)
 
-def to_template(node, loose_constraints=False):
+def to_template(node, loose_constraints=False, arg_type_only=True):
     # convert a bash AST to a template that contains only reserved words and argument types
     # flags are ordered alphabetically
     tokens = to_tokens(node, loose_constraints, ignore_flag_order=True,
-                       arg_type_only=True)
+                       arg_type_only=arg_type_only)
     return ' '.join(tokens)
 
 def to_command(node, loose_constraints=False, ignore_flag_order=False):
