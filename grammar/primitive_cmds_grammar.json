@@ -300,6 +300,24 @@
                   "commands":[
                      {
                         "type":"flag_option",
+                        "flag_name":"atime"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"nmin",
+                        "arg_type":"Number",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
                         "flag_name":"ctime"
                      },
                      {
