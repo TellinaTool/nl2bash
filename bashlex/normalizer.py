@@ -506,7 +506,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             return node.word
 
     def with_quotation(node):
-        return cmd[node.pos[0]] == '"' or cmd[node.pos[1]-1] == '"'
+        return cmd[node.pos[0]] in ['"', '\''] or cmd[node.pos[1]-1] in ['"', '\'']
 
     def normalize_command(node, current):
         attach_point = current
@@ -987,6 +987,7 @@ if __name__ == "__main__":
     cmd = sys.argv[1]
     norm_tree = normalize_ast(cmd)
     pretty_print(norm_tree, 0)
+    print(to_command(norm_tree))
     list = to_list(norm_tree, 'dfs', [])
     print(list)
     tree = to_ast(list + ['<PAD>'])
