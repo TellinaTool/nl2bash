@@ -11,7 +11,7 @@ import copy
 import os
 import re
 import sys
-sys.path.append("../grammar")
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "grammar"))
 
 # bashlex stuff
 import bast, errors, tokenizer, bparser
