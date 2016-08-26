@@ -682,7 +682,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 new_command_node.parts = []
                                 subcommand_added = False
                                 for j in xrange(i, len(node.parts)):
-                                    if not hasattr(node, 'word'):
+                                    if not hasattr(node.parts[j], 'word'):
                                         # TODO: this exceptional case is not handled very well
                                         # most likely due to a redirection node
                                         continue
