@@ -256,7 +256,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
 
     if not node:
         return []
-    
+
     lc = loose_constraints
     ifo = ignore_flag_order
     ato = arg_type_only
