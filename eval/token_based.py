@@ -2,7 +2,7 @@
 
 import sys
 sys.path.append("../bashlex")
-import bash, bashlex
+import bash, bashlex, data_tools
 
 class TokenOverlap(object):
 
@@ -68,12 +68,12 @@ class TokenOverlap(object):
         if hasattr(gt, 'parts'):
             gt_token_set = set([n.word for n in gt.parts if n.kind == "word"])
         else:
-            gt_tokens = bash.basic_tokenizer(gt)
+            gt_tokens = data_tools.basic_tokenizer(gt)
             if not gt_tokens:
-                gt_tokens = bash.basic_tokenizer(gt)
+                gt_tokens = data_tools.basic_tokenizer(gt)
             gt_token_set = set(gt_tokens)
-        pred_tokens = bash.basic_tokenizer(pred)
+        pred_tokens = data_tools.basic_tokenizer(pred)
         if not pred_tokens:
-            pred_tokens = bash.basic_tokenizer(pred)
+            pred_tokens = data_tools.basic_tokenizer(pred)
         pred_token_set = set(pred_tokens)
         return (len(gt_token_set & pred_token_set) + 0.0) / len(gt_token_set | pred_token_set)
