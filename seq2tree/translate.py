@@ -145,7 +145,6 @@ def train(train_set, dev_set, verbose=False):
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
 
                 # Run evals on development set and print the metrics.
-                total_score = 0.0
                 num_correct_template = 0.0
                 num_correct = 0.0
                 num_eval = 0
@@ -249,7 +248,6 @@ def interactive_decode():
 
 
 def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
-    total_score = 0.0
     num_correct_template = 0.0
     num_correct = 0.0
     num_eval = 0
