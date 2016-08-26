@@ -210,7 +210,7 @@ class DBConnection(object):
                                                       len(cmdsig_dict[cmdsig])))
 
             # randomly find a fold to place cluster
-            if num_train < 5000:
+            if num_train < 5400:
                 ind = random.randrange(num_folds - 2)
             else:
                 ind = random.randrange(num_folds - 2, num_folds)

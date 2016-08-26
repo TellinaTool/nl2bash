@@ -26,7 +26,9 @@ import data_utils
 from parse_args import define_input_flags
 from data_tools import basic_tokenizer, bash_tokenizer
 from normalizer import to_list, to_ast, to_command, pretty_print, normalize_ast, all_simple_commands
-from seq2tree_model import Seq2TreeModel
+from encoder_decoder import Seq2TreeModel
+
+from token_based import TokenOverlap
 
 FLAGS = tf.app.flags.FLAGS
 
