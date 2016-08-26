@@ -27,6 +27,7 @@ from parse_args import define_input_flags
 from data_tools import basic_tokenizer, bash_tokenizer
 from normalizer import to_list, to_ast, to_command, pretty_print, normalize_ast, all_simple_commands
 from seq2tree_model import Seq2TreeModel
+import ast_based
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -145,6 +146,7 @@ def train(train_set, dev_set, verbose=False):
 
                 # Run evals on development set and print the metrics.
                 total_score = 0.0
+                num_correct_template = 0.0
                 num_correct = 0.0
                 num_eval = 0
                 for i in xrange(len(dev_set)):
@@ -157,9 +159,9 @@ def train(train_set, dev_set, verbose=False):
                     gt_tree = to_ast(ground_truth)
                     gt_cmd = to_command(gt_tree, loose_constraints=True)
                     tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
-                    score = TokenOverlap.compute(gt_cmd, pred_cmd, verbose)
-                    total_score += score
-                    if score == 1:
+                    if ast_based.template_match(gt_tree, tree):
+                        num_correct_template += 1
+                    if ast_based.string_match(gt_tree, tree):
                         num_correct += 1
                     num_eval += 1
                     if verbose:
@@ -180,8 +182,8 @@ def train(train_set, dev_set, verbose=False):
                 print("dev perplexity %.2f" % dev_ppx)
 
                 print("%d examples evaluated" % num_eval)
-                print("Accuracy = %.2f" % (num_correct/num_eval))
-                print("Average token-overlap score = %.2f" % (total_score/num_eval))
+                print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
+                print("Percentage of String Match = %.2f" % (num_correct/num_eval))
                 print()
 
                 # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
@@ -248,6 +250,7 @@ def interactive_decode():
 
 def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     total_score = 0.0
+    num_correct_template = 0.0
     num_correct = 0.0
     num_eval = 0
 
@@ -271,9 +274,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         pretty_print(gt_tree, 0)
         gt_cmd = to_command(gt_tree, loose_constraints=True)
         tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
-        score = TokenOverlap.compute(gt_cmd, pred_cmd, verbose)
-        total_score += score
-        if score == 1:
+        if ast_based.template_match(gt_tree, tree):
+            num_correct_template += 1
+        if ast_based.string_match(gt_tree, tree):
             num_correct += 1
         num_eval += 1
         if verbose:
@@ -292,8 +295,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             # print()
 
     print("%d examples evaluated" % num_eval)
-    print("Accuracy = %.2f" % (num_correct/num_eval))
-    print("Average token-overlap score = %.2f" % (total_score/num_eval))
+    print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
+    print("Percentage of String Match = %.2f" % (num_correct/num_eval))
     print()
 
 
