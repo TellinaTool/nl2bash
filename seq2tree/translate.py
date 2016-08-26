@@ -24,8 +24,8 @@ import tensorflow as tf
 
 import data_utils
 from parse_args import define_input_flags
-from bash import basic_tokenizer, bash_tokenizer
-from normalizer import to_list, list_to_tree, to_command, pretty_print, normalize_ast, all_simple_commands
+from data_tools import basic_tokenizer, bash_tokenizer
+from normalizer import to_list, to_ast, to_command, pretty_print, normalize_ast, all_simple_commands
 from seq2tree_model import Seq2TreeModel
 
 FLAGS = tf.app.flags.FLAGS
@@ -154,7 +154,7 @@ def train(train_set, dev_set, verbose=False):
                     dev_loss += eval_loss
                     
                     ground_truth = [rev_cm_vocab[i] for i in tree]
-                    gt_tree = list_to_tree(ground_truth)
+                    gt_tree = to_ast(ground_truth)
                     gt_cmd = to_command(gt_tree, loose_constraints=True)
                     tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
                     score = TokenOverlap.compute(gt_cmd, pred_cmd, verbose)
@@ -197,7 +197,7 @@ def decode(logits, rev_cm_vocab):
     if FLAGS.decoding_algorithm == "greedy":
         outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
     search_history = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
-    tree = list_to_tree(search_history)
+    tree = to_ast(search_history)
     cmd = to_command(tree, loose_constraints=True)
     return tree, cmd, search_history
 
@@ -267,7 +267,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
         ground_truth = [rev_cm_vocab[i] for i in tree]
         print(ground_truth)
-        gt_tree = list_to_tree(ground_truth)
+        gt_tree = to_ast(ground_truth)
         pretty_print(gt_tree, 0)
         gt_cmd = to_command(gt_tree, loose_constraints=True)
         tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
@@ -471,7 +471,7 @@ def main(_):
             train(train_set, dev_set)
         else:
             train_set, dev_set, _ = load_data()
-            train(train_set, dev_set, verbose=True)
+            train(train_set, dev_set, verbose=False)
 
 
 if __name__ == "__main__":
