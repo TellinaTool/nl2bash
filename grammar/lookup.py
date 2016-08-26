@@ -7,16 +7,21 @@ class ManPageLookUp(object):
         self.table = load_syntax(path, verbose=False)
 
     def get_arg_types(self, cmd):
-        return self.table[cmd]["arguments"]
+        try:
+            return self.table[cmd]["arguments"]
+        except KeyError, e:
+            # TODO: This exception is not handled very well.
+            print("Error: command {} doesn't exist".format(cmd))
+            return collections.defaultdict({"Unknown": None})
 
     def get_flag_arg_type(self, cmd, flag):
         try:
             arg_type = self.table[cmd]["flags"][flag]
         except KeyError, e:
             # TODO: This exception is not handled very well.
-            # This is mostly due to missing commands or flags in the grammar.
+            # This is mostly due to missing flags of commands in the grammar.
             print("Error: {} is not a flag of {}".format(flag, cmd))
-            arg_type = "Unknown"
+            return "Unknown"
         if arg_type:
             return list(arg_type)[0]
         else:
