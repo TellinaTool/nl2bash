@@ -191,7 +191,8 @@ class ArgumentNode(Node):
             return self
         if self.kind == "flag" or self.kind == "argument":
             ancester = self.parent
-            while (ancester.kind != "headcommand"):
+            while (ancester and ancester.kind != "headcommand"):
+                # if not head command is detect, return "root"
                 ancester = ancester.parent
             return ancester
 
