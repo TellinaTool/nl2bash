@@ -536,17 +536,17 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             return attach_point
 
         def attach_argument(node, attach_point):
+            if attach_point.kind == "flag" and attach_point.getNumChildren() >= 1:
+                attach_point = attach_point.parent
+
             if attach_point.kind == "flag":
-                if attach_point.getNumChildren() >= 1:
-                    attach_point = attach_point.parent
-                else:
-                    # attach point is flag of some headcommand
-                    head_cmd = attach_point.getHeadCommand()
-                    flag = attach_point.value
-                    arg_type = man_lookup.get_flag_arg_type(head_cmd.value, flag)
-                    if not arg_type:
-                        # attach point flag does not take argument
-                        attach_point = attach_point.getHeadCommand()
+                # attach point is flag of some headcommand
+                head_cmd = attach_point.getHeadCommand()
+                flag = attach_point.value
+                arg_type = man_lookup.get_flag_arg_type(head_cmd.value, flag)
+                if not arg_type:
+                    # attach point flag does not take argument
+                    attach_point = attach_point.getHeadCommand()
             elif attach_point.kind == "headcommand":
                 head_cmd = attach_point.value
                 possible_arg_types = man_lookup.get_arg_types(head_cmd)
