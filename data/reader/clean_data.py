@@ -180,17 +180,37 @@ class DBConnection(object):
         desp_clusters = desp_dict.items()
 
         # Second-pass: group English description clusters by command signatures
-        cmdsig_dict = collections.defaultdict(list)
+        cmdsig_dict = collections.defaultdict(set)
         for i in xrange(len(desp_clusters)):
             for cmd in desp_clusters[i][1]:
                 cmdsig = to_template(cmd)
-                cmdsig_dict[cmdsig].append(i)
+                cmdsig_dict[cmdsig].add(i)
+
+        cmdsigs = cmdsig_dict.keys()
+        merged_sigs = list()
+        for i in xrange(len(cmdsigs)):
+            cmdsig1 = cmdsigs[i]
+            for j in xrange(i+1, len(cmdsigs)):
+                cmdsig2 = cmdsigs[j]
+                if cmdsig_dict[cmdsig1] & cmdsig_dict[cmdsig2]:
+                    cmdsig_dict[cmdsig2] = cmdsig_dict[cmdsig1] | cmdsig_dict[cmdsig2]
+                    merged_sigs.append(i)
+        print("%d unique signatures" % len(cmdsigs))
+        print("%d signature clusters" % (len(cmdsigs) - len(merged_sigs)))
 
         data = collections.defaultdict(list)
         added_clusters = set()
-        for cmdsig in cmdsig_dict:
+        for i in xrange(len(cmdsigs)):
+            if i in merged_sigs:
+                continue
             num_cmdsig += 1
+<<<<<<< HEAD
             print("Command signature: %s" % cmdsig)
+=======
+
+            cmdsig = cmdsigs[i]
+            print("Command signature: %s" % cmdsig.encode('utf-8'))
+>>>>>>> 2066e535f7b4662ab73f0cac5bf88a4f5cc176ff
             for i in cmdsig_dict[cmdsig]:
                 if i in added_clusters:
                     continue
