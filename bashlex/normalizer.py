@@ -554,7 +554,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             else:
                 # TODO: this exceptional case is not handled very well
                 # most likely due to assignment node
-                print("Unrecognized argument attach_point kind: {}".format(attach_point.kind))
+                print("Unrecognized argument attachment point kind: {}".format(attach_point.kind))
                 return
             normalize(node, attach_point, "argument", arg_type)
 
