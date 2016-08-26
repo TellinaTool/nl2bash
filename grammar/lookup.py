@@ -13,7 +13,10 @@ class ManPageLookUp(object):
         try:
             arg_type = self.table[cmd]["flags"][flag]
         except KeyError, e:
+            # TODO: This exception is not handled very well.
+            # This is mostly due to missing commands or flags in the grammar.
             print("Error: {} is not a flag of {}".format(flag, cmd))
+            arg_type = "Unknown"
         if arg_type:
             return list(arg_type)[0]
         else:
