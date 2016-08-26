@@ -407,6 +407,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("/usr/bin/grep ", "grep ")
     cmd = cmd.replace("/bin/rm ", "rm ")
     cmd = cmd.replace("/bin/mv ", "mv ")
+    cmd = cmd.replace("/bin/echo ", "echo ")
 
     ## remove shell character
     if cmd.startswith("\$ "):
