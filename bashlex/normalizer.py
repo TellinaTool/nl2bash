@@ -673,11 +673,11 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
                 elif bash.is_headcommand(child.word) and not with_quotation(child) and \
                     (attach_point.kind != "headcommand" or attach_point.value in
-                        ["sh", "csh", "bash", "exec", "xargs"]):
+                        ["sh", "csh", "ksh", "tcsh", "zsh", "bash", "exec", "xargs"]):
                     if i > 0:
                         # embedded commands
                         if attach_point.kind == "flag":
-                            if attach_point.value in ["-exec", "-execdir"]:
+                            if attach_point.value in ["-exec", "-execdir", "-ok", "-okdir"]:
                                 new_command_node = copy.deepcopy(node)
                                 new_command_node.parts = []
                                 subcommand_added = False
@@ -704,10 +704,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 # handle end of utility introduced by '-exec' and whatnots
                                 attach_point = attach_point.parent
                             else:
-                                new_command_node = copy.deepcopy(node)
-                                new_command_node.parts = node.parts[i:]
-                                normalize_command(new_command_node, attach_point)
-                                i = len(node.parts) - 1
+                                # TODO: this exeptional case is not handled very well
+                                # since attachment point flag does not take utility arguments, the token
+                                # is likely to be a normal argument
+                                attach_argument(child, attach_point)
                         elif attach_point.kind == "headcommand":
                             new_command_node = copy.deepcopy(node)
                             new_command_node.parts = node.parts[i:]
