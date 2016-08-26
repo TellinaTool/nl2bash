@@ -453,12 +453,12 @@ def type_check(word, possible_types):
         return "ReservedWord"
     if word.isdigit() and "Number" in possible_types:
         return "Number"
-    elif any(c.isdigit() for c in word):
+    if any(c.isdigit() for c in word):
         if word[-1] in ["k", "M", "G", "T", "P"] and "Size" in possible_types:
             return "Size"
         if word[-1] in ["s", "m", "h", "d", "w"] and "Time" in possible_types:
             return "Time"
-    elif "File" in possible_types:
+    if "File" in possible_types:
         return "File"
     elif "Pattern" in possible_types:
         return "Pattern"
