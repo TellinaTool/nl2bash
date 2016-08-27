@@ -24,7 +24,7 @@ import tensorflow as tf
 
 import data_utils
 from parse_args import define_input_flags
-from data_tools import basic_tokenizer, bash_tokenizer
+from data_tools import basic_tokenizer, bash_tokenizer, to_template
 from normalizer import to_list, to_ast, to_command, pretty_print, normalize_ast, all_simple_commands
 from seq2tree_model import Seq2TreeModel
 import ast_based
@@ -145,45 +145,17 @@ def train(train_set, dev_set, verbose=False):
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
 
                 # Run evals on development set and print the metrics.
-                num_correct_template = 0.0
-                num_correct = 0.0
-                num_eval = 0
                 for i in xrange(len(dev_set)):
                     nl_str, cm_str, nl, tree = dev_set[i]
                     formatted_example = model.format_example(nl, tree)
                     _, eval_loss, output_logits = model.step(sess, formatted_example, forward_only=True)
                     dev_loss += eval_loss
-                    
-                    ground_truth = [rev_cm_vocab[i] for i in tree]
-                    gt_tree = to_ast(ground_truth)
-                    gt_cmd = to_command(gt_tree, loose_constraints=True)
-                    tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
-                    if ast_based.template_match(gt_tree, tree):
-                        num_correct_template += 1
-                    if ast_based.string_match(gt_tree, tree):
-                        num_correct += 1
-                    num_eval += 1
-                    if verbose:
-                        print("Example %d" % num_eval)
-                        print("English: " + nl_str.strip())
-                        print("Ground truth: " + gt_cmd)
-                        print("Prediction: " + pred_cmd)
-                        print("Search history (truncated at 25 steps): ")
-                        print(" -> ".join(search_history[:25]))
-                        print("AST: ")
-                        pretty_print(tree, 0)
-                        print()
-                        # print("token-overlap score: %.2f" % score)
-                        # print()
-
                 dev_loss /= len(dev_set)
                 dev_ppx = math.exp(dev_loss) if dev_loss < 300 else float('int')
                 print("dev perplexity %.2f" % dev_ppx)
-
-                print("%d examples evaluated" % num_eval)
-                print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
-                print("Percentage of String Match = %.2f" % (num_correct/num_eval))
                 print()
+
+                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=False)
 
                 # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
                 if ppx < 1.1 and len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
@@ -252,25 +224,19 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_correct = 0.0
     num_eval = 0
 
-    for i in xrange(len(dataset)):
-        nl_str, cm_str, nl, tree = dataset[i]
+    grouped_dataset = group_data_by_desp(dataset)
+
+    for i in xrange(len(grouped_dataset)):
+        nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
       
         formatted_example = model.format_example(
             nl, [data_utils.ROOT_ID])
         _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
 
-        # rev_encoder_inputs = []
-        # for i in xrange(len(encoder_inputs)-1, -1, -1):
-        #     rev_encoder_inputs.append(encoder_inputs[i])
-        # sentence = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)[0]
-        # ground_truth = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
-        #                                        headAppended=True)[0]
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
-        ground_truth = [rev_cm_vocab[i] for i in tree]
-        print(ground_truth)
-        gt_tree = to_ast(ground_truth)
-        pretty_print(gt_tree, 0)
-        gt_cmd = to_command(gt_tree, loose_constraints=True)
+        gt_trees = [normalize_ast(cmd) for cmd in cm_strs]
+        gt_cmds = cm_strs
+        gt_templates = []
         tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
         if ast_based.template_match(gt_tree, tree):
             num_correct_template += 1

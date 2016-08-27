@@ -1059,4 +1059,5 @@ if __name__ == "__main__":
     tree = to_ast(list + ['<PAD>'])
     pretty_print(tree, 0)
     print(to_template(tree))
+    print(to_template(tree, arg_type_only=False))
     print(to_command(tree))
