@@ -218,6 +218,23 @@ def interactive_decode():
             sys.stdout.flush()
             sentence = sys.stdin.readline()
 
+def group_data_by_desp(dataset):
+    grouped_dataset = {}
+
+    for i in xrange(len(dataset)):
+        nl_str, cm_str, nl, search_history = dataset[i]
+        if nl_str in grouped_dataset:
+            grouped_dataset[nl_str][0].append(cm_str)
+            grouped_dataset[nl_str][2].append(search_history)
+        else:
+            grouped_dataset[nl_str] = [[cm_str], nl, [search_history]]
+
+    grouped_dataset2 = []
+    for nl_str in grouped_dataset:
+        grouped_dataset2.append(nl_str, grouped_dataset[nl_str][0],
+                                grouped_dataset[nl_str][1],
+                                grouped_dataset[nl_str][2])
+    return grouped_dataset
 
 def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_correct_template = 0.0
@@ -235,23 +252,22 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
         gt_trees = [normalize_ast(cmd) for cmd in cm_strs]
-        gt_cmds = cm_strs
-        gt_templates = []
         tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
-        if ast_based.template_match(gt_tree, tree):
+        # evaluation ignoring ordering of flags
+        if ast_based.one_template_match(gt_trees, tree):
             num_correct_template += 1
-        if ast_based.string_match(gt_tree, tree):
+        if ast_based.one_string_match(gt_trees, tree):
             num_correct += 1
         num_eval += 1
         if verbose:
             print("Example %d" % num_eval)
             print("Original English: " + nl_str.strip())
             print("English: " + sentence)
-            print("Original Command: " + cm_str.strip())
-            print("Ground truth: " + gt_cmd)
+            print("Original Command: " + cm_strs[0])
+            print("Ground truth: " + to_command(gt_trees[0]))
             print("Prediction: " + pred_cmd)
-            print("Search history (truncated at 25 steps): ")
-            print(" -> ".join(search_history[:25]))
+            # print("Search history (truncated at 25 steps): ")
+            # print(" -> ".join(search_historys[0][:25]))
             print("AST: ")
             pretty_print(tree, 0)
             print()
