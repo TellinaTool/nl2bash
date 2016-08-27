@@ -111,12 +111,6 @@
                      {
                         "type":"flag_option",
                         "flag_name":"not"
-                     },
-                     {
-                        "type":"argument_option",
-                        "arg_name":"findexp",
-                        "arg_type":"Unknown",
-                        "isList":false
                      }
                   ]
                }
