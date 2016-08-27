@@ -321,10 +321,10 @@ def manual_eval(num_eval = 30):
 
         o_f = open("manual.eval.results", 'w')
 
-        i = 0
+        num_evaled = 0
 
-        while i < len(grouped_dataset):
-            if i == num_eval:
+        for i in xrange(len(grouped_dataset)):
+            if num_evaled == num_eval:
                 break
 
             nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
@@ -340,8 +340,8 @@ def manual_eval(num_eval = 30):
             if ast_based.one_template_match(gt_trees, tree):
                 continue
             else:
-                print("Example %d (%d)" % (i+1, len(cm_strs)))
-                o_f.write("Example %d (%d)" % (i+1, len(cm_strs)) + "\n")
+                print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
+                o_f.write("Example %d (%d)" % (num_evaled+1, len(cm_strs)) + "\n")
                 print("English: " + nl_str.strip())
                 o_f.write("English: " + nl_str.strip() + "\n")
                 for j in xrange(len(cm_strs)):
@@ -369,7 +369,7 @@ def manual_eval(num_eval = 30):
                 o_f.write("\n")
                 o_f.write("\n")
 
-            i += 1
+            num_evaled += 1
 
         print()
         print("%d examples evaluated" % num_eval)
