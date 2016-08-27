@@ -766,19 +766,21 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                             arg_types = man_lookup.get_arg_types(head_cmd)
                             attach_point_info = (norm_node, ["flag", "argument"], arg_types)
                         elif node_kind == "argument":
-                            if "utility" in possible_arg_types:
+                            if "Utility" in possible_arg_types:
                                 # embedded command leaded by ["-exec", "-execdir", "-ok", "-okdir"]
-                                new_command_node = bast.Node()
+                                new_command_node = bast.node(kind="command", word="", parts=[], pos=(-1,-1))
+                                print(new_command_node)
                                 new_command_node.parts = []
                                 subcommand_added = False
                                 for j in xrange(ind, len(node.parts)):
                                     if hasattr(node.parts[j], 'word') and \
-                                            (node.parts[j].word == ";" or node.parts[j].word == "+"):
+                                        (node.parts[j].word == ";" or node.parts[j].word == "+"):
                                         normalize_command(new_command_node, attach_point)
                                         attach_point.value += '::' + node.parts[j].word
                                         subcommand_added = True
                                         break
                                     else:
+                                        print(node.parts[j])
                                         new_command_node.parts.append(node.parts[j])
                                 if not subcommand_added:
                                     print("Warning: -exec missing ending ';'")
@@ -798,14 +800,14 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                             attach_point_info = attach_flag(child, attach_point_info)
                         else:
                             # child is an argument
-                            if "utility" in possible_arg_types:
+                            if "Utility" in possible_arg_types:
                                 # embedded command leaded by ["sh", "csh", "ksh", "tcsh",
                                 #                             "zsh", "bash", "exec", "xargs"]
-                                new_command_node = bast.Node()
+                                new_command_node = bast.node(kind="command", word="", parts=[], pos=(-1,-1))
                                 new_command_node.parts = []
                                 for j in xrange(ind, len(node.parts)):
                                     new_command_node.parts.append(node.parts[j])
-                                    normalize_command(new_command_node, attach_point)
+                                normalize_command(new_command_node, attach_point)
                                 ind = j
                             else:
                                 arg_type = type_check(child.word, possible_arg_types)
@@ -834,7 +836,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             sys.exit()
 
         head_command = head_commands[0]
-        pretty_print(head_command)
 
         # process (embedded) parenthese -- treat as implicit "-and"
         stack = []
@@ -876,8 +877,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
         for bl in unprocessed_binary_logic_ops:
             adjust_binary_operators(bl)
-
-        pretty_print(head_command)
 
         assert(len(stack) == 0)
         assert(depth == 0)
