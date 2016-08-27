@@ -117,10 +117,10 @@ def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
     return normalizer.to_tokens(tree)
 
 def to_template(cmd, normalize_digits=True, normalize_long_pattern=True,
-                   recover_quotation=True):
+                   recover_quotation=True, arg_type_only=True):
     tree = normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,
                          recover_quotation)
-    return normalizer.to_template(tree)
+    return normalizer.to_template(tree, arg_type_only=arg_type_only)
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
