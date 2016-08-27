@@ -625,6 +625,11 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if rsb.value == "(":
                     unprocessed_unary_logic_ops.append(node)
                     return
+                if rsb.value == ")":
+                    # TODO: this corner case is not handled very well
+                    node.associate = UnaryLogicOpNode.LEFT
+                    unprocessed_unary_logic_ops.append(node)
+                    return
                 make_sibling(node, rsb.rsb)
                 node.parent.removeChild(rsb)
                 rsb.lsb = None
@@ -652,6 +657,11 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             else:
                 raise AttributeError("Cannot decide unary operator assocation: {}"
                                      .format(node.symbok))
+
+            # resolve single child of binary operators left as the result of parentheses processing
+            if node.parent.kind == "binarylogicop" and node.parent.value == "-and":
+                if node.parent.getNumChildren() == 1:
+                    node.grandparent().replaceChild(node.parent, node)
 
         def adjust_binary_operators(node):
             # change right sibling to Child
@@ -845,7 +855,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             sys.exit()
 
         head_command = head_commands[0]
-        # pretty_print(head_command)
+        pretty_print(head_command)
 
         # process (embedded) parenthese -- treat as implicit "-and"
         stack = []
