@@ -356,14 +356,14 @@ def manual_eval(num_eval = 30):
                 if inp == "y":
                     num_correct_template += 1
                     o_f.write("C")
+                    inp = raw_input("Correct command [y/n]: ")
+                    if inp == "y":
+                        num_correct_command += 1
+                        o_f.write("C")
+                    else:
+                        o_f.write("W")
                 else:
-                    o_f.write("W")
-                inp = raw_input("Correct command [y/n]: ")
-                if inp == "y":
-                    num_correct_command += 1
-                    o_f.write("C")
-                else:
-                    o_f.write("W")
+                    o_f.write("WW")
                 o_f.write("\n")
                 o_f.write("\n")
 
