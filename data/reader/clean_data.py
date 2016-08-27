@@ -133,7 +133,7 @@ class DBConnection(object):
         for cmd in unique_pairs:
             if not cmd:
                 continue
-            signature = to_template(cmd)
+            signature = to_template(cmd, arg_type_only=False)
             if not signature:
                 num_errors += 1
                 continue
@@ -210,7 +210,7 @@ class DBConnection(object):
                                                       len(cmdsig_dict[cmdsig])))
 
             # randomly find a fold to place cluster
-            if num_train < 5000:
+            if num_train < 5400:
                 ind = random.randrange(num_folds - 2)
             else:
                 ind = random.randrange(num_folds - 2, num_folds)

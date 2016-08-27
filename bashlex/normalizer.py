@@ -384,7 +384,10 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
         elif node.kind == "argument":
             assert(loose_constraints or node.getNumChildren() == 0)
             if ato and not node.arg_type == "ReservedWord":
-                tokens.append(node.arg_type)
+                if loose_constraints and not node.arg_type:
+                    tokens.append("Unknown")
+                else:
+                    tokens.append(node.arg_type)
             else:
                 tokens.append(node.value)
             if lc:
@@ -804,7 +807,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                     attach_point.value += '::' + "\\;"
                                 ind = j
                             else:
-                                arg_type = possible_arg_types[0]
+                                arg_type = list(possible_arg_types)[0]
                                 # recurse to main normalization to handle argument with deep structures
                                 normalize(child, attach_point, "argument", arg_type)
                             attach_point_info = look_above(attach_point)
@@ -1058,6 +1061,5 @@ if __name__ == "__main__":
     print(list)
     tree = to_ast(list + ['<PAD>'])
     pretty_print(tree, 0)
-    print(to_template(tree))
     print(to_template(tree, arg_type_only=False))
     print(to_command(tree))
