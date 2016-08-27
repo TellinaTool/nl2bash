@@ -621,11 +621,9 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     print("Warning: unary logic operator without a right sibling.")
                     print(node.parent)
                     return
-
                 if rsb.value == "(":
                     unprocessed_unary_logic_ops.append(node)
                     return
-
                 make_sibling(node, rsb.rsb)
                 node.parent.removeChild(rsb)
                 rsb.lsb = None
@@ -638,12 +636,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     print("Warning: unary logic operator without a left sibling.")
                     print(node.parent)
                     return
-
                 if lsb.value == ")":
                     unprocessed_unary_logic_ops.append(node)
                     return
-
-                make_sibling(node, lsb.lsb)
+                make_sibling(lsb.lsb, node)
                 node.parent.removeChild(lsb)
                 lsb.lsb = None
                 lsb.rsb = None
@@ -842,6 +838,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             sys.exit()
 
         head_command = head_commands[0]
+        pretty_print(head_command)
 
         # process (embedded) parenthese -- treat as implicit "-and"
         stack = []
