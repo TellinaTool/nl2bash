@@ -696,7 +696,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             attach_point = attach_point_info[0]
 
             if bash.is_double_option(node.word) or is_unary_logic_op(node, attach_point) \
-                or node.word in binary_logic_operators or attach_point.value == "find"\
+                or node.word in binary_logic_operators or attach_point.value == "find" \
                 or len(node.word) <= 1:
                 normalize_flag(node, attach_point)
             else:
