@@ -267,9 +267,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         #                                        headAppended=True)[0]
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
         ground_truth = [rev_cm_vocab[i] for i in tree]
-        print(ground_truth)
+        # print(ground_truth)
         gt_tree = to_ast(ground_truth)
-        pretty_print(gt_tree, 0)
+        # pretty_print(gt_tree, 0)
         gt_cmd = to_command(gt_tree, loose_constraints=True)
         tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
         if ast_based.template_match(gt_tree, tree):
@@ -319,7 +319,7 @@ def eval(verbose=True):
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
 
-    with open(FLAGS.data_dir + "data.dat") as f:
+    with open(FLAGS.data_dir + "data.by.template.dat") as f:
         data = pickle.load(f)
 
     numFolds = len(data)
@@ -365,7 +365,7 @@ def process_data():
 
     print("maximum training command sequence length = %d" % max_cmd_seq_len)
 
-    data_dir = FLAGS.data_dir + "seq2tree/"
+    data_dir = FLAGS.data_dir + "seq2tree.by.template/"
 
     # Get data to the specified directory.
     train_path = data_dir + "/train"
@@ -401,7 +401,7 @@ def process_data():
     dev_set = read_data(nl_dev, cm_dev)
     test_set = read_data(nl_test, cm_test)
    
-    with open(FLAGS.data_dir + "seq2tree/" + "data.processed.dat", 'wb') as o_f:
+    with open(FLAGS.data_dir + "seq2tree.by.template/" + "data.processed.dat", 'wb') as o_f:
         pickle.dump((train_set, dev_set, test_set), o_f)
 
     return train_set, dev_set, test_set
