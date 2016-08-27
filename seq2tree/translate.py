@@ -365,6 +365,7 @@ def manual_eval(num_eval = 30):
                 else:
                     o_f.write("W")
                 o_f.write("\n")
+                o_f.write("\n")
 
         print()
         print("%d examples evaluated" % num_eval)
