@@ -18,7 +18,7 @@ import cPickle as pickle
 
 import numpy as np
 from tqdm import tqdm
-from random import sample, shuffle
+from random import sample
 
 import tensorflow as tf
 
@@ -112,7 +112,7 @@ def train(train_set, dev_set, verbose=False):
             start_time = time.time()
 
             # shuffling training examples
-            shuffle(train_set)
+            random.shuffle(train_set)
 
             for i in tqdm(xrange(len(train_set))):
                 time.sleep(0.01)
@@ -263,7 +263,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             print("Example %d" % num_eval)
             print("Original English: " + nl_str.strip())
             print("English: " + sentence)
-            print("Original Command: " + cm_strs[0])
+            print("Original Command: " + cm_strs[0].strip())
             print("Ground truth: " + to_command(gt_trees[0]))
             print("Prediction: " + pred_cmd)
             # print("Search history (truncated at 25 steps): ")
@@ -297,6 +297,65 @@ def eval(verbose=True):
 
         eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
 
+
+def manual_eval(num_eval = 30):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                                          log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        model, _ = create_model(sess, forward_only=True)
+
+        # Load vocabularies.
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
+        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
+        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+        _, dev_set, _ = load_data()
+
+        num_correct_template = 0.0
+        num_correct_command = 0.0
+
+        grouped_dataset = group_data_by_desp(dev_set)
+        random.shuffle(grouped_dataset)
+
+        for i in xrange(len(grouped_dataset)):
+            nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
+
+            formatted_example = model.format_example(
+                nl, [data_utils.ROOT_ID])
+            _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
+
+            sentence = ' '.join([rev_nl_vocab[i] for i in nl])
+            gt_trees = [normalize_ast(cmd) for cmd in cm_strs]
+            tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
+
+            # evaluation ignoring ordering of flags
+            if ast_based.one_template_match(gt_trees, tree):
+                continue
+            else:
+                print("Example %d (%d)" % (num_eval, len(cm_strs)))
+                print("English: " + nl_str.strip())
+                for i in xrange(len(cm_strs)):
+                    print("GT Command %d: " % i + cm_strs[i].strip())
+                print("Prediction: " + pred_cmd)
+                # print("Search history (truncated at 25 steps): ")
+                # print(" -> ".join(search_historys[0][:25]))
+                print("AST: ")
+                pretty_print(tree, 0)
+                print()
+                inp = raw_input("Correct template [y/n]: ")
+                if inp == "y":
+                    num_correct_template += 1
+                inp = raw_input("Correct command [y/n]: ")
+                if inp == "y":
+                    num_correct_command += 1
+
+        print()
+        print("%d examples evaluated" % num_eval)
+        print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
+        print("Percentage of String Match = %.2f" % (num_correct_command/num_eval))
+        print()
 
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
@@ -445,6 +504,8 @@ def main(_):
     with tf.device('/gpu:%d' % FLAGS.gpu):
         if FLAGS.eval:
             eval()
+        if FLAGS.manual_eval:
+            manual_eval()
         elif FLAGS.decode:
             interactive_decode()
         elif FLAGS.process_data:
