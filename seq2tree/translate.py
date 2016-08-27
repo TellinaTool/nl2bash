@@ -231,10 +231,10 @@ def group_data_by_desp(dataset):
 
     grouped_dataset2 = []
     for nl_str in grouped_dataset:
-        grouped_dataset2.append(nl_str, grouped_dataset[nl_str][0],
+        grouped_dataset2.append((nl_str, grouped_dataset[nl_str][0],
                                 grouped_dataset[nl_str][1],
-                                grouped_dataset[nl_str][2])
-    return grouped_dataset
+                                grouped_dataset[nl_str][2]))
+    return grouped_dataset2
 
 def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_correct_template = 0.0
@@ -260,7 +260,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             num_correct += 1
         num_eval += 1
         if verbose:
-            print("Example %d" % num_eval)
+            print("Example %d (%d)" % (num_eval, len(cm_strs)))
             print("Original English: " + nl_str.strip())
             print("English: " + sentence)
             print("Original Command: " + cm_strs[0])

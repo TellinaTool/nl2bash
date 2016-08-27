@@ -534,7 +534,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     :param recover_quotation: if set, retain quotation marks in the command
     :return normalized_tree
     """
-    print(cmd.encode('utf-8'))
     cmd = cmd.replace('\n', ' ').strip()
     cmd = special_command_normalization(cmd)
 
