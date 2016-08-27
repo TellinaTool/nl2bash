@@ -319,6 +319,8 @@ def manual_eval(num_eval = 30):
         grouped_dataset = group_data_by_desp(dev_set)
         random.shuffle(grouped_dataset)
 
+        o_f = open("manual.eval.results", 'w')
+
         for i in xrange(len(grouped_dataset)):
             nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
 
@@ -335,10 +337,14 @@ def manual_eval(num_eval = 30):
                 continue
             else:
                 print("Example %d (%d)" % (num_eval, len(cm_strs)))
+                o_f.write("Example %d (%d)" % (num_eval, len(cm_strs)) + "\n")
                 print("English: " + nl_str.strip())
+                o_f.write("English: " + nl_str.strip() + "\n")
                 for i in xrange(len(cm_strs)):
                     print("GT Command %d: " % i + cm_strs[i].strip())
+                    o_f.write("GT Command %d: " % i + cm_strs[i].strip() + "\n")
                 print("Prediction: " + pred_cmd)
+                o_f.write("Prediction: " + pred_cmd + "\n")
                 # print("Search history (truncated at 25 steps): ")
                 # print(" -> ".join(search_historys[0][:25]))
                 print("AST: ")
@@ -347,15 +353,29 @@ def manual_eval(num_eval = 30):
                 inp = raw_input("Correct template [y/n]: ")
                 if inp == "y":
                     num_correct_template += 1
+                    o_f.write("C")
+                else:
+                    o_f.write("W")
                 inp = raw_input("Correct command [y/n]: ")
                 if inp == "y":
                     num_correct_command += 1
+                    o_f.write("C")
+                else:
+                    o_f.write("W")
+                o_f.write("\n")
 
         print()
         print("%d examples evaluated" % num_eval)
         print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
         print("Percentage of String Match = %.2f" % (num_correct_command/num_eval))
         print()
+
+        o_f.write("\n")
+        o_f.write("%d examples evaluated" % num_eval + "\n")
+        o_f.write("Percentage of Template Match = %.2f" % (num_correct_template/num_eval) + "\n")
+        o_f.write("Percentage of String Match = %.2f" % (num_correct_command/num_eval) + "\n")
+        o_f.write("\n")
+
 
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
