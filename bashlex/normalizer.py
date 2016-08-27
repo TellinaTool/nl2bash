@@ -712,6 +712,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 else:
                     if child.word == "--":
                         attach_point_info = (attach_point_info[0], ["argument"], attach_point_info[2])
+                        ind += 1
                         continue
 
                     if len(possible_node_kinds) == 1:
