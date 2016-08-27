@@ -329,6 +329,13 @@
                "type":"optional_option",
                "cmd":{
                   "type":"flag_option",
+                  "flag_name":"daystart"
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"flag_option",
                   "flag_name":"delete"
                }
             },
