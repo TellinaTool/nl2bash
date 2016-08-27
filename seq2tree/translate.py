@@ -321,7 +321,9 @@ def manual_eval(num_eval = 30):
 
         o_f = open("manual.eval.results", 'w')
 
-        for i in xrange(len(grouped_dataset)):
+        i = 0
+
+        while i < len(grouped_dataset):
             if i == num_eval:
                 break
 
@@ -366,6 +368,8 @@ def manual_eval(num_eval = 30):
                     o_f.write("WW")
                 o_f.write("\n")
                 o_f.write("\n")
+
+            i += 1
 
         print()
         print("%d examples evaluated" % num_eval)
