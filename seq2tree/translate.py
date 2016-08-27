@@ -322,13 +322,15 @@ def manual_eval(num_eval = 30):
         o_f = open("manual.eval.results", 'w')
 
         for i in xrange(len(grouped_dataset)):
+            if i == num_eval:
+                break
+
             nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
 
             formatted_example = model.format_example(
                 nl, [data_utils.ROOT_ID])
             _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
 
-            sentence = ' '.join([rev_nl_vocab[i] for i in nl])
             gt_trees = [normalize_ast(cmd) for cmd in cm_strs]
             tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
 
@@ -336,13 +338,13 @@ def manual_eval(num_eval = 30):
             if ast_based.one_template_match(gt_trees, tree):
                 continue
             else:
-                print("Example %d (%d)" % (num_eval, len(cm_strs)))
-                o_f.write("Example %d (%d)" % (num_eval, len(cm_strs)) + "\n")
+                print("Example %d (%d)" % (i+1, len(cm_strs)))
+                o_f.write("Example %d (%d)" % (i+1, len(cm_strs)) + "\n")
                 print("English: " + nl_str.strip())
                 o_f.write("English: " + nl_str.strip() + "\n")
-                for i in xrange(len(cm_strs)):
-                    print("GT Command %d: " % i + cm_strs[i].strip())
-                    o_f.write("GT Command %d: " % i + cm_strs[i].strip() + "\n")
+                for j in xrange(len(cm_strs)):
+                    print("GT Command %d: " % j+1 + cm_strs[j].strip())
+                    o_f.write("GT Command %d: " % j+1 + cm_strs[j].strip() + "\n")
                 print("Prediction: " + pred_cmd)
                 o_f.write("Prediction: " + pred_cmd + "\n")
                 # print("Search history (truncated at 25 steps): ")
@@ -362,6 +364,7 @@ def manual_eval(num_eval = 30):
                     o_f.write("C")
                 else:
                     o_f.write("W")
+                o_f.write("\n")
                 o_f.write("\n")
 
         print()
