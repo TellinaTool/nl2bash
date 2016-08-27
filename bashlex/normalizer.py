@@ -594,6 +594,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         def organize_buffer(lparenth, rparenth):
             node = lparenth.rsb
             while node != rparenth:
+                print(node.symbol)
                 if node.kind == "unarylogicop":
                     adjust_unary_operators(node)
                 node = node.rsb
