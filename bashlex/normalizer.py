@@ -640,7 +640,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if lsb.value == ")":
                     unprocessed_unary_logic_ops.append(node)
                     return
-                if lsb.kind == "binarylogicop":
+                if lsb.kind == "binarylogicop" or lsb.value == "(":
                     # TODO: this corner case is not handled very well
                     # it is often triggered by the bizarreness of -prune
                     return
@@ -699,8 +699,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             attach_point = attach_point_info[0]
 
             if bash.is_double_option(node.word) or is_unary_logic_op(node, attach_point) \
-                        or node.word in binary_logic_operators or attach_point.value == "find"\
-                        or len(node.word) <= 1:
+                or node.word in binary_logic_operators or attach_point.value == "find"\
+                or len(node.word) <= 1:
                 normalize_flag(node, attach_point)
             else:
                 # split flags
