@@ -209,7 +209,6 @@ class HeadCommandNode(Node):
 
     def getHeadCommand(self):
         return self
->>>>>>> 8e7378e8d5d608682e33361d1c2aebc66a7cead9
 
 class UnaryLogicOpNode(Node):
     num_child = 1

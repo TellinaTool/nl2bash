@@ -133,7 +133,7 @@ class DBConnection(object):
         for cmd in unique_pairs:
             if not cmd:
                 continue
-            signature = to_template(cmd)
+            signature = to_template(cmd, arg_type_only=False)
             if not signature:
                 num_errors += 1
                 continue
