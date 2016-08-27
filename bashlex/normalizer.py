@@ -788,7 +788,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                             if "Utility" in possible_arg_types:
                                 # embedded command leaded by ["-exec", "-execdir", "-ok", "-okdir"]
                                 new_command_node = bast.node(kind="command", word="", parts=[], pos=(-1,-1))
-                                print(new_command_node)
+                                # print(new_command_node)
                                 new_command_node.parts = []
                                 subcommand_added = False
                                 for j in xrange(ind, len(node.parts)):
@@ -799,7 +799,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                         subcommand_added = True
                                         break
                                     else:
-                                        print(node.parts[j])
+                                        # print(node.parts[j])
                                         new_command_node.parts.append(node.parts[j])
                                 if not subcommand_added:
                                     print("Warning: -exec missing ending ';'")
@@ -855,7 +855,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             sys.exit()
 
         head_command = head_commands[0]
-        pretty_print(head_command)
+        # pretty_print(head_command)
 
         # process (embedded) parenthese -- treat as implicit "-and"
         stack = []
