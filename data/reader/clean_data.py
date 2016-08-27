@@ -13,6 +13,8 @@ from data_tools import basic_tokenizer, bash_tokenizer, is_stopword, to_template
 # minimum number of edits two natural language descriptions have to differ to not be considered as duplicates
 EDITDIST_THRESH = 8
 
+split_by_template = True
+
 def token_overlap(s1, s2):
     tokens1 = set([w for w in basic_tokenizer(s1) if not is_stopword(w)])
     tokens2 = set([w for w in basic_tokenizer(s2) if not is_stopword(w)])
@@ -133,7 +135,7 @@ class DBConnection(object):
         for cmd in unique_pairs:
             if not cmd:
                 continue
-            signature = to_template(cmd, arg_type_only=False)
+            signature = to_template(cmd, arg_type_only=split_by_template)
             if not signature:
                 num_errors += 1
                 continue
@@ -183,7 +185,7 @@ class DBConnection(object):
         cmdsig_dict = collections.defaultdict(set)
         for i in xrange(len(desp_clusters)):
             for cmd in desp_clusters[i][1]:
-                cmdsig = to_template(cmd)
+                cmdsig = to_template(cmd, arg_type_only=split_by_template)
                 cmdsig_dict[cmdsig].add(i)
 
         cmdsigs = cmdsig_dict.keys()
@@ -203,6 +205,11 @@ class DBConnection(object):
 
         data = collections.defaultdict(list)
         num_train = 0
+        num_train_cmds = 0
+        num_dev = 0
+        num_dev_cmds = 0
+        num_test = 0
+        num_test_cmds = 0
         for cmdsig_index in sorted_remained_sigs:
             num_cmdsig += 1
             cmdsig = cmdsigs[cmdsig_index]
@@ -210,10 +217,25 @@ class DBConnection(object):
                                                       len(cmdsig_dict[cmdsig])))
 
             # randomly find a fold to place cluster
-            if num_train < 5400:
-                ind = random.randrange(num_folds - 2)
+            if split_by_template:
+                top_k = 3
             else:
-                ind = random.randrange(num_folds - 2, num_folds)
+                top_k = 10
+            if num_cmdsig < top_k:
+                ind = random.randrange(num_folds - 2)
+                num_train += 1
+                num_train_cmds += len(cmdsig_dict[cmdsig])
+            else:
+                ind = random.randrange(num_folds)
+                if ind < num_folds - 2:
+                    num_train += 1
+                    num_train_cmds += len(cmdsig_dict[cmdsig])
+                elif ind == num_folds - 2:
+                    num_dev += 1
+                    num_dev_cmds += len(cmdsig_dict[cmdsig])
+                elif ind == num_folds - 1:
+                    num_test += 1
+                    num_test_cmds += len(cmdsig_dict[cmdsig])
             bin = data[ind]
 
             for i in cmdsig_dict[cmdsig]:
@@ -223,7 +245,6 @@ class DBConnection(object):
                     continue
                 for cmd in cmds:
                     num_pairs += 1
-                    num_train += 1
                     cmd = cmd.strip().replace('\n', ' ').replace('\r', ' ')
                     nl = nl.strip().replace('\n', ' ').replace('\r', ' ')
                     if not type(nl) is unicode:
@@ -234,8 +255,16 @@ class DBConnection(object):
 
         print("Total number of pairs: %d" % num_pairs)
         print("Total number of command signatures: %d" % num_cmdsig)
+        print("Total number of train clusters: %d (%d commands)" % (num_train, num_train_cmds))
+        print("Total number of dev clusters: %d (%d commands)" % (num_dev, num_dev_cmds))
+        print("Total number of test clusters: %d (%d commands)" % (num_test, num_test_cmds))
         print("%.2f descriptions per command signature" % ((num_pairs + 0.0) / num_cmdsig))
-        with open(data_dir + "/data.dat", 'w') as o_f:
+
+        if split_by_template:
+            split_by = "template"
+        else:
+            split_by = "command"
+        with open(data_dir + "/data.by.%s.dat" % split_by, 'w') as o_f:
             pickle.dump(data, o_f)
 
     def head_present(self, cmd, head):
@@ -247,6 +276,11 @@ class DBConnection(object):
             return False
 
 if __name__ == "__main__":
+    split_by = sys.argv[1]
+    if split_by == "template":
+        split_by_template = True
+    else:
+        split_by_template = False
     with DBConnection() as db:
         db.create_schema()
         db.dump_data(".")

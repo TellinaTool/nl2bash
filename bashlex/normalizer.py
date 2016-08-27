@@ -191,7 +191,7 @@ class ArgumentNode(Node):
 
     def getHeadCommand(self):
         ancester = self.parent
-        while (ancester and ancester.kind != "headcommand"):
+        while (ancester.parent and ancester.kind != "headcommand"):
             # if not head command is detect, return "root"
             ancester = ancester.parent
         return ancester
@@ -202,7 +202,7 @@ class FlagNode(Node):
 
     def getHeadCommand(self):
         ancester = self.parent
-        while (ancester and ancester.kind != "headcommand"):
+        while (ancester.parent and ancester.kind != "headcommand"):
             # if not head command is detect, return "root"
             ancester = ancester.parent
         return ancester
@@ -229,7 +229,7 @@ class UnaryLogicOpNode(Node):
 
     def getHeadCommand(self):
         ancester = self.parent
-        while (ancester and ancester.kind != "headcommand"):
+        while (ancester.parent and ancester.kind != "headcommand"):
             # if not head command is detect, return "root"
             ancester = ancester.parent
         return ancester
@@ -243,7 +243,7 @@ class BinaryLogicOpNode(Node):
 
     def getHeadCommand(self):
         ancester = self.parent
-        while (ancester and ancester.kind != "headcommand"):
+        while (ancester.parent and ancester.kind != "headcommand"):
             # if not head command is detect, return "root"
             ancester = ancester.parent
         return ancester
