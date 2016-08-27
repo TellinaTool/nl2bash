@@ -343,8 +343,8 @@ def manual_eval(num_eval = 30):
                 print("English: " + nl_str.strip())
                 o_f.write("English: " + nl_str.strip() + "\n")
                 for j in xrange(len(cm_strs)):
-                    print("GT Command %d: " % j+1 + cm_strs[j].strip())
-                    o_f.write("GT Command %d: " % j+1 + cm_strs[j].strip() + "\n")
+                    print("GT Command %d: " % (j+1) + cm_strs[j].strip())
+                    o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
                 print("Prediction: " + pred_cmd)
                 o_f.write("Prediction: " + pred_cmd + "\n")
                 # print("Search history (truncated at 25 steps): ")
