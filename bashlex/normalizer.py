@@ -44,7 +44,9 @@ arg_syntax = [
     "Unknown"
 ]
 
-unary_logic_operators = set(['!', '-not'])
+right_associate_unary_logic_operators = set(['!', '-not'])
+
+left_associate_unary_logic_operators = set(['-prune'])
 
 binary_logic_operators = set([
     '-and',
@@ -61,7 +63,8 @@ man_lookup = ManPageLookUp([os.path.join(os.path.dirname(__file__), "..", "gramm
 def is_unary_logic_op(node, parent):
     if node.word == "!":
         return parent and parent.kind == "headcommand" and parent.value == "find"
-    return node.word in unary_logic_operators
+    return node.word in right_associate_unary_logic_operators or \
+           node.word in left_associate_unary_logic_operators
 
 def is_binary_logic_op(node, parent):
     if node.word == '-o':
@@ -148,7 +151,8 @@ class Node(object):
         return self.parent.parent
 
     def removeChild(self, child):
-        self.children.remove(child)
+        if child in self.children:
+            self.children.remove(child)
 
     def removeChildByIndex(self, index):
         self.children.pop(index)
@@ -213,9 +217,15 @@ class HeadCommandNode(Node):
 class UnaryLogicOpNode(Node):
     num_child = 1
     children_types = [set('flag')]
+    LEFT = 0
+    RIGHT = 1
 
     def __init__(self, value="", parent=None, lsb=None):
         super(UnaryLogicOpNode, self).__init__( parent, lsb, 'unarylogicop', value)
+        if value in right_associate_unary_logic_operators:
+            self.associate = UnaryLogicOpNode.RIGHT
+        elif value in left_associate_unary_logic_operators:
+            self.associate = UnaryLogicOpNode.LEFT
 
     def getHeadCommand(self):
         ancester = self.parent
@@ -363,8 +373,12 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
             if lc and node.getNumChildren() < 1:
                 tokens.append(node.value)
             else:
-                tokens.append(node.value)
-                tokens += to_tokens_fun(node.children[0])
+                if node.associate == UnaryLogicOpNode.RIGHT:
+                    tokens.append(node.value)
+                    tokens += to_tokens_fun(node.children[0])
+                else:
+                    tokens += to_tokens_fun(node.children[0])
+                    tokens.append(node.value)
         elif node.kind == "argument":
             assert(loose_constraints or node.getNumChildren() == 0)
             if ato and not node.arg_type == "ReservedWord":
@@ -419,6 +433,8 @@ def to_ast(list, order='dfs'):
                     node = FlagNode(value=value)
                 elif kind == "headcommand":
                     node = HeadCommandNode(value=value)
+                elif kind == "unarylogicop":
+                    node = UnaryLogicOpNode(value=value)
                 else:
                     node = Node(kind=kind, value=value)
                 attach_to_tree(node, current)
@@ -572,30 +588,65 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         unprocessed_unary_logic_ops = []
         unprocessed_binary_logic_ops = []
 
-        def organize_buffer(buffer):
-            norm_node = BinaryLogicOpNode(value="-and")
-            for node in buffer:
-                attach_to_tree(node, norm_node)
-            return norm_node
+        def organize_buffer(lparenth, rparenth):
+            node = lparenth.rsb
+            while node != rparenth:
+                if node.kind == "unarylogicop":
+                    adjust_unary_operators(node)
+                node = node.rsb
+            node = lparenth.rsb
+            while node != rparenth:
+                if node.kind == "binarylogicop":
+                    adjust_binary_operators(node)
+                node = node.rsb
+
+            if lparenth.rsb.rsb == rparenth:
+                return lparenth.rsb
+            else:
+                norm_node = BinaryLogicOpNode(value="-and")
+                node = lparenth.rsb
+                while node != rparenth:
+                    attach_to_tree(node, norm_node)
+                return norm_node
 
         def adjust_unary_operators(node):
-            # change right sibling to child
-            rsb = node.rsb
-            if not rsb:
-                print("Warning: unary logic operator without a right sibling.")
-                print(node.parent)
-                return
+            if node.associate == UnaryLogicOpNode.RIGHT:
+                # change right sibling to child
+                rsb = node.rsb
+                if not rsb:
+                    print("Warning: unary logic operator without a right sibling.")
+                    print(node.parent)
+                    return
 
-            if rsb.value == "(":
-                unprocessed_unary_logic_ops.append(node)
-                return
+                if rsb.value == "(":
+                    unprocessed_unary_logic_ops.append(node)
+                    return
 
-            make_sibling(node, rsb.rsb)
-            node.parent.removeChild(rsb)
-            rsb.parent = node
-            rsb.lsb = None
-            rsb.rsb = None
-            node.addChild(rsb)
+                make_sibling(node, rsb.rsb)
+                node.parent.removeChild(rsb)
+                rsb.lsb = None
+                rsb.rsb = None
+                node.addChild(rsb)
+            elif node.associate == UnaryLogicOpNode.LEFT:
+                # change left sibling to child
+                lsb = node.lsb
+                if not lsb:
+                    print("Warning: unary logic operator without a left sibling.")
+                    print(node.parent)
+                    return
+
+                if lsb.value == ")":
+                    unprocessed_unary_logic_ops.append(node)
+                    return
+
+                make_sibling(node, lsb.lsb)
+                node.parent.removeChild(lsb)
+                lsb.lsb = None
+                lsb.rsb = None
+                node.addChild(lsb)
+            else:
+                raise AttributeError("Cannot decide unary operator assocation: {}"
+                                     .format(node.symbok))
 
         def adjust_binary_operators(node):
             # change right sibling to Child
@@ -642,7 +693,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         def attach_flag(node, attach_point_info):
             attach_point = attach_point_info[0]
 
-            if bash.is_double_option(node.word) or node.word in unary_logic_operators \
+            if bash.is_double_option(node.word) or is_unary_logic_op(node, attach_point) \
                         or node.word in binary_logic_operators or attach_point.value == "find"\
                         or len(node.word) <= 1:
                 normalize_flag(node, attach_point)
@@ -692,13 +743,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             child = node.parts[ind]
             if child.kind == 'word':
                 # prioritize processing of logic operators
-                if child.word in unary_logic_operators:
-                    if is_unary_logic_op(child, attach_point):
-                        norm_node = UnaryLogicOpNode(child.word)
-                        attach_to_tree(norm_node, attach_point)
-                        unary_logic_ops.append(norm_node)
-                    else:
-                        attach_point_info = attach_flag(child, attach_point_info)
+                if is_unary_logic_op(child, attach_point):
+                    norm_node = UnaryLogicOpNode(child.word)
+                    attach_to_tree(norm_node, attach_point)
+                    unary_logic_ops.append(norm_node)
                 elif child.word in binary_logic_operators:
                     if is_binary_logic_op(child, attach_point):
                         norm_node = BinaryLogicOpNode(child.word)
@@ -791,17 +839,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
         head_command = head_commands[0]
 
-        # process unary logic operators
-        for ul in unary_logic_ops:
-            adjust_unary_operators(ul)
-
-        # process binary logic operators
-        for bl in binary_logic_ops:
-            adjust_binary_operators(bl)
-
         # process (embedded) parenthese -- treat as implicit "-and"
         stack = []
-        buffer = []
         depth = 0
 
         i = 0
@@ -815,20 +854,24 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 # popping pushed states off the stack
                 popped = stack.pop()
                 while (popped.value != "("):
-                    buffer.insert(0, popped)
                     head_command.removeChild(popped)
                     popped = stack.pop()
                 lparenth = popped
                 rparenth = child
-                new_child = organize_buffer(buffer) if len(buffer) > 1 else buffer[0]
-                buffer = []
+                new_child = organize_buffer(lparenth, rparenth)
                 i = head_command.substituteParentheses(lparenth, rparenth, new_child)
                 depth -= 1
                 if depth >= 1:
                     # embedded parenthese
                     stack.append(new_child)
-            elif depth >= 1:
-                stack.append(child)
+            else:
+                if depth >= 1:
+                    stack.append(child)
+                else:
+                    if child.kind == "unarylogicop":
+                        unprocessed_unary_logic_ops.append(child)
+                    if child.kind == "binarylogicop":
+                        unprocessed_binary_logic_ops.append(child)
             i += 1
 
         for ul in unprocessed_unary_logic_ops:
@@ -836,6 +879,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
         for bl in unprocessed_binary_logic_ops:
             adjust_binary_operators(bl)
+
+        pretty_print(head_command)
 
         assert(len(stack) == 0)
         assert(depth == 0)
