@@ -745,7 +745,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                     attach_point.value += '::' + "\\;"
                                 ind = j
                             else:
-                                arg_type = possible_arg_types[0]
+                                arg_type = list(possible_arg_types)[0]
                                 # recurse to main normalization to handle argument with deep structures
                                 normalize(child, attach_point, "argument", arg_type)
                             attach_point_info = look_above(attach_point)
