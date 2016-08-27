@@ -11,6 +11,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("num_epochs", 10,
                                 "Number of training epochs")
 
+    tf.app.flags.DEFINE_boolean("manual_eval", False,
+                                "Set to True for manual evaluation.")
     tf.app.flags.DEFINE_boolean("eval", False,
                                 "Set to True for quantitive evaluation.")
     tf.app.flags.DEFINE_boolean("process_data", False,
