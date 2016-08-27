@@ -603,14 +603,14 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if node.kind == "binarylogicop":
                     adjust_binary_operators(node)
                 node = node.rsb
-
-            if lparenth.rsb.rsb == rparenth:
+            node = lparenth.rsb
+            if node.rsb == rparenth:
                 return lparenth.rsb
             else:
                 norm_node = BinaryLogicOpNode(value="-and")
-                node = lparenth.rsb
                 while node != rparenth:
                     attach_to_tree(node, norm_node)
+                    node = node.rsb
                 return norm_node
 
         def adjust_unary_operators(node):
@@ -840,6 +840,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             sys.exit()
 
         head_command = head_commands[0]
+        # pretty_print(head_command)
 
         # process (embedded) parenthese -- treat as implicit "-and"
         stack = []
