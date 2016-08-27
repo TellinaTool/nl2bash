@@ -369,7 +369,8 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                 tokens += to_tokens_fun(node.children[-1])
                 tokens.append("\\)")
         elif node.kind == "unarylogicop":
-            assert(loose_constraints or node.getNumChildren() == 1)
+            assert((loose_constraints or node.associate == UnaryLogicOpNode.LEFT) or
+                    node.getNumChildren() == 1)
             if lc and node.getNumChildren() < 1:
                 tokens.append(node.value)
             else:
@@ -377,7 +378,8 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     tokens.append(node.value)
                     tokens += to_tokens_fun(node.children[0])
                 else:
-                    tokens += to_tokens_fun(node.children[0])
+                    if node.getNumChildren() > 0:
+                        tokens += to_tokens_fun(node.children[0])
                     tokens.append(node.value)
         elif node.kind == "argument":
             assert(loose_constraints or node.getNumChildren() == 0)
@@ -634,6 +636,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     return
                 if lsb.value == ")":
                     unprocessed_unary_logic_ops.append(node)
+                    return
+                if lsb.kind == "binarylogicop":
+                    # TODO: this corner case is not handled very well
+                    # it is often triggered by the bizarreness of -prune
                     return
                 make_sibling(lsb.lsb, node)
                 node.parent.removeChild(lsb)
