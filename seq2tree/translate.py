@@ -231,10 +231,10 @@ def group_data_by_desp(dataset):
 
     grouped_dataset2 = []
     for nl_str in grouped_dataset:
-        grouped_dataset2.append(nl_str, grouped_dataset[nl_str][0],
+        grouped_dataset2.append((nl_str, grouped_dataset[nl_str][0],
                                 grouped_dataset[nl_str][1],
-                                grouped_dataset[nl_str][2])
-    return grouped_dataset
+                                grouped_dataset[nl_str][2]))
+    return grouped_dataset2
 
 def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_correct_template = 0.0
@@ -260,7 +260,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             num_correct += 1
         num_eval += 1
         if verbose:
-            print("Example %d" % num_eval)
+            print("Example %d (%d)" % (num_eval, len(cm_strs)))
             print("Original English: " + nl_str.strip())
             print("English: " + sentence)
             print("Original Command: " + cm_strs[0].strip())
@@ -345,8 +345,8 @@ def manual_eval(num_eval = 30):
                 print("English: " + nl_str.strip())
                 o_f.write("English: " + nl_str.strip() + "\n")
                 for j in xrange(len(cm_strs)):
-                    print("GT Command %d: " % j+1 + cm_strs[j].strip())
-                    o_f.write("GT Command %d: " % j+1 + cm_strs[j].strip() + "\n")
+                    print("GT Command %d: " % (j+1) + cm_strs[j].strip())
+                    o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
                 print("Prediction: " + pred_cmd)
                 o_f.write("Prediction: " + pred_cmd + "\n")
                 # print("Search history (truncated at 25 steps): ")
@@ -387,7 +387,7 @@ def manual_eval(num_eval = 30):
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
 
-    with open(FLAGS.data_dir + "data.dat") as f:
+    with open(FLAGS.data_dir + "data.by.template.dat") as f:
         data = pickle.load(f)
 
     numFolds = len(data)
@@ -433,7 +433,7 @@ def process_data():
 
     print("maximum training command sequence length = %d" % max_cmd_seq_len)
 
-    data_dir = FLAGS.data_dir + "seq2tree/"
+    data_dir = FLAGS.data_dir + "seq2tree.by.template/"
 
     # Get data to the specified directory.
     train_path = data_dir + "/train"
@@ -469,7 +469,7 @@ def process_data():
     dev_set = read_data(nl_dev, cm_dev)
     test_set = read_data(nl_test, cm_test)
    
-    with open(FLAGS.data_dir + "seq2tree/" + "data.processed.dat", 'wb') as o_f:
+    with open(FLAGS.data_dir + "seq2tree.by.template/" + "data.processed.dat", 'wb') as o_f:
         pickle.dump((train_set, dev_set, test_set), o_f)
 
     return train_set, dev_set, test_set
@@ -527,6 +527,11 @@ def read_data(source_path, target_path, max_size=None):
 def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = str(FLAGS.gpu)
+
+    train_set, dev_set, test_set = load_data()
+    print(len(group_data_by_desp(train_set)))
+    print(len(group_data_by_desp(dev_set)))
+    print(len(group_data_by_desp(test_set)))
 
     with tf.device('/gpu:%d' % FLAGS.gpu):
         if FLAGS.eval:
