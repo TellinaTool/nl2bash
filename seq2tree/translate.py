@@ -531,7 +531,7 @@ def main(_):
     with tf.device('/gpu:%d' % FLAGS.gpu):
         if FLAGS.eval:
             eval()
-        if FLAGS.manual_eval:
+        elif FLAGS.manual_eval:
             manual_eval()
         elif FLAGS.decode:
             interactive_decode()
