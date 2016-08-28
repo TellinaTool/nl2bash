@@ -1053,13 +1053,21 @@ class HeadCommandAttachmentError(Exception):
         self.errors = errors
 
 if __name__ == "__main__":
-    cmd = sys.argv[1]
-    norm_tree = normalize_ast(cmd)
-    pretty_print(norm_tree, 0)
-    print(to_command(norm_tree))
-    list = to_list(norm_tree, 'dfs', [])
-    print(list)
-    tree = to_ast(list + ['<PAD>'])
-    pretty_print(tree, 0)
-    print(to_template(tree, arg_type_only=False))
-    print(to_command(tree))
+    while True:
+        try:
+            cmd = raw_input("Bash command: ")
+            norm_tree = normalize_ast(cmd)
+            print()
+            print("AST:")
+            pretty_print(norm_tree, 0)
+            # print(to_command(norm_tree))
+            list = to_list(norm_tree, 'dfs', [])
+            # print(list)
+            tree = to_ast(list + ['<PAD>'])
+            # pretty_print(tree, 0)
+            # print(to_template(tree, arg_type_only=False))
+            print()
+            print("Command Template (flags in alphabetical order):")
+            print(to_template(norm_tree))
+        except EOFError as ex:
+            break
