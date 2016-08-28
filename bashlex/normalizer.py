@@ -1060,13 +1060,14 @@ if __name__ == "__main__":
             print("AST:")
             pretty_print(norm_tree, 0)
             # print(to_command(norm_tree))
-            list = to_list(norm_tree, 'dfs', [])
+            search_history = to_list(norm_tree, 'dfs', [])
             # print(list)
-            tree = to_ast(list + ['<PAD>'])
+            tree = to_ast(search_history + ['<PAD>'])
             # pretty_print(tree, 0)
             # print(to_template(tree, arg_type_only=False))
             print()
             print("Command Template (flags in alphabetical order):")
             print(to_template(norm_tree))
+            print()
         except EOFError as ex:
             break
