@@ -299,7 +299,7 @@ class Seq2TreeModel(object):
                           for batch_idx in xrange(self.batch_size)], dtype=np.int32))
             if self.use_copy:
                 batch_original_decoder_inputs.append(
-                    np.array([original_encoder_inputs[batch_idx][length_idx]
+                    np.array([original_decoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(self.batch_size)], dtype=np.int32))
                 # Create copy_masks to be 0 for encoder inputs that are not copiable
                 batch_copy_mask = np.zeros(self.batch_size, dtype=np.int32)
@@ -308,7 +308,7 @@ class Seq2TreeModel(object):
                         batch_copy_mask[batch_idx] = 1
                 batch_copy_masks.append(batch_copy_mask)
 
-        # Batch decoder inputs are re-indexed decoder_inputs, we create weights.
+        # Batch decoder inputs are re-indexed decoder_inputs.
         for length_idx in xrange(decoder_size):
             batch_decoder_inputs.append(
                 np.array([decoder_inputs[batch_idx][length_idx]
