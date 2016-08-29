@@ -528,10 +528,10 @@ def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = str(FLAGS.gpu)
 
-    train_set, dev_set, test_set = load_data()
-    print(len(group_data_by_desp(train_set)))
-    print(len(group_data_by_desp(dev_set)))
-    print(len(group_data_by_desp(test_set)))
+    # train_set, dev_set, test_set = load_data()
+    # print(len(group_data_by_desp(train_set)))
+    # print(len(group_data_by_desp(dev_set)))
+    # print(len(group_data_by_desp(test_set)))
 
     with tf.device('/gpu:%d' % FLAGS.gpu):
         if FLAGS.eval:

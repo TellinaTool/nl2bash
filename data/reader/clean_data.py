@@ -211,16 +211,12 @@ class DBConnection(object):
         num_test = 0
         num_test_cmds = 0
         for cmdsig_index in sorted_remained_sigs:
-            num_cmdsig += 1
             cmdsig = cmdsigs[cmdsig_index]
             print("Command signature: {} ({})".format(cmdsig.encode('utf-8'),
                                                       len(cmdsig_dict[cmdsig])))
 
             # randomly find a fold to place cluster
-            if split_by_template:
-                top_k = 3
-            else:
-                top_k = 10
+            top_k = 10
             if num_cmdsig < top_k:
                 ind = random.randrange(num_folds - 2)
                 num_train += 1
@@ -252,6 +248,8 @@ class DBConnection(object):
                     if not type(cmd) is unicode:
                         cmd = cmd.decode()
                     bin.append((nl, cmd))
+
+            num_cmdsig += 1
 
         print("Total number of pairs: %d" % num_pairs)
         print("Total number of command signatures: %d" % num_cmdsig)
