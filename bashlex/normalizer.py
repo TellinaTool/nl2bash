@@ -431,7 +431,8 @@ def to_ast(list, order='dfs'):
                         head_cmd = current.value
                         arg_type = type_check(value, man_lookup.get_arg_types(head_cmd))
                     else:
-                        print("Warning: to_ast unrecognized argument attachment point {}.".format(current.symbol))
+                        print("Warning: to_ast unrecognized argument attachment point {}."
+                              .format(current.symbol))
                         arg_type = "Unknown"
                     node = ArgumentNode(value=value, arg_type=arg_type)
                 elif kind == "flag":

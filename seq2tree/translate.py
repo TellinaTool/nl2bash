@@ -213,23 +213,24 @@ def interactive_decode():
             if FLAGS.decoding_algorithm == "greedy":
                 tree, cmd, search_history = decode(output_logits, rev_cm_vocab)
                 print()
-                print("->".join(search_history[:20]))
+                print(cmd)
                 print()
                 pretty_print(tree, 0)
                 print()
-                print(cmd)
+                # print("->".join(search_history[:20]))
+                # print()
             elif FLAGS.decoding_algorithm == "beam_search":
                 top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
                 print()
                 for i in xrange(FLAGS.top_k):
                     outputs = top_k_search_histories[i]
                     tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
-                    print("prediction %d (%.2f)" % (i, decode_scores[i]))
-                    print("->".join(search_history[:20]))
+                    print("prediction %d (%.2f): " % (i, decode_scores[i]) + cmd)
                     print()
                     pretty_print(tree, 0)
                     print()
-                    print(cmd)
+                    # print("->".join(search_history[:20]))
+                    # print()
 
             print("> ", end="")
             sys.stdout.flush()
@@ -279,8 +280,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             top_k_pred_cmds = []
             for j in xrange(FLAGS.top_k-1, -1, -1):
                 tree, pred_cmd, search_history = to_readable(top_k_search_histories[i], rev_cm_vocab)
-                top_k_pred_trees.append(tree)
-                top_k_pred_cmds.append(pred_cmd)
+                top_k_pred_trees.insert(0, tree)
+                top_k_pred_cmds.insert(0, pred_cmd)
                 if ast_based.one_template_match(gt_trees, tree):
                     num_top_k_correct_template += 1
                 if ast_based.one_string_match(gt_trees, tree):
@@ -378,6 +379,12 @@ def manual_eval(num_eval = 30):
                 tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
             else:
                 top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
+                top_k_pred_trees = []
+                top_k_pred_cmds = []
+                for j in xrange(FLAGS.top_k):
+                    tree, pred_cmd, search_history = to_readable(top_k_search_histories[j], rev_cm_vocab)
+                    top_k_pred_trees.append(tree)
+                    top_k_pred_cmds.append(pred_cmd)
             # evaluation ignoring ordering of flags
             if ast_based.one_template_match(gt_trees, tree):
                 continue
@@ -397,9 +404,13 @@ def manual_eval(num_eval = 30):
                     print()
                 elif FLAGS.decoding_algorithm == "beam_search":
                     for j in xrange(FLAGS.top_k):
-                        search_history = top_k_search_histories[j]
                         decode_score = decode_scores[j]
-                        print("Prediction %d (%.2f): " % (j+1, ) + )
+                        tree = top_k_pred_trees[j]
+                        pred_cmd = top_k_pred_cmds[j]
+                        print("Prediction %d (%.2f): " % (j+1, decode_score) + pred_cmd)
+                        print("AST: ")
+                        pretty_print(tree, 0)
+                        print()
                 inp = raw_input("Correct template [y/n]: ")
                 if inp == "y":
                     num_correct_template += 1
