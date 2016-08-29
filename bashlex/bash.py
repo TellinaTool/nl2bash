@@ -69,3 +69,4 @@ def is_english_word(word):
 
 def is_headcommand(word):
     return word in all_utilities or word in pseudo_head_commands
+

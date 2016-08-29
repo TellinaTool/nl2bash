@@ -106,19 +106,8 @@
             {
                "type":"optional_option",
                "cmd":{
-                  "type":"compound_options",
-                  "commands":[
-                     {
-                        "type":"flag_option",
-                        "flag_name":"not"
-                     },
-                     {
-                        "type":"argument_option",
-                        "arg_name":"findexp",
-                        "arg_type":"Unknown",
-                        "isList":false
-                     }
-                  ]
+                  "type":"flag_option",
+                  "flag_name":"not"
                }
             },
             {
@@ -334,6 +323,13 @@
                "cmd":{
                   "type":"flag_option",
                   "flag_name":"d"
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"flag_option",
+                  "flag_name":"daystart"
                }
             },
             {
@@ -1439,19 +1435,8 @@
             {
                "type":"optional_option",
                "cmd":{
-                  "type":"compound_options",
-                  "commands":[
-                     {
-                        "type":"flag_option",
-                        "flag_name":"not"
-                     },
-                     {
-                        "type":"argument_option",
-                        "arg_name":"findexp",
-                        "arg_type":"Unknown",
-                        "isList":false
-                     }
-                  ]
+                  "type":"flag_option",
+                  "flag_name":"not"
                }
             },
             {

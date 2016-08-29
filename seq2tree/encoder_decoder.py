@@ -286,7 +286,6 @@ class Seq2TreeModel(object):
         # Decoder inputs always start with "ROOT" and are padded
         decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_input))
         decoder_inputs.append(decoder_input + decoder_pad)
-        original_decoder_inputs.append(list(reversed(original_decoder_input + decoder_pad)))
 
         # create batch-major vectors
         batch_encoder_inputs, batch_decoder_inputs, batch_weights = [], [], []
@@ -298,23 +297,25 @@ class Seq2TreeModel(object):
             batch_encoder_inputs.append(
                 np.array([encoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(self.batch_size)], dtype=np.int32))
-            batch_original_decoder_inputs.append(
-                np.array([original_encoder_inputs[batch_idx][length_idx]
+            if self.use_copy:
+                batch_original_decoder_inputs.append(
+                    np.array([original_decoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(self.batch_size)], dtype=np.int32))
-            # Create copy_masks to be 0 for encoder inputs that are not copiable
-            batch_copy_mask = np.zeros(self.batch_size, dtype=np.int32)
-            for batch_idx in xrange(self.batch_size):
-                if copy_masks[batch_idx][length_idx] == 1:
-                    batch_copy_mask[batch_idx] = 1
-            batch_copy_masks.append(batch_copy_mask)
+                # Create copy_masks to be 0 for encoder inputs that are not copiable
+                batch_copy_mask = np.zeros(self.batch_size, dtype=np.int32)
+                for batch_idx in xrange(self.batch_size):
+                    if copy_masks[batch_idx][length_idx] == 1:
+                        batch_copy_mask[batch_idx] = 1
+                batch_copy_masks.append(batch_copy_mask)
 
-        # Batch decoder inputs are re-indexed decoder_inputs, we create weights.
+        # Batch decoder inputs are re-indexed decoder_inputs.
         for length_idx in xrange(decoder_size):
             batch_decoder_inputs.append(
                 np.array([decoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(self.batch_size)], dtype=np.int32))
-            batch_original_decoder_inputs.append(
-                np.array([original_decoder_inputs[batch_idx][length_idx]
+            if self.use_copy:
+                batch_original_decoder_inputs.append(
+                    np.array([original_decoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(self.batch_size)], dtype=np.int32))
 
             # Create target_weights to be 0 for targets that are padding.
