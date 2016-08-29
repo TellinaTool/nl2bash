@@ -166,9 +166,13 @@ def train(train_set, dev_set, verbose=False):
       
     return True
 
+
 def decode(logits, rev_cm_vocab):
-    if FLAGS.decoding_algorithm == "greedy":
-        outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
+    outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
+    return to_readable(outputs, rev_cm_vocab)
+
+
+def to_readable(outputs, rev_cm_vocab):
     search_history = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
     tree = to_ast(search_history)
     cmd = to_command(tree, loose_constraints=True)
@@ -206,13 +210,26 @@ def interactive_decode():
 
             # Get output logits for the sentence.
             _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
-            tree, cmd, search_history = decode(output_logits, rev_cm_vocab)
-            print()
-            print("->".join(search_history[:20]))
-            print()
-            pretty_print(tree, 0)
-            print()
-            print(cmd)
+            if FLAGS.decoding_algorithm == "greedy":
+                tree, cmd, search_history = decode(output_logits, rev_cm_vocab)
+                print()
+                print("->".join(search_history[:20]))
+                print()
+                pretty_print(tree, 0)
+                print()
+                print(cmd)
+            elif FLAGS.decoding_algorithm == "beam_search":
+                top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
+                print()
+                for i in xrange(FLAGS.top_k):
+                    outputs = top_k_search_histories[i]
+                    tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
+                    print("prediction %d (%.2f)" % (i, decode_scores[i]))
+                    print("->".join(search_history[:20]))
+                    print()
+                    pretty_print(tree, 0)
+                    print()
+                    print(cmd)
 
             print("> ", end="")
             sys.stdout.flush()
@@ -237,6 +254,8 @@ def group_data_by_desp(dataset):
     return grouped_dataset2
 
 def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
+    num_top_k_correct_template = 0.0
+    num_top_k_correct = 0.0
     num_correct_template = 0.0
     num_correct = 0.0
     num_eval = 0
@@ -252,27 +271,48 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
         gt_trees = [normalize_ast(cmd) for cmd in cm_strs]
-        tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
+        if FLAGS.decoding_algorithm == "greedy":
+            tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
+        elif FLAGS.decoding_algorithm == "beam_search":
+            top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
+            top_k_pred_trees = []
+            top_k_pred_cmds = []
+            for j in xrange(FLAGS.top_k-1, -1, -1):
+                tree, pred_cmd, search_history = to_readable(top_k_search_histories[i], rev_cm_vocab)
+                top_k_pred_trees.append(tree)
+                top_k_pred_cmds.append(pred_cmd)
+                if ast_based.one_template_match(gt_trees, tree):
+                    num_top_k_correct_template += 1
+                if ast_based.one_string_match(gt_trees, tree):
+                    num_top_k_correct += 1
         # evaluation ignoring ordering of flags
         if ast_based.one_template_match(gt_trees, tree):
             num_correct_template += 1
         if ast_based.one_string_match(gt_trees, tree):
             num_correct += 1
         num_eval += 1
+
         if verbose:
             print("Example %d (%d)" % (num_eval, len(cm_strs)))
             print("Original English: " + nl_str.strip())
             print("English: " + sentence)
             print("Original Command: " + cm_strs[0].strip())
             print("Ground truth: " + to_command(gt_trees[0]))
-            print("Prediction: " + pred_cmd)
-            # print("Search history (truncated at 25 steps): ")
-            # print(" -> ".join(search_historys[0][:25]))
-            print("AST: ")
-            pretty_print(tree, 0)
-            print()
-            # print("token-overlap score: %.2f" % score)
-            # print()
+            if FLAGS.decoding_algorithm == "greedy":
+                print("Prediction: " + pred_cmd)
+                # print("Search history (truncated at 25 steps): ")
+                # print(" -> ".join(search_historys[0][:25]))
+                print("AST: ")
+                pretty_print(tree, 0)
+                print()
+                # print("token-overlap score: %.2f" % score)
+                # print()
+            elif FLAGS.decoding_algorithm == "beam_search":
+                for j in xrange(FLAGS.top_k):
+                    print("Prediction %d: " % (j+1) + top_k_pred_cmds[j])
+                    print("AST: ")
+                    pretty_print(top_k_pred_trees[j], 0)
+                    print()
 
     print("%d examples evaluated" % num_eval)
     print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
@@ -334,8 +374,10 @@ def manual_eval(num_eval = 30):
             _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
 
             gt_trees = [normalize_ast(cmd) for cmd in cm_strs]
-            tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
-
+            if FLAGS.decoding_algorithm == "greedy":
+                tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
+            else:
+                top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
             # evaluation ignoring ordering of flags
             if ast_based.one_template_match(gt_trees, tree):
                 continue
@@ -347,13 +389,17 @@ def manual_eval(num_eval = 30):
                 for j in xrange(len(cm_strs)):
                     print("GT Command %d: " % (j+1) + cm_strs[j].strip())
                     o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
-                print("Prediction: " + pred_cmd)
-                o_f.write("Prediction: " + pred_cmd + "\n")
-                # print("Search history (truncated at 25 steps): ")
-                # print(" -> ".join(search_historys[0][:25]))
-                print("AST: ")
-                pretty_print(tree, 0)
-                print()
+                if FLAGS.decoding_algorithm == "greedy":
+                    print("Prediction: " + pred_cmd)
+                    o_f.write("Prediction: " + pred_cmd + "\n")
+                    print("AST: ")
+                    pretty_print(tree, 0)
+                    print()
+                elif FLAGS.decoding_algorithm == "beam_search":
+                    for j in xrange(FLAGS.top_k):
+                        search_history = top_k_search_histories[j]
+                        decode_score = decode_scores[j]
+                        print("Prediction %d (%.2f): " % (j+1, ) + )
                 inp = raw_input("Correct template [y/n]: ")
                 if inp == "y":
                     num_correct_template += 1
