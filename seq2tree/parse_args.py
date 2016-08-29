@@ -11,6 +11,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("num_epochs", 10,
                                 "Number of training epochs")
 
+    tf.app.flags.DEFINE_boolean("manual_eval", False,
+                                "Set to True for manual evaluation.")
     tf.app.flags.DEFINE_boolean("eval", False,
                                 "Set to True for quantitive evaluation.")
     tf.app.flags.DEFINE_boolean("process_data", False,
@@ -37,7 +39,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
     tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
     tf.app.flags.DEFINE_integer("max_nl_length", 40, "maximum length of the English sentence.")
-    tf.app.flags.DEFINE_integer("max_cm_length", 80, "maximum length of the command traversal sequence.")
+    tf.app.flags.DEFINE_integer("max_cm_length", 64, "maximum length of the command traversal sequence.")
     tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
     tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 
@@ -61,6 +63,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
     tf.app.flags.DEFINE_boolean("use_attention", False, "If set, use attention decoder.")
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
+
     tf.app.flags.DEFINE_string("decoder_topology", "basic", "structure of the tree RNN")
     tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
     tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
+    tf.app.flags.DEFINE_integer("top_k", 3, "Top-k highest-scoring structures to output.")

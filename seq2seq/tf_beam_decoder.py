@@ -16,8 +16,6 @@ best_sparse = beam_decoder.unwrap_output_sparse(final_state) # Output, this time
 
 import tensorflow as tf
 
-from tensorflow.python.ops import nn_ops
-
 try:
     from tensorflow.python.util import nest
 except ImportError:
@@ -39,7 +37,7 @@ class BeamDecoder(object):
     def __init__(self, num_classes, stop_token=0, beam_size=7, max_len=20):
         """
         num_classes: int. Number of output classes used
-        stop_token: int. Index of stop token in the vocabulary.
+        stop_token: int.
         beam_size: int.
         max-len: int or scalar Tensor. If this cell is called recurrently more
             than max_len times in a row, the outputs will not be valid!
@@ -60,8 +58,6 @@ class BeamDecoder(object):
         if not isinstance(state, tf.Tensor):
             raise ValueError("State should be a sequence or tensor")
 
-        # print("state.get_shape() + %s" % state.get_shape())
-
         tensor = state
 
         tensor_shape = tensor.get_shape().with_rank_at_least(1)
@@ -75,12 +71,7 @@ class BeamDecoder(object):
         res = tf.expand_dims(tensor, 1)
         res = tf.tile(res, [1, beam_size] + [1] * (tensor_shape.ndims-1))
         res = tf.reshape(res, [-1] + list(dynamic_tensor_shape[1:]))
-        # print("dynamic_tensor_shape[1:] %s" % list(dynamic_tensor_shape[1:]))
-        # print("res.get_shape(): %s" % res.get_shape())
         res.set_shape([new_first_dim] + list(tensor_shape[1:]))
-        # print("res.get_shape(): %s" % res.get_shape())
-        
-        # print("res.get_shape() + %s" % res.get_shape())
         return res
 
     def wrap_cell(self, cell):
@@ -96,7 +87,6 @@ class BeamDecoder(object):
             dtype = nest.flatten(state)[0].dtype
         else:
             batch_size = tf.shape(state)[0]
-            # print("batch_size: %s" % state.get_shape())
             dtype = state.dtype
         return dummy._create_state(batch_size, dtype, cell_state=state)
 
@@ -107,12 +97,6 @@ class BeamDecoder(object):
         inputs that are per-batch (e.g. attention targets)
         """
         return self._tile_along_beam(self.beam_size, input)
-
-    def wrap_attention_input(self, attention_input):
-        """
-        Wraps the attention input for use with the beam decoder.
-        """
-        raise NotImplementedError()
 
     def unwrap_output_dense(self, final_state, include_stop_tokens=True):
         """
@@ -166,26 +150,23 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self._nondone_mask = tf.reshape(tf.tile(self._nondone_mask, [1, self.beam_size, 1]),
             [-1, self.beam_size*self.num_classes])
 
-    def __call__(self, inputs, state, scope=None, output_projection=None):
+    def __call__(self, inputs, state, scope=None):
         (
             past_cand_symbols, # [batch_size, max_len]
             past_cand_logprobs,# [batch_size]
             past_beam_symbols, # [batch_size*self.beam_size, max_len], right-aligned!!!
             past_beam_logprobs,# [batch_size*self.beam_size]
             past_cell_state,
-        ) = state
+                ) = state
 
         batch_size = tf.shape(past_cand_symbols)[0] # TODO: get as int, if possible
         full_size = batch_size * self.beam_size
-        
+
         cell_inputs = inputs
         cell_outputs, raw_cell_state = self.cell(cell_inputs, past_cell_state)
 
-        if output_projection is not None:
-            cell_outputs = nn_ops.xw_plus_b(cell_outputs, output_projection[0], output_projection[1])
-
         logprobs = tf.nn.log_softmax(cell_outputs)
-        
+
         logprobs_batched = tf.reshape(logprobs + tf.expand_dims(past_beam_logprobs, 1),
                                       [-1, self.beam_size * self.num_classes])
         logprobs_batched.set_shape((None, self.beam_size * self.num_classes))
@@ -204,6 +185,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         parent_refs_offsets = (tf.range(batch_size * self.beam_size) // self.beam_size) * self.beam_size
         parent_refs = parent_refs + parent_refs_offsets
 
+        symbols_history = tf.gather(past_beam_symbols, parent_refs)
         beam_symbols = tf.concat(1, [past_beam_symbols[:,1:], tf.reshape(symbols, [-1, 1])])
 
         # Handle the output and the cell state shuffling

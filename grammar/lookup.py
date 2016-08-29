@@ -21,7 +21,7 @@ class ManPageLookUp(object):
             # TODO: This exception is not handled very well.
             # This is mostly due to missing flags of commands in the grammar.
             print("Error: {} is not a flag of {}".format(flag, cmd))
-            return "Unknown"
+            return None
         if arg_type:
             return list(arg_type)[0]
         else:

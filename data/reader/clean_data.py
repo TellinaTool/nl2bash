@@ -13,6 +13,8 @@ from data_tools import basic_tokenizer, bash_tokenizer, is_stopword, to_template
 # minimum number of edits two natural language descriptions have to differ to not be considered as duplicates
 EDITDIST_THRESH = 8
 
+split_by_template = True
+
 def token_overlap(s1, s2):
     tokens1 = set([w for w in basic_tokenizer(s1) if not is_stopword(w)])
     tokens2 = set([w for w in basic_tokenizer(s2) if not is_stopword(w)])
@@ -133,7 +135,7 @@ class DBConnection(object):
         for cmd in unique_pairs:
             if not cmd:
                 continue
-            signature = to_template(cmd)
+            signature = to_template(cmd, arg_type_only=split_by_template)
             if not signature:
                 num_errors += 1
                 continue
@@ -155,9 +157,9 @@ class DBConnection(object):
             if not tokens:
                 num_errors += 1
                 continue
-            print(cmd.encode('utf-8'))
-            print(' '.join(tokens))
-            print
+            # print(cmd.encode('utf-8'))
+            # print(' '.join(tokens))
+            # print
             for nl in unique_pairs[cmd]:
                 """inserted = False
                 for nl2 in desp_dict:
@@ -180,28 +182,61 @@ class DBConnection(object):
         desp_clusters = desp_dict.items()
 
         # Second-pass: group English description clusters by command signatures
-        cmdsig_dict = collections.defaultdict(list)
+        cmdsig_dict = collections.defaultdict(set)
         for i in xrange(len(desp_clusters)):
             for cmd in desp_clusters[i][1]:
-                cmdsig = to_template(cmd)
-                cmdsig_dict[cmdsig].append(i)
+                cmdsig = to_template(cmd, arg_type_only=split_by_template)
+                cmdsig_dict[cmdsig].add(i)
+
+        cmdsigs = cmdsig_dict.keys()
+        merged_sigs = set()
+        for i in xrange(len(cmdsigs)):
+            cmdsig1 = cmdsigs[i]
+            for j in xrange(i+1, len(cmdsigs)):
+                cmdsig2 = cmdsigs[j]
+                if cmdsig_dict[cmdsig1] & cmdsig_dict[cmdsig2]:
+                    cmdsig_dict[cmdsig2] = cmdsig_dict[cmdsig1] | cmdsig_dict[cmdsig2]
+                    merged_sigs.add(i)
+        print("%d unique signatures" % len(cmdsigs))
+        remained_sigs = set(xrange(len(cmdsigs))) - merged_sigs
+        print("%d signature clusters" % len(remained_sigs))
+
+        sorted_remained_sigs = sorted(remained_sigs, key=lambda x:len(cmdsig_dict[cmdsigs[x]]), reverse=True)
 
         data = collections.defaultdict(list)
-        added_clusters = set()
-        for cmdsig in cmdsig_dict:
-            num_cmdsig += 1
-            print("Command signature: %s" % cmdsig.encode('utf-8'))
-            for i in cmdsig_dict[cmdsig]:
-                if i in added_clusters:
-                    continue
-                else:
-                    added_clusters.add(i)
-                # randomly find a fold to place data point
-                ind = random.randrange(num_folds)
-                bin = data[ind]
+        num_train = 0
+        num_train_cmds = 0
+        num_dev = 0
+        num_dev_cmds = 0
+        num_test = 0
+        num_test_cmds = 0
+        for cmdsig_index in sorted_remained_sigs:
+            cmdsig = cmdsigs[cmdsig_index]
+            print("Command signature: {} ({})".format(cmdsig.encode('utf-8'),
+                                                      len(cmdsig_dict[cmdsig])))
 
+            # randomly find a fold to place cluster
+            top_k = 10
+            if num_cmdsig < top_k:
+                ind = random.randrange(num_folds - 2)
+                num_train += 1
+                num_train_cmds += len(cmdsig_dict[cmdsig])
+            else:
+                ind = random.randrange(num_folds)
+                if ind < num_folds - 2:
+                    num_train += 1
+                    num_train_cmds += len(cmdsig_dict[cmdsig])
+                elif ind == num_folds - 2:
+                    num_dev += 1
+                    num_dev_cmds += len(cmdsig_dict[cmdsig])
+                elif ind == num_folds - 1:
+                    num_test += 1
+                    num_test_cmds += len(cmdsig_dict[cmdsig])
+            bin = data[ind]
+
+            for i in cmdsig_dict[cmdsig]:
                 nl, cmds = desp_clusters[i]
-                print("desp: %s" % nl.encode('utf-8'))
+                # print("desp: %s" % nl.encode('utf-8'))
                 if nl == "NA":
                     continue
                 for cmd in cmds:
@@ -214,10 +249,20 @@ class DBConnection(object):
                         cmd = cmd.decode()
                     bin.append((nl, cmd))
 
+            num_cmdsig += 1
+
         print("Total number of pairs: %d" % num_pairs)
         print("Total number of command signatures: %d" % num_cmdsig)
+        print("Total number of train clusters: %d (%d commands)" % (num_train, num_train_cmds))
+        print("Total number of dev clusters: %d (%d commands)" % (num_dev, num_dev_cmds))
+        print("Total number of test clusters: %d (%d commands)" % (num_test, num_test_cmds))
         print("%.2f descriptions per command signature" % ((num_pairs + 0.0) / num_cmdsig))
-        with open(data_dir + "/data.dat", 'w') as o_f:
+
+        if split_by_template:
+            split_by = "template"
+        else:
+            split_by = "command"
+        with open(data_dir + "/data.by.%s.dat" % split_by, 'w') as o_f:
             pickle.dump(data, o_f)
 
     def head_present(self, cmd, head):
@@ -229,6 +274,11 @@ class DBConnection(object):
             return False
 
 if __name__ == "__main__":
+    split_by = sys.argv[1]
+    if split_by == "template":
+        split_by_template = True
+    else:
+        split_by_template = False
     with DBConnection() as db:
         db.create_schema()
         db.dump_data(".")

@@ -23,7 +23,7 @@ import re
 import sys
 sys.path.append("../bashlex")
 
-from bash import basic_tokenizer, bash_tokenizer
+from data_tools import basic_tokenizer, bash_tokenizer
 
 import tensorflow as tf
 

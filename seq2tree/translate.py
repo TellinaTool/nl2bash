@@ -18,15 +18,16 @@ import cPickle as pickle
 
 import numpy as np
 from tqdm import tqdm
-from random import sample, shuffle
+from random import sample
 
 import tensorflow as tf
 
 import data_utils
 from parse_args import define_input_flags
-from bash import basic_tokenizer, bash_tokenizer
-from normalizer import to_list, list_to_tree, to_command, pretty_print, normalize_ast, all_simple_commands
-from seq2tree_model import Seq2TreeModel
+from data_tools import basic_tokenizer, bash_tokenizer, to_template
+from normalizer import to_list, to_ast, to_command, pretty_print, normalize_ast, all_simple_commands
+from encoder_decoder import Seq2TreeModel
+import ast_based 
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -111,7 +112,7 @@ def train(train_set, dev_set, verbose=False):
             start_time = time.time()
 
             # shuffling training examples
-            shuffle(train_set)
+            random.shuffle(train_set)
 
             for i in tqdm(xrange(len(train_set))):
                 time.sleep(0.01)
@@ -144,45 +145,17 @@ def train(train_set, dev_set, verbose=False):
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
 
                 # Run evals on development set and print the metrics.
-                total_score = 0.0
-                num_correct = 0.0
-                num_eval = 0
                 for i in xrange(len(dev_set)):
                     nl_str, cm_str, nl, tree = dev_set[i]
                     formatted_example = model.format_example(nl, tree)
                     _, eval_loss, output_logits = model.step(sess, formatted_example, forward_only=True)
                     dev_loss += eval_loss
-                    
-                    ground_truth = [rev_cm_vocab[i] for i in tree]
-                    gt_tree = list_to_tree(ground_truth)
-                    gt_cmd = to_command(gt_tree, loose_constraints=True)
-                    tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
-                    score = TokenOverlap.compute(gt_cmd, pred_cmd, verbose)
-                    total_score += score
-                    if score == 1:
-                        num_correct += 1
-                    num_eval += 1
-                    if verbose:
-                        print("Example %d" % num_eval)
-                        print("English: " + nl_str.strip())
-                        print("Ground truth: " + gt_cmd)
-                        print("Prediction: " + pred_cmd)
-                        print("Search history (truncated at 25 steps): ")
-                        print(" -> ".join(search_history[:25]))
-                        print("AST: ")
-                        pretty_print(tree, 0)
-                        print()
-                        # print("token-overlap score: %.2f" % score)
-                        # print()
-
                 dev_loss /= len(dev_set)
                 dev_ppx = math.exp(dev_loss) if dev_loss < 300 else float('int')
                 print("dev perplexity %.2f" % dev_ppx)
-
-                print("%d examples evaluated" % num_eval)
-                print("Accuracy = %.2f" % (num_correct/num_eval))
-                print("Average token-overlap score = %.2f" % (total_score/num_eval))
                 print()
+
+                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=False)
 
                 # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
                 if ppx < 1.1 and len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
@@ -193,11 +166,15 @@ def train(train_set, dev_set, verbose=False):
       
     return True
 
+
 def decode(logits, rev_cm_vocab):
-    if FLAGS.decoding_algorithm == "greedy":
-        outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
+    outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
+    return to_readable(outputs, rev_cm_vocab)
+
+
+def to_readable(outputs, rev_cm_vocab):
     search_history = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
-    tree = list_to_tree(search_history)
+    tree = to_ast(search_history)
     cmd = to_command(tree, loose_constraints=True)
     return tree, cmd, search_history
 
@@ -233,67 +210,114 @@ def interactive_decode():
 
             # Get output logits for the sentence.
             _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
-            tree, cmd, search_history = decode(output_logits, rev_cm_vocab)
-            print()
-            print("->".join(search_history[:20]))
-            print()
-            pretty_print(tree, 0)
-            print()
-            print(cmd)
+            if FLAGS.decoding_algorithm == "greedy":
+                tree, cmd, search_history = decode(output_logits, rev_cm_vocab)
+                print()
+                print(cmd)
+                print()
+                pretty_print(tree, 0)
+                print()
+                # print("->".join(search_history[:20]))
+                # print()
+            elif FLAGS.decoding_algorithm == "beam_search":
+                top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
+                print()
+                for i in xrange(FLAGS.top_k):
+                    outputs = top_k_search_histories[i]
+                    tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
+                    print("prediction %d (%.2f): " % (i, decode_scores[i]) + cmd)
+                    print()
+                    pretty_print(tree, 0)
+                    print()
+                    # print("->".join(search_history[:20]))
+                    # print()
 
             print("> ", end="")
             sys.stdout.flush()
             sentence = sys.stdin.readline()
 
+def group_data_by_desp(dataset):
+    grouped_dataset = {}
+
+    for i in xrange(len(dataset)):
+        nl_str, cm_str, nl, search_history = dataset[i]
+        if nl_str in grouped_dataset:
+            grouped_dataset[nl_str][0].append(cm_str)
+            grouped_dataset[nl_str][2].append(search_history)
+        else:
+            grouped_dataset[nl_str] = [[cm_str], nl, [search_history]]
+
+    grouped_dataset2 = []
+    for nl_str in grouped_dataset:
+        grouped_dataset2.append((nl_str, grouped_dataset[nl_str][0],
+                                grouped_dataset[nl_str][1],
+                                grouped_dataset[nl_str][2]))
+    return grouped_dataset2
 
 def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
-    total_score = 0.0
+    num_top_k_correct_template = 0.0
+    num_top_k_correct = 0.0
+    num_correct_template = 0.0
     num_correct = 0.0
     num_eval = 0
 
-    for i in xrange(len(dataset)):
-        nl_str, cm_str, nl, tree = dataset[i]
+    grouped_dataset = group_data_by_desp(dataset)
+
+    for i in xrange(len(grouped_dataset)):
+        nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
       
         formatted_example = model.format_example(
             nl, [data_utils.ROOT_ID])
         _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
 
-        # rev_encoder_inputs = []
-        # for i in xrange(len(encoder_inputs)-1, -1, -1):
-        #     rev_encoder_inputs.append(encoder_inputs[i])
-        # sentence = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)[0]
-        # ground_truth = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
-        #                                        headAppended=True)[0]
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
-        ground_truth = [rev_cm_vocab[i] for i in tree]
-        print(ground_truth)
-        gt_tree = list_to_tree(ground_truth)
-        pretty_print(gt_tree, 0)
-        gt_cmd = to_command(gt_tree, loose_constraints=True)
-        tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
-        score = TokenOverlap.compute(gt_cmd, pred_cmd, verbose)
-        total_score += score
-        if score == 1:
+        gt_trees = [normalize_ast(cmd) for cmd in cm_strs]
+        if FLAGS.decoding_algorithm == "greedy":
+            tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
+        elif FLAGS.decoding_algorithm == "beam_search":
+            top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
+            top_k_pred_trees = []
+            top_k_pred_cmds = []
+            for j in xrange(FLAGS.top_k-1, -1, -1):
+                tree, pred_cmd, search_history = to_readable(top_k_search_histories[i], rev_cm_vocab)
+                top_k_pred_trees.insert(0, tree)
+                top_k_pred_cmds.insert(0, pred_cmd)
+                if ast_based.one_template_match(gt_trees, tree):
+                    num_top_k_correct_template += 1
+                if ast_based.one_string_match(gt_trees, tree):
+                    num_top_k_correct += 1
+        # evaluation ignoring ordering of flags
+        if ast_based.one_template_match(gt_trees, tree):
+            num_correct_template += 1
+        if ast_based.one_string_match(gt_trees, tree):
             num_correct += 1
         num_eval += 1
+
         if verbose:
-            print("Example %d" % num_eval)
+            print("Example %d (%d)" % (num_eval, len(cm_strs)))
             print("Original English: " + nl_str.strip())
             print("English: " + sentence)
-            print("Original Command: " + cm_str.strip())
-            print("Ground truth: " + gt_cmd)
-            print("Prediction: " + pred_cmd)
-            print("Search history (truncated at 25 steps): ")
-            print(" -> ".join(search_history[:25]))
-            print("AST: ")
-            pretty_print(tree, 0)
-            print()
-            # print("token-overlap score: %.2f" % score)
-            # print()
+            print("Original Command: " + cm_strs[0].strip())
+            print("Ground truth: " + to_command(gt_trees[0]))
+            if FLAGS.decoding_algorithm == "greedy":
+                print("Prediction: " + pred_cmd)
+                # print("Search history (truncated at 25 steps): ")
+                # print(" -> ".join(search_historys[0][:25]))
+                print("AST: ")
+                pretty_print(tree, 0)
+                print()
+                # print("token-overlap score: %.2f" % score)
+                # print()
+            elif FLAGS.decoding_algorithm == "beam_search":
+                for j in xrange(FLAGS.top_k):
+                    print("Prediction %d: " % (j+1) + top_k_pred_cmds[j])
+                    print("AST: ")
+                    pretty_print(top_k_pred_trees[j], 0)
+                    print()
 
     print("%d examples evaluated" % num_eval)
-    print("Accuracy = %.2f" % (num_correct/num_eval))
-    print("Average token-overlap score = %.2f" % (total_score/num_eval))
+    print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
+    print("Percentage of String Match = %.2f" % (num_correct/num_eval))
     print()
 
 
@@ -315,10 +339,112 @@ def eval(verbose=True):
         eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
 
 
+def manual_eval(num_eval = 30):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                                          log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        model, _ = create_model(sess, forward_only=True)
+
+        # Load vocabularies.
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
+        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
+        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+        _, dev_set, _ = load_data()
+
+        num_correct_template = 0.0
+        num_correct_command = 0.0
+
+        grouped_dataset = group_data_by_desp(dev_set)
+        random.shuffle(grouped_dataset)
+
+        o_f = open("manual.eval.results", 'w')
+
+        num_evaled = 0
+
+        for i in xrange(len(grouped_dataset)):
+            if num_evaled == num_eval:
+                break
+
+            nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
+
+            formatted_example = model.format_example(
+                nl, [data_utils.ROOT_ID])
+            _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
+
+            gt_trees = [normalize_ast(cmd) for cmd in cm_strs]
+            if FLAGS.decoding_algorithm == "greedy":
+                tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
+            else:
+                top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
+                top_k_pred_trees = []
+                top_k_pred_cmds = []
+                for j in xrange(FLAGS.top_k):
+                    tree, pred_cmd, search_history = to_readable(top_k_search_histories[j], rev_cm_vocab)
+                    top_k_pred_trees.append(tree)
+                    top_k_pred_cmds.append(pred_cmd)
+            # evaluation ignoring ordering of flags
+            if ast_based.one_template_match(gt_trees, tree):
+                continue
+            else:
+                print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
+                o_f.write("Example %d (%d)" % (num_evaled+1, len(cm_strs)) + "\n")
+                print("English: " + nl_str.strip())
+                o_f.write("English: " + nl_str.strip() + "\n")
+                for j in xrange(len(cm_strs)):
+                    print("GT Command %d: " % (j+1) + cm_strs[j].strip())
+                    o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
+                if FLAGS.decoding_algorithm == "greedy":
+                    print("Prediction: " + pred_cmd)
+                    o_f.write("Prediction: " + pred_cmd + "\n")
+                    print("AST: ")
+                    pretty_print(tree, 0)
+                    print()
+                elif FLAGS.decoding_algorithm == "beam_search":
+                    for j in xrange(FLAGS.top_k):
+                        decode_score = decode_scores[j]
+                        tree = top_k_pred_trees[j]
+                        pred_cmd = top_k_pred_cmds[j]
+                        print("Prediction %d (%.2f): " % (j+1, decode_score) + pred_cmd)
+                        print("AST: ")
+                        pretty_print(tree, 0)
+                        print()
+                inp = raw_input("Correct template [y/n]: ")
+                if inp == "y":
+                    num_correct_template += 1
+                    o_f.write("C")
+                    inp = raw_input("Correct command [y/n]: ")
+                    if inp == "y":
+                        num_correct_command += 1
+                        o_f.write("C")
+                    else:
+                        o_f.write("W")
+                else:
+                    o_f.write("WW")
+                o_f.write("\n")
+                o_f.write("\n")
+
+            num_evaled += 1
+
+        print()
+        print("%d examples evaluated" % num_eval)
+        print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
+        print("Percentage of String Match = %.2f" % (num_correct_command/num_eval))
+        print()
+
+        o_f.write("\n")
+        o_f.write("%d examples evaluated" % num_eval + "\n")
+        o_f.write("Percentage of Template Match = %.2f" % (num_correct_template/num_eval) + "\n")
+        o_f.write("Percentage of String Match = %.2f" % (num_correct_command/num_eval) + "\n")
+        o_f.write("\n")
+
+
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
 
-    with open(FLAGS.data_dir + "data.dat") as f:
+    with open(FLAGS.data_dir + "data.by.template.dat") as f:
         data = pickle.load(f)
 
     numFolds = len(data)
@@ -364,7 +490,7 @@ def process_data():
 
     print("maximum training command sequence length = %d" % max_cmd_seq_len)
 
-    data_dir = FLAGS.data_dir + "seq2tree/"
+    data_dir = FLAGS.data_dir + "seq2tree.by.template/"
 
     # Get data to the specified directory.
     train_path = data_dir + "/train"
@@ -400,7 +526,7 @@ def process_data():
     dev_set = read_data(nl_dev, cm_dev)
     test_set = read_data(nl_test, cm_test)
    
-    with open(FLAGS.data_dir + "seq2tree/" + "data.processed.dat", 'wb') as o_f:
+    with open(FLAGS.data_dir + "seq2tree.by.template/" + "data.processed.dat", 'wb') as o_f:
         pickle.dump((train_set, dev_set, test_set), o_f)
 
     return train_set, dev_set, test_set
@@ -459,9 +585,16 @@ def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = str(FLAGS.gpu)
 
+    # train_set, dev_set, test_set = load_data()
+    # print(len(group_data_by_desp(train_set)))
+    # print(len(group_data_by_desp(dev_set)))
+    # print(len(group_data_by_desp(test_set)))
+
     with tf.device('/gpu:%d' % FLAGS.gpu):
         if FLAGS.eval:
             eval()
+        elif FLAGS.manual_eval:
+            manual_eval()
         elif FLAGS.decode:
             interactive_decode()
         elif FLAGS.process_data:
@@ -471,7 +604,7 @@ def main(_):
             train(train_set, dev_set)
         else:
             train_set, dev_set, _ = load_data()
-            train(train_set, dev_set, verbose=True)
+            train(train_set, dev_set, verbose=False)
 
 
 if __name__ == "__main__":
