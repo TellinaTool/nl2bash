@@ -87,8 +87,6 @@ class Decoder(object):
             attn_vecs.append(tf.get_variable("AttnV_%d" % i, [attn_vec_dim]))
         return hidden, hidden_features, attn_vecs
 
-    def beam_decode(self, beam_size, top_k):
-
 
     def normal_cell(self, cell, scope, input, state):
         try:
@@ -147,9 +145,8 @@ class BasicTreeDecoder(Decoder):
             outputs = []
 
             # search control
-            self.back_pointers = tf.constant(-1, shape=[self.batch_size, 1])
-            search_left_to_right = tf.constant(False, shape=[self.batch_size], dtype=tf.bool)
-            if not feed_previous:
+            self.back_pointers = tf.constant(0, shape=[self.batch_size, 1])
+            last_search_left_to_right = [tf.constant(False, dtype=tf.bool)] * self.batch_size
 
             # continuous stack used for storing LSTM states, synced with self.back_pointers
             if self.use_attention:
@@ -158,29 +155,50 @@ class BasicTreeDecoder(Decoder):
                 batch_size = tf.shape(attention_states)[0]
                 attn_dim = tf.shape(attention_states)[2]
                 batch_attn_size = tf.pack([batch_size, attn_dim])
-                attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)    # initial attention state
+                # initial attention state
+                attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
                          for _ in xrange(num_heads)])
                 attns.set_shape([self.batch_size, num_heads * attention_states.get_shape()[2].value])
                 if initial_state_attention:
                     attns = self.attention(encoder_state, hidden_features, attn_vecs, num_heads, hidden)
-                init_stack = tf.concat(1, [tf.constant(data_utils.ROOT_ID, shape=[self.batch_size, 1]),
-                                           encoder_state[0], encoder_state[1], attns])
+                init_stack = tf.concat(1, [encoder_state[0], encoder_state[1], attns])
             else:
-                init_stack = tf.concat(1, [tf.constant(data_utils.ROOT_ID, shape=[self.batch_size, 1]),
-                                           encoder_state[0], encoder_state[1]])
-            self.stack = tf.expand_dims(init_stack, 2)
+                init_stack = tf.concat(1, [encoder_state[0], encoder_state[1]])
+            self.stack = tf.expand_dims(init_stack, 1)
+            self.input = tf.expand_dims(decoder_inputs[0], 1)
 
             for i in xrange(self.max_num_steps):
                 if i > 0: scope.reuse_variables()
+
+                # exam action of current step
+                search_left_to_right = []
+                batch_stack_indices = []
+                batch_input_indices = []
+                for j in xrange(self.batch_size):
+                    control_symbol = self.is_no_expand(self.input[j, -1, 0])
+                    search_left_to_right.append(control_symbol)
+                    stack_index = tf.cond(search_left_to_right[j],
+                                    lambda: tf.cond(last_search_left_to_right[j],
+                                                    lambda: self.grandgrandparent(j),
+                                                    lambda: self.grandparent(j)),
+                                    lambda: self.parent(j))
+                    input_index = tf.cond(search_left_to_right[j],
+                                    lambda: tf.cond(last_search_left_to_right[j],
+                                                    lambda: self.grandparent(j),
+                                                    lambda: self.parent(j)),
+                                    lambda: tf.constant([]))
+                    batch_stack_indices.append(stack_index)
+                    batch_input_indices.append(input_index)
 
                 batch_outputs = []
                 batch_cells = []
                 batch_hss = []
                 if self.use_attention:
                     batch_new_attns = []
-                    batch_input_indices, batch_states, batch_attns = self.peek()
+                    batch_input, batch_states, batch_attns = self.peek(batch_input_indices,
+                                                                       batch_stack_indices)
                     batch_input_embeddings = tf.split(0, self.batch_size,
-                        tf.nn.embedding_lookup(self.embeddings, batch_input_indices))
+                        tf.nn.embedding_lookup(self.embeddings, batch_input))
                     for j in xrange(self.batch_size):
                         input = batch_input_embeddings[j]
                         state = batch_states[j]
@@ -208,7 +226,7 @@ class BasicTreeDecoder(Decoder):
                         batch_cells.append(cell)
                         batch_hss.append(hs)
 
-                # decide movement for next step
+                # storing states
                 if feed_previous:
                     # Project decoder output for next state input.
                     batch_output = tf.concat(0, batch_outputs)
@@ -217,24 +235,16 @@ class BasicTreeDecoder(Decoder):
                 else:
                     batch_next_input = decoder_inputs[i+1]
 
-                batch_back_pointers = []
-                batch_next_inputs = []
-                for j in xrange(self.batch_size):
-                    back_pointer = tf.cond(self.is_no_expand(batch_next_input[j]),
-                                           tf.cond(search_left_to_right,
-                                                     lambda: self.grandparent(j),
-                                                     lambda: self.parent(j)),
-                                           tf.constant([j]))
-                    next_input = tf.cond(self.is_no_expand(batch_next_input[j]),
-                                         tf.cond(search_left_to_right,
-                                                 lambda: ))
-
-                self.back_pointers = self.cs_push(tf.cast(tf.expand_dims(control_symbol, 1), tf.int32))
-
                 if self.use_attention:
-                    self.stack = self.push([next_input, cell, hs, attns])
+                    self.push([batch_next_input, tf.concat(0, batch_input_indices),
+                                                 tf.concat(0, batch_cells),
+                                                 tf.concat(0, batch_hss),
+                                                 tf.concat(0, batch_new_attns)])
                 else:
-                    self.stack = self.push([next_input, cell, hs])
+                    self.push([batch_next_input, tf.concat(0, batch_input_indices),
+                                                 tf.concat(0, batch_cells),
+                                                 tf.concat(0, batch_hss)])
+                last_search_left_to_right = search_left_to_right
 
                 outputs.append(output)
 
@@ -320,46 +330,50 @@ class BasicTreeDecoder(Decoder):
         return outputs, tf.nn.rnn_cell.LSTMStateTuple(cell, hs)
     """
 
+    def grandgrandparent(self, j):
+        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], self.grandparent[j])
+
     def grandparent(self, j):
-        return tf.nn.embedding_lookup(self.back_pointers, self.back_pointers[j:j+1, -1])
+        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], self.parent[j])
 
     def parent(self, j):
-        return self.back_pointers[j:j+1, -1]
+        return self.back_pointers[j, -1, 0]
 
     def push(self, batch_states):
         """
         :param batch_states: list of list of state tensors
-        :return: updated batch states [batch_size x num_steps x stack_state_dim]
         """
-        batch_states = [tf.concat(1, states) for states in batch_states]
-        new_batch_state = [tf.concat(0, batch_states)]
-        tf.concat(0, [self.stack, tf.expand_dims(new_batch_state, 0)])
+        self.input = tf.concat(1, [self.input, tf.expand_dims(batch_states[0], 1)])
+        self.back_pointers = tf.concat(1, [self.back_pointers, tf.expand(batch_states[1], 1)])
+        batch_states = tf.concat(1, batch_states[2:])
+        self.stack = tf.concat(1, [self.stack, tf.expand_dims(batch_states, 1)])
 
 
-    def peek(self, batch_indices):
+    def peek(self, batch_input_indices, batch_stack_indices):
         """
         :param batch_indices: list of stack pointers for each search thread
         :return: batch stack state tuples
-                 (batch_input_indices, batch_parent_states, [batch_attention_states])
+                 (batch_parent_states, [batch_attention_states])
         """
-        batch_stack_states = tf.split(0, self.batch_size, self.stack)
-        batch_top_stack_state = tf.nn.embedding_lookup(batch_stack_states, batch_indices)
+        input_array = tf.split(0, self.batch_size, self.input)
+        stack_array = tf.split(0, self.batch_size, self.stack)
+        batch_input_symbols = tf.nn.embedding_lookup(input_array, batch_input_indices)
+        batch_stack_states = tf.nn.embedding_lookup(stack_array, batch_stack_indices)
 
-        batch_input_indices = tf.cast(batch_top_stack_state[:, 0:1], tf.int32)
-        batch_parent_cells = batch_top_stack_state[:, 1:self.dim+1]
-        batch_parent_hiddens = batch_top_stack_state[:, self.dim+1:2*self.dim+1]
+        batch_stack_cells = batch_stack_states[:, 1:self.dim+1]
+        batch_stack_hiddens = batch_stack_states[:, self.dim+1:2*self.dim+1]
         if self.use_attention:
-            batch_attention_states = batch_top_stack_state[:, 2*self.dim+1:]
-            return (tf.split(0, self.batch_size, batch_input_indices),
+            batch_attention_states = batch_stack_states[:, 2*self.dim+1:]
+            return (tf.split(0, self.batch_size, batch_input_symbols),
                     [tf.nn.rnn_cell.LSTMStateTuple(cell, hidden) for (cell, hidden) in
-                     zip(tf.split(0, self.batch_size, batch_parent_cells),
-                         tf.split(0, self.batch_size, batch_parent_hiddens))],
+                     zip(tf.split(0, self.batch_size, batch_stack_cells),
+                         tf.split(0, self.batch_size, batch_stack_hiddens))],
                     tf.split(0, self.batch_size, batch_attention_states))
         else:
-            return (tf.split(0, self.batch_size, batch_input_indices),
+            return (tf.split(0, self.batch_size, batch_input_symbols),
                     [tf.nn.rnn_cell.LSTMStateTuple(cell, hidden) for (cell, hidden) in
-                     zip(tf.split(0, self.batch_size, batch_parent_cells),
-                         tf.split(0, self.batch_size, batch_parent_hiddens))])
+                     zip(tf.split(0, self.batch_size, batch_stack_cells),
+                         tf.split(0, self.batch_size, batch_stack_hiddens))])
 
 
     @data_utils.deprecated
