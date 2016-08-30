@@ -25,11 +25,15 @@ import tensorflow as tf
 import data_utils
 from parse_args import define_input_flags
 from data_tools import basic_tokenizer, bash_tokenizer, to_template
-from normalizer import to_list, to_ast, to_command, pretty_print, normalize_ast, all_simple_commands
+from normalizer import to_list, to_ast, to_command, pretty_print, normalize_ast
 from encoder_decoder import Seq2TreeModel
 import ast_based 
 
 FLAGS = tf.app.flags.FLAGS
+
+# We use a number of buckets and pad to the closest one for efficiency.
+# See seq2seq_model.Seq2SeqModel for details of how they work.
+_buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 50)]
 
 def create_model(session, forward_only):
     """
@@ -450,100 +454,22 @@ def process_data():
     numFolds = len(data)
     print("%d folds" % numFolds)
 
-    train_cm_list = []
-    train_cm_seq_list = []
-    train_nl_list = []
-    dev_cm_list = []
-    dev_cm_seq_list = []
-    dev_nl_list = []
-    test_cm_list = []
-    test_cm_seq_list = []
-    test_nl_list = []
-
-    max_cmd_seq_len = 0
-
-    def add_to_set(data, nl_list, cm_list, cm_seq_list, max_len):
-        for nl, cmd in data:
-            ast = normalize_ast(cmd)
-            if ast:
-                if all_simple_commands(ast):
-                    cmd_seq = to_list(ast, list=[])
-                    if len(cmd_seq) > max_len:
-                        max_len = len(cmd_seq)
-                    nl_list.append(nl)
-                    cm_list.append(cmd)
-                    cm_seq_list.append(cmd_seq)
-                else:
-                    print("Rare command: " + cmd.encode('utf-8'))
-        return max_len
-
-    for i in xrange(numFolds):
-        if i < numFolds - 2:
-            max_cmd_seq_len = add_to_set(data[i], train_nl_list, train_cm_list, train_cm_seq_list,
-                                        max_cmd_seq_len)
-        elif i == numFolds - 2:
-            max_cmd_seq_len = add_to_set(data[i], dev_nl_list, dev_cm_list, dev_cm_seq_list,
-                                        max_cmd_seq_len)
-        elif i == numFolds - 1:
-            max_cmd_seq_len = add_to_set(data[i], test_nl_list, test_cm_list, test_cm_seq_list,
-                                        max_cmd_seq_len)
-
-    print("maximum training command sequence length = %d" % max_cmd_seq_len)
-
-    data_dir = FLAGS.data_dir + "seq2tree.by.template/"
-
-    # Get data to the specified directory.
-    train_path = data_dir + "/train"
-    dev_path = data_dir + "/dev"
-    test_path = data_dir + "/test"
-
-    # Create vocabularies of the appropriate sizes.
-    cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % FLAGS.cm_vocab_size)
-    nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % FLAGS.nl_vocab_size)
-    data_utils.create_vocabulary(cm_vocab_path, train_cm_seq_list, FLAGS.cm_vocab_size, bash_tokenizer, True)
-    data_utils.create_vocabulary(nl_vocab_path, train_nl_list, FLAGS.nl_vocab_size, basic_tokenizer, True)
-
-    def format_data(data_path, nl_list, cm_list, cm_seq_list):
-        cm_path = data_path + ".cm"
-        nl_path = data_path + ".nl"
-        with open(cm_path, 'w') as o_f:
-            for cm in cm_list:
-                o_f.write(cm.encode('utf-8') + '\n')
-        with open(nl_path, 'w') as o_f:
-            for nl in nl_list:
-                o_f.write(nl.encode('utf-8') + '\n')
-        cm_ids_path = data_path + (".ids%d.cm" % FLAGS.cm_vocab_size)
-        nl_ids_path = data_path + (".ids%d.nl" % FLAGS.nl_vocab_size)
-        data_utils.data_to_token_ids(cm_seq_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
-        data_utils.data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
-        return nl_ids_path, cm_ids_path
-
-    nl_train, cm_train = format_data(train_path, train_nl_list, train_cm_list, train_cm_seq_list)
-    nl_dev, cm_dev = format_data(dev_path, dev_nl_list, dev_cm_list, dev_cm_seq_list)
-    nl_test, cm_test = format_data(test_path, test_nl_list, test_cm_list, test_cm_seq_list)
-
-    train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
-    dev_set = read_data(nl_dev, cm_dev)
-    test_set = read_data(nl_test, cm_test)
-   
-    with open(FLAGS.data_dir + "seq2tree.by.template/" + "data.processed.dat", 'wb') as o_f:
-        pickle.dump((train_set, dev_set, test_set), o_f)
-
-    return train_set, dev_set, test_set
+    output_dir = os.path.join(FLAGS.data_dir, "seq2tree.by.%s" % FLAGS.data_split)
+    data_utils.prepare_data(data, output_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
 
 
 def load_data(sample_size=-1):
     print("Loading data from %s" % FLAGS.data_dir)
 
-    with open(FLAGS.data_dir + "data.processed.dat", 'rb') as f:
-        if sample_size == -1:
-            # return complete dataset
-            return pickle.load(f)
-        else:
-            data = pickle.load(f)
-            test_sample_size = int(sample_size / 4)
-            return (sample(data[0], sample_size), sample(data[1], test_sample_size),
-                    sample(data[1], test_sample_size))
+    data_dir = os.path.join(FLAGS.data_dir, "seq2tree.by.%s" % FLAGS.data_split)
+    nl_train =
+
+    train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
+    dev_set = read_data(nl_dev, cm_dev)
+    test_set = read_data(nl_test, cm_test)
+
+    with open(data_dir + "data.processed.dat", 'wb') as o_f:
+        pickle.dump((train_set, dev_set, test_set), o_f)
 
 
 def read_data(source_path, target_path, max_size=None):

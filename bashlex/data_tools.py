@@ -110,6 +110,11 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
 
     return normalized_words
 
+def bash_parser(cmd, normalize_digits=True, normalize_long_pattern=True,
+                recover_quotation=True):
+    return normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,
+                                    recover_quotation)
+
 def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
                    recover_quotation=True):
     tree = normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,

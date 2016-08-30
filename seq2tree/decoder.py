@@ -8,8 +8,8 @@ import data_utils
 import graph_utils
 
 class Decoder(object):
-    def __init__(self, dim, batch_size, max_num_steps, num_layers, use_attention, use_copy,
-                 output_projection=None):
+    def __init__(self, dim, batch_size, max_num_steps, num_layers, use_attention,
+                 use_copy, output_projection=None):
         self.dim = dim
         self.batch_size = batch_size
         self.max_num_steps = max_num_steps
@@ -219,7 +219,7 @@ class BasicTreeDecoder(Decoder):
                     for j in xrange(self.batch_size):
                         input = batch_input_embeddings[j]
                         state = batch_states[j]
-                        output, cell, hs = tf.cond(search_left_to_right,
+                        output, cell, hs = tf.cond(search_left_to_right[j],
                             lambda: self.normal_cell(parent_cell, parent_scope, input, state),
                             lambda: self.normal_cell(sb_cell, sb_scope, input, state))
                         batch_outputs.append(output)
