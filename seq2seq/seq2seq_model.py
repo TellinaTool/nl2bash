@@ -26,7 +26,9 @@ import numpy as np
 import tensorflow as tf
 import seq2seq
 
-from tensorflow.models.rnn.translate import data_utils
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2tree"))
+import data_utils
 
 
 class Seq2SeqModel(object):
