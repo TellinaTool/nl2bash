@@ -2,11 +2,13 @@
 
 import collections
 import cPickle as pickle
+import functools
 import random
 import sqlite3
 import sys
 sys.path.append("..")
 sys.path.append("../../bashlex")
+import warnings
 
 from data_tools import basic_tokenizer, bash_tokenizer, is_stopword, to_template
 
@@ -116,18 +118,23 @@ class DBConnection(object):
             yield (user, url, nl, cmd, time_stamp)
         c.close()
 
-    def unique_pairs(self):
-        cmds_dict = collections.defaultdict(list)
+    def unique_pairs(self, head_cmd):
+        cmds_dict = {}
         for user, url, nl, cmd, time_stamp in self.pairs():
-            duplicated = False
-            for nl2 in cmds_dict[cmd]:
-                if minEditDist(nl.lower(), nl2.lower()) < EDITDIST_THRESH:
-                    duplicated = True
-                    break
-            if not duplicated:
-                cmds_dict[cmd].append(nl)
+            if not cmd:
+                continue
+            if not nl:
+                continue
+            if not self.head_present(cmd, head_cmd):
+                continue
+            if not url in cmds_dict:
+                cmds_dict[url] = {}
+            if not nl in cmds_dict[url]:
+                cmds_dict[url][nl] = set()
+            cmds_dict[url][nl].add(cmd)
         return cmds_dict
 
+    @deprecated
     def unique_pairs_by_signature(self):
         unique_pairs = self.unique_pairs()
         cmds_dict = collections.defaultdict(list)
@@ -144,14 +151,13 @@ class DBConnection(object):
         print("Unable to parse %d commands" % num_errors)
         return cmds_dict
 
+    @deprecated
     def unique_pairs_by_description(self, head_cmd):
-        unique_pairs = self.unique_pairs()
+        unique_pairs = self.unique_pairs(head_cmd)
         desp_dict = collections.defaultdict(list)
         num_errors = 0
         for cmd in unique_pairs:
             if not cmd:
-                continue
-            if not self.head_present(cmd, "find"):
                 continue
             tokens = bash_tokenizer(cmd)
             if not tokens:
@@ -174,72 +180,106 @@ class DBConnection(object):
         return desp_dict
 
     def dump_data(self, data_dir, num_folds=10):
-        num_cmdsig = 0
-        num_pairs = 0
+        # First-pass: group pairs by URLs
+        pairs = self.unique_pairs("find")
 
-        # First-pass: group pairs by English descriptions
-        desp_dict = self.unique_pairs_by_description("find")
-        desp_clusters = desp_dict.items()
+        # Second-pass: group url clusters by nls
+        urls = pairs.keys()
+        merged_urls_by_nl = []
+        for i in xrange(len(urls)):
+            url = urls[i]
+            for j in xrange(i+1, len(urls)):
+                url2 = urls[j]
+                merge = False
+                for nl in pairs[url]:
+                    for nl2 in pairs[url2]:
+                        if minEditDist(nl, nl2) < EDITDIST_THRESH:
+                            merge = True
+                            break
+                    if merge:
+                        break
+                if merge:
+                    break
+            if merge:
+                for nl in pairs[url]:
+                    if nl in pairs[url2]:
+                        pairs[url2][nl] = pairs[url][nl] | pairs[url2][nl]
+                    else:
+                        pairs[url2][nl] = pairs[url][nl]
+                merged_urls_by_nl.append(i)
 
-        # Second-pass: group English description clusters by command signatures
-        cmdsig_dict = collections.defaultdict(set)
-        for i in xrange(len(desp_clusters)):
-            for cmd in desp_clusters[i][1]:
-                cmdsig = to_template(cmd, arg_type_only=split_by_template)
-                cmdsig_dict[cmdsig].add(i)
+        # Third-pass: group url clusters by commands
+        merged_urls_by_cmd = []
+        for i in xrange(len(urls)):
+            if i in merged_urls_by_nl:
+                continue
+            url = urls[i]
+            for j in xrange(i+1, len(urls)):
+                if j in merged_urls_by_nl:
+                    continue
+                url2 = urls[j]
+                merge = False
+                for _, cmd in pairs[url].items():
+                    for _, cmd2 in pairs[url2].items():
+                        if minEditDist(cmd, cmd2) < EDITDIST_THRESH:
+                            merge = True
+                            break
+                    if merge:
+                        break
+                if merge:
+                    break
+            if merge:
+                for nl in pairs[url]:
+                    if nl in pairs[url2]:
+                        pairs[url2][nl] = pairs[url][nl] | pairs[url2][nl]
+                    else:
+                        pairs[url2][nl] = pairs[url][nl]
+                merged_urls_by_cmd.append(i)
 
-        cmdsigs = cmdsig_dict.keys()
-        merged_sigs = set()
-        for i in xrange(len(cmdsigs)):
-            cmdsig1 = cmdsigs[i]
-            for j in xrange(i+1, len(cmdsigs)):
-                cmdsig2 = cmdsigs[j]
-                if cmdsig_dict[cmdsig1] & cmdsig_dict[cmdsig2]:
-                    cmdsig_dict[cmdsig2] = cmdsig_dict[cmdsig1] | cmdsig_dict[cmdsig2]
-                    merged_sigs.add(i)
-        print("%d unique signatures" % len(cmdsigs))
-        remained_sigs = set(xrange(len(cmdsigs))) - merged_sigs
-        print("%d signature clusters" % len(remained_sigs))
-
-        sorted_remained_sigs = sorted(remained_sigs, key=lambda x:len(cmdsig_dict[cmdsigs[x]]), reverse=True)
+        remained_urls = []
+        for i in xrange(len(urls)):
+            if i in merged_urls_by_cmd:
+                continue
+            if i in merged_urls_by_nl:
+                continue
+            remained_urls.append(urls[i])
+        sorted_urls = sorted(urls, key=lambda x:len(pairs[url]), reverse=True)
 
         data = collections.defaultdict(list)
-        num_train = 0
-        num_train_cmds = 0
-        num_dev = 0
-        num_dev_cmds = 0
-        num_test = 0
-        num_test_cmds = 0
-        for cmdsig_index in sorted_remained_sigs:
-            cmdsig = cmdsigs[cmdsig_index]
-            print("Command signature: {} ({})".format(cmdsig.encode('utf-8'),
-                                                      len(cmdsig_dict[cmdsig])))
 
-            # randomly find a fold to place cluster
-            top_k = 10
-            if num_cmdsig < top_k:
+        num_pairs = 0
+        num_train = 0
+        num_train_pairs = 0
+        num_dev = 0
+        num_dev_pairs = 0
+        num_test = 0
+        num_test_pairs = 0
+        num_urls = 0
+
+        top_k = 10
+
+        for i in xrange(len(sorted_urls))
+            url = sorted_urls[i]
+            if i < top_k:
                 ind = random.randrange(num_folds - 2)
                 num_train += 1
-                num_train_cmds += len(cmdsig_dict[cmdsig])
+                num_train_pairs += reduce(lambda x, y: x+y, [len(pairs[url][nl]) for nl in pairs[url]])
             else:
                 ind = random.randrange(num_folds)
                 if ind < num_folds - 2:
                     num_train += 1
-                    num_train_cmds += len(cmdsig_dict[cmdsig])
+                    num_train_pairs += reduce(lambda x, y: x+y, [len(pairs[url][nl]) for nl in pairs[url]])
                 elif ind == num_folds - 2:
                     num_dev += 1
-                    num_dev_cmds += len(cmdsig_dict[cmdsig])
+                    num_dev_pairs += reduce(lambda x, y: x+y, [len(pairs[url][nl] for nl in pairs[url])])
                 elif ind == num_folds - 1:
                     num_test += 1
-                    num_test_cmds += len(cmdsig_dict[cmdsig])
-            bin = data[ind]
+                    num_test_pairs += reduce(lambda x, y: x+y, [len(pairs[url][nl] for nl in pairs[url])])
+            num_urls += 1
 
-            for i in cmdsig_dict[cmdsig]:
-                nl, cmds = desp_clusters[i]
-                # print("desp: %s" % nl.encode('utf-8'))
-                if nl == "NA":
-                    continue
-                for cmd in cmds:
+            bin = data[ind]
+            for nl in pairs[url]:
+                for cmd in pairs[url][nl]:
                     num_pairs += 1
                     cmd = cmd.strip().replace('\n', ' ').replace('\r', ' ')
                     nl = nl.strip().replace('\n', ' ').replace('\r', ' ')
@@ -249,14 +289,12 @@ class DBConnection(object):
                         cmd = cmd.decode()
                     bin.append((nl, cmd))
 
-            num_cmdsig += 1
-
         print("Total number of pairs: %d" % num_pairs)
-        print("Total number of command signatures: %d" % num_cmdsig)
-        print("Total number of train clusters: %d (%d commands)" % (num_train, num_train_cmds))
-        print("Total number of dev clusters: %d (%d commands)" % (num_dev, num_dev_cmds))
-        print("Total number of test clusters: %d (%d commands)" % (num_test, num_test_cmds))
-        print("%.2f descriptions per command signature" % ((num_pairs + 0.0) / num_cmdsig))
+        print("Total number of url clusters: %d" % num_urls)
+        print("Total number of train clusters: %d (%d pairs)" % (num_train, num_train_pairs))
+        print("Total number of dev clusters: %d (%d pairs)" % (num_dev, num_dev_pairs))
+        print("Total number of test clusters: %d (%d pairs)" % (num_test, num_test_pairs))
+        print("%.2f pairs per url cluster" % ((num_pairs + 0.0) / num_urls))
 
         if split_by_template:
             split_by = "template"
@@ -272,6 +310,21 @@ class DBConnection(object):
             return True
         else:
             return False
+
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+    as deprecated. It will result in a warning being emmitted
+    when the function is used."""
+
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        warnings.simplefilter('always', DeprecationWarning)     #turn off filter
+        warnings.warn("Call to deprecated function {}.".format(func.__name__),
+                      category=DeprecationWarning, stacklevel=2)
+        warnings.simplefilter('default', DeprecationWarning)    #reset filter
+        return func(*args, **kwargs)
+
+    return new_func
 
 if __name__ == "__main__":
     split_by = sys.argv[1]
