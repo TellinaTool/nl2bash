@@ -439,7 +439,8 @@ def process_data():
 def load_data(sample_size=-1):
     print("Loading data from %s" % FLAGS.data_dir)
 
-    data_dir = os.path.join(FLAGS.data_dir, "seq2tree.by.%s" % FLAGS.data_split)
+    # data_dir = os.path.join(FLAGS.data_dir, "seq2tree.by.%s" % FLAGS.data_split)
+    data_dir = FLAGS.data_dir
     nl_train = os.path.join(data_dir, "train") + ".ids%d.nl" % FLAGS.nl_vocab_size
     cm_train = os.path.join(data_dir, "train") + ".ids%d.cm" % FLAGS.cm_vocab_size
     nl_dev = os.path.join(data_dir, "dev") + ".ids%d.nl" % FLAGS.nl_vocab_size
