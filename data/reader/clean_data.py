@@ -200,6 +200,7 @@ class DBConnection(object):
 
         # Second-pass: group url clusters by nls
         urls = pairs.keys()
+        print("%d urls in the database" % len(urls))
         merged_urls_by_nl = []
         for i in xrange(len(urls)):
             url = urls[i]
@@ -222,6 +223,7 @@ class DBConnection(object):
                     else:
                         pairs[url2][nl] = pairs[url][nl]
                 merged_urls_by_nl.append(i)
+        print("%d urls merged by nl" % len(merged_urls_by_nl))
 
         # Third-pass: group url clusters by commands
         merged_urls_by_cmd = []
@@ -251,6 +253,7 @@ class DBConnection(object):
                     else:
                         pairs[url2][nl] = pairs[url][nl]
                 merged_urls_by_cmd.append(i)
+        print("%d urls merged by cmd" % len(merged_urls_by_cmd))
 
         remained_urls = []
         for i in xrange(len(urls)):
@@ -275,22 +278,24 @@ class DBConnection(object):
         top_k = 10
 
         for i in xrange(len(sorted_urls)):
+            url_size = reduce(lambda x, y: x+y, [len(pairs[url][nl]) for nl in pairs[url]])
+            print("url %d (%d)" % (i, url_size))
             url = sorted_urls[i]
             if i < top_k:
                 ind = random.randrange(num_folds - 2)
                 num_train += 1
-                num_train_pairs += reduce(lambda x, y: x+y, [len(pairs[url][nl]) for nl in pairs[url]])
+                num_train_pairs += url_size
             else:
                 ind = random.randrange(num_folds)
                 if ind < num_folds - 2:
                     num_train += 1
-                    num_train_pairs += reduce(lambda x, y: x+y, [len(pairs[url][nl]) for nl in pairs[url]])
+                    num_train_pairs += url_size
                 elif ind == num_folds - 2:
                     num_dev += 1
-                    num_dev_pairs += reduce(lambda x, y: x+y, [len(pairs[url][nl] for nl in pairs[url])])
+                    num_dev_pairs += url_size
                 elif ind == num_folds - 1:
                     num_test += 1
-                    num_test_pairs += reduce(lambda x, y: x+y, [len(pairs[url][nl] for nl in pairs[url])])
+                    num_test_pairs += url_size
             num_urls += 1
 
             bin = data[ind]
