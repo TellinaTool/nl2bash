@@ -462,14 +462,18 @@ def load_data(sample_size=-1):
     print("Loading data from %s" % FLAGS.data_dir)
 
     data_dir = os.path.join(FLAGS.data_dir, "seq2tree.by.%s" % FLAGS.data_split)
-    nl_train =
+    nl_train = os.path.join(data_dir, "train") + ".ids%d.nl" % FLAGS.nl_vocab_size
+    cm_train = os.path.join(data_dir, "train") + ".seq%d.cm" % FLAGS.cm_vocab_size
+    nl_dev = os.path.join(data_dir, "dev") + ".ids%d.nl" % FLAGS.nl_vocab_size
+    cm_dev = os.path.join(data_dir, "dev") + ".seq%d.cm" % FLAGS.cm_vocab_size
+    nl_test = os.path.join(data_dir, "test") + ".ids%d.nl" % FLAGS.nl_vocab_size
+    cm_test = os.path.join(data_dir, "test") + ".seq%d.cm" % FLAGS.cm_vocab_size
 
     train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
     dev_set = read_data(nl_dev, cm_dev)
     test_set = read_data(nl_test, cm_test)
 
-    with open(data_dir + "data.processed.dat", 'wb') as o_f:
-        pickle.dump((train_set, dev_set, test_set), o_f)
+    return train_set, dev_set, test_set
 
 
 def read_data(source_path, target_path, max_size=None):
