@@ -42,7 +42,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("max_cm_length", 64, "maximum length of the command traversal sequence.")
     tf.app.flags.DEFINE_string("data_dir", "/tmp", "Raw data directory")
     tf.app.flags.DEFINE_string("data_split", "command", "Data split criteria")
-    tf.app.flags.DEFINE_string("train_dir", "/tmp", "Processed data directory.")
+    tf.app.flags.DEFINE_string("train_dir", "/tmp", "Directory to save trained models.")
 
 
     # learning hyperparameters
