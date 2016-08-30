@@ -350,9 +350,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     print()
 
     num_manual_eval = 30
-    manual_num_correct_template = 0
-    manual_num_correct_command = 0
-    unmatched = list(unmatched)
+    num_manual_correct_template = 0
+    num_manual_correct_command = 0
     random.shuffle(unmatched)
 
     o_f = open("manual.eval.results", 'w')
@@ -378,11 +377,11 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         
         inp = raw_input("Correct template [y/n]: ")
         if inp == "y":
-            manual_num_correct_template += 1
+            num_manual_correct_template += 1
             o_f.write("C")
             inp = raw_input("Correct command [y/n]: ")
             if inp == "y":
-                manual_num_correct_command += 1
+                num_manual_correct_command += 1
                 o_f.write("C")
             else:
                 o_f.write("W")
@@ -390,6 +389,18 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             o_f.write("WW")
         o_f.write("\n")
         o_f.write("\n")
+
+    print()
+    print("%d examples evaluated" % num_eval)
+    print("Percentage of Template Match = %.2f" % (num_manual_correct_template/num_manual_eval))
+    print("Percentage of String Match = %.2f" % (num_manual_correct_command/num_manual_eval))
+    print()
+
+    o_f.write("\n")
+    o_f.write("%d examples evaluated" % num_eval + "\n")
+    o_f.write("Percentage of Template Match = %.2f" % (num_manual_correct_template/num_manual_eval) + "\n")
+    o_f.write("Percentage of String Match = %.2f" % (num_manual_correct_command/num_manual_eval) + "\n")
+    o_f.write("\n")
 
     o_f.close()
 
