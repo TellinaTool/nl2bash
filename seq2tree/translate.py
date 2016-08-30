@@ -448,7 +448,7 @@ def manual_eval(num_eval = 30):
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
 
-    with open(FLAGS.data_dir + "data.by.template.dat") as f:
+    with open(FLAGS.data_dir + "data.by.%s.dat" % FLAGS.data_split) as f:
         data = pickle.load(f)
 
     numFolds = len(data)
