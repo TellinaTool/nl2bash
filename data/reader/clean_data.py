@@ -221,7 +221,8 @@ class DBConnection(object):
                 merge = False
                 for _, cmd in pairs[url].items():
                     for _, cmd2 in pairs[url2].items():
-                        if minEditDist(cmd, cmd2) < EDITDIST_THRESH:
+                        if to_template(cmd, arg_type_only=split_by_template) == \
+                            to_template(cmd2, arg_type_only=split_by_template):
                             merge = True
                             break
                     if merge:
@@ -258,7 +259,7 @@ class DBConnection(object):
 
         top_k = 10
 
-        for i in xrange(len(sorted_urls))
+        for i in xrange(len(sorted_urls)):
             url = sorted_urls[i]
             if i < top_k:
                 ind = random.randrange(num_folds - 2)
