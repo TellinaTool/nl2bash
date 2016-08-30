@@ -57,9 +57,6 @@ def reserved_words():
 reserved_words = reserved_words()
 all_utilities = set(reserved_words[reserved_words.index("alias"):])
 
-def is_option(word):
-    return word.startswith('-')
-
 def is_double_option(word):
     return word.startswith('--')
 

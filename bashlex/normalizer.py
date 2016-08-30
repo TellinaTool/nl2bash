@@ -814,7 +814,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                             attach_point_info = look_above(attach_point)
                     else:
                         # need to decide ast_node_kind
-                        if bash.is_option(child.word) and \
+                        if child.word.startswith("-") and \
                                 not (attach_point.value in ["head", "tail"] and child.word[1:].isdigit()):
                             # child is a flag
                             attach_point_info = attach_flag(child, attach_point_info)
