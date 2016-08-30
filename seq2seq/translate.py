@@ -299,9 +299,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         if len(dataset[bucket_id]) == 0:
             continue
         model.batch_size = len(dataset[bucket_id])
-
+        
         encoder_inputs, decoder_inputs, target_weights = model.get_bucket(
-                    dataset, bucket_id, feed_previous=True)
+                    dataset, bucket_id, feed_previous=False)
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                          target_weights, bucket_id, True)
 
@@ -312,6 +312,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         ground_truths = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab, True)
         assert(len(sentences) == len(ground_truths))
         predictions = batch_decode(output_logits, rev_cm_vocab, model.beam_decoder)
+        print(len(ground_truths))
+        print(len(predictions))
         assert(len(ground_truths) == len(predictions))
         for i in xrange(len(ground_truths)):
             sent = sentences[i]

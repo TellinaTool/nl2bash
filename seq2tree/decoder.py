@@ -376,11 +376,6 @@ class BasicTreeDecoder(Decoder):
                          tf.split(0, self.batch_size, batch_stack_hiddens))])
 
 
-    @data_utils.deprecated
-    def pop(self):
-        return self.stack[:-1, :]
-
-
     def is_no_expand(self, ind):
         return tf.equal(tf.cast(ind, tf.int32), BasicTreeDecoder._NO_EXPAND)
 
