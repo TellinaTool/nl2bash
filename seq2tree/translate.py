@@ -344,7 +344,7 @@ def manual_eval(num_eval = 30):
         num_correct_template = 0.0
         num_correct_command = 0.0
 
-        grouped_dataset = group_data_by_desp(dev_set)
+        grouped_dataset = data_utils.group_data_by_desp(dev_set)
         random.shuffle(grouped_dataset)
 
         o_f = open("manual.eval.results", 'w')
