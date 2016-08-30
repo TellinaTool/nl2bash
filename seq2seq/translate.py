@@ -294,8 +294,8 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
         model.batch_size = len(dev_set[bucket_id])
 
         encoder_inputs, decoder_inputs, target_weights = model.get_bucket(
-                    dev_set, bucket_id)
-        _, _, output_logits = model.step(sess, encoder_inputs, [decoder_inputs[0]],
+                    dev_set, bucket_id, feed_previous=True)
+        _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                          target_weights, bucket_id, True)
 
         rev_encoder_inputs = []

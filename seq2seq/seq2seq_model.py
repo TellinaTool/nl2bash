@@ -244,7 +244,7 @@ class Seq2SeqModel(object):
         else:
             return None, outputs[0], outputs[1:]  # No gradient norm, loss, outputs.
 
-    def get_bucket(self, data, bucket_id):
+    def get_bucket(self, data, bucket_id, feed_previous=False):
         """Get all elements of a bucket, prepare for step.
 
         To feed data in step(..) it must be a list of batch-major vectors, while
@@ -255,7 +255,7 @@ class Seq2SeqModel(object):
           data: a tuple of size len(self.buckets) in which each element contains
             lists of pairs of input and output data that we use to create a batch.
           bucket_id: integer, which bucket to get the batch for.
-
+          feed_previous: if set to True, read the first decoder symbol only.
         Returns:
           The triple (encoder_inputs, decoder_inputs, target_weights) for
           the constructed batch that has the proper format to call step(...) later.
@@ -273,9 +273,14 @@ class Seq2SeqModel(object):
             encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
 
             # Decoder inputs get an extra "ROOT" symbol, and are padded then.
-            decoder_pad_size = decoder_size - len(decoder_input) - 1
-            decoder_inputs.append([data_utils.ROOT_ID] + decoder_input +
-                                  [data_utils.PAD_ID] * decoder_pad_size)
+            if feed_previous:
+                decoder_pad_size = decoder_size - 1
+                decoder_inputs.append([data_utils.ROOT_ID] +
+                                      [data_utils.PAD_ID] * decoder_pad_size)
+            else:
+                decoder_pad_size = decoder_size - len(decoder_input) - 1
+                decoder_inputs.append([data_utils.ROOT_ID] + decoder_input +
+                                      [data_utils.PAD_ID] * decoder_pad_size)
 
         # Now we create batch-major vectors from the data selected above.
         batch_encoder_inputs, batch_decoder_inputs, batch_weights = [], [], []
