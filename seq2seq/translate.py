@@ -66,6 +66,7 @@ tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
 tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
 tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
+tf.app.flags.DEFINE_string("data_split", "command", "")
 tf.app.flags.DEFINE_string("decoder", "greedy", "Type of decoder to use.")
 tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
