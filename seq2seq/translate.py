@@ -295,7 +295,7 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
         encoder_inputs, decoder_inputs, target_weights = model.get_bucket(
                     dev_set, bucket_id)
-        _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
+        _, _, output_logits = model.step(sess, encoder_inputs, [decoder_inputs[0]],
                                          target_weights, bucket_id, True)
 
         rev_encoder_inputs = []
@@ -354,7 +354,8 @@ def train_and_eval(train_set, dev_set):
             print("Training stopped early for no improvement observed on dev set.")
             break
 
-def _decode():
+
+def interactive_decode():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
                                           log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
@@ -508,7 +509,7 @@ def main(_):
         elif FLAGS.eval:
             eval()
         elif FLAGS.decode:
-            _decode()
+            interactive_decode()
         elif FLAGS.bucket_selection:
             bucket_selection()
         elif FLAGS.process_data:
