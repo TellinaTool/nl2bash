@@ -269,7 +269,8 @@ class Seq2SeqModel(object):
 
       # Decoder inputs get an extra "ROOT" symbol, and are padded then.
       decoder_pad_size = decoder_size - len(decoder_input) - 1
-      decoder_inputs.append(decoder_input + [data_utils.PAD_ID] * decoder_pad_size)
+      decoder_inputs.append([data_utils.ROOT_ID] + decoder_input +
+                            [data_utils.PAD_ID] * decoder_pad_size)
 
     # Now we create batch-major vectors from the data selected above.
     batch_encoder_inputs, batch_decoder_inputs, batch_weights = [], [], []
@@ -318,7 +319,7 @@ class Seq2SeqModel(object):
     encoder_inputs, decoder_inputs = [], []
 
     # Get a random batch of encoder and decoder inputs from data,
-    # pad them if needed, reverse encoder inputs and add ROOT to decoder.
+    # pad them if needed, reverse encoder inputs and add GO to decoder.
     for _ in xrange(self.batch_size):
       encoder_input, decoder_input = random.choice(data[bucket_id])
 
@@ -326,9 +327,10 @@ class Seq2SeqModel(object):
       encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
       encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
 
-      # Decoder inputs get an extra "ROOT" symbol, and are padded then.
+      # Decoder inputs get an extra "GO" symbol, and are padded then.
       decoder_pad_size = decoder_size - len(decoder_input) - 1
-      decoder_inputs.append(decoder_input + [data_utils.PAD_ID] * decoder_pad_size)
+      decoder_inputs.append([data_utils.ROOT_ID] + decoder_input +
+                            [data_utils.PAD_ID] * decoder_pad_size)
 
     # Now we create batch-major vectors from the data selected above.
     batch_encoder_inputs, batch_decoder_inputs, batch_weights = [], [], []
