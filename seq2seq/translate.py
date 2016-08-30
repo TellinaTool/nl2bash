@@ -43,11 +43,13 @@ import cPickle as pickle
 import numpy as np
 
 from data_tools import basic_tokenizer, bash_tokenizer
+import normalizer
 
 import tensorflow as tf
 import seq2seq_model
-
 import data_utils
+
+import ast_based
 
 tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
 tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
@@ -285,13 +287,18 @@ def batch_decode(output_logits, rev_cm_vocab, beam_decoder):
     return batch_outputs
 
 
-def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
+def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
+    num_correct_template = 0.0
+    num_correct = 0.0
     num_eval = 0
+
+    grouped_dataset = {}
+
     for bucket_id in xrange(len(_buckets)):
-        if len(dev_set[bucket_id]) == 0:
+        if len(dataset[bucket_id]) == 0:
             continue
-        model.batch_size = len(dev_set[bucket_id])
+        model.batch_size = len(dataset[bucket_id])
 
         encoder_inputs, decoder_inputs, target_weights = model.get_bucket(
                     dev_set, bucket_id, feed_previous=False)
@@ -309,13 +316,32 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
         for i in xrange(len(ground_truths)):
             sent = sentences[i]
             gt = ground_truths[i]
+            gt_tree = normalizer.normalize_ast(gt)
             pred = predictions[i]
+            tree = normalizer.normalize_ast(pred)
             print("Example %d" % (num_eval + 1))
             print("English: " + sent)
             print("Ground truth: " + gt)
             print("Prediction: " + pred)
             print()
-            num_eval += 1
+            if sent in grouped_dataset:
+                grouped_dataset[sent][0].append(gt_tree)
+            else:
+                grouped_dataset[sent] = ([gt_tree], tree)
+
+    for sent in grouped_dataset:
+        if ast_based.one_template_match(grouped_dataset[sent][0],
+                                        grouped_dataset[sent][1]):
+            num_correct_template += 1
+        if ast_based.one_string_match(grouped_dataset[sent][0],
+                                      grouped_dataset[sent][1]):
+            num_correct += 1
+        num_eval += 1
+
+    print("%d examples evaluated" % num_eval)
+    print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
+    print("Percentage of String Match = %.2f" % (num_correct/num_eval))
+    print()
 
 
 def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):

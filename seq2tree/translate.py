@@ -240,23 +240,6 @@ def interactive_decode():
             sys.stdout.flush()
             sentence = sys.stdin.readline()
 
-def group_data_by_desp(dataset):
-    grouped_dataset = {}
-
-    for i in xrange(len(dataset)):
-        nl_str, cm_str, nl, search_history = dataset[i]
-        if nl_str in grouped_dataset:
-            grouped_dataset[nl_str][0].append(cm_str)
-            grouped_dataset[nl_str][2].append(search_history)
-        else:
-            grouped_dataset[nl_str] = [[cm_str], nl, [search_history]]
-
-    grouped_dataset2 = []
-    for nl_str in grouped_dataset:
-        grouped_dataset2.append((nl_str, grouped_dataset[nl_str][0],
-                                grouped_dataset[nl_str][1],
-                                grouped_dataset[nl_str][2]))
-    return grouped_dataset2
 
 def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_top_k_correct_template = 0.0
@@ -265,7 +248,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_correct = 0.0
     num_eval = 0
 
-    grouped_dataset = group_data_by_desp(dataset)
+    grouped_dataset = data_utils.group_data_by_desp(dataset)
 
     for i in xrange(len(grouped_dataset)):
         nl_str, cm_strs, nl, search_historys = grouped_dataset[i]

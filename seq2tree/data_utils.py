@@ -251,6 +251,25 @@ def data_to_token_ids(data, target_path, vocabulary_path,
         tokens_file.close()
 
 
+def group_data_by_desp(dataset):
+    grouped_dataset = {}
+
+    for i in xrange(len(dataset)):
+        nl_str, cm_str, nl, search_history = dataset[i]
+        if nl_str in grouped_dataset:
+            grouped_dataset[nl_str][0].append(cm_str)
+            grouped_dataset[nl_str][2].append(search_history)
+        else:
+            grouped_dataset[nl_str] = [[cm_str], nl, [search_history]]
+
+    grouped_dataset2 = []
+    for nl_str in grouped_dataset:
+        grouped_dataset2.append((nl_str, grouped_dataset[nl_str][0],
+                                grouped_dataset[nl_str][1],
+                                grouped_dataset[nl_str][2]))
+    return grouped_dataset2
+
+
 def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
     """Get data into data_dir, create vocabularies and tokenize data.
 
