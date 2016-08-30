@@ -2,7 +2,7 @@
 
 import sys
 sys.path.append("../bashlex")
-import bash, bashlex, data_tools
+import bashlex, data_tools
 
 class TokenOverlap(object):
 

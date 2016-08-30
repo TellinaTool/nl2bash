@@ -81,15 +81,6 @@ def is_binary_logic_op(node, parent):
             return False
     return node.word in binary_logic_operators
 
-def all_simple_commands(ast):
-    """Check if an ast contains only high-frequency commands."""
-    node = ast
-    if node.kind == "headcommand" and not node.value in bash.head_commands:
-        return False
-    for child in node.children:
-        if not all_simple_commands(child):
-            return False
-    return True
 
 class Node(object):
     num_child = -1      # default value = -1, allow arbitrary number of children
@@ -149,6 +140,16 @@ class Node(object):
 
     def grandparent(self):
         return self.parent.parent
+
+    def is_simple(self):
+        """Check if subtree contains only high-frequency commands."""
+        if self.kind == "headcommand" and not self.value in bash.head_commands:
+            return False
+        for child in self.children:
+            if not child.is_simple():
+                return False
+        return True
+
 
     def removeChild(self, child):
         if child in self.children:
@@ -408,7 +409,7 @@ def to_command(node, loose_constraints=False, ignore_flag_order=False):
     return ' '.join(to_tokens(node, loose_constraints, ignore_flag_order))
 
 def to_ast(list, order='dfs'):
-    # construct a tree from linearized input
+    # construct a tree from search history
     root = Node(kind="root", value="root")
     current = root
     if order == 'dfs':

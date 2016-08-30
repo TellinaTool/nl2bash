@@ -42,12 +42,10 @@ import cPickle as pickle
 
 import numpy as np
 
-from bash import basic_tokenizer, bash_tokenizer
+from data_tools import basic_tokenizer, bash_tokenizer
 
-from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import seq2seq_model
-from tf_beam_decoder import BeamDecoder
 
 import data_utils
 
@@ -98,7 +96,7 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(5, 10), (10, 15), (15, 10), (10, 20), (15, 15), (20, 25), (20, 30), (30, 40), (40, 50)]
+_buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 50)]
 
 def read_data(source_path, target_path, max_size=None):
     """Read data from source and target files and put into buckets.
@@ -141,11 +139,6 @@ def read_data(source_path, target_path, max_size=None):
 def create_model(session, forward_only):
     """Create translation model and initialize or load parameters in session."""
     beam_decoder = None
-    if FLAGS.decoder == "beam_search":
-        beam_decoder = BeamDecoder(num_classes=FLAGS.cm_vocab_size,
-                                   stop_token=data_utils.EOS_ID,
-                                   beam_size=FLAGS.beam_size,
-                                   max_len=50)
     model = seq2seq_model.Seq2SeqModel(
         FLAGS.nl_vocab_size, FLAGS.cm_vocab_size, _buckets,
         FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
@@ -163,11 +156,6 @@ def create_model(session, forward_only):
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
     return model
-
-
-# TODO: n-fold cross-validation
-def cross_validation():
-    pass
 
 
 def train(train_set, dev_set, num_iter):
@@ -297,9 +285,6 @@ def batch_decode(output_logits, rev_cm_vocab, beam_decoder):
 
 
 def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
-    total_score = 0.0
-    num_correct = 0.0
-    num_eval = 0
 
     for bucket_id in xrange(len(_buckets)):
         if len(dev_set[bucket_id]) == 0:
@@ -321,28 +306,13 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
         assert(len(ground_truths) == len(predictions))
         for i in xrange(len(ground_truths)):
             sent = sentences[i]
-            if sent == "na":
-                continue
             gt = ground_truths[i]
             pred = predictions[i]
-            score = TokenOverlap.compute(gt, pred, verbose)
-            if score != -1:
-                total_score += score
-                if score == 1:
-                    num_correct += 1
-                num_eval += 1
-                if verbose:
-                    print("Example %d" % num_eval)
-                    print("English: " + sent)
-                    print("Ground truth: " + gt)
-                    print("Prediction: " + pred)
-                    print("token-overlap score: %.2f" % score)
-                    print()
-
-    print("%d examples evaluated" % num_eval)
-    print("Accuracy = %.2f" % (num_correct/num_eval))
-    print("Average token-overlap score = %.2f" % (total_score/num_eval))
-    print()
+            print("Example %d" % i)
+            print("English: " + sent)
+            print("Ground truth: " + gt)
+            print("Prediction: " + pred)
+            print()
 
 
 def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):

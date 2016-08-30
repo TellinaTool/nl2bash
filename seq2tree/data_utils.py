@@ -23,7 +23,8 @@ import re
 import sys
 sys.path.append("../bashlex")
 
-from data_tools import basic_tokenizer, bash_tokenizer
+from data_tools import basic_tokenizer, bash_tokenizer, bash_parser
+import normalizer
 
 import tensorflow as tf
 
@@ -250,8 +251,7 @@ def data_to_token_ids(data, target_path, vocabulary_path,
         tokens_file.close()
 
 
-def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size,
-                 tokenizers=(basic_tokenizer, bash_tokenizer)):
+def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
     """Get data into data_dir, create vocabularies and tokenize data.
 
     Args:
@@ -261,9 +261,6 @@ def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size,
       data_dir: directory in which the data sets will be stored.
       nl_vocabulary_size: size of the English vocabulary to create and use.
       cm_vocabulary_size: size of the Command vocabulary to create and use.
-      tokenizers: two functions - one to tokenize each English sentence and
-        one to tokenize each bash command; if None, basic_tokenizer and
-        bash_tokenizer will be used.
 
     Returns:
       A tuple of 8 elements:
@@ -277,43 +274,88 @@ def prepare_data(data, data_dir, nl_vocabulary_size, cm_vocabulary_size,
         (8) path to the Command vocabulary file.
     """
 
-    train_cm_list = data['train'][0]
-    train_nl_list = data['train'][1]
-    dev_cm_list = data['dev'][0]
-    dev_nl_list = data['dev'][1]
-    test_cm_list = data['test'][0]
-    test_nl_list = data['test'][1]
+    def add_to_set(data, nl_list, cm_list, cm_token_list, cm_seq_list):
+        for nl, cmd in data:
+            ast = bash_parser(cmd)
+            if ast:
+                if ast.is_simple():
+                    cmd_tokens = normalizer.to_tokens(ast)
+                    cmd_seq = normalizer.to_list(ast, list=[])
+                    nl_list.append(nl)
+                    cm_list.append(cmd)
+                    cm_token_list.append(cmd_tokens)
+                    cm_seq_list.append(cmd_seq)
+                else:
+                    print("Rare command: " + cmd.encode('utf-8'))
+
+    train_cm_list = []
+    train_cm_token_list = []
+    train_cm_seq_list = []
+    train_nl_list = []
+    dev_cm_list = []
+    dev_cm_token_list = []
+    dev_cm_seq_list = []
+    dev_nl_list = []
+    test_cm_list = []
+    test_cm_token_list = []
+    test_cm_seq_list = []
+    test_nl_list = []
+
+    numFolds = len(data)
+    for i in xrange(numFolds):
+        if i < numFolds - 2:
+            add_to_set(data[i], train_nl_list, train_cm_list,
+                       train_cm_token_list, train_cm_seq_list)
+        elif i == numFolds - 2:
+            add_to_set(data[i], dev_nl_list, dev_cm_list,
+                       dev_cm_token_list, dev_cm_seq_list)
+        elif i == numFolds - 1:
+            add_to_set(data[i], test_nl_list, test_cm_list,
+                       test_cm_token_list, test_cm_seq_list)
+
+    max_nl_token_len = 0
+    max_cmd_token_len = 0
+    max_cmd_seq_len = 0
+    for cmd_token in train_cm_token_list + dev_cm_token_list + test_cm_token_list:
+        if len(cmd_token) > max_cmd_token_len:
+            max_cmd_token_len = len(cmd_token)
+    for cmd_seq in train_cm_seq_list + dev_cm_seq_list + test_cm_seq_list:
+        if len(cmd_seq) > max_cmd_seq_len:
+            max_cmd_seq_len = len(cmd_seq)
+
+    print("maximum command length = %d" % max_cmd_token_len)
+    print("maximum AST construction step length = %d" % max_cmd_seq_len)
 
     # Get data to the specified directory.
-    train_path = data_dir + "/train"
-    dev_path = data_dir + "/dev"
-    test_path = data_dir + "/test"
+    train_path = os.path.join(data_dir, "train")
+    dev_path = os.path.join(data_dir, "dev")
+    test_path = os.path.join(data_dir, "test")
 
     # Create vocabularies of the appropriate sizes.
-    cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocabulary_size)
-    nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocabulary_size)
-    create_vocabulary(cm_vocab_path, train_cm_list, cm_vocabulary_size, tokenizers[1], True)
-    create_vocabulary(nl_vocab_path, train_nl_list, nl_vocabulary_size, tokenizers[0], True)
+    cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
+    nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
+    create_vocabulary(cm_vocab_path, train_cm_seq_list, cm_vocab_size, bash_tokenizer, True)
+    create_vocabulary(nl_vocab_path, train_nl_list, nl_vocab_size, basic_tokenizer, True)
 
-    # Create token ids for the training data.
-    cm_train_ids_path = train_path + (".ids%d.cm" % cm_vocabulary_size)
-    nl_train_ids_path = train_path + (".ids%d.nl" % nl_vocabulary_size)
-    data_to_token_ids(train_cm_list, cm_train_ids_path, cm_vocab_path, tokenizers[1])
-    data_to_token_ids(train_nl_list, nl_train_ids_path, nl_vocab_path, tokenizers[0])
+    def format_data(data_path, nl_list, cm_list, cm_token_list, cm_seq_list):
+        cm_path = data_path + ".cm"
+        nl_path = data_path + ".nl"
+        with open(cm_path, 'w') as o_f:
+            for cm in cm_list:
+                o_f.write(cm.encode('utf-8') + '\n')
+        with open(nl_path, 'w') as o_f:
+            for nl in nl_list:
+                o_f.write(nl.encode('utf-8') + '\n')
+        cm_ids_path = data_path + (".ids%d.cm" % cm_vocab_size)
+        cm_seq_path = data_path + (".seq%d.cm" % cm_vocab_size)
+        nl_ids_path = data_path + (".ids%d.nl" % nl_vocab_size)
+        data_to_token_ids(cm_token_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
+        data_to_token_ids(cm_seq_list, cm_seq_path, cm_vocab_path, bash_tokenizer)
+        data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
 
-    # Create token ids for the development data.
-    cm_dev_ids_path = dev_path + (".ids%d.cm" % cm_vocabulary_size)
-    nl_dev_ids_path = dev_path + (".ids%d.nl" % nl_vocabulary_size)
-    data_to_token_ids(dev_cm_list, cm_dev_ids_path, cm_vocab_path, tokenizers[1])
-    data_to_token_ids(dev_nl_list, nl_dev_ids_path, nl_vocab_path, tokenizers[0])
-
-    # Create token ids for the test data
-    cm_test_ids_path = test_path + (".ids%d.cm" % cm_vocabulary_size)
-    nl_test_ids_path = test_path + (".ids%d.nl" % nl_vocabulary_size)
-    data_to_token_ids(test_cm_list, cm_test_ids_path, cm_vocab_path, tokenizers[1])
-    data_to_token_ids(test_nl_list, nl_test_ids_path, nl_vocab_path, tokenizers[0])
-
-    return (nl_train_ids_path, cm_train_ids_path,
-            nl_dev_ids_path, cm_dev_ids_path,
-            nl_test_ids_path, cm_test_ids_path,
-            nl_vocab_path, cm_vocab_path)
+    format_data(train_path, train_nl_list, train_cm_list, train_cm_token_list,
+                train_cm_seq_list)
+    format_data(dev_path, dev_nl_list, dev_cm_list, dev_cm_token_list,
+                dev_cm_seq_list)
+    format_data(test_path, test_nl_list, test_cm_list, test_cm_token_list,
+                test_cm_seq_list)
