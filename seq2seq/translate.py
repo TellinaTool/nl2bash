@@ -287,6 +287,7 @@ def batch_decode(output_logits, rev_cm_vocab, beam_decoder):
 
 def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
+    num_eval = 0
     for bucket_id in xrange(len(_buckets)):
         if len(dev_set[bucket_id]) == 0:
             continue
@@ -309,11 +310,12 @@ def eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
             sent = sentences[i]
             gt = ground_truths[i]
             pred = predictions[i]
-            print("Example %d" % i)
+            print("Example %d" % (num_eval + 1))
             print("English: " + sent)
             print("Ground truth: " + gt)
             print("Prediction: " + pred)
             print()
+            num_eval += 1
 
 
 def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
