@@ -58,12 +58,12 @@ tf.app.flags.DEFINE_float("output_keep_prob", 1.0,
                           "Dropout: proportion of output units to keep.")
 tf.app.flags.DEFINE_float("max_gradient_norm", 5.0,
                           "Clip gradients to this norm.")
-tf.app.flags.DEFINE_integer("batch_size", 64,
+tf.app.flags.DEFINE_integer("batch_size", 128,
                             "Batch size to use during training.")
-tf.app.flags.DEFINE_integer("size", 200, "Size of each model layer.")
+tf.app.flags.DEFINE_integer("size", 300, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
-tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
-tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
+tf.app.flags.DEFINE_integer("nl_vocab_size", 1500, "English vocabulary size.")
+tf.app.flags.DEFINE_integer("cm_vocab_size", 1500, "Bash vocabulary size.")
 tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
 tf.app.flags.DEFINE_string("data_split", "command", "")
@@ -335,7 +335,7 @@ def eval(verbose=True):
                                      "vocab%d.cm" % FLAGS.cm_vocab_size)
         _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-        _, dev_set, _ = process_data()
+        _, dev_set, _ = load_data()
 
         eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
 
@@ -439,7 +439,6 @@ def process_data():
 def load_data(sample_size=-1):
     print("Loading data from %s" % FLAGS.data_dir)
 
-    # data_dir = os.path.join(FLAGS.data_dir, "seq2tree.by.%s" % FLAGS.data_split)
     data_dir = FLAGS.data_dir
     nl_train = os.path.join(data_dir, "train") + ".ids%d.nl" % FLAGS.nl_vocab_size
     cm_train = os.path.join(data_dir, "train") + ".ids%d.cm" % FLAGS.cm_vocab_size

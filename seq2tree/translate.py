@@ -105,7 +105,7 @@ def train(train_set, dev_set, verbose=False):
         nl_vocab_path = os.path.join(FLAGS.data_dir,
                                      "vocab%d.nl" % FLAGS.nl_vocab_size)
         cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
+                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
         _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
@@ -461,7 +461,7 @@ def process_data():
 def load_data(sample_size=-1):
     print("Loading data from %s" % FLAGS.data_dir)
 
-    data_dir = os.path.join(FLAGS.data_dir, "seq2tree.by.%s" % FLAGS.data_split)
+    data_dir = FLAGS.data_dir
     nl_train = os.path.join(data_dir, "train") + ".ids%d.nl" % FLAGS.nl_vocab_size
     cm_train = os.path.join(data_dir, "train") + ".seq%d.cm" % FLAGS.cm_vocab_size
     nl_dev = os.path.join(data_dir, "dev") + ".ids%d.nl" % FLAGS.nl_vocab_size

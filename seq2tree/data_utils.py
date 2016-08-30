@@ -332,9 +332,11 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
     test_path = os.path.join(data_dir, "test")
 
     # Create vocabularies of the appropriate sizes.
+    cm_ast_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast" % cm_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
-    create_vocabulary(cm_vocab_path, train_cm_seq_list, cm_vocab_size, bash_tokenizer, True)
+    create_vocabulary(cm_ast_vocab_path, train_cm_seq_list, cm_vocab_size, bash_tokenizer, True)
+    create_vocabulary(cm_vocab_path, train_cm_token_list, cm_vocab_size, bash_tokenizer, True)
     create_vocabulary(nl_vocab_path, train_nl_list, nl_vocab_size, basic_tokenizer, True)
 
     def format_data(data_path, nl_list, cm_list, cm_token_list, cm_seq_list):
@@ -350,7 +352,7 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
         cm_seq_path = data_path + (".seq%d.cm" % cm_vocab_size)
         nl_ids_path = data_path + (".ids%d.nl" % nl_vocab_size)
         data_to_token_ids(cm_token_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
-        data_to_token_ids(cm_seq_list, cm_seq_path, cm_vocab_path, bash_tokenizer)
+        data_to_token_ids(cm_seq_list, cm_seq_path, cm_ast_vocab_path, bash_tokenizer)
         data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
 
     format_data(train_path, train_nl_list, train_cm_list, train_cm_token_list,
