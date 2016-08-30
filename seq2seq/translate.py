@@ -331,13 +331,14 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             else:
                 grouped_dataset[sent] = ([gt_tree], tree)
 
-    unmatched = []
+    unmatched = set()
 
     for sent in grouped_dataset:
         if ast_based.one_template_match(grouped_dataset[sent][0],
                                         grouped_dataset[sent][1]):
             num_correct_template += 1
-            unmatched.append(sent)
+        else:
+            unmatched.add(sent)
         if ast_based.one_string_match(grouped_dataset[sent][0],
                                       grouped_dataset[sent][1]):
             num_correct += 1
@@ -351,11 +352,13 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_manual_eval = 30
     manual_num_correct_template = 0
     manual_num_correct_command = 0
+    unmatched = list(unmatched)
     random.shuffle(unmatched)
 
     o_f = open("manual.eval.results", 'w')
 
     for i in xrange(num_manual_eval):
+        sent = unmatched[i]
         gt_trees = grouped_dataset[sent][0]
         tree = grouped_dataset[sent][1]
         pred_cmd = normalizer.to_command(tree)
@@ -364,23 +367,15 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         print("English: " + sent)
         o_f.write("English: " + sent + "\n")
         for j in xrange(len(gt_trees)):
-            print("GT Command %d: " % (j+1) + gt_trees[j].strip())
-            o_f.write("GT Command %d: " % (j+1) + gt_trees[j].strip() + "\n")
-        if FLAGS.decoding_algorithm == "greedy":
-            print("Prediction: " + pred_cmd)
-            o_f.write("Prediction: " + pred_cmd + "\n")
-            print("AST: ")
-            normalizer.pretty_print(tree, 0)
-            print()
-        elif FLAGS.decoding_algorithm == "beam_search":
-            for j in xrange(FLAGS.top_k):
-                decode_score = decode_scores[j]
-                tree = top_k_pred_trees[j]
-                pred_cmd = top_k_pred_cmds[j]
-                print("Prediction %d (%.2f): " % (j+1, decode_score) + pred_cmd)
-                print("AST: ")
-                pretty_print(tree, 0)
-                print()
+            print("GT Command %d: " % (j+1) + normalizer.to_command(gt_trees[j]))
+            o_f.write("GT Command %d: " % (j+1) + normalizer.to_command(gt_trees[j]) + "\n")
+           
+        print("Prediction: " + pred_cmd)
+        o_f.write("Prediction: " + pred_cmd + "\n")
+        print("AST: ")
+        normalizer.pretty_print(tree, 0)
+        print()
+        
         inp = raw_input("Correct template [y/n]: ")
         if inp == "y":
             manual_num_correct_template += 1
