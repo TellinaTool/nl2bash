@@ -239,10 +239,11 @@ class DBConnection(object):
                 merge = False
                 for _, cmds in pairs[url].items():
                     for cmd in cmds:
+                        template = to_template(cmd, arg_type_only=split_by_template)
                         for _, cmd2s in pairs[url2].items():
                             for cmd2 in cmd2s:
-                                if to_template(cmd, arg_type_only=split_by_template) == \
-                                    to_template(cmd2, arg_type_only=split_by_template):
+                                template2 = to_template(cmd2, arg_type_only=split_by_template)
+                                if template == template2:
                                     merge = True
                                     break
                             if merge:
