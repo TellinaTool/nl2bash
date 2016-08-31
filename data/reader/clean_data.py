@@ -296,9 +296,9 @@ class DBConnection(object):
         top_k = 10
 
         for i in xrange(len(sorted_urls)):
+            url = sorted_urls[i]
             url_size = reduce(lambda x, y: x+y, [len(pairs[url][nl]) for nl in pairs[url]])
             # print("url %d (%d)" % (i, url_size))
-            url = sorted_urls[i]
             if i < top_k:
                 ind = random.randrange(num_folds - 2)
                 num_train += 1
