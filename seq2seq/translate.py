@@ -283,7 +283,7 @@ def batch_decode(output_logits, rev_cm_vocab, beam_decoder):
         if data_utils.EOS_ID in outputs:
             outputs = outputs[:outputs.index(data_utils.EOS_ID)]
             # Print out command corresponding to outputs.
-            batch_outputs.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
+        batch_outputs.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
     return batch_outputs
 
 
