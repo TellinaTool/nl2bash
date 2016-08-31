@@ -201,6 +201,7 @@ class DBConnection(object):
         # Second-pass: group url clusters by nls
         urls = pairs.keys()
         print("%d urls in the database" % len(urls))
+
         merged_urls_by_nl = []
         for i in xrange(len(urls)):
             url = urls[i]
@@ -209,7 +210,7 @@ class DBConnection(object):
                 merge = False
                 for nl in pairs[url]:
                     for nl2 in pairs[url2]:
-                        if minEditDist(nl, nl2) < EDITDIST_THRESH:
+                        if nl == nl2:
                             merge = True
                             break
                     if merge:
