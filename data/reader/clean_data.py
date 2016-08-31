@@ -160,7 +160,7 @@ class DBConnection(object):
                 url_key = url
             if not url_key in cmds_dict:
                 cmds_dict[url_key] = {}
-            if not nl in cmds_dict[url]:
+            if not nl in cmds_dict[url_key]:
                 cmds_dict[url_key][nl] = set()
             cmds_dict[url_key][nl].add(cmd)
         return cmds_dict
