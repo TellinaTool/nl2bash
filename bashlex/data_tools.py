@@ -23,9 +23,11 @@ _WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 def is_stopword(w):
     return w in gazetteer.ENGLISH_STOPWORDS
 
-def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
-                    normalize_long_pattern=True,
-                    lemmatization=True):
+def char_tokenizer(sentence, lower_case=True, lemmatization=True, remove_stop_words=True):
+    pass
+
+def basic_tokenizer(sentence, lower_case=True, normalize_digits=True, normalize_long_pattern=True,
+                    lemmatization=True, remove_stop_words=True):
     """Very basic tokenizer: used for English tokenization."""
     sentence = sentence.replace('`\'', '"') \
             .replace('``', '"') \
@@ -71,8 +73,9 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             word = lmtzr.lemmatize(word)
 
         # remove English stopwords
-        if word in gazetteer.ENGLISH_STOPWORDS:
-            continue
+        if remove_stop_words:
+            if word in gazetteer.ENGLISH_STOPWORDS:
+                continue
 
         # covert number words into numbers
         if word in gazetteer.word2num:
