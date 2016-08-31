@@ -7271,7 +7271,7 @@
                         "cmd":{
                            "type":"argument_option",
                            "arg_name":"MINUSa",
-                           "arg_type":"Number",
+                           "arg_type":"Permission",
                            "isList":false
                         }
                      },
@@ -7280,7 +7280,7 @@
                         "cmd":{
                            "type":"argument_option",
                            "arg_name":"PLUSa",
-                           "arg_type":"Number",
+                           "arg_type":"Permission",
                            "isList":false
                         }
                      },
@@ -7289,7 +7289,7 @@
                         "cmd":{
                            "type":"argument_option",
                            "arg_name":"EQUALa",
-                           "arg_type":"Number",
+                           "arg_type":"Permission",
                            "isList":false
                         }
                      }
