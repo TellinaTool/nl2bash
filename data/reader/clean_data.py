@@ -280,7 +280,7 @@ class DBConnection(object):
             if i in merged_urls_by_nl:
                 continue
             remained_urls.append(urls[i])
-        sorted_urls = sorted(urls, key=lambda x:len(pairs[url]), reverse=True)
+        sorted_urls = sorted(remained_urls, key=lambda x:len(pairs[url]), reverse=True)
 
         data = collections.defaultdict(list)
 
