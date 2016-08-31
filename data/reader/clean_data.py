@@ -237,11 +237,17 @@ class DBConnection(object):
                     continue
                 url2 = urls[j]
                 merge = False
-                for _, cmd in pairs[url].items():
-                    for _, cmd2 in pairs[url2].items():
-                        if to_template(cmd, arg_type_only=split_by_template) == \
-                            to_template(cmd2, arg_type_only=split_by_template):
-                            merge = True
+                for _, cmds in pairs[url].items():
+                    for cmd in cmds:
+                        for _, cmd2s in pairs[url2].items():
+                            for cmd2 in cmd2s:
+                                if to_template(cmd, arg_type_only=split_by_template) == \
+                                    to_template(cmd2, arg_type_only=split_by_template):
+                                    merge = True
+                                    break
+                            if merge:
+                                break
+                        if merge:
                             break
                     if merge:
                         break
