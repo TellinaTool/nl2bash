@@ -99,7 +99,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
 
         # normalize digits
         word = re.sub(bash._DIGIT_RE, bash._NUM, word) \
-            if normalize_digits and not bash.is_option(word) else word
+            if normalize_digits and not word.startswith("-") else word
 
         # convert possessive expression
         if word.endswith("'s"):
