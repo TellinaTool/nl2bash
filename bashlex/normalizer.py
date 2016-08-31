@@ -516,6 +516,9 @@ def type_check(word, possible_types):
             return "Size"
         if word[-1] in ["s", "m", "h", "d", "w"] and "Time" in possible_types:
             return "Time"
+    if "Permission" in possible_types:
+        if any(c.isdigit() for c in word) or '=' in word:
+            return "Permission"
     if "File" in possible_types:
         return "File"
     elif "Pattern" in possible_types:
