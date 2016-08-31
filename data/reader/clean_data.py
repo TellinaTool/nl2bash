@@ -215,6 +215,7 @@ class DBConnection(object):
         pairs = self.unique_pairs("find")
 
         # Second-pass: group url clusters by nls
+        templates = {}
         urls = pairs.keys()
         print("%d urls in the database" % len(urls))
 
@@ -225,8 +226,18 @@ class DBConnection(object):
             for j in xrange(i+1, len(urls)):
                 url2 = urls[j]
                 for nl in pairs[url]:
+                    if nl in templates:
+                        nl_template1 = templates[nl]
+                    else:
+                        nl_template1 = " ".join(basic_tokenizer(nl))
+                        templates[nl] = nl_template1
                     for nl2 in pairs[url2]:
-                        if " ".join(basic_tokenizer(nl)) == " ".join(basic_tokenizer(nl2)):
+                        if nl2 in templates:
+                            nl_template2 = templates[nl2]
+                        else:
+                            nl_template2 = " ".join(basic_tokenizer(nl2))
+                            templates[nl2] = nl_template2
+                        if nl_template1 == nl_template2:
                             merge = True
                             break
                     if merge:
@@ -242,9 +253,8 @@ class DBConnection(object):
                 merged_urls_by_nl.append(i)
         print("%d urls merged by nl" % len(merged_urls_by_nl))
 
-        templates = {}
-
         # Third-pass: group url clusters by commands
+        templates = {}
         merged_urls_by_cmd = []
         for i in xrange(len(urls)):
             if i in merged_urls_by_nl:
