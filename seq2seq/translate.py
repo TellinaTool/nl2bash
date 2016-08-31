@@ -606,4 +606,7 @@ def main(_):
 
 
 if __name__ == "__main__":
+    # set GPU device
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
     tf.app.run()
