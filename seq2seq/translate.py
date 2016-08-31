@@ -369,8 +369,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         if FLAGS.decoding_algorithm == "greedy":
             print("Prediction: " + pred_cmd)
             o_f.write("Prediction: " + pred_cmd + "\n")
-            print("AST: ")
-            normalizer.pretty_print(tree, 0)
+            if pred_cmd:
+                print("AST: ")
+                normalizer.pretty_print(tree, 0)
             print()
         elif FLAGS.decoding_algorithm == "beam_search":
             for j in xrange(FLAGS.top_k):
