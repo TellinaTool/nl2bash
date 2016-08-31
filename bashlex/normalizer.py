@@ -542,9 +542,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     if not cmd:
         return None
 
-    def normalize_word(node, kind, norm_digit, norm_long_pattern, recover_quote):
+    def normalize_word(node, kind, norm_digit, norm_long_pattern, recover_quote,
+                       arg_type=""):
         w = recover_quotation(node) if recover_quote else node.word
-        if kind == "argument":
+        if kind == "argument" and arg_type != "Permission":
             if ' ' in w:
                 try:
                     assert(w.startswith('"') and w.endswith('"'))
@@ -567,7 +568,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
     def normalize_argument(node, current, arg_type):
         value = normalize_word(node, "argument", normalize_digits, normalize_long_pattern,
-                               recover_quotation)
+                               recover_quotation, arg_type=arg_type)
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
         attach_to_tree(norm_node, current)
         return norm_node
