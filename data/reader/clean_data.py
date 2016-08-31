@@ -226,7 +226,7 @@ class DBConnection(object):
                 url2 = urls[j]
                 for nl in pairs[url]:
                     for nl2 in pairs[url2]:
-                        if nl == nl2:
+                        if " ".join(basic_tokenizer(nl)) == " ".join(basic_tokenizer(nl2)):
                             merge = True
                             break
                     if merge:
