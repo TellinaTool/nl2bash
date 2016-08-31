@@ -352,6 +352,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_manual_eval = 30
     num_manual_correct_template = 0
     num_manual_correct_command = 0
+    unmatched = list(unmatched)
     random.shuffle(unmatched)
 
     o_f = open("manual.eval.results", 'w')
