@@ -205,9 +205,9 @@ class DBConnection(object):
         merged_urls_by_nl = []
         for i in xrange(len(urls)):
             url = urls[i]
+            merge = False
             for j in xrange(i+1, len(urls)):
                 url2 = urls[j]
-                merge = False
                 for nl in pairs[url]:
                     for nl2 in pairs[url2]:
                         if nl == nl2:
@@ -234,11 +234,11 @@ class DBConnection(object):
             if i in merged_urls_by_nl:
                 continue
             url = urls[i]
+            merge = False
             for j in xrange(i+1, len(urls)):
                 if j in merged_urls_by_nl:
                     continue
                 url2 = urls[j]
-                merge = False
                 for _, cmds in pairs[url].items():
                     for cmd in cmds:
                         if cmd in templates:
@@ -297,7 +297,7 @@ class DBConnection(object):
 
         for i in xrange(len(sorted_urls)):
             url_size = reduce(lambda x, y: x+y, [len(pairs[url][nl]) for nl in pairs[url]])
-            print("url %d (%d)" % (i, url_size))
+            # print("url %d (%d)" % (i, url_size))
             url = sorted_urls[i]
             if i < top_k:
                 ind = random.randrange(num_folds - 2)
