@@ -226,6 +226,8 @@ class DBConnection(object):
                 merged_urls_by_nl.append(i)
         print("%d urls merged by nl" % len(merged_urls_by_nl))
 
+        templates = {}
+
         # Third-pass: group url clusters by commands
         merged_urls_by_cmd = []
         for i in xrange(len(urls)):
@@ -239,10 +241,18 @@ class DBConnection(object):
                 merge = False
                 for _, cmds in pairs[url].items():
                     for cmd in cmds:
-                        template = to_template(cmd, arg_type_only=split_by_template)
+                        if cmd in templates:
+                            template = templates[cmd]
+                        else:
+                            template = to_template(cmd, arg_type_only=split_by_template)
+                            templates[cmd] = template
                         for _, cmd2s in pairs[url2].items():
                             for cmd2 in cmd2s:
-                                template2 = to_template(cmd2, arg_type_only=split_by_template)
+                                if cmd2 in templates:
+                                    template2 = templates[cmd2]
+                                else:
+                                    template2 = to_template(cmd2, arg_type_only=split_by_template)
+                                    templates[cmd2] = template2
                                 if template == template2:
                                     merge = True
                                     break
