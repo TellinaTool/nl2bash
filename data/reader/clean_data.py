@@ -32,6 +32,18 @@ def deprecated(func):
 
     return new_func
 
+def is_QA_website(url):
+    if "stackoverflow" in url:
+        return True
+    elif "stackexchange" in url:
+        return True
+    elif "superuser" in url:
+        return True
+    elif "askubuntu" in url:
+        return True
+    else:
+        return False
+
 def token_overlap(s1, s2):
     tokens1 = set([w for w in basic_tokenizer(s1) if not is_stopword(w)])
     tokens2 = set([w for w in basic_tokenizer(s2) if not is_stopword(w)])
@@ -142,11 +154,15 @@ class DBConnection(object):
                 continue
             if not self.head_present(cmd, head_cmd):
                 continue
-            if not url in cmds_dict:
-                cmds_dict[url] = {}
+            if not is_QA_website(url):
+                url_key = url + str(random.getrandbits(32))
+            else:
+                url_key = url
+            if not url_key in cmds_dict:
+                cmds_dict[url_key] = {}
             if not nl in cmds_dict[url]:
-                cmds_dict[url][nl] = set()
-            cmds_dict[url][nl].add(cmd)
+                cmds_dict[url_key][nl] = set()
+            cmds_dict[url_key][nl].add(cmd)
         return cmds_dict
 
     @deprecated
@@ -293,7 +309,7 @@ class DBConnection(object):
         num_test_pairs = 0
         num_urls = 0
 
-        top_k = 10
+        top_k = 5
 
         for i in xrange(len(sorted_urls)):
             url = sorted_urls[i]
