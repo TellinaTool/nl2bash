@@ -36,6 +36,7 @@ import random
 import sys
 sys.path.append("../bashlex")
 sys.path.append("../eval")
+sys.path.append("../seq2tree")
 
 import time
 import cPickle as pickle
@@ -69,6 +70,7 @@ tf.app.flags.DEFINE_integer("cm_vocab_size", 1500, "Bash vocabulary size.")
 tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "/tmp", "Directory to save trained models.")
 tf.app.flags.DEFINE_string("data_split", "command", "")
+
 tf.app.flags.DEFINE_string("decoder", "greedy", "Type of decoder to use.")
 tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
@@ -83,6 +85,8 @@ tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going
 tf.app.flags.DEFINE_boolean("log_device_placement", False,
                             "Set to True for logging device placement.")
 
+tf.app.flags.DEFINE_boolean("attention", False,
+                            "Set to True for training with attention mechanism.")
 tf.app.flags.DEFINE_boolean("lstm", False,
                             "Set to True for training with LSTM cells.")
 tf.app.flags.DEFINE_boolean("char", False,
@@ -159,8 +163,8 @@ def create_model(session, forward_only):
         FLAGS.input_keep_prob, FLAGS.output_keep_prob,
         forward_only=forward_only,
         use_lstm=FLAGS.lstm,
-        beam_decoder=beam_decoder
-        )
+        beam_decoder=beam_decoder,
+        use_attention=FLAGS.attention)
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
@@ -326,9 +330,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         rev_encoder_inputs = []
         for i in xrange(len(encoder_inputs)-1, -1, -1):
             rev_encoder_inputs.append(encoder_inputs[i])
-        sentences = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab, char_model=True)
+        sentences = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab, char_model=FLAGS.char)
         ground_truths = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
-                                                          head_appended=True, char_model=True)
+                                                          head_appended=True, char_model=FLAGS.char)
         assert(len(sentences) == len(ground_truths))
         predictions = batch_decode(output_logits, rev_cm_vocab, model.beam_decoder)
         print(len(ground_truths))
@@ -410,13 +414,13 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         o_f.write("\n")
 
     print()
-    print("%d examples evaluated" % num_eval)
+    print("%d examples evaluated" % num_manual_eval)
     print("Percentage of Template Match = %.2f" % (num_manual_correct_template/num_manual_eval))
     print("Percentage of String Match = %.2f" % (num_manual_correct_command/num_manual_eval))
     print()
 
     o_f.write("\n")
-    o_f.write("%d examples evaluated" % num_eval + "\n")
+    o_f.write("%d examples evaluated" % num_manual_eval + "\n")
     o_f.write("Percentage of Template Match = %.2f" % (num_manual_correct_template/num_manual_eval) + "\n")
     o_f.write("Percentage of String Match = %.2f" % (num_manual_correct_command/num_manual_eval) + "\n")
     o_f.write("\n")
