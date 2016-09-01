@@ -23,7 +23,7 @@ import re
 import sys
 sys.path.append("../bashlex")
 
-from data_tools import basic_tokenizer, bash_tokenizer, bash_parser
+from data_tools import basic_tokenizer, bash_tokenizer, char_tokenizer, bash_parser
 import normalizer
 
 import tensorflow as tf
@@ -61,7 +61,8 @@ def is_option(word):
     return word.startswith('-') or word.startswith("FLAG_")
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
-                      tokenizer, normalize_digits=True, min_word_frequency=2):
+                      tokenizer, base_tokenizer=None,
+                      normalize_digits=True, min_word_frequency=2):
     """Create vocabulary file (if it does not exist yet) from data file.
 
     Data file is assumed to contain one sentence per line. Each sentence is
@@ -76,6 +77,7 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
       max_vocabulary_size: limit on the size of the created vocabulary.
       tokenizer: a function to use to tokenize each data sentence;
         if None, basic_tokenizer will be used.
+      base_tokenizer: base_tokenizer used for separating a string into chars.
       normalize_digits: Boolean; if true, all digits are replaced by 0s.
       min_word_frequency: word frequency threshold below which a word is
         goint to be marked as _UNK.
@@ -176,7 +178,7 @@ def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
 def sentence_to_token_ids(sentence, vocabulary,
                           tokenizer,
                           normalize_digits=True,
-                          substitute_type=False):
+                          normalize_long_pattern=True):
     """Convert a string to list of integers representing token-ids.
 
     For example, a sentence "I have a dog" may become tokenized into
@@ -197,7 +199,8 @@ def sentence_to_token_ids(sentence, vocabulary,
         words = sentence
         substitute_type = True
     else:
-        words = tokenizer(sentence, normalize_digits)
+        words = tokenizer(sentence, normalize_digits=normalize_digits,
+                          normalize_long_pattern=normalize_long_pattern)
 
     token_ids = []
     for w in words:
@@ -220,7 +223,8 @@ def sentence_to_token_ids(sentence, vocabulary,
 
 
 def data_to_token_ids(data, target_path, vocabulary_path,
-                      tokenizer, normalize_digits=True):
+                      tokenizer, base_tokenizer=None,
+                      normalize_digits=True, normalize_long_pattern=True):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
@@ -233,6 +237,7 @@ def data_to_token_ids(data, target_path, vocabulary_path,
       vocabulary_path: path to the vocabulary file.
       tokenizer: a function to use to tokenize each sentence;
         if None, basic_tokenizer will be used.
+      base_tokenizer: base tokenizer used for splitting strings into characters.
       normalize_digits: Boolean; if true, all digits are replaced by 0s.
     """
     if not tf.gfile.Exists(target_path):
@@ -245,7 +250,8 @@ def data_to_token_ids(data, target_path, vocabulary_path,
             if counter % 1000 == 0:
                 print("  tokenizing line %d" % counter)
             token_ids = sentence_to_token_ids(line, vocab, tokenizer,
-                                              normalize_digits)
+                                              normalize_digits,
+                                              normalize_long_pattern)
             tokens_file.write(" ".join([str(tok) for tok in token_ids])
                               + "\n")
         tokens_file.close()
@@ -308,31 +314,39 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
                     print("Rare command: " + cmd.encode('utf-8'))
 
     train_cm_list = []
+    train_cm_char_list = []
     train_cm_token_list = []
     train_cm_seq_list = []
     train_nl_list = []
+    train_nl_char_list = []
     dev_cm_list = []
+    dev_cm_char_list = []
     dev_cm_token_list = []
     dev_cm_seq_list = []
     dev_nl_list = []
+    dev_nl_char_list = []
     test_cm_list = []
+    test_cm_char_list = []
     test_cm_token_list = []
     test_cm_seq_list = []
     test_nl_list = []
+    test_nl_char_list = []
 
     numFolds = len(data)
     for i in xrange(numFolds):
         if i < numFolds - 2:
-            add_to_set(data[i], train_nl_list, train_cm_list,
+            add_to_set(data[i], train_nl_list, train_nl_char_list, train_cm_list, train_cm_char_list,
                        train_cm_token_list, train_cm_seq_list)
         elif i == numFolds - 2:
-            add_to_set(data[i], dev_nl_list, dev_cm_list,
+            add_to_set(data[i], dev_nl_list, dev_nl_char_list, dev_cm_list, dev_cm_char_list,
                        dev_cm_token_list, dev_cm_seq_list)
         elif i == numFolds - 1:
-            add_to_set(data[i], test_nl_list, test_cm_list,
+            add_to_set(data[i], test_nl_list, test_nl_char_list, test_cm_list, test_cm_char_list,
                        test_cm_token_list, test_cm_seq_list)
 
     max_nl_token_len = 0
+    max_nl_char_len = 0
+    max_cmd_char_len = 0
     max_cmd_token_len = 0
     max_cmd_seq_len = 0
     for cmd_token in train_cm_token_list + dev_cm_token_list + test_cm_token_list:
@@ -353,12 +367,19 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
     # Create vocabularies of the appropriate sizes.
     cm_ast_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast" % cm_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
+    cm_char_vocab_path = os.path.join(data_dir, "vocab%d.cm.char" % cm_vocab_size)
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
+    nl_char_vocab_path = os.path.join(data_dir, "vocab%d.nl.char" % nl_vocab_size)
     create_vocabulary(cm_ast_vocab_path, train_cm_seq_list, cm_vocab_size, bash_tokenizer, True)
     create_vocabulary(cm_vocab_path, train_cm_token_list, cm_vocab_size, bash_tokenizer, True)
+    create_vocabulary(cm_char_vocab_path, train_cm_char_list, cm_vocab_size, char_tokenizer,
+                      normalize_digits=False)
     create_vocabulary(nl_vocab_path, train_nl_list, nl_vocab_size, basic_tokenizer, True)
+    create_vocabulary(nl_char_vocab_path, train_nl_char_list, nl_vocab_size, char_tokenizer,
+                      base_tokenizer=basic_tokenizer, normalize_digits=False)
 
-    def format_data(data_path, nl_list, cm_list, cm_token_list, cm_seq_list):
+    def format_data(data_path, nl_list, nl_char_list, cm_list, cm_char_list,
+                    cm_token_list, cm_seq_list):
         cm_path = data_path + ".cm"
         nl_path = data_path + ".nl"
         with open(cm_path, 'w') as o_f:
@@ -368,15 +389,24 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
             for nl in nl_list:
                 o_f.write(nl.encode('utf-8') + '\n')
         cm_ids_path = data_path + (".ids%d.cm" % cm_vocab_size)
+        cm_cids_path = data_path + (".cids%d.cm" % cm_vocab_size)
         cm_seq_path = data_path + (".seq%d.cm" % cm_vocab_size)
         nl_ids_path = data_path + (".ids%d.nl" % nl_vocab_size)
+        nl_cids_path = data_path + (".cids%d.nl" % nl_vocab_size)
         data_to_token_ids(cm_token_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
+        data_to_token_ids(cm_char_list, cm_cids_path, cm_char_vocab_path, char_tokenizer,
+                          None, normalize_digits=False, normalize_long_pattern=False)
         data_to_token_ids(cm_seq_list, cm_seq_path, cm_ast_vocab_path, bash_tokenizer)
         data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
+        data_to_token_ids(nl_char_list, nl_cids_path, nl_char_vocab_path, char_tokenizer,
+                          basic_tokenizer, normalize_digits=False, normalize_long_pattern=False)
 
-    format_data(train_path, train_nl_list, train_cm_list, train_cm_token_list,
-                train_cm_seq_list)
-    format_data(dev_path, dev_nl_list, dev_cm_list, dev_cm_token_list,
-                dev_cm_seq_list)
-    format_data(test_path, test_nl_list, test_cm_list, test_cm_token_list,
-                test_cm_seq_list)
+    format_data(train_path, train_nl_list, train_nl_char_list,
+                train_cm_list, train_cm_char_list,
+                train_cm_token_list, train_cm_seq_list)
+    format_data(dev_path, dev_nl_list, dev_nl_char_list,
+                dev_cm_list, dev_cm_char_list,
+                dev_cm_token_list, dev_cm_seq_list)
+    format_data(test_path, test_nl_list, test_nl_char_list,
+                test_cm_list, test_cm_char_list,
+                test_cm_token_list, test_cm_seq_list)
