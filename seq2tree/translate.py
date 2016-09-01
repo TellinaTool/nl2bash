@@ -33,7 +33,11 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 50)]
+if FLAGS.char:
+    _buckets = [(10, 20), (20, 30), (40, 50), (60, 80), (80, 100), (100, 120),
+                (120, 120), (140, 120)]
+else:
+    _buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 40), (50, 40)]
 
 def create_model(session, forward_only):
     """
@@ -78,7 +82,7 @@ def create_model(session, forward_only):
 
     params["decoder_topology"] = FLAGS.decoder_topology
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
-    model = Seq2TreeModel(params, forward_only)
+    model = Seq2TreeModel(params, _buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
     global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
@@ -92,9 +96,18 @@ def create_model(session, forward_only):
 
 def train(train_set, dev_set, verbose=False):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-                                          log_device_placement=FLAGS.log_device_placement)) as sess:
+        log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         model, global_epochs = create_model(sess, forward_only=False)
+
+        train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
+        train_total_size = float(sum(train_bucket_sizes))
+
+        # A bucket scale is a list of increasing numbers from 0 to 1 that we'll use
+        # to select a bucket. Length of [scale[i], scale[i+1]] is proportional to
+        # the size if i-th training bucket, as used later.
+        train_buckets_scale = [sum(train_bucket_sizes[:i + 1]) / train_total_size
+                               for i in xrange(len(train_bucket_sizes))]
 
         loss, dev_loss, epoch_time = 0.0, 0.0, 0.0
         current_step = 0
@@ -116,12 +129,15 @@ def train(train_set, dev_set, verbose=False):
             start_time = time.time()
 
             # shuffling training examples
-            random.shuffle(train_set)
+            # random.shuffle(train_set)
 
-            for i in tqdm(xrange(len(train_set))):
+            # progress bar
+            for i in tqdm(xrange(len(FLAGS.steps_per_checkpoint))):
                 time.sleep(0.01)
-                _, _, nl, tree = train_set[i]
-                formatted_example = model.format_example(nl, tree)
+                random_number_01 = np.random.random_sample()
+                bucket_id = min([i for i in xrange(len(train_buckets_scale))
+                                 if train_buckets_scale[i] > random_number_01])
+                formatted_example = model.get_batch(train_set[bucket_id])
                 _, step_loss, _ = model.step(sess, formatted_example, forward_only=False)
                 loss += step_loss
                 current_step += 1
@@ -149,9 +165,11 @@ def train(train_set, dev_set, verbose=False):
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
 
                 # Run evals on development set and print the metrics.
-                for i in xrange(len(dev_set)):
-                    nl_str, cm_str, nl, tree = dev_set[i]
-                    formatted_example = model.format_example(nl, tree)
+                for bucket_id in xrange(len(_buckets)):
+                    if len(dev_set[bucket_id]) == 0:
+                        print("  eval: empty bucket %d" % (bucket_id))
+                        continue
+                    formatted_example = model.get_bucket(dev_set[bucket_id])
                     _, eval_loss, output_logits = model.step(sess, formatted_example, forward_only=True)
                     dev_loss += eval_loss
                 dev_loss /= len(dev_set)
@@ -159,7 +177,7 @@ def train(train_set, dev_set, verbose=False):
                 print("dev perplexity %.2f" % dev_ppx)
                 print()
 
-                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=False)
+                eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=verbose)
 
                 # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
                 if ppx < 1.1 and len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
@@ -210,7 +228,7 @@ def interactive_decode():
             token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
                                                          basic_tokenizer)
             # Get a 1-element batch to feed the sentence to the model.
-            formatted_example = model.format_example(token_ids, [data_utils.ROOT_ID])
+            formatted_example = model.get_bucket(token_ids, [data_utils.ROOT_ID])
 
             # Get output logits for the sentence.
             _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
@@ -248,13 +266,14 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_correct = 0.0
     num_eval = 0
 
-    grouped_dataset = data_utils.group_data_by_desp(dataset)
+    grouped_dataset = data_utils.group_data_by_desp(dataset, use_bucket=True)
 
-    for i in xrange(len(grouped_dataset)):
+    for bucket_id in xrange(len(_buckets)):
+        if len(dataset[bucket_id]) == 0:
+            continue
         nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
       
-        formatted_example = model.format_example(
-            nl, [data_utils.ROOT_ID])
+        formatted_example = model.get_bucket(dataset[bucket_id])
         _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
 
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
@@ -357,7 +376,7 @@ def manual_eval(num_eval = 30):
 
             nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
 
-            formatted_example = model.format_example(
+            formatted_example = model.get_bucket(
                 nl, [data_utils.ROOT_ID])
             _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
 
@@ -466,7 +485,7 @@ def read_data(source_path, target_path, max_size=None):
     :param max_size: maximum number of lines to read. Read complete data files if
         this entry is 0 or None.
     """
-    data_set = []
+    data_set = [[] for _ in _buckets]
 
     source_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.', 2)[2]])
     target_txt_path = '.'.join([target_path.rsplit('.', 2)[0], target_path.rsplit('.', 2)[2]])
@@ -487,7 +506,10 @@ def read_data(source_path, target_path, max_size=None):
                             sys.stdout.flush()
                         source_ids = [int(x) for x in source.split()]
                         target_ids = [int(x) for x in target.split()]
-                        data_set.append([source_txt, target_txt, source_ids, target_ids])
+                        for bucket_id, (source_size, target_size) in enumerate(_buckets):
+                            if len(source_ids) < source_size and len(target_ids) < target_size:
+                                data_set[bucket_id].append([source_txt, target_txt, source_ids, target_ids])
+                                break
                         source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
                         source, target = source_file.readline(), target_file.readline()
     print("  %d data points read." % len(data_set))
