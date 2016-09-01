@@ -162,11 +162,11 @@ def initialize_vocabulary(vocabulary_path):
         raise ValueError("Vocabulary file %s not found.", vocabulary_path)
 
 
-def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
+def token_ids_to_sentences(inputs, rev_vocab, head_appended=False, char_model=False):
     batch_size = len(inputs[0])
     sentences = []
     for i in xrange(batch_size):
-        if headAppended:
+        if head_appended:
             outputs = [decoder_input[i] for decoder_input in inputs[1:]]
         else:
             outputs = [decoder_input[i] for decoder_input in inputs]
@@ -177,7 +177,11 @@ def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
         if PAD_ID in outputs:
             outputs = outputs[:outputs.index(PAD_ID)]
         # Print out command corresponding to outputs.
-        sentences.append(" ".join([tf.compat.as_str(rev_vocab[output])
+        if char_model:
+            sentences.append("".join([tf.compat.as_str(rev_vocab[output])
+                             for output in outputs]).replace(_UNK, ' '))
+        else:
+            sentences.append(" ".join([tf.compat.as_str(rev_vocab[output])
                                    for output in outputs]))
     return sentences
 
