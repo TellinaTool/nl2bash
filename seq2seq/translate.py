@@ -103,7 +103,10 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 50)]
+if FLAGS.char:
+    _buckets = [(50, 100), (100, 200), (200, 300), (300, 400), (400, 400), (500, 400)]
+else:
+    _buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 40), (50, 40)]
 
 def read_data(source_path, target_path, max_size=None):
     """Read data from source and target files and put into buckets.
@@ -271,7 +274,8 @@ def decode(output_logits, rev_cm_vocab, beam_decoder):
         outputs = outputs[:outputs.index(data_utils.EOS_ID)]
     # Print out command corresponding to outputs.
     if FLAGS.char:
-        return "".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
+        return "".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]) \
+                .replace(data_utils._SPACE, ' ')
     else:
         return " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
 
