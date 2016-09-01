@@ -52,7 +52,7 @@ def define_input_flags():
                               "Learning rate decays by this much.")
     tf.app.flags.DEFINE_float("max_gradient_norm", 5.0,
                               "Clip gradients to this norm.")
-    tf.app.flags.DEFINE_integer("batch_size", 1,
+    tf.app.flags.DEFINE_integer("batch_size", 2,
                                 "Batch size to use during training.")
     tf.app.flags.DEFINE_integer("num_samples", 512,
                                 "Number of samples for sampled softmax.")
