@@ -291,7 +291,7 @@ def to_list(node, order='dfs', list=None):
     return list
 
 def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
-              arg_type_only=False):
+              arg_type_only=False, with_arg_type=False):
     """convert a bash AST to a list of tokens"""
 
     if not node:
@@ -300,6 +300,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
     lc = loose_constraints
     ifo = ignore_flag_order
     ato = arg_type_only
+    wat = with_arg_type
 
     def to_tokens_fun(node):
         tokens = []
@@ -384,7 +385,9 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     tokens.append(node.value)
         elif node.kind == "argument":
             assert(loose_constraints or node.getNumChildren() == 0)
-            if ato and not node.arg_type == "ReservedWord":
+            if wat:
+                tokens.append(node.symbol)
+            elif ato and not node.arg_type == "ReservedWord":
                 if loose_constraints and not node.arg_type:
                     tokens.append("Unknown")
                 else:
