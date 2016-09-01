@@ -235,7 +235,8 @@ def sentence_to_token_ids(sentence, vocabulary,
 
 def data_to_token_ids(data, target_path, vocabulary_path,
                       tokenizer, base_tokenizer=None,
-                      normalize_digits=True, normalize_long_pattern=True):
+                      normalize_digits=True, normalize_long_pattern=True,
+                      substitute_types=False):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
@@ -262,7 +263,8 @@ def data_to_token_ids(data, target_path, vocabulary_path,
             if counter % 1000 == 0:
                 print("  tokenizing line %d" % counter)
             token_ids = sentence_to_token_ids(line, vocab, tokenizer, base_tokenizer,
-                                              normalize_digits, normalize_long_pattern)
+                                              normalize_digits, normalize_long_pattern,
+                                              substitute_types)
             if len(token_ids) > max_token_num:
                 max_token_num = len(token_ids)
             tokens_file.write(" ".join([str(tok) for tok in token_ids])
@@ -406,7 +408,8 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
         global max_cm_char_len
         if temp > max_cm_char_len:
             max_cm_char_len = temp
-        temp = data_to_token_ids(cm_seq_list, cm_seq_path, cm_ast_vocab_path, bash_tokenizer)
+        temp = data_to_token_ids(cm_seq_list, cm_seq_path, cm_ast_vocab_path, bash_tokenizer,
+                                 substitute_types=True)
         temp = data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
         global max_nl_token_len
         if temp > max_nl_token_len:
