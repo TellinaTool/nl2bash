@@ -367,15 +367,14 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         print("English: " + sent)
         o_f.write("English: " + sent + "\n")
         for j in xrange(len(gt_trees)):
-            print("GT Command %d: " % (j+1) + gt_trees[j].strip())
-            o_f.write("GT Command %d: " % (j+1) + gt_trees[j].strip() + "\n")
-        if FLAGS.decoding_algorithm == "greedy":
-            print("Prediction: " + pred_cmd)
-            o_f.write("Prediction: " + pred_cmd + "\n")
-            if pred_cmd:
-                print("AST: ")
-                normalizer.pretty_print(tree, 0)
-            print()
+            print("GT Command %d: " % (j+1) + normalizer.to_command(gt_trees[j]).strip())
+            o_f.write("GT Command %d: " % (j+1) + normalizer.to_command(gt_trees[j]).strip() + "\n")
+        print("Prediction: " + pred_cmd)
+        o_f.write("Prediction: " + pred_cmd + "\n")
+        if pred_cmd:
+            print("AST: ")
+            normalizer.pretty_print(tree, 0)
+        print()
         inp = raw_input("Correct template [y/n]: ")
         if inp == "y":
             num_manual_correct_template += 1
