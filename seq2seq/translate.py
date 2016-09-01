@@ -106,7 +106,7 @@ print(FLAGS)
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
 if FLAGS.char:
-    _buckets = [(20, 30), (40, 50), (60, 80), (80, 100), (100, 120), (120, 120), (140, 120)]
+    _buckets = [(10, 20), (20, 30), (40, 50), (60, 80), (80, 100), (100, 120), (120, 120), (140, 120)]
 else:
     _buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 40), (50, 40)]
 
