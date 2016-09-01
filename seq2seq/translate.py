@@ -82,8 +82,12 @@ tf.app.flags.DEFINE_integer("num_milestones", 5,
 tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
 tf.app.flags.DEFINE_boolean("log_device_placement", False,
                             "Set to True for logging device placement.")
+
 tf.app.flags.DEFINE_boolean("lstm", False,
                             "Set to True for training with LSTM cells.")
+tf.app.flags.DEFINE_boolean("char", False,
+                            "Set to True for training character models.")
+
 tf.app.flags.DEFINE_boolean("eval", False,
                             "Set to True for quantitive evaluation.")
 tf.app.flags.DEFINE_boolean("decode", False,
@@ -266,7 +270,10 @@ def decode(output_logits, rev_cm_vocab, beam_decoder):
     if data_utils.EOS_ID in outputs:
         outputs = outputs[:outputs.index(data_utils.EOS_ID)]
     # Print out command corresponding to outputs.
-    return " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
+    if FLAGS.char:
+        return "".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
+    else:
+        return " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
 
 
 def batch_decode(output_logits, rev_cm_vocab, beam_decoder):
@@ -418,10 +425,16 @@ def eval(verbose=True):
         model = create_model(sess, forward_only=True)
 
         # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
+        if FLAGS.char:
+            nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                         "vocab%d.nl.char" % FLAGS.nl_vocab_size)
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                         "vocab%d.cm.char" % FLAGS.cm_vocab_size)
+        else:
+            nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                         "vocab%d.nl" % FLAGS.nl_vocab_size)
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                         "vocab%d.cm" % FLAGS.cm_vocab_size)
         _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = load_data()
@@ -530,12 +543,20 @@ def load_data(sample_size=-1):
     print("Loading data from %s" % FLAGS.data_dir)
 
     data_dir = FLAGS.data_dir
-    nl_train = os.path.join(data_dir, "train") + ".ids%d.nl" % FLAGS.nl_vocab_size
-    cm_train = os.path.join(data_dir, "train") + ".ids%d.cm" % FLAGS.cm_vocab_size
-    nl_dev = os.path.join(data_dir, "dev") + ".ids%d.nl" % FLAGS.nl_vocab_size
-    cm_dev = os.path.join(data_dir, "dev") + ".ids%d.cm" % FLAGS.cm_vocab_size
-    nl_test = os.path.join(data_dir, "test") + ".ids%d.nl" % FLAGS.nl_vocab_size
-    cm_test = os.path.join(data_dir, "test") + ".ids%d.cm" % FLAGS.cm_vocab_size
+    if FLAGS.char:
+        nl_train = os.path.join(data_dir, "train") + ".cids%d.nl" % FLAGS.nl_vocab_size
+        cm_train = os.path.join(data_dir, "train") + ".cids%d.cm" % FLAGS.cm_vocab_size
+        nl_dev = os.path.join(data_dir, "dev") + ".cids%d.nl" % FLAGS.nl_vocab_size
+        cm_dev = os.path.join(data_dir, "dev") + ".cids%d.cm" % FLAGS.cm_vocab_size
+        nl_test = os.path.join(data_dir, "test") + ".cids%d.nl" % FLAGS.nl_vocab_size
+        cm_test = os.path.join(data_dir, "test") + ".cids%d.cm" % FLAGS.cm_vocab_size
+    else:
+        nl_train = os.path.join(data_dir, "train") + ".ids%d.nl" % FLAGS.nl_vocab_size
+        cm_train = os.path.join(data_dir, "train") + ".ids%d.cm" % FLAGS.cm_vocab_size
+        nl_dev = os.path.join(data_dir, "dev") + ".ids%d.nl" % FLAGS.nl_vocab_size
+        cm_dev = os.path.join(data_dir, "dev") + ".ids%d.cm" % FLAGS.cm_vocab_size
+        nl_test = os.path.join(data_dir, "test") + ".ids%d.nl" % FLAGS.nl_vocab_size
+        cm_test = os.path.join(data_dir, "test") + ".ids%d.cm" % FLAGS.cm_vocab_size
 
     train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
     dev_set = read_data(nl_dev, cm_dev)

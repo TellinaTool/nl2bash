@@ -23,8 +23,18 @@ _WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 def is_stopword(w):
     return w in gazetteer.ENGLISH_STOPWORDS
 
-def char_tokenizer(sentence, lower_case=True, lemmatization=True, remove_stop_words=True):
-    pass
+def char_tokenizer(sentence, base_tokenizer=None, normalize_digits=False):
+    if base_tokenizer:
+        tokens = base_tokenizer(sentence, normalize_digits=False,
+                                normalize_long_pattern=False)
+    else:
+        tokens = [sentence]
+    chars = []
+    for token in tokens:
+        for c in token:
+            chars.append(c)
+        chars.append(' ')
+    return chars[:-1]
 
 def basic_tokenizer(sentence, lower_case=True, normalize_digits=True, normalize_long_pattern=True,
                     lemmatization=True, remove_stop_words=True):
