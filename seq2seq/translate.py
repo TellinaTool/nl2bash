@@ -36,6 +36,7 @@ import random
 import sys
 sys.path.append("../bashlex")
 sys.path.append("../eval")
+sys.path.append("../seq2tree")
 
 import time
 import cPickle as pickle
