@@ -101,6 +101,8 @@ tf.app.flags.DEFINE_boolean("self_test", False,
 
 FLAGS = tf.app.flags.FLAGS
 
+print(FLAGS)
+
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
 if FLAGS.char:
