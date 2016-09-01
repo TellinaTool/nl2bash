@@ -377,11 +377,14 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
     # Create vocabularies of the appropriate sizes.
     cm_ast_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast" % cm_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
+    cm_typed_char_vocab_path = os.path.join(data_dir, "vocab%d.cm.typed.char" % cm_vocab_size)
     cm_char_vocab_path = os.path.join(data_dir, "vocab%d.cm.char" % cm_vocab_size)
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
     nl_char_vocab_path = os.path.join(data_dir, "vocab%d.nl.char" % nl_vocab_size)
     create_vocabulary(cm_ast_vocab_path, train_cm_seq_list, cm_vocab_size, bash_tokenizer, True)
     create_vocabulary(cm_vocab_path, train_cm_token_list, cm_vocab_size, bash_tokenizer, True)
+    create_vocabulary(cm_typed_char_vocab_path, train_cm_list, cm_vocab_size, char_tokenizer,
+                      normalize_digits=False, normalize_long_pattern=False)
     create_vocabulary(cm_char_vocab_path, train_cm_list, cm_vocab_size, char_tokenizer,
                       normalize_digits=False, normalize_long_pattern=False)
     create_vocabulary(nl_vocab_path, train_nl_list, nl_vocab_size, basic_tokenizer, True)
