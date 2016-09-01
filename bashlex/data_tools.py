@@ -20,6 +20,8 @@ lmtzr = WordNetLemmatizer()
 _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
 _WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
+_SPACE = b"<SPACE>"
+
 def is_stopword(w):
     return w in gazetteer.ENGLISH_STOPWORDS
 
@@ -34,7 +36,7 @@ def char_tokenizer(sentence, base_tokenizer=None, normalize_digits=False,
     for token in tokens:
         for c in token:
             chars.append(c)
-        chars.append(' ')
+        chars.append(_SPACE)
     return chars[:-1]
 
 def basic_tokenizer(sentence, lower_case=True, normalize_digits=True, normalize_long_pattern=True,
