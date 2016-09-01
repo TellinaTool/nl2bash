@@ -277,8 +277,8 @@ def decode(output_logits, rev_cm_vocab, beam_decoder):
         outputs = outputs[:outputs.index(data_utils.EOS_ID)]
     # Print out command corresponding to outputs.
     if FLAGS.char:
-        return "".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]) \
-                .replace(data_utils._SPACE, ' ')
+        return "".join([tf.compat.as_str(rev_cm_vocab[output]).strip() for output in outputs]) \
+                .replace(data_utils._UNK, ' ')
     else:
         return " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
 
@@ -635,6 +635,6 @@ def main(_):
 
 if __name__ == "__main__":
     # set GPU device
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
     tf.app.run()
