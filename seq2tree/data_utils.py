@@ -184,7 +184,8 @@ def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
 def sentence_to_token_ids(sentence, vocabulary,
                           tokenizer, base_tokenizer,
                           normalize_digits=True,
-                          normalize_long_pattern=True):
+                          normalize_long_pattern=True,
+                          substitute_type=False):
     """Convert a string to list of integers representing token-ids.
 
     For example, a sentence "I have a dog" may become tokenized into
@@ -348,17 +349,22 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
         elif i == numFolds - 1:
             add_to_set(data[i], test_nl_list, test_cm_list, test_cm_token_list, test_cm_seq_list)
 
+    global max_nl_token_len 
     max_nl_token_len = 0
+    global max_nl_char_len 
     max_nl_char_len = 0
+    global max_cm_char_len 
     max_cm_char_len = 0
+    global max_cm_token_len 
     max_cm_token_len = 0
+    global max_cm_seq_len 
     max_cm_seq_len = 0
     for cm_token in train_cm_token_list + dev_cm_token_list + test_cm_token_list:
         if len(cm_token) > max_cm_token_len:
             max_cm_token_len = len(cm_token)
     for cm_seq in train_cm_seq_list + dev_cm_seq_list + test_cm_seq_list:
         if len(cm_seq) > max_cm_seq_len:
-            max_cm_seq_len = len(cmd_seq)
+            max_cm_seq_len = len(cm_seq)
 
     # Get data to the specified directory.
     train_path = os.path.join(data_dir, "train")
@@ -397,14 +403,17 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
         temp = data_to_token_ids(cm_token_list, cm_ids_path, cm_vocab_path, bash_tokenizer)
         temp = data_to_token_ids(cm_list, cm_cids_path, cm_char_vocab_path, char_tokenizer,
                           None, normalize_digits=False, normalize_long_pattern=False)
+        global max_cm_char_len
         if temp > max_cm_char_len:
             max_cm_char_len = temp
         temp = data_to_token_ids(cm_seq_list, cm_seq_path, cm_ast_vocab_path, bash_tokenizer)
         temp = data_to_token_ids(nl_list, nl_ids_path, nl_vocab_path, basic_tokenizer)
+        global max_nl_token_len
         if temp > max_nl_token_len:
             max_nl_token_len = temp
         temp = data_to_token_ids(nl_list, nl_cids_path, nl_char_vocab_path, char_tokenizer,
                           basic_tokenizer, normalize_digits=False, normalize_long_pattern=False)
+        global max_nl_char_len
         if temp > max_nl_char_len:
             max_nl_char_len = temp
 
