@@ -326,8 +326,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
         rev_encoder_inputs = []
         for i in xrange(len(encoder_inputs)-1, -1, -1):
             rev_encoder_inputs.append(encoder_inputs[i])
-        sentences = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab)
-        ground_truths = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab, True)
+        sentences = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab, char_model=True)
+        ground_truths = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
+                                                          head_appended=True, char_model=True)
         assert(len(sentences) == len(ground_truths))
         predictions = batch_decode(output_logits, rev_cm_vocab, model.beam_decoder)
         print(len(ground_truths))
