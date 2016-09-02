@@ -48,6 +48,7 @@ def define_input_flags():
 
 
     # learning hyperparameters
+    tf.app.flags.DEFINE_boolean("char", True, "Set to True for training character models.")
     tf.app.flags.DEFINE_string("rnn_cell", "gru", "Type of RNN cell to use.")
     tf.app.flags.DEFINE_string("optimizer", "adam", "Type of numeric optimization algorithm to use.")
     tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
