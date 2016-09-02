@@ -79,7 +79,7 @@ tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
 tf.app.flags.DEFINE_integer("steps_per_milestone", 1000,
                             "How many training steps to do per dev-set evaluation")
-tf.app.flags.DEFINE_integer("num_milestones", 5,
+tf.app.flags.DEFINE_integer("num_milestones", 10,
                             "How many dev-set evaluation to be performed during training")
 tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
 tf.app.flags.DEFINE_boolean("log_device_placement", False,
