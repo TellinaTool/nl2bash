@@ -21,7 +21,7 @@ from __future__ import print_function
 import os
 import re
 import sys
-sys.path.append(os.path.join([os.path.dirname(__file__), "..", "bashlex"]))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
 from data_tools import basic_tokenizer, bash_tokenizer, char_tokenizer, bash_parser
 import normalizer
