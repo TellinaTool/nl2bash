@@ -256,25 +256,6 @@ def batch_decode(output_logits, rev_cm_vocab, beam_decoder):
     return batch_outputs
 
 
-def eval(verbose=True):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True)
-
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
-        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-        _, dev_set, _ = load_data()
-
-        eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
-                            FLAGS, verbose)
-
-
 def manual_eval():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
@@ -315,7 +296,8 @@ def eval(verbose=True):
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = load_data()
 
-        eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
+        eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
+                            FLAGS, verbose)
 
 
 def interactive_decode():

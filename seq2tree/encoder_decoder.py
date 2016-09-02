@@ -108,11 +108,16 @@ class EncoderDecoderModel(object):
             return None, outputs[0], outputs[1:]  # No gradient norm, loss, outputs.
 
 
-    def format_example(self, encoder_input, decoder_input, original_encoder_input=None,
-                       original_decoder_input=None, copy_mask=None):
+    def format_example(self, encoder_input, decoder_input, bucket_id=-1,
+                       original_encoder_input=None,
+                       original_decoder_input=None,
+                       copy_mask=None):
         """Prepare data to feed in step()"""
-        encoder_size = self.max_source_length
-        decoder_size = self.max_target_length
+        if bucket_id >= 0:
+            encoder_size, decoder_size = self.buckets[bucket_id]
+        else:
+            encoder_size, decoder_size = self.max_source_length, self.max_target_length
+
         encoder_inputs = []
         decoder_inputs = []
         if self.use_copy:
