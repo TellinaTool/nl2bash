@@ -320,6 +320,19 @@ def attach_to_tree(node, parent):
     if node.lsb:
         node.lsb.rsb = node
 
+
+def detach_from_tree(node, parent):
+    if not parent:
+        return
+    parent.removeChild(node)
+    parent = None
+    if node.lsb:
+        node.lsb.rsb = node.rsb
+    if node.rsb:
+        node.rsb.lsb = node.lsb
+    node.rsb = None
+    node.lsb = None
+
 def make_parentchild(parent, child):
     parent.addChild(child)
     child.parent = parent
@@ -715,8 +728,13 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 stack.append(child)
                 depth += 1
             elif child.value == ")":
-                assert(depth > 0)
-                depth, i = pop_stack_content(depth, child)
+                assert(depth >= 0)
+                # fix imbalanced parentheses: missing '('
+                if depth == 0:
+                    # simply drop the single ')'
+                    detach_from_tree(child, child.parent)
+                else:
+                    depth, i = pop_stack_content(depth, child)
             else:
                 if depth > 0:
                     stack.append(child)
@@ -727,7 +745,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         unprocessed_binary_logic_ops.append(child)
             i += 1
 
-        # fix imbalanced parentheses
+        # fix imbalanced parentheses: missing ')'
         while (depth > 0):
             depth, _ = pop_stack_content(depth, None, stack[-1])
 
