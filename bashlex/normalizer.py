@@ -150,7 +150,6 @@ class Node(object):
                 return False
         return True
 
-
     def removeChild(self, child):
         if child in self.children:
             self.children.remove(child)
@@ -635,7 +634,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 if not subcommand_added:
                                     print("Warning: -exec missing ending ';'")
                                     normalize_command(new_command_node, attach_point)
-                                    attach_point.value += '::' + "\\;"
+                                    attach_point.value += '::' + ";"
                                 ind = j
                             else:
                                 arg_type = list(possible_arg_types)[0]
