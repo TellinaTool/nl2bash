@@ -6,8 +6,8 @@ Domain-specific natural Language and bash command tokenizer.
 from __future__ import print_function
 
 import re
-import sys
-sys.path.append("../data")
+import os, sys
+sys.path.append(os.path.join([os.path.dirname(__file__), "..", "data"]))
 
 import bash, normalizer
 import gazetteer
