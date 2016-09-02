@@ -52,6 +52,8 @@ import eval_tools
 
 FLAGS = tf.app.flags.FLAGS
 
+parse_args.define_input_flags()
+
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
 if FLAGS.char:
@@ -402,7 +404,7 @@ def main(_):
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
 
     # set GPU device
-    with tf.device('/gpu:%d' % FLAGS.gpu):
+    with tf.device('/gpu:%s' % FLAGS.gpu):
         if FLAGS.manual_eval:
             manual_eval()
         elif FLAGS.eval:
@@ -417,6 +419,4 @@ def main(_):
 
 
 if __name__ == "__main__":
-    parse_args.define_input_flags()
-
     tf.app.run()
