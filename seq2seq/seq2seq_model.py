@@ -151,8 +151,7 @@ class Seq2SeqModel(EncoderDecoderModel):
 
         self.saver = tf.train.Saver(tf.all_variables())
 
-    def step(self, session, encoder_inputs, decoder_inputs, target_weights,
-             bucket_id, forward_only):
+    def step(self, session, formatted_example, bucket_id, forward_only):
         """Run a step of the model feeding the given inputs.
 
         Args:
@@ -171,6 +170,9 @@ class Seq2SeqModel(EncoderDecoderModel):
           ValueError: if length of encoder_inputs, decoder_inputs, or
             target_weights disagrees with bucket size for the specified bucket_id.
         """
+
+        encoder_inputs, decoder_inputs, target_weights = formatted_example
+
         # Check if the sizes match.
         encoder_size, decoder_size = self.buckets[bucket_id]
         if len(encoder_inputs) != encoder_size:
@@ -206,6 +208,7 @@ class Seq2SeqModel(EncoderDecoderModel):
                 output_feed.append(self.outputs[bucket_id][l])
 
         outputs = session.run(output_feed, input_feed)
+
         if not forward_only:
             return outputs[1], outputs[2], None  # Gradient norm, loss, no outputs.
         else:
