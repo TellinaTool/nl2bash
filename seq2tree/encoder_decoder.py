@@ -133,6 +133,7 @@ class EncoderDecoderModel(object):
         decoder_inputs.append(decoder_input + decoder_pad)
 
         # create batch-major vectors
+        batch_size = 1
         batch_encoder_inputs, batch_decoder_inputs, batch_weights = [], [], []
         if self.use_copy:
             batch_original_encoder_inputs, batch_original_decoder_inputs, batch_copy_masks = [], [], []
@@ -141,14 +142,14 @@ class EncoderDecoderModel(object):
         for length_idx in xrange(encoder_size):
             batch_encoder_inputs.append(
                 np.array([encoder_inputs[batch_idx][length_idx]
-                          for batch_idx in xrange(self.batch_size)], dtype=np.int32))
+                          for batch_idx in xrange(batch_size)], dtype=np.int32))
             if self.use_copy:
                 batch_original_decoder_inputs.append(
                     np.array([original_decoder_inputs[batch_idx][length_idx]
-                          for batch_idx in xrange(self.batch_size)], dtype=np.int32))
+                          for batch_idx in xrange(batch_size)], dtype=np.int32))
                 # Create copy_masks to be 0 for encoder inputs that are not copiable
-                batch_copy_mask = np.zeros(self.batch_size, dtype=np.int32)
-                for batch_idx in xrange(self.batch_size):
+                batch_copy_mask = np.zeros(batch_size, dtype=np.int32)
+                for batch_idx in xrange(batch_size):
                     if copy_masks[batch_idx][length_idx] == 1:
                         batch_copy_mask[batch_idx] = 1
                 batch_copy_masks.append(batch_copy_mask)
@@ -157,15 +158,15 @@ class EncoderDecoderModel(object):
         for length_idx in xrange(decoder_size):
             batch_decoder_inputs.append(
                 np.array([decoder_inputs[batch_idx][length_idx]
-                          for batch_idx in xrange(self.batch_size)], dtype=np.int32))
+                          for batch_idx in xrange(batch_size)], dtype=np.int32))
             if self.use_copy:
                 batch_original_decoder_inputs.append(
                     np.array([original_decoder_inputs[batch_idx][length_idx]
-                          for batch_idx in xrange(self.batch_size)], dtype=np.int32))
+                          for batch_idx in xrange(batch_size)], dtype=np.int32))
 
             # Create target_weights to be 0 for targets that are padding.
-            batch_weight = np.ones(self.batch_size, dtype=np.float32)
-            for batch_idx in xrange(self.batch_size):
+            batch_weight = np.ones(batch_size, dtype=np.float32)
+            for batch_idx in xrange(batch_size):
                 # We set weight to 0 if the corresponding target is a PAD symbol.
                 # The corresponding target is decoder_input shifted by 1 forward.
                 if length_idx < decoder_size - 1:
