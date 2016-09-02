@@ -20,7 +20,7 @@ def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1, outp
         if type == "lstm":
             cell = tf.nn.rnn_cell.BasicLSTMCell(dim, state_is_tuple=True)
         elif type == "gru":
-            cell = tf.nn.rnn_cell.GRUCell(dim, state_is_tuple=True)
+            cell = tf.nn.rnn_cell.GRUCell(dim)
         else:
             raise ValueError("Unrecognized RNN cell type.")
         if num_layers > 1:
