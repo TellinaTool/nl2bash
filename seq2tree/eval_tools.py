@@ -26,9 +26,56 @@ def to_readable(outputs, rev_cm_vocab):
     return tree, cmd, search_history
 
 
-def decode(logits, rev_cm_vocab):
-    outputs = [int(np.argmax(logit, axis=1)) for logit in logits]
-    return to_readable(outputs, rev_cm_vocab)
+def decode(output_logits, rev_cm_vocab, beam_decoder, FLAGS):
+    if FLAGS.decoder == "greedy":
+        # This is a greedy decoder - outputs are just argmaxes of output_logits.
+        outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
+    elif FLAGS.decoder == "beam_search":
+        outputs = [np.argmax(logit, axis=1) for logit in output_logits]
+
+    # If there is an EOS symbol in outputs, cut them at that point.
+    if data_utils.EOS_ID in outputs:
+        outputs = outputs[:outputs.index(data_utils.EOS_ID)]
+
+    # Print out command corresponding to outputs.
+    if FLAGS.decoder_topology == "seq":
+        if FLAGS.char:
+            cmd = "".join([tf.compat.as_str(rev_cm_vocab[output]).strip() for output in outputs]) \
+                .replace(data_utils._UNK, ' ')
+        else:
+            cmd = " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
+        tree = data_tools.bash_parser(cmd)
+        return tree, cmd, None
+    else:
+        return to_readable(outputs, rev_cm_vocab)
+
+
+def batch_decode(output_logits, rev_cm_vocab, beam_decoder, FLAGS):
+    batch_size = len(output_logits[0])
+    batch_outputs = []
+    if FLAGS.decoder == "greedy":
+        # This is a greedy decoder - outputs are just argmaxes of output_logits.
+        predictions = [np.argmax(logit, axis=1) for logit in output_logits]
+    elif FLAGS.decoder == "beam_search":
+        predictions = [np.argmax(logit, axis=1) for logit in output_logits]
+    for i in xrange(batch_size):
+        outputs = [int(pred[i]) for pred in predictions]
+        # If there is an EOS symbol in outputs, cut them at that point.
+        if data_utils.EOS_ID in outputs:
+            outputs = outputs[:outputs.index(data_utils.EOS_ID)]
+            # Print out command corresponding to outputs.
+        if FLAGS.decoder_topology == "seq":
+            if FLAGS.char:
+                cmd = "".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]) \
+                                    .replace(data_utils._UNK, ' ')
+            else:
+                cmd = " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
+            tree = data_tools.bash_parser(cmd)
+            search_history = None
+        else:
+            tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
+        batch_outputs.append((tree, cmd, search_history))
+    return batch_outputs
 
 
 def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
@@ -55,14 +102,14 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
         gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
         if FLAGS.decoding_algorithm == "greedy":
-            tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
+            tree, pred_cmd, _ = decode(output_logits, rev_cm_vocab, FLAGS)
         elif FLAGS.decoding_algorithm == "beam_search":
             top_k_search_histories, decode_scores = \
                 model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
             top_k_pred_trees = []
             top_k_pred_cmds = []
             for j in xrange(FLAGS.top_k-1, -1, -1):
-                tree, pred_cmd, search_history = to_readable(
+                tree, pred_cmd, _ = to_readable(
                     top_k_search_histories[i], rev_cm_vocab)
                 top_k_pred_trees.insert(0, tree)
                 top_k_pred_cmds.insert(0, pred_cmd)
@@ -117,7 +164,7 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
         if num_evaled == num_eval:
             break
 
-        nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
+        nl_str, cm_strs, nl, _ = grouped_dataset[i]
 
         # Which bucket does it belong to?
         bucket_id = min([b for b in xrange(len(model.buckets))
@@ -129,13 +176,13 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
 
         gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
         if FLAGS.decoding_algorithm == "greedy":
-            tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
+            tree, pred_cmd, _ = decode(output_logits, rev_cm_vocab, FLAGS)
         else:
             top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
             top_k_pred_trees = []
             top_k_pred_cmds = []
             for j in xrange(FLAGS.top_k):
-                tree, pred_cmd, search_history = \
+                tree, pred_cmd, _ = \
                     to_readable(top_k_search_histories[j], rev_cm_vocab)
                 top_k_pred_trees.append(tree)
                 top_k_pred_cmds.append(pred_cmd)
@@ -222,7 +269,7 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
         _, _, output_logits = model.step(sess, formatted_example, bucket_id,
                                          forward_only=True)
         if FLAGS.decoding_algorithm == "greedy":
-            tree, cmd, search_history = decode(output_logits, rev_cm_vocab)
+            tree, cmd, _ = decode(output_logits, rev_cm_vocab, FLAGS)
             print()
             print(cmd)
             print()
@@ -233,7 +280,7 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
             print()
             for i in xrange(FLAGS.top_k):
                 outputs = top_k_search_histories[i]
-                tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
+                tree, cmd, _ = to_readable(outputs, rev_cm_vocab)
                 print("prediction %d (%.2f): " % (i, decode_scores[i]) + cmd)
                 print()
                 data_tools.pretty_print(tree, 0)
