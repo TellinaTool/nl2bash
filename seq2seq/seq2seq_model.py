@@ -197,7 +197,7 @@ class Seq2SeqModel(EncoderDecoderModel):
 
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
-        input_feed[last_target] = np.zeros([self.batch_size], dtype=np.int32)
+        input_feed[last_target] = np.zeros(decoder_inputs[0].shape, dtype=np.int32)
 
         # Output feed: depends on whether we do a backward step or not.
         if not forward_only:
