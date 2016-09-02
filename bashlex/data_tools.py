@@ -142,9 +142,12 @@ def bash_parser(cmd, normalize_digits=True, normalize_long_pattern=True,
 
 def pretty_print(node, depth=0):
     """Pretty print the AST."""
-    print("    " * depth + node.kind.upper() + '(' + node.value + ')')
-    for child in node.children:
-        pretty_print(child, depth+1)
+    try:
+        print("    " * depth + node.kind.upper() + '(' + node.value + ')')
+        for child in node.children:
+            pretty_print(child, depth+1)
+    except AttributeError, e:
+        print("    " * depth)
 
 
 def ast2list(node, order='dfs', list=None):
