@@ -32,7 +32,6 @@ from __future__ import print_function
 
 import math
 import os
-import random
 import sys
 sys.path.append("../bashlex")
 sys.path.append("../eval")
@@ -43,12 +42,14 @@ import cPickle as pickle
 
 import numpy as np
 
-import normalizer
-
 import tensorflow as tf
-import seq2seq_model
-import data_utils, data_tools
 
+import data_utils, data_tools
+import parse_args
+import seq2seq_model
+import eval_tools
+
+<<<<<<< HEAD
 import ast_based
 
 tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
@@ -101,11 +102,10 @@ tf.app.flags.DEFINE_boolean("bucket_selection", False,
                             "Run a bucket_selection if this is set to True.")
 tf.app.flags.DEFINE_boolean("self_test", False,
                             "Run a self-test if this is set to True.")
+=======
+>>>>>>> 481db2c02fe18ed77de262bdd970cdf8f2e7100c
 
 FLAGS = tf.app.flags.FLAGS
-
-print(FLAGS.batch_size)
-print(FLAGS.char)
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
@@ -113,43 +113,6 @@ if FLAGS.char:
     _buckets = [(10, 20), (20, 30), (40, 50), (60, 80), (80, 100), (100, 120), (120, 120), (140, 120)]
 else:
     _buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 40), (50, 40)]
-
-def read_data(source_path, target_path, max_size=None):
-    """Read data from source and target files and put into buckets.
-
-    Args:
-      source_path: path to the files with token-ids for the source language.
-      target_path: path to the file with token-ids for the target language;
-        it must be aligned with the source file: n-th line contains the desired
-        output for n-th line from the source_path.
-      max_size: maximum number of lines to read, all other will be ignored;
-        if 0 or None, data files will be read completely (no limit).
-
-    Returns:
-      data_set: a list of length len(_buckets); data_set[n] contains a list of
-        (source, target) pairs read from the provided data files that fit
-        into the n-th bucket, i.e., such that len(source) < _buckets[n][0] and
-        len(target) < _buckets[n][1]; source and target are lists of token-ids.
-    """
-    data_set = [[] for _ in _buckets]
-    with tf.gfile.GFile(source_path, mode="r") as source_file:
-        with tf.gfile.GFile(target_path, mode="r") as target_file:
-            source, target = source_file.readline(), target_file.readline()
-            counter = 0
-            while source and target and (not max_size or counter < max_size):
-                counter += 1
-                if counter % 1000 == 0:
-                    print("  reading data line %d" % counter)
-                    sys.stdout.flush()
-                source_ids = [int(x) for x in source.split()]
-                target_ids = [int(x) for x in target.split()]
-                target_ids.append(data_utils.EOS_ID)
-                for bucket_id, (source_size, target_size) in enumerate(_buckets):
-                    if len(source_ids) < source_size and len(target_ids) < target_size:
-                        data_set[bucket_id].append([source_ids, target_ids])
-                        break
-                source, target = source_file.readline(), target_file.readline()
-    return data_set
 
 
 def create_model(session, forward_only):
@@ -160,10 +123,7 @@ def create_model(session, forward_only):
         FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
         FLAGS.learning_rate, FLAGS.learning_rate_decay_factor,
         FLAGS.input_keep_prob, FLAGS.output_keep_prob,
-        forward_only=forward_only,
-        use_lstm=FLAGS.lstm,
-        beam_decoder=beam_decoder,
-        use_attention=FLAGS.attention)
+        forward_only=forward_only)
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
@@ -278,6 +238,7 @@ def decode(output_logits, rev_cm_vocab, beam_decoder):
     # If there is an EOS symbol in outputs, cut them at that point.
     if data_utils.EOS_ID in outputs:
         outputs = outputs[:outputs.index(data_utils.EOS_ID)]
+
     # Print out command corresponding to outputs.
     if FLAGS.char:
         return "".join([tf.compat.as_str(rev_cm_vocab[output]).strip() for output in outputs]) \
@@ -308,7 +269,7 @@ def batch_decode(output_logits, rev_cm_vocab, beam_decoder):
     return batch_outputs
 
 
-def manual_eval(num_eval = 30):
+def eval(verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
@@ -323,157 +284,32 @@ def manual_eval(num_eval = 30):
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = load_data()
 
-        num_correct_template = 0.0
-        num_correct_command = 0.0
-
-        grouped_dataset = data_utils.group_data_by_nl(dev_set, use_bucket=True)
-        random.shuffle(grouped_dataset)
-
-        o_f = open("manual.eval.results", 'w')
-
-        num_evaled = 0
-
-        for i in xrange(len(grouped_dataset)):
-            if num_evaled == num_eval:
-                break
-
-            nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
-
-            formatted_example = model.get_bucket(
-                nl, [data_utils.ROOT_ID])
-            _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
-
-            gt_trees = [normalizer.normalize_ast(cmd) for cmd in cm_strs]
-            if FLAGS.decoding_algorithm == "greedy":
-                tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
-            else:
-                top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
-                top_k_pred_trees = []
-                top_k_pred_cmds = []
-                for j in xrange(FLAGS.top_k):
-                    tree, pred_cmd, search_history = data_tools.to_readable(top_k_search_histories[j], rev_cm_vocab)
-                    top_k_pred_trees.append(tree)
-                    top_k_pred_cmds.append(pred_cmd)
-            # evaluation ignoring ordering of flags
-            if ast_based.one_template_match(gt_trees, tree):
-                continue
-            else:
-                print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
-                o_f.write("Example %d (%d)" % (num_evaled+1, len(cm_strs)) + "\n")
-                print("English: " + nl_str.strip())
-                o_f.write("English: " + nl_str.strip() + "\n")
-                for j in xrange(len(cm_strs)):
-                    print("GT Command %d: " % (j+1) + cm_strs[j].strip())
-                    o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
-                if FLAGS.decoding_algorithm == "greedy":
-                    print("Prediction: " + pred_cmd)
-                    o_f.write("Prediction: " + pred_cmd + "\n")
-                    print("AST: ")
-                    normalizer.pretty_print(tree, 0)
-                    print()
-                elif FLAGS.decoding_algorithm == "beam_search":
-                    for j in xrange(FLAGS.top_k):
-                        decode_score = decode_scores[j]
-                        tree = top_k_pred_trees[j]
-                        pred_cmd = top_k_pred_cmds[j]
-                        print("Prediction %d (%.2f): " % (j+1, decode_score) + pred_cmd)
-                        print("AST: ")
-                        normalizer.pretty_print(tree, 0)
-                        print()
-                inp = raw_input("Correct template [y/n]: ")
-                if inp == "y":
-                    num_correct_template += 1
-                    o_f.write("C")
-                    inp = raw_input("Correct command [y/n]: ")
-                    if inp == "y":
-                        num_correct_command += 1
-                        o_f.write("C")
-                    else:
-                        o_f.write("W")
-                else:
-                    o_f.write("WW")
-                o_f.write("\n")
-                o_f.write("\n")
-
-            num_evaled += 1
-
-        print()
-        print("%d examples evaluated" % num_eval)
-        print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
-        print("Percentage of String Match = %.2f" % (num_correct_command/num_eval))
-        print()
-
-        o_f.write("\n")
-        o_f.write("%d examples evaluated" % num_eval + "\n")
-        o_f.write("Percentage of Template Match = %.2f" % (num_correct_template/num_eval) + "\n")
-        o_f.write("Percentage of String Match = %.2f" % (num_correct_command/num_eval) + "\n")
-        o_f.write("\n")
+        eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
+                            FLAGS, verbose)
 
 
-def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
-    num_correct_template = 0.0
-    num_correct = 0.0
-    num_eval = 0
+def manual_eval():
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+        log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        model, _ = create_model(sess, forward_only=True)
 
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True)
+        # Load vocabularies.
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
+        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
+        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+        _, dev_set, _ = load_data()
 
-    for i in xrange(len(grouped_dataset)):
-        nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
-
-        sentence = ' '.join([rev_nl_vocab[i] for i in nl])
-        gt_trees = [normalizer.normalize_ast(gt) for gt in cm_strs]
-
-        # Which bucket does it belong to?
-        bucket_id = min([b for b in xrange(len(_buckets))
-                        if _buckets[b][0] > len(nl)])
-
-        # Get a 1-element batch to feed the sentence to the model.
-        encoder_inputs, decoder_inputs, target_weights = model.get_batch(
-                {bucket_id: [(nl, [])]}, bucket_id)
-        _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
-                                         target_weights, bucket_id, True)
-        predictions = batch_decode(output_logits, rev_cm_vocab, model.beam_decoder)
-        pred_cmd = predictions[0]
-        tree = normalizer.normalize_ast(pred_cmd)
-
-        # evaluation ignoring ordering of flags
-        if ast_based.one_template_match(gt_trees, tree):
-            num_correct_template += 1
-        if ast_based.one_string_match(gt_trees, tree):
-            num_correct += 1
-        num_eval += 1
-
-        if verbose:
-            print("Example %d (%d)" % (num_eval, len(cm_strs)))
-            print("Original English: " + nl_str.strip())
-            print("English: " + sentence)
-            print("Original Command: " + cm_strs[0].strip())
-            print("Ground truth: " + normalizer.to_command(gt_trees[0]))
-            if FLAGS.decoding_algorithm == "greedy":
-                print("Prediction: " + pred_cmd)
-                # print("Search history (truncated at 25 steps): ")
-                # print(" -> ".join(search_historys[0][:25]))
-                print("AST: ")
-                normalizer.pretty_print(tree, 0)
-                print()
-                # print("token-overlap score: %.2f" % score)
-                # print()
-
-    print("%d examples evaluated" % num_eval)
-    print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
-    print("Percentage of String Match = %.2f" % (num_correct/num_eval))
-    print()
-
-
-def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
-    # Create model and load parameters.
-    model = create_model(sess, True)
-    eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
+        eval_tools.manual_eval(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
+                               FLAGS, num_eval=30)
 
 
 def eval(verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-                                          log_device_placement=FLAGS.log_device_placement)) as sess:
+        log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         model = create_model(sess, forward_only=True)
 
@@ -492,7 +328,25 @@ def eval(verbose=True):
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = load_data()
 
-        eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
+        eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab, verbose)
+
+
+def interactive_decode():
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+        log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        model, _ = create_model(sess, forward_only=True)
+
+        # Load vocabularies.
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
+        nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
+        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+
+        eval_tools.interactive_decode(sess, model, nl_vocab, rev_cm_vocab,
+                                      FLAGS)
 
 
 def train_and_eval(train_set, dev_set):
@@ -506,90 +360,6 @@ def train_and_eval(train_set, dev_set):
         if not is_learning:
             print("Training stopped early for no improvement observed on dev set.")
             break
-
-
-def interactive_decode():
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-                                          log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        model = create_model(sess, True)
-        model.batch_size = 1  # We decode one sentence at a time.
-
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
-        nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-
-        # Decode from standard input.
-        sys.stdout.write("> ")
-        sys.stdout.flush()
-        sentence = sys.stdin.readline()
-        while sentence:
-            # Get token-ids for the input sentence.
-            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
-                                                         data_tools.basic_tokenizer)
-            # Which bucket does it belong to?
-            bucket_id = min([b for b in xrange(len(_buckets))
-                             if _buckets[b][0] > len(token_ids)])
-            # Get a 1-element batch to feed the sentence to the model.
-            encoder_inputs, decoder_inputs, target_weights = model.get_batch(
-                {bucket_id: [(token_ids, [])]}, bucket_id)
-            # Get output logits for the sentence.
-            _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
-                                             target_weights, bucket_id, True)
-            print(decode(output_logits, rev_cm_vocab, model.beam_decoder))
-            print("> ", end="")
-            sys.stdout.flush()
-            sentence = sys.stdin.readline()
-
-
-def process_data():
-    print("Preparing data in %s" % FLAGS.data_dir)
-
-    with open(FLAGS.data_dir + "data.dat") as f:
-        data = pickle.load(f)
-
-    numFolds = len(data)
-    print("%d folds" % numFolds)
-
-    train_cm_list = []
-    train_nl_list = []
-    dev_cm_list = []
-    dev_nl_list = []
-    test_cm_list = []
-    test_nl_list = []
-    for i in xrange(numFolds):
-        if i < numFolds - 2:
-            for nl, cmd in data[i]:
-                train_cm_list.append(cmd)
-                train_nl_list.append(nl)
-        elif i == numFolds - 2:
-            for nl, cmd in data[i]:
-                dev_cm_list.append(cmd)
-                dev_nl_list.append(nl)
-        elif i == numFolds - 1:
-            for nl, cmd in data[i]:
-                test_cm_list.append(cmd)
-                test_nl_list.append(nl)
-
-    train_dev_test = {}
-    train_dev_test["train"] = [train_cm_list, train_nl_list]
-    train_dev_test["dev"] = [dev_cm_list, dev_nl_list]
-    train_dev_test["test"] = [test_cm_list, test_nl_list]
-
-    nl_train, cm_train, nl_dev, cm_dev, nl_test, cm_test, _, _ = data_utils.prepare_data(
-        train_dev_test, FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
-
-    train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
-    dev_set = read_data(nl_dev, cm_dev)
-    test_set = read_data(nl_test, nl_test)
-
-    with open(FLAGS.data_dir + "data.processed.dat", 'wb') as o_f:
-        pickle.dump((train_set, dev_set, test_set), o_f)
-    return train_set, dev_set, test_set
 
 
 def load_data(sample_size=-1):
@@ -611,9 +381,9 @@ def load_data(sample_size=-1):
         nl_test = os.path.join(data_dir, "test") + ".ids%d.nl" % FLAGS.nl_vocab_size
         cm_test = os.path.join(data_dir, "test") + ".ids%d.cm" % FLAGS.cm_vocab_size
 
-    train_set = read_data(nl_train, cm_train, FLAGS.max_train_data_size)
-    dev_set = read_data(nl_dev, cm_dev)
-    test_set = read_data(nl_test, cm_test)
+    train_set = data_utils.read_data(nl_train, cm_train, FLAGS.max_train_data_size)
+    dev_set = data_utils.read_data(nl_dev, cm_dev)
+    test_set = data_utils.read_data(nl_test, cm_test)
 
     return train_set, dev_set, test_set
 
@@ -642,47 +412,26 @@ def bucket_selection(num_buckets=10):
               len(data_tools.bash_tokenizer(mark[1])))
 
 
-def self_test():
-    """Test the translation model."""
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-                                          log_device_placement=FLAGS.log_device_placement)) as sess:
-        print("Self-test for neural translation model.")
-        # Create model with vocabularies of 10, 2 small buckets, 2 layers of 32.
-        model = seq2seq_model.Seq2SeqModel(10, 10, [(3, 3), (6, 6)], 32, 2,
-                                           5.0, 32, 0.3, 0.99, num_samples=8)
-        sess.run(tf.initialize_all_variables())
-
-        # Fake data set for both the (3, 3) and (6, 6) bucket.
-        data_set = ([([1, 1], [2, 2]), ([3, 3], [4]), ([5], [6])],
-                    [([1, 1, 1, 1, 1], [2, 2, 2, 2, 2]), ([3, 3, 3], [5, 6])])
-        for _ in xrange(5):  # Train the fake model for 5 steps.
-            bucket_id = random.choice([0, 1])
-            encoder_inputs, decoder_inputs, target_weights = model.get_batch(
-                data_set, bucket_id)
-            model.step(sess, encoder_inputs, decoder_inputs, target_weights,
-                       bucket_id, False)
-
-
 def main(_):
     # set GPU device
+    os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
+
+    # set GPU device
     with tf.device('/gpu:%d' % FLAGS.gpu):
-        if FLAGS.self_test:
-            self_test()
+        if FLAGS.manual_eval:
+            manual_eval()
         elif FLAGS.eval:
             eval()
         elif FLAGS.decode:
             interactive_decode()
         elif FLAGS.bucket_selection:
             bucket_selection()
-        elif FLAGS.process_data:
-            process_data()
         else:
             train_set, dev_set, _ = load_data()
             train_and_eval(train_set, dev_set)
 
 
 if __name__ == "__main__":
-    # set GPU device
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+    parse_args.define_input_flags()
 
     tf.app.run()
