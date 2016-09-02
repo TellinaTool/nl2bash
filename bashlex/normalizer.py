@@ -984,6 +984,8 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
             for child in node.children:
                 tokens += to_tokens_fun(child)
             if '::' in node.value:
+                if op == ';':
+                    op = "\\;"
                 tokens.append(op)
         elif node.kind == "binarylogicop":
             assert(loose_constraints or node.getNumChildren() > 1)
