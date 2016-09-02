@@ -60,6 +60,7 @@ def create_model(session, forward_only):
     params["max_source_length"] = FLAGS.max_nl_length
     params["max_target_length"] = FLAGS.max_cm_length
     params["dim"] = FLAGS.dim
+    params["rnn_cell"] = FLAGS.rnn_cell
     params["num_layers"] = FLAGS.num_layers
     params["max_gradient_norm"] = FLAGS.max_gradient_norm
     params["batch_size"] = FLAGS.batch_size
@@ -73,7 +74,9 @@ def create_model(session, forward_only):
     params["use_copy"] = FLAGS.use_copy
 
     params["decoder_topology"] = FLAGS.decoder_topology
+
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
+
     model = Seq2TreeModel(params, _buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)

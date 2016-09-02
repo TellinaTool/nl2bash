@@ -341,6 +341,10 @@ class EncoderDecoderModel(object):
         return self.hyperparams["output_keep_prob"]
 
     @property
+    def rnn_cell(self):
+        return self.hyperparams["rnn_cell"]
+
+    @property
     def max_gradient_norm(self):
         return self.hyperparams["max_gradient_norm"]
 
@@ -435,8 +439,10 @@ class Seq2TreeModel(EncoderDecoderModel):
             if self.hyperparams["optimizer"] == "sgd":
                 opt = tf.train.GradientDescentOptimizer(self.learning_rate)
             elif self.hyperparams["optimizer"] == "adam":
-                opt = tf.train.AdamOptimizer(self.learning_rate, beta1=0.9, beta2=0.999,
-                                         epsilon=1e-08)
+                opt = tf.train.AdamOptimizer(self.learning_rate, beta1=0.9,
+                                             beta2=0.999, epsilon=1e-08)
+            else:
+                raise ValueError("Unrecognized optimizer type.")
 
             gradients = tf.gradients(self.losses, params)
             clipped_gradients, norm = tf.clip_by_global_norm(gradients,
@@ -450,11 +456,9 @@ class Seq2TreeModel(EncoderDecoderModel):
 
     def forward(self, forward_only):
         # Encoder.
-        encoder_cell = graph_utils.create_multilayer_cell("lstm", "encoder", self.dim, self.num_layers)
-        encoder_cell = tf.nn.rnn_cell.EmbeddingWrapper(
-            encoder_cell,
-            embedding_classes=self.source_vocab_size,
-            embedding_size=self.dim)
+        encoder_cell = graph_utils.create_multilayer_cell(self.rnn_cell, "encoder", self.dim, self.num_layers)
+        encoder_cell = tf.nn.rnn_cell.EmbeddingWrapper(encoder_cell, embedding_classes=self.source_vocab_size,
+                                                       embedding_size=self.dim)
         encoder_outputs, encoder_state = tf.nn.rnn(encoder_cell, self.encoder_inputs, dtype=tf.float32)
 
         # Decoder.
@@ -468,7 +472,7 @@ class Seq2TreeModel(EncoderDecoderModel):
             outputs, state = decoder.define_graph(encoder_state, self.decoder_inputs, self.target_embeddings(),
                                                   attention_states, feed_previous=forward_only)
         else:
-            outputs, state = decoder(encoder_state, self.decoder_inputs, self.target_embeddings(),
+            outputs, state = decoder.define_graph(encoder_state, self.decoder_inputs, self.target_embeddings(),
                                      feed_previous=forward_only)
 
         # Losses.
