@@ -44,7 +44,11 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
     for i in xrange(len(grouped_dataset)):
         nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
 
-        formatted_example = model.format_example(nl, [data_utils.ROOT_ID])
+        # Which bucket does it belong to?
+        bucket_id = min([b for b in xrange(len(model.buckets))
+                        if model.buckets[b][0] > len(nl)])
+
+        formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
         _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
 
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
@@ -80,13 +84,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
             print("Ground truth: " + data_tools.ast2command(gt_trees[0]))
             if FLAGS.decoding_algorithm == "greedy":
                 print("Prediction: " + pred_cmd)
-                # print("Search history (truncated at 25 steps): ")
-                # print(" -> ".join(search_historys[0][:25]))
                 print("AST: ")
                 data_tools.pretty_print(tree, 0)
                 print()
-                # print("token-overlap score: %.2f" % score)
-                # print()
             elif FLAGS.decoding_algorithm == "beam_search":
                 for j in xrange(FLAGS.top_k):
                     print("Prediction %d: " % (j+1) + top_k_pred_cmds[j])
@@ -98,6 +98,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
     print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
     print("Percentage of String Match = %.2f" % (num_correct/num_eval))
     print()
+
 
 def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                 FLAGS, num_eval = 30):
@@ -117,7 +118,11 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
 
         nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
 
-        formatted_example = model.format_example(nl, [data_utils.ROOT_ID])
+        # Which bucket does it belong to?
+        bucket_id = min([b for b in xrange(len(model.buckets))
+                        if model.buckets[b][0] > len(nl)])
+
+        formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
         _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
 
         gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
@@ -187,6 +192,7 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
     o_f.write("Percentage of String Match = %.2f" % (num_correct_command/num_eval) + "\n")
     o_f.write("\n")
 
+
 def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
     """
     Simple command line decoding interface.
@@ -201,8 +207,14 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
         # Get token-ids for the input sentence.
         token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
                                                      data_tools.basic_tokenizer)
+
+        # Which bucket does it belong to?
+        bucket_id = min([b for b in xrange(len(model.buckets))
+                        if model.buckets[b][0] > len(token_ids)])
+
         # Get a 1-element batch to feed the sentence to the model.
-        formatted_example = model.format_example(token_ids, [data_utils.ROOT_ID])
+        formatted_example = model.format_example(token_ids, [data_utils.ROOT_ID],
+                                                 bucket_id)
 
         # Get output logits for the sentence.
         _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
