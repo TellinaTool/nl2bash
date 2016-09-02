@@ -319,7 +319,7 @@ def read_data(source_path, target_path, buckets=None, max_num_examples=None):
                     counter = 0
                     while source:
                         assert(target)
-                        if max_num_examples and counter < max_size:
+                        if max_num_examples and counter < max_num_examples:
                             break
                         counter += 1
                         if counter % 1000 == 0:
