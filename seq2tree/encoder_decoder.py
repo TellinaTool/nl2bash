@@ -5,8 +5,6 @@ from __future__ import print_function
 
 import math
 import numpy as np
-import sys
-sys.path.append("../seq2seq")
 
 import random
 import tensorflow as tf

@@ -9,8 +9,8 @@ from __future__ import print_function
 import collections
 import math
 import os, sys
-sys.path.append("../bashlex")
-sys.path.append("../eval")
+sys.path.append(os.path.join([os.path.dirname(__file__), "..", "bashlex"]))
+sys.path.append(os.path.join([os.path.dirname(__file__), "..", "eval"]))
 
 import time
 import cPickle as pickle
