@@ -159,10 +159,8 @@ def train(train_set, dev_set, num_iter):
 
             # Get a batch and make a step.
             start_time = time.time()
-            encoder_inputs, decoder_inputs, target_weights = model.get_batch(
-                train_set, bucket_id)
-            _, step_loss, _ = model.step(sess, encoder_inputs, decoder_inputs,
-                                         target_weights, bucket_id, False)
+            formatted_batch = model.get_batch(train_set, bucket_id)
+            _, step_loss, _ = model.step(sess, formatted_batch, bucket_id, False)
             step_time += (time.time() - start_time) / FLAGS.steps_per_checkpoint
             loss += step_loss / FLAGS.steps_per_checkpoint
             current_step += 1
@@ -192,10 +190,8 @@ def train(train_set, dev_set, num_iter):
                     if len(dev_set[bucket_id]) == 0:
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
-                    encoder_inputs, decoder_inputs, target_weights = model.get_batch(
-                        dev_set, bucket_id)
-                    _, eval_loss, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
-                                                             target_weights, bucket_id, True)
+                    formatted_batch = model.get_batch(dev_set, bucket_id)
+                    _, eval_loss, output_logits = model.step(sess, formatted_batch, bucket_id, True)
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
