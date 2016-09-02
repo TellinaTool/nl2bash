@@ -7,7 +7,7 @@ from __future__ import print_function
 
 import re
 import os, sys
-sys.path.append(os.path.join([os.path.dirname(__file__), "..", "data"]))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "data"))
 
 import bash, normalizer
 import gazetteer
@@ -193,9 +193,9 @@ if __name__ == "__main__":
             print("AST:")
             pretty_print(norm_tree, 0)
             # print(to_command(norm_tree))
-            search_history = to_list(norm_tree, 'dfs', [])
+            search_history = ast2list(norm_tree, 'dfs', [])
             # print(list)
-            tree = to_ast(search_history + ['<PAD>'])
+            tree = list2ast(search_history + ['<PAD>'])
             # pretty_print(tree, 0)
             # print(to_template(tree, arg_type_only=False))
             print()
