@@ -10,8 +10,6 @@ def define_input_flags():
                                 "How many training steps to do per checkpoint.")
     tf.app.flags.DEFINE_integer("num_epochs", 10,
                                 "Number of training epochs")
-    tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
-                                "How many training steps to do per checkpoint.")
 
     tf.app.flags.DEFINE_boolean("manual_eval", False,
                                 "Set to True for manual evaluation.")
