@@ -49,7 +49,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                         if model.buckets[b][0] > len(nl)])
 
         formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
-        _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
+        _, _, output_logits = model.step(sess, formatted_example, bucket_id,
+                                         forward_only=True)
 
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
         gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
@@ -123,7 +124,8 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                         if model.buckets[b][0] > len(nl)])
 
         formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
-        _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
+        _, _, output_logits = model.step(sess, formatted_example, bucket_id,
+                                         forward_only=True)
 
         gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
         if FLAGS.decoding_algorithm == "greedy":
@@ -217,7 +219,8 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
                                                  bucket_id)
 
         # Get output logits for the sentence.
-        _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
+        _, _, output_logits = model.step(sess, formatted_example, bucket_id,
+                                         forward_only=True)
         if FLAGS.decoding_algorithm == "greedy":
             tree, cmd, search_history = decode(output_logits, rev_cm_vocab)
             print()
