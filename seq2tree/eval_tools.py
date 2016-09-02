@@ -12,8 +12,9 @@ import random
 import tensorflow as tf
 
 import os, sys
-sys.path.append("../bashlex")
-sys.path.append("../eval")
+import re
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 
 import data_utils, data_tools
 import ast_based
@@ -44,7 +45,9 @@ def decode(output_logits, rev_cm_vocab, FLAGS):
                 .replace(data_utils._UNK, ' ')
         else:
             cmd = " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
-        cmd = cmd.replace(' ; ', ' \\; ')
+        cmd = re.sub('( ;\s+)|( ;$)', ' \\; ', cmd)
+        cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
+        cmd = re.sub('(^\( )|( \( )', '\\(', cmd)
         tree = data_tools.bash_parser(cmd)
         return tree, cmd, None
     else:
