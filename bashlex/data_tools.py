@@ -159,7 +159,7 @@ def ast2list(node, order='dfs', list=None):
 
 def list2ast(list, order='dfs'):
     """Convert the linearized parse tree back to the AST data structure."""
-    return normalizer.list2ast(list, order)
+    return normalizer.list_to_ast(list, order)
 
 
 def ast2command(node, loose_constraints=False, ignore_flag_order=False):
