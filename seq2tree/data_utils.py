@@ -298,6 +298,44 @@ def group_data_by_nl(dataset, use_bucket=False):
     return grouped_dataset2
 
 
+def read_data(source_path, target_path, max_size=None):
+    """Read data from source and target files and put into buckets.
+    :param source_path: path to the file with token-ids for the source language.
+    :param target_path: path to the file with token-ids for the target language.
+    :param max_size: maximum number of lines to read. Read complete data files if
+        this entry is 0 or None.
+    """
+    data_set = [[] for _ in _buckets]
+
+    source_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.', 2)[2]])
+    target_txt_path = '.'.join([target_path.rsplit('.', 2)[0], target_path.rsplit('.', 2)[2]])
+    with tf.gfile.GFile(source_txt_path, mode="r") as source_txt_file:
+        with tf.gfile.GFile(target_txt_path, mode="r") as target_txt_file:
+            with tf.gfile.GFile(source_path, mode="r") as source_file:
+                with tf.gfile.GFile(target_path, mode="r") as target_file:
+                    source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
+                    source, target = source_file.readline(), target_file.readline()
+                    counter = 0
+                    while source:
+                        assert(target)
+                        if max_size and counter < max_size:
+                            break
+                        counter += 1
+                        if counter % 1000 == 0:
+                            print("  reading data line %d" % counter)
+                            sys.stdout.flush()
+                        source_ids = [int(x) for x in source.split()]
+                        target_ids = [int(x) for x in target.split()]
+                        for bucket_id, (source_size, target_size) in enumerate(_buckets):
+                            if len(source_ids) < source_size and len(target_ids) < target_size:
+                                data_set[bucket_id].append([source_txt, target_txt, source_ids, target_ids])
+                                break
+                        source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
+                        source, target = source_file.readline(), target_file.readline()
+    print("  %d data points read." % len(data_set))
+    return data_set
+
+
 def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
     """Get data into data_dir, create vocabularies and tokenize data.
 
