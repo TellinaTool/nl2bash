@@ -29,7 +29,7 @@ import seq2seq
 import os, sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2tree"))
-import data_utils
+import data_utils, graph_utils
 
 from encoder_decoder import EncoderDecoderModel
 
@@ -56,7 +56,7 @@ class Seq2SeqModel(EncoderDecoderModel):
         output_projection = None
         softmax_loss_function = None
         # Sampled softmax only makes sense if we sample less than vocabulary size.
-        if num_samples > 0 and num_samples < self.target_vocab_size:
+        if self.num_samples > 0 and self.num_samples < self.target_vocab_size:
             try:
                 w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
                 b = tf.get_variable("proj_b", [self.target_vocab_size])
@@ -68,39 +68,31 @@ class Seq2SeqModel(EncoderDecoderModel):
 
             def sampled_loss(inputs, labels):
                 labels = tf.reshape(labels, [-1, 1])
-                return tf.nn.sampled_softmax_loss(w_t, b, inputs, labels, num_samples,
+                return tf.nn.sampled_softmax_loss(w_t, b, inputs, labels, self.num_samples,
                                                   self.target_vocab_size)
 
             softmax_loss_function = sampled_loss
 
         # Create the internal multi-layer cell for our RNN.
-        single_cell = tf.nn.rnn_cell.GRUCell(size)
-        if use_lstm:
-            single_cell = tf.nn.rnn_cell.BasicLSTMCell(size)
-        cell = single_cell
-        if num_layers > 1:
-            cell = tf.nn.rnn_cell.MultiRNNCell([single_cell] * num_layers)
-        if input_keep_prob < 1 or output_keep_prob < 1:
-            cell = tf.nn.rnn_cell.DropoutWrapper(cell, input_keep_prob=input_keep_prob,
-                                                 output_keep_prob=output_keep_prob)
+        cell = graph_utils.create_multilayer_cell(self.rnn_cell, "", self.dim, self.num_layers,
+                                                         self.input_keep_prob, self.output_keep_prob)
 
         # The seq2seq function: we use embedding for the input and attention.
         def seq2seq_f(encoder_inputs, decoder_inputs, do_decode):
-            if use_attention:
+            if self.use_attention:
                 return seq2seq.embedding_attention_seq2seq(
                     encoder_inputs, decoder_inputs, cell,
-                    num_encoder_symbols=source_vocab_size,
-                    num_decoder_symbols=target_vocab_size,
-                    embedding_size=size,
+                    num_encoder_symbols=self.source_vocab_size,
+                    num_decoder_symbols=self.target_vocab_size,
+                    embedding_size=self.dim,
                     output_projection=output_projection,
-                    feed_previous=do_decode,
-                    beam_decoder=beam_decoder)
+                    feed_previous=do_decode)
             else:
                 return seq2seq.embedding_rnn_seq2seq(
                     encoder_inputs, decoder_inputs, cell,
-                    num_encoder_symbols=source_vocab_size,
-                    num_decoder_symbols=target_vocab_size,
-                    embedding_size=size,
+                    num_encoder_symbols=self.source_vocab_size,
+                    num_decoder_symbols=self.target_vocab_size,
+                    embedding_size=self.dim,
                     output_projection=output_projection,
                     feed_previous=do_decode)
 
@@ -152,7 +144,7 @@ class Seq2SeqModel(EncoderDecoderModel):
             for b in xrange(len(buckets)):
                 gradients = tf.gradients(self.losses[b], params)
                 clipped_gradients, norm = tf.clip_by_global_norm(gradients,
-                                                                 max_gradient_norm)
+                                                                 self.max_gradient_norm)
                 self.gradient_norms.append(norm)
                 self.updates.append(opt.apply_gradients(
                     zip(clipped_gradients, params), global_step=self.global_step))
