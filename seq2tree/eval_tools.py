@@ -26,7 +26,7 @@ def to_readable(outputs, rev_cm_vocab):
     return tree, cmd, search_history
 
 
-def decode(output_logits, rev_cm_vocab, beam_decoder, FLAGS):
+def decode(output_logits, rev_cm_vocab, FLAGS):
     if FLAGS.decoder == "greedy":
         # This is a greedy decoder - outputs are just argmaxes of output_logits.
         outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
@@ -50,7 +50,7 @@ def decode(output_logits, rev_cm_vocab, beam_decoder, FLAGS):
         return to_readable(outputs, rev_cm_vocab)
 
 
-def batch_decode(output_logits, rev_cm_vocab, beam_decoder, FLAGS):
+def batch_decode(output_logits, rev_cm_vocab, FLAGS):
     batch_size = len(output_logits[0])
     batch_outputs = []
     if FLAGS.decoder == "greedy":
