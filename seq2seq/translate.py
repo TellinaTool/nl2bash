@@ -37,8 +37,9 @@ sys.path.append("../bashlex")
 sys.path.append("../eval")
 sys.path.append("../seq2tree")
 
-import time
 import cPickle as pickle
+import collections
+import time
 
 import numpy as np
 
@@ -61,22 +62,62 @@ else:
 
 
 def create_model(session, forward_only):
-    """Create translation model and initialize or load parameters in session."""
-    beam_decoder = None
-    model = seq2seq_model.Seq2SeqModel(
-        FLAGS.nl_vocab_size, FLAGS.cm_vocab_size, _buckets,
-        FLAGS.size, FLAGS.num_layers, FLAGS.max_gradient_norm, FLAGS.batch_size,
-        FLAGS.learning_rate, FLAGS.learning_rate_decay_factor,
-        FLAGS.input_keep_prob, FLAGS.output_keep_prob,
-        forward_only=forward_only)
+    """
+    :param source_vocab_size: size of the source vocabulary.
+    :param target_vocab_size: size of the target vocabulary.
+    :param max_source_length: maximum length of the source sequence
+        (necessary for static graph construction).
+    :param max_target_length: maximum length of the target sequence
+        (necessary for static graph construction).
+    :param dim: dimension of each layer in the model.
+    :param num_layers: number of layers in the model.
+    :param max_gradient_norm: gradients are clipped to maximally this norm.
+    :param batch_size: the size of the batches used during training or decoding.
+    :param learning_rate: learning rate to start with.
+    :param learning_rate_decay_factor: decay learning rate by this much when needed.
+            not import if the adam optimizer is used.
+    :param input_keep_prob: proportion of input to keep if dropout is used.
+    :param output_keep_prob: proportion of output to keep if dropout is used.
+    :param num_samples: number of samples for sampled softmax.
+
+    :param decoder_topology: topology of the tree rnn decoder.
+    :param decoding_algorithm: decoding algorithm used.
+    :param
+    """
+    params = collections.defaultdict()
+    params["source_vocab_size"] = FLAGS.nl_vocab_size
+    params["target_vocab_size"] = FLAGS.cm_vocab_size
+    params["max_source_length"] = FLAGS.max_nl_length
+    params["max_target_length"] = FLAGS.max_cm_length
+    params["dim"] = FLAGS.dim
+    params["rnn_cell"] = FLAGS.rnn_cell
+    params["num_layers"] = FLAGS.num_layers
+    params["max_gradient_norm"] = FLAGS.max_gradient_norm
+    params["batch_size"] = FLAGS.batch_size
+    params["num_samples"] = FLAGS.num_samples
+    params["input_keep_prob"] = FLAGS.input_keep_prob
+    params["output_keep_prob"] = FLAGS.output_keep_prob
+    params["optimizer"] = FLAGS.optimizer
+    params["learning_rate"] = FLAGS.learning_rate
+    params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
+    params["use_attention"] = FLAGS.use_attention
+    params["use_copy"] = FLAGS.use_copy
+
+    params["decoder_topology"] = FLAGS.decoder_topology
+
+    params["decoding_algorithm"] = FLAGS.decoding_algorithm
+
+    model = seq2seq_model.Seq2SeqModel(params, _buckets, forward_only)
+
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
+    global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
         model.saver.restore(session, ckpt.model_checkpoint_path)
     else:
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
-    return model
+    return model, global_epochs
 
 
 def train(train_set, dev_set, num_iter):

@@ -8,11 +8,12 @@ import data_utils
 import graph_utils
 
 class Decoder(object):
-    def __init__(self, dim, batch_size, max_num_steps, num_layers, use_attention,
-                 use_copy, output_projection=None):
+    def __init__(self, dim, batch_size, max_num_steps, rnn_cell, num_layers,
+                 use_attention, use_copy, output_projection=None):
         self.dim = dim
         self.batch_size = batch_size
         self.max_num_steps = max_num_steps
+        self.rnn_cell = rnn_cell
         self.num_layers = num_layers
         self.use_attention = use_attention
         self.use_copy = use_copy
@@ -386,11 +387,13 @@ class BasicTreeDecoder(Decoder):
     def parent_cell(self):
         """Cell that controls transition from parent to child."""
         with tf.variable_scope("decoder_parent_cell") as scope:
-            cell = graph_utils.create_multilayer_cell("lstm", scope, self.dim, self.num_layers)
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
+                                                      self.input_keep_prob, self.output_keep_prob)
         return cell, scope
 
     def sb_cell(self):
         """Cell that controls transition from left sibling to right sibling."""
         with tf.variable_scope("decoder_sb_cell") as scope:
-            cell = graph_utils.create_multilayer_cell("lstm", scope, self.dim, self.num_layers)
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
+                                                      self.input_keep_prob, self.output_keep_prob)
         return cell, scope
