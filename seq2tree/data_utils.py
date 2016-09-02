@@ -298,14 +298,15 @@ def group_data_by_nl(dataset, use_bucket=False):
     return grouped_dataset2
 
 
-def read_data(source_path, target_path, max_size=None):
+def read_data(source_path, target_path, buckets=None, max_num_examples=None):
     """Read data from source and target files and put into buckets.
     :param source_path: path to the file with token-ids for the source language.
     :param target_path: path to the file with token-ids for the target language.
-    :param max_size: maximum number of lines to read. Read complete data files if
+    :param buckets: bucket sizes for training.
+    :param max_num_examples: maximum number of lines to read. Read complete data files if
         this entry is 0 or None.
     """
-    data_set = [[] for _ in _buckets]
+    data_set = [[] for _ in buckets]
 
     source_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.', 2)[2]])
     target_txt_path = '.'.join([target_path.rsplit('.', 2)[0], target_path.rsplit('.', 2)[2]])
@@ -318,7 +319,7 @@ def read_data(source_path, target_path, max_size=None):
                     counter = 0
                     while source:
                         assert(target)
-                        if max_size and counter < max_size:
+                        if max_num_examples and counter < max_size:
                             break
                         counter += 1
                         if counter % 1000 == 0:
@@ -326,7 +327,7 @@ def read_data(source_path, target_path, max_size=None):
                             sys.stdout.flush()
                         source_ids = [int(x) for x in source.split()]
                         target_ids = [int(x) for x in target.split()]
-                        for bucket_id, (source_size, target_size) in enumerate(_buckets):
+                        for bucket_id, (source_size, target_size) in enumerate(buckets):
                             if len(source_ids) < source_size and len(target_ids) < target_size:
                                 data_set[bucket_id].append([source_txt, target_txt, source_ids, target_ids])
                                 break

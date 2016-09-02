@@ -367,9 +367,9 @@ def load_data(sample_size=-1):
         nl_test = os.path.join(data_dir, "test") + ".ids%d.nl" % FLAGS.nl_vocab_size
         cm_test = os.path.join(data_dir, "test") + ".ids%d.cm" % FLAGS.cm_vocab_size
 
-    train_set = data_utils.read_data(nl_train, cm_train, FLAGS.max_train_data_size)
-    dev_set = data_utils.read_data(nl_dev, cm_dev)
-    test_set = data_utils.read_data(nl_test, cm_test)
+    train_set = data_utils.read_data(nl_train, cm_train, _buckets, FLAGS.max_train_data_size)
+    dev_set = data_utils.read_data(nl_dev, cm_dev, _buckets)
+    test_set = data_utils.read_data(nl_test, cm_test, _buckets)
 
     return train_set, dev_set, test_set
 
