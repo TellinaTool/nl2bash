@@ -16,7 +16,6 @@ from nltk.stem.wordnet import WordNetLemmatizer
 lmtzr = WordNetLemmatizer()
 
 # Regular expressions used to tokenize an English sentence.
-# _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
 _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
 _WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
@@ -142,6 +141,12 @@ def to_template(cmd, normalize_digits=True, normalize_long_pattern=True,
     tree = normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,
                          recover_quotation)
     return normalizer.to_template(tree, arg_type_only=arg_type_only)
+
+def to_readable(outputs, rev_cm_vocab):
+    search_history = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
+    tree = to_ast(search_history)
+    cmd = to_command(tree, loose_constraints=True)
+    return tree, cmd, search_history
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
