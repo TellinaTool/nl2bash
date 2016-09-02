@@ -108,17 +108,17 @@ def create_model(session, forward_only):
 
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
 
-    model = seq2seq_model.Seq2SeqModel(params, _buckets, forward_only)
+    model,  = seq2seq_model.Seq2SeqModel(params, _buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
-    global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
+
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
         model.saver.restore(session, ckpt.model_checkpoint_path)
     else:
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
-    return model, global_epochs
+    return model
 
 
 def train(train_set, dev_set, num_iter):
