@@ -278,7 +278,7 @@ def data_to_token_ids(data, target_path, vocabulary_path,
     return max_token_num
 
 
-def group_data_by_desp(dataset, use_bucket=False):
+def group_data_by_nl(dataset, use_bucket=False):
     if use_bucket:
         dataset = reduce(lambda x,y: x + y, dataset)
     grouped_dataset = {}

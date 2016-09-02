@@ -43,12 +43,11 @@ import cPickle as pickle
 
 import numpy as np
 
-from data_tools import basic_tokenizer, bash_tokenizer
 import normalizer
 
 import tensorflow as tf
 import seq2seq_model
-import data_utils
+import data_utils, data_tools
 
 import ast_based
 
@@ -309,123 +308,162 @@ def batch_decode(output_logits, rev_cm_vocab, beam_decoder):
     return batch_outputs
 
 
-def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
+def manual_eval(num_eval = 30):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+        log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        model, _ = create_model(sess, forward_only=True)
 
+        # Load vocabularies.
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
+        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
+        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+        _, dev_set, _ = load_data()
+
+        num_correct_template = 0.0
+        num_correct_command = 0.0
+
+        grouped_dataset = data_utils.group_data_by_nl(dev_set, use_bucket=True)
+        random.shuffle(grouped_dataset)
+
+        o_f = open("manual.eval.results", 'w')
+
+        num_evaled = 0
+
+        for i in xrange(len(grouped_dataset)):
+            if num_evaled == num_eval:
+                break
+
+            nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
+
+            formatted_example = model.get_bucket(
+                nl, [data_utils.ROOT_ID])
+            _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
+
+            gt_trees = [normalizer.normalize_ast(cmd) for cmd in cm_strs]
+            if FLAGS.decoding_algorithm == "greedy":
+                tree, pred_cmd, search_history = decode(output_logits, rev_cm_vocab)
+            else:
+                top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
+                top_k_pred_trees = []
+                top_k_pred_cmds = []
+                for j in xrange(FLAGS.top_k):
+                    tree, pred_cmd, search_history = data_tools.to_readable(top_k_search_histories[j], rev_cm_vocab)
+                    top_k_pred_trees.append(tree)
+                    top_k_pred_cmds.append(pred_cmd)
+            # evaluation ignoring ordering of flags
+            if ast_based.one_template_match(gt_trees, tree):
+                continue
+            else:
+                print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
+                o_f.write("Example %d (%d)" % (num_evaled+1, len(cm_strs)) + "\n")
+                print("English: " + nl_str.strip())
+                o_f.write("English: " + nl_str.strip() + "\n")
+                for j in xrange(len(cm_strs)):
+                    print("GT Command %d: " % (j+1) + cm_strs[j].strip())
+                    o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
+                if FLAGS.decoding_algorithm == "greedy":
+                    print("Prediction: " + pred_cmd)
+                    o_f.write("Prediction: " + pred_cmd + "\n")
+                    print("AST: ")
+                    normalizer.pretty_print(tree, 0)
+                    print()
+                elif FLAGS.decoding_algorithm == "beam_search":
+                    for j in xrange(FLAGS.top_k):
+                        decode_score = decode_scores[j]
+                        tree = top_k_pred_trees[j]
+                        pred_cmd = top_k_pred_cmds[j]
+                        print("Prediction %d (%.2f): " % (j+1, decode_score) + pred_cmd)
+                        print("AST: ")
+                        normalizer.pretty_print(tree, 0)
+                        print()
+                inp = raw_input("Correct template [y/n]: ")
+                if inp == "y":
+                    num_correct_template += 1
+                    o_f.write("C")
+                    inp = raw_input("Correct command [y/n]: ")
+                    if inp == "y":
+                        num_correct_command += 1
+                        o_f.write("C")
+                    else:
+                        o_f.write("W")
+                else:
+                    o_f.write("WW")
+                o_f.write("\n")
+                o_f.write("\n")
+
+            num_evaled += 1
+
+        print()
+        print("%d examples evaluated" % num_eval)
+        print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
+        print("Percentage of String Match = %.2f" % (num_correct_command/num_eval))
+        print()
+
+        o_f.write("\n")
+        o_f.write("%d examples evaluated" % num_eval + "\n")
+        o_f.write("Percentage of Template Match = %.2f" % (num_correct_template/num_eval) + "\n")
+        o_f.write("Percentage of String Match = %.2f" % (num_correct_command/num_eval) + "\n")
+        o_f.write("\n")
+
+
+def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_correct_template = 0.0
     num_correct = 0.0
     num_eval = 0
 
-    grouped_dataset = {}
+    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True)
 
-    for bucket_id in xrange(len(_buckets)):
-        if len(dataset[bucket_id]) == 0:
-            continue
-        model.batch_size = len(dataset[bucket_id])
-        
-        encoder_inputs, decoder_inputs, target_weights = model.get_bucket(
-                    dataset, bucket_id, feed_previous=False)
+    for i in xrange(len(grouped_dataset)):
+        nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
+
+        sentence = ' '.join([rev_nl_vocab[i] for i in nl])
+        gt_trees = [normalizer.normalize_ast(gt) for gt in cm_strs]
+
+        # Which bucket does it belong to?
+        bucket_id = min([b for b in xrange(len(_buckets))
+                        if _buckets[b][0] > len(nl)])
+
+        # Get a 1-element batch to feed the sentence to the model.
+        encoder_inputs, decoder_inputs, target_weights = model.get_batch(
+                {bucket_id: [(nl, [])]}, bucket_id)
         _, _, output_logits = model.step(sess, encoder_inputs, decoder_inputs,
                                          target_weights, bucket_id, True)
-
-        rev_encoder_inputs = []
-        for i in xrange(len(encoder_inputs)-1, -1, -1):
-            rev_encoder_inputs.append(encoder_inputs[i])
-        sentences = data_utils.token_ids_to_sentences(rev_encoder_inputs, rev_nl_vocab, char_model=FLAGS.char)
-        ground_truths = data_utils.token_ids_to_sentences(decoder_inputs, rev_cm_vocab,
-                                                          head_appended=True, char_model=FLAGS.char)
-        assert(len(sentences) == len(ground_truths))
         predictions = batch_decode(output_logits, rev_cm_vocab, model.beam_decoder)
-        print(len(ground_truths))
-        print(len(predictions))
-        assert(len(ground_truths) == len(predictions))
-        for i in xrange(len(ground_truths)):
-            sent = sentences[i]
-            gt = ground_truths[i]
-            gt_tree = normalizer.normalize_ast(gt)
-            pred = predictions[i]
-            tree = normalizer.normalize_ast(pred)
-            print("Example %d" % (num_eval + 1))
-            print("English: " + sent)
-            print("Ground truth: " + gt)
-            print("Prediction: " + pred)
-            print()
-            if sent in grouped_dataset:
-                grouped_dataset[sent][0].append(gt_tree)
-            else:
-                grouped_dataset[sent] = ([gt_tree], tree)
+        pred_cmd = predictions[0]
+        tree = normalizer.normalize_ast(pred_cmd)
 
-    unmatched = set()
-
-    for sent in grouped_dataset:
-        if ast_based.one_template_match(grouped_dataset[sent][0],
-                                        grouped_dataset[sent][1]):
+        # evaluation ignoring ordering of flags
+        if ast_based.one_template_match(gt_trees, tree):
             num_correct_template += 1
-        else:
-            unmatched.add(sent)
-        if ast_based.one_string_match(grouped_dataset[sent][0],
-                                      grouped_dataset[sent][1]):
+        if ast_based.one_string_match(gt_trees, tree):
             num_correct += 1
         num_eval += 1
+
+        if verbose:
+            print("Example %d (%d)" % (num_eval, len(cm_strs)))
+            print("Original English: " + nl_str.strip())
+            print("English: " + sentence)
+            print("Original Command: " + cm_strs[0].strip())
+            print("Ground truth: " + normalizer.to_command(gt_trees[0]))
+            if FLAGS.decoding_algorithm == "greedy":
+                print("Prediction: " + pred_cmd)
+                # print("Search history (truncated at 25 steps): ")
+                # print(" -> ".join(search_historys[0][:25]))
+                print("AST: ")
+                normalizer.pretty_print(tree, 0)
+                print()
+                # print("token-overlap score: %.2f" % score)
+                # print()
 
     print("%d examples evaluated" % num_eval)
     print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
     print("Percentage of String Match = %.2f" % (num_correct/num_eval))
     print()
 
-    num_manual_eval = 30
-    num_manual_correct_template = 0
-    num_manual_correct_command = 0
-    unmatched = list(unmatched)
-    random.shuffle(unmatched)
-
-    o_f = open("manual.eval.results", 'w')
-
-    for i in xrange(num_manual_eval):
-        sent = unmatched[i]
-        gt_trees = grouped_dataset[sent][0]
-        tree = grouped_dataset[sent][1]
-        pred_cmd = normalizer.to_command(tree)
-        print("Example %d (%d)" % (i+1, len(gt_trees)))
-        o_f.write("Example %d (%d)" % (i+1, len(gt_trees)) + "\n")
-        print("English: " + sent)
-        o_f.write("English: " + sent + "\n")
-        for j in xrange(len(gt_trees)):
-            print("GT Command %d: " % (j+1) + normalizer.to_command(gt_trees[j]).strip())
-            o_f.write("GT Command %d: " % (j+1) + normalizer.to_command(gt_trees[j]).strip() + "\n")
-        print("Prediction: " + pred_cmd)
-        o_f.write("Prediction: " + pred_cmd + "\n")
-        if pred_cmd:
-            print("AST: ")
-            normalizer.pretty_print(tree, 0)
-        print()
-        inp = raw_input("Correct template [y/n]: ")
-        if inp == "y":
-            num_manual_correct_template += 1
-            o_f.write("C")
-            inp = raw_input("Correct command [y/n]: ")
-            if inp == "y":
-                num_manual_correct_command += 1
-                o_f.write("C")
-            else:
-                o_f.write("W")
-        else:
-            o_f.write("WW")
-        o_f.write("\n")
-        o_f.write("\n")
-
-    print()
-    print("%d examples evaluated" % num_manual_eval)
-    print("Percentage of Template Match = %.2f" % (num_manual_correct_template/num_manual_eval))
-    print("Percentage of String Match = %.2f" % (num_manual_correct_command/num_manual_eval))
-    print()
-
-    o_f.write("\n")
-    o_f.write("%d examples evaluated" % num_manual_eval + "\n")
-    o_f.write("Percentage of Template Match = %.2f" % (num_manual_correct_template/num_manual_eval) + "\n")
-    o_f.write("Percentage of String Match = %.2f" % (num_manual_correct_command/num_manual_eval) + "\n")
-    o_f.write("\n")
-
-    o_f.close()
 
 def eval_model(sess, dev_set, rev_nl_vocab, rev_cm_vocab, verbose=True):
     # Create model and load parameters.
@@ -492,7 +530,7 @@ def interactive_decode():
         while sentence:
             # Get token-ids for the input sentence.
             token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
-                                                         basic_tokenizer)
+                                                         data_tools.basic_tokenizer)
             # Which bucket does it belong to?
             bucket_id = min([b for b in xrange(len(_buckets))
                              if _buckets[b][0] > len(token_ids)])
@@ -593,14 +631,15 @@ def bucket_selection(num_buckets=10):
             for nl, cmd in data[i]:
                 train_data.append((nl, cmd))
 
-    sorted_data = sorted(train_data, key=lambda x:(len(basic_tokenizer(x[0])), 
-                                                   len(bash_tokenizer(x[1]))))
+    sorted_data = sorted(train_data, key=lambda x:(len(data_tools.basic_tokenizer(x[0])),
+                                                   len(data_tools.bash_tokenizer(x[1]))))
     bucket_size = len(sorted_data) / num_buckets
     for i in xrange(num_buckets):
         print(int(bucket_size * (i+1)))
         mark = sorted_data[int(bucket_size * (i+1))-1]
         print(mark)
-        print(len(basic_tokenizer(mark[0])), len(bash_tokenizer(mark[1])))
+        print(len(data_tools.basic_tokenizer(mark[0])),
+              len(data_tools.bash_tokenizer(mark[1])))
 
 
 def self_test():
