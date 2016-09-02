@@ -22,7 +22,7 @@ from random import sample
 
 import tensorflow as tf
 
-import data_utils
+import data_utils, data_tools
 from parse_args import define_input_flags
 from data_tools import basic_tokenizer, bash_tokenizer, to_template
 from normalizer import to_list, to_ast, to_command, pretty_print, normalize_ast
@@ -190,13 +190,6 @@ def decode(logits, rev_cm_vocab):
     return to_readable(outputs, rev_cm_vocab)
 
 
-def to_readable(outputs, rev_cm_vocab):
-    search_history = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
-    tree = to_ast(search_history)
-    cmd = to_command(tree, loose_constraints=True)
-    return tree, cmd, search_history
-
-
 def interactive_decode():
     """
     Simple command line decoding interface.
@@ -242,7 +235,7 @@ def interactive_decode():
                 print()
                 for i in xrange(FLAGS.top_k):
                     outputs = top_k_search_histories[i]
-                    tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
+                    tree, cmd, search_history = data_tools.to_readable(outputs, rev_cm_vocab)
                     print("prediction %d (%.2f): " % (i, decode_scores[i]) + cmd)
                     print()
                     pretty_print(tree, 0)
@@ -262,14 +255,12 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     num_correct = 0.0
     num_eval = 0
 
-    grouped_dataset = data_utils.group_data_by_desp(dataset, use_bucket=True)
+    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True)
 
-    for bucket_id in xrange(len(_buckets)):
-        if len(dataset[bucket_id]) == 0:
-            continue
+    for i in xrange(len(grouped_dataset)):
         nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
       
-        formatted_example = model.get_bucket(dataset[bucket_id])
+        formatted_example = model.format_example(nl, [data_utils.ROOT_ID])
         _, _, output_logits = model.step(sess, formatted_example, forward_only=True)
 
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
@@ -281,7 +272,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             top_k_pred_trees = []
             top_k_pred_cmds = []
             for j in xrange(FLAGS.top_k-1, -1, -1):
-                tree, pred_cmd, search_history = to_readable(top_k_search_histories[i], rev_cm_vocab)
+                tree, pred_cmd, search_history = data_tools.to_readable(top_k_search_histories[i], rev_cm_vocab)
                 top_k_pred_trees.insert(0, tree)
                 top_k_pred_cmds.insert(0, pred_cmd)
                 if ast_based.one_template_match(gt_trees, tree):
@@ -343,7 +334,7 @@ def eval(verbose=True):
 
 def manual_eval(num_eval = 30):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-                                          log_device_placement=FLAGS.log_device_placement)) as sess:
+        log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         model, _ = create_model(sess, forward_only=True)
 
@@ -359,7 +350,7 @@ def manual_eval(num_eval = 30):
         num_correct_template = 0.0
         num_correct_command = 0.0
 
-        grouped_dataset = data_utils.group_data_by_desp(dev_set)
+        grouped_dataset = data_utils.group_data_by_nl(dev_set, use_bucket=True)
         random.shuffle(grouped_dataset)
 
         o_f = open("manual.eval.results", 'w')
@@ -517,9 +508,9 @@ def main(_):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(FLAGS.gpu)
 
     # train_set, dev_set, test_set = load_data()
-    # print(len(group_data_by_desp(train_set)))
-    # print(len(group_data_by_desp(dev_set)))
-    # print(len(group_data_by_desp(test_set)))
+    # print(len(group_data_by_nl(train_set)))
+    # print(len(group_data_by_nl(dev_set)))
+    # print(len(group_data_by_nl(test_set)))
 
     with tf.device('/gpu:%d' % FLAGS.gpu):
         if FLAGS.eval:
