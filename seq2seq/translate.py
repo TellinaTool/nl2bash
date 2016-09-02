@@ -215,47 +215,6 @@ def train(train_set, dev_set, num_iter):
     return True
 
 
-def decode(output_logits, rev_cm_vocab, beam_decoder):
-    if FLAGS.decoder == "greedy":
-        # This is a greedy decoder - outputs are just argmaxes of output_logits.
-        outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
-    elif FLAGS.decoder == "beam_search":
-        outputs = [np.argmax(logit, axis=1) for logit in output_logits]
-
-    # If there is an EOS symbol in outputs, cut them at that point.
-    if data_utils.EOS_ID in outputs:
-        outputs = outputs[:outputs.index(data_utils.EOS_ID)]
-
-    # Print out command corresponding to outputs.
-    if FLAGS.char:
-        return "".join([tf.compat.as_str(rev_cm_vocab[output]).strip() for output in outputs]) \
-                .replace(data_utils._UNK, ' ')
-    else:
-        return " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
-
-
-def batch_decode(output_logits, rev_cm_vocab, beam_decoder):
-    batch_size = len(output_logits[0])
-    batch_outputs = []
-    if FLAGS.decoder == "greedy":
-        # This is a greedy decoder - outputs are just argmaxes of output_logits.
-        predictions = [np.argmax(logit, axis=1) for logit in output_logits]
-    elif FLAGS.decoder == "beam_search":
-        predictions = [np.argmax(logit, axis=1) for logit in output_logits]
-    for i in xrange(batch_size):
-        outputs = [int(pred[i]) for pred in predictions]
-        # If there is an EOS symbol in outputs, cut them at that point.
-        if data_utils.EOS_ID in outputs:
-            outputs = outputs[:outputs.index(data_utils.EOS_ID)]
-            # Print out command corresponding to outputs.
-        if FLAGS.char:
-            batch_outputs.append("".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]) \
-                                .replace(data_utils._UNK, ' '))
-        else:
-            batch_outputs.append(" ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]))
-    return batch_outputs
-
-
 def manual_eval():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
