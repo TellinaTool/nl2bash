@@ -32,7 +32,7 @@ def define_input_flags():
 
 
     # device
-    tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
+    tf.app.flags.DEFINE_string("gpu", '0', "GPU device where the computation is going to be placed.")
     tf.app.flags.DEFINE_boolean("log_device_placement", False,
                                 "Set to True for logging device placement.")
 
@@ -48,6 +48,7 @@ def define_input_flags():
 
 
     # learning hyperparameters
+    tf.app.flags.DEFINE_string("rnn_cell", "gru", "Type of RNN cell to use.")
     tf.app.flags.DEFINE_string("optimizer", "adam", "Type of numeric optimization algorithm to use.")
     tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
     tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
