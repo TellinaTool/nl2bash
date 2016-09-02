@@ -44,6 +44,7 @@ def decode(output_logits, rev_cm_vocab, FLAGS):
                 .replace(data_utils._UNK, ' ')
         else:
             cmd = " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
+        cmd = cmd.replace(' ; ', ' \\; ')
         tree = data_tools.bash_parser(cmd)
         return tree, cmd, None
     else:
@@ -70,6 +71,7 @@ def batch_decode(output_logits, rev_cm_vocab, FLAGS):
                                     .replace(data_utils._UNK, ' ')
             else:
                 cmd = " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
+            cmd = cmd.replace(' ; ', ' \\; ')
             tree = data_tools.bash_parser(cmd)
             search_history = None
         else:
