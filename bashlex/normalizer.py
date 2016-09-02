@@ -574,7 +574,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             return (head_cmd, ["flags", "arguments"], arg_types)
 
         # normalize atomic command
-        parentheses_attach_points = []
 
         # Attach point format: (pointer_to_the_attach_point, ast_node_type, arg_type)
         attach_point_info = (current, ["headcommand"], [])
@@ -671,8 +670,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
             ind += 1
 
-        assert(len(parentheses_attach_points) == 0)
-
         # TODO: some commands get parsed with no head command
         # This is usually due to utilities unrecognized by us, e.g. "gen_root.sh".
         if len(head_commands) == 0:
@@ -691,6 +688,26 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         stack = []
         depth = 0
 
+        def pop_stack_content(depth, rparenth, stack_top=None):
+            # popping pushed states off the stack
+            popped = stack.pop()
+            while (popped.value != "("):
+                head_command.removeChild(popped)
+                popped = stack.pop()
+            lparenth = popped
+            if not rparenth:
+                # unbalanced brackets
+                rparenth = ArgumentNode(value=")")
+                make_parentchild(stack_top.parent, rparenth)
+                make_sibling(stack_top, rparenth)
+            new_child = organize_buffer(lparenth, rparenth)
+            i = head_command.substituteParentheses(lparenth, rparenth, new_child)
+            depth -= 1
+            if depth > 0:
+                # embedded parenthese
+                stack.append(new_child)
+            return depth, i
+
         i = 0
         while i < head_command.getNumChildren():
             child = head_command.children[i]
@@ -698,22 +715,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 stack.append(child)
                 depth += 1
             elif child.value == ")":
-                assert(depth >= 1)
-                # popping pushed states off the stack
-                popped = stack.pop()
-                while (popped.value != "("):
-                    head_command.removeChild(popped)
-                    popped = stack.pop()
-                lparenth = popped
-                rparenth = child
-                new_child = organize_buffer(lparenth, rparenth)
-                i = head_command.substituteParentheses(lparenth, rparenth, new_child)
-                depth -= 1
-                if depth >= 1:
-                    # embedded parenthese
-                    stack.append(new_child)
+                assert(depth > 0)
+                depth, i = pop_stack_content(depth, child)
             else:
-                if depth >= 1:
+                if depth > 0:
                     stack.append(child)
                 else:
                     if child.kind == "unarylogicop":
@@ -722,14 +727,19 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         unprocessed_binary_logic_ops.append(child)
             i += 1
 
+        # fix imbalanced parentheses
+        while (depth > 0):
+            depth, _ = pop_stack_content(depth, None, stack[-1])
+
+        assert(len(stack) == 0)
+        assert(depth == 0)
+
         for ul in unprocessed_unary_logic_ops:
             adjust_unary_operators(ul)
 
         for bl in unprocessed_binary_logic_ops:
             adjust_binary_operators(bl)
 
-        assert(len(stack) == 0)
-        assert(depth == 0)
 
     def normalize(node, current, node_kind="", arg_type=""):
         # recursively normalize each subtree
