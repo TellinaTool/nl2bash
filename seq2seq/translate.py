@@ -125,7 +125,7 @@ def train(train_set, dev_set, num_iter):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
                                           log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
-        print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.size))
+        print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.dim))
         model = create_model(sess, False)
 
         train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]

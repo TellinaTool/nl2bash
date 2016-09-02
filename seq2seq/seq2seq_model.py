@@ -52,6 +52,8 @@ class Seq2SeqModel(EncoderDecoderModel):
     def __init__(self, hyperparameters, buckets=None, forward_only=False):
         super(Seq2SeqModel, self).__init__(hyperparameters, buckets, forward_only)
 
+        self.global_step = tf.Variable(0, trainable=False)
+
         # If we use sampled softmax, we need an output projection.
         output_projection = None
         softmax_loss_function = None
@@ -74,8 +76,8 @@ class Seq2SeqModel(EncoderDecoderModel):
             softmax_loss_function = sampled_loss
 
         # Create the internal multi-layer cell for our RNN.
-        cell = graph_utils.create_multilayer_cell(self.rnn_cell, "", self.dim, self.num_layers,
-                                                         self.input_keep_prob, self.output_keep_prob)
+        cell = graph_utils.create_multilayer_cell(self.rnn_cell, "encoder", self.dim, self.num_layers,
+                                                  self.input_keep_prob, self.output_keep_prob)
 
         # The seq2seq function: we use embedding for the input and attention.
         def seq2seq_f(encoder_inputs, decoder_inputs, do_decode):
