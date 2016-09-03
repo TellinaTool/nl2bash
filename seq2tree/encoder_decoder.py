@@ -403,6 +403,7 @@ class Seq2TreeModel(EncoderDecoderModel):
         # Decoder.
         if self.decoder_topology == "basic":
             decoder = BasicTreeDecoder(self.dim, self.batch_size, self.max_target_length, self.num_layers,
+                                       self.parent_cell(), self.sb_cell(),
                                        self.use_attention, self.use_copy, self.output_projection())
 
         if self.use_attention:
@@ -491,6 +492,21 @@ class Seq2TreeModel(EncoderDecoderModel):
         else:
             loss_function = tf.nn.softmax_cross_entropy_with_logits
         return loss_function
+
+
+    def parent_cell(self):
+        """Cell that controls transition from parent to child."""
+        with tf.variable_scope("parent_cell") as scope:
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
+                                                      self.input_keep_prob, self.output_keep_prob)
+        return cell, scope
+
+    def sb_cell(self):
+        """Cell that controls transition from left sibling to right sibling."""
+        with tf.variable_scope("sb_cell") as scope:
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
+                                                      self.input_keep_prob, self.output_keep_prob)
+        return cell, scope
 
 
     def step(self, session, formatted_example, forward_only):
