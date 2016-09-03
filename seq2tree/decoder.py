@@ -104,6 +104,14 @@ class BasicTreeDecoder(Decoder):
 
     _NO_EXPAND = tf.constant(data_utils.NO_EXPAND_ID)
 
+    def __init__(self, dim, batch_size, max_num_steps, rnn_cell, num_layers,
+                 parent_cell, sb_cell, use_attention, use_copy, output_projection=None):
+        super(BasicTreeDecoder, self).__init__(dim, batch_size, max_num_steps, rnn_cell,
+                                               num_layers, use_attention, use_copy,
+                                               output_projection)
+        self.parent_cell = parent_cell
+        self.sb_cell = sb_cell
+
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      attention_states=None, num_heads=1,
                      initial_state_attention=False, feed_previous=False):
@@ -143,8 +151,8 @@ class BasicTreeDecoder(Decoder):
             print("basic_tree_encoder: " + b.name)
 
         with tf.variable_scope("basic_tree_decoder") as scope:
-            parent_cell, parent_scope = self.parent_cell()
-            sb_cell, sb_scope = self.sb_cell()
+            parent_cell, parent_scope = self.parent_cell
+            sb_cell, sb_scope = self.sb_cell
             outputs = []
 
             # search control
@@ -382,18 +390,3 @@ class BasicTreeDecoder(Decoder):
 
     def is_no_expand(self, ind):
         return tf.equal(tf.cast(ind, tf.int32), BasicTreeDecoder._NO_EXPAND)
-
-
-    def parent_cell(self):
-        """Cell that controls transition from parent to child."""
-        with tf.variable_scope("decoder_parent_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
-                                                      self.input_keep_prob, self.output_keep_prob)
-        return cell, scope
-
-    def sb_cell(self):
-        """Cell that controls transition from left sibling to right sibling."""
-        with tf.variable_scope("decoder_sb_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
-                                                      self.input_keep_prob, self.output_keep_prob)
-        return cell, scope
