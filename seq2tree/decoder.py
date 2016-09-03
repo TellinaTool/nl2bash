@@ -1,4 +1,4 @@
-"""A set of decoder modules used in the encoder-decoder framework."""
+# """A set of decoder modules used in the encoder-decoder framework."""
 
 import tensorflow as tf
 import sys
@@ -8,11 +8,12 @@ import data_utils
 import graph_utils
 
 class Decoder(object):
-    def __init__(self, dim, batch_size, max_num_steps, num_layers, use_attention,
-                 use_copy, output_projection=None):
+    def __init__(self, dim, batch_size, max_num_steps, rnn_cell, num_layers,
+                 use_attention, use_copy, output_projection=None):
         self.dim = dim
         self.batch_size = batch_size
         self.max_num_steps = max_num_steps
+        self.rnn_cell = rnn_cell
         self.num_layers = num_layers
         self.use_attention = use_attention
         self.use_copy = use_copy
@@ -28,6 +29,8 @@ class Decoder(object):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on cell and hidden states
+            print("input_embeddings.get_shape(): {}".format(input_embedding.get_shape()))
+            print("attns.get_shape(): {}".format(attns.get_shape()))
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             try:
                 cell_output, state = cell(x, state, cell_scope)
@@ -145,7 +148,7 @@ class BasicTreeDecoder(Decoder):
             outputs = []
 
             # search control
-            self.back_pointers = tf.constant(0, shape=[self.batch_size, 1])
+            self.back_pointers = tf.constant(0, shape=[self.batch_size, 1, 1])
             last_search_left_to_right = [tf.constant(False, dtype=tf.bool)] * self.batch_size
 
             # continuous stack used for storing LSTM states, synced with self.back_pointers
@@ -158,36 +161,35 @@ class BasicTreeDecoder(Decoder):
                 # initial attention state
                 attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
                          for _ in xrange(num_heads)])
-                attns.set_shape([self.batch_size, num_heads * attention_states.get_shape()[2].value])
                 if initial_state_attention:
                     attns = self.attention(encoder_state, hidden_features, attn_vecs, num_heads, hidden)
+                attns.set_shape([self.batch_size, num_heads * attention_states.get_shape()[2].value])
                 init_stack = tf.concat(1, [encoder_state[0], encoder_state[1], attns])
             else:
                 init_stack = tf.concat(1, [encoder_state[0], encoder_state[1]])
             self.stack = tf.expand_dims(init_stack, 1)
             self.input = tf.expand_dims(decoder_inputs[0], 1)
+            self.input = tf.expand_dims(self.input, 1)
+            self.input.set_shape([self.batch_size, 1, 1])
+            # print(self.stack.get_shape())
+            # print(self.input.get_shape())
 
             for i in xrange(self.max_num_steps):
                 if i > 0: scope.reuse_variables()
 
                 # exam action of current step
                 search_left_to_right = []
-                batch_stack_indices = []
                 batch_input_indices = []
                 for j in xrange(self.batch_size):
                     control_symbol = self.is_no_expand(self.input[j, -1, 0])
                     search_left_to_right.append(control_symbol)
-                    stack_index = tf.cond(search_left_to_right[j],
-                                    lambda: tf.cond(last_search_left_to_right[j],
-                                                    lambda: self.grandgrandparent(j),
-                                                    lambda: self.grandparent(j)),
-                                    lambda: self.parent(j))
                     input_index = tf.cond(search_left_to_right[j],
                                     lambda: tf.cond(last_search_left_to_right[j],
                                                     lambda: self.grandparent(j),
                                                     lambda: self.parent(j)),
                                     lambda: tf.constant([i]))
-                    batch_stack_indices.append(stack_index)
+                    # print("input_index.get_shape(): {}".format(input_index.get_shape()))
+                    input_index.set_shape(())
                     batch_input_indices.append(input_index)
 
                 batch_outputs = []
@@ -195,8 +197,7 @@ class BasicTreeDecoder(Decoder):
                 batch_hss = []
                 if self.use_attention:
                     batch_new_attns = []
-                    batch_input, batch_states, batch_attns = self.peek(batch_input_indices,
-                                                                       batch_stack_indices)
+                    batch_input, batch_states, batch_attns = self.peek(batch_input_indices)
                     batch_input_embeddings = tf.split(0, self.batch_size,
                         tf.nn.embedding_lookup(self.embeddings, batch_input))
                     for j in xrange(self.batch_size):
@@ -331,10 +332,10 @@ class BasicTreeDecoder(Decoder):
     """
 
     def grandgrandparent(self, j):
-        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], self.grandparent[j])
+        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], tf.add(self.grandparent(j), tf.constant(1)))
 
     def grandparent(self, j):
-        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], self.parent[j])
+        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], tf.add(self.parent(j), tf.constant(1)))
 
     def parent(self, j):
         return self.back_pointers[j, -1, 0]
@@ -349,7 +350,7 @@ class BasicTreeDecoder(Decoder):
         self.stack = tf.concat(1, [self.stack, tf.expand_dims(batch_states, 1)])
 
 
-    def peek(self, batch_input_indices, batch_stack_indices):
+    def peek(self, batch_stack_indices):
         """
         :param batch_indices: list of stack pointers for each search thread
         :return: batch stack state tuples
@@ -357,8 +358,11 @@ class BasicTreeDecoder(Decoder):
         """
         input_array = tf.split(0, self.batch_size, self.input)
         stack_array = tf.split(0, self.batch_size, self.stack)
-        batch_input_symbols = tf.nn.embedding_lookup(input_array, batch_input_indices)
+        batch_input_symbols = tf.nn.embedding_lookup(input_array, batch_stack_indices)
+        batch_input_symbols = tf.squeeze(batch_input_symbols)
         batch_stack_states = tf.nn.embedding_lookup(stack_array, batch_stack_indices)
+        print("batch_input_symbols.get_shape(): {}".format(batch_input_symbols.get_shape()))
+        print("batch_stack_states.get_shape(): {}".format(batch_stack_states.get_shape()))
 
         batch_stack_cells = batch_stack_states[:, 1:self.dim+1]
         batch_stack_hiddens = batch_stack_states[:, self.dim+1:2*self.dim+1]
@@ -383,11 +387,13 @@ class BasicTreeDecoder(Decoder):
     def parent_cell(self):
         """Cell that controls transition from parent to child."""
         with tf.variable_scope("decoder_parent_cell") as scope:
-            cell = graph_utils.create_multilayer_cell("lstm", scope, self.dim, self.num_layers)
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
+                                                      self.input_keep_prob, self.output_keep_prob)
         return cell, scope
 
     def sb_cell(self):
         """Cell that controls transition from left sibling to right sibling."""
         with tf.variable_scope("decoder_sb_cell") as scope:
-            cell = graph_utils.create_multilayer_cell("lstm", scope, self.dim, self.num_layers)
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
+                                                      self.input_keep_prob, self.output_keep_prob)
         return cell, scope

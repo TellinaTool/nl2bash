@@ -21,7 +21,7 @@ from __future__ import print_function
 import os
 import re
 import sys
-sys.path.append("../bashlex")
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
 from data_tools import basic_tokenizer, bash_tokenizer, char_tokenizer, bash_parser
 import normalizer
@@ -162,11 +162,11 @@ def initialize_vocabulary(vocabulary_path):
         raise ValueError("Vocabulary file %s not found.", vocabulary_path)
 
 
-def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
+def token_ids_to_sentences(inputs, rev_vocab, head_appended=False, char_model=False):
     batch_size = len(inputs[0])
     sentences = []
     for i in xrange(batch_size):
-        if headAppended:
+        if head_appended:
             outputs = [decoder_input[i] for decoder_input in inputs[1:]]
         else:
             outputs = [decoder_input[i] for decoder_input in inputs]
@@ -177,7 +177,11 @@ def token_ids_to_sentences(inputs, rev_vocab, headAppended=False):
         if PAD_ID in outputs:
             outputs = outputs[:outputs.index(PAD_ID)]
         # Print out command corresponding to outputs.
-        sentences.append(" ".join([tf.compat.as_str(rev_vocab[output])
+        if char_model:
+            sentences.append("".join([tf.compat.as_str(rev_vocab[output])
+                             for output in outputs]).replace(_UNK, ' '))
+        else:
+            sentences.append(" ".join([tf.compat.as_str(rev_vocab[output])
                                    for output in outputs]))
     return sentences
 
@@ -274,7 +278,7 @@ def data_to_token_ids(data, target_path, vocabulary_path,
     return max_token_num
 
 
-def group_data_by_desp(dataset, use_bucket=False):
+def group_data_by_nl(dataset, use_bucket=False):
     if use_bucket:
         dataset = reduce(lambda x,y: x + y, dataset)
     grouped_dataset = {}
@@ -292,6 +296,50 @@ def group_data_by_desp(dataset, use_bucket=False):
                                 grouped_dataset[nl_str][1],
                                 grouped_dataset[nl_str][2]))
     return grouped_dataset2
+
+
+def read_data(source_path, target_path, buckets=None, max_num_examples=None,
+              append_end_token=False):
+    """Read data from source and target files and put into buckets.
+    :param source_path: path to the file with token-ids for the source language.
+    :param target_path: path to the file with token-ids for the target language.
+    :param buckets: bucket sizes for training.
+    :param max_num_examples: maximum number of lines to read. Read complete data files if
+        this entry is 0 or None.
+    """
+    data_set = [[] for _ in buckets]
+
+    source_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.', 2)[2]])
+    target_txt_path = '.'.join([target_path.rsplit('.', 2)[0], target_path.rsplit('.', 2)[2]])
+    with tf.gfile.GFile(source_txt_path, mode="r") as source_txt_file:
+        with tf.gfile.GFile(target_txt_path, mode="r") as target_txt_file:
+            with tf.gfile.GFile(source_path, mode="r") as source_file:
+                with tf.gfile.GFile(target_path, mode="r") as target_file:
+                    source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
+                    source, target = source_file.readline(), target_file.readline()
+                    counter = 0
+                    while source:
+                        assert(target)
+                        if max_num_examples and counter < max_num_examples:
+                            break
+                        counter += 1
+                        if counter % 1000 == 0:
+                            print("  reading data line %d" % counter)
+                            sys.stdout.flush()
+                        source_ids = [int(x) for x in source.split()]
+                        target_ids = [int(x) for x in target.split()]
+                        if append_end_token:
+                            target_ids.append(EOS_ID)
+
+                        for bucket_id, (source_size, target_size) in enumerate(buckets):
+                            if len(source_ids) < source_size and len(target_ids) < target_size:
+                                data_set[bucket_id].append([source_txt, target_txt, source_ids, target_ids])
+                                break
+
+                        source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
+                        source, target = source_file.readline(), target_file.readline()
+    print("  %d data points read." % len(data_set))
+    return data_set
 
 
 def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
