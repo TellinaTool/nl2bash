@@ -165,15 +165,15 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
     num_correct_template = 0.0
     num_correct_command = 0.0
 
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True)
+    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True).values()
     random.shuffle(grouped_dataset)
 
     o_f = open("manual.eval.results", 'w')
 
     num_evaled = 0
 
-    for nl_template in grouped_dataset:
-        nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_template]
+    for i in xrange(len(grouped_dataset)):
+        nl_strs, cm_strs, nls, search_historys = grouped_dataset[i]
         nl_str = nl_strs[0]
         nl = nls[0]
 
@@ -268,8 +268,12 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
 
     while sentence:
         # Get token-ids for the input sentence.
-        token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
-                                                     data_tools.basic_tokenizer)
+        if FLAGS.char:
+            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+                                                     data_tools.char_tokenizer, data_tools.basic_tokenizer)
+        else:
+            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+                                                     data_tools.basic_tokenizer, None)
 
         # Which bucket does it belong to?
         bucket_id = min([b for b in xrange(len(model.buckets))

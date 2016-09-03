@@ -172,9 +172,6 @@ class BasicTreeDecoder(Decoder):
                 if initial_state_attention:
                     attns = self.attention(encoder_state, hidden_features, attn_vecs, num_heads, hidden)
                 attns.set_shape([self.batch_size, num_heads * attention_states.get_shape()[2].value])
-                print(encoder_state[0].get_shape())
-                print(encoder_state[1].get_shape())
-                print(attns.get_shape())
                 init_stack = tf.concat(1, [encoder_state[0], encoder_state[1], attns])
             else:
                 init_stack = tf.concat(1, [encoder_state[0], encoder_state[1]])
