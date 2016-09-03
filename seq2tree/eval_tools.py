@@ -100,6 +100,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
 
     for nl_template in grouped_dataset:
         nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_template]
+        nl_str = nl_strs[0]
         nl = nls[0]
 
         # Which bucket does it belong to?
@@ -139,8 +140,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
             print("Example %d (%d)" % (num_eval, len(cm_strs)))
             print("Original English: " + nl_str.strip())
             print("English: " + sentence)
-            print("Original Command: " + cm_strs[0].strip())
-            print("Ground truth: " + data_tools.ast2command(gt_trees[0]))
+            for j in xrange(len(cm_strs)):
+                print("GT Command {}: ".format(j+1) + cm_strs[j].strip())
             if FLAGS.decoding_algorithm == "greedy":
                 print("Prediction: " + pred_cmd)
                 print("AST: ")
@@ -173,6 +174,7 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
 
     for nl_template in grouped_dataset:
         nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_template]
+        nl_str = nl_strs[0]
         nl = nls[0]
 
         if num_evaled == num_eval:
