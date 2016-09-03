@@ -15,7 +15,7 @@ def define_input_flags():
                                 "Set to True for grid search.")
     tf.app.flags.DEFINE_string("tuning", "initialization,output_keep_prob,num_samples",
                                "List of hyperparamters to tune.")
-    tf.app.flags.DEFINE_boolean("initalization", False,
+    tf.app.flags.DEFINE_boolean("initialization", False,
                                 "Set to try multiple random intialization and select the best one.")
 
     tf.app.flags.DEFINE_boolean("manual_eval", False,
