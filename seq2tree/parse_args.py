@@ -10,8 +10,6 @@ def define_input_flags():
                                 "How many training steps to do per checkpoint.")
     tf.app.flags.DEFINE_integer("num_epochs", 10,
                                 "Number of training epochs")
-    tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
-                                "How many training steps to do per checkpoint.")
 
     tf.app.flags.DEFINE_boolean("manual_eval", False,
                                 "Set to True for manual evaluation.")
@@ -30,9 +28,15 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("sample_size", 200,
                                 "Training data sample size")
 
+    tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
+                                "How many training steps to do per checkpoint.")
+    tf.app.flags.DEFINE_integer("steps_per_milestone", 2000,
+                                "How many training steps to do per dev-set evaluation")
+    tf.app.flags.DEFINE_integer("num_milestones", 5,
+                                "How many dev-set evaluation to be performed during training")
 
     # device
-    tf.app.flags.DEFINE_integer("gpu", 0, "GPU device where the computation is going to be placed.")
+    tf.app.flags.DEFINE_string("gpu", '0', "GPU device where the computation is going to be placed.")
     tf.app.flags.DEFINE_boolean("log_device_placement", False,
                                 "Set to True for logging device placement.")
 
@@ -48,13 +52,15 @@ def define_input_flags():
 
 
     # learning hyperparameters
+    tf.app.flags.DEFINE_boolean("char", False, "Set to True for training character models.")
+    tf.app.flags.DEFINE_string("rnn_cell", "gru", "Type of RNN cell to use.")
     tf.app.flags.DEFINE_string("optimizer", "adam", "Type of numeric optimization algorithm to use.")
     tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
     tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
                               "Learning rate decays by this much.")
     tf.app.flags.DEFINE_float("max_gradient_norm", 5.0,
                               "Clip gradients to this norm.")
-    tf.app.flags.DEFINE_integer("batch_size", 1,
+    tf.app.flags.DEFINE_integer("batch_size", 128,
                                 "Batch size to use during training.")
     tf.app.flags.DEFINE_integer("num_samples", 512,
                                 "Number of samples for sampled softmax.")
@@ -67,7 +73,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("use_attention", False, "If set, use attention decoder.")
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
 
-    tf.app.flags.DEFINE_string("decoder_topology", "basic", "structure of the tree RNN")
+    tf.app.flags.DEFINE_string("decoder_topology", "basic_tree", "structure of the tree RNN")
     tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
     tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
     tf.app.flags.DEFINE_integer("top_k", 3, "Top-k highest-scoring structures to output.")

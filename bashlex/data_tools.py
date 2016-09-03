@@ -6,8 +6,8 @@ Domain-specific natural Language and bash command tokenizer.
 from __future__ import print_function
 
 import re
-import sys
-sys.path.append("../data")
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "data"))
 
 import bash, normalizer
 import gazetteer
@@ -16,7 +16,6 @@ from nltk.stem.wordnet import WordNetLemmatizer
 lmtzr = WordNetLemmatizer()
 
 # Regular expressions used to tokenize an English sentence.
-# _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<|\'|\"|\`]|[\)|\]|\}|\>|\'|\"|\`]$")
 _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
 _WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
@@ -126,10 +125,6 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True, normalize_
 
     return normalized_words
 
-def bash_parser(cmd, normalize_digits=True, normalize_long_pattern=True,
-                recover_quotation=True):
-    return normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,
-                                    recover_quotation)
 
 def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
                    recover_quotation=True):
@@ -137,15 +132,80 @@ def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
                          recover_quotation)
     return normalizer.to_tokens(tree)
 
-def to_template(cmd, normalize_digits=True, normalize_long_pattern=True,
-                   recover_quotation=True, arg_type_only=True):
+
+def bash_parser(cmd, normalize_digits=True, normalize_long_pattern=True,
+                recover_quotation=True):
+    """Parse bash command into AST."""
+    return normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,
+                                    recover_quotation)
+
+
+def pretty_print(node, depth=0):
+    """Pretty print the AST."""
+    try:
+        print("    " * depth + node.kind.upper() + '(' + node.value + ')')
+        for child in node.children:
+            pretty_print(child, depth+1)
+    except AttributeError, e:
+        print("    " * depth)
+
+
+def ast2list(node, order='dfs', list=None):
+    """Linearize the AST."""
+    if order == 'dfs':
+        list.append(node.symbol)
+        for child in node.children:
+            ast2list(child, order, list)
+        list.append("<NO_EXPAND>")
+    return list
+
+
+def list2ast(list, order='dfs'):
+    """Convert the linearized parse tree back to the AST data structure."""
+    return normalizer.list_to_ast(list, order)
+
+
+def ast2command(node, loose_constraints=False, ignore_flag_order=False):
+    return ' '.join(normalizer.to_tokens(node, loose_constraints, ignore_flag_order))
+
+
+def ast2template(node, loose_constraints=False, arg_type_only=True):
+    # convert a bash AST to a template that contains only reserved words and argument types
+    # flags are alphabetically ordered
+    tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order=True,
+                                  arg_type_only=arg_type_only)
+    return ' '.join(tokens)
+
+
+def cmd2template(cmd, normalize_digits=True, normalize_long_pattern=True,
+                recover_quotation=True, arg_type_only=True,
+                loose_constraints=False):
+    # convert a bash command to a template that contains only reserved words and argument types
+    # flags are alphabetically ordered
     tree = normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,
                          recover_quotation)
-    return normalizer.to_template(tree, arg_type_only=arg_type_only)
+    return ast2template(tree, loose_constraints, arg_type_only)
+
 
 if __name__ == "__main__":
-    cmd = sys.argv[1]
-    print(bash_tokenizer(cmd))
-    print(to_template(cmd))
+    while True:
+        try:
+            cmd = raw_input("Bash command: ")
+            norm_tree = bash_parser(cmd)
+            print()
+            print("AST:")
+            pretty_print(norm_tree, 0)
+            # print(to_command(norm_tree))
+            search_history = ast2list(norm_tree, 'dfs', [])
+            # print(list)
+            tree = list2ast(search_history + ['<PAD>'])
+            # pretty_print(tree, 0)
+            # print(to_template(tree, arg_type_only=False))
+            print()
+            print("Command Template (flags in alphabetical order):")
+            print(ast2template(norm_tree))
+            print()
+        except EOFError as ex:
+            break
 
 
