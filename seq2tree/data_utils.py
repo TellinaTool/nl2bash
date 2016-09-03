@@ -299,7 +299,7 @@ def group_data_by_nl(dataset, use_bucket=False):
 
 
 def read_data(source_path, target_path, buckets=None, max_num_examples=None,
-              append_end_token=False):
+              append_head_token=False, append_end_token=False):
     """Read data from source and target files and put into buckets.
     :param source_path: path to the file with token-ids for the source language.
     :param target_path: path to the file with token-ids for the target language.
@@ -328,6 +328,8 @@ def read_data(source_path, target_path, buckets=None, max_num_examples=None,
                             sys.stdout.flush()
                         source_ids = [int(x) for x in source.split()]
                         target_ids = [int(x) for x in target.split()]
+                        if append_head_token:
+                            target_ids.insert(0, ROOT_ID)
                         if append_end_token:
                             target_ids.append(EOS_ID)
 
