@@ -298,7 +298,8 @@ def group_data_by_nl(dataset, use_bucket=False):
     return grouped_dataset2
 
 
-def read_data(source_path, target_path, buckets=None, max_num_examples=None):
+def read_data(source_path, target_path, buckets=None, max_num_examples=None,
+              append_end_token=False):
     """Read data from source and target files and put into buckets.
     :param source_path: path to the file with token-ids for the source language.
     :param target_path: path to the file with token-ids for the target language.
@@ -327,10 +328,14 @@ def read_data(source_path, target_path, buckets=None, max_num_examples=None):
                             sys.stdout.flush()
                         source_ids = [int(x) for x in source.split()]
                         target_ids = [int(x) for x in target.split()]
+                        if append_end_token:
+                            target_ids.append(EOS_ID)
+
                         for bucket_id, (source_size, target_size) in enumerate(buckets):
                             if len(source_ids) < source_size and len(target_ids) < target_size:
                                 data_set[bucket_id].append([source_txt, target_txt, source_ids, target_ids])
                                 break
+
                         source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
                         source, target = source_file.readline(), target_file.readline()
     print("  %d data points read." % len(data_set))
