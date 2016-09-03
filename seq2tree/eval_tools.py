@@ -94,8 +94,9 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
 
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True)
 
-    for i in xrange(len(grouped_dataset)):
-        nl_str, cm_strs, nl, search_historys = grouped_dataset[i]
+    for nl_template in grouped_dataset:
+        nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_template]
+        nl = nls[0]
 
         # Which bucket does it belong to?
         bucket_id = min([b for b in xrange(len(model.buckets))
@@ -166,11 +167,12 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
 
     num_evaled = 0
 
-    for i in xrange(len(grouped_dataset)):
+    for nl_template in grouped_dataset:
+        nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_template]
+        nl = nls[0]
+
         if num_evaled == num_eval:
             break
-
-        nl_str, cm_strs, nl, _ = grouped_dataset[i]
 
         # Which bucket does it belong to?
         bucket_id = min([b for b in xrange(len(model.buckets))
