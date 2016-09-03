@@ -186,7 +186,7 @@ class BasicTreeDecoder(Decoder):
                                     lambda: tf.cond(last_search_left_to_right[j],
                                                     lambda: self.grandparent(j),
                                                     lambda: self.parent(j)),
-                                    lambda: tf.constant([]))
+                                    lambda: tf.constant([i]))
                     batch_stack_indices.append(stack_index)
                     batch_input_indices.append(input_index)
 
