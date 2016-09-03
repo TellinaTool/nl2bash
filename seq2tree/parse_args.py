@@ -11,6 +11,11 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("num_epochs", 10,
                                 "Number of training epochs")
 
+    tf.app.flags.DEFINE_boolean("grid_search", False,
+                                "Set to True for grid search.")
+    tf.app.flags.DEFINE_string("tuning", "initialization,output_keep_prob,num_samples",
+                               "List of hyperparamters to tune.")
+
     tf.app.flags.DEFINE_boolean("manual_eval", False,
                                 "Set to True for manual evaluation.")
     tf.app.flags.DEFINE_boolean("eval", False,
@@ -49,7 +54,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("data_dir", "/tmp", "Raw data directory")
     tf.app.flags.DEFINE_string("data_split", "command", "Data split criteria")
     tf.app.flags.DEFINE_string("train_dir", "/tmp", "Directory to save trained models.")
-
+    tf.app.flags.DEFINE_boolean("create_fresh_params", False, "Set to force remove previously trained models.")
 
     # learning hyperparameters
     tf.app.flags.DEFINE_boolean("char", False, "Set to True for training character models.")

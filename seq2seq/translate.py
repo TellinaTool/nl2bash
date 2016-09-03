@@ -38,8 +38,9 @@ sys.path.append("../eval")
 sys.path.append("../seq2tree")
 
 import cPickle as pickle
-import collections
+import collections, itertools
 import time
+import shutil
 
 import numpy as np
 
@@ -48,7 +49,7 @@ import tensorflow as tf
 import data_utils, data_tools
 import parse_args
 import seq2seq_model
-import eval_tools
+import eval_tools, hyperparam_range
 
 
 FLAGS = tf.app.flags.FLAGS
@@ -115,6 +116,12 @@ def create_model(session, forward_only):
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
         model.saver.restore(session, ckpt.model_checkpoint_path)
     else:
+        if not os.path.exists(FLAGS.train_dir):
+            print("Making train dir {}".format(FLAGS.train_dir))
+            os.mkdir(FLAGS.train_dir)
+        else:
+            if FLAGS.create_fresh_parameters:
+                os.remove(os.path.join(FLAGS.train_dir, "*"))
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
     return model
@@ -250,7 +257,7 @@ def eval(verbose=True):
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = load_data()
 
-        eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
+        return eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
                             FLAGS, verbose)
 
 
@@ -273,17 +280,69 @@ def interactive_decode():
 
 
 def train_and_eval(train_set, dev_set):
-    num_iter = FLAGS.steps_per_milestone
     for i in xrange(FLAGS.num_milestones):
-        is_learning = train(train_set, dev_set, num_iter)
+        is_learning = train(train_set, dev_set, FLAGS.steps_per_milestone)
         tf.reset_default_graph()
-        eval(False)
+        temp_match_score, eval_match_score = eval(False)
         tf.reset_default_graph()
-
         if not is_learning:
             print("Training stopped early for no improvement observed on dev set.")
             break
+    return temp_match_score, eval_match_score
 
+
+def grid_search(train_set, dev_set):
+    FLAGS.create_fresh_parameters = True
+
+    hyperparameters = FLAGS.tuning.split(',')
+    num_hps = len(hyperparameters)
+    hp_range = hyperparam_range.hyperparam_range
+
+    print("======== Grid Search ========")
+    print("%d hyperparameters: " % num_hps)
+    for i in xrange(num_hps):
+        print("{}: {}".format(hyperparameters[i], hp_range[hyperparameters[0]]))
+    print()
+
+    grid = hp_range[hyperparameters[0]]
+    for i in xrange(1, num_hps):
+        grid = itertools.product(grid, hp_range[hyperparameters[i]])
+
+    model_dir = FLAGS.rnn_cell
+    if FLAGS.use_attention:
+        model_dir += '-attention'
+    model_dir += '-{}'.format(FLAGS.batch_size)
+
+    best_hp_set = [-1] * num_hps
+    best_temp_match_score = 0.0
+
+    for row in grid:
+        for i in xrange(num_hps):
+            model_dir += '-{}'.format(row[i])
+            setattr(FLAGS, "train_dir", model_dir)
+            setattr(FLAGS, hyperparameters[i], row[i])
+
+            print("Trying parameter set: ")
+            for i in xrange(num_hps):
+                print("* {}: {}".format(hyperparameters[i], row[i]))
+            temp_match_score, eval_match_score = \
+                train_and_eval(train_set, dev_set)
+            print("Best parameter set so far: ")
+            for i in xrange(num_hps):
+                print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
+            print("Best template match score so far = {}".format(best_temp_match_score))
+            if temp_match_score > best_temp_match_score:
+                best_hp_set = row
+                best_temp_match_score = temp_match_score
+                print("☺ New best parameter setting found")
+
+    print()
+    print("*****************************")
+    print("Best parameter set: ")
+    for i in xrange(num_hps):
+        print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
+    print("Best emplate match score = {}".format(best_temp_match_score))
+    print("*****************************")
 
 def load_data(sample_size=-1):
     print("Loading data from %s" % FLAGS.data_dir)
@@ -352,6 +411,9 @@ def main(_):
             interactive_decode()
         elif FLAGS.bucket_selection:
             bucket_selection()
+        elif FLAGS.grid_search:
+            train_set, dev_set, _ = load_data()
+            grid_search(train_set, dev_set)
         else:
             train_set, dev_set, _ = load_data()
             train_and_eval(train_set, dev_set)
