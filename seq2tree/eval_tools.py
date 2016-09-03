@@ -62,6 +62,7 @@ def batch_decode(output_logits, rev_cm_vocab, FLAGS):
         predictions = [np.argmax(logit, axis=1) for logit in output_logits]
     elif FLAGS.decoder == "beam_search":
         predictions = [np.argmax(logit, axis=1) for logit in output_logits]
+
     for i in xrange(batch_size):
         outputs = [int(pred[i]) for pred in predictions]
         # If there is an EOS symbol in outputs, cut them at that point.
