@@ -123,7 +123,7 @@ def create_model(session, forward_only):
 
 def train(train_set, dev_set, num_iter):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-                                          log_device_placement=FLAGS.log_device_placement)) as sess:
+        log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.dim))
         model = create_model(sess, False)
@@ -305,9 +305,10 @@ def load_data(sample_size=-1):
         nl_test = os.path.join(data_dir, "test") + ".ids%d.nl" % FLAGS.nl_vocab_size
         cm_test = os.path.join(data_dir, "test") + ".ids%d.cm" % FLAGS.cm_vocab_size
 
-    train_set = data_utils.read_data(nl_train, cm_train, _buckets, FLAGS.max_train_data_size)
-    dev_set = data_utils.read_data(nl_dev, cm_dev, _buckets)
-    test_set = data_utils.read_data(nl_test, cm_test, _buckets)
+    train_set = data_utils.read_data(nl_train, cm_train, _buckets, FLAGS.max_train_data_size,
+                                     append_end_token=True)
+    dev_set = data_utils.read_data(nl_dev, cm_dev, _buckets, append_end_token=True)
+    test_set = data_utils.read_data(nl_test, cm_test, _buckets, append_end_token=True)
 
     return train_set, dev_set, test_set
 

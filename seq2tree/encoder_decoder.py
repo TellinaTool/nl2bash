@@ -48,63 +48,6 @@ class EncoderDecoderModel(object):
         self.learning_rate_decay_op = self.learning_rate.assign(
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
-    def step(self, session, formatted_example, forward_only):
-        """Run a step of the model feeding the given inputs.
-        :param session: tensorflow session to use.
-        :param encoder_inputs: list of numpy int vectors to feed as encoder inputs.
-        :param decoder_inputs: list of numpy int vectors to feed as decoder inputs.
-        :param target_weights: list of numpy float vectors to feed as target weights.
-        :param forward_only: whether to do the backward step or only forward.
-        :return (gradient_norm, average_perplexity, outputs)
-        """
-        # Unwarp data tensors
-        if self.use_copy:
-            encoder_inputs, decoder_inputs, target_weights, \
-            original_encoder_inputs, original_decoder_inputs, copy_masks = formatted_example
-        else:
-            encoder_inputs, decoder_inputs, target_weights = formatted_example
-
-        encoder_size = len(encoder_inputs)
-        decoder_size = len(decoder_inputs)
-
-        assert(encoder_size == self.max_source_length)
-        assert(decoder_size == self.max_target_length)
-
-        # Input feed: encoder inputs, decoder inputs, target_weights, as provided.
-        input_feed = {}
-        for l in xrange(encoder_size):
-            input_feed[self.encoder_inputs[l].name] = encoder_inputs[l]
-        for l in xrange(decoder_size):
-            input_feed[self.decoder_inputs[l].name] = decoder_inputs[l]
-            input_feed[self.target_weights[l].name] = target_weights[l]
-        if self.use_copy:
-            for l in xrange(encoder_size):
-                input_feed[self.original_encoder_inputs[l].name] = original_encoder_inputs[l]
-                input_feed[self.copy_masks[l].name] = copy_masks[l]
-            for l in xrange(decoder_size):
-                input_feed[self.original_decoder_inputs[l].name] = original_decoder_inputs[l]
-
-        # Since our targets are decoder inputs shifted by one, we need one more.
-        last_target = self.decoder_inputs[decoder_size].name
-        input_feed[last_target] = np.zeros([self.batch_size], dtype=np.int32)
-
-        # Output feed: depends on whether we do a backward step or not.
-        if not forward_only:
-            output_feed = [self.updates,            # Update Op that does SGD.
-                           self.gradient_norms,     # Gradient norm.
-                           self.losses]             # Loss for this batch.
-        else:
-            output_feed = [self.losses]  # Loss for this batch.
-            for l in xrange(decoder_size):  # Output logits.
-                output_feed.append(self.outputs[l])
-
-        outputs = session.run(output_feed, input_feed)
-
-        if not forward_only:
-            return outputs[1], outputs[2], None  # Gradient norm, loss, no outputs.
-        else:
-            return None, outputs[0], outputs[1:]  # No gradient norm, loss, outputs.
-
 
     def format_example(self, encoder_input, decoder_input, bucket_id=-1,
                        original_encoder_input=None,
@@ -539,6 +482,7 @@ class Seq2TreeModel(EncoderDecoderModel):
             log_perps /= total_size
         return log_perps
 
+
     def softmax_loss(self):
         if self.use_sampled_softmax:
             w, b = self.output_projection()
@@ -555,3 +499,61 @@ class Seq2TreeModel(EncoderDecoderModel):
         else:
             loss_function = tf.nn.softmax_cross_entropy_with_logits
         return loss_function
+
+
+    def step(self, session, formatted_example, forward_only):
+        """Run a step of the model feeding the given inputs.
+        :param session: tensorflow session to use.
+        :param encoder_inputs: list of numpy int vectors to feed as encoder inputs.
+        :param decoder_inputs: list of numpy int vectors to feed as decoder inputs.
+        :param target_weights: list of numpy float vectors to feed as target weights.
+        :param forward_only: whether to do the backward step or only forward.
+        :return (gradient_norm, average_perplexity, outputs)
+        """
+        # Unwarp data tensors
+        if self.use_copy:
+            encoder_inputs, decoder_inputs, target_weights, \
+            original_encoder_inputs, original_decoder_inputs, copy_masks = formatted_example
+        else:
+            encoder_inputs, decoder_inputs, target_weights = formatted_example
+
+        encoder_size = len(encoder_inputs)
+        decoder_size = len(decoder_inputs)
+
+        assert(encoder_size == self.max_source_length)
+        assert(decoder_size == self.max_target_length)
+
+        # Input feed: encoder inputs, decoder inputs, target_weights, as provided.
+        input_feed = {}
+        for l in xrange(encoder_size):
+            input_feed[self.encoder_inputs[l].name] = encoder_inputs[l]
+        for l in xrange(decoder_size):
+            input_feed[self.decoder_inputs[l].name] = decoder_inputs[l]
+            input_feed[self.target_weights[l].name] = target_weights[l]
+        if self.use_copy:
+            for l in xrange(encoder_size):
+                input_feed[self.original_encoder_inputs[l].name] = original_encoder_inputs[l]
+                input_feed[self.copy_masks[l].name] = copy_masks[l]
+            for l in xrange(decoder_size):
+                input_feed[self.original_decoder_inputs[l].name] = original_decoder_inputs[l]
+
+        # Since our targets are decoder inputs shifted by one, we need one more.
+        last_target = self.decoder_inputs[decoder_size].name
+        input_feed[last_target] = np.zeros([self.batch_size], dtype=np.int32)
+
+        # Output feed: depends on whether we do a backward step or not.
+        if not forward_only:
+            output_feed = [self.updates,            # Update Op that does SGD.
+                           self.gradient_norms,     # Gradient norm.
+                           self.losses]             # Loss for this batch.
+        else:
+            output_feed = [self.losses]  # Loss for this batch.
+            for l in xrange(decoder_size):  # Output logits.
+                output_feed.append(self.outputs[l])
+
+        outputs = session.run(output_feed, input_feed)
+
+        if not forward_only:
+            return outputs[1], outputs[2], None  # Gradient norm, loss, no outputs.
+        else:
+            return None, outputs[0], outputs[1:]  # No gradient norm, loss, outputs.
