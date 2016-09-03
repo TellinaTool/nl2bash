@@ -284,18 +284,16 @@ def group_data_by_nl(dataset, use_bucket=False):
     grouped_dataset = {}
     for i in xrange(len(dataset)):
         nl_str, cm_str, nl, search_history = dataset[i]
-        if nl_str in grouped_dataset:
-            grouped_dataset[nl_str][0].append(cm_str)
-            grouped_dataset[nl_str][2].append(search_history)
+        nl_template = " ".join(basic_tokenizer(nl_str))
+        if nl_template in grouped_dataset:
+            grouped_dataset[nl_template][0].add(nl_str)
+            grouped_dataset[nl_template][1].add(cm_str)
+            grouped_dataset[nl_template][2].add(nl)
+            grouped_dataset[nl_template][3].add(search_history)
         else:
-            grouped_dataset[nl_str] = [[cm_str], nl, [search_history]]
+            grouped_dataset[nl_template] = [[nl_str], [cm_str], [nl], [search_history]]
 
-    grouped_dataset2 = []
-    for nl_str in grouped_dataset:
-        grouped_dataset2.append((nl_str, grouped_dataset[nl_str][0],
-                                grouped_dataset[nl_str][1],
-                                grouped_dataset[nl_str][2]))
-    return grouped_dataset2
+    return grouped_dataset
 
 
 def read_data(source_path, target_path, buckets=None, max_num_examples=None,
