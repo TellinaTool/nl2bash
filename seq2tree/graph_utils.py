@@ -23,11 +23,13 @@ def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1, outp
             cell = tf.nn.rnn_cell.GRUCell(dim)
         else:
             raise ValueError("Unrecognized RNN cell type.")
+
         if num_layers > 1:
             cell = tf.nn.rnn_cell.MultiRNNCell([cell] * num_layers)
+
         assert(input_keep_prob >= 0 and output_keep_prob >= 0)
         if input_keep_prob < 1 or output_keep_prob < 1:
-            cell = tf.nn.rnn_cell.DropoutWrapper(cell,input_keep_prob=input_keep_prob,
+            cell = tf.nn.rnn_cell.DropoutWrapper(cell, input_keep_prob=input_keep_prob,
                                                  output_keep_prob=output_keep_prob)
     return cell
 

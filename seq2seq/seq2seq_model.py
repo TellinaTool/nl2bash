@@ -76,7 +76,11 @@ class Seq2SeqModel(EncoderDecoderModel):
             softmax_loss_function = sampled_loss
 
         # Create the internal multi-layer cell for our RNN.
+<<<<<<< HEAD
         cell = graph_utils.create_multilayer_cell(self.rnn_cell, "encoder", self.dim, self.num_layers,
+=======
+        cell = graph_utils.create_multilayer_cell(self.rnn_cell, "", self.dim, self.num_layers,
+>>>>>>> b58f08b77390358ee0375a044628eef88f4f6a78
                                                   self.input_keep_prob, self.output_keep_prob)
 
         # The seq2seq function: we use embedding for the input and attention.
