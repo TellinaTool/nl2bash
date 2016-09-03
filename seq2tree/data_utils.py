@@ -284,7 +284,7 @@ def group_data_by_nl(dataset, use_bucket=False):
     grouped_dataset = {}
     for i in xrange(len(dataset)):
         nl_str, cm_str, nl, search_history = dataset[i]
-        nl_template = " ".join(basic_tokenizer(nl_str))
+        nl_template = " ".join(basic_tokenizer(nl_str.decode("utf-8")))
         if nl_template in grouped_dataset:
             grouped_dataset[nl_template][0].add(nl_str)
             grouped_dataset[nl_template][1].add(cm_str)
