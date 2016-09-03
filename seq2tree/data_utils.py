@@ -286,10 +286,10 @@ def group_data_by_nl(dataset, use_bucket=False):
         nl_str, cm_str, nl, search_history = dataset[i]
         nl_template = " ".join(basic_tokenizer(nl_str))
         if nl_template in grouped_dataset:
-            grouped_dataset[nl_template][0].add(nl_str)
-            grouped_dataset[nl_template][1].add(cm_str)
-            grouped_dataset[nl_template][2].add(nl)
-            grouped_dataset[nl_template][3].add(search_history)
+            grouped_dataset[nl_template][0].append(nl_str)
+            grouped_dataset[nl_template][1].append(cm_str)
+            grouped_dataset[nl_template][2].append(nl)
+            grouped_dataset[nl_template][3].append(search_history)
         else:
             grouped_dataset[nl_template] = [[nl_str], [cm_str], [nl], [search_history]]
 
