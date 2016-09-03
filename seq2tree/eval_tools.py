@@ -150,10 +150,14 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                     data_tools.pretty_print(top_k_pred_trees[j], 0)
                     print()
 
+    temp_match_score = num_correct_template/num_eval
+    string_match_score = num_correct/num_eval
     print("%d examples evaluated" % num_eval)
-    print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
-    print("Percentage of String Match = %.2f" % (num_correct/num_eval))
+    print("Percentage of Template Match = %.2f" % temp_match_score)
+    print("Percentage of String Match = %.2f" % string_match_score)
     print()
+
+    return temp_match_score, string_match_score
 
 
 def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
