@@ -62,15 +62,10 @@ def batch_decode(output_logits, rev_cm_vocab, FLAGS):
     if FLAGS.decoding_algorithm == "greedy":
         # This is a greedy decoder - outputs are just argmaxes of output_logits.
         predictions = [np.argmax(logit, axis=1) for logit in output_logits]
-<<<<<<< HEAD
     elif FLAGS.decoding_algorithm == "beam_search":
         predictions = [np.argmax(logit, axis=1) for logit in output_logits] 
     else:
         raise ValueError("Unrecognized decoding algorithm name.")
-=======
-    elif FLAGS.decoder == "beam_search":
-        predictions = [np.argmax(logit, axis=1) for logit in output_logits]
->>>>>>> b58f08b77390358ee0375a044628eef88f4f6a78
 
     for i in xrange(batch_size):
         outputs = [int(pred[i]) for pred in predictions]
