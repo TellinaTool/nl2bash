@@ -49,8 +49,9 @@ class EncoderDecoderModel(object):
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
 
-    def format_example(self, encoder_input, decoder_input, bucket_id=-1, add_extra_go=False,
-                       original_encoder_input=None, original_decoder_input=None,
+    def format_example(self, encoder_input, decoder_input, bucket_id=-1,
+                       original_encoder_input=None,
+                       original_decoder_input=None,
                        copy_mask=None):
         """Prepare data to feed in step()"""
         if bucket_id >= 0:
@@ -73,12 +74,8 @@ class EncoderDecoderModel(object):
             original_encoder_inputs.append(list(reversed(original_encoder_input + encoder_pad)))
             copy_masks.append(list(reversed(copy_mask + copy_mask_pad)))
 
-        if add_extra_go:
-            decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_input) - 1)
-            decoder_inputs.append([data_utils.ROOT_ID] + decoder_input + decoder_pad)
-        else:
-            decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_input))
-            decoder_inputs.append(decoder_input + decoder_pad)
+        decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_input))
+        decoder_inputs.append(decoder_input + decoder_pad)
 
         # create batch-major vectors
         batch_size = 1
@@ -130,7 +127,7 @@ class EncoderDecoderModel(object):
             return batch_encoder_inputs, batch_decoder_inputs, batch_weights
 
 
-    def get_batch(self, data, bucket_id, add_extra_go=False):
+    def get_batch(self, data, bucket_id):
         """Get a random batch of data from the specified bucket, prepare for step.
 
         To feed data in step(..) it must be a list of batch-major vectors, while
@@ -158,13 +155,8 @@ class EncoderDecoderModel(object):
             encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
             encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
 
-            if add_extra_go:
-                decoder_pad_size = decoder_size - len(decoder_input) - 1
-                decoder_inputs.append([data_utils.ROOT_ID] + decoder_input +
-                                      [data_utils.PAD_ID] * decoder_pad_size)
-            else:
-                decoder_pad_size = decoder_size - len(decoder_input)
-                decoder_inputs.append(decoder_input + [data_utils.PAD_ID] * decoder_pad_size)
+            decoder_pad_size = decoder_size - len(decoder_input)
+            decoder_inputs.append(decoder_input + [data_utils.PAD_ID] * decoder_pad_size)
 
         # Now we create batch-major vectors from the data selected above.
         batch_encoder_inputs, batch_decoder_inputs, batch_weights = [], [], []
@@ -194,7 +186,7 @@ class EncoderDecoderModel(object):
         return batch_encoder_inputs, batch_decoder_inputs, batch_weights
 
 
-    def get_bucket(self, data, bucket_id, feed_previous=False, add_extra_go=False):
+    def get_bucket(self, data, bucket_id, feed_previous=False):
         """Get all elements of a bucket, prepare for step.
 
         To feed data in step(..) it must be a list of batch-major vectors, while
@@ -214,7 +206,7 @@ class EncoderDecoderModel(object):
         encoder_inputs, decoder_inputs = [], []
 
         # Get encoder and decoder inputs from a bucket,
-        # pad them if needed, reverse encoder inputs and add ROOT to decoder.
+        # pad them if needed, reverse encoder inputs.
         for i in xrange(len(data[bucket_id])):
             encoder_input, decoder_input = data[bucket_id][i]
 
@@ -222,20 +214,10 @@ class EncoderDecoderModel(object):
             encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
             encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
 
-            # Decoder inputs get an extra "ROOT" symbol, and are padded then.
-            if feed_previous:
-                decoder_pad_size = decoder_size - 1
-                decoder_inputs.append([data_utils.ROOT_ID] +
-                                      [data_utils.PAD_ID] * decoder_pad_size)
-            else:
-                if add_extra_go:
-                    decoder_pad_size = decoder_size - len(decoder_input) - 1
-                    decoder_inputs.append([data_utils.ROOT_ID] + decoder_input +
-                                          [data_utils.PAD_ID] * decoder_pad_size)
-                else:
-                    decoder_pad_size = decoder_size - len(decoder_input)
-                    decoder_inputs.append(decoder_input +
-                                          [data_utils.PAD_ID] * decoder_pad_size)
+            # Decoder inputs are padded then.
+            decoder_pad_size = decoder_size - len(decoder_input)
+            decoder_inputs.append(decoder_input +
+                                  [data_utils.PAD_ID] * decoder_pad_size)
 
         # Now we create batch-major vectors from the data selected above.
         batch_encoder_inputs, batch_decoder_inputs, batch_weights = [], [], []

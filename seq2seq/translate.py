@@ -305,9 +305,11 @@ def load_data(sample_size=-1):
         cm_test = os.path.join(data_dir, "test") + ".ids%d.cm" % FLAGS.cm_vocab_size
 
     train_set = data_utils.read_data(nl_train, cm_train, _buckets, FLAGS.max_train_data_size,
-                                     append_end_token=True)
-    dev_set = data_utils.read_data(nl_dev, cm_dev, _buckets, append_end_token=True)
-    test_set = data_utils.read_data(nl_test, cm_test, _buckets, append_end_token=True)
+                                     append_head_token=True, append_end_token=True)
+    dev_set = data_utils.read_data(nl_dev, cm_dev, _buckets,
+                                   append_head_token=True, append_end_token=True)
+    test_set = data_utils.read_data(nl_test, cm_test, _buckets,
+                                    append_head_token=True, append_end_token=True)
 
     return train_set, dev_set, test_set
 
