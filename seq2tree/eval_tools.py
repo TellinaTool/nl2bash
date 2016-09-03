@@ -101,7 +101,11 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
         bucket_id = min([b for b in xrange(len(model.buckets))
                         if model.buckets[b][0] > len(nl)])
 
-        formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
+        if FLAGS.decoder_topology == "seq":
+            formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id,
+                                                     add_extra_go=True)
+        else:
+            formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
         _, _, output_logits = model.step(sess, formatted_example, bucket_id,
                                          forward_only=True)
 
@@ -176,7 +180,11 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
         bucket_id = min([b for b in xrange(len(model.buckets))
                         if model.buckets[b][0] > len(nl)])
 
-        formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
+        if FLAGS.decoder_topology == "seq":
+            formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id,
+                                                     add_extra_go=True)
+        else:
+            formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
         _, _, output_logits = model.step(sess, formatted_example, bucket_id,
                                          forward_only=True)
 
@@ -268,8 +276,11 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
                         if model.buckets[b][0] > len(token_ids)])
 
         # Get a 1-element batch to feed the sentence to the model.
-        formatted_example = model.format_example(token_ids, [data_utils.ROOT_ID],
-                                                 bucket_id)
+        if FLAGS.decoder_topology == "seq":
+            formatted_example = model.format_example(token_ids, [data_utils.ROOT_ID], bucket_id,
+                                                     add_extra_go=True)
+        else:
+            formatted_example = model.format_example(token_ids, [data_utils.ROOT_ID], bucket_id)
 
         # Get output logits for the sentence.
         _, _, output_logits = model.step(sess, formatted_example, bucket_id,
