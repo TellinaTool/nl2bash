@@ -1156,6 +1156,24 @@
                   "commands":[
                      {
                         "type":"flag_option",
+                        "flag_name":"regextype"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"regex_type",
+                        "arg_type":"Pattern",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
                         "flag_name":"regex"
                      },
                      {
