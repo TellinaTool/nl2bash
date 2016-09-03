@@ -280,7 +280,7 @@ def main(_):
     # print(len(group_data_by_nl(dev_set)))
     # print(len(group_data_by_nl(test_set)))
 
-    with tf.device('/gpu:%d' % FLAGS.gpu):
+    with tf.device('/gpu:%s' % FLAGS.gpu):
         if FLAGS.eval:
             eval()
         elif FLAGS.manual_eval:
