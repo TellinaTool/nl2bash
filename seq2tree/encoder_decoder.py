@@ -401,9 +401,11 @@ class Seq2TreeModel(EncoderDecoderModel):
         encoder_outputs, encoder_state = tf.nn.rnn(encoder_cell, self.encoder_inputs, dtype=tf.float32)
 
         # Decoder.
-        if self.decoder_topology == "basic":
-            decoder = BasicTreeDecoder(self.dim, self.batch_size, self.max_target_length, self.num_layers,
-                                       self.use_attention, self.use_copy, self.output_projection())
+        if self.decoder_topology == "basic_tree":
+            decoder = BasicTreeDecoder(self.dim, self.batch_size, self.max_target_length, self.rnn_cell,
+                                       self.num_layers, self.use_attention, self.use_copy, self.output_projection())
+        else:
+            raise NotImplementedError
 
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim]) for e in encoder_outputs]
