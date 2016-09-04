@@ -74,6 +74,11 @@ from tensorflow.python.ops import variable_scope
 
 from tensorflow.python.util import nest
 
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2tree"))
+
+import encoder
+
 # TODO(ebrevdo): Remove once _linear is fully deprecated.
 linear = rnn_cell._linear  # pylint: disable=protected-access
 
@@ -818,9 +823,10 @@ def embedding_attention_decoder(decoder_inputs, initial_state, attention_states,
             )
 
 
-def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell,
+def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
+                                num_layers, encoder_topology,
                                 num_encoder_symbols, num_decoder_symbols,
-                                embedding_size,
+                                embedding_size, decoder_cell,
                                 num_heads=1, output_projection=None,
                                 feed_previous=False, dtype=dtypes.float32,
                                 scope=None, initial_state_attention=False,
@@ -869,26 +875,32 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell,
     """
     with variable_scope.variable_scope(scope or "embedding_attention_seq2seq"):
         # Encoder.
-        encoder_cell = rnn_cell.EmbeddingWrapper(
-            cell, embedding_classes=num_encoder_symbols,
-            embedding_size=embedding_size)
-        encoder_outputs, encoder_state = rnn.rnn(
-            encoder_cell, encoder_inputs, dtype=dtype)
+        if encoder_topology == "rnn":
+            _encoder = encoder.RNNEncoder(embedding_size, rnn_cell, num_encoder_symbols,
+                                          num_layers)
+        elif encoder_topology == "birnn":
+            _encoder = encoder.BiRNNEncoder(embedding_size, rnn_cell, num_encoder_symbols,
+                                            num_layers)
+        else:
+            raise AttributeError("Unrecognized encoder_topology.")
+
+        encoder_outputs, encoder_state = _encoder.define_graph(encoder_inputs)
 
         # First calculate a concatenation of encoder outputs to put attention on.
-        top_states = [array_ops.reshape(e, [-1, 1, cell.output_size])
+        top_states = [array_ops.reshape(e, [-1, 1, encoder_state.get_shape()[1]])
                       for e in encoder_outputs]
         attention_states = array_ops.concat(1, top_states)
+
 
         # Decoder.
         output_size = None
         if output_projection is None:
-            cell = rnn_cell.OutputProjectionWrapper(cell, num_decoder_symbols)
+            cell = rnn_cell.OutputProjectionWrapper(decoder_cell, num_decoder_symbols)
             output_size = num_decoder_symbols
 
         if isinstance(feed_previous, bool):
             return embedding_attention_decoder(
-                decoder_inputs, encoder_state, attention_states, cell,
+                decoder_inputs, encoder_state, attention_states, decoder_cell,
                 num_decoder_symbols, embedding_size, num_heads=num_heads,
                 output_size=output_size, output_projection=output_projection,
                 feed_previous=feed_previous,
