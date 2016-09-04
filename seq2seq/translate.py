@@ -119,7 +119,7 @@ def create_model(session, forward_only):
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
 
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
-        if not forward_only and FLAGS.create_fresh_parameters:
+        if not forward_only and FLAGS.create_fresh_params:
             data_utils.clean_dir(FLAGS.train_dir)
             print("Created model with fresh parameters.")
             session.run(tf.initialize_all_variables())
@@ -299,7 +299,7 @@ def train_and_eval(train_set, dev_set):
 
 
 def grid_search(train_set, dev_set):
-    FLAGS.create_fresh_parameters = True
+    FLAGS.create_fresh_params = True
 
     hyperparameters = FLAGS.tuning.split(',')
     num_hps = len(hyperparameters)
