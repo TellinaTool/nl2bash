@@ -36,9 +36,10 @@ from __future__ import print_function
 import math
 import os
 import sys
-sys.path.append("../bashlex")
-sys.path.append("../eval")
-sys.path.append("../seq2tree")
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2tree"))
+
 
 import cPickle as pickle
 import collections, itertools
@@ -108,6 +109,7 @@ def create_model(session, forward_only):
     params["use_attention"] = FLAGS.use_attention
     params["use_copy"] = FLAGS.use_copy
 
+    params["encoder_topology"] = FLAGS.encoder_topology
     params["decoder_topology"] = FLAGS.decoder_topology
 
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
@@ -324,8 +326,7 @@ def grid_search(train_set, dev_set):
 
     for row in grid:
         for i in xrange(num_hps):
-            model_dir += '-{}'.format(row[i])
-            setattr(FLAGS, "train_dir", model_dir)
+            setattr(FLAGS, "train_dir", model_dir + '-{}'.format(row[i]))
             setattr(FLAGS, hyperparameters[i], row[i])
 
             print("Trying parameter set: ")

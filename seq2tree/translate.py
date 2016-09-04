@@ -76,6 +76,7 @@ def create_model(session, forward_only):
     params["use_attention"] = FLAGS.use_attention
     params["use_copy"] = FLAGS.use_copy
 
+    params["encoder_topology"] = FLAGS.encoder_topology
     params["decoder_topology"] = FLAGS.decoder_topology
 
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
