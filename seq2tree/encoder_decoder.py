@@ -421,11 +421,9 @@ class Seq2TreeModel(EncoderDecoderModel):
     def forward(self, forward_only):
         # Encoder.
         if self.encoder_topology == "rnn":
-            _encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.max_source_length,
-                                          self.num_layers)
+            _encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers)
         elif self.encoder_topology == "birnn":
-            _encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.max_source_length,
-                                            self.num_layers)
+            _encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.num_layers)
         else:
             raise ValueError("Unrecognized encoder type.")
 
