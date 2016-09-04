@@ -280,7 +280,9 @@ def embedding_rnn_decoder(decoder_inputs, initial_state, cell, num_symbols,
                            loop_function=loop_function)
 
 
-def embedding_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
+def embedding_rnn_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
+                          num_layers, encoder_topology, embeddings,
+                          decoder_cell,
                           num_encoder_symbols, num_decoder_symbols,
                           embedding_size, output_projection=None,
                           feed_previous=False, dtype=dtypes.float32,
@@ -325,14 +327,20 @@ def embedding_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
     """
     with variable_scope.variable_scope(scope or "embedding_rnn_seq2seq"):
         # Encoder.
-        encoder_cell = rnn_cell.EmbeddingWrapper(
-            cell, embedding_classes=num_encoder_symbols,
-            embedding_size=embedding_size)
-        _, encoder_state = rnn.rnn(encoder_cell, encoder_inputs, dtype=dtype)
+        if encoder_topology == "rnn":
+            _encoder = encoder.RNNEncoder(embedding_size, rnn_cell, num_encoder_symbols,
+                                          num_layers)
+        elif encoder_topology == "birnn":
+            _encoder = encoder.BiRNNEncoder(embedding_size, rnn_cell, num_encoder_symbols,
+                                            num_layers)
+        else:
+            raise AttributeError("Unrecognized encoder_topology.")
+
+        encoder_outputs, encoder_state = _encoder.define_graph(encoder_inputs, embeddings)
 
         # Decoder.
         if output_projection is None:
-            cell = rnn_cell.OutputProjectionWrapper(cell, num_decoder_symbols)
+            cell = rnn_cell.OutputProjectionWrapper(decoder_cell, num_decoder_symbols)
 
         if isinstance(feed_previous, bool):
             return embedding_rnn_decoder(
@@ -892,7 +900,6 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
                       for e in encoder_outputs]
         attention_states = array_ops.concat(1, top_states)
 
-
         # Decoder.
         output_size = None
         if output_projection is None:
@@ -901,7 +908,7 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
 
         if isinstance(feed_previous, bool):
             return embedding_attention_decoder(
-                decoder_inputs, encoder_state, attention_states, decoder_cell,
+                decoder_inputs, encoder_state, attention_states, cell,
                 num_decoder_symbols, embedding_size, num_heads=num_heads,
                 output_size=output_size, output_projection=output_projection,
                 feed_previous=feed_previous,
