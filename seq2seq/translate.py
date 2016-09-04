@@ -324,8 +324,8 @@ def grid_search(train_set, dev_set):
     best_temp_match_score = 0.0
 
     for row in grid:
+        setattr(FLAGS, "train_dir", model_dir + '-{}'.format(row))
         for i in xrange(num_hps):
-            setattr(FLAGS, "train_dir", model_dir + '-{}'.format(row))
             setattr(FLAGS, hyperparameters[i], row[i])
 
             print("Trying parameter set: ")
