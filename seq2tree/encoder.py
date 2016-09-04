@@ -46,7 +46,7 @@ class BiRNNEncoder(object):
                                             scope=scope)
 
         with tf.variable_scope("backward_rnn") as scope:
-            reversed_input_embeddings = [input in reversed(input_embeddings)]
+            reversed_input_embeddings = [e for e in reversed(input_embeddings)]
             output_bw, state_bw = tf.nn.rnn(self.bw_cell, reversed_input_embeddings, dtype=tf.float32,
                                             scope=scope)
 
