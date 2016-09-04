@@ -433,7 +433,7 @@ class Seq2TreeModel(EncoderDecoderModel):
                                                                self.source_embeddings())
 
         # Decoder.
-        if self.decoder_topology == "basic":
+        if self.decoder_topology == "basic_tree":
             _decoder = decoder.BasicTreeDecoder(self.dim, self.rnn_cell, self.batch_size,
                                                self.max_target_length, self.num_layers,
                                                self.use_attention, self.use_copy,
