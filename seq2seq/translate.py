@@ -372,6 +372,7 @@ def grid_search(train_set, dev_set):
     print("Best emplate match score = {}".format(best_temp_match_score))
     print("*****************************")
 
+
 def load_data(sample_size=-1):
     print("Loading data from %s" % FLAGS.data_dir)
 
