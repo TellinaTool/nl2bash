@@ -13,11 +13,12 @@ class RNNEncoder(object):
         self.num_layers = num_layers
         self.cell, _ = self.encoder_cell()
 
-    def define_graph(self, encoder_inputs):
-        encoder_cell = tf.nn.rnn_cell.EmbeddingWrapper(
-            self.cell, embedding_classes=self.max_num_steps, embedding_size=self.dim)
+    def define_graph(self, encoder_inputs, embeddings):
+        self.embeddings = embeddings
+        input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
+                            for encoder_input in encoder_inputs]
         encoder_outputs, encoder_state = \
-            tf.nn.rnn(encoder_cell, encoder_inputs, dtype=tf.float32)
+            tf.nn.rnn(self.encoder_cell(), input_embeddings, dtype=tf.float32)
         return encoder_outputs, encoder_state
 
     def encoder_cell(self):
@@ -55,29 +56,27 @@ class BiRNNEncoder(object):
         # Concat each of the forward/backward outputs
         flat_output_fw = nest.flatten(output_fw)
         flat_output_bw = nest.flatten(output_bw)
-        flat_outputs = tuple(tf.concat(1, [fw, bw]) for fw, bw in zip(flat_output_fw, flat_output_bw))
-        outputs = nest.pack_sequence_as(structure=output_fw,
-                                        flat_sequence=flat_outputs)
+        flat_outputs = tuple(tf.add(fw, bw) for fw, bw in zip(flat_output_fw, flat_output_bw))
+        outputs = nest.pack_sequence_as(structure=output_fw, flat_sequence=flat_outputs)
 
-        W, b = self.output_projection()
-        projected_outputs = [tf.matmul(output, W) + b for output in outputs]
+        # W, b = self.output_projection()
+        # projected_outputs = [tf.matmul(output, W) + b for output in outputs]
 
         if self.rnn_cell == "gru":
-            state = tf.concat(1, [state_fw, state_bw])
-            projected_state = tf.matmul(state, W) + b
+            state = tf.add(state_fw, state_bw)
+            # projected_state = tf.matmul(state, W) + b
         elif self.rnn_cell == "lstm":
             cell_fw, hidden_fw = state_fw
             cell_bw, hidden_bw = state_bw
-            cell = tf.concat(1, [cell_fw, cell_bw])
-            hidden = tf.concat(1, [hidden_fw, hidden_bw])
-            projected_cell = tf.matmul(cell, W) + b
-            projected_hidden = tf.matmul(hidden, W) + b
-            projected_state = tf.nn.rnn_cell.LSTMStateTuple(projected_cell,
-                                                            projected_hidden)
+            cell = tf.add(cell_fw, cell_bw)
+            hidden = tf.add(hidden_fw, hidden_bw)
+            # projected_cell = tf.matmul(cell, W) + b
+            # projected_hidden = tf.matmul(hidden, W) + b
+            state = tf.nn.rnn_cell.LSTMStateTuple(cell, hidden)
         else:
             raise AttributeError("Unrecognized RNN cell type.")
 
-        return projected_outputs, projected_state
+        return outputs, state
 
 
     def forward_cell(self):
