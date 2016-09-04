@@ -80,7 +80,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("use_attention", False, "If set, use attention decoder.")
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
 
-    tf.app.flags.DEFINE_string("decoder_topology", "basic_tree", "structure of the tree RNN")
+    tf.app.flags.DEFINE_string("encoder_topology", "birnn", "structure of the encoder.")
+    tf.app.flags.DEFINE_string("decoder_topology", "basic_tree", "structure of the decoder.")
     tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
     tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
     tf.app.flags.DEFINE_integer("top_k", 3, "Top-k highest-scoring structures to output.")
