@@ -61,6 +61,17 @@ _DIGIT_RE = re.compile(br"\d")
 def is_option(word):
     return word.startswith('-') or word.startswith("FLAG_")
 
+
+def clean_dir(dir):
+    for f_name in os.listdir(dir):
+        f_path = os.path.join(dir, f_name)
+        try:
+            if os.path.isfile(f_path):
+                os.unlink(f_path)
+            #elif os.path.isdir(file_path): shutil.rmtree(file_path)
+        except Exception as e:
+            print(e)
+
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                       tokenizer, base_tokenizer=None,
                       normalize_digits=True, normalize_long_pattern=True,
