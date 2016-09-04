@@ -328,11 +328,9 @@ def embedding_rnn_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
     with variable_scope.variable_scope(scope or "embedding_rnn_seq2seq"):
         # Encoder.
         if encoder_topology == "rnn":
-            _encoder = encoder.RNNEncoder(embedding_size, rnn_cell, num_encoder_symbols,
-                                          num_layers)
+            _encoder = encoder.RNNEncoder(embedding_size, rnn_cell, num_layers)
         elif encoder_topology == "birnn":
-            _encoder = encoder.BiRNNEncoder(embedding_size, rnn_cell, num_encoder_symbols,
-                                            num_layers)
+            _encoder = encoder.BiRNNEncoder(embedding_size, rnn_cell, num_layers)
         else:
             raise AttributeError("Unrecognized encoder_topology.")
 
@@ -885,11 +883,9 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
     with variable_scope.variable_scope(scope or "embedding_attention_seq2seq"):
         # Encoder.
         if encoder_topology == "rnn":
-            _encoder = encoder.RNNEncoder(embedding_size, rnn_cell, num_encoder_symbols,
-                                          num_layers)
+            _encoder = encoder.RNNEncoder(embedding_size, rnn_cell, num_layers)
         elif encoder_topology == "birnn":
-            _encoder = encoder.BiRNNEncoder(embedding_size, rnn_cell, num_encoder_symbols,
-                                            num_layers)
+            _encoder = encoder.BiRNNEncoder(embedding_size, rnn_cell, num_layers)
         else:
             raise AttributeError("Unrecognized encoder_topology.")
 

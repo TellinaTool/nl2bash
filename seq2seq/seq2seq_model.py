@@ -19,8 +19,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import random
-
 import numpy as np
 
 import tensorflow as tf
@@ -29,7 +27,7 @@ import seq2seq
 import os, sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2tree"))
-import data_utils, graph_utils
+import graph_utils
 
 from encoder_decoder import EncoderDecoderModel
 
