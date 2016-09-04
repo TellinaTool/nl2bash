@@ -9,7 +9,7 @@ import numpy as np
 import random
 import tensorflow as tf
 
-from decoder import BasicTreeDecoder
+import encoder, decoder
 import data_utils
 import graph_utils
 
@@ -260,6 +260,10 @@ class EncoderDecoderModel(object):
         return self.hyperparams["use_copy"]
 
     @property
+    def encoder_topology(self):
+        return self.hyperparams["encoder_topology"]
+
+    @property
     def decoder_topology(self):
         return self.hyperparams["decoder_topology"]
 
@@ -331,6 +335,7 @@ class Seq2TreeModel(EncoderDecoderModel):
 
         self.define_graph(forward_only)
 
+
     def define_graph(self, forward_only):
         # Feeds for inputs.
         self.encoder_inputs = []  # encoder inputs.
@@ -395,24 +400,33 @@ class Seq2TreeModel(EncoderDecoderModel):
 
     def forward(self, forward_only):
         # Encoder.
-        encoder_cell = graph_utils.create_multilayer_cell(self.rnn_cell, "encoder", self.dim, self.num_layers)
-        encoder_cell = tf.nn.rnn_cell.EmbeddingWrapper(encoder_cell, embedding_classes=self.source_vocab_size,
-                                                       embedding_size=self.dim)
-        encoder_outputs, encoder_state = tf.nn.rnn(encoder_cell, self.encoder_inputs, dtype=tf.float32)
+        if self.encoder_topology == "rnn":
+            _encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.max_source_length,
+                                          self.num_layers)
+        elif self.encoder_topology == "birnn":
+            _encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.max_source_length,
+                                            self.num_layers)
+        else:
+            raise ValueError("Unrecognized encoder type.")
+
+        encoder_outputs, encoder_state = _encoder.define_graph(self.decoder_inputs)
 
         # Decoder.
         if self.decoder_topology == "basic":
-            decoder = BasicTreeDecoder(self.dim, self.batch_size, self.max_target_length, self.num_layers,
-                                       self.parent_cell(), self.sb_cell(),
-                                       self.use_attention, self.use_copy, self.output_projection())
+            _decoder = decoder.BasicTreeDecoder(self.dim, self.rnn_cell, self.batch_size,
+                                               self.max_target_length, self.num_layers,
+                                               self.use_attention, self.use_copy,
+                                               self.output_projection())
+        else:
+            raise ValueError("Unrecognized decoder type.")
 
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim]) for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
-            outputs, state = decoder.define_graph(encoder_state, self.decoder_inputs, self.target_embeddings(),
+            outputs, state = _decoder.define_graph(encoder_state, self.decoder_inputs, self.target_embeddings(),
                                                   attention_states, feed_previous=forward_only)
         else:
-            outputs, state = decoder.define_graph(encoder_state, self.decoder_inputs, self.target_embeddings(),
+            outputs, state = _decoder.define_graph(encoder_state, self.decoder_inputs, self.target_embeddings(),
                                      feed_previous=forward_only)
 
         # Losses.
@@ -420,8 +434,8 @@ class Seq2TreeModel(EncoderDecoderModel):
 
         # Project decoder outputs for decoding.
         W, b = self.output_projection()
-        print("forward: " + W.name)
-        print("forward: " + b.name)
+        # print("forward: " + W.name)
+        # print("forward: " + b.name)
         self.outputs = []
         for i in xrange(len(outputs)):
             self.outputs.append((tf.matmul(outputs[i], W) + b))
@@ -492,21 +506,6 @@ class Seq2TreeModel(EncoderDecoderModel):
         else:
             loss_function = tf.nn.softmax_cross_entropy_with_logits
         return loss_function
-
-
-    def parent_cell(self):
-        """Cell that controls transition from parent to child."""
-        with tf.variable_scope("parent_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
-                                                      self.input_keep_prob, self.output_keep_prob)
-        return cell, scope
-
-    def sb_cell(self):
-        """Cell that controls transition from left sibling to right sibling."""
-        with tf.variable_scope("sb_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
-                                                      self.input_keep_prob, self.output_keep_prob)
-        return cell, scope
 
 
     def step(self, session, formatted_example, forward_only):

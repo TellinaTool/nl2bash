@@ -1,20 +1,22 @@
-# """A set of decoder modules used in the encoder-decoder framework."""
+"""A set of decoder modules used in the encoder-decoder framework."""
 
 import tensorflow as tf
-import sys
-sys.path.append("../seq2seq")
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2seq"))
 
-import data_utils
-import graph_utils
+import data_utils, graph_utils
 
 class Decoder(object):
-    def __init__(self, dim, batch_size, max_num_steps, rnn_cell, num_layers,
+    def __init__(self, dim, rnn_cell, batch_size, max_num_steps, num_layers,
+                 input_keep_prob, output_keep_prob,
                  use_attention, use_copy, output_projection=None):
         self.dim = dim
+        self.rnn_cell = rnn_cell
         self.batch_size = batch_size
         self.max_num_steps = max_num_steps
-        self.rnn_cell = rnn_cell
         self.num_layers = num_layers
+        self.input_keep_prob = input_keep_prob
+        self.output_keep_prob = output_keep_prob
         self.use_attention = use_attention
         self.use_copy = use_copy
 
@@ -104,13 +106,12 @@ class BasicTreeDecoder(Decoder):
 
     _NO_EXPAND = tf.constant(data_utils.NO_EXPAND_ID)
 
-    def __init__(self, dim, batch_size, max_num_steps, rnn_cell, num_layers,
-                 parent_cell, sb_cell, use_attention, use_copy, output_projection=None):
-        super(BasicTreeDecoder, self).__init__(dim, batch_size, max_num_steps, rnn_cell,
-                                               num_layers, use_attention, use_copy,
-                                               output_projection)
-        self.parent_cell = parent_cell
-        self.sb_cell = sb_cell
+    def __init__(self, dim, batch_size, max_num_steps, num_layers,
+                 use_attention, use_copy, output_projection=None):
+        super(BasicTreeDecoder, self).__init__(dim, batch_size, max_num_steps, num_layers,
+                                        use_attention, use_copy, output_projection)
+        self.vertical_cell = self.vertical_cell()
+        self.horizontal_cell = self.horizontal_cell()
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      attention_states=None, num_heads=1,
@@ -151,8 +152,8 @@ class BasicTreeDecoder(Decoder):
             print("basic_tree_encoder: " + b.name)
 
         with tf.variable_scope("basic_tree_decoder") as scope:
-            parent_cell, parent_scope = self.parent_cell
-            sb_cell, sb_scope = self.sb_cell
+            vertical_cell, parent_scope = self.vertical_cell
+            horizontal_cell, sb_scope = self.horizontal_cell
             outputs = []
 
             # search control
@@ -213,9 +214,9 @@ class BasicTreeDecoder(Decoder):
                         state = batch_states[j]
                         attns = batch_attns[j]
                         output, cell, hs, attns = tf.cond(search_left_to_right[j],
-                            lambda: self.attention_cell(parent_cell, parent_scope, input, state, attns,
+                            lambda: self.attention_cell(vertical_cell, parent_scope, input, state, attns,
                                                        hidden_features, attn_vecs, num_heads, hidden),
-                            lambda: self.attention_cell(sb_cell, sb_scope, input, state, attns,
+                            lambda: self.attention_cell(horizontal_cell, sb_scope, input, state, attns,
                                                        hidden_features, attn_vecs, num_heads, hidden))
                         batch_outputs.append(output)
                         batch_cells.append(cell)
@@ -229,8 +230,8 @@ class BasicTreeDecoder(Decoder):
                         input = batch_input_embeddings[j]
                         state = batch_states[j]
                         output, cell, hs = tf.cond(search_left_to_right[j],
-                            lambda: self.normal_cell(parent_cell, parent_scope, input, state),
-                            lambda: self.normal_cell(sb_cell, sb_scope, input, state))
+                            lambda: self.normal_cell(vertical_cell, parent_scope, input, state),
+                            lambda: self.normal_cell(horizontal_cell, sb_scope, input, state))
                         batch_outputs.append(output)
                         batch_cells.append(cell)
                         batch_hss.append(hs)
@@ -253,11 +254,13 @@ class BasicTreeDecoder(Decoder):
                     self.push([batch_next_input, tf.concat(0, batch_input_indices),
                                                  tf.concat(0, batch_cells),
                                                  tf.concat(0, batch_hss)])
+
                 last_search_left_to_right = search_left_to_right
 
-                outputs.append(output)
+                outputs.append(tf.concat(0, batch_outputs))
 
-        return outputs, tf.nn.rnn_cell.LSTMStateTuple(cell, hs)
+        return outputs, tf.nn.rnn_cell.LSTMStateTuple(tf.concat(0, batch_cells),
+                                                      tf.concat(0, batch_hss))
 
 
     """def define_beam_decoding_graph(self, encoder_state, embeddings,
@@ -273,8 +276,8 @@ class BasicTreeDecoder(Decoder):
         with tf.variable_scope("basic_tree_decoder") as scope:
             init_decoder_input = tf.constant(data_utils.ROOT_ID, shape=[self.batch_size, 1])
 
-            parent_cell, parent_scope = self.parent_cell()
-            sb_cell, sb_scope = self.sb_cell()
+            vertical_cell, parent_scope = self.vertical_cell()
+            horizontal_cell, sb_scope = self.horizontal_cell()
             outputs = []
 
             # search control
@@ -309,15 +312,15 @@ class BasicTreeDecoder(Decoder):
                 if self.use_attention:
                     input, state, attns = self.peek()
                     output, cell, hs, attns = tf.cond(search_left_to_right,
-                        lambda: self.attention_cell(parent_cell, parent_scope, input, state, attns,
+                        lambda: self.attention_cell(vertical_cell, parent_scope, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden),
-                        lambda: self.attention_cell(sb_cell, sb_scope, input, state, attns,
+                        lambda: self.attention_cell(horizontal_cell, sb_scope, input, state, attns,
                                                    hidden_features, attn_vecs, num_heads, hidden))
                 else:
                     input, state = self.peek()
                     output, cell, hs = tf.cond(search_left_to_right,
-                        lambda: self.normal_cell(parent_cell, parent_scope, input, state),
-                        lambda: self.normal_cell(sb_cell, sb_scope, input, state))
+                        lambda: self.normal_cell(vertical_cell, parent_scope, input, state),
+                        lambda: self.normal_cell(horizontal_cell, sb_scope, input, state))
 
                 # mimick a stack pop if current symbol is <NO_EXPAND>
                 self.back_pointers = tf.cond(search_left_to_right, lambda: self.cs_pop(), lambda: self.back_pointers)
@@ -353,7 +356,7 @@ class BasicTreeDecoder(Decoder):
         :param batch_states: list of list of state tensors
         """
         self.input = tf.concat(1, [self.input, tf.expand_dims(batch_states[0], 1)])
-        self.back_pointers = tf.concat(1, [self.back_pointers, tf.expand(batch_states[1], 1)])
+        self.back_pointers = tf.concat(1, [self.back_pointers, tf.expand_dims(batch_states[1], 1)])
         batch_states = tf.concat(1, batch_states[2:])
         self.stack = tf.concat(1, [self.stack, tf.expand_dims(batch_states, 1)])
 
@@ -390,3 +393,19 @@ class BasicTreeDecoder(Decoder):
 
     def is_no_expand(self, ind):
         return tf.equal(tf.cast(ind, tf.int32), BasicTreeDecoder._NO_EXPAND)
+
+
+    def vertical_cell(self):
+        """Cell that controls transition from parent to child."""
+        with tf.variable_scope("vertical_cell") as scope:
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
+                                                      self.input_keep_prob, self.output_keep_prob)
+        return cell, scope
+
+
+    def horizontal_cell(self):
+        """Cell that controls transition from left sibling to right sibling."""
+        with tf.variable_scope("horizontal_cell") as scope:
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
+                                                      self.input_keep_prob, self.output_keep_prob)
+        return cell, scope
