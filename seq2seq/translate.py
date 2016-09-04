@@ -315,7 +315,8 @@ def grid_search(train_set, dev_set):
     for i in xrange(1, num_hps):
         grid = itertools.product(grid, hp_range[hyperparameters[i]])
 
-    model_dir = os.path.join(FLAGS.train_dir, FLAGS.rnn_cell)
+    model_dir = os.path.join(FLAGS.train_dir, FLAGS.encoder_topology,
+                             FLAGS.rnn_cell)
     if FLAGS.use_attention:
         model_dir += '-attention'
     model_dir += '-{}'.format(FLAGS.batch_size)
