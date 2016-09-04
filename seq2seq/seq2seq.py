@@ -903,12 +903,12 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
         # Decoder.
         output_size = None
         if output_projection is None:
-            cell = rnn_cell.OutputProjectionWrapper(decoder_cell, num_decoder_symbols)
+            decoder_cell = rnn_cell.OutputProjectionWrapper(decoder_cell, num_decoder_symbols)
             output_size = num_decoder_symbols
 
         if isinstance(feed_previous, bool):
             return embedding_attention_decoder(
-                decoder_inputs, encoder_state, attention_states, cell,
+                decoder_inputs, encoder_state, attention_states, decoder_cell,
                 num_decoder_symbols, embedding_size, num_heads=num_heads,
                 output_size=output_size, output_projection=output_projection,
                 feed_previous=feed_previous,
@@ -921,7 +921,7 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
             with variable_scope.variable_scope(variable_scope.get_variable_scope(),
                                                reuse=reuse):
                 outputs, state = embedding_attention_decoder(
-                    decoder_inputs, encoder_state, attention_states, cell,
+                    decoder_inputs, encoder_state, attention_states, decoder_cell,
                     num_decoder_symbols, embedding_size, num_heads=num_heads,
                     output_size=output_size, output_projection=output_projection,
                     feed_previous=feed_previous_bool,

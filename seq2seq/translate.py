@@ -127,7 +127,7 @@ def create_model(session, forward_only):
             print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
             model.saver.restore(session, ckpt.model_checkpoint_path)
     else:
-        if not os.path.exists(FLAGS.train_dir)
+        if not os.path.exists(FLAGS.train_dir):
             print("Making train dir {}".format(FLAGS.train_dir))
             os.mkdir(FLAGS.train_dir)
         print("Created model with fresh parameters.")
