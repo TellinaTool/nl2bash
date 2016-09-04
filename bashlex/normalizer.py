@@ -369,12 +369,13 @@ def type_check(word, possible_types):
         raise ValueError("Unable to decide type for {}".format(word))
 
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
-                  recover_quotation=True):
+                  recover_quotation=True, verbose=False):
     """
     Convert the bashlex parse tree of a command into the normalized form.
     :param cmd: bash command to parse
     :param normalize_digits: replace all digits in the tree with the special _NUM symbol
     :param recover_quotation: if set, retain quotation marks in the command
+    :param verbose: if set, print error message.
     :return normalized_tree
     """
     cmd = cmd.replace('\n', ' ').strip()
@@ -391,7 +392,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 try:
                     assert(w.startswith('"') and w.endswith('"'))
                 except AssertionError, e:
-                    print("Quotation Error: space inside word " + w)
+                    if verbose:
+                        print("Quotation Error: space inside word " + w)
                 if norm_long_pattern:
                     w = bash._LONG_PATTERN
             if norm_digit:
@@ -568,7 +570,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         new_node.word = '-' + option
                         normalize_flag(new_node, attach_point)
                         str += new_node.word + ' '
-                    print(str)
+                    if verbose:
+                        print(str)
 
             head_cmd = attach_point.getHeadCommand().value
             flag = node.word
