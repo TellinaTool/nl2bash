@@ -116,8 +116,8 @@ def create_model(session, forward_only):
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
 
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
-        if FLAGS.create_fresh_parameters:
-            os.remove(os.path.join(FLAGS.train_dir, "*"))
+        if not forward_only and FLAGS.create_fresh_parameters:
+            data_utils.clean_dir(FLAGS.train_dir, "*")
             print("Created model with fresh parameters.")
             session.run(tf.initialize_all_variables())
         else:
