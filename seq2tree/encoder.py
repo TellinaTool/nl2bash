@@ -6,10 +6,9 @@ import graph_utils
 from tensorflow.python.util import nest
 
 class RNNEncoder(object):
-    def __init__(self, dim, rnn_cell, max_num_steps, num_layers):
+    def __init__(self, dim, rnn_cell, num_layers):
         self.dim = dim
         self.rnn_cell = rnn_cell
-        self.max_num_steps = max_num_steps
         self.num_layers = num_layers
         self.cell, _ = self.encoder_cell()
 
@@ -29,10 +28,9 @@ class RNNEncoder(object):
 
 
 class BiRNNEncoder(object):
-    def __init__(self, dim, rnn_cell, max_num_steps, num_layers):
+    def __init__(self, dim, rnn_cell, num_layers):
         self.dim = dim
         self.rnn_cell = rnn_cell
-        self.max_num_steps = max_num_steps
         self.num_layers = num_layers
         self.fw_cell, _ = self.forward_cell()
         self.bw_cell, _ = self.backward_cell()

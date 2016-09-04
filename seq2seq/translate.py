@@ -344,6 +344,11 @@ def grid_search(train_set, dev_set):
                 tf.set_random_seed(seed)
                 temp_match_score, eval_match_score = \
                     train_and_eval(train_set, dev_set)
+                print("Parameter set: ")
+                for i in xrange(num_hps):
+                    print("* {}: {}".format(hyperparameters[i], row[i]))
+                print("random seed: {}".format(seed))
+                print("template match score = {}".format(temp_match_score))
                 print("Best parameter set so far: ")
                 for i in xrange(num_hps):
                     print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
