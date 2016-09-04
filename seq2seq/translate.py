@@ -115,6 +115,7 @@ def create_model(session, forward_only):
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
 
     if FLAGS.seed != -1:
+        print("Set random seed to {}".format(FLAGS.seed))
         tf.set_random_seed(FLAGS.seed)
 
     model = seq2seq_model.Seq2SeqModel(params, _buckets, forward_only)
