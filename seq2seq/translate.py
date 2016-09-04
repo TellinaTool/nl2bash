@@ -55,8 +55,9 @@ import parse_args
 import seq2seq_model
 import eval_tools, hyperparam_range
 
-
 FLAGS = tf.app.flags.FLAGS
+
+parse_args.define_input_flags()
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
@@ -114,6 +115,7 @@ def create_model(session, forward_only):
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
 
     if FLAGS.seed != -1:
+        print("Set random seed to {}".format(FLAGS.seed))
         tf.set_random_seed(FLAGS.seed)
 
     model = seq2seq_model.Seq2SeqModel(params, _buckets, forward_only)
@@ -121,8 +123,8 @@ def create_model(session, forward_only):
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
 
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
-        if not forward_only and FLAGS.create_fresh_parameters:
-            data_utils.clean_dir(FLAGS.train_dir, "*")
+        if not forward_only and FLAGS.create_fresh_params:
+            data_utils.clean_dir(FLAGS.train_dir)
             print("Created model with fresh parameters.")
             session.run(tf.initialize_all_variables())
         else:
@@ -141,7 +143,7 @@ def train(train_set, dev_set, num_iter):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
-        print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.size))
+        print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.dim))
         model = create_model(sess, False)
 
         train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
@@ -199,7 +201,7 @@ def train(train_set, dev_set, num_iter):
                 # Save checkpoint and zero timer and loss.
                 checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
                 model.saver.save(sess, checkpoint_path, global_step=model.global_step)
-                
+    
                 step_time, loss, dev_loss = 0.0, 0.0, 0.0
                 
                 # Run evals on development set and print their perplexity.
@@ -302,7 +304,7 @@ def train_and_eval(train_set, dev_set):
 
 
 def grid_search(train_set, dev_set):
-    FLAGS.create_fresh_parameters = True
+    FLAGS.create_fresh_params = True
 
     hyperparameters = FLAGS.tuning.split(',')
     num_hps = len(hyperparameters)
@@ -330,6 +332,7 @@ def grid_search(train_set, dev_set):
 
     for row in grid:
         setattr(FLAGS, "train_dir", model_dir + '-{}'.format(row))
+        print(row)
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
 
@@ -425,26 +428,23 @@ def bucket_selection(num_buckets=10):
 def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
-
+    
     # set GPU device
-    with tf.device('/gpu:%d' % FLAGS.gpu):
-        if FLAGS.manual_eval:
-            manual_eval()
-        elif FLAGS.eval:
-            eval()
-        elif FLAGS.decode:
-            interactive_decode()
-        elif FLAGS.bucket_selection:
-            bucket_selection()
-        elif FLAGS.grid_search:
-            train_set, dev_set, _ = load_data()
-            grid_search(train_set, dev_set)
-        else:
-            train_set, dev_set, _ = load_data()
-            train_and_eval(train_set, dev_set)
+    if FLAGS.manual_eval:
+        manual_eval()
+    elif FLAGS.eval:
+        eval()
+    elif FLAGS.decode:
+        interactive_decode()
+    elif FLAGS.bucket_selection:
+        bucket_selection()
+    elif FLAGS.grid_search:
+        train_set, dev_set, _ = load_data()
+        grid_search(train_set, dev_set)
+    else:
+        train_set, dev_set, _ = load_data()
+        train_and_eval(train_set, dev_set)
 
 
 if __name__ == "__main__":
-    parse_args.define_input_flags()
-
     tf.app.run()

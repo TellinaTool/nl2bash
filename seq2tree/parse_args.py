@@ -71,9 +71,9 @@ def define_input_flags():
                                 "Batch size to use during training.")
     tf.app.flags.DEFINE_integer("num_samples", 512,
                                 "Number of samples for sampled softmax.")
-    tf.app.flags.DEFINE_integer("input_keep_prob", 1.0,
+    tf.app.flags.DEFINE_float("input_keep_prob", 1.0,
                                 "Proportion of input to keep if dropout is used.")
-    tf.app.flags.DEFINE_integer("output_keep_prob", 1.0,
+    tf.app.flags.DEFINE_float("output_keep_prob", 1.0,
                                 "Proportion of output to keep if dropout is used.")
     tf.app.flags.DEFINE_integer("seed", -1, "Random seed for graph initialization.")
     tf.app.flags.DEFINE_integer("dim", 300, "Dimension of each model layer.")

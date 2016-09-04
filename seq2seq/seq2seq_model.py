@@ -50,6 +50,8 @@ class Seq2SeqModel(EncoderDecoderModel):
     def __init__(self, hyperparameters, buckets=None, forward_only=False):
         super(Seq2SeqModel, self).__init__(hyperparameters, buckets, forward_only)
 
+        self.global_step = tf.Variable(0, trainable=False)
+
         # If we use sampled softmax, we need an output projection.
         output_projection = None
         softmax_loss_function = None
