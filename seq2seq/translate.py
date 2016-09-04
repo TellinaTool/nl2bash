@@ -304,7 +304,7 @@ def grid_search(train_set, dev_set):
     print("======== Grid Search ========")
     print("%d hyperparameters: " % num_hps)
     for i in xrange(num_hps):
-        print("{}: {}".format(hyperparameters[i], hp_range[hyperparameters[0]]))
+        print("{}: {}".format(hyperparameters[i], hp_range[hyperparameters[i]]))
     print()
 
     grid = hp_range[hyperparameters[0]]
