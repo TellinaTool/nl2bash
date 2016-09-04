@@ -18,7 +18,7 @@ class RNNEncoder(object):
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
         encoder_outputs, encoder_state = \
-            tf.nn.rnn(self.encoder_cell(), input_embeddings, dtype=tf.float32)
+            tf.nn.rnn(self.cell, input_embeddings, dtype=tf.float32)
         return encoder_outputs, encoder_state
 
     def encoder_cell(self):
