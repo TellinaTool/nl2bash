@@ -326,7 +326,7 @@ def grid_search(train_set, dev_set):
 
     for row in grid:
         for i in xrange(num_hps):
-            setattr(FLAGS, "train_dir", model_dir + '-{}'.format(row[i]))
+            setattr(FLAGS, "train_dir", model_dir + '-{}'.format(row))
             setattr(FLAGS, hyperparameters[i], row[i])
 
             print("Trying parameter set: ")
