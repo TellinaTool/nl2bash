@@ -113,6 +113,9 @@ def create_model(session, forward_only):
 
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
 
+    if FLAGS.seed != -1:
+        tf.set_random_seed(FLAGS.seed)
+
     model = seq2seq_model.Seq2SeqModel(params, _buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
