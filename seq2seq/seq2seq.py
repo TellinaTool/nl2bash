@@ -824,9 +824,9 @@ def embedding_attention_decoder(decoder_inputs, initial_state, attention_states,
 
 
 def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
-                                num_layers, encoder_topology,
+                                num_layers, encoder_topology, decoder_cell,
                                 num_encoder_symbols, num_decoder_symbols,
-                                embedding_size, decoder_cell,
+                                embedding_size,
                                 num_heads=1, output_projection=None,
                                 feed_previous=False, dtype=dtypes.float32,
                                 scope=None, initial_state_attention=False,
