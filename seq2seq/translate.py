@@ -118,7 +118,7 @@ def create_model(session, forward_only):
 
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
         if not forward_only and FLAGS.create_fresh_parameters:
-            data_utils.clean_dir(FLAGS.train_dir, "*")
+            data_utils.clean_dir(FLAGS.train_dir)
             print("Created model with fresh parameters.")
             session.run(tf.initialize_all_variables())
         else:
@@ -415,23 +415,22 @@ def bucket_selection(num_buckets=10):
 def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
-
+    
     # set GPU device
-    with tf.device('/gpu:%s' % FLAGS.gpu):
-        if FLAGS.manual_eval:
-            manual_eval()
-        elif FLAGS.eval:
-            eval()
-        elif FLAGS.decode:
-            interactive_decode()
-        elif FLAGS.bucket_selection:
-            bucket_selection()
-        elif FLAGS.grid_search:
-            train_set, dev_set, _ = load_data()
-            grid_search(train_set, dev_set)
-        else:
-            train_set, dev_set, _ = load_data()
-            train_and_eval(train_set, dev_set)
+    if FLAGS.manual_eval:
+        manual_eval()
+    elif FLAGS.eval:
+        eval()
+    elif FLAGS.decode:
+        interactive_decode()
+    elif FLAGS.bucket_selection:
+        bucket_selection()
+    elif FLAGS.grid_search:
+        train_set, dev_set, _ = load_data()
+        grid_search(train_set, dev_set)
+    else:
+        train_set, dev_set, _ = load_data()
+        train_and_eval(train_set, dev_set)
 
 
 if __name__ == "__main__":
