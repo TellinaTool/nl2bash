@@ -84,7 +84,9 @@ class Seq2SeqModel(EncoderDecoderModel):
                 return seq2seq.embedding_attention_seq2seq(
                     encoder_inputs, decoder_inputs,
                     self.rnn_cell, self.num_layers,
-                    self.encoder_topology, cell,
+                    self.encoder_topology,
+                    self.source_embeddings(),
+                    cell,
                     num_encoder_symbols=self.source_vocab_size,
                     num_decoder_symbols=self.target_vocab_size,
                     embedding_size=self.dim,
