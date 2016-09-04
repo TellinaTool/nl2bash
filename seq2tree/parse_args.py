@@ -75,6 +75,7 @@ def define_input_flags():
                                 "Proportion of input to keep if dropout is used.")
     tf.app.flags.DEFINE_integer("output_keep_prob", 1.0,
                                 "Proportion of output to keep if dropout is used.")
+    tf.app.flags.DEFINE_integer("seed", -1, "Random seed for graph initialization.")
     tf.app.flags.DEFINE_integer("dim", 300, "Dimension of each model layer.")
     tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
     tf.app.flags.DEFINE_boolean("use_attention", False, "If set, use attention decoder.")
