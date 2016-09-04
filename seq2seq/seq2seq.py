@@ -888,7 +888,7 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
         encoder_outputs, encoder_state = _encoder.define_graph(encoder_inputs, embeddings)
 
         # First calculate a concatenation of encoder outputs to put attention on.
-        top_states = [array_ops.reshape(e, [-1, 1, encoder_state.get_shape()[1]])
+        top_states = [array_ops.reshape(e, [-1, 1, encoder_state.get_shape()[1].value])
                       for e in encoder_outputs]
         attention_states = array_ops.concat(1, top_states)
 
