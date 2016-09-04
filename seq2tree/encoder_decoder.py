@@ -409,7 +409,7 @@ class Seq2TreeModel(EncoderDecoderModel):
         else:
             raise ValueError("Unrecognized encoder type.")
 
-        encoder_outputs, encoder_state = _encoder.define_graph(self.decoder_inputs)
+        encoder_outputs, encoder_state = _encoder.define_graph(self.encoder_inputs)
 
         # Decoder.
         if self.decoder_topology == "basic":
