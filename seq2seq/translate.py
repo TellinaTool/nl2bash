@@ -117,15 +117,16 @@ def create_model(session, forward_only):
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
 
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
-        print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
-        model.saver.restore(session, ckpt.model_checkpoint_path)
-    else:
-        if not os.path.exists(FLAGS.train_dir):
-            print("Making train dir {}".format(FLAGS.train_dir))
-            os.mkdir(FLAGS.train_dir)
+        if FLAGS.create_fresh_parameters:
+            os.remove(os.path.join(FLAGS.train_dir, "*"))
+            print("Created model with fresh parameters.")
+            session.run(tf.initialize_all_variables())
         else:
-            if FLAGS.create_fresh_parameters:
-                os.remove(os.path.join(FLAGS.train_dir, "*"))
+            print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
+            model.saver.restore(session, ckpt.model_checkpoint_path)
+    else:
+        print("Making train dir {}".format(FLAGS.train_dir))
+        os.mkdir(FLAGS.train_dir)
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
     return model
@@ -305,7 +306,7 @@ def grid_search(train_set, dev_set):
     print("======== Grid Search ========")
     print("%d hyperparameters: " % num_hps)
     for i in xrange(num_hps):
-        print("{}: {}".format(hyperparameters[i], hp_range[hyperparameters[0]]))
+        print("{}: {}".format(hyperparameters[i], hp_range[hyperparameters[i]]))
     print()
 
     grid = hp_range[hyperparameters[0]]
