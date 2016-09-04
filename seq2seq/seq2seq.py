@@ -824,7 +824,8 @@ def embedding_attention_decoder(decoder_inputs, initial_state, attention_states,
 
 
 def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
-                                num_layers, encoder_topology, decoder_cell,
+                                num_layers, encoder_topology, embeddings,
+                                decoder_cell,
                                 num_encoder_symbols, num_decoder_symbols,
                                 embedding_size,
                                 num_heads=1, output_projection=None,
@@ -884,7 +885,7 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, rnn_cell,
         else:
             raise AttributeError("Unrecognized encoder_topology.")
 
-        encoder_outputs, encoder_state = _encoder.define_graph(encoder_inputs)
+        encoder_outputs, encoder_state = _encoder.define_graph(encoder_inputs, embeddings)
 
         # First calculate a concatenation of encoder outputs to put attention on.
         top_states = [array_ops.reshape(e, [-1, 1, encoder_state.get_shape()[1]])

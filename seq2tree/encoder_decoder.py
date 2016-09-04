@@ -49,6 +49,26 @@ class EncoderDecoderModel(object):
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
 
+    def source_embeddings(self):
+        with tf.variable_scope("source_embeddings"):
+            sqrt3 = math.sqrt(3)
+            initializer = tf.random_normal_initializer(-sqrt3, sqrt3)
+            embeddings = tf.get_variable("embedding", [self.source_vocab_size,
+                                                       self.dim],
+                                         initializer=initializer)
+            return embeddings
+
+
+    def target_embeddings(self):
+        with tf.variable_scope("target_embeddings"):
+            sqrt3 = math.sqrt(3)
+            initializer = tf.random_normal_initializer(-sqrt3, sqrt3)
+            embeddings = tf.get_variable("embedding", [self.target_vocab_size,
+                                                       self.dim],
+                                         initializer=initializer)
+            return embeddings
+
+
     def format_example(self, encoder_input, decoder_input, bucket_id=-1,
                        original_encoder_input=None,
                        original_decoder_input=None,
@@ -409,7 +429,8 @@ class Seq2TreeModel(EncoderDecoderModel):
         else:
             raise ValueError("Unrecognized encoder type.")
 
-        encoder_outputs, encoder_state = _encoder.define_graph(self.encoder_inputs)
+        encoder_outputs, encoder_state = _encoder.define_graph(self.encoder_inputs,
+                                                               self.source_embeddings())
 
         # Decoder.
         if self.decoder_topology == "basic":
@@ -439,25 +460,6 @@ class Seq2TreeModel(EncoderDecoderModel):
         self.outputs = []
         for i in xrange(len(outputs)):
             self.outputs.append((tf.matmul(outputs[i], W) + b))
-
-
-    def source_embeddings(self):
-        with tf.variable_scope("source_embeddings"):
-            sqrt3 = math.sqrt(3)
-            initializer = tf.random_normal_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding", [self.source_vocab_size,
-                                                       self.dim],
-                                         initializer=initializer)
-            return embeddings
-
-    def target_embeddings(self):
-        with tf.variable_scope("target_embeddings"):
-            sqrt3 = math.sqrt(3)
-            initializer = tf.random_normal_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding", [self.target_vocab_size,
-                                                       self.dim],
-                                         initializer=initializer)
-            return embeddings
 
 
     def output_projection(self):
