@@ -7,13 +7,12 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2seq"))
 import data_utils, graph_utils
 
 class Decoder(object):
-    def __init__(self, dim, rnn_cell, batch_size, max_num_steps, num_layers,
+    def __init__(self, dim, batch_size, rnn_cell, num_layers,
                  input_keep_prob, output_keep_prob,
                  use_attention, use_copy, output_projection=None):
         self.dim = dim
         self.rnn_cell = rnn_cell
         self.batch_size = batch_size
-        self.max_num_steps = max_num_steps
         self.num_layers = num_layers
         self.input_keep_prob = input_keep_prob
         self.output_keep_prob = output_keep_prob
@@ -106,11 +105,10 @@ class BasicTreeDecoder(Decoder):
 
     _NO_EXPAND = tf.constant(data_utils.NO_EXPAND_ID)
 
-    def __init__(self, dim, rnn_cell, batch_size, max_num_steps, num_layers,
-                 input_keep_prob, output_keep_prob,
+    def __init__(self, dim, batch_size, rnn_cell, num_layers, input_keep_prob, output_keep_prob,
                  use_attention, use_copy, output_projection=None):
-        super(BasicTreeDecoder, self).__init__(dim, rnn_cell, batch_size, max_num_steps,
-                                               num_layers, input_keep_prob, output_keep_prob,
+        super(BasicTreeDecoder, self).__init__(dim, batch_size, rnn_cell, num_layers,
+                                               input_keep_prob, output_keep_prob,
                                                use_attention, use_copy, output_projection)
         self.vertical_cell = self.vertical_cell()
         self.horizontal_cell = self.horizontal_cell()
@@ -183,7 +181,7 @@ class BasicTreeDecoder(Decoder):
             self.input = tf.expand_dims(self.input, 1)
             self.input.set_shape([self.batch_size, 1, 1])
 
-            for i in xrange(self.max_num_steps):
+            for i in xrange(len(decoder_inputs)-1):
                 if i > 0: scope.reuse_variables()
 
                 # exam action of current step
