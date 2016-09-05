@@ -379,8 +379,8 @@ class BasicTreeDecoder(Decoder):
         :return: batch stack state tuples
                  (batch_parent_states, [batch_attention_states])
         """
-        input_array = [tf.squeeze(v) for v in tf.split(0, self.batch_size, self.input)]
-        stack_array = [tf.squeeze(v) for v in tf.split(0, self.batch_size, self.stack)]
+        input_array = [tf.squeeze(v, squeeze_dims=[0]) for v in tf.split(0, self.batch_size, self.input)]
+        stack_array = [tf.squeeze(v, squeeze_dims=[0]) for v in tf.split(0, self.batch_size, self.stack)]
         batch_input_symbols = tf.nn.embedding_lookup(input_array, batch_stack_indices)
         batch_input_symbols = tf.squeeze(batch_input_symbols)
         batch_stack_states = tf.nn.embedding_lookup(stack_array, batch_stack_indices)
