@@ -456,7 +456,7 @@ class Seq2TreeModel(EncoderDecoderModel):
                                                                      self.max_gradient_norm)
                     self.gradient_norms.append(norm)
                     self.updates.append(opt.apply_gradients(
-                        zip(clipped_gradients, params), global_step=self.global_step))
+                        zip(clipped_gradients, params)))
             else:
                 gradients = tf.gradients(self.losses, params)
                 clipped_gradients, norm = tf.clip_by_global_norm(gradients,
@@ -471,15 +471,14 @@ class Seq2TreeModel(EncoderDecoderModel):
                       target_embeddings, forward_only):
         encoder_outputs, encoder_state = self.encoder.define_graph(encoder_inputs,
                                                                source_embeddings)
-
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim]) for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
             outputs, state = self.decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
-                                                  attention_states, feed_previous=forward_only)
+                                                       attention_states, feed_previous=forward_only)
         else:
             outputs, state = self.decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
-                                     feed_previous=forward_only)
+                                                       feed_previous=forward_only)
 
         # Losses.
         losses = self.sequence_loss(outputs, self.softmax_loss())
