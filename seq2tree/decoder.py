@@ -165,7 +165,7 @@ class BasicTreeDecoder(Decoder):
             outputs = []
 
             # search control
-            self.back_pointers = tf.constant(0, shape=[self.batch_size, 1, 1])
+            self.back_pointers = tf.constant(-1, shape=[self.batch_size, 1, 1])
             last_search_left_to_right = [tf.constant(False, dtype=tf.bool)] * self.batch_size
 
             # continuous stack used for storing LSTM states, synced with self.back_pointers
@@ -350,10 +350,10 @@ class BasicTreeDecoder(Decoder):
     """
 
     def grandgrandparent(self, j):
-        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], tf.add(self.grandparent(j), tf.constant([1])))
+        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], self.grandparent(j))
 
     def grandparent(self, j):
-        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], tf.add(self.parent(j), tf.constant([1])))
+        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], self.parent(j))
 
     def parent(self, j):
         return self.back_pointers[j:j+1, -1, 0]
