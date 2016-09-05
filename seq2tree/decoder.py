@@ -107,9 +107,11 @@ class BasicTreeDecoder(Decoder):
     _NO_EXPAND = tf.constant(data_utils.NO_EXPAND_ID)
 
     def __init__(self, dim, rnn_cell, batch_size, max_num_steps, num_layers,
+                 input_keep_prob, output_keep_prob,
                  use_attention, use_copy, output_projection=None):
         super(BasicTreeDecoder, self).__init__(dim, rnn_cell, batch_size, max_num_steps,
-                                num_layers, use_attention, use_copy, output_projection)
+                                               num_layers, input_keep_prob, output_keep_prob,
+                                               use_attention, use_copy, output_projection)
         self.vertical_cell = self.vertical_cell()
         self.horizontal_cell = self.horizontal_cell()
 
