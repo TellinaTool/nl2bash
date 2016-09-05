@@ -31,8 +31,8 @@ class Decoder(object):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on cell and hidden states
-            print("input_embeddings.get_shape(): {}".format(input_embedding.get_shape()))
-            print("attns.get_shape(): {}".format(attns.get_shape()))
+            # print("input_embeddings.get_shape(): {}".format(input_embedding.get_shape()))
+            # print("attns.get_shape(): {}".format(attns.get_shape()))
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             try:
                 cell_output, state = cell(x, state, cell_scope)
@@ -377,36 +377,23 @@ class BasicTreeDecoder(Decoder):
         :return: batch stack state tuples
                  (batch_parent_states, [batch_attention_states])
         """
-        print("self.input: {}".format(self.input.get_shape()))
-        print("self.stack: {}".format(self.stack.get_shape()))
-        print("batch_stack_indices[0]: {}".format(batch_stack_indices[0].get_shape()))
+        # print("self.input: {}".format(self.input.get_shape()))
+        # print("self.stack: {}".format(self.stack.get_shape()))
+        # print("batch_stack_indices[0]: {}".format(batch_stack_indices[0].get_shape()))
         input_array = [tf.squeeze(v, squeeze_dims=[0]) for v in tf.split(0, self.batch_size, self.input)]
         stack_array = [tf.squeeze(v, squeeze_dims=[0]) for v in tf.split(0, self.batch_size, self.stack)]
         batch_input_symbols = tf.nn.embedding_lookup(input_array, batch_stack_indices)
         batch_input_symbols = tf.squeeze(batch_input_symbols)
         batch_stack_states = tf.nn.embedding_lookup(stack_array, batch_stack_indices)
-        print(batch_stack_states.get_shape())
         batch_stack_states = tf.squeeze(batch_stack_states)
-        # print("batch_input_symbols.get_shape(): {}".format(batch_input_symbols.get_shape()))
-        # print("batch_stack_states.get_shape(): {}".format(batch_stack_states.get_shape()))
 
-        print(batch_stack_states.get_shape())
         batch_stack_cells = batch_stack_states[:, :self.dim]
         batch_stack_hiddens = batch_stack_states[:, self.dim:2*self.dim]
         if self.use_attention:
             batch_attention_states = batch_stack_states[:, 2*self.dim:]
-            # return (tf.split(0, self.batch_size, batch_input_symbols),
-            #         [tf.nn.rnn_cell.LSTMStateTuple(cell, hidden) for (cell, hidden) in
-            #          zip(tf.split(0, self.batch_size, batch_stack_cells),
-            #              tf.split(0, self.batch_size, batch_stack_hiddens))],
-            #         tf.split(0, self.batch_size, batch_attention_states))
             return (batch_input_symbols, tf.nn.rnn_cell.LSTMStateTuple(batch_stack_cells, batch_stack_hiddens),
                     batch_attention_states)
         else:
-            # return (tf.split(0, self.batch_size, batch_input_symbols),
-            #         [tf.nn.rnn_cell.LSTMStateTuple(cell, hidden) for (cell, hidden) in
-            #          zip(tf.split(0, self.batch_size, batch_stack_cells),
-            #              tf.split(0, self.batch_size, batch_stack_hiddens))])
             return (batch_input_symbols, tf.nn.rnn_cell.LSTMStateTuple(batch_stack_cells, batch_stack_hiddens))
 
 
