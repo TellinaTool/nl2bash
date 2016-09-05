@@ -199,8 +199,7 @@ class BasicTreeDecoder(Decoder):
                                                     lambda: self.grandparent(j),
                                                     lambda: self.parent(j)),
                                     lambda: tf.constant([i]))
-                    # print("input_index.get_shape(): {}".format(input_index.get_shape()))
-                    input_index.set_shape(())
+                    input_index.set_shape((1))
                     batch_input_indices.append(input_index)
 
                 if self.use_attention:
