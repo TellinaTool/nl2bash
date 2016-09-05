@@ -138,7 +138,6 @@ class BasicTreeDecoder(Decoder):
             output_projection to obtain distribution over output vocabulary.
         """
         self.embeddings = embeddings
-        decoder_inputs = tf.split(0, self.batch_size, decoder_inputs[0])
 
         if self.use_attention and not attention_states.get_shape()[1:2].is_fully_defined():
             raise ValueError("Shape[1] and [2] of attention_states must be known %s"
@@ -182,6 +181,7 @@ class BasicTreeDecoder(Decoder):
             self.input.set_shape([self.batch_size, 1, 1])
 
             for i in xrange(len(decoder_inputs)-1):
+                print("decoder step: %d" % i)
                 if i > 0: scope.reuse_variables()
 
                 # exam action of current step

@@ -131,12 +131,12 @@ def train(train_set, dev_set, verbose=False):
             # random.shuffle(train_set)
 
             # progress bar
-            for i in tqdm(xrange(len(FLAGS.steps_per_checkpoint))):
+            for i in tqdm(xrange(FLAGS.steps_per_checkpoint)):
                 time.sleep(0.01)
                 random_number_01 = np.random.random_sample()
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
                                  if train_buckets_scale[i] > random_number_01])
-                formatted_example = model.get_batch(train_set[bucket_id])
+                formatted_example = model.get_batch(train_set, bucket_id)
                 _, step_loss, _ = model.step(sess, formatted_example, forward_only=False)
                 loss += step_loss
                 current_step += 1
@@ -168,7 +168,7 @@ def train(train_set, dev_set, verbose=False):
                     if len(dev_set[bucket_id]) == 0:
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
-                    formatted_example = model.get_bucket(dev_set[bucket_id])
+                    formatted_example = model.get_bucket(dev_set, bucket_id)
                     _, eval_loss, output_logits = model.step(sess, formatted_example, forward_only=True)
                     dev_loss += eval_loss
                 dev_loss /= len(dev_set)

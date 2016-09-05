@@ -52,7 +52,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("nl_vocab_size", 4000, "English vocabulary size.")
     tf.app.flags.DEFINE_integer("cm_vocab_size", 4000, "Bash vocabulary size.")
     tf.app.flags.DEFINE_integer("max_nl_length", 40, "maximum length of the English sentence.")
-    tf.app.flags.DEFINE_integer("max_cm_length", 64, "maximum length of the command traversal sequence.")
+    tf.app.flags.DEFINE_integer("max_cm_length", 4, "maximum length of the command traversal sequence.")
     tf.app.flags.DEFINE_string("data_dir", "/tmp", "Raw data directory")
     tf.app.flags.DEFINE_string("data_split", "command", "Data split criteria")
     tf.app.flags.DEFINE_string("train_dir", "/tmp", "Directory to save trained models.")

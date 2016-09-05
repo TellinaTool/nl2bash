@@ -397,6 +397,8 @@ class Seq2TreeModel(EncoderDecoderModel):
             self.outputs = []
             self.losses = []
             for bucket_id, bucket in enumerate(self.buckets):
+                print("creating bucket {} ({}, {})...".format(
+                                       bucket_id, bucket[0], bucket[1]))
                 bucket_outputs, bucket_losses = self.encode_decode(
                     self.encoder_inputs[:bucket[0]], self.source_embeddings(),
                     self.decoder_inputs[:bucket[1]], self.target_embeddings(),
