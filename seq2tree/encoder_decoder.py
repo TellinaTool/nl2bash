@@ -517,7 +517,10 @@ class Seq2TreeModel(EncoderDecoderModel):
             total_size = tf.add_n(weights)
             total_size += 1e-12  # Just to avoid division by 0 for all-0 weights.
             log_perps /= total_size
-        return log_perps
+
+        avg_log_perps = tf.reduce_sum(log_perps) / tf.cast(self.batch_size, dtypes=tf.float32)
+
+        return avg_log_perps
 
 
     def softmax_loss(self):
