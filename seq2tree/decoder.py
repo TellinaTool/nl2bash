@@ -380,8 +380,8 @@ class BasicTreeDecoder(Decoder):
         print("self.input: {}".format(self.input.get_shape()))
         print("self.stack: {}".format(self.stack.get_shape()))
         print("batch_stack_indices[0]: {}".format(batch_stack_indices[0].get_shape()))
-        input_array = [tf.squeeze(v) for v in tf.split(0, self.batch_size, self.input)]
-        stack_array = [tf.squeeze(v) for v in tf.split(0, self.batch_size, self.stack)]
+        input_array = [tf.squeeze(v, squeeze_dims=[0]) for v in tf.split(0, self.batch_size, self.input)]
+        stack_array = [tf.squeeze(v, squeeze_dims=[0]) for v in tf.split(0, self.batch_size, self.stack)]
         batch_input_symbols = tf.nn.embedding_lookup(input_array, batch_stack_indices)
         batch_input_symbols = tf.squeeze(batch_input_symbols)
         batch_stack_states = tf.nn.embedding_lookup(stack_array, batch_stack_indices)
