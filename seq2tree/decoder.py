@@ -248,6 +248,10 @@ class BasicTreeDecoder(Decoder):
                     batch_next_input = tf.argmax(batch_projected_output, 1)
                 else:
                     batch_next_input = decoder_inputs[i+1]
+                batch_next_input.set_shape([self.batch_size])
+                batch_next_input = tf.expand_dims(batch_next_input, 1)
+                batch_next_input = tf.expand_dims(batch_next_input, 1)
+
                 if self.use_attention:
                     self.push([batch_next_input, tf.concat(0, batch_input_indices),
                                                  tf.concat(0, batch_cells),
