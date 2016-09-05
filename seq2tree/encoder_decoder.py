@@ -398,6 +398,23 @@ class Seq2TreeModel(EncoderDecoderModel):
                 self.original_decoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
                                                     name="original_decoder{0}".format(i)))
 
+        # Encoder.
+        if self.encoder_topology == "rnn":
+            self.encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers)
+        elif self.encoder_topology == "birnn":
+            self.encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.num_layers)
+        else:
+            raise ValueError("Unrecognized encoder type.")
+
+        # Decoder.
+        if self.decoder_topology == "basic_tree":
+            self.decoder = decoder.BasicTreeDecoder(self.dim, self.batch_size, self.rnn_cell, self.num_layers,
+                                                self.input_keep_prob, self.output_keep_prob,
+                                                self.use_attention, self.use_copy,
+                                                self.output_projection())
+        else:
+            raise ValueError("Unrecognized decoder type.")
+
         # Compute raining outputs and losses in the forward direction.
         if self.buckets:
             self.outputs = []
@@ -452,33 +469,16 @@ class Seq2TreeModel(EncoderDecoderModel):
 
     def encode_decode(self, encoder_inputs, source_embeddings, decoder_inputs,
                       target_embeddings, forward_only):
-        # Encoder.
-        if self.encoder_topology == "rnn":
-            _encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers)
-        elif self.encoder_topology == "birnn":
-            _encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.num_layers)
-        else:
-            raise ValueError("Unrecognized encoder type.")
-
-        encoder_outputs, encoder_state = _encoder.define_graph(encoder_inputs,
+        encoder_outputs, encoder_state = self.encoder.define_graph(encoder_inputs,
                                                                source_embeddings)
-
-        # Decoder.
-        if self.decoder_topology == "basic_tree":
-            _decoder = decoder.BasicTreeDecoder(self.dim, self.batch_size, self.rnn_cell, self.num_layers,
-                                                self.input_keep_prob, self.output_keep_prob,
-                                                self.use_attention, self.use_copy,
-                                                self.output_projection())
-        else:
-            raise ValueError("Unrecognized decoder type.")
 
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim]) for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
-            outputs, state = _decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
+            outputs, state = self.decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
                                                   attention_states, feed_previous=forward_only)
         else:
-            outputs, state = _decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
+            outputs, state = self.decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
                                      feed_previous=forward_only)
 
         # Losses.
