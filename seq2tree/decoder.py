@@ -235,8 +235,9 @@ class BasicTreeDecoder(Decoder):
 
                 if self.use_attention:
                     batch_attns = []
-                    attns = tf.cond(search_left_to_right[j], lambda: h_attns[j:j+1], lambda: v_attns[j:j+1])
-                    batch_attns.append(attns)
+                    for j in xrange(self.batch_size):
+                        attns = tf.cond(search_left_to_right[j], lambda: h_attns[j:j+1], lambda: v_attns[j:j+1])
+                        batch_attns.append(attns)
 
                 # storing states
                 if feed_previous:
