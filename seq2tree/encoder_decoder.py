@@ -58,9 +58,12 @@ class EncoderDecoderModel(object):
         with tf.variable_scope("source_embeddings"):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_normal_initializer(-sqrt3, sqrt3)
+            if self.source_embedding_vars:
+                tf.get_variable_scope().reuse_variables()
             embeddings = tf.get_variable("embedding", [self.source_vocab_size,
                                                        self.dim],
                                          initializer=initializer)
+            self.source_embedding_vars = True
             return embeddings
 
 
@@ -68,9 +71,12 @@ class EncoderDecoderModel(object):
         with tf.variable_scope("target_embeddings"):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_normal_initializer(-sqrt3, sqrt3)
+            if self.target_embedding_vars:
+                tf.get_variable_scope().reuse_variables()
             embeddings = tf.get_variable("embedding", [self.target_vocab_size,
                                                        self.dim],
                                          initializer=initializer)
+            self.target_embedding_vars = True
             return embeddings
 
 
@@ -444,8 +450,8 @@ class Seq2TreeModel(EncoderDecoderModel):
         self.saver = tf.train.Saver(tf.all_variables())
 
 
-    def encode_decode(self, encoder_inputs, source_embeddings, decoder_inputs, target_embeddings,
-                      forward_only):
+    def encode_decode(self, encoder_inputs, source_embeddings, decoder_inputs,
+                      target_embeddings, forward_only):
         # Encoder.
         if self.encoder_topology == "rnn":
             _encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers)
