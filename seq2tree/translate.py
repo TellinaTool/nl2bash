@@ -131,7 +131,7 @@ def train(train_set, dev_set, verbose=False):
             # random.shuffle(train_set)
 
             # progress bar
-            for i in tqdm(xrange(FLAGS.steps_per_checkpoint)):
+            for _ in tqdm(xrange(FLAGS.steps_per_checkpoint)):
                 time.sleep(0.01)
                 random_number_01 = np.random.random_sample()
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
@@ -149,6 +149,7 @@ def train(train_set, dev_set, verbose=False):
 
                 # Print statistics for the previous epoch.
                 loss /= len(train_set)
+                print(len(loss))
                 ppx = math.exp(loss) if loss < 300 else float('inf')
                 print("learning rate %.4f epoch-time %.2f perplexity %.2f" % (
                     model.learning_rate.eval(), epoch_time, ppx))
