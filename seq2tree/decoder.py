@@ -374,6 +374,7 @@ class BasicTreeDecoder(Decoder):
         batch_input_symbols = tf.nn.embedding_lookup(input_array, batch_stack_indices)
         batch_input_symbols = tf.squeeze(batch_input_symbols)
         batch_stack_states = tf.nn.embedding_lookup(stack_array, batch_stack_indices)
+        batch_stack_states = tf.squeeze(batch_stack_states)
         print("batch_input_symbols.get_shape(): {}".format(batch_input_symbols.get_shape()))
         print("batch_stack_states.get_shape(): {}".format(batch_stack_states.get_shape()))
 
