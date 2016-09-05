@@ -217,7 +217,7 @@ class EncoderDecoderModel(object):
         return batch_encoder_inputs, batch_decoder_inputs, batch_weights
 
 
-    def get_bucket(self, data, bucket_id, feed_previous=False):
+    def get_bucket(self, data, bucket_id=-1, feed_previous=False):
         """Get all elements of a bucket, prepare for step.
 
         To feed data in step(..) it must be a list of batch-major vectors, while
@@ -504,12 +504,18 @@ class Seq2TreeModel(EncoderDecoderModel):
         return (w, b)
 
 
-    def sequence_loss(self, logits, loss_function):
-        targets = self.targets[:self.max_target_length]
-        weights = self.target_weights[:self.max_target_length]
+    def sequence_loss(self, logits, loss_function, bucket_id=-1):
+        if bucket_id == -1:
+            targets = self.targets[:self.max_target_length]
+            weights = self.target_weights[:self.max_target_length]
+        else:
+            targets = self.targets[:self.buckets[bucket_id][1]-1]
+            weights = self.target_weights[:self.buckets[bucket_id][1]-1]
+
         if len(targets) != len(logits) or len(weights) != len(logits):
             raise ValueError("Lengths of logits, targets and target_weights must be the same "
                              "%d, %d, %d." % (len(logits), len(targets), len(weights)))
+
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
             for logit, target, weight in zip(logits, targets, weights):
@@ -538,7 +544,7 @@ class Seq2TreeModel(EncoderDecoderModel):
         return loss_function
 
 
-    def step(self, session, formatted_example, bucket_id, forward_only):
+    def step(self, session, formatted_example, bucket_id=-1, forward_only=False):
         """Run a step of the model feeding the given inputs.
         :param session: tensorflow session to use.
         :param encoder_inputs: list of numpy int vectors to feed as encoder inputs.
