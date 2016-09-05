@@ -212,7 +212,7 @@ class BasicTreeDecoder(Decoder):
                     batch_new_attns = []
                     batch_input, batch_states, batch_attns = self.peek(batch_input_indices)
                     batch_input_embeddings = tf.split(0, self.batch_size,
-                        tf.nn.embedding_lookup(self.embeddings, batch_input))
+                        tf.squeeze(tf.nn.embedding_lookup(self.embeddings, batch_input)))
                     for j in xrange(self.batch_size):
                         input = batch_input_embeddings[j]
                         state = batch_states[j]
