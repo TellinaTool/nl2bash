@@ -425,6 +425,7 @@ class Seq2TreeModel(EncoderDecoderModel):
                 bucket_outputs, bucket_losses = self.encode_decode(
                     self.encoder_inputs[:bucket[0]], self.source_embeddings(),
                     self.decoder_inputs[:bucket[1]], self.target_embeddings(),
+                    bucket_id = bucket_id,
                     forward_only=forward_only
                 )
                 self.outputs.append(bucket_outputs)
@@ -433,6 +434,7 @@ class Seq2TreeModel(EncoderDecoderModel):
             self.outputs, self.losses = self.encode_decode(
                 self.encoder_inputs, self.source_embeddings(),
                 self.decoder_inputs, self.target_embeddings(),
+                bucket_id = bucket_id,
                 forward_only=forward_only
             )
 
@@ -468,7 +470,7 @@ class Seq2TreeModel(EncoderDecoderModel):
 
 
     def encode_decode(self, encoder_inputs, source_embeddings, decoder_inputs,
-                      target_embeddings, forward_only):
+                      target_embeddings, bucket_id, forward_only):
         encoder_outputs, encoder_state = self.encoder.define_graph(encoder_inputs,
                                                                source_embeddings)
         if self.use_attention:
@@ -481,7 +483,7 @@ class Seq2TreeModel(EncoderDecoderModel):
                                                        feed_previous=forward_only)
 
         # Losses.
-        losses = self.sequence_loss(outputs, self.softmax_loss())
+        losses = self.sequence_loss(outputs, self.softmax_loss(), bucket_id)
 
         # Project decoder outputs for decoding.
         W, b = self.output_projection()
