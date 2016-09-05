@@ -33,8 +33,6 @@ class Decoder(object):
             # attention mechanism on cell and hidden states
             print("input_embeddings.get_shape(): {}".format(input_embedding.get_shape()))
             print("attns.get_shape(): {}".format(attns.get_shape()))
-            print(input_embedding.get_shape())
-            print(attns.get_shape())
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             try:
                 cell_output, state = cell(x, state, cell_scope)
@@ -184,8 +182,6 @@ class BasicTreeDecoder(Decoder):
             self.input = tf.expand_dims(decoder_inputs[0], 1)
             self.input = tf.expand_dims(self.input, 1)
             self.input.set_shape([self.batch_size, 1, 1])
-            # print(self.stack.get_shape())
-            # print(self.input.get_shape())
 
             for i in xrange(self.max_num_steps):
                 if i > 0: scope.reuse_variables()
@@ -208,7 +204,7 @@ class BasicTreeDecoder(Decoder):
                     input, state, attns = self.peek(batch_input_indices)
                 else:
                     input, batch_states = self.peek()
-
+                
                 input_embeddings = tf.squeeze(tf.nn.embedding_lookup(self.embeddings, input))
 
                 if self.use_attention:
@@ -371,9 +367,6 @@ class BasicTreeDecoder(Decoder):
         batch_back_pointers = tf.expand_dims(batch_back_pointers, 1)
         batch_back_pointers = tf.expand_dims(batch_back_pointers, 1)
         self.back_pointers = tf.concat(1, [self.back_pointers, batch_back_pointers])
-        print(batch_states[2].get_shape())
-        print(batch_states[3].get_shape())
-        print(batch_states[4].get_shape())
         batch_states = tf.concat(1, batch_states[2:])
         self.stack = tf.concat(1, [self.stack, tf.expand_dims(batch_states, 1)])
 
@@ -384,6 +377,8 @@ class BasicTreeDecoder(Decoder):
         :return: batch stack state tuples
                  (batch_parent_states, [batch_attention_states])
         """
+        print("self.input: {}".format(self.input.get_shape()))
+        print("batch_stack_indices[0]: {}".format(batch_stack_indices[0].get_shape()))
         input_array = tf.split(0, self.batch_size, self.input)
         stack_array = tf.split(0, self.batch_size, self.stack)
         batch_input_symbols = tf.nn.embedding_lookup(input_array, batch_stack_indices)
