@@ -12,6 +12,9 @@ class RNNEncoder(object):
         self.num_layers = num_layers
         self.cell, _ = self.encoder_cell()
 
+        # variable sharing
+        self.encoder_cell_vars = False
+
     def define_graph(self, encoder_inputs, embeddings):
         self.embeddings = embeddings
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
@@ -23,8 +26,11 @@ class RNNEncoder(object):
     def encoder_cell(self):
         """RNN cell for the encoder."""
         with tf.variable_scope("encoder_cell") as scope:
+            if self.encoder_cell_vars:
+                tf.get_variable_scope().reuse_variables()
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim,
                                                       self.num_layers)
+            self.encoder_cell_vars = True
         return cell, scope
 
 
@@ -35,6 +41,10 @@ class BiRNNEncoder(object):
         self.num_layers = num_layers
         self.fw_cell, _ = self.forward_cell()
         self.bw_cell, _ = self.backward_cell()
+
+        # variable sharing
+        self.forward_cell_vars = False
+        self.backward_cell_vars = False
 
     def define_graph(self, encoder_inputs, embeddings):
         self.embeddings = embeddings
@@ -81,13 +91,19 @@ class BiRNNEncoder(object):
     def forward_cell(self):
         """RNN cell for the forward RNN."""
         with tf.variable_scope("forward_cell") as scope:
+            if self.forward_cell_vars:
+                tf.get_variable_scope().reuse_variables()
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers)
+            self.forward_cell_vars = True
         return cell, scope
 
     def backward_cell(self):
         """RNN cell for the backward RNN."""
         with tf.variable_scope("backward_cell") as scope:
+            if self.backward_cell_vars:
+                tf.get_variable_scope().reuse_variables()
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers)
+            self.backward_cell_vars = True
         return cell, scope
 
     def output_projection(self):
