@@ -485,11 +485,11 @@ class Seq2TreeModel(EncoderDecoderModel):
 
         # Project decoder outputs for decoding.
         W, b = self.output_projection()
-        outputs = []
+        projected_outputs = []
         for i in xrange(len(outputs)):
-            outputs.append((tf.matmul(outputs[i], W) + b))
+            projected_outputs.append((tf.matmul(outputs[i], W) + b))
 
-        return outputs, losses
+        return projected_outputs, losses
 
 
     def output_projection(self):

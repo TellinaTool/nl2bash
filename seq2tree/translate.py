@@ -32,7 +32,8 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 50), (40, 60), (40, 64)]
+# _buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 50), (40, 60), (40, 64)]
+_buckets = [(5, 10), (40, 64)]
 
 def create_model(session, forward_only):
     """
@@ -148,8 +149,9 @@ def train(train_set, dev_set, verbose=False):
             if t % FLAGS.epochs_per_checkpoint == 0:
 
                 # Print statistics for the previous epoch.
-                loss /= len(train_set)
-                print(len(loss))
+                loss /= FLAGS.steps_per_checkpoint
+                print(loss[0])
+                print(loss[1])
                 ppx = math.exp(loss) if loss < 300 else float('inf')
                 print("learning rate %.4f epoch-time %.2f perplexity %.2f" % (
                     model.learning_rate.eval(), epoch_time, ppx))
