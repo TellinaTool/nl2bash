@@ -434,6 +434,7 @@ class Seq2TreeModel(EncoderDecoderModel):
         if self.decoder_topology == "basic":
             _decoder = decoder.BasicTreeDecoder(self.dim, self.rnn_cell, self.batch_size,
                                                self.max_target_length, self.num_layers,
+                                               self.input_keep_prob, self.output_keep_prob,
                                                self.use_attention, self.use_copy,
                                                self.output_projection())
         else:
