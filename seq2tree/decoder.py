@@ -212,16 +212,16 @@ class BasicTreeDecoder(Decoder):
 
                 if self.use_attention:
                     v_output, v_cell, v_hs, v_attns = self.attention_cell(
-                        vertical_cell, vertical_scope, input, state, attns,
+                        vertical_cell, vertical_scope, input_embeddings, state, attns,
                         hidden_features, attn_vecs, num_heads, hidden)
                     h_output, h_cell, h_hs, h_attns = self.attention_cell(
-                        horizontal_cell, horizontal_scope, input, state, attns,
+                        horizontal_cell, horizontal_scope, input_embeddings, state, attns,
                         hidden_features, attn_vecs, num_heads, hidden)
                 else:
                     v_output, v_cell, v_hs = self.normal_cell(
-                        vertical_cell, vertical_scope, input, state)
+                        vertical_cell, vertical_scope, input_embeddings, state)
                     h_output, h_cell, h_hs = self.normal_cell(
-                        horizontal_cell, horizontal_scope, input, state)
+                        horizontal_cell, horizontal_scope, input_embeddings, state)
 
                 batch_outputs = []
                 batch_cells = []
