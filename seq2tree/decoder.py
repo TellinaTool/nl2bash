@@ -204,7 +204,6 @@ class BasicTreeDecoder(Decoder):
                                                     lambda: self.grandparent(j),
                                                     lambda: self.parent(j)),
                                     lambda: tf.constant([i]))
-                    input_index.set_shape((1))
                     batch_input_indices.append(input_index)
 
                 if self.use_attention:
@@ -351,13 +350,13 @@ class BasicTreeDecoder(Decoder):
     """
 
     def grandgrandparent(self, j):
-        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], tf.add(self.grandparent(j), tf.constant(1)))
+        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], tf.add(self.grandparent(j), tf.constant([1])))
 
     def grandparent(self, j):
-        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], tf.add(self.parent(j), tf.constant(1)))
+        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], tf.add(self.parent(j), tf.constant([1])))
 
     def parent(self, j):
-        return self.back_pointers[j, -1, 0]
+        return self.back_pointers[j:j+1, -1, 0]
 
     def push(self, batch_states):
         """
