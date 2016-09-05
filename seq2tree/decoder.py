@@ -380,10 +380,10 @@ class BasicTreeDecoder(Decoder):
         print("batch_input_symbols.get_shape(): {}".format(batch_input_symbols.get_shape()))
         print("batch_stack_states.get_shape(): {}".format(batch_stack_states.get_shape()))
 
-        batch_stack_cells = batch_stack_states[:, 1:self.dim+1]
-        batch_stack_hiddens = batch_stack_states[:, self.dim+1:2*self.dim+1]
+        batch_stack_cells = batch_stack_states[:, :self.dim]
+        batch_stack_hiddens = batch_stack_states[:, self.dim:2*self.dim]
         if self.use_attention:
-            batch_attention_states = batch_stack_states[:, 2*self.dim+1:]
+            batch_attention_states = batch_stack_states[:, 2*self.dim:]
             return (tf.split(0, self.batch_size, batch_input_symbols),
                     [tf.nn.rnn_cell.LSTMStateTuple(cell, hidden) for (cell, hidden) in
                      zip(tf.split(0, self.batch_size, batch_stack_cells),
