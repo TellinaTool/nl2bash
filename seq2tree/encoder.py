@@ -37,13 +37,10 @@ class BiRNNEncoder(object):
         self.fw_cell, _ = self.forward_cell()
         self.bw_cell, _ = self.backward_cell()
 
-<<<<<<< HEAD
-=======
         # variable sharing
         self.forward_rnn_vars = False
         self.backward_rnn_vars = False
 
->>>>>>> a5f93b5651a60e031e0fdb7b41feee1fd7066529
     def define_graph(self, encoder_inputs, embeddings):
         self.embeddings = embeddings
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
