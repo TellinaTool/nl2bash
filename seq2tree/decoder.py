@@ -22,7 +22,9 @@ class Decoder(object):
         self.output_projection = output_projection
 
         # variable sharing
+        self.attention_vars = False
         self.attention_cell_vars = False
+        self.attention_hidden_vars = False
 
     def attention_cell(self, cell, cell_scope, input_embedding, state, attns,
                        hidden_features, attn_vecs, num_heads, hidden):
@@ -56,6 +58,8 @@ class Decoder(object):
         ds = []  # Results of attention reads will be stored here.
         for a in xrange(num_heads):
             with tf.variable_scope("Attention_%d" % a):
+                if self.attention_vars:
+                    tf.get_variable_scope().reuse_variables()
                 y = tf.nn.rnn_cell._linear(state, attn_vec_dim, True)
                 y = tf.reshape(y, [-1, 1, 1, attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
@@ -68,6 +72,7 @@ class Decoder(object):
                 ds.append(tf.reshape(d, [-1, attn_dim]))
         attns = tf.concat(1, ds)
         attns.set_shape([self.batch_size, num_heads * attn_dim])
+        self.attention_vars = True
         return attns
 
     def attention_hidden_layer(self, attention_states, num_heads):
@@ -86,9 +91,13 @@ class Decoder(object):
         attn_vecs = []
         attn_vec_dim = attn_dim
         for i in xrange(num_heads):
-            k = tf.get_variable("AttnW_%d" % i, [1, 1, attn_dim, attn_vec_dim])
-            hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
-            attn_vecs.append(tf.get_variable("AttnV_%d" % i, [attn_vec_dim]))
+            with tf.variable_scope("AttnW_%d" % i):
+                if self.attention_hidden_vars:
+                    tf.get_variable_scope().reuse_variables()
+                k = tf.get_variable("AttnW_%d" % i, [1, 1, attn_dim, attn_vec_dim])
+                hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
+                attn_vecs.append(tf.get_variable("AttnV_%d" % i, [attn_vec_dim]))
+        self.attention_hidden_vars = True
         return hidden, hidden_features, attn_vecs
 
 
