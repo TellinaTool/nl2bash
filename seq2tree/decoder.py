@@ -219,9 +219,9 @@ class BasicTreeDecoder(Decoder):
                         attns = batch_attns[j]
                         output, cell, hs, attns = tf.cond(search_left_to_right[j],
                             lambda: self.attention_cell(vertical_cell, parent_scope, input, state, attns,
-                                                       hidden_features, attn_vecs, num_heads, hidden),
+                                                       hidden_features[j], attn_vecs[j], num_heads, hidden[j]),
                             lambda: self.attention_cell(horizontal_cell, sb_scope, input, state, attns,
-                                                       hidden_features, attn_vecs, num_heads, hidden))
+                                                       hidden_features[j], attn_vecs[j], num_heads, hidden[j]))
                         batch_outputs.append(output)
                         batch_cells.append(cell)
                         batch_hss.append(hs)
