@@ -37,10 +37,6 @@ class BiRNNEncoder(object):
         self.fw_cell, _ = self.forward_cell()
         self.bw_cell, _ = self.backward_cell()
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5294cc3b197ea4763dad1d19cf382d38aac5e36c
     def define_graph(self, encoder_inputs, embeddings):
         self.embeddings = embeddings
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
