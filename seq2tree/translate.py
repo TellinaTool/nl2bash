@@ -289,6 +289,17 @@ def load_data(sample_size=-1):
     return train_set, dev_set, test_set
 
 
+def data_statistics():
+    train_set, dev_set, test_set = load_data()
+    print(len(data_utils.group_data_by_nl(train_set)))
+    print(len(data_utils.group_data_by_nl(dev_set)))
+    print(len(data_utils.group_data_by_nl(test_set)))
+
+    print(len(data_utils.group_data_by_cm(train_set)))
+    print(len(data_utils.group_data_by_cm(dev_set)))
+    print(len(data_utils.group_data_by_cm(test_set)))
+
+
 def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
@@ -307,6 +318,8 @@ def main(_):
             interactive_decode()
         elif FLAGS.process_data:
             process_data()
+        elif FLAGS.data_statistics():
+            data_statistics()
         elif FLAGS.sample_train:
             train_set, dev_set, _ = load_data(FLAGS.sample_size)
             train(train_set, dev_set)
