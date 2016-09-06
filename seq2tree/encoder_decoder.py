@@ -57,7 +57,7 @@ class EncoderDecoderModel(object):
     def source_embeddings(self):
         with tf.variable_scope("source_embeddings"):
             sqrt3 = math.sqrt(3)
-            initializer = tf.random_normal_initializer(-sqrt3, sqrt3)
+            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             if self.source_embedding_vars:
                 tf.get_variable_scope().reuse_variables()
             embeddings = tf.get_variable("embedding", [self.source_vocab_size,
@@ -70,7 +70,7 @@ class EncoderDecoderModel(object):
     def target_embeddings(self):
         with tf.variable_scope("target_embeddings"):
             sqrt3 = math.sqrt(3)
-            initializer = tf.random_normal_initializer(-sqrt3, sqrt3)
+            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             if self.target_embedding_vars:
                 tf.get_variable_scope().reuse_variables()
             embeddings = tf.get_variable("embedding", [self.target_vocab_size,
