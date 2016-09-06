@@ -260,13 +260,8 @@ class BasicTreeDecoder(Decoder):
                         next_input = tf.cond(search_left_to_right_next[j],
                                              lambda: tf.cond(search_left_to_right[j],
                                                              lambda: self.parent_input(j),
-<<<<<<< HEAD
                                                              lambda: self.get_input(j)),
-                                             lambda: batch_output_symbol[j])
-=======
-                                                             lambda: self.input(j)),
                                              lambda: batch_output_symbol[j:j+1])
->>>>>>> 999d5f598efd04bc4e7f0cfabd7053929508ab43
                         if self.use_attention:
                             new_state = tf.concat(1, [batch_cells[j], batch_hss[j], batch_attns[j]])
                         else:
