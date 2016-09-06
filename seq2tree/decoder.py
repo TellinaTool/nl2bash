@@ -156,8 +156,6 @@ class BasicTreeDecoder(Decoder):
             # scope of output_projection is the entire model
             # hence retrieving variables here
             W, b = self.output_projection
-            print("basic_tree_encoder: " + W.name)
-            print("basic_tree_encoder: " + b.name)
 
         with tf.variable_scope("basic_tree_decoder") as scope:
             vertical_cell, vertical_scope = self.vertical_cell
