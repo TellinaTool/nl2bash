@@ -32,8 +32,7 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-# _buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 50), (40, 60), (40, 64)]
-_buckets = [(5, 10), (10, 20)]
+_buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 50), (40, 60), (40, 64)]
 
 def create_model(session, forward_only):
     """
@@ -92,6 +91,7 @@ def create_model(session, forward_only):
         if not forward_only and FLAGS.create_fresh_params:
             data_utils.clean_dir(FLAGS.train_dir)
             print("Created model with fresh parameters.")
+            global_epochs = 0
             session.run(tf.initialize_all_variables())
         else:
             print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
@@ -189,9 +189,11 @@ def train(train_set, dev_set, verbose=False):
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
                 dev_perplexity = math.exp(dev_loss/len(_buckets)) if dev_loss < 300 else float('inf')
-                print("global step %d learning rate %.4f step-time .2f dev_perplexity "
-                      "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
-                                epoch_time, dev_perplexity))
+                print(global_epochs+t+1)
+                print(model.learning_rate.eval())
+                print(dev_perplexity)
+                print("global step %d learning rate %.4f dev_perplexity %.2f" 
+                        % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
                 if ppx < 1.1 and len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
@@ -298,21 +300,20 @@ def main(_):
     # print(len(group_data_by_nl(dev_set)))
     # print(len(group_data_by_nl(test_set)))
 
-    with tf.device('/gpu:%s' % FLAGS.gpu):
-        if FLAGS.eval:
-            eval()
-        elif FLAGS.manual_eval:
-            manual_eval()
-        elif FLAGS.decode:
-            interactive_decode()
-        elif FLAGS.process_data:
-            process_data()
-        elif FLAGS.sample_train:
-            train_set, dev_set, _ = load_data(FLAGS.sample_size)
-            train(train_set, dev_set)
-        else:
-            train_set, dev_set, _ = load_data()
-            train(train_set, dev_set, verbose=False)
+    if FLAGS.eval:
+        eval()
+    elif FLAGS.manual_eval:
+        manual_eval()
+    elif FLAGS.decode:
+        interactive_decode()
+    elif FLAGS.process_data:
+        process_data()
+    elif FLAGS.sample_train:
+        train_set, dev_set, _ = load_data(FLAGS.sample_size)
+        train(train_set, dev_set)
+    else:
+        train_set, dev_set, _ = load_data()
+        train(train_set, dev_set, verbose=False)
 
 
 if __name__ == "__main__":
