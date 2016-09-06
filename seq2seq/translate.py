@@ -216,7 +216,7 @@ def train(train_set, dev_set, num_iter):
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
                 dev_perplexity = math.exp(dev_loss/len(_buckets)) if dev_loss < 300 else float('inf')
-                print("global step %d learning rate %.4f step-time %.2f dev_perplexity "
+                print("global step %d learning rate %.4f step-time .2f dev_perplexity "
                       "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
                                 step_time, dev_perplexity))
 

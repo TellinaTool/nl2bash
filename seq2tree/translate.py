@@ -174,13 +174,13 @@ def train(train_set, dev_set, verbose=False):
                     _, eval_loss, output_logits = model.step(sess, formatted_example, bucket_id, 
                                                              forward_only=True)
                     dev_loss += eval_loss
-                dev_loss /= len(dev_set)
-                dev_ppx = math.exp(dev_loss) if dev_loss < 300 else float('int')
-                print("dev perplexity %.2f" % dev_ppx)
-                print()
+                    eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
+                    print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
-                eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
-                                    FLAGS, verbose=verbose)
+                dev_perplexity = math.exp(dev_loss/len(_buckets)) if dev_loss < 300 else float('inf')
+                print("global step %d learning rate %.4f step-time .2f dev_perplexity "
+                      "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
+                                epoch_time, dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
                 if ppx < 1.1 and len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
