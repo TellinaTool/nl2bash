@@ -918,6 +918,7 @@ def list_to_ast(list, order='dfs'):
             if symbol == "<NO_EXPAND>":
                 current = current.parent
             else:
+                print(symbol)
                 kind, value = symbol.split('_', 1)
                 kind = kind.lower()
                 # add argument types
