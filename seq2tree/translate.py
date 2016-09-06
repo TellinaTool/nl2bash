@@ -66,7 +66,7 @@ def create_model(session, forward_only):
     params["rnn_cell"] = FLAGS.rnn_cell
     params["num_layers"] = FLAGS.num_layers
     params["max_gradient_norm"] = FLAGS.max_gradient_norm
-    params["batch_size"] = FLAGS.batch_size
+    params["batch_size"] = FLAGS.batch_size if not forward_only else 1
     params["num_samples"] = FLAGS.num_samples
     params["input_keep_prob"] = FLAGS.input_keep_prob
     params["output_keep_prob"] = FLAGS.output_keep_prob
