@@ -366,11 +366,11 @@ class BasicTreeDecoder(Decoder):
         return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], self.parent(j))
 
     def parent(self, j):
-        parent = self.back_pointers[j:j+1, -1, 0]
+        p = self.back_pointers[j, -1, 0]
         # search that went beyond ROOT node will be discarded
-        return tf.cond(tf.equal(parent, tf.constant([-1])),
+        return tf.cond(tf.equal(p, tf.constant(-1)),
                        lambda: tf.constant([0]),
-                       lambda: parent)
+                       lambda: tf.expand_dims(p, 0))
 
     def parent_input(self, j):
         return tf.nn.embedding_lookup(self.input[j, :, 0], self.parent(j))
