@@ -261,7 +261,7 @@ class BasicTreeDecoder(Decoder):
                                              lambda: tf.cond(search_left_to_right[j],
                                                              lambda: self.parent_input(j),
                                                              lambda: self.input(j)),
-                                             lambda: batch_output_symbol[j])
+                                             lambda: batch_output_symbol[j:j+1])
                         if self.use_attention:
                             new_state = tf.concat(1, [batch_cells[j], batch_hss[j], batch_attns[j]])
                         else:
