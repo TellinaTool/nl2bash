@@ -396,7 +396,7 @@ class BasicTreeDecoder(Decoder):
         batch_back_pointers = tf.expand_dims(batch_back_pointers, 1)
         self.back_pointers = tf.concat(1, [self.back_pointers, batch_back_pointers])
 
-        batch_states = tf.concat(1, batch_states[2:])
+        batch_states = tf.concat(1, batch_states[2])
         self.stack = tf.concat(1, [self.stack, tf.expand_dims(batch_states, 1)])
 
 
