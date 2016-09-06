@@ -287,6 +287,17 @@ def load_data(sample_size=-1):
     return train_set, dev_set, test_set
 
 
+def data_statistics():
+    train_set, dev_set, test_set = load_data()
+    print(len(data_utils.group_data_by_nl(train_set)))
+    print(len(data_utils.group_data_by_nl(dev_set)))
+    print(len(data_utils.group_data_by_nl(test_set)))
+
+    print(len(data_utils.group_data_by_cm(train_set)))
+    print(len(data_utils.group_data_by_cm(dev_set)))
+    print(len(data_utils.group_data_by_cm(test_set)))
+
+
 def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
@@ -296,6 +307,7 @@ def main(_):
     # print(len(group_data_by_nl(dev_set)))
     # print(len(group_data_by_nl(test_set)))
 
+<<<<<<< HEAD
     if FLAGS.eval:
         eval()
     elif FLAGS.manual_eval:
@@ -310,6 +322,25 @@ def main(_):
     else:
         train_set, dev_set, _ = load_data()
         train(train_set, dev_set, verbose=False)
+=======
+    with tf.device('/gpu:%s' % FLAGS.gpu):
+        if FLAGS.eval:
+            eval()
+        elif FLAGS.manual_eval:
+            manual_eval()
+        elif FLAGS.decode:
+            interactive_decode()
+        elif FLAGS.process_data:
+            process_data()
+        elif FLAGS.data_statistics():
+            data_statistics()
+        elif FLAGS.sample_train:
+            train_set, dev_set, _ = load_data(FLAGS.sample_size)
+            train(train_set, dev_set)
+        else:
+            train_set, dev_set, _ = load_data()
+            train(train_set, dev_set, verbose=False)
+>>>>>>> 14ae02b9223430a55ba4e85a0c413ee1e06e1bdd
 
 
 if __name__ == "__main__":
