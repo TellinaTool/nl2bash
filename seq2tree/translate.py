@@ -181,7 +181,7 @@ def train(train_set, dev_set, verbose=False):
                     if len(dev_set[bucket_id]) == 0:
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
-                    formatted_example = model.get_bucket(dev_set, bucket_id)
+                    formatted_example = model.get_batch(dev_set, bucket_id)
                     _, eval_loss, output_logits = model.step(sess, formatted_example, bucket_id, 
                                                              forward_only=True)
                     dev_loss += eval_loss
