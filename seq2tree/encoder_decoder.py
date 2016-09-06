@@ -518,7 +518,7 @@ class Seq2TreeModel(EncoderDecoderModel):
             total_size += 1e-12  # Just to avoid division by 0 for all-0 weights.
             log_perps /= total_size
 
-        avg_log_perps = tf.reduce_sum(log_perps) / tf.cast(self.batch_size, dtypes=tf.float32)
+        avg_log_perps = tf.reduce_sum(log_perps) / tf.cast(self.batch_size, dtype=tf.float32)
 
         return avg_log_perps
 
