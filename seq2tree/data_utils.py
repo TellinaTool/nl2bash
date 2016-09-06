@@ -23,8 +23,8 @@ import re
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
-from data_tools import basic_tokenizer, bash_tokenizer, char_tokenizer, bash_parser
-import normalizer
+from data_tools import basic_tokenizer, bash_tokenizer, char_tokenizer
+import data_tools
 
 import tensorflow as tf
 
@@ -295,7 +295,7 @@ def group_data_by_nl(dataset, use_bucket=False):
     grouped_dataset = {}
     for i in xrange(len(dataset)):
         nl_str, cm_str, nl, search_history = dataset[i]
-        nl_template = " ".join(basic_tokenizer(nl_str.decode("utf-8")))
+        nl_template = " ".join(data_tools.basic_tokenizer(nl_str.decode("utf-8")))
         if nl_template in grouped_dataset:
             grouped_dataset[nl_template][0].append(nl_str)
             grouped_dataset[nl_template][1].append(cm_str)
@@ -303,6 +303,25 @@ def group_data_by_nl(dataset, use_bucket=False):
             grouped_dataset[nl_template][3].append(search_history)
         else:
             grouped_dataset[nl_template] = [[nl_str], [cm_str], [nl], [search_history]]
+
+    return grouped_dataset
+
+
+def group_data_by_cm(dataset, use_bucket=False):
+    if use_bucket:
+        dataset = reduce(lambda x,y: x + y, dataset)
+    grouped_dataset = {}
+    for i in xrange(len(dataset)):
+        nl_str, cm_str, nl, search_history = dataset[i]
+        for cm in cm_str:
+            cm_template = data_tools.to_template(cm.decode("utf-8"))
+            if cm_template in grouped_dataset:
+                grouped_dataset[cm_template][0].append(nl_str)
+                grouped_dataset[cm_template][1].append(cm_str)
+                grouped_dataset[cm_template][2].append(nl)
+                grouped_dataset[cm_template][3].append(search_history)
+            else:
+                grouped_dataset[cm_template] = [[nl_str], [cm_str], [nl], [search_history]]
 
     return grouped_dataset
 
@@ -378,11 +397,11 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
 
     def add_to_set(data, nl_list, cm_list, cm_token_list, cm_seq_list):
         for nl, cmd in data:
-            ast = bash_parser(cmd)
+            ast = data_tools.bash_parser(cmd)
             if ast:
                 if ast.is_simple():
-                    cmd_tokens = normalizer.to_tokens(ast)
-                    cmd_seq = normalizer.to_list(ast, list=[])
+                    cmd_tokens = data_tools.ast2tokens(ast)
+                    cmd_seq = data_tools.ast2list(ast, list=[])
                     nl_list.append(nl)
                     cm_list.append(cmd)
                     cm_token_list.append(cmd_tokens)
