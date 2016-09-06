@@ -102,7 +102,7 @@ def create_model(session, forward_only):
             os.mkdir(FLAGS.train_dir)
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
-        
+
     return model, global_epochs
 
 def train(train_set, dev_set, verbose=False):
