@@ -197,7 +197,8 @@ class BasicTreeDecoder(Decoder):
                 else:
                     input, state = self.peek()
                 
-                input_embeddings = tf.squeeze(tf.nn.embedding_lookup(self.embeddings, input))
+                input_embeddings = tf.squeeze(tf.nn.embedding_lookup(self.embeddings, input),
+                                              squeeze_dims=[1])
 
                 search_left_to_right = search_left_to_right_next
                 if self.use_attention:
@@ -406,10 +407,8 @@ class BasicTreeDecoder(Decoder):
         :return: batch stack state tuples
                  (batch_parent_states, [batch_attention_states])
         """
-        batch_input_symbols = self.input[:, -1:, :]
-        batch_input_symbols = tf.squeeze(batch_input_symbols)
-        batch_stack_states = self.state[:, -1:, :]
-        batch_stack_states = tf.squeeze(batch_stack_states)
+        batch_input_symbols = self.input[:, -1, :]
+        batch_stack_states = self.state[:, -1, :]
 
         batch_stack_cells = batch_stack_states[:, :self.dim]
         batch_stack_hiddens = batch_stack_states[:, self.dim:2*self.dim]
