@@ -384,10 +384,10 @@ class BasicTreeDecoder(Decoder):
         :param batch_states: list of list of state tensors
         """
         batch_next_input = batch_states[0]
-        # print(batch_next_input.get_shape())
+        print(batch_next_input.get_shape())
         batch_next_input = tf.expand_dims(batch_next_input, 1)
         batch_next_input = tf.expand_dims(batch_next_input, 1)
-        # print(self.input.get_shape())
+        print(self.input.get_shape())
         self.input = tf.concat(1, [self.input, batch_next_input])
 
         batch_back_pointers = batch_states[1]
