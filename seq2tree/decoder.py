@@ -243,7 +243,6 @@ class BasicTreeDecoder(Decoder):
                         batch_output_symbol = tf.argmax(batch_projected_output, 1)
                     else:
                         batch_output_symbol = decoder_inputs[i+1]
-
                     search_left_to_right_next = self.is_no_expand(batch_output_symbol)
                     batch_back_pointers = []
                     batch_next_input = []
@@ -369,13 +368,13 @@ class BasicTreeDecoder(Decoder):
         return self.back_pointers[j:j+1, -1, 0]
 
     def parent_input(self, j):
-        return tf.nn.embedding_lookup(self.input[j, :, :], self.parent(j))
+        return tf.nn.embedding_lookup(self.input[j, :, 0], self.parent(j))
 
     def parent_state(self, j):
         return tf.nn.embedding_lookup(self.state[j, :, :], self.parent(j))
 
     def get_input(self, j):
-        return self.input[j:j+1, -1, :]
+        return self.input[j:j+1, -1, 0]
 
     def get_state(self, j):
         return self.state[j:j+1, -1, :]
@@ -385,16 +384,20 @@ class BasicTreeDecoder(Decoder):
         :param batch_states: list of list of state tensors
         """
         batch_next_input = batch_states[0]
+        # print(batch_next_input.get_shape())
         batch_next_input = tf.expand_dims(batch_next_input, 1)
+        batch_next_input = tf.expand_dims(batch_next_input, 1)
+        # print(self.input.get_shape())
         self.input = tf.concat(1, [self.input, batch_next_input])
 
         batch_back_pointers = batch_states[1]
+        batch_back_pointers = tf.expand_dims(batch_back_pointers, 1)
         batch_back_pointers = tf.expand_dims(batch_back_pointers, 1)
         self.back_pointers = tf.concat(1, [self.back_pointers, batch_back_pointers])
 
         batch_states = batch_states[2]
         batch_states = tf.expand_dims(batch_states, 1)
-        self.stack = tf.concat(1, [self.stack, batch_states])
+        self.state = tf.concat(1, [self.state, batch_states])
 
 
     def peek(self):
