@@ -189,21 +189,17 @@ class BasicTreeDecoder(Decoder):
             self.input = tf.expand_dims(self.input, 1)
             self.input.set_shape([self.batch_size, 1, 1])
 
-            for i in xrange(len(decoder_inputs)-1):
+            for i in xrange(len(decoder_inputs)):
                 print("decoder step: %d" % i)
                 if i > 0: scope.reuse_variables()
 
                 # exam action of current step
-                search_left_to_right = []
                 batch_input_indices = []
+                search_left_to_right = self.is_no_expand(self.input[:, -1, 0])
                 for j in xrange(self.batch_size):
-                    control_symbol = self.is_no_expand(self.input[j, -1, 0])
-                    search_left_to_right.append(control_symbol)
                     input_index = tf.cond(search_left_to_right[j],
-                                    lambda: tf.cond(last_search_left_to_right[j],
-                                                    lambda: self.grandparent(j),
-                                                    lambda: self.parent(j)),
-                                    lambda: tf.constant([i]))
+                                          lambda: self.parent(j, tf.constant([i])),
+                                          lambda: tf.constant([i]))
                     batch_input_indices.append(input_index)
 
                 if self.use_attention:
@@ -243,28 +239,36 @@ class BasicTreeDecoder(Decoder):
                         attns = tf.cond(search_left_to_right[j], lambda: h_attns[j:j+1], lambda: v_attns[j:j+1])
                         batch_attns.append(attns)
 
-                # storing states
-                if feed_previous:
-                    # Project decoder output for next state input.
-                    batch_output = tf.concat(0, batch_outputs)
-                    batch_projected_output = tf.matmul(batch_output, W) + b
-                    batch_next_input = tf.argmax(batch_projected_output, 1)
-                else:
-                    batch_next_input = decoder_inputs[i+1]
-
-                if self.use_attention:
-                    self.push([batch_next_input, tf.concat(0, batch_input_indices),
-                                                 tf.concat(0, batch_cells),
-                                                 tf.concat(0, batch_hss),
-                                                 tf.concat(0, batch_attns)])
-                else:
-                    self.push([batch_next_input, tf.concat(0, batch_input_indices),
-                                                 tf.concat(0, batch_cells),
-                                                 tf.concat(0, batch_hss)])
-
-                last_search_left_to_right = search_left_to_right
-
+                batch_output = tf.concat(0, batch_outputs)
                 outputs.append(tf.concat(0, batch_outputs))
+
+                if i < len(decoder_inputs) - 1:
+                    # storing states
+                    if feed_previous:
+                        # Project decoder output for next state input.
+                        batch_projected_output = tf.matmul(batch_output, W) + b
+                        batch_next_input = tf.argmax(batch_projected_output, 1)
+                    else:
+                        batch_next_input = decoder_inputs[i+1]
+
+                    batch_back_pointers = []
+                    for j in xrange(self.batch_size):
+                        back_pointer = tf.cond(self.search_left_to_right[j],
+                                               lambda: self.parent(j, batch_input_indices[j]),
+                                               lambda: batch_input_indices[j])
+                        batch_back_pointers.append(back_pointer)
+
+                    if self.use_attention:
+                        self.push([batch_next_input, tf.concat(0, batch_back_pointers),
+                                                     tf.concat(0, batch_cells),
+                                                     tf.concat(0, batch_hss),
+                                                     tf.concat(0, batch_attns)])
+                    else:
+                        self.push([batch_next_input, tf.concat(0, batch_back_pointers),
+                                                     tf.concat(0, batch_cells),
+                                                     tf.concat(0, batch_hss)])
+
+                    last_search_left_to_right = search_left_to_right
 
         return outputs, tf.nn.rnn_cell.LSTMStateTuple(tf.concat(0, batch_cells),
                                                       tf.concat(0, batch_hss))
@@ -349,14 +353,8 @@ class BasicTreeDecoder(Decoder):
         return outputs, tf.nn.rnn_cell.LSTMStateTuple(cell, hs)
     """
 
-    def grandgrandparent(self, j):
-        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], self.grandparent(j))
-
-    def grandparent(self, j):
-        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], self.parent(j))
-
-    def parent(self, j):
-        return self.back_pointers[j:j+1, -1, 0]
+    def parent(self, j, i):
+        return tf.nn.embedding_lookup(self.back_pointers[j, :, 0], i)
 
     def push(self, batch_states):
         """
@@ -404,7 +402,8 @@ class BasicTreeDecoder(Decoder):
 
 
     def is_no_expand(self, ind):
-        return tf.equal(tf.cast(ind, tf.int32), BasicTreeDecoder._NO_EXPAND)
+        return tf.equal(tf.cast(ind, tf.int32),
+                        tf.constant(BasicTreeDecoder._NO_EXPAND, [self.batch_size]))
 
 
     def vertical_cell(self):
