@@ -239,7 +239,7 @@ class EncoderDecoderModel(object):
         # Get encoder and decoder inputs from a bucket,
         # pad them if needed, reverse encoder inputs.
         for i in xrange(len(data[bucket_id])):
-            encoder_input, decoder_input = data[bucket_id][i]
+            _, _, encoder_input, decoder_input = data[bucket_id][i]
 
             # Encoder inputs are padded and then reversed.
             encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
