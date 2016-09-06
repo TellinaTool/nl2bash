@@ -165,7 +165,7 @@ class BasicTreeDecoder(Decoder):
             outputs = []
 
             # search control
-            self.back_pointers = tf.constant(-1, shape=[self.batch_size, 1, 1])
+            self.back_pointers = tf.constant(-1, shape=[self.batch_size, 1, 1], dtype=tf.int32)
 
             # continuous stack used for storing LSTM states, synced with self.back_pointers
             if self.use_attention:
@@ -190,7 +190,7 @@ class BasicTreeDecoder(Decoder):
             search_left_to_right_next = self.is_no_expand(self.input[:, -1, 0])
 
             for i in xrange(len(decoder_inputs)):
-                print("decoder step: %d" % i)
+                # print("decoder step: %d" % i)
                 if i > 0: scope.reuse_variables()
 
                 if self.use_attention:
@@ -241,6 +241,7 @@ class BasicTreeDecoder(Decoder):
                         # Project decoder output for next state input.
                         batch_projected_output = tf.matmul(batch_output, W) + b
                         batch_output_symbol = tf.argmax(batch_projected_output, 1)
+                        batch_output_symbol = tf.cast(batch_output_symbol, dtype=tf.int32)
                     else:
                         batch_output_symbol = decoder_inputs[i+1]
                     search_left_to_right_next = self.is_no_expand(batch_output_symbol)

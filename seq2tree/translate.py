@@ -32,7 +32,7 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 50), (40, 60), (40, 64)]
+_buckets = [(10, 20), (20, 30), (30, 40), (40, 50), (40, 64)]
 
 def create_model(session, forward_only):
     """
@@ -175,7 +175,6 @@ def train(train_set, dev_set, verbose=False):
                 model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
-
                 # Run evals on development set and print the metrics.
                 for bucket_id in xrange(len(_buckets)):
                     if len(dev_set[bucket_id]) == 0:
@@ -189,9 +188,6 @@ def train(train_set, dev_set, verbose=False):
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
                 dev_perplexity = math.exp(dev_loss/len(_buckets)) if dev_loss < 300 else float('inf')
-                print(global_epochs+t+1)
-                print(model.learning_rate.eval())
-                print(dev_perplexity)
                 print("global step %d learning rate %.4f dev_perplexity %.2f" 
                         % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
 
