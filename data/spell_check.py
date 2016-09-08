@@ -6,12 +6,24 @@ MIT license: www.opensource.org/licenses/mit-license.php
 
 ################ Spelling Corrector
 
-import os, re
+import os, re, collections
 from collections import Counter
+
+current_folder = os.path.dirname(__file__)
 
 def words(text): return re.findall(r'\w+', text.lower())
 
-WORDS = Counter(words(open(os.path.join(os.path.dirname(__file__), 'html.txt')).read()))
+if os.path.exists(os.path.join(current_folder, "most_common.txt")):
+    WORDS = Counter(words(open(os.path.join(current_folder, 'most_common.txt')).read()))
+else:
+    WORDS = collections.defaultdict()
+
+def extract_top_frequent_words(input, top_k):
+    _words = Counter(words(open(input).read()))
+    WORDS = _words.most_common(top_k)
+    with open(os.path.join(current_folder, "most_common.txt"), 'w') as o_f:
+        for word, _ in WORDS:
+            o_f.write(word + '\n')
 
 def P(word, N=sum(WORDS.values())):
     "Probability of `word`."
@@ -102,6 +114,8 @@ def Testset(lines):
 
 
 if __name__ == "__main__":
+    if not os.path.exists(os.path.join(current_folder, "most_common.txt")):
+        extract_top_frequent_words(os.path.join(current_folder, "html.txt"), 8000)
     while True:
         try:
             word = raw_input("> ")
