@@ -31,8 +31,6 @@ class Decoder(object):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on cell and hidden states
-            # print("input_embeddings.get_shape(): {}".format(input_embedding.get_shape()))
-            # print("attns.get_shape(): {}".format(attns.get_shape()))
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             try:
                 cell_output, state = cell(x, state, cell_scope)

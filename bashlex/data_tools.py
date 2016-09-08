@@ -10,7 +10,7 @@ import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "data"))
 
 import bash, normalizer
-import gazetteer
+import gazetteer, spell_check
 
 from nltk.stem.wordnet import WordNetLemmatizer
 lmtzr = WordNetLemmatizer()
@@ -83,6 +83,13 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True, normalize_
         # lemmatization
         if lemmatization:
             word = lmtzr.lemmatize(word)
+
+        # spelling correction
+        if word.isalpha():
+            old_w = word
+            word = spell_check.correction(word)
+            if word != old_w:
+                print("spell correction: {} -> {}".format(old_w, word))
 
         # remove English stopwords
         if remove_stop_words:
