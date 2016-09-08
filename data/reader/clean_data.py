@@ -6,14 +6,14 @@ import functools
 import random
 import re
 import sqlite3
-import sys
+import os, sys
 sys.path.append("..")
 sys.path.append("../../bashlex")
 import warnings
 
 from bs4 import BeautifulSoup
 
-from data_tools import basic_tokenizer, bash_tokenizer, is_stopword, to_template
+from data_tools import basic_tokenizer, bash_tokenizer, is_stopword, cmd2template
 
 html_rel2abs = re.compile('"/[^\s<>]*/*http')
 hypothes_header = re.compile('\<\!\-\- WB Insert \-\-\>.*\<\!\-\- End WB Insert \-\-\>', re.DOTALL)
@@ -187,7 +187,7 @@ class DBConnection(object):
         for cmd in unique_pairs:
             if not cmd:
                 continue
-            signature = to_template(cmd, arg_type_only=split_by_template)
+            signature = cmd2template(cmd, arg_type_only=split_by_template)
             if not signature:
                 num_errors += 1
                 continue
@@ -284,14 +284,14 @@ class DBConnection(object):
                         if cmd in templates:
                             template = templates[cmd]
                         else:
-                            template = to_template(cmd, arg_type_only=split_by_template)
+                            template = cmd2template(cmd, arg_type_only=split_by_template)
                             templates[cmd] = template
                         for _, cmd2s in pairs[url2].items():
                             for cmd2 in cmd2s:
                                 if cmd2 in templates:
                                     template2 = templates[cmd2]
                                 else:
-                                    template2 = to_template(cmd2, arg_type_only=split_by_template)
+                                    template2 = cmd2template(cmd2, arg_type_only=split_by_template)
                                     templates[cmd2] = template2
                                 if template == template2:
                                     merge = True
@@ -382,11 +382,13 @@ class DBConnection(object):
         with open(data_dir + "/data.by.%s.dat" % split_by, 'w') as o_f:
             pickle.dump(data, o_f)
 
-    def dump_htmls(self):
+    def dump_htmls(self, output):
         c = self.conn.cursor()
         i = 0
-        with open("html.txt", 'w') as o_f:
-            for html, in c.execute("SELECT html from SearchContent"):
+        with open(output, 'w') as o_f:
+            for url, html in c.execute("SELECT url, html from SearchContent"):
+                if not html:
+                    continue
                 html = remove_headers(html)
                 html = path_rel2abs(html)
                 soup = BeautifulSoup(html, "html.parser")
@@ -398,7 +400,14 @@ class DBConnection(object):
                 # get text
                 text = soup.get_text()
 
-                o_f.write(text)
+                # break into lines and remove leading and trailing space on each
+                lines = (line.strip() for line in text.splitlines())
+                # break multi-headlines into a line each
+                chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+                # drop blank lines
+                text = '\n'.join(chunk for chunk in chunks if len(chunk) > 2)
+
+                o_f.write(text.encode("utf-8"))
                 o_f.write('\n')
 
             i += 1
@@ -420,6 +429,7 @@ if __name__ == "__main__":
     #     split_by_template = True
     # else:
     #     split_by_template = False
-    # with DBConnection() as db:
-    #     db.create_schema()
-    #     db.dump_data(".")
+    with DBConnection() as db:
+        db.create_schema()
+        # db.dump_data(".")
+        db.dump_htmls(os.path.join(os.path.dirname(__file__), "..", "html.txt"))
