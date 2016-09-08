@@ -36,6 +36,8 @@ _ARG = b"ARGUMENT_UNK"
 _UTL = b"HEADCOMMAND_UNK"
 _FLAG = b"FLAG_UNK"
 _NO_EXPAND = b"<NO_EXPAND>"
+_H_NO_EXPAND = b"<H_NO_EXPAND>"
+_V_NO_EXPAND = b"<V_NO_EXPAND>"
 _SPACE = b"<SPACE>"
 
 _GO = b"_GO"                # seq2seq start symbol
