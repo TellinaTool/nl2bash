@@ -6,12 +6,22 @@ MIT license: www.opensource.org/licenses/mit-license.php
 
 ################ Spelling Corrector
 
-import re
+import cPickle as pickle
+import os, re
 from collections import Counter
+
+current_folder = os.path.dirname(__file__)
 
 def words(text): return re.findall(r'\w+', text.lower())
 
-WORDS = Counter(words(open('big.txt').read()))
+if os.path.exists(os.path.join(current_folder, "most_common.txt")):
+    WORDS = Counter(words(open(os.path.join(current_folder, 'most_common.txt')).read()))
+
+def extract_top_frequent_words(input, top_k):
+    _words = Counter(words(open(input).read()))
+    WORDS = _words.most_common(top_k)
+    with open(os.path.join(current_folder, "most_common.txt"), 'w') as o_f:
+        pickle.dump(WORDS, o_f)
 
 def P(word, N=sum(WORDS.values())):
     "Probability of `word`."
@@ -102,6 +112,8 @@ def Testset(lines):
 
 
 if __name__ == "__main__":
+    if not os.path.exists(os.path.join(current_folder, "most_common.txt")):
+        extract_top_frequent_words(os.path.join(current_folder, "html.txt"), 8000)
     while True:
         try:
             word = raw_input("> ")
