@@ -48,24 +48,35 @@ class EncoderDecoderModel(object):
         self.learning_rate_decay_op = self.learning_rate.assign(
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
+        # variable sharing
+        self.output_projection_vars = False
+        self.source_embedding_vars = False
+        self.target_embedding_vars = False
+
 
     def source_embeddings(self):
         with tf.variable_scope("source_embeddings"):
             sqrt3 = math.sqrt(3)
-            initializer = tf.random_normal_initializer(-sqrt3, sqrt3)
+            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
+            if self.source_embedding_vars:
+                tf.get_variable_scope().reuse_variables()
             embeddings = tf.get_variable("embedding", [self.source_vocab_size,
                                                        self.dim],
                                          initializer=initializer)
+            self.source_embedding_vars = True
             return embeddings
 
 
     def target_embeddings(self):
         with tf.variable_scope("target_embeddings"):
             sqrt3 = math.sqrt(3)
-            initializer = tf.random_normal_initializer(-sqrt3, sqrt3)
+            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
+            if self.target_embedding_vars:
+                tf.get_variable_scope().reuse_variables()
             embeddings = tf.get_variable("embedding", [self.target_vocab_size,
                                                        self.dim],
                                          initializer=initializer)
+            self.target_embedding_vars = True
             return embeddings
 
 
@@ -206,7 +217,7 @@ class EncoderDecoderModel(object):
         return batch_encoder_inputs, batch_decoder_inputs, batch_weights
 
 
-    def get_bucket(self, data, bucket_id, feed_previous=False):
+    def get_bucket(self, data, bucket_id=-1, feed_previous=False):
         """Get all elements of a bucket, prepare for step.
 
         To feed data in step(..) it must be a list of batch-major vectors, while
@@ -228,7 +239,7 @@ class EncoderDecoderModel(object):
         # Get encoder and decoder inputs from a bucket,
         # pad them if needed, reverse encoder inputs.
         for i in xrange(len(data[bucket_id])):
-            encoder_input, decoder_input = data[bucket_id][i]
+            _, _, encoder_input, decoder_input = data[bucket_id][i]
 
             # Encoder inputs are padded and then reversed.
             encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
@@ -350,9 +361,6 @@ class Seq2TreeModel(EncoderDecoderModel):
 
         self.global_epoch = tf.Variable(0, trainable=False)
 
-        # variable sharing
-        self.output_projection_vars = False
-
         self.define_graph(forward_only)
 
 
@@ -390,16 +398,47 @@ class Seq2TreeModel(EncoderDecoderModel):
                 self.original_decoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
                                                     name="original_decoder{0}".format(i)))
 
+        # Encoder.
+        if self.encoder_topology == "rnn":
+            self.encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers)
+        elif self.encoder_topology == "birnn":
+            self.encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.num_layers)
+        else:
+            raise ValueError("Unrecognized encoder type.")
+
+        # Decoder.
+        if self.decoder_topology == "basic_tree":
+            self.decoder = decoder.BasicTreeDecoder(self.dim, self.batch_size, self.rnn_cell, self.num_layers,
+                                                self.input_keep_prob, self.output_keep_prob,
+                                                self.use_attention, self.use_copy,
+                                                self.output_projection())
+        else:
+            raise ValueError("Unrecognized decoder type.")
+
         # Compute raining outputs and losses in the forward direction.
-        self.forward(forward_only)
+        if self.buckets:
+            self.outputs = []
+            self.losses = []
+            for bucket_id, bucket in enumerate(self.buckets):
+                print("creating bucket {} ({}, {})...".format(
+                                       bucket_id, bucket[0], bucket[1]))
+                bucket_outputs, bucket_losses = self.encode_decode(
+                    self.encoder_inputs[:bucket[0]], self.source_embeddings(),
+                    self.decoder_inputs[:bucket[1]], self.target_embeddings(),
+                    forward_only=forward_only
+                )
+                self.outputs.append(bucket_outputs)
+                self.losses.append(bucket_losses)
+        else:
+            self.outputs, self.losses = self.encode_decode(
+                self.encoder_inputs, self.source_embeddings(),
+                self.decoder_inputs, self.target_embeddings(),
+                forward_only=forward_only
+            )
 
         # Gradients and SGD updates in the backward direction.
+        params = tf.trainable_variables()
         if not forward_only:
-            params = tf.trainable_variables()
-            if not forward_only:
-                self.gradient_norms = []
-                self.updates = []
-
             if self.hyperparams["optimizer"] == "sgd":
                 opt = tf.train.GradientDescentOptimizer(self.learning_rate)
             elif self.hyperparams["optimizer"] == "adam":
@@ -408,57 +447,49 @@ class Seq2TreeModel(EncoderDecoderModel):
             else:
                 raise ValueError("Unrecognized optimizer type.")
 
-            gradients = tf.gradients(self.losses, params)
-            clipped_gradients, norm = tf.clip_by_global_norm(gradients,
-                                                         self.max_gradient_norm)
-
-            self.gradient_norms.append(norm)
-            self.updates.append(opt.apply_gradients(zip(clipped_gradients, params)))
+            if self.buckets:
+                self.gradient_norms = []
+                self.updates = []
+                for bucket_id, _ in enumerate(self.buckets):
+                    gradients = tf.gradients(self.losses[bucket_id], params)
+                    clipped_gradients, norm = tf.clip_by_global_norm(gradients,
+                                                                     self.max_gradient_norm)
+                    self.gradient_norms.append(norm)
+                    self.updates.append(opt.apply_gradients(
+                        zip(clipped_gradients, params)))
+            else:
+                gradients = tf.gradients(self.losses, params)
+                clipped_gradients, norm = tf.clip_by_global_norm(gradients,
+                                                             self.max_gradient_norm)
+                self.gradient_norms = norm
+                self.updates = opt.apply_gradients(zip(clipped_gradients, params))
 
         self.saver = tf.train.Saver(tf.all_variables())
 
 
-    def forward(self, forward_only):
-        # Encoder.
-        if self.encoder_topology == "rnn":
-            _encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers)
-        elif self.encoder_topology == "birnn":
-            _encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.num_layers)
-        else:
-            raise ValueError("Unrecognized encoder type.")
-
-        encoder_outputs, encoder_state = _encoder.define_graph(self.encoder_inputs,
-                                                               self.source_embeddings())
-
-        # Decoder.
-        if self.decoder_topology == "basic_tree":
-            _decoder = decoder.BasicTreeDecoder(self.dim, self.rnn_cell, self.batch_size,
-                                               self.max_target_length, self.num_layers,
-                                               self.input_keep_prob, self.output_keep_prob,
-                                               self.use_attention, self.use_copy,
-                                               self.output_projection())
-        else:
-            raise ValueError("Unrecognized decoder type.")
-
+    def encode_decode(self, encoder_inputs, source_embeddings, decoder_inputs,
+                      target_embeddings, forward_only):
+        encoder_outputs, encoder_state = self.encoder.define_graph(encoder_inputs,
+                                                               source_embeddings)
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim]) for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
-            outputs, state = _decoder.define_graph(encoder_state, self.decoder_inputs, self.target_embeddings(),
-                                                  attention_states, feed_previous=forward_only)
+            outputs, state = self.decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
+                                                       attention_states, feed_previous=forward_only)
         else:
-            outputs, state = _decoder.define_graph(encoder_state, self.decoder_inputs, self.target_embeddings(),
-                                     feed_previous=forward_only)
+            outputs, state = self.decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
+                                                       feed_previous=forward_only)
 
         # Losses.
-        self.losses = self.sequence_loss(outputs, self.softmax_loss())
+        losses = self.sequence_loss(outputs, self.softmax_loss())
 
         # Project decoder outputs for decoding.
         W, b = self.output_projection()
-        # print("forward: " + W.name)
-        # print("forward: " + b.name)
-        self.outputs = []
+        projected_outputs = []
         for i in xrange(len(outputs)):
-            self.outputs.append((tf.matmul(outputs[i], W) + b))
+            projected_outputs.append((tf.matmul(outputs[i], W) + b))
+
+        return projected_outputs, losses
 
 
     def output_projection(self):
@@ -474,11 +505,9 @@ class Seq2TreeModel(EncoderDecoderModel):
 
 
     def sequence_loss(self, logits, loss_function):
-        targets = self.targets[:self.max_target_length]
-        weights = self.target_weights[:self.max_target_length]
-        if len(targets) != len(logits) or len(weights) != len(logits):
-            raise ValueError("Lengths of logits, targets and target_weights must be the same "
-                             "%d, %d, %d." % (len(logits), len(targets), len(weights)))
+        targets = self.targets[:len(logits)]
+        weights = self.target_weights[:len(logits)]
+
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
             for logit, target, weight in zip(logits, targets, weights):
@@ -488,14 +517,15 @@ class Seq2TreeModel(EncoderDecoderModel):
             total_size = tf.add_n(weights)
             total_size += 1e-12  # Just to avoid division by 0 for all-0 weights.
             log_perps /= total_size
-        return log_perps
+
+        avg_log_perps = tf.reduce_sum(log_perps) / tf.cast(self.batch_size, dtype=tf.float32)
+
+        return avg_log_perps
 
 
     def softmax_loss(self):
         if self.use_sampled_softmax:
             w, b = self.output_projection()
-            print("softmax_loss: " + w.name)
-            print("softmax_loss: " + b.name)
             w_t = tf.transpose(w)
 
             def sampled_loss(inputs, labels):
@@ -509,12 +539,13 @@ class Seq2TreeModel(EncoderDecoderModel):
         return loss_function
 
 
-    def step(self, session, formatted_example, forward_only):
+    def step(self, session, formatted_example, bucket_id=-1, forward_only=False):
         """Run a step of the model feeding the given inputs.
         :param session: tensorflow session to use.
         :param encoder_inputs: list of numpy int vectors to feed as encoder inputs.
         :param decoder_inputs: list of numpy int vectors to feed as decoder inputs.
         :param target_weights: list of numpy float vectors to feed as target weights.
+        :param bucket_id: which bucket of the model to use.
         :param forward_only: whether to do the backward step or only forward.
         :return (gradient_norm, average_perplexity, outputs)
         """
@@ -525,11 +556,22 @@ class Seq2TreeModel(EncoderDecoderModel):
         else:
             encoder_inputs, decoder_inputs, target_weights = formatted_example
 
-        encoder_size = len(encoder_inputs)
-        decoder_size = len(decoder_inputs)
-
-        assert(encoder_size == self.max_source_length)
-        assert(decoder_size == self.max_target_length)
+        # Check if the sizes match.
+        if bucket_id == -1:
+            encoder_size, decoder_size = len(encoder_inputs), len(decoder_inputs)
+            assert(encoder_size == self.max_source_length)
+            assert(decoder_size == self.max_target_length)
+        else:
+            encoder_size, decoder_size = self.buckets[bucket_id]
+            if len(encoder_inputs) != encoder_size:
+                raise ValueError("Encoder length must be equal to the one in bucket,"
+                                 " %d != %d." % (len(encoder_inputs), encoder_size))
+            if len(decoder_inputs) != decoder_size:
+                raise ValueError("Decoder length must be equal to the one in bucket,"
+                                 " %d != %d." % (len(decoder_inputs), decoder_size))
+            if len(target_weights) != decoder_size:
+                raise ValueError("Weights length must be equal to the one in bucket,"
+                                 " %d != %d." % (len(target_weights), decoder_size))
 
         # Input feed: encoder inputs, decoder inputs, target_weights, as provided.
         input_feed = {}
@@ -551,13 +593,23 @@ class Seq2TreeModel(EncoderDecoderModel):
 
         # Output feed: depends on whether we do a backward step or not.
         if not forward_only:
-            output_feed = [self.updates,            # Update Op that does SGD.
-                           self.gradient_norms,     # Gradient norm.
-                           self.losses]             # Loss for this batch.
+            if bucket_id == -1:
+                output_feed = [self.updates,            # Update Op that does SGD.
+                               self.gradient_norms,     # Gradient norm.
+                               self.losses]             # Loss for this batch.
+            else:
+                output_feed = [self.updates[bucket_id],            # Update Op that does SGD.
+                               self.gradient_norms[bucket_id],     # Gradient norm.
+                               self.losses[bucket_id]]             # Loss for this batch.
         else:
-            output_feed = [self.losses]  # Loss for this batch.
-            for l in xrange(decoder_size):  # Output logits.
-                output_feed.append(self.outputs[l])
+            if bucket_id == -1:
+                output_feed = [self.losses]  # Loss for this batch.
+                for l in xrange(decoder_size):  # Output logits.
+                    output_feed.append(self.outputs[l])
+            else:
+                output_feed = [self.losses[bucket_id]]  # Loss for this batch.
+                for l in xrange(decoder_size):  # Output logits.
+                    output_feed.append(self.outputs[bucket_id][l])
 
         outputs = session.run(output_feed, input_feed)
 

@@ -32,7 +32,7 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 50), (40, 60), (40, 64)]
+_buckets = [(10, 20), (20, 30), (30, 40), (40, 50), (40, 64)]
 
 def create_model(session, forward_only):
     """
@@ -66,7 +66,7 @@ def create_model(session, forward_only):
     params["rnn_cell"] = FLAGS.rnn_cell
     params["num_layers"] = FLAGS.num_layers
     params["max_gradient_norm"] = FLAGS.max_gradient_norm
-    params["batch_size"] = FLAGS.batch_size
+    params["batch_size"] = 1 if forward_only else FLAGS.batch_size
     params["num_samples"] = FLAGS.num_samples
     params["input_keep_prob"] = FLAGS.input_keep_prob
     params["output_keep_prob"] = FLAGS.output_keep_prob
@@ -84,13 +84,25 @@ def create_model(session, forward_only):
     model = Seq2TreeModel(params, _buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
+
     global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
+
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
-        print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
-        model.saver.restore(session, ckpt.model_checkpoint_path)
+        if not forward_only and FLAGS.create_fresh_params:
+            data_utils.clean_dir(FLAGS.train_dir)
+            print("Created model with fresh parameters.")
+            global_epochs = 0
+            session.run(tf.initialize_all_variables())
+        else:
+            print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
+            model.saver.restore(session, ckpt.model_checkpoint_path)
     else:
+        if not os.path.exists(FLAGS.train_dir):
+            print("Making train dir {}".format(FLAGS.train_dir))
+            os.mkdir(FLAGS.train_dir)
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
+
     return model, global_epochs
 
 def train(train_set, dev_set, verbose=False):
@@ -131,13 +143,14 @@ def train(train_set, dev_set, verbose=False):
             # random.shuffle(train_set)
 
             # progress bar
-            for i in tqdm(xrange(len(FLAGS.steps_per_checkpoint))):
+            for _ in tqdm(xrange(FLAGS.steps_per_checkpoint)):
                 time.sleep(0.01)
                 random_number_01 = np.random.random_sample()
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
                                  if train_buckets_scale[i] > random_number_01])
-                formatted_example = model.get_batch(train_set[bucket_id])
-                _, step_loss, _ = model.step(sess, formatted_example, forward_only=False)
+                formatted_example = model.get_batch(train_set, bucket_id)
+                _, step_loss, _ = model.step(sess, formatted_example, bucket_id, 
+                                             forward_only=False)
                 loss += step_loss
                 current_step += 1
 
@@ -147,7 +160,7 @@ def train(train_set, dev_set, verbose=False):
             if t % FLAGS.epochs_per_checkpoint == 0:
 
                 # Print statistics for the previous epoch.
-                loss /= len(train_set)
+                loss /= FLAGS.steps_per_checkpoint
                 ppx = math.exp(loss) if loss < 300 else float('inf')
                 print("learning rate %.4f epoch-time %.2f perplexity %.2f" % (
                     model.learning_rate.eval(), epoch_time, ppx))
@@ -162,22 +175,21 @@ def train(train_set, dev_set, verbose=False):
                 model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
-
                 # Run evals on development set and print the metrics.
                 for bucket_id in xrange(len(_buckets)):
                     if len(dev_set[bucket_id]) == 0:
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
-                    formatted_example = model.get_bucket(dev_set[bucket_id])
-                    _, eval_loss, output_logits = model.step(sess, formatted_example, forward_only=True)
+                    formatted_example = model.get_batch(dev_set, bucket_id)
+                    _, eval_loss, output_logits = model.step(sess, formatted_example, bucket_id, 
+                                                             forward_only=True)
                     dev_loss += eval_loss
-                dev_loss /= len(dev_set)
-                dev_ppx = math.exp(dev_loss) if dev_loss < 300 else float('int')
-                print("dev perplexity %.2f" % dev_ppx)
-                print()
+                    eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
+                    print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
-                eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
-                                    FLAGS, verbose=verbose)
+                dev_perplexity = math.exp(dev_loss/len(_buckets)) if dev_loss < 300 else float('inf')
+                print("global step %d learning rate %.4f dev_perplexity %.2f" 
+                        % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
                 if ppx < 1.1 and len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
@@ -199,7 +211,7 @@ def eval(verbose=True):
         nl_vocab_path = os.path.join(FLAGS.data_dir,
                                      "vocab%d.nl" % FLAGS.nl_vocab_size)
         cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
+                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
         _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = load_data()
@@ -218,7 +230,7 @@ def manual_eval():
         nl_vocab_path = os.path.join(FLAGS.data_dir,
                                      "vocab%d.nl" % FLAGS.nl_vocab_size)
         cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
+                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
         _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = load_data()
@@ -236,7 +248,7 @@ def interactive_decode():
         nl_vocab_path = os.path.join(FLAGS.data_dir,
                                      "vocab%d.nl" % FLAGS.nl_vocab_size)
         cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
+                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
         nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
@@ -275,6 +287,17 @@ def load_data(sample_size=-1):
     return train_set, dev_set, test_set
 
 
+def data_statistics():
+    train_set, dev_set, test_set = load_data()
+    print(len(data_utils.group_data_by_nl(train_set)))
+    print(len(data_utils.group_data_by_nl(dev_set)))
+    print(len(data_utils.group_data_by_nl(test_set)))
+
+    print(len(data_utils.group_data_by_cm(train_set)))
+    print(len(data_utils.group_data_by_cm(dev_set)))
+    print(len(data_utils.group_data_by_cm(test_set)))
+
+
 def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
@@ -284,6 +307,22 @@ def main(_):
     # print(len(group_data_by_nl(dev_set)))
     # print(len(group_data_by_nl(test_set)))
 
+<<<<<<< HEAD
+    if FLAGS.eval:
+        eval()
+    elif FLAGS.manual_eval:
+        manual_eval()
+    elif FLAGS.decode:
+        interactive_decode()
+    elif FLAGS.process_data:
+        process_data()
+    elif FLAGS.sample_train:
+        train_set, dev_set, _ = load_data(FLAGS.sample_size)
+        train(train_set, dev_set)
+    else:
+        train_set, dev_set, _ = load_data()
+        train(train_set, dev_set, verbose=False)
+=======
     with tf.device('/gpu:%s' % FLAGS.gpu):
         if FLAGS.eval:
             eval()
@@ -293,12 +332,15 @@ def main(_):
             interactive_decode()
         elif FLAGS.process_data:
             process_data()
+        elif FLAGS.data_statistics():
+            data_statistics()
         elif FLAGS.sample_train:
             train_set, dev_set, _ = load_data(FLAGS.sample_size)
             train(train_set, dev_set)
         else:
             train_set, dev_set, _ = load_data()
             train(train_set, dev_set, verbose=False)
+>>>>>>> 14ae02b9223430a55ba4e85a0c413ee1e06e1bdd
 
 
 if __name__ == "__main__":

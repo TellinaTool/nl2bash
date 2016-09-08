@@ -25,6 +25,7 @@ class RNNEncoder(object):
         with tf.variable_scope("encoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim,
                                                       self.num_layers)
+            self.encoder_cell_vars = True
         return cell, scope
 
 
@@ -36,19 +37,29 @@ class BiRNNEncoder(object):
         self.fw_cell, _ = self.forward_cell()
         self.bw_cell, _ = self.backward_cell()
 
+        # variable sharing
+        self.forward_rnn_vars = False
+        self.backward_rnn_vars = False
+
     def define_graph(self, encoder_inputs, embeddings):
         self.embeddings = embeddings
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
 
         with tf.variable_scope("forward_rnn") as scope:
+            if self.forward_rnn_vars:
+                tf.get_variable_scope().reuse_variables()
             output_fw, state_fw = tf.nn.rnn(self.fw_cell, input_embeddings, dtype=tf.float32,
                                             scope=scope)
+            self.forward_rnn_vars = True
 
         with tf.variable_scope("backward_rnn") as scope:
             reversed_input_embeddings = [e for e in reversed(input_embeddings)]
+            if self.backward_rnn_vars:
+                tf.get_variable_scope().reuse_variables()
             output_bw, state_bw = tf.nn.rnn(self.bw_cell, reversed_input_embeddings, dtype=tf.float32,
                                             scope=scope)
+            self.backward_rnn_vars = True
 
         output_bw = [e for e in reversed(output_bw)]
 
@@ -84,11 +95,13 @@ class BiRNNEncoder(object):
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers)
         return cell, scope
 
+
     def backward_cell(self):
         """RNN cell for the backward RNN."""
         with tf.variable_scope("backward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers)
         return cell, scope
+
 
     def output_projection(self):
         with tf.variable_scope("birnn_output_projection"):
