@@ -85,7 +85,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True, normalize_
             word = lmtzr.lemmatize(word)
 
         # spelling correction
-        if word.isalpha():
+        if word.isalpha() and word.islower() and len(word) > 2:
             old_w = word
             word = spell_check.correction(word)
             if word != old_w:
