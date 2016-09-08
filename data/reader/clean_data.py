@@ -4,13 +4,19 @@ import collections
 import cPickle as pickle
 import functools
 import random
+import re
 import sqlite3
 import sys
 sys.path.append("..")
 sys.path.append("../../bashlex")
 import warnings
 
+from bs4 import BeautifulSoup
+
 from data_tools import basic_tokenizer, bash_tokenizer, is_stopword, to_template
+
+html_rel2abs = re.compile('"/[^\s<>]*/*http')
+hypothes_header = re.compile('\<\!\-\- WB Insert \-\-\>.*\<\!\-\- End WB Insert \-\-\>', re.DOTALL)
 
 # minimum number of edits two natural language descriptions have to differ to not be considered as duplicates
 EDITDIST_THRESH = 8
@@ -31,6 +37,14 @@ def deprecated(func):
         return func(*args, **kwargs)
 
     return new_func
+
+def remove_headers(content):
+    content = re.sub(hypothes_header, '\n', content)
+    return content
+
+# convert relative paths to absolute ones
+def path_rel2abs(content):
+    return re.sub(html_rel2abs, '"http', content)
 
 def is_QA_website(url):
     if "stackoverflow" in url:
@@ -368,6 +382,30 @@ class DBConnection(object):
         with open(data_dir + "/data.by.%s.dat" % split_by, 'w') as o_f:
             pickle.dump(data, o_f)
 
+    def dump_htmls(self):
+        c = self.conn.cursor()
+        i = 0
+        with open("html.txt", 'w') as o_f:
+            for html, in c.execute("SELECT html from SearchContent"):
+                html = remove_headers(html)
+                html = path_rel2abs(html)
+                soup = BeautifulSoup(html, "html.parser")
+
+                # kill all script and style elements
+                for script in soup(["script", "style"]):
+                    script.extract()    # rip it out
+
+                # get text
+                text = soup.get_text()
+
+                o_f.write(text)
+                o_f.write('\n')
+
+            i += 1
+            if i % 1000 == 0:
+                print("%d html pages dumped" % i)
+        c.close()
+
     def head_present(self, cmd, head):
         if (head + ' ') in cmd:
             return True
@@ -377,11 +415,11 @@ class DBConnection(object):
             return False
 
 if __name__ == "__main__":
-    split_by = sys.argv[1]
-    if split_by == "template":
-        split_by_template = True
-    else:
-        split_by_template = False
-    with DBConnection() as db:
-        db.create_schema()
-        db.dump_data(".")
+    # split_by = sys.argv[1]
+    # if split_by == "template":
+    #     split_by_template = True
+    # else:
+    #     split_by_template = False
+    # with DBConnection() as db:
+    #     db.create_schema()
+    #     db.dump_data(".")
