@@ -11,7 +11,7 @@ from collections import Counter
 
 def words(text): return re.findall(r'\w+', text.lower())
 
-WORDS = Counter(words(open(os.path.join(os.path.dirname(__file__), 'big.txt')).read()))
+WORDS = Counter(words(open(os.path.join(os.path.dirname(__file__), 'html.txt')).read()))
 
 def P(word, N=sum(WORDS.values())):
     "Probability of `word`."

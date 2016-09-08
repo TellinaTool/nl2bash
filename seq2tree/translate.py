@@ -311,8 +311,6 @@ def main(_):
         manual_eval()
     elif FLAGS.decode:
         interactive_decode()
-    elif FLAGS.data_statistics():
-        data_statistics()
     elif FLAGS.process_data:
         process_data()
     elif FLAGS.data_stats:
