@@ -8,7 +8,7 @@ def define_input_flags():
                                 "Limit on the size of training data (0: no limit).")
     tf.app.flags.DEFINE_integer("epochs_per_checkpoint", 1,
                                 "How many training steps to do per checkpoint.")
-    tf.app.flags.DEFINE_integer("num_epochs", 10,
+    tf.app.flags.DEFINE_integer("num_epochs", 20,
                                 "Number of training epochs")
 
     tf.app.flags.DEFINE_boolean("grid_search", False,
@@ -18,6 +18,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("initialization", False,
                                 "Set to try multiple random intialization and select the best one.")
 
+    tf.app.flags.DEFINE_boolean("data_stats", False,
+                                "Set to True to print dataset statistics.")
     tf.app.flags.DEFINE_boolean("manual_eval", False,
                                 "Set to True for manual evaluation.")
     tf.app.flags.DEFINE_boolean("eval", False,
@@ -81,7 +83,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("use_attention", False, "If set, use attention decoder.")
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
 
-    tf.app.flags.DEFINE_string("encoder_topology", "birnn", "structure of the encoder.")
+    tf.app.flags.DEFINE_string("encoder_topology", "rnn", "structure of the encoder.")
     tf.app.flags.DEFINE_string("decoder_topology", "basic_tree", "structure of the decoder.")
     tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
     tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")

@@ -170,9 +170,10 @@ def train(train_set, dev_set, verbose=False):
                     sess.run(model.learning_rate_decay_op)
                 previous_losses.append(loss)
 
-                # Save checkpoint and zero timer and loss.
-                checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
-                model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1)
+                if t % 10 == 0:
+                    # Save checkpoint and zero timer and loss.
+                    checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
+                    model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
@@ -269,7 +270,7 @@ def process_data():
     data_utils.prepare_data(data, output_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
 
 
-def load_data(sample_size=-1):
+def load_data(sample_size=-1, use_buckets=True):
     print("Loading data from %s" % FLAGS.data_dir)
 
     data_dir = FLAGS.data_dir
@@ -280,34 +281,30 @@ def load_data(sample_size=-1):
     nl_test = os.path.join(data_dir, "test") + ".ids%d.nl" % FLAGS.nl_vocab_size
     cm_test = os.path.join(data_dir, "test") + ".seq%d.cm" % FLAGS.cm_vocab_size
 
-    train_set = data_utils.read_data(nl_train, cm_train, _buckets, FLAGS.max_train_data_size)
-    dev_set = data_utils.read_data(nl_dev, cm_dev, _buckets)
-    test_set = data_utils.read_data(nl_test, cm_test, _buckets)
+    buckets = _buckets if use_buckets else None
+
+    train_set = data_utils.read_data(nl_train, cm_train, buckets, FLAGS.max_train_data_size)
+    dev_set = data_utils.read_data(nl_dev, cm_dev, buckets)
+    test_set = data_utils.read_data(nl_test, cm_test, buckets)
 
     return train_set, dev_set, test_set
 
 
 def data_statistics():
-    train_set, dev_set, test_set = load_data()
+    train_set, dev_set, test_set = load_data(use_buckets=False)
     print(len(data_utils.group_data_by_nl(train_set)))
     print(len(data_utils.group_data_by_nl(dev_set)))
     print(len(data_utils.group_data_by_nl(test_set)))
 
-    print(len(data_utils.group_data_by_cm(train_set)))
-    print(len(data_utils.group_data_by_cm(dev_set)))
-    print(len(data_utils.group_data_by_cm(test_set)))
+    print("data count = %d" % len(data_utils.group_data_by_cm(train_set)))
+    print("data count = %d" % len(data_utils.group_data_by_cm(dev_set)))
+    print("data count = %d" % len(data_utils.group_data_by_cm(test_set)))
 
 
 def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
 
-    # train_set, dev_set, test_set = load_data()
-    # print(len(group_data_by_nl(train_set)))
-    # print(len(group_data_by_nl(dev_set)))
-    # print(len(group_data_by_nl(test_set)))
-
-<<<<<<< HEAD
     if FLAGS.eval:
         eval()
     elif FLAGS.manual_eval:
@@ -316,31 +313,14 @@ def main(_):
         interactive_decode()
     elif FLAGS.process_data:
         process_data()
+    elif FLAGS.data_stats:
+        data_statistics()
     elif FLAGS.sample_train:
         train_set, dev_set, _ = load_data(FLAGS.sample_size)
         train(train_set, dev_set)
     else:
         train_set, dev_set, _ = load_data()
         train(train_set, dev_set, verbose=False)
-=======
-    with tf.device('/gpu:%s' % FLAGS.gpu):
-        if FLAGS.eval:
-            eval()
-        elif FLAGS.manual_eval:
-            manual_eval()
-        elif FLAGS.decode:
-            interactive_decode()
-        elif FLAGS.process_data:
-            process_data()
-        elif FLAGS.data_statistics():
-            data_statistics()
-        elif FLAGS.sample_train:
-            train_set, dev_set, _ = load_data(FLAGS.sample_size)
-            train(train_set, dev_set)
-        else:
-            train_set, dev_set, _ = load_data()
-            train(train_set, dev_set, verbose=False)
->>>>>>> 14ae02b9223430a55ba4e85a0c413ee1e06e1bdd
 
 
 if __name__ == "__main__":

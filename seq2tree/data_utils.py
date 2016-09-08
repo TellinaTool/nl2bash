@@ -313,15 +313,14 @@ def group_data_by_cm(dataset, use_bucket=False):
     grouped_dataset = {}
     for i in xrange(len(dataset)):
         nl_str, cm_str, nl, search_history = dataset[i]
-        for cm in cm_str:
-            cm_template = data_tools.to_template(cm.decode("utf-8"))
-            if cm_template in grouped_dataset:
-                grouped_dataset[cm_template][0].append(nl_str)
-                grouped_dataset[cm_template][1].append(cm_str)
-                grouped_dataset[cm_template][2].append(nl)
-                grouped_dataset[cm_template][3].append(search_history)
-            else:
-                grouped_dataset[cm_template] = [[nl_str], [cm_str], [nl], [search_history]]
+        cm_template = data_tools.cmd2template(cm_str)
+        if cm_template in grouped_dataset:
+            grouped_dataset[cm_template][0].append(nl_str)
+            grouped_dataset[cm_template][1].append(cm_str)
+            grouped_dataset[cm_template][2].append(nl)
+            grouped_dataset[cm_template][3].append(search_history)
+        else:
+            grouped_dataset[cm_template] = [[nl_str], [cm_str], [nl], [search_history]]
 
     return grouped_dataset
 
@@ -335,7 +334,10 @@ def read_data(source_path, target_path, buckets=None, max_num_examples=None,
     :param max_num_examples: maximum number of lines to read. Read complete data files if
         this entry is 0 or None.
     """
-    data_set = [[] for _ in buckets]
+    if buckets:
+        data_set = [[] for _ in buckets]
+    else:
+        data_set = []
 
     source_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.', 2)[2]])
     target_txt_path = '.'.join([target_path.rsplit('.', 2)[0], target_path.rsplit('.', 2)[2]])
@@ -361,10 +363,13 @@ def read_data(source_path, target_path, buckets=None, max_num_examples=None,
                         if append_end_token:
                             target_ids.append(EOS_ID)
 
-                        for bucket_id, (source_size, target_size) in enumerate(buckets):
-                            if len(source_ids) < source_size and len(target_ids) < target_size:
-                                data_set[bucket_id].append([source_txt, target_txt, source_ids, target_ids])
-                                break
+                        if buckets:
+                            for bucket_id, (source_size, target_size) in enumerate(buckets):
+                                if len(source_ids) < source_size and len(target_ids) < target_size:
+                                    data_set[bucket_id].append([source_txt, target_txt, source_ids, target_ids])
+                                    break   
+                        else:
+                            data_set.append([source_txt, target_txt, source_ids, target_ids])
 
                         source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
                         source, target = source_file.readline(), target_file.readline()
