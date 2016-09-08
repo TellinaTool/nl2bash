@@ -307,13 +307,14 @@ def main(_):
     # print(len(group_data_by_nl(dev_set)))
     # print(len(group_data_by_nl(test_set)))
 
-<<<<<<< HEAD
     if FLAGS.eval:
         eval()
     elif FLAGS.manual_eval:
         manual_eval()
     elif FLAGS.decode:
         interactive_decode()
+    elif FLAGS.data_statistics():
+        data_statistics()
     elif FLAGS.process_data:
         process_data()
     elif FLAGS.sample_train:
@@ -322,25 +323,6 @@ def main(_):
     else:
         train_set, dev_set, _ = load_data()
         train(train_set, dev_set, verbose=False)
-=======
-    with tf.device('/gpu:%s' % FLAGS.gpu):
-        if FLAGS.eval:
-            eval()
-        elif FLAGS.manual_eval:
-            manual_eval()
-        elif FLAGS.decode:
-            interactive_decode()
-        elif FLAGS.process_data:
-            process_data()
-        elif FLAGS.data_statistics():
-            data_statistics()
-        elif FLAGS.sample_train:
-            train_set, dev_set, _ = load_data(FLAGS.sample_size)
-            train(train_set, dev_set)
-        else:
-            train_set, dev_set, _ = load_data()
-            train(train_set, dev_set, verbose=False)
->>>>>>> 14ae02b9223430a55ba4e85a0c413ee1e06e1bdd
 
 
 if __name__ == "__main__":
