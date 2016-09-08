@@ -172,6 +172,10 @@ def list2ast(list, order='dfs'):
     return normalizer.list_to_ast(list, order)
 
 
+def ast2tokens(node, loose_constraints=False, ignore_flag_order=False):
+    return normalizer.to_tokens(node, loose_constraints, ignore_flag_order)
+
+
 def ast2command(node, loose_constraints=False, ignore_flag_order=False):
     return ' '.join(normalizer.to_tokens(node, loose_constraints, ignore_flag_order))
 
