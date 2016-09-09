@@ -1,0 +1,187 @@
+Example 1 (1)
+English: Find a 400 permission file under /data directory
+GT Command 1: find /data -type f -perm 400 -print -quit
+Prediction: find UNK -type f -exec chmod UNK {} \;
+WW
+
+Example 2 (1)
+English: Find every vim undo file under current directory
+GT Command 1: find -type f -iname '*.un~'
+Prediction: find . -name UNK -print
+CW
+
+Example 3 (1)
+English: List all *.bak files in the current directory tree
+GT Command 1: find  . -name '*.bak' -ls
+Prediction: find . -type f -name "*.php" -exec ls -l '{}' \;
+CW
+
+Example 4 (1)
+English: Find all files/directories named file1 in maximum 2 levels down the current directory
+GT Command 1: find -maxdepth 2 -name file1
+Prediction: find . -name UNK -maxdepth _NUM
+CW
+
+Example 5 (1)
+English: display all sqlite files in the current directory along with their timestamp
+GT Command 1: find ./ -name "*.sqlite" -printf '%Tc %p\n'
+Prediction: find . -name '*.[ch]' -exec grep -s -s {} \;
+WW
+
+Example 6 (1)
+English: Search directory /tmp/foo for files containing "/tmp/foo/bar" in their full names
+GT Command 1: find /tmp/foo -path /tmp/foo/bar -print
+Prediction: find UNK -name UNK
+CW
+
+Example 7 (1)
+English: display all pdf files in the current folder
+GT Command 1: find . -name *.pdf
+Prediction: find . -name UNK -print
+CW
+
+Example 8 (1)
+English: find all the files with the name september ( case insensitive )
+GT Command 1: find -iname september
+Prediction: find . -iname top
+CW
+
+Example 9 (1)
+English: find all fonts which belong to a specific user
+GT Command 1: find /usr/local/fonts -user warwick
+Prediction: find -user UNK
+WW
+
+Example 10 (1)
+English: Find the files which have the name "java" in it and then display only the files which have "class" word in them?
+GT Command 1: find -name "*java*" -exec grep -H class {} \;
+Prediction: find UNK -name UNK
+WW
+
+Example 11 (1)
+English: change the owner of all the files in folder /u/netinst to netinst
+GT Command 1: find /u/netinst -print | xargs chown netinst
+Prediction: find UNK -exec chown aluno_NUM {} \;
+CW
+
+Example 12 (1)
+English: Search for file names with "bad" characters in the current directory and delete the files.
+GT Command 1: find . -name '*[+{;"\\=?~()<>&*|$ ]*' -maxdepth 0 -exec rm -f '{}' \;
+Prediction: find . -name file -exec rm -r -f {} \;
+CW
+
+Example 13 (1)
+English: find all the configuration files in a folder and do not search in the sub folder's directories and display the last ten files.
+GT Command 1: find /etc -maxdepth 2 -name "*.conf" | tail
+Prediction: find UNK -name UNK
+WW
+
+Example 14 (1)
+English: Find recursively all files changed within the last 5 minutes starting from directory b
+GT Command 1: find b -cmin -5
+Prediction: find . -newerct _LONG_PATTERN -print
+WW
+
+Example 15 (2)
+English: display all the .sh scripts and perl files in the current folder
+GT Command 1: find . -type f \( -iname "*.sh" -or -iname "*.pl" \)
+GT Command 2: find . -type f \( -name "*.[sS][hH]" -o -name "*.[pP][lL]" \)
+Prediction: find . -name "*.pl" -exec grep -l UNK {} \;
+WW
+
+Example 16 (2)
+English: Find all the files in file system which are changed in last 1 hour
+GT Command 1: find / -cmin -60
+GT Command 2: find / -ctime -1
+Prediction: find / -newerct _LONG_PATTERN -print
+WW
+
+Example 17 (1)
+English: display all directories in the entire file system
+GT Command 1: find / -type d -print
+Prediction: find / -type d -name "*"
+WW
+
+Example 18 (1)
+English: Find all files and directories in the current directory tree with "linkin park" in their names and copy them to /Users/tommye/Desktop/LP
+GT Command 1: find . -iname "*linkin park*" -exec cp -r {} /Users/tommye/Desktop/LP \;
+Prediction: 
+WW
+
+Example 19 (1)
+English: find all the files with a specific name in the current folder and delete them
+GT Command 1: find . -name “find name” -exec rm {}\ ;
+Prediction: find . -name _LONG_PATTERN -exec rm -r -f {} \;
+CC
+
+Example 20 (1)
+English: Copy file header.shtml to directories dir1, dir2, dir3, and dir4
+GT Command 1: find dir1 dir2 dir3 dir4 -type d -exec cp header.shtml {} \;
+Prediction: find . -type d -name UNK -exec cp {} UNK \;
+WW
+
+Example 21 (1)
+English: List root's regular files with permissions 4000
+GT Command 1: find / -type f -user root -perm -4000 -exec ls -l {} \;
+Prediction: find . -type f -perm UNK
+WW
+
+Example 22 (1)
+English: Find files/directories under current directory matching the posix-egrep type regex ".+\.(c|cpp|h)$" in their names
+GT Command 1: find . -regextype posix-egrep -regex ".+\.(c|cpp|h)$"
+Prediction: find . \( -path ./src/emacs -prune -or -print \)
+WW
+
+Example 23 (1)
+English: find all regular/normal files in a folder whose size is less than 50 bytes
+GT Command 1: find /usr/bin -type f -size -50c
+Prediction: find /usr/local -size -_NUMc
+WW
+
+Example 24 (1)
+English: search for all the mp3 files in the folder /home/you which have been accessed 24 ago
+GT Command 1: find /home/you -iname “*.mp3” -atime 01 -type -f
+Prediction: find /home/you -iname "*.mp_NUM" -atime +_NUM
+CW
+
+Example 25 (1)
+English: delete all the regular files in the temp folder which have not been changed in the last 15*24 hours
+GT Command 1: find /tmp/ -ctime +15 -type f -exec rm {} \;
+Prediction: find UNK -type f -ctime +_NUM UNK UNK UNK UNK _LONG_PATTERN _LONG_PATTERN _LONG_PATTERN _LONG_PATTERN _LONG_PATTERN _LONG_PATTERN
+WW
+
+Example 26 (1)
+English: Find file1 in the level 1 directories and above
+GT Command 1: find -maxdepth 2 -name file1
+Prediction: find . \( -name file_NUM -or -name UNK \)
+WW
+
+Example 27 (1)
+English: Locate files whose status was changed less than 1 day ago
+GT Command 1: find . -ctime -1 -print
+Prediction: find . -ctime -_NUM -name '*.c'
+WW
+
+Example 28 (1)
+English: remove all subdirectories named "CVS" under current dir
+GT Command 1: find . -type d -name CVS -exec rm -r {} \;
+Prediction: find . -name UNK -maxdepth _NUM -delete
+WW
+
+Example 29 (1)
+English: search for the word "redeem reward" in all the regular/normal files in the current folder
+GT Command 1: find . -type f -exec grep -i “redeem reward” {} \; -print
+Prediction: find . -type f -exec grep UNK {} \; -print
+CW
+
+Example 30 (1)
+English: display all files in the current directory excluding those that are present in the directories whose name starts with "efence" and do not search in the sub directories
+GT Command 1: find * -maxdepth 0 -name "efence*" -prune -o -print
+Prediction: find . -maxdepth _NUM -not -path '*/\.*'
+CW
+
+
+30 examples evaluated
+Percentage of Template Match = 0.40
+Percentage of String Match = 0.03
+
