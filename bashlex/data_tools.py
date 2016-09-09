@@ -161,9 +161,12 @@ def ast2list(node, order='dfs', list=None):
     """Linearize the AST."""
     if order == 'dfs':
         list.append(node.symbol)
-        for child in node.children:
-            ast2list(child, order, list)
-        list.append("<NO_EXPAND>")
+        if node.getNumChildren() > 0:
+            for child in node.children:
+                ast2list(child, order, list)
+            list.append(normalizer._H_NO_EXPAND)
+        else:
+            list.append(normalizer._V_NO_EXPAND)
     return list
 
 
@@ -208,7 +211,8 @@ if __name__ == "__main__":
             pretty_print(norm_tree, 0)
             # print(to_command(norm_tree))
             search_history = ast2list(norm_tree, 'dfs', [])
-            # print(list)
+            for state in search_history:
+                print(state)
             tree = list2ast(search_history + ['<PAD>'])
             # pretty_print(tree, 0)
             # print(to_template(tree, arg_type_only=False))

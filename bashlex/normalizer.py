@@ -18,6 +18,9 @@ import bast, errors, tokenizer, bparser
 import bash
 from lookup import ManPageLookUp
 
+_H_NO_EXPAND = b"<H_NO_EXPAND>"
+_V_NO_EXPAND = b"<V_NO_EXPAND>"
+
 # TODO: add stdin & stdout types
 simplified_bash_syntax = [
     "Command ::= SingleCommand | Pipe",
@@ -915,7 +918,7 @@ def list_to_ast(list, order='dfs'):
             if not current:
                 break
             symbol = list[i]
-            if symbol == "<NO_EXPAND>":
+            if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
                 current = current.parent
             else:
                 kind, value = symbol.split('_', 1)
