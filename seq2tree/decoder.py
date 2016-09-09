@@ -104,7 +104,6 @@ class Decoder(object):
             output, state = cell(input, state, scope)
         except ValueError, e:
             scope.reuse_variables()
-            print(state)
             output, state = cell(input, state, scope)
         return output, state
 
@@ -220,7 +219,7 @@ class BasicTreeDecoder(Decoder):
 
                 batch_output = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
                                           [search_left_to_right, h_output, v_output], self.batch_size)
-                print("back_output.get_shape(): {}".format(batch_output.get_shape()))
+                # print("back_output.get_shape(): {}".format(batch_output.get_shape()))
 
                 if self.rnn_cell == "gru":
                     batch_state = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
@@ -236,7 +235,8 @@ class BasicTreeDecoder(Decoder):
                     batch_attns = graph_utils.map_fn(lambda x: tf.cond(x, lambda : x[1], lambda : x[2]),
                                             [search_left_to_right, h_attns[1], v_attns[1]], self.batch_size)
                     batch_state = tf.concat(1, [batch_state, batch_attns])
-
+                # print("batch_state.get_shape(): {}").format(batch_state.get_shape())
+                
                 # record output state to compute the loss.
                 outputs.append(batch_output)
 
@@ -256,9 +256,10 @@ class BasicTreeDecoder(Decoder):
                                               search_left_to_right,
                                               self.grandparent(),
                                               self.parent(),
-                                              tf.constant(i, shape=[self.batch_size])],
+                                              tf.constant(i, shape=[self.batch_size], dtype=tf.int32)],
                                              self.batch_size)
-                    print("back_pointer.get_shape(): {}".format(back_pointer.get_shape()))
+                    back_pointer.set_shape([self.batch_size])
+                    # print("back_pointer.get_shape(): {}".format(back_pointer.get_shape()))
                     next_input = graph_utils.map_fn(self.next_input,
                                            [search_left_to_right_next,
                                             search_left_to_right,
@@ -266,14 +267,16 @@ class BasicTreeDecoder(Decoder):
                                             self.get_input(),
                                             batch_output_symbol],
                                            self.batch_size)
-                    print("next_input.get_shape(): {}".format(next_input.get_shape()))
+                    next_input.set_shape([self.batch_size])
+                    # print("next_input.get_shape(): {}".format(next_input.get_shape()))
                     next_state = graph_utils.map_fn(self.next_state,
                                            [search_left_to_right_next,
                                             search_left_to_right,
                                             self.parent_state(),
-                                            self.get_input(),
+                                            self.get_state(),
                                             batch_state],
                                            self.batch_size)
+                    next_state.set_shape([self.batch_size, self.dim])
                     print("next_state.get_shape(): {}".format(next_state.get_shape()))
                     self.push([next_input, back_pointer, next_state])
 
@@ -367,38 +370,43 @@ class BasicTreeDecoder(Decoder):
     def back_pointer(self, x):
         h_search_next, h_search, grandparent, parent, current = x
         return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search, lambda : grandparent, lambda : parent),
-                       lambda : tf.cond(h_search, lambda : parent, lambda : current))
+                       lambda : tf.cond(h_search[0], lambda : grandparent, lambda : parent),
+                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current))
 
     def next_input(self, x):
         h_search_next, h_search, parent, current, next = x
         return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search, lambda : parent, lambda : current),
+                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current),
                        lambda : next)
 
     def next_state(self, x):
         h_search_next, h_search, parent, current, next = x
         return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search, lambda : parent, lambda : current),
+                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current),
                        lambda : next)
 
     def grandparent(self):
-        graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
+        return graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
                   [self.back_pointers[:, :, 0], self.parent()], self.batch_size)
 
     def parent(self):
         p = self.back_pointers[:, -1, 0]
+        # print("p.get_shape(): {}".format(p.get_shape()))
         # search that went beyond ROOT node will be discarded
-        graph_utils.map_fn(lambda x: tf.cond(tf.equal(x, tf.constant(-1)), lambda: x, lambda: tf.constant(0)),
+        pa = graph_utils.map_fn(lambda x: tf.cond(tf.equal(x[0], tf.constant(-1)), lambda: tf.constant([0]),
+                                                                                     lambda: x),
                   [p], self.batch_size)
+        pa.set_shape([self.batch_size])
+        return pa
 
     def parent_input(self):
-        graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
+        return graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
                   [self.input[:, :, 0], self.parent()], self.batch_size)
 
     def parent_state(self):
-        graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
-                  [self.state[:, :, :], self.parent()], self.batch_size)
+        # print("self.state.get_shape(): {}".format(self.state.get_shape()))
+        return graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
+                  [self.state, self.parent()], self.batch_size)
 
     def get_input(self):
         return self.input[:, -1, 0]

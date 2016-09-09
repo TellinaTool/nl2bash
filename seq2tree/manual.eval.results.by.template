@@ -1,0 +1,192 @@
+Example 1 (1)
+English: Find all directories under /home/username/public_html/sites/all/modules and set their permission to 750
+GT Command 1: find /home/username/public_html/sites/all/modules -type d -exec chmod 750 {} +
+Prediction: find UNK -type d -exec chmod -v {} ;
+WW
+
+Example 2 (1)
+English: display all text files in the folder /user/directory which have been modified in today
+GT Command 1: find /user/directory/* -name "*txt" -mtime 0 -type f
+Prediction: find $HOME -type f
+WW
+
+Example 3 (1)
+English: delete all the files in the current folder  which do not belong to any user
+GT Command 1: find / -nouser -exec rm {}\;
+Prediction: find . -nouser -exec rm {} ;
+CC
+
+Example 4 (1)
+English: find all the regular/normal files in the current folder which belong to the users with the user id's between 500 and 1000
+GT Command 1: find . -uid +500 -uid -1000 -type f
+Prediction: find . -user _NUM
+WW
+
+Example 5 (1)
+English: Find all the files which are accessed in last 1 hour in entire file system
+GT Command 1: find / -amin -60
+Prediction: find / -atime -_NUM
+CC
+
+Example 6 (1)
+English: find all regular/normal files in the current folder that have been modified in the last 120 hours
+GT Command 1: find -mtime -5 -type f -print
+Prediction: find . -type f
+WW
+
+Example 7 (1)
+English: Find all regular files in the current directory tree ignoring GIT and SVN directories
+GT Command 1: find . \( -type d -regex '^.*/\.\(git\|svn\)$' -prune -false \) -o -type f -print0
+Prediction: find . -name .git -prune -exec grep -v {} ;
+WW
+
+Example 8 (1)
+English: Find all *.* directories under /home/feeds/data directory
+GT Command 1: find /home/feeds/data -type d \( -name 'def/incoming' -o -name '456/incoming' -o -name arkona \) -prune -o -name '*.*' -print
+Prediction: find UNK -type d
+WW
+
+Example 9 (1)
+English: find all files in current folder which are bigger than 270MB and less than 300MB
+GT Command 1: find . -size +270M -size -300M
+Prediction: find . -size -_NUMM
+WW
+
+Example 10 (1)
+English: Find all files under /home/username/public_html/modules  and set their permission to 640
+GT Command 1: find /home/username/public_html/modules -type f -exec chmod 640 {} +
+Prediction: find -atime _NUM -exec chmod -v {} ;
+WW
+
+Example 11 (1)
+English: Find all files under /var/www directory and set their permission to 644
+GT Command 1: sudo find /var/www -type f -print0 | xargs -0 chmod 644
+Prediction: find /var/www -type f -exec chmod -R {} ;
+WW
+
+Example 12 (1)
+English: change the permissions of all the regular/normal files in the folder "/path/to/someDirectory" to 644
+GT Command 1: sudo find /path/to/someDirectory -type f -print0 | xargs -0 sudo chmod 644
+Prediction: find main-directory _NUM -type f -exec chmod -v {} {} ;
+CW
+
+Example 13 (1)
+English: Find all the files on the system that have been accessed within the last hour
+GT Command 1: find / -amin -60
+Prediction: find / -atime -_NUM
+CC
+
+Example 14 (4)
+English: Search the current directory tree for regular files omitting directory `omit-directory'
+GT Command 1: find . \( -name omit-directory -prune \) -o \( -type f -print \)
+GT Command 2: find . -name omit-directory -prune -o -type f
+GT Command 3: find . -name omit-directory -prune -o -type f  -print
+GT Command 4: find . \( -name omit-directory -prune -o -type f \) -print
+Prediction: find . -type f
+WW
+
+Example 15 (1)
+English: Find all directories under var/ directory and change their permission to 700
+GT Command 1: find var/ -type d -exec chmod 700 {} \;
+Prediction: find UNK -type d -exec chmod -v {} {} ;
+CW
+
+Example 16 (1)
+English: Find all directories under current directory and change their permission to 755
+GT Command 1: find . -type d -exec chmod 755 {} \;
+Prediction: find . -type d -exec chmod -v {} ;
+WW
+
+Example 17 (1)
+English: change the permissions of all the regular/normal files to 644 in the folder /home/nobody/public_html
+GT Command 1: find /home/nobody/public_html -type f -exec chmod 644 {} \;
+Prediction: find main-directory -type f -exec chmod -v {} {} ;
+CW
+
+Example 18 (3)
+English: Remove all regular files found in and below /path
+GT Command 1: find /path -type f -exec rm '{}' +
+GT Command 2: find /path -type f -print | xargs rm
+GT Command 3: find /path -type f -exec rm '{}' \;
+Prediction: find /path -type f -exec rm {} ;
+CC
+
+Example 19 (2)
+English: Give all directories in the /path/to/base/dir tree read and execute privileges
+GT Command 1: find /path/to/base/dir -type d -print0 | xargs -0 chmod 755
+GT Command 2: find /path/to/base/dir -type d -exec chmod 755 {} +
+Prediction: find /path/to/base/dir -type d
+WW
+
+Example 20 (1)
+English: Find all directories under and below /home/admin/public_html/, and change their permissions to 755
+GT Command 1: find /home/admin/public_html/ -type d -exec chmod 755 {} \;
+Prediction: find UNK -type d -exec chmod _NUM {} ;
+CC
+
+Example 21 (1)
+English: find all the ".c" files in the folder /home/david which have been modified in the last 48 hours
+GT Command 1: find /home/david -mtime -2 -name '*.c'
+Prediction: find UNK -mtime -_NUM
+WW
+
+Example 22 (1)
+English: find all the files in the entire file system that have been accessed in the last 60 days ago
+GT Command 1: find / -amin -60
+Prediction: find / -atime _NUM
+CW
+
+Example 23 (1)
+English: Find all directories under /path/to/Dir and set their permission to 755
+GT Command 1: sudo find /path/to/Dir -type d -print0 | xargs -0 sudo chmod 755
+Prediction: find UNK -type d -exec chmod -v {} ;
+CC
+
+Example 24 (2)
+English: display all file in the home folder except ".c" files
+GT Command 1: find $HOME \! -iname "*.c" print
+GT Command 2: find $HOME -not -iname "*.c" -print
+Prediction: find $HOME ! -name '*farm*' ! -name UNK
+CW
+
+Example 25 (1)
+English: Search for all files newer than file /tmp/t
+GT Command 1: find / -newer /tmp/t
+Prediction: find / -name UNK
+WW
+
+Example 26 (1)
+English: Find all files under /home/username/public_html/sites/all/modules and set their permission to 640
+GT Command 1: find /home/username/public_html/sites/all/modules -type f -exec chmod 640 {} +
+Prediction: find -atime _NUM -exec chmod -v {} ;
+WW
+
+Example 27 (1)
+English: Get a list of all files in the /home directory tree and their coressponding inode numbers
+GT Command 1: find /home -type f -printf "%i@%p\n"
+Prediction: find /home -inum UNK
+WW
+
+Example 28 (1)
+English: Find recursively the files named "file" in the current directory ignoring the .git subdirectory
+GT Command 1: find . -path ./.git  -prune -o -name file  -print
+Prediction: find . -type f -name .git
+WW
+
+Example 29 (1)
+English: find all files in home folder which have been modified after a timestamp
+GT Command 1: find ~ -newer /tmp/timestamp
+Prediction: find $HOME -newer UNK
+CW
+
+Example 30 (1)
+English: delete all the ".doc" files in the current folder
+GT Command 1: find . -name '*.doc' -exec rm "{}" \;
+Prediction: find . -name UNK -exec rm {} ;
+CW
+
+
+30 examples evaluated
+Percentage of Template Match = 0.43
+Percentage of String Match = 0.20
+
