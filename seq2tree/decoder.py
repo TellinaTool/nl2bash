@@ -219,22 +219,22 @@ class BasicTreeDecoder(Decoder):
                         horizontal_cell, horizontal_scope, input_embeddings, state)
 
                 batch_output = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
-                                          [search_left_to_right, h_output, v_output], back_prop=True)
+                                          [search_left_to_right, h_output, v_output])
                 print("back_output.get_shape(): {}".format(batch_output.get_shape()))
 
                 if self.rnn_cell == "gru":
                     batch_state = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
-                                         [search_left_to_right, h_state, v_state], back_prop=True)
+                                         [search_left_to_right, h_state, v_state])
                 else:
                     batch_cell = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
-                                            [search_left_to_right, h_state[0], v_state[0]], back_prop=True)
+                                            [search_left_to_right, h_state[0], v_state[0]])
                     batch_hs = graph_utils.map_fn(lambda x: tf.cond(x, lambda : x[1], lambda : x[2]),
-                                            [search_left_to_right, h_state[1], v_state[1]], back_prop=True)
+                                            [search_left_to_right, h_state[1], v_state[1]])
                     batch_state = tf.concat(1, [batch_cell, batch_hs])
 
                 if self.use_attention:
                     batch_attns = graph_utils.map_fn(lambda x: tf.cond(x, lambda : x[1], lambda : x[2]),
-                                            [search_left_to_right, h_attns[1], v_attns[1]], back_prop=True)
+                                            [search_left_to_right, h_attns[1], v_attns[1]])
                     batch_state = tf.concat(1, [batch_state, batch_attns])
 
                 # record output state to compute the loss.
@@ -384,21 +384,21 @@ class BasicTreeDecoder(Decoder):
 
     def grandparent(self):
         graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
-                  [self.back_pointers[:, :, 0], self.parent()], back_prop=True)
+                  [self.back_pointers[:, :, 0], self.parent()])
 
     def parent(self):
         p = self.back_pointers[:, -1, 0]
         # search that went beyond ROOT node will be discarded
         graph_utils.map_fn(lambda x: tf.cond(tf.equal(x, tf.constant(-1)), lambda: x, lambda: tf.constant(0)),
-                  [p], back_prop=True)
+                  [p])
 
     def parent_input(self):
         graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
-                  [self.input[:, :, 0], self.parent()], back_prop=True)
+                  [self.input[:, :, 0], self.parent()])
 
     def parent_state(self):
         graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
-                  [self.state[:, :, :], self.parent()], back_prop=True)
+                  [self.state[:, :, :], self.parent()])
 
     def get_input(self):
         return self.input[:, -1, 0]
