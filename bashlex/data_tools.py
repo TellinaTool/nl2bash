@@ -80,16 +80,16 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True, normalize_
             if len(word) > 1 and word[0].isupper() and word[1:].islower():
                 word = word.lower()
 
-        # lemmatization
-        if lemmatization:
-            word = lmtzr.lemmatize(word)
-
         # spelling correction
         if word.isalpha() and word.islower() and len(word) > 2:
             old_w = word
             word = spell_check.correction(word)
             if word != old_w:
                 print("spell correction: {} -> {}".format(old_w, word))
+
+        # lemmatization
+        if lemmatization:
+            word = lmtzr.lemmatize(word)
 
         # remove English stopwords
         if remove_stop_words:

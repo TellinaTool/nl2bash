@@ -410,9 +410,10 @@ class DBConnection(object):
                 o_f.write(text.encode("utf-8"))
                 o_f.write('\n')
 
-            i += 1
-            if i % 1000 == 0:
-                print("%d html pages dumped" % i)
+                i += 1
+                if i % 1000 == 0:
+                    print("%d html pages dumped" % i)
+
         c.close()
 
     def head_present(self, cmd, head):

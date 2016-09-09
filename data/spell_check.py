@@ -13,21 +13,31 @@ current_folder = os.path.dirname(__file__)
 
 def words(text): return re.findall(r'\w+', text.lower())
 
+WORDS = collections.defaultdict(int)
 if os.path.exists(os.path.join(current_folder, "most_common.txt")):
-    WORDS = Counter(words(open(os.path.join(current_folder, 'most_common.txt')).read()))
-else:
-    WORDS = collections.defaultdict()
+    with open(os.path.join(current_folder, 'most_common.txt')) as f:
+        for line in f:
+            word, freq = line.strip().split('\t')
+            WORDS[word] = int(freq)
 
 def extract_top_frequent_words(input, top_k):
     _words = Counter(words(open(input).read()))
-    WORDS = _words.most_common(top_k)
+    WORDS = _words.most_common(top_k * 2)
     with open(os.path.join(current_folder, "most_common.txt"), 'w') as o_f:
-        for word, _ in WORDS:
-            o_f.write(word + '\n')
+        count = 0
+        for word, freq in WORDS:
+            if len(word) <= 2:
+                continue
+            if freq < 20:
+                break
+            o_f.write("{}\t{}\n".format(word, freq))
+            count += 1
+            if count >= top_k:
+                break
 
 def P(word, N=sum(WORDS.values())):
     "Probability of `word`."
-    return WORDS[word] / N
+    return WORDS[word] / (N+0.0)
 
 def correction(word):
     "Most probable spelling correction for word."
@@ -115,7 +125,7 @@ def Testset(lines):
 
 if __name__ == "__main__":
     if not os.path.exists(os.path.join(current_folder, "most_common.txt")):
-        extract_top_frequent_words(os.path.join(current_folder, "html.txt"), 8000)
+        extract_top_frequent_words(os.path.join(current_folder, "html.txt"), 30000)
     while True:
         try:
             word = raw_input("> ")
