@@ -34,6 +34,18 @@ def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1, outp
                                                  output_keep_prob=output_keep_prob)
     return cell
 
+
+def map_fn(fn, elems, batch_size):
+    """Pesudo multi-ariti scan."""
+    results = []
+    elem_lists = [tf.split(0, batch_size, elem) for elem in elems]
+    for i in xrange(batch_size):
+        args = [tf.squeeze(elem_lists[0][i], squeeze_dims=[0])] + \
+               [elem_list[i] for elem_list in elem_lists]
+        results.append(fn(args))
+    return tf.concat(0, results)
+
+
 def deprecated(func):
     """This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emmitted
