@@ -218,8 +218,8 @@ class BasicTreeDecoder(Decoder):
                     h_output, h_state = self.normal_cell(
                         horizontal_cell, horizontal_scope, input_embeddings, state)
 
-                batch_output = tf.map_fn(lambda x, y, z: tf.cond(x, lambda : y, lambda : z),
-                                          [search_left_to_right, h_output, v_output], back_prop=True)
+                batch_output = tf.scan(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
+                                          (search_left_to_right, h_output, v_output), back_prop=True)
                 print("back_output.get_shape(): {}".format(batch_output.get_shape()))
 
                 if self.rnn_cell == "gru":
@@ -449,7 +449,7 @@ class BasicTreeDecoder(Decoder):
 
 
     def is_no_expand(self, ind):
-        tf.logical_or(self.no_vertical_expand(ind), self.no_horizontal_expand(ind))
+        return tf.logical_or(self.no_vertical_expand(ind), self.no_horizontal_expand(ind))
 
 
     def no_vertical_expand(self, ind):
