@@ -152,11 +152,6 @@ class BasicTreeDecoder(Decoder):
             raise ValueError("Shape[1] and [2] of attention_states must be known %s"
                              % attention_states.get_shape())
 
-        if feed_previous:
-            # scope of output_projection is shared by all decoders
-            # hence retrieving variables here
-            W, b = self.output_projection
-
         with tf.variable_scope("basic_tree_decoder") as scope:
             vertical_cell, vertical_scope = self.vertical_cell
             horizontal_cell, horizontal_scope = self.horizontal_cell
@@ -244,6 +239,7 @@ class BasicTreeDecoder(Decoder):
                     # storing states
                     if feed_previous:
                         # Project decoder output for next state input.
+                        W, b = self.output_projection
                         batch_projected_output = tf.matmul(batch_output, W) + b
                         batch_output_symbol = tf.argmax(batch_projected_output, 1)
                         batch_output_symbol = tf.cast(batch_output_symbol, dtype=tf.int32)
@@ -485,3 +481,24 @@ class BasicTreeDecoder(Decoder):
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
                                                       self.input_keep_prob, self.output_keep_prob)
         return cell, scope
+
+
+if __name__ == "__main__":
+    decoder = BasicTreeDecoder(dim=100, batch_size=10, rnn_cell="gru", num_layers=1,
+                 input_keep_prob=1, output_keep_prob=1,
+                 use_attention=False, use_copy=False, output_projection=None)
+    decoder_inputs = [tf.placeholder(dtype=tf.int32, shape=[None],
+                                     name="decoder{0}".format(i)) for i in xrange(5)]
+    encoder_state = tf.random_normal([1, 100])
+    attention_states = tf.random_normal(shape=[8, 100])
+    target_embeddings = tf.random_normal(shape=[200, 100])
+    outputs, state = decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
+                                          attention_states, feed_previous=False)
+
+    with tf.Session() as sess:
+        input_feed = {}
+        for l in xrange(5):
+            input_feed[decoder_inputs[l].name] = decoder_inputs[l]
+        output_feed = [state]
+
+        state = sess.run(output_feed, input_feed)
