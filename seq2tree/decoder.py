@@ -7,6 +7,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2seq"))
 import numpy as np
 import data_utils, graph_utils
 
+DEBUG = False
+
 class Decoder(object):
     def __init__(self, dim, batch_size, rnn_cell, num_layers,
                  input_keep_prob, output_keep_prob,
@@ -157,7 +159,8 @@ class BasicTreeDecoder(Decoder):
             vertical_cell, vertical_scope = self.vertical_cell
             horizontal_cell, horizontal_scope = self.horizontal_cell
             outputs = []
-
+            if DEBUG:
+                control_symbols = []
             # search control
             self.back_pointers = tf.constant(-1, shape=[self.batch_size, 1, 1], dtype=tf.int32)
 
@@ -186,11 +189,16 @@ class BasicTreeDecoder(Decoder):
             self.input = tf.expand_dims(self.input, 1)
             self.input.set_shape([self.batch_size, 1, 1])
             search_left_to_right_next = self.is_no_expand(self.input[:, -1, 0])
-
+            
             for i in xrange(len(decoder_inputs)):
-                # print("decoder step: %d" % i)
+                if DEBUG:
+                    print("decoder step: %d" % i)
                 if i > 0: scope.reuse_variables()
 
+                search_left_to_right = search_left_to_right_next
+                if DEBUG:
+                    control_symbols.append(search_left_to_right_next)
+                
                 if self.use_attention:
                     input, state, attns = self.peek()
                 else:
@@ -198,7 +206,6 @@ class BasicTreeDecoder(Decoder):
                 
                 input_embeddings = tf.squeeze(tf.nn.embedding_lookup(self.embeddings, input),
                                               squeeze_dims=[1])
-                search_left_to_right = search_left_to_right_next
 
                 if self.use_attention:
                     v_output, v_state, v_attns = self.attention_cell(
@@ -215,7 +222,8 @@ class BasicTreeDecoder(Decoder):
 
                 batch_output = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
                                           [search_left_to_right, h_output, v_output], self.batch_size)
-                # print("back_output.get_shape(): {}".format(batch_output.get_shape()))
+                if DEBUG:
+                    print("back_output.get_shape(): {}".format(batch_output.get_shape()))
 
                 if self.rnn_cell == "gru":
                     batch_state = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
@@ -231,7 +239,8 @@ class BasicTreeDecoder(Decoder):
                     batch_attns = graph_utils.map_fn(lambda x: tf.cond(x, lambda : x[1], lambda : x[2]),
                                             [search_left_to_right, h_attns[1], v_attns[1]], self.batch_size)
                     batch_state = tf.concat(1, [batch_state, batch_attns])
-                # print("batch_state.get_shape(): {}").format(batch_state.get_shape())
+                if DEBUG:
+                    print("batch_state.get_shape(): {}").format(batch_state.get_shape())
                 
                 # record output state to compute the loss.
                 outputs.append(batch_output)
@@ -256,7 +265,8 @@ class BasicTreeDecoder(Decoder):
                                               tf.constant(i, shape=[self.batch_size], dtype=tf.int32)],
                                              self.batch_size)
                     back_pointer.set_shape([self.batch_size])
-                    # print("back_pointer.get_shape(): {}".format(back_pointer.get_shape()))
+                    if DEBUG:
+                        print("back_pointer.get_shape(): {}".format(back_pointer.get_shape()))
                     next_input = graph_utils.map_fn(self.next_input,
                                            [search_left_to_right_next,
                                             search_left_to_right,
@@ -265,16 +275,18 @@ class BasicTreeDecoder(Decoder):
                                             batch_output_symbol],
                                            self.batch_size)
                     next_input.set_shape([self.batch_size])
-                    # print("next_input.get_shape(): {}".format(next_input.get_shape()))
+                    if DEBUG:
+                        print("next_input.get_shape(): {}".format(next_input.get_shape()))
                     next_state = graph_utils.map_fn(self.next_state,
                                            [search_left_to_right_next,
                                             search_left_to_right,
-                                            self.parent_state(),
+                                            self.get_state(),
                                             self.get_state(),
                                             batch_state],
                                            self.batch_size)
                     next_state.set_shape([self.batch_size, self.dim])
-                    print("next_state.get_shape(): {}".format(next_state.get_shape()))
+                    if DEBUG:
+                        print("next_state.get_shape(): {}".format(next_state.get_shape()))
                     self.push([next_input, back_pointer, next_state])
 
         if self.rnn_cell == "gru":
@@ -383,6 +395,8 @@ class BasicTreeDecoder(Decoder):
                        lambda : next)
 
     def grandparent(self):
+        # print("self.back_pointers[:, :, 0].get_shape(): {}".format(self.back_pointers[:, :, 0].get_shape()))
+        # print("self.parent().get_shape(): {}".format(self.parent().get_shape()))
         return graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
                   [self.back_pointers[:, :, 0], self.parent()], self.batch_size)
 
@@ -391,7 +405,7 @@ class BasicTreeDecoder(Decoder):
         # print("p.get_shape(): {}".format(p.get_shape()))
         # search that went beyond ROOT node will be discarded
         pa = graph_utils.map_fn(lambda x: tf.cond(tf.equal(x[0], tf.constant(-1)), lambda: tf.constant([0]),
-                                                                                     lambda: x),
+                                                                                lambda: tf.expand_dims(x[0], 0)),
                   [p], self.batch_size)
         pa.set_shape([self.batch_size])
         return pa
@@ -485,22 +499,25 @@ class BasicTreeDecoder(Decoder):
 
 
 if __name__ == "__main__":
-    decoder = BasicTreeDecoder(dim=100, batch_size=10, rnn_cell="gru", num_layers=1,
+    decoder = BasicTreeDecoder(dim=100, batch_size=1, rnn_cell="gru", num_layers=1,
                  input_keep_prob=1, output_keep_prob=1,
                  use_attention=False, use_copy=False, output_projection=None)
     decoder_inputs = [tf.placeholder(dtype=tf.int32, shape=[None],
-                                     name="decoder{0}".format(i)) for i in xrange(5)]
-    encoder_state = tf.random_normal([1, 100])
+                                     name="decoder{0}".format(i)) for i in xrange(14)]
+    encoder_state = tf.random_normal(shape=[1, 100])
     attention_states = tf.random_normal(shape=[8, 100])
     target_embeddings = tf.random_normal(shape=[200, 100])
-    outputs, state = decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
+    outputs, state, left_to_right = decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
                                           attention_states, feed_previous=False)
 
     with tf.Session() as sess:
+        sess.run(tf.initialize_all_variables())
         input_feed = {}
-        inputs = [np.random.rand(100)] * 5
-        for l in xrange(5):
+        inputs = [[9], [10], [21], [7], [53], [105], [7], [6], [32], [51], [7], [6], [6], [6]]
+        for l in xrange(14):
             input_feed[decoder_inputs[l].name] = inputs[l]
-        output_feed = [state]
-
+        input_feed[encoder_state.name] = np.random.rand(1, 100)
+        output_feed = [state, left_to_right]
         state = sess.run(output_feed, input_feed)
+        print(state[0])
+        print(state[1])
