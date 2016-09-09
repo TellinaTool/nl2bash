@@ -41,7 +41,7 @@ def map_fn(fn, elems, batch_size):
     elem_lists = [tf.split(0, batch_size, elem) for elem in elems]
     for i in xrange(batch_size):
         args = [tf.squeeze(elem_lists[0][i], squeeze_dims=[0])] + \
-               [elem_list[i] for elem_list in elem_lists]
+               [elem_list[i] for elem_list in elem_lists[1:]]
         results.append(fn(args))
     return tf.concat(0, results)
 
