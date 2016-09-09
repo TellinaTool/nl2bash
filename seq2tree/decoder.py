@@ -4,6 +4,7 @@ import tensorflow as tf
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2seq"))
 
+import numpy as np
 import data_utils, graph_utils
 
 class Decoder(object):
@@ -497,8 +498,9 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         input_feed = {}
+        inputs = [np.random.rand(100)] * 5
         for l in xrange(5):
-            input_feed[decoder_inputs[l].name] = decoder_inputs[l]
+            input_feed[decoder_inputs[l].name] = inputs[l]
         output_feed = [state]
 
         state = sess.run(output_feed, input_feed)
