@@ -32,20 +32,22 @@ import tensorflow as tf
 _PAD = b"_PAD"
 _EOS = b"_EOS"
 _UNK = b"_UNK"
-_ARG = b"ARGUMENT_UNK"
-_UTL = b"HEADCOMMAND_UNK"
-_FLAG = b"FLAG_UNK"
-_NO_EXPAND = b"<NO_EXPAND>"
-_H_NO_EXPAND = b"<H_NO_EXPAND>"
-_V_NO_EXPAND = b"<V_NO_EXPAND>"
+_ARG_UNK = b"ARGUMENT_UNK"
+_UTL_UNK = b"HEADCOMMAND_UNK"
+_FLAG_UNK = b"FLAG_UNK"
+
 _SPACE = b"<SPACE>"
 
-_GO = b"_GO"                # seq2seq start symbol
-_ROOT = b"ROOT_"            # seq2tree start symbol
+_H_NO_EXPAND = b"<H_NO_EXPAND>"
+_V_NO_EXPAND = b"<V_NO_EXPAND>"
+
+_GO = b"_GO"                        # seq2seq start symbol
+_ROOT = b"ROOT_"                    # seq2tree start symbol
 
 _NUM = b"_NUM"
 
-_START_VOCAB = [_PAD, _EOS, _UNK, _ARG, _UTL, _FLAG, _NO_EXPAND, _GO, _ROOT]
+_START_VOCAB = [_PAD, _EOS, _UNK, _ARG_UNK, _UTL_UNK, _FLAG_UNK,
+                _H_NO_EXPAND, _V_NO_EXPAND, _GO, _ROOT]
 
 PAD_ID = 0
 EOS_ID = 1
@@ -53,9 +55,10 @@ UNK_ID = 2
 ARG_ID = 3
 UTL_ID = 4
 FLAG_ID = 5
-NO_EXPAND_ID = 6
-GO_ID = 7
-ROOT_ID = 8
+H_NO_EXPAND_ID = 6
+V_NO_EXPAND_ID = 7
+GO_ID = 8
+ROOT_ID = 9
 
 # Regular expressions used to tokenize.
 _DIGIT_RE = re.compile(br"\d")
@@ -73,6 +76,7 @@ def clean_dir(dir):
             #elif os.path.isdir(file_path): shutil.rmtree(file_path)
         except Exception as e:
             print(e)
+
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                       tokenizer, base_tokenizer=None,

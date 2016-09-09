@@ -20,8 +20,6 @@ _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
 _WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
 _SPACE = b"<SPACE>"
-_H_NO_EXPAND = b"<H_NO_EXPAND>"
-_V_NO_EXPAND = b"<V_NO_EXPAND>"
 
 def is_stopword(w):
     return w in gazetteer.ENGLISH_STOPWORDS
@@ -166,9 +164,9 @@ def ast2list(node, order='dfs', list=None):
         if node.getNumChildren() > 0:
             for child in node.children:
                 ast2list(child, order, list)
-            list.append(_H_NO_EXPAND)
+            list.append(normalizer._H_NO_EXPAND)
         else:
-            list.append(_V_NO_EXPAND)
+            list.append(normalizer._V_NO_EXPAND)
     return list
 
 

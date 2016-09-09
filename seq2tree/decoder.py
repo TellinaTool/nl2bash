@@ -1,4 +1,4 @@
-"""A set of decoder modules used in the encoder-decoder framework."""
+"""A set of tree decoder modules used in the encoder-decoder framework."""
 
 import tensorflow as tf
 import os, sys
@@ -111,7 +111,8 @@ class Decoder(object):
 
 class BasicTreeDecoder(Decoder):
 
-    def __init__(self, dim, batch_size, rnn_cell, num_layers, input_keep_prob, output_keep_prob,
+    def __init__(self, dim, batch_size, rnn_cell, num_layers,
+                 input_keep_prob, output_keep_prob,
                  use_attention, use_copy, output_projection=None):
         super(BasicTreeDecoder, self).__init__(dim, batch_size, rnn_cell, num_layers,
                                                input_keep_prob, output_keep_prob,
