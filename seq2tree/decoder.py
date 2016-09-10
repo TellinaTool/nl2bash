@@ -70,7 +70,8 @@ class Decoder(object):
                 d = tf.reduce_sum(
                     tf.reshape(a, [-1, attn_length, 1, 1]) * hidden,
                     [1, 2])
-                ds.append(tf.reshape(d, [-1, attn_size]))
+                print(d.get_shape())
+                ds.append(tf.reshape(d, [-1, attn_dim]))
         self.attention_vars = True
         return ds
 
@@ -203,7 +204,6 @@ class BasicTreeDecoder(Decoder):
                 
                 input_embeddings = tf.squeeze(tf.nn.embedding_lookup(self.embeddings, input),
                                               squeeze_dims=[1])
-
                 if self.use_attention:
                     v_output, v_state, v_attns = self.attention_cell(
                         vertical_cell, vertical_scope, input_embeddings, state, attns,
