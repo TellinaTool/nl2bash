@@ -70,8 +70,7 @@ class Decoder(object):
                 d = tf.reduce_sum(
                     tf.reshape(a, [-1, attn_length, 1, 1]) * hidden,
                     [1, 2])
-                print(d.get_shape())
-                ds.append(tf.reshape(d, [-1, attn_dim]))
+                ds.append(tf.reshape(d, [-1, attn_vec_dim]))
         self.attention_vars = True
         return ds
 
@@ -175,8 +174,8 @@ class BasicTreeDecoder(Decoder):
                 attn_dim = tf.shape(attention_states)[2]
                 batch_attn_size = tf.pack([batch_size, attn_dim])
                 # initial attention state
-                attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
-                         for _ in xrange(num_heads)])
+                attns = [tf.zeros(batch_attn_size, dtype=tf.float32)
+                         for _ in xrange(num_heads)]
                 if initial_state_attention:
                     attns = self.attention(encoder_state, hidden_features, attn_vecs, num_heads, hidden)
                 attns.set_shape([self.batch_size, num_heads * attention_states.get_shape()[2].value])
