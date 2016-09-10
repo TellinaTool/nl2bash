@@ -31,11 +31,13 @@ class Decoder(object):
 
     def attention_cell(self, cell, cell_scope, input_embedding, state, attns,
                        hidden_features, attn_vecs, num_heads, hidden):
+        attn_vec_dim = attn_vecs[0].get_shape()[0].value
         with tf.variable_scope("AttnInputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
+            attns.set_shape([self.batch_size, attn_vec_dim * num_heads])
             # attention mechanism on cell and hidden states
-            x = tf.nn.rnn_cell._linear([input_embedding] + attns, self.dim, True)
+            x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             try:
                 cell_output, state = cell(x, state, cell_scope)
             except ValueError, e:
@@ -46,7 +48,7 @@ class Decoder(object):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on output state
-            output = tf.nn.rnn_cell._linear([cell_output] + attns, self.dim, True)
+            output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
         self.attention_cell_vars = True
         return output, state, attns
 
@@ -71,8 +73,10 @@ class Decoder(object):
                     tf.reshape(a, [-1, attn_length, 1, 1]) * hidden,
                     [1, 2])
                 ds.append(tf.reshape(d, [-1, attn_vec_dim]))
+        attns = tf.concat(1, ds)
+        attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
         self.attention_vars = True
-        return ds
+        return attns
 
     def attention_hidden_layer(self, attention_states, num_heads):
         """
@@ -174,13 +178,11 @@ class BasicTreeDecoder(Decoder):
                 attn_dim = tf.shape(attention_states)[2]
                 batch_attn_size = tf.pack([batch_size, attn_dim])
                 # initial attention state
-                attns = [tf.zeros(batch_attn_size, dtype=tf.float32)
-                         for _ in xrange(num_heads)]
+                attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
+                         for _ in xrange(num_heads)])
                 if initial_state_attention:
                     attns = self.attention(encoder_state, hidden_features, attn_vecs, num_heads, hidden)
-                attns.set_shape([self.batch_size, num_heads * attention_states.get_shape()[2].value])
-                init_state = tf.concat(1, [init_state, attns])
-
+                init_state = tf.concat(1, [init_state] + [attns])
             self.state = tf.expand_dims(init_state, 1)
             self.input = tf.expand_dims(decoder_inputs[0], 1)
             self.input = tf.expand_dims(self.input, 1)
@@ -200,7 +202,6 @@ class BasicTreeDecoder(Decoder):
                     input, state, attns = self.peek()
                 else:
                     input, state = self.peek()
-                
                 input_embeddings = tf.squeeze(tf.nn.embedding_lookup(self.embeddings, input),
                                               squeeze_dims=[1])
                 if self.use_attention:
@@ -227,17 +228,18 @@ class BasicTreeDecoder(Decoder):
                 elif self.rnn_cell == "lstm":
                     batch_cell = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
                                             [search_left_to_right, h_state[0], v_state[0]], self.batch_size)
-                    batch_hs = graph_utils.map_fn(lambda x: tf.cond(x, lambda : x[1], lambda : x[2]),
+                    batch_hs = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
                                             [search_left_to_right, h_state[1], v_state[1]], self.batch_size)
                     batch_state = tf.concat(1, [batch_cell, batch_hs])
                 else:
                     raise ValueError("Unrecognized RNN cell type: {}".format(self.rnn_cell))
 
                 if self.use_attention:
-                    batch_attns = graph_utils.map_fn(lambda x: tf.cond(x, lambda : x[1], lambda : x[2]),
-                                            [search_left_to_right, h_attns[1], v_attns[1]], self.batch_size)
+                    batch_attns = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
+                                            [search_left_to_right, h_attns, v_attns], self.batch_size)
                     batch_state = tf.concat(1, [batch_state, batch_attns])
                 if DEBUG:
+                    print("batch_attns.get_shape(): {}".format(batch_attns.get_shape()))
                     print("batch_state.get_shape(): {}").format(batch_state.get_shape())
                 
                 # record output state to compute the loss.
@@ -278,11 +280,10 @@ class BasicTreeDecoder(Decoder):
                     next_state = graph_utils.map_fn(self.next_state,
                                            [search_left_to_right_next,
                                             search_left_to_right,
-                                            self.get_state(),
+                                            self.parent_state(),
                                             self.get_state(),
                                             batch_state],
                                            self.batch_size)
-                    next_state.set_shape([self.batch_size, self.dim])
                     if DEBUG:
                         print("next_state.get_shape(): {}".format(next_state.get_shape()))
                     self.push([next_input, back_pointer, next_state])
@@ -375,11 +376,14 @@ class BasicTreeDecoder(Decoder):
         if self.rnn_cell == "gru":
             batch_states = batch_stack_states[:, :self.dim]
             attn_start_pos = self.dim
+            batch_states.set_shape([self.batch_size, self.dim])
         elif self.rnn_cell == "lstm":
             batch_stack_cells = batch_stack_states[:, :self.dim]
             batch_stack_hiddens = batch_stack_states[:, self.dim:2*self.dim]
             attn_start_pos = 2 * self.dim
             batch_states = tf.nn.rnn_cell.LSTMStateTuple(batch_stack_cells, batch_stack_hiddens)
+        else:
+            raise ValueError("Unrecognized RNN cell type.")
 
         if self.use_attention:
             batch_attention_states = batch_stack_states[:, attn_start_pos:]
