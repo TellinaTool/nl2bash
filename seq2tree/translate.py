@@ -192,7 +192,7 @@ def train(train_set, dev_set, verbose=False):
                 # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
                 if ppx < 1.1 and len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
                     return False
-                if dev_loss < min(previous_dev_losses):
+                if previous_dev_losses and dev_loss < min(previous_dev_losses):
                     # Save checkpoint and zero timer and loss.
                     model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1)
                     
