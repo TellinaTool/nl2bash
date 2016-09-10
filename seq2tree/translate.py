@@ -170,10 +170,7 @@ def train(train_set, dev_set, verbose=False):
                     sess.run(model.learning_rate_decay_op)
                 previous_losses.append(loss)
 
-                if t % 10 == 0:
-                    # Save checkpoint and zero timer and loss.
-                    checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
-                    model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1)
+                checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
@@ -195,6 +192,10 @@ def train(train_set, dev_set, verbose=False):
                 # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
                 if ppx < 1.1 and len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
                     return False
+                if dev_loss < min(previous_dev_losses):
+                    # Save checkpoint and zero timer and loss.
+                    model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1)
+                    
                 previous_dev_losses.append(dev_loss)
 
                 sys.stdout.flush()
