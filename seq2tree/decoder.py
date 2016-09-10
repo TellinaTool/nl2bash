@@ -335,8 +335,7 @@ class BasicTreeDecoder(Decoder):
                   [self.input[:, :, 0], self.parent()], self.batch_size)
 
     def parent_state(self):
-        return graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
-                  [self.state, self.parent()], self.batch_size)
+        return tf.nn.embedding_lookup(self.state, tf.split(0, self.batch_size, self.parent()))
 
     def get_input(self):
         return self.input[:, -1, 0]
