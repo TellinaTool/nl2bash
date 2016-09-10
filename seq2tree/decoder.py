@@ -315,10 +315,8 @@ class BasicTreeDecoder(Decoder):
                        lambda : next)
 
     def grandparent(self):
-        # print("self.back_pointers[:, :, 0].get_shape(): {}".format(self.back_pointers[:, :, 0].get_shape()))
-        # print("self.parent().get_shape(): {}".format(self.parent().get_shape()))
-        return graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
-                  [self.back_pointers[:, :, 0], self.parent()], self.batch_size)
+        return tf.nn.embedding_lookup(self.back_pointers[:, :, 0],
+                                      tf.split(0, self.batch_size, self.parent()))
 
     def parent(self):
         p = self.back_pointers[:, -1, 0]
@@ -331,11 +329,12 @@ class BasicTreeDecoder(Decoder):
         return pa
 
     def parent_input(self):
-        return graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
-                  [self.input[:, :, 0], self.parent()], self.batch_size)
+        return tf.nn.embedding_lookup(self.input[:, :, 0],
+                                      tf.split(0, self.batch_size, self.parent()))
 
     def parent_state(self):
-        return tf.nn.embedding_lookup(self.state, tf.split(0, self.batch_size, self.parent()))
+        return tf.nn.embedding_lookup(self.state,
+                                      tf.split(0, self.batch_size, self.parent()))
 
     def get_input(self):
         return self.input[:, -1, 0]
