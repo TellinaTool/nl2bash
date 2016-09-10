@@ -35,7 +35,7 @@ class Decoder(object):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on cell and hidden states
-            x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
+            x = tf.nn.rnn_cell._linear([input_embedding] + attns, self.dim, True)
             try:
                 cell_output, state = cell(x, state, cell_scope)
             except ValueError, e:
@@ -46,7 +46,7 @@ class Decoder(object):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on output state
-            output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
+            output = tf.nn.rnn_cell._linear([cell_output] + attns, self.dim, True)
         self.attention_cell_vars = True
         return output, state, attns
 
@@ -54,7 +54,6 @@ class Decoder(object):
         assert(len(attn_vecs) > 0)
         attn_vec_dim = attn_vecs[0].get_shape()[0].value
         attn_length = hidden.get_shape()[1].value
-        attn_dim = hidden.get_shape()[3].value
         """Put attention masks on hidden using hidden_features and query."""
         ds = []  # Results of attention reads will be stored here.
         for a in xrange(num_heads):
@@ -68,13 +67,12 @@ class Decoder(object):
                     attn_vecs[a] * tf.tanh(hidden_features[a] + y), [2, 3])
                 a = tf.nn.softmax(s)
                 # Now calculate the attention-weighted vector d.
-                d = tf.reduce_sum(tf.reshape(a, [-1, attn_length, 1, 1]) * hidden,
+                d = tf.reduce_sum(
+                    tf.reshape(a, [-1, attn_length, 1, 1]) * hidden,
                     [1, 2])
-                ds.append(tf.reshape(d, [-1, attn_dim]))
-        attns = tf.concat(1, ds)
-        attns.set_shape([self.batch_size, num_heads * attn_dim])
+                ds.append(tf.reshape(d, [-1, attn_size]))
         self.attention_vars = True
-        return attns
+        return ds
 
     def attention_hidden_layer(self, attention_states, num_heads):
         """
@@ -84,18 +82,17 @@ class Decoder(object):
                          Dummy field if attention_states is None.
         """
         attn_length = attention_states.get_shape()[1].value
-        attn_dim = attention_states.get_shape()[2].value
+        attn_vec_dim = attention_states.get_shape()[2].value
 
         # To calculate W1 * h_t we use a 1-by-1 convolution
-        hidden = tf.reshape(attention_states, [-1, attn_length, 1, attn_dim])
+        hidden = tf.reshape(attention_states, [-1, attn_length, 1, attn_vec_dim])
         hidden_features = []
         attn_vecs = []
-        attn_vec_dim = attn_dim
-        for i in xrange(num_heads):
-            with tf.variable_scope("AttnW_%d" % i):
-                if self.attention_hidden_vars:
-                    tf.get_variable_scope().reuse_variables()
-                k = tf.get_variable("AttnW_%d" % i, [1, 1, attn_dim, attn_vec_dim])
+        with tf.variable_scope("attention_hidden_layer"):
+            if self.attention_hidden_vars:
+                tf.get_variable_scope().reuse_variables()
+            for i in xrange(num_heads):
+                k = tf.get_variable("AttnW_%d" % i, [1, 1, attn_vec_dim, attn_vec_dim])
                 hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
                 attn_vecs.append(tf.get_variable("AttnV_%d" % i, [attn_vec_dim]))
         self.attention_hidden_vars = True
@@ -228,12 +225,14 @@ class BasicTreeDecoder(Decoder):
                 if self.rnn_cell == "gru":
                     batch_state = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
                                          [search_left_to_right, h_state, v_state], self.batch_size)
-                else:
+                elif self.rnn_cell == "lstm":
                     batch_cell = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
                                             [search_left_to_right, h_state[0], v_state[0]], self.batch_size)
                     batch_hs = graph_utils.map_fn(lambda x: tf.cond(x, lambda : x[1], lambda : x[2]),
                                             [search_left_to_right, h_state[1], v_state[1]], self.batch_size)
                     batch_state = tf.concat(1, [batch_cell, batch_hs])
+                else:
+                    raise ValueError("Unrecognized RNN cell type: {}".format(self.rnn_cell))
 
                 if self.use_attention:
                     batch_attns = graph_utils.map_fn(lambda x: tf.cond(x, lambda : x[1], lambda : x[2]),
@@ -297,85 +296,6 @@ class BasicTreeDecoder(Decoder):
         return outputs, final_batch_state
 
 
-    """def define_beam_decoding_graph(self, encoder_state, embeddings,
-                               attention_states, num_heads, initial_state_attention,
-                               beam_size, top_k):
-        # scope of output_projection is the entire model
-        # hence retrieving variables here
-        W, b = self.output_projection
-        print("basic_tree_encoder: " + W.name)
-        print("basic_tree_encoder: " + b.name)
-
-        # share parameters with the basic decoder
-        with tf.variable_scope("basic_tree_decoder") as scope:
-            init_decoder_input = tf.constant(data_utils.ROOT_ID, shape=[self.batch_size, 1])
-
-            vertical_cell, vertical_scope = self.vertical_cell()
-            horizontal_cell, horizontal_scope = self.horizontal_cell()
-            outputs = []
-
-            # search control
-            init_input = tf.nn.embedding_lookup(embeddings, init_decoder_input)
-            control_symbol = init_decoder_input
-
-            # continuous stack used for storing LSTM states, synced with self.back_pointers
-            if self.use_attention:
-                hidden, hidden_features, attn_vecs = \
-                    self.attention_hidden_layer(attention_states, num_heads)
-                batch_size = tf.shape(attention_states)[0]
-                attn_dim = tf.shape(attention_states)[2]
-                batch_attn_size = tf.pack([batch_size, attn_dim])
-                attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)    # initial attention state
-                         for _ in xrange(num_heads)])
-                attns.set_shape([self.batch_size, num_heads * attention_states.get_shape()[2].value])
-                if initial_state_attention:
-                    attns = self.attention(encoder_state, hidden_features, attn_vecs, num_heads, hidden)
-                init_stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1], attns])
-            else:
-                init_stack = tf.concat(1, [init_input, encoder_state[0], encoder_state[1]])
-            self.stack = tf.zeros([self.max_num_steps, init_stack.get_shape()[1].value])
-            self.stack = tf.concat(0, [self.stack, init_stack])
-
-            for i in xrange(self.max_num_steps):
-                if i > 0: scope.reuse_variables()
-
-                # mimick a stack pop if current symbol is <NO_EXPAND>
-                self.back_pointers = tf.cond(search_left_to_right, lambda: self.cs_pop(), lambda: self.back_pointers)
-                stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda: stack)
-
-                if self.use_attention:
-                    input, state, attns = self.peek()
-                    output, cell, hs, attns = tf.cond(search_left_to_right,
-                        lambda: self.attention_cell(vertical_cell, vertical_scope, input, state, attns,
-                                                   hidden_features, attn_vecs, num_heads, hidden),
-                        lambda: self.attention_cell(horizontal_cell, horizontal_scope, input, state, attns,
-                                                   hidden_features, attn_vecs, num_heads, hidden))
-                else:
-                    input, state = self.peek()
-                    output, cell, hs = tf.cond(search_left_to_right,
-                        lambda: self.normal_cell(vertical_cell, vertical_scope, input, state),
-                        lambda: self.normal_cell(horizontal_cell, horizontal_scope, input, state))
-
-                # mimick a stack pop if current symbol is <NO_EXPAND>
-                self.back_pointers = tf.cond(search_left_to_right, lambda: self.cs_pop(), lambda: self.back_pointers)
-                self.stack = tf.cond(search_left_to_right, lambda: self.pop(), lambda: stack)
-
-                # Project decoder output for next state input.
-                projected_output = tf.matmul(output, W) + b
-                control_symbol = tf.argmax(projected_output, 1)
-                next_input = tf.nn.embedding_lookup(embeddings, control_symbol)
-                self.back_pointers = self.cs_push(tf.cast(tf.expand_dims(control_symbol, 1), tf.int32))
-
-                if self.use_attention:
-                    self.stack = self.push([next_input, cell, hs, attns])
-                else:
-                    self.stack = self.push([next_input, cell, hs])
-
-                outputs.append(output)
-
-        return outputs, tf.nn.rnn_cell.LSTMStateTuple(cell, hs)
-    """
-
     def back_pointer(self, x):
         h_search_next, h_search, grandparent, parent, current = x
         return tf.cond(h_search_next,
@@ -402,10 +322,10 @@ class BasicTreeDecoder(Decoder):
 
     def parent(self):
         p = self.back_pointers[:, -1, 0]
-        # print("p.get_shape(): {}".format(p.get_shape()))
         # search that went beyond ROOT node will be discarded
-        pa = graph_utils.map_fn(lambda x: tf.cond(tf.equal(x[0], tf.constant(-1)), lambda: tf.constant([0]),
-                                                                                lambda: tf.expand_dims(x[0], 0)),
+        pa = graph_utils.map_fn(lambda x: tf.cond(tf.equal(x[0], tf.constant(-1)),
+                                                  lambda: tf.constant([0]),
+                                                  lambda: tf.expand_dims(x[0], 0)),
                   [p], self.batch_size)
         pa.set_shape([self.batch_size])
         return pa
@@ -415,7 +335,6 @@ class BasicTreeDecoder(Decoder):
                   [self.input[:, :, 0], self.parent()], self.batch_size)
 
     def parent_state(self):
-        # print("self.state.get_shape(): {}".format(self.state.get_shape()))
         return graph_utils.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]),
                   [self.state, self.parent()], self.batch_size)
 
