@@ -163,7 +163,7 @@ class BasicTreeDecoder(Decoder):
             if DEBUG:
                 control_symbols = []
             # search control
-            self.back_pointers = tf.constant(-1, shape=[self.batch_size, 1, 1], dtype=tf.int32)
+            self.back_pointers = tf.constant(0, shape=[self.batch_size, 1, 1], dtype=tf.int32)
 
             # continuous stack used for storing LSTM states, synced with self.back_pointers
             if self.rnn_cell == "gru":
@@ -315,7 +315,7 @@ class BasicTreeDecoder(Decoder):
                        lambda : next)
 
     def parent_input(self):
-        E = tf.Variable(initial_value = np.identity(self.input.get_shape()[1].value), dtype=tf.float32)
+        E = tf.Variable(initial_value = np.identity(self.input.get_shape()[1].value), dtype=tf.int32)
         inds = tf.nn.embedding_lookup(E, tf.split(0, self.batch_size, self.parent()))
         return tf.reduce_sum(tf.mul(self.input[:, :, 0], inds), 1)
 
@@ -331,19 +331,19 @@ class BasicTreeDecoder(Decoder):
         return tf.reduce_sum(tf.mul(self.state, inds), 1)
 
     def grandparent(self):
-        E = tf.Variable(initial_value = np.identity(self.input.get_shape()[1].value), dtype=tf.float32)
+        E = tf.Variable(initial_value = np.identity(self.input.get_shape()[1].value), dtype=tf.int32)
         inds = tf.nn.embedding_lookup(E, tf.split(0, self.batch_size, self.parent()))
         return tf.reduce_sum(tf.mul(self.back_pointers[:, :, 0], inds), 1)
 
     def parent(self):
         p = self.back_pointers[:, -1, 0]
         # search that went beyond ROOT node will be discarded
-        pa = graph_utils.map_fn(lambda x: tf.cond(tf.equal(x[0], tf.constant(-1)),
-                                                  lambda: tf.constant([0]),
-                                                  lambda: tf.expand_dims(x[0], 0)),
-                  [p], self.batch_size)
-        pa.set_shape([self.batch_size])
-        return pa
+        # pa = graph_utils.map_fn(lambda x: tf.cond(tf.equal(x[0], tf.constant(-1)),
+        #                                           lambda: tf.constant([0]),
+        #                                           lambda: tf.expand_dims(x[0], 0)),
+        #           [p], self.batch_size)
+        # pa.set_shape([self.batch_size])
+        return p
 
     def get_input(self):
         return self.input[:, -1, 0]
