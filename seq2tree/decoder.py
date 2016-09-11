@@ -314,9 +314,26 @@ class BasicTreeDecoder(Decoder):
                        lambda : tf.cond(h_search[0], lambda : parent, lambda : current),
                        lambda : next)
 
+    def parent_input(self):
+        E = tf.Variable(initial_value = np.identity(self.input.get_shape()[1].value), dtype=tf.float32)
+        inds = tf.nn.embedding_lookup(E, tf.split(0, self.batch_size, self.parent()))
+        return tf.reduce_sum(tf.mul(self.input[:, :, 0], inds), 1)
+
+
+    def parent_state(self):
+        num_steps = self.input.get_shape()[1].value
+        E = tf.Variable(initial_value = np.identity(num_steps), dtype=tf.float32)
+        inds = tf.nn.embedding_lookup(E, tf.split(0, self.batch_size, self.parent()))
+        inds = tf.reshape(inds, [self.batch_size * num_steps, 1])
+        state_dim = self.state.get_shape()[2].value
+        inds = tf.tile(inds, [1, state_dim])
+        inds = tf.reshape(inds, [self.batch_size, num_steps, state_dim])
+        return tf.reduce_sum(tf.mul(self.state, inds), 1)
+
     def grandparent(self):
-        return tf.nn.embedding_lookup(self.back_pointers[:, :, 0],
-                                      tf.split(0, self.batch_size, self.parent()))
+        E = tf.Variable(initial_value = np.identity(self.input.get_shape()[1].value), dtype=tf.float32)
+        inds = tf.nn.embedding_lookup(E, tf.split(0, self.batch_size, self.parent()))
+        return tf.reduce_sum(tf.mul(self.back_pointers[:, :, 0], inds), 1)
 
     def parent(self):
         p = self.back_pointers[:, -1, 0]
@@ -327,14 +344,6 @@ class BasicTreeDecoder(Decoder):
                   [p], self.batch_size)
         pa.set_shape([self.batch_size])
         return pa
-
-    def parent_input(self):
-        return tf.nn.embedding_lookup(self.input[:, :, 0],
-                                      tf.split(0, self.batch_size, self.parent()))
-
-    def parent_state(self):
-        return tf.nn.embedding_lookup(self.state,
-                                      tf.split(0, self.batch_size, self.parent()))
 
     def get_input(self):
         return self.input[:, -1, 0]
