@@ -34,6 +34,14 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
 
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
 
+    # construct model directory
+    model_dir = os.path.join(FLAGS.train_dir, FLAGS.encoder_topology)
+    model_dir += '-{}'.format(FLAGS.rnn_cell)
+    if FLAGS.use_attention:
+        model_dir += '-attention'
+    model_dir += '-{}'.format(FLAGS.batch_size)
+    setattr(FLAGS, "train_dir", model_dir)
+
     model = model_constructor(params, buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)

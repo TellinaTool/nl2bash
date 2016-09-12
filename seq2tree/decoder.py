@@ -28,6 +28,7 @@ class Decoder(object):
         self.attention_vars = False
         self.attention_cell_vars = False
         self.attention_hidden_vars = False
+        self.normal_cell_vars = False
 
     def attention_cell(self, cell, cell_scope, input_embedding, state, attns,
                        hidden_features, attn_vecs, num_heads, hidden):
@@ -104,11 +105,11 @@ class Decoder(object):
 
 
     def normal_cell(self, cell, scope, input, state):
-        try:
+        with tf.variable_scope("normal_cell"):
+            if self.normal_cell_vars:
+                tf.get_variable_scope().reuse_variables()
             output, state = cell(input, state, scope)
-        except ValueError, e:
-            scope.reuse_variables()
-            output, state = cell(input, state, scope)
+        self.normal_cell_vars = True
         return output, state
 
 
