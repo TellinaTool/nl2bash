@@ -299,19 +299,19 @@ class BasicTreeDecoder(Decoder):
     def back_pointer(self, x):
         h_search_next, h_search, grandparent, parent, current = x
         return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search[0], lambda : grandparent, lambda : parent),
-                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current))
+                       lambda : tf.cond(h_search, lambda : grandparent, lambda : parent),
+                       lambda : tf.cond(h_search, lambda : parent, lambda : current))
 
     def next_input(self, x):
         h_search_next, h_search, parent, current, next = x
         return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current),
+                       lambda : tf.cond(h_search, lambda : parent, lambda : current),
                        lambda : next)
 
     def next_state(self, x):
         h_search_next, h_search, parent, current, next = x
         return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current),
+                       lambda : tf.cond(h_search, lambda : parent, lambda : current),
                        lambda : next)
 
     def parent_input(self):
@@ -337,12 +337,6 @@ class BasicTreeDecoder(Decoder):
 
     def parent(self):
         p = self.back_pointers[:, -1, 0]
-        # search that went beyond ROOT node will be discarded
-        # pa = graph_utils.map_fn(lambda x: tf.cond(tf.equal(x[0], tf.constant(-1)),
-        #                                           lambda: tf.constant([0]),
-        #                                           lambda: tf.expand_dims(x[0], 0)),
-        #           [p], self.batch_size)
-        # pa.set_shape([self.batch_size])
         return p
 
     def get_input(self):
@@ -356,10 +350,8 @@ class BasicTreeDecoder(Decoder):
         :param batch_states: list of list of state tensors
         """
         batch_next_input = batch_states[0]
-        # print(batch_next_input.get_shape())
         batch_next_input = tf.expand_dims(batch_next_input, 1)
         batch_next_input = tf.expand_dims(batch_next_input, 1)
-        # print(self.input.get_shape())
         self.input = tf.concat(1, [self.input, batch_next_input])
 
         batch_back_pointers = batch_states[1]
