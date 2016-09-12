@@ -9,7 +9,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import collections
 import math
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
@@ -24,15 +23,18 @@ from tqdm import tqdm
 import tensorflow as tf
 
 import eval_tools
-import data_utils, data_tools
+import data_utils, data_tools, graph_utils
 import parse_args
 from encoder_decoder import Seq2TreeModel
 
 FLAGS = tf.app.flags.FLAGS
 
+parse_args.define_input_flags()
+
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
 _buckets = [(10, 20), (20, 30), (30, 40), (40, 50), (40, 64)]
+
 
 def create_model(session, forward_only):
     """
@@ -57,53 +59,10 @@ def create_model(session, forward_only):
     :param decoding_algorithm: decoding algorithm used.
     :param
     """
-    params = collections.defaultdict()
-    params["source_vocab_size"] = FLAGS.nl_vocab_size
-    params["target_vocab_size"] = FLAGS.cm_vocab_size
-    params["max_source_length"] = FLAGS.max_nl_length
-    params["max_target_length"] = FLAGS.max_cm_length
-    params["dim"] = FLAGS.dim
-    params["rnn_cell"] = FLAGS.rnn_cell
-    params["num_layers"] = FLAGS.num_layers
-    params["max_gradient_norm"] = FLAGS.max_gradient_norm
-    params["batch_size"] = 1 if forward_only else FLAGS.batch_size
-    params["num_samples"] = FLAGS.num_samples
-    params["input_keep_prob"] = FLAGS.input_keep_prob
-    params["output_keep_prob"] = FLAGS.output_keep_prob
-    params["optimizer"] = FLAGS.optimizer
-    params["learning_rate"] = FLAGS.learning_rate
-    params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
-    params["use_attention"] = FLAGS.use_attention
-    params["use_copy"] = FLAGS.use_copy
 
-    params["encoder_topology"] = FLAGS.encoder_topology
-    params["decoder_topology"] = FLAGS.decoder_topology
+    return graph_utils.create_model(session, FLAGS, Seq2TreeModel, _buckets,
+                                    forward_only)
 
-    params["decoding_algorithm"] = FLAGS.decoding_algorithm
-
-    model = Seq2TreeModel(params, _buckets, forward_only)
-
-    ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
-
-    global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
-
-    if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
-        if not forward_only and FLAGS.create_fresh_params:
-            data_utils.clean_dir(FLAGS.train_dir)
-            print("Created model with fresh parameters.")
-            global_epochs = 0
-            session.run(tf.initialize_all_variables())
-        else:
-            print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
-            model.saver.restore(session, ckpt.model_checkpoint_path)
-    else:
-        if not os.path.exists(FLAGS.train_dir):
-            print("Making train dir {}".format(FLAGS.train_dir))
-            os.mkdir(FLAGS.train_dir)
-        print("Created model with fresh parameters.")
-        session.run(tf.initialize_all_variables())
-
-    return model, global_epochs
 
 def train(train_set, dev_set, verbose=False):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
@@ -139,11 +98,8 @@ def train(train_set, dev_set, verbose=False):
 
             start_time = time.time()
 
-            # shuffling training examples
-            # random.shuffle(train_set)
-
             # progress bar
-            for _ in tqdm(xrange(FLAGS.steps_per_checkpoint)):
+            for _ in tqdm(xrange(FLAGS.steps_per_epoch)):
                 time.sleep(0.01)
                 random_number_01 = np.random.random_sample()
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
@@ -160,7 +116,7 @@ def train(train_set, dev_set, verbose=False):
             if t % FLAGS.epochs_per_checkpoint == 0:
 
                 # Print statistics for the previous epoch.
-                loss /= FLAGS.steps_per_checkpoint
+                loss /= FLAGS.steps_per_epoch
                 ppx = math.exp(loss) if loss < 300 else float('inf')
                 print("learning rate %.4f epoch-time %.2f perplexity %.2f" % (
                     model.learning_rate.eval(), epoch_time, ppx))
@@ -327,6 +283,4 @@ def main(_):
 
 
 if __name__ == "__main__":
-    parse_args.define_input_flags()
-
     tf.app.run()

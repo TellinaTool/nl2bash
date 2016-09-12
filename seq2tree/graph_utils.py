@@ -1,9 +1,63 @@
 """Utility functions related to graph construction."""
 
+import collections
 import functools
+import os
 import warnings
 
 import tensorflow as tf
+
+import data_utils
+
+def create_model(session, FLAGS, model_constructor, buckets, forward_only):
+    params = collections.defaultdict()
+    params["source_vocab_size"] = FLAGS.nl_vocab_size
+    params["target_vocab_size"] = FLAGS.cm_vocab_size
+    params["max_source_length"] = FLAGS.max_nl_length
+    params["max_target_length"] = FLAGS.max_cm_length
+    params["dim"] = FLAGS.dim
+    params["rnn_cell"] = FLAGS.rnn_cell
+    params["num_layers"] = FLAGS.num_layers
+    params["max_gradient_norm"] = FLAGS.max_gradient_norm
+    params["batch_size"] = 1 if forward_only else FLAGS.batch_size
+    params["num_samples"] = FLAGS.num_samples
+    params["input_keep_prob"] = FLAGS.input_keep_prob
+    params["output_keep_prob"] = FLAGS.output_keep_prob
+    params["optimizer"] = FLAGS.optimizer
+    params["learning_rate"] = FLAGS.learning_rate
+    params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
+    params["use_attention"] = FLAGS.use_attention
+    params["use_copy"] = FLAGS.use_copy
+
+    params["encoder_topology"] = FLAGS.encoder_topology
+    params["decoder_topology"] = FLAGS.decoder_topology
+
+    params["decoding_algorithm"] = FLAGS.decoding_algorithm
+
+    model = model_constructor(params, buckets, forward_only)
+
+    ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
+
+    global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
+
+    if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
+        if not forward_only and FLAGS.create_fresh_params:
+            data_utils.clean_dir(FLAGS.train_dir)
+            print("Created model with fresh parameters.")
+            global_epochs = 0
+            session.run(tf.initialize_all_variables())
+        else:
+            print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
+            model.saver.restore(session, ckpt.model_checkpoint_path)
+    else:
+        if not os.path.exists(FLAGS.train_dir):
+            print("Making train dir {}".format(FLAGS.train_dir))
+            os.mkdir(FLAGS.train_dir)
+        print("Created model with fresh parameters.")
+        session.run(tf.initialize_all_variables())
+
+    return model, global_epochs
+
 
 def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1, output_keep_prob=1):
     """
