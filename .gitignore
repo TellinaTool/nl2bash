@@ -31,6 +31,7 @@ __pycache__
 eval.*
 temp*.txt
 *dump*.txt
+spell.txt
 manual.eval.results.*
 /nl2cmd_paper
 # ideaJ file
