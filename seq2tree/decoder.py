@@ -195,6 +195,7 @@ class BasicTreeDecoder(Decoder):
                     print("decoder step: %d" % i)
                 if i > 0: scope.reuse_variables()
 
+                self.step = i + 1
                 search_left_to_right = search_left_to_right_next
                 
                 if self.use_attention:
@@ -316,12 +317,14 @@ class BasicTreeDecoder(Decoder):
     def parent_input(self):
         inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
         inds = tf.squeeze(inds, squeeze_dims=[1])
+        inds = inds[:self.step, :self.step]
         return tf.reduce_sum(tf.mul(self.input[:, :, 0], inds), 1)
 
 
     def parent_state(self):
         inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
         inds = tf.squeeze(inds, squeeze_dims=[1])
+        inds = inds[:self.step, :self.step]
         inds = tf.expand_dims(inds, 2)
         inds = tf.tile(inds, tf.pack([tf.constant(1), tf.constant(1), tf.shape(self.state)[2]]))
         return tf.reduce_sum(tf.mul(self.state, tf.cast(inds, tf.float32)), 1)
@@ -329,6 +332,7 @@ class BasicTreeDecoder(Decoder):
     def grandparent(self):
         inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
         inds = tf.squeeze(inds, squeeze_dims=[1])
+        inds = inds[:self.step, :self.step]
         return tf.reduce_sum(tf.mul(self.back_pointers[:, :, 0], inds), 1)
 
     def parent(self):
