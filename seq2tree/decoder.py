@@ -120,8 +120,6 @@ class BasicTreeDecoder(Decoder):
         super(BasicTreeDecoder, self).__init__(dim, batch_size, rnn_cell, num_layers,
                                                input_keep_prob, output_keep_prob,
                                                use_attention, use_copy, output_projection)
-        self.vertical_cell = self.vertical_cell()
-        self.horizontal_cell = self.horizontal_cell()
 
         self.H_NO_EXPAND = tf.constant(data_utils.H_NO_EXPAND_ID, shape=[self.batch_size])
         self.V_NO_EXPAND = tf.constant(data_utils.V_NO_EXPAND_ID, shape=[self.batch_size])
@@ -151,7 +149,6 @@ class BasicTreeDecoder(Decoder):
         :return: Output states and the final hidden state of the decoder. Need
             output_projection to obtain distribution over output vocabulary.
         """
-        self.embeddings = embeddings
         self.E = tf.constant(np.identity(len(decoder_inputs)), dtype=tf.int32)
 
         if self.use_attention and not attention_states.get_shape()[1:2].is_fully_defined():
@@ -159,8 +156,8 @@ class BasicTreeDecoder(Decoder):
                              % attention_states.get_shape())
 
         with tf.variable_scope("basic_tree_decoder") as scope:
-            vertical_cell, vertical_scope = self.vertical_cell
-            horizontal_cell, horizontal_scope = self.horizontal_cell
+            vertical_cell, vertical_scope = self.vertical_cell()
+            horizontal_cell, horizontal_scope = self.horizontal_cell()
             outputs = []
 
             # search control
@@ -193,7 +190,7 @@ class BasicTreeDecoder(Decoder):
             for i in xrange(len(decoder_inputs)):
                 if DEBUG:
                     print("decoder step: %d" % i)
-                if i > 0: scope.reuse_variables()
+                if i > 0: tf.get_variable_scope().reuse_variables()
 
                 self.step = i + 1
                 search_left_to_right = search_left_to_right_next
@@ -202,8 +199,11 @@ class BasicTreeDecoder(Decoder):
                     input, state, attns = self.peek()
                 else:
                     input, state = self.peek()
-                input_embeddings = tf.squeeze(tf.nn.embedding_lookup(self.embeddings, input),
+
+                input_embeddings = tf.squeeze(tf.nn.embedding_lookup(embeddings, input),
                                               squeeze_dims=[1])
+
+                # compute batch horizontal and vertical steps.
                 if self.use_attention:
                     v_output, v_state, v_attns = self.attention_cell(
                         vertical_cell, vertical_scope, input_embeddings, state, attns,
@@ -217,10 +217,10 @@ class BasicTreeDecoder(Decoder):
                     h_output, h_state = self.normal_cell(
                         horizontal_cell, horizontal_scope, input_embeddings, state)
 
+                # select horizontal or vertical computation results for each example
+                # based on its own control state.
                 batch_output = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
                                           [search_left_to_right, h_output, v_output], self.batch_size)
-                if DEBUG:
-                    print("back_output.get_shape(): {}".format(batch_output.get_shape()))
 
                 if self.rnn_cell == "gru":
                     batch_state = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
@@ -231,16 +231,11 @@ class BasicTreeDecoder(Decoder):
                     batch_hs = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
                                             [search_left_to_right, h_state[1], v_state[1]], self.batch_size)
                     batch_state = tf.concat(1, [batch_cell, batch_hs])
-                else:
-                    raise ValueError("Unrecognized RNN cell type: {}".format(self.rnn_cell))
 
                 if self.use_attention:
                     batch_attns = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
                                             [search_left_to_right, h_attns, v_attns], self.batch_size)
                     batch_state = tf.concat(1, [batch_state, batch_attns])
-                if DEBUG:
-                    print("batch_attns.get_shape(): {}".format(batch_attns.get_shape()))
-                    print("batch_state.get_shape(): {}").format(batch_state.get_shape())
                 
                 # record output state to compute the loss.
                 outputs.append(batch_output)
