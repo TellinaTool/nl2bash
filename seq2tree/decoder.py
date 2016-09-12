@@ -288,7 +288,7 @@ class BasicTreeDecoder(Decoder):
                                            self.batch_size)
                     if DEBUG:
                         print("next_state.get_shape(): {}".format(next_state.get_shape()))
-                        
+
                     self.push([next_input, back_pointer, next_state])
 
         if self.rnn_cell == "gru":
@@ -302,19 +302,19 @@ class BasicTreeDecoder(Decoder):
     def back_pointer(self, x):
         h_search_next, h_search, grandparent, parent, current = x
         return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search, lambda : grandparent, lambda : parent),
-                       lambda : tf.cond(h_search, lambda : parent, lambda : current))
+                       lambda : tf.cond(h_search[0], lambda : grandparent, lambda : parent),
+                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current))
 
     def next_input(self, x):
         h_search_next, h_search, parent, current, next = x
         return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search, lambda : parent, lambda : current),
+                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current),
                        lambda : next)
 
     def next_state(self, x):
         h_search_next, h_search, parent, current, next = x
         return tf.cond(h_search_next,
-                       lambda : tf.cond(h_search, lambda : parent, lambda : current),
+                       lambda : tf.cond(h_search[0], lambda : parent, lambda : current),
                        lambda : next)
 
     def parent_input(self):
