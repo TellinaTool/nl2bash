@@ -1,0 +1,52 @@
+Example 1 (1)
+English: Find recursively all files changed within the last 5 minutes starting from directory b
+GT Command 1: find b -cmin -5
+Prediction: find / -newerct _LONG_PATTERN -print
+WW
+
+Example 2 (1)
+English: Find a 400 permission file under /data directory
+GT Command 1: find /data -type f -perm 400 -print -quit
+Prediction: find UNK -type f -exec chmod UNK {} \;
+WW
+
+Example 3 (1)
+English: find all the files in current folder ending with "ini" and search for a word in all these files
+GT Command 1: find . -name *.ini -exec grep -w PROJECT_A {} \; -print | grep ini
+Prediction: find -name "*.mkv"
+WW
+
+Example 4 (1)
+English: find all the jpg files in current folder and sort them
+GT Command 1: find . -type f|grep -i "\.jpg$" |sort
+Prediction: find . -name ".txt" | xargs grep 'stdlib.h'
+WW
+
+Example 5 (1)
+English: Show all files that have not been accessed in the $HOME directory for 30 days or more
+GT Command 1: find $HOME -atime +30
+Prediction: find . -type f -atime +_NUM
+CW
+
+Example 6 (1)
+English: List all regular file owned by root with permissions 4000
+GT Command 1: find / -type f -user root -perm -4000 -exec ls -l {} \;
+Prediction: find / -type f -perm UNK
+WW
+
+Example 7 (1)
+English: Find regular files under and below /path that match pattern "???-???_[a-zA-Z]*_[0-9]*_*.???"
+GT Command 1: find /path -type f -name "???-???_[a-zA-Z]*_[0-9]*_*.???"
+Prediction: find /path -type f -exec grep -l UNK {} \;
+WW
+
+Example 8 (1)
+English: copy the file header.shtml to those dirs
+GT Command 1: find dir1 dir2 dir3 dir4 -type d -exec cp header.shtml {} \;
+Prediction: find . -name UNK -exec cp {} UNK \;
+WW
+
+Example 9 (1)
+English: copy all the files with the extension ".type" from one folder to a target directory
+GT Command 1: find "$sourcedir" -type f -name "*.type" | xargs cp -t targetdir
+Prediction: find UNK -name UNK -exec cp {} UNK \;

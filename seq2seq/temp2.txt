@@ -1,0 +1,2707 @@
+Unrecognized cmd_option type argument_option
+Reading model parameters from ../model/seq2seq/translate.ckpt-800
+Loading data from ../data/reader/seq2tree.by.command/
+  reading data line 1000
+  reading data line 2000
+  reading data line 3000
+  reading data line 4000
+Example 1
+English: find all hidden file
+Ground truth: find /tmp -type f -name ".*"
+Prediction: find / -name ".*"
+
+Example 2
+English: find directory called _UNK
+Ground truth: find / -type d -iname ARGUMENT_UNK -ls
+Prediction: find -name ARGUMENT_UNK
+
+Example 3
+English: find directory called _UNK
+Ground truth: find / -type d -name ARGUMENT_UNK
+Prediction: find -name ARGUMENT_UNK
+
+Example 4
+English: find directory called _UNK
+Ground truth: find / -type d -name ARGUMENT_UNK -ls
+Prediction: find -name ARGUMENT_UNK
+
+Example 5
+English: find directory named _UNK
+Ground truth: find . -type d -name build
+Prediction: find . -name ARGUMENT_UNK
+
+Example 6
+English: find all jpg image
+Ground truth: find . -name "*.jpg"
+Prediction: find -iname '*.jpg'
+
+Example 7
+English: find file "_NUMk"
+Ground truth: find -size _NUMk
+Prediction: find / -name FindCommandExamples.txt
+
+Example 8
+English: find all file accessed "_NUM" day back
+Ground truth: find / -atime _NUM
+Prediction: find / -atime _NUM
+
+Example 9
+English: find all file accessed in last "_NUM" day
+Ground truth: find / -atime _NUM
+Prediction: find . -atime -_NUM
+
+Example 10
+English: find all _UNK file and delete
+Ground truth: find / -size +_NUMM -exec rm -r -f {} ;
+Prediction: find . -name ARGUMENT_UNK -exec rm {} ;
+
+Example 11
+English: find all file larger than "_NUMM" and delete
+Ground truth: find / -size +_NUMM -exec rm -r -f {} ;
+Prediction: find / -type f -name *.mp_NUM -size +_NUMM -exec rm {} ;
+
+Example 12
+English: find all hidden regular file under "/tmp" and below
+Ground truth: find /tmp -type f -name ".*"
+Prediction: find /tmp -type f -name "*"
+
+Example 13
+English: find all hidden ( regular ) file under "/tmp"
+Ground truth: find /tmp -type f -name ".*"
+Prediction: find /tmp -type f -name ".*"
+
+Example 14
+English: find all hidden file in temp folder
+Ground truth: find /tmp -type f -name ".*"
+Prediction: find /tmp -name ".*"
+
+Example 15
+English: find all hidden file under "/tmp"
+Ground truth: find /tmp -type f -name ".*"
+Prediction: find /tmp -name "*.tmp"
+
+Example 16
+English: search for file writable by either owner or group
+Ground truth: find . -perm ARGUMENT_UNK
+Prediction: find . -perm /g+w,o+w
+
+Example 17
+English: search for file writable by either owner or group
+Ground truth: find . -perm /_NUM
+Prediction: find . -perm /g+w,o+w
+
+Example 18
+English: search for file writable by either owner or group
+Ground truth: find . -perm ARGUMENT_UNK
+Prediction: find . -perm /g+w,o+w
+
+Example 19
+English: search for file writable by _UNK
+Ground truth: find . -perm /_NUM
+Prediction: find -maxdepth _NUM
+
+Example 20
+English: search for "files/directories" writable by either owner or group
+Ground truth: find . -perm ARGUMENT_UNK
+Prediction: find . -perm /g+w,o+w
+
+Example 21
+English: search for "files/directories" writable by either owner or group
+Ground truth: find . -perm /_NUM
+Prediction: find . -perm /g+w,o+w
+
+Example 22
+English: search for "files/directories" writable by either owner or group
+Ground truth: find . -perm ARGUMENT_UNK
+Prediction: find . -perm /g+w,o+w
+
+Example 23
+English: find all directory in current directory dont execute permission
+Ground truth: find -type d ! -perm -_NUM
+Prediction: find . -type d -perm -o=w
+
+Example 24
+English: search current directory tree for directory _UNK by _UNK
+Ground truth: find -type d ! -perm -_NUM
+Prediction: find . -name ARGUMENT_UNK
+
+Example 25
+English: find "*.c" and "*.sh" file
+Ground truth: find . -type f \( -name "*.c" -or -name "*.sh" \)
+Prediction: find / -name *.mp_NUM
+
+Example 26
+English: search current directory tree for "*.c" and "*.sh" file
+Ground truth: find . -type f \( -name "*.c" -or -name "*.sh" \)
+Prediction: find . -name *.pdf -exec grep -H -n foo {} ;
+
+Example 27
+English: list all ".c" or ".sh" regular file
+Ground truth: find . -type f \( -name "*.c" -or -name "*.sh" \)
+Prediction: find /var/adm/logs/morelogs/* -type f -name "*.log"
+
+Example 28
+English: change permission to "_NUM" for "*.html" file under "/usr/local"
+Ground truth: find /usr/local -name "*.html" -type f -exec chmod _NUM {} ;
+Prediction: find /path/to/someDirectory -type f -exec chmod _NUM {} ;
+
+Example 29
+English: fix permission for group of file with given extension
+Ground truth: find /usr/local -name "*.html" -type f -exec chmod _NUM {} ;
+Prediction: find $_NUM -type f | xargs chmod _NUM
+
+Example 30
+English: change html file to mode "_NUM"
+Ground truth: find /usr/local -name "*.html" -type f -exec chmod _NUM {} ;
+Prediction: find . -name "*.css" -exec chmod _NUM {} ;
+
+Example 31
+English: remove all _UNK file under current directory
+Ground truth: find . -name ARGUMENT_UNK -delete
+Prediction: find . -name ARGUMENT_UNK | xargs rm
+
+Example 32
+English: remove all _UNK file under current directory
+Ground truth: find . -name ARGUMENT_UNK -exec rm '{}' ;
+Prediction: find . -name ARGUMENT_UNK | xargs rm
+
+Example 33
+English: remove all _UNK file under current directory
+Ground truth: find . -name ARGUMENT_UNK | xargs rm
+Prediction: find . -name ARGUMENT_UNK | xargs rm
+
+Example 34
+English: remove all _UNK "files/directories" under current directory
+Ground truth: find . -name ARGUMENT_UNK | xargs -i rm -r -f {}
+Prediction: find . -name ARGUMENT_UNK | xargs rm
+
+Example 35
+English: find all directory name _UNK
+Ground truth: find / -type d -name ARGUMENT_UNK
+Prediction: find . -name ARGUMENT_UNK
+
+Example 36
+English: find all directory name _UNK and display detail
+Ground truth: find / -type d -name ARGUMENT_UNK -ls
+Prediction: find / -type d -name "apt" -printf _LONG_PATTERN
+
+Example 37
+English: find not case sensitive all directory name _UNK
+Ground truth: find / -type d -iname ARGUMENT_UNK -ls
+Prediction: find / -type d -iname ARGUMENT_UNK
+
+Example 38
+English: find all file exactly "_NUM" byte
+Ground truth: find / -size _NUMc
+Prediction: find . -type f -size _NUMc
+
+Example 39
+English: find for file in current directory only
+Ground truth: find -maxdepth _NUM -name "sum.java"
+Prediction: find . -path "./sr*sc"
+
+Example 40
+English: find top "_NUM" small file
+Ground truth: find . -type f -exec ls -s {} ; | sort -n | head -_NUM
+Prediction: find / -type f -size _NUM -exec ls -l {} ;
+
+Example 41
+English: display "_NUM" smallest file in current directory and sub-directories
+Ground truth: find . -type f -exec ls -s {} ; | sort -n | head -_NUM
+Prediction: find . -type f -size -_NUM | head -n _NUM
+
+Example 42
+English: display filename not begin with dot ( )
+Ground truth: find . -maxdepth _NUM -name ARGUMENT_UNK -printf _LONG_PATTERN
+Prediction: find . ! -name test -prune
+
+Example 43
+English: find foo foo _UNK FOO etc
+Ground truth: find . -iname foo
+Prediction: find . -iname foo -type f
+
+Example 44
+English: find file case-insensitive name foo in current directory
+Ground truth: find . -iname foo
+Prediction: find . -iname foo
+
+Example 45
+English: list all regular file in current directory tree
+Ground truth: find . -type f -exec ls -l '{}' ;
+Prediction: find . -type f -ls
+
+Example 46
+English: list all regular file in current directory tree
+Ground truth: find . -type f -print0 | xargs -0 ls -l
+Prediction: find . -type f -ls
+
+Example 47
+English: list all regular file in current directory tree
+Ground truth: find . -type f | xargs ls -l
+Prediction: find . -type f -ls
+
+Example 48
+English: list all regular file under current directory and below
+Ground truth: find . -type f -print0 | xargs -0 ls -l
+Prediction: find . -type f
+
+Example 49
+English: list all regular file under current directory and below
+Ground truth: find . -type f | xargs ls -l
+Prediction: find . -type f
+
+Example 50
+English: find all file without permission "_NUM" in file system
+Ground truth: find / -type f ! -perm _NUM
+Prediction: find / -type f -perm _NUM
+
+Example 51
+English: find all file without permission "_NUM"
+Ground truth: find / -type f ! -perm _NUM
+Prediction: find / -type f -perm _NUM
+
+Example 52
+English: find file _UNK "_NUM" permission
+Ground truth: find / -type f ! -perm _NUM
+Prediction: find . -perm _NUM -print
+
+Example 53
+English: remove all core file in file system
+Ground truth: find / -name ARGUMENT_UNK -print -exec rm {} ;
+Prediction: find / -name core -print | xargs rm
+
+Example 54
+English: remove all core file in file system
+Ground truth: find / -name ARGUMENT_UNK | xargs rm
+Prediction: find / -name core -print | xargs rm
+
+Example 55
+English: find and remove all _UNK file
+Ground truth: find / -name ARGUMENT_UNK -print -exec rm {} ;
+Prediction: find . -name ARGUMENT_UNK -exec rm {} ;
+
+Example 56
+English: find and remove all _UNK file
+Ground truth: find / -name ARGUMENT_UNK | xargs rm
+Prediction: find . -name ARGUMENT_UNK -exec rm {} ;
+
+Example 57
+English: delete file containing whitespaces without _UNK
+Ground truth: find . -name _LONG_PATTERN -maxdepth _NUM -exec rm -f '{}' ;
+Prediction: find . -name ARGUMENT_UNK -exec rm -f {} ;
+
+Example 58
+English: find largest file in particular location
+Ground truth: find ARGUMENT_UNK -type f -printf _LONG_PATTERN | sort -r -n | head -n _NUM
+Prediction: find . -type f -printf _LONG_PATTERN
+
+Example 59
+English: find all file under "/home" belong to user tecmint
+Ground truth: find /home -user ARGUMENT_UNK
+Prediction: find /home -user ARGUMENT_UNK
+
+Example 60
+English: remove all file whose name start with _UNK
+Ground truth: find . -name ARGUMENT_UNK | xargs rm
+Prediction: find . -name ARGUMENT_UNK -exec rm '{}' ;
+
+Example 61
+English: show all _UNK file in folder "/home"
+Ground truth: find /home -type f -name ARGUMENT_UNK
+Prediction: find /home -type f -name '*.mp_NUM'
+
+Example 62
+English: find out all "*.sh" owned by user _UNK
+Ground truth: find / -user ARGUMENT_UNK -name "*.sh"
+Prediction: find / -user ARGUMENT_UNK -type f
+
+Example 63
+English: find all "*.sh" file owned by user _UNK
+Ground truth: find / -user ARGUMENT_UNK -name "*.sh"
+Prediction: find / -user ARGUMENT_UNK
+
+Example 64
+English: delete all "MP_NUM" file under "/tmp"
+Ground truth: find /tmp -iname '*.mp_NUM' -print0 | xargs -0 rm
+Prediction: find /tmp -type f -name "*.tmp" -print0 | xargs -0 rm
+
+Example 65
+English: find all file in current folder writable
+Ground truth: find . -writable
+Prediction: find . -depth _NUM
+
+Example 66
+English: find writable file in current directory tree
+Ground truth: find . -writable
+Prediction: find . -type f -name "Makefile"
+
+Example 67
+English: find file in several folder
+Ground truth: find ARGUMENT_UNK ARGUMENT_UNK -name foo.bar -print
+Prediction: find /usr -iname "MyCProgram.c"
+
+Example 68
+English: search directory "./dir_NUM" and "./dir_NUM" for file "foo.bar"
+Ground truth: find ARGUMENT_UNK ARGUMENT_UNK -name foo.bar -print
+Prediction: find . -name Headers -type f -exec grep -H -n _LONG_PATTERN {} ;
+
+Example 69
+English: find all file changed after modification of file
+Ground truth: find ARGUMENT_UNK ARGUMENT_UNK
+Prediction: find / -newer print
+
+Example 70
+English: find all _UNK belong to specific user
+Ground truth: find ARGUMENT_UNK -user ARGUMENT_UNK
+Prediction: find -user ARGUMENT_UNK -user ARGUMENT_UNK
+
+Example 71
+English: search for all "*.conf" file in entire file system
+Ground truth: find / -type f -name "*.conf"
+Prediction: find / -name '*.pdf'
+
+Example 72
+English: search for all file end in ".conf"
+Ground truth: find / -type f -name "*.conf"
+Prediction: find / -name filename.txt
+
+Example 73
+English: find all "mp_NUM" file in home folder modified today
+Ground truth: find ~ -type f -mtime _NUM -iname '*.mp_NUM'
+Prediction: find ~ -name "*.txt" -mtime _NUM
+
+Example 74
+English: change permission of all php file in current folder
+Ground truth: find . -name "*.php" -exec chmod _NUM {} ;
+Prediction: find . -name *.php -type f -exec chmod _NUM {} ;
+
+Example 75
+English: find all file _UNK with specific string
+Ground truth: find . -name ARGUMENT_UNK
+Prediction: find . -name ARGUMENT_UNK -print0 | xargs -0 grep -l ARGUMENT_UNK
+
+Example 76
+English: find all directory named build under current directory
+Ground truth: find . -type d -name build
+Prediction: find . -name nasa -type d
+
+Example 77
+English: look for file by group
+Ground truth: find / -type f -group users
+Prediction: find / -perm -_NUM
+
+Example 78
+English: find all file in folder belong to specific user
+Ground truth: find /home -user ARGUMENT_UNK
+Prediction: find /usr -user ${USER}
+
+Example 79
+English: search "/usr" "/home" "/tmp" for _UNK file
+Ground truth: find /usr /home /tmp -name ARGUMENT_UNK
+Prediction: find /usr -name "*.c"
+
+Example 80
+English: find all jpg file in current folder
+Ground truth: find . -name "*.jpg"
+Prediction: find . -type f -name "*.jpg"
+
+Example 81
+English: count number of file named "file_NUM"
+Ground truth: find -name file_NUM | wc -l
+Prediction: find -name file_NUM | wc -l
+
+Example 82
+English: count number of "files/directories" named "file_NUM" under current directory
+Ground truth: find -name file_NUM | wc -l
+Prediction: find -name file_NUM | xargs wc
+
+Example 83
+English: find _UNK or ".txt" file
+Ground truth: find /home/user/Desktop \( -name ARGUMENT_UNK -or -name '*.txt' \)
+Prediction: find / -name '*.txt'
+
+Example 84
+English: list _UNK and "*.txt" file under "/home/user/Desktop" directory
+Ground truth: find /home/user/Desktop \( -name ARGUMENT_UNK -or -name '*.txt' \)
+Prediction: find /home/user/Desktop \( -name '*.txt' -or -name "*.txt" \)
+
+Example 85
+English: find all file whose permission "_NUM"
+Ground truth: find / -type f -perm _NUM
+Prediction: find / -perm _NUM
+
+Example 86
+English: find all regular file starting from "/" permission "_NUM"
+Ground truth: find / -type f -perm _NUM
+Prediction: find / -type f -perm _NUM
+
+Example 87
+English: locate all passwd file on system
+Ground truth: find / -name passwd
+Prediction: find / -name *.jpg
+
+Example 88
+English: find all file in folder specific word in name
+Ground truth: find ARGUMENT_UNK -name ARGUMENT_UNK
+Prediction: find /usr/share -name '*farm*'
+
+Example 89
+English: find all file in folder specific word in name
+Ground truth: find /etc -iregex ARGUMENT_UNK
+Prediction: find /usr/share -name '*farm*'
+
+Example 90
+English: count all html file having _UNK word in folder
+Ground truth: find /usr/src -name "*.html" -exec grep -l foo '{}' ; | wc -l
+Prediction: find ARGUMENT_UNK -name '*.py' -exec grep -l ARGUMENT_UNK {} ;
+
+Example 91
+English: find file owned by no user
+Ground truth: find / -nouser
+Prediction: find / -nouser -print
+
+Example 92
+English: display all file in folder _UNK except ".c" file
+Ground truth: find /dir/to/search/ -not -name "*.c" -print
+Prediction: find tmp ! -iname ".*"
+
+Example 93
+English: display all file in folder _UNK except ".c" file
+Ground truth: find /dir/to/search/ ! -name "*.c" print
+Prediction: find tmp ! -iname ".*"
+
+Example 94
+English: identify file not listing in "/etc/passwd" or _UNK file
+Ground truth: find / \( -nouser -or -nogroup \)
+Prediction: find . \( -name '*.mp_NUM' -or -name '*.mp_NUM' \) -exec rm {} ;
+
+Example 95
+English: identify CMS "version/releases" accross all _UNK website
+Ground truth: find ARGUMENT_UNK -type f -iwholename ARGUMENT_UNK -exec grep -H _LONG_PATTERN {} ;
+Prediction: find ARGUMENT_UNK -type f -iwholename "*/modules/system/system.info" -exec grep -H _LONG_PATTERN {} ;
+
+Example 96
+English: identify CMS "version/releases" accross all _UNK website
+Ground truth: find /home/*/public_html/ -type f -iwholename ARGUMENT_UNK -exec grep -H _LONG_PATTERN {} ;
+Prediction: find ARGUMENT_UNK -type f -iwholename "*/modules/system/system.info" -exec grep -H _LONG_PATTERN {} ;
+
+Example 97
+English: search for symlinks pointing to anywhere within _UNK
+Ground truth: find / -type l -lname ARGUMENT_UNK
+Prediction: find . -lname ARGUMENT_UNK
+
+Example 98
+English: find passwd file under root and "_NUM" level down
+Ground truth: find -maxdepth _NUM -name passwd
+Prediction: find / -maxdepth _NUM -name passwd
+
+Example 99
+English: find all directory in file system begin with _UNK
+Ground truth: find / -type d -name ARGUMENT_UNK -print
+Prediction: find / -name ARGUMENT_UNK
+
+Example 100
+English: finding file contain _LONG_PATTERN using find and grep
+Ground truth: find . -type f -print | xargs grep _LONG_PATTERN
+Prediction: find . -type f | xargs grep -l _LONG_PATTERN
+
+Example 101
+English: finding file contain certain string using find and grep
+Ground truth: find . -type f -print | xargs grep _LONG_PATTERN
+Prediction: find . -type f -exec grep -l string {} ;
+
+Example 102
+English: find all configuration file accessed in last "_NUM" minute
+Ground truth: find /etc/sysconfig -amin -_NUM
+Prediction: find /etc -amin -_NUM
+
+Example 103
+English: find all _UNK "files/directories" under current directory
+Ground truth: find . -name ARGUMENT_UNK
+Prediction: find -name ARGUMENT_UNK
+
+Example 104
+English: find all file modified in last "_NUM" day
+Ground truth: find -daystart ARGUMENT_UNK -1
+Prediction: find -mtime +_NUM
+
+Example 105
+English: perform case-insensitive search for file _UNK on system
+Ground truth: find / -iname ARGUMENT_UNK
+Prediction: find / -name ARGUMENT_UNK
+
+Example 106
+English: display all file in current folder excluding directory aa
+Ground truth: find . -type d ! -name aa
+Prediction: find . ! -name test -prune
+
+Example 107
+English: perform default _UNK configuration
+Ground truth: find ARGUMENT_UNK -type f -iwholename ARGUMENT_UNK -exec grep -H ARGUMENT_UNK ARGUMENT_UNK {} ;
+Prediction: find . -type f -iwholename ARGUMENT_UNK -exec grep -H ARGUMENT_UNK ARGUMENT_UNK {} ;
+
+Example 108
+English: find all _UNK "files/directories" under current directory
+Ground truth: find . -name ARGUMENT_UNK
+Prediction: find -name ARGUMENT_UNK
+
+Example 109
+English: find empty regular file in "/dir" and subdirectory
+Ground truth: find /dir -type f -size _NUM -print
+Prediction: find . -type f -empty
+
+Example 110
+English: print empty "files/directories" among _UNK _UNK and _UNK
+Ground truth: find ARGUMENT_UNK ARGUMENT_UNK ARGUMENT_UNK -prune -empty
+Prediction: find . ! -path ARGUMENT_UNK
+
+Example 111
+English: display all text file in current folder
+Ground truth: find . -type f -name "*.txt"
+Prediction: find . -name "*.txt"
+
+Example 112
+English: find file by inode number and rename
+Ground truth: find -inum _NUM -exec mv {} ARGUMENT_UNK \;
+Prediction: find . -inum _NUM -exec mv {} newname.dir ;
+
+Example 113
+English: search for folder _UNK and remove from folder _LONG_PATTERN
+Ground truth: find _LONG_PATTERN -type d -name ARGUMENT_UNK -delete
+Prediction: find ARGUMENT_UNK -type d -name ARGUMENT_UNK -exec rm -f {} ;
+
+Example 114
+English: search for folder _UNK and remove from folder _LONG_PATTERN
+Ground truth: find _LONG_PATTERN -type d -name ARGUMENT_UNK -exec rm -r -f ARGUMENT_UNK ;
+Prediction: find ARGUMENT_UNK -type d -name ARGUMENT_UNK -exec rm -f {} ;
+
+Example 115
+English: find all file on system whose name _UNK
+Ground truth: find / -name ARGUMENT_UNK
+Prediction: find / -name ARGUMENT_UNK
+
+Example 116
+English: find all directory with name test in directory
+Ground truth: find ARGUMENT_UNK -type d -name test -print
+Prediction: find test -type d -name test
+
+Example 117
+English: list first "_NUM" file under current directory
+Ground truth: find . -type f | xargs ls -l -S | head -_NUM
+Prediction: find . -type f | head _NUM
+
+Example 118
+English: find file belonging to particular user
+Ground truth: find . -user ARGUMENT_UNK
+Prediction: find -user ARGUMENT_UNK
+
+Example 119
+English: remove all file under current directory
+Ground truth: find -exec rm '{}' +
+Prediction: find . | xargs rm
+
+Example 120
+English: find all file belong to specific user
+Ground truth: find -user ARGUMENT_UNK
+Prediction: find -user ARGUMENT_UNK
+
+Example 121
+English: find ".git" directory in directory tree _UNK
+Ground truth: find ARGUMENT_UNK -type d -name '.git'
+Prediction: find $DIR -type d -depth -depth -depth
+
+Example 122
+English: find all "*.mp_NUM" file under _UNK
+Ground truth: find ARGUMENT_UNK -type f -name '*.mp_NUM'
+Prediction: find ARGUMENT_UNK -name "*" -type f -print
+
+Example 123
+English: find all file _UNK owned by user www-data
+Ground truth: find -not -user www-data
+Prediction: find -user -user
+
+Example 124
+English: delete all file in current directory
+Ground truth: find . -exec rm {} ;
+Prediction: find . -delete
+
+Example 125
+English: search _UNK directory recursively for _UNK file
+Ground truth: find ARGUMENT_UNK -name ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -iname ARGUMENT_UNK
+
+Example 126
+English: find all file on system whose name _UNK
+Ground truth: find / -name ARGUMENT_UNK
+Prediction: find / -name ARGUMENT_UNK
+
+Example 127
+English: _UNK all _UNK file to ".html" file
+Ground truth: find . -name "*.htm" -exec mv '{}' ARGUMENT_UNK ;
+Prediction: find -name ARGUMENT_UNK
+
+Example 128
+English: display all directory in entire file system
+Ground truth: find / -type d -print
+Prediction: find / -type d -name "*"
+
+Example 129
+English: to find for file containing specific word in _UNK
+Ground truth: find -name "*java*"
+Prediction: find / -iname ARGUMENT_UNK
+
+Example 130
+English: find all directory named _UNK under current directory tree
+Ground truth: find . -name ARGUMENT_UNK -type d
+Prediction: find . -name ARGUMENT_UNK
+
+Example 131
+English: display "_NUM" smallest file by size in folder
+Ground truth: find /etc/ -type f -exec ls -s {} + | sort -n | head -_NUM
+Prediction: find . -type f -size _NUM -exec ls -s {} ;
+
+Example 132
+English: display all "normal/regular" file in folder "pathfolder"
+Ground truth: find pathfolder -type f
+Prediction: find ARGUMENT_UNK -type f
+
+Example 133
+English: find all link to _UNK
+Ground truth: find -L -samefile ARGUMENT_UNK
+Prediction: find -L ARGUMENT_UNK -type l
+
+Example 134
+English: search for _UNK in all file under current directory
+Ground truth: find . -exec grep ARGUMENT_UNK '{}' ; -print
+Prediction: find . -name ARGUMENT_UNK | xargs grep ARGUMENT_UNK
+
+Example 135
+English: find all "*.swp" "files/directories" under current directory
+Ground truth: find . -name "*.swp"
+Prediction: find . -name ARGUMENT_UNK
+
+Example 136
+English: find _UNK file _UNK _UNK directory path
+Ground truth: find . -name ARGUMENT_UNK -not -path ARGUMENT_UNK -print
+Prediction: find ARGUMENT_UNK \( -path ARGUMENT_UNK -prune -or -iname "*.jpg" \)
+
+Example 137
+English: delete all _UNK "files/directories" under test directory
+Ground truth: find test -name ".DS_Store" -delete
+Prediction: find test -name test -delete
+
+Example 138
+English: search _UNK directory tree for _UNK directory
+Ground truth: find ARGUMENT_UNK -type d -name ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -type d -name ARGUMENT_UNK
+
+Example 139
+English: search for file _UNK in folder "/data/Spoolln"
+Ground truth: find /data/SpoolIn -name job.history
+Prediction: find / -name ARGUMENT_UNK
+
+Example 140
+English: find all subdirectory of current directory except hidden "_NUM"
+Ground truth: find -maxdepth _NUM -type d ! -name ".*"
+Prediction: find . -maxdepth _NUM -type d ! -name ".*"
+
+Example 141
+English: list all "*.bak" file in current directory tree
+Ground truth: find . -name ARGUMENT_UNK -ls
+Prediction: find . -type f -name ARGUMENT_UNK
+
+Example 142
+English: delete file _LONG_PATTERN in directory tree "/mnt/zip"
+Ground truth: find /mnt/zip -name _LONG_PATTERN -execdir rm "{}" ;
+Prediction: find _LONG_PATTERN -delete
+
+Example 143
+English: list level "_NUM" subdirectory of current directory
+Ground truth: find . -mindepth _NUM -maxdepth _NUM -type d -printf _LONG_PATTERN
+Prediction: find . -mindepth _NUM -maxdepth _NUM -type d
+
+Example 144
+English: list level "_NUM" subdirectory of current directory
+Ground truth: find . -mindepth _NUM -maxdepth _NUM -type d -ls
+Prediction: find . -mindepth _NUM -maxdepth _NUM -type d
+
+Example 145
+English: serach for all file containing grep in _UNK page
+Ground truth: find ARGUMENT_UNK -regex ARGUMENT_UNK
+Prediction: find . -type f -print | grep -v "^\./pdfs/"
+
+Example 146
+English: archive all _UNK file using tar
+Ground truth: find . -type f -name "*html" | xargs tar cvf ARGUMENT_UNK -
+Prediction: find . -name "*.java" -exec tar -c -v -f ARGUMENT_UNK {} ;
+
+Example 147
+English: find all file with specific _UNK and change permission
+Ground truth: find -perm _NUM | xargs -I ARGUMENT_UNK chmod _NUM ARGUMENT_UNK
+Prediction: find . -perm _NUM -print
+
+Example 148
+English: find all file belong to group root
+Ground truth: find / -group root
+Prediction: find / -group root
+
+Example 149
+English: find file matching given name
+Ground truth: find ./ -type f -name ARGUMENT_UNK
+Prediction: find -name ARGUMENT_UNK
+
+Example 150
+English: get total size of all file under current directory
+Ground truth: find . -type f -printf _LONG_PATTERN | awk _LONG_PATTERN
+Prediction: find . -type f | xargs ls -l
+
+Example 151
+English: get total size of all file under current directory
+Ground truth: find . -type f -printf _LONG_PATTERN | awk _LONG_PATTERN
+Prediction: find . -type f | xargs ls -l
+
+Example 152
+English: get total size of all file under current directory
+Ground truth: find ARGUMENT_UNK -type f -printf ARGUMENT_UNK | awk _LONG_PATTERN
+Prediction: find . -type f | xargs ls -l
+
+Example 153
+English: find all directory under "/fss/fin"
+Ground truth: find /fss/fin -type d
+Prediction: find mydir -type d
+
+Example 154
+English: display all file in folder
+Ground truth: find ARGUMENT_UNK -print
+Prediction: find a
+
+Example 155
+English: display all file in folder
+Ground truth: find ARGUMENT_UNK -print
+Prediction: find a
+
+Example 156
+English: search home directory tree for file matching pattern "*.txt"
+Ground truth: find ~ -name *.txt
+Prediction: find ~ -name *.txt
+
+Example 157
+English: find all regular file under _UNK directory
+Ground truth: find ARGUMENT_UNK -type f
+Prediction: find ARGUMENT_UNK -type f
+
+Example 158
+English: find all _UNK "files/directories" under _UNK directory
+Ground truth: find ARGUMENT_UNK -name ARGUMENT_UNK -print0
+Prediction: find ARGUMENT_UNK -name ARGUMENT_UNK
+
+Example 159
+English: find all _UNK "files/directories" under _UNK directory
+Ground truth: find ARGUMENT_UNK -name ARGUMENT_UNK -print0
+Prediction: find ARGUMENT_UNK -name ARGUMENT_UNK
+
+Example 160
+English: search "your/dir" directory for empty subdirectory
+Ground truth: find your/dir -mindepth _NUM -prune -empty
+Prediction: find your/dir -type d -empty
+
+Example 161
+English: find file matching given name only in current directory
+Ground truth: find . -maxdepth _NUM -type f -name "$_NUM"
+Prediction: find . -name foo
+
+Example 162
+English: find "files/directories" under current directory match _UNK in path
+Ground truth: find -ipath ARGUMENT_UNK
+Prediction: find . | grep -q ARGUMENT_UNK
+
+Example 163
+English: list current directory recursively ignoring "dir_NUM" subdirectory
+Ground truth: find . \( -path ARGUMENT_UNK -prune -or -print \)
+Prediction: find . -type d -print | xargs -0 grep -c _LONG_PATTERN
+
+Example 164
+English: list current directory recursively ignoring "dir_NUM" subdirectory
+Ground truth: find . \( -path ARGUMENT_UNK -or -print \)
+Prediction: find . -type d -print | xargs -0 grep -c _LONG_PATTERN
+
+Example 165
+English: list current directory recursively ignoring "dir_NUM" subdirectory
+Ground truth: find . \( -path ARGUMENT_UNK -prune -or -print \)
+Prediction: find . -type d -print | xargs -0 grep -c _LONG_PATTERN
+
+Example 166
+English: remove all file with txt extension under current directory
+Ground truth: find . -type f -name "*.txt" -print | xargs rm
+Prediction: find . -name "*.txt" | xargs rm
+
+Example 167
+English: remove all file with txt extension under current directory
+Ground truth: find . -type f -name "*.txt" -exec rm {} ; -print
+Prediction: find . -name "*.txt" | xargs rm
+
+Example 168
+English: print size of all file from current directory tree
+Ground truth: find . -iname '*.jpg' -type f -printf ARGUMENT_UNK
+Prediction: find . | xargs ls
+
+Example 169
+English: find all "image.pdf" file under "./polkadots"
+Ground truth: find ./polkadots -type f -name ARGUMENT_UNK
+Prediction: find ./polkadots -type f -name ARGUMENT_UNK
+
+Example 170
+English: find all file in current directory ending with _UNK
+Ground truth: find . -name ARGUMENT_UNK
+Prediction: find . -name ARGUMENT_UNK
+
+Example 171
+English: find recursively all file whose name begin with "foo"
+Ground truth: find . -name ARGUMENT_UNK
+Prediction: find / -name ARGUMENT_UNK
+
+Example 172
+English: find all read only file in "/home" directory
+Ground truth: find /home -type f -perm /u=r
+Prediction: find /home -type f -perm _NUM
+
+Example 173
+English: list all "*fink*" "files/directories" in entire file system
+Ground truth: find / \( -type f -or -type d \) -name ARGUMENT_UNK -ls
+Prediction: find / -name ls -l
+
+Example 174
+English: display "_NUM" largest file by size in current folder
+Ground truth: find . -type f -exec ls -s {} + | sort -n -r | head -_NUM
+Prediction: find . -type f -size +_NUMc -exec ls -s {} ;
+
+Example 175
+English: display all "normal/regular" file in directory
+Ground truth: find $dir -type f -name ARGUMENT_UNK -print
+Prediction: find /usr -type f
+
+Example 176
+English: search "tmp" directory for ".mp_NUM" file
+Ground truth: find tmp -maxdepth _NUM -name '*.mp_NUM'
+Prediction: find ~ -name filename
+
+Example 177
+English: find all html or cgi file in current folder
+Ground truth: find ./ -type f \( -iregex ARGUMENT_UNK -or -iregex ARGUMENT_UNK \)
+Prediction: find . -name "*.js" \( -name '*.cpp' -or -name "*.c" \)
+
+Example 178
+English: find all "*.log" file under _UNK not contain _LONG_PATTERN
+Ground truth: find ARGUMENT_UNK -name '*.log' -print0 | xargs -r -0 grep -L _LONG_PATTERN
+Prediction: find ARGUMENT_UNK -name "*.log" | xargs grep -l
+
+Example 179
+English: delete all file in _UNK folder except _UNK
+Ground truth: find ARGUMENT_UNK ! -name ARGUMENT_UNK -delete
+Prediction: find ARGUMENT_UNK -type f ! -name ARGUMENT_UNK -delete
+
+Example 180
+English: search current directory and directory below for _UNK file
+Ground truth: find . -name *.sql
+Prediction: find . -name ARGUMENT_UNK
+
+Example 181
+English: find file recursively with extension _UNK
+Ground truth: find . -name "*.ext"
+Prediction: find -name ARGUMENT_UNK
+
+Example 182
+English: find all file in _UNK older than "_NUM" day
+Ground truth: find ARGUMENT_UNK -type f -mtime +_NUM
+Prediction: find ARGUMENT_UNK -mtime +_NUM
+
+Example 183
+English: find all "*.jpg" "files/directories" under current directory
+Ground truth: find . -name '*.jpg'
+Prediction: find . -name ARGUMENT_UNK
+
+Example 184
+English: search for _UNK in all file under current directory
+Ground truth: grep YOURSTRING $( find . )
+Prediction: find . -name ARGUMENT_UNK | xargs grep ARGUMENT_UNK
+
+Example 185
+English: list all file including everything in sub-directories
+Ground truth: find ~
+Prediction: find . -print
+
+Example 186
+English: find file modified between "_NUM" and "_NUM" minute ago
+Ground truth: find . -mmin +_NUM -mmin -_NUM
+Prediction: find . -mmin -_NUM
+
+Example 187
+English: delete all ".svn" "files/directories" under current directory
+Ground truth: find . -name .svn -exec rm -v {} ;
+Prediction: find . -name .svn -exec rm -r -f {} ;
+
+Example 188
+English: delete all ".svn" "files/directories" under current directory
+Ground truth: find . -name .svn -delete
+Prediction: find . -name .svn -exec rm -r -f {} ;
+
+Example 189
+English: delete all ".svn" "files/directories" under current directory
+Ground truth: find . -name .svn | xargs rm -f -r
+Prediction: find . -name .svn -exec rm -r -f {} ;
+
+Example 190
+English: delete all ".svn" "files/directories" under current directory
+Ground truth: find . -name .svn | xargs rm -r -f
+Prediction: find . -name .svn -exec rm -r -f {} ;
+
+Example 191
+English: delete all ".svn" "files/directories" under current directory
+Ground truth: find . -name .svn -exec rm -r -f {} ;
+Prediction: find . -name .svn -exec rm -r -f {} ;
+
+Example 192
+English: delete all ".svn" "files/directories" under current directory
+Ground truth: find . -name .svn -exec rm -r -f '{}' ;
+Prediction: find . -name .svn -exec rm -r -f {} ;
+
+Example 193
+English: delete all ".svn" "files/directories" under current directory
+Ground truth: find . -depth -name .svn -exec rm -f -r {} ;
+Prediction: find . -name .svn -exec rm -r -f {} ;
+
+Example 194
+English: delete all ".svn" "files/directories" under current directory
+Ground truth: find . -name .svn -exec rm -r -f {} +
+Prediction: find . -name .svn -exec rm -r -f {} ;
+
+Example 195
+English: print list of file in directory _UNK recursively
+Ground truth: find ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -name ARGUMENT_UNK
+
+Example 196
+English: delete all file under _UNK not newer than _UNK
+Ground truth: find ARGUMENT_UNK -type f ! -newer ARGUMENT_UNK -delete
+Prediction: find ARGUMENT_UNK ! -newer ARGUMENT_UNK -exec rm {} ;
+
+Example 197
+English: display all directory in folder
+Ground truth: find /etc -type d -print
+Prediction: find ARGUMENT_UNK -type d
+
+Example 198
+English: find all regular file reside in current directory tree and last modified more than "_NUM" day ago
+Ground truth: find . -type f -mtime +_NUM
+Prediction: find . -type f -mtime +_NUM
+
+Example 199
+English: find all regular file reside in current directory tree and last modified more than "_NUM" day ago
+Ground truth: find . -type f -mtime +_NUM
+Prediction: find . -type f -mtime +_NUM
+
+Example 200
+English: find all regular file reside in current directory tree and last modified at least "_NUM" day ago
+Ground truth: find . -type f -mtime +_NUM
+Prediction: find . -type f -mtime +_NUM
+
+Example 201
+English: find all regular file reside in current directory tree and last modified more than "_NUM" day ago
+Ground truth: find . -type f -mtime +_NUM
+Prediction: find . -type f -mtime +_NUM
+
+Example 202
+English: find all regular file reside in current directory tree and last modified more than "_NUM" day ago
+Ground truth: find . -type f -mtime +_NUM
+Prediction: find . -type f -mtime +_NUM
+
+Example 203
+English: find all regular file reside in current directory tree and last modified more than "_NUM" day ago
+Ground truth: find . -type f -mtime +_NUM
+Prediction: find . -type f -mtime +_NUM
+
+Example 204
+English: find all regular file reside in current directory tree and last modified more than "_NUM" day ago
+Ground truth: find . -type f -mtime +_NUM
+Prediction: find . -type f -mtime +_NUM
+
+Example 205
+English: find all file in file system accessed in last "_NUM" hour
+Ground truth: find / -atime _NUM
+Prediction: find / -amin -_NUM
+
+Example 206
+English: find all file in entire file system accessed exactly "_NUM" day ago
+Ground truth: find / -atime _NUM
+Prediction: find / -atime _NUM
+
+Example 207
+English: find all file in file system accessed "_NUM" day back
+Ground truth: find / -atime _NUM
+Prediction: find / -atime _NUM
+
+Example 208
+English: find all file in entire file system accessed "_NUM" day back
+Ground truth: find / -atime _NUM
+Prediction: find / -atime _NUM
+
+Example 209
+English: find all "_NUMMB" file in file system and delete using rm command
+Ground truth: find / -size +_NUMM -exec rm -r -f {} ;
+Prediction: find / -type f -name *.mp_NUM -size +_NUMM -exec rm {} ;
+
+Example 210
+English: find all "_NUMMB" file in entire file system and delete
+Ground truth: find / -size +_NUMM -exec rm -r -f {} ;
+Prediction: find / -type f -name *.mp_NUM -size +_NUMM -exec rm {} ;
+
+Example 211
+English: find and delete all file in entire file system whose size greater than "_NUMMB"
+Ground truth: find / -size +_NUMM -exec rm -r -f {} ;
+Prediction: find / -type f -size +_NUMk -exec rm {} ;
+
+Example 212
+English: search all file "&" _UNK from root directory greater "_NUMM" and delete
+Ground truth: find / -size +_NUMM -exec rm -r -f {} ;
+Prediction: find / -name ARGUMENT_UNK -type f -size _NUM -exec rm {} ;
+
+Example 213
+English: list file contain between "_NUM" "_NUM" and "_NUM" "_NUM" character
+Ground truth: find . -size +_NUMc -size -_NUMc -print
+Prediction: find . -size +_NUM -exec ls -l {} ;
+
+Example 214
+English: command will only list file contain between "_NUM" "_NUM" and "_NUM" "_NUM" character
+Ground truth: find . -size +_NUMc -size -_NUMc -print
+Prediction: find . -size +_NUM -name '*.c' -exec rm {} ;
+
+Example 215
+English: list all file greater than "_NUM" "_NUM" byte but le than "_NUM" "_NUM" byte
+Ground truth: find . -size +_NUMc -size -_NUMc -print
+Prediction: find /usr/bin -size -_NUMc -size +_NUMc
+
+Example 216
+English: list all file between "_NUM" and "_NUM" byte in size
+Ground truth: find . -size +_NUMc -size -_NUMc -print
+Prediction: find . -size -_NUMc -size +_NUMc -exec rm {} ;
+
+Example 217
+English: search for "files/directories" writable by _UNK ( owner or group or _UNK _UNK )
+Ground truth: find . -perm /_NUM
+Prediction: find . | grep -v ARGUMENT_UNK
+
+Example 218
+English: display all file in current folder write permission to all user
+Ground truth: find . -perm /_NUM
+Prediction: find . -perm ARGUMENT_UNK
+
+Example 219
+English: find directory in current directory recursively not _UNK by all
+Ground truth: find -type d ! -perm -_NUM
+Prediction: find -type d -maxdepth _NUM
+
+Example 220
+English: search current directory recursively for directory with execute permission set for _UNK
+Ground truth: find -type d ! -perm -_NUM
+Prediction: find . -type d -perm -_NUM
+
+Example 221
+English: find all directory in current directory tree not accessible by all
+Ground truth: find -type d ! -perm -_NUM
+Prediction: find -type d | sed -r
+
+Example 222
+English: search "/usr/bin" for regular file modified within last "_NUM" day
+Ground truth: find /usr/bin -type f -mtime -_NUM
+Prediction: find /usr/bin -type f -mtime -_NUM
+
+Example 223
+English: search "/usr/bin" directory tree for regular file modified or created le than "_NUM" day ago
+Ground truth: find /usr/bin -type f -mtime -_NUM
+Prediction: find /usr/bin -type f -mtime -_NUM
+
+Example 224
+English: find all file in folder "/usr/bin" modified in last "_NUM" day
+Ground truth: find /usr/bin -type f -mtime -_NUM
+Prediction: find -mtime -_NUM
+
+Example 225
+English: find all regular file in "/usr/bin" modified le than within last "_NUM" day
+Ground truth: find /usr/bin -type f -mtime -_NUM
+Prediction: find /usr/bin -type f -mtime -_NUM
+
+Example 226
+English: list regular file file name end with "*.c" or "*.sh" in current directory
+Ground truth: find . -type f \( -name "*.c" -or -name "*.sh" \)
+Prediction: find . -type f -name "*.htm" | xargs grep -l _LONG_PATTERN
+
+Example 227
+English: find all ".c" ".h" file in current directory tree and search for string "expr"
+Ground truth: find . -name '*.[ch]' | xargs grep -E 'expr'
+Prediction: find -name '*.[ch]' | xargs grep -E 'expr'
+
+Example 228
+English: search for pattern in all file in current folder specific name pattern
+Ground truth: find . -name '*.[ch]' | xargs grep -E 'expr'
+Prediction: find . -name _LONG_PATTERN
+
+Example 229
+English: search for word in current directory in all file ending with specific word
+Ground truth: find . -name '*.[ch]' | xargs grep -E 'expr'
+Prediction: find . -type f -name ARGUMENT_UNK -exec grep -i ARGUMENT_UNK {} ;
+
+Example 230
+English: search ".c" and ".h" file in current directory tree for "expr"
+Ground truth: find . -name '*.[ch]' | xargs grep -E 'expr'
+Prediction: find -name '*.[ch]' | xargs grep -E 'expr'
+
+Example 231
+English: remove all file with name like _UNK from current directory tree
+Ground truth: find . -name ARGUMENT_UNK | xargs -i rm -r -f {}
+Prediction: find . -name ARGUMENT_UNK | xargs rm
+
+Example 232
+English: remove all file with name like _UNK from current directory tree
+Ground truth: find . -name ARGUMENT_UNK -delete
+Prediction: find . -name ARGUMENT_UNK | xargs rm
+
+Example 233
+English: remove all file with name like _UNK from current directory tree
+Ground truth: find . -name ARGUMENT_UNK -exec rm '{}' ;
+Prediction: find . -name ARGUMENT_UNK | xargs rm
+
+Example 234
+English: remove all file with name like _UNK from current directory tree
+Ground truth: find . -name ARGUMENT_UNK -print0 | xargs -0 rm
+Prediction: find . -name ARGUMENT_UNK | xargs rm
+
+Example 235
+English: remove all file with name like _UNK from current directory tree
+Ground truth: find . -name ARGUMENT_UNK | xargs rm
+Prediction: find . -name ARGUMENT_UNK | xargs rm
+
+Example 236
+English: remove all _UNK file under current directory ensuring white space safety in filename
+Ground truth: find . -name ARGUMENT_UNK -print0 | xargs -0 rm
+Prediction: find . -name _LONG_PATTERN -type f -print0 | xargs -0 rm
+
+Example 237
+English: find all "files/directories" in entire file system exactly "_NUM" byte
+Ground truth: find / -size _NUMc
+Prediction: find / -size _NUM
+
+Example 238
+English: find all file in file system whose size exactly "_NUMKB"
+Ground truth: find / -size _NUMc
+Prediction: find / -size _NUMM
+
+Example 239
+English: print file in current directory and "_NUM" level down to current directory
+Ground truth: find -maxdepth _NUM -name "sum.java"
+Prediction: find . -maxdepth _NUM
+
+Example 240
+English: print file in current directory and "_NUM" level down to current directory
+Ground truth: find -maxdepth _NUM -name "sum.java"
+Prediction: find . -maxdepth _NUM
+
+Example 241
+English: sort based on size and display top "_NUM" small "normal/regular" file in current folder
+Ground truth: find . -type f -exec ls -s {} ; | sort -n | head -_NUM
+Prediction: find . -type f -exec ls -s {} ; | sort -n -r | head -_NUM
+
+Example 242
+English: display non-hidden file in current directory with given output format
+Ground truth: find . -maxdepth _NUM -name ARGUMENT_UNK -printf _LONG_PATTERN
+Prediction: find . -name _LONG_PATTERN
+
+Example 243
+English: search for all non-hidden file in current directory and not search in subfolders and dispaly name and size
+Ground truth: find . -maxdepth _NUM -name ARGUMENT_UNK -printf _LONG_PATTERN
+Prediction: find . -name "*.txt" -printf _LONG_PATTERN
+
+Example 244
+English: search for first match of regex _UNK in all "*.coffee" file under current directory and print file name
+Ground truth: find . -name ARGUMENT_UNK -exec awk _LONG_PATTERN {} ;
+Prediction: find . -name ARGUMENT_UNK | xargs grep -l ARGUMENT_UNK
+
+Example 245
+English: search for first match of regex _UNK in all "*.coffee" file under current directory
+Ground truth: find . -name ARGUMENT_UNK -exec awk _LONG_PATTERN {} ;
+Prediction: find . -name "*.java" | xargs grep -i -r -r
+
+Example 246
+English: search for first match of regex _UNK in all "*.coffee" file under current directory
+Ground truth: find . -name ARGUMENT_UNK -exec awk _LONG_PATTERN {} ;
+Prediction: find . -name "*.java" | xargs grep -i -r -r
+
+Example 247
+English: find all _UNK file on system starting from "/" and delete
+Ground truth: find / -name ARGUMENT_UNK -print -exec rm {} ;
+Prediction: find / -name foo.bar -type f -exec rm {} ;
+
+Example 248
+English: find all _UNK file on system starting from "/" and delete
+Ground truth: find / -name ARGUMENT_UNK | xargs rm
+Prediction: find / -name foo.bar -type f -exec rm {} ;
+
+Example 249
+English: search for file name with _UNK character in current directory and delete file
+Ground truth: find . -name _LONG_PATTERN -maxdepth _NUM -exec rm -f '{}' ;
+Prediction: find . -name ARGUMENT_UNK -exec rm {} ;
+
+Example 250
+English: remove all file in present directory _UNK character in name and not search in sub directory of current folder
+Ground truth: find . -name _LONG_PATTERN -maxdepth _NUM -exec rm -f '{}' ;
+Prediction: find . -maxdepth _NUM -type f | xargs rm
+
+Example 251
+English: find and "_NUM" largest regular file in _UNK folder of _UNK home directory and output file size in byte
+Ground truth: find ARGUMENT_UNK -type f -printf _LONG_PATTERN | sort -r -n | head -n _NUM
+Prediction: find ~/ -type f -size ARGUMENT_UNK -exec ls -a -l {} ;
+
+Example 252
+English: print name and size of all regular file from current directory tree
+Ground truth: find . -type f -printf _LONG_PATTERN
+Prediction: find . -type f -printf _LONG_PATTERN | awk _LONG_PATTERN
+
+Example 253
+English: list all file under current directory with size and path
+Ground truth: find . -type f -printf _LONG_PATTERN
+Prediction: find . -type f -size +_NUMc -exec ls -s {} ;
+
+Example 254
+English: print file name along with size under current directory tree
+Ground truth: find . -type f -printf _LONG_PATTERN
+Prediction: find . -name _LONG_PATTERN
+
+Example 255
+English: find all file belongs to user tecmint under "/home" directory
+Ground truth: find /home -user ARGUMENT_UNK
+Prediction: find /home -user ARGUMENT_UNK
+
+Example 256
+English: find all "files/directories" named file in "_NUM" and "_NUM" level down current directory
+Ground truth: find -mindepth _NUM -maxdepth _NUM -name file
+Prediction: find -maxdepth _NUM -name file
+
+Example 257
+English: search for file "file" between level "_NUM" and "_NUM" of directory tree
+Ground truth: find -mindepth _NUM -maxdepth _NUM -name file
+Prediction: find -mindepth _NUM -name file -mindepth _NUM
+
+Example 258
+English: _UNK delete all file in current directory begin with _UNK
+Ground truth: find . -name ARGUMENT_UNK | xargs rm
+Prediction: find . -name ARGUMENT_UNK -print | xargs rm
+
+Example 259
+English: display all "regular/normal" file in folder "dir" and display filename along with file size
+Ground truth: find dir -type f -printf _LONG_PATTERN
+Prediction: find tmp -type f -printf _LONG_PATTERN
+
+Example 260
+English: print name and size of regular file residing in "dir" directory tree
+Ground truth: find dir -type f -printf _LONG_PATTERN
+Prediction: find ARGUMENT_UNK -type f -printf _LONG_PATTERN | awk _LONG_PATTERN
+
+Example 261
+English: find all file in current folder modified in last "_NUM" hour and whose file name of length "_NUM"
+Ground truth: find . -name ? -mtime -_NUM
+Prediction: find . -name ARGUMENT_UNK -mtime -_NUM | xargs -r
+
+Example 262
+English: display all file in current folder modified in last "_NUM" hour whose name ha only "_NUM" letter
+Ground truth: find . -name ? -mtime -_NUM
+Prediction: find . -mmin +_NUM -print
+
+Example 263
+English: find all file with extension _UNK in "/home" directory tree
+Ground truth: find /home -type f -name ARGUMENT_UNK
+Prediction: find /home -name "*.c"
+
+Example 264
+English: show content owned by root ha modified within last day
+Ground truth: find /etc/ -user root -mtime _NUM
+Prediction: find / -mtime -_NUM -print
+
+Example 265
+English: show all file in "/etc" owned by root modified within last minute
+Ground truth: find /etc/ -user root -mtime _NUM
+Prediction: find / -cmin -_NUM
+
+Example 266
+English: find regular file under "/" contain "stringtofind" and _UNK out content
+Ground truth: find / -maxdepth _NUM -xdev -type f -exec grep -i "stringtofind" -l {} ; -exec sed -i ARGUMENT_UNK {} ;
+Prediction: find / -type f -exec grep -l -i stringtofind '{}' ;
+
+Example 267
+English: find all "*.mp_NUM" ( case insensitive ) "files/directories" under "/tmp" and remove
+Ground truth: find /tmp -iname '*.mp_NUM' -print0 | xargs -0 rm
+Prediction: find /tmp -name "*.tmp" | xargs rm
+
+Example 268
+English: look for _UNK file in directory at most "_NUM" level down directory tree
+Ground truth: find / -maxdepth _NUM -name "*log"
+Prediction: find / -mindepth _NUM -name "*log"
+
+Example 269
+English: find _UNK "files/directories" within maximum of "_NUM" level of directory
+Ground truth: find / -maxdepth _NUM -name "*log"
+Prediction: find -mindepth _NUM -maxdepth _NUM
+
+Example 270
+English: count line number on file and _UNK each count along with _UNK file name
+Ground truth: find ARGUMENT_UNK -name '*.txt' | xargs grep -c ARGUMENT_UNK
+Prediction: find . -name ARGUMENT_UNK -exec grep -l ARGUMENT_UNK {} ; | sort | grep -c _LONG_PATTERN
+
+Example 271
+English: find all text file in folder and display number of line in file
+Ground truth: find ARGUMENT_UNK -name '*.txt' | xargs grep -c ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -name "*.txt" -printf _LONG_PATTERN | wc -l
+
+Example 272
+English: find all directory with name _UNK in current folder and move to another folder and not search in subfolders
+Ground truth: find ./ -maxdepth _NUM -name ARGUMENT_UNK -type d -print0 | xargs -0 -r mv -t ARGUMENT_UNK
+Prediction: find . -mindepth _NUM -type d -name ARGUMENT_UNK -execdir mv {} ARGUMENT_UNK ;
+
+Example 273
+English: move directory named _UNK and residing under current "_NUM" to _UNK
+Ground truth: find ./ -maxdepth _NUM -name ARGUMENT_UNK -type d -print0 | xargs -0 -r mv -t ARGUMENT_UNK
+Prediction: find . -name ARGUMENT_UNK -type d -exec mv {} ARGUMENT_UNK ;
+
+Example 274
+English: find recursively file named "file" in current directory ignoring ".git" subdirectory
+Ground truth: find . \( -path ./.git -prune -or -name file \) -print
+Prediction: find . -path '*/\.*' -type f -name _LONG_PATTERN
+
+Example 275
+English: search for file "file" in current folder excluding in sub directory ".git"
+Ground truth: find . \( -path ./.git -prune -or -name file \) -print
+Prediction: find . -name test -prune
+
+Example 276
+English: find all file in current directory and sub-directories whose status wa changed after _UNK wa modified
+Ground truth: find ARGUMENT_UNK ARGUMENT_UNK
+Prediction: find . -newer /bin/sh
+
+Example 277
+English: find all file ending with _UNK in current folder and search for word _UNK in each line
+Ground truth: find . -name ARGUMENT_UNK -exec grep -m -1 -i ARGUMENT_UNK {} ;
+Prediction: find . -name "*.java" -exec grep -i ARGUMENT_UNK {} ;
+
+Example 278
+English: search for first match of case insensitive regex _UNK in all "*.coffee" file under current directory
+Ground truth: find . -name ARGUMENT_UNK -exec grep -m -1 -i ARGUMENT_UNK {} ;
+Prediction: find . -type f | xargs grep "Linux"
+
+Example 279
+English: find "*.txt" file in current directory tree ignoring path _UNK _UNK and _UNK
+Ground truth: find . -type f -name "*.txt" ! -path "./Movies/*" ! -path "./Downloads/*" ! -path "./Music/*"
+Prediction: find . -path ARGUMENT_UNK -not -path ARGUMENT_UNK -not -path ARGUMENT_UNK
+
+Example 280
+English: find all text file present in current directory excluding search in certain path
+Ground truth: find . -type f -name "*.txt" ! -path "./Movies/*" ! -path "./Downloads/*" ! -path "./Music/*"
+Prediction: find . -type f -name "*.txt" ! -path "./Downloads/*" ! -path "./Downloads/*" ! -path "./Downloads/*" ! -path "./Downloads/*" ! -path "./Downloads/*" ! -path ARGUMENT_UNK
+
+Example 281
+English: find only permission field "&" file name from long listing with find command
+Ground truth: find -type f -iname "*.txt" -exec ls -l -r -t {} ; | awk -F' ' -F' ' _LONG_PATTERN
+Prediction: find . -perm _NUM -type f -exec chmod g-w {} ;
+
+Example 282
+English: find only number of hard link "&" name of file from long list
+Ground truth: find -type f -iname "*.txt" -exec ls -l -r -t {} ; | awk -F' ' -F' ' _LONG_PATTERN
+Prediction: find . -type l -name "*.ext" -exec wc -l {} ;
+
+Example 283
+English: search current directory tree for file last accessed more than "_NUM" day ago
+Ground truth: find . -atime +_NUM
+Prediction: find . -atime +_NUM
+
+Example 284
+English: find all file in current directory modified in last "_NUM" day
+Ground truth: find . -atime +_NUM
+Prediction: find . -mtime -_NUM
+
+Example 285
+English: find all file in folder modified from start of day
+Ground truth: find /tmp/test/* -daystart -mtime -_NUM
+Prediction: find /usr/local -mtime _NUM
+
+Example 286
+English: find all file in folder modified in last "_NUM" day
+Ground truth: find /tmp/test/* -daystart -mtime -_NUM
+Prediction: find -mtime -_NUM
+
+Example 287
+English: find all "MP_NUM" file in home directory tree modified in last "_NUM" hour
+Ground truth: find ~ -type f -mtime _NUM -iname '*.mp_NUM'
+Prediction: find $HOME -iname '*.ogg' -mtime _NUM
+
+Example 288
+English: change permission for all PHP file under current directory tree to "_NUM"
+Ground truth: find . -name "*.php" -exec chmod _NUM {} ;
+Prediction: find . -type f -name "*.txt" -exec chmod _NUM {} ;
+
+Example 289
+English: find all file with filename beginning with specified string may match _UNK of file
+Ground truth: find . -name ARGUMENT_UNK
+Prediction: find / -user ARGUMENT_UNK -print
+
+Example 290
+English: search for regular file of _UNK _UNK in file system
+Ground truth: find / -type f -group users
+Prediction: find / -type f | xargs grep ARGUMENT_UNK
+
+Example 291
+English: find directory in current directory tree whose name "_NUM" character in length
+Ground truth: find . -type d -name ARGUMENT_UNK
+Prediction: find . -mindepth _NUM -type d -printf _LONG_PATTERN
+
+Example 292
+English: find all directory under current directory whose name "_NUM" character long
+Ground truth: find . -type d -name ARGUMENT_UNK
+Prediction: find . -type d -name "_NUM"
+
+Example 293
+English: find all "files/directories" under _UNK match extended regex _LONG_PATTERN in name
+Ground truth: find ARGUMENT_UNK | egrep _LONG_PATTERN
+Prediction: find ARGUMENT_UNK -iregex ARGUMENT_UNK
+
+Example 294
+English: show all file in _UNK and display only file ending with ".pl" or ".pm"
+Ground truth: find ARGUMENT_UNK | egrep _LONG_PATTERN
+Prediction: find ARGUMENT_UNK \( -name '*.py' -or -name ARGUMENT_UNK \)
+
+Example 295
+English: find all file in home folder modified exactly "_NUM" day before
+Ground truth: find ~ -mtime _NUM -daystart
+Prediction: find $HOME -mtime _NUM
+
+Example 296
+English: find all file _UNK to top modified after file modified
+Ground truth: find ~ -name 'top*' -newer /etc/motd
+Prediction: find . -newer ARGUMENT_UNK
+
+Example 297
+English: find all file in "/home/" directory tree owned by _UNK
+Ground truth: find /home -user ARGUMENT_UNK
+Prediction: find /home -type f -user root
+
+Example 298
+English: search current directory and sub-directories for any file ha _UNK somewhere in name
+Ground truth: find . -name ARGUMENT_UNK -print
+Prediction: find . -name "*.pdf" -print
+
+Example 299
+English: find all file having certain word in name in current folder
+Ground truth: find . -name ARGUMENT_UNK -print
+Prediction: find . -name "pattern"
+
+Example 300
+English: list all _UNK "files/directories" under "/usr" "/home" and "/tmp" directory
+Ground truth: find /usr /home /tmp -name ARGUMENT_UNK
+Prediction: find /usr -name "*.tmp" -print0 | xargs -0
+
+Example 301
+English: find all file in home folder modified between "_NUM" and "_NUM" hour before
+Ground truth: find ~ -mtime _NUM -mtime -_NUM -daystart
+Prediction: find $HOME -mtime -_NUM -mtime +_NUM
+
+Example 302
+English: to list all of file in home directory tree modified from "_NUM" to "_NUM" day ago
+Ground truth: find ~ -mtime _NUM -mtime -_NUM -daystart
+Prediction: find $HOME -mtime _NUM
+
+Example 303
+English: print colon-separated list of all directory from _UNK directory tree except hidden "_NUM" and below
+Ground truth: find ARGUMENT_UNK \( -name '.*' -prune -or -type d \) -printf ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -type d -not -path ARGUMENT_UNK ! -path ARGUMENT_UNK
+
+Example 304
+English: find all directory under _UNK without descending into hidden directory and print appended with ( colon )
+Ground truth: find ARGUMENT_UNK \( -name '.*' -prune -or -type d \) -printf ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -type d -print0
+
+Example 305
+English: find all file in folder start with specific name ( case insensitive search )
+Ground truth: find /usr/share/doc -iname ARGUMENT_UNK
+Prediction: find /usr/local -iname "*blast*"
+
+Example 306
+English: search for file in folder ( case insensitive search )
+Ground truth: find /usr/share/doc -iname ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -iname findcommandexamples.txt
+
+Example 307
+English: find all file name passwd in root directory and all sub-directories
+Ground truth: find / -name passwd
+Prediction: find / -name tecmint.txt
+
+Example 308
+English: find directory in current directory tree modified within last "_NUM" hour and move to _UNK
+Ground truth: find . -type d -mtime -_NUM -print0 | xargs -0 mv -t ARGUMENT_UNK
+Prediction: find . -mtime -_NUM -type d -exec ls -l {} ;
+
+Example 309
+English: find directory in current directory tree modified within last "_NUM" hour and move to _UNK
+Ground truth: find . -type d -mtime _NUM -exec mv {} ARGUMENT_UNK ;
+Prediction: find . -mtime -_NUM -type d -exec ls -l {} ;
+
+Example 310
+English: find directory in current directory tree modified within last "_NUM" hour and move to _UNK
+Ground truth: find . -depth -type d -mtime _NUM -exec mv -t ARGUMENT_UNK {} +
+Prediction: find . -mtime -_NUM -type d -exec ls -l {} ;
+
+Example 311
+English: find directory in current directory tree modified within last "_NUM" hour and move to _UNK
+Ground truth: find . -type d -mtime -_NUM -exec mv -t ARGUMENT_UNK {} +
+Prediction: find . -mtime -_NUM -type d -exec ls -l {} ;
+
+Example 312
+English: find all directory in current folder modified in "_NUM" hour and move to folder _UNK
+Ground truth: find . -type d -mtime -_NUM -print0 | xargs -0 mv -t ARGUMENT_UNK
+Prediction: find . -type d -mtime _NUM -print0 | xargs -0 -r -t cp {} ARGUMENT_UNK
+
+Example 313
+English: find all directory in current folder modified in "_NUM" hour and move to folder _UNK
+Ground truth: find . -type d -mtime _NUM -exec mv {} ARGUMENT_UNK ;
+Prediction: find . -type d -mtime _NUM -print0 | xargs -0 -r -t cp {} ARGUMENT_UNK
+
+Example 314
+English: find all directory in current folder modified in "_NUM" hour and move to folder _UNK
+Ground truth: find . -depth -type d -mtime _NUM -exec mv -t ARGUMENT_UNK {} +
+Prediction: find . -type d -mtime _NUM -print0 | xargs -0 -r -t cp {} ARGUMENT_UNK
+
+Example 315
+English: find all directory in current folder modified in "_NUM" hour and move to folder _UNK
+Ground truth: find . -type d -mtime -_NUM -exec mv -t ARGUMENT_UNK {} +
+Prediction: find . -type d -mtime _NUM -print0 | xargs -0 -r -t cp {} ARGUMENT_UNK
+
+Example 316
+English: find all file whose name contain string _UNK exist within _UNK
+Ground truth: find ARGUMENT_UNK -name ARGUMENT_UNK
+Prediction: find / -name ARGUMENT_UNK
+
+Example 317
+English: count "*.html" file residing in "/usr/src" directory tree and containing string "foo"
+Ground truth: find /usr/src -name "*.html" | xargs grep -l foo | wc -l
+Prediction: find . -name '*.c' -exec grep -l foo {} +
+
+Example 318
+English: count "*.html" file residing in "/usr/src" directory tree and containing string "foo"
+Ground truth: find /usr/src -name "*.html" -exec grep -l foo '{}' ; | wc -l
+Prediction: find . -name '*.c' -exec grep -l foo {} +
+
+Example 319
+English: find all file in file system belong to no user or no user
+Ground truth: find / -nouser
+Prediction: find / -nouser -print
+
+Example 320
+English: to find all file except specific pattern "i.e" _UNK search with _UNK or _UNK
+Ground truth: find /dir/to/search/ -not -name "*.c" -print
+Prediction: find grep "*.js" ! -path ARGUMENT_UNK
+
+Example 321
+English: search for "files/directories" readable for _UNK at least "_NUM" write bit set but not executable for _UNK
+Ground truth: find . -perm -_NUM -perm /_NUM ! -perm /_NUM
+Prediction: find / \( -perm -_NUM -or -perm -_NUM \)
+
+Example 322
+English: search for file readable for _UNK at least on write bit set but not executable for _UNK
+Ground truth: find . -perm -_NUM -perm /_NUM ! -perm /_NUM
+Prediction: find / \( -perm -_NUM -or -perm -_NUM \)
+
+Example 323
+English: search for file readable for _UNK at least on write bit set but not executable for _UNK
+Ground truth: find . -perm ARGUMENT_UNK -perm ARGUMENT_UNK ! -perm ARGUMENT_UNK
+Prediction: find / \( -perm -_NUM -or -perm -_NUM \)
+
+Example 324
+English: search directory "/tmp/foo" for file containing "/tmp/foo/bar" in full name
+Ground truth: find /tmp/foo -path /tmp/foo/bar -print
+Prediction: find ARGUMENT_UNK \( -path ARGUMENT_UNK -prune -or -name foo \)
+
+Example 325
+English: find file full path name "/tmp/foo/bar" under foo directory and print
+Ground truth: find /tmp/foo -path /tmp/foo/bar -print
+Prediction: find foo -path /tmp/foo/bar
+
+Example 326
+English: find file not listing in "/etc/passwd" or _UNK in file system
+Ground truth: find / \( -nouser -or -nogroup \)
+Prediction: find / \( -name 'Metallica*' -or -name ARGUMENT_UNK \)
+
+Example 327
+English: search for _UNK version in all _UNK file in folder and display matched file name
+Ground truth: find /home/*/public_html/ -type f -iwholename ARGUMENT_UNK -exec grep -H _LONG_PATTERN {} ;
+Prediction: find ARGUMENT_UNK -name ARGUMENT_UNK -type f | xargs grep -l ARGUMENT_UNK
+
+Example 328
+English: search for _UNK version in all _UNK file in folder and display matched file name
+Ground truth: find ARGUMENT_UNK -type f -iwholename ARGUMENT_UNK -exec grep -H _LONG_PATTERN {} ;
+Prediction: find ARGUMENT_UNK -name ARGUMENT_UNK -type f | xargs grep -l ARGUMENT_UNK
+
+Example 329
+English: find find symlinks pointing to _UNK in entire file system
+Ground truth: find / -type l -lname ARGUMENT_UNK
+Prediction: find / -type l -name ARGUMENT_UNK
+
+Example 330
+English: find passwd file in current directory and "_NUM" level down
+Ground truth: find -maxdepth _NUM -name passwd
+Prediction: find . -maxdepth _NUM -name file -maxdepth _NUM
+
+Example 331
+English: find all file in entire filesystem belong to group root and display "_NUM" file
+Ground truth: find / -group root | head
+Prediction: find / -xdev -printf _LONG_PATTERN
+
+Example 332
+English: find all file belongs to group "root" under "/" directory and show few line of output from beginning
+Ground truth: find / -group root | head
+Prediction: find / -group ARGUMENT_UNK | head
+
+Example 333
+English: search filesystem ( begin at root ) for _UNK directory
+Ground truth: find / -type d -name ARGUMENT_UNK -print
+Prediction: find ARGUMENT_UNK -type d -name ARGUMENT_UNK
+
+Example 334
+English: find all file under "/etc/sysconfig" directory accessed in last "_NUM" minute
+Ground truth: find /etc/sysconfig -amin -_NUM
+Prediction: find -amin -_NUM
+
+Example 335
+English: display all file with name _UNK and _UNK in current folder and not search in sub directory
+Ground truth: find . -maxdepth _NUM \( -name ARGUMENT_UNK -or -name ARGUMENT_UNK \)
+Prediction: find . -maxdepth _NUM
+
+Example 336
+English: save list of file in current directory to file _UNK
+Ground truth: find . -fprint foo
+Prediction: find . | xargs ls mv {}
+
+Example 337
+English: copy all regular file whose name end in "~" from "/path" directory tree to _UNK
+Ground truth: find /path -type f -name '*~' -print0 | xargs -0 -I % cp -a % ARGUMENT_UNK
+Prediction: find /path -type f -name '*.mp_NUM' -exec cp '{}' ;
+
+Example 338
+English: remove all "*.sql" file in "$backup_path" directory tree last modified more than "_NUM" day ago
+Ground truth: find ARGUMENT_UNK -name *.sql -mtime +_NUM -exec rm {} ;
+Prediction: find ARGUMENT_UNK -mtime +_NUM -exec rm {} ;
+
+Example 339
+English: find all directory under _UNK and set permission to "_NUM"
+Ground truth: find ARGUMENT_UNK -type d -exec chmod _NUM {} +
+Prediction: find ARGUMENT_UNK -type d -exec chmod _NUM {} +
+
+Example 340
+English: find all php file belong to specific user modified in last "_NUM" day
+Ground truth: find -user ARGUMENT_UNK -name '*.php' -daystart -mtime -_NUM
+Prediction: find . -mtime +_NUM -name "*.log"
+
+Example 341
+English: display all directory in current folder excluding present in ".git" folder
+Ground truth: find . \( -iregex ARGUMENT_UNK -prune -or -type d \) -name ARGUMENT_UNK
+Prediction: find . -type d \( -name aa -prune -or -print \)
+
+Example 342
+English: count total number of line in all _UNK file in current directory
+Ground truth: wc -l $( find . -type f -name '*.txt' )
+Prediction: find . -name ARGUMENT_UNK -exec wc -l {} ; | awk _LONG_PATTERN
+
+Example 343
+English: find all "files/directories" with space in name under "~/Library" directory
+Ground truth: find ~/Library -name _LONG_PATTERN
+Prediction: find ~/Library -name _LONG_PATTERN
+
+Example 344
+English: find all "*.txt" file under current directory and copy to _UNK
+Ground truth: find . -type f -name '*.txt' | sed ARGUMENT_UNK | sed 's/.*/"&"/' | xargs -I -{ -} cp -v {} ARGUMENT_UNK
+Prediction: find . -name '*.txt' | xargs cp ARGUMENT_UNK
+
+Example 345
+English: delete all file in current folder modified in last "_NUM*_NUM" hour
+Ground truth: find . -mtime -_NUM -print | xargs -i rm ;
+Prediction: find . -mtime -_NUM -print | xargs rm
+
+Example 346
+English: search current directory tree for ".rb" file ignoring _UNK subdirectory
+Ground truth: find . -name '*.rb' ! -wholename ARGUMENT_UNK -print
+Prediction: find . \( -name ARGUMENT_UNK -prune -or -name ARGUMENT_UNK \) -print
+
+Example 347
+English: locate all file in current directory and below not _UNK in name
+Ground truth: find -not -name ARGUMENT_UNK
+Prediction: find . -name ARGUMENT_UNK
+
+Example 348
+English: list non-hidden regular file in current directory tree last modified more than "_NUM" day ago
+Ground truth: find . -type f -not -name '.*' -mtime +_NUM -exec ls {} ;
+Prediction: find . -mtime +_NUM -type f -exec ls -l {} ;
+
+Example 349
+English: search current directory tree for executable file and _UNK directory
+Ground truth: find -executable
+Prediction: find . -perm -_NUM -print
+
+Example 350
+English: search entire file system for any file writable by other
+Ground truth: find / ARGUMENT_UNK perm ARGUMENT_UNK
+Prediction: find / -path /proc -print
+
+Example 351
+English: find all _UNK "files/directories" under current directory where "$VERSION" string literal
+Ground truth: find . -name ARGUMENT_UNK
+Prediction: find . -name ARGUMENT_UNK
+
+Example 352
+English: show all "regular/normal" file in current folder whose size bigger than "_NUM" byte excluding everything
+Ground truth: find * -prune -type f -size +_NUMc -print
+Prediction: find . -type f -size +_NUM -size +_NUMc -print
+
+Example 353
+English: delete all file in current folder not belong to any user
+Ground truth: find / -nouser -exec rm {}; \;
+Prediction: find . -nouser | xargs rm
+
+Example 354
+English: find all file in file system belong to user _UNK and with name "dateiname"
+Ground truth: find / -user pat -iname "Dateiname"
+Prediction: find / -user pat -iname ARGUMENT_UNK
+
+Example 355
+English: copy all java file from current folder to another folder
+Ground truth: find . -name "*.java" -print0 | xargs -0 -J % cp % ARGUMENT_UNK
+Prediction: find . -type f -name "*.java" -exec cp -t ARGUMENT_UNK {} ;
+
+Example 356
+English: display all file in entire file system excluding in _UNK directory
+Ground truth: find / \( -name ARGUMENT_UNK -prune -or -print \)
+Prediction: find / \( -path ARGUMENT_UNK -prune -or -print \)
+
+Example 357
+English: search for file _UNK in folder _UNK ( case insensitive search )
+Ground truth: find /home/calvin/ -iname ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -iname ARGUMENT_UNK
+
+Example 358
+English: find all _UNK directory under "/home/feeds/data" directory
+Ground truth: find /home/feeds/data -type d \( -name ARGUMENT_UNK -or -name ARGUMENT_UNK -or -name ARGUMENT_UNK \) \( -prune -or -name '*.*' \) -print
+Prediction: find ARGUMENT_UNK -type d -name ARGUMENT_UNK
+
+Example 359
+English: find all file in current folder and display in sorted order of name
+Ground truth: find . | sort
+Prediction: find . | awk _LONG_PATTERN
+
+Example 360
+English: display long listing of all directory in entire file system
+Ground truth: find / -print0 -type d | xargs -0 ls -a -l
+Prediction: find / -type d -name files -exec ls -l {} ;
+
+Example 361
+English: find all text file in current folder starting with _UNK and _UNK first line
+Ground truth: find . -name ARGUMENT_UNK -type f -exec sed -i _LONG_PATTERN '{}' ;
+Prediction: find . -name ARGUMENT_UNK | xargs grep ARGUMENT_UNK
+
+Example 362
+English: display all regular file in current folder belong to user _UNK
+Ground truth: find . -type f -user ARGUMENT_UNK
+Prediction: find . -uid _NUM -print
+
+Example 363
+English: find all _UNK directory under current directory and reverse sort
+Ground truth: find . -type d -name ARGUMENT_UNK | sort -r
+Prediction: find . -type d -name ARGUMENT_UNK | sort -r
+
+Example 364
+English: count total number of line in all HTML file under "/usr/src" contain string "foo"
+Ground truth: find /usr/src -name "*.html" -execdir grep -H "foo" {} ; | wc -l
+Prediction: find . -name '*.c' -exec wc -l {} ;
+
+Example 365
+English: print sorted list of all ".jpg" file in current directory and below
+Ground truth: find -name '*.jpg' | sort -n
+Prediction: find . -name ARGUMENT_UNK
+
+Example 366
+English: find all regular file exclude ".o" and exclude "*.swp" and output line number of _UNK if ha
+Ground truth: find . \( ! -path ARGUMENT_UNK -and -type f -and ! -name '*.o' -and ! -name '*.swp' \) | xargs grep -n ARGUMENT_UNK
+Prediction: find . -type f \( -name "*.txt" -and ! -name '*.o' -or -name "*.sh" \) -exec grep -l ARGUMENT_UNK {} ;
+
+Example 367
+English: find "files/directories" _UNK under current directory accessed le than "_NUM" day ago
+Ground truth: find -name ARGUMENT_UNK -atime -_NUM
+Prediction: find . -atime -_NUM -print
+
+Example 368
+English: find all executable file under current directory and reverse sort
+Ground truth: find . -perm -_NUM -type f | sort -r
+Prediction: find . -perm _NUM | sort -r
+
+Example 369
+English: search for occurrence of string _LONG_PATTERN in ".c" file from current directory tree
+Ground truth: find . -name "*.c" -print | xargs grep ARGUMENT_UNK
+Prediction: find . -name _LONG_PATTERN -type f -exec grep -n _LONG_PATTERN {} ;
+
+Example 370
+English: search for occurrence of string _LONG_PATTERN in ".c" file from current directory tree
+Ground truth: find . -type f -name "*.c" -print -exec grep -s ARGUMENT_UNK {} ;
+Prediction: find . -name _LONG_PATTERN -type f -exec grep -n _LONG_PATTERN {} ;
+
+Example 371
+English: find "*.java" file in current directory and replace foo with bar in file
+Ground truth: find . -name "*.java" -exec sed -i '' ARGUMENT_UNK ;
+Prediction: find . -name "*.java" -exec sed -i ARGUMENT_UNK {} ;
+
+Example 372
+English: search current directory recursively for ".sh" file whose name begin with "new"
+Ground truth: find . -name "new*.sh"
+Prediction: find . -type f -name * ! -name _LONG_PATTERN
+
+Example 373
+English: search current directory tree for regular file whose name begin with _UNK
+Ground truth: find . -name ARGUMENT_UNK -type f
+Prediction: find . -type f -name ARGUMENT_UNK
+
+Example 374
+English: delete all file in file system belong to user _UNK
+Ground truth: find / -user ARGUMENT_UNK -exec rm "{}" ;
+Prediction: find / -user ARGUMENT_UNK -print | xargs rm
+
+Example 375
+English: search ".sh" file in current directory tree for string _UNK
+Ground truth: find . -name "*.sh" | xargs grep ARGUMENT_UNK
+Prediction: find . -name ARGUMENT_UNK -exec grep ARGUMENT_UNK {} ;
+
+Example 376
+English: test if file named "file" in current directory more than "_NUM" hour old
+Ground truth: find file -prune -cmin +_NUM -print | grep -q .
+Prediction: find . -name "_NUM" -maxdepth _NUM
+
+Example 377
+English: test if file named "file" in current directory more than "_NUM" hour old
+Ground truth: find file ARGUMENT_UNK +_NUM ARGUMENT_UNK \( _NUM -or ARGUMENT_UNK \) _NUM
+Prediction: find . -name "_NUM" -maxdepth _NUM
+
+Example 378
+English: search through only "/usr" and "/home" directory for any file named _UNK
+Ground truth: find /usr /home -name ARGUMENT_UNK -type f
+Prediction: find / -name "Chapter*" -type f
+
+Example 379
+English: find file in current directory tree whose pathnames contain _UNK
+Ground truth: find ./ | grep ARGUMENT_UNK
+Prediction: find . -path ARGUMENT_UNK
+
+Example 380
+English: find all file under current directory whose filename not "file.txt" ignoring case
+Ground truth: find . -maxdepth _NUM -not -iname ARGUMENT_UNK
+Prediction: find . -type f -not -iname ".*"
+
+Example 381
+English: search all file in folder bigger than "_NUMMB" and atleast "_NUM" level deep and delete
+Ground truth: find .cache/chromium/Default/Cache/ -mindepth _NUM -size +_NUMM -delete
+Prediction: find .cache/chromium/Default/Cache/ -mindepth _NUM -type d -size +_NUMM -exec rm -r -f {} ;
+
+Example 382
+English: find all "normal/regular" file in current folder and display total line in
+Ground truth: find . -type f -print0 | xargs -0 wc -l
+Prediction: find . -type f | xargs wc -l
+
+Example 383
+English: find all "normal/regular" file in current folder and display total line in
+Ground truth: find . -type f -exec wc -l {} +
+Prediction: find . -type f | xargs wc -l
+
+Example 384
+English: find all "files/directories" under current directory match case insensitive extended regex _UNK _UNK ")_.*"
+Ground truth: find -E . -iregex ARGUMENT_UNK
+Prediction: find . -iregex ARGUMENT_UNK
+
+Example 385
+English: display all directory in current folder atleast "_NUM" level deep
+Ground truth: find . -mindepth _NUM -type d -print0
+Prediction: find -mindepth _NUM -mindepth _NUM -type d -depth -depth
+
+Example 386
+English: search all file in current directory tree named "whatever" for _UNK
+Ground truth: find -name whatever -exec grep --with-filename ARGUMENT_UNK {} ;
+Prediction: find . -name ARGUMENT_UNK
+
+Example 387
+English: display all file in current directory with each file name _UNK _UNK in same _UNK
+Ground truth: find . | sed _LONG_PATTERN
+Prediction: find . -printf _LONG_PATTERN
+
+Example 388
+English: search current directory for file whose name start with "messages." ignoring SVN file
+Ground truth: find \( -name 'messages.*' -and ! -path ARGUMENT_UNK \) -exec grep -I -w uint {} +
+Prediction: find . \( -path ARGUMENT_UNK -prune -or -path ARGUMENT_UNK -prune -or -print \)
+
+Example 389
+English: search _UNK directory tree for file newer than file _UNK
+Ground truth: find /usr -newer ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -newer /etc/apache-perl/httpd.conf
+
+Example 390
+English: find all regular file in current folder with specific permission and display total count
+Ground truth: find . -type f -perm _NUM | wc -l
+Prediction: find . -type f -perm -_NUM | wc -l
+
+Example 391
+English: find recursively all regular file changed within last "_NUM" minute starting from directory b
+Ground truth: find b -type f -cmin -_NUM
+Prediction: find b -cmin -_NUM -type f
+
+Example 392
+English: search current directory recursively for file last modified within past "_NUM" hour ignoring path "./es*" and "./en*"
+Ground truth: find . -mtime _NUM | grep -v ARGUMENT_UNK | grep -v ARGUMENT_UNK
+Prediction: find . -mtime _NUM
+
+Example 393
+English: display long list of all file bigger than "_NUMKB" in current folder
+Ground truth: find . -size +_NUMk -exec ls -l {} ;
+Prediction: find . -size +_NUM -exec ls -l {} ;
+
+Example 394
+English: search file in file system excluding in path _UNK and _UNK
+Ground truth: find / -name whatever -not -path ARGUMENT_UNK -not -path ARGUMENT_UNK
+Prediction: find / \( -path ARGUMENT_UNK -prune -or -path ARGUMENT_UNK -prune -or -path ARGUMENT_UNK \) -print
+
+Example 395
+English: find file newer than _UNK but not newer than _UNK
+Ground truth: find ./ \( -newer ARGUMENT_UNK -and ! -newer ARGUMENT_UNK \)
+Prediction: find . -newer ARGUMENT_UNK -newer ARGUMENT_UNK
+
+Example 396
+English: display all file in current folder excluding present in sub directory aa and display file start with word "file"
+Ground truth: find . \( \( -type d -and -name aa -prune \) -or \( -type f -and -name 'file*' -and -print \) \)
+Prediction: find . ! -name test -prune
+
+Example 397
+English: display long listing of all "regular/normal" file in current folder modified after specific timestamp
+Ground truth: find . -type f -newermt ARGUMENT_UNK _NUM ARGUMENT_UNK ARGUMENT_UNK ARGUMENT_UNK ! -newermt ARGUMENT_UNK _NUM ARGUMENT_UNK ARGUMENT_UNK ARGUMENT_UNK -exec ls -l ARGUMENT_UNK ;
+Prediction: find . -type f -newer ARGUMENT_UNK -ls
+
+Example 398
+English: find all ".rb" and _UNK file in "/some/path" directory tree and replace _UNK with _UNK in
+Ground truth: find /some/path \( -name "*rb" -or -name ARGUMENT_UNK \) | xargs grep -s -l ARGUMENT_UNK | xargs sed -i -e ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -type f -name ARGUMENT_UNK -exec sed -i _LONG_PATTERN '{}' ;
+
+Example 399
+English: find all regular file in folder not modified in last "_NUM" day and delete
+Ground truth: find "$DIR" -type f -mtime +_NUM -exec rm {} ;
+Prediction: find ARGUMENT_UNK -type f -mtime +_NUM -exec rm {} ;
+
+Example 400
+English: display all file in current directory excluding in _UNK directory
+Ground truth: find . \( -name ARGUMENT_UNK -prune -or -print \)
+Prediction: find . ! \( -name ARGUMENT_UNK -prune -or -print \)
+
+Example 401
+English: search all file in current folder using regex excluding present in folder test
+Ground truth: find . \( -name test -prune -or -regex ".*/my.*p.$" \)
+Prediction: find . -regex ARGUMENT_UNK
+
+Example 402
+English: find all file under current folder except "dir_NUM" "dir_NUM" "dir_NUM" folder
+Ground truth: find . -type d \( -path dir_NUM -or -path dir_NUM -or -path dir_NUM \) \( -prune -or -print \)
+Prediction: find -type f ! -path "./directory/*"
+
+Example 403
+English: change ownership of all file in file system from _UNK to _UNK
+Ground truth: find / -user ARGUMENT_UNK -exec chown ARGUMENT_UNK "{}" ;
+Prediction: find / -user _NUM -exec chown ARGUMENT_UNK {} ;
+
+Example 404
+English: change ownership of all file in file system from _UNK to _UNK
+Ground truth: find / -user ARGUMENT_UNK -print | xargs chown ARGUMENT_UNK
+Prediction: find / -user _NUM -exec chown ARGUMENT_UNK {} ;
+
+Example 405
+English: remove trailing white space from all file under dir directory
+Ground truth: find dir -type f -exec sed -i _LONG_PATTERN '{}' ;
+Prediction: find dir -name ARGUMENT_UNK -print0 | xargs -0 sed -i ARGUMENT_UNK
+
+Example 406
+English: find all file named "file" in "_NUM" level down current directory whose status changed more than "_NUM" day ago
+Ground truth: find . -maxdepth _NUM -ctime +_NUM -name file
+Prediction: find . -maxdepth _NUM -cmin +_NUM
+
+Example 407
+English: delete all file under _UNK match case insensitive string literal _UNK in content
+Ground truth: find ARGUMENT_UNK -type f -exec grep -q -i -F ARGUMENT_UNK {} ; -delete
+Prediction: find ARGUMENT_UNK -type f -exec grep ARGUMENT_UNK '{}' ; -print
+
+Example 408
+English: search current directory recursively for regular file last accessed more than "_NUM" day ago
+Ground truth: find . type -f -atime +_NUM
+Prediction: find . type -f -atime +_NUM
+
+Example 409
+English: find all file in current folder not belong to any user
+Ground truth: find . -nouser -ls
+Prediction: find . -nouser
+
+Example 410
+English: list all directory in maximum "_NUM" level down current directory
+Ground truth: find . -type d -maxdepth _NUM -exec ls -d -l -r -t {} ;
+Prediction: find . -maxdepth _NUM -mindepth _NUM -type d
+
+Example 411
+English: list all directory in maximum "_NUM" level down current directory
+Ground truth: find . -maxdepth _NUM -type d -exec ls -d -l -r -t {} ;
+Prediction: find . -maxdepth _NUM -mindepth _NUM -type d
+
+Example 412
+English: find all "files/directories" under current directory and print with newline delimiter
+Ground truth: find -print | xargs ARGUMENT_UNK ARGUMENT_UNK
+Prediction: find . -depth -print_NUM
+
+Example 413
+English: find all file under "$d" directory ( no sub-directories ) executable by owner and print only name
+Ground truth: find $d -maxdepth _NUM -perm -_NUM -type f | sed ARGUMENT_UNK
+Prediction: find /home -maxdepth _NUM -perm -_NUM
+
+Example 414
+English: find all directory in current folder and not search in sub directory
+Ground truth: find . -maxdepth _NUM -type d -print0
+Prediction: find . -type d -maxdepth _NUM
+
+Example 415
+English: list txt file older than "_NUM" day or html file of any _UNK null separated
+Ground truth: find . \( -name '*.txt' -and \( -mtime +_NUM -or -name '*.html' \) \) -print0
+Prediction: find ARGUMENT_UNK \( -path ARGUMENT_UNK -or -name '*.txt' -or -name ARGUMENT_UNK \) -type f -mtime +_NUM -print0
+
+Example 416
+English: search for ".zip" file larger than "_NUMM" found anywhere in file system and delete file
+Ground truth: find / -type f -name ARGUMENT_UNK -size +_NUMM -exec rm -i {} ;
+Prediction: find / -name "*.old" -size +_NUMM
+
+Example 417
+English: search for word _UNK or _UNK in all file in folder _UNK
+Ground truth: find ARGUMENT_UNK -print | xargs grep _LONG_PATTERN
+Prediction: find ARGUMENT_UNK -type f | xargs grep -i ARGUMENT_UNK
+
+Example 418
+English: find all regular file in current directory tree whose name end with _UNK and delete
+Ground truth: find . -type f -name ARGUMENT_UNK -ls -delete
+Prediction: find . -type f -name ARGUMENT_UNK -delete
+
+Example 419
+English: find all file in folder not modified in last "_NUM" day and delete
+Ground truth: find ARGUMENT_UNK -mtime +_NUM -exec rm {} ;
+Prediction: find ARGUMENT_UNK -mtime +_NUM -exec rm {} ;
+
+Example 420
+English: count line of C or "C++" or _UNK or java code under current directory
+Ground truth: find . \( -name "*.c" -or -name "*.cpp" -or -name "*.h" -or -name ARGUMENT_UNK -or -name '*.java' \) -print0 | xargs -0 wc
+Prediction: find . \( -name "*.c" -or -name "*.c" \) | xargs wc -l
+
+Example 421
+English: _UNK _UNK _UNK of word count of "*.txt" file in home directory
+Ground truth: find ~/ -name '*.txt' -print0 | xargs -0 wc -w | awk _LONG_PATTERN
+Prediction: find ~/ -name '*.txt' -print0 | xargs -0 wc -w
+
+Example 422
+English: search for file using name pattern in multiple folder and limit search to "_NUM" level
+Ground truth: find ARGUMENT_UNK ARGUMENT_UNK -maxdepth _NUM -name ARGUMENT_UNK -printf ARGUMENT_UNK
+Prediction: find . -name test -exec grep -r -r -f {} ;
+
+Example 423
+English: search _UNK directory tree for file whose pathnames match pattern _UNK and whose name match pattern "file_name*"
+Ground truth: find ARGUMENT_UNK -path ARGUMENT_UNK -name "file_name*"
+Prediction: find ARGUMENT_UNK \( -name ARGUMENT_UNK -or -name ARGUMENT_UNK \)
+
+Example 424
+English: search for all file having specific word in folder and delete file delete file _UNK user
+Ground truth: find /home/user/Series/ -iname ARGUMENT_UNK -print0 | xargs -0 rm -r
+Prediction: find ARGUMENT_UNK -iname ARGUMENT_UNK -exec rm {} ;
+
+Example 425
+English: find all file in current folder modified after modification date of file
+Ground truth: find . -newer document -print
+Prediction: find . -newer ARGUMENT_UNK
+
+Example 426
+English: list all regular file under current directory ( not white space _UNK )
+Ground truth: find . -type f -print | xargs -n _NUM
+Prediction: find . -type f | xargs ls
+
+Example 427
+English: search "/tmp/" directory recursively for file matching regular expression _UNK
+Ground truth: find /tmp -regex ARGUMENT_UNK
+Prediction: find /tmp -name ARGUMENT_UNK
+
+Example 428
+English: find all C source code file from current directory tree contain _UNK in pathnames ignoring case
+Ground truth: find . -type f -iname ARGUMENT_UNK | grep -i ARGUMENT_UNK
+Prediction: find . -name ARGUMENT_UNK -type f | xargs grep -l
+
+Example 429
+English: delete all hard link to _UNK file with inode number "_NUM"
+Ground truth: find /home -xdev -inum _NUM | xargs rm
+Prediction: find . -type f ! -user root -exec rm '{}' ;
+
+Example 430
+English: list all regular file under current directory ensuring white space safety
+Ground truth: find . -type f -print0 | xargs -0 -n _NUM
+Prediction: find -type f -print0 | xargs --null
+
+Example 431
+English: search for php xml _UNK file in current folder and replace pattern in all file
+Ground truth: find . -name '*.php' \( -print0 -or -name '*.xml' \) \( -print0 -or -name ARGUMENT_UNK \) -print0 | xargs -0 sed -i '' _LONG_PATTERN
+Prediction: find . -name ARGUMENT_UNK -exec sed -i ARGUMENT_UNK {} ;
+
+Example 432
+English: print list of file in current directory tree skipping git file
+Ground truth: find . \( -path ARGUMENT_UNK -prune -or -type f \)
+Prediction: find . \( -name . -prune -or -print \)
+
+Example 433
+English: search for all file in current folder start with "file_NUM-_NUM" and move to _UNK "_NUM" _UNK to another folder
+Ground truth: find . -name "file_NUM-_NUM*" | head -_NUM | xargs -I filename mv filename
+Prediction: find . -name test -execdir mv {} .. ;
+
+Example 434
+English: delete all file in "/myDir" directory tree last modfied more than "_NUM" day ago
+Ground truth: find /myDir -mindepth _NUM -mtime +_NUM -delete
+Prediction: find /myDir -mtime +_NUM -delete
+
+Example 435
+English: delete all "mp_NUM" file in folder "/home" bigger than "_NUMMB"
+Ground truth: find /home -type f -name *.mp_NUM -size +_NUMM -exec rm {} ;
+Prediction: find /home -type f -name *.mp_NUM -size +_NUMM -exec rm {} ;
+
+Example 436
+English: find all file in maximum "_NUM" level down current directory modified le than "_NUM" day ago from today
+Ground truth: find -maxdepth _NUM -type f -daystart -mtime -_NUM
+Prediction: find -maxdepth _NUM -type f -mtime -_NUM
+
+Example 437
+English: list file from current directory tree contain line matching regular expression _LONG_PATTERN
+Ground truth: find . -type f -print0 | xargs -0 grep -i -l _LONG_PATTERN
+Prediction: find . | grep -v _LONG_PATTERN | xargs grep -l _LONG_PATTERN
+
+Example 438
+English: list file from current directory tree contain line matching regular expression _LONG_PATTERN
+Ground truth: find . -type f -print | xargs grep -i -l _LONG_PATTERN
+Prediction: find . | grep -v _LONG_PATTERN | xargs grep -l _LONG_PATTERN
+
+Example 439
+English: remove all log file not accessed in last "_NUM" day and specific name pattern
+Ground truth: find ARGUMENT_UNK -name _LONG_PATTERN ARGUMENT_UNK ARGUMENT_UNK +_NUM exec _LONG_PATTERN {} ;
+Prediction: find . -name core -atime +_NUM -exec rm {} ;
+
+Example 440
+English: search for word _UNK in all "regular/normal" file in "/etc" folder and display only matched file name
+Ground truth: find /etc -type f | xargs grep -l -i ARGUMENT_UNK
+Prediction: find /etc/ -type f | xargs grep -l -i /etc
+
+Example 441
+English: find all file under "/somefolder" matching extended regex _LONG_PATTERN in path
+Ground truth: find -E /somefolder -type f -regex ARGUMENT_UNK
+Prediction: find /somefolder -type f | grep ARGUMENT_UNK
+
+Example 442
+English: find all "normal/regular" file in several folder and search for specific pattern in file
+Ground truth: find ARGUMENT_UNK -type f -exec grep -H ARGUMENT_UNK {} ;
+Prediction: find ARGUMENT_UNK -type f -name "*.java" -exec grep -H -n ARGUMENT_UNK {} ;
+
+Example 443
+English: find all file in current directory tree whose name _UNK
+Ground truth: find . -name ARGUMENT_UNK
+Prediction: find . -name ARGUMENT_UNK
+
+Example 444
+English: print sorted list of regular file from directory tree _UNK
+Ground truth: find ARGUMENT_UNK -type f | sort
+Prediction: find ARGUMENT_UNK -type f | sed -e ARGUMENT_UNK | sort -u
+
+Example 445
+English: copy all regular file in current directory to temporary _UNK
+Ground truth: find . -type f -exec cp {} /tmp +
+Prediction: find . -type f -exec cp -t ARGUMENT_UNK {} ;
+
+Example 446
+English: search for all file with either "sitesearch" or "demo" in path name
+Ground truth: find . -ipath ARGUMENT_UNK -ipath ARGUMENT_UNK
+Prediction: find . \( -name ARGUMENT_UNK -or -name \)
+
+Example 447
+English: search for all file with either "sitesearch" or "demo" in path name
+Ground truth: find . | grep -i ARGUMENT_UNK | grep -i ARGUMENT_UNK
+Prediction: find . \( -name ARGUMENT_UNK -or -name \)
+
+Example 448
+English: search for all file with either "sitesearch" or "demo" in path name
+Ground truth: find . -iregex ARGUMENT_UNK -iregex ARGUMENT_UNK
+Prediction: find . \( -name ARGUMENT_UNK -or -name \)
+
+Example 449
+English: find all regular file in current directory tree modified within last "_NUM" minute
+Ground truth: find . ARGUMENT_UNK f -mmin -_NUM
+Prediction: find . -mmin -_NUM -type f
+
+Example 450
+English: list all ".jpg" file in home directory tree in _UNK way
+Ground truth: find . -name "*.jpg" -exec ls {} +
+Prediction: find . -name "*.jpg" -exec ls {} ;
+
+Example 451
+English: change permission of all file ending with _UNK in folder _UNK
+Ground truth: find ARGUMENT_UNK -name ARGUMENT_UNK -exec chmod -x ARGUMENT_UNK -r {} ;
+Prediction: find ARGUMENT_UNK -name ARGUMENT_UNK -exec chmod _NUM {} ;
+
+Example 452
+English: find all php file in current directory and delete line matching regex _LONG_PATTERN in file
+Ground truth: find . -name "*.php" -exec grep -H -n _LONG_PATTERN {} ; -exec sed -i _LONG_PATTERN {} ;
+Prediction: find . -name *.php -type f -exec rm -f {} ;
+
+Example 453
+English: find all "*.tex" "files/directories" in maximum "_NUM" level down current directory
+Ground truth: find . -maxdepth _NUM -name '*.tex'
+Prediction: find . -maxdepth _NUM -name "*.tex"
+
+Example 454
+English: find _UNK and _UNK file in _UNK and below and copy to _UNK
+Ground truth: find ARGUMENT_UNK -regex ARGUMENT_UNK -exec cp {} ARGUMENT_UNK ;
+Prediction: find ARGUMENT_UNK -iname ARGUMENT_UNK -type f | xargs -I {} cp {}
+
+Example 455
+English: find all "files/directories" under current directory and print only "_NUMnd" field from output _UNK by "/"
+Ground truth: find . | awk -F"/" -F"/" _LONG_PATTERN
+Prediction: find . -depth -print
+
+Example 456
+English: list all _UNK file in _UNK directory ( _UNK or "/var/log" )
+Ground truth: find /var -path ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK \( -name '*.pdf' -or -name "*.sh" \)
+
+Example 457
+English: search in current folder for all "regular/normal" file with name "test"
+Ground truth: find . -type f -name test
+Prediction: find . -type d -name test
+
+Example 458
+English: find all file in current directory tree not newer than _UNK
+Ground truth: find . ! -newer ARGUMENT_UNK
+Prediction: find . -not -newer ARGUMENT_UNK
+
+Example 459
+English: find all file ending with undo in current folder and calculate total size of file
+Ground truth: find . -name ARGUMENT_UNK -ls | awk _LONG_PATTERN
+Prediction: find . -name *.ini -exec rm {} ;
+
+Example 460
+English: search "_NUM" folder named foo bar and _UNK for all "*.rb" file
+Ground truth: find foo bar ARGUMENT_UNK -name "*.rb"
+Prediction: find . \( -name foo -or -name myfile \) -print -quit
+
+Example 461
+English: remove all file in and below current directory whose name begin with _UNK
+Ground truth: find . -name ARGUMENT_UNK -print0 | xargs -0 rm
+Prediction: find . -name _LONG_PATTERN -print | rm ARGUMENT_UNK
+
+Example 462
+English: search current directory tree for regular file omitting directory _UNK
+Ground truth: find . \( -name ARGUMENT_UNK -prune -or \( -type f -and -print \) \)
+Prediction: find . -type f \( -name ARGUMENT_UNK -or -name ARGUMENT_UNK \)
+
+Example 463
+English: search current directory tree for regular file omitting directory _UNK
+Ground truth: find . \( -name ARGUMENT_UNK -prune -or -type f \)
+Prediction: find . -type f \( -name ARGUMENT_UNK -or -name ARGUMENT_UNK \)
+
+Example 464
+English: search current directory tree for regular file omitting directory _UNK
+Ground truth: find . \( -name ARGUMENT_UNK -prune -or -type f \) -print
+Prediction: find . -type f \( -name ARGUMENT_UNK -or -name ARGUMENT_UNK \)
+
+Example 465
+English: search current directory tree for regular file omitting directory _UNK
+Ground truth: find . \( -name ARGUMENT_UNK -prune -or -type f \) -print
+Prediction: find . -type f \( -name ARGUMENT_UNK -or -name ARGUMENT_UNK \)
+
+Example 466
+English: find directory directly under _UNK directory ( no-subdirectories ) and modified more than "_NUM" day ago
+Ground truth: find ARGUMENT_UNK -mindepth _NUM -maxdepth _NUM -type d -mtime +_NUM -print
+Prediction: find ARGUMENT_UNK -mindepth _NUM -maxdepth _NUM -type d -mtime +_NUM
+
+Example 467
+English: display count of regular file in folder specific permission to owner
+Ground truth: find ARGUMENT_UNK -type f -perm ARGUMENT_UNK | wc -l
+Prediction: find ARGUMENT_UNK -type f -perm ARGUMENT_UNK | wc -l
+
+Example 468
+English: search for file "filename.txt" in current folder ( case insensitive search )
+Ground truth: find . -iname filename.txt
+Prediction: find . -iname ARGUMENT_UNK
+
+Example 469
+English: find all file and directory not match pattern given _UNK variable
+Ground truth: find . ! -name ARGUMENT_UNK
+Prediction: find . \( -name ARGUMENT_UNK -prune -or -print \)
+
+Example 470
+English: find all text file in current folder and move all to another folder appending ".bar" at end of file
+Ground truth: find . -name "*.txt" | xargs -I '{}' mv '{}' ARGUMENT_UNK
+Prediction: find . -name "*.txt" -printf _LONG_PATTERN
+
+Example 471
+English: search for all file in folder _UNK modified after _UNK and before _UNK
+Ground truth: find ARGUMENT_UNK -type f -newer ARGUMENT_UNK -not -newer ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -type f -newer ARGUMENT_UNK
+
+Example 472
+English: remove all log file not modified in last "_NUM" day
+Ground truth: find ARGUMENT_UNK -type f -mtime +_NUM -exec rm {} ;
+Prediction: find -mtime +_NUM -name "*.log" -exec rm {} ;
+
+Example 473
+English: delete file under _UNK match _UNK in name and modified more than "_NUM" minute ago
+Ground truth: find ARGUMENT_UNK -name ARGUMENT_UNK -type f -mmin +_NUM -delete
+Prediction: find ARGUMENT_UNK -name ARGUMENT_UNK -type f -mtime +_NUM -delete
+
+Example 474
+English: find all file in home folder begin with specific word
+Ground truth: find ~ -iname ARGUMENT_UNK
+Prediction: find ~ -name ARGUMENT_UNK
+
+Example 475
+English: find all file under current directory and print only filename ( not path )
+Ground truth: find . -type f -printf "%f\n"
+Prediction: find . -type f -printf "%f\n"
+
+Example 476
+English: search for directory in folder and change permission to "_NUM"
+Ground truth: find ARGUMENT_UNK -type d -print0 | xargs -0 chmod _NUM
+Prediction: find foldername -type d -exec chmod _NUM {} ;
+
+Example 477
+English: find all directory under current directory whose path "_NUM" character long
+Ground truth: find . -regextype posix-extended -type d -regex ARGUMENT_UNK
+Prediction: find . -type d -printf _LONG_PATTERN
+
+Example 478
+English: find all "files/directories" not newer than _UNK "_NUM" by modification time
+Ground truth: find ARGUMENT_UNK ! -newermt _LONG_PATTERN
+Prediction: find ARGUMENT_UNK ! ARGUMENT_UNK \( ! -name ARGUMENT_UNK -prune
+
+Example 479
+English: find file and directory newer than _UNK under current directory
+Ground truth: find . -newer ARGUMENT_UNK -print
+Prediction: find . -newer ARGUMENT_UNK
+
+Example 480
+English: change ownership of all "regular/normal" file in current directory after user confirmation
+Ground truth: find . -type f -ok chown username {} ;
+Prediction: find . -user ARGUMENT_UNK -type f -exec chown -i foo {} ;
+
+Example 481
+English: display long listing of all empty file in current folder
+Ground truth: find . -empty -exec ls -l {} ;
+Prediction: find . -size _NUM -exec ls -a -l {} ;
+
+Example 482
+English: find all file in current directory modified in last "_NUM" day and display content
+Ground truth: find . -atime +_NUM -exec ls ;
+Prediction: find . -mtime -_NUM -type f -exec ls -l {} ;
+
+Example 483
+English: delete all "files/directories" older than "_NUM" hour in _UNK path
+Ground truth: find ARGUMENT_UNK -mtime +_NUM -delete
+Prediction: find ARGUMENT_UNK -mtime +_NUM | xargs rm
+
+Example 484
+English: find all file in directory using regular expression and save file list to file specified in variable _UNK
+Ground truth: find ARGUMENT_UNK -regextype posix-extended -regex ARGUMENT_UNK -fprint ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK \( -path ARGUMENT_UNK -prune -or -name ARGUMENT_UNK \)
+
+Example 485
+English: move all directory from "sourceDir" directory tree to _UNK directory
+Ground truth: find sourceDir -mindepth _NUM -type d -print0 | xargs -0 mv ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -type d -print0 | xargs -0 mv -t ARGUMENT_UNK
+
+Example 486
+English: move all directory from "sourceDir" directory tree to _UNK directory
+Ground truth: find sourceDir -mindepth _NUM -type d -exec mv -t ARGUMENT_UNK "{}" +
+Prediction: find ARGUMENT_UNK -type d -print0 | xargs -0 mv -t ARGUMENT_UNK
+
+Example 487
+English: copy file "xyz.c" to all directory below current "_NUM" whose name begin with "temp"
+Ground truth: find . -type d -name ARGUMENT_UNK | xargs -n -1 cp xyz.c
+Prediction: find . -name _LONG_PATTERN -type f -exec cp {} _LONG_PATTERN ;
+
+Example 488
+English: display in list of all file bigger than "_NUMKB" in current folder
+Ground truth: find . -size +_NUMk -ls
+Prediction: find . -size +_NUM -print
+
+Example 489
+English: search for all "normal/regular" file in current folder and replace pattern in _UNK
+Ground truth: find ./ -type f -name *.php -exec sed -i ARGUMENT_UNK ARGUMENT_UNK ARGUMENT_UNK ARGUMENT_UNK {} ;
+Prediction: find . -type f -print0 | xargs -0 sed -i ARGUMENT_UNK
+
+Example 490
+English: find "files/directories" under "/users/tom" match both pattern "*.pl" and _UNK
+Ground truth: find /users/tom -name "*.pl" -name ARGUMENT_UNK
+Prediction: find /users/tom -name "*.log"
+
+Example 491
+English: force delete all jpg file in current directory le than "_NUMKB" and not search in sub directory
+Ground truth: find . -maxdepth _NUM -name "*.jpg" -size -_NUMk -exec rm {} ;
+Prediction: find . -mindepth _NUM -maxdepth _NUM -name *.log -exec rm -f {} ;
+
+Example 492
+English: force delete all jpg file in current directory le than "_NUMKB" and not search in sub directory
+Ground truth: find . -maxdepth _NUM -name "*.jpg" -size -_NUMk | xargs rm -f
+Prediction: find . -mindepth _NUM -maxdepth _NUM -name *.log -exec rm -f {} ;
+
+Example 493
+English: change owner of all "regular/normal" file belong to root user to _UNK in current folder
+Ground truth: find ARGUMENT_UNK f -user root -exec chown ARGUMENT_UNK {} ;
+Prediction: find . -user root -exec chown -R _NUM {} ;
+
+Example 494
+English: move all file from "sourceDir" directory tree to _UNK directory
+Ground truth: find sourceDir -mindepth _NUM -print0 | xargs -0 mv ARGUMENT_UNK
+Prediction: find sourceDir -mindepth _NUM -maxdepth _NUM -exec mv '{}' ARGUMENT_UNK ;
+
+Example 495
+English: move all file from "sourceDir" directory tree to _UNK directory
+Ground truth: find sourceDir -mindepth _NUM -exec mv "{}" ARGUMENT_UNK ;
+Prediction: find sourceDir -mindepth _NUM -maxdepth _NUM -exec mv '{}' ARGUMENT_UNK ;
+
+Example 496
+English: remove all file from current directory tree whose name not match regular expression _LONG_PATTERN
+Ground truth: find . | grep -v _LONG_PATTERN | xargs rm
+Prediction: find . | grep -P _LONG_PATTERN | xargs rm
+
+Example 497
+English: search current directory recursively for regular file last accessed le than "_NUM" day ago
+Ground truth: find . type -f -atime -2
+Prediction: find . type -f -atime -2
+
+Example 498
+English: find recursively all file in directory contain colon in filename
+Ground truth: find . -name ARGUMENT_UNK
+Prediction: find / -name *.c
+
+Example 499
+English: find all png file in current folder present in pattern list file _UNK
+Ground truth: find . -name '*.png' | grep -f ARGUMENT_UNK sed ARGUMENT_UNK search.txt )
+Prediction: find . -name '*.png' | grep -v -f ARGUMENT_UNK
+
+Example 500
+English: find all png file in current folder present in pattern list file _UNK
+Ground truth: find . -name '*.png' | grep -f ARGUMENT_UNK sed ARGUMENT_UNK search.txt )
+Prediction: find . -name '*.png' | grep -v -f ARGUMENT_UNK
+
+Example 501
+English: find all png file in current folder present in pattern list file _UNK
+Ground truth: find . -name '*.png' | grep -f ARGUMENT_UNK sed ARGUMENT_UNK search.txt )
+Prediction: find . -name '*.png' | grep -v -f ARGUMENT_UNK
+
+Example 502
+English: search current directory and "_NUM" level below for file _UNK
+Ground truth: find ~/ -maxdepth _NUM -name ARGUMENT_UNK
+Prediction: find . -maxdepth _NUM -print
+
+Example 503
+English: find and delete all hard link in "/home" directory to "file_NUM"
+Ground truth: find /home -xdev -samefile file_NUM -print0 | xargs -0 rm
+Prediction: find /home -xdev -samefile file_NUM | xargs rm
+
+Example 504
+English: find and delete all hard link in "/home" directory to "file_NUM"
+Ground truth: find /home -xdev -samefile file_NUM -exec rm {} +
+Prediction: find /home -xdev -samefile file_NUM | xargs rm
+
+Example 505
+English: find all "regular/normal" file in directory atleast _UNK level _UNK
+Ground truth: find dir_NUM -mindepth ARGUMENT_UNK -type f
+Prediction: find -mindepth _NUM -maxdepth _NUM
+
+Example 506
+English: find all "files/directories" in all path expanded by glob pattern "*"
+Ground truth: find *
+Prediction: find .*
+
+Example 507
+English: display all file in folder bar only in path _UNK ( no output _UNK )
+Ground truth: find bar -path ARGUMENT_UNK -print
+Prediction: find ARGUMENT_UNK ! -path "A/a/*"
+
+Example 508
+English: display all directory in current folder excluding present in folder _UNK
+Ground truth: find . -name ARGUMENT_UNK \( -type d -prune -or -print \)
+Prediction: find . \( -path ARGUMENT_UNK -prune -or -type d \) -print
+
+Example 509
+English: find all file named "something" in current folder and below and run through l _UNK command in "_NUM" _UNK
+Ground truth: find . -name something | xargs -0 ls
+Prediction: find . -name something -exec ls -l {} ;
+
+Example 510
+English: search for "mystring" in all "*.txt" ( case insensitive ) file under current directory
+Ground truth: find . -iname *.txt -exec egrep mystring {} ;
+Prediction: find . -name *.txt -exec egrep mystring {} ;
+
+Example 511
+English: find all pdf file under _UNK with null character delimiter
+Ground truth: find ARGUMENT_UNK -name '*.pdf' -print0
+Prediction: find ARGUMENT_UNK -name ARGUMENT_UNK -print0
+
+Example 512
+English: find all cpp file in folder _UNK and replace pattern in file for each file
+Ground truth: find ARGUMENT_UNK -type f -name '*.cpp' -print0 | xargs -0 -n _NUM sed -i 's/previousword/newword/g'
+Prediction: find ARGUMENT_UNK -type f -name *.cpp -exec sed -i _LONG_PATTERN {} ;
+
+Example 513
+English: find all file in etc changed in last "_NUM" hour
+Ground truth: find /etc -ctime -_NUM
+Prediction: find / -cmin -_NUM
+
+Example 514
+English: find all pdf file in current directory and display only directory name in pdf file present
+Ground truth: find . -type f -name '*.pdf' | sed ARGUMENT_UNK | sort -u
+Prediction: find . -name "*.pdf" -print | grep -v "^\./pdfs/"
+
+Example 515
+English: display all instance of _UNK file in entire file system
+Ground truth: find / -name ARGUMENT_UNK -print
+Prediction: find / -name ARGUMENT_UNK
+
+Example 516
+English: list symbolic link under directory "$directory" using content of _UNK variable between output of each "_NUM"
+Ground truth: find $directory -type l -printf ARGUMENT_UNK
+Prediction: find ARGUMENT_UNK -type l -name ARGUMENT_UNK -exec ls -l {} ;
+
+Example 517
+English: find all "normal/regular" file in current directory and search for word _UNK and display file name
+Ground truth: find . -type f -exec grep -i -l ARGUMENT_UNK \;
+Prediction: find . -type f | xargs grep -l ARGUMENT_UNK
+
+Example 518
+English: search for file "file" in current folder and display file
+Ground truth: find -name file -prune
+Prediction: find . -name ARGUMENT_UNK -print
+
+Example 519
+English: search for all file in current directory size greater than "_NUMKB" ( _UNK ) and le than _UNK _UNK )
+Ground truth: find . -size +_NUMc -size -_NUMc -print
+Prediction: find . -size +_NUMk -print
+
+Example 520
+English: search through "/usr/local" directory for file end with extension ".html" when file found permission changed to mode "_NUM" ( _UNK )
+Ground truth: find /usr/local -name "*.html" -type f -exec chmod _NUM {} ;
+Prediction: find /home -type f ! -name find ! -name myfile -type f ! -perm -_NUM
+
+Example 521
+English: search for all file and directory named foo FOO or any other _UNK of _UNK and _UNK character beneath current directory
+Ground truth: find . -iname foo
+Prediction: find . \( -path foo -or -name foo \)
+
+Example 522
+English: display long listing of all "normal/regular" file in current folder ( "print_NUM" used to handle file newlines in name or file with name only space )
+Ground truth: find . -type f -print0 | xargs -0 ls -l
+Prediction: find . -type f -name * -print0 | xargs -0 ls
+
+Example 523
+English: find all file ending with _UNK in current folder and search for first _UNK of word _UNK in each line
+Ground truth: find . -name ARGUMENT_UNK -exec awk _LONG_PATTERN {} ;
+Prediction: find . -name "*.java" -exec grep -n ARGUMENT_UNK {} ;
+
+Example 524
+English: delete all content form file contain case insensitive regex "stringtofind" in maximum "_NUM" level down "/" directory excluding other partition
+Ground truth: find / -maxdepth _NUM -xdev -type f -exec grep -i "stringtofind" -l {} ; -exec sed -i ARGUMENT_UNK {} ;
+Prediction: find . -type f \( -exec grep -l -i stringtofind '{}' ; -or -print \)
+
+Example 525
+English: delete all content form file contain case insensitive regex "stringtofind" in maximum "_NUM" level down "/" directory excluding other partition
+Ground truth: find / -maxdepth _NUM -xdev -type f -exec grep -i "stringtofind" -q "{}" ; -print0 | xargs -0 sed ARGUMENT_UNK
+Prediction: find . -type f \( -exec grep -l -i stringtofind '{}' ; -or -print \)
+
+Example 526
+English: to list all file in _UNK directory tree owned by user _UNK to find file owned by particular user give _UNK to search for argument to _UNK option
+Ground truth: find ARGUMENT_UNK -user ARGUMENT_UNK
+Prediction: find /dev -user audio
+
+Example 527
+English: to list all of file in home directory tree modified yesterday include _UNK option to measure time from beginning of current day instead of "_NUM" hour ago
+Ground truth: find ~ -mtime _NUM -daystart
+Prediction: find ~ -daystart -mtime _NUM
+
+Example 528
+English: to list file in home directory tree whose name begin with string _LONG_PATTERN combine many of "find\'s" option to find file match multiple _UNK
+Ground truth: find ~ -name 'top*' -newer /etc/motd
+Prediction: find ~ -name ARGUMENT_UNK
+
+Example 529
+English: find all file in "/mydir" and replace every occurrence of _UNK with _UNK in file _UNK sed few time _UNK
+Ground truth: find /mydir -type f -exec sed -i ARGUMENT_UNK {} +
+Prediction: find . -type f -exec sed -i _LONG_PATTERN {} ;
+
+Example 530
+English: archive all directory in _UNK ( only command line argument no sub-directories ) to file with ".tar.gz" extension _UNK full path to relative path
+Ground truth: find ARGUMENT_UNK -maxdepth _NUM -type d -exec tar ARGUMENT_UNK ARGUMENT_UNK -z -c -p -v -f {}.tar.gz {} ;
+Prediction: find ARGUMENT_UNK -maxdepth _NUM -type d -printf "%P\n" -exec tar -z -c -p -v -f {}.tar.gz {} ;
+
+Example 531
+English: find all "files/directories" in entire file system for owner ha at least _UNK permission or group ha at least read permission or others at least read permission
+Ground truth: find / -perm ARGUMENT_UNK
+Prediction: find / -perm /_NUM
+
+Example 532
+English: find all _UNK _UNK file "a.out" "*.o" and core _UNK file not _UNK to _UNK all junk file "&" delete from current directory
+Ground truth: find . \( -name a.out -or -name ARGUMENT_UNK -or -name 'core' \) -exec rm {} ;
+Prediction: find . \( -name '*.txt' -or -name ARGUMENT_UNK \) \( -prune -or -name ARGUMENT_UNK \) \( -print -or -name ARGUMENT_UNK \) | xargs grep -l -i -v -f ARGUMENT_UNK
+
+Example 533
+English: same above example with _UNK in example with _UNK ask for confirmation before _UNK rm command called user _UNK command
+Ground truth: find . -name core -ok rm {} ;
+Prediction: find ARGUMENT_UNK -name ARGUMENT_UNK -ok tar ARGUMENT_UNK -v {} ARGUMENT_UNK ;
+
+Example 534
+English: list all j file under _UNK directory _UNK directory path contain _UNK or name _UNK
+Ground truth: find /path/to/search _LONG_PATTERN -type d _LONG_PATTERN \( -path ARGUMENT_UNK -and \( _LONG_PATTERN -or _LONG_PATTERN \) -and -name ARGUMENT_UNK -and _LONG_PATTERN \) _LONG_PATTERN -prune \( _LONG_PATTERN -or _LONG_PATTERN \) -type f -name ARGUMENT_UNK -print
+Prediction: find ARGUMENT_UNK -name '*.pdf' -print0 | xargs -0 grep ARGUMENT_UNK
+
+Example 535
+English: find all file under current directory with size and path reverse sort numerically print "_NUMnd" field ( with space delimiter ) of first "_NUM" entry
+Ground truth: find -type f -printf _LONG_PATTERN | sort -n -r | head -n _NUM | awk _LONG_PATTERN
+Prediction: find -type f -printf _LONG_PATTERN | sort -n | head -n _NUM
+
+Example 536
+English: search for specific word in all normal file in folder( "print_NUM" used to handle file with new line in name )
+Ground truth: find ARGUMENT_UNK -type f -print0 | xargs -0 grep -i -l ARGUMENT_UNK
+Prediction: find / -type f -print0 | xargs -0 grep -l -i ARGUMENT_UNK
+
+Example 537
+English: _UNK file in current directory and grep text and html file _UNK but not _UNK and report _UNK contain word _UNK in "_NUM" or more line
+Ground truth: find . -type f -print0 | egrep -i -a -z -Z ARGUMENT_UNK | grep -v -a -z -Z ARGUMENT_UNK | xargs -n _NUM -0 grep -c -H -i ARGUMENT_UNK | egrep -v ARGUMENT_UNK
+Prediction: find . \( -name "*.txt" -or -name ARGUMENT_UNK -or -name ARGUMENT_UNK \) -print | xargs rm
+
+Example 538
+English: find all file under and below current working directory with word california in file ( case insensitive ) and count number of line in output
+Ground truth: find . -type f -exec grep -i California {} ; -print | wc -l
+Prediction: find . -type f -exec grep California {} ; -print | grep -c -i -w ARGUMENT_UNK
+
+Example 539
+English: to descend at most "_NUM" level of directory below command line argument pas _UNK "_NUM" option will _UNK _UNK _UNK directory
+Ground truth: find . -maxdepth _NUM -type d -iname ARGUMENT_UNK -print0 | xargs -I {} -0 rm -r -v -f "{}"
+Prediction: find . -maxdepth _NUM -type d | head -n _NUM
+
+Example 540
+English: list all "files/directories" under current directory with inode number disk space permission number of hard link user name group name size status change time in _UNK format and name _UNK write _UNK to _UNK
+Ground truth: find . -type f -fprintf ARGUMENT_UNK _LONG_PATTERN
+Prediction: find . -inum _NUM -exec ls -l {} ;
+
