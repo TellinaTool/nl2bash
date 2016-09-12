@@ -42,18 +42,19 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2tree"))
 
 
 import cPickle as pickle
-import collections, itertools
+import itertools
 import random
 import time
 
 import numpy as np
+from tqdm import tqdm
 
 import tensorflow as tf
 
-import data_utils, data_tools
+import data_utils, data_tools, graph_utils
 import parse_args
-import seq2seq_model
 import eval_tools, hyperparam_range
+from seq2seq_model import Seq2SeqModel
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -90,57 +91,11 @@ def create_model(session, forward_only):
     :param decoding_algorithm: decoding algorithm used.
     :param
     """
-    params = collections.defaultdict()
-    params["source_vocab_size"] = FLAGS.nl_vocab_size
-    params["target_vocab_size"] = FLAGS.cm_vocab_size
-    params["max_source_length"] = FLAGS.max_nl_length
-    params["max_target_length"] = FLAGS.max_cm_length
-    params["dim"] = FLAGS.dim
-    params["rnn_cell"] = FLAGS.rnn_cell
-    params["num_layers"] = FLAGS.num_layers
-    params["max_gradient_norm"] = FLAGS.max_gradient_norm
-    params["batch_size"] = FLAGS.batch_size
-    params["num_samples"] = FLAGS.num_samples
-    params["input_keep_prob"] = FLAGS.input_keep_prob
-    params["output_keep_prob"] = FLAGS.output_keep_prob
-    params["optimizer"] = FLAGS.optimizer
-    params["learning_rate"] = FLAGS.learning_rate
-    params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
-    params["use_attention"] = FLAGS.use_attention
-    params["use_copy"] = FLAGS.use_copy
-
-    params["encoder_topology"] = FLAGS.encoder_topology
-    params["decoder_topology"] = FLAGS.decoder_topology
-
-    params["decoding_algorithm"] = FLAGS.decoding_algorithm
-
-    if FLAGS.seed != -1:
-        print("Set random seed to {}".format(FLAGS.seed))
-        tf.set_random_seed(FLAGS.seed)
-
-    model = seq2seq_model.Seq2SeqModel(params, _buckets, forward_only)
-
-    ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
-
-    if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
-        if not forward_only and FLAGS.create_fresh_params:
-            data_utils.clean_dir(FLAGS.train_dir)
-            print("Created model with fresh parameters.")
-            session.run(tf.initialize_all_variables())
-        else:
-            print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
-            model.saver.restore(session, ckpt.model_checkpoint_path)
-    else:
-        if not os.path.exists(FLAGS.train_dir):
-            print("Making train dir {}".format(FLAGS.train_dir))
-            os.mkdir(FLAGS.train_dir)
-        print("Created model with fresh parameters.")
-        session.run(tf.initialize_all_variables())
-
-    return model
+    return graph_utils.create_model(session, FLAGS, Seq2SeqModel, _buckets,
+                                    forward_only)
 
 
-def train(train_set, dev_set, num_iter):
+def train(train_set, dev_set, num_epochs):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
@@ -157,7 +112,7 @@ def train(train_set, dev_set, num_iter):
                                for i in xrange(len(train_bucket_sizes))]
 
         # This is the training loop.
-        step_time, loss = 0.0, 0.0
+        epoch_time, loss = 0.0, 0.0
         current_step = 0
         previous_losses = []
         previous_dev_losses = []
@@ -170,29 +125,34 @@ def train(train_set, dev_set, num_iter):
         # nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
-        for t in xrange(num_iter):
-            # Choose a bucket according to data distribution. We pick a random number
-            # in [0, 1] and use the corresponding interval in train_buckets_scale.
-            random_number_01 = np.random.random_sample()
-            bucket_id = min([i for i in xrange(len(train_buckets_scale))
-                             if train_buckets_scale[i] > random_number_01])
+        for t in xrange(num_epochs):
+            print("Epoch %d" % t)
 
-            # Get a batch and make a step.
             start_time = time.time()
-            formatted_batch = model.get_batch(train_set, bucket_id)
-            _, step_loss, _ = model.step(sess, formatted_batch, bucket_id, False)
-            step_time += (time.time() - start_time) / FLAGS.steps_per_checkpoint
-            loss += step_loss / FLAGS.steps_per_checkpoint
-            current_step += 1
+
+            for _ in tqdm(xrange(FLAGS.steps_per_epoch)):
+                time.sleep(0.01)
+                # Choose a bucket according to data distribution. We pick a random number
+                # in [0, 1] and use the corresponding interval in train_buckets_scale.
+                random_number_01 = np.random.random_sample()
+                bucket_id = min([i for i in xrange(len(train_buckets_scale))
+                                 if train_buckets_scale[i] > random_number_01])
+                # Get a batch and make a step.
+                formatted_batch = model.get_batch(train_set, bucket_id)
+                _, step_loss, _ = model.step(sess, formatted_batch, bucket_id, False)
+                loss += step_loss / FLAGS.steps_per_epoch
+                current_step += 1
+
+            epoch_time = time.time() - start_time
 
             # Once in a while, we save checkpoint, print statistics, and run evals.
-            if current_step % FLAGS.steps_per_checkpoint == 0:
+            if t % FLAGS.epochs_per_checkpoint == 0:
 
                 # Print statistics for the previous epoch.
                 perplexity = math.exp(loss) if loss < 300 else float('inf')
                 print("global step %d learning rate %.4f step-time %.2f perplexity "
                       "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
-                                step_time, perplexity))
+                                epoch_time, perplexity))
 
                 # Decrease learning rate if no improvement of loss was seen over last 3 times.
                 if len(previous_losses) > 2 and loss > max(previous_losses[-3:]):
@@ -201,9 +161,9 @@ def train(train_set, dev_set, num_iter):
 
                 # Save checkpoint and zero timer and loss.
                 checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
-                model.saver.save(sess, checkpoint_path, global_step=model.global_step)
+                model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1)
     
-                step_time, loss, dev_loss = 0.0, 0.0, 0.0
+                epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 
                 # Run evals on development set and print their perplexity.
                 for bucket_id in xrange(len(_buckets)):
