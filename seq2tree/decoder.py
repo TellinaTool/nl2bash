@@ -105,11 +105,12 @@ class Decoder(object):
 
 
     def normal_cell(self, cell, scope, input, state):
-        with tf.variable_scope("normal_cell"):
-            if self.normal_cell_vars:
-                tf.get_variable_scope().reuse_variables()
+        try:
             output, state = cell(input, state, scope)
-        self.normal_cell_vars = True
+        except ValueError, e:
+            scope.reuse_variables()
+            print(state)
+            output, state = cell(input, state, scope)
         return output, state
 
 
