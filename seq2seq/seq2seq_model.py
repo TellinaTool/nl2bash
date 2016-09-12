@@ -69,7 +69,7 @@ class Seq2SeqModel(EncoderDecoderModel):
             self.decoder = decoder.RNNDecoder(self.dim, self.batch_size, self.rnn_cell, self.num_layers,
                                               self.input_keep_prob, self.output_keep_prob,
                                               self.use_attention, self.use_copy,
-                                              self.output_projection)
+                                              self.output_projection())
         else:
             raise ValueError("Unrecognized decoder type.")
 

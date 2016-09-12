@@ -46,7 +46,7 @@ def decode(output_logits, rev_cm_vocab, FLAGS):
         outputs = outputs[:outputs.index(data_utils.EOS_ID)]
 
     # Print out command corresponding to outputs.
-    if FLAGS.decoder_topology == "seq":
+    if FLAGS.decoder_topology == "rnn":
         if FLAGS.char:
             cmd = "".join([tf.compat.as_str(rev_cm_vocab[output]).strip() for output in outputs]) \
                 .replace(data_utils._UNK, ' ')

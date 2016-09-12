@@ -1,0 +1,187 @@
+Example 1 (1)
+English: display all the directories in the folder /path/to/dest except tmp and cache directories
+GT Command 1: find /path/to/dest -type d \( ! -name tmp \) -o \( ! -name cache \) -print
+Prediction: find UNK -type d \( -name UNK -prune -or -print \)
+WW
+
+Example 2 (1)
+English: Search for regular expression 'expr' in all .c and .h files from the current directory tree
+GT Command 1: find -name '*.[ch]' | xargs grep -E 'expr'
+Prediction: find . -name "*.c" \( -type d -prune -or -name filename \)
+WW
+
+Example 3 (1)
+English: find all files in the current folder having a specific word in their name
+GT Command 1: find -name "*pattern*"
+Prediction: find . -name UNK
+CW
+
+Example 4 (1)
+English: Count the number of files in the /usr/ports directory tree whose names begin with 'pkg-plist' and which contain 'unexec.rmdir%D'
+GT Command 1: find /usr/ports/ -name pkg-plist\* -exec grep 'unexec.rmdir %D' '{}' '+' | wc -l
+Prediction: find /usr/ports/ -name Makefile -exec grep UNK '{}' + | wc -l
+CW
+
+Example 5 (1)
+English: find all the log files in the file system
+GT Command 1: find / -name "*.log"
+Prediction: find / -name vimrc -print
+CW
+
+Example 6 (1)
+English: Find text in whole directory tree
+GT Command 1: find . -type f | xargs grep "text"
+Prediction: find -mindepth _NUM -name "*.gz"
+WW
+
+Example 7 (1)
+English: List root's regular files with permissions 4000
+GT Command 1: find / -type f -user root -perm -4000 -exec ls -l {} \;
+Prediction: find . -type f -perm UNK -ls
+WW
+
+Example 8 (1)
+English: Find all the files on the system that have been changed within the last hour
+GT Command 1: find / -cmin -60
+Prediction: find / -newerct _LONG_PATTERN -print
+WW
+
+Example 9 (1)
+English: Find text files modified less than 5 days ago
+GT Command 1: find . –name "*.txt" –mtime 5
+Prediction: find . -mtime -_NUM -type f
+WW
+
+Example 10 (1)
+English: search for files with the name "temp" in the /usr folder
+GT Command 1: find /usr -name temp -print
+Prediction: find /usr -name UNK
+CW
+
+Example 11 (1)
+English: Find all files in your home directory and below that are exactly 100M.
+GT Command 1: find ~ -size 100M
+Prediction: find ~ -name UNK
+WW
+
+Example 12 (1)
+English: Find *.c files under $HOME and search for the string 'sprintf' in those files
+GT Command 1: find $HOME -name '*.c' -print | xargs    grep -l sprintf
+Prediction: find UNK -name "*.c" -type f -print | xargs grep -l FAIL
+CW
+
+Example 13 (1)
+English: List all zero-length files
+GT Command 1: find . -empty -exec ls {} \;
+Prediction: find . -type f -name UNK
+WW
+
+Example 14 (1)
+English: search for the file in the entire file system which has the words "filename" in its name
+GT Command 1: find / -name ”*filename*”
+Prediction: find / -iname "filename"
+CC
+
+Example 15 (1)
+English: Move all Emacs backup files from the current directory tree to ~/backups/
+GT Command 1: find . -name '*~' -print 0 | xargs -0 -I % cp % ~/backups
+Prediction: find . -name UNK -print0 | xargs -0 -I mv {} ~/back.scripts
+WW
+
+Example 16 (1)
+English: sort based on size and display top ten largest normal/regular files in the current folder
+GT Command 1: find . -type f -exec ls -s {} \; | sort -n -r | head -10
+Prediction: find . -type f -printf _LONG_PATTERN | sort -n -r | head -n _NUM
+CW
+
+Example 17 (1)
+English: remove all subdirectories named "CVS" under current dir
+GT Command 1: find . -type d -name CVS -exec rm -r {} \;
+Prediction: find . -type d -name UNK -delete
+CW
+
+Example 18 (2)
+English: print all files in the directories except the ./src/emacs directory
+GT Command 1: find . -wholename './src/emacs' -prune , -print
+GT Command 2: find . -wholename './src/emacs' -prune -o -print
+Prediction: find . \( -path /proc -prune -or -print \)
+CW
+
+Example 19 (1)
+English: Copy file header.shtml to directories dir1, dir2, dir3, and dir4
+GT Command 1: find dir1 dir2 dir3 dir4 -type d -exec cp header.shtml {} \;
+Prediction: find . -type f -name "*.mp_NUM" -exec cp {} UNK \;
+WW
+
+Example 20 (1)
+English: Find all directories starting from / that have permissions 777
+GT Command 1: find / -type d -perm 0777
+Prediction: find / -type d
+WW
+
+Example 21 (1)
+English: display all the files in the kat folder
+GT Command 1: find kat -printf "%f\n"
+Prediction: find UNK -type f
+CW
+
+Example 22 (1)
+English: find all the files in the current directory which have been accessed in the last 1 day and move them to TMP folder.
+GT Command 1: find . -atime +1 -type f -exec mv {} TMP \;
+Prediction: find . -atime +_NUM -exec rm -i {} \;
+WW
+
+Example 23 (1)
+English: find foo, Foo, FOo, FOO, etc.
+GT Command 1: find . -iname foo
+Prediction: find . -iname foo -type f
+CC
+
+Example 24 (2)
+English: find all the text files in the home directory
+GT Command 1: find ~/ -name '*.txt'
+GT Command 2: find ~/ -name '*.txt'
+Prediction: find ~ -name "*.txt" UNK print
+WW
+
+Example 25 (1)
+English: Search the current directory tree for files containing "sh" in their names
+GT Command 1: find . -name "*sh*"
+Prediction: find . \( -name UNK -or -name UNK \) -print
+WW
+
+Example 26 (1)
+English: List all files/directories under current directory matching the posix-egrep type regex ".+\.(c|cpp|h)$" in their names excluding the files that contain 'generated' or 'deploy' in their paths
+GT Command 1: find . -regextype posix-egrep -regex '.+\.(c|cpp|h)$' -print0 | grep -vzZ generated | grep -vzZ deploy | xargs -0 ls -1Ld
+Prediction: find . \( -path UNK -prune -or -print \) | egrep -v UNK
+WW
+
+Example 27 (1)
+English: list all *.txt files in the user's home directory.
+GT Command 1: find ~/ -name '*.txt'
+Prediction: find ~ -name "*.txt" ! -name "*.txt" -ls
+WW
+
+Example 28 (1)
+English: Find all files in the current directory tree whose names are "file_name", except for those with pathnames matching pattern "./dirt to be Excluded/*"
+GT Command 1: find ./ -iname file_name ! -path "./dirt to be Excluded/*"
+Prediction: find . -not -path '*/\.*' -not -name '*git*'
+WW
+
+Example 29 (1)
+English: Find all files and directories in the current directory tree with "linkin park" in their names and copy them to /Users/tommye/Desktop/LP
+GT Command 1: find . -iname "*linkin park*" -exec cp -r {} /Users/tommye/Desktop/LP \;
+Prediction: find . -iname UNK -exec cp {} UNK \;
+WW
+
+Example 30 (1)
+English: Find files with 002 permission under /tmp and print them with the string 'Found world write permissions:' printed as the first line of output or print 'No world writable found' if no such files were found
+GT Command 1: find /tmp -type f -perm -002 | awk -- '1{print "Found world write permissions:";print};END{if(NR==0)print "No world writable found."}'
+Prediction: find . -type f -perm UNK -exec chmod UNK {} \;
+WW
+
+
+30 examples evaluated
+Percentage of Template Match = 0.37
+Percentage of String Match = 0.07
+

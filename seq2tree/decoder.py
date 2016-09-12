@@ -31,12 +31,10 @@ class Decoder(object):
         self.normal_cell_vars = False
 
     def attention_cell(self, cell, cell_scope, input_embedding, state, attns,
-                       hidden_features, attn_vecs, num_heads, hidden):
-        attn_vec_dim = attn_vecs[0].get_shape()[0].value
+                       hidden_features, v, num_heads, hidden):
         with tf.variable_scope("AttnInputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
-            attns.set_shape([self.batch_size, attn_vec_dim * num_heads])
             # attention mechanism on cell and hidden states
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             try:
@@ -44,7 +42,7 @@ class Decoder(object):
             except ValueError, e:
                 cell_scope.reuse_variables()
                 cell_output, state = cell(x, state, cell_scope)
-            attns = self.attention(state, hidden_features, attn_vecs, num_heads, hidden)
+            attns = self.attention(v, state, hidden_features, num_heads, hidden)
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
@@ -53,9 +51,9 @@ class Decoder(object):
         self.attention_cell_vars = True
         return output, state, attns
 
-    def attention(self, state, hidden_features, attn_vecs, num_heads, hidden):
-        assert(len(attn_vecs) > 0)
-        attn_vec_dim = attn_vecs[0].get_shape()[0].value
+    def attention(self, v, state, hidden_features, num_heads, hidden):
+        assert(len(v) > 0)
+        attn_vec_dim = v[0].get_shape()[0].value
         attn_length = hidden.get_shape()[1].value
         """Put attention masks on hidden using hidden_features and query."""
         ds = []  # Results of attention reads will be stored here.
@@ -67,7 +65,7 @@ class Decoder(object):
                 y = tf.reshape(y, [-1, 1, 1, attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
                 s = tf.reduce_sum(
-                    attn_vecs[a] * tf.tanh(hidden_features[a] + y), [2, 3])
+                    v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
                 a = tf.nn.softmax(s)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(
@@ -92,16 +90,16 @@ class Decoder(object):
         # To calculate W1 * h_t we use a 1-by-1 convolution
         hidden = tf.reshape(attention_states, [-1, attn_length, 1, attn_vec_dim])
         hidden_features = []
-        attn_vecs = []
+        v = []
         with tf.variable_scope("attention_hidden_layer"):
             if self.attention_hidden_vars:
                 tf.get_variable_scope().reuse_variables()
             for i in xrange(num_heads):
                 k = tf.get_variable("AttnW_%d" % i, [1, 1, attn_vec_dim, attn_vec_dim])
                 hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
-                attn_vecs.append(tf.get_variable("AttnV_%d" % i, [attn_vec_dim]))
+                v.append(tf.get_variable("AttnV_%d" % i, [attn_vec_dim]))
         self.attention_hidden_vars = True
-        return hidden, hidden_features, attn_vecs
+        return hidden, hidden_features, v
 
 
     def normal_cell(self, cell, scope, input, state):
@@ -171,7 +169,7 @@ class BasicTreeDecoder(Decoder):
                 init_state = tf.concat(1, [encoder_state[0], encoder_state[1]])
 
             if self.use_attention:
-                hidden, hidden_features, attn_vecs = \
+                hidden, hidden_features, v = \
                     self.attention_hidden_layer(attention_states, num_heads)
                 batch_size = tf.shape(attention_states)[0]
                 attn_dim = tf.shape(attention_states)[2]
@@ -180,7 +178,7 @@ class BasicTreeDecoder(Decoder):
                 attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
                          for _ in xrange(num_heads)])
                 if initial_state_attention:
-                    attns = self.attention(encoder_state, hidden_features, attn_vecs, num_heads, hidden)
+                    attns = self.attention(v, encoder_state, hidden_features, num_heads, hidden)
                 init_state = tf.concat(1, [init_state] + [attns])
             self.state = tf.expand_dims(init_state, 1)
             self.input = tf.expand_dims(decoder_inputs[0], 1)
@@ -208,10 +206,10 @@ class BasicTreeDecoder(Decoder):
                 if self.use_attention:
                     v_output, v_state, v_attns = self.attention_cell(
                         vertical_cell, vertical_scope, input_embeddings, state, attns,
-                        hidden_features, attn_vecs, num_heads, hidden)
+                        hidden_features, v, num_heads, hidden)
                     h_output, h_state, h_attns = self.attention_cell(
                         horizontal_cell, horizontal_scope, input_embeddings, state, attns,
-                        hidden_features, attn_vecs, num_heads, hidden)
+                        hidden_features, v, num_heads, hidden)
                 else:
                     v_output, v_state = self.normal_cell(
                         vertical_cell, vertical_scope, input_embeddings, state)
