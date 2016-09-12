@@ -1,0 +1,189 @@
+Example 1 (1)
+English: find all occurences of a file in the file system which belong to the user root
+GT Command 1: find / -user root -name FindCommandExamples.txt
+Prediction: find / -user root -iname "*.txt" -print
+CW
+
+Example 2 (1)
+English: change the owner of all the files in folder /u/netinst to netinst
+GT Command 1: find /u/netinst -print | xargs chown netinst
+Prediction: find ARGUMENT_UNK -exec chown ARGUMENT_UNK {} +
+CW
+
+Example 3 (1)
+English: List all regular file owned by root with permissions 4000
+GT Command 1: find / -type f -user root -perm -4000 -exec ls -l {} \;
+Prediction: find . -type f -perm ARGUMENT_UNK -exec chmod ARGUMENT_UNK {} \; 
+WW
+
+Example 4 (1)
+English: find all text files in current folder; which have been modified exactly 5 days ago
+GT Command 1: find . –name "*.txt" –mtime 5
+Prediction: find . -name "*.txt" -daystart -mtime _NUM
+WW
+
+Example 5 (1)
+English: Find all files matching shell pattern "foo/bar" in the foo directory tree
+GT Command 1: find foo -path foo/bar -print
+Prediction: find ARGUMENT_UNK -name ARGUMENT_UNK
+CW
+
+Example 6 (1)
+English: Find files under /usr that are the same age or older than file `FirstFile'
+GT Command 1: find /usr ! -newer /FirstFile -print
+Prediction: find ARGUMENT_UNK ARGUMENT_UNK \( -newer -or ARGUMENT_UNK \) -or -name ARGUMENT_UNK \)
+WW
+
+Example 7 (1)
+English: find directory which case-insensitive name is foo in current directory.
+GT Command 1: find . -iname foo -type d
+Prediction: find . -type d -name foo
+WW
+
+Example 8 (1)
+English: find all the files (under root file system /) that were changed within the last 24 hours
+GT Command 1: find / -ctime -1
+Prediction: find / -mtime -_NUM
+WW
+
+Example 9 (1)
+English: Remove regular files changed more than 15 days ago from the /tmp directory tree
+GT Command 1: find /tmp/ -ctime +15 -type f -exec rm {} \;
+Prediction: find /tmp -type f -ctime +_NUM -print0 | xargs -0 rm -f
+CW
+
+Example 10 (1)
+English: Return a list of files newer than file poop
+GT Command 1: find . -mnewer poop
+Prediction: find / -newer ARGUMENT_UNK
+CW
+
+Example 11 (3)
+English: Find all .php files in all directory trees matching pattern `/srv/www/*/htdocs/system/application/' and search those files for string "debug ("
+GT Command 1: find /srv/www/*/htdocs/system/application/ -name "*.php" -exec grep -H "debug (" {} +
+GT Command 2: find /srv/www/*/htdocs/system/application/ -name "*.php" -print0 | xargs -0 grep -H "debug ("
+GT Command 3: find /srv/www/*/htdocs/system/application/ -name "*.php" -exec grep "debug (" {} \; -print
+Prediction: find ARGUMENT_UNK -type f -name ARGUMENT_UNK -print0 | xargs -0 grep -H _LONG_PATTERN
+CW
+
+Example 12 (3)
+English: Search the current directory tree for regular files that contain "string"
+GT Command 1: find . -type f -print0 | xargs -0 grep string
+GT Command 2: find . -type f -printf '"%p"\n' | xargs grep string
+GT Command 3: find . -type f | xargs grep string
+Prediction: find . -type f -name "*.py"
+WW
+
+Example 13 (1)
+English: find all the configuration files which have been accessed in the last 30 minutes.
+GT Command 1: find /etc/sysconfig -amin -30
+Prediction: find /apps/ -user root -type f -amin -_NUM -name *.rb
+WW
+
+Example 14 (1)
+English: Search directory foo for files containing "/tmp/foo/bar" in their full names
+GT Command 1: find foo -path /tmp/foo/bar -print
+Prediction: find ARGUMENT_UNK -type f -iname ARGUMENT_UNK -print
+CW
+
+Example 15 (1)
+English: remove all subdirectories named "CVS" under current dir
+GT Command 1: find . -type d -name CVS -exec rm -r {} \;
+Prediction: find . -type d -name ARGUMENT_UNK -exec rm -r -f {} \; 
+CW
+
+Example 16 (1)
+English: find all normal/regular files in current folder which end with "~" or which begin and end with "#" and and and delete them
+GT Command 1: find . -maxdepth 1 -type f -name '*~' -delete  -or -name '#*#' -delete
+Prediction: find . -type f -name "FILE-TO-FIND" -exec rm {} \; 
+WW
+
+Example 17 (1)
+English: Search for file names with "bad" characters in the current directory and delete the files.
+GT Command 1: find . -name '*[+{;"\\=?~()<>&*|$ ]*' -maxdepth 0 -exec rm -f '{}' \;
+Prediction: find . -name "*.bam" | xargs rm
+CW
+
+Example 18 (1)
+English: Find files ending with .mp3 or .jpg
+GT Command 1: find . \( -name '*.mp3' -o -name '*.jpg' \) -print
+Prediction: find . -name "*.txt" \( -name '*.jpg' -or -name '*.jpg' \)
+WW
+
+Example 19 (1)
+English: Find directories with permissions 777 and change them to 755 recursively
+GT Command 1: find /home -type d -perm 777 -print -exec chmod 755 {} \;
+Prediction: find . -type d -perm ARGUMENT_UNK -exec chmod ARGUMENT_UNK {} \; 
+CW
+
+Example 20 (1)
+English: Find all files/directories named Root under current directory and copy them to newRoot
+GT Command 1: find . -name Root | xargs cp newRoot
+Prediction: find . -name ARGUMENT_UNK -exec cp {} ARGUMENT_UNK \; 
+CW
+
+Example 21 (1)
+English: force delete all the directories in a folder which  have a specific name
+GT Command 1: find /usr/ports/ -name work -type d -print -exec rm -rf {} \;
+Prediction: find /tmp/* -type d -name _LONG_PATTERN -exec rm -f {} \; 
+WW
+
+Example 22 (1)
+English: Delete all .svn directories under current directory
+GT Command 1: find . -type d -name .svn -print0|xargs -0 rm -rf
+Prediction: find . -type d -name ".svn" -print | xargs rm
+WW
+
+Example 23 (1)
+English: count the lines of java code for all the java files in the current directory
+GT Command 1: find . -name "*.java" -print0 | xargs -0 wc
+Prediction: find . -type f -name "*.java" | xargs grep -l -d
+WW
+
+Example 24 (1)
+English: List all zero-length files
+GT Command 1: find . -empty -exec ls {} \;
+Prediction: find . -type f -name ARGUMENT_UNK
+WW
+
+Example 25 (1)
+English: Find all the files called FindCommandExamples.txt of owner root
+GT Command 1: find / -user root -name FindCommandExamples.txt
+Prediction: find / -user root
+WW
+
+Example 26 (1)
+English: Find files ending with .mp3 and .jpg
+GT Command 1: find . \( -name '*.mp3' -o -name '*.jpg' \) -print
+Prediction: find . -name '*.jpg' -name '*.jpg' -print
+CW
+
+Example 27 (1)
+English: find in the file system for a specific file
+GT Command 1: find / -name filename -print
+Prediction: find / -name ARGUMENT_UNK
+CC
+
+Example 28 (1)
+English: Find all CSS files
+GT Command 1: find . -name "*.css"
+Prediction: find -name "*.css"
+CC
+
+Example 29 (1)
+English: change the ownership of all regular/normal files in the current directory(print0 is used to handle all the files which have spaces or new lines in their names)
+GT Command 1: find . -type f -print0 | xargs -0 chown username
+Prediction: find . -type f -print0 | xargs -0 sed -i -e ARGUMENT_UNK
+WW
+
+Example 30 (1)
+English: To list all files in the `/usr/local/fonts' directory tree owned by the user warwick  To find files owned by a particular user, give the username to search for as an argument to the `-user' option.
+GT Command 1: find /usr/local/fonts -user warwick
+Prediction: find ~ ! -user ARGUMENT_UNK
+WW
+
+
+30 examples evaluated
+Percentage of Template Match = 0.47
+Percentage of String Match = 0.07
+

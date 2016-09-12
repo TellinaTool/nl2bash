@@ -1,0 +1,187 @@
+Example 1 (1)
+English: search for a specific word in all the hidden files in the entire file system and display the file name along with the matched line
+GT Command 1: find / -name ‘*.*’ -exec grep -il “foobar” {} \;
+Prediction: find / -name "*.log" -exec grep -H -n ARGUMENT_UNK {} \; 
+CW
+
+Example 2 (1)
+English: Search for file names with "bad" characters in the current directory and delete the files.
+GT Command 1: find . -name '*[+{;"\\=?~()<>&*|$ ]*' -maxdepth 0 -exec rm -f '{}' \;
+Prediction: find . -name ARGUMENT_UNK -type f -print0 | xargs -0 rm
+CW
+
+Example 3 (1)
+English: search the pattern ^PyErr in all the ".c" files in the folder Lib/
+GT Command 1: find Lib/ -name '*.c' -print0 | xargs -0 grep ^PyErr
+Prediction: find ARGUMENT_UNK -name "*.c" -exec grep -H string-to-find {} \; 
+CW
+
+Example 4 (1)
+English: Find files with 002 permission in entire file system with the null character as the delimiter
+GT Command 1: find / -type f -perm -002 -print0
+Prediction: find / -perm ARGUMENT_UNK
+WW
+
+Example 5 (1)
+English: find / -size +50M -size -100M
+GT Command 1: find all the files which are greater than 50MB and less than 100MB.
+Prediction: find / -name ARGUMENT_UNK -print | xargs grep ARGUMENT_UNK ARGUMENT_UNK
+WW
+
+Example 6 (1)
+English: Remove Mac OS X Desktop Services Store files
+GT Command 1: find . -name ".DS_Store" -exec rm {} \;
+Prediction: find ARGUMENT_UNK -exec rm {} \; 
+WW
+
+Example 7 (1)
+English: Find a 400 permission file under /data directory
+GT Command 1: find /data -type f -perm 400 -print -quit
+Prediction: find ARGUMENT_UNK -type f ! -perm ARGUMENT_UNK -print
+WW
+
+Example 8 (2)
+English: find for a word in all the regular files in the current directory
+GT Command 1: find . -type f -print | xargs grep -li 'bin/ksh'
+GT Command 2: find . -type f -exec grep -li '/bin/ksh' {} \;
+Prediction: find . -type f -exec grep -l ARGUMENT_UNK {} \; 
+CW
+
+Example 9 (1)
+English: find all the files with the name september ( case insensitive )
+GT Command 1: find -iname september
+Prediction: find / -iname findcommandexamples.txt
+CW
+
+Example 10 (2)
+English: locate large files (> 100 MB) in /home/ for 'cleaning'
+GT Command 1: find /home -type f -size +100M -print0 |xargs -0 rm
+GT Command 2: find /home -type f -size +100M -delete
+Prediction: find ARGUMENT_UNK -iname ARGUMENT_UNK -type f | xargs -I {} mv ARGUMENT_UNK ARGUMENT_UNK
+WW
+
+Example 11 (1)
+English: Search for files whose names match "*test*", a directory bing evaluated before its contents
+GT Command 1: find -name "*test*" -depth
+Prediction: find / -name Chapter_NUM -type f -name ARGUMENT_UNK
+WW
+
+Example 12 (1)
+English: Find PHP files with abstract classes
+GT Command 1: find . -type f -name "*.php" -exec grep --with-filename -c "^abstract class " {} \; | grep ":[^0]"
+Prediction: find . -name '*.js' | grep -P ARGUMENT_UNK
+CW
+
+Example 13 (1)
+English: force delete all the directories in a folder which  have a specific name
+GT Command 1: find /usr/ports/ -name work -type d -print -exec rm -rf {} \;
+Prediction: find find -type d | xargs rm -f
+WW
+
+Example 14 (1)
+English: To list the number of directories in the `/usr/share' directory tree
+GT Command 1: find /usr/share \! -type f | wc -l
+Prediction: find /usr/share -type d | wc -l
+CW
+
+Example 15 (1)
+English: display all the home folder which end with the extension "sxw" and which have been accessed in the last 3*24 hours and which belong to the user bruno
+GT Command 1: find /home -type f -name "*.sxw" -atime -3 -user bruno
+Prediction: find /home -type f -name ARGUMENT_UNK -atime -_NUM -name ARGUMENT_UNK
+WW
+
+Example 16 (1)
+English: list all CSS files (and directories ending with “.css”) under the current directory
+GT Command 1: find . -name "*.css"
+Prediction: find . \( -name '*.pdf' -or -name ARGUMENT_UNK -or -name 'core' \)
+WW
+
+Example 17 (1)
+English: Find all files and directories in the current directory tree except those whose name is "dirname", case insensitive
+GT Command 1: find ./ -iname ! -iname dirname
+Prediction: find . -iname "MyCProgram.c"
+WW
+
+Example 18 (1)
+English: Count the number of files named `file1'
+GT Command 1: find -name file1 | wc -l
+Prediction: find . -name "*.rb" -type f | wc -l
+CC
+
+Example 19 (1)
+English: display all the files in the current folder which have been modified between two dates
+GT Command 1: find . -newermt “Sep 1 2006” -and \! -newermt “Sep 10 2006”
+Prediction: find . -newermt _LONG_PATTERN ! -newermt _NUM-_NUM-_NUM -print
+CW
+
+Example 20 (1)
+English: find  directory which case-insensitive name is too in currect directory
+GT Command 1: find . -iname foo -type d
+Prediction: find . ! -name Cookbook -type d
+WW
+
+Example 21 (1)
+English: Find files in the current directory whose names begin with "file" and remove them
+GT Command 1: find . -name file* -maxdepth 1 -exec rm {} \;
+Prediction: find . -name ARGUMENT_UNK -maxdepth _NUM -exec rm -f {} \; 
+WW
+
+Example 22 (1)
+English: Find *.c files under $HOME and search for the string 'sprintf' in those files
+GT Command 1: find $HOME -name '*.c' -print | xargs    grep -l sprintf
+Prediction: find . -exec grep -i ARGUMENT_UNK {} +
+WW
+
+Example 23 (1)
+English: display list of all the hidden files in the home folder
+GT Command 1: find $HOME -name ".*" -ls
+Prediction: find ~ -name ".*" -ls
+CC
+
+Example 24 (1)
+English: Search for the string 'foo' in *.html files under /usr/src/linux directory
+GT Command 1: grep foo `find /usr/src/linux -name "*.html"`
+Prediction: find ARGUMENT_UNK -name "*" -type f -exec grep -l ARGUMENT_UNK {} \; 
+CW
+
+Example 25 (1)
+English: Find files with the setuid or setgid bit set
+GT Command 1: find . -perm -4000 -o -perm -2000
+Prediction: find / -perm ARGUMENT_UNK
+WW
+
+Example 26 (1)
+English: Find all configration files in Home directory & Subtitute permanently in files
+GT Command 1: find $HOME -name "*.conf" -exec sed -i 's/vermin/pony/g' {} \;
+Prediction: find ~ ! -name ARGUMENT_UNK -type f -exec ls -l '{}' \; 
+WW
+
+Example 27 (1)
+English: Find all the files that are exactly 30 days old.
+GT Command 1: find . -mtime 30 -print
+Prediction: find . -mtime _NUM
+CW
+
+Example 28 (1)
+English: To match only hidden dot directories
+GT Command 1: find /nas01/backups/home/user/ -type d -name ".*" -print0 -exec ls -lrt {} \;
+Prediction: find . -type d -name "*" ! -name "*.pl"
+WW
+
+Example 29 (1)
+English: List all files/directories with spaces in their names under ~/Library directory
+GT Command 1: find ~/Library -name '* *' -exec ls {} \;
+Prediction: find ~/Library -name _LONG_PATTERN
+CW
+
+Example 30 (1)
+English: Find image files and move them to the pictures directory
+GT Command 1: find ~/Desktop -name “*.jpg” -o -name “*.gif” -o -name “*.png” -print0 | xargs -0 mv –target-directory ~/Pictures
+Prediction: find . -name . -exec mv {} ARGUMENT_UNK \; 
+CW
+
+
+30 examples evaluated
+Percentage of Template Match = 0.47
+Percentage of String Match = 0.07
+
