@@ -253,7 +253,7 @@ def interactive_decode():
 
 
 def train_and_eval(train_set, dev_set):
-    for i in xrange(FLAGS.num_milestones):
+    for i in xrange(FLAGS.epochs):
         is_learning = train(train_set, dev_set, FLAGS.steps_per_milestone)
         tf.reset_default_graph()
         temp_match_score, eval_match_score = eval(False)
@@ -405,7 +405,7 @@ def main(_):
         grid_search(train_set, dev_set)
     else:
         train_set, dev_set, _ = load_data()
-        train_and_eval(train_set, dev_set)
+        train(train_set, dev_set, FLAGS.num_epochs)
 
 
 if __name__ == "__main__":
