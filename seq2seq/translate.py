@@ -281,18 +281,11 @@ def grid_search(train_set, dev_set):
     for i in xrange(1, num_hps):
         grid = itertools.product(grid, hp_range[hyperparameters[i]])
 
-    model_dir = os.path.join(FLAGS.train_dir, FLAGS.encoder_topology)
-    model_dir += '-{}'.format(FLAGS.rnn_cell)
-    if FLAGS.use_attention:
-        model_dir += '-attention'
-    model_dir += '-{}'.format(FLAGS.batch_size)
-
     best_hp_set = [-1] * num_hps
     best_seed = -1
     best_temp_match_score = 0.0
 
     for row in grid:
-        setattr(FLAGS, "train_dir", model_dir + '-{}'.format(row))
         print(row)
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
