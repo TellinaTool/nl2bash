@@ -81,14 +81,11 @@ class BiRNNEncoder(object):
 
         if self.rnn_cell == "gru":
             state = tf.add(state_fw, state_bw)
-            # projected_state = tf.matmul(state, W) + b
         elif self.rnn_cell == "lstm":
             cell_fw, hidden_fw = state_fw
             cell_bw, hidden_bw = state_bw
             cell = tf.add(cell_fw, cell_bw)
             hidden = tf.add(hidden_fw, hidden_bw)
-            # projected_cell = tf.matmul(cell, W) + b
-            # projected_hidden = tf.matmul(hidden, W) + b
             state = tf.nn.rnn_cell.LSTMStateTuple(cell, hidden)
         else:
             raise AttributeError("Unrecognized RNN cell type.")

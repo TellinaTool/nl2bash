@@ -20,7 +20,9 @@ class RNNDecoder(seq2tree.decoder.Decoder):
                                          use_attention, use_copy, output_projection)
         decoder_cell = self.decoder_cell()
 
-    def define
+    def define_graph(self):
+
+
     def decoder_cell(self):
         """RNN cell for the encoder."""
         with tf.variable_scope("decoder_cell") as scope:
