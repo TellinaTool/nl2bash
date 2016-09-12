@@ -267,6 +267,7 @@ class BasicTreeDecoder(Decoder):
                     back_pointer.set_shape([self.batch_size])
                     if DEBUG:
                         print("back_pointer.get_shape(): {}".format(back_pointer.get_shape()))
+
                     next_input = graph_utils.map_fn(self.next_input,
                                            [search_left_to_right_next,
                                             search_left_to_right,
@@ -277,6 +278,7 @@ class BasicTreeDecoder(Decoder):
                     next_input.set_shape([self.batch_size])
                     if DEBUG:
                         print("next_input.get_shape(): {}".format(next_input.get_shape()))
+
                     next_state = graph_utils.map_fn(self.next_state,
                                            [search_left_to_right_next,
                                             search_left_to_right,
@@ -286,6 +288,7 @@ class BasicTreeDecoder(Decoder):
                                            self.batch_size)
                     if DEBUG:
                         print("next_state.get_shape(): {}".format(next_state.get_shape()))
+                        
                     self.push([next_input, back_pointer, next_state])
 
         if self.rnn_cell == "gru":
