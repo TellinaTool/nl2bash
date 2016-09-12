@@ -152,7 +152,7 @@ class BasicTreeDecoder(Decoder):
             output_projection to obtain distribution over output vocabulary.
         """
         self.embeddings = embeddings
-        self.E = tf.Variable(initial_value = np.identity(len(decoder_inputs)), dtype=tf.int32)
+        self.E = tf.constant(np.identity(len(decoder_inputs)), dtype=tf.int32)
 
         if self.use_attention and not attention_states.get_shape()[1:2].is_fully_defined():
             raise ValueError("Shape[1] and [2] of attention_states must be known %s"
@@ -317,14 +317,14 @@ class BasicTreeDecoder(Decoder):
     def parent_input(self):
         inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
         inds = tf.squeeze(inds, squeeze_dims=[1])
-        inds = inds[:self.step, :self.step]
+        inds = inds[:, :self.step]
         return tf.reduce_sum(tf.mul(self.input[:, :, 0], inds), 1)
 
 
     def parent_state(self):
         inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
         inds = tf.squeeze(inds, squeeze_dims=[1])
-        inds = inds[:self.step, :self.step]
+        inds = inds[:, :self.step]
         inds = tf.expand_dims(inds, 2)
         inds = tf.tile(inds, tf.pack([tf.constant(1), tf.constant(1), tf.shape(self.state)[2]]))
         return tf.reduce_sum(tf.mul(self.state, tf.cast(inds, tf.float32)), 1)
@@ -332,7 +332,7 @@ class BasicTreeDecoder(Decoder):
     def grandparent(self):
         inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
         inds = tf.squeeze(inds, squeeze_dims=[1])
-        inds = inds[:self.step, :self.step]
+        inds = inds[:, :self.step]
         return tf.reduce_sum(tf.mul(self.back_pointers[:, :, 0], inds), 1)
 
     def parent(self):
