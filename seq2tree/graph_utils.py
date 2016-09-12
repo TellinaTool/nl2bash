@@ -13,13 +13,16 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params = collections.defaultdict()
     params["source_vocab_size"] = FLAGS.nl_vocab_size
     params["target_vocab_size"] = FLAGS.cm_vocab_size
-    params["max_source_length"] = FLAGS.max_nl_length
-    params["max_target_length"] = FLAGS.max_cm_length
+    params["max_source_length"] = FLAGS.max_nl_length \
+        if not buckets else buckets[-1][0]
+    params["max_target_length"] = FLAGS.max_cm_length \
+        if not buckets else buckets[-1][1]
     params["dim"] = FLAGS.dim
     params["rnn_cell"] = FLAGS.rnn_cell
     params["num_layers"] = FLAGS.num_layers
     params["max_gradient_norm"] = FLAGS.max_gradient_norm
-    params["batch_size"] = 1 if forward_only else FLAGS.batch_size
+    params["batch_size"] = 1 \
+        if forward_only else FLAGS.batch_size
     params["num_samples"] = FLAGS.num_samples
     params["input_keep_prob"] = FLAGS.input_keep_prob
     params["output_keep_prob"] = FLAGS.output_keep_prob
