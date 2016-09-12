@@ -100,7 +100,7 @@ def train(train_set, dev_set, num_epochs):
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.dim))
-        model, _ = create_model(sess, False)
+        model, global_epochs = create_model(sess, False)
 
         train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
         train_total_size = float(sum(train_bucket_sizes))
