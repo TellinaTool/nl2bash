@@ -6,10 +6,12 @@ def define_input_flags():
     # task and flow
     tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                                 "Limit on the size of training data (0: no limit).")
-    tf.app.flags.DEFINE_integer("epochs_per_checkpoint", 1,
+    tf.app.flags.DEFINE_integer("steps_per_epoch", 200,
                                 "How many training steps to do per checkpoint.")
     tf.app.flags.DEFINE_integer("num_epochs", 20,
                                 "Number of training epochs")
+    tf.app.flags.DEFINE_integer("epochs_per_checkpoint", 1,
+                                "How many training steps to do per checkpoint.")
 
     tf.app.flags.DEFINE_boolean("grid_search", False,
                                 "Set to True for grid search.")
@@ -36,13 +38,6 @@ def define_input_flags():
                                 "Train on a subset of data if this is set to True.")
     tf.app.flags.DEFINE_integer("sample_size", 200,
                                 "Training data sample size")
-
-    tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
-                                "How many training steps to do per checkpoint.")
-    tf.app.flags.DEFINE_integer("steps_per_milestone", 2000,
-                                "How many training steps to do per dev-set evaluation")
-    tf.app.flags.DEFINE_integer("num_milestones", 5,
-                                "How many dev-set evaluation to be performed during training")
 
     # device
     tf.app.flags.DEFINE_string("gpu", '0', "GPU device where the computation is going to be placed.")
