@@ -22,7 +22,7 @@ def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1, outp
         elif type == "gru":
             cell = tf.nn.rnn_cell.GRUCell(dim)
         else:
-            raise ValueError("Unrecognized RNN cell type.")
+            raise ValueError("Unrecognized RNN cell type: {}.".format(type))
 
         if num_layers > 1:
             cell = tf.nn.rnn_cell.MultiRNNCell([cell] * num_layers,
