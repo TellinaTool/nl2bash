@@ -324,7 +324,7 @@ class BasicTreeDecoder(Decoder):
         inds = tf.squeeze(inds, squeeze_dims=[1])
         inds = tf.expand_dims(inds, 2)
         inds = tf.tile(inds, tf.pack([tf.constant(1), tf.constant(1), tf.shape(self.state)[2]]))
-        return tf.reduce_sum(tf.mul(self.state, inds), 1)
+        return tf.reduce_sum(tf.mul(self.state, tf.cast(inds, tf.float32)), 1)
 
     def grandparent(self):
         inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
