@@ -65,7 +65,7 @@ parse_args.define_input_flags()
 if FLAGS.char:
     _buckets = [(10, 20), (20, 30), (40, 50), (60, 80), (80, 100), (100, 120), (120, 120), (140, 120)]
 else:
-    _buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 40), (50, 40)]
+    _buckets = [(5, 10), (10, 20), (20, 30), (30, 40), (40, 40)]
 
 
 def create_model(session, forward_only):
