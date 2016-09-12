@@ -156,8 +156,7 @@ class BasicTreeDecoder(Decoder):
             vertical_cell, vertical_scope = self.vertical_cell
             horizontal_cell, horizontal_scope = self.horizontal_cell
             outputs = []
-            if DEBUG:
-                control_symbols = []
+
             # search control
             self.back_pointers = tf.constant(-1, shape=[self.batch_size, 1, 1], dtype=tf.int32)
 
@@ -193,8 +192,6 @@ class BasicTreeDecoder(Decoder):
                 if i > 0: scope.reuse_variables()
 
                 search_left_to_right = search_left_to_right_next
-                if DEBUG:
-                    control_symbols.append(search_left_to_right_next)
                 
                 if self.use_attention:
                     input, state, attns = self.peek()
@@ -325,9 +322,6 @@ class BasicTreeDecoder(Decoder):
         E = tf.Variable(initial_value = np.identity(num_steps), dtype=tf.float32)
         inds = tf.nn.embedding_lookup(E, tf.split(0, self.batch_size, self.parent()))
         state_dim = self.state.get_shape()[2].value
-        # inds = tf.reshape(inds, [self.batch_size * num_steps, 1])
-        # inds = tf.tile(inds, [1, state_dim])
-        # inds = tf.reshape(inds, [self.batch_size, num_steps, state_dim])
         inds = tf.expand_dims(inds, 2)
         inds = tf.tile(inds, [1, 1, state_dim])
         return tf.reduce_sum(tf.mul(self.state, inds), 1)

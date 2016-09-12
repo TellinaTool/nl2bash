@@ -46,6 +46,42 @@ def map_fn(fn, elems, batch_size):
     return tf.concat(0, results)
 
 
+def sequence_loss(logits, targets, target_weights, loss_function):
+    targets = targets[:len(logits)]
+    weights = target_weights[:len(logits)]
+
+    with tf.variable_scope("sequence_loss"):
+        log_perp_list = []
+        for logit, target, weight in zip(logits, targets, weights):
+            crossent = loss_function(logit, target)
+            log_perp_list.append(crossent * weight)
+        log_perps = tf.add_n(log_perp_list)
+        total_size = tf.add_n(weights)
+        total_size += 1e-12  # Just to avoid division by 0 for all-0 weights.
+        log_perps /= total_size
+
+    batch_size = logits[0].get_shape()[0].value
+    avg_log_perps = tf.reduce_sum(log_perps) / tf.cast(batch_size, dtype=tf.float32)
+
+    return avg_log_perps
+
+
+def softmax_loss(output_projection, num_samples, target_vocab_size):
+    if num_samples > 0:
+        w, b = output_projection
+        w_t = tf.transpose(w)
+
+        def sampled_loss(inputs, labels):
+            labels = tf.reshape(labels, [-1, 1])
+            return tf.nn.sampled_softmax_loss(w_t, b, inputs, labels, num_samples,
+                                              target_vocab_size)
+
+        loss_function = sampled_loss
+    else:
+        loss_function = tf.nn.softmax_cross_entropy_with_logits
+    return loss_function
+
+
 def deprecated(func):
     """This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emmitted
