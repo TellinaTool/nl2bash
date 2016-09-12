@@ -2,11 +2,30 @@
 
 import os, sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "seq2tree"))
-
+import tensorflow as tf
 from tensorflow.python.util import nest
 
-import tensorflow as tf
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
+import seq2tree.decoder
+import seq2tree.graph_utils
+
+class RNNDecoder(seq2tree.decoder.Decoder):
+
+    def __init__(self, dim, batch_size, rnn_cell, num_layers,
+                 input_keep_prob, output_keep_prob,
+                 use_attention, use_copy, output_projection=None):
+        super(RNNDecoder, self).__init__(dim, batch_size, rnn_cell, num_layers,
+                                         input_keep_prob, output_keep_prob,
+                                         use_attention, use_copy, output_projection)
+
+    def decoder_cell(self):
+        """RNN cell for the encoder."""
+        with tf.variable_scope("decoder_cell") as scope:
+            cell = seq2tree.graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim,
+                                                      self.num_layers)
+            self.encoder_cell_vars = True
+        return cell, scope
 
 def _extract_argmax_and_embed(embedding, output_projection=None,
                               update_embedding=True):
@@ -162,8 +181,8 @@ def attention_decoder(decoder_inputs,
         attention_vec_size = attn_size  # Size of query vectors for attention.
         for a in xrange(num_heads):
             k = tf.get_variable("AttnW_%d" % a,
-                                            [1, 1, attn_size, attention_vec_size])
-            hidden_features.append(tf.conv2d(hidden, k, [1, 1, 1, 1], "SAME"))
+                                [1, 1, attn_size, attention_vec_size])
+            hidden_features.append(tf.nn.conv2d(hidden, k, [1, 1, 1, 1], "SAME"))
             v.append(
                 tf.get_variable("AttnV_%d" % a, [attention_vec_size]))
 
@@ -220,7 +239,7 @@ def attention_decoder(decoder_inputs,
             # Run the attention mechanism.
             if i == 0 and initial_state_attention:
                 with tf.variable_scope(tf.get_variable_scope(),
-                                                   reuse=True):
+                                       reuse=True):
                     attns = attention(state)
             else:
                 attns = attention(state)
@@ -313,7 +332,6 @@ def embedding_attention_decoder(decoder_inputs,
                                 dtype=None,
                                 scope=None,
                                 initial_state_attention=False):
-
     """RNN decoder with embedding and attention and a pure-decoding option.
     Args:
       decoder_inputs: A list of 1D batch-sized int32 Tensors (decoder inputs).
