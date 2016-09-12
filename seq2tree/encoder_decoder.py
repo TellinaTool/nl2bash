@@ -160,6 +160,12 @@ class EncoderDecoderModel(object):
                       target_embeddings, forward_only):
         encoder_outputs, encoder_state = self.encoder.define_graph(encoder_inputs,
                                                                source_embeddings)
+        if self.rnn_cell == "gru":
+            encoder_state.set_shape([self.batch_size, self.dim])
+        elif self.rnn_cell == "lstm":
+            encoder_state[0].set_shape([self.batch_size, self.dim])
+            encoder_state[1].set_shape([self.batch_size, self.dim])
+
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim]) for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)

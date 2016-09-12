@@ -46,22 +46,23 @@ class RNNDecoder(seq2tree.decoder.Decoder):
 
             for i, input in enumerate(decoder_inputs):
                 if i > 0:
-                    tf.get_variable_scope().reuse_variables()
+                    scope.reuse_variables()
                     if feed_previous:
                         W, b = self.output_projection
                         projected_output = tf.matmul(output, W) + b
                         output_symbol = tf.argmax(projected_output, 1)
                         input = tf.cast(output_symbol, dtype=tf.int32)
 
-                input_embedding = tf.squeeze(tf.nn.embedding_lookup(embeddings, input),
-                                              squeeze_dims=[1])
+                input.set_shape([self.batch_size])
+                input_embedding = tf.nn.embedding_lookup(embeddings, input)
 
                 if self.use_attention:
                     output, state, attns = self.attention_cell(decoder_cell, decoder_scope,
                                                 input_embedding, state, attns,
                                                 hidden_features, attn_vecs, num_heads, hidden)
                 else:
-                    output, state = decoder_cell(input_embedding, state)
+                    output, state = self.normal_cell(
+                                        decoder_cell, decoder_scope, input_embedding, state)
 
                 # record output state to compute the loss.
                 outputs.append(output)
