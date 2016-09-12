@@ -109,7 +109,6 @@ class Decoder(object):
             output, state = cell(input, state, scope)
         except ValueError, e:
             scope.reuse_variables()
-            print(state)
             output, state = cell(input, state, scope)
         return output, state
 
