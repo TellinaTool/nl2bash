@@ -160,8 +160,7 @@ class BasicTreeDecoder(Decoder):
             vertical_cell, vertical_scope = self.vertical_cell
             horizontal_cell, horizontal_scope = self.horizontal_cell
             outputs = []
-            if DEBUG:
-                control_symbols = []
+
             # search control
             self.back_pointers = tf.constant(0, shape=[self.batch_size, 1, 1], dtype=tf.int32)
 
@@ -195,8 +194,6 @@ class BasicTreeDecoder(Decoder):
                 if i > 0: scope.reuse_variables()
 
                 search_left_to_right = search_left_to_right_next
-                if DEBUG:
-                    control_symbols.append(search_left_to_right_next)
                 
                 if self.use_attention:
                     input, state, attns = self.peek()
