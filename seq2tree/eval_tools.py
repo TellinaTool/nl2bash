@@ -21,7 +21,12 @@ import ast_based
 
 
 def to_readable(outputs, rev_cm_vocab):
-    search_history = [data_utils._ROOT] + [tf.compat.as_str(rev_cm_vocab[output]) for output in outputs]
+    search_history = [data_utils._ROOT]
+    for output in outputs:
+        if output < len(rev_cm_vocab):
+            search_history.append(rev_cm_vocab[output])
+        else:
+            search_history.append(data_utils._UNK)
     tree = data_tools.list2ast(search_history)
     cmd = data_tools.ast2command(tree, loose_constraints=True)
     return tree, cmd, search_history
@@ -46,7 +51,13 @@ def decode(output_logits, rev_cm_vocab, FLAGS):
             cmd = "".join([tf.compat.as_str(rev_cm_vocab[output]).strip() for output in outputs]) \
                 .replace(data_utils._UNK, ' ')
         else:
-            cmd = " ".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])
+            tokens = []
+            for output in outputs:
+                if output < len(rev_cm_vocab):
+                    tokens.append(rev_cm_vocab[output])
+                else:
+                    tokens.append(data_utils._UNK)
+            cmd = " ".join(tokens)
         cmd = re.sub('( ;\s+)|( ;$)', ' \\; ', cmd)
         cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
         cmd = re.sub('(^\( )|( \( )', '\\(', cmd)
