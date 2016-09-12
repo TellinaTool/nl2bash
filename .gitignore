@@ -28,8 +28,9 @@ __pycache__
 # Misc
 .DS_Store
 *.key
-temp.txt
+temp*.txt
 *dump*.txt
+manual.eval.results.*
 /nl2cmd_paper
 # ideaJ file
 # User-specific stuff:
