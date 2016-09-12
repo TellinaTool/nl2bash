@@ -81,6 +81,9 @@ def create_model(session, forward_only):
 
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
 
+    # for p_name in params:
+    #     print("*{}:\t{}".format(p_name, params[p_name]))
+
     model = Seq2TreeModel(params, _buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
