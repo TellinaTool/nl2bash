@@ -125,6 +125,7 @@ class BasicTreeDecoder(Decoder):
 
         self.H_NO_EXPAND = tf.constant(data_utils.H_NO_EXPAND_ID, shape=[self.batch_size])
         self.V_NO_EXPAND = tf.constant(data_utils.V_NO_EXPAND_ID, shape=[self.batch_size])
+
     
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      attention_states=None, num_heads=1,
@@ -151,6 +152,7 @@ class BasicTreeDecoder(Decoder):
             output_projection to obtain distribution over output vocabulary.
         """
         self.embeddings = embeddings
+        self.E = tf.Variable(initial_value = np.identity(len(decoder_inputs)), dtype=tf.int32)
 
         if self.use_attention and not attention_states.get_shape()[1:2].is_fully_defined():
             raise ValueError("Shape[1] and [2] of attention_states must be known %s"
@@ -312,30 +314,20 @@ class BasicTreeDecoder(Decoder):
                        lambda : next)
 
     def parent_input(self):
-        num_steps = self.input.get_shape()[1].value
-        E = tf.Variable(initial_value = np.identity(num_steps), dtype=tf.int32)
-        inds = tf.nn.embedding_lookup(E, tf.split(0, self.batch_size, self.parent()))
+        inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
         inds = tf.squeeze(inds, squeeze_dims=[1])
         return tf.reduce_sum(tf.mul(self.input[:, :, 0], inds), 1)
 
 
     def parent_state(self):
-        num_steps = self.input.get_shape()[1].value
-        E = tf.Variable(initial_value = np.identity(num_steps), dtype=tf.float32)
-        inds = tf.nn.embedding_lookup(E, tf.split(0, self.batch_size, self.parent()))
+        inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
         inds = tf.squeeze(inds, squeeze_dims=[1])
         inds = tf.expand_dims(inds, 2)
-        state_dim = self.state.get_shape()[2].value
-        # inds = tf.reshape(inds, [self.batch_size * num_steps, 1])
-        # inds = tf.tile(inds, [1, state_dim])
-        # inds = tf.reshape(inds, [self.batch_size, num_steps, state_dim])
-        inds = tf.tile(inds, [1, 1, state_dim])
+        inds = tf.tile(inds, tf.pack([tf.constant(1), tf.constant(1), tf.shape(self.state)[2]]))
         return tf.reduce_sum(tf.mul(self.state, inds), 1)
 
     def grandparent(self):
-        num_steps = self.input.get_shape()[1].value
-        E = tf.Variable(initial_value = np.identity(num_steps), dtype=tf.int32)
-        inds = tf.nn.embedding_lookup(E, tf.split(0, self.batch_size, self.parent()))
+        inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
         inds = tf.squeeze(inds, squeeze_dims=[1])
         return tf.reduce_sum(tf.mul(self.back_pointers[:, :, 0], inds), 1)
 

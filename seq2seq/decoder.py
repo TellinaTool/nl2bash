@@ -18,7 +18,9 @@ class RNNDecoder(seq2tree.decoder.Decoder):
         super(RNNDecoder, self).__init__(dim, batch_size, rnn_cell, num_layers,
                                          input_keep_prob, output_keep_prob,
                                          use_attention, use_copy, output_projection)
+        decoder_cell = self.decoder_cell()
 
+    def define
     def decoder_cell(self):
         """RNN cell for the encoder."""
         with tf.variable_scope("decoder_cell") as scope:
@@ -26,6 +28,7 @@ class RNNDecoder(seq2tree.decoder.Decoder):
                                                       self.num_layers)
             self.encoder_cell_vars = True
         return cell, scope
+
 
 def _extract_argmax_and_embed(embedding, output_projection=None,
                               update_embedding=True):
