@@ -28,6 +28,7 @@ __pycache__
 # Misc
 .DS_Store
 *.key
+eval.*
 temp*.txt
 *dump*.txt
 manual.eval.results.*
