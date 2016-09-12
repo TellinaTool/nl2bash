@@ -100,7 +100,7 @@ def train(train_set, dev_set, num_epochs):
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.dim))
-        model = create_model(sess, False)
+        model, _ = create_model(sess, False)
 
         train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
         train_total_size = float(sum(train_bucket_sizes))
@@ -194,7 +194,7 @@ def manual_eval():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model = create_model(sess, forward_only=True)
+        model, _ = create_model(sess, forward_only=True)
 
         # Load vocabularies.
         nl_vocab_path = os.path.join(FLAGS.data_dir,
@@ -213,7 +213,7 @@ def eval(verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model = create_model(sess, forward_only=True)
+        model, _ = create_model(sess, forward_only=True)
 
         # Load vocabularies.
         if FLAGS.char:
@@ -238,7 +238,7 @@ def interactive_decode():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model = create_model(sess, forward_only=True)
+        model, _ = create_model(sess, forward_only=True)
 
         # Load vocabularies.
         nl_vocab_path = os.path.join(FLAGS.data_dir,
