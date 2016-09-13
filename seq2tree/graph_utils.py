@@ -44,7 +44,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
         model_dir += '-attention'
     model_dir += '-{}'.format(FLAGS.batch_size)
     setattr(FLAGS, "train_dir", model_dir)
-
     model = model_constructor(params, buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
