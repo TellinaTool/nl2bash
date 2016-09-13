@@ -9,6 +9,7 @@ from __future__ import print_function
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib import cm
 import numpy as np
 import random
 
@@ -331,13 +332,13 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
 
 
 def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_path):
-    print(M)
-    print(M.shape)
-    fig = plt.imshow(M)
+    target_length, source_length = M.shape()
+    fig = plt.imshow(M, interpolation='nearest', cmap=cm.Blues)
 
     nl = [rev_nl_vocab[x] for x in source]
-    rev_cm = [rev_cm_vocab[x] for x in reversed(target)]
-    plt.xticks(xrange(len(nl)), nl, rotation='vertical')
-    plt.yticks(xrange(len(rev_cm)), rev_cm, rotation='horizontal')
+    cm = [rev_cm_vocab[x] for x in target]
+    plt.xticks(xrange(len(source_length)), nl + [data_utils.PAD_ID] * (len(source_length) - len(nl)),
+               rotation='vertical')
+    plt.yticks(xrange(len(cm)), cm, rotation='horizontal')
 
     plt.savefig(output_path)
