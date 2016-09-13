@@ -176,7 +176,8 @@ class EncoderDecoderModel(object):
             attention_states = tf.concat(1, top_states)
             outputs, state, attn_mask = self.decoder.define_graph(
                 encoder_state, decoder_inputs, target_embeddings,
-                attention_states, feed_previous=forward_only)
+                attention_states, num_heads=1,
+                feed_previous=forward_only)
         else:
             outputs, state = self.decoder.define_graph(
                 encoder_state, decoder_inputs, target_embeddings,
