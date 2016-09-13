@@ -42,14 +42,15 @@ class Decoder(object):
             except ValueError, e:
                 cell_scope.reuse_variables()
                 cell_output, state = cell(x, state, cell_scope)
-            attns = self.attention(v, state, hidden_features, num_heads, hidden)
+            attns, attn_masks = \
+                self.attention(v, state, hidden_features, num_heads, hidden)
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
         self.attention_cell_vars = True
-        return output, state, attns
+        return output, state, attns, attn_masks
 
     def attention(self, v, state, hidden_features, num_heads, hidden):
         assert(len(v) > 0)
@@ -75,7 +76,7 @@ class Decoder(object):
         attns = tf.concat(1, ds)
         attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
         self.attention_vars = True
-        return attns
+        return attns, a
 
     def attention_hidden_layer(self, attention_states, num_heads):
         """
@@ -158,6 +159,7 @@ class BasicTreeDecoder(Decoder):
             vertical_cell, vertical_scope = self.vertical_cell()
             horizontal_cell, horizontal_scope = self.horizontal_cell()
             outputs = []
+            attn_masks = []
 
             # search control
             self.back_pointers = tf.constant(0, shape=[self.batch_size, 1, 1], dtype=tf.int32)
@@ -178,7 +180,9 @@ class BasicTreeDecoder(Decoder):
                 attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
                          for _ in xrange(num_heads)])
                 if initial_state_attention:
-                    attns = self.attention(v, encoder_state, hidden_features, num_heads, hidden)
+                    attns, attn_mask = \
+                        self.attention(v, encoder_state, hidden_features, num_heads, hidden)
+                    attn_masks.append(attn_mask)
                 init_state = tf.concat(1, [init_state] + [attns])
             self.state = tf.expand_dims(init_state, 1)
             self.input = tf.expand_dims(decoder_inputs[0], 1)
@@ -204,10 +208,10 @@ class BasicTreeDecoder(Decoder):
 
                 # compute batch horizontal and vertical steps.
                 if self.use_attention:
-                    v_output, v_state, v_attns = self.attention_cell(
+                    v_output, v_state, v_attns, v_attn_mask = self.attention_cell(
                         vertical_cell, vertical_scope, input_embeddings, state, attns,
                         hidden_features, v, num_heads, hidden)
-                    h_output, h_state, h_attns = self.attention_cell(
+                    h_output, h_state, h_attns, h_attn_mask = self.attention_cell(
                         horizontal_cell, horizontal_scope, input_embeddings, state, attns,
                         hidden_features, v, num_heads, hidden)
                 else:
@@ -218,23 +222,27 @@ class BasicTreeDecoder(Decoder):
 
                 # select horizontal or vertical computation results for each example
                 # based on its own control state.
-                batch_output = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
-                                          [search_left_to_right, h_output, v_output], self.batch_size)
+                switch_masks = []
+                for j in xrange(self.batch_size):
+                    mask = tf.cond(search_left_to_right[j], tf.constant([1, 0]),
+                                                            tf.constant([0, 1]))
+                    switch_masks.append(mask)
+                switch_mask = tf.concat(0, switch_masks)
 
+                batch_output = graph_utils.switch_mask(switch_mask, [h_output, v_output])
                 if self.rnn_cell == "gru":
-                    batch_state = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
-                                         [search_left_to_right, h_state, v_state], self.batch_size)
+                    batch_state = graph_utils.switch_mask(switch_mask, [h_state, v_state])
                 elif self.rnn_cell == "lstm":
-                    batch_cell = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
-                                            [search_left_to_right, h_state[0], v_state[0]], self.batch_size)
-                    batch_hs = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
-                                            [search_left_to_right, h_state[1], v_state[1]], self.batch_size)
+                    batch_cell = graph_utils.switch_mask(switch_mask, [h_state[0], v_state[0]])
+                    batch_hs = graph_utils.switch_mask(switch_mask, [h_state[1], v_state[1]])
                     batch_state = tf.concat(1, [batch_cell, batch_hs])
 
                 if self.use_attention:
-                    batch_attns = graph_utils.map_fn(lambda x: tf.cond(x[0], lambda : x[1], lambda : x[2]),
-                                            [search_left_to_right, h_attns, v_attns], self.batch_size)
+                    batch_attns = graph_utils.switch_mask(switch_mask, [h_attns, v_attns])
                     batch_state = tf.concat(1, [batch_state, batch_attns])
+
+                    batch_attn_mask = graph_utils.switch_mask(switch_mask, [h_attn_mask, v_attn_mask])
+                    attn_masks.append(batch_attn_mask)
                 
                 # record output state to compute the loss.
                 outputs.append(batch_output)
