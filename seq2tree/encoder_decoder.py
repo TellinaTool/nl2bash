@@ -523,13 +523,13 @@ class EncoderDecoderModel(object):
             if self.use_attention:
                 return outputs[1], outputs[2], None, outputs[-1]
             else:
-                return outputs[1], outputs[2], None
+                return outputs[1], outputs[2], None, None
         else:
             # No gradient norm, loss, outputs, [attention_masks]
             if self.use_attention:
                 return None, outputs[0], outputs[1:-1], outputs[-1]
             else:
-                return None, outputs[0], outputs[1:]
+                return None, outputs[0], outputs[1:], None
 
 
     @property

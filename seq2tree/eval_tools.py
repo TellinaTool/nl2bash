@@ -29,7 +29,7 @@ def to_readable(outputs, rev_cm_vocab):
             search_history.append(data_utils._UNK)
     tree = data_tools.list2ast(search_history)
     cmd = data_tools.ast2command(tree, loose_constraints=True)
-    return tree, cmd, search_history
+    return tree, cmd, outputs
 
 
 def decode(output_logits, rev_cm_vocab, FLAGS):
@@ -62,7 +62,7 @@ def decode(output_logits, rev_cm_vocab, FLAGS):
         cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
         cmd = re.sub('(^\( )|( \( )', '\\(', cmd)
         tree = data_tools.bash_parser(cmd)
-        return tree, cmd, None
+        return tree, cmd, outputs
     else:
         return to_readable(outputs, rev_cm_vocab)
 
@@ -125,14 +125,14 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
         gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
         if FLAGS.decoding_algorithm == "greedy":
-            tree, pred_cmd, _ = decode(output_logits, rev_cm_vocab, FLAGS)
+            tree, pred_cmd, outputs = decode(output_logits, rev_cm_vocab, FLAGS)
         elif FLAGS.decoding_algorithm == "beam_search":
             top_k_search_histories, decode_scores = \
                 model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
             top_k_pred_trees = []
             top_k_pred_cmds = []
             for j in xrange(FLAGS.top_k-1, -1, -1):
-                tree, pred_cmd, _ = to_readable(
+                tree, pred_cmd, outputs = to_readable(
                     top_k_search_histories[j], rev_cm_vocab)
                 top_k_pred_trees.insert(0, tree)
                 top_k_pred_cmds.insert(0, pred_cmd)
@@ -147,6 +147,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
         if ast_based.one_string_match(gt_trees, tree):
             num_correct += 1
         num_eval += 1
+        visualize_attn_masks(attn_masks, nl, outputs, rev_nl_vocab, rev_cm_vocab,
+                             os.path.join(FLAGS.train_dir, "{}.jpg".format(num_eval)))
 
         if verbose:
             print("Example %d (%d)" % (num_eval, len(cm_strs)))
@@ -322,3 +324,7 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
         print("> ", end="")
         sys.stdout.flush()
         sentence = sys.stdin.readline()
+
+
+def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_path):
+
