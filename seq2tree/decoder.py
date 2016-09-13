@@ -36,6 +36,8 @@ class Decoder(object):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on cell and hidden states
+            attn_vec_dim = v[0].get_shape()[0].value
+            attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             try:
                 cell_output, state = cell(x, state, cell_scope)
@@ -300,7 +302,7 @@ class BasicTreeDecoder(Decoder):
 
         if self.use_attention:
             temp = [tf.expand_dims(batch_attn_mask, 1) for batch_attn_mask in attn_masks]
-            return outputs, final_batch_state, tf.concat(temp, 1)
+            return outputs, final_batch_state, tf.concat(1, temp)
         else:
             return outputs, final_batch_state
 

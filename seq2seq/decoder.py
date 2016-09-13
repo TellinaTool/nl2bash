@@ -56,9 +56,10 @@ class RNNDecoder(seq2tree.decoder.Decoder):
                 input_embedding = tf.nn.embedding_lookup(embeddings, input)
 
                 if self.use_attention:
-                    output, state, attns = self.attention_cell(decoder_cell, decoder_scope,
-                                                input_embedding, state, attns,
-                                                hidden_features, attn_vecs, num_heads, hidden)
+                    output, state, attns, attn_mask = \
+                        self.attention_cell(decoder_cell, decoder_scope,
+                                            input_embedding, state, attns,
+                                            hidden_features, attn_vecs, num_heads, hidden)
                 else:
                     output, state = self.normal_cell(
                                         decoder_cell, decoder_scope, input_embedding, state)
