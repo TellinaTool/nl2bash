@@ -148,7 +148,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
         if ast_based.one_string_match(gt_trees, tree):
             num_correct += 1
         num_eval += 1
-        visualize_attn_masks(attn_masks, nl, outputs, rev_nl_vocab, rev_cm_vocab,
+        if attn_masks:
+            visualize_attn_masks(attn_masks, nl, outputs, rev_nl_vocab, rev_cm_vocab,
                              os.path.join(FLAGS.train_dir, "{}.jpg".format(num_eval)))
 
         if verbose:
