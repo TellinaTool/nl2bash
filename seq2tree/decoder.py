@@ -224,8 +224,8 @@ class BasicTreeDecoder(Decoder):
                 # based on its own control state.
                 switch_masks = []
                 for j in xrange(self.batch_size):
-                    mask = tf.cond(search_left_to_right[j], tf.constant([1, 0]),
-                                                            tf.constant([0, 1]))
+                    mask = tf.cond(search_left_to_right[j], lambda: tf.constant([[1, 0]]),
+                                                            lambda: tf.constant([[0, 1]]))
                     switch_masks.append(mask)
                 switch_mask = tf.concat(0, switch_masks)
 
