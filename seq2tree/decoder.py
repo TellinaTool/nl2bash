@@ -42,7 +42,7 @@ class Decoder(object):
             except ValueError, e:
                 cell_scope.reuse_variables()
                 cell_output, state = cell(x, state, cell_scope)
-            attns, attn_masks = \
+            attns, attn_mask = \
                 self.attention(v, state, hidden_features, num_heads, hidden)
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
@@ -50,7 +50,7 @@ class Decoder(object):
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
         self.attention_cell_vars = True
-        return output, state, attns, attn_masks
+        return output, state, attns, attn_mask
 
     def attention(self, v, state, hidden_features, num_heads, hidden):
         assert(len(v) > 0)
@@ -67,16 +67,16 @@ class Decoder(object):
                 # Attention mask is a softmax of v^T * tanh(...).
                 s = tf.reduce_sum(
                     v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
-                a = tf.nn.softmax(s)
+                attn_mask = tf.nn.softmax(s)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(
-                    tf.reshape(a, [-1, attn_length, 1, 1]) * hidden,
+                    tf.reshape(attn_mask, [-1, attn_length, 1, 1]) * hidden,
                     [1, 2])
                 ds.append(tf.reshape(d, [-1, attn_vec_dim]))
         attns = tf.concat(1, ds)
         attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
         self.attention_vars = True
-        return attns, a
+        return attns, attn_mask
 
     def attention_hidden_layer(self, attention_states, num_heads):
         """
@@ -298,7 +298,11 @@ class BasicTreeDecoder(Decoder):
         elif self.rnn_cell == "lstm":
             final_batch_state = tf.nn.rnn_cell.LSTMStateTuple(batch_cell, batch_hs)
 
-        return outputs, final_batch_state
+        if self.use_attention:
+            temp = [tf.expand_dims(batch_attn_mask, 1) for batch_attn_mask in attn_masks]
+            return outputs, final_batch_state, tf.concat(temp, 1)
+        else:
+            return outputs, final_batch_state
 
 
     def back_pointer(self, x):

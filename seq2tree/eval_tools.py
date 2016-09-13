@@ -119,7 +119,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                         if model.buckets[b][0] > len(nl)])
 
         formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
-        _, _, output_logits = model.step(sess, formatted_example, bucket_id,
+        _, _, output_logits, attn_masks = model.step(sess, formatted_example, bucket_id,
                                          forward_only=True)
 
         sentence = ' '.join([rev_nl_vocab[i] for i in nl])
@@ -133,14 +133,15 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
             top_k_pred_cmds = []
             for j in xrange(FLAGS.top_k-1, -1, -1):
                 tree, pred_cmd, _ = to_readable(
-                    top_k_search_histories[i], rev_cm_vocab)
+                    top_k_search_histories[j], rev_cm_vocab)
                 top_k_pred_trees.insert(0, tree)
                 top_k_pred_cmds.insert(0, pred_cmd)
                 if ast_based.one_template_match(gt_trees, tree):
                     num_top_k_correct_template += 1
                 if ast_based.one_string_match(gt_trees, tree):
                     num_top_k_correct += 1
-        # evaluation ignoring ordering of flags
+
+        # evaluation ignoring flag orders
         if ast_based.one_template_match(gt_trees, tree):
             num_correct_template += 1
         if ast_based.one_string_match(gt_trees, tree):
@@ -200,7 +201,7 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                         if model.buckets[b][0] > len(nl)])
 
         formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
-        _, _, output_logits = model.step(sess, formatted_example, bucket_id,
+        _, _, output_logits, _ = model.step(sess, formatted_example, bucket_id,
                                          forward_only=True)
 
         gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
@@ -298,7 +299,7 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
         formatted_example = model.format_example(token_ids, [data_utils.ROOT_ID], bucket_id)
 
         # Get output logits for the sentence.
-        _, _, output_logits = model.step(sess, formatted_example, bucket_id,
+        _, _, output_logits, _ = model.step(sess, formatted_example, bucket_id,
                                          forward_only=True)
         if FLAGS.decoding_algorithm == "greedy":
             tree, cmd, _ = decode(output_logits, rev_cm_vocab, FLAGS)
