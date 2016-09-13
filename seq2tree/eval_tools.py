@@ -327,4 +327,4 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
 
 
 def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_path):
-
+    
