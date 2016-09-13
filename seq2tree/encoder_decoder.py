@@ -98,22 +98,27 @@ class EncoderDecoderModel(object):
         if self.buckets:
             self.outputs = []
             self.losses = []
+            self.attn_masks = []
             for bucket_id, bucket in enumerate(self.buckets):
                 print("creating bucket {} ({}, {})...".format(
                                        bucket_id, bucket[0], bucket[1]))
-                bucket_outputs, bucket_losses = self.encode_decode(
+                bucket_outputs, bucket_losses, attn_mask = self.encode_decode(
                     self.encoder_inputs[:bucket[0]], self.source_embeddings(),
                     self.decoder_inputs[:bucket[1]], self.target_embeddings(),
                     forward_only=forward_only
                 )
                 self.outputs.append(bucket_outputs)
                 self.losses.append(bucket_losses)
+                if self.use_attention:
+                    self.attn_masks.append(attn_mask)
         else:
-            self.outputs, self.losses = self.encode_decode(
+            self.outputs, self.losses, attn_mask = self.encode_decode(
                 self.encoder_inputs, self.source_embeddings(),
                 self.decoder_inputs, self.target_embeddings(),
                 forward_only=forward_only
             )
+            if self.use_attention:
+                self.attn_masks = attn_mask
 
         # Gradients and SGD updates in the backward direction.
         params = tf.trainable_variables()
@@ -169,11 +174,13 @@ class EncoderDecoderModel(object):
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim]) for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
-            outputs, state = self.decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
-                                                       attention_states, feed_previous=forward_only)
+            outputs, state, attn_mask = self.decoder.define_graph(
+                encoder_state, decoder_inputs, target_embeddings,
+                attention_states, feed_previous=forward_only)
         else:
-            outputs, state = self.decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
-                                                       feed_previous=forward_only)
+            outputs, state = self.decoder.define_graph(
+                encoder_state, decoder_inputs, target_embeddings,
+                feed_previous=forward_only)
 
         # Losses.
         losses = graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
@@ -189,7 +196,10 @@ class EncoderDecoderModel(object):
         for i in xrange(len(outputs)):
             projected_outputs.append((tf.matmul(outputs[i], W) + b))
 
-        return projected_outputs, losses
+        if self.use_attention:
+            return projected_outputs, losses, attn_mask
+        else:
+            return projected_outputs, losses, None
 
 
     def source_embeddings(self):
@@ -500,12 +510,26 @@ class EncoderDecoderModel(object):
                 for l in xrange(decoder_size):                  # Output logits.
                     output_feed.append(self.outputs[bucket_id][l])
 
+        if self.use_attention:
+            if bucket_id == -1:
+                output_feed.append(self.attn_masks)
+            else:
+                output_feed.append(self.attn_masks[bucket_id])
+
         outputs = session.run(output_feed, input_feed)
 
         if not forward_only:
-            return outputs[1], outputs[2], None     # Gradient norm, loss, no outputs.
+            # Gradient norm, loss, no outputs, [attention_masks]
+            if self.use_attention:
+                return outputs[1], outputs[2], None, outputs[-1]
+            else:
+                return outputs[1], outputs[2], None
         else:
-            return None, outputs[0], outputs[1:]    # No gradient norm, loss, outputs.
+            # No gradient norm, loss, outputs, [attention_masks]
+            if self.use_attention:
+                return None, outputs[0], outputs[1:-1], outputs[-1]
+            else:
+                return None, outputs[0], outputs[1:]
 
 
     @property

@@ -104,7 +104,7 @@ def train(train_set, dev_set, verbose=False):
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
                                  if train_buckets_scale[i] > random_number_01])
                 formatted_example = model.get_batch(train_set, bucket_id)
-                _, step_loss, _ = model.step(sess, formatted_example, bucket_id, 
+                _, step_loss, _, _ = model.step(sess, formatted_example, bucket_id,
                                              forward_only=False)
                 loss += step_loss
                 current_step += 1
@@ -134,7 +134,7 @@ def train(train_set, dev_set, verbose=False):
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
                     formatted_example = model.get_batch(dev_set, bucket_id)
-                    _, eval_loss, output_logits = model.step(sess, formatted_example, bucket_id, 
+                    _, eval_loss, output_logits, _ = model.step(sess, formatted_example, bucket_id,
                                                              forward_only=True)
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
