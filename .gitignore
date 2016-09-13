@@ -25,6 +25,9 @@ __pycache__
 *.class
 /man-parser/out
 
+# Shell scripts
+*.sh
+
 # Misc
 .DS_Store
 *.key
@@ -32,7 +35,7 @@ eval.*
 temp*.txt
 *dump*.txt
 spell.txt
-manual.eval.results.*
+manual.eval.results*
 /nl2cmd_paper
 # ideaJ file
 # User-specific stuff:
