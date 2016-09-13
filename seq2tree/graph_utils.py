@@ -106,10 +106,12 @@ def switch_mask(mask, candidates):
     :param candidates: A list of 2D matrices with length num_options.
     :return: selections concatenated as a new batch.
     """
+    assert(len(candidates) > 1)
     threed_mask = tf.tile(tf.expand_dims(mask, 2),
                           [1, 1, candidates[0].get_shape()[1].value])
+    threed_mask = tf.cast(threed_mask, candidates[0].dtype)
     expanded_candidates = [tf.expand_dims(c, 1) for c in candidates]
-    candidate = tf.concat(expanded_candidates, 1)
+    candidate = tf.concat(1, expanded_candidates)
     return tf.reduce_sum(tf.mul(threed_mask, candidate), 1)
 
 
