@@ -126,6 +126,9 @@ def train(train_set, dev_set, verbose=False):
                 previous_losses.append(loss)
 
                 checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
+                # Save checkpoint and zero timer and loss.
+                model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1,
+                                 write_meta_graph=False)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
@@ -147,11 +150,6 @@ def train(train_set, dev_set, verbose=False):
                 # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
                 if ppx < 1.1 and len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
                     return False
-                if previous_dev_losses and dev_loss < min(previous_dev_losses): 
-                    # Save checkpoint and zero timer and loss.
-                    model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1,
-                                     write_meta_graph=False)
-                    print("model saved to %s" % checkpoint_path) 
            
                 previous_dev_losses.append(dev_loss)
 

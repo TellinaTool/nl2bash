@@ -3,7 +3,6 @@
 import os, sys
 
 import tensorflow as tf
-from tensorflow.python.util import nest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
