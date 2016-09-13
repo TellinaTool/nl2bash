@@ -126,7 +126,7 @@ def train(train_set, dev_set, num_epochs):
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
         for t in xrange(num_epochs):
-            print("Epoch %d" % t)
+            print("Epoch %d" % (t+1))
 
             start_time = time.time()
 
@@ -139,7 +139,7 @@ def train(train_set, dev_set, num_epochs):
                                  if train_buckets_scale[i] > random_number_01])
                 # Get a batch and make a step.
                 formatted_batch = model.get_batch(train_set, bucket_id)
-                _, step_loss, _ = model.step(sess, formatted_batch, bucket_id, False)
+                _, step_loss, _, _ = model.step(sess, formatted_batch, bucket_id, False)
                 loss += step_loss / FLAGS.steps_per_epoch
                 current_step += 1
 
@@ -171,7 +171,7 @@ def train(train_set, dev_set, num_epochs):
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
                     formatted_batch = model.get_batch(dev_set, bucket_id)
-                    _, eval_loss, output_logits = model.step(sess, formatted_batch, bucket_id, True)
+                    _, eval_loss, output_logits, _ = model.step(sess, formatted_batch, bucket_id, True)
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))

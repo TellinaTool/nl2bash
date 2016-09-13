@@ -93,7 +93,7 @@ def train(train_set, dev_set, verbose=False):
 
         # dev_set = train_set + dev_set
         for t in xrange(FLAGS.num_epochs):
-            print("Epoch %d" % t)
+            print("Epoch %d" % (t+1))
 
             start_time = time.time()
 
@@ -148,7 +148,7 @@ def train(train_set, dev_set, verbose=False):
                         % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 2 checkpoints.
-                if ppx < 1.1 and len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
+                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-2:]):
                     return False
            
                 previous_dev_losses.append(dev_loss)

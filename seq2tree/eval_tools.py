@@ -6,6 +6,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import random
@@ -148,8 +150,8 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
         if ast_based.one_string_match(gt_trees, tree):
             num_correct += 1
         num_eval += 1
-        if attn_masks:
-            visualize_attn_masks(attn_masks, nl, outputs, rev_nl_vocab, rev_cm_vocab,
+        if attn_masks != None:
+            visualize_attn_masks(attn_masks[0, :, :], nl, outputs, rev_nl_vocab, rev_cm_vocab,
                              os.path.join(FLAGS.train_dir, "{}.jpg".format(num_eval)))
 
         if verbose:
@@ -329,11 +331,13 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
 
 
 def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_path):
+    print(M)
+    print(M.shape)
     fig = plt.imshow(M)
 
     nl = [rev_nl_vocab[x] for x in source]
     rev_cm = [rev_cm_vocab[x] for x in reversed(target)]
-    fig.xticks(xrange(len(nl)), nl, rotation='vertical')
-    fig.yticks(xrange(len(rev_cm)), rev_cm, rotation='horizontal')
+    plt.xticks(xrange(len(nl)), nl, rotation='vertical')
+    plt.yticks(xrange(len(rev_cm)), rev_cm, rotation='horizontal')
 
     plt.savefig(output_path)
