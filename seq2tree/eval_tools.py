@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import matplotlib
 import numpy as np
 import random
 
@@ -327,5 +328,10 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
 
 
 def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_path):
-    pass
-
+    fig = matplotlib.figure(figsize=[36,24])
+    fig.imshow(M)
+    nl = [rev_nl_vocab[x] for x in source]
+    cm = [rev_cm_vocab[x] for x in target]
+    fig.set_xticklabels(nl, rotation='vertical')
+    fig.set_yticklabels(cm, rotation='horizontal')
+    matplotlib.pylot.savefig(output_path)
