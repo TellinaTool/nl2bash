@@ -30,6 +30,7 @@ class RNNDecoder(seq2tree.decoder.Decoder):
             decoder_cell, decoder_scope = self.decoder_cell()
             state = encoder_state
             outputs = []
+            attn_masks = []
 
             if self.use_attention:
                 hidden, hidden_features, attn_vecs = \
@@ -60,6 +61,7 @@ class RNNDecoder(seq2tree.decoder.Decoder):
                         self.attention_cell(decoder_cell, decoder_scope,
                                             input_embedding, state, attns,
                                             hidden_features, attn_vecs, num_heads, hidden)
+                    attn_masks.append(attn_mask)
                 else:
                     output, state = self.normal_cell(
                                         decoder_cell, decoder_scope, input_embedding, state)
@@ -67,7 +69,12 @@ class RNNDecoder(seq2tree.decoder.Decoder):
                 # record output state to compute the loss.
                 outputs.append(output)
 
-        return outputs, state
+        if self.use_attention:
+            temp = [tf.expand_dims(batch_attn_mask, 1) for batch_attn_mask in attn_masks]
+            return outputs, state, tf.concat(1, temp)
+        else:
+            return outputs, state
+
 
     def decoder_cell(self):
         """RNN cell for the encoder."""
