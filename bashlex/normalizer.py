@@ -901,10 +901,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     try:
         normalize(tree[0], normalized_tree)
     except ValueError as err:
-        print("%s - %s" % (err.args[0], cmd.encode('utf-8')))
+        print("%s - %s" % (err.args[0], cmd))
         return None
     except AssertionError as err:
-        print("%s - %s" % (err.args[0], cmd.encode('utf-8')))
+        print("%s - %s" % (err.args[0], cmd))
         return None
 
     return normalized_tree
