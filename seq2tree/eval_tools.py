@@ -278,10 +278,10 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
     o_f.write("\n")
 
 
-def compare_models(sess, models, dataset, rev_nl_vocab, rev_cm_vocab,
+def compare_models(sessions, models, dataset, rev_nl_vocab, rev_cm_vocab,
                 FLAGS, num_eval = 30):
-    num_correct_template = 0.0
-    num_correct_command = 0.0
+    num_correct_template = [0.0] * len(models)
+    num_correct_command = [0.0] * len(models)
 
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True).values()
     random.shuffle(grouped_dataset)
@@ -314,7 +314,7 @@ def compare_models(sess, models, dataset, rev_nl_vocab, rev_cm_vocab,
                             if model.buckets[b][0] > len(nl)])
 
             formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
-            _, _, output_logits, _ = model.step(sess, formatted_example, bucket_id,
+            _, _, output_logits, _ = model.step(sessions[i], formatted_example, bucket_id,
                                              forward_only=True)
 
             gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
@@ -347,11 +347,11 @@ def compare_models(sess, models, dataset, rev_nl_vocab, rev_cm_vocab,
                     print()
             inp = raw_input("Correct template [y/n]: ")
             if inp == "y":
-                num_correct_template += 1
+                num_correct_template[i] += 1
                 o_f.write("C")
                 inp = raw_input("Correct command [y/n]: ")
                 if inp == "y":
-                    num_correct_command += 1
+                    num_correct_command[i] += 1
                     o_f.write("C")
                 else:
                     o_f.write("W")
@@ -364,14 +364,16 @@ def compare_models(sess, models, dataset, rev_nl_vocab, rev_cm_vocab,
 
     print()
     print("%d examples evaluated" % num_eval)
-    print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
-    print("Percentage of String Match = %.2f" % (num_correct_command/num_eval))
+    for i in xrange(len(models)):
+        print("Percentage of Template Match = %.2f" % (num_correct_template[i]/num_eval))
+        print("Percentage of String Match = %.2f" % (num_correct_command[i]/num_eval))
     print()
 
     o_f.write("\n")
-    o_f.write("%d examples evaluated" % num_eval + "\n")
-    o_f.write("Percentage of Template Match = %.2f" % (num_correct_template/num_eval) + "\n")
-    o_f.write("Percentage of String Match = %.2f" % (num_correct_command/num_eval) + "\n")
+    o_f.write("%d eamples evaluated" % num_eval + "\n")
+    for i in xrange(len(models)):
+        o_f.write("Percentage of Template Match = %.2f" % (num_correct_template[i]/num_eval) + "\n")
+        o_f.write("Percentage of String Match = %.2f" % (num_correct_command[i]/num_eval) + "\n")
     o_f.write("\n")
 
 
