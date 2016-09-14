@@ -332,12 +332,19 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
 
 def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_path):
     target_length, source_length = M.shape
+    
+    plt.clf()
     fig = plt.imshow(M, interpolation='nearest', cmap=plt.cm.Blues)
 
     nl = [rev_nl_vocab[x] for x in source]
     cm = [rev_cm_vocab[x] for x in target]
-    plt.xticks(xrange(len(source_length)), nl + [data_utils.PAD_ID] * (len(source_length) - len(nl)),
+    plt.xticks(xrange(source_length), 
+               [x.replace("$$", "") for x in reversed(nl + [data_utils._PAD] * (source_length - len(nl)))],
                rotation='vertical')
-    plt.yticks(xrange(len(cm)), cm, rotation='horizontal')
+    plt.yticks(xrange(len(cm)), 
+               [x.replace("$$", "") for x in cm],
+               rotation='horizontal')
 
-    plt.savefig(output_path)
+    plt.colorbar()
+    
+    plt.savefig(output_path, bbox_inches='tight')

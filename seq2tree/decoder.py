@@ -243,7 +243,8 @@ class BasicTreeDecoder(Decoder):
                     batch_attns = graph_utils.switch_mask(switch_mask, [h_attns, v_attns])
                     batch_state = tf.concat(1, [batch_state, batch_attns])
 
-                    batch_attn_mask = graph_utils.switch_mask(switch_mask, [h_attn_mask, v_attn_mask])
+                    # batch_attn_mask = graph_utils.switch_mask(switch_mask, [h_attn_mask, v_attn_mask])
+                    batch_attn_mask = h_attn_mask
                     attn_masks.append(batch_attn_mask)
                 
                 # record output state to compute the loss.
