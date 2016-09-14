@@ -77,7 +77,6 @@ class RNNDecoder(seq2tree.decoder.Decoder):
 
 
     def decoder_cell(self):
-        """RNN cell for the encoder."""
         with tf.variable_scope("decoder_cell") as scope:
             cell = seq2tree.graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers)
