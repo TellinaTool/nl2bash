@@ -204,25 +204,27 @@ def compare_models():
         os.path.join(os.path.dirname(__file__), "..", "model/seq2tree.by.command/rnn-gru-attention-16")
     ]
 
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        models = []
-        for model_path in model_paths:
-            FLAGS.train_dir = model_path
+    sessions = []
+    models = []
+    for model_path in model_paths:
+        FLAGS.train_dir = model_path
+        with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+            log_device_placement=FLAGS.log_device_placement)) as sess:
             model, _ = create_model(sess, forward_only=True)
+            sessions.append(sess)
             models.append(model)
 
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-        _, dev_set, _ = load_data()
+    # Load vocabularies.
+    nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.nl" % FLAGS.nl_vocab_size)
+    cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+    _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
+    _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+    _, dev_set, _ = load_data()
 
-        eval_tools.compare_models(sess, models, dev_set, rev_nl_vocab, rev_cm_vocab,
-                                  FLAGS, num_eval=50)
+    eval_tools.compare_models(sessions, models, dev_set, rev_nl_vocab, rev_cm_vocab,
+                              FLAGS, num_eval=50)
 
 
 def interactive_decode():
