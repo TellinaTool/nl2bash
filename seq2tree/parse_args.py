@@ -20,6 +20,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("initialization", False,
                                 "Set to try multiple random intialization and select the best one.")
 
+    tf.app.flags.DEFINE_boolean("compare_models", False,
+                                "Set to True to compare model performance.")
     tf.app.flags.DEFINE_boolean("data_stats", False,
                                 "Set to True to print dataset statistics.")
     tf.app.flags.DEFINE_boolean("manual_eval", False,

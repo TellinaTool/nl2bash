@@ -278,6 +278,103 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
     o_f.write("\n")
 
 
+def compare_models(sess, models, dataset, rev_nl_vocab, rev_cm_vocab,
+                FLAGS, num_eval = 30):
+    num_correct_template = 0.0
+    num_correct_command = 0.0
+
+    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True).values()
+    random.shuffle(grouped_dataset)
+
+    o_f = open("manual.eval.results", 'w')
+
+    num_evaled = 0
+
+    for i in xrange(len(grouped_dataset)):
+        nl_strs, cm_strs, nls, search_historys = grouped_dataset[i]
+        nl_str = nl_strs[0]
+        nl = nls[0]
+
+        if num_evaled == num_eval:
+            break
+
+        print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
+        o_f.write("Example %d (%d)" % (num_evaled+1, len(cm_strs)) + "\n")
+        print("English: " + nl_str.strip())
+        o_f.write("English: " + nl_str.strip() + "\n")
+        for j in xrange(len(cm_strs)):
+            print("GT Command %d: " % (j+1) + cm_strs[j].strip())
+            o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
+
+        for i, model in enumerate(models):
+            print("Model %d" % i)
+            o_f.write("Model %d\n" % i)
+            # Which bucket does it belong to?
+            bucket_id = min([b for b in xrange(len(model.buckets))
+                            if model.buckets[b][0] > len(nl)])
+
+            formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
+            _, _, output_logits, _ = model.step(sess, formatted_example, bucket_id,
+                                             forward_only=True)
+
+            gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
+            if FLAGS.decoding_algorithm == "greedy":
+                tree, pred_cmd, _ = decode(output_logits, rev_cm_vocab, FLAGS)
+            else:
+                top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
+                top_k_pred_trees = []
+                top_k_pred_cmds = []
+                for j in xrange(FLAGS.top_k):
+                    tree, pred_cmd, _ = \
+                        to_readable(top_k_search_histories[j], rev_cm_vocab)
+                    top_k_pred_trees.append(tree)
+                    top_k_pred_cmds.append(pred_cmd)
+            # evaluation ignoring ordering of flags
+            if FLAGS.decoding_algorithm == "greedy":
+                print("Prediction: " + pred_cmd)
+                o_f.write("Prediction: " + pred_cmd + "\n")
+                print("AST: ")
+                data_tools.pretty_print(tree, 0)
+                print()
+            elif FLAGS.decoding_algorithm == "beam_search":
+                for j in xrange(FLAGS.top_k):
+                    decode_score = decode_scores[j]
+                    tree = top_k_pred_trees[j]
+                    pred_cmd = top_k_pred_cmds[j]
+                    print("Prediction %d (%.2f): " % (j+1, decode_score) + pred_cmd)
+                    print("AST: ")
+                    data_tools.pretty_print(tree, 0)
+                    print()
+            inp = raw_input("Correct template [y/n]: ")
+            if inp == "y":
+                num_correct_template += 1
+                o_f.write("C")
+                inp = raw_input("Correct command [y/n]: ")
+                if inp == "y":
+                    num_correct_command += 1
+                    o_f.write("C")
+                else:
+                    o_f.write("W")
+            else:
+                o_f.write("WW")
+            o_f.write("\n")
+            o_f.write("\n")
+
+        num_evaled += 1
+
+    print()
+    print("%d examples evaluated" % num_eval)
+    print("Percentage of Template Match = %.2f" % (num_correct_template/num_eval))
+    print("Percentage of String Match = %.2f" % (num_correct_command/num_eval))
+    print()
+
+    o_f.write("\n")
+    o_f.write("%d examples evaluated" % num_eval + "\n")
+    o_f.write("Percentage of Template Match = %.2f" % (num_correct_template/num_eval) + "\n")
+    o_f.write("Percentage of String Match = %.2f" % (num_correct_command/num_eval) + "\n")
+    o_f.write("\n")
+
+
 def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
     """
     Simple command line decoding interface.
