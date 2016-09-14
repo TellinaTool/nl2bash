@@ -368,7 +368,6 @@ def read_data(source_path, target_path, buckets=None, max_num_examples=None,
                             target_ids.insert(0, ROOT_ID)
                         if append_end_token:
                             target_ids.append(EOS_ID)
-
                         if buckets:
                             for bucket_id, (source_size, target_size) in enumerate(buckets):
                                 if len(source_ids) < source_size and len(target_ids) < target_size:
