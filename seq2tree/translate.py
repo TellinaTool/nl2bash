@@ -301,6 +301,8 @@ def main(_):
         process_data()
     elif FLAGS.data_stats:
         data_statistics()
+    elif FLAGS.compare_models:
+        compare_models()
     elif FLAGS.sample_train:
         train_set, dev_set, _ = load_data(FLAGS.sample_size)
         train(train_set, dev_set)
