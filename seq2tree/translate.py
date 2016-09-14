@@ -177,7 +177,7 @@ def eval(verbose=True):
                             FLAGS, verbose)
 
 
-def manual_eval():
+def manual_eval(num_eval):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
