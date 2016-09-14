@@ -296,7 +296,7 @@ def main(_):
     if FLAGS.eval:
         eval()
     elif FLAGS.manual_eval:
-        manual_eval()
+        manual_eval(50)
     elif FLAGS.decode:
         interactive_decode()
     elif FLAGS.process_data:
