@@ -24,8 +24,10 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params["batch_size"] = 1 \
         if forward_only else FLAGS.batch_size
     params["num_samples"] = FLAGS.num_samples
-    params["input_keep_prob"] = FLAGS.input_keep_prob
-    params["output_keep_prob"] = FLAGS.output_keep_prob
+    params["encoder_input_keep"] = FLAGS.encoder_input_keep
+    params["encoder_output_keep"] = FLAGS.encoder_output_keep
+    params["decoder_input_keep"] = FLAGS.decoder_input_keep
+    params["decoder_output_keep"] = FLAGS.decoder_output_keep
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
     params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
