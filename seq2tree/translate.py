@@ -248,7 +248,8 @@ def interactive_decode():
 
 
 def train_and_eval(train_set, dev_set):
-    train(train_set, dev_set, FLAGS.num_epochs)
+    train(train_set, dev_set, FLAGS.num_epochs,
+          construct_model_dir=False)
     tf.reset_default_graph()
     temp_match_score, eval_match_score = eval(verbose=False,
                                               construct_model_dir=False)
@@ -281,32 +282,40 @@ def grid_search(train_set, dev_set):
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
 
-            print("Trying parameter set: ")
+        print("Trying parameter set: ")
+        for i in xrange(num_hps):
+            print("* {}: {}".format(hyperparameters[i], row[i]))
+
+        model_dir = os.path.join(FLAGS.train_dir, FLAGS.encoder_topology)
+        model_dir += '-{}'.format(FLAGS.rnn_cell)
+        if FLAGS.use_attention:
+            model_dir += '-attention'
+        model_dir += '-{}'.format(FLAGS.batch_size)
+        model_dir += '-{}'.format(row)
+        setattr(FLAGS, "train_dir", model_dir)
+
+        num_trials = 5 if FLAGS.initialization else 1
+
+        for t in xrange(num_trials):
+            seed = random.getrandbits(32)
+            tf.set_random_seed(seed)
+            temp_match_score, eval_match_score = \
+                train_and_eval(train_set, dev_set)
+            print("Parameter set: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], row[i]))
-
-            num_trials = 5 if FLAGS.initialization else 1
-
-            for t in xrange(num_trials):
-                seed = random.getrandbits(32)
-                tf.set_random_seed(seed)
-                temp_match_score, eval_match_score = \
-                    train_and_eval(train_set, dev_set)
-                print("Parameter set: ")
-                for i in xrange(num_hps):
-                    print("* {}: {}".format(hyperparameters[i], row[i]))
-                print("random seed: {}".format(seed))
-                print("template match score = {}".format(temp_match_score))
-                print("Best parameter set so far: ")
-                for i in xrange(num_hps):
-                    print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
-                print("Best random seed so far: {}".format(best_seed))
-                print("Best template match score so far = {}".format(best_temp_match_score))
-                if temp_match_score > best_temp_match_score:
-                    best_hp_set = row
-                    best_seed = seed
-                    best_temp_match_score = temp_match_score
-                    print("☺ New best parameter setting found")
+            print("random seed: {}".format(seed))
+            print("template match score = {}".format(temp_match_score))
+            print("Best parameter set so far: ")
+            for i in xrange(num_hps):
+                print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
+            print("Best random seed so far: {}".format(best_seed))
+            print("Best template match score so far = {}".format(best_temp_match_score))
+            if temp_match_score > best_temp_match_score:
+                best_hp_set = row
+                best_seed = seed
+                best_temp_match_score = temp_match_score
+                print("☺ New best parameter setting found")
 
     print()
     print("*****************************")
