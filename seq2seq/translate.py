@@ -286,7 +286,6 @@ def grid_search(train_set, dev_set):
     best_temp_match_score = 0.0
 
     for row in grid:
-        print(row)
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
 
