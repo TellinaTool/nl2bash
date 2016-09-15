@@ -253,8 +253,8 @@ def interactive_decode():
 
 
 def train_and_eval(train_set, dev_set):
-    for i in xrange(FLAGS.epochs):
-        is_learning = train(train_set, dev_set, FLAGS.steps_per_milestone)
+    for i in xrange(FLAGS.num_epochs):
+        is_learning = train(train_set, dev_set, FLAGS.epochs_per_checkpoint)
         tf.reset_default_graph()
         temp_match_score, eval_match_score = eval(False)
         tf.reset_default_graph()
@@ -340,11 +340,11 @@ def load_data(sample_size=-1):
         cm_test = os.path.join(data_dir, "test") + ".cids%d.cm" % FLAGS.cm_vocab_size
     else:
         nl_train = os.path.join(data_dir, "train") + ".ids%d.nl" % FLAGS.nl_vocab_size
-        cm_train = os.path.join(data_dir, "train") + ".ids%d.pruned.cm" % FLAGS.cm_vocab_size
+        cm_train = os.path.join(data_dir, "train") + ".ids%d.cm" % FLAGS.cm_vocab_size
         nl_dev = os.path.join(data_dir, "dev") + ".ids%d.nl" % FLAGS.nl_vocab_size
-        cm_dev = os.path.join(data_dir, "dev") + ".ids%d.pruned.cm" % FLAGS.cm_vocab_size
+        cm_dev = os.path.join(data_dir, "dev") + ".ids%d.cm" % FLAGS.cm_vocab_size
         nl_test = os.path.join(data_dir, "test") + ".ids%d.nl" % FLAGS.nl_vocab_size
-        cm_test = os.path.join(data_dir, "test") + ".ids%d.pruned.cm" % FLAGS.cm_vocab_size
+        cm_test = os.path.join(data_dir, "test") + ".ids%d.cm" % FLAGS.cm_vocab_size
 
     train_set = data_utils.read_data(nl_train, cm_train, _buckets, FLAGS.max_train_data_size,
                                      append_head_token=True, append_end_token=True)

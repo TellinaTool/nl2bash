@@ -915,7 +915,6 @@ def prune_ast(node):
     def prune_ast_fun(node):
         to_remove = []
         for child in node.children:
-            print(child.symbol)
             if child.kind == "argument" and \
                 not child.arg_type == "ReservedWord":
                     if child.lsb:

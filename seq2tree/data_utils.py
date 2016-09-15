@@ -345,8 +345,12 @@ def read_data(source_path, target_path, buckets=None, max_num_examples=None,
     else:
         data_set = []
 
-    source_txt_path = '.'.join([source_path.split('.')[0], source_path.rsplit('.')[-1]])
-    target_txt_path = '.'.join([target_path.split('.')[0], target_path.rsplit('.')[-1]])
+    if "pruned" in target_path:
+        num_splits = 3
+    else:
+        num_splits = 2
+    source_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.')[-1]])
+    target_txt_path = '.'.join([target_path.rsplit('.', num_splits)[0], target_path.rsplit('.')[-1]])
     with tf.gfile.GFile(source_txt_path, mode="r") as source_txt_file:
         with tf.gfile.GFile(target_txt_path, mode="r") as target_txt_file:
             with tf.gfile.GFile(source_path, mode="r") as source_file:
