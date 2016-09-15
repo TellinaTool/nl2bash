@@ -562,12 +562,20 @@ class EncoderDecoderModel(object):
         return self.hyperparams["batch_size"]
 
     @property
-    def input_keep_prob(self):
-        return self.hyperparams["input_keep_prob"]
+    def encoder_input_keep(self):
+        return self.hyperparams["encoder_input_keep"]
 
     @property
-    def output_keep_prob(self):
-        return self.hyperparams["output_keep_prob"]
+    def encoder_output_keep(self):
+        return self.hyperparams["encoder_output_keep"]
+
+    @property
+    def decoder_input_keep(self):
+        return self.hyperparams["decoder_input_keep"]
+
+    @property
+    def decoder_output_keep(self):
+        return self.hyperparams["decoder_output_keep"]
 
     @property
     def rnn_cell(self):
@@ -632,7 +640,7 @@ class Seq2TreeModel(EncoderDecoderModel):
         """Construct tree decoders."""
         if self.decoder_topology == "basic_tree":
             self.decoder = decoder.BasicTreeDecoder(self.dim, self.batch_size, self.rnn_cell, self.num_layers,
-                                                self.input_keep_prob, self.output_keep_prob,
+                                                self.decoder_input_keep, self.decoder_output_keep,
                                                 self.use_attention, self.use_copy,
                                                 self.output_projection())
         else:
