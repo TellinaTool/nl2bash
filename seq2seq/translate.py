@@ -39,7 +39,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2tree"))
-
+sys.path.append(os.path.join(os.path.dirname(__file__), "..")
 
 import cPickle as pickle
 import itertools
@@ -55,6 +55,7 @@ import data_utils, data_tools, graph_utils
 import parse_args
 import eval_tools, hyperparam_range
 from seq2seq_model import Seq2SeqModel
+from seq2tree.translate import train_and_eval, grid_search
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -95,12 +96,13 @@ def create_model(session, forward_only, construct_model_dir):
                                     forward_only, construct_model_dir)
 
 
-def train(train_set, dev_set, num_epochs):
+def train(train_set, dev_set, num_epochs, construct_model_dir=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.dim))
-        model, global_epochs = create_model(sess, False)
+        model, global_epochs = create_model(sess, forward_only=False,
+                                            construct_model_dir=construct_model_dir)
 
         train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
         train_total_size = float(sum(train_bucket_sizes))
@@ -252,77 +254,6 @@ def interactive_decode():
 
         eval_tools.interactive_decode(sess, model, nl_vocab, rev_cm_vocab,
                                       FLAGS)
-
-
-def train_and_eval(train_set, dev_set):
-    train(train_set, dev_set, FLAGS.num_epochs)
-    tf.reset_default_graph()
-    temp_match_score, eval_match_score = eval(verbose=False,
-                                              construct_model_dir=False)
-    tf.reset_default_graph()
-    return temp_match_score, eval_match_score
-
-
-def grid_search(train_set, dev_set):
-    FLAGS.create_fresh_params = True
-
-    hyperparameters = FLAGS.tuning.split(',')
-    num_hps = len(hyperparameters)
-    hp_range = hyperparam_range.hyperparam_range
-
-    print("======== Grid Search ========")
-    print("%d hyperparameters: " % num_hps)
-    for i in xrange(num_hps):
-        print("{}: {}".format(hyperparameters[i], hp_range[hyperparameters[i]]))
-    print()
-
-    grid = [v for v in hp_range[hyperparameters[0]]]
-    for i in xrange(1, num_hps):
-        grid = itertools.product(grid, hp_range[hyperparameters[i]])
-
-    best_hp_set = [-1] * num_hps
-    best_seed = -1
-    best_temp_match_score = 0.0
-
-    for row in grid:
-        for i in xrange(num_hps):
-            setattr(FLAGS, hyperparameters[i], row[i])
-
-            print("Trying parameter set: ")
-            for i in xrange(num_hps):
-                print("* {}: {}".format(hyperparameters[i], row[i]))
-
-            num_trials = 5 if FLAGS.initialization else 1
-
-            for t in xrange(num_trials):
-                seed = random.getrandbits(32)
-                tf.set_random_seed(seed)
-                temp_match_score, eval_match_score = \
-                    train_and_eval(train_set, dev_set)
-                print("Parameter set: ")
-                for i in xrange(num_hps):
-                    print("* {}: {}".format(hyperparameters[i], row[i]))
-                print("random seed: {}".format(seed))
-                print("template match score = {}".format(temp_match_score))
-                print("Best parameter set so far: ")
-                for i in xrange(num_hps):
-                    print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
-                print("Best random seed so far: {}".format(best_seed))
-                print("Best template match score so far = {}".format(best_temp_match_score))
-                if temp_match_score > best_temp_match_score:
-                    best_hp_set = row
-                    best_seed = seed
-                    best_temp_match_score = temp_match_score
-                    print("☺ New best parameter setting found")
-
-    print()
-    print("*****************************")
-    print("Best parameter set: ")
-    for i in xrange(num_hps):
-        print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
-    print("Best seed = {}".format(best_seed))
-    print("Best emplate match score = {}".format(best_temp_match_score))
-    print("*****************************")
 
 
 def load_data(sample_size=-1):
