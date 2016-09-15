@@ -376,7 +376,7 @@ def type_check(word, possible_types):
     else:
         print("Warning: unable to decide type for {}, return \"Unknown\".".format(word))
         return "Unknown"
-    
+
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                   recover_quotation=True, verbose=False):
     """
@@ -768,6 +768,19 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         for bl in unprocessed_binary_logic_ops:
             adjust_binary_operators(bl)
 
+        # recover omitted arguments
+        if head_command.value == "find":
+            arguments = []
+            for child in head_command.children:
+                if child.kind == "argument":
+                    arguments.append(child)
+            if len(arguments) < 1:
+                norm_node = ArgumentNode(value=".", arg_type="File")
+                make_sibling(norm_node, head_command.children[0])
+                norm_node.parent = head_command
+                head_command.children.insert(0, norm_node)
+            elif len(arguments) > 1:
+                raise ValueError("'find' only takes one command argument.")
 
     def normalize(node, current, node_kind="", arg_type=""):
         # recursively normalize each subtree
@@ -835,7 +848,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 # skip current node
                 normalize(child, current)
         elif node.kind == "redirect":
-            pass
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
         elif node.kind == "operator":
             # not supported
             raise ValueError("Unsupported: %s" % node.kind)
