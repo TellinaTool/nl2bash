@@ -414,7 +414,8 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
                     cm_tokens = data_tools.ast2tokens(ast)
                     cm_seq = data_tools.ast2list(ast, list=[])
                     pruned_ast = normalizer.prune_ast(ast)
-                    cm_pruned_tokens = data_tools.ast2tokens(pruned_ast)
+                    cm_pruned_tokens = data_tools.ast2tokens(pruned_ast,
+                                                             loose_constraints=True)
                     cm_pruned_seq = data_tools.ast2list(pruned_ast, list=[])
                     data_set["nl_list"].append(nl)
                     data_set["nl_token_list"].append(nl_tokens)
@@ -545,7 +546,7 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
         data_to_token_ids(data_set["cm_token_list"], cm_ids_path, cm_vocab_path, bash_tokenizer)
         data_to_token_ids(data_set["cm_seq_list"], cm_seq_path, cm_ast_vocab_path, bash_tokenizer,
                                  substitute_types=True)
-        data_to_token_ids(data_set["cm_pruned_token_list"], cm_pruned_ids_path, cm_vocab_size, bash_tokenizer)
+        data_to_token_ids(data_set["cm_pruned_token_list"], cm_pruned_ids_path, cm_vocab_path, bash_tokenizer)
         data_to_token_ids(data_set["cm_pruned_seq_list"], cm_pruned_seq_path, cm_ast_vocab_path, bash_tokenizer)
         temp = data_to_token_ids(data_set["nl_list"], nl_cids_path, nl_char_vocab_path, char_tokenizer,
                           basic_tokenizer, normalize_digits=False, normalize_long_pattern=False)
