@@ -30,8 +30,6 @@ from encoder_decoder import Seq2TreeModel
 
 FLAGS = tf.app.flags.FLAGS
 
-parse_args.define_input_flags()
-
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
 _buckets = [(5, 10), (10, 20), (15, 30), (20, 40), (30, 50), (40, 64)]
@@ -399,4 +397,5 @@ def main(_):
 
 
 if __name__ == "__main__":
+    parse_args.define_input_flags()
     tf.app.run()
