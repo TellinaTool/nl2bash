@@ -263,11 +263,11 @@ def load_data(sample_size=-1, use_buckets=True):
 
     data_dir = FLAGS.data_dir
     nl_train = os.path.join(data_dir, "train") + ".ids%d.nl" % FLAGS.nl_vocab_size
-    cm_train = os.path.join(data_dir, "train") + ".seq%d.cm" % FLAGS.cm_vocab_size
+    cm_train = os.path.join(data_dir, "train") + ".seq%d.pruned.cm" % FLAGS.cm_vocab_size
     nl_dev = os.path.join(data_dir, "dev") + ".ids%d.nl" % FLAGS.nl_vocab_size
-    cm_dev = os.path.join(data_dir, "dev") + ".seq%d.cm" % FLAGS.cm_vocab_size
+    cm_dev = os.path.join(data_dir, "dev") + ".seq%d.pruned.cm" % FLAGS.cm_vocab_size
     nl_test = os.path.join(data_dir, "test") + ".ids%d.nl" % FLAGS.nl_vocab_size
-    cm_test = os.path.join(data_dir, "test") + ".seq%d.cm" % FLAGS.cm_vocab_size
+    cm_test = os.path.join(data_dir, "test") + ".seq%d.pruned.cm" % FLAGS.cm_vocab_size
 
     buckets = _buckets if use_buckets else None
 
