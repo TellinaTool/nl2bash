@@ -67,10 +67,8 @@ class Decoder(object):
                 y = tf.nn.rnn_cell._linear(state, attn_vec_dim, True)
                 y = tf.reshape(y, [-1, 1, 1, attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
-                print(hidden_features[a].get_shape())
                 s = tf.reduce_sum(
                     v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
-                print(s.get_shape())
                 attn_mask = tf.nn.softmax(s)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(
