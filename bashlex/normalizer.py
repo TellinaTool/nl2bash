@@ -251,12 +251,17 @@ class BinaryLogicOpNode(Node):
             ancester = ancester.parent
         return ancester
 
+class RedirectNode(Node):
+    num_child = 2
+
+    def __init__(self, value="", parent=None, lsb=None):
+        super(RedirectNode, self).__init__(parent, lsb, 'redirect', value)
+
 class PipelineNode(Node):
     children_types = [set(['headcommand'])]
 
     def __init__(self, parent=None, lsb=None):
-        super(PipelineNode, self).__init__(parent, lsb)
-        self.kind = 'pipeline'
+        super(PipelineNode, self).__init__(parent, lsb, 'pipeline')
 
 class CommandSubstitutionNode(Node):
     num_child = 1
@@ -828,23 +833,14 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             for child in node.parts:
                 # skip current node
                 normalize(child, current)
+        elif node.kind == "redirect":
+            pass
         elif node.kind == "operator":
             # not supported
             raise ValueError("Unsupported: %s" % node.kind)
         elif node.kind == "parameter":
             # not supported
             raise ValueError("Unsupported: parameters")
-        elif node.kind == "redirect":
-            # not supported
-            # if node.type == '>':
-            #     parse(node.input, tokens)
-            #     tokens.append('>')
-            #     parse(node.output, tokens)
-            # elif node.type == '<':
-            #     parse(node.output, tokens)
-            #     tokens.append('<')
-            #     parse(node.input, tokens)
-            raise ValueError("Unsupported: %s" % node.kind)
         elif node.kind == "for":
             # not supported
             raise ValueError("Unsupported: %s" % node.kind)
