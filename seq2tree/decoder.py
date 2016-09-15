@@ -67,8 +67,10 @@ class Decoder(object):
                 y = tf.nn.rnn_cell._linear(state, attn_vec_dim, True)
                 y = tf.reshape(y, [-1, 1, 1, attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
+                print(hidden_features[a].get_shape())
                 s = tf.reduce_sum(
                     v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
+                print(s.get_shape())
                 attn_mask = tf.nn.softmax(s)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(
@@ -433,8 +435,8 @@ class BasicTreeDecoder(Decoder):
 
 if __name__ == "__main__":
     decoder = BasicTreeDecoder(dim=100, batch_size=1, rnn_cell="gru", num_layers=1,
-                 input_keep_prob=1, output_keep_prob=1,
-                 use_attention=False, use_copy=False, output_projection=None)
+                               input_keep_prob=1, output_keep_prob=1,
+                               use_attention=False, use_copy=False, output_projection=None)
     decoder_inputs = [tf.placeholder(dtype=tf.int32, shape=[None],
                                      name="decoder{0}".format(i)) for i in xrange(14)]
     encoder_state = tf.random_normal(shape=[1, 100])
