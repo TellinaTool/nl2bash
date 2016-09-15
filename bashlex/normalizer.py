@@ -910,6 +910,31 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     return normalized_tree
 
 
+def prune_ast(node):
+    """Return an ast without the argument nodes."""
+    def prune_ast_fun(node):
+        to_remove = []
+        for child in node.children:
+            print(child.symbol)
+            if child.kind == "argument" and \
+                not child.arg_type == "ReservedWord":
+                    if child.lsb:
+                        child.lsb.rsb = child.rsb
+                    if child.rsb:
+                        child.rsb.lsb = child.lsb
+                    to_remove.append(child)
+            else:
+                prune_ast_fun(child)
+        for child in to_remove:
+            node.removeChild(child)
+    if not node:
+        return None
+    node = copy.deepcopy(node)
+    prune_ast_fun(node)
+
+    return node
+
+
 def list_to_ast(list, order='dfs'):
     root = Node(kind="root", value="root")
     current = root

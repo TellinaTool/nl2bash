@@ -24,7 +24,7 @@ PrimitiveCmd ::=
 
 		find [-H | -L | -P] [-EXdsx] -f path [path ...] [ -true ] [ -false ] [ -not findexp ] [ -Bmin nmin ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin nmin ] [ -anewer file ] [-atime time] [ -cmin nmin ] [ -cnewer file ] [ -ctime nmin ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -exec utility [ argument ... ] SEMICOLUMN ] [ -exec utility [ argument ...] BRACKETS ... PLUS] [ -execdir utility [ argument ... ] SEMICOLUMN ] [ -execdir utility [ argument ... ] PLUS ] [ -flags MINUSflag] [-flags PLUSflags] [-flags flags] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -newerXY file ] [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok utility [ argument ... ] SEMICOLUMN] [ -okdir utility [ argument ...] SEMICOLUMN ] [ -path pattern ] [ -perm permmode ] [ -perm MINUSpermmode ] [ -perm PLUSpermmode ] [ -print ] [ -print0 ] [-printf pattern] [ -prune ] [ -regex pattern ] [ -samefile name ] [ -size size ] [ -type t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [ -and ] [ -or ] [ -not ] [ EXCLAMATION ]
 
-		mv [-f | -i | -n] [-v] source_file source_file
+		mv [-f | -i | -n] [-v] source_file target_file
 
 		mv [-f | -i | -n] [-v] source_file ... directory
 
