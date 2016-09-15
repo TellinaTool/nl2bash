@@ -257,7 +257,8 @@ def interactive_decode():
 def train_and_eval(train_set, dev_set):
     train(train_set, dev_set, FLAGS.num_epochs)
     tf.reset_default_graph()
-    temp_match_score, eval_match_score = eval(False)
+    temp_match_score, eval_match_score = eval(verbose=False,
+                                              construct_model_dir=False)
     tf.reset_default_graph()
     return temp_match_score, eval_match_score
 
