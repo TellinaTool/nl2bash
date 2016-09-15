@@ -33,7 +33,7 @@ parse_args.define_input_flags()
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(10, 20), (20, 30), (30, 40), (40, 50), (40, 64)]
+_buckets = [(5, 10), (10, 20), (15, 30), (20, 40), (30, 50), (40, 64)]
 
 
 def create_model(session, forward_only):
