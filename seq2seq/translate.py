@@ -190,7 +190,7 @@ def train(train_set, dev_set, num_epochs):
     return True
 
 
-def manual_eval():
+def manual_eval(num_eval):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
@@ -206,7 +206,7 @@ def manual_eval():
         _, dev_set, _ = load_data()
 
         eval_tools.manual_eval(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
-                               FLAGS, num_eval=30)
+                               FLAGS, num_eval)
 
 
 def eval(verbose=True):
@@ -386,7 +386,7 @@ def main(_):
     
     # set GPU device
     if FLAGS.manual_eval:
-        manual_eval()
+        manual_eval(50)
     elif FLAGS.eval:
         eval()
     elif FLAGS.decode:
