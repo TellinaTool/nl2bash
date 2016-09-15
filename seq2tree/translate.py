@@ -9,20 +9,21 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import math
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 
-import time
 import cPickle as pickle
-
+import itertools
+import math
 import numpy as np
+import random
+import time
 from tqdm import tqdm
 
 import tensorflow as tf
 
-import eval_tools
+import eval_tools, hyperparam_range
 import data_utils, data_tools, graph_utils
 import parse_args
 from encoder_decoder import Seq2TreeModel
@@ -158,11 +159,12 @@ def train(train_set, dev_set, verbose=False):
     return True
 
 
-def eval(verbose=True):
+def eval(verbose=True, construct_model_dir=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True)
+        model, _ = create_model(sess, forward_only=True, 
+                                construct_model_dir=construct_model_dir)
 
         # Load vocabularies.
         nl_vocab_path = os.path.join(FLAGS.data_dir,
