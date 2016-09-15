@@ -56,9 +56,11 @@ class Seq2SeqModel(EncoderDecoderModel):
     def define_encoder(self):
         """Construct sequence encoders."""
         if self.encoder_topology == "rnn":
-            self.encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers)
+            self.encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers,
+                                              self.encoder_input_keep, self.encoder_output_keep)
         elif self.encoder_topology == "birnn":
-            self.encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.num_layers)
+            self.encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.num_layers,
+                                                self.encoder_input_keep, self.encoder_output_keep)
         else:
             raise ValueError("Unrecognized encoder type.")
 

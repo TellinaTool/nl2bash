@@ -5,11 +5,23 @@ import graph_utils
 
 from tensorflow.python.util import nest
 
-class RNNEncoder(object):
-    def __init__(self, dim, rnn_cell, num_layers):
+
+class Encoder(object):
+    def __init__(self, dim, rnn_cell, num_layers,
+                 input_keep_prob, output_keep_prob):
         self.dim = dim
         self.rnn_cell = rnn_cell
         self.num_layers = num_layers
+        self.input_keep_prob = input_keep_prob
+        self.output_keep_prob = output_keep_prob
+
+
+class RNNEncoder(Encoder):
+    def __init__(self, dim, rnn_cell, num_layers,
+                 input_keep_prob, output_keep_prob):
+        super(RNNEncoder, self).__init__(dim, rnn_cell, num_layers,
+                                         input_keep_prob,
+                                         output_keep_prob)
         self.cell, _ = self.encoder_cell()
 
         # variable sharing
@@ -36,11 +48,12 @@ class RNNEncoder(object):
         return cell, scope
 
 
-class BiRNNEncoder(object):
-    def __init__(self, dim, rnn_cell, num_layers):
-        self.dim = dim
-        self.rnn_cell = rnn_cell
-        self.num_layers = num_layers
+class BiRNNEncoder(Encoder):
+    def __init__(self, dim, rnn_cell, num_layers,
+                 input_keep_prob, output_keep_prob):
+        super(BiRNNEncoder, self).__init__(dim, rnn_cell, num_layers,
+                                           input_keep_prob,
+                                           output_keep_prob)
         self.fw_cell, _ = self.forward_cell()
         self.bw_cell, _ = self.backward_cell()
 
