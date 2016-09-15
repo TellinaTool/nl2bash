@@ -9,7 +9,8 @@ import tensorflow as tf
 
 import data_utils
 
-def create_model(session, FLAGS, model_constructor, buckets, forward_only):
+def create_model(session, FLAGS, model_constructor, buckets, forward_only,
+                 construct_model_dir=True):
     params = collections.defaultdict()
     params["source_vocab_size"] = FLAGS.nl_vocab_size
     params["target_vocab_size"] = FLAGS.cm_vocab_size
@@ -39,17 +40,18 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
 
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
 
-    # construct model directory
-    model_dir = os.path.join(FLAGS.train_dir, FLAGS.encoder_topology)
-    model_dir += '-{}'.format(FLAGS.rnn_cell)
-    if FLAGS.use_attention:
-        model_dir += '-attention'
-    model_dir += '-{}'.format(FLAGS.batch_size)
-    model_dir += '-{}'.format(FLAGS.decoder_input_keep)
-    model_dir += '-{}'.format(FLAGS.decoder_output_keep)
-    setattr(FLAGS, "train_dir", model_dir)
     model = model_constructor(params, buckets, forward_only)
 
+    # construct model directory
+    if construct_model_dir:
+        model_dir = os.path.join(FLAGS.train_dir, FLAGS.encoder_topology)
+        model_dir += '-{}'.format(FLAGS.rnn_cell)
+        if FLAGS.use_attention:
+            model_dir += '-attention'
+        model_dir += '-{}'.format(FLAGS.batch_size)
+        model_dir += '-{}'.format(FLAGS.decoder_input_keep)
+        model_dir += '-{}'.format(FLAGS.decoder_output_keep)
+        setattr(FLAGS, "train_dir", model_dir)
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
 
     global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
