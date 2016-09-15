@@ -277,7 +277,7 @@ def grid_search(train_set, dev_set):
         print("{}: {}".format(hyperparameters[i], hp_range[hyperparameters[i]]))
     print()
 
-    grid = [[v] for v in hp_range[hyperparameters[0]]]
+    grid = [v for v in hp_range[hyperparameters[0]]]
     for i in xrange(1, num_hps):
         grid = itertools.product(grid, hp_range[hyperparameters[i]])
 
