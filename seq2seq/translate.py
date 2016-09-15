@@ -68,7 +68,7 @@ else:
     _buckets = [(5, 5), (10, 10), (15, 15), (20, 20), (30, 30), (40, 40)]
 
 
-def create_model(session, forward_only):
+def create_model(session, forward_only, construct_model_dir):
     """
     :param source_vocab_size: size of the source vocabulary.
     :param target_vocab_size: size of the target vocabulary.
@@ -92,7 +92,7 @@ def create_model(session, forward_only):
     :param
     """
     return graph_utils.create_model(session, FLAGS, Seq2SeqModel, _buckets,
-                                    forward_only)
+                                    forward_only, construct_model_dir)
 
 
 def train(train_set, dev_set, num_epochs):
@@ -209,11 +209,13 @@ def manual_eval(num_eval):
                                FLAGS, num_eval)
 
 
-def eval(verbose=True):
+def eval(verbose=True, construct_model_dir=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True)
+        model, _ = create_model(sess,
+                                forward_only=True,
+                                construct_model_dir=construct_model_dir)
 
         # Load vocabularies.
         if FLAGS.char:
@@ -253,10 +255,22 @@ def interactive_decode():
 
 
 def train_and_eval(train_set, dev_set):
+<<<<<<< HEAD
     train(train_set, dev_set, FLAGS.num_epochs)
     tf.reset_default_graph()
     temp_match_score, eval_match_score = eval(False)
     tf.reset_default_graph()
+=======
+    for i in xrange(FLAGS.epochs):
+        is_learning = train(train_set, dev_set, FLAGS.steps_per_milestone)
+        tf.reset_default_graph()
+        temp_match_score, eval_match_score = eval(verbose=False,
+                                                  construct_model_dir=True)
+        tf.reset_default_graph()
+        if not is_learning:
+            print("Training stopped early for no improvement observed on dev set.")
+            break
+>>>>>>> 306d35f1a860a058d4476965e84967c346907e77
     return temp_match_score, eval_match_score
 
 
