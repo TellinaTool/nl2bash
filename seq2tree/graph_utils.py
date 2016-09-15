@@ -45,6 +45,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     if FLAGS.use_attention:
         model_dir += '-attention'
     model_dir += '-{}'.format(FLAGS.batch_size)
+    model_dir += '-{}'.format(FLAGS.decoder_output_keep)
     setattr(FLAGS, "train_dir", model_dir)
     model = model_constructor(params, buckets, forward_only)
 
