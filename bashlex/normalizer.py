@@ -901,6 +901,9 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     except ValueError as err:
         print("%s - %s" % (err.args[0], cmd))
         return None
+    except AttributeError as err:
+        print("%s - %s" % (err.args[0], cmd))
+        return None
     except AssertionError as err:
         print("%s - %s" % (err.args[0], cmd))
         return None
