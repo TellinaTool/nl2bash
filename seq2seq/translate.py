@@ -255,22 +255,10 @@ def interactive_decode():
 
 
 def train_and_eval(train_set, dev_set):
-<<<<<<< HEAD
     train(train_set, dev_set, FLAGS.num_epochs)
     tf.reset_default_graph()
     temp_match_score, eval_match_score = eval(False)
     tf.reset_default_graph()
-=======
-    for i in xrange(FLAGS.epochs):
-        is_learning = train(train_set, dev_set, FLAGS.steps_per_milestone)
-        tf.reset_default_graph()
-        temp_match_score, eval_match_score = eval(verbose=False,
-                                                  construct_model_dir=True)
-        tf.reset_default_graph()
-        if not is_learning:
-            print("Training stopped early for no improvement observed on dev set.")
-            break
->>>>>>> 306d35f1a860a058d4476965e84967c346907e77
     return temp_match_score, eval_match_score
 
 
