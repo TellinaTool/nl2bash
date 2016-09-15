@@ -206,9 +206,12 @@ if __name__ == "__main__":
         try:
             cmd = raw_input("Bash command: ")
             norm_tree = bash_parser(cmd)
+            pruned_tree = normalizer.prune_ast(norm_tree)
             print()
             print("AST:")
             pretty_print(norm_tree, 0)
+            print("Pruned AST:")
+            pretty_print(pruned_tree, 0)
             # print(to_command(norm_tree))
             search_history = ast2list(norm_tree, 'dfs', [])
             for state in search_history:
@@ -219,6 +222,8 @@ if __name__ == "__main__":
             print()
             print("Command Template (flags in alphabetical order):")
             print(ast2template(norm_tree))
+            print("Pruned Command Template (flags in alphabetical order):")
+            print(ast2template(pruned_tree))
             print()
         except EOFError as ex:
             break
