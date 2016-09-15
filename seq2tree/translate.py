@@ -193,7 +193,7 @@ def manual_eval(num_eval):
         _, dev_set, _ = load_data()
 
         eval_tools.manual_eval(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
-                               FLAGS, num_eval=30)
+                               FLAGS, num_eval)
 
 
 def compare_models():
