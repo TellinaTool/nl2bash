@@ -374,8 +374,9 @@ def type_check(word, possible_types):
         # This is usuallly third-party utitlies
         return "Utility"
     else:
-        raise ValueError("Unable to decide type for {}".format(word))
-
+        print("Warning: unable to decide type for {}, return \"Unknown\".".format(word))
+        return "Unknown"
+    
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                   recover_quotation=True, verbose=False):
     """
