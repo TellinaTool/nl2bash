@@ -68,7 +68,7 @@ else:
     _buckets = [(5, 5), (10, 10), (15, 15), (20, 20), (30, 30), (40, 40)]
 
 
-def create_model(session, forward_only, construct_model_dir):
+def create_model(session, forward_only, construct_model_dir=True):
     """
     :param source_vocab_size: size of the source vocabulary.
     :param target_vocab_size: size of the target vocabulary.
@@ -257,7 +257,8 @@ def interactive_decode():
 def train_and_eval(train_set, dev_set):
     train(train_set, dev_set, FLAGS.num_epochs)
     tf.reset_default_graph()
-    temp_match_score, eval_match_score = eval(False)
+    temp_match_score, eval_match_score = eval(verbose=False,
+                                              construct_model_dir=False)
     tf.reset_default_graph()
     return temp_match_score, eval_match_score
 
