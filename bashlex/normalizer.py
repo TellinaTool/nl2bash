@@ -518,9 +518,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             lsb = node.lsb
 
             if not rsb or not lsb:
-                print("Error: binary logic operator must have both left and right siblings.")
-                print(node.parent)
-                sys.exit()
+                raise AttributeError("Error: binary logic operator must have both left and right siblings.")
 
             if rsb.value == "(" or lsb.value == ")":
                 unprocessed_binary_logic_ops.append(node)
