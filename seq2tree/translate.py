@@ -197,6 +197,24 @@ def manual_eval(num_eval):
                                FLAGS, num_eval)
 
 
+def interactive_decode():
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+        log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        model, _ = create_model(sess, forward_only=True)
+
+        # Load vocabularies.
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+        nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
+        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+
+        eval_tools.interactive_decode(sess, model, nl_vocab, rev_cm_vocab,
+                                      FLAGS)
+
+
 def compare_models():
     model_paths = [
         os.path.join(os.path.dirname(__file__), "..", "model/seq2seq/rnn-gru-128"),
@@ -226,24 +244,6 @@ def compare_models():
 
     eval_tools.compare_models(sessions, models, dev_set, rev_nl_vocab, rev_cm_vocab,
                               FLAGS, num_eval=50)
-
-
-def interactive_decode():
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True)
-
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-        nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-
-        eval_tools.interactive_decode(sess, model, nl_vocab, rev_cm_vocab,
-                                      FLAGS)
 
 
 def train_and_eval(train_set, dev_set):
