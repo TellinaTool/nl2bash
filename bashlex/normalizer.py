@@ -311,6 +311,8 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("-\\(", "\\(")
     cmd = cmd.replace("-\\)", "\\)")
     cmd = cmd.replace("\"\\)", " \\)")
+    cmd = cmd.replace('‘', '\'')
+    cmd = cmd.replace('’', '\'')
 
     ## the first argument of "tar" is always interpreted as an option
     tar_fix = re.compile(' tar \w')
@@ -779,8 +781,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 make_sibling(norm_node, head_command.children[0])
                 norm_node.parent = head_command
                 head_command.children.insert(0, norm_node)
-            elif len(arguments) > 1:
-                raise ValueError("'find' only takes one command argument.")
 
     def normalize(node, current, node_kind="", arg_type=""):
         # recursively normalize each subtree

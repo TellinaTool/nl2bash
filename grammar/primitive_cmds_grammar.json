@@ -349,24 +349,6 @@
             {
                "type":"optional_option",
                "cmd":{
-                  "type":"compound_options",
-                  "commands":[
-                     {
-                        "type":"flag_option",
-                        "flag_name":"depth"
-                     },
-                     {
-                        "type":"argument_option",
-                        "arg_name":"n",
-                        "arg_type":"Number",
-                        "isList":false
-                     }
-                  ]
-               }
-            },
-            {
-               "type":"optional_option",
-               "cmd":{
                   "type":"flag_option",
                   "flag_name":"empty"
                }
@@ -1671,24 +1653,6 @@
             {
                "type":"optional_option",
                "cmd":{
-                  "type":"compound_options",
-                  "commands":[
-                     {
-                        "type":"flag_option",
-                        "flag_name":"depth"
-                     },
-                     {
-                        "type":"argument_option",
-                        "arg_name":"n",
-                        "arg_type":"Number",
-                        "isList":false
-                     }
-                  ]
-               }
-            },
-            {
-               "type":"optional_option",
-               "cmd":{
                   "type":"flag_option",
                   "flag_name":"empty"
                }
@@ -2243,6 +2207,60 @@
                         "type":"argument_option",
                         "arg_name":"file",
                         "arg_type":"File",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
+                        "flag_name":"newerat"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"time",
+                        "arg_type":"Time",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type": "optional_option",
+               "cmd": {
+                  "type": "compound_options",
+                  "commands": [
+                     {
+                        "type": "flag_option",
+                        "flag_name": "newermt"
+                     },
+                     {
+                        "type": "argument_option",
+                        "arg_name": "time",
+                        "arg_type": "Time",
+                        "isList": false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
+                        "flag_name":"newerct"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"time",
+                        "arg_type":"Time",
                         "isList":false
                      }
                   ]
