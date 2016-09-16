@@ -774,7 +774,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             for child in head_command.children:
                 if child.kind == "argument":
                     arguments.append(child)
-            if len(arguments) < 1:
+            if head_command.getNumChildren() > 0 and len(arguments) < 1:
                 norm_node = ArgumentNode(value=".", arg_type="File")
                 make_sibling(norm_node, head_command.children[0])
                 norm_node.parent = head_command
