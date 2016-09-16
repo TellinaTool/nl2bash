@@ -123,8 +123,12 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True, normalize_
         word = re.sub(bash._DIGIT_RE, bash._NUM, word) \
             if normalize_digits and not word.startswith("-") else word
 
+        # remove empty words
+        if not word.strip():
+            continue
+
         # convert possessive expression
-        if word.endswith("'s"):
+        if len(word) > 2 and word.endswith("'s"):
             normalized_words.append(word[:-2])
             normalized_words.append("'s")
         else:
