@@ -22,6 +22,7 @@ import time
 from tqdm import tqdm
 
 import tensorflow as tf
+from tensorflow.python.util import nest
 
 import eval_tools, hyperparam_range
 import data_utils, data_tools, graph_utils
@@ -174,7 +175,7 @@ def eval(verbose=True, construct_model_dir=True):
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = load_data()
 
-        eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
+        return eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
                             FLAGS, verbose)
 
 
@@ -280,6 +281,7 @@ def grid_search(train_set, dev_set):
     model_root_dir = FLAGS.train_dir
 
     for row in grid:
+        row = nest.flatten(row)
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
 
