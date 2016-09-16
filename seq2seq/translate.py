@@ -50,6 +50,7 @@ import numpy as np
 from tqdm import tqdm
 
 import tensorflow as tf
+from tensorflow.python.util import nest
 
 import data_utils, data_tools, graph_utils
 import parse_args
@@ -152,7 +153,7 @@ def train(train_set, dev_set, num_epochs, construct_model_dir=True):
                 # Print statistics for the previous epoch.
                 perplexity = math.exp(loss) if loss < 300 else float('inf')
                 print("global step %d learning rate %.4f step-time %.2f perplexity "
-                      "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
+                      "%.2f" % (global_epochs+t+1, model.learning_rate.eval(),
                                 epoch_time, perplexity))
 
                 # Decrease learning rate if no improvement of loss was seen over last 3 times.
@@ -286,7 +287,10 @@ def grid_search(train_set, dev_set):
     best_seed = -1
     best_temp_match_score = 0.0
 
+    model_root_dir = FLAGS.train_dir
+
     for row in grid:
+        row = nest.flatten(row)
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
 
@@ -294,7 +298,7 @@ def grid_search(train_set, dev_set):
         for i in xrange(num_hps):
             print("* {}: {}".format(hyperparameters[i], row[i]))
 
-        model_dir = os.path.join(FLAGS.train_dir, FLAGS.encoder_topology)
+        model_dir = os.path.join(model_root_dir, FLAGS.encoder_topology)
         model_dir += '-{}'.format(FLAGS.rnn_cell)
         if FLAGS.use_attention:
             model_dir += '-attention'

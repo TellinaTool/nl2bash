@@ -310,9 +310,8 @@ class EncoderDecoderModel(object):
                     target = decoder_inputs[batch_idx][length_idx + 1]
                 if length_idx == decoder_size - 1 or target == data_utils.PAD_ID:
                     batch_weight[batch_idx] = 0.0
-                print(batch_weight)
             batch_weights.append(batch_weight)
-
+        
         if self.use_copy:
             return batch_encoder_inputs, batch_decoder_inputs, batch_weights, \
                 batch_original_encoder_inputs, batch_original_decoder_inputs, batch_copy_masks
@@ -346,6 +345,7 @@ class EncoderDecoderModel(object):
 
             # Encoder inputs are padded and then reversed.
             encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
+            # encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
             encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
 
             decoder_pad_size = decoder_size - len(decoder_input)

@@ -835,7 +835,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 # skip current node
                 normalize(child, current)
         elif node.kind == "redirect":
-            pass
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
         elif node.kind == "operator":
             # not supported
             raise ValueError("Unsupported: %s" % node.kind)

@@ -432,5 +432,5 @@ if __name__ == "__main__":
     #     split_by_template = False
     with DBConnection() as db:
         db.create_schema()
-        # db.dump_data(".")
-        db.dump_htmls(os.path.join(os.path.dirname(__file__), "..", "html.txt"))
+        db.dump_data(".")
+        # db.dump_htmls(os.path.join(os.path.dirname(__file__), "..", "html.txt"))
