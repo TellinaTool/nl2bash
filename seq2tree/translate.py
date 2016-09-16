@@ -276,6 +276,8 @@ def grid_search(train_set, dev_set):
     best_seed = -1
     best_temp_match_score = 0.0
 
+    model_root_dir = FLAGS.train_dir
+
     for row in grid:
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
@@ -284,7 +286,7 @@ def grid_search(train_set, dev_set):
         for i in xrange(num_hps):
             print("* {}: {}".format(hyperparameters[i], row[i]))
 
-        model_dir = os.path.join(FLAGS.train_dir, FLAGS.encoder_topology)
+        model_dir = os.path.join(model_root_dir, FLAGS.encoder_topology)
         model_dir += '-{}'.format(FLAGS.rnn_cell)
         if FLAGS.use_attention:
             model_dir += '-attention'
