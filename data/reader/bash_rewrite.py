@@ -16,13 +16,14 @@ if __name__ == "__main__":
 
     group_pairs_by_nl = {}
     for nl, cm in zip(nls, cms):
-        if not nl in group_pairs_by_nl:
-            group_pairs_by_nl[nl] = {}
+        nl_temp = ' '.join(data_tools.basic_tokenizer(nl))
+        if not nl_temp in group_pairs_by_nl:
+            group_pairs_by_nl[nl_temp] = {}
         cm_temp = data_tools.cmd2template(cm)
-        if not cm_temp in group_pairs_by_nl[nl]:
-            group_pairs_by_nl[nl][cm_temp] = \
+        if not cm_temp in group_pairs_by_nl[nl_temp]:
+            group_pairs_by_nl[nl_temp][cm_temp] = \
                 collections.defaultdict(int)
-        group_pairs_by_nl[nl][cm_temp][cm] += 1
+        group_pairs_by_nl[nl_temp][cm_temp][cm] += 1
 
     merged = set()
     nls = group_pairs_by_nl.keys()
@@ -50,7 +51,7 @@ if __name__ == "__main__":
         bash_paraphrases[nls[i]] = group_pairs_by_nl[nls[i]]
 
     for nl, cm_temps in sorted(bash_paraphrases.items(), lambda x: len(x[1]), reverse=True):
-        print nl, len(cm_temps)
+        print nl.encode('utf-8'), len(cm_temps)
 
 
 
