@@ -41,8 +41,8 @@ _SPACE = b"<SPACE>"
 _H_NO_EXPAND = b"<H_NO_EXPAND>"
 _V_NO_EXPAND = b"<V_NO_EXPAND>"
 
-_GO = b"_GO"                        # seq2seq start symbol
-_ROOT = b"ROOT_"                    # seq2tree start symbol
+_GO = b"_GO"                    # seq2seq start symbol
+_ROOT = b"ROOT_"                # seq2tree start symbol
 
 _NUM = b"_NUM"
 
