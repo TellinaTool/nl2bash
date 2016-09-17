@@ -16,6 +16,12 @@ if __name__ == "__main__":
 
     group_pairs_by_nl = {}
     for nl, cm in zip(nls, cms):
+        nl = nl.strip().decode('utf-8')
+        cm = cm.strip().decode('utf-8')
+        if not nl.strip():
+            continue
+        if not cm.strip():
+            continue
         if not nl in group_pairs_by_nl:
             group_pairs_by_nl[nl] = {}
         cm_temp = data_tools.cmd2template(cm)
@@ -49,7 +55,7 @@ if __name__ == "__main__":
             continue
         bash_paraphrases[nls[i]] = group_pairs_by_nl[nls[i]]
 
-    for nl, cm_temps in sorted(bash_paraphrases.items(), lambda x: len(x[1]), reverse=True):
+    for nl, cm_temps in sorted(bash_paraphrases.items(), key=lambda x: len(x[1]), reverse=True):
         print nl, len(cm_temps)
 
 

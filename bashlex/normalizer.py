@@ -296,6 +296,8 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("/bin/mv ", "mv ")
     cmd = cmd.replace("/bin/echo ", "echo ")
     cmd = cmd.replace("-i{}", "-I {}")
+    cmd = cmd.replace("-I{}", "-I {}")
+    cmd = cmd.replace("- newer", "-newer")
 
     ## remove shell character
     if cmd.startswith("\$ "):
@@ -311,8 +313,8 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("-\\(", "\\(")
     cmd = cmd.replace("-\\)", "\\)")
     cmd = cmd.replace("\"\\)", " \\)")
-    cmd = cmd.replace('‘', '\'')
-    cmd = cmd.replace('’', '\'')
+    cmd = cmd.replace('‘'.decode('utf-8'), '\'')
+    cmd = cmd.replace('’'.decode('utf-8'), '\'')
 
     ## the first argument of "tar" is always interpreted as an option
     tar_fix = re.compile(' tar \w')
