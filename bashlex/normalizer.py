@@ -209,7 +209,20 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         unprocessed_unary_logic_ops = []
         unprocessed_binary_logic_ops = []
 
-        def cmd_arg_type_check(word, arg_status):
+        def expecting(a_t):
+            for arg_type, is_list, filled in arg_status["non-optional"]:
+                if not is_list and filled:
+                    continue
+                if arg_type == a_t:
+                    return True
+            for arg_type, is_list, filled in arg_status["optional"]:
+                if not is_list and filled:
+                    continue
+                if arg_type == a_t:
+                    return True
+            return False
+                    
+        def cmd_arg_type_check(word):
             for i in xrange(len(arg_status["non-optional"])):
                 arg_type, is_list, filled = arg_status["non-optional"][i]
                 if not is_list and filled:
@@ -472,7 +485,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 attach_flag(child, attach_point_info)
                         else:
                             # child is an argument
-                            if "Utility" in possible_arg_types:
+                            if expecting("Utility"):
                                 # embedded command leaded by
                                 # ["sh", "csh", "ksh", "tcsh",
                                 #  "zsh", "bash", "exec", "xargs"]
@@ -487,7 +500,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                                   attach_point)
                                 ind = j
                             else:
-                                arg_type = cmd_arg_type_check(child.word, arg_status)
+                                arg_type = cmd_arg_type_check(child.word)
                                 # recurse to main normalization to handle argument
                                 # with deep structures
                                 normalize(child, attach_point, "argument", arg_type)
