@@ -126,11 +126,6 @@ class FlagNode(Node):
 class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(HeadCommandNode, self).__init__(parent, lsb, "headcommand", value)
-        if value == "grep":
-            self.mandatory_arg_types = ["Pattern", "File ..."]
-        elif value == "mv":
-
-
 
     def getHeadCommand(self):
         return self
