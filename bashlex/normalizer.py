@@ -525,7 +525,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                                   attach_point)
                                 ind = j
                             else:
-                                arg_type = cmd_arg_type_check(child.word)
+                                arg_type = cmd_arg_type_check(child)
                                 # recurse to main normalization to handle argument
                                 # with deep structures
                                 normalize(child, attach_point, "argument", arg_type)
