@@ -192,6 +192,7 @@ def ast2template(node, loose_constraints=False, arg_type_only=True):
     # flags are alphabetically ordered
     tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order=True,
                                   arg_type_only=arg_type_only)
+    print(tokens)
     return ' '.join(tokens)
 
 

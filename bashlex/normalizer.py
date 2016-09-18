@@ -208,6 +208,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             return False
                     
         def cmd_arg_type_check(word):
+            print(arg_status)
             for i in xrange(len(arg_status["non-optional"])):
                 arg_type, is_list, filled = arg_status["non-optional"][i]
                 if not is_list and filled:
@@ -220,6 +221,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     continue
                 arg_status["non-optional"][i][2] = True
                 return arg_type
+            return "Unknown"
 
         def organize_buffer(lparenth, rparenth):
             node = lparenth.rsb
@@ -423,7 +425,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                             attach_point_info = \
                                 (norm_node, ["flag", "argument"], None)
                         elif node_kind == "argument":
-                            if "Utility" in possible_arg_types:
+                            if possible_arg_types and "Utility" in possible_arg_types:
                                 # embedded command leaded by
                                 # ["-exec", "-execdir", "-ok", "-okdir"]
                                 new_command_node = bast.node(kind="command",
@@ -757,31 +759,31 @@ def prune_ast(node):
 
 
 def type_check(word, possible_types):
-            """Heuristically determine argument types."""
-            if word in ["+", ";", "{}"]:
-                return "ReservedWord"
-            if word.isdigit() and "Number" in possible_types:
-                return "Number"
-            if any(c.isdigit() for c in word):
-                if word[-1] in ["k", "M", "G", "T", "P"] and "Size" in possible_types:
-                    return "Size"
-                if word[-1] in ["s", "m", "h", "d", "w"] and "Time" in possible_types:
-                    return "Time"
-            if "Permission" in possible_types:
-                if any(c.isdigit() for c in word) or '=' in word:
-                    return "Permission"
-            if "Pattern" in possible_types:
-                return "Pattern"
-            elif "File" in possible_types:
-                return "File"
-            elif "Utility" in possible_types:
-                # TODO: this argument type is not well-handled
-                # This is usuallly third-party utitlies
-                return "Utility"
-            else:
-                print("Warning: unable to decide type for {}, return \"Unknown\"."
-                      .format(word))
-                return "Unknown"
+    """Heuristically determine argument types."""
+    if word in ["+", ";", "{}"]:
+        return "ReservedWord"
+    if word.isdigit() and "Number" in possible_types:
+        return "Number"
+    if any(c.isdigit() for c in word):
+        if word[-1] in ["k", "M", "G", "T", "P"] and "Size" in possible_types:
+            return "Size"
+        if word[-1] in ["s", "m", "h", "d", "w"] and "Time" in possible_types:
+            return "Time"
+    if "Permission" in possible_types:
+        if any(c.isdigit() for c in word) or '=' in word:
+            return "Permission"
+    if "Pattern" in possible_types:
+        return "Pattern"
+    elif "File" in possible_types:
+        return "File"
+    elif "Utility" in possible_types:
+        # TODO: this argument type is not well-handled
+        # This is usuallly third-party utitlies
+        return "Utility"
+    else:
+        print("Warning: unable to decide type for {}, return \"Unknown\"."
+              .format(word))
+        return "Unknown"
 
 
 def list_to_ast(list, order='dfs'):
