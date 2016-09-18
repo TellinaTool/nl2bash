@@ -297,7 +297,10 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("/bin/echo ", "echo ")
     cmd = cmd.replace("-i{}", "-I {}")
     cmd = cmd.replace("-I{}", "-I {}")
-    cmd = cmd.replace("- newer", "-newer")
+    cmd = cmd.replace("— ", "-")
+    cmd = cmd.replace("—", "-")
+    cmd = cmd.replace("-\xd0\xbe", "-o")
+    cmd = cmd.replace(" [] ", " {} ")
 
     ## remove shell character
     if cmd.startswith("\$ "):
@@ -313,8 +316,8 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("-\\(", "\\(")
     cmd = cmd.replace("-\\)", "\\)")
     cmd = cmd.replace("\"\\)", " \\)")
-    cmd = cmd.replace('‘'.decode('utf-8'), '\'')
-    cmd = cmd.replace('’'.decode('utf-8'), '\'')
+    cmd = cmd.replace('‘', '\'')
+    cmd = cmd.replace('’', '\'')
 
     ## the first argument of "tar" is always interpreted as an option
     tar_fix = re.compile(' tar \w')
@@ -884,41 +887,46 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             raise ValueError("Unsupported: %s" % node.kind)
 
     try:
+        cmd2 = cmd.encode('utf-8')
+    except UnicodeDecodeError, e:
+        cmd2 = cmd
+
+    try:
         tree = bparser.parse(cmd)
     except tokenizer.MatchedPairError, e:
-        print("Cannot parse: %s - MatchedPairError" % cmd.encode('utf-8'))
+        print("Cannot parse: %s - MatchedPairError" % cmd2)
         # return basic_tokenizer(cmd, normalize_digits, False)
         return None
     except errors.ParsingError, e:
-        print("Cannot parse: %s - ParsingError" % cmd.encode('utf-8'))
+        print("Cannot parse: %s - ParsingError" % cmd2)
         # return basic_tokenizer(cmd, normalize_digits, False)
         return None
     except NotImplementedError, e:
-        print("Cannot parse: %s - NotImplementedError" % cmd.encode('utf-8'))
+        print("Cannot parse: %s - NotImplementedError" % cmd2)
         # return basic_tokenizer(cmd, normalize_digits, False)
         return None
     except IndexError, e:
-        print("Cannot parse: %s - IndexError" % cmd.encode('utf-8'))
+        print("Cannot parse: %s - IndexError" % cmd2)
         # empty command
         return None
     except AttributeError, e:
-        print("Cannot parse: %s - AttributeError" % cmd.encode('utf-8'))
+        print("Cannot parse: %s - AttributeError" % cmd2)
         # not a bash command
         return None
 
     if len(tree) > 1:
-        print("Doesn't support command with multiple root nodes: %s" % cmd.encode('utf-8'))
+        print("Doesn't support command with multiple root nodes: %s" % cmd2)
     normalized_tree = Node(kind="root")
     try:
         normalize(tree[0], normalized_tree)
     except ValueError as err:
-        print("%s - %s" % (err.args[0], cmd))
+        print("%s - %s" % (err.args[0], cmd2))
         return None
     except AttributeError as err:
-        print("%s - %s" % (err.args[0], cmd))
+        print("%s - %s" % (err.args[0], cmd2))
         return None
     except AssertionError as err:
-        print("%s - %s" % (err.args[0], cmd))
+        print("%s - %s" % (err.args[0], cmd2))
         return None
 
     return normalized_tree

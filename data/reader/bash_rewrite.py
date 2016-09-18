@@ -16,13 +16,16 @@ if __name__ == "__main__":
 
     group_pairs_by_nl = {}
     for nl, cm in zip(nls, cms):
+        nl = nl.strip()
+        cm = cm.strip()
+        if nl.lower() == "na":
+            continue
+        if not nl:
+            continue
+        if not cm:
+            continue
         nl_temp = ' '.join(data_tools. \
-            basic_tokenizer(nl.strip().decode('utf-8')))
-        cm = cm.strip().decode('utf-8')
-        if not nl.strip():
-            continue
-        if not cm.strip():
-            continue
+            basic_tokenizer(nl.decode('utf-8')))
         if not nl_temp in group_pairs_by_nl:
             group_pairs_by_nl[nl_temp] = {}
         cm_temp = data_tools.cmd2template(cm)
@@ -39,7 +42,7 @@ if __name__ == "__main__":
         for j in xrange(i+1, len(nls)):
             nl2 = nls[j]
             cm_set2 = set(group_pairs_by_nl[nl2].keys())
-            if cm_set & cm_set2:
+            if len(cm_set & cm_set2) >= 2:
                 for cm_temp in cm_set:
                     if not cm_temp in group_pairs_by_nl[nl2]:
                         group_pairs_by_nl[nl2][cm_temp] = \
@@ -56,8 +59,13 @@ if __name__ == "__main__":
             continue
         bash_paraphrases[nls[i]] = group_pairs_by_nl[nls[i]]
 
-    for nl, cm_temps in sorted(bash_paraphrases.items(), lambda x: len(x[1]), reverse=True):
-        print nl.encode('utf-8'), len(cm_temps)
+    for nl, cm_temps in sorted(bash_paraphrases.items(), key=lambda x: len(x[1]), 
+                               reverse=True):
+        if len(cm_temps) >= 2:
+            print(nl)
+            for cm_temp in cm_temps:
+                print("* {} ({})".format(cm_temp, len(cm_temps[cm_temp])))
+            print()
 
 
 
