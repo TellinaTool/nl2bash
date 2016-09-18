@@ -235,14 +235,14 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             return False
                     
         def cmd_arg_type_check(word):
-            print(arg_status)
+            arg_types = {}
             for i in xrange(len(arg_status["non-optional"])):
                 arg_type, is_list, filled = arg_status["non-optional"][i]
                 if not is_list and filled:
                     continue
                 arg_types[arg_type] = None
-            for i in xrange(len(arg_status["non-optional"])):
-                arg_type, is_list, filled = arg_status["non-optional"][i]
+            for i in xrange(len(arg_status["optional"])):
+                arg_type, is_list, filled = arg_status["optional"][i]
                 if not is_list and filled:
                     continue
                 arg_types[arg_type] = None
@@ -254,8 +254,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if arg_status["non-optional"][i][0] == arg_type:
                     arg_status["non-optional"][i][2] = True
             for i in xrange(len(arg_status["optional"])):
-                if arg_status["non-optional"][i][0] == arg_type:
-                    arg_status["non-optional"][i][2] = True
+                if arg_status["optional"][i][0] == arg_type:
+                    arg_status["optional"][i][2] = True
 
             return arg_type
 
@@ -492,7 +492,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                     attach_point.value += '::' + ";"
                                 ind = j
                             else:
-                                arg_type = list(possible_arg_types)[0]
+                                if possible_arg_types:
+                                    arg_type = list(possible_arg_types)[0]
+                                else:
+                                    arg_type = cmd_arg_type_check(child.word)
                                 # recurse to main normalization to handle
                                 # argument with deep structures
                                 normalize(child, attach_point, "argument",
