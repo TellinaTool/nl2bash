@@ -18,7 +18,6 @@ if __name__ == "__main__":
     for nl, cm in zip(nls, cms):
         nl = nl.strip()
         cm = cm.strip()
-        print(cm)
         if nl.lower() == "na":
             continue
         if not nl:
@@ -63,7 +62,7 @@ if __name__ == "__main__":
     for nl, cm_temps in sorted(bash_paraphrases.items(), key=lambda x: len(x[1]), 
                                reverse=True):
         if len(cm_temps) >= 2:
-            print(nl)
+            print(nl.encode("utf-8"))
             for cm_temp in cm_temps:
                 print("* {} ({})".format(cm_temp, len(cm_temps[cm_temp])))
             print()
