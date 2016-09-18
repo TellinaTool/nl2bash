@@ -1228,6 +1228,24 @@
                   "commands":[
                      {
                         "type":"flag_option",
+                        "flag_name":"xtype"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"t",
+                        "arg_type":"Unknown",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
                         "flag_name":"uid"
                      },
                      {
@@ -2533,6 +2551,24 @@
                      {
                         "type":"flag_option",
                         "flag_name":"type"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"t",
+                        "arg_type":"Unknown",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
+                        "flag_name":"xtype"
                      },
                      {
                         "type":"argument_option",
