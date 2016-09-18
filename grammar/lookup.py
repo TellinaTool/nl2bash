@@ -8,12 +8,17 @@ class ManPageLookUp(object):
 
     def get_arg_types(self, cmd, verbose=False):
         try:
+            # arg_types = {}
+            # for arg_type, is_list in self.table[cmd]["arguments"]["non-optional"]:
+            #     arg_types[arg_type] = is_list
+            # for arg_type, is_list in self.table[cmd]["arguments"]["optional"]:
+            #     arg_types[arg_type] = is_list
             return self.table[cmd]["arguments"]
         except KeyError, e:
             # TODO: This exception is not handled very well.
             if verbose:
                 print("Error: command {} doesn't exist".format(cmd))
-            return {"Unknown": None}
+            return {"optional": ("Unknown", False)}
 
     def get_flag_arg_type(self, cmd, flag, verbose=False):
         try:
@@ -51,7 +56,7 @@ def make_grammar_from_json_syntax(cmd, manual_table):
     else:
         command_table = collections.defaultdict()
         command_table["flags"] = collections.defaultdict()
-        command_table["arguments"] = collections.defaultdict()
+        command_table["arguments"] = collections.defaultdict(list)
         manual_table[cmd["name"]] = command_table
     if cmd["option"]["type"] == "compound_options":
         for o in cmd["option"]["commands"]:
@@ -59,7 +64,7 @@ def make_grammar_from_json_syntax(cmd, manual_table):
     else:
         print("Unrecognized cmd_option type {}".format(cmd["option"]["type"]))
 
-def make_grammar_from_options(x, command_table):
+def make_grammar_from_options(x, command_table, optional=False):
     flag_table = command_table["flags"]
     arg_table = command_table["arguments"]
 
@@ -75,12 +80,12 @@ def make_grammar_from_options(x, command_table):
                     raise Exception("multiple argument types for {}".format(flag_name))
         else:
             for o in x["commands"]:
-                make_grammar_from_options(o, command_table)
+                make_grammar_from_options(o, command_table, optional)
     elif x["type"] == "optional_option":
-        make_grammar_from_options(x["cmd"], command_table)
+        make_grammar_from_options(x["cmd"], command_table, optional=True)
     elif x["type"] == "exclusive_options":
         for o in x["commands"]:
-            make_grammar_from_options(o, command_table)
+            make_grammar_from_options(o, command_table, optional)
     elif x["type"] == "flag_option":
         flag_name = "-" + x["flag_name"]
         if not flag_name in flag_table:
@@ -94,7 +99,10 @@ def make_grammar_from_options(x, command_table):
             if len(flag_table[flag_name]) > 1:
                 raise Exception("multiple argument types for {}".format(flag_name))
     elif x["type"] == "argument_option":
-        arg_table[x["arg_type"]] = None
+        if optional:
+            arg_table["optional"].append([x["arg_type"], x["isList"], False])
+        else:
+            arg_table["non-optional"].append([x["arg_type"], x["isList"], False])
     else:
         raise Exception("unknown type: {}".format(x["type"]))
 
