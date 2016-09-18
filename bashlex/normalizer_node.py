@@ -1,3 +1,19 @@
+import bash
+
+right_associate_unary_logic_operators = set(['!', '-not'])
+
+left_associate_unary_logic_operators = set(['-prune'])
+
+def make_parentchild(parent, child):
+    parent.addChild(child)
+    child.parent = parent
+
+def make_sibling(lsb, rsb):
+    if lsb:
+        lsb.rsb = rsb
+    if rsb:
+        rsb.lsb = lsb
+
 class Node(object):
     num_child = -1      # default value = -1, allow arbitrary number of children
     children_types = [] # list of children types
