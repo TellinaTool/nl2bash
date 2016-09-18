@@ -103,6 +103,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("—", "-")
     cmd = cmd.replace("-\xd0\xbe", "-o")
     cmd = cmd.replace(" [] ", " {} ")
+    cmd = cmd.replace("-n10", "-n 10")
 
     ## remove shell character
     if cmd.startswith("\$ "):
