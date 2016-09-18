@@ -48,10 +48,10 @@ def type_check(word, possible_types):
     if "Permission" in possible_types:
         if any(c.isdigit() for c in word) or '=' in word:
             return "Permission"
-    if "Pattern" in possible_types:
-        return "Pattern"
-    elif "File" in possible_types:
+    if "File" in possible_types:
         return "File"
+    elif "Pattern" in possible_types:
+        return "Pattern"
     elif "Utility" in possible_types:
         # TODO: this argument type is not well-handled
         # This is usuallly third-party utitlies
