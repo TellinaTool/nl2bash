@@ -1,3 +1,19 @@
+import bash
+
+right_associate_unary_logic_operators = set(['!', '-not'])
+
+left_associate_unary_logic_operators = set(['-prune'])
+
+def make_parentchild(parent, child):
+    parent.addChild(child)
+    child.parent = parent
+
+def make_sibling(lsb, rsb):
+    if lsb:
+        lsb.rsb = rsb
+    if rsb:
+        rsb.lsb = lsb
+
 class Node(object):
     num_child = -1      # default value = -1, allow arbitrary number of children
     children_types = [] # list of children types
@@ -126,11 +142,6 @@ class FlagNode(Node):
 class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(HeadCommandNode, self).__init__(parent, lsb, "headcommand", value)
-        if value == "grep":
-            self.mandatory_arg_types = ["Pattern", "File ..."]
-        elif value == "mv":
-
-
 
     def getHeadCommand(self):
         return self

@@ -22,10 +22,6 @@ from normalizer_node import *
 _H_NO_EXPAND = b"<H_NO_EXPAND>"
 _V_NO_EXPAND = b"<V_NO_EXPAND>"
 
-right_associate_unary_logic_operators = set(['!', '-not'])
-
-left_associate_unary_logic_operators = set(['-prune'])
-
 binary_logic_operators = set([
     '-and',
     '-or',
@@ -111,7 +107,6 @@ def attach_to_tree(node, parent):
     if node.lsb:
         node.lsb.rsb = node
 
-
 def detach_from_tree(node, parent):
     if not parent:
         return
@@ -123,16 +118,6 @@ def detach_from_tree(node, parent):
         node.rsb.lsb = node.lsb
     node.rsb = None
     node.lsb = None
-
-def make_parentchild(parent, child):
-    parent.addChild(child)
-    child.parent = parent
-
-def make_sibling(lsb, rsb):
-    if lsb:
-        lsb.rsb = rsb
-    if rsb:
-        rsb.lsb = lsb
 
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                   recover_quotation=True, verbose=False):
@@ -777,7 +762,7 @@ def type_check(word, possible_types):
                 print("Warning: unable to decide type for {}, return \"Unknown\"."
                       .format(word))
                 return "Unknown"
-            
+
 
 def list_to_ast(list, order='dfs'):
     root = Node(kind="root", value="root")
