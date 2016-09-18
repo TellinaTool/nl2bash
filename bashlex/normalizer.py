@@ -34,7 +34,8 @@ binary_logic_operators = set([
 man_lookup = ManPageLookUp([os.path.join(os.path.dirname(__file__), "..", "grammar",
                                          "primitive_cmds_grammar.json")])
 
-def type_check(word, possible_types):
+def type_check(node, possible_types):
+    word = node.word
     """Heuristically determine argument types."""
     if word in ["+", ";", "{}"]:
         return "ReservedWord"
@@ -49,7 +50,7 @@ def type_check(word, possible_types):
         if any(c.isdigit() for c in word) or '=' in word:
             return "Permission"
     if "Pattern" in possible_types:
-        if word[0] in ['"', '\''] and word[-1] in ['"', '\'']:
+        if len(word) == node.pos[1] - node.pos[0] - 2:
             return "Pattern"
     if "File" in possible_types:
         return "File"
@@ -236,7 +237,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     return True
             return False
                     
-        def cmd_arg_type_check(word):
+        def cmd_arg_type_check(node):
             arg_types = {}
             for i in xrange(len(arg_status["non-optional"])):
                 arg_type, is_list, filled = arg_status["non-optional"][i]
@@ -250,7 +251,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 arg_types[arg_type] = None
 
             assert(len(arg_types) > 0)
-            arg_type = type_check(word, arg_types)
+            arg_type = type_check(node, arg_types)
 
             for i in xrange(len(arg_status["non-optional"])):
                 if arg_status["non-optional"][i][0] == arg_type:
