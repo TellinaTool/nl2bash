@@ -34,6 +34,33 @@ binary_logic_operators = set([
 man_lookup = ManPageLookUp([os.path.join(os.path.dirname(__file__), "..", "grammar",
                                          "primitive_cmds_grammar.json")])
 
+def type_check(word, possible_types):
+    """Heuristically determine argument types."""
+    if word in ["+", ";", "{}"]:
+        return "ReservedWord"
+    if word.isdigit() and "Number" in possible_types:
+        return "Number"
+    if any(c.isdigit() for c in word):
+        if word[-1] in ["k", "M", "G", "T", "P"] and "Size" in possible_types:
+            return "Size"
+        if word[-1] in ["s", "m", "h", "d", "w"] and "Time" in possible_types:
+            return "Time"
+    if "Permission" in possible_types:
+        if any(c.isdigit() for c in word) or '=' in word:
+            return "Permission"
+    if "Pattern" in possible_types:
+        return "Pattern"
+    elif "File" in possible_types:
+        return "File"
+    elif "Utility" in possible_types:
+        # TODO: this argument type is not well-handled
+        # This is usuallly third-party utitlies
+        return "Utility"
+    else:
+        print("Warning: unable to decide type for {}, return \"Unknown\"."
+              .format(word))
+        return "Unknown"
+
 def is_unary_logic_op(node, parent):
     if node.word == "!":
         return parent and parent.kind == "headcommand" \
@@ -213,15 +240,24 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 arg_type, is_list, filled = arg_status["non-optional"][i]
                 if not is_list and filled:
                     continue
-                arg_status["non-optional"][i][2] = True
-                return arg_type
+                arg_types[arg_type] = None
             for i in xrange(len(arg_status["non-optional"])):
                 arg_type, is_list, filled = arg_status["non-optional"][i]
                 if not is_list and filled:
                     continue
-                arg_status["non-optional"][i][2] = True
-                return arg_type
-            return "Unknown"
+                arg_types[arg_type] = None
+
+            assert(len(arg_types) > 0)
+            arg_type = type_check(word, arg_types)
+
+            for i in xrange(len(arg_status["non-optional"])):
+                if arg_status["non-optional"][i][0] == arg_type:
+                    arg_status["non-optional"][i][2] = True
+            for i in xrange(len(arg_status["optional"])):
+                if arg_status["non-optional"][i][0] == arg_type:
+                    arg_status["non-optional"][i][2] = True
+
+            return arg_type
 
         def organize_buffer(lparenth, rparenth):
             node = lparenth.rsb
@@ -756,34 +792,6 @@ def prune_ast(node):
     prune_ast_fun(node)
 
     return node
-
-
-def type_check(word, possible_types):
-    """Heuristically determine argument types."""
-    if word in ["+", ";", "{}"]:
-        return "ReservedWord"
-    if word.isdigit() and "Number" in possible_types:
-        return "Number"
-    if any(c.isdigit() for c in word):
-        if word[-1] in ["k", "M", "G", "T", "P"] and "Size" in possible_types:
-            return "Size"
-        if word[-1] in ["s", "m", "h", "d", "w"] and "Time" in possible_types:
-            return "Time"
-    if "Permission" in possible_types:
-        if any(c.isdigit() for c in word) or '=' in word:
-            return "Permission"
-    if "Pattern" in possible_types:
-        return "Pattern"
-    elif "File" in possible_types:
-        return "File"
-    elif "Utility" in possible_types:
-        # TODO: this argument type is not well-handled
-        # This is usuallly third-party utitlies
-        return "Utility"
-    else:
-        print("Warning: unable to decide type for {}, return \"Unknown\"."
-              .format(word))
-        return "Unknown"
 
 
 def list_to_ast(list, order='dfs'):
