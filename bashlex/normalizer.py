@@ -30,8 +30,33 @@ binary_logic_operators = set([
     '-a'
 ])
 
-man_lookup = ManPageLookUp([os.path.join(os.path.dirname(__file__), "..", "grammar",
-                                         "primitive_cmds_grammar.json")])
+man_lookup = ManPageLookUp([os.path.join(
+    os.path.dirname(__file__), "..", "grammar", "primitive_cmds_grammar.json")])
+
+def cmd_arg_type_check(word, arg_status):
+    arg_types = {}
+    for i in xrange(len(arg_status["non-optional"])):
+        arg_type, is_list, filled = arg_status["non-optional"][i]
+        if not is_list and filled:
+            continue
+        arg_types[arg_type] = None
+    for i in xrange(len(arg_status["non-optional"])):
+        arg_type, is_list, filled = arg_status["non-optional"][i]
+        if not is_list and filled:
+            continue
+        arg_types[arg_type] = None
+
+    assert(len(arg_types) > 0)
+    arg_type = type_check(word, arg_types)
+
+    for i in xrange(len(arg_status["non-optional"])):
+        if arg_status["non-optional"][i][0] == arg_type:
+            arg_status["non-optional"][i][2] = True
+    for i in xrange(len(arg_status["optional"])):
+        if arg_status["non-optional"][i][0] == arg_type:
+            arg_status["non-optional"][i][2] = True
+
+    return arg_type
 
 def type_check(word, possible_types):
     """Heuristically determine argument types."""
@@ -234,31 +259,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if arg_type == a_t:
                     return True
             return False
-                    
-        def cmd_arg_type_check(node):
-            arg_types = {}
-            for i in xrange(len(arg_status["non-optional"])):
-                arg_type, is_list, filled = arg_status["non-optional"][i]
-                if not is_list and filled:
-                    continue
-                arg_types[arg_type] = None
-            for i in xrange(len(arg_status["non-optional"])):
-                arg_type, is_list, filled = arg_status["non-optional"][i]
-                if not is_list and filled:
-                    continue
-                arg_types[arg_type] = None
-
-            assert(len(arg_types) > 0)
-            arg_type = type_check(node.word, arg_types)
-
-            for i in xrange(len(arg_status["non-optional"])):
-                if arg_status["non-optional"][i][0] == arg_type:
-                    arg_status["non-optional"][i][2] = True
-            for i in xrange(len(arg_status["optional"])):
-                if arg_status["non-optional"][i][0] == arg_type:
-                    arg_status["non-optional"][i][2] = True
-
-            return arg_type
 
         def organize_buffer(lparenth, rparenth):
             node = lparenth.rsb
@@ -524,7 +524,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                                   attach_point)
                                 ind = j
                             else:
-                                arg_type = cmd_arg_type_check(child.word)
+                                arg_type = cmd_arg_type_check(child.word, arg_status)
                                 # recurse to main normalization to handle argument
                                 # with deep structures
                                 normalize(child, attach_point, "argument", arg_type)
@@ -799,12 +799,15 @@ def list_to_ast(list, order='dfs'):
     root = Node(kind="root", value="root")
     current = root
     if order == 'dfs':
+        arg_status_stack = []
         for i in xrange(1, len(list)):
             if not current:
                 break
             symbol = list[i]
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
                 current = current.parent
+                if current.kind == "headcomand":
+                    arg_status_stack.pop()
             else:
                 kind, value = symbol.split('_', 1)
                 kind = kind.lower()
@@ -813,11 +816,11 @@ def list_to_ast(list, order='dfs'):
                     if current.kind == "flag":
                         head_cmd = current.getHeadCommand().value
                         flag = current.value
-                        arg_type = man_lookup.get_flag_arg_type(head_cmd, flag)
+                        arg_type = \
+                            man_lookup.get_flag_arg_type(head_cmd, flag)
                     elif current.kind == "headcommand":
-                        head_cmd = current.value
-                        arg_type = type_check(
-                            value, man_lookup.get_arg_types(head_cmd))
+                        arg_type = cmd_arg_type_check(
+                            value, arg_status_stack[-1])
                     else:
                         print("Warning: to_ast unrecognized argument "
                               "attachment point {}.".format(current.symbol))
@@ -827,6 +830,9 @@ def list_to_ast(list, order='dfs'):
                     node = FlagNode(value=value)
                 elif kind == "headcommand":
                     node = HeadCommandNode(value=value)
+                    arg_status = copy.deepcopy(
+                            man_lookup.get_arg_types(value))
+                    arg_status_stack.append(arg_status)
                 elif kind == "unarylogicop":
                     node = UnaryLogicOpNode(value=value)
                 else:
