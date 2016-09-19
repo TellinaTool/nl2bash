@@ -106,19 +106,8 @@
             {
                "type":"optional_option",
                "cmd":{
-                  "type":"compound_options",
-                  "commands":[
-                     {
-                        "type":"flag_option",
-                        "flag_name":"not"
-                     },
-                     {
-                        "type":"argument_option",
-                        "arg_name":"findexp",
-                        "arg_type":"Unknown",
-                        "isList":false
-                     }
-                  ]
+                  "type":"flag_option",
+                  "flag_name":"not"
                }
             },
             {
@@ -300,6 +289,24 @@
                   "commands":[
                      {
                         "type":"flag_option",
+                        "flag_name":"atime"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"nmin",
+                        "arg_type":"Number",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
                         "flag_name":"ctime"
                      },
                      {
@@ -322,6 +329,13 @@
                "type":"optional_option",
                "cmd":{
                   "type":"flag_option",
+                  "flag_name":"daystart"
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"flag_option",
                   "flag_name":"delete"
                }
             },
@@ -330,24 +344,6 @@
                "cmd":{
                   "type":"flag_option",
                   "flag_name":"depth"
-               }
-            },
-            {
-               "type":"optional_option",
-               "cmd":{
-                  "type":"compound_options",
-                  "commands":[
-                     {
-                        "type":"flag_option",
-                        "flag_name":"depth"
-                     },
-                     {
-                        "type":"argument_option",
-                        "arg_name":"n",
-                        "arg_type":"Number",
-                        "isList":false
-                     }
-                  ]
                }
             },
             {
@@ -579,7 +575,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"gname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -597,7 +593,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"gname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -694,7 +690,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -1036,7 +1032,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -1113,8 +1109,44 @@
             {
                "type":"optional_option",
                "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
+                        "flag_name":"printf"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"pattern",
+                        "arg_type":"Pattern",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
                   "type":"flag_option",
                   "flag_name":"prune"
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
+                        "flag_name":"regextype"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"regex_type",
+                        "arg_type":"Pattern",
+                        "isList":false
+                     }
+                  ]
                }
             },
             {
@@ -1147,7 +1179,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"name",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1196,12 +1228,30 @@
                   "commands":[
                      {
                         "type":"flag_option",
+                        "flag_name":"xtype"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"t",
+                        "arg_type":"Unknown",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
                         "flag_name":"uid"
                      },
                      {
                         "type":"argument_option",
                         "arg_name":"uname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1219,7 +1269,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"uname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1262,7 +1312,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"name",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1403,19 +1453,8 @@
             {
                "type":"optional_option",
                "cmd":{
-                  "type":"compound_options",
-                  "commands":[
-                     {
-                        "type":"flag_option",
-                        "flag_name":"not"
-                     },
-                     {
-                        "type":"argument_option",
-                        "arg_name":"findexp",
-                        "arg_type":"Unknown",
-                        "isList":false
-                     }
-                  ]
+                  "type":"flag_option",
+                  "flag_name":"not"
                }
             },
             {
@@ -1627,24 +1666,6 @@
                "cmd":{
                   "type":"flag_option",
                   "flag_name":"depth"
-               }
-            },
-            {
-               "type":"optional_option",
-               "cmd":{
-                  "type":"compound_options",
-                  "commands":[
-                     {
-                        "type":"flag_option",
-                        "flag_name":"depth"
-                     },
-                     {
-                        "type":"argument_option",
-                        "arg_name":"n",
-                        "arg_type":"Number",
-                        "isList":false
-                     }
-                  ]
                }
             },
             {
@@ -1876,7 +1897,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"gname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1894,7 +1915,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"gname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -1991,7 +2012,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -2216,6 +2237,60 @@
                   "commands":[
                      {
                         "type":"flag_option",
+                        "flag_name":"newerat"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"time",
+                        "arg_type":"Time",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type": "optional_option",
+               "cmd": {
+                  "type": "compound_options",
+                  "commands": [
+                     {
+                        "type": "flag_option",
+                        "flag_name": "newermt"
+                     },
+                     {
+                        "type": "argument_option",
+                        "arg_name": "time",
+                        "arg_type": "Time",
+                        "isList": false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
+                        "flag_name":"newerct"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"time",
+                        "arg_type":"Time",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
                         "flag_name":"newerXY"
                      },
                      {
@@ -2333,7 +2408,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"pattern",
-                        "arg_type":"Pattern",
+                        "arg_type":"File",
                         "isList":false
                      }
                   ]
@@ -2444,7 +2519,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"name",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -2493,12 +2568,30 @@
                   "commands":[
                      {
                         "type":"flag_option",
+                        "flag_name":"xtype"
+                     },
+                     {
+                        "type":"argument_option",
+                        "arg_name":"t",
+                        "arg_type":"Unknown",
+                        "isList":false
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
                         "flag_name":"uid"
                      },
                      {
                         "type":"argument_option",
                         "arg_name":"uname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -2516,7 +2609,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"uname",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -2559,7 +2652,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"name",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -4269,7 +4362,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"tar_format",
-                        "arg_type":"Unknown",
+                        "arg_type":"TarFormat",
                         "isList":false
                      }
                   ]
@@ -4818,7 +4911,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"tar_format",
-                        "arg_type":"Unknown",
+                        "arg_type":"TarFormat",
                         "isList":false
                      }
                   ]
@@ -6452,7 +6545,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"eofstr",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -6470,7 +6563,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"replstr",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      },
                      {
@@ -6506,7 +6599,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"replstr",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -6660,7 +6753,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"string",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -6678,7 +6771,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"string",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -6753,7 +6846,7 @@
             {
                "type":"argument_option",
                "arg_name":"command",
-               "arg_type":"String",
+               "arg_type":"Pattern",
                "isList":false
             },
             {
@@ -6814,7 +6907,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"command",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -6850,7 +6943,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"extension",
-                        "arg_type":"String",
+                        "arg_type":"Pattern",
                         "isList":false
                      }
                   ]
@@ -7113,7 +7206,7 @@
    },
    {
       "type":"command",
-      "name":"chmod",
+      "name":"chown",
       "option":{
          "type":"compound_options",
          "commands":[
@@ -7170,8 +7263,8 @@
             },
             {
                "type":"argument_option",
-               "arg_name":"permmode",
-               "arg_type":"Permission",
+               "arg_name":"owner",
+               "arg_type":"Pattern",
                "isList":false
             },
             {
@@ -7250,7 +7343,7 @@
                         "cmd":{
                            "type":"argument_option",
                            "arg_name":"MINUSa",
-                           "arg_type":"Number",
+                           "arg_type":"Permission",
                            "isList":false
                         }
                      },
@@ -7259,7 +7352,7 @@
                         "cmd":{
                            "type":"argument_option",
                            "arg_name":"PLUSa",
-                           "arg_type":"Number",
+                           "arg_type":"Permission",
                            "isList":false
                         }
                      },
@@ -7268,7 +7361,7 @@
                         "cmd":{
                            "type":"argument_option",
                            "arg_name":"EQUALa",
-                           "arg_type":"Number",
+                           "arg_type":"Permission",
                            "isList":false
                         }
                      }
@@ -8466,7 +8559,7 @@
                "cmd":{
                   "type":"argument_option",
                   "arg_name":"string",
-                  "arg_type":"String",
+                  "arg_type":"Pattern",
                   "isList":true
                }
             }
@@ -8484,7 +8577,7 @@
                "cmd":{
                   "type":"argument_option",
                   "arg_name":"OPTION",
-                  "arg_type":"String",
+                  "arg_type":"Pattern",
                   "isList":true
                }
             },
@@ -8646,7 +8739,7 @@
                "cmd":{
                   "type":"argument_option",
                   "arg_name":"option",
-                  "arg_type":"String",
+                  "arg_type":"Pattern",
                   "isList":true
                }
             },
