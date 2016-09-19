@@ -47,7 +47,8 @@ def load_syntax(json_files, verbose=True):
             make_grammar_from_json_syntax(cmd, manual_table)
             counts[cmd["name"]] += 1
             if verbose:
-                print(" > loaded {} ({})".format(cmd["name"], counts[cmd["name"]]))
+                print(" > loaded {} ({})".format(cmd["name"],
+                                                 counts[cmd["name"]]))
     return manual_table
 
 def make_grammar_from_json_syntax(cmd, manual_table):
