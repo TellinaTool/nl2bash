@@ -69,7 +69,7 @@ PrimitiveCmd ::=
 		chmod [-fhv] [-R [-H | -L | -P]] [-C] file ...
 		chmod [-fhv] [-R [-H | -L | -P]] [-N] file ...
 
-		zip  [-aABcdDeEfFghjklLmoqrRSTuvVwXyz] [AT] [EXCLAIMATION] [DOLLAR]  [--longoption]  [-b path] [-n suffixes] [-t date] [-tt date] [zipfile [file ...]]  [-xi list]
+		zip  [-aABcdDeEfFghjklLmoqrRSTuvVwXyz] [AT] [EXCLAIMATION] [DOLLAR]  [--longoption]  [-b path] [-n suffixes] [-t date] [-tt date] [zipfile ...]  [-xi list]
 
 		unzip [-Z] [-cflptTuvzabjnoqsCKLMVWX] file [file ...]  [-x xfile ...] [-d exdir]
 

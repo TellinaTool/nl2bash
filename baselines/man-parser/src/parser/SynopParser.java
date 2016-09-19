@@ -74,7 +74,9 @@ String flagName = s.toString().substring(s.toString().indexOf("-") + 1);
 
             boolean belongsToWierdData = false;
             try {
-                List<String> lines = Files.readAllLines(Paths.get("./wierddata"));
+
+                // load a hand crafted object
+                List<String> lines = Files.readAllLines(Paths.get("../../../grammar/optionwords.txt"));
                 for (String u : lines) {
                     if (u.startsWith("-" + flagName)) {
                         belongsToWierdData = true;
