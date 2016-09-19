@@ -497,7 +497,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 if possible_arg_types:
                                     arg_type = list(possible_arg_types)[0]
                                 else:
-                                    arg_type = cmd_arg_type_check(child.word)
+                                    arg_type = cmd_arg_type_check(child)
                                 # recurse to main normalization to handle
                                 # argument with deep structures
                                 normalize(child, attach_point, "argument",
@@ -528,7 +528,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                                   attach_point)
                                 ind = j
                             else:
-                                arg_type = cmd_arg_type_check(child.word)
+                                arg_type = cmd_arg_type_check(child)
                                 # recurse to main normalization to handle argument
                                 # with deep structures
                                 normalize(child, attach_point, "argument", arg_type)
@@ -820,6 +820,8 @@ def list_to_ast(list, order='dfs'):
                         arg_type = man_lookup.get_flag_arg_type(head_cmd, flag)
                     elif current.kind == "headcommand":
                         head_cmd = current.value
+                        print(head_cmd)
+                        print(man_lookup.get_arg_types(head_cmd))
                         arg_type = type_check(
                             value, man_lookup.get_arg_types(head_cmd))
                     else:

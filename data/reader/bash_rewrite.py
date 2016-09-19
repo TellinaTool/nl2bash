@@ -18,7 +18,6 @@ if __name__ == "__main__":
     for nl, cm in zip(nls, cms):
         nl = nl.strip()
         cm = cm.strip()
-        print(cm)
         if nl.lower() == "na":
             continue
         if not nl:
