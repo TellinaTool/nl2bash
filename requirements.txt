@@ -1,2 +1,4 @@
 bashlex
 nltk
+bs4
+matplotlib
