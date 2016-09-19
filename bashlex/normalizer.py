@@ -15,7 +15,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "grammar"))
 
 # bashlex stuff
 import bast, errors, tokenizer, bparser
-import bash
 from lookup import ManPageLookUp
 from normalizer_node import *
 
@@ -34,8 +33,7 @@ binary_logic_operators = set([
 man_lookup = ManPageLookUp([os.path.join(os.path.dirname(__file__), "..", "grammar",
                                          "primitive_cmds_grammar.json")])
 
-def type_check(node, possible_types):
-    word = node.word
+def type_check(word, possible_types):
     """Heuristically determine argument types."""
     if word in ["+", ";", "{}"]:
         return "ReservedWord"
@@ -49,14 +47,15 @@ def type_check(node, possible_types):
     if "Permission" in possible_types:
         if any(c.isdigit() for c in word) or '=' in word:
             return "Permission"
-    if "Pattern" in possible_types:
-        if len(word) == node.pos[1] - node.pos[0] - 2:
-            return "Pattern"
     if "File" in possible_types:
+        # TODO: this argument type is not well-handled
         return "File"
+    elif "Pattern" in possible_types:
+        # TODO: this argument type is not well-handled
+        return "Pattern"
     elif "Utility" in possible_types:
         # TODO: this argument type is not well-handled
-        # This is usuallly third-party utitlies
+        # This is usually a third-party utility
         return "Utility"
     else:
         print("Warning: unable to decide type for {}, return \"Unknown\"."
@@ -250,7 +249,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 arg_types[arg_type] = None
 
             assert(len(arg_types) > 0)
-            arg_type = type_check(node, arg_types)
+            arg_type = type_check(node.word, arg_types)
 
             for i in xrange(len(arg_status["non-optional"])):
                 if arg_status["non-optional"][i][0] == arg_type:
@@ -525,7 +524,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                                   attach_point)
                                 ind = j
                             else:
-                                arg_type = cmd_arg_type_check(child)
+                                arg_type = cmd_arg_type_check(child.word)
                                 # recurse to main normalization to handle argument
                                 # with deep structures
                                 normalize(child, attach_point, "argument", arg_type)
@@ -817,8 +816,8 @@ def list_to_ast(list, order='dfs'):
                         arg_type = man_lookup.get_flag_arg_type(head_cmd, flag)
                     elif current.kind == "headcommand":
                         head_cmd = current.value
-                        arg_type = type_check(value,
-                                              man_lookup.get_arg_types(head_cmd))
+                        arg_type = type_check(
+                            value, man_lookup.get_arg_types(head_cmd))
                     else:
                         print("Warning: to_ast unrecognized argument "
                               "attachment point {}.".format(current.symbol))
