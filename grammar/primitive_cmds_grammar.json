@@ -8685,7 +8685,7 @@
                         "cmd":{
                            "type":"argument_option",
                            "arg_name":"prog",
-                           "arg_type":"Unknown",
+                           "arg_type":"Pattern",
                            "isList":true
                         }
                      },
