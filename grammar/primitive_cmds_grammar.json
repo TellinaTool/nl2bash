@@ -3203,13 +3203,10 @@
                         "flag_name":"C"
                      },
                      {
-                        "type":"optional_option",
-                        "cmd":{
-                           "type":"argument_option",
-                           "arg_name":"num",
-                           "arg_type":"Number",
-                           "isList":false
-                        }
+                        "type":"argument_option",
+                        "arg_name":"num",
+                        "arg_type":"Number",
+                        "isList":false
                      }
                   ]
                }
@@ -3598,13 +3595,10 @@
                         "flag_name":"C"
                      },
                      {
-                        "type":"optional_option",
-                        "cmd":{
-                           "type":"argument_option",
-                           "arg_name":"num",
-                           "arg_type":"Number",
-                           "isList":false
-                        }
+                        "type":"argument_option",
+                        "arg_name":"num",
+                        "arg_type":"Number",
+                        "isList":false
                      }
                   ]
                }
