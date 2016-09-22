@@ -40,8 +40,8 @@ def cmd_arg_type_check(word, arg_status):
         if not is_list and filled:
             continue
         arg_types.append(arg_type)
-    for i in xrange(len(arg_status["non-optional"])):
-        arg_type, is_list, filled = arg_status["non-optional"][i]
+    for i in xrange(len(arg_status["optional"])):
+        arg_type, is_list, filled = arg_status["optional"][i]
         if not is_list and filled:
             continue
         arg_types.append(arg_type)
@@ -53,8 +53,8 @@ def cmd_arg_type_check(word, arg_status):
         if arg_status["non-optional"][i][0] == arg_type:
             arg_status["non-optional"][i][2] = True
     for i in xrange(len(arg_status["optional"])):
-        if arg_status["non-optional"][i][0] == arg_type:
-            arg_status["non-optional"][i][2] = True
+        if arg_status["optional"][i][0] == arg_type:
+            arg_status["optional"][i][2] = True
 
     return arg_type
 
@@ -836,7 +836,7 @@ def list_to_ast(list, order='dfs'):
             symbol = list[i]
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
                 current = current.parent
-                if current.kind == "headcomand":
+                if current and current.kind == "headcomand":
                     arg_status_stack.pop()
             else:
                 kind, value = symbol.split('_', 1)
