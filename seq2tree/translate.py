@@ -33,7 +33,7 @@ FLAGS = tf.app.flags.FLAGS
 
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(5, 10), (10, 20), (15, 30), (20, 40), (30, 50), (40, 64)]
+_buckets = [(5, 10), (10, 20), (15, 30), (20, 40), (30, 50), (40, 66)]
 
 
 def create_model(session, forward_only, construct_model_dir=True):

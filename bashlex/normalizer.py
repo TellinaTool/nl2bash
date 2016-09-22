@@ -110,14 +110,33 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("/bin/rm ", "rm ")
     cmd = cmd.replace("/bin/mv ", "mv ")
     cmd = cmd.replace("/bin/echo ", "echo ")
+    
+    ## correct common spelling errors
     cmd = cmd.replace("-i{}", "-I {}")
     cmd = cmd.replace("-I{}", "-I {}")
     cmd = cmd.replace("-mitime", "-mtime")
-    cmd = cmd.replace("— ", "-")
-    cmd = cmd.replace("—", "-")
-    cmd = cmd.replace("-\xd0\xbe", "-o")
     cmd = cmd.replace(" [] ", " {} ")
-
+    cmd = cmd.replace("-n10", "-n 10")
+    cmd = cmd.replace("-\\(", "\\(")
+    cmd = cmd.replace("-\\)", "\\)")
+    cmd = cmd.replace("\"\\)", " \\)")
+    try:
+        cmd = cmd.replace("— ", "-")
+        cmd = cmd.replace("—", "-")
+        cmd = cmd.replace("-\xd0\xbe", "-o")
+        cmd = cmd.replace("“", '"')
+        cmd = cmd.replace("”", '"')
+        cmd = cmd.replace('‘', '\'')
+        cmd = cmd.replace('’', '\'')
+    except UnicodeDecodeError, e:
+        cmd = cmd.replace("— ".decode('utf-8'), "-")
+        cmd = cmd.replace("—".decode('utf-8'), "-")
+        cmd = cmd.replace("“".decode('utf-8'), '"')
+        cmd = cmd.replace("”".decode('utf-8'), '"')
+        cmd = cmd.replace("\xd0\xbe".decode('utf-8'), "o") 
+        cmd = cmd.replace('‘'.decode('utf-8'), '\'')
+        cmd = cmd.replace('’'.decode('utf-8'), '\'')
+        
     ## remove shell character
     if cmd.startswith("\$ "):
         cmd = re.sub("^\$ ", '', cmd)
@@ -127,13 +146,6 @@ def special_command_normalization(cmd):
         cmd = re.sub("^\$find ", "find ", cmd)
     if cmd.startswith("\#find "):
         cmd = re.sub("^\#find ", "find ", cmd)
-
-    ## correct common spelling errors
-    cmd = cmd.replace("-\\(", "\\(")
-    cmd = cmd.replace("-\\)", "\\)")
-    cmd = cmd.replace("\"\\)", " \\)")
-    cmd = cmd.replace('‘', '\'')
-    cmd = cmd.replace('’', '\'')
 
     ## the first argument of "tar" is always interpreted as an option
     tar_fix = re.compile(' tar \w')
@@ -155,7 +167,7 @@ def detach_from_tree(node, parent):
     if not parent:
         return
     parent.removeChild(node)
-    parent = None
+    node.parent = None
     if node.lsb:
         node.lsb.rsb = node.rsb
     if node.rsb:
@@ -482,7 +494,12 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                     attach_point.value += '::' + ";"
                                 ind = j
                             else:
-                                arg_type = list(possible_arg_types)[0]
+                                if possible_arg_types:
+                                    arg_type = list(possible_arg_types)[0]
+                                else:
+                                    # "--" encountered
+                                    arg_type = cmd_arg_type_check(child,
+                                                                  arg_status)
                                 # recurse to main normalization to handle
                                 # argument with deep structures
                                 normalize(child, attach_point, "argument",
@@ -800,7 +817,7 @@ def arg_slots(node):
 
     arg_slot_fun(node)
 
-    return [(node, taken) for node, taken in sorted(slots, key=lambda x:x[0])]
+    return [[node, taken] for _, node, taken in sorted(slots, key=lambda x:x[0])]
 
 
 def prune_ast(node):

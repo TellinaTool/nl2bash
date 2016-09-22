@@ -18,7 +18,8 @@ class ManPageLookUp(object):
             # TODO: This exception is not handled very well.
             if verbose:
                 print("Error: command {} doesn't exist".format(cmd))
-            return {"optional": ("Unknown", False)}
+            return {"optional": ("Unknown", False), 
+                    "non-optional": ("Unknown", False)}
 
     def get_flag_arg_type(self, cmd, flag, verbose=False):
         try:
@@ -57,7 +58,8 @@ def make_grammar_from_json_syntax(cmd, manual_table):
     else:
         command_table = collections.defaultdict()
         command_table["flags"] = collections.defaultdict()
-        command_table["arguments"] = collections.defaultdict(list)
+        command_table["arguments"] = {"optional": [],
+                                      "non-optional": []}
         manual_table[cmd["name"]] = command_table
     if cmd["option"]["type"] == "compound_options":
         for o in cmd["option"]["commands"]:
