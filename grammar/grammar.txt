@@ -4,7 +4,7 @@ type ::=
 		Path (path)
 
 		String (name, gname, eofstr, replstr, string, command, extension, option, uname, owner)
-		Pattern (pattern)
+		Pattern (pattern, prog)
 
 		Number (n, num, number, replacements, maxprocs, incr, bytes, count, mask)
 		Time (time, nmin)
