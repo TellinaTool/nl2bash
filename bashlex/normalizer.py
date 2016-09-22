@@ -123,14 +123,28 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("/bin/rm ", "rm ")
     cmd = cmd.replace("/bin/mv ", "mv ")
     cmd = cmd.replace("/bin/echo ", "echo ")
+    
+    ## correct common spelling errors
     cmd = cmd.replace("-i{}", "-I {}")
     cmd = cmd.replace("-I{}", "-I {}")
-    cmd = cmd.replace("— ", "-")
-    cmd = cmd.replace("—", "-")
-    cmd = cmd.replace("-\xd0\xbe", "-o")
     cmd = cmd.replace(" [] ", " {} ")
     cmd = cmd.replace("-n10", "-n 10")
-
+    cmd = cmd.replace("-\\(", "\\(")
+    cmd = cmd.replace("-\\)", "\\)")
+    cmd = cmd.replace("\"\\)", " \\)")
+    try:
+        cmd = cmd.replace("— ", "-")
+        cmd = cmd.replace("—", "-")
+        cmd = cmd.replace("-\xd0\xbe", "-o")
+        cmd = cmd.replace('‘', '\'')
+        cmd = cmd.replace('’', '\'')
+    except UnicodeDecodeError, e:
+        cmd = cmd.replace("— ".decode('utf-8'), "-")
+        cmd = cmd.replace("—".decode('utf-8'), "-")
+        cmd = cmd.replace("\xd0\xbe".decode('utf-8'), "o") 
+        cmd = cmd.replace('‘'.decode('utf-8'), '\'')
+        cmd = cmd.replace('’'.decode('utf-8'), '\'')
+        
     ## remove shell character
     if cmd.startswith("\$ "):
         cmd = re.sub("^\$ ", '', cmd)
@@ -140,13 +154,6 @@ def special_command_normalization(cmd):
         cmd = re.sub("^\$find ", "find ", cmd)
     if cmd.startswith("\#find "):
         cmd = re.sub("^\#find ", "find ", cmd)
-
-    ## correct common spelling errors
-    cmd = cmd.replace("-\\(", "\\(")
-    cmd = cmd.replace("-\\)", "\\)")
-    cmd = cmd.replace("\"\\)", " \\)")
-    cmd = cmd.replace('‘', '\'')
-    cmd = cmd.replace('’', '\'')
 
     ## the first argument of "tar" is always interpreted as an option
     tar_fix = re.compile(' tar \w')
