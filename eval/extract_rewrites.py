@@ -116,6 +116,8 @@ def extract_rewrites(data):
                 print(nl)
                 for cm_temp1 in cm_temps:
                     for cm_temp2 in cm_temps:
+                        if cm_temp1 == cm_temp2:
+                            continue
                         if not db.exist_rewrite((cm_temp1, cm_temp2)):
                             db.add_rewrite((cm_temp1, cm_temp2))
                             print("* {} --> {}".format(cm_temp1, cm_temp2))
@@ -125,7 +127,7 @@ def extract_rewrites(data):
 def test_rewrite(cmd):
     with DBConnection() as db:
         ast = data_tools.bash_parser(cmd)
-        rewrites = db.get_rewrites(ast)
+        rewrites = list(db.get_rewrites(ast))
         for i in xrange(len(rewrites)):
             print("rewrite %d: %s" % (i, rewrites[i]))
 
@@ -144,6 +146,7 @@ if __name__ == "__main__":
     while True:
         try:
             cmd = raw_input("> ")
+            cmd = cmd.decode("utf-8")
             test_rewrite(cmd)
         except EOFError as ex:
             break
