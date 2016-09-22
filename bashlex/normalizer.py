@@ -34,17 +34,23 @@ man_lookup = ManPageLookUp([os.path.join(
     os.path.dirname(__file__), "..", "grammar", "primitive_cmds_grammar.json")])
 
 def cmd_arg_type_check(word, arg_status):
-    arg_types = {}
+    arg_types = []
     for i in xrange(len(arg_status["non-optional"])):
         arg_type, is_list, filled = arg_status["non-optional"][i]
         if not is_list and filled:
             continue
+<<<<<<< HEAD
         arg_types[arg_type] = None
     for i in xrange(len(arg_status["optional"])):
         arg_type, is_list, filled = arg_status["optional"][i]
+=======
+        arg_types.append(arg_type)
+    for i in xrange(len(arg_status["non-optional"])):
+        arg_type, is_list, filled = arg_status["non-optional"][i]
+>>>>>>> 6741fc11c3e6b120b5ba8a31ab08589eadc065ae
         if not is_list and filled:
             continue
-        arg_types[arg_type] = None
+        arg_types.append(arg_type)
 
     assert(len(arg_types) > 0)
     arg_type = type_check(word, arg_types)
@@ -72,20 +78,7 @@ def type_check(word, possible_types):
     if "Permission" in possible_types:
         if any(c.isdigit() for c in word) or '=' in word:
             return "Permission"
-    if "File" in possible_types:
-        # TODO: this argument type is not well-handled
-        return "File"
-    elif "Pattern" in possible_types:
-        # TODO: this argument type is not well-handled
-        return "Pattern"
-    elif "Utility" in possible_types:
-        # TODO: this argument type is not well-handled
-        # This is usually a third-party utility
-        return "Utility"
-    else:
-        print("Warning: unable to decide type for {}, return \"Unknown\"."
-              .format(word))
-        return "Unknown"
+    return possible_types[0]
 
 def is_unary_logic_op(node, parent):
     if node.word == "!":
