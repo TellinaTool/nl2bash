@@ -23,29 +23,58 @@ class DBConnection(object):
     def create_schema(self):
         c = self.cursor
 
-        c.execute("CREATE TABLE IF NOT EXISTS Archives (nl TEXT, temp TEXT, judgement INT)")
+        c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, str TEXT, judgement INT)")
+        c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, temp TEXT, judgement INT)")
 
         self.conn.commit()
 
-    def add_judgement(self, triple):
+    def add_str_judgement(self, triple):
         c = self.cursor
-        if not self.exist_pair((triple[0], triple[1])):
+        if not self.exist_str_pair((triple[0], triple[1])):
+            c.execute("INSERT INTO Archives (nl, str, judgement) VALUES (?, ?, ?)", triple)
+        self.conn.commit()
+
+    def add_temp_judgement(self, triple):
+        c = self.cursor
+        if not self.exist_temp_pair((triple[0], triple[1])):
             c.execute("INSERT INTO Archives (nl, temp, judgement) VALUES (?, ?, ?)", triple)
         self.conn.commit()
 
-    def get_judgement(self, pair):
+    def get_str_judgement(self, pair):
+        c = self.cursor
+        for _, _, judgement in c.execute("SELECT nl, str, judgement FROM Archives WHERE nl = ? AND str = ?", pair):
+            return judgement
+
+    def get_temp_judgement(self, pair):
         c = self.cursor
         for _, _, judgement in c.execute("SELECT nl, temp, judgement FROM Archives WHERE nl = ? AND temp = ?", pair):
             return judgement
 
-    def exist_pair(self, pair):
+    def exist_str_pair(self, pair):
+        c = self.cursor
+        for _, _, judgement in c.execute("SELECT 1 FROM Archives WHERE nl = ? AND str = ?", pair):
+            return True
+        return False
+
+    def exist_temp_pair(self, pair):
         c = self.cursor
         for _, _, judgement in c.execute("SELECT 1 FROM Archives WHERE nl = ? AND temp = ?", pair):
             return True
         return False
 
-    def correct_pair(self, pair):
-        judgement = self.get_judgement(pair)
+    def correct_str_pair(self, pair):
+        judgement = self.get_str_judgement(pair)
+        c = self.cursor
+        if judgement:
+            c.execute("UPDATE Archives SET judgement = ? WHERE nl = ? AND str = ?",
+                      (1, pair[0], pair[1]))
+        else:
+            c.execute("UPDATE Archives SET judgement = ? WHERE nl = ? AND str = ?",
+                      (0, pair[0], pair[1]))
+        self.conn.commit()
+
+    def correct_temp_pair(self, pair):
+        judgement = self.get_temp_judgement(pair)
         c = self.cursor
         if judgement:
             c.execute("UPDATE Archives SET judgement = ? WHERE nl = ? AND temp = ?",
@@ -58,7 +87,7 @@ class DBConnection(object):
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
-    db.correct_pair((
+    db.correct_temp_pair((
         "Find all .c and .h files in the current directory tree and search them for \"expr\"",
         "find . -name '*.[ch]' | xargs grep -r resources"
     ))
