@@ -47,7 +47,7 @@ class DBConnection(object):
     def correct_pair(self, pair):
         judgement = self.get_judgement(pair)
         c = self.cursor
-        if judgement:
+        if not judgement:
             c.execute("UPDATE Archives SET judgement = ? WHERE nl = ? AND temp = ?",
                       (1, pair[0], pair[1]))
         else:
@@ -60,5 +60,5 @@ if __name__ == "__main__":
     db.create_schema()
     db.correct_pair((
         "Find all .c and .h files in the current directory tree and search them for \"expr\"",
-        "find . -name '*.[ch]' | xargs grep -r resources"
+        "find -name Pattern File | xargs grep -r Pattern"
     ))
