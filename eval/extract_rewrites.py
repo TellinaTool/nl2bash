@@ -5,14 +5,15 @@ from __future__ import print_function
 
 import collections
 import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "bashlex"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
 import data_tools
 import sqlite3
 
 class DBConnection(object):
     def __init__(self):
-        self.conn = sqlite3.connect("bash_rewrites.db",
+        self.conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 
+                                                 "bash_rewrites.db"),
                                     detect_types=sqlite3.PARSE_DECLTYPES,
                                     check_same_thread=False)
         self.cursor = self.conn.cursor()
@@ -113,6 +114,8 @@ def extract_rewrites(data):
                 print(nl)
                 for cm_temp1 in cm_temps:
                     for cm_temp2 in cm_temps:
+                        if cm_temp1 == cm_temp2:
+                            continue
                         if not db.exist_rewrite((cm_temp1, cm_temp2)):
                             db.add_rewrite((cm_temp1, cm_temp2))
                             print("* {} --> {}".format(cm_temp1, cm_temp2))
@@ -122,7 +125,7 @@ def extract_rewrites(data):
 def test_rewrite(cmd):
     with DBConnection() as db:
         ast = data_tools.bash_parser(cmd)
-        rewrites = db.get_rewrites(ast)
+        rewrites = list(db.get_rewrites(ast))
         for i in xrange(len(rewrites)):
             print("rewrite %d: %s" % (i, data_tools.ast2command(rewrites[i])))
 
@@ -136,11 +139,12 @@ if __name__ == "__main__":
     with open(cm_path) as f:
         cms = f.readlines()
 
-    extract_rewrites((nls, cms))
+    # extract_rewrites((nls, cms))
 
     while True:
         try:
             cmd = raw_input("> ")
+            cmd = cmd.decode("utf-8")
             test_rewrite(cmd)
         except EOFError as ex:
             break
