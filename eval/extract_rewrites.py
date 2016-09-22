@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import collections
 import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "bashlex"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
 import data_tools
 import sqlite3
