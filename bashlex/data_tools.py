@@ -192,7 +192,7 @@ def ast2template(node, loose_constraints=False, arg_type_only=True):
     # flags are alphabetically ordered
     tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order=True,
                                   arg_type_only=arg_type_only)
-    return ' '.join(tokens)
+    return ' '.join(tokens) 
 
 
 def cmd2template(cmd, normalize_digits=True, normalize_long_pattern=True,
@@ -214,7 +214,6 @@ def rewrite(ast, temp):
                 if not arg_slots[i][1] \
                     and arg_slots[i][0].arg_type == node.arg_type:
                     node.value = arg_slots[i][0].value
-                    print(node.kind, node.value)
                     arg_slots[i][1] = True
                     break
         else:
