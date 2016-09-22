@@ -49,7 +49,7 @@ class DBConnection(object):
         cmd = data_tools.ast2template(
             ast, loose_constraints=True, arg_type_only=False)
         rewrites = set([cmd])
-        s1 = data_tools.cmd2template(ast, loose_constraint=True)
+        s1 = data_tools.cmd2template(ast, loose_constraints=True)
         c = self.cursor
         for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", s1):
             rewrites.add(data_tools.rewrite(ast, s2))
@@ -69,7 +69,6 @@ def extract_rewrites(data):
     for nl, cm in zip(nls, cms):
         nl = nl.strip()
         cm = cm.strip()
-        print(cm)
         if nl.lower() == "na":
             continue
         if not nl:
