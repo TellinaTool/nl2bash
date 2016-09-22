@@ -431,7 +431,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         attach_point_info = \
                             attach_flag(child, attach_point_info)
                 else:
-                    if child.word == "--":
+                    if child.word == "--" and not (attach_point.kind == "headcommand"
+                                                   and attach_point.value == "awk"):
                         attach_point_info = (attach_point_info[0],
                                              ["argument"],
                                              attach_point_info[2])
