@@ -22,8 +22,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["rnn_cell"] = FLAGS.rnn_cell
     params["num_layers"] = FLAGS.num_layers
     params["max_gradient_norm"] = FLAGS.max_gradient_norm
-    params["batch_size"] = 1 \
-        if forward_only else FLAGS.batch_size
+    params["batch_size"] = FLAGS.batch_size
     params["num_samples"] = FLAGS.num_samples
     params["encoder_input_keep"] = FLAGS.encoder_input_keep
     params["encoder_output_keep"] = FLAGS.encoder_output_keep
@@ -40,8 +39,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
 
-    model = model_constructor(params, buckets, forward_only)
-
     # construct model directory
     if construct_model_dir:
         model_dir = os.path.join(FLAGS.train_dir, FLAGS.encoder_topology)
@@ -55,6 +52,15 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         model_dir += '-{}'.format(FLAGS.decoder_output_keep)
         setattr(FLAGS, "train_dir", model_dir)
     ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
+
+    if forward_only:
+        params["batch_size"] = 1
+        params["encoder_input_keep"] = 1.0
+        params["encoder_output_keep"] = 1.0
+        params["decoder_input_keep"] = 1.0
+        params["decoder_output_keep"] = 1.0
+
+    model = model_constructor(params, buckets, forward_only)
 
     global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
 
