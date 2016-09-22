@@ -211,6 +211,7 @@ def rewrite(ast, temp):
             for i in xrange(len(arg_slots)):
                 if not arg_slots[i][1] and arg_slots[i][0].kind == node.kind:
                     node.value = arg_slots[i][0].value
+                    print(node.value)
                     arg_slots[i][1] = True
         else:
             for child in node.children:
