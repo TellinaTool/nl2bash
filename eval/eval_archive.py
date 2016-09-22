@@ -46,10 +46,14 @@ class DBConnection(object):
 
     def correct_pair(self, pair):
         judgement = self.get_judgement(pair)
+        c = self.cursor
         if judgement:
-            self.add_judgement((pair[0], pair[1], 1))
+            c.execute("UPDATE Archives SET judgement = ? WHERE nl = ? AND temp = ?",
+                      (1, pair[0], pair[1]))
         else:
-            self.add_judgement((pair[0], pair[1], 0))
+            c.execute("UPDATE Archives SET judgement = ? WHERE nl = ? AND temp = ?",
+                      (0, pair[0], pair[1]))
+        self.conn.commit()
 
 if __name__ == "__main__":
     db = DBConnection()
