@@ -252,7 +252,8 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                         print("AST: ")
                         data_tools.pretty_print(tree, 0)
                         print()
-                judgement = db.get_judgement((nl_str, pred_cmd))
+                pred_temp = data_tools.ast2template(tree, loose_constraints=True)
+                judgement = db.get_judgement((nl_str, pred_temp))
                 if judgement != None:
                     judgement_str = "y" if judgement else "n"
                     print("Correct template [y/n]: %s" % judgement_str)
@@ -260,10 +261,10 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                     inp = raw_input("Correct template [y/n]: ")
                     if inp == "y":
                         judgement = True
-                        db.add_judgement((nl_str, pred_cmd, 1))
+                        db.add_judgement((nl_str, pred_temp, 1))
                     else:
                         judgement = False
-                        db.add_judgement((nl_str, pred_cmd, 0))
+                        db.add_judgement((nl_str, pred_temp, 0))
                 if judgement:
                     num_correct_template += 1
                     o_f.write("C")
