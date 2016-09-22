@@ -824,7 +824,7 @@ def arg_slots(node):
 
     arg_slot_fun(node)
 
-    return [(node, taken) for node, taken in sorted(slots, key=lambda x:x[0])]
+    return [[node, taken] for _, node, taken in sorted(slots, key=lambda x:x[0])]
 
 
 def prune_ast(node):
