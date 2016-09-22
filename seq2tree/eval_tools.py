@@ -226,9 +226,6 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                     top_k_pred_trees.append(tree)
                     top_k_pred_cmds.append(pred_cmd)
             # evaluation ignoring ordering of flags
-            # if ast_based.one_template_match(gt_trees, tree):
-            #     continue
-            # else:
             if True:
                 print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
                 o_f.write("Example %d (%d)" % (num_evaled+1, len(cm_strs)) + "\n")
