@@ -129,7 +129,7 @@ def test_rewrite(cmd):
         ast = data_tools.bash_parser(cmd)
         rewrites = list(db.get_rewrites(ast))
         for i in xrange(len(rewrites)):
-            print("rewrite %d: %s" % (i, rewrites[i]))
+            print("rewrite %d: %s" % (i, data_tools.ast2command(rewrites[i])))
 
 
 if __name__ == "__main__":
