@@ -21,6 +21,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 
 import data_utils, data_tools
 import ast_based
+from eval_archive import DBConnection
 
 
 def to_readable(outputs, rev_cm_vocab):
@@ -194,77 +195,90 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
 
     num_evaled = 0
 
-    for i in xrange(len(grouped_dataset)):
-        nl_strs, cm_strs, nls, search_historys = grouped_dataset[i]
-        nl_str = nl_strs[0]
-        nl = nls[0]
+    with DBConnection() as db:
+        db.create_schema()
+        for i in xrange(len(grouped_dataset)):
+            nl_strs, cm_strs, nls, search_historys = grouped_dataset[i]
+            nl_str = nl_strs[0]
+            nl = nls[0]
 
-        if num_evaled == num_eval:
-            break
+            if num_evaled == num_eval:
+                break
 
-        # Which bucket does it belong to?
-        bucket_id = min([b for b in xrange(len(model.buckets))
-                        if model.buckets[b][0] > len(nl)])
+            # Which bucket does it belong to?
+            bucket_id = min([b for b in xrange(len(model.buckets))
+                            if model.buckets[b][0] > len(nl)])
 
-        formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
-        _, _, output_logits, _ = model.step(sess, formatted_example, bucket_id,
-                                         forward_only=True)
+            formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
+            _, _, output_logits, _ = model.step(sess, formatted_example, bucket_id,
+                                             forward_only=True)
 
-        gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
-        if FLAGS.decoding_algorithm == "greedy":
-            tree, pred_cmd, _ = decode(output_logits, rev_cm_vocab, FLAGS)
-        else:
-            top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
-            top_k_pred_trees = []
-            top_k_pred_cmds = []
-            for j in xrange(FLAGS.top_k):
-                tree, pred_cmd, _ = \
-                    to_readable(top_k_search_histories[j], rev_cm_vocab)
-                top_k_pred_trees.append(tree)
-                top_k_pred_cmds.append(pred_cmd)
-        # evaluation ignoring ordering of flags
-        # if ast_based.one_template_match(gt_trees, tree):
-        #     continue
-        # else:
-        if True:
-            print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
-            o_f.write("Example %d (%d)" % (num_evaled+1, len(cm_strs)) + "\n")
-            print("English: " + nl_str.strip())
-            o_f.write("English: " + nl_str.strip() + "\n")
-            for j in xrange(len(cm_strs)):
-                print("GT Command %d: " % (j+1) + cm_strs[j].strip())
-                o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
+            gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
             if FLAGS.decoding_algorithm == "greedy":
-                print("Prediction: " + pred_cmd)
-                o_f.write("Prediction: " + pred_cmd + "\n")
-                print("AST: ")
-                data_tools.pretty_print(tree, 0)
-                print()
-            elif FLAGS.decoding_algorithm == "beam_search":
+                tree, pred_cmd, _ = decode(output_logits, rev_cm_vocab, FLAGS)
+            else:
+                top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
+                top_k_pred_trees = []
+                top_k_pred_cmds = []
                 for j in xrange(FLAGS.top_k):
-                    decode_score = decode_scores[j]
-                    tree = top_k_pred_trees[j]
-                    pred_cmd = top_k_pred_cmds[j]
-                    print("Prediction %d (%.2f): " % (j+1, decode_score) + pred_cmd)
+                    tree, pred_cmd, _ = \
+                        to_readable(top_k_search_histories[j], rev_cm_vocab)
+                    top_k_pred_trees.append(tree)
+                    top_k_pred_cmds.append(pred_cmd)
+            # evaluation ignoring ordering of flags
+            # if ast_based.one_template_match(gt_trees, tree):
+            #     continue
+            # else:
+            if True:
+                print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
+                o_f.write("Example %d (%d)" % (num_evaled+1, len(cm_strs)) + "\n")
+                print("English: " + nl_str.strip())
+                o_f.write("English: " + nl_str.strip() + "\n")
+                for j in xrange(len(cm_strs)):
+                    print("GT Command %d: " % (j+1) + cm_strs[j].strip())
+                    o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
+                if FLAGS.decoding_algorithm == "greedy":
+                    print("Prediction: " + pred_cmd)
+                    o_f.write("Prediction: " + pred_cmd + "\n")
                     print("AST: ")
                     data_tools.pretty_print(tree, 0)
                     print()
-            inp = raw_input("Correct template [y/n]: ")
-            if inp == "y":
-                num_correct_template += 1
-                o_f.write("C")
-                inp = raw_input("Correct command [y/n]: ")
-                if inp == "y":
-                    num_correct_command += 1
-                    o_f.write("C")
+                elif FLAGS.decoding_algorithm == "beam_search":
+                    for j in xrange(FLAGS.top_k):
+                        decode_score = decode_scores[j]
+                        tree = top_k_pred_trees[j]
+                        pred_cmd = top_k_pred_cmds[j]
+                        print("Prediction %d (%.2f): " % (j+1, decode_score) + pred_cmd)
+                        print("AST: ")
+                        data_tools.pretty_print(tree, 0)
+                        print()
+                judgement = db.get_judgement((nl_str, pred_cmd))
+                if judgement != None:
+                    judgement_str = "y" if judgement else "n"
+                    print("Correct template [y/n]: %s" % judgement_str)
                 else:
-                    o_f.write("W")
-            else:
-                o_f.write("WW")
-            o_f.write("\n")
-            o_f.write("\n")
+                    inp = raw_input("Correct template [y/n]: ")
+                    if inp == "y":
+                        judgement = True
+                        db.add_judgement((nl_str, pred_cmd, 1))
+                    else:
+                        judgement = False
+                        db.add_judgement((nl_str, pred_cmd, 0))
+                if judgement:
+                    num_correct_template += 1
+                    o_f.write("C")
+                    inp = raw_input("Correct command [y/n]: ")
+                    if inp == "y":
+                        num_correct_command += 1
+                        o_f.write("C")
+                    else:
+                        o_f.write("W")
+                else:
+                    o_f.write("WW")
+                o_f.write("\n")
+                o_f.write("\n")
 
-        num_evaled += 1
+            num_evaled += 1
 
     print()
     print("%d examples evaluated" % num_eval)
