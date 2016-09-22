@@ -33,25 +33,22 @@ class DBConnection(object):
         self.conn.commit()
 
     def add_rewrite(self, pair):
-        s1, s2 = pair
         c = self.cursor
-        c.execute("INSERT INTO Rewrites (s1, s2) VALUES (?, ?)", (s1, s2))
+        c.execute("INSERT INTO Rewrites (s1, s2) VALUES (?, ?)", pair)
         self.conn.commit()
 
     def get_rewrite_templates(self, s1):
         rewrites = set([s1])
         c = self.cursor
-        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", s1):
+        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", (s1,)):
             rewrites.add(s2)
         return rewrites
 
     def get_rewrites(self, ast):
-        cmd = data_tools.ast2template(
-            ast, loose_constraints=True, arg_type_only=False)
-        rewrites = set([cmd])
-        s1 = data_tools.cmd2template(ast, loose_constraint=True)
+        rewrites = set([ast])
+        s1 = data_tools.ast2template(ast, loose_constraints=True)
         c = self.cursor
-        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", s1):
+        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", (s1,)):
             rewrites.add(data_tools.rewrite(ast, s2))
         return rewrites
 
@@ -69,7 +66,6 @@ def extract_rewrites(data):
     for nl, cm in zip(nls, cms):
         nl = nl.strip()
         cm = cm.strip()
-        print(cm)
         if nl.lower() == "na":
             continue
         if not nl:
@@ -128,7 +124,7 @@ def test_rewrite(cmd):
         ast = data_tools.bash_parser(cmd)
         rewrites = db.get_rewrites(ast)
         for i in xrange(len(rewrites)):
-            print("rewrite %d: %s" % (i, rewrites[i]))
+            print("rewrite %d: %s" % (i, data_tools.ast2command(rewrites[i])))
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ type ::=
 		Path (path)
 
 		String (name, gname, eofstr, replstr, string, command, extension, option, uname, owner)
-		Pattern (pattern)
+		Pattern (pattern, prog)
 
 		Number (n, num, number, replacements, maxprocs, incr, bytes, count, mask)
 		Time (time, nmin)
@@ -30,9 +30,9 @@ PrimitiveCmd ::=
 
 		sort [-bdfgiMnrckmosStTuz] [file ...]
 				
-		grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C[num]] [-e pattern] [-f file] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
+		grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
 
-		egrep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C[num]] [-e pattern] [-f file] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
+		egrep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
 				
 		cp [-R [-H | -L | -P]] [ [-fi] | [-n]] [-apvX] source_file target_file
 				

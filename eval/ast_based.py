@@ -6,8 +6,11 @@ import data_tools
 from extract_rewrites import DBConnection
 
 def ignore_differences(cmd):
-    cmd = cmd.replace('-print0', '-print')
+    cmd = cmd.replace('-ls', '')
+    cmd = cmd.replace('-print', '')
+    cmd = cmd.replace('-print0', '')
     cmd = cmd.replace('-name', '-iname')
+    cmd = cmd.replace('-regex', '-iregex')
     return cmd
 
 def get_rewrite_templates(temps, db):
