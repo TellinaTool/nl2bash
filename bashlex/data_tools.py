@@ -219,7 +219,7 @@ def rewrite(ast, temp):
     arg_slots = normalizer.arg_slots(ast)
     ast2 = normalizer.normalize_ast(temp)
     rewrite_fun(ast2)
-    
+
     return ast2
 
 
