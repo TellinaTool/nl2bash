@@ -814,12 +814,16 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 def arg_slots(node):
     """Return argument slots of the ast."""
     slots = []
+
     def arg_slot_fun(node):
         if node.kind == "argument":
             slots.append([node, False])
         else:
             for child in node.children:
                 arg_slot_fun(child)
+
+    arg_slot_fun(node)
+    
     return slots
 
 
