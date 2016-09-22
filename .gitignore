@@ -40,3 +40,6 @@ manual.eval.results*
 # ideaJ file
 # User-specific stuff:
 baselines/man-parser/.idea/*
+
+# sensitive data
+baselines/knn/data/*
