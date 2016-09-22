@@ -44,7 +44,9 @@ def one_string_match(asts, ast2):
     with DBConnection() as db:
         rewrite_cmds = get_rewrites(asts, db)
 
-    for cmd1 in rewrite_cmds:
+    for ast1 in rewrite_cmds:
+        cmd1 = data_tools.ast2template(
+            ast1, loose_constraints=True, arg_type_only=False)
         cmd1 = ignore_differences(cmd1)
         if cmd1 == cmd2:
             return True

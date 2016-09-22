@@ -12,7 +12,8 @@ import sqlite3
 
 class DBConnection(object):
     def __init__(self):
-        self.conn = sqlite3.connect("bash_rewrites.db",
+        self.conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 
+                                                 "bash_rewrites.db"),
                                     detect_types=sqlite3.PARSE_DECLTYPES,
                                     check_same_thread=False)
         self.cursor = self.conn.cursor()
