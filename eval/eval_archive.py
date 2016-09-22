@@ -24,11 +24,10 @@ class DBConnection(object):
         c = self.cursor
 
         c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, str TEXT, judgement INT)")
+        c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, temp TEXT, judgement INT)")
         c.execute("CREATE TABLE IF NOT EXISTS Archives (nl TEXT, temp TEXT, judgement INT)")
         for triple in c.execute("SELECT nl, temp, judgement FROM Archives"):
             c.execute("INSERT INTO TempArchives (nl, temp, judgement) VALUES (?, ?, ?)", triple)
-
-        c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, temp TEXT, judgement INT)")
 
         self.conn.commit()
 
