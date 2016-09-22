@@ -52,9 +52,9 @@ def cmd_arg_type_check(word, arg_status):
     for i in xrange(len(arg_status["non-optional"])):
         if arg_status["non-optional"][i][0] == arg_type:
             arg_status["non-optional"][i][2] = True
-    for i in xrange(len(arg_status["non-optional"])):
-        if arg_status["non-optional"][i][0] == arg_type:
-            arg_status["non-optional"][i][2] = True
+    for i in xrange(len(arg_status["optional"])):
+        if arg_status["optional"][i][0] == arg_type:
+            arg_status["optional"][i][2] = True
 
     return arg_type
 
@@ -848,7 +848,12 @@ def list_to_ast(list, order='dfs'):
                 break
             symbol = list[i]
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
+<<<<<<< HEAD
                 if current.kind == "headcomand":
+=======
+                current = current.parent
+                if current and current.kind == "headcomand":
+>>>>>>> eed6ef54ebc23e8778442a4b177409d8d64c3a23
                     arg_status_stack.pop()
                 current = current.parent
             else:
