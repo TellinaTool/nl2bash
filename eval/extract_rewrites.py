@@ -139,7 +139,7 @@ if __name__ == "__main__":
     with open(cm_path) as f:
         cms = f.readlines()
 
-    extract_rewrites((nls, cms))
+    # extract_rewrites((nls, cms))
 
     while True:
         try:
