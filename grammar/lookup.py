@@ -67,7 +67,7 @@ def make_grammar_from_json_syntax(cmd, manual_table):
     else:
         print("Unrecognized cmd_option type {}".format(cmd["option"]["type"]))
 
-def make_grammar_from_options(x, command_table, optional=False):
+def make_grammar_from_options(x, command_table, optional=False, ):
     flag_table = command_table["flags"]
     arg_table = command_table["arguments"]
 
