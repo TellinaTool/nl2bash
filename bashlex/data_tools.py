@@ -211,9 +211,10 @@ def rewrite(ast, temp):
     def rewrite_fun(node):
         if node.kind == "argument" and not node.arg_type == "ReservedWord":
             for i in xrange(len(arg_slots)):
-                if not arg_slots[i][1] and arg_slots[i][0].kind == node.kind:
+                if not arg_slots[i][1] \
+                    and arg_slots[i][0].arg_type == node.arg_type:
                     node.value = arg_slots[i][0].value
-                    print(node.value)
+                    print(node.kind, node.value)
                     arg_slots[i][1] = True
                     break
         else:
