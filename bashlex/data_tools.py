@@ -207,7 +207,7 @@ def cmd2template(cmd, normalize_digits=True, normalize_long_pattern=True,
 
 def rewrite(ast, temp):
     arg_slots = normalizer.arg_slots(ast)
-    
+
     def rewrite_fun(node):
         if node.kind == "argument" and not node.arg_type == "ReservedWord":
             for i in xrange(len(arg_slots)):
@@ -215,6 +215,7 @@ def rewrite(ast, temp):
                     node.value = arg_slots[i][0].value
                     print(node.value)
                     arg_slots[i][1] = True
+                    break
         else:
             for child in node.children:
                 rewrite_fun(child)
