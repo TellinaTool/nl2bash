@@ -848,12 +848,8 @@ def list_to_ast(list, order='dfs'):
                 break
             symbol = list[i]
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
-<<<<<<< HEAD
-                if current.kind == "headcomand":
-=======
                 current = current.parent
                 if current and current.kind == "headcomand":
->>>>>>> eed6ef54ebc23e8778442a4b177409d8d64c3a23
                     arg_status_stack.pop()
                 current = current.parent
             else:
