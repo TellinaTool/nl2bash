@@ -631,6 +631,33 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 norm_node.parent = head_command
                 head_command.children.insert(0, norm_node)
 
+        if head_command.value == "egrep":
+            head_command.value = "grep"
+            flag_present = False
+            for child in head_command.children:
+                if child.kind == "flag" \
+                    and child.value in ["-E", "--extended-regexp"]:
+                    flag_present = True
+            if not flag_present:
+                norm_node = FlagNode(value="-E")
+                make_sibling(norm_node, head_command.children[0])
+                norm_node.parent = head_command
+                head_command.children.insert(0, norm_node)
+
+        if head_command.value == "fgrep":
+            head_command.value = "grep"
+            flag_present = False
+            for child in head_command.children:
+                if child.kind == "flag" \
+                    and child.value in ["-F", "--fixed-strings"]:
+                    flag_present = True
+            if not flag_present:
+                norm_node = FlagNode(value="-F")
+                make_sibling(norm_node, head_command.children[0])
+                norm_node.parent = head_command
+                head_command.children.insert(0, norm_node)
+
+
     def normalize(node, current, node_kind="", arg_type=""):
         # recursively normalize each subtree
         if not type(node) is bast.node:
@@ -775,6 +802,18 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         return None
 
     return normalized_tree
+
+
+def arg_slots(node):
+    """Return argument slots of the ast."""
+    slots = []
+    def arg_slot_fun(node):
+        if node.kind == "argument":
+            slots.append([node, False])
+        else:
+            for child in node.children:
+                arg_slot_fun(child)
+    return slots
 
 
 def prune_ast(node):

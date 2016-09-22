@@ -119,7 +119,9 @@ Cmd.CmdOp singleOp() : { Cmd.CmdOp result; Token s; List<Cmd.CmdOp> temp = new A
 
             boolean belongsToWierdData = false;
             try {
-                List<String> lines = Files.readAllLines(Paths.get("./wierddata"));
+
+                // load a hand crafted object
+                List<String> lines = Files.readAllLines(Paths.get("../../../grammar/optionwords.txt"));
                 for (String u : lines) {
                     if (u.startsWith("-" + flagName)) {
                         belongsToWierdData = true;

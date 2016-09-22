@@ -38,13 +38,13 @@ arg_syntax = [
 head_commands = [
     "find", "xargs",
     "grep", "egrep",
-    "sed", "awk",
-    "ls", "rm",
-    "cp", "mv",
-    "wc", "chmod",
-    "tar", "sort",
-    "head", "tail",
-    "chown"
+    "fgrep", "sed",
+    "awk", "ls",
+    "rm", "cp",
+    "mv", "wc",
+    "chmod", "tar",
+    "sort", "head",
+    "tail", "chown"
 ]
 
 special_operators = [
