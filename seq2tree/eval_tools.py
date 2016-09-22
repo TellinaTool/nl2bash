@@ -255,21 +255,19 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                 pred_temp = data_tools.ast2template(tree, loose_constraints=True)
                 str_judge = db.get_str_judgement((nl_str, pred_cmd))
                 temp_judge = db.get_temp_judgement((nl_str, pred_temp))
-                if str_judge == None:
-                    str_judge = ast_based.one_string_match(gt_trees, tree)
-                if temp_judge == None:
-                    temp_judge = ast_based.one_template_match(gt_trees, tree)
                 if temp_judge != None:
                     judgement_str = "y" if temp_judge else "n"
                     print("Correct template [y/n]: %s" % judgement_str)
                 else:
-                    inp = raw_input("Correct template [y/n]: ")
-                    if inp == "y":
-                        temp_judge = True
-                        db.add_temp_judgement((nl_str, pred_temp, 1))
-                    else:
-                        temp_judge = False
-                        db.add_temp_judgement((nl_str, pred_temp, 0))
+                    temp_judge = ast_based.one_template_match(gt_trees, tree)
+                    if not temp_judge:
+                        inp = raw_input("Correct template [y/n]: ")
+                        if inp == "y":
+                            temp_judge = True
+                            db.add_temp_judgement((nl_str, pred_temp, 1))
+                        else:
+                            temp_judge = False
+                            db.add_temp_judgement((nl_str, pred_temp, 0))
                 if temp_judge:
                     num_correct_template += 1
                     o_f.write("C")
@@ -277,15 +275,17 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                         judgement_str = "y" if str_judge else "n"
                         print("Correct command [y/n]: %s" % judgement_str)
                     else:
-                        inp = raw_input("Correct command [y/n]: ")
-                        if inp == "y":
-                            str_judge = True
-                            o_f.write("C")
-                            db.add_str_judgement((nl_str, pred_cmd, 1))
-                        else:
-                            str_judge = False
-                            o_f.write("W")
-                            db.add_str_judgement((nl_str, pred_cmd, 0))
+                        str_judge = ast_based.one_string_match(gt_trees, tree)
+                        if not str_judge:
+                            inp = raw_input("Correct command [y/n]: ")
+                            if inp == "y":
+                                str_judge = True
+                                o_f.write("C")
+                                db.add_str_judgement((nl_str, pred_cmd, 1))
+                            else:
+                                str_judge = False
+                                o_f.write("W")
+                                db.add_str_judgement((nl_str, pred_cmd, 0))
                     if str_judge:
                         num_correct_command += 1
                         o_f.write("C")
