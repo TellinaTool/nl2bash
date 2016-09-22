@@ -10,6 +10,7 @@ def ignore_differences(cmd):
     cmd = cmd.replace('-print', '')
     cmd = cmd.replace('-print0', '')
     cmd = cmd.replace('-name', '-iname')
+    cmd = cmd.replace('-regex', '-iregex')
     return cmd
 
 def get_rewrite_templates(temps, db):
