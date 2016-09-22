@@ -122,10 +122,10 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                         if model.buckets[b][0] > len(nl)])
 
         formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
+
         _, _, output_logits, attn_masks = model.step(sess, formatted_example, bucket_id,
                                          forward_only=True)
 
-        sentence = ' '.join([rev_nl_vocab[i] for i in nl])
         gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
         if FLAGS.decoding_algorithm == "greedy":
             tree, pred_cmd, outputs = decode(output_logits, rev_cm_vocab, FLAGS)
@@ -157,7 +157,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
         if verbose:
             print("Example %d (%d)" % (num_eval, len(cm_strs)))
             print("Original English: " + nl_str.strip())
-            print("English: " + sentence)
+            print("English: " + ' '.join([rev_nl_vocab[i] for i in nl]))
             for j in xrange(len(cm_strs)):
                 print("GT Command {}: ".format(j+1) + cm_strs[j].strip())
             if FLAGS.decoding_algorithm == "greedy":
@@ -406,7 +406,7 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
 
         # Get output logits for the sentence.
         _, _, output_logits, _ = model.step(sess, formatted_example, bucket_id,
-                                         forward_only=True)
+                                            forward_only=True)
         if FLAGS.decoding_algorithm == "greedy":
             tree, cmd, _ = decode(output_logits, rev_cm_vocab, FLAGS)
             print()
