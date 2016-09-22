@@ -65,29 +65,51 @@ class DBConnection(object):
     def correct_str_pair(self, pair):
         judgement = self.get_str_judgement(pair)
         c = self.cursor
-        if judgement:
-            c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND str = ?",
-                      (1, pair[0], pair[1]))
-        else:
-            c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND str = ?",
-                      (0, pair[0], pair[1]))
+        c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND str = ?",
+                  (1, pair[0], pair[1]))
         self.conn.commit()
 
     def correct_temp_pair(self, pair):
         judgement = self.get_temp_judgement(pair)
         c = self.cursor
-        if not judgement:
-            c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND temp = ?",
-                      (1, pair[0], pair[1]))
-        else:
-            c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND temp = ?",
-                      (0, pair[0], pair[1]))
+        c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND temp = ?",
+                  (1, pair[0], pair[1]))
+        self.conn.commit()
+
+    def error_str_pair(self, pair):
+        judgement = self.get_str_judgement(pair)
+        c = self.cursor
+        c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND str = ?",
+                  (0, pair[0], pair[1]))
+        self.conn.commit()
+
+    def error_temp_pair(self, pair):
+        judgement = self.get_temp_judgement(pair)
+        c = self.cursor
+        c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND temp = ?",
+                  (0, pair[0], pair[1]))
         self.conn.commit()
 
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
     db.correct_temp_pair((
-        "Find all .c and .h files in the current directory tree and search them for \"expr\"",
+        "Find all .c and .h files in the current directory tree and search them for \"expr\"\n",
         "find -name Pattern File | xargs grep -r Pattern"
+    ))
+    db.error_temp_pair((
+        "find  file which case-insensitive name is too in currect directory\n",
+        "find -name Pattern File"
+    ))
+    db.error_temp_pair((
+        "Search directory foo for files containing \"foo/bar\" in their full names\n",
+        "find foo -type f -iname foo | grep foo" 
+    ))
+    db.correct_temp_pair((
+        "Search the current directory tree for files containing \"sh\" in their names\n",
+        "find -name Pattern File"
+    ))
+    db.error_temp_pair((
+        "display all sqlite files in the current directory along with their timestamp\n",
+        "find -name Pattern File"
     ))

@@ -398,7 +398,7 @@ def main(_):
     
     # set GPU device
     if FLAGS.manual_eval:
-        manual_eval(50)
+        manual_eval(100)
     elif FLAGS.eval:
         eval()
     elif FLAGS.decode:
