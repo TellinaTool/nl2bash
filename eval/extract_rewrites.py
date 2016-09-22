@@ -49,7 +49,7 @@ class DBConnection(object):
         cmd = data_tools.ast2template(
             ast, loose_constraints=True, arg_type_only=False)
         rewrites = set([cmd])
-        s1 = data_tools.cmd2template(ast, loose_constraints=True)
+        s1 = data_tools.ast2template(ast, loose_constraints=True)
         c = self.cursor
         for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", s1):
             rewrites.add(data_tools.rewrite(ast, s2))
