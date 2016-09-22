@@ -192,7 +192,6 @@ def ast2template(node, loose_constraints=False, arg_type_only=True):
     # flags are alphabetically ordered
     tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order=True,
                                   arg_type_only=arg_type_only)
-    print(tokens)
     return ' '.join(tokens)
 
 
@@ -208,19 +207,23 @@ def cmd2template(cmd, normalize_digits=True, normalize_long_pattern=True,
 
 def rewrite(ast, temp):
     arg_slots = normalizer.arg_slots(ast)
-    ast2 = normalizer.normalize_ast(temp)
 
     def rewrite_fun(node):
         if node.kind == "argument" and not node.arg_type == "ReservedWord":
             for i in xrange(len(arg_slots)):
                 if not arg_slots[i][1] and arg_slots[i][0].kind == node.kind:
                     node.value = arg_slots[i][0].value
+                    print(node.value)
                     arg_slots[i][1] = True
+                    break
         else:
             for child in node.children:
                 rewrite_fun(child)
 
-    return rewrite_fun(ast2)
+    ast2 = normalizer.normalize_ast(temp)
+    rewrite_fun(ast2)
+
+    return ast2
 
 
 if __name__ == "__main__":

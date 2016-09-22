@@ -34,17 +34,17 @@ man_lookup = ManPageLookUp([os.path.join(
     os.path.dirname(__file__), "..", "grammar", "primitive_cmds_grammar.json")])
 
 def cmd_arg_type_check(word, arg_status):
-    arg_types = {}
+    arg_types = []
     for i in xrange(len(arg_status["non-optional"])):
         arg_type, is_list, filled = arg_status["non-optional"][i]
         if not is_list and filled:
             continue
-        arg_types[arg_type] = None
-    for i in xrange(len(arg_status["non-optional"])):
-        arg_type, is_list, filled = arg_status["non-optional"][i]
+        arg_types.append(arg_type)
+    for i in xrange(len(arg_status["optional"])):
+        arg_type, is_list, filled = arg_status["optional"][i]
         if not is_list and filled:
             continue
-        arg_types[arg_type] = None
+        arg_types.append(arg_type)
 
     assert(len(arg_types) > 0)
     arg_type = type_check(word, arg_types)
@@ -53,8 +53,8 @@ def cmd_arg_type_check(word, arg_status):
         if arg_status["non-optional"][i][0] == arg_type:
             arg_status["non-optional"][i][2] = True
     for i in xrange(len(arg_status["optional"])):
-        if arg_status["non-optional"][i][0] == arg_type:
-            arg_status["non-optional"][i][2] = True
+        if arg_status["optional"][i][0] == arg_type:
+            arg_status["optional"][i][2] = True
 
     return arg_type
 
@@ -72,20 +72,7 @@ def type_check(word, possible_types):
     if "Permission" in possible_types:
         if any(c.isdigit() for c in word) or '=' in word:
             return "Permission"
-    if "File" in possible_types:
-        # TODO: this argument type is not well-handled
-        return "File"
-    elif "Pattern" in possible_types:
-        # TODO: this argument type is not well-handled
-        return "Pattern"
-    elif "Utility" in possible_types:
-        # TODO: this argument type is not well-handled
-        # This is usually a third-party utility
-        return "Utility"
-    else:
-        print("Warning: unable to decide type for {}, return \"Unknown\"."
-              .format(word))
-        return "Unknown"
+    return possible_types[0]
 
 def is_unary_logic_op(node, parent):
     if node.word == "!":
@@ -125,6 +112,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("/bin/echo ", "echo ")
     cmd = cmd.replace("-i{}", "-I {}")
     cmd = cmd.replace("-I{}", "-I {}")
+    cmd = cmd.replace("-mitime", "-mtime")
     cmd = cmd.replace("— ", "-")
     cmd = cmd.replace("—", "-")
     cmd = cmd.replace("-\xd0\xbe", "-o")
@@ -443,7 +431,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         attach_point_info = \
                             attach_flag(child, attach_point_info)
                 else:
-                    if child.word == "--":
+                    if child.word == "--" and not (attach_point.kind == "headcommand"
+                                                   and attach_point.value == "awk"):
                         attach_point_info = (attach_point_info[0],
                                              ["argument"],
                                              attach_point_info[2])
@@ -801,13 +790,17 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 def arg_slots(node):
     """Return argument slots of the ast."""
     slots = []
+
     def arg_slot_fun(node):
         if node.kind == "argument":
-            slots.append([node, False])
+            slots.append([node.parent.value, node, False])
         else:
             for child in node.children:
                 arg_slot_fun(child)
-    return slots
+
+    arg_slot_fun(node)
+
+    return [(node, taken) for node, taken in sorted(slots, key=lambda x:x[0])]
 
 
 def prune_ast(node):
@@ -845,7 +838,7 @@ def list_to_ast(list, order='dfs'):
             symbol = list[i]
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
                 current = current.parent
-                if current.kind == "headcomand":
+                if current and current.kind == "headcomand":
                     arg_status_stack.pop()
             else:
                 kind, value = symbol.split('_', 1)
