@@ -259,30 +259,38 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                     judgement_str = "y" if temp_judge else "n"
                     print("Correct template [y/n]: %s" % judgement_str)
                 else:
-                    if str_judge != None:
-                        judgement_str = "y" if str_judge else "n"
-                        print("Correct command [y/n]: %s" % judgement_str)
+                    inp = raw_input("Correct template [y/n]: ")
+                    if inp == "y":
+                        temp_judge = True
+                        db.add_temp_judgement((nl_str, pred_temp, 1))
                     else:
-                        inp = raw_input("Correct template [y/n]: ")
-                        if inp == "y":
-                            judgement = True
-                            db.add_temp_judgement((nl_str, pred_temp, 1))
-                        else:
-                            judgement = False
-                            db.add_temp_judgement((nl_str, pred_temp, 0))
-                if judgement:
-                    num_correct_template += 1
-                    o_f.write("C")
+                        temp_judge = False
+                        db.add_temp_judgement((nl_str, pred_temp, 0))
+                if str_judge != None:
+                    judgement_str = "y" if str_judge else "n"
+                    print("Correct command [y/n]: %s" % judgement_str)
+                else:
                     inp = raw_input("Correct command [y/n]: ")
                     if inp == "y":
-                        num_correct_command += 1
+                        str_judge = True
                         o_f.write("C")
                         db.add_str_judgement((nl_str, pred_cmd, 1))
                     else:
+                        str_judge = False
                         o_f.write("W")
                         db.add_str_judgement((nl_str, pred_cmd, 0))
+
+                if temp_judge:
+                    num_correct_template += 1
+                    o_f.write("C")
+                    if str_judge:
+                        num_correct_command += 1
+                        o_f.write("C")
+                    else:
+                        o_f.write("W")
                 else:
                     o_f.write("WW")
+
                 o_f.write("\n")
                 o_f.write("\n")
 
