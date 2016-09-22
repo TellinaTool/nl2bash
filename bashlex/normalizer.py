@@ -112,6 +112,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("/bin/echo ", "echo ")
     cmd = cmd.replace("-i{}", "-I {}")
     cmd = cmd.replace("-I{}", "-I {}")
+    cmd = cmd.replace("-mitime", "-mtime")
     cmd = cmd.replace("— ", "-")
     cmd = cmd.replace("—", "-")
     cmd = cmd.replace("-\xd0\xbe", "-o")
