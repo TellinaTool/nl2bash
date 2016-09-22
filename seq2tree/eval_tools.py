@@ -265,6 +265,8 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                         else:
                             temp_judge = False
                             db.add_temp_judgement((nl_str, pred_temp, 0))
+                    else:
+                        print("Correct template [y/n]: y")
                 if temp_judge:
                     num_correct_template += 1
                     o_f.write("C")
@@ -283,6 +285,8 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                                 str_judge = False
                                 o_f.write("W")
                                 db.add_str_judgement((nl_str, pred_cmd, 0))
+                        else:
+                            print("Correct command [y/n]: y")
                     if str_judge:
                         num_correct_command += 1
                         o_f.write("C")
