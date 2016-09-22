@@ -804,14 +804,14 @@ def arg_slots(node):
 
     def arg_slot_fun(node):
         if node.kind == "argument":
-            slots.append([node, False])
+            slots.append([node.parent.value, node, False])
         else:
             for child in node.children:
                 arg_slot_fun(child)
 
     arg_slot_fun(node)
-    
-    return slots
+
+    return [(node, taken) for node, taken in sorted(slots, key=lambda x:x[0])]
 
 
 def prune_ast(node):
