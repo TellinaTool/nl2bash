@@ -114,6 +114,10 @@ def special_command_normalization(cmd):
     ## correct common spelling errors
     cmd = cmd.replace("-i{}", "-I {}")
     cmd = cmd.replace("-I{}", "-I {}")
+    cmd = cmd.replace("-mitime", "-mtime")
+    cmd = cmd.replace("— ", "-")
+    cmd = cmd.replace("—", "-")
+    cmd = cmd.replace("-\xd0\xbe", "-o")
     cmd = cmd.replace(" [] ", " {} ")
     cmd = cmd.replace("-n10", "-n 10")
     cmd = cmd.replace("-\\(", "\\(")
