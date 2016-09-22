@@ -41,7 +41,7 @@ class DBConnection(object):
     def get_rewrite_templates(self, s1):
         rewrites = set([s1])
         c = self.cursor
-        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", s1):
+        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", (s1,)):
             rewrites.add(s2)
         return rewrites
 
@@ -51,7 +51,7 @@ class DBConnection(object):
         rewrites = set([cmd])
         s1 = data_tools.ast2template(ast, loose_constraints=True)
         c = self.cursor
-        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", s1):
+        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", (s1,)):
             rewrites.add(data_tools.rewrite(ast, s2))
         return rewrites
 
