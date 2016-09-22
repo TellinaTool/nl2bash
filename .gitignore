@@ -28,6 +28,12 @@ __pycache__
 # Shell scripts
 *.sh
 
+# Database file
+*.db
+
+# User-specific stuff:
+baselines/man-parser/.idea/*
+
 # Misc
 .DS_Store
 *.key
@@ -37,6 +43,3 @@ temp*.txt
 spell.txt
 manual.eval.results*
 /nl2cmd_paper
-# ideaJ file
-# User-specific stuff:
-baselines/man-parser/.idea/*
