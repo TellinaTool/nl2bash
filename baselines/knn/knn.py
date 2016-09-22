@@ -131,7 +131,7 @@ def main():
     # print the decoding result of these filters
   #  print "[nearest neighbor] ", decode_vec_to_str(p[0], nl_dictionary)
 
-  sys.stdout = open('dev_result_cmd_only.txt', 'w')
+  sys.stdout = open('result.txt', 'w')
 
   # the file containing traning nl vectors and cmd vectors
   test_cmd_vec_list = load_file_to_vec_list(os.path.join(data_dir, "dev.ids1500.cm"))
@@ -145,13 +145,13 @@ def main():
     nl = find_k_nearest_neighbor(test_vec, nl_vec_list, 1)[0][0]
     cmd = nl_vec_to_cmd_vec[str(nl)]
 
-    #print "[text-case]"
-    #print "  [original-pair]"
-    #print "     ", decode_vec_to_str(test_vec, nl_dictionary)
-    #print "     ", decode_vec_to_str(cmd_vec, cmd_dictionary)
-    #print "  [new-pair]"
-    #print "     ", decode_vec_to_str(nl, nl_dictionary)
-    #print "     ", decode_vec_to_str(cmd, cmd_dictionary)
+    print "[text-case ", i, "] ========================================================="
+    print "  [original-pair]"
+    print "     ", decode_vec_to_str(test_vec, nl_dictionary)
+    print "     ", decode_vec_to_str(cmd_vec, cmd_dictionary)
+    print "  [new-pair]"
+    print "     ", decode_vec_to_str(nl, nl_dictionary)
+    print "     ", decode_vec_to_str(cmd, cmd_dictionary)
     print decode_vec_to_str(cmd, cmd_dictionary)
 
 
