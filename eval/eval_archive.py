@@ -1,13 +1,15 @@
 # builtin
 from __future__ import print_function
 
+import os
 import sqlite3
 
 class DBConnection(object):
     def __init__(self):
-        self.conn = sqlite3.connect("eval_archive.db",
-                                    detect_types=sqlite3.PARSE_DECLTYPES,
-                                    check_same_thread=False)
+        self.conn = sqlite3.connect(
+            os.path.join(os.path.dirname(__file__),"eval_archive.db"),
+            detect_types=sqlite3.PARSE_DECLTYPES,
+            check_same_thread=False)
         self.cursor = self.conn.cursor()
 
     def __enter__(self, *args, **kwargs):
@@ -41,3 +43,18 @@ class DBConnection(object):
         for _, _, judgement in c.execute("SELECT 1 FROM Archives WHERE nl = ? AND temp = ?", pair):
             return True
         return False
+
+    def correct_pair(self, pair):
+        judgement = self.get_judgement(pair)
+        if judgement:
+            self.add_judgement((pair[0], pair[1], 1))
+        else:
+            self.add_judgement((pair[0], pair[1], 0))
+
+if __name__ == "__main__":
+    db = DBConnection()
+    db.create_schema()
+    db.correct_pair((
+        "Find all .c and .h files in the current directory tree and search them for \"expr\"",
+        "find . -name '*.[ch]' | xargs grep -r resources"
+    ))
