@@ -34,9 +34,8 @@ class DBConnection(object):
         self.conn.commit()
 
     def add_rewrite(self, pair):
-        s1, s2 = pair
         c = self.cursor
-        c.execute("INSERT INTO Rewrites (s1, s2) VALUES (?, ?)", (s1, s2))
+        c.execute("INSERT INTO Rewrites (s1, s2) VALUES (?, ?)", pair)
         self.conn.commit()
 
     def get_rewrite_templates(self, s1):
