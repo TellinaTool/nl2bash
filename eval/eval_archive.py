@@ -113,3 +113,27 @@ if __name__ == "__main__":
         "display all sqlite files in the current directory along with their timestamp\n",
         "find -name Pattern File"
     ))
+    db.error_str_pair((
+        "find  file which case-insensitive name is too in currect directory\n",
+        "find . -iname \"filename\""
+    ))
+    db.error_str_pair((
+        "find in the file system for a specific file\n",
+        "find / -name 'top???'"
+    ))
+    db.error_str_pair((
+        "search for files with the name \"temp\" in the /usr folder\n",
+        "find /usr -name '*.sh'"    
+    ))
+    db.error_str_pair((
+        "Find all the files called FindCommandExamples.txt of owner root\n",
+        "find / -user root -name tecmint.txt"
+    ))
+    db.error_str_pair((
+        "Find all .c and .h files in the current directory tree and search them for \"expr\"\n",
+        "find . -name \"*.c\" | xargs grep -E 'expr'"
+    ))
+    db.error_str_pair((
+        "List all empty files in the current directory tree\n",
+        "find . -empty"
+    ))
