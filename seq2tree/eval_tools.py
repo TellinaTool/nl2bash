@@ -170,6 +170,10 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
                 pred_temp = data_tools.ast2template(tree, loose_constraints=True)
                 str_judge = db.get_str_judgement((nl_str, pred_cmd))
                 temp_judge = db.get_temp_judgement((nl_str, pred_temp))
+                # print(nl_str)
+                # print(pred_cmd)
+                # print(pred_temp)
+                # print(str_judge)
                 if temp_judge != None:
                     judgement_str = "y" if temp_judge else "n"
                     print("Correct template [y/n]: %s" % judgement_str)
