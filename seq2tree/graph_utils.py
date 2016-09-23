@@ -51,7 +51,12 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         model_dir += '-{}'.format(FLAGS.decoder_input_keep)
         model_dir += '-{}'.format(FLAGS.decoder_output_keep)
         setattr(FLAGS, "train_dir", model_dir)
-    ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
+    else:
+        if FLAGS.train_dir.endswith('/'):
+            model_dir = FLAGS.train_dir[:-1].split('/')[-1]
+        else:
+            model_dir = FLAGS.train_dir.split('/')[-1]
+    params["model_dir"] = model_dir
 
     if forward_only:
         params["batch_size"] = 1
@@ -62,6 +67,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     model = model_constructor(params, buckets, forward_only)
 
+    ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
     global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
 
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):

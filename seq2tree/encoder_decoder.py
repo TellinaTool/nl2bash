@@ -610,6 +610,10 @@ class EncoderDecoderModel(object):
     def max_target_length(self):
         return self.hyperparams["max_target_length"]
 
+    @property
+    def model_dir(self):
+        return self.hyperparams["model_dir"]
+
 
 class Seq2TreeModel(EncoderDecoderModel):
     """Sequence-to-tree models.

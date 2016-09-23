@@ -7,7 +7,7 @@ import sqlite3
 class DBConnection(object):
     def __init__(self):
         self.conn = sqlite3.connect(
-            os.path.join(os.path.dirname(__file__),"eval_archive.db"),
+            os.path.join(os.path.dirname(__file__), "eval_archive.db"),
             detect_types=sqlite3.PARSE_DECLTYPES,
             check_same_thread=False)
         self.cursor = self.conn.cursor()
@@ -52,13 +52,13 @@ class DBConnection(object):
 
     def exist_str_pair(self, pair):
         c = self.cursor
-        for _, _, judgement in c.execute("SELECT 1 FROM StrArchives WHERE nl = ? AND str = ?", pair):
+        for _ in c.execute("SELECT 1 FROM StrArchives WHERE nl = ? AND str = ?", pair):
             return True
         return False
 
     def exist_temp_pair(self, pair):
         c = self.cursor
-        for _, _, judgement in c.execute("SELECT 1 FROM TempArchives WHERE nl = ? AND temp = ?", pair):
+        for _ in c.execute("SELECT 1 FROM TempArchives WHERE nl = ? AND temp = ?", pair):
             return True
         return False
 
