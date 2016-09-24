@@ -295,6 +295,27 @@ def data_to_token_ids(data, target_path, vocabulary_path,
     return max_token_num
 
 
+def bucket_grouped_data(grouped_dataset, buckets):
+    batch_nl_strs = [[] for _ in buckets]
+    batch_cm_strs = [[] for _ in buckets]
+    batch_nls = [[] for _ in buckets]
+    batch_cmds = [[] for _ in buckets]
+
+    for nl_temp in grouped_dataset:
+        nl_strs, cm_strs, nls, cmds = grouped_dataset[nl_temp]
+
+        # Which bucket does it belong to?
+        bucket_id = min([b for b in xrange(len(buckets))
+                        if buckets[b][0] > len(nls[0])])
+
+        batch_nl_strs[bucket_id].append(nl_strs[0])
+        batch_cm_strs[bucket_id].append(cm_strs)
+        batch_nls[bucket_id].append(nls[0])
+        batch_cmds[bucket_id].append([ROOT_ID])
+
+    return batch_nl_strs, batch_cm_strs, batch_nls, batch_cmds
+
+
 def group_data_by_nl(dataset, use_bucket=False):
     if use_bucket:
         dataset = reduce(lambda x,y: x + y, dataset)
