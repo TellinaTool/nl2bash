@@ -191,155 +191,7 @@ def train(train_set, dev_set, num_epochs, construct_model_dir=True):
                 sys.stdout.flush()
     return True
 
-
-def eval(verbose=True, construct_model_dir=True):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        model, _ = create_model(sess,
-                                forward_only=True,
-                                construct_model_dir=construct_model_dir)
-
-        # Load vocabularies.
-        if FLAGS.char:
-            nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                         "vocab%d.nl.char" % FLAGS.nl_vocab_size)
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                         "vocab%d.cm.char" % FLAGS.cm_vocab_size)
-        else:
-            nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                         "vocab%d.nl" % FLAGS.nl_vocab_size)
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                         "vocab%d.cm" % FLAGS.cm_vocab_size)
-        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-        _, dev_set, _ = load_data()
-
-        return eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
-                            FLAGS, verbose)
-
-
-def manual_eval(num_eval):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True)
-
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
-        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-        _, dev_set, _ = load_data()
-
-        eval_tools.manual_eval(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
-                               FLAGS, num_eval)
-
-
-def interactive_decode():
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True)
-
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm" % FLAGS.cm_vocab_size)
-        nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-
-        eval_tools.interactive_decode(sess, model, nl_vocab, rev_cm_vocab,
-                                      FLAGS)
-
-
-def train_and_eval(train_set, dev_set):
-    train(train_set, dev_set, FLAGS.num_epochs,
-          construct_model_dir=False)
-    tf.reset_default_graph()
-    temp_match_score, eval_match_score = eval(verbose=False,
-                                              construct_model_dir=False)
-    tf.reset_default_graph()
-    return temp_match_score, eval_match_score
-
-
-def grid_search(train_set, dev_set):
-    FLAGS.create_fresh_params = True
-
-    hyperparameters = FLAGS.tuning.split(',')
-    num_hps = len(hyperparameters)
-    hp_range = hyperparam_range.hyperparam_range
-
-    print("======== Grid Search ========")
-    print("%d hyperparameters: " % num_hps)
-    for i in xrange(num_hps):
-        print("{}: {}".format(hyperparameters[i], hp_range[hyperparameters[i]]))
-    print()
-
-    grid = [v for v in hp_range[hyperparameters[0]]]
-    for i in xrange(1, num_hps):
-        grid = itertools.product(grid, hp_range[hyperparameters[i]])
-
-    best_hp_set = [-1] * num_hps
-    best_seed = -1
-    best_temp_match_score = 0.0
-
-    model_root_dir = FLAGS.train_dir
-
-    for row in grid:
-        row = nest.flatten(row)
-        for i in xrange(num_hps):
-            setattr(FLAGS, hyperparameters[i], row[i])
-
-        print("Trying parameter set: ")
-        for i in xrange(num_hps):
-            print("* {}: {}".format(hyperparameters[i], row[i]))
-
-        model_dir = os.path.join(model_root_dir, FLAGS.encoder_topology)
-        model_dir += '-{}'.format(FLAGS.rnn_cell)
-        if FLAGS.use_attention:
-            model_dir += '-attention'
-        model_dir += '-{}'.format(FLAGS.batch_size)
-        model_dir += '-{}'.format(row)
-        setattr(FLAGS, "train_dir", model_dir)
-
-        num_trials = 5 if FLAGS.initialization else 1
-
-        for t in xrange(num_trials):
-            seed = random.getrandbits(32)
-            tf.set_random_seed(seed)
-            temp_match_score, eval_match_score = \
-                train_and_eval(train_set, dev_set)
-            print("Parameter set: ")
-            for i in xrange(num_hps):
-                print("* {}: {}".format(hyperparameters[i], row[i]))
-            print("random seed: {}".format(seed))
-            print("template match score = {}".format(temp_match_score))
-            print("Best parameter set so far: ")
-            for i in xrange(num_hps):
-                print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
-            print("Best random seed so far: {}".format(best_seed))
-            print("Best template match score so far = {}".format(best_temp_match_score))
-            if temp_match_score > best_temp_match_score:
-                best_hp_set = row
-                best_seed = seed
-                best_temp_match_score = temp_match_score
-                print("☺ New best parameter setting found")
-
-    print()
-    print("*****************************")
-    print("Best parameter set: ")
-    for i in xrange(num_hps):
-        print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
-    print("Best seed = {}".format(best_seed))
-    print("Best emplate match score = {}".format(best_temp_match_score))
-    print("*****************************")
-
-
-def load_data(sample_size=-1):
+def load_data():
     print("Loading data from %s" % FLAGS.data_dir)
 
     data_dir = FLAGS.data_dir
@@ -368,30 +220,6 @@ def load_data(sample_size=-1):
     return train_set, dev_set, test_set
 
 
-def bucket_selection(num_buckets=10):
-    with open(FLAGS.data_dir + "data.dat") as f:
-        data = pickle.load(f)
-
-    numFolds = len(data)
-    print("%d folds" % numFolds)
-
-    train_data = []
-    for i in xrange(numFolds):
-        if i < numFolds - 2:
-            for nl, cmd in data[i]:
-                train_data.append((nl, cmd))
-
-    sorted_data = sorted(train_data, key=lambda x:(len(data_tools.basic_tokenizer(x[0])),
-                                                   len(data_tools.bash_tokenizer(x[1]))))
-    bucket_size = len(sorted_data) / num_buckets
-    for i in xrange(num_buckets):
-        print(int(bucket_size * (i+1)))
-        mark = sorted_data[int(bucket_size * (i+1))-1]
-        print(mark)
-        print(len(data_tools.basic_tokenizer(mark[0])),
-              len(data_tools.bash_tokenizer(mark[1])))
-
-
 def main(_):
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
@@ -403,8 +231,6 @@ def main(_):
         eval()
     elif FLAGS.decode:
         interactive_decode()
-    elif FLAGS.bucket_selection:
-        bucket_selection()
     elif FLAGS.grid_search:
         train_set, dev_set, _ = load_data()
         grid_search(train_set, dev_set)

@@ -16,7 +16,7 @@ import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 
-import data_utils, data_tools
+import seq2tree.data_utils, data_tools
 import ast_based
 from eval_archive import DBConnection
 
@@ -29,7 +29,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
     num_correct = 0.0
     num_eval = 0
 
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True)
+    grouped_dataset = seq2tree.data_utils.group_data_by_nl(dataset, use_bucket=True)
 
     for nl_template in grouped_dataset:
         nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_template]
@@ -40,7 +40,7 @@ def eval_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
         bucket_id = min([b for b in xrange(len(model.buckets))
                         if model.buckets[b][0] > len(nl)])
 
-        formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
+        formatted_example = model.format_example(nl, [seq2tree.data_utils.ROOT_ID], bucket_id)
 
         _, _, output_logits, attn_masks = model.step(sess, formatted_example, bucket_id,
                                          forward_only=True)
@@ -106,7 +106,7 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
     num_correct_template = 0.0
     num_correct_command = 0.0
 
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True).values()
+    grouped_dataset = seq2tree.data_utils.group_data_by_nl(dataset, use_bucket=True).values()
     random.shuffle(grouped_dataset, lambda: 0.5208484091114275)
 
     o_f = open("manual.eval.results", 'w')
@@ -127,7 +127,7 @@ def manual_eval(sess, model, dataset, rev_nl_vocab, rev_cm_vocab,
             bucket_id = min([b for b in xrange(len(model.buckets))
                             if model.buckets[b][0] > len(nl)])
 
-            formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
+            formatted_example = model.format_example(nl, [seq2tree.data_utils.ROOT_ID], bucket_id)
             _, _, output_logits, _ = model.step(sess, formatted_example, bucket_id,
                                              forward_only=True)
 
@@ -240,7 +240,7 @@ def compare_models(sessions, models, dataset, rev_nl_vocab, rev_cm_vocab,
     num_correct_template = [0.0] * len(models)
     num_correct_command = [0.0] * len(models)
 
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True).values()
+    grouped_dataset = seq2tree.data_utils.group_data_by_nl(dataset, use_bucket=True).values()
     random.shuffle(grouped_dataset)
 
     o_f = open("manual.eval.results", 'w')
@@ -270,7 +270,7 @@ def compare_models(sessions, models, dataset, rev_nl_vocab, rev_cm_vocab,
             bucket_id = min([b for b in xrange(len(model.buckets))
                             if model.buckets[b][0] > len(nl)])
 
-            formatted_example = model.format_example(nl, [data_utils.ROOT_ID], bucket_id)
+            formatted_example = model.format_example(nl, [seq2tree.data_utils.ROOT_ID], bucket_id)
             _, _, output_logits, _ = model.step(sessions[i], formatted_example, bucket_id,
                                              forward_only=True)
 
@@ -347,18 +347,18 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
     while sentence:
         # Get token-ids for the input sentence.
         if FLAGS.char:
-            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
-                                                     data_tools.char_tokenizer, data_tools.basic_tokenizer)
+            token_ids = seq2tree.data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+                                                                  data_tools.char_tokenizer, data_tools.basic_tokenizer)
         else:
-            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
-                                                     data_tools.basic_tokenizer, None)
+            token_ids = seq2tree.data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+                                                                  data_tools.basic_tokenizer, None)
 
         # Which bucket does it belong to?
         bucket_id = min([b for b in xrange(len(model.buckets))
                         if model.buckets[b][0] > len(token_ids)])
 
         # Get a 1-element batch to feed the sentence to the model.
-        formatted_example = model.format_example(token_ids, [data_utils.ROOT_ID], bucket_id)
+        formatted_example = model.format_example(token_ids, [seq2tree.data_utils.ROOT_ID], bucket_id)
 
         # Get output logits for the sentence.
         _, _, output_logits, _ = model.step(sess, formatted_example, bucket_id,
@@ -385,22 +385,3 @@ def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
         sys.stdout.flush()
         sentence = sys.stdin.readline()
 
-
-def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_path):
-    target_length, source_length = M.shape
-    
-    plt.clf()
-    fig = plt.imshow(M, interpolation='nearest', cmap=plt.cm.Blues)
-
-    nl = [rev_nl_vocab[x] for x in source]
-    cm = [rev_cm_vocab[x] for x in target]
-    plt.xticks(xrange(source_length), 
-               [x.replace("$$", "") for x in reversed(nl + [data_utils._PAD] * (source_length - len(nl)))],
-               rotation='vertical')
-    plt.yticks(xrange(len(cm)), 
-               [x.replace("$$", "") for x in cm],
-               rotation='horizontal')
-
-    plt.colorbar()
-    
-    plt.savefig(output_path, bbox_inches='tight')

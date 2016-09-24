@@ -38,6 +38,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["decoder_topology"] = FLAGS.decoder_topology
 
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
+    params["beam_size"] = FLAGS.beam_size
+    params["top_k"] = FLAGS.top_k
 
     # construct model directory
     if construct_model_dir:
