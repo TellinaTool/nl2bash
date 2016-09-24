@@ -24,7 +24,7 @@ from tqdm import tqdm
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-import eval_tools, hyperparam_range
+import decode_tools, hyperparam_range
 import data_utils, data_tools, graph_utils
 import parse_args
 from encoder_decoder import Seq2TreeModel
@@ -159,11 +159,11 @@ def train(train_set, dev_set, verbose=False, construct_model_dir=True):
     return True
 
 
-def eval(verbose=True, construct_model_dir=True):
+def decode(construct_model_dir=True, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True, 
+        model, _ = create_model(sess, forward_only=True,
                                 construct_model_dir=construct_model_dir)
 
         # Load vocabularies.
@@ -175,87 +175,8 @@ def eval(verbose=True, construct_model_dir=True):
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
         _, dev_set, _ = load_data()
 
-        return eval_tools.eval_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
+        decode_tools.decode_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
                             FLAGS, verbose)
-
-
-def manual_eval(num_eval):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True)
-
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-        _, dev_set, _ = load_data()
-
-        eval_tools.manual_eval(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
-                               FLAGS, num_eval)
-
-
-def interactive_decode():
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True)
-
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-        nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-
-        eval_tools.interactive_decode(sess, model, nl_vocab, rev_cm_vocab,
-                                      FLAGS)
-
-
-def compare_models():
-    model_paths = [
-        os.path.join(os.path.dirname(__file__), "..", "model/seq2seq/rnn-gru-128"),
-        os.path.join(os.path.dirname(__file__), "..", "model/seq2seq/rnn-gru-attention-128"),
-        os.path.join(os.path.dirname(__file__), "..", "model/seq2tree.by.command/rnn-gru-16"),
-        os.path.join(os.path.dirname(__file__), "..", "model/seq2tree.by.command/rnn-gru-attention-16")
-    ]
-
-    sessions = []
-    models = []
-    for model_path in model_paths:
-        FLAGS.train_dir = model_path
-        with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-            log_device_placement=FLAGS.log_device_placement)) as sess:
-            model, _ = create_model(sess, forward_only=True)
-            sessions.append(sess)
-            models.append(model)
-
-    # Load vocabularies.
-    nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.nl" % FLAGS.nl_vocab_size)
-    cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-    _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-    _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
-    _, dev_set, _ = load_data()
-
-    eval_tools.compare_models(sessions, models, dev_set, rev_nl_vocab, rev_cm_vocab,
-                              FLAGS, num_eval=50)
-
-
-def train_and_eval(train_set, dev_set):
-    train(train_set, dev_set, FLAGS.num_epochs,
-          construct_model_dir=False)
-    tf.reset_default_graph()
-    temp_match_score, eval_match_score = eval(verbose=False,
-                                              construct_model_dir=False)
-    tf.reset_default_graph()
-    return temp_match_score, eval_match_score
-
 
 def grid_search(train_set, dev_set):
     FLAGS.create_fresh_params = True
@@ -329,21 +250,8 @@ def grid_search(train_set, dev_set):
     print("Best emplate match score = {}".format(best_temp_match_score))
     print("*****************************")
 
-
-def process_data():
-    print("Preparing data in %s" % FLAGS.data_dir)
-
-    with open(FLAGS.data_dir + "data.by.%s.dat" % FLAGS.data_split) as f:
-        data = pickle.load(f)
-
-    numFolds = len(data)
-    print("%d folds" % numFolds)
-
-    output_dir = os.path.join(FLAGS.data_dir, "seq2tree.by.%s" % FLAGS.data_split)
-    data_utils.prepare_data(data, output_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
-
-
-def load_data(sample_size=-1, use_buckets=True):
+# Data
+def load_data(use_buckets=True):
     print("Loading data from %s" % FLAGS.data_dir)
 
     data_dir = FLAGS.data_dir
@@ -363,12 +271,24 @@ def load_data(sample_size=-1, use_buckets=True):
     return train_set, dev_set, test_set
 
 
+def process_data():
+    print("Preparing data in %s" % FLAGS.data_dir)
+
+    with open(FLAGS.data_dir + "data.by.%s.dat" % FLAGS.data_split) as f:
+        data = pickle.load(f)
+
+    numFolds = len(data)
+    print("%d folds" % numFolds)
+
+    output_dir = os.path.join(FLAGS.data_dir, "seq2tree.by.%s" % FLAGS.data_split)
+    data_utils.prepare_data(data, output_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+
+
 def data_statistics():
     train_set, dev_set, test_set = load_data(use_buckets=False)
     print(len(data_utils.group_data_by_nl(train_set)))
     print(len(data_utils.group_data_by_nl(dev_set)))
     print(len(data_utils.group_data_by_nl(test_set)))
-
     print("data count = %d" % len(data_utils.group_data_by_cm(train_set)))
     print("data count = %d" % len(data_utils.group_data_by_cm(dev_set)))
     print("data count = %d" % len(data_utils.group_data_by_cm(test_set)))
@@ -383,6 +303,8 @@ def main(_):
     elif FLAGS.manual_eval:
         manual_eval(100)
     elif FLAGS.decode:
+        decode()
+    elif FLAGS.interactive_decode()
         interactive_decode()
     elif FLAGS.process_data:
         process_data()
