@@ -253,8 +253,6 @@ class EncoderDecoderModel(object):
         encoder_inputs = []
         decoder_inputs = []
         if self.use_copy:
-            original_encoder_inputs = []
-            original_decoder_inputs = []
             copy_masks = []
 
         for i in xrange(len(data)):
@@ -262,21 +260,16 @@ class EncoderDecoderModel(object):
             # Encoder inputs are padded and then reversed
             encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
             encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
-            if self.use_copy:
-                copy_mask_pad = [0] * (encoder_size - len(encoder_input))
-                original_encoder_inputs.append(list(reversed(original_encoder_input + encoder_pad)))
-                copy_masks.append(list(reversed(copy_mask + copy_mask_pad)))
-
             decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_input))
             decoder_inputs.append(decoder_input + decoder_pad)
+            if self.use_copy:
+                copy_mask = data[i]
 
         # create batch-major vectors
         batch_encoder_inputs = []
         batch_decoder_inputs = []
         batch_weights = []
         if self.use_copy:
-            batch_original_encoder_inputs = []
-            batch_original_decoder_inputs = []
             batch_copy_masks = []
 
         # Batch encoder inputs are just re-indexed encoder_inputs.
@@ -285,15 +278,7 @@ class EncoderDecoderModel(object):
                 np.array([encoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(batch_size)], dtype=np.int32))
             if self.use_copy:
-                batch_original_decoder_inputs.append(
-                    np.array([original_decoder_inputs[batch_idx][length_idx]
-                          for batch_idx in xrange(batch_size)], dtype=np.int32))
-                # Create copy_masks to be 0 for encoder inputs that are not copiable
-                batch_copy_mask = np.zeros(batch_size, dtype=np.int32)
-                for batch_idx in xrange(batch_size):
-                    if copy_masks[batch_idx][length_idx] == 1:
-                        batch_copy_mask[batch_idx] = 1
-                batch_copy_masks.append(batch_copy_mask)
+                raise NotImplementedError
 
         # Batch decoder inputs are re-indexed decoder_inputs.
         for length_idx in xrange(decoder_size):
@@ -318,7 +303,7 @@ class EncoderDecoderModel(object):
         
         if self.use_copy:
             return batch_encoder_inputs, batch_decoder_inputs, batch_weights, \
-                batch_original_encoder_inputs, batch_original_decoder_inputs, batch_copy_masks
+                   batch_copy_masks
         else:
             return batch_encoder_inputs, batch_decoder_inputs, batch_weights
 
