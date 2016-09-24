@@ -241,41 +241,37 @@ class EncoderDecoderModel(object):
         return (w, b)
 
 
-    def format_example(self, data, copy_data=None, bucket_id=-1):
+    def format_example(self, encoder_inputs, decoder_inputs, copy_data=None,
+                       bucket_id=-1):
         """Prepare data to feed in step()"""
         if bucket_id >= 0:
             encoder_size, decoder_size = self.buckets[bucket_id]
         else:
             encoder_size, decoder_size = self.max_source_length, self.max_target_length
 
-        batch_size = len(data)
+        batch_size = len(encoder_inputs)
 
-        encoder_inputs = []
-        decoder_inputs = []
-        if self.use_copy:
-            copy_masks = []
+        padded_encoder_inputs = []
+        padded_decoder_inputs = []
 
-        for i in xrange(len(data)):
-            _, _, encoder_input, decoder_input = data[i]
+        for i in xrange(batch_size):
+            encoder_input = encoder_inputs[i]
+            decoder_input = decoder_inputs[i]
             # Encoder inputs are padded and then reversed
             encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
-            encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
+            padded_encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
             decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_input))
-            decoder_inputs.append(decoder_input + decoder_pad)
-            if self.use_copy:
-                copy_mask = data[i]
+            padded_decoder_inputs.append(decoder_input + decoder_pad)
 
         # create batch-major vectors
         batch_encoder_inputs = []
         batch_decoder_inputs = []
         batch_weights = []
-        if self.use_copy:
-            batch_copy_masks = []
 
         # Batch encoder inputs are just re-indexed encoder_inputs.
         for length_idx in xrange(encoder_size):
             batch_encoder_inputs.append(
-                np.array([encoder_inputs[batch_idx][length_idx]
+                np.array([padded_encoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(batch_size)], dtype=np.int32))
             if self.use_copy:
                 raise NotImplementedError
@@ -283,12 +279,10 @@ class EncoderDecoderModel(object):
         # Batch decoder inputs are re-indexed decoder_inputs.
         for length_idx in xrange(decoder_size):
             batch_decoder_inputs.append(
-                np.array([decoder_inputs[batch_idx][length_idx]
+                np.array([padded_decoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(batch_size)], dtype=np.int32))
             if self.use_copy:
-                batch_original_decoder_inputs.append(
-                    np.array([original_decoder_inputs[batch_idx][length_idx]
-                          for batch_idx in xrange(batch_size)], dtype=np.int32))
+                raise NotImplementedError
 
             # Create target_weights to be 0 for targets that are padding.
             batch_weight = np.ones(batch_size, dtype=np.float32)
@@ -302,8 +296,7 @@ class EncoderDecoderModel(object):
             batch_weights.append(batch_weight)
         
         if self.use_copy:
-            return batch_encoder_inputs, batch_decoder_inputs, batch_weights, \
-                   batch_copy_masks
+            raise NotImplementedError
         else:
             return batch_encoder_inputs, batch_decoder_inputs, batch_weights
 

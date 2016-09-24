@@ -2,13 +2,17 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 import numpy as np
 import re
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 import sqlite3
+
+import tensorflow as tf
 
 import data_utils, data_tools
 
@@ -117,36 +121,30 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
              verbose=True):
 
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True)
+    bucketed_group = data_utils.bucket_grouped_data(grouped_dataset, model.buckets)
 
     with DBConnection() as db:
-        num_eval = 0
-        for nl_template in grouped_dataset:
-            num_eval += 1
+        for bucket_id in xrange(len(model.buckets)):
+            batch_nl_strs, batch_cm_strs, batch_nls, batch_cmds = \
+                bucketed_group[bucket_id]
 
-            batch_nl_strs, batch_cm_strs, batch_nls, batch_search_historys = \
-                grouped_dataset[nl_template]
+            batch_size = len(batch_nl_strs)
 
-            # Which bucket does it belong to?
-            bucket_id = min([b for b in xrange(len(model.buckets))
-                            if model.buckets[b][0] > batch_nls.shape[1]])
+            formatted_example = model.format_example(
+                batch_nls, batch_cmds, bucket_id=bucket_id)
 
-            formatted_example = model.format_example(batch_nls, [data_utils.ROOT_ID],
-                                                     bucket_id)
-
-            _, _, output_logits, attn_masks = model.step(sess, formatted_example, bucket_id,
-                                             forward_only=True)
+            _, _, output_logits, attn_masks = model.step(
+                sess, formatted_example, bucket_id, forward_only=True)
 
             batch_outputs, scores = decode(output_logits, rev_cm_vocab, FLAGS)
 
-            for batch_id in xrange():
-                nl_strs = batch_nl_strs[batch_id]
+            for batch_id in xrange(batch_size):
+                nl_str = batch_nl_strs[batch_id]
                 cm_strs = batch_cm_strs[batch_id]
-                nls = batch_nls[batch_id]
-                search_historys = batch_search_historys[batch_id]
+                nl = batch_nls[batch_id]
 
-                nl = nls[batch_id]
                 if verbose:
-                    print("Example %d (%d)" % (num_eval, len(cm_strs)))
+                    print("Example {}:{}".format(bucket_id, batch_id))
                     print("Original English: " + nl_str.strip())
                     print("English: " + ' '.join([rev_nl_vocab[i] for i in nl]))
                     for j in xrange(len(cm_strs)):
@@ -169,9 +167,9 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                             data_tools.pretty_print(top_k_pred_trees[j], 0)
                             print()
                 if attn_masks != None:
-                    visualize_attn_masks(attn_masks[batch_id, :, :], nls[batch_id], search_historys[batch_id],
+                    visualize_attn_masks(attn_masks[batch_id, :, :], nl, search_historys[batch_id],
                                          rev_nl_vocab, rev_cm_vocab,
-                                         os.path.join(FLAGS.train_dir, "{}-{}.jpg".format(num_eval, batch_id)))
+                                         os.path.join(FLAGS.train_dir, "{}-{}.jpg".format(bucket_id, batch_id)))
 
 
 def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_path):
