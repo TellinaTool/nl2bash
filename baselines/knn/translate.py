@@ -12,6 +12,8 @@ import knn
 from eval_archive import DBConnection
 
 FLAGS = tf.app.flags.FLAGS
+parse_args.define_input_flags()
+
 data_dir = FLAGS.data_dir
 
 def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
@@ -121,5 +123,4 @@ def main():
 
 
 if __name__ == '__main__':
-    parse_args.define_input_flags()
     main()
