@@ -67,8 +67,23 @@ def decode():
     decode_set(model, dev_set, rev_nl_vocab, rev_cm_vocab)
 
 
-# Chenglong's main function
 def manual_eval():
+    # Load vocabularies.
+    nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.nl" % FLAGS.nl_vocab_size)
+    cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+    nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
+    cm_vocab, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+
+    train_set, dev_set, _ = load_data()
+    model = knn.KNNModel()
+    model.train(train_set)
+    eval_tools.manual_eval(model_name, dev_set, rev_nl_vocab,
+                               FLAGS.train_dir, num_eval=100)
+
+# Chenglong's main function
+def original():
     # test_vec = [26, 12, 10, 11, 15, 17, 28, 171, 18, 339]
 
     # print "[command] ", decode_vec_to_str(test_vec, nl_dictionary)
@@ -139,6 +154,8 @@ def main():
         manual_eval()
     elif FLAGS.decode:
         decode()
+    elif FLAGS.self_test:
+        original()
 
 
 if __name__ == '__main__':
