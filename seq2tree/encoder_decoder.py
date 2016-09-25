@@ -584,4 +584,5 @@ class Seq2TreeModel(EncoderDecoderModel):
                                                 self.use_attention, self.use_copy,
                                                 self.output_projection())
         else:
-            raise ValueError("Unrecognized decoder type.")
+            raise ValueError("Unrecognized decoder topology: {}."
+                             .format(self.decoder_topology))

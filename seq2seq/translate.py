@@ -62,7 +62,6 @@ FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
 
 # We use a number of buckets and pad to the closest one for efficiency.
-# See seq2seq_model.Seq2SeqModel for details of how they work.
 if FLAGS.char:
     _buckets = [(10, 20), (20, 30), (40, 50), (60, 80), (80, 100), (100, 120), (120, 120), (140, 120)]
 else:
@@ -209,6 +208,8 @@ def main(_):
     elif FLAGS.eval:
         eval()
     elif FLAGS.decode:
+        decode()
+    elif FLAGS.interactive_decode:
         interactive_decode()
     elif FLAGS.grid_search:
         train_set, dev_set, _ = load_data()
