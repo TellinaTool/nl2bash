@@ -24,8 +24,9 @@ from tqdm import tqdm
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-import decode_tools, hyperparam_range
 import data_utils, data_tools, graph_utils
+import decode_tools, hyperparam_range
+import eval_tools
 import parse_args
 from encoder_decoder import Seq2TreeModel
 
@@ -92,7 +93,6 @@ def train(train_set, dev_set, verbose=False, construct_model_dir=True):
         _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
         _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
-        # dev_set = train_set + dev_set
         for t in xrange(FLAGS.num_epochs):
             print("Epoch %d" % (t+1))
 
@@ -177,6 +177,75 @@ def decode(construct_model_dir=True, verbose=True):
 
         decode_tools.decode_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
                             FLAGS, verbose)
+
+
+def eval(construct_model_dir=True, verbose=True):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+        log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        model, _ = create_model(sess, forward_only=True,
+                                construct_model_dir=construct_model_dir)
+
+        # Load vocabularies.
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
+        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+        _, dev_set, _ = load_data()
+
+        return eval_tools.eval_set(model.model_dir, dev_set, rev_nl_vocab,
+                                   verbose=verbose)
+
+
+def manual_eval(num_eval):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+        log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        model, _ = create_model(sess, forward_only=True)
+
+        # Load vocabularies.
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
+        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+        _, dev_set, _ = load_data()
+
+        eval_tools.manual_eval(model.model_dir, dev_set, rev_nl_vocab,
+                               FLAGS.train_dir, num_eval)
+
+
+def interactive_decode():
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+        log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        model, _ = create_model(sess, forward_only=True)
+
+        # Load vocabularies.
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+        nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
+        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+
+        decode_tools.interactive_decode(
+            sess, model, nl_vocab, rev_cm_vocab, FLAGS)
+
+
+def train_and_eval(train_set, dev_set):
+    train(train_set, dev_set, FLAGS.num_epochs,
+          construct_model_dir=False)
+    tf.reset_default_graph()
+    decode(construct_model_dir=False, verbose=False)
+    temp_match_score, eval_match_score = eval(construct_model_dir=False,
+                                              verbose=False)
+    tf.reset_default_graph()
+    return temp_match_score, eval_match_score
+
 
 def grid_search(train_set, dev_set):
     FLAGS.create_fresh_params = True
@@ -304,14 +373,12 @@ def main(_):
         manual_eval(100)
     elif FLAGS.decode:
         decode()
-    elif FLAGS.interactive_decode()
+    elif FLAGS.interactive_decode:
         interactive_decode()
     elif FLAGS.process_data:
         process_data()
     elif FLAGS.data_stats:
         data_statistics()
-    elif FLAGS.compare_models:
-        compare_models()
     elif FLAGS.sample_train:
         train_set, dev_set, _ = load_data(FLAGS.sample_size)
         train(train_set, dev_set)

@@ -1,4 +1,6 @@
-# builtin
+"""
+Database which stores model predictions and manual judgements.
+"""
 from __future__ import print_function
 
 import os
@@ -23,70 +25,99 @@ class DBConnection(object):
     def create_schema(self):
         c = self.cursor
 
-        c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, str TEXT, judgement INT)")
-        c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, temp TEXT, judgement INT)")
+        c.execute("CREATE TABLE IF NOT EXISTS Output (model TEXT, nl TEXT, pred_cmd TEXT, score FLOAT)")
+
+        c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, pred_cmd TEXT, judgement INT)")
+        c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, pred_temp TEXT, judgement INT)")
 
         self.conn.commit()
 
+    # --- Prediction ---
+    def add_prediction(self, model, nl, pred_cmd, score):
+        c = self.cursor
+        if self.exist_prediction(model, nl):
+            c.execute("UPDATE Output SET pred_cmd = ?, score = ? WHERE model = ? AND nl = ?",
+                      (pred_cmd, score, model, nl))
+        else:
+            c.execute("INSERT INTO Output (model, nl, pred_cmd, score) VALUES (?, ?, ?, ?)",
+                      (model, nl, pred_cmd, score))
+        self.conn.commit()
+
+    def exist_prediction(self, model, nl):
+        c = self.cursor
+        for _ in c.execute("SELECT 1 FROM Output WHERE model = ? AND nl = ?", (model, nl)):
+            return True
+        return False
+
+    def get_prediction(self, model, nl):
+        return self.get_top_k_predictions(model, nl, 1)[0]
+
+    def get_top_k_predictions(self, model, nl, k):
+        c = self.cursor
+        predictions = []
+        for _, _, pred_cmd, score in \
+            c.execute("SELECT model, nl, pred_cmd, score FROM Output WHERE model = ? AND nl = ?",
+                      (model, nl)):
+            predictions.append((pred_cmd, score))
+        sorted_predictions = sorted(predictions, key=lambda x:x[1], reverse=True)
+        return sorted_predictions[:k]
+
+    # --- Manual Evaluation ---
     def add_str_judgement(self, triple):
         c = self.cursor
         if not self.exist_str_pair((triple[0], triple[1])):
-            c.execute("INSERT INTO StrArchives (nl, str, judgement) VALUES (?, ?, ?)", triple)
+            c.execute("INSERT INTO StrArchives (nl, pred_cmd, judgement) VALUES (?, ?, ?)", triple)
         self.conn.commit()
 
     def add_temp_judgement(self, triple):
         c = self.cursor
         if not self.exist_temp_pair((triple[0], triple[1])):
-            c.execute("INSERT INTO TempArchives (nl, temp, judgement) VALUES (?, ?, ?)", triple)
+            c.execute("INSERT INTO TempArchives (nl, pred_temp, judgement) VALUES (?, ?, ?)", triple)
         self.conn.commit()
 
     def get_str_judgement(self, pair):
         c = self.cursor
-        for _, _, judgement in c.execute("SELECT nl, str, judgement FROM StrArchives WHERE nl = ? AND str = ?", pair):
+        for _, _, judgement in c.execute("SELECT nl, pred_cmd, judgement FROM StrArchives WHERE nl = ? AND pred_cmd = ?", pair):
             return judgement
 
     def get_temp_judgement(self, pair):
         c = self.cursor
-        for _, _, judgement in c.execute("SELECT nl, temp, judgement FROM TempArchives WHERE nl = ? AND temp = ?", pair):
+        for _, _, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ? AND pred_temp = ?", pair):
             return judgement
 
     def exist_str_pair(self, pair):
         c = self.cursor
-        for _ in c.execute("SELECT 1 FROM StrArchives WHERE nl = ? AND str = ?", pair):
+        for _ in c.execute("SELECT 1 FROM StrArchives WHERE nl = ? AND pred_cmd = ?", pair):
             return True
         return False
 
     def exist_temp_pair(self, pair):
         c = self.cursor
-        for _ in c.execute("SELECT 1 FROM TempArchives WHERE nl = ? AND temp = ?", pair):
+        for _ in c.execute("SELECT 1 FROM TempArchives WHERE nl = ? AND pred_temp = ?", pair):
             return True
         return False
 
     def correct_str_pair(self, pair):
-        judgement = self.get_str_judgement(pair)
         c = self.cursor
-        c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND str = ?",
+        c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND pred_cmd = ?",
                   (1, pair[0], pair[1]))
         self.conn.commit()
 
     def correct_temp_pair(self, pair):
-        judgement = self.get_temp_judgement(pair)
         c = self.cursor
-        c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND temp = ?",
+        c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND pred_temp = ?",
                   (1, pair[0], pair[1]))
         self.conn.commit()
 
     def error_str_pair(self, pair):
-        judgement = self.get_str_judgement(pair)
         c = self.cursor
-        c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND str = ?",
+        c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND pred_cmd = ?",
                   (0, pair[0], pair[1]))
         self.conn.commit()
 
     def error_temp_pair(self, pair):
-        judgement = self.get_temp_judgement(pair)
         c = self.cursor
-        c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND temp = ?",
+        c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND pred_temp = ?",
                   (0, pair[0], pair[1]))
         self.conn.commit()
 
