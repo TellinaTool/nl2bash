@@ -5,12 +5,12 @@ import os, sys
 import tensorflow as tf
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import data_utils, graph_utils
+import decoder, data_utils, graph_utils
 
 DEBUG = False
 
 
-class BasicTreeDecoder(Decoder):
+class BasicTreeDecoder(decoder.Decoder):
 
     def __init__(self, dim, batch_size, rnn_cell, num_layers,
                  input_keep_prob, output_keep_prob,

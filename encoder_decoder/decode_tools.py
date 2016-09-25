@@ -79,6 +79,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
 
     with DBConnection() as db:
         for bucket_id in xrange(len(model.buckets)):
+            print(len(bucketed_group[bucket_id]))
             batch_nl_strs, batch_cm_strs, batch_nls, batch_cmds = \
                 bucketed_group[bucket_id]
 

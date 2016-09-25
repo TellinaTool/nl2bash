@@ -29,7 +29,7 @@ class DBConnection(object):
         c = self.cursor
 
         c.execute("CREATE TABLE IF NOT EXISTS Output (model TEXT, nl TEXT, pred_cmd TEXT, score FLOAT)")
-
+        
         c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, pred_cmd TEXT, judgement INT)")
         c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, pred_temp TEXT, judgement INT)")
 
