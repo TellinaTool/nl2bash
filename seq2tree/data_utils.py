@@ -352,6 +352,46 @@ def group_data_by_cm(dataset, use_bucket=False):
     return grouped_dataset
 
 
+def load_data(FLAGS, buckets):
+    print("Loading data from %s" % FLAGS.data_dir)
+
+    data_dir = FLAGS.data_dir
+    if FLAGS.char:
+        nl_extention = ".cids%d.nl" % FLAGS.nl_vocab_size
+        cm_extension = ".cids%d.cm" % FLAGS.cm_vocab_size
+        append_head_token = True
+        append_end_token = True
+    elif FLAGS.decoder_topology in ["rnn"]:
+        nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
+        cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
+        append_head_token = True
+        append_end_token = True
+    elif FLAGS.decoder_topology in ["basic_tree"]:
+        nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
+        cm_extension = ".seq%d.cm" % FLAGS.cm_vocab_size
+        append_head_token = False
+        append_end_token = False
+
+    nl_train = os.path.join(data_dir, "train") + nl_extention
+    cm_train = os.path.join(data_dir, "train") + cm_extension
+    nl_dev = os.path.join(data_dir, "dev") + nl_extention
+    cm_dev = os.path.join(data_dir, "dev") + cm_extension
+    nl_test = os.path.join(data_dir, "test") + nl_extention
+    cm_test = os.path.join(data_dir, "test") + cm_extension
+
+    train_set = read_data(nl_train, cm_train, buckets, FLAGS.max_train_data_size,
+                          append_head_token=append_head_token,
+                          append_end_token=append_end_token)
+    dev_set = read_data(nl_dev, cm_dev, buckets,
+                        append_head_token=append_head_token,
+                        append_end_token=append_end_token)
+    test_set = read_data(nl_test, cm_test, buckets,
+                         append_head_token=append_head_token,
+                         append_end_token=append_end_token)
+
+    return train_set, dev_set, test_set
+
+
 def read_data(source_path, target_path, buckets=None, max_num_examples=None,
               append_head_token=False, append_end_token=False):
     """Read data from source and target files and put into buckets.

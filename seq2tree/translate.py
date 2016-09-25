@@ -321,23 +321,10 @@ def grid_search(train_set, dev_set):
 
 # Data
 def load_data(use_buckets=True):
-    print("Loading data from %s" % FLAGS.data_dir)
-
-    data_dir = FLAGS.data_dir
-    nl_train = os.path.join(data_dir, "train") + ".ids%d.nl" % FLAGS.nl_vocab_size
-    cm_train = os.path.join(data_dir, "train") + ".seq%d.cm" % FLAGS.cm_vocab_size
-    nl_dev = os.path.join(data_dir, "dev") + ".ids%d.nl" % FLAGS.nl_vocab_size
-    cm_dev = os.path.join(data_dir, "dev") + ".seq%d.cm" % FLAGS.cm_vocab_size
-    nl_test = os.path.join(data_dir, "test") + ".ids%d.nl" % FLAGS.nl_vocab_size
-    cm_test = os.path.join(data_dir, "test") + ".seq%d.cm" % FLAGS.cm_vocab_size
-
-    buckets = _buckets if use_buckets else None
-
-    train_set = data_utils.read_data(nl_train, cm_train, buckets, FLAGS.max_train_data_size)
-    dev_set = data_utils.read_data(nl_dev, cm_dev, buckets)
-    test_set = data_utils.read_data(nl_test, cm_test, buckets)
-
-    return train_set, dev_set, test_set
+    if use_buckets:
+        return data_utils.load_data(FLAGS, _buckets)
+    else:
+        return data_utils.load_data(FLAGS, None)
 
 
 def process_data():
