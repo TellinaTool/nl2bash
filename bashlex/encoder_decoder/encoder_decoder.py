@@ -10,10 +10,6 @@ import data_utils
 import numpy as np
 import tensorflow as tf
 
-import encoder_decoder.encoder
-import encoder_decoder.graph_utils
-import encoder_decoder.seq2tree.decoder
-
 
 class EncoderDecoderModel(object):
 
@@ -186,8 +182,8 @@ class EncoderDecoderModel(object):
                 feed_previous=forward_only)
 
         # Losses.
-        losses = encoder_decoder.graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
-                                                           encoder_decoder.graph_utils.softmax_loss(
+        losses = bashlex.encoder_decoder.graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
+                                                                   bashlex.encoder_decoder.graph_utils.softmax_loss(
                                                self.output_projection(),
                                                self.num_samples,
                                                self.target_vocab_size
