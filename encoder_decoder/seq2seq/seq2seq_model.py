@@ -20,14 +20,13 @@ from __future__ import division
 from __future__ import print_function
 
 import os, sys
-import numpy as np
 
 import tensorflow as tf
-import decoder
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2tree"))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from encoder_decoder import EncoderDecoderModel
 import encoder, graph_utils
+import decoder
 
 
 class Seq2SeqModel(EncoderDecoderModel):
@@ -74,4 +73,3 @@ class Seq2SeqModel(EncoderDecoderModel):
                                               self.output_projection())
         else:
             raise ValueError("Unrecognized decoder type.")
-

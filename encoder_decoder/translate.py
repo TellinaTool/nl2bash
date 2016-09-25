@@ -9,10 +9,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2seq"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2tree"))
 
 import cPickle as pickle
 import itertools
@@ -25,12 +28,12 @@ from tqdm import tqdm
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-import data_utils, data_tools, graph_utils
+import data_utils, graph_utils
 import decode_tools, hyperparam_range
 import eval_tools
 import parse_args
 from seq2seq_model import Seq2SeqModel
-from encoder_decoder import Seq2TreeModel
+from seq2tree_model import Seq2TreeModel
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -71,10 +74,10 @@ def create_model(session, forward_only, construct_model_dir=True):
     """
     if FLAGS.decoder_topology in ['basic_tree']:
         return graph_utils.create_model(session, FLAGS, Seq2TreeModel, _buckets,
-                                    forward_only, construct_model_dir)
+                                                        forward_only, construct_model_dir)
     elif FLAGS.decoder_topology in ['rnn']:
         return graph_utils.create_model(session, FLAGS, Seq2SeqModel, _buckets,
-                                    forward_only, construct_model_dir)
+                                                        forward_only, construct_model_dir)
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
@@ -178,7 +181,7 @@ def decode(construct_model_dir=True, verbose=True):
         _, dev_set, _ = load_data()
 
         decode_tools.decode_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
-                            FLAGS, verbose)
+                                                FLAGS, verbose)
 
 
 def eval(construct_model_dir=True, verbose=True):

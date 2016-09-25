@@ -4,14 +4,16 @@ from __future__ import division
 from __future__ import print_function
 
 import math
-import numpy as np
-
 import random
+
+import data_utils
+import numpy as np
 import tensorflow as tf
 
-import encoder, decoder
-import data_utils
-import graph_utils
+import encoder_decoder.encoder
+import encoder_decoder.graph_utils
+import encoder_decoder.seq2tree.decoder
+
 
 class EncoderDecoderModel(object):
 
@@ -184,8 +186,8 @@ class EncoderDecoderModel(object):
                 feed_previous=forward_only)
 
         # Losses.
-        losses = graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
-                                           graph_utils.softmax_loss(
+        losses = encoder_decoder.graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
+                                                           encoder_decoder.graph_utils.softmax_loss(
                                                self.output_projection(),
                                                self.num_samples,
                                                self.target_vocab_size
@@ -546,43 +548,3 @@ class EncoderDecoderModel(object):
     @property
     def model_dir(self):
         return self.hyperparams["model_dir"]
-
-
-class Seq2TreeModel(EncoderDecoderModel):
-    """Sequence-to-tree models.
-    """
-    def __init__(self, hyperparams, buckets=None, forward_only=False):
-        """
-        Create the model.
-        :param hyperparams: learning hyperparameters
-        :param buckets: if not None, train bucket model.
-        :param forward_only: if set, we do not construct the backward pass.
-        """
-        super(Seq2TreeModel, self).__init__(hyperparams, buckets, forward_only)
-
-        self.global_epoch = tf.Variable(0, trainable=False)
-
-        self.define_graph(forward_only)
-
-
-    def define_encoder(self):
-        """Construct sequence encoders."""
-        if self.encoder_topology == "rnn":
-            self.encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers,
-                                              self.encoder_input_keep, self.encoder_output_keep)
-        elif self.encoder_topology == "birnn":
-            self.encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.num_layers)
-        else:
-            raise ValueError("Unrecognized encoder type.")
-
-
-    def define_decoder(self):
-        """Construct tree decoders."""
-        if self.decoder_topology == "basic_tree":
-            self.decoder = decoder.BasicTreeDecoder(self.dim, self.batch_size, self.rnn_cell, self.num_layers,
-                                                self.decoder_input_keep, self.decoder_output_keep,
-                                                self.use_attention, self.use_copy,
-                                                self.output_projection())
-        else:
-            raise ValueError("Unrecognized decoder topology: {}."
-                             .format(self.decoder_topology))

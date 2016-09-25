@@ -1,10 +1,10 @@
 """A set of tree decoder modules used in the encoder-decoder framework."""
 
-import tensorflow as tf
-import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2seq"))
-
 import numpy as np
+import os, sys
+import tensorflow as tf
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import data_utils, graph_utils
 
 DEBUG = False
@@ -263,34 +263,34 @@ class BasicTreeDecoder(Decoder):
                     search_left_to_right_next = self.is_no_expand(batch_output_symbol)
 
                     back_pointer = graph_utils.map_fn(self.back_pointer,
-                                             [search_left_to_right_next,
+                                                      [search_left_to_right_next,
                                               search_left_to_right,
                                               self.grandparent(),
                                               self.parent(),
                                               tf.constant(i, shape=[self.batch_size], dtype=tf.int32)],
-                                             self.batch_size)
+                                                      self.batch_size)
                     back_pointer.set_shape([self.batch_size])
                     if DEBUG:
                         print("back_pointer.get_shape(): {}".format(back_pointer.get_shape()))
 
                     next_input = graph_utils.map_fn(self.next_input,
-                                           [search_left_to_right_next,
+                                                    [search_left_to_right_next,
                                             search_left_to_right,
                                             self.parent_input(),
                                             self.get_input(),
                                             batch_output_symbol],
-                                           self.batch_size)
+                                                    self.batch_size)
                     next_input.set_shape([self.batch_size])
                     if DEBUG:
                         print("next_input.get_shape(): {}".format(next_input.get_shape()))
 
                     next_state = graph_utils.map_fn(self.next_state,
-                                           [search_left_to_right_next,
+                                                    [search_left_to_right_next,
                                             search_left_to_right,
                                             self.parent_state(),
                                             self.get_state(),
                                             batch_state],
-                                           self.batch_size)
+                                                    self.batch_size)
                     if DEBUG:
                         print("next_state.get_shape(): {}".format(next_state.get_shape()))
 
