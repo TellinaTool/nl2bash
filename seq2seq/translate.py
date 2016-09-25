@@ -191,33 +191,12 @@ def train(train_set, dev_set, num_epochs, construct_model_dir=True):
                 sys.stdout.flush()
     return True
 
-def load_data():
-    print("Loading data from %s" % FLAGS.data_dir)
 
-    data_dir = FLAGS.data_dir
-    if FLAGS.char:
-        nl_train = os.path.join(data_dir, "train") + ".cids%d.nl" % FLAGS.nl_vocab_size
-        cm_train = os.path.join(data_dir, "train") + ".cids%d.cm" % FLAGS.cm_vocab_size
-        nl_dev = os.path.join(data_dir, "dev") + ".cids%d.nl" % FLAGS.nl_vocab_size
-        cm_dev = os.path.join(data_dir, "dev") + ".cids%d.cm" % FLAGS.cm_vocab_size
-        nl_test = os.path.join(data_dir, "test") + ".cids%d.nl" % FLAGS.nl_vocab_size
-        cm_test = os.path.join(data_dir, "test") + ".cids%d.cm" % FLAGS.cm_vocab_size
+def load_data(use_buckets=True):
+    if use_buckets:
+        return data_utils.load_data(FLAGS, _buckets)
     else:
-        nl_train = os.path.join(data_dir, "train") + ".ids%d.nl" % FLAGS.nl_vocab_size
-        cm_train = os.path.join(data_dir, "train") + ".ids%d.cm" % FLAGS.cm_vocab_size
-        nl_dev = os.path.join(data_dir, "dev") + ".ids%d.nl" % FLAGS.nl_vocab_size
-        cm_dev = os.path.join(data_dir, "dev") + ".ids%d.cm" % FLAGS.cm_vocab_size
-        nl_test = os.path.join(data_dir, "test") + ".ids%d.nl" % FLAGS.nl_vocab_size
-        cm_test = os.path.join(data_dir, "test") + ".ids%d.cm" % FLAGS.cm_vocab_size
-
-    train_set = data_utils.read_data(nl_train, cm_train, _buckets, FLAGS.max_train_data_size,
-                                     append_head_token=True, append_end_token=True)
-    dev_set = data_utils.read_data(nl_dev, cm_dev, _buckets,
-                                   append_head_token=True, append_end_token=True)
-    test_set = data_utils.read_data(nl_test, cm_test, _buckets,
-                                    append_head_token=True, append_end_token=True)
-
-    return train_set, dev_set, test_set
+        return data_utils.load_data(FLAGS, None)
 
 
 def main(_):
