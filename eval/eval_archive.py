@@ -34,6 +34,7 @@ class DBConnection(object):
 
     # --- Prediction ---
     def add_prediction(self, model, nl, pred_cmd, score):
+        nl = nl.decode('utf-8')
         c = self.cursor
         if self.exist_prediction(model, nl):
             c.execute("UPDATE Output SET pred_cmd = ?, score = ? WHERE model = ? AND nl = ?",
@@ -44,15 +45,18 @@ class DBConnection(object):
         self.conn.commit()
 
     def exist_prediction(self, model, nl):
+        nl = nl.decode('utf-8')
         c = self.cursor
         for _ in c.execute("SELECT 1 FROM Output WHERE model = ? AND nl = ?", (model, nl)):
             return True
         return False
 
     def get_prediction(self, model, nl):
+        nl = nl.decode('utf-8')
         return self.get_top_k_predictions(model, nl, 1)[0]
 
     def get_top_k_predictions(self, model, nl, k):
+        nl = nl.decode('utf-8')
         c = self.cursor
         predictions = []
         for _, _, pred_cmd, score in \
@@ -64,61 +68,83 @@ class DBConnection(object):
 
     # --- Manual Evaluation ---
     def add_str_judgement(self, triple):
+        nl, pred_cmd, judgement = triple
+        nl = nl.decode('utf-8')
         c = self.cursor
-        if not self.exist_str_pair((triple[0], triple[1])):
-            c.execute("INSERT INTO StrArchives (nl, pred_cmd, judgement) VALUES (?, ?, ?)", triple)
+        if not self.exist_str_pair((nl, pred_cmd)):
+            c.execute("INSERT INTO StrArchives (nl, pred_cmd, judgement) VALUES (?, ?, ?)", (nl, pred_cmd, judgement))
         self.conn.commit()
 
     def add_temp_judgement(self, triple):
+        nl, pred_temp, judgement = triple
+        nl = nl.decode('utf-8')
         c = self.cursor
-        if not self.exist_temp_pair((triple[0], triple[1])):
-            c.execute("INSERT INTO TempArchives (nl, pred_temp, judgement) VALUES (?, ?, ?)", triple)
+        if not self.exist_temp_pair((nl, pred_temp)):
+            c.execute("INSERT INTO TempArchives (nl, pred_temp, judgement) VALUES (?, ?, ?)", (nl, pred_temp, judgement))
         self.conn.commit()
 
     def get_str_judgement(self, pair):
+        nl, pred_cmd = pair
+        nl = nl.decode('utf-8')
         c = self.cursor
-        for _, _, judgement in c.execute("SELECT nl, pred_cmd, judgement FROM StrArchives WHERE nl = ? AND pred_cmd = ?", pair):
+        for _, _, judgement in c.execute("SELECT nl, pred_cmd, judgement FROM StrArchives WHERE nl = ? AND pred_cmd = ?",
+                                         (nl, pred_cmd)):
             return judgement
 
     def get_temp_judgement(self, pair):
+        nl, pred_temp = pair
+        nl = nl.decode('utf-8')
         c = self.cursor
-        for _, _, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ? AND pred_temp = ?", pair):
+        for _, _, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ? AND pred_temp = ?",
+                                         (nl, pred_temp)):
             return judgement
 
     def exist_str_pair(self, pair):
+        nl, pred_cmd = pair
+        nl = nl.decode('utf-8')
         c = self.cursor
-        for _ in c.execute("SELECT 1 FROM StrArchives WHERE nl = ? AND pred_cmd = ?", pair):
+        for _ in c.execute("SELECT 1 FROM StrArchives WHERE nl = ? AND pred_cmd = ?", (nl, pred_cmd)):
             return True
         return False
 
     def exist_temp_pair(self, pair):
+        nl, pred_temp = pair
+        nl = nl.decode('utf-8')
         c = self.cursor
-        for _ in c.execute("SELECT 1 FROM TempArchives WHERE nl = ? AND pred_temp = ?", pair):
+        for _ in c.execute("SELECT 1 FROM TempArchives WHERE nl = ? AND pred_temp = ?", (nl, pred_temp)):
             return True
         return False
 
     def correct_str_pair(self, pair):
+        nl, pred_cmd = pair
+        nl = nl.decode('utf-8')
         c = self.cursor
         c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND pred_cmd = ?",
-                  (1, pair[0], pair[1]))
+                  (1, nl, pred_cmd))
         self.conn.commit()
 
     def correct_temp_pair(self, pair):
+        nl, pred_temp = pair
+        nl = nl.decode('utf-8')
         c = self.cursor
         c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND pred_temp = ?",
-                  (1, pair[0], pair[1]))
+                  (1, nl, pred_temp))
         self.conn.commit()
 
     def error_str_pair(self, pair):
+        nl, pred_cmd = pair
+        nl = nl.decode('utf-8')
         c = self.cursor
         c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND pred_cmd = ?",
-                  (0, pair[0], pair[1]))
+                  (0, nl, pred_cmd))
         self.conn.commit()
 
     def error_temp_pair(self, pair):
+        nl, pred_temp = pair
+        nl = nl.decode('utf-8')
         c = self.cursor
         c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND pred_temp = ?",
-                  (0, pair[0], pair[1]))
+                  (0, nl, pred_temp))
         self.conn.commit()
 
 if __name__ == "__main__":
