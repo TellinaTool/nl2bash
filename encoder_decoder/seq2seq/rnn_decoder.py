@@ -7,9 +7,9 @@ import tensorflow as tf
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-import graph_utils
+import decoder, graph_utils
 
-class RNNDecoder(encoder_decoder.seq2tree.decoder.Decoder):
+class RNNDecoder(decoder.Decoder):
 
     def __init__(self, dim, batch_size, rnn_cell, num_layers,
                  input_keep_prob, output_keep_prob,
@@ -78,7 +78,7 @@ class RNNDecoder(encoder_decoder.seq2tree.decoder.Decoder):
 
     def decoder_cell(self):
         with tf.variable_scope("decoder_cell") as scope:
-            cell = encoder_decoder.graph_utils.create_multilayer_cell(
+            cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers)
             self.encoder_cell_vars = True
         return cell, scope

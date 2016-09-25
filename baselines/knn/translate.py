@@ -1,8 +1,8 @@
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'bashlex'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'encoder_decoder'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'eval'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'seq2tree'))
 
 import tensorflow as tf
 
@@ -23,19 +23,18 @@ def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
     with DBConnection() as db:
         num_eval = 0
-        for nl_template in grouped_dataset:
+        for nl_temp in grouped_dataset:
             batch_nl_strs, batch_cm_strs, batch_nls, batch_cmds = \
-                grouped_dataset[nl_template]
+                grouped_dataset[nl_temp]
             
             batch_size = len(batch_nl_strs)
             
             nl_str = batch_nl_strs[0]
             nl = batch_nls[0]
-            nl_temp = ' '.join([rev_nl_vocab[i] for i in nl])
             if verbose:
                 print("Example {}".format(num_eval+1))
                 print("Original English: " + nl_str.strip())
-                print("English: " + ' '.join([rev_nl_vocab[i] for i in nl]))
+                print("English: " + nl_temp)
                 for j in xrange(len(batch_cm_strs)):
                     print("GT Command {}: {}".format(j+1, batch_cm_strs[j].strip()))
             nn, cmd, score = model.test(nl, 1)
@@ -48,7 +47,7 @@ def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
                 print("AST: ")
                 data_tools.pretty_print(tree, 0)
                 print
-            db.add_prediction(model_name, nl_temp, pred_cmd, score)
+            db.add_prediction(model_name, nl_str, pred_cmd, score)
             
             num_eval += 1
 
