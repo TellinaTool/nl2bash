@@ -60,7 +60,7 @@ def decode():
     nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
-    train_set, dev_set, _ = data_utils.load_data(FLAGS, None)
+    train_set, dev_set, _ = load_data()
     model = knn.KNNModel()
     model.train(train_set)
 
@@ -91,7 +91,7 @@ def manual_eval():
     nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
     # the file containing traning nl vectors and cmd vectors
-    train_set, dev_set, _ = data_utils.load_data(FLAGS, None)
+    train_set, dev_set, _ = load_data()
 
     model = knn.KNNModel()
     model.train(train_set)
@@ -113,6 +113,25 @@ def manual_eval():
         print "     ", knn.decode_vec_to_str(nl, rev_nl_vocab)
         print "     ", knn.decode_vec_to_str(cmd, rev_cm_vocab)
         print knn.decode_vec_to_str(cmd, rev_cm_vocab)
+
+
+def load_data():
+    print("Loading data from %s" % FLAGS.data_dir)
+    nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
+    cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
+
+    nl_train = os.path.join(data_dir, "train") + nl_extention
+    cm_train = os.path.join(data_dir, "train") + cm_extension
+    nl_dev = os.path.join(data_dir, "dev") + nl_extention
+    cm_dev = os.path.join(data_dir, "dev") + cm_extension
+    nl_test = os.path.join(data_dir, "test") + nl_extention
+    cm_test = os.path.join(data_dir, "test") + cm_extension
+
+    train_set = data_utils.read_data(nl_train, cm_train, None, FLAGS.max_train_data_size)
+    dev_set = data_utils.read_data(nl_dev, cm_dev, None)
+    test_set = data_utils.read_data(nl_test, cm_test, None)
+
+    return train_set, dev_set, test_set
 
 
 def main():
