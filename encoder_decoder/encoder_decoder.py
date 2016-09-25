@@ -6,10 +6,15 @@ from __future__ import print_function
 import math
 import random
 
-import data_utils
+import data_utils, graph_utils
 import numpy as np
 import tensorflow as tf
 
+<<<<<<< HEAD:encoder_decoder/encoder_decoder.py
+import encoder, decoder
+
+=======
+>>>>>>> 24b7911db3bdc73a71ddf9290c91ca3fe7b0cd98:bashlex/encoder_decoder/encoder_decoder.py
 
 class EncoderDecoderModel(object):
 
@@ -182,8 +187,13 @@ class EncoderDecoderModel(object):
                 feed_previous=forward_only)
 
         # Losses.
+<<<<<<< HEAD:encoder_decoder/encoder_decoder.py
+        losses = graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
+                                           graph_utils.softmax_loss(
+=======
         losses = bashlex.encoder_decoder.graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
                                                                    bashlex.encoder_decoder.graph_utils.softmax_loss(
+>>>>>>> 24b7911db3bdc73a71ddf9290c91ca3fe7b0cd98:bashlex/encoder_decoder/encoder_decoder.py
                                                self.output_projection(),
                                                self.num_samples,
                                                self.target_vocab_size
