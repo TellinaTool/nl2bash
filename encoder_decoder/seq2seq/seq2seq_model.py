@@ -26,8 +26,8 @@ import tensorflow as tf
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from encoder_decoder import EncoderDecoderModel
-import encoder
-import decoder
+import encoder, graph_utils
+import rnn_decoder
 
 
 class Seq2SeqModel(EncoderDecoderModel):
@@ -68,7 +68,7 @@ class Seq2SeqModel(EncoderDecoderModel):
     def define_decoder(self):
         """Construct sequence decoders."""
         if self.decoder_topology == "rnn":
-            self.decoder = decoder.RNNDecoder(self.dim, self.batch_size, self.rnn_cell, self.num_layers,
+            self.decoder = rnn_decoder.RNNDecoder(self.dim, self.batch_size, self.rnn_cell, self.num_layers,
                                               self.decoder_input_keep, self.decoder_output_keep,
                                               self.use_attention, self.use_copy,
                                               self.output_projection())

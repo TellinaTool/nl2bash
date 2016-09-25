@@ -14,8 +14,8 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2seq"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2tree"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "seq2seq"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "seq2tree"))
 
 import cPickle as pickle
 import itertools
