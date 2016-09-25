@@ -4,13 +4,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os, sys
+import os
+import sys
 
 import tensorflow as tf
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from encoder_decoder import EncoderDecoderModel
-import encoder, graph_utils
+from bashlex.encoder_decoder import EncoderDecoderModel
+import encoder
 import decoder
 
 

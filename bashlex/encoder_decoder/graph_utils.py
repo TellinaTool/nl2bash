@@ -7,7 +7,11 @@ import warnings
 
 import tensorflow as tf
 
+<<<<<<< HEAD:encoder_decoder/graph_utils.py
 import data_utils
+=======
+from bashlex.encoder_decoder.encoder_decoder import data_utils
+>>>>>>> 24b7911db3bdc73a71ddf9290c91ca3fe7b0cd98:bashlex/encoder_decoder/graph_utils.py
 
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,

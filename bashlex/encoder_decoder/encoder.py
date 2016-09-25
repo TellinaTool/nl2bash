@@ -3,7 +3,11 @@
 import tensorflow as tf
 from tensorflow.python.util import nest
 
+<<<<<<< HEAD:encoder_decoder/encoder.py
 import graph_utils
+=======
+from bashlex.encoder_decoder import graph_utils
+>>>>>>> 24b7911db3bdc73a71ddf9290c91ca3fe7b0cd98:bashlex/encoder_decoder/encoder.py
 
 
 class Encoder(object):
