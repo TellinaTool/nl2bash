@@ -8,4 +8,4 @@
 
 ### Run original manual evaluation interface
 
-`python translate.py --data_dir <path_to_data_files> --original`
+`python translate.py --data_dir <path_to_data_files> --self_test`
