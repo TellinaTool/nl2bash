@@ -3,8 +3,11 @@ Database which stores model predictions and manual judgements.
 """
 from __future__ import print_function
 
-import os
+import os, sys
 import sqlite3
+
+reload(sys)  
+sys.setdefaultencoding('utf8')
 
 class DBConnection(object):
     def __init__(self):

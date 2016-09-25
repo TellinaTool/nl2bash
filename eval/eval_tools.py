@@ -26,22 +26,23 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
     num_top10_correct = 0.0
     num_eval = 0
 
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True)
+    use_bucket = False if model == "knn" else True
+    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=use_bucket)
 
     with DBConnection as db:
-        for nl_template in grouped_dataset:
-            nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_template]
+        for nl_temp in grouped_dataset:
+            nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_temp]
             nl_str = nl_strs[0]
             nl = nls[0]
 
             gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
 
-            predictions = db.get_top_k_prediction(model, nl, k=10)
+            predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
             if verbose:
                 print("Example %d (%d)" % (num_eval, len(cm_strs)))
                 print("Original English: " + nl_str.strip())
-                print("English: " + ' '.join([rev_nl_vocab[i] for i in nl]))
+                print("English: " + nl_temp)
                 for j in xrange(len(cm_strs)):
                     print("GT Command {}: ".format(j+1) + cm_strs[j].strip())
             for i in xrange(len(predictions)):
@@ -89,7 +90,9 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
     num_top10_correct = 0.0
     num_evaled = 0
 
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True).values()
+    use_bucket = False if model == "knn" else True
+    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=use_bucket) \
+                                .values()
     random.shuffle(grouped_dataset, lambda: 0.5208484091114275)
 
     o_f = open(os.path.join(output_dir, "manual.eval.results"), 'w')
@@ -106,7 +109,7 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
 
             gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
 
-            predictions = db.get_top_k_prediction(model, nl, k=10)
+            predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
             # evaluation ignoring ordering of flags
             print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
