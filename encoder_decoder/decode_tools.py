@@ -75,12 +75,15 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
              verbose=True):
 
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True)
-    bucketed_group = data_utils.bucket_grouped_data(grouped_dataset, model.buckets)
+    bucketed_nl_strs, bucketed_cm_strs, bucketed_nls, bucketed_cmds = \
+        data_utils.bucket_grouped_data(grouped_dataset, model.buckets)
 
     with DBConnection() as db:
         for bucket_id in xrange(len(model.buckets)):
-            batch_nl_strs, batch_cm_strs, batch_nls, batch_cmds = \
-                bucketed_group[bucket_id]
+            batch_nl_strs = bucketed_nl_strs[bucket_id]
+            batch_cm_strs = bucketed_cm_strs[bucket_id]
+            batch_nls = bucketed_nls[bucket_id]
+            batch_cmds = bucketed_cmds[bucket_id]
 
             batch_size = len(batch_nl_strs)
 
