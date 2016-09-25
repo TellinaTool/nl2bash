@@ -35,7 +35,7 @@ class Seq2TreeModel(EncoderDecoderModel):
         """Construct sequence encoders."""
         if self.encoder_topology == "rnn":
             self.encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers,
-                                                              self.encoder_input_keep, self.encoder_output_keep)
+                                              self.encoder_input_keep, self.encoder_output_keep)
         elif self.encoder_topology == "birnn":
             self.encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.num_layers)
         else:
@@ -46,9 +46,9 @@ class Seq2TreeModel(EncoderDecoderModel):
         """Construct tree decoders."""
         if self.decoder_topology == "basic_tree":
             self.decoder = decoder.BasicTreeDecoder(self.dim, self.batch_size, self.rnn_cell, self.num_layers,
-                                                                             self.decoder_input_keep, self.decoder_output_keep,
-                                                                             self.use_attention, self.use_copy,
-                                                                             self.output_projection())
+                                                    self.decoder_input_keep, self.decoder_output_keep,
+                                                    self.use_attention, self.use_copy,
+                                                    self.output_projection())
         else:
             raise ValueError("Unrecognized decoder topology: {}."
                              .format(self.decoder_topology))
