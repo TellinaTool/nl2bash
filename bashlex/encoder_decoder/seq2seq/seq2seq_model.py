@@ -19,14 +19,21 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os, sys
+import os
+import sys
 
 import tensorflow as tf
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+<<<<<<< HEAD:encoder_decoder/seq2seq/seq2seq_model.py
 from encoder_decoder import EncoderDecoderModel
 import encoder, graph_utils
 import rnn_decoder
+=======
+from bashlex.encoder_decoder import EncoderDecoderModel
+import encoder
+import decoder
+>>>>>>> 24b7911db3bdc73a71ddf9290c91ca3fe7b0cd98:bashlex/encoder_decoder/seq2seq/seq2seq_model.py
 
 
 class Seq2SeqModel(EncoderDecoderModel):

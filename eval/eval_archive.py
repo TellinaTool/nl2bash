@@ -29,7 +29,21 @@ class DBConnection(object):
         c = self.cursor
 
         c.execute("CREATE TABLE IF NOT EXISTS Output (model TEXT, nl TEXT, pred_cmd TEXT, score FLOAT)")
+<<<<<<< HEAD
         
+=======
+
+        c.execute("ALTER TABLE StrArchives RENAME TO StrArchives_old")
+        c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, pred_cmd TEXT, judgement INT)")
+        c.execute("INSERT INTO StrArchives (nl, pred_cmd, judgement)"
+                  "SELECT nl, str, judgement FROM StrArchives_old")
+
+        c.execute("ALTER TABLE TempArchives RENAME TO TempArchives_old")
+        c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, pred_temp TEXT, judgement INT)")
+        c.execute("INSERT INTO TempArchives (nl, temp, judgement)"
+                  "SELECT nl, temp, judgement FROM TempArchives_old")
+
+>>>>>>> 24b7911db3bdc73a71ddf9290c91ca3fe7b0cd98
         c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, pred_cmd TEXT, judgement INT)")
         c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, pred_temp TEXT, judgement INT)")
 
