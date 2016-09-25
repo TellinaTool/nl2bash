@@ -1,15 +1,15 @@
 """A set of sequence decoder modules used in the encoder-decoder framework."""
 
-import os, sys
+import os
+import sys
 
 import tensorflow as tf
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-import seq2tree.decoder
-import seq2tree.graph_utils
+import graph_utils
 
-class RNNDecoder(seq2tree.decoder.Decoder):
+class RNNDecoder(encoder_decoder.seq2tree.decoder.Decoder):
 
     def __init__(self, dim, batch_size, rnn_cell, num_layers,
                  input_keep_prob, output_keep_prob,
@@ -78,7 +78,7 @@ class RNNDecoder(seq2tree.decoder.Decoder):
 
     def decoder_cell(self):
         with tf.variable_scope("decoder_cell") as scope:
-            cell = seq2tree.graph_utils.create_multilayer_cell(
+            cell = encoder_decoder.graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers)
             self.encoder_cell_vars = True
         return cell, scope

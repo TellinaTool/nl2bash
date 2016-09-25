@@ -1,9 +1,9 @@
 """A set of encoder modules used in the encoder-decoder framework."""
 
 import tensorflow as tf
-import graph_utils
-
 from tensorflow.python.util import nest
+
+from encoder_decoder import graph_utils
 
 
 class Encoder(object):
