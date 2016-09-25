@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Translation model that generates AST of program given natural language descriptions.
+Translation model that generates bash commands given natural language descriptions.
 """
 
 from __future__ import absolute_import
@@ -12,6 +12,7 @@ from __future__ import print_function
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "seq2seq"))
 
 import cPickle as pickle
 import itertools
@@ -28,13 +29,21 @@ import data_utils, data_tools, graph_utils
 import decode_tools, hyperparam_range
 import eval_tools
 import parse_args
+from seq2seq_model import Seq2SeqModel
 from encoder_decoder import Seq2TreeModel
 
 FLAGS = tf.app.flags.FLAGS
 
+parse_args.define_input_flags()
+
 # We use a number of buckets and pad to the closest one for efficiency.
-# See seq2seq_model.Seq2SeqModel for details of how they work.
-_buckets = [(5, 10), (10, 20), (15, 30), (20, 40), (30, 50), (40, 66)]
+if FLAGS.decoder_topology in ['basic_tree']:
+    _buckets = [(5, 10), (10, 20), (15, 30), (20, 40), (30, 50), (40, 66)]
+elif FLAGS.decoder_topology in ['rnn']:
+    _buckets = [(5, 5), (10, 10), (15, 15), (20, 20), (30, 30), (40, 40)]
+else:
+    raise ValueError("Unrecognized decoder topology: {}."
+                     .format(FLAGS.decoder_topology))
 
 
 def create_model(session, forward_only, construct_model_dir=True):
@@ -60,11 +69,18 @@ def create_model(session, forward_only, construct_model_dir=True):
     :param decoding_algorithm: decoding algorithm used.
     :param
     """
-    return graph_utils.create_model(session, FLAGS, Seq2TreeModel, _buckets,
+    if FLAGS.decoder_topology in ['basic_tree']:
+        return graph_utils.create_model(session, FLAGS, Seq2TreeModel, _buckets,
                                     forward_only, construct_model_dir)
+    elif FLAGS.decoder_topology in ['rnn']:
+        return graph_utils.create_model(session, FLAGS, Seq2SeqModel, _buckets,
+                                    forward_only, construct_model_dir)
+    else:
+        raise ValueError("Unrecognized decoder topology: {}."
+                         .format(FLAGS.decoder_topology))
 
 
-def train(train_set, dev_set, verbose=False, construct_model_dir=True):
+def train(train_set, dev_set, construct_model_dir=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
@@ -84,14 +100,6 @@ def train(train_set, dev_set, verbose=False, construct_model_dir=True):
         current_step = 0
         previous_losses = []
         previous_dev_losses = []
-
-        # Load Vocabularies for evaluation on dev set at each checkpoint
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
         for t in xrange(FLAGS.num_epochs):
             print("Epoch %d" % (t+1))
@@ -166,13 +174,7 @@ def decode(construct_model_dir=True, verbose=True):
         model, _ = create_model(sess, forward_only=True,
                                 construct_model_dir=construct_model_dir)
 
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+        _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
         _, dev_set, _ = load_data()
 
         decode_tools.decode_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
@@ -186,13 +188,7 @@ def eval(construct_model_dir=True, verbose=True):
         model, _ = create_model(sess, forward_only=True,
                                 construct_model_dir=construct_model_dir)
 
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+        _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_data(FLAGS)
         _, dev_set, _ = load_data()
 
         return eval_tools.eval_set(model.model_dir, dev_set, rev_nl_vocab,
@@ -205,13 +201,7 @@ def manual_eval(num_eval):
         # Create model and load parameters.
         model, _ = create_model(sess, forward_only=True)
 
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-        _, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+        _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_data(FLAGS)
         _, dev_set, _ = load_data()
 
         eval_tools.manual_eval(model.model_dir, dev_set, rev_nl_vocab,
@@ -224,13 +214,7 @@ def interactive_decode():
         # Create model and load parameters.
         model, _ = create_model(sess, forward_only=True)
 
-        # Load vocabularies.
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                     "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-        nl_vocab, _ = data_utils.initialize_vocabulary(nl_vocab_path)
-        _, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+        nl_vocab, _, _, rev_cm_vocab = data_utils.load_data(FLAGS)
 
         decode_tools.interactive_decode(
             sess, model, nl_vocab, rev_cm_vocab, FLAGS)
@@ -319,6 +303,7 @@ def grid_search(train_set, dev_set):
     print("Best emplate match score = {}".format(best_temp_match_score))
     print("*****************************")
 
+
 # Data
 def load_data(use_buckets=True):
     if use_buckets:
@@ -374,9 +359,8 @@ def main(_):
         grid_search(train_set, dev_set)
     else:
         train_set, dev_set, _ = load_data()
-        train(train_set, dev_set, verbose=False)
+        train(train_set, dev_set)
 
 
 if __name__ == "__main__":
-    parse_args.define_input_flags()
     tf.app.run()
