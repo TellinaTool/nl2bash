@@ -16,38 +16,39 @@ parse_args.define_input_flags()
 
 data_dir = FLAGS.data_dir
 
+model_name = "knn"
+
 def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True)
+    grouped_dataset = data_utils.group_data_by_nl(dataset)
 
     with DBConnection() as db:
         num_eval = 0
         for nl_template in grouped_dataset:
             batch_nl_strs, batch_cm_strs, batch_nls, batch_cmds = \
-                grouped_dataset[[nl_template]]
-
+                grouped_dataset[nl_template]
+            
             batch_size = len(batch_nl_strs)
+            
+            nl_str = batch_nl_strs[0]
+            nl = batch_nls[0]
 
-            for batch_id in xrange(batch_size):
-                nl_str = batch_nl_strs[batch_id]
-                cm_strs = batch_cm_strs[batch_id]
-                nl = batch_nls[batch_id]
+            if verbose:
+                print("Example {}".format(num_eval))
+                print("Original English: " + nl_str.strip())
+                print("English: " + ' '.join([rev_nl_vocab[i] for i in nl]))
+                for j in xrange(len(batch_cm_strs)):
+                    print("GT Command {}: {}".format(j+1, batch_cm_strs[j].strip()))
 
-                if verbose:
-                    print("Example {}".format(num_eval))
-                    print("Original English: " + nl_str.strip())
-                    print("English: " + ' '.join([rev_nl_vocab[i] for i in nl]))
-                    for j in xrange(len(cm_strs)):
-                        print("GT Command {}: {}".format(j+1, cm_strs[j].strip()))
-
-                nl, pred_cmd, score = model.test(nl, 1)
-                tree = data_tools.bash_parse(pred_cmd)
-                db.add_prediction("knn", nl, pred_cmd, score)
-                if verbose:
-                    print("Prediction: {} ({})".format(pred_cmd, score))
-                    print("AST: ")
-                    data_tools.pretty_print(tree, 0)
-                    print()
-                break
+            nl, cmd, score = model.test(nl, 1)
+            pred_cmd = ' '.join([rev_cm_vocab[i] for i in cmd])
+            tree = data_tools.bash_parser(pred_cmd)
+            if verbose:
+                print("Prediction: {} ({})".format(pred_cmd, score))
+                print("AST: ")
+                data_tools.pretty_print(tree, 0)
+                print
+            # db.add_prediction(model_name, nl, pred_cmd, score)
+            
             num_eval += 1
 
 
@@ -56,11 +57,11 @@ def decode():
     nl_vocab_path = os.path.join(FLAGS.data_dir,
                                  "vocab%d.nl" % FLAGS.nl_vocab_size)
     cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+                                 "vocab%d.cm" % FLAGS.cm_vocab_size)
     nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
 
-    train_set, dev_set, _ = data_utils.load_data(FLAGS, None)
+    train_set, dev_set, _ = data_utils.load_data(FLAGS, None, append_head_token=False, append_end_token=False)
     model = knn.KNNModel()
     model.train(train_set)
 
@@ -87,11 +88,11 @@ def manual_eval():
     nl_vocab_path = os.path.join(FLAGS.data_dir,
                                  "vocab%d.nl" % FLAGS.nl_vocab_size)
     cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+                                 "vocab%d.cm" % FLAGS.cm_vocab_size)
     nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
     # the file containing traning nl vectors and cmd vectors
-    train_set, dev_set, _ = data_utils.load_data(FLAGS, None)
+    train_set, dev_set, _ = data_utils.load_data(FLAGS, None, append_head_token=False, append_tail_token=False)
 
     model = knn.KNNModel()
     model.train(train_set)
