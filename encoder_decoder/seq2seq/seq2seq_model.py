@@ -25,7 +25,7 @@ import sys
 import tensorflow as tf
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from bashlex.encoder_decoder import EncoderDecoderModel
+from encoder_decoder import EncoderDecoderModel
 import encoder
 import decoder
 

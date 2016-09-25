@@ -7,7 +7,7 @@ import warnings
 
 import tensorflow as tf
 
-from bashlex.encoder_decoder.encoder_decoder import data_utils
+from encoder_decoder.encoder_decoder import data_utils
 
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
