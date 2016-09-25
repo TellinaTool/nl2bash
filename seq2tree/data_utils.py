@@ -352,6 +352,25 @@ def group_data_by_cm(dataset, use_bucket=False):
     return grouped_dataset
 
 
+def load_vocab(FLAGS):
+    if FLAGS.decoder_topology in ['rnn']:
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                         "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm" % FLAGS.cm_vocab_size)
+    elif FLAGS.decoder_topology in ['basic_tree']:
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                         "vocab%d.nl" % FLAGS.nl_vocab_size)
+        cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+    else:
+        raise ValueError("Unrecognized decoder topology: {}."
+                         .format(FLAGS.decoder_topology))
+    nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
+    cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
+    return nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab
+
+
 def load_data(FLAGS, buckets):
     print("Loading data from %s" % FLAGS.data_dir)
 
