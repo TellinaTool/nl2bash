@@ -289,7 +289,7 @@ class EncoderDecoderModel(object):
                 # We set weight to 0 if the corresponding target is a PAD symbol.
                 # The corresponding target is decoder_input shifted by 1 forward.
                 if length_idx < decoder_size - 1:
-                    target = decoder_inputs[batch_idx][length_idx + 1]
+                    target = padded_decoder_inputs[batch_idx][length_idx + 1]
                 if length_idx == decoder_size - 1 or target == data_utils.PAD_ID:
                     batch_weight[batch_idx] = 0.0
             batch_weights.append(batch_weight)
@@ -297,6 +297,9 @@ class EncoderDecoderModel(object):
         if self.use_copy:
             raise NotImplementedError
         else:
+            print(batch_encoder_inputs[0])
+            print(len(batch_decoder_inputs))
+            print(len(batch_weights))
             return batch_encoder_inputs, batch_decoder_inputs, batch_weights
 
 
