@@ -30,21 +30,14 @@ class DBConnection(object):
 
         c.execute("CREATE TABLE IF NOT EXISTS Output (model TEXT, nl TEXT, pred_cmd TEXT, score FLOAT)")
 
-        # c.execute("ALTER TABLE StrArchives RENAME TO StrArchives_old")
         c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, pred_cmd TEXT, judgement INT)")
-        # c.execute("INSERT INTO StrArchives (nl, pred_cmd, judgement)"
-        #           "SELECT nl, str, judgement FROM StrArchives_old")
-
-        # c.execute("ALTER TABLE TempArchives RENAME TO TempArchives_old")
         c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, pred_temp TEXT, judgement INT)")
-        # c.execute("INSERT INTO TempArchives (nl, pred_temp, judgement)"
-        #           "SELECT nl, temp, judgement FROM TempArchives_old")
 
         self.conn.commit()
 
     # --- Prediction ---
     def add_prediction(self, model, nl, pred_cmd, score):
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         c = self.cursor
         if self.exist_prediction(model, nl):
             c.execute("UPDATE Output SET pred_cmd = ?, score = ? WHERE model = ? AND nl = ?",
@@ -55,19 +48,18 @@ class DBConnection(object):
         self.conn.commit()
 
     def exist_prediction(self, model, nl):
-        nl = nl.encode('utf-8', errors='ignore')
-        print(nl)
+        nl = unicode(nl)
         c = self.cursor
         for _ in c.execute("SELECT 1 FROM Output WHERE model = ? AND nl = ?", (model, nl)):
             return True
         return False
 
     def get_prediction(self, model, nl):
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         return self.get_top_k_predictions(model, nl, 1)[0]
 
     def get_top_k_predictions(self, model, nl, k):
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         c = self.cursor
         predictions = []
         for _, _, pred_cmd, score in \
@@ -80,7 +72,7 @@ class DBConnection(object):
     # --- Manual Evaluation ---
     def add_str_judgement(self, triple):
         nl, pred_cmd, judgement = triple
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         c = self.cursor
         if not self.exist_str_pair((nl, pred_cmd)):
             c.execute("INSERT INTO StrArchives (nl, pred_cmd, judgement) VALUES (?, ?, ?)", (nl, pred_cmd, judgement))
@@ -88,7 +80,7 @@ class DBConnection(object):
 
     def add_temp_judgement(self, triple):
         nl, pred_temp, judgement = triple
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         c = self.cursor
         if not self.exist_temp_pair((nl, pred_temp)):
             c.execute("INSERT INTO TempArchives (nl, pred_temp, judgement) VALUES (?, ?, ?)", (nl, pred_temp, judgement))
@@ -96,7 +88,7 @@ class DBConnection(object):
 
     def get_str_judgement(self, pair):
         nl, pred_cmd = pair
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         c = self.cursor
         for _, _, judgement in c.execute("SELECT nl, pred_cmd, judgement FROM StrArchives WHERE nl = ? AND pred_cmd = ?",
                                          (nl, pred_cmd)):
@@ -104,7 +96,7 @@ class DBConnection(object):
 
     def get_temp_judgement(self, pair):
         nl, pred_temp = pair
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         c = self.cursor
         for _, _, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ? AND pred_temp = ?",
                                          (nl, pred_temp)):
@@ -112,7 +104,7 @@ class DBConnection(object):
 
     def exist_str_pair(self, pair):
         nl, pred_cmd = pair
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         c = self.cursor
         for _ in c.execute("SELECT 1 FROM StrArchives WHERE nl = ? AND pred_cmd = ?", (nl, pred_cmd)):
             return True
@@ -120,7 +112,7 @@ class DBConnection(object):
 
     def exist_temp_pair(self, pair):
         nl, pred_temp = pair
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         c = self.cursor
         for _ in c.execute("SELECT 1 FROM TempArchives WHERE nl = ? AND pred_temp = ?", (nl, pred_temp)):
             return True
@@ -128,7 +120,9 @@ class DBConnection(object):
 
     def correct_str_pair(self, pair):
         nl, pred_cmd = pair
-        nl = nl.encode('utf-8', errors='ignore')
+        print(nl)
+        print(pred_cmd)
+        nl = unicode(nl)
         c = self.cursor
         c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND pred_cmd = ?",
                   (1, nl, pred_cmd))
@@ -136,7 +130,7 @@ class DBConnection(object):
 
     def correct_temp_pair(self, pair):
         nl, pred_temp = pair
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         c = self.cursor
         c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND pred_temp = ?",
                   (1, nl, pred_temp))
@@ -144,7 +138,7 @@ class DBConnection(object):
 
     def error_str_pair(self, pair):
         nl, pred_cmd = pair
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         c = self.cursor
         c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND pred_cmd = ?",
                   (0, nl, pred_cmd))
@@ -152,12 +146,26 @@ class DBConnection(object):
 
     def error_temp_pair(self, pair):
         nl, pred_temp = pair
-        nl = nl.encode('utf-8', errors='ignore')
+        nl = unicode(nl)
         c = self.cursor
         c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND pred_temp = ?",
                   (0, nl, pred_temp))
         self.conn.commit()
 
+    def get_nl_pred_cmd(self, nl):
+        nl = unicode(nl)
+        c = self.cursor
+        for nl, pred_cmd, judgement in c.execute("SELECT nl, pred_cmd, judgement FROM StrArchives WHERE nl = ?", (nl,)):
+            print(nl)
+            print(pred_cmd) 
+            print(judgement)
+
+    def get_nl_pred_temp(self, nl):
+        nl = unicode(nl)
+        c = self.cursor
+        for nl, pred_temp, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ?", (nl,)):
+            print(nl, pred_temp, judgement)
+        
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
@@ -201,7 +209,17 @@ if __name__ == "__main__":
         "Find all .c and .h files in the current directory tree and search them for \"expr\"\n",
         "find . -name \"*.c\" | xargs grep -E 'expr'"
     ))
-    db.error_str_pair((
+    db.correct_str_pair((
         "List all empty files in the current directory tree\n",
         "find . -empty"
     ))
+    db.correct_str_pair((
+        "Find all .c and .h files in the current directory tree and search them for \"expr\"\n",
+        "find . -name '*.[ch]' | xargs grep -E 'expr'"
+    ))
+    db.get_nl_pred_temp(
+        "Find all .c and .h files in the current directory tree and search them for \"expr\"\n"
+    )
+    db.get_nl_pred_cmd(
+        "Find all .c and .h files in the current directory tree and search them for \"expr\"\n"
+    )
