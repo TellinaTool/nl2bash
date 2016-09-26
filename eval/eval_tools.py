@@ -39,6 +39,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
 
             predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
+            raise()
             if verbose:
                 print("Example %d (%d)" % (num_eval, len(cm_strs)))
                 print("Original English: " + nl_str.strip())
@@ -115,7 +116,7 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
             print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
             o_f.write("Example %d (%d)" % (num_evaled+1, len(cm_strs)) + "\n")
             print("English: " + nl_str.strip())
-            o_f.write("English: " + nl_str.strip() + "\n")
+            o_f.write("English: " + nl_str)
             for j in xrange(len(cm_strs)):
                 print("GT Command %d: " % (j+1) + cm_strs[j].strip())
                 o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
@@ -130,7 +131,7 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                 pred_temp = data_tools.ast2template(tree, loose_constraints=True)
                 str_judge = db.get_str_judgement((nl_str, pred_cmd))
                 temp_judge = db.get_temp_judgement((nl_str, pred_temp))
-                if temp_judge != None:
+                if temp_judge is not None:
                     judgement_str = "y" if temp_judge else "n"
                     print("Correct template [y/n]: %s" % judgement_str)
                 else:
@@ -153,7 +154,7 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                     elif i < 10:
                         num_top10_correct_template += 1
                     o_f.write("C")
-                    if str_judge is None:
+                    if str_judge is not None:
                         judgement_str = "y" if str_judge else "n"
                         print("Correct command [y/n]: %s" % judgement_str)
                     else:
