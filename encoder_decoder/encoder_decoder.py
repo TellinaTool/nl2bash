@@ -164,11 +164,12 @@ class EncoderDecoderModel(object):
                       target_embeddings, forward_only):
         encoder_outputs, encoder_state = self.encoder.define_graph(encoder_inputs,
                                                                source_embeddings)
+
         if self.rnn_cell == "gru":
-            encoder_state.set_shape([self.batch_size, self.dim])
+            encoder_state.set_shape([-1, self.dim])
         elif self.rnn_cell == "lstm":
-            encoder_state[0].set_shape([self.batch_size, self.dim])
-            encoder_state[1].set_shape([self.batch_size, self.dim])
+            encoder_state[0].set_shape([-1, self.dim])
+            encoder_state[1].set_shape([-1, self.dim])
 
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim]) for e in encoder_outputs]
@@ -253,9 +254,9 @@ class EncoderDecoderModel(object):
         padded_encoder_inputs = []
         padded_decoder_inputs = []
 
-        for i in xrange(batch_size):
-            encoder_input = encoder_inputs[i]
-            decoder_input = decoder_inputs[i]
+        for batch_idx in xrange(batch_size):
+            encoder_input = encoder_inputs[batch_idx]
+            decoder_input = decoder_inputs[batch_idx]
             # Encoder inputs are padded and then reversed
             encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
             padded_encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))

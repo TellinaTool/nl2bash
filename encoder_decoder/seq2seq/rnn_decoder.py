@@ -53,7 +53,6 @@ class RNNDecoder(decoder.Decoder):
                         output_symbol = tf.argmax(projected_output, 1)
                         input = tf.cast(output_symbol, dtype=tf.int32)
 
-                input.set_shape([self.batch_size])
                 input_embedding = tf.nn.embedding_lookup(embeddings, input)
 
                 if self.use_attention:
