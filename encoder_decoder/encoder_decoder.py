@@ -166,13 +166,13 @@ class EncoderDecoderModel(object):
                                                                source_embeddings)
 
         if self.rnn_cell == "gru":
-            encoder_state.set_shape([-1, self.dim])
+            encoder_state.set_shape([self.batch_size, self.dim])
         elif self.rnn_cell == "lstm":
-            encoder_state[0].set_shape([-1, self.dim])
-            encoder_state[1].set_shape([-1, self.dim])
+            encoder_state[0].set_shape([self.batch_size, self.dim])
+            encoder_state[1].set_shape([self.batch_size, self.dim])
 
         if self.use_attention:
-            top_states = [tf.reshape(e, [-1, 1, self.dim]) for e in encoder_outputs]
+            top_states = [tf.reshape(e, [self.batch_size, 1, self.dim]) for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
             outputs, state, attn_mask = self.decoder.define_graph(
                 encoder_state, decoder_inputs, target_embeddings,
@@ -298,9 +298,6 @@ class EncoderDecoderModel(object):
         if self.use_copy:
             raise NotImplementedError
         else:
-            print(batch_encoder_inputs[0])
-            print(len(batch_decoder_inputs))
-            print(len(batch_weights))
             return batch_encoder_inputs, batch_decoder_inputs, batch_weights
 
 
