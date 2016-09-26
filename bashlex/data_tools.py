@@ -41,6 +41,16 @@ def char_tokenizer(sentence, base_tokenizer=None, normalize_digits=False,
 def basic_tokenizer(sentence, lower_case=True, normalize_digits=True, normalize_long_pattern=True,
                     lemmatization=True, remove_stop_words=True):
     """Very basic tokenizer: used for English tokenization."""
+    try:
+        sentence = sentence.replace("“", '"')
+        sentence = sentence.replace("”", '"')
+        sentence = sentence.replace('‘', '\'')
+        sentence = sentence.replace('’', '\'')
+    except UnicodeDecodeError, e:
+        sentence = sentence.replace("“".decode('utf-8'), '"')
+        sentence = sentence.replace("”".decode('utf-8'), '"')
+        sentence = sentence.replace('‘'.decode('utf-8'), '\'')
+        sentence = sentence.replace('’'.decode('utf-8'), '\'')
     sentence = sentence.replace('`\'', '"') \
             .replace('``', '"') \
             .replace("''", '"') \
