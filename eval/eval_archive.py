@@ -7,7 +7,7 @@ import os, sys
 import sqlite3
 
 reload(sys)  
-sys.setdefaultencoding('utf8')
+sys.setdefaultencoding('utf-8')
 
 class DBConnection(object):
     def __init__(self):
@@ -51,11 +51,12 @@ class DBConnection(object):
                       (pred_cmd, score, model, nl))
         else:
             c.execute("INSERT INTO Output (model, nl, pred_cmd, score) VALUES (?, ?, ?, ?)",
-                      (model, nl, pred_cmd, score))
+                      (model, nl, pred_cmd, 0.0))
         self.conn.commit()
 
     def exist_prediction(self, model, nl):
         nl = nl.encode('utf-8', errors='ignore')
+        print(nl)
         c = self.cursor
         for _ in c.execute("SELECT 1 FROM Output WHERE model = ? AND nl = ?", (model, nl)):
             return True
