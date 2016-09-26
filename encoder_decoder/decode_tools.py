@@ -87,28 +87,31 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
 
             batch_size = len(batch_nl_strs)
 
-            formatted_example = model.format_example(
-                batch_nls, batch_cmds, bucket_id=bucket_id)
-
-            _, _, output_logits, attn_masks = model.step(
-                sess, formatted_example, bucket_id, forward_only=True)
-
-            batch_outputs, scores = decode(output_logits, rev_cm_vocab, FLAGS)
-
             for batch_id in xrange(batch_size):
+                formatted_example = model.format_example(
+                    batch_nls[batch_id:batch_id+1],
+                    batch_cmds[batch_id:batch_id+1],
+                    bucket_id=bucket_id)
+
+                _, _, output_logits, attn_masks = model.step(
+                    sess, formatted_example, bucket_id, forward_only=True)
+
+                batch_outputs, scores = decode(output_logits, rev_cm_vocab, FLAGS)
+
                 nl_str = batch_nl_strs[batch_id]
                 cm_strs = batch_cm_strs[batch_id]
                 nl = batch_nls[batch_id]
+                nl_temp = ' '.join([rev_nl_vocab[i] for i in nl])
 
                 if verbose:
                     print("Example {}:{}".format(bucket_id, batch_id))
                     print("Original English: " + nl_str.strip())
-                    print("English: " + ' '.join([rev_nl_vocab[i] for i in nl]))
+                    print("English: " + nl_temp)
                     for j in xrange(len(cm_strs)):
                         print("GT Command {}: {}".format(j+1, cm_strs[j].strip()))
                 if FLAGS.decoding_algorithm == "greedy":
-                    tree, pred_cmd, outputs = batch_outputs[batch_id]
-                    score = scores[batch_id]
+                    tree, pred_cmd, outputs = batch_outputs[0]
+                    score = scores[0]
                     db.add_prediction(model.model_dir, nl, pred_cmd, score)
                     if verbose:
                         print("Prediction: {} ({})".format(pred_cmd, score))
@@ -117,8 +120,8 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                         print()
                 elif FLAGS.decoding_algorithm == "beam_search":
                     top_k_pred_trees, top_k_pred_cmds, top_k_outputs = \
-                        batch_outputs[batch_id]
-                    top_k_scores = scores[batch_id]
+                        batch_outputs[0]
+                    top_k_scores = scores[0]
                     if verbose:
                         for j in xrange(FLAGS.top_k):
                             print("Prediction {}: {} ({}) ".format(j+1,
@@ -131,7 +134,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                     raise ValueError("Unrecognized decoding algorithm: {}."
                          .format(FLAGS.decoding_algorithm))
                 if attn_masks != None:
-                    visualize_attn_masks(attn_masks[batch_id, :, :], nl, outputs[batch_id],
+                    visualize_attn_masks(attn_masks[0, :, :], nl, outputs,
                                          rev_nl_vocab, rev_cm_vocab,
                                          os.path.join(FLAGS.train_dir, "{}-{}.jpg".format(bucket_id, batch_id)))
 
