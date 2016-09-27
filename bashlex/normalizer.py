@@ -123,9 +123,9 @@ def special_command_normalization(cmd):
     try:
         cmd = cmd.replace("— ", "-")
         cmd = cmd.replace("—", "-")
-        cmd = cmd.replace("-\xd0\xbe", "-o")
         cmd = cmd.replace("“", '"')
         cmd = cmd.replace("”", '"')
+        cmd = cmd.replace("-\xd0\xbe", "-o")
         cmd = cmd.replace('‘', '\'')
         cmd = cmd.replace('’', '\'')
     except UnicodeDecodeError, e:
