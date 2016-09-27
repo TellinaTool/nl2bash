@@ -36,6 +36,8 @@ def decode(output_logits, rev_cm_vocab, FLAGS):
         scores = reduce(lambda x, y: np.multiply(x, y),
                         [np.max(logit, axis=1) for logit in output_logits])
         predictions = [np.argmax(logit, axis=1) for logit in output_logits]
+    elif FLAGS.decoding_algorithm == "beam_search":
+
     else:
         raise ValueError("Unrecognized decoding algorithm: {}."
                          .format(FLAGS.decoding_algorithm))
@@ -50,8 +52,8 @@ def decode(output_logits, rev_cm_vocab, FLAGS):
 
         if FLAGS.decoder_topology == "rnn":
             if FLAGS.char:
-                cmd = "".join([tf.compat.as_str(rev_cm_vocab[output]) for output in outputs])\
-                    .replace(data_utils._UNK, ' ')
+                cmd = "".join([tf.compat.as_str(rev_cm_vocab[output])
+                               for output in outputs]).replace(data_utils._UNK, ' ')
             else:
                 tokens = []
                 for output in outputs:
@@ -68,6 +70,7 @@ def decode(output_logits, rev_cm_vocab, FLAGS):
         else:
             tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
         batch_outputs.append((tree, cmd, search_history))
+
     return batch_outputs, scores
 
 

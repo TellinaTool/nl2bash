@@ -8,11 +8,6 @@ class ManPageLookUp(object):
 
     def get_arg_types(self, cmd, verbose=False):
         try:
-            # arg_types = {}
-            # for arg_type, is_list in self.table[cmd]["arguments"]["non-optional"]:
-            #     arg_types[arg_type] = is_list
-            # for arg_type, is_list in self.table[cmd]["arguments"]["optional"]:
-            #     arg_types[arg_type] = is_list
             return self.table[cmd]["arguments"]
         except KeyError, e:
             # TODO: This exception is not handled very well.
