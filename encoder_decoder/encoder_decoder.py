@@ -13,7 +13,7 @@ import tensorflow as tf
 
 class EncoderDecoderModel(graph_utils.NNModel):
 
-    def __init__(self, hyperparams, buckets=None, forward_only):
+    def __init__(self, hyperparams, buckets=None, forward_only=False):
         """Create the model.
 
         Hyperparameters:

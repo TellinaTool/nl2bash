@@ -122,22 +122,22 @@ class RNNDecoder(decoder.Decoder):
         # Beam-search output
         if feed_previous and self.beam_size > 1:
             # [self.batch_size, self.beam_size, max_len]
-            outputs = tf.reshape(beam_symbols, [self.batch_size,
-                                                self.beam_size, -1])
-            outputs = tf.split(0, self.batch_size, outputs)
-            outputs = [tf.split(0, self.beam_size, output) for output in
-                       outputs]
+            top_k_outputs = tf.reshape(beam_symbols, [self.batch_size,
+                                                      self.beam_size, -1])
+            top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
+            top_k_outputs = [tf.split(0, self.beam_size, top_k_output) for
+                             top_k_output in top_k_outputs]
             # [self.batch_size, self.beam_size]
-            logits = tf.reshape(beam_logits, [self.batch_size, self.beam_size])
-            logits = tf.split(0, self.batch_size, logits)
-            outputs = [outputs, logits]
-
-        if self.use_attention:
-            temp = [tf.expand_dims(batch_attn_mask, 1) for batch_attn_mask in
-                    attn_masks]
-            return outputs, state, tf.concat(1, temp)
+            top_k_logits = tf.reshape(beam_logits, [self.batch_size, self.beam_size])
+            top_k_logits = tf.split(0, self.batch_size, top_k_logits)
+            return
         else:
-            return outputs, state
+            if self.use_attention:
+                temp = [tf.expand_dims(batch_attn_mask, 1) for batch_attn_mask in
+                        attn_masks]
+                return outputs, state, tf.concat(1, temp)
+            else:
+                return outputs, state
 
 
     def decoder_cell(self):
