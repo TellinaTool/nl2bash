@@ -88,4 +88,5 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("decoder_topology", "rnn", "structure of the decoder.")
     tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
     tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
+    tf.app.flags.DEFINE_integer("beam_order", 1, "Order for beam search.")
     tf.app.flags.DEFINE_integer("top_k", 3, "Top-k highest-scoring structures to output.")
