@@ -104,12 +104,12 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("sudo", "")
 
     ## normalize utilities called with full path
-    cmd = cmd.replace("/usr/bin/find ", "find ")
-    cmd = cmd.replace("/bin/find ", "find ")
-    cmd = cmd.replace("/usr/bin/grep ", "grep ")
-    cmd = cmd.replace("/bin/rm ", "rm ")
-    cmd = cmd.replace("/bin/mv ", "mv ")
-    cmd = cmd.replace("/bin/echo ", "echo ")
+    cmd = cmd.replace("/usr/bin/find", "find")
+    cmd = cmd.replace("/bin/find", "find")
+    cmd = cmd.replace("/usr/bin/grep", "grep")
+    cmd = cmd.replace("/bin/rm", "rm")
+    cmd = cmd.replace("/bin/mv", "mv")
+    cmd = cmd.replace("/bin/echo", "echo")
     
     ## correct common spelling errors
     cmd = cmd.replace("-i{}", "-I {}")
@@ -793,6 +793,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         normalize(tree[0], normalized_tree)
     except ValueError as err:
         if err.args[0].startswith("too many values"):
+            print(cmd)
             sys.exit()
         print("%s - %s" % (err.args[0], cmd2))
         return None
