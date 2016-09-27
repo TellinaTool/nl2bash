@@ -91,8 +91,7 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
     num_top10_correct = 0.0
     num_evaled = 0
 
-    use_bucket = False if model == "knn" else True
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=use_bucket) \
+    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=False) \
                                 .values()
     random.shuffle(grouped_dataset, lambda: 0.5208484091114275)
 
@@ -135,7 +134,7 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                     judgement_str = "y" if temp_judge else "n"
                     print("Correct template [y/n]: %s" % judgement_str)
                 else:
-                    temp_judge = ast_based.one_template_match(gt_trees, tree)
+                    temp_judge = ast_based.one_template_match(gt_trees, tree, rewrite=False)
                     if not temp_judge:
                         inp = raw_input("Correct template [y/n]: ")
                         if inp == "y":
@@ -158,7 +157,7 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                         judgement_str = "y" if str_judge else "n"
                         print("Correct command [y/n]: %s" % judgement_str)
                     else:
-                        str_judge = ast_based.one_string_match(gt_trees, tree)
+                        str_judge = ast_based.one_string_match(gt_trees, tree, rewrite=False)
                         if not str_judge:
                             inp = raw_input("Correct command [y/n]: ")
                             if inp == "y":
