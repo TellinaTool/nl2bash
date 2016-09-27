@@ -62,9 +62,13 @@
 -xattr
 -xattrname name
 -xi
--ONE
--TWO
--THREE
 -and
 -or
 -not
+-printf
+-EXCLAMATION
+-DOLLAR
+-ONE
+-TWO
+-THREE
+-AT

@@ -1,6 +1,7 @@
 package man_parser.cmd;
 
 import javafx.util.Pair;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +65,13 @@ public class Cmd {
             if (this.flag_name.startsWith("-")) {
                 this.flag_name = this.flag_name.substring(1);
             }
+            if (this.flag_name.equals("ONE")) this.flag_name = "1";
+            if (this.flag_name.equals("TWO")) this.flag_name = "2";
+            if (this.flag_name.equals("THREE")) this.flag_name = "3";
+            if (this.flag_name.equals("EXCLAMATION")) this.flag_name = "!";
+            if (this.flag_name.equals("DOLLAR")) this.flag_name = "$";
+            if (this.flag_name.equals("AT")) this.flag_name = "@";
+
         }
         public Fl() {}
         public String toString() {
@@ -113,69 +121,11 @@ public class Cmd {
         public String arg_name;
         public String arg_type;
         public boolean isList = false;
-        public Ar() {};
+        public Ar() {}
         public Ar(String s) {
-            this.arg_name = s;
-
-
-            if (this.arg_name.equalsIgnoreCase("file")
-                    || this.arg_name.equalsIgnoreCase("f")
-                    || this.arg_name.equalsIgnoreCase("source_file")
-                    || this.arg_name.equalsIgnoreCase("target_file")
-                    || this.arg_name.equalsIgnoreCase("xfile")
-                    || this.arg_name.equalsIgnoreCase("file1")
-                    || this.arg_name.equalsIgnoreCase("file2")
-                    || this.arg_name.equalsIgnoreCase("filename")
-                    || this.arg_name.equalsIgnoreCase("directory")
-                    || this.arg_name.equalsIgnoreCase("exdir")
-                    || this.arg_name.equalsIgnoreCase("path")
-                    || this.arg_name.equalsIgnoreCase("progfile")) {
-                arg_type = "File";
-            } else if (this.arg_name.equalsIgnoreCase("number")
-                    || this.arg_name.equalsIgnoreCase("n")
-                    || this.arg_name.equalsIgnoreCase("replacements")
-                    || this.arg_name.equalsIgnoreCase("maxprocs")
-                    || this.arg_name.equalsIgnoreCase("incr")
-                    || this.arg_name.equalsIgnoreCase("bytes")
-                    || this.arg_name.equalsIgnoreCase("mask")
-                    || this.arg_name.equalsIgnoreCase("num")
-                    || this.arg_name.equalsIgnoreCase("depth")
-                    || this.arg_name.equalsIgnoreCase("MINUSa")
-                    || this.arg_name.equalsIgnoreCase("PLUSa")
-                    || this.arg_name.equalsIgnoreCase("EQUALa")
-                    || this.arg_name.equalsIgnoreCase("count")
-                    || this.arg_name.equalsIgnoreCase("nmin")) {
-                arg_type = "Number";
-            } else if (this.arg_name.equalsIgnoreCase("permmode")
-                    || this.arg_name.equalsIgnoreCase("MINUSpermmode")
-                    || this.arg_name.equalsIgnoreCase("PLUSpermmode")) {
-                arg_type = "Permission";
-            } else if (this.arg_name.equalsIgnoreCase("uname")
-                    || this.arg_name.equalsIgnoreCase("gname")
-                    || this.arg_name.equalsIgnoreCase("eofstr")
-                    || this.arg_name.equalsIgnoreCase("replstr")
-                    || this.arg_name.equalsIgnoreCase("string")
-                    || this.arg_name.equalsIgnoreCase("command")
-                    || this.arg_name.equalsIgnoreCase("extension")
-                    || this.arg_name.equalsIgnoreCase("option")
-                    || this.arg_name.equalsIgnoreCase("name")) {
-                arg_type = "String";
-            } else if (this.arg_name.equalsIgnoreCase("pattern")
-                    || this.arg_name.equalsIgnoreCase("fs")) {
-                arg_type = "Pattern";
-            } else if (this.arg_name.equalsIgnoreCase("time")
-                    || this.arg_name.equalsIgnoreCase("date")) {
-                arg_type = "Time";
-            } else if (this.arg_name.equalsIgnoreCase("size")
-                    || this.arg_name.equalsIgnoreCase("blocksize")) {
-                arg_type = "Size";
-            } else if (this.arg_name.equalsIgnoreCase("utility")) {
-                arg_type = "Utility";
-            } else if (this.arg_name.equalsIgnoreCase("argument")) {
-                arg_type = "Argument";
-            } else {
-                arg_type = "Unknown";
-            }
+            Pair<String, String> p = normalizeArgNameType(s);
+            this.arg_name  = p.getKey();
+            this.arg_type = p.getValue();
         }
         public String toString() {
             if (isList) return arg_name + "...";
@@ -220,5 +170,108 @@ public class Cmd {
         public String toString() {
             return  option.toString() + " :: " + description;
         }
+    }
+
+    private static Pair<String, String> normalizeArgNameType(String argName) {
+        String arg_name = argName;
+        String arg_type = "Unknown";
+
+        if (arg_name.equalsIgnoreCase("file")
+                || arg_name.equalsIgnoreCase("f")
+                || arg_name.equalsIgnoreCase("source_file")
+                || arg_name.equalsIgnoreCase("target_file")
+                || arg_name.equalsIgnoreCase("xfile")
+                || arg_name.equalsIgnoreCase("file1")
+                || arg_name.equalsIgnoreCase("file2")
+                || arg_name.equalsIgnoreCase("filename")
+                || arg_name.equalsIgnoreCase("directory")
+                || arg_name.equalsIgnoreCase("exdir")
+                || arg_name.equalsIgnoreCase("dir")
+                || arg_name.equalsIgnoreCase("path")
+                || arg_name.equalsIgnoreCase("progfile")
+                || arg_name.equalsIgnoreCase("command_file")
+                || arg_name.equalsIgnoreCase("zipfile")
+                || arg_name.equalsIgnoreCase("archive-file")) {
+            arg_type = "File";
+        } else if (arg_name.equalsIgnoreCase("number")
+                || arg_name.equalsIgnoreCase("n")
+                || arg_name.equalsIgnoreCase("replacements")
+                || arg_name.equalsIgnoreCase("maxprocs")
+                || arg_name.equalsIgnoreCase("incr")
+                || arg_name.equalsIgnoreCase("bytes")
+                || arg_name.equalsIgnoreCase("mask")
+                || arg_name.equalsIgnoreCase("num")
+                || arg_name.equalsIgnoreCase("depth")
+                || arg_name.equalsIgnoreCase("MINUSa")
+                || arg_name.equalsIgnoreCase("PLUSa")
+                || arg_name.equalsIgnoreCase("EQUALa")
+                || arg_name.equalsIgnoreCase("count")
+                || arg_name.equalsIgnoreCase("nmin")
+                || arg_name.equalsIgnoreCase("a")) {
+            arg_type = "Number";
+        } else if (arg_name.equalsIgnoreCase("permmode")
+                || arg_name.equalsIgnoreCase("MINUSpermmode")
+                || arg_name.equalsIgnoreCase("PLUSpermmode")) {
+            arg_type = "Permission";
+        } else if (arg_name.equalsIgnoreCase("uname")
+                || arg_name.equalsIgnoreCase("gname")
+                || arg_name.equalsIgnoreCase("eofstr")
+                || arg_name.equalsIgnoreCase("replstr")
+                || arg_name.equalsIgnoreCase("string")
+                || arg_name.equalsIgnoreCase("command")
+                || arg_name.equalsIgnoreCase("extension")
+                || arg_name.equalsIgnoreCase("option")
+                || arg_name.equalsIgnoreCase("name")
+                || arg_name.equalsIgnoreCase("MINUSflags")
+                || arg_name.equalsIgnoreCase("PLUSflags")
+                || arg_name.equalsIgnoreCase("flags")
+                || arg_name.equalsIgnoreCase("type")
+                || arg_name.equalsIgnoreCase("t")
+                || arg_name.equalsIgnoreCase("findexp")
+                || arg_name.equalsIgnoreCase("tar_format")
+                || arg_name.equalsIgnoreCase("options")
+                || arg_name.equalsIgnoreCase("program")
+                || arg_name.equalsIgnoreCase("format")
+                || arg_name.equalsIgnoreCase("varEQvalue")
+                || arg_name.equalsIgnoreCase("prog")
+                || arg_name.equalsIgnoreCase("owner")
+                || arg_name.equalsIgnoreCase("first")
+                || arg_name.equalsIgnoreCase("last")
+                || arg_name.equalsIgnoreCase("suffixes")
+                || arg_name.equalsIgnoreCase("list")) {
+            arg_type = "String";
+        } else if (arg_name.equalsIgnoreCase("pattern")
+                || arg_name.equalsIgnoreCase("fs")) {
+            arg_type = "Pattern";
+        } else if (arg_name.equalsIgnoreCase("time")
+                || arg_name.equalsIgnoreCase("date")) {
+            arg_type = "Time";
+        } else if (arg_name.equalsIgnoreCase("size")
+                || arg_name.equalsIgnoreCase("blocksize")) {
+            arg_type = "Size";
+        } else if (arg_name.equalsIgnoreCase("utility")) {
+            arg_type = "Utility";
+        } else if (arg_name.equalsIgnoreCase("argument")) {
+            arg_type = "Argument";
+        } else if (arg_name.equalsIgnoreCase("SEMICOLON"))  {
+            arg_type = "Constant";
+            arg_name = ";";
+        } else if (arg_name.equalsIgnoreCase("PLUS"))  {
+            arg_type = "Constant";
+            arg_name = "+";
+        } else if (arg_name.equalsIgnoreCase("EXCLAMATION"))  {
+            arg_type = "Constant";
+            arg_name = "!";
+        } else if (arg_name.equalsIgnoreCase("BRACKETS")
+                || arg_name.equals("{}"))  {
+            arg_type = "Constant";
+            arg_name = "{}";
+        }  else if (arg_name.equalsIgnoreCase("ACE"))  {
+            arg_type = "Constant";
+        } else {
+            arg_type = "Unknown";
+        }
+
+        return new Pair<>(arg_name, arg_type);
     }
 }
