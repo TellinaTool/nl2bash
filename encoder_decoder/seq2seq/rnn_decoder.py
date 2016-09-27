@@ -11,16 +11,8 @@ import decoder, data_utils, graph_utils
 
 class RNNDecoder(decoder.Decoder):
 
-    def __init__(self, dim, batch_size, rnn_cell, num_layers,
-                 input_keep_prob, output_keep_prob,
-                 use_attention, use_copy,
-                 beam_size=-1, beam_order=-1,
-                 output_projection=None):
-        super(RNNDecoder, self).__init__(dim, batch_size, rnn_cell, num_layers,
-                                         input_keep_prob, output_keep_prob,
-                                         use_attention, use_copy,
-                                         beam_size, beam_order,
-                                         output_projection)
+    def __init__(self, hyperparameters, output_projection=None):
+        super(RNNDecoder, self).__init__(hyperparameters, output_projection)
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      attention_states=None, num_heads=1,
@@ -133,6 +125,8 @@ class RNNDecoder(decoder.Decoder):
             outputs = tf.reshape(beam_symbols, [self.batch_size,
                                                 self.beam_size, -1])
             outputs = tf.split(0, self.batch_size, outputs)
+            outputs = [tf.split(0, self.beam_size, output) for output in
+                       outputs]
             # [self.batch_size, self.beam_size]
             logits = tf.reshape(beam_logits, [self.batch_size, self.beam_size])
             logits = tf.split(0, self.batch_size, logits)

@@ -1,27 +1,17 @@
 import tensorflow as tf
 from tensorflow.python.util import nest
 
+import graph_utils
+
 def nest_map(func, nested):
     if not nest.is_sequence(nested):
         return func(nested)
     flat = nest.flatten(nested)
     return nest.pack_sequence_as(nested, list(map(func, flat)))
 
-class Decoder(object):
-    def __init__(self, dim, batch_size, rnn_cell, num_layers,
-                 input_keep_prob, output_keep_prob,
-                 use_attention, use_copy, beam_size, beam_order,
-                 output_projection=None):
-        self.dim = dim
-        self.rnn_cell = rnn_cell
-        self.batch_size = batch_size
-        self.num_layers = num_layers
-        self.input_keep_prob = input_keep_prob
-        self.output_keep_prob = output_keep_prob
-        self.use_attention = use_attention
-        self.use_copy = use_copy
-        self.beam_size = beam_size
-        self.beam_order = beam_order
+class Decoder(graph_utils.NNModel):
+    def __init__(self, hyperparameters, output_projection=None):
+        super(Decoder, self).__init__(hyperparameters)
         self.output_projection = output_projection
 
         # variable sharing

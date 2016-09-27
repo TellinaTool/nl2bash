@@ -201,3 +201,103 @@ def deprecated(func):
         return func(*args, **kwargs)
 
     return new_func
+
+class NNModel(object):
+    def __init__(self, hyperparams):
+        self.hyperparams = hyperparams
+
+    @property
+    def use_sampled_softmax(self):
+        return self.num_samples > 0 and self.num_samples < self.target_vocab_size
+
+    @property
+    def use_attention(self):
+        return self.hyperparams["use_attention"]
+
+    @property
+    def use_copy(self):
+        return self.hyperparams["use_copy"]
+
+    @property
+    def encoder_topology(self):
+        return self.hyperparams["encoder_topology"]
+
+    @property
+    def decoder_topology(self):
+        return self.hyperparams["decoder_topology"]
+
+    @property
+    def dim(self):
+        return self.hyperparams["dim"]
+
+    @property
+    def batch_size(self):
+        return self.hyperparams["batch_size"]
+
+    @property
+    def encoder_input_keep(self):
+        return self.hyperparams["encoder_input_keep"]
+
+    @property
+    def encoder_output_keep(self):
+        return self.hyperparams["encoder_output_keep"]
+
+    @property
+    def decoder_input_keep(self):
+        return self.hyperparams["decoder_input_keep"]
+
+    @property
+    def decoder_output_keep(self):
+        return self.hyperparams["decoder_output_keep"]
+
+    @property
+    def rnn_cell(self):
+        return self.hyperparams["rnn_cell"]
+
+    @property
+    def max_gradient_norm(self):
+        return self.hyperparams["max_gradient_norm"]
+
+    @property
+    def num_samples(self):
+        return self.hyperparams["num_samples"]
+
+    @property
+    def num_layers(self):
+        return self.hyperparams["num_layers"]
+
+    @property
+    def source_vocab_size(self):
+        return self.hyperparams["source_vocab_size"]
+
+    @property
+    def target_vocab_size(self):
+        return self.hyperparams["target_vocab_size"]
+
+    @property
+    def max_source_length(self):
+        return self.hyperparams["max_source_length"]
+
+    @property
+    def max_target_length(self):
+        return self.hyperparams["max_target_length"]
+
+    @property
+    def decoding_algorithm(self):
+        return self.hyperparams["decoding_algorithm"]
+
+    @property
+    def beam_size(self):
+        return self.hyperparams["beam_size"]
+
+    @property
+    def beam_order(self):
+        return self.hyperparams["beam_order"]
+
+    @property
+    def top_k(self):
+        return self.hyperparams["top_k"]
+
+    @property
+    def model_dir(self):
+        return self.hyperparams["model_dir"]
