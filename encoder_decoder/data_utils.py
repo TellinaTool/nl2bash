@@ -496,11 +496,11 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
                 if ast.is_simple():
                     nl_tokens = data_tools.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(ast)
-                    cm_seq = data_tools.ast2list(ast, list=[])
+                    cm_seq = data_tools.ast2list(ast)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
                         pruned_ast, loose_constraints=True)
-                    cm_pruned_seq = data_tools.ast2list(pruned_ast, list=[])
+                    cm_pruned_seq = data_tools.ast2list(pruned_ast)
                     cm_normalized_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True)
                     cm_normalized_seq = data_tools.ast2list(
