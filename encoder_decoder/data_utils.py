@@ -79,7 +79,7 @@ def clean_dir(dir):
 
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
-                      tokenizer, base_tokenizer=None,
+                      tokenizer=None, base_tokenizer=None,
                       normalize_digits=True, normalize_long_pattern=True,
                       min_word_frequency=2):
     """Create vocabulary file (if it does not exist yet) from data file.
