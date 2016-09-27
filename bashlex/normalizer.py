@@ -793,7 +793,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         normalize(tree[0], normalized_tree)
     except ValueError as err:
         if err.args[0].startswith("too many values"):
-            print(cmd)
             sys.exit()
         print("%s - %s" % (err.args[0], cmd2))
         return None
