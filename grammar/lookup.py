@@ -13,8 +13,8 @@ class ManPageLookUp(object):
             # TODO: This exception is not handled very well.
             if verbose:
                 print("Error: command {} doesn't exist".format(cmd))
-            return {"optional": ("Unknown", False, False),
-                    "non-optional": ("Unknown", False, False)}
+            return {"optional": [("Unknown", False, False)],
+                    "non-optional": [("Unknown", False, False)]}
 
     def get_flag_arg_type(self, cmd, flag, verbose=False):
         try:
