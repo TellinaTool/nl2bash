@@ -29,18 +29,11 @@ def to_readable(outputs, rev_cm_vocab):
     return tree, cmd, search_history
 
 
-def decode(output_logits, rev_cm_vocab, FLAGS):
+def decode(predictions, rev_cm_vocab, FLAGS):
     batch_outputs = []
-    if FLAGS.decoding_algorithm == "greedy":
-        # This is a greedy decoder - outputs are just argmaxes of output_logits.
-        scores = reduce(lambda x, y: np.multiply(x, y),
-                        [np.max(logit, axis=1) for logit in output_logits])
-        predictions = [np.argmax(logit, axis=1) for logit in output_logits]
-    elif FLAGS.decoding_algorithm == "beam_search":
 
-    else:
-        raise ValueError("Unrecognized decoding algorithm: {}."
-                         .format(FLAGS.decoding_algorithm))
+    if FLAGS.decoding_algorithm == "beam_search":
+        predictions = reduce(lambda x,y: x + y, predictions) 
 
     batch_size = len(predictions[0])
     for i in xrange(batch_size):
@@ -71,7 +64,16 @@ def decode(output_logits, rev_cm_vocab, FLAGS):
             tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
         batch_outputs.append((tree, cmd, search_history))
 
-    return batch_outputs, scores
+    if FLAGS.decoding_algorithm == "beam_search":
+        batch_beam_outputs = []
+        for i in xrange(FLAGS.batch_size):
+            beam_outputs = []
+            for j in xrange(FLAGS.beam_size):
+                beam_outputs.append(batch_outputs[i * FLAGS.beam_size + j])
+            batch_beam_outputs.append(beam_outputs)
+        return batch_beam_outputs
+    else:
+        return batch_outputs
 
 
 def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
@@ -95,11 +97,21 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                     batch_nls[batch_id:batch_id+1],
                     batch_cmds[batch_id:batch_id+1],
                     bucket_id=bucket_id)
-
-                _, _, output_logits, attn_masks = model.step(
-                    sess, formatted_example, bucket_id, forward_only=True)
-
-                batch_outputs, scores = decode(output_logits, rev_cm_vocab, FLAGS)
+                
+                if FLAGS.decoding_algorithm == "greedy":
+                    _, _, output_logits, attn_masks = model.step(
+                        sess, formatted_example, bucket_id, forward_only=True)
+                    # This is a greedy decoder - outputs are just argmaxes of output_logits.
+                    batch_scores = reduce(lambda x, y: np.add(x, y),
+                            [np.max(np.log(logit), axis=1) for logit in output_logits])
+                    predictions = [np.argmax(logit, axis=1) for logit in output_logits]
+                elif FLAGS.decoding_algorithm == "beam_search":
+                    _, _, predictions, batch_scores, attns_masks = model.step(
+                        sess, formatted_example, bucket_id, forward_only=True)
+                else:
+                    raise ValueError("Unrecognized decoding_algorithm: {}".format(FLAGS.decoding_algorithm))
+                    
+                batch_outputs = decode(predictions, rev_cm_vocab, FLAGS)
 
                 nl_str = batch_nl_strs[batch_id]
                 cm_strs = batch_cm_strs[batch_id]
