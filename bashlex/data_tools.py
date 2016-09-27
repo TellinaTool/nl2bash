@@ -1,4 +1,6 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
 """
 Domain-specific natural Language and bash command tokenizer.
 """
@@ -39,8 +41,9 @@ def char_tokenizer(sentence, base_tokenizer=None, normalize_digits=False,
         chars.append(_SPACE)
     return chars[:-1]
 
-def basic_tokenizer(sentence, lower_case=True, normalize_digits=True, normalize_long_pattern=True,
-                    lemmatization=True, remove_stop_words=True):
+def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
+                    normalize_long_pattern=True, lemmatization=True,
+                    remove_stop_words=True):
     """Very basic tokenizer: used for English tokenization."""
     try:
         sentence = sentence.replace("“", '"')

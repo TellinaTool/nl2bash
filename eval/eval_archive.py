@@ -7,7 +7,7 @@ import os, sys
 import sqlite3
 
 reload(sys)  
-sys.setdefaultencoding('utf8')
+sys.setdefaultencoding('utf-8')
 
 class DBConnection(object):
     def __init__(self):
@@ -30,15 +30,8 @@ class DBConnection(object):
 
         c.execute("CREATE TABLE IF NOT EXISTS Output (model TEXT, nl TEXT, pred_cmd TEXT, score FLOAT)")
 
-        # c.execute("ALTER TABLE StrArchives RENAME TO StrArchives_old")
         c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, pred_cmd TEXT, judgement INT)")
-        # c.execute("INSERT INTO StrArchives (nl, pred_cmd, judgement)"
-        #           "SELECT nl, str, judgement FROM StrArchives_old")
-
-        # c.execute("ALTER TABLE TempArchives RENAME TO TempArchives_old")
         c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, pred_temp TEXT, judgement INT)")
-        # c.execute("INSERT INTO TempArchives (nl, pred_temp, judgement)"
-        #           "SELECT nl, temp, judgement FROM TempArchives_old")
 
         self.conn.commit()
 
@@ -51,7 +44,7 @@ class DBConnection(object):
                       (pred_cmd, score, model, nl))
         else:
             c.execute("INSERT INTO Output (model, nl, pred_cmd, score) VALUES (?, ?, ?, ?)",
-                      (model, nl, pred_cmd, score))
+                      (model, nl, pred_cmd, 0.0))
         self.conn.commit()
 
     def exist_prediction(self, model, nl):
@@ -127,6 +120,8 @@ class DBConnection(object):
 
     def correct_str_pair(self, pair):
         nl, pred_cmd = pair
+        # print(nl)
+        # print(pred_cmd)
         nl = unicode(nl)
         c = self.cursor
         c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND pred_cmd = ?",
@@ -157,6 +152,29 @@ class DBConnection(object):
                   (0, nl, pred_temp))
         self.conn.commit()
 
+    def get_nl_pred_cmd(self, nl):
+        nl = unicode(nl)
+        c = self.cursor
+        for nl, pred_cmd, judgement in c.execute("SELECT nl, pred_cmd, judgement FROM StrArchives WHERE nl = ?", (nl,)):
+            print(nl)
+            print(pred_cmd) 
+            print(judgement)
+
+    def get_nl_pred_temp(self, nl):
+        nl = unicode(nl)
+        c = self.cursor
+        for nl, pred_temp, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ?", (nl,)):
+            print(nl, pred_temp, judgement)
+       
+    def debug(self):
+        c = self.cursor
+        for model, nl, pred_cmd, score in c.execute("SELECT model, nl, pred_cmd, score FROM Output"):
+            if "*.tex" in nl:
+                print(model)
+                print(nl)
+                print(pred_cmd)
+                print(score)                
+ 
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
@@ -200,7 +218,30 @@ if __name__ == "__main__":
         "Find all .c and .h files in the current directory tree and search them for \"expr\"\n",
         "find . -name \"*.c\" | xargs grep -E 'expr'"
     ))
-    db.error_str_pair((
+    db.correct_str_pair((
         "List all empty files in the current directory tree\n",
         "find . -empty"
     ))
+    db.correct_str_pair((
+        "Find all .c and .h files in the current directory tree and search them for \"expr\"\n",
+        "find . -name '*.[ch]' | xargs grep -E 'expr'"
+    ))
+    db.error_temp_pair((
+        "Find all *.tex regular files under current directory\n",
+        "find -type Unknown File"
+    ))
+    db.error_str_pair((
+        "Find all *.py files under and below the current directory and search them for \"xrange\"\n",
+        "find . -name *.py | xargs grep some_function"
+    ))
+    db.error_str_pair((
+        "find all the swap files (files ending with ~) in the current folder and delete them\n",
+        "find . -name \"*.sh\" -exec rm -r -f {} \;" 
+    ))
+    db.error_temp_pair((
+        "List root's regular files with permissions 4000\n",
+        "find -exec ls -l {} \; -perm Permission -type Unknown File"
+    ))
+    # db.get_nl_pred_temp(
+    #     "Find all \*.tex regular files under current directory\n"
+    # )

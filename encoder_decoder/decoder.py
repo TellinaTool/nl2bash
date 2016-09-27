@@ -1,19 +1,17 @@
 import tensorflow as tf
+from tensorflow.python.util import nest
 
+import graph_utils
 
-class Decoder(object):
-    def __init__(self, dim, batch_size, rnn_cell, num_layers,
-                 input_keep_prob, output_keep_prob,
-                 use_attention, use_copy, output_projection=None):
-        self.dim = dim
-        self.rnn_cell = rnn_cell
-        self.batch_size = batch_size
-        self.num_layers = num_layers
-        self.input_keep_prob = input_keep_prob
-        self.output_keep_prob = output_keep_prob
-        self.use_attention = use_attention
-        self.use_copy = use_copy
+def nest_map(func, nested):
+    if not nest.is_sequence(nested):
+        return func(nested)
+    flat = nest.flatten(nested)
+    return nest.pack_sequence_as(nested, list(map(func, flat)))
 
+class Decoder(graph_utils.NNModel):
+    def __init__(self, hyperparameters, output_projection=None):
+        super(Decoder, self).__init__(hyperparameters)
         self.output_projection = output_projection
 
         # variable sharing
@@ -29,7 +27,7 @@ class Decoder(object):
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on cell and hidden states
             attn_vec_dim = v[0].get_shape()[0].value
-            attns.set_shape([-1, num_heads * attn_vec_dim])
+            attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             try:
                 cell_output, state = cell(x, state, cell_scope)

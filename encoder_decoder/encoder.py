@@ -6,22 +6,14 @@ from tensorflow.python.util import nest
 import graph_utils
 
 
-class Encoder(object):
-    def __init__(self, dim, rnn_cell, num_layers,
-                 input_keep_prob, output_keep_prob):
-        self.dim = dim
-        self.rnn_cell = rnn_cell
-        self.num_layers = num_layers
-        self.input_keep_prob = input_keep_prob
-        self.output_keep_prob = output_keep_prob
+class Encoder(graph_utils.NNModel):
+    def __init__(self, hyperparameters):
+        super(Encoder, self).__init__(hyperparameters)
 
 
 class RNNEncoder(Encoder):
-    def __init__(self, dim, rnn_cell, num_layers,
-                 input_keep_prob, output_keep_prob):
-        super(RNNEncoder, self).__init__(dim, rnn_cell, num_layers,
-                                         input_keep_prob,
-                                         output_keep_prob)
+    def __init__(self, hyperparameters):
+        super(RNNEncoder, self).__init__(hyperparameters)
         self.cell, _ = self.encoder_cell()
 
         # variable sharing
@@ -49,11 +41,8 @@ class RNNEncoder(Encoder):
 
 
 class BiRNNEncoder(Encoder):
-    def __init__(self, dim, rnn_cell, num_layers,
-                 input_keep_prob, output_keep_prob):
-        super(BiRNNEncoder, self).__init__(dim, rnn_cell, num_layers,
-                                           input_keep_prob,
-                                           output_keep_prob)
+    def __init__(self, hyperparameters):
+        super(BiRNNEncoder, self).__init__(hyperparameters)
         self.fw_cell, _ = self.forward_cell()
         self.bw_cell, _ = self.backward_cell()
 

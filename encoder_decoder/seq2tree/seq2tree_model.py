@@ -7,12 +7,9 @@ from __future__ import print_function
 import os
 import sys
 
-import tensorflow as tf
-
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from encoder_decoder import EncoderDecoderModel
-import encoder
-import decoder
+import encoder, tree_decoder
 
 
 class Seq2TreeModel(EncoderDecoderModel):
@@ -27,18 +24,13 @@ class Seq2TreeModel(EncoderDecoderModel):
         """
         super(Seq2TreeModel, self).__init__(hyperparams, buckets, forward_only)
 
-        self.global_epoch = tf.Variable(0, trainable=False)
-
-        self.define_graph(forward_only)
-
 
     def define_encoder(self):
         """Construct sequence encoders."""
         if self.encoder_topology == "rnn":
-            self.encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers,
-                                              self.encoder_input_keep, self.encoder_output_keep)
+            self.encoder = encoder.RNNEncoder(self.hyperparameters)
         elif self.encoder_topology == "birnn":
-            self.encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.num_layers)
+            self.encoder = encoder.BiRNNEncoder(self.hyperparameters)
         else:
             raise ValueError("Unrecognized encoder type.")
 
@@ -46,10 +38,8 @@ class Seq2TreeModel(EncoderDecoderModel):
     def define_decoder(self):
         """Construct tree decoders."""
         if self.decoder_topology == "basic_tree":
-            self.decoder = decoder.BasicTreeDecoder(self.dim, self.batch_size, self.rnn_cell, self.num_layers,
-                                                    self.decoder_input_keep, self.decoder_output_keep,
-                                                    self.use_attention, self.use_copy,
-                                                    self.output_projection())
+            self.decoder = tree_decoder.BasicTreeDecoder(self.hyperparameters,
+                                                         self.output_projection())
         else:
             raise ValueError("Unrecognized decoder topology: {}."
                              .format(self.decoder_topology))
