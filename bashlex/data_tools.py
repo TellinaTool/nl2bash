@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Domain-specific natural Language and bash command tokenizer.
 """
