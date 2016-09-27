@@ -25,14 +25,17 @@ def get_rewrites(asts, db):
         rewrites |= db.get_rewrites(ast)
     return rewrites
 
-def one_template_match(asts, ast2):
+def one_template_match(asts, ast2, rewrite=True):
     temp2 = ignore_differences(
         data_tools.ast2template(ast2, loose_constraints=True))
 
     temps = [data_tools.ast2template(ast1, loose_constraints=True)
              for ast1 in asts]
-    with DBConnection() as db:
-        rewrite_temps = get_rewrite_templates(temps, db)
+    if rewrite:
+        with DBConnection() as db:
+            rewrite_temps = get_rewrite_templates(temps, db)
+    else:
+        rewrite_temps = temps
 
     for temp1 in rewrite_temps:
         temp1 = ignore_differences(temp1)
@@ -40,12 +43,17 @@ def one_template_match(asts, ast2):
             return True
     return False
 
-def one_string_match(asts, ast2):
+def one_string_match(asts, ast2, rewrite=True):
     cmd2 = ignore_differences(data_tools.ast2template(
         ast2, loose_constraints=True, arg_type_only=False))
 
-    with DBConnection() as db:
-        rewrite_cmds = get_rewrites(asts, db)
+    cmds = [data_tools.ast2command(ast1, loose_constraints=True)
+            for ast1 in asts]
+    if rewrite:
+        with DBConnection() as db:
+            rewrite_cmds = get_rewrites(asts, db)
+    else:
+        rewrite_cmds = asts
 
     for ast1 in rewrite_cmds:
         cmd1 = data_tools.ast2template(

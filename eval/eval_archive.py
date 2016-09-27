@@ -120,8 +120,8 @@ class DBConnection(object):
 
     def correct_str_pair(self, pair):
         nl, pred_cmd = pair
-        print(nl)
-        print(pred_cmd)
+        # print(nl)
+        # print(pred_cmd)
         nl = unicode(nl)
         c = self.cursor
         c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND pred_cmd = ?",
@@ -165,7 +165,16 @@ class DBConnection(object):
         c = self.cursor
         for nl, pred_temp, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ?", (nl,)):
             print(nl, pred_temp, judgement)
-        
+       
+    def debug(self):
+        c = self.cursor
+        for model, nl, pred_cmd, score in c.execute("SELECT model, nl, pred_cmd, score FROM Output"):
+            if "*.tex" in nl:
+                print(model)
+                print(nl)
+                print(pred_cmd)
+                print(score)                
+ 
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
@@ -217,9 +226,22 @@ if __name__ == "__main__":
         "Find all .c and .h files in the current directory tree and search them for \"expr\"\n",
         "find . -name '*.[ch]' | xargs grep -E 'expr'"
     ))
-    db.get_nl_pred_temp(
-        "Find all .c and .h files in the current directory tree and search them for \"expr\"\n"
-    )
-    db.get_nl_pred_cmd(
-        "Find all .c and .h files in the current directory tree and search them for \"expr\"\n"
-    )
+    db.error_temp_pair((
+        "Find all *.tex regular files under current directory\n",
+        "find -type Unknown File"
+    ))
+    db.error_str_pair((
+        "Find all *.py files under and below the current directory and search them for \"xrange\"\n",
+        "find . -name *.py | xargs grep some_function"
+    ))
+    db.error_str_pair((
+        "find all the swap files (files ending with ~) in the current folder and delete them\n",
+        "find . -name \"*.sh\" -exec rm -r -f {} \;" 
+    ))
+    db.error_temp_pair((
+        "List root's regular files with permissions 4000\n",
+        "find -exec ls -l {} \; -perm Permission -type Unknown File"
+    ))
+    # db.get_nl_pred_temp(
+    #     "Find all \*.tex regular files under current directory\n"
+    # )

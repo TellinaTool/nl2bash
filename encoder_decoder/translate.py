@@ -191,7 +191,7 @@ def eval(construct_model_dir=True, verbose=True):
         model, _ = create_model(sess, forward_only=True,
                                 construct_model_dir=construct_model_dir)
 
-        _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_data(FLAGS)
+        _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
         _, dev_set, _ = load_data()
 
         return eval_tools.eval_set(model.model_dir, dev_set, rev_nl_vocab,
@@ -204,8 +204,8 @@ def manual_eval(num_eval):
         # Create model and load parameters.
         model, _ = create_model(sess, forward_only=True)
 
-        _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_data(FLAGS)
-        _, dev_set, _ = load_data()
+        _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
+        _, dev_set, _ = load_data(use_buckets=False)
 
         eval_tools.manual_eval(model.model_dir, dev_set, rev_nl_vocab,
                                FLAGS.train_dir, num_eval)
@@ -217,7 +217,7 @@ def interactive_decode():
         # Create model and load parameters.
         model, _ = create_model(sess, forward_only=True)
 
-        nl_vocab, _, _, rev_cm_vocab = data_utils.load_data(FLAGS)
+        nl_vocab, _, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
 
         decode_tools.interactive_decode(
             sess, model, nl_vocab, rev_cm_vocab, FLAGS)
