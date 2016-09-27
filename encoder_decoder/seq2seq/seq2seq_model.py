@@ -7,12 +7,9 @@ from __future__ import print_function
 import os
 import sys
 
-import tensorflow as tf
-
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from encoder_decoder import EncoderDecoderModel
-import encoder, graph_utils
-import rnn_decoder
+import encoder, rnn_decoder
 
 
 class Seq2SeqModel(EncoderDecoderModel):
@@ -33,19 +30,13 @@ class Seq2SeqModel(EncoderDecoderModel):
     def __init__(self, hyperparameters, buckets=None, forward_only=False):
         super(Seq2SeqModel, self).__init__(hyperparameters, buckets, forward_only)
 
-        self.global_step = tf.Variable(0, trainable=False)
-
-        self.define_graph(forward_only)
-
 
     def define_encoder(self):
         """Construct sequence encoders."""
         if self.encoder_topology == "rnn":
-            self.encoder = encoder.RNNEncoder(self.dim, self.rnn_cell, self.num_layers,
-                                              self.encoder_input_keep, self.encoder_output_keep)
+            self.encoder = encoder.RNNEncoder(self.hyperparameters)
         elif self.encoder_topology == "birnn":
-            self.encoder = encoder.BiRNNEncoder(self.dim, self.rnn_cell, self.num_layers,
-                                                self.encoder_input_keep, self.encoder_output_keep)
+            self.encoder = encoder.BiRNNEncoder(self.hyperparameters)
         else:
             raise ValueError("Unrecognized encoder type.")
 
@@ -53,9 +44,8 @@ class Seq2SeqModel(EncoderDecoderModel):
     def define_decoder(self):
         """Construct sequence decoders."""
         if self.decoder_topology == "rnn":
-            self.decoder = rnn_decoder.RNNDecoder(self.dim, self.batch_size, self.rnn_cell, self.num_layers,
-                                              self.decoder_input_keep, self.decoder_output_keep,
-                                              self.use_attention, self.use_copy,
-                                              self.output_projection())
+            self.decoder = rnn_decoder.RNNDecoder(self.hyperparameters,
+                                                  self.output_projection())
         else:
-            raise ValueError("Unrecognized decoder type.")
+            raise ValueError("Unrecognized decoder topology: {}."
+                             .format(self.decoder_topology))

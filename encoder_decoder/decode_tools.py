@@ -126,7 +126,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                         print("GT Command {}: {}".format(j+1, cm_strs[j].strip()))
                 if FLAGS.decoding_algorithm == "greedy":
                     tree, pred_cmd, outputs = batch_outputs[0]
-                    score = scores[0]
+                    score = batch_scores[0]
                     db.add_prediction(model.model_dir, nl_str, pred_cmd, float(score))
                     if verbose:
                         print("Prediction: {} ({})".format(pred_cmd, score))
@@ -136,7 +136,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                 elif FLAGS.decoding_algorithm == "beam_search":
                     top_k_pred_trees, top_k_pred_cmds, top_k_outputs = \
                         batch_outputs[0]
-                    top_k_scores = scores[0]
+                    top_k_scores = batch_scores[0]
                     if verbose:
                         for j in xrange(FLAGS.top_k):
                             print("Prediction {}: {} ({}) ".format(j+1,

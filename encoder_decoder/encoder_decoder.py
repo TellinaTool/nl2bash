@@ -6,15 +6,14 @@ from __future__ import print_function
 import math
 import random
 
-import data_utils, graph_utils
 import numpy as np
+
+import data_utils, graph_utils
 import tensorflow as tf
 
-import encoder, decoder
+class EncoderDecoderModel(graph_utils.NNModel):
 
-class EncoderDecoderModel(object):
-
-    def __init__(self, hyperparams, buckets=None, forward_only=False):
+    def __init__(self, hyperparams, buckets=None, forward_only):
         """Create the model.
 
         Hyperparameters:
@@ -40,10 +39,11 @@ class EncoderDecoderModel(object):
           use_attention: if set, use attention model.
         """
 
-        self.hyperparams = hyperparams
+        super(EncoderDecoderModel, self).__init__(hyperparams)
         self.buckets = buckets
 
-        self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]), trainable=False)
+        self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]),
+                                         trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
@@ -51,6 +51,10 @@ class EncoderDecoderModel(object):
         self.output_projection_vars = False
         self.source_embedding_vars = False
         self.target_embedding_vars = False
+
+        self.global_epoch = tf.Variable(0, trainable=False)
+
+        self.define_graph(forward_only)
 
 
     def define_graph(self, forward_only):
@@ -135,15 +139,15 @@ class EncoderDecoderModel(object):
                 self.updates = []
                 for bucket_id, _ in enumerate(self.buckets):
                     gradients = tf.gradients(self.losses[bucket_id], params)
-                    clipped_gradients, norm = tf.clip_by_global_norm(gradients,
-                                                                     self.max_gradient_norm)
+                    clipped_gradients, norm = tf.clip_by_global_norm(
+                        gradients, self.max_gradient_norm)
                     self.gradient_norms.append(norm)
                     self.updates.append(opt.apply_gradients(
                         zip(clipped_gradients, params)))
             else:
                 gradients = tf.gradients(self.losses, params)
-                clipped_gradients, norm = tf.clip_by_global_norm(gradients,
-                                                             self.max_gradient_norm)
+                clipped_gradients, norm = tf.clip_by_global_norm(
+                    gradients, self.max_gradient_norm)
                 self.gradient_norms = norm
                 self.updates = opt.apply_gradients(zip(clipped_gradients, params))
 
@@ -174,14 +178,22 @@ class EncoderDecoderModel(object):
         if self.use_attention:
             top_states = [tf.reshape(e, [self.batch_size, 1, self.dim]) for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
-            outputs, state, attn_mask = self.decoder.define_graph(
+            decoder_output = self.decoder.define_graph(
                 encoder_state, decoder_inputs, target_embeddings,
                 attention_states, num_heads=1,
                 feed_previous=forward_only)
+            if forward_only and self.decoding_algorithm == "beam_search":
+                predictions, scores, state, attn_mask = decoder_output
+            else:
+                outputs, state, attn_mask = decoder_output
         else:
-            outputs, state = self.decoder.define_graph(
+            decoder_output = self.decoder.define_graph(
                 encoder_state, decoder_inputs, target_embeddings,
                 feed_previous=forward_only)
+            if forward_only and self.decoding_algorithm == "beam_search":
+                predictions, scores, state = decoder_output
+            else:
+                outputs, state = decoder_output
 
         # Losses.
         losses = graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
@@ -453,96 +465,3 @@ class EncoderDecoderModel(object):
                 return None, outputs[0], outputs[1:-1], outputs[-1]
             else:
                 return None, outputs[0], outputs[1:], None
-
-
-    @property
-    def use_sampled_softmax(self):
-        return self.num_samples > 0 and self.num_samples < self.target_vocab_size
-
-    @property
-    def use_attention(self):
-        return self.hyperparams["use_attention"]
-
-    @property
-    def use_copy(self):
-        return self.hyperparams["use_copy"]
-
-    @property
-    def encoder_topology(self):
-        return self.hyperparams["encoder_topology"]
-
-    @property
-    def decoder_topology(self):
-        return self.hyperparams["decoder_topology"]
-
-    @property
-    def dim(self):
-        return self.hyperparams["dim"]
-
-    @property
-    def batch_size(self):
-        return self.hyperparams["batch_size"]
-
-    @property
-    def encoder_input_keep(self):
-        return self.hyperparams["encoder_input_keep"]
-
-    @property
-    def encoder_output_keep(self):
-        return self.hyperparams["encoder_output_keep"]
-
-    @property
-    def decoder_input_keep(self):
-        return self.hyperparams["decoder_input_keep"]
-
-    @property
-    def decoder_output_keep(self):
-        return self.hyperparams["decoder_output_keep"]
-
-    @property
-    def rnn_cell(self):
-        return self.hyperparams["rnn_cell"]
-
-    @property
-    def max_gradient_norm(self):
-        return self.hyperparams["max_gradient_norm"]
-
-    @property
-    def num_samples(self):
-        return self.hyperparams["num_samples"]
-
-    @property
-    def num_layers(self):
-        return self.hyperparams["num_layers"]
-
-    @property
-    def source_vocab_size(self):
-        return self.hyperparams["source_vocab_size"]
-
-    @property
-    def target_vocab_size(self):
-        return self.hyperparams["target_vocab_size"]
-
-    @property
-    def max_source_length(self):
-        return self.hyperparams["max_source_length"]
-
-    @property
-    def max_target_length(self):
-        return self.hyperparams["max_target_length"]
-
-    @property
-    def decoding_algorithm(self):
-        return self.hyperparams["decoding_algorithm"]
-
-    @property
-    def beam_size(self):
-        return self.hyperparams["beam_size"]
-
-    @property
-    def top_k(self):
-        return self.hyperparams["top_k"]
-
-    @property
-    def model_dir(self):
-        return self.hyperparams["model_dir"]
