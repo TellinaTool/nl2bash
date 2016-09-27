@@ -41,10 +41,9 @@ class KNNModel(object):
         if k in self.term_occur_count:
             count = self.term_occur_count[k]
         # remove low-frequency words
-        if count < 4:
-            return 0
-        else:
-            return math.log(float(self.data_size) / (1 + count))
+        # if count < 4:
+        #     return 0
+        return math.log(float(self.data_size) / (1 + count))
 
     def get_tf(self, term, term_vec):
         r = 0
