@@ -79,7 +79,8 @@ public class ManParserInterface {
                         break;
                     i ++;
                 }
-                System.out.println(+ l + " " + i);
+
+                //System.out.println(+ l + " " + i);
 
                 List<String> primitives = lines.subList(l, i)
                         .stream().filter(s -> !s.trim().equals("")).map(s -> s.trim()).collect(Collectors.toList());
