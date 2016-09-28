@@ -12,12 +12,8 @@ DEBUG = False
 
 class BasicTreeDecoder(decoder.Decoder):
 
-    def __init__(self, dim, batch_size, rnn_cell, num_layers,
-                 input_keep_prob, output_keep_prob,
-                 use_attention, use_copy, output_projection=None):
-        super(BasicTreeDecoder, self).__init__(dim, batch_size, rnn_cell, num_layers,
-                                               input_keep_prob, output_keep_prob,
-                                               use_attention, use_copy, output_projection)
+    def __init__(self, hyperparams, output_projection=None):
+        super(BasicTreeDecoder, self).__init__(hyperparams, output_projection)
 
         self.H_NO_EXPAND = tf.constant(data_utils.H_NO_EXPAND_ID, shape=[self.batch_size])
         self.V_NO_EXPAND = tf.constant(data_utils.V_NO_EXPAND_ID, shape=[self.batch_size])
