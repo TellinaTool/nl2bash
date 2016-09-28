@@ -114,8 +114,10 @@ class RNNDecoder(decoder.Decoder):
                         input = tf.reshape(tf.tile(input, [1, self.beam_size]),
                                            [-1])
                         state = tf.expand_dims(state, 1)
-                        state = tf.reshape(tf.tile(state, [1, self.beam_size]),
-                                           [-1])
+                        state = tf.reshape(tf.tile(state,
+                                                   [1, self.beam_size, 1]),
+                                           [self.batch_size * self.beam_size,
+                                            -1])
 
                 input_embedding = tf.nn.embedding_lookup(embeddings, input)
 
