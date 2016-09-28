@@ -37,7 +37,7 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
         predictions = reduce(lambda x,y: x + y, output_symbols)
 
     for i in xrange(len(predictions)):
-        outputs = [int(pred[i]) for pred in predictions]
+        outputs = [int(pred) for pred in predictions[i]]
 
         # If there is an EOS symbol in outputs, cut them at that point.
         if data_utils.EOS_ID in outputs:
@@ -63,9 +63,7 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
         else:
             tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
         batch_outputs.append((tree, cmd, search_history))
-    
-    print(len(batch_outputs))
-    print(batch_size)
+
     if FLAGS.decoding_algorithm == "beam_search":
         batch_beam_outputs = []
         for i in xrange(batch_size):
