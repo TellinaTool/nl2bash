@@ -54,6 +54,10 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         model_dir += '-{}'.format(FLAGS.encoder_output_keep)
         model_dir += '-{}'.format(FLAGS.decoder_input_keep)
         model_dir += '-{}'.format(FLAGS.decoder_output_keep)
+        if FLAGS.canonical:
+            model_dir += '.canonical'
+        elif FLAGS.normalized:
+            model_dir += '.normalized'
         setattr(FLAGS, "train_dir", model_dir)
     else:
         if FLAGS.train_dir.endswith('/'):
