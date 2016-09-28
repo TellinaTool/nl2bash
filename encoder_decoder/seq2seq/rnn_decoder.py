@@ -68,6 +68,8 @@ class RNNDecoder(decoder.Decoder):
                         projected_output = tf.log(
                             tf.nn.softmax(tf.matmul(output, W) + b))
                         if self.decoding_algorithm == "beam_search":
+                            print(projected_output.get_shape())
+                            print(past_beam_logits.get_shape())
                             # [self.batch_size * self.beam_size, num_classes]
                             accumulated_logits = projected_output + tf.expand_dims(
                                 past_beam_logits, 1),
