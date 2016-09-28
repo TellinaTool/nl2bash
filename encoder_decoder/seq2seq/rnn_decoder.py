@@ -154,11 +154,12 @@ class RNNDecoder(decoder.Decoder):
             else:
                 return top_k_outputs, top_k_logits, outputs, state
         else:
+            output_symbols = tf.split(0, self.batch_size, past_output_symbols)
             if self.use_attention:
-                return past_output_symbols, past_output_logits, outputs, \
+                return output_symbols, past_output_logits, outputs, \
                        state, attn_masks
             else:
-                return past_output_symbols, past_output_logits, outputs, state
+                return output_symbols, past_output_logits, outputs, state
 
 
     def decoder_cell(self):
