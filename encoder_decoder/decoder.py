@@ -66,7 +66,7 @@ class Decoder(graph_utils.NNModel):
                     [1, 2])
                 ds.append(tf.reshape(d, [-1, attn_vec_dim]))
         attns = tf.concat(1, ds)
-        attns.set_shape([-1, num_heads * attn_vec_dim])
+        attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
         self.attention_vars = True
         return attns, attn_mask
 
