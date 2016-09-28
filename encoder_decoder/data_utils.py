@@ -256,7 +256,7 @@ def sentence_to_token_ids(sentence, vocabulary,
 
 
 def data_to_token_ids(data, target_path, vocabulary_path,
-                      tokenizer, base_tokenizer=None,
+                      tokenizer=None, base_tokenizer=None,
                       normalize_digits=True, normalize_long_pattern=True,
                       with_arg_types=False):
     """Tokenize data file and turn into token-ids using given vocabulary file.
@@ -496,20 +496,21 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
                 if ast.is_simple():
                     nl_tokens = data_tools.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(ast)
-                    cm_seq = data_tools.ast2list(ast)
+                    cm_seq = data_tools.ast2list(ast, list=[])
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
                         pruned_ast, loose_constraints=True)
-                    cm_pruned_seq = data_tools.ast2list(pruned_ast)
+                    cm_pruned_seq = data_tools.ast2list(pruned_ast, list=[])
                     cm_normalized_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True)
                     cm_normalized_seq = data_tools.ast2list(
-                        ast, arg_type_only=True)
+                        ast, arg_type_only=True, list=[])
                     cm_canonical_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True,
                         ignore_flag_order=True)
                     cm_canonical_seq = data_tools.ast2list(
-                        ast, arg_type_only=True, ignore_flag_order=True)
+                        ast, arg_type_only=True, ignore_flag_order=True,
+                        list=[])
                     data_set["nl_list"].append(nl)
                     data_set["nl_token_list"].append(nl_tokens)
                     data_set["cm_list"].append(cmd)
