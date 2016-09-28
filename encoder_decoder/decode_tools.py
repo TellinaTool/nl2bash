@@ -38,7 +38,7 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
         predictions = reduce(lambda x,y: x + y, output_symbols)
 
     for i in xrange(len(predictions)):
-        outputs = [int(pred[i]) for pred in predictions]
+        outputs = [int(pred) for pred in predictions[i]]
 
         # If there is an EOS symbol in outputs, cut them at that point.
         if data_utils.EOS_ID in outputs:
