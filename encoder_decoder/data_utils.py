@@ -642,6 +642,7 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
     cm_char_vocab_path = os.path.join(data_dir, "vocab%d.cm.char" % cm_vocab_size)
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
+    cm_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.norm" % cm_vocab_size)
     cm_ast_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast" % cm_vocab_size)
     cm_ast_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast.norm" %
                                           cm_vocab_size)
@@ -653,6 +654,8 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
                       normalize_digits=False, normalize_long_pattern=False)
     create_vocabulary(nl_vocab_path, train["nl_list"], nl_vocab_size, basic_tokenizer)
     create_vocabulary(cm_vocab_path, train["cm_token_list"], cm_vocab_size)
+    create_vocabulary(cm_norm_vocab_path, train["cm_normalized_token_list"],
+                      cm_vocab_size)
     create_vocabulary(cm_ast_vocab_path, train["cm_seq_list"], cm_vocab_size)
     create_vocabulary(cm_ast_norm_vocab_path, train["cm_normalized_seq_list"],
                       cm_vocab_size)
@@ -697,17 +700,17 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
         data_to_token_ids(data_set["cm_seq_list"], cm_seq_path,
                           cm_ast_vocab_path, with_arg_types=True)
         data_to_token_ids(data_set["cm_normalized_token_list"],
-                          cm_normalized_ids_path, cm_vocab_path)
+                          cm_normalized_ids_path, cm_norm_vocab_path)
         data_to_token_ids(data_set["cm_normalized_seq_list"],
-                          cm_normalized_seq_path, cm_ast_vocab_path)
+                          cm_normalized_seq_path, cm_ast_norm_vocab_path)
         data_to_token_ids(data_set["cm_pruned_token_list"], cm_pruned_ids_path,
                           cm_vocab_path)
         data_to_token_ids(data_set["cm_pruned_seq_list"], cm_pruned_seq_path,
                           cm_ast_vocab_path)
         data_to_token_ids(data_set["cm_canonical_token_list"],
-                          cm_canonical_ids_path, cm_vocab_path)
+                          cm_canonical_ids_path, cm_norm_vocab_path)
         data_to_token_ids(data_set["cm_pruned_seq_list"], cm_canonical_seq_path,
-                          cm_ast_vocab_path)
+                          cm_ast_norm_vocab_path)
 
     format_data(train_path, train)
     format_data(dev_path, dev)
@@ -718,5 +721,13 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
     print("maximum num chars in command = %d" % max_cm_char_len)
     print("maximum num tokens in command = %d" % max_cm_token_len)
     print("maximum num AST search steps = %d" % max_cm_seq_len)
+    print("maximum num tokens in normalized command = %d" %
+          max_cm_normalized_token_len)
+    print("maximum num normalized AST search steps = %d" %
+          max_cm_normalized_seq_len)
+    print("maximum num tokens in canonical command = %d" %
+          max_cm_canonical_token_len)
+    print("maximum num canonical AST search steps = %d" %
+          max_cm_canonical_seq_len)
     print("maximum num tokens in pruned command = %d" % max_cm_pruned_token_len)
     print("maximum num pruned AST search steps = %d" % max_cm_pruned_seq_len)
