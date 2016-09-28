@@ -311,7 +311,7 @@ class BasicTreeDecoder(decoder.Decoder):
         """Cell that controls transition from parent to child."""
         with tf.variable_scope("vertical_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
-                                                      self.input_keep_prob, self.output_keep_prob)
+                                                      self.decoder_input_keep, self.decoder_output_keep)
         return cell, scope
 
 
@@ -319,7 +319,7 @@ class BasicTreeDecoder(decoder.Decoder):
         """Cell that controls transition from left sibling to right sibling."""
         with tf.variable_scope("horizontal_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
-                                                      self.input_keep_prob, self.output_keep_prob)
+                                                      self.decoder_input_keep, self.decoder_output_keep)
         return cell, scope
 
 

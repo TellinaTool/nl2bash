@@ -242,6 +242,18 @@ if __name__ == "__main__":
         "List root's regular files with permissions 4000\n",
         "find -exec ls -l {} \; -perm Permission -type Unknown File"
     ))
+    db.error_temp_pair((
+        "display all files in the current directory excluding those that are present in the directories whose name starts with \"efence\" and do not search in the sub directories\n",
+        "find \( -name Pattern -prune -or -name Pattern \) -print File"
+    ))
+    db.correct_temp_pair((
+        "display all the regular files in the folder \"$(FOLDER)\" which are modified in the last $(RETENTION)*24 hours and excluding hidden files\n",
+        "find File -type Unknown -mtime Time ! -name Pattern"
+    ))
+    db.correct_temp_pair((
+        "To list the number of directories in the `/usr/share' directory tree\n",
+        "find /usr/share -type d | wc -l"
+    ))
     # db.get_nl_pred_temp(
     #     "Find all \*.tex regular files under current directory\n"
     # )

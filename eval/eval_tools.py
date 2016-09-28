@@ -39,7 +39,6 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
 
             predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
-            raise()
             if verbose:
                 print("Example %d (%d)" % (num_eval, len(cm_strs)))
                 print("Original English: " + nl_str.strip())
