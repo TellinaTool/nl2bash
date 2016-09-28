@@ -136,6 +136,13 @@ def load_data():
     nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
     cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
 
+    nl_txt_train = os.path.join(data_dir, "train") + ".nl"
+    cm_txt_train = os.path.join(data_dir, "train") + ".cm"
+    nl_txt_dev = os.path.join(data_dir, "dev") + ".nl"
+    cm_txt_dev = os.path.join(data_dir, "dev") + ".cm"
+    nl_txt_test = os.path.join(data_dir, "test") + ".nl"
+    cm_txt_test = os.path.join(data_dir, "test") + ".cm"
+
     nl_train = os.path.join(data_dir, "train") + nl_extention
     cm_train = os.path.join(data_dir, "train") + cm_extension
     nl_dev = os.path.join(data_dir, "dev") + nl_extention
@@ -143,9 +150,9 @@ def load_data():
     nl_test = os.path.join(data_dir, "test") + nl_extention
     cm_test = os.path.join(data_dir, "test") + cm_extension
 
-    train_set = data_utils.read_data(nl_train, cm_train, None, FLAGS.max_train_data_size)
-    dev_set = data_utils.read_data(nl_dev, cm_dev, None)
-    test_set = data_utils.read_data(nl_test, cm_test, None)
+    train_set = data_utils.read_data(nl_txt_train, cm_txt_train, nl_train, cm_train, None, FLAGS.max_train_data_size)
+    dev_set = data_utils.read_data(nl_txt_dev, cm_txt_dev, nl_dev, cm_dev, None)
+    test_set = data_utils.read_data(nl_txt_test, cm_txt_test, nl_test, cm_test, None)
 
     return train_set, dev_set, test_set
 
