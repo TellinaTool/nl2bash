@@ -151,6 +151,8 @@ class RNNDecoder(decoder.Decoder):
             top_k_logits = tf.reshape(past_beam_logits, [self.batch_size, 
                                                          self.beam_size])
             top_k_logits = tf.split(0, self.batch_size, top_k_logits)
+            top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
+                            for top_k_logit in top_k_logits]
             if self.use_attention:
                 return top_k_outputs, top_k_logits, outputs, state, attn_masks
             else:
