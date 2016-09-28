@@ -24,7 +24,8 @@ class EnumeratorState(object):
         if grammar.kind == Grammar.EMPTY:
             return EnumeratorState(Grammar.EMPTY)
         elif grammar.kind in [Grammar.CASES, Grammar.SEQ, Grammar.PERM]:
-            return EnumeratorState(grammar.kind, [EnumeratorState.from_grammar(g) for g in grammar.args])
+            return EnumeratorState(grammar.kind, [EnumeratorState.from_grammar(g)
+                                                  for g in grammar.args])
         elif grammar.kind == Grammar.EXACT:
             return EnumeratorState(Grammar.EXACT, tok=grammar.args[0])
         elif grammar.kind == Grammar.HOLE:
