@@ -254,6 +254,10 @@ if __name__ == "__main__":
         "To list the number of directories in the `/usr/share' directory tree\n",
         "find /usr/share -type d | wc -l"
     ))
+    db.error_temp_pair((
+        "list regular file which file name end with 'cache' 'xml' or 'html' in current directory\n",
+        "find -name Pattern -type Unknown File"
+    ))
     # db.get_nl_pred_temp(
     #     "Find all \*.tex regular files under current directory\n"
     # )
