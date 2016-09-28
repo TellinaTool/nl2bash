@@ -356,12 +356,26 @@ def load_vocab(FLAGS):
     if FLAGS.decoder_topology in ['rnn']:
         nl_vocab_path = os.path.join(FLAGS.data_dir,
                                          "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
+        if FLAGS.canonical:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm.norm" % FLAGS.cm_vocab_size)
+        elif FLAGS.normalized:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm.norm" % FLAGS.cm_vocab_size)
+        else:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
                                         "vocab%d.cm" % FLAGS.cm_vocab_size)
     elif FLAGS.decoder_topology in ['basic_tree']:
         nl_vocab_path = os.path.join(FLAGS.data_dir,
                                          "vocab%d.nl" % FLAGS.nl_vocab_size)
-        cm_vocab_path = os.path.join(FLAGS.data_dir,
+        if FLAGS.canonical:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm.ast.norm" % FLAGS.cm_vocab_size)
+        elif FLAGS.normalized:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm.ast.norm" % FLAGS.cm_vocab_size)
+        else:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
                                         "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
     else:
         raise ValueError("Unrecognized decoder topology: {}."
@@ -382,12 +396,22 @@ def load_data(FLAGS, buckets):
         append_end_token = True
     elif FLAGS.decoder_topology in ["rnn"]:
         nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
-        cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
+        if FLAGS.canonical:
+            cm_extension = ".ids%d.canonical.cm" % FLAGS.cm_vocab_size
+        elif FLAGS.normalized:
+            cm_extension = ".ids%d.normalized.cm" % FLAGS.cm_vocab_size
+        else:
+            cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
         append_head_token = True
         append_end_token = True
     elif FLAGS.decoder_topology in ["basic_tree"]:
         nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
-        cm_extension = ".seq%d.cm" % FLAGS.cm_vocab_size
+        if FLAGS.canonical:
+            cm_extension = ".seq%d.canonical.cm" % FLAGS.cm_vocab_size
+        elif FLAGS.normalized:
+            cm_extension = ".seq%d.normalized.cm" % FLAGS.cm_vocab_size
+        else:
+            cm_extension = ".seq%d.cm" % FLAGS.cm_vocab_size
         append_head_token = False
         append_end_token = False
 
@@ -398,6 +422,8 @@ def load_data(FLAGS, buckets):
     nl_test = os.path.join(data_dir, "test") + nl_extention
     cm_test = os.path.join(data_dir, "test") + cm_extension
 
+    print(nl_train)
+    print(cm_train)
     train_set = read_data(nl_train, cm_train, buckets, FLAGS.max_train_data_size,
                           append_head_token=append_head_token,
                           append_end_token=append_end_token)
