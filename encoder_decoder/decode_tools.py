@@ -31,13 +31,12 @@ def to_readable(outputs, rev_cm_vocab):
 
 def decode(output_symbols, rev_cm_vocab, FLAGS):
     batch_outputs = []
+    batch_size = len(output_symbols)
     
     if FLAGS.decoding_algorithm == "beam_search":
         predictions = reduce(lambda x,y: x + y, output_symbols)
 
-    print(len(predictions))
-    batch_size = len(predictions)
-    for i in xrange(batch_size):
+    for i in xrange(len(predictions)):
         outputs = [int(pred[i]) for pred in predictions]
 
         # If there is an EOS symbol in outputs, cut them at that point.
@@ -64,13 +63,16 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
         else:
             tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
         batch_outputs.append((tree, cmd, search_history))
-
+    
+    print(len(batch_outputs))
+    print(batch_size)
     if FLAGS.decoding_algorithm == "beam_search":
         batch_beam_outputs = []
-        for i in xrange(FLAGS.batch_size):
+        for i in xrange(batch_size):
             beam_outputs = []
             for j in xrange(FLAGS.beam_size):
                 beam_outputs.append(batch_outputs[i * FLAGS.beam_size + j])
+                print(i * FLAGS.beam_size + j)
             batch_beam_outputs.append(beam_outputs)
         return batch_beam_outputs
     else:
@@ -124,17 +126,19 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                         data_tools.pretty_print(tree, 0)
                         print()
                 elif FLAGS.decoding_algorithm == "beam_search":
-                    top_k_pred_trees, top_k_pred_cmds, top_k_outputs = \
-                        batch_outputs[0]
+                    top_k_predictions = batch_outputs[batch_id]
                     top_k_scores = output_logits[batch_id]
+                    print(top_k_scores)
                     if verbose:
                         for j in xrange(FLAGS.top_k):
+                            top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
+                                top_k_predictions[j]
                             print("Prediction {}: {} ({}) ".format(j+1,
-                                top_k_pred_cmds[j], top_k_scores[j]))
+                                top_k_pred_cmd, top_k_scores[j]))
                             print("AST: ")
-                            data_tools.pretty_print(top_k_pred_trees[j], 0)
+                            data_tools.pretty_print(top_k_pred_tree, 0)
                     print()
-                    outputs = top_k_outputs[0]
+                    outputs = top_k_predictions[0][2]
                 else:
                     raise ValueError("Unrecognized decoding algorithm: {}."
                          .format(FLAGS.decoding_algorithm))
