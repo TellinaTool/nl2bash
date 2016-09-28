@@ -110,7 +110,7 @@ class RNNDecoder(decoder.Decoder):
                         self.attention_cell(decoder_cell, decoder_scope,
                                 input_embedding, state, attns,
                                 hidden_features, attn_vecs, num_heads, hidden)
-                    attn_masks.append(attn_mask)
+                    attn_masks.append(tf.expand_dims(attn_mask, 1))
                 else:
                     output, state = self.normal_cell(decoder_cell,
                                         decoder_scope, input_embedding, state)
@@ -119,6 +119,8 @@ class RNNDecoder(decoder.Decoder):
                 if self.beam_size <= 1:
                     outputs.append(output)
 
+        if self.use_attention:
+             attn_masks = tf.concat(1, attn_masks)
         # Beam-search output
         if feed_previous and self.beam_size > 1:
             # [self.batch_size, self.beam_size, max_len]
@@ -130,12 +132,13 @@ class RNNDecoder(decoder.Decoder):
             # [self.batch_size, self.beam_size]
             top_k_logits = tf.reshape(beam_logits, [self.batch_size, self.beam_size])
             top_k_logits = tf.split(0, self.batch_size, top_k_logits)
-            return
+            if self.use_attention:
+                return top_k_outputs, top_k_logits, state, attn_masks
+            else:
+                return top_k_outputs, top_k_logits, state
         else:
             if self.use_attention:
-                temp = [tf.expand_dims(batch_attn_mask, 1) for batch_attn_mask in
-                        attn_masks]
-                return outputs, state, tf.concat(1, temp)
+                return outputs, state, attn_masks
             else:
                 return outputs, state
 
