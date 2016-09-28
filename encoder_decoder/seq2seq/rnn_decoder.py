@@ -42,7 +42,7 @@ class RNNDecoder(decoder.Decoder):
                     attns = self.attention(encoder_state, hidden_features,
                                            attn_vecs, num_heads, hidden)
 
-            if self.beam_size > 1:
+            if self.decoding_algorithm == "beam_search":
                 # [self.batch_size * self.beam_size]
                 past_beam_logits = tf.constant(0, [self.batch_size *
                                                self.beam_size])
@@ -53,6 +53,10 @@ class RNNDecoder(decoder.Decoder):
                 parent_refs_offsets = (tf.range(self.batch_size *
                                                 self.beam_size) //
                                        self.beam_size) * self.beam_size
+            elif self.decoding_algorithm == "greedy":
+                past_output_symbols = tf.constant(data_utils.ROOT_ID,
+                                                  [self.batch_size, 1])
+                past_output_logits = tf.constant(0, [self.batch_size])
 
             for i, input in enumerate(decoder_inputs):
                 if i > 0:
@@ -61,7 +65,8 @@ class RNNDecoder(decoder.Decoder):
                         W, b = self.output_projection
                         num_classes = W.get_shape()[1].value
                         # [self.batch_size * self.beam_size, num_classes]
-                        projected_output = tf.log(tf.matmul(output, W) + b)
+                        projected_output = tf.log(
+                            tf.nn.softmax(tf.matmul(output, W) + b))
                         if self.beam_size > 1:
                             # [self.batch_size * self.beam_size, num_classes]
                             accumulated_logits = projected_output + tf.expand_dims(
@@ -95,10 +100,14 @@ class RNNDecoder(decoder.Decoder):
                             past_beam_logits = beam_logits
                             past_beam_symbols = beam_symbols
                         else:
+                            output_logits = tf.max(projected_output, 1)
+                            past_output_logits += output_logits
                             output_symbol = tf.argmax(projected_output, 1)
+                            past_output_symbols = tf.concat(1, [past_output_symbols,
+                                tf.expand_dims(output_symbol, 1)])
                             input = tf.cast(output_symbol, dtype=tf.int32)
                 else:
-                    if feed_previous and self.beam_size > 1:
+                    if self.beam_size > 1:
                         input = tf.expand_dims(input, 1)
                         input = tf.reshape(tf.tile(input, [1, self.beam_size]),
                                            [-1])
@@ -116,13 +125,12 @@ class RNNDecoder(decoder.Decoder):
                                         decoder_scope, input_embedding, state)
 
                 # record output state to compute the loss.
-                if self.beam_size <= 1:
-                    outputs.append(output)
+                outputs.append(output)
 
         if self.use_attention:
              attn_masks = tf.concat(1, attn_masks)
         # Beam-search output
-        if feed_previous and self.beam_size > 1:
+        if self.beam_size > 1:
             # [self.batch_size, self.beam_size, max_len]
             top_k_outputs = tf.reshape(beam_symbols, [self.batch_size,
                                                       self.beam_size, -1])
@@ -133,14 +141,15 @@ class RNNDecoder(decoder.Decoder):
             top_k_logits = tf.reshape(beam_logits, [self.batch_size, self.beam_size])
             top_k_logits = tf.split(0, self.batch_size, top_k_logits)
             if self.use_attention:
-                return top_k_outputs, top_k_logits, state, attn_masks
+                return top_k_outputs, top_k_logits, outputs, state, attn_masks
             else:
-                return top_k_outputs, top_k_logits, state
+                return top_k_outputs, top_k_logits, outputs, state
         else:
             if self.use_attention:
-                return outputs, state, attn_masks
+                return past_output_symbols, past_output_logits, outputs, \
+                       state, attn_masks
             else:
-                return outputs, state
+                return past_output_symbols, past_output_logits, outputs, state
 
 
     def decoder_cell(self):
