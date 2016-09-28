@@ -32,8 +32,9 @@ def to_readable(outputs, rev_cm_vocab):
 def decode(output_symbols, rev_cm_vocab, FLAGS):
     batch_outputs = []
 
+    predictions = reduce(lambda x,y: x + y, output_symbols)
     if FLAGS.decoding_algorithm == "beam_search":
-        predictions = reduce(lambda x,y: x + y, output_symbols)
+        predictions = reduce(lambda x,y: x + y, predictions)
 
     batch_size = len(output_symbols[0])
     for i in xrange(batch_size):
