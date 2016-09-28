@@ -389,6 +389,7 @@ def load_data(FLAGS, buckets):
     print("Loading data from %s" % FLAGS.data_dir)
 
     data_dir = FLAGS.data_dir
+
     if FLAGS.char:
         nl_extention = ".cids%d.nl" % FLAGS.nl_vocab_size
         cm_extension = ".cids%d.cm" % FLAGS.cm_vocab_size
@@ -415,6 +416,13 @@ def load_data(FLAGS, buckets):
         append_head_token = False
         append_end_token = False
 
+    nl_txt_train = os.path.join(data_dir, "train") + ".nl"
+    cm_txt_train = os.path.join(data_dir, "train") + ".cm"
+    nl_txt_dev = os.path.join(data_dir, "dev") + ".nl"
+    cm_txt_dev = os.path.join(data_dir, "dev") + ".cm"
+    nl_txt_test = os.path.join(data_dir, "test") + ".nl"
+    cm_txt_test = os.path.join(data_dir, "test") + ".cm"
+
     nl_train = os.path.join(data_dir, "train") + nl_extention
     cm_train = os.path.join(data_dir, "train") + cm_extension
     nl_dev = os.path.join(data_dir, "dev") + nl_extention
@@ -422,24 +430,28 @@ def load_data(FLAGS, buckets):
     nl_test = os.path.join(data_dir, "test") + nl_extention
     cm_test = os.path.join(data_dir, "test") + cm_extension
 
-    print(nl_train)
-    print(cm_train)
-    train_set = read_data(nl_train, cm_train, buckets, FLAGS.max_train_data_size,
+    train_set = read_data(nl_txt_train, cm_txt_train, nl_train, cm_train,
+                          buckets, FLAGS.max_train_data_size,
                           append_head_token=append_head_token,
                           append_end_token=append_end_token)
-    dev_set = read_data(nl_dev, cm_dev, buckets,
+    dev_set = read_data(nl_txt_dev, cm_txt_dev, nl_dev, cm_dev, buckets,
                         append_head_token=append_head_token,
                         append_end_token=append_end_token)
-    test_set = read_data(nl_test, cm_test, buckets,
+    test_set = read_data(nl_txt_test, cm_txt_test, nl_test, cm_test, buckets,
                          append_head_token=append_head_token,
                          append_end_token=append_end_token)
 
     return train_set, dev_set, test_set
 
 
-def read_data(source_path, target_path, buckets=None, max_num_examples=None,
+def read_data(source_txt_path, target_txt_path, source_path, target_path,
+              buckets=None, max_num_examples=None,
               append_head_token=False, append_end_token=False):
     """Read data from source and target files and put into buckets.
+    :param source_txt_path: path to the file containing the original source
+    strings.
+    :param target_txt_path: path to the file containing the original target
+    strings.
     :param source_path: path to the file with token-ids for the source language.
     :param target_path: path to the file with token-ids for the target language.
     :param buckets: bucket sizes for training.
@@ -451,12 +463,6 @@ def read_data(source_path, target_path, buckets=None, max_num_examples=None,
     else:
         data_set = []
 
-    if "pruned" in target_path:
-        num_splits = 3
-    else:
-        num_splits = 2
-    source_txt_path = '.'.join([source_path.rsplit('.', 2)[0], source_path.rsplit('.')[-1]])
-    target_txt_path = '.'.join([target_path.rsplit('.', num_splits)[0], target_path.rsplit('.')[-1]])
     with tf.gfile.GFile(source_txt_path, mode="r") as source_txt_file:
         with tf.gfile.GFile(target_txt_path, mode="r") as target_txt_file:
             with tf.gfile.GFile(source_path, mode="r") as source_file:
