@@ -742,7 +742,7 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
                           cm_ast_vocab_path)
         data_to_token_ids(data_set["cm_canonical_token_list"],
                           cm_canonical_ids_path, cm_norm_vocab_path)
-        data_to_token_ids(data_set["cm_pruned_seq_list"], cm_canonical_seq_path,
+        data_to_token_ids(data_set["cm_canonical_seq_list"], cm_canonical_seq_path,
                           cm_ast_norm_vocab_path)
 
     format_data(train_path, train)

@@ -97,7 +97,6 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                     batch_nls[batch_id:batch_id+1],
                     batch_cmds[batch_id:batch_id+1],
                     bucket_id=bucket_id)
-                
                 if FLAGS.decoding_algorithm == "greedy":
                     _, _, output_logits, attn_masks = model.step(
                         sess, formatted_example, bucket_id, forward_only=True)
