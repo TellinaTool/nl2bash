@@ -143,6 +143,7 @@ class RNNDecoder(decoder.Decoder):
     def decoder_cell(self):
         with tf.variable_scope("decoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(
-                self.rnn_cell, scope, self.dim, self.num_layers)
+                self.rnn_cell, scope, self.dim, self.num_layers,
+                self.decoder_input_keep, self.decoder_output_keep)
             self.encoder_cell_vars = True
         return cell, scope
