@@ -44,19 +44,19 @@ class RNNDecoder(decoder.Decoder):
 
             if self.decoding_algorithm == "beam_search":
                 # [self.batch_size * self.beam_size]
-                past_beam_logits = tf.constant(0, [self.batch_size *
-                                               self.beam_size])
+                past_beam_logits = tf.constant(0, shape=[self.batch_size *
+                                               self.beam_size], dtype=tf.float32)
                 # [batch_size*self.beam_size, num_steps]
                 past_beam_symbols = tf.constant(data_utils.ROOT_ID,
-                                                [self.batch_size *
+                                                shape=[self.batch_size *
                                                  self.beam_size, 1])
                 parent_refs_offsets = (tf.range(self.batch_size *
                                                 self.beam_size) //
                                        self.beam_size) * self.beam_size
             elif self.decoding_algorithm == "greedy":
                 past_output_symbols = tf.constant(data_utils.ROOT_ID,
-                                                  [self.batch_size, 1])
-                past_output_logits = tf.constant(0, [self.batch_size])
+                                                  shape=[self.batch_size, 1])
+                past_output_logits = tf.constant(0, shape=[self.batch_size])
 
             for i, input in enumerate(decoder_inputs):
                 if i > 0:
@@ -75,6 +75,7 @@ class RNNDecoder(decoder.Decoder):
                             accumulated_logits = tf.reshape(accumulated_logits,
                                                             [self.batch_size, -1])
 
+                            # [self.batch_size, self.beam_size]
                             beam_logits, beam_indices = \
                                 tf.nn.top_k(accumulated_logits, self.beam_size)
                             # [self.batch_size, self.beam_size]
@@ -84,12 +85,11 @@ class RNNDecoder(decoder.Decoder):
                             # [self.batch_size * self.beam_size]
                             parent_refs = tf.reshape(parent_refs, [-1]) + \
                                           parent_refs_offsets
-
+                           
                             # Append beam symbols to search histories
                             search_history = tf.gather(past_beam_symbols, parent_refs)
-                            beam_symbols = tf.concat(1, [search_history[:, 1:],
+                            beam_symbols = tf.concat(1, [search_history[:, :],
                                                          tf.reshape(symbols, [-1, 1])])
-
                             # Handle the output and the cell state shuffling
                             # [self.batch_size * self.beam_size]
                             output_symbols = tf.reshape(symbols, [-1])
@@ -97,7 +97,7 @@ class RNNDecoder(decoder.Decoder):
                             state = decoder.nest_map(
                                 lambda X: tf.gather(X, parent_refs), state)
 
-                            past_beam_logits = beam_logits
+                            past_beam_logits = tf.reshape(beam_logits, [-1])
                             past_beam_symbols = beam_symbols
                         else:
                             output_logits = tf.max(projected_output, 1)
@@ -131,14 +131,17 @@ class RNNDecoder(decoder.Decoder):
              attn_masks = tf.concat(1, attn_masks)
         # Beam-search output
         if self.decoding_algorithm == "beam_search":
+            print("past_beam_symbols.get_shape(): {}".format(past_beam_symbols.get_shape()))
             # [self.batch_size, self.beam_size, max_len]
-            top_k_outputs = tf.reshape(beam_symbols, [self.batch_size,
+            top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size,
                                                       self.beam_size, -1])
             top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
-            top_k_outputs = [tf.split(0, self.beam_size, top_k_output) for
-                             top_k_output in top_k_outputs]
+            top_k_outputs = [tf.split(0, self.beam_size, 
+                                      tf.squeeze(top_k_output, squeeze_dims=[0])) 
+                             for top_k_output in top_k_outputs]
             # [self.batch_size, self.beam_size]
-            top_k_logits = tf.reshape(beam_logits, [self.batch_size, self.beam_size])
+            top_k_logits = tf.reshape(past_beam_logits, [self.batch_size, 
+                                                         self.beam_size])
             top_k_logits = tf.split(0, self.batch_size, top_k_logits)
             if self.use_attention:
                 return top_k_outputs, top_k_logits, outputs, state, attn_masks
