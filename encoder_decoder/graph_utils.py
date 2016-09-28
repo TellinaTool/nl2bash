@@ -67,7 +67,10 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["model_dir"] = model_dir
 
     if forward_only:
-        params["batch_size"] = 1
+        if FLAGS.decoding_algorithm == "beam_search":
+            params["batch_size"] = FLAGS.beam_size
+        else:
+            params["batch_size"] = 1
         params["encoder_input_keep"] = 1.0
         params["encoder_output_keep"] = 1.0
         params["decoder_input_keep"] = 1.0

@@ -108,6 +108,8 @@ class RNNDecoder(decoder.Decoder):
                             input = tf.cast(output_symbol, dtype=tf.int32)
                 else:
                     if self.decoding_algorithm == "beam_search":
+                        if not feed_previous:
+                            raise NotImplementedError
                         input = tf.expand_dims(input, 1)
                         input = tf.reshape(tf.tile(input, [1, self.beam_size]),
                                            [-1])
@@ -131,7 +133,6 @@ class RNNDecoder(decoder.Decoder):
              attn_masks = tf.concat(1, attn_masks)
         # Beam-search output
         if self.decoding_algorithm == "beam_search":
-            print("past_beam_symbols.get_shape(): {}".format(past_beam_symbols.get_shape()))
             # [self.batch_size, self.beam_size, max_len]
             top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size,
                                                       self.beam_size, -1])
