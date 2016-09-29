@@ -45,7 +45,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                 print("English: " + nl_temp)
                 for j in xrange(len(cm_strs)):
                     print("GT Command {}: ".format(j+1) + cm_strs[j].strip())
-            num_eval = True
+            num_eval += 1
 
             top1_correct_temp, top5_correct_temp, top10_correct_temp = False, False, False
             top1_correct, top5_correct, top10_correct = False, False, False
