@@ -30,6 +30,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=use_bucket)
 
     with DBConnection() as db:
+        db.remove_model(model.model_dir)
         for nl_temp in grouped_dataset:
             nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_temp]
             nl_str = nl_strs[0]

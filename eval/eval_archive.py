@@ -51,6 +51,10 @@ class DBConnection(object):
                       (model, nl, pred_cmd, score))
         self.conn.commit()
 
+    def remove_model(self, model):
+        c = self.cursor
+        c.execute("DELETE FROM Output WHERE model = ?", (model,))
+
     def exist_score(self, model, nl, pred_cmd):
         nl = unicode(nl)
         c = self.cursor
