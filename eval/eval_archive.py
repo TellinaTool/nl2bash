@@ -36,10 +36,10 @@ class DBConnection(object):
         self.conn.commit()
 
     # --- Prediction ---
-    def add_prediction(self, model, nl, pred_cmd, score):
+    def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):
         nl = unicode(nl)
         c = self.cursor
-        if self.exist_prediction(model, nl):
+        if update_mode and self.exist_prediction(model, nl):
             c.execute("UPDATE Output SET pred_cmd = ?, score = ? WHERE model = ? AND nl = ?",
                       (pred_cmd, score, model, nl))
         else:
