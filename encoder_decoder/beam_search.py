@@ -81,8 +81,9 @@ class BeamDecoder(object):
         return BeamDecoderCellWrapper(cell, output_projection, self.num_classes, self.max_len,
                                       self.stop_token, self.beam_size)
 
-    def wrap_state(self, state):
-        dummy = BeamDecoderCellWrapper(None, self.num_classes, self.max_len, self.stop_token, self.beam_size)
+    def wrap_state(self, state, output_projection):
+        dummy = BeamDecoderCellWrapper(None, output_projection, self.num_classes, self.max_len, 
+                                       self.stop_token, self.beam_size)
         if nest.is_sequence(state):
             batch_size = nest.flatten(state).get_shape()[0].value
             dtype = nest.flatten(state)[0].dtype
@@ -162,7 +163,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             past_beam_logprobs,# [batch_size*self.beam_size]
             past_cell_state,
                 ) = state
-        print(past_cand_symbols)
+        print(past_beam_symbols)
         batch_size = past_cand_symbols.get_shape()[0].value
         if self.parent_refs_offsets is None:
             self.parent_refs_offsets = (tf.range(batch_size * self.beam_size) //
