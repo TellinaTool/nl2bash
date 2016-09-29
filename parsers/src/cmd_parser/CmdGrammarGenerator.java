@@ -15,11 +15,11 @@ public class CmdGrammarGenerator {
     /**
      * Generate g4 grammar for given commands
      * @param commands The list of commands to be processed
-     * @param targets An optional list: if target is empty, we will emit grammar for all commands in the list,
+     * @param whitelist An optional list: if target is empty, we will emit grammar for all commands in the list,
      *                otherwise we will only generate commands in the targets list.
      * @return A string representing the g4 grammar for all of these commands.
      */
-    public static String genG4(List<Cmd.Command> commands, List<String> targets) {
+    public static String genG4(List<Cmd.Command> commands, Map<String, List<Cmd.CmdOp>> cmdNonTerminals, List<String> whitelist) {
 
         // grammar declaration
         String prologue = "grammar Commands;";
@@ -30,8 +30,8 @@ public class CmdGrammarGenerator {
         Set<String> nonTerminals = new HashSet<>();
 
         for (Cmd.Command cmd : commands) {
-            if (targets != null && targets.size() != 0) {
-                if (! targets.contains(cmd.name))
+            if (whitelist != null && whitelist.size() != 0) {
+                if (! whitelist.contains(cmd.name))
                     continue;
             }
             Pair<String, List<String>> p = emitGrammar(cmd);
@@ -59,11 +59,39 @@ public class CmdGrammarGenerator {
             commandNonTerminal.add(name + " : " + aggregateOptionalOps(t));
         }
 
+        // remove the last "|"
         content = content.substring(0, content.length()-2) + ";\n\n";
 
         for (String t : commandNonTerminal) {
             content += t + ";\n";
         }
+
+        content += "\n";
+
+
+        for (Map.Entry<String, List<Cmd.CmdOp>> e : cmdNonTerminals.entrySet()) {
+            content += e.getKey() + " : ";
+            int indent = e.getKey().length() + 1;
+            boolean first = true;
+            for (Cmd.CmdOp op : e.getValue()) {
+                Pair<String, List<String>> p = emitNonTerminalGrammar(e.getKey(), op);
+                nonTerminals.addAll(p.b);
+                if (! first) {
+                    for (int i = 0; i < indent; i ++)
+                        content += " ";
+                    content += "| ";
+                } else {
+                    first = false;
+                }
+                content += p.a + "\n";
+            }
+            for (int i = 0; i < indent; i ++)
+                content += " ";
+            content += "; ";
+            content += "\n\n";
+        }
+
+        content += "\n\n";
 
         for (String t : nonTerminals.stream().sorted().collect(Collectors.toList())) {
             content += t + ";" + "\n";
@@ -84,7 +112,6 @@ public class CmdGrammarGenerator {
                 "WS : [ \\t\\n\\r] + -> skip;";
 
         return prologue + "\n\n" + content + "\n" + epilogue;
-
     }
 
     /**
@@ -126,6 +153,11 @@ public class CmdGrammarGenerator {
     public static Pair<String, List<String>> emitGrammar(Cmd.Command command) {
         Pair<String, List<String>> p = new CmdGrammarGenerator(command.name).emitGrammar(command.option, command.type);
         return new Pair<>("'"+ command.name + "' " + p.a, p.b);
+    }
+
+    public static Pair<String, List<String>> emitNonTerminalGrammar(String ntName, Cmd.CmdOp nonTerminalContent) {
+        Pair<String, List<String>> p = new CmdGrammarGenerator(ntName).emitGrammar(nonTerminalContent, nonTerminalContent.getType());
+        return new Pair<>(p.a, p.b);
     }
 
     String cmdName;
@@ -170,7 +202,6 @@ public class CmdGrammarGenerator {
 
             String argTok;
             String enhancedType =  ((Cmd.Ar) option).arg_type + "=STRING";
-
 
             if (((Cmd.Ar) option).arg_type.equals("Constant"))
                 argTok = "'" + ((Cmd.Ar) option).arg_name + "'";
@@ -244,6 +275,11 @@ public class CmdGrammarGenerator {
             else
                 return new Pair<>(intermediate, emitted);
 
+        } else if (option instanceof Cmd.NonTerminal) {
+            if (((Cmd.NonTerminal) option).isList)
+                return new Pair<>("(" + ((Cmd.NonTerminal) option).name+ ")*", new ArrayList<>());
+            else
+                return new Pair<>(((Cmd.NonTerminal) option).name, new ArrayList<>());
         }
 
         return null;
