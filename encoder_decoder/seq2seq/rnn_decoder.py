@@ -50,7 +50,7 @@ class RNNDecoder(decoder.Decoder):
                                                        data_utils.EOS_ID,
                                                        self.beam_size,
                                                        self.max_target_length)
-                state = beam_decoder.wrap_state(state)
+                state = beam_decoder.wrap_state(state, self.output_projection)
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
                 # [self.batch_size * self.beam_size]
                 past_beam_logits = tf.constant(0, shape=[self.batch_size *
