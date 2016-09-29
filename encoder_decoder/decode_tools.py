@@ -84,6 +84,8 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
         data_utils.bucket_grouped_data(grouped_dataset, model.buckets)
 
     with DBConnection() as db:
+        db.remove_model(model.model_dir)
+
         for bucket_id in xrange(len(model.buckets)):
             batch_nl_strs = bucketed_nl_strs[bucket_id]
             batch_cm_strs = bucketed_cm_strs[bucket_id]
