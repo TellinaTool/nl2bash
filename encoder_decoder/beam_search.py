@@ -236,6 +236,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     def _create_state(self, batch_size, dtype, cell_state=None):
         cand_symbols = tf.fill([batch_size, self.max_len], tf.constant(self.stop_token, dtype=tf.int32))
         cand_logprobs = tf.ones((batch_size,), dtype=tf.float32) * -float('inf')
+        cand_symbols.set_shape([batch_size, self.max_len])
 
         if cell_state is None:
             cell_state = self.cell.zero_state(batch_size*self.beam_size, dtype=dtype)
