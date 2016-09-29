@@ -18,9 +18,9 @@ from eval_archive import DBConnection
 
 
 def eval_set(model, dataset, rev_nl_vocab, verbose=True):
-    num_top1_correct_template = 0.0
-    num_top5_correct_template = 0.0
-    num_top10_correct_template = 0.0
+    num_top1_correct_temp = 0.0
+    num_top5_correct_temp = 0.0
+    num_top10_correct_temp = 0.0
     num_top1_correct = 0.0
     num_top5_correct = 0.0
     num_top10_correct = 0.0
@@ -45,47 +45,62 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                 print("English: " + nl_temp)
                 for j in xrange(len(cm_strs)):
                     print("GT Command {}: ".format(j+1) + cm_strs[j].strip())
-            num_eval += 1
+            num_eval = True
+
+            top1_correct_temp, top5_correct_temp, top10_correct_temp = False, False, False
+            top1_correct, top5_correct, top10_correct = False, False, False
             for i in xrange(len(predictions)):
                 pred_cmd, score = predictions[i]
                 tree = data_tools.bash_parser(pred_cmd)
                 # evaluation ignoring flag orders
-                if ast_based.one_template_match(gt_trees, tree):
+                if ast_based.one_temp_match(gt_trees, tree):
                     if i < 1:
-                        num_top1_correct_template += 1
-                        num_top5_correct_template += 1
-                        num_top10_correct_template += 1
+                        top1_correct_temp = True
+                        top5_correct_temp = True
+                        top10_correct_temp = True
                     elif i < 5:
-                        num_top5_correct_template += 1
-                        num_top10_correct_template += 1
+                        top5_correct_temp = True
+                        top10_correct_temp = True
                     elif i < 10:
-                        num_top10_correct_template += 1
+                        top10_correct_temp = True
                 if ast_based.one_string_match(gt_trees, tree):
                     if i < 1:
-                        num_top1_correct += 1
-                        num_top5_correct += 1
-                        num_top10_correct += 1
+                        top1_correct = True
+                        top5_correct = True
+                        top10_correct = True
                     elif i < 5:
-                        num_top5_correct += 1
-                        num_top10_correct += 1
+                        top5_correct = True
+                        top10_correct = True
                     elif i < 10:
-                        num_top10_correct += 1
+                        top10_correct = True
                 if verbose:
                     print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
                     # print("AST: ")
                     # data_tools.pretty_print(tree, 0)
                     print()
+            if top1_correct_temp:
+                num_top1_correct_temp += 1
+            if top5_correct_temp:
+                num_top5_correct_temp += 1
+            if top10_correct_temp:
+                num_top10_correct_temp += 1
+            if top1_correct:
+                num_top1_correct += 1
+            if top5_correct:
+                num_top5_correct += 1
+            if top10_correct:
+                num_top10_correct += 1
 
     #TODO: compute top-K matching scores
-    top1_temp_match_score = num_top1_correct_template/num_eval
+    top1_temp_match_score = num_top1_correct_temp/num_eval
     top1_string_match_score = num_top1_correct/num_eval
     print("%d examples evaluated" % num_eval)
     print("Percentage of Template Match = %.2f" % top1_temp_match_score)
     print("Percentage of String Match = %.2f" % top1_string_match_score)
     if len(predictions) > 1:
-        print("Top 5 Template Match Score = %.2f" % (num_top5_correct_template/num_eval))
+        print("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval))
         print("Top 5 String Match Score = %.2f" % (num_top5_correct/num_eval))
-        print("Top 10 Template Match Score = %.2f" % (num_top10_correct_template/num_eval))
+        print("Top 10 Template Match Score = %.2f" % (num_top10_correct_temp/num_eval))
         print("Top 10 String Match Score = %.2f" % (num_top10_correct/num_eval))
     print()
 
@@ -93,9 +108,9 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
 
 
 def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
-    num_top1_correct_template = 0.0
-    num_top5_correct_template = 0.0
-    num_top10_correct_template = 0.0
+    num_top1_correct_temp = 0.0
+    num_top5_correct_temp = 0.0
+    num_top10_correct_temp = 0.0
     num_top1_correct = 0.0
     num_top5_correct = 0.0
     num_top10_correct = 0.0
@@ -144,7 +159,7 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                     judgement_str = "y" if temp_judge else "n"
                     print("Correct template [y/n]: %s" % judgement_str)
                 else:
-                    temp_judge = ast_based.one_template_match(gt_trees, tree, rewrite=False)
+                    temp_judge = ast_based.one_temp_match(gt_trees, tree, rewrite=False)
                     if not temp_judge:
                         inp = raw_input("Correct template [y/n]: ")
                         if inp == "y":
@@ -157,14 +172,14 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                         print("Correct template [y/n]: y")
                 if temp_judge:
                     if i < 1:
-                        num_top1_correct_template += 1
-                        num_top5_correct_template += 1
-                        num_top10_correct_template += 1
+                        num_top1_correct_temp = True
+                        num_top5_correct_temp = True
+                        num_top10_correct_temp = True
                     elif i < 5:
-                        num_top5_correct_template += 1
-                        num_top10_correct_template += 1
+                        num_top5_correct_temp = True
+                        num_top10_correct_temp = True
                     elif i < 10:
-                        num_top10_correct_template += 1
+                        num_top10_correct_temp = True
                     o_f.write("C")
                     if str_judge is not None:
                         judgement_str = "y" if str_judge else "n"
@@ -185,14 +200,14 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                             print("Correct command [y/n]: y")
                     if str_judge:
                         if i < 1:
-                            num_top1_correct += 1
-                            num_top5_correct += 1
-                            num_top10_correct += 1
+                            num_top1_correct = True
+                            num_top5_correct = True
+                            num_top10_correct = True
                         elif i < 5:
-                            num_top5_correct += 1
-                            num_top10_correct += 1
+                            num_top5_correct = True
+                            num_top10_correct = True
                         elif i < 10:
-                            num_top10_correct += 1
+                            num_top10_correct = True
                         o_f.write("C")
                     else:
                         o_f.write("W")
@@ -202,27 +217,27 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                 o_f.write("\n")
                 o_f.write("\n")
 
-            num_evaled += 1
+            num_evaled = True
 
     print()
     print("%d examples evaluated" % num_eval)
-    print("Top 1 Template Match Score = %.2f" % (num_top1_correct_template/num_eval))
+    print("Top 1 Template Match Score = %.2f" % (num_top1_correct_temp/num_eval))
     print("Top 1 String Match Score = %.2f" % (num_top1_correct/num_eval))
     if len(predictions) > 1:
-        print("Top 5 Template Match Score = %.2f" % (num_top5_correct_template/num_eval))
+        print("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval))
         print("Top 5 String Match Score = %.2f" % (num_top5_correct/num_eval))
-        print("Top 10 Template Match Score = %.2f" % (num_top10_correct_template/num_eval))
+        print("Top 10 Template Match Score = %.2f" % (num_top10_correct_temp/num_eval))
         print("Top 10 String Match Score = %.2f" % (num_top10_correct/num_eval))
     print()
 
     o_f.write("\n")
     o_f.write("%d examples evaluated" % num_eval + "\n")
-    o_f.write("Top 1 Template Match Score = %.2f" % (num_top1_correct_template/num_eval) + "\n")
+    o_f.write("Top 1 Template Match Score = %.2f" % (num_top1_correct_temp/num_eval) + "\n")
     o_f.write("Top 1 String Match Score = %.2f" % (num_top1_correct/num_eval) + "\n")
     if len(predictions) > 1:
-        o_f.write("Top 5 Template Match Score = %.2f" % (num_top5_correct_template/num_eval) + "\n")
+        o_f.write("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval) + "\n")
         o_f.write("Top 5 String Match Score = %.2f" % (num_top5_correct/num_eval) + "\n")
-        o_f.write("Top 10 Template Match Score = %.2f" % (num_top10_correct_template/num_eval) + "\n")
+        o_f.write("Top 10 Template Match Score = %.2f" % (num_top10_correct_temp/num_eval) + "\n")
         o_f.write("Top 10 String Match Score = %.2f" % (num_top10_correct/num_eval) + "\n")
     o_f.write("\n")
 
