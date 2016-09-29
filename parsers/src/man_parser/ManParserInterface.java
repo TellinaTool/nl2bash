@@ -95,6 +95,7 @@ public class ManParserInterface {
                     commands.add(new Cmd.Command(name, parseSynopsisInstance(raw)));
                 }
             }
+
             i ++;
         }
 
