@@ -38,6 +38,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
             gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
 
             predictions = db.get_top_k_predictions(model, nl_str, k=10)
+            print(predictions)
 
             if verbose:
                 print("Example %d (%d)" % (num_eval, len(cm_strs)))
@@ -63,12 +64,12 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                         num_top5_correct += 1
                     if i < 10:
                         num_top10_correct += 1
-                num_eval += 1
-                if verbose:
-                    print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
-                    print("AST: ")
-                    data_tools.pretty_print(tree, 0)
-                    print()
+            num_eval += 1
+            if verbose:
+                print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
+                print("AST: ")
+                data_tools.pretty_print(tree, 0)
+                print()
 
     #TODO: compute top-K matching scores
     top1_temp_match_score = num_top1_correct_template/num_eval
@@ -76,6 +77,11 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
     print("%d examples evaluated" % num_eval)
     print("Percentage of Template Match = %.2f" % top1_temp_match_score)
     print("Percentage of String Match = %.2f" % top1_string_match_score)
+    if len(predictions) > 1:
+        print("Top 5 Template Match Score = %.2f" % (num_top5_correct_template/num_eval))
+        print("Top 5 String Match Score = %.2f" % (num_top5_correct/num_eval))
+        print("Top 10 Template Match Score = %.2f" % (num_top10_correct_template/num_eval))
+        print("Top 10 String Match Score = %.2f" % (num_top10_correct/num_eval))
     print()
 
     return top1_temp_match_score, top1_string_match_score
