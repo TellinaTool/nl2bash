@@ -46,7 +46,9 @@ class RNNDecoder(decoder.Decoder):
                 if not feed_previous:
                     # TODO: support beam search training
                     raise NotImplementedError
-                beam_decoder = beam_search.BeamDecoder(self.target_vocab_size, self.beam_size,
+                beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
+                                                       data_utils.EOS_ID,
+                                                       self.beam_size,
                                                        self.max_target_length)
                 state = beam_decoder.wrap_state(state)
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
