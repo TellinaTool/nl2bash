@@ -83,7 +83,7 @@ class BeamDecoder(object):
         return BeamDecoderCellWrapper(cell, output_projection, self.num_classes, self.max_len,
                                       self.start_token, self.stop_token, self.beam_size)
 
-    def wrap_state(self, state):
+    def wrap_state(self, state, output_projection):
         dummy = BeamDecoderCellWrapper(None, output_projection, self.num_classes, self.max_len,
                                        self.start_token, self.stop_token, self.beam_size)
         if nest.is_sequence(state):
