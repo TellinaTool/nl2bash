@@ -84,10 +84,10 @@ class BeamDecoder(object):
     def wrap_state(self, state):
         dummy = BeamDecoderCellWrapper(None, self.num_classes, self.max_len, self.stop_token, self.beam_size)
         if nest.is_sequence(state):
-            batch_size = tf.shape(nest.flatten(state)[0])[0]
+            batch_size = nest.flatten(state).get_shape()[0].value
             dtype = nest.flatten(state)[0].dtype
         else:
-            batch_size = tf.shape(state)[0]
+            batch_size = state.get_shape()[0].value
             dtype = state.dtype
         return dummy._create_state(batch_size, dtype, cell_state=state)
 
