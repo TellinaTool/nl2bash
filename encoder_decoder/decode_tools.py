@@ -123,14 +123,8 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                         data_tools.pretty_print(tree, 0)
                         print()
                 elif FLAGS.decoding_algorithm == "beam_search":
-<<<<<<< HEAD
-                    print(batch_outputs)
                     top_k_predictions = batch_outputs[0]
                     top_k_scores = output_logits[0]
-=======
-                    top_k_predictions = batch_outputs[batch_id]
-                    top_k_scores = output_logits[batch_id]
->>>>>>> 30fc098ead57c805d2c87be8f5b4b193f6cb1379
                     if verbose:
                         for j in xrange(FLAGS.beam_size):
                             top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
