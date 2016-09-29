@@ -190,7 +190,6 @@ def eval(construct_model_dir=True, verbose=True):
         # Create model and load parameters.
         model, _ = create_model(sess, forward_only=True,
                                 construct_model_dir=construct_model_dir)
-
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
         _, dev_set, _ = load_data()
 
