@@ -164,10 +164,14 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             past_cell_state,
                 ) = state
         batch_size = past_cand_symbols.get_shape()[0].value
+        full_size = batch_size * self.beam_size
         if self.parent_refs_offsets is None:
             self.parent_refs_offsets = (tf.range(batch_size * self.beam_size) //
                                       self.beam_size) * self.beam_size
 
+        input_symbols = past_beam_symbols[:, -1]
+        stop_mask = tf.equal(input_symbols, tf.constant(self.stop_token,
+                                                        shape=input_symbols.get_shape()))
         cell_inputs = inputs
         try:
             cell_outputs, raw_cell_state = self.cell(cell_inputs, past_cell_state, scope)
@@ -177,7 +181,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         W, b = self.output_projection
         logprobs = tf.nn.log_softmax(tf.matmul(cell_outputs, W) + b)
-
+        logprobs = tf.select(stop_mask, tf.zeros(logprobs.get_shape()), logprobs)
         logprobs_batched = tf.reshape(logprobs + tf.expand_dims(past_beam_logprobs, 1),
                                       [-1, self.beam_size * self.num_classes])
         logprobs_batched.set_shape((None, self.beam_size * self.num_classes))
@@ -190,6 +194,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # For continuing to the next symbols
         symbols = indices % self.num_classes # [batch_size, self.beam_size]
+        symbols = tf.select(tf.reshape(stop_mask, symbols.get_shape()),
+                            tf.constant(self.stop_token, shape=symbols.get_shape()), symbols)
         parent_refs = tf.reshape(indices // self.num_classes, [-1]) # [batch_size*self.beam_size]
 
         parent_refs = parent_refs + self.parent_refs_offsets
@@ -205,7 +211,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         )
 
         # Handling for getting a done token
-        logprobs_done = tf.reshape(logprobs_batched, [-1, self.beam_size, self.num_classes])[:,:,self.stop_token]
+        logprobs_done = tf.reshape(logprobs_batched,
+                                   [-1, self.beam_size, self.num_classes])[:,:,self.stop_token]
         done_parent_refs = tf.to_int32(tf.argmax(logprobs_done, 1))
         done_parent_refs_offsets = tf.range(batch_size) * self.beam_size
         done_symbols = tf.gather(past_beam_symbols, done_parent_refs + done_parent_refs_offsets)
