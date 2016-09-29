@@ -54,12 +54,12 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                     if i < 1:
                         num_top1_correct_template += 1
                         num_top5_correct_template += 1
-                        num_top5_correct_template += 1
+                        num_top10_correct_template += 1
                     elif i < 5:
                         num_top5_correct_template += 1
-                        num_top5_correct_template += 1
+                        num_top10_correct_template += 1
                     elif i < 10:
-                        num_top5_correct_template += 1
+                        num_top10_correct_template += 1
                 if ast_based.one_string_match(gt_trees, tree):
                     if i < 1:
                         num_top1_correct += 1
