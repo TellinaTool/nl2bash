@@ -102,6 +102,7 @@ public interface SynopParserConstants {
     "<PART_LETTER>",
     "\"<\"",
     "\">\"",
+    "\":\"",
     "\"...\"",
     "\"--\"",
     "\"=\"",

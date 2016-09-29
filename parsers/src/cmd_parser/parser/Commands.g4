@@ -42,8 +42,8 @@ command : find1
 	    | sh1
 	    ;
 
-find1 : 'find' ((find_op0) | (find_op1) | (find_op2) | (find_op3) | (find_op4) | (find_op5) | (find_op6))* (File=STRING)+ ((find_op7) | (find_op8) | (find_op9) | (find_op10) | (find_op11) | (find_op12) | (find_op13) | (find_op14) | (find_op15) | (find_op16) | (find_op17) | (find_op18) | (find_op19) | (find_op3) | (find_op3) | (find_op20) | (find_op21) | (find_op4) | (find_op22) | (find_op20) | (find_op23) | (find_op22) | (find_op24) | (find_op25) | (find_op26) | (find_op27) | (find_op29) | (find_op30) | (find_op31) | (find_op32) | (find_op33) | (find_op34) | (find_op35) | (find_op36) | (find_op37) | (find_op38) | (find_op39) | (find_op40) | (find_op40) | (find_op41) | (find_op42) | (find_op43) | (find_op44) | (find_op45) | (find_op46) | (find_op47) | (find_op48) | (find_op49) | (find_op50) | (find_op51) | (find_op52) | (find_op53) | (find_op54) | (find_op55) | (find_op56) | (find_op57) | (find_op58) | (find_op59) | (find_op60) | (find_op61) | (find_op62) | (find_op63) | (find_op64) | (find_op65) | (find_op66) | (find_op67) | (find_op68) | (find_op69) | (find_op70) | (find_op71) | (find_op72) | (find_op73) | (find_op74) | (find_op75) | (find_op76) | (find_op77) | (find_op78) | (find_op79) | (find_op80) | (find_op81) | (find_op82) | (find_op83) | (find_op84) | (find_op85))*;
-find2 : 'find' ((find_op0) | (find_op1) | (find_op2) | (find_op3) | (find_op4) | (find_op5))* '-f' File=STRING ((find_op86) | (find_op7) | (find_op8) | (find_op9) | (find_op10) | (find_op11) | (find_op12) | (find_op13) | (find_op14) | (find_op15) | (find_op16) | (find_op17) | (find_op18) | (find_op19) | (find_op3) | (find_op3) | (find_op20) | (find_op21) | (find_op4) | (find_op22) | (find_op20) | (find_op23) | (find_op22) | (find_op24) | (find_op25) | (find_op26) | (find_op27) | (find_op29) | (find_op30) | (find_op31) | (find_op32) | (find_op33) | (find_op34) | (find_op35) | (find_op36) | (find_op37) | (find_op38) | (find_op39) | (find_op40) | (find_op40) | (find_op41) | (find_op42) | (find_op43) | (find_op44) | (find_op45) | (find_op46) | (find_op47) | (find_op48) | (find_op49) | (find_op50) | (find_op51) | (find_op52) | (find_op53) | (find_op54) | (find_op55) | (find_op56) | (find_op57) | (find_op58) | (find_op59) | (find_op60) | (find_op61) | (find_op62) | (find_op63) | (find_op64) | (find_op65) | (find_op66) | (find_op67) | (find_op68) | (find_op69) | (find_op70) | (find_op71) | (find_op72) | (find_op73) | (find_op74) | (find_op75) | (find_op76) | (find_op77) | (find_op78) | (find_op79) | (find_op80) | (find_op81) | (find_op82) | (find_op83) | (find_op84) | (find_op85))*;
+find1 : 'find' ((find_op0) | (find_op1) | (find_op2) | (find_op3) | (find_op4) | (find_op5) | (find_op6))* (File=STRING)+ (find_expression)*;
+find2 : 'find' ((find_op0) | (find_op1) | (find_op2) | (find_op3) | (find_op4) | (find_op5))* '-f' File=STRING ((find_op7))* (find_expression)*;
 mv1 : 'mv' ((mv_op0) | (mv_op1))* File=STRING File=STRING;
 mv2 : 'mv' ((mv_op0) | (mv_op1))* (File=STRING)+ File=STRING;
 sort1 : 'sort' ((sort_op0) | (sort_op1) | (sort_op2) | (sort_op3) | (sort_op4) | (sort_op5) | (sort_op6) | (sort_op7) | (sort_op8) | (sort_op9) | (sort_op10) | (sort_op11) | (sort_op12) | (sort_op13) | (sort_op14) | (sort_op15) | (sort_op16) | (sort_op17) | (sort_op18))*;
@@ -82,7 +82,93 @@ echo1 : 'echo' ((echo_op0) | (echo_op1))*;
 diff1 : 'diff' ((diff_op0))* (File=STRING)+;
 comm1 : 'comm' ((comm_op0) | (comm_op1) | (comm_op2) | (comm_op3))* File=STRING File=STRING;
 sh1 : 'sh' ((sh_op0) | (sh_op1))*;
-awk_op0 : '-F' Pattern=STRING ;
+
+find_expression : '-true'
+                | '-false'
+                | find_primitive_exp
+                | '(' find_expression ')'
+                | '-not' find_expression
+                | find_expression '-and' find_expression
+                | find_expression '-or' find_expression
+                | '!' find_expression
+                ;
+
+find_primitive_exp : '-not' String=STRING
+                   | '-Bmin' Number=STRING
+                   | '-Bnewer' File=STRING
+                   | '-Btime' Time=STRING
+                   | '-acl'
+                   | '-amin' Number=STRING
+                   | '-anewer' File=STRING
+                   | '-a' '-t' '-i' '-m' '-e'  Time=STRING
+                   | '-cmin' Number=STRING
+                   | '-cnewer' File=STRING
+                   | '-ctime' Number=STRING
+                   | '-d'
+                   | '-daystart'
+                   | '-delete'
+                   | '-depth'
+                   | '-depth' Number=STRING
+                   | '-empty'
+                   | '-exec' String=STRING (find_primitive_exp_op0)? ';'
+                   | '-exec' String=STRING (find_primitive_exp_op0)? ('{}')+
+                   | '-execdir' String=STRING (find_primitive_exp_op0)? ';'
+                   | '-execdir' String=STRING (find_primitive_exp_op0)?
+                   | '-flags' '-'String=STRING
+                   | '-flags' '+'String=STRING
+                   | '-flags' String=STRING
+                   | '-fstype' String=STRING
+                   | '-gid' String=STRING
+                   | '-group' String=STRING
+                   | '-ignore_readdir_race'
+                   | '-ilname' String=STRING
+                   | '-ilname' String=STRING
+                   | '-iname' String=STRING
+                   | '-inum' Number=STRING
+                   | '-ipath' String=STRING
+                   | '-iregex' String=STRING
+                   | '-iwholename' String=STRING
+                   | '-links' Number=STRING
+                   | '-lname' String=STRING
+                   | '-ls'
+                   | '-maxdepth' Number=STRING
+                   | '-mindepth' Number=STRING
+                   | '-mmin' Number=STRING
+                   | '-mnewer' File=STRING
+                   | '-mount'
+                   | '-mtime' Time=STRING
+                   | '-name' String=STRING
+                   | '-newer' File=STRING
+                   | '-newerXY' File=STRING
+                   | '-nogroup'
+                   | '-noignore_readdir_race'
+                   | '-noleaf'
+                   | '-nouser'
+                   | '-ok' String=STRING (find_primitive_exp_op0)? ';'
+                   | '-okdir' String=STRING (find_primitive_exp_op0)? ';'
+                   | '-path' String=STRING
+                   | '-perm' Permission=STRING
+                   | '-perm' '-'Permission=STRING
+                   | '-perm' '+'Permission=STRING
+                   | '-print'
+                   | '-print0'
+                   | '-printf' String=STRING
+                   | '-prune'
+                   | '-regex' String=STRING
+                   | '-samefile' String=STRING
+                   | '-size' Size=STRING
+                   | '-type' String=STRING
+                   | '-xtype' String=STRING
+                   | '-uid' String=STRING
+                   | '-user' String=STRING
+                   | '-wholename' String=STRING
+                   | '-xattr'
+                   | '-xattrname' String=STRING
+                   ;
+
+
+
+awk_op0 : '-F' String=STRING ;
 awk_op1 : '-v' String=STRING ;
 awk_op2 : (String=STRING)+;
 awk_op3 : '-f' File=STRING ;
@@ -126,7 +212,7 @@ cp_op3 : '-a';
 cp_op4 : '-p';
 cp_op5 : '-v';
 cp_op6 : '-X';
-diff_op0 : (String=STRING)+;
+diff_op0 : (Unknown=STRING)+;
 du_op0 : '-H' | '-L' | '-P';
 du_op1 : '-d' Number=STRING ;
 du_op2 : '-a' | '-s' | du_op1;
@@ -164,13 +250,13 @@ egrep_op3 : '-d';
 egrep_op30 : '-A' Number=STRING ;
 egrep_op31 : '-B' Number=STRING ;
 egrep_op32 : '-C' Number=STRING ;
-egrep_op33 : '-e' Pattern=STRING ;
+egrep_op33 : '-e' String=STRING ;
 egrep_op34 : '-f' File=STRING ;
 egrep_op35 : '--context=' (Number=STRING)*;
 egrep_op36 : '--label';
 egrep_op37 : '--line-buffered';
 egrep_op38 : '--null';
-egrep_op39 : Pattern=STRING;
+egrep_op39 : String=STRING;
 egrep_op4 : '-D';
 egrep_op40 : (File=STRING)+;
 egrep_op5 : '-E';
@@ -180,91 +266,13 @@ egrep_op8 : '-H';
 egrep_op9 : '-h';
 find_op0 : '-H' | '-L' | '-P';
 find_op1 : '-E';
-find_op10 : '-Bmin' Number=STRING ;
-find_op11 : '-Bnewer' File=STRING ;
-find_op12 : '-Btime' Time=STRING ;
-find_op13 : '-acl';
-find_op14 : '-amin' Number=STRING ;
-find_op15 : '-anewer' File=STRING ;
-find_op16 : '-a' '-t' '-i' '-m' '-e'  Time=STRING ;
-find_op17 : '-cmin' Number=STRING ;
-find_op18 : '-cnewer' File=STRING ;
-find_op19 : '-ctime' Number=STRING ;
 find_op2 : '-X';
-find_op20 : '-a';
-find_op21 : '-y';
-find_op22 : '-t';
-find_op23 : '-r';
-find_op24 : '-delete';
-find_op25 : '-depth';
-find_op26 : '-depth' Number=STRING ;
-find_op27 : '-empty';
-find_op28 : (Argument=STRING)+;
-find_op29 : '-exec' Utility=STRING (find_op28)? ';' ;
 find_op3 : '-d';
-find_op30 : '-exec' Utility=STRING (find_op28)? ('{}')+ ;
-find_op31 : '-execdir' Utility=STRING (find_op28)? ';' ;
-find_op32 : '-execdir' Utility=STRING (find_op28)? ;
-find_op33 : '-flags' '-'String=STRING ;
-find_op34 : '-flags' '+'String=STRING ;
-find_op35 : '-flags' String=STRING ;
-find_op36 : '-fstype' String=STRING ;
-find_op37 : '-gid' String=STRING ;
-find_op38 : '-group' String=STRING ;
-find_op39 : '-ignore_readdir_race';
 find_op4 : '-s';
-find_op40 : '-ilname' Pattern=STRING ;
-find_op41 : '-iname' Pattern=STRING ;
-find_op42 : '-inum' Number=STRING ;
-find_op43 : '-ipath' Pattern=STRING ;
-find_op44 : '-iregex' Pattern=STRING ;
-find_op45 : '-iwholename' Pattern=STRING ;
-find_op46 : '-links' Number=STRING ;
-find_op47 : '-lname' Pattern=STRING ;
-find_op48 : '-ls';
-find_op49 : '-maxdepth' Number=STRING ;
 find_op5 : '-x';
-find_op50 : '-mindepth' Number=STRING ;
-find_op51 : '-mmin' Number=STRING ;
-find_op52 : '-mnewer' File=STRING ;
-find_op53 : '-mount';
-find_op54 : '-mtime' Time=STRING ;
-find_op55 : '-name' Pattern=STRING ;
-find_op56 : '-newer' File=STRING ;
-find_op57 : '-newerXY' File=STRING ;
-find_op58 : '-nogroup';
-find_op59 : '-noignore_readdir_race';
 find_op6 : '-f' File=STRING ;
-find_op60 : '-noleaf';
-find_op61 : '-nouser';
-find_op62 : '-ok' Utility=STRING (find_op28)? ';' ;
-find_op63 : '-okdir' Utility=STRING (find_op28)? ';' ;
-find_op64 : '-path' Pattern=STRING ;
-find_op65 : '-perm' Permission=STRING ;
-find_op66 : '-perm' '-'Permission=STRING ;
-find_op67 : '-perm' '+'Permission=STRING ;
-find_op68 : '-print';
-find_op69 : '-print0';
-find_op7 : '-true';
-find_op70 : '-printf' Pattern=STRING ;
-find_op71 : '-prune';
-find_op72 : '-regex' Pattern=STRING ;
-find_op73 : '-samefile' String=STRING ;
-find_op74 : '-size' Size=STRING ;
-find_op75 : '-type' String=STRING ;
-find_op76 : '-x' '-t' '-y' '-p' '-e'  String=STRING ;
-find_op77 : '-uid' String=STRING ;
-find_op78 : '-user' String=STRING ;
-find_op79 : '-wholename' Pattern=STRING ;
-find_op8 : '-false';
-find_op80 : '-xattr';
-find_op81 : '-xattrname' String=STRING ;
-find_op82 : '-and';
-find_op83 : '-or';
-find_op84 : '-not';
-find_op85 : '!';
-find_op86 : (File=STRING)+;
-find_op9 : '-not' String=STRING ;
+find_op7 : (File=STRING)+;
+find_primitive_exp_op0 : (String=STRING)+;
 grep_op0 : '-a';
 grep_op1 : '-b';
 grep_op10 : '-I';
@@ -292,13 +300,13 @@ grep_op3 : '-d';
 grep_op30 : '-A' Number=STRING ;
 grep_op31 : '-B' Number=STRING ;
 grep_op32 : '-C' Number=STRING ;
-grep_op33 : '-e' Pattern=STRING ;
+grep_op33 : '-e' String=STRING ;
 grep_op34 : '-f' File=STRING ;
 grep_op35 : '--context=' (Number=STRING)*;
 grep_op36 : '--label';
 grep_op37 : '--line-buffered';
 grep_op38 : '--null';
-grep_op39 : Pattern=STRING;
+grep_op39 : String=STRING;
 grep_op4 : '-D';
 grep_op40 : (File=STRING)+;
 grep_op5 : '-E';
@@ -407,8 +415,8 @@ tar_op10 : '-j';
 tar_op11 : '-L';
 tar_op12 : '-l';
 tar_op13 : '-n';
-tar_op14 : '--newer' Time=STRING ;
-tar_op15 : '--newer-mtime' Time=STRING ;
+tar_op14 : '--newer' Date=STRING ;
+tar_op15 : '--newer-mtime' Date=STRING ;
 tar_op16 : '--newer-than' File=STRING ;
 tar_op17 : '--newer-mtime-than' File=STRING ;
 tar_op18 : '--nodump';
@@ -417,14 +425,14 @@ tar_op2 : '--check-links';
 tar_op20 : '--one-file-system';
 tar_op21 : '--options' String=STRING ;
 tar_op22 : '-P';
-tar_op23 : '-s' Pattern=STRING ;
+tar_op23 : '-s' String=STRING ;
 tar_op24 : '-T' File=STRING ;
 tar_op25 : '--use-compress-program' String=STRING ;
 tar_op26 : '-v';
 tar_op27 : '--version';
 tar_op28 : '-w';
 tar_op29 : '-X' File=STRING ;
-tar_op3 : '--exclude' Pattern=STRING ;
+tar_op3 : '--exclude' String=STRING ;
 tar_op30 : '-y';
 tar_op31 : '-z';
 tar_op32 : '-Z';
@@ -434,8 +442,8 @@ tar_op35 : tar_op33 | tar_op34;
 tar_op36 : '--format' String=STRING ;
 tar_op37 : '-O';
 tar_op38 : '-q';
-tar_op39 : (Pattern=STRING)+;
-tar_op4 : '--format' String=STRING ;
+tar_op39 : (String=STRING)+;
+tar_op4 : '--format' TarFormat=STRING ;
 tar_op40 : '--chroot';
 tar_op41 : '-k';
 tar_op42 : '--keep-newer-files';
@@ -449,7 +457,7 @@ tar_op5 : '-f' File=STRING ;
 tar_op6 : '-H';
 tar_op7 : '-h';
 tar_op8 : '-I';
-tar_op9 : '--include' Pattern=STRING ;
+tar_op9 : '--include' String=STRING ;
 unzip_op0 : '-Z';
 unzip_op1 : '-c';
 unzip_op10 : '-a';
@@ -487,8 +495,8 @@ xargs_op1 : '-o';
 xargs_op10 : '-n' Number=STRING (xargs_op9)? ;
 xargs_op11 : '-P' Number=STRING ;
 xargs_op12 : '-s' Size=STRING ;
-xargs_op13 : (Argument=STRING)+;
-xargs_op14 : Utility=STRING (xargs_op13)? ;
+xargs_op13 : (String=STRING)+;
+xargs_op14 : String=STRING (xargs_op13)? ;
 xargs_op2 : '-p';
 xargs_op3 : '-t';
 xargs_op4 : '-E' String=STRING ;
@@ -527,8 +535,8 @@ zip_op32 : '-$';
 zip_op33 : '--longoption';
 zip_op34 : '-b' File=STRING ;
 zip_op35 : '-n' String=STRING ;
-zip_op36 : '-t' Time=STRING ;
-zip_op37 : '-t' '-t'  Time=STRING ;
+zip_op36 : '-t' Date=STRING ;
+zip_op37 : '-t' '-t'  Date=STRING ;
 zip_op38 : (File=STRING)+;
 zip_op39 : File=STRING (zip_op38)? ;
 zip_op4 : '-d';

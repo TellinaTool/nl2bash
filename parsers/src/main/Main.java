@@ -11,22 +11,22 @@ import java.util.List;
 
 public class Main {
 
-    public static void main(String[] args) {
-        //ManParserInterface.parseSynopsisBNF();
+    public static void main(String[] args) throws IOException, ParseException {
+        //ManParserInterface.parseGrammarFile(Config.SynopsisGrammar);
+        //genG4FromSynopsis();
         testParseCmd();
-        //testParseCmd();
     }
 
     public static void genG4FromSynopsis() {
-        List<Cmd.Command> commands = null;
+        ManParserInterface.GrammarFile gf = null;
         try {
-            commands = ManParserInterface.parsePrimitiveGrammar(Config.SynopsisGrammar);
+            gf = ManParserInterface.parseGrammarFile(Config.SynopsisGrammar);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        System.out.println(CmdGrammarGenerator.genG4(commands, null));
+        System.out.println(CmdGrammarGenerator.genG4(gf.commandsGrammar, gf.nonTerminals, null));
     }
 
     public static void testParseCmd() {
