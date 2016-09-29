@@ -14,6 +14,7 @@ public class Main {
     public static void main(String[] args) {
         //ManParserInterface.parseSynopsisBNF();
         testParseCmd();
+        //testParseCmd();
     }
 
     public static void genG4FromSynopsis() {
@@ -31,7 +32,7 @@ public class Main {
     public static void testParseCmd() {
         String[] cmds = {
                 "mv -f -v ./src/file.text ./src/file.text2 ../../dst",
-                "find . -name '*~' -print 0",
+                "find . -name '*~' -print0",
                 "find . -exec util {} -name \"*java*\" ",
                 "find xargstest/ -name 'file??'"
         };
