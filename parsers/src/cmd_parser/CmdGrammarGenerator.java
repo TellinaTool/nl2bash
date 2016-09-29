@@ -1,17 +1,27 @@
 package cmd_parser;
 
 import man_parser.cmd.Cmd;
+import org.antlr.v4.runtime.misc.IntegerList;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by clwang on 9/27/16.
  */
 public class CmdGrammarGenerator {
 
+    /**
+     * Generate g4 grammar for given commands
+     * @param commands The list of commands to be processed
+     * @param targets An optional list: if target is empty, we will emit grammar for all commands in the list,
+     *                otherwise we will only generate commands in the targets list.
+     * @return A string representing the g4 grammar for all of these commands.
+     */
     public static String genG4(List<Cmd.Command> commands, List<String> targets) {
 
+        // grammar declaration
         String prologue = "grammar Commands;";
 
         String content = "";
@@ -29,23 +39,92 @@ public class CmdGrammarGenerator {
             nonTerminals.addAll(p.b);
         }
 
-        content += "command : " + commandDef.get(0) + "\n";
-        for (int i = 1; i < commandDef.size(); i ++) {
-            content += "\t    | " + commandDef.get(i) + "\n";
+        content += "command : ";
+
+        // generating command non-terminals
+        List<String> commandNonTerminal = new ArrayList<>();
+
+        // use the nameAssigner to avoid duplicate names
+        Map<String, Integer> nameAssigner = new HashMap<>();
+        for (String t : commandDef) {
+            String hd = t.split("\\s+")[0];
+            String name = hd.substring(1, hd.length()-1);
+            if (! nameAssigner.containsKey(name)) {
+                nameAssigner.put(name, 0);
+            }
+            nameAssigner.put(name, nameAssigner.get(name) + 1);
+            name = name + nameAssigner.get(name);
+            content += name + "\n\t    | ";
+
+            commandNonTerminal.add(name + " : " + aggregateOptionalOps(t));
         }
-        content += "\t    ;" + "\n\n";
-        for (String t : nonTerminals) {
+
+        content = content.substring(0, content.length()-2) + ";\n\n";
+
+        for (String t : commandNonTerminal) {
+            content += t + ";\n";
+        }
+
+        for (String t : nonTerminals.stream().sorted().collect(Collectors.toList())) {
             content += t + ";" + "\n";
         }
 
-        String epilogue = "/*File : STRING; \nPermission: STRING; \nSize: STRING; \nTime: STRING; \nArgument: STRING; \nUtility: STRING; \nNumber: STRING; \nPattern: STRING; \nString : STRING;*/ \n//STRING : ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '.' | '_' | '/' ) + ; \nSTRING : ( ~' ' ) + ; \nWS : [ \\t\\n\\r] + -> skip;";
+        // definition of terminals
+        String epilogue = "//File : STRING; \n" +
+                "//Permission: STRING; \n" +
+                "//Size: STRING; \n" +
+                "//Time: STRING; \n" +
+                "//Argument: STRING; \n" +
+                "//Utility: STRING; \n" +
+                "//Number: STRING; \n" +
+                "//Pattern: STRING; \n" +
+                "//String : STRING; \n" +
+                "//STRING : ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '.' | '_' | '/' ) + ; \n" +
+                "STRING : ( ~' ' ) + ; \n" +
+                "WS : [ \\t\\n\\r] + -> skip;";
 
         return prologue + "\n\n" + content + "\n" + epilogue;
 
     }
 
+    /**
+     * Given a string representing command top-level grammar,
+     * aggregate optional options like "(op1)? (op2)" ==> (op1 | op2)*
+     * @param cmdDef the string representation of top-level command BNF
+     * @return transformed grammar string
+     */
+    private static String aggregateOptionalOps(String cmdDef) {
+        String[] segments = cmdDef.split("\\s+");
+
+        List<String> result = new ArrayList<>();
+        int i = 0;
+
+        while (i < segments.length) {
+
+            List<String> aggrStrings = new ArrayList<>();
+            while (i < segments.length && segments[i].matches("\\(.+\\)\\?")) {
+                aggrStrings.add(segments[i]);
+                i ++;
+            }
+
+            if (aggrStrings.isEmpty()) {
+                result.add(segments[i]);
+                i ++;
+            } else {
+                String str = "("
+                        + aggrStrings.stream()
+                            .map(x -> "(" + x.substring(1, x.length()-2) + ")")
+                            .reduce((x,y)-> x + " | " + y).get()
+                        + ")*";
+                result.add(str);
+            }
+        }
+
+        return result.stream().reduce((x, y) -> (x + " " + y)).get();
+    }
+
     public static Pair<String, List<String>> emitGrammar(Cmd.Command command) {
-        Pair<String, List<String>> p = new CmdGrammarGenerator(command.name).emitGrammar(command.option);
+        Pair<String, List<String>> p = new CmdGrammarGenerator(command.name).emitGrammar(command.option, command.type);
         return new Pair<>("'"+ command.name + "' " + p.a, p.b);
     }
 
@@ -74,16 +153,17 @@ public class CmdGrammarGenerator {
         return nonTerminalDict.get(new Pair<>(command, nonTerminal));
     }
 
-    private Pair<String, List<String>> emitGrammar(Cmd.CmdOp option) {
+    private Pair<String, List<String>> emitGrammar(Cmd.CmdOp option, String lastLevelType) {
 
         if (option instanceof Cmd.Compound) {
             String result = "";
             List<String> emitted = new ArrayList<>();
             for (Cmd.CmdOp op : ((Cmd.Compound) option).commands) {
-                Pair<String, List<String>> grammarString = emitGrammar(op);
+                Pair<String, List<String>> grammarString = emitGrammar(op, ((Cmd.Compound) option).type);
                 emitted.addAll(grammarString.b);
                 result += grammarString.a + " ";
             }
+
             return new Pair<>(result, emitted);
 
         } else if (option instanceof Cmd.Ar) {
@@ -117,7 +197,7 @@ public class CmdGrammarGenerator {
             List<String> emitted = new ArrayList<>();
             boolean first = true;
             for (Cmd.CmdOp op : ((Cmd.Exclusive) option).commands) {
-                Pair<String, List<String>> grammarString = emitGrammar(op);
+                Pair<String, List<String>> grammarString = emitGrammar(op, ((Cmd.Exclusive) option).type);
                 emitted.addAll(grammarString.b);
                 if (! first) {
                     result += " | " + grammarString.a;
@@ -140,7 +220,7 @@ public class CmdGrammarGenerator {
                 return new Pair<>(flagPart + "'", new ArrayList<>());
             } else {
 
-                Pair<String, List<String>> arp = emitGrammar(((Cmd.Flv2) option).argument);
+                Pair<String, List<String>> arp = emitGrammar(((Cmd.Flv2) option).argument, ((Cmd.Flv2) option).type);
 
                 if (! ((Cmd.Flv2) option).arg_optional) {
                     return new Pair<>(flagPart + "=' " + arp.a, new ArrayList<>());
@@ -152,14 +232,18 @@ public class CmdGrammarGenerator {
         } else if (option instanceof Cmd.Opt) {
             List<String> emitted  = new ArrayList<>();
 
-            Pair<String, List<String>> p = emitGrammar(((Cmd.Opt) option).cmd);
+            Pair<String, List<String>> p = emitGrammar(((Cmd.Opt) option).cmd, ((Cmd.Opt) option).type);
             emitted.addAll(p.b);
 
             String intermediate = getNoneTerminalName(this.cmdName, ((Cmd.Opt) option).cmd.toString());
 
             emitted.add(intermediate + " : " + p.a);
 
-            return new Pair<>("(" + intermediate + ")?", emitted);
+            if (!lastLevelType.equals("exclusive_options"))
+                return new Pair<>("(" + intermediate + ")?", emitted);
+            else
+                return new Pair<>(intermediate, emitted);
+
         }
 
         return null;
