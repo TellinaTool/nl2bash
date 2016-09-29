@@ -52,6 +52,7 @@ class DBConnection(object):
         self.conn.commit()
 
     def remove_model(self, model):
+        print("removing record of {} from database".format(model))
         c = self.cursor
         c.execute("DELETE FROM Output WHERE model = ?", (model,))
 
