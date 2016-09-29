@@ -44,7 +44,7 @@ class DBConnection(object):
                       (pred_cmd, score, model, nl))
         else:
             c.execute("INSERT INTO Output (model, nl, pred_cmd, score) VALUES (?, ?, ?, ?)",
-                      (model, nl, pred_cmd, 0.0))
+                      (model, nl, pred_cmd, score))
         self.conn.commit()
 
     def exist_prediction(self, model, nl):
