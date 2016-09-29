@@ -50,8 +50,6 @@ class RNNDecoder(decoder.Decoder):
                                                        self.max_target_length)
                 state = beam_decoder.wrap_state(state)
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
-                if self.use_attention:
-                    attns = beam_decoder.wrap_state(attns)
                 # [self.batch_size * self.beam_size]
                 past_beam_logits = tf.constant(0, shape=[self.batch_size *
                                                self.beam_size], dtype=tf.float32)
@@ -67,6 +65,8 @@ class RNNDecoder(decoder.Decoder):
             for i, input in enumerate(decoder_inputs):
                 if self.decoding_algorithm == "beam_search":
                     input = beam_decoder.wrap_input(input)
+                    if self.use_attention:
+                        attns = beam_decoder.wrap_input(attns)
 
                 if i > 0:
                     scope.reuse_variables()
