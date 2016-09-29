@@ -29,15 +29,15 @@ def to_readable(outputs, rev_cm_vocab):
     return tree, cmd, search_history
 
 
-def decode(predictions, rev_cm_vocab, FLAGS):
+def decode(output_symbols, rev_cm_vocab, FLAGS):
     batch_outputs = []
-
+    batch_size = len(output_symbols)
+    
     if FLAGS.decoding_algorithm == "beam_search":
-        predictions = reduce(lambda x,y: x + y, predictions) 
+        predictions = reduce(lambda x,y: x + y, output_symbols)
 
-    batch_size = len(predictions[0])
-    for i in xrange(batch_size):
-        outputs = [int(pred[i]) for pred in predictions]
+    for i in xrange(len(predictions)):
+        outputs = [int(pred) for pred in predictions[i]]
 
         # If there is an EOS symbol in outputs, cut them at that point.
         if data_utils.EOS_ID in outputs:
@@ -66,10 +66,11 @@ def decode(predictions, rev_cm_vocab, FLAGS):
 
     if FLAGS.decoding_algorithm == "beam_search":
         batch_beam_outputs = []
-        for i in xrange(FLAGS.batch_size):
+        for i in xrange(batch_size):
             beam_outputs = []
             for j in xrange(FLAGS.beam_size):
                 beam_outputs.append(batch_outputs[i * FLAGS.beam_size + j])
+                print(i * FLAGS.beam_size + j)
             batch_beam_outputs.append(beam_outputs)
         return batch_beam_outputs
     else:
@@ -84,6 +85,8 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
         data_utils.bucket_grouped_data(grouped_dataset, model.buckets)
 
     with DBConnection() as db:
+        db.remove_model(model.model_dir)
+
         for bucket_id in xrange(len(model.buckets)):
             batch_nl_strs = bucketed_nl_strs[bucket_id]
             batch_cm_strs = bucketed_cm_strs[bucket_id]
@@ -97,21 +100,10 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                     batch_nls[batch_id:batch_id+1],
                     batch_cmds[batch_id:batch_id+1],
                     bucket_id=bucket_id)
-                
-                if FLAGS.decoding_algorithm == "greedy":
-                    _, _, output_logits, attn_masks = model.step(
-                        sess, formatted_example, bucket_id, forward_only=True)
-                    # This is a greedy decoder - outputs are just argmaxes of output_logits.
-                    batch_scores = reduce(lambda x, y: np.add(x, y),
-                            [np.max(np.log(logit), axis=1) for logit in output_logits])
-                    predictions = [np.argmax(logit, axis=1) for logit in output_logits]
-                elif FLAGS.decoding_algorithm == "beam_search":
-                    _, _, predictions, batch_scores, attns_masks = model.step(
-                        sess, formatted_example, bucket_id, forward_only=True)
-                else:
-                    raise ValueError("Unrecognized decoding_algorithm: {}".format(FLAGS.decoding_algorithm))
+                _, output_symbols, output_logits, attn_masks = \
+                    model.step(sess, formatted_example, bucket_id, forward_only=True)
                     
-                batch_outputs = decode(predictions, rev_cm_vocab, FLAGS)
+                batch_outputs = decode(output_symbols, rev_cm_vocab, FLAGS)
 
                 nl_str = batch_nl_strs[batch_id]
                 cm_strs = batch_cm_strs[batch_id]
@@ -125,26 +117,29 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                     for j in xrange(len(cm_strs)):
                         print("GT Command {}: {}".format(j+1, cm_strs[j].strip()))
                 if FLAGS.decoding_algorithm == "greedy":
-                    tree, pred_cmd, outputs = batch_outputs[0]
-                    score = batch_scores[0]
+                    tree, pred_cmd, outputs = batch_outputs[batch_id]
+                    score = output_logits[batch_id]
                     db.add_prediction(model.model_dir, nl_str, pred_cmd, float(score))
                     if verbose:
                         print("Prediction: {} ({})".format(pred_cmd, score))
-                        print("AST: ")
-                        data_tools.pretty_print(tree, 0)
-                        print()
+                        # print("AST: ")
+                        # data_tools.pretty_print(tree, 0)
+                        # print()
                 elif FLAGS.decoding_algorithm == "beam_search":
-                    top_k_pred_trees, top_k_pred_cmds, top_k_outputs = \
-                        batch_outputs[0]
-                    top_k_scores = batch_scores[0]
+                    top_k_predictions = batch_outputs[batch_id]
+                    top_k_scores = output_logits[batch_id]
                     if verbose:
                         for j in xrange(FLAGS.top_k):
+                            top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
+                                top_k_predictions[j]
                             print("Prediction {}: {} ({}) ".format(j+1,
-                                top_k_pred_cmds[j], top_k_scores[j]))
-                            print("AST: ")
-                            data_tools.pretty_print(top_k_pred_trees[j], 0)
+                                top_k_pred_cmd, top_k_scores[j]))
+                            db.add_prediction(model.model_dir, nl_str, top_k_pred_cmd,
+                                              top_k_scores[j], update_mode=False)
+                            # print("AST: ")
+                            # data_tools.pretty_print(top_k_pred_tree, 0)
                     print()
-                    outputs = top_k_outputs[0]
+                    outputs = top_k_predictions[0][2]
                 else:
                     raise ValueError("Unrecognized decoding algorithm: {}."
                          .format(FLAGS.decoding_algorithm))

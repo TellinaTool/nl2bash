@@ -211,7 +211,7 @@ def manual_eval(num_eval):
                                FLAGS.train_dir, num_eval)
 
 
-def interactive_decode():
+def demo():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
@@ -219,7 +219,7 @@ def interactive_decode():
 
         nl_vocab, _, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
 
-        decode_tools.interactive_decode(
+        decode_tools.demo(
             sess, model, nl_vocab, rev_cm_vocab, FLAGS)
 
 
@@ -348,8 +348,8 @@ def main(_):
         manual_eval(100)
     elif FLAGS.decode:
         decode()
-    elif FLAGS.interactive_decode:
-        interactive_decode()
+    elif FLAGS.demo:
+        demo()
     elif FLAGS.process_data:
         process_data()
     elif FLAGS.data_stats:

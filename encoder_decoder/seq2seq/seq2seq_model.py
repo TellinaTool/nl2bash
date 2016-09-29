@@ -27,16 +27,16 @@ class Seq2SeqModel(EncoderDecoderModel):
       http://arxiv.org/abs/1412.2007
     """
 
-    def __init__(self, hyperparameters, buckets=None, forward_only=False):
-        super(Seq2SeqModel, self).__init__(hyperparameters, buckets, forward_only)
+    def __init__(self, hyperparams, buckets=None, forward_only=False):
+        super(Seq2SeqModel, self).__init__(hyperparams, buckets, forward_only)
 
 
     def define_encoder(self):
         """Construct sequence encoders."""
         if self.encoder_topology == "rnn":
-            self.encoder = encoder.RNNEncoder(self.hyperparameters)
+            self.encoder = encoder.RNNEncoder(self.hyperparams)
         elif self.encoder_topology == "birnn":
-            self.encoder = encoder.BiRNNEncoder(self.hyperparameters)
+            self.encoder = encoder.BiRNNEncoder(self.hyperparams)
         else:
             raise ValueError("Unrecognized encoder type.")
 
@@ -44,7 +44,7 @@ class Seq2SeqModel(EncoderDecoderModel):
     def define_decoder(self):
         """Construct sequence decoders."""
         if self.decoder_topology == "rnn":
-            self.decoder = rnn_decoder.RNNDecoder(self.hyperparameters,
+            self.decoder = rnn_decoder.RNNDecoder(self.hyperparams,
                                                   self.output_projection())
         else:
             raise ValueError("Unrecognized decoder topology: {}."

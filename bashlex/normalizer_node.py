@@ -73,6 +73,11 @@ class Node(object):
     def grandparent(self):
         return self.parent.parent
 
+    def isReservedWord(self):
+        if self.kind != "argument":
+            return True
+        return self.arg_type == "ReservedWord"
+
     def is_simple(self):
         """Check if subtree contains only high-frequency commands."""
         if self.kind == "headcommand" and not self.value in bash.head_commands:

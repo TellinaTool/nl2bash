@@ -175,13 +175,22 @@ def pretty_print(node, depth=0):
         print("    " * depth)
 
 
-def ast2list(node, order='dfs', list=None):
+def ast2list(node, order='dfs', ignore_flag_order=False,
+             arg_type_only=False, list=None):
     """Linearize the AST."""
     if order == 'dfs':
-        list.append(node.symbol)
+        if arg_type_only and not node.isReservedWord():
+            list.append(node.kind.upper() + '_' + node.arg_type)
+        else:
+            list.append(node.symbol)
         if node.getNumChildren() > 0:
-            for child in node.children:
-                ast2list(child, order, list)
+            if node.kind == "headcommand" and ignore_flag_order:
+                children = sorted(node.children, key=lambda x:x.value)
+            else:
+                children = node.children
+            for child in children:
+                ast2list(child, order, ignore_flag_order,
+                         arg_type_only, list)
             list.append(normalizer._H_NO_EXPAND)
         else:
             list.append(normalizer._V_NO_EXPAND)
@@ -193,8 +202,10 @@ def list2ast(list, order='dfs'):
     return normalizer.list_to_ast(list, order)
 
 
-def ast2tokens(node, loose_constraints=False, ignore_flag_order=False):
-    return normalizer.to_tokens(node, loose_constraints, ignore_flag_order)
+def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
+               arg_type_only=False):
+    return normalizer.to_tokens(node, loose_constraints,
+                                ignore_flag_order, arg_type_only)
 
 
 def ast2command(node, loose_constraints=False, ignore_flag_order=False):

@@ -13,7 +13,7 @@ import tensorflow as tf
 
 class EncoderDecoderModel(graph_utils.NNModel):
 
-    def __init__(self, hyperparams, buckets=None, forward_only):
+    def __init__(self, hyperparams, buckets=None, forward_only=False):
         """Create the model.
 
         Hyperparameters:
@@ -99,29 +99,31 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Compute raining outputs and losses in the forward direction.
         if self.buckets:
-            self.outputs = []
+            self.output_symbols = []
+            self.output_logits = []
             self.losses = []
             self.attn_masks = []
             for bucket_id, bucket in enumerate(self.buckets):
                 print("creating bucket {} ({}, {})...".format(
                                        bucket_id, bucket[0], bucket[1]))
-                bucket_outputs, bucket_losses, attn_mask = self.encode_decode(
-                    self.encoder_inputs[:bucket[0]], self.source_embeddings(),
-                    self.decoder_inputs[:bucket[1]], self.target_embeddings(),
+                bucket_output_symbols, bucket_output_logits, bucket_losses, \
+                attn_mask = \
+                    self.encode_decode(
+                        self.encoder_inputs[:bucket[0]], self.source_embeddings(),
+                        self.decoder_inputs[:bucket[1]], self.target_embeddings(),
+                        forward_only=forward_only
+                    )
+                self.output_symbols.append(bucket_output_symbols)
+                self.output_logits.append(bucket_output_logits)
+                self.losses.append(bucket_losses)
+                self.attn_masks.append(attn_mask)
+        else:
+            self.output_symbols, self.output_logits, self.losses, self.attn_mask = \
+                self.encode_decode(
+                    self.encoder_inputs, self.source_embeddings(),
+                    self.decoder_inputs, self.target_embeddings(),
                     forward_only=forward_only
                 )
-                self.outputs.append(bucket_outputs)
-                self.losses.append(bucket_losses)
-                if self.use_attention:
-                    self.attn_masks.append(attn_mask)
-        else:
-            self.outputs, self.losses, attn_mask = self.encode_decode(
-                self.encoder_inputs, self.source_embeddings(),
-                self.decoder_inputs, self.target_embeddings(),
-                forward_only=forward_only
-            )
-            if self.use_attention:
-                self.attn_masks = attn_mask
 
         # Gradients and SGD updates in the backward direction.
         params = tf.trainable_variables()
@@ -176,24 +178,19 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_state[1].set_shape([self.batch_size, self.dim])
 
         if self.use_attention:
-            top_states = [tf.reshape(e, [self.batch_size, 1, self.dim]) for e in encoder_outputs]
+            top_states = [tf.reshape(e, [self.batch_size, 1, self.dim])
+                          for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
-            decoder_output = self.decoder.define_graph(
-                encoder_state, decoder_inputs, target_embeddings,
-                attention_states, num_heads=1,
-                feed_previous=forward_only)
-            if forward_only and self.decoding_algorithm == "beam_search":
-                predictions, scores, state, attn_mask = decoder_output
-            else:
-                outputs, state, attn_mask = decoder_output
+            output_symbols, output_logits, outputs, state, attn_mask = \
+                self.decoder.define_graph(
+                    encoder_state, decoder_inputs, target_embeddings,
+                    attention_states, num_heads=1,
+                    feed_previous=forward_only)
         else:
-            decoder_output = self.decoder.define_graph(
+            output_symbols, output_logits, outputs, state = \
+                self.decoder.define_graph(
                 encoder_state, decoder_inputs, target_embeddings,
                 feed_previous=forward_only)
-            if forward_only and self.decoding_algorithm == "beam_search":
-                predictions, scores, state = decoder_output
-            else:
-                outputs, state = decoder_output
 
         # Losses.
         losses = graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
@@ -203,16 +200,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                                self.target_vocab_size
                                            ))
 
-        # Project decoder outputs for decoding.
-        W, b = self.output_projection()
-        projected_outputs = []
-        for i in xrange(len(outputs)):
-            projected_outputs.append((tf.matmul(outputs[i], W) + b))
-
         if self.use_attention:
-            return projected_outputs, losses, attn_mask
+            return output_symbols, output_logits, losses, attn_mask
         else:
-            return projected_outputs, losses, None
+            return output_symbols, output_logits, losses, None
 
 
     def source_embeddings(self):
@@ -438,13 +429,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             if bucket_id == -1:
                 output_feed = [self.losses]                     # Loss for this batch.
-                for l in xrange(decoder_size):                  # Output logits.
-                    output_feed.append(self.outputs[l])
+                output_feed.append(self.output_symbols)         # Batch output sequence
+                output_feed.append(self.output_logits)          # Batch output scores
             else:
                 output_feed = [self.losses[bucket_id]]          # Loss for this batch.
-                for l in xrange(decoder_size):                  # Output logits.
-                    output_feed.append(self.outputs[bucket_id][l])
-
+                output_feed.append(self.output_symbols[bucket_id]) # Batch output sequence
+                output_feed.append(self.output_logits[bucket_id])  # Batch output logits
         if self.use_attention:
             if bucket_id == -1:
                 output_feed.append(self.attn_masks)
@@ -460,8 +450,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             else:
                 return outputs[1], outputs[2], None, None
         else:
-            # No gradient norm, loss, outputs, [attention_masks]
+            # No gradient loss, output_symbols, output_logits, [attention_masks]
             if self.use_attention:
-                return None, outputs[0], outputs[1:-1], outputs[-1]
+                return outputs[0], outputs[1], outputs[2], outputs[-1]
             else:
-                return None, outputs[0], outputs[1:], None
+                return outputs[0], outputs[1], outputs[2], None
