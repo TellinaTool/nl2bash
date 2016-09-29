@@ -53,16 +53,22 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                 if ast_based.one_template_match(gt_trees, tree):
                     if i < 1:
                         num_top1_correct_template += 1
-                    if i < 5:
                         num_top5_correct_template += 1
-                    if i < 10:
-                        num_top10_correct_template += 1
+                        num_top5_correct_template += 1
+                    elif i < 5:
+                        num_top5_correct_template += 1
+                        num_top5_correct_template += 1
+                    elif i < 10:
+                        num_top5_correct_template += 1
                 if ast_based.one_string_match(gt_trees, tree):
                     if i < 1:
                         num_top1_correct += 1
-                    if i < 5:
                         num_top5_correct += 1
-                    if i < 10:
+                        num_top10_correct += 1
+                    elif i < 5:
+                        num_top5_correct += 1
+                        num_top10_correct += 1
+                    elif i < 10:
                         num_top10_correct += 1
                 if verbose:
                     print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
@@ -152,8 +158,11 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                 if temp_judge:
                     if i < 1:
                         num_top1_correct_template += 1
+                        num_top5_correct_template += 1
+                        num_top10_correct_template += 1
                     elif i < 5:
                         num_top5_correct_template += 1
+                        num_top10_correct_template += 1
                     elif i < 10:
                         num_top10_correct_template += 1
                     o_f.write("C")
@@ -177,8 +186,11 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                     if str_judge:
                         if i < 1:
                             num_top1_correct += 1
+                            num_top5_correct += 1
+                            num_top10_correct += 1
                         elif i < 5:
                             num_top5_correct += 1
+                            num_top10_correct += 1
                         elif i < 10:
                             num_top10_correct += 1
                         o_f.write("C")
