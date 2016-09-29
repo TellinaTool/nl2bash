@@ -163,7 +163,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             past_beam_logprobs,# [batch_size*self.beam_size]
             past_cell_state,
                 ) = state
-        print(past_beam_symbols)
         batch_size = past_cand_symbols.get_shape()[0].value
         if self.parent_refs_offsets is None:
             self.parent_refs_offsets = (tf.range(batch_size * self.beam_size) //
