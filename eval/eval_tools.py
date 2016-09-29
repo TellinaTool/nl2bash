@@ -64,11 +64,11 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                         num_top5_correct += 1
                     if i < 10:
                         num_top10_correct += 1
-            if verbose:
-                print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
-                # print("AST: ")
-                # data_tools.pretty_print(tree, 0)
-                print()
+                if verbose:
+                    print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
+                    # print("AST: ")
+                    # data_tools.pretty_print(tree, 0)
+                    print()
 
     #TODO: compute top-K matching scores
     top1_temp_match_score = num_top1_correct_template/num_eval
