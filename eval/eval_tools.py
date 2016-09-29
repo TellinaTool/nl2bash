@@ -53,7 +53,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                 pred_cmd, score = predictions[i]
                 tree = data_tools.bash_parser(pred_cmd)
                 # evaluation ignoring flag orders
-                if ast_based.one_temp_match(gt_trees, tree):
+                if ast_based.one_template_match(gt_trees, tree):
                     if i < 1:
                         top1_correct_temp = True
                         top5_correct_temp = True
@@ -159,7 +159,7 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                     judgement_str = "y" if temp_judge else "n"
                     print("Correct template [y/n]: %s" % judgement_str)
                 else:
-                    temp_judge = ast_based.one_temp_match(gt_trees, tree, rewrite=False)
+                    temp_judge = ast_based.one_template_match(gt_trees, tree, rewrite=False)
                     if not temp_judge:
                         inp = raw_input("Correct template [y/n]: ")
                         if inp == "y":
