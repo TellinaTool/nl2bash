@@ -36,16 +36,33 @@ class DBConnection(object):
         self.conn.commit()
 
     # --- Prediction ---
-    def add_prediction(self, model, nl, pred_cmd, score):
+    def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):
         nl = unicode(nl)
         c = self.cursor
-        if self.exist_prediction(model, nl):
-            c.execute("UPDATE Output SET pred_cmd = ?, score = ? WHERE model = ? AND nl = ?",
+        if update_mode and self.exist_prediction(model, nl):
+            c.execute("UPDATE Output SET pred_cmd = ? score = ? WHERE model = ? AND nl = ?",
                       (pred_cmd, score, model, nl))
         else:
-            c.execute("INSERT INTO Output (model, nl, pred_cmd, score) VALUES (?, ?, ?, ?)",
-                      (model, nl, pred_cmd, 0.0))
+            if self.exist_score(model, nl, pred_cmd):
+                c.execute("UPDATE Output SET score = ? WHERE model = ? AND nl = ? AND pred_cmd = ?",
+                      (score, model, nl, pred_cmd))
+            else:
+                c.execute("INSERT INTO Output (model, nl, pred_cmd, score) VALUES (?, ?, ?, ?)",
+                      (model, nl, pred_cmd, score))
         self.conn.commit()
+
+    def remove_model(self, model):
+        print("removing record of {} from database".format(model))
+        c = self.cursor
+        c.execute("DELETE FROM Output WHERE model = ?", (model,))
+
+    def exist_score(self, model, nl, pred_cmd):
+        nl = unicode(nl)
+        c = self.cursor
+        for _ in c.execute("SELECT 1 FROM Output WHERE model = ? AND nl = ? AND pred_cmd = ?",
+                           (model, nl, pred_cmd)):
+            return True
+        return False
 
     def exist_prediction(self, model, nl):
         nl = unicode(nl)
@@ -241,6 +258,22 @@ if __name__ == "__main__":
     db.error_temp_pair((
         "List root's regular files with permissions 4000\n",
         "find -exec ls -l {} \; -perm Permission -type Unknown File"
+    ))
+    db.error_temp_pair((
+        "display all files in the current directory excluding those that are present in the directories whose name starts with \"efence\" and do not search in the sub directories\n",
+        "find \( -name Pattern -prune -or -name Pattern \) -print File"
+    ))
+    db.correct_temp_pair((
+        "display all the regular files in the folder \"$(FOLDER)\" which are modified in the last $(RETENTION)*24 hours and excluding hidden files\n",
+        "find File -type Unknown -mtime Time ! -name Pattern"
+    ))
+    db.correct_temp_pair((
+        "To list the number of directories in the `/usr/share' directory tree\n",
+        "find /usr/share -type d | wc -l"
+    ))
+    db.error_temp_pair((
+        "list regular file which file name end with 'cache' 'xml' or 'html' in current directory\n",
+        "find -name Pattern -type Unknown File"
     ))
     # db.get_nl_pred_temp(
     #     "Find all \*.tex regular files under current directory\n"

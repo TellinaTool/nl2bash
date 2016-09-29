@@ -31,7 +31,9 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("process_data", False,
                                 "Set to True for data preprocessing.")
     tf.app.flags.DEFINE_boolean("decode", False,
-                                "Set to True for interactive decoding.")
+                                "Set to True for decoding.")
+    tf.app.flags.DEFINE_boolean("demo", False,
+                                "Set to True for interactive demo.")
     tf.app.flags.DEFINE_boolean("bucket_selection", False,
                                 "Run a bucket_selection if this is set to True.")
     tf.app.flags.DEFINE_boolean("self_test", False,
@@ -59,6 +61,8 @@ def define_input_flags():
 
     # learning hyperparameters
     tf.app.flags.DEFINE_boolean("char", False, "Set to True for training character models.")
+    tf.app.flags.DEFINE_boolean("canonical", False, "Set to True for learning with normalized command with canonical option order.")
+    tf.app.flags.DEFINE_boolean("normalized", False, "Set to True for learning with normalized command.")
     tf.app.flags.DEFINE_string("rnn_cell", "gru", "Type of RNN cell to use.")
     tf.app.flags.DEFINE_string("optimizer", "adam", "Type of numeric optimization algorithm to use.")
     tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
@@ -87,6 +91,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("encoder_topology", "rnn", "structure of the encoder.")
     tf.app.flags.DEFINE_string("decoder_topology", "rnn", "structure of the decoder.")
     tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
-    tf.app.flags.DEFINE_integer("beam_size", 3, "Size of beam for beam search.")
-    tf.app.flags.DEFINE_integer("beam_order", 1, "Order for beam search.")
+    tf.app.flags.DEFINE_integer("beam_size", -1, "Size of beam for beam search.")
+    tf.app.flags.DEFINE_integer("beam_order", -1, "Order for beam search.")
     tf.app.flags.DEFINE_integer("top_k", 3, "Top-k highest-scoring structures to output.")

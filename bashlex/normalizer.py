@@ -104,12 +104,12 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("sudo", "")
 
     ## normalize utilities called with full path
-    cmd = cmd.replace("/usr/bin/find ", "find ")
-    cmd = cmd.replace("/bin/find ", "find ")
-    cmd = cmd.replace("/usr/bin/grep ", "grep ")
-    cmd = cmd.replace("/bin/rm ", "rm ")
-    cmd = cmd.replace("/bin/mv ", "mv ")
-    cmd = cmd.replace("/bin/echo ", "echo ")
+    cmd = cmd.replace("/usr/bin/find", "find")
+    cmd = cmd.replace("/bin/find", "find")
+    cmd = cmd.replace("/usr/bin/grep", "grep")
+    cmd = cmd.replace("/bin/rm", "rm")
+    cmd = cmd.replace("/bin/mv", "mv")
+    cmd = cmd.replace("/bin/echo", "echo")
     
     ## correct common spelling errors
     cmd = cmd.replace("-i{}", "-I {}")

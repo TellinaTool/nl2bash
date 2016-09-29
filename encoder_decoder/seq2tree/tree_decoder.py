@@ -12,12 +12,8 @@ DEBUG = False
 
 class BasicTreeDecoder(decoder.Decoder):
 
-    def __init__(self, dim, batch_size, rnn_cell, num_layers,
-                 input_keep_prob, output_keep_prob,
-                 use_attention, use_copy, output_projection=None):
-        super(BasicTreeDecoder, self).__init__(dim, batch_size, rnn_cell, num_layers,
-                                               input_keep_prob, output_keep_prob,
-                                               use_attention, use_copy, output_projection)
+    def __init__(self, hyperparams, output_projection=None):
+        super(BasicTreeDecoder, self).__init__(hyperparams, output_projection)
 
         self.H_NO_EXPAND = tf.constant(data_utils.H_NO_EXPAND_ID, shape=[self.batch_size])
         self.V_NO_EXPAND = tf.constant(data_utils.V_NO_EXPAND_ID, shape=[self.batch_size])
@@ -139,7 +135,6 @@ class BasicTreeDecoder(decoder.Decoder):
                     batch_attns = graph_utils.switch_mask(switch_mask, [h_attns, v_attns])
                     batch_state = tf.concat(1, [batch_state, batch_attns])
 
-                    # batch_attn_mask = graph_utils.switch_mask(switch_mask, [h_attn_mask, v_attn_mask])
                     batch_attn_mask = h_attn_mask
                     attn_masks.append(batch_attn_mask)
                 
@@ -158,35 +153,35 @@ class BasicTreeDecoder(decoder.Decoder):
                         batch_output_symbol = decoder_inputs[i+1]
                     search_left_to_right_next = self.is_no_expand(batch_output_symbol)
 
-                    back_pointer = graph_utils.map_fn(self.back_pointer,
-                                                      [search_left_to_right_next,
-                                              search_left_to_right,
-                                              self.grandparent(),
-                                              self.parent(),
-                                              tf.constant(i, shape=[self.batch_size], dtype=tf.int32)],
-                                                      self.batch_size)
+                    back_pointer = graph_utils.map_fn(
+                        self.back_pointer, [search_left_to_right_next,
+                                            search_left_to_right,
+                                            self.grandparent(),
+                                            self.parent(),
+                                            tf.constant(i, shape=[self.batch_size], dtype=tf.int32)],
+                        self.batch_size)
                     back_pointer.set_shape([self.batch_size])
                     if DEBUG:
                         print("back_pointer.get_shape(): {}".format(back_pointer.get_shape()))
 
-                    next_input = graph_utils.map_fn(self.next_input,
-                                                    [search_left_to_right_next,
-                                            search_left_to_right,
-                                            self.parent_input(),
-                                            self.get_input(),
-                                            batch_output_symbol],
-                                                    self.batch_size)
+                    next_input = graph_utils.map_fn(
+                        self.next_input, [search_left_to_right_next,
+                                          search_left_to_right,
+                                          self.parent_input(),
+                                          self.get_input(),
+                                          batch_output_symbol],
+                        self.batch_size)
                     next_input.set_shape([self.batch_size])
                     if DEBUG:
                         print("next_input.get_shape(): {}".format(next_input.get_shape()))
 
-                    next_state = graph_utils.map_fn(self.next_state,
-                                                    [search_left_to_right_next,
-                                            search_left_to_right,
-                                            self.parent_state(),
-                                            self.get_state(),
-                                            batch_state],
-                                                    self.batch_size)
+                    next_state = graph_utils.map_fn(
+                        self.next_state, [search_left_to_right_next,
+                                          search_left_to_right,
+                                          self.parent_state(),
+                                          self.get_state(),
+                                          batch_state],
+                        self.batch_size)
                     if DEBUG:
                         print("next_state.get_shape(): {}".format(next_state.get_shape()))
 
@@ -314,16 +309,20 @@ class BasicTreeDecoder(decoder.Decoder):
     def vertical_cell(self):
         """Cell that controls transition from parent to child."""
         with tf.variable_scope("vertical_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
-                                                      self.input_keep_prob, self.output_keep_prob)
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
+                                                      self.dim, self.num_layers,
+                                                      self.decoder_input_keep,
+                                                      self.decoder_output_keep)
         return cell, scope
 
 
     def horizontal_cell(self):
         """Cell that controls transition from left sibling to right sibling."""
         with tf.variable_scope("horizontal_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim, self.num_layers,
-                                                      self.input_keep_prob, self.output_keep_prob)
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
+                                                      self.dim, self.num_layers,
+                                                      self.decoder_input_keep,
+                                                      self.decoder_output_keep)
         return cell, scope
 
 
@@ -336,8 +335,11 @@ if __name__ == "__main__":
     encoder_state = tf.random_normal(shape=[1, 100])
     attention_states = tf.random_normal(shape=[8, 100])
     target_embeddings = tf.random_normal(shape=[200, 100])
-    outputs, state, left_to_right = decoder.define_graph(encoder_state, decoder_inputs, target_embeddings,
-                                          attention_states, feed_previous=False)
+    outputs, state, left_to_right = decoder.define_graph(encoder_state,
+                                                         decoder_inputs,
+                                                         target_embeddings,
+                                                         attention_states,
+                                                         feed_previous=False)
 
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())

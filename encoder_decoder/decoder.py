@@ -1,13 +1,6 @@
 import tensorflow as tf
-from tensorflow.python.util import nest
 
 import graph_utils
-
-def nest_map(func, nested):
-    if not nest.is_sequence(nested):
-        return func(nested)
-    flat = nest.flatten(nested)
-    return nest.pack_sequence_as(nested, list(map(func, flat)))
 
 class Decoder(graph_utils.NNModel):
     def __init__(self, hyperparameters, output_projection=None):
@@ -29,19 +22,30 @@ class Decoder(graph_utils.NNModel):
             attn_vec_dim = v[0].get_shape()[0].value
             attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
+
             try:
                 cell_output, state = cell(x, state, cell_scope)
             except ValueError, e:
                 cell_scope.reuse_variables()
                 cell_output, state = cell(x, state, cell_scope)
+
+            (
+                cand_symbols,
+                cand_logprobs,
+                beam_symbols,
+                beam_logprobs,
+                cell_state,
+            ) = state
+
             attns, attn_mask = \
-                self.attention(v, state, hidden_features, num_heads, hidden)
+                self.attention(v, cell_state, hidden_features, num_heads, hidden)
+
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
-        self.attention_cell_vars = True
+
         return output, state, attns, attn_mask
 
     def attention(self, v, state, hidden_features, num_heads, hidden):
@@ -66,7 +70,7 @@ class Decoder(graph_utils.NNModel):
                     [1, 2])
                 ds.append(tf.reshape(d, [-1, attn_vec_dim]))
         attns = tf.concat(1, ds)
-        attns.set_shape([-1, num_heads * attn_vec_dim])
+        attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
         self.attention_vars = True
         return attns, attn_mask
 
