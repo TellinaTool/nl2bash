@@ -132,8 +132,8 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                                 top_k_predictions[j]
                             print("Prediction {}: {} ({}) ".format(j+1,
                                 top_k_pred_cmd, top_k_scores[j]))
-                            db.add_prediction(model.model_dir, nl_str,
-                                              top_k_pred_cmd, top_k_scores[j])
+                            db.add_prediction(model.model_dir, nl_str, top_k_pred_cmd,
+                                              top_k_scores[j], update_mode=False)
                             # print("AST: ")
                             # data_tools.pretty_print(top_k_pred_tree, 0)
                     print()
