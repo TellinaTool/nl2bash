@@ -230,10 +230,10 @@ def sentence_to_token_ids(sentence, vocabulary,
     else:
         if base_tokenizer:
             words = tokenizer(sentence, base_tokenizer, normalize_digits=normalize_digits,
-                             normalize_long_pattern=normalize_long_pattern)
+                              normalize_long_pattern=normalize_long_pattern)
         else:
             words = tokenizer(sentence, normalize_digits=normalize_digits,
-                          normalize_long_pattern=normalize_long_pattern)
+                              normalize_long_pattern=normalize_long_pattern)
 
     token_ids = []
     for w in words:

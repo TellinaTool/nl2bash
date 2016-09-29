@@ -1,13 +1,6 @@
 import tensorflow as tf
-from tensorflow.python.util import nest
 
 import graph_utils
-
-def nest_map(func, nested):
-    if not nest.is_sequence(nested):
-        return func(nested)
-    flat = nest.flatten(nested)
-    return nest.pack_sequence_as(nested, list(map(func, flat)))
 
 class Decoder(graph_utils.NNModel):
     def __init__(self, hyperparameters, output_projection=None):
