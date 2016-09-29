@@ -7,12 +7,12 @@ import tensorflow as tf
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-import decoder, data_utils, graph_utils
+import decoder, beam_search, data_utils, graph_utils
 
 class RNNDecoder(decoder.Decoder):
-
     def __init__(self, hyperparameters, output_projection=None):
         super(RNNDecoder, self).__init__(hyperparameters, output_projection)
+
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      attention_states=None, num_heads=1,
@@ -43,6 +43,15 @@ class RNNDecoder(decoder.Decoder):
                                            attn_vecs, num_heads, hidden)
 
             if self.decoding_algorithm == "beam_search":
+                if not feed_previous:
+                    # TODO: support beam search training
+                    raise NotImplementedError
+                beam_decoder = beam_search.BeamDecoder(self.target_vocab_size, self.beam_size,
+                                                       self.max_target_length)
+                state = beam_decoder.wrap_state(state)
+                decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
+                if self.use_attention:
+                    attns = beam_decoder.wrap_state(attns)
                 # [self.batch_size * self.beam_size]
                 past_beam_logits = tf.constant(0, shape=[self.batch_size *
                                                self.beam_size], dtype=tf.float32)
@@ -50,76 +59,35 @@ class RNNDecoder(decoder.Decoder):
                 past_beam_symbols = tf.constant(data_utils.ROOT_ID,
                                                 shape=[self.batch_size *
                                                  self.beam_size, 1])
-                parent_refs_offsets = (tf.range(self.batch_size *
-                                                self.beam_size) //
-                                       self.beam_size) * self.beam_size
             elif self.decoding_algorithm == "greedy":
                 past_output_symbols = tf.constant(data_utils.ROOT_ID,
                                                   shape=[self.batch_size, 1])
                 past_output_logits = tf.constant(0, shape=[self.batch_size])
 
             for i, input in enumerate(decoder_inputs):
+                if self.decoding_algorithm == "beam_search":
+                    input = beam_decoder.wrap_input(input)
+
                 if i > 0:
                     scope.reuse_variables()
                     if feed_previous:
-                        W, b = self.output_projection
-                        num_classes = W.get_shape()[1].value
-                        # [self.batch_size * self.beam_size, num_classes]
-                        projected_output = tf.log(
-                            tf.nn.softmax(tf.matmul(output, W) + b))
                         if self.decoding_algorithm == "beam_search":
-                            # print(projected_output.get_shape())
-                            # print(past_beam_logits.get_shape())
+                            (
+                                past_cand_symbols,  # [batch_size, max_len]
+                                past_cand_logprobs, # [batch_size]
+                                past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
+                                past_beam_logprobs, # [batch_size*self.beam_size]
+                                past_cell_state,
+                            ) = state
+                            input = past_cand_symbols
+                        elif self.decoding_algorithm == "greedy":
+                            W, b = self.output_projection
                             # [self.batch_size * self.beam_size, num_classes]
-                            accumulated_logits = projected_output + tf.expand_dims(
-                                past_beam_logits, 1),
-                            # [self.batch_size, self.beam_size * num_classes]
-                            accumulated_logits = tf.reshape(accumulated_logits,
-                                                            [self.batch_size, -1])
-
-                            # [self.batch_size, self.beam_size]
-                            beam_logits, beam_indices = \
-                                tf.nn.top_k(accumulated_logits, self.beam_size)
-                            # [self.batch_size, self.beam_size]
-                            symbols = beam_indices % num_classes
-                            # [self.batch_size, self.beam_size]
-                            parent_refs = beam_indices // num_classes
-                            # [self.batch_size * self.beam_size]
-                            parent_refs = tf.reshape(parent_refs, [-1]) + \
-                                          parent_refs_offsets
-                           
-                            # Append beam symbols to search histories
-                            search_history = tf.gather(past_beam_symbols, parent_refs)
-                            beam_symbols = tf.concat(1, [search_history[:, :],
-                                                         tf.reshape(symbols, [-1, 1])])
-                            # Handle the output and the cell state shuffling
-                            # [self.batch_size * self.beam_size]
-                            output_symbols = tf.reshape(symbols, [-1])
-                            input = tf.cast(output_symbols, dtype=tf.int32)
-                            state = decoder.nest_map(
-                                lambda X: tf.gather(X, parent_refs), state)
-
-                            past_beam_logits = tf.reshape(beam_logits, [-1])
-                            past_beam_symbols = beam_symbols
-                        else:
-                            output_logits = tf.max(projected_output, 1)
-                            past_output_logits += output_logits
+                            projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                             output_symbol = tf.argmax(projected_output, 1)
                             past_output_symbols = tf.concat(1, [past_output_symbols,
-                                tf.expand_dims(output_symbol, 1)])
+                                                                tf.expand_dims(output_symbol, 1)])
                             input = tf.cast(output_symbol, dtype=tf.int32)
-                else:
-                    if self.decoding_algorithm == "beam_search":
-                        if not feed_previous:
-                            raise NotImplementedError
-                        input = tf.expand_dims(input, 1)
-                        input = tf.reshape(tf.tile(input, [1, self.beam_size]),
-                                           [-1])
-                        state = tf.expand_dims(state, 1)
-                        state = tf.reshape(tf.tile(state,
-                                                   [1, self.beam_size, 1]),
-                                           [self.batch_size * self.beam_size,
-                                            -1])
 
                 input_embedding = tf.nn.embedding_lookup(embeddings, input)
 
@@ -141,14 +109,12 @@ class RNNDecoder(decoder.Decoder):
         # Beam-search output
         if self.decoding_algorithm == "beam_search":
             # [self.batch_size, self.beam_size, max_len]
-            top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size,
-                                                      self.beam_size, -1])
+            top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size, self.beam_size, -1])
             top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
-            top_k_outputs = [tf.split(0, self.beam_size, 
-                                      tf.squeeze(top_k_output, squeeze_dims=[0])) 
+            top_k_outputs = [tf.split(0, self.beam_size, tf.squeeze(top_k_output, squeeze_dims=[0]))
                              for top_k_output in top_k_outputs]
-            top_k_outputs = [[tf.squeeze(output, squeeze_dims=[0]) for output in top_k_output] 
-                             for top_k_output in top_k_outputs]
+            top_k_outputs = [[tf.squeeze(output, squeeze_dims=[0]) for output in top_k_output]
+                              for top_k_output in top_k_outputs]
             # [self.batch_size, self.beam_size]
             top_k_logits = tf.reshape(past_beam_logits, [self.batch_size, 
                                                          self.beam_size])
