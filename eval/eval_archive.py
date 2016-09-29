@@ -39,13 +39,21 @@ class DBConnection(object):
     def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):
         nl = unicode(nl)
         c = self.cursor
-        if update_mode and self.exist_prediction(model, nl):
-            c.execute("UPDATE Output SET pred_cmd = ?, score = ? WHERE model = ? AND nl = ?",
-                      (pred_cmd, score, model, nl))
+        if update_mode and self.exist_score(model, nl, pred_cmd):
+            c.execute("UPDATE Output SET score = ? WHERE model = ? AND nl = ? AND pred_cmd = ?",
+                  (score, model, nl, pred_cmd))
         else:
             c.execute("INSERT INTO Output (model, nl, pred_cmd, score) VALUES (?, ?, ?, ?)",
                       (model, nl, pred_cmd, score))
         self.conn.commit()
+
+    def exist_score(self, model, nl, pred_cmd):
+        nl = unicode(nl)
+        c = self.cursor
+        for _ in c.execute("SELECT 1 FROM Output WHERE model = ? AND nl = ? AND pred_cmd = ?",
+                           (model, nl, pred_cmd)):
+            return True
+        return False
 
     def exist_prediction(self, model, nl):
         nl = unicode(nl)
