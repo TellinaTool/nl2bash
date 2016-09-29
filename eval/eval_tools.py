@@ -77,7 +77,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                     print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
                     # print("AST: ")
                     # data_tools.pretty_print(tree, 0)
-                    print()
+            print()
             if top1_correct_temp:
                 num_top1_correct_temp += 1
             if top5_correct_temp:
