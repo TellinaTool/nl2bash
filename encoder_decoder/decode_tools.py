@@ -30,7 +30,6 @@ def to_readable(outputs, rev_cm_vocab):
 
 
 def decode(output_symbols, rev_cm_vocab, FLAGS):
-    print(output_symbols)
     batch_outputs = []
     batch_size = len(output_symbols)
     
