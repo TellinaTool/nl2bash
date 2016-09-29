@@ -52,13 +52,6 @@ class RNNDecoder(decoder.Decoder):
                                                        len(decoder_inputs))
                 state = beam_decoder.wrap_state(state, self.output_projection)
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
-                # [self.batch_size * self.beam_size]
-                past_beam_logits = tf.constant(0, shape=[self.batch_size *
-                                               self.beam_size], dtype=tf.float32)
-                # [batch_size*self.beam_size, num_steps]
-                past_beam_symbols = tf.constant(data_utils.ROOT_ID,
-                                                shape=[self.batch_size *
-                                                 self.beam_size, 1])
             elif self.decoding_algorithm == "greedy":
                 past_output_symbols = tf.constant(data_utils.ROOT_ID,
                                                   shape=[self.batch_size, 1])
