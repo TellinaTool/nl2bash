@@ -45,6 +45,8 @@ manual.eval.results*
 /nl2cmd_paper
 
 # ideaJ file
+.idea
+
 # User-specific stuff:
 baselines/man-parser/.idea/*
 
