@@ -48,7 +48,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         model_dir += '-{}'.format(FLAGS.rnn_cell)
         if FLAGS.use_attention:
             model_dir += '-attention'
-        model_dir += '-{}'.format(FLAGS.decoding_algorithm)
         model_dir += '-{}'.format(FLAGS.batch_size)
         model_dir += '-{}'.format(FLAGS.encoder_input_keep)
         model_dir += '-{}'.format(FLAGS.encoder_output_keep)
