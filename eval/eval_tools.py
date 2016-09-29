@@ -38,7 +38,6 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
             gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
 
             predictions = db.get_top_k_predictions(model, nl_str, k=10)
-            print(predictions)
 
             if verbose:
                 print("Example %d (%d)" % (num_eval, len(cm_strs)))
@@ -46,6 +45,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                 print("English: " + nl_temp)
                 for j in xrange(len(cm_strs)):
                     print("GT Command {}: ".format(j+1) + cm_strs[j].strip())
+            num_eval += 1
             for i in xrange(len(predictions)):
                 pred_cmd, score = predictions[i]
                 tree = data_tools.bash_parser(pred_cmd)
@@ -64,11 +64,10 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                         num_top5_correct += 1
                     if i < 10:
                         num_top10_correct += 1
-            num_eval += 1
             if verbose:
                 print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
-                print("AST: ")
-                data_tools.pretty_print(tree, 0)
+                # print("AST: ")
+                # data_tools.pretty_print(tree, 0)
                 print()
 
     #TODO: compute top-K matching scores
