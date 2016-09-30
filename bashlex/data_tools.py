@@ -236,27 +236,6 @@ def cmd2template(cmd, normalize_digits=True, normalize_long_pattern=True,
     return ast2template(tree, loose_constraints, arg_type_only)
 
 
-def rewrite(ast, temp):
-    arg_slots = normalizer.arg_slots(ast)
-
-    def rewrite_fun(node):
-        if node.kind == "argument" and not node.is_reserved():
-            for i in xrange(len(arg_slots)):
-                if not arg_slots[i][1] \
-                    and arg_slots[i][0].arg_type == node.arg_type:
-                    node.value = arg_slots[i][0].value
-                    arg_slots[i][1] = True
-                    break
-        else:
-            for child in node.children:
-                rewrite_fun(child)
-
-    ast2 = normalizer.normalize_ast(temp)
-    rewrite_fun(ast2)
-
-    return ast2
-
-
 if __name__ == "__main__":
     while True:
         try:
