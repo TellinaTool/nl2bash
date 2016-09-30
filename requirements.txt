@@ -2,3 +2,9 @@ bashlex
 nltk
 bs4
 matplotlib
+
+# zss
+nose>=1.1.2
+numpy>=1.7
+six>=1.8
+-e hg+https://code.google.com/p/py-editdist/#egg=editdist

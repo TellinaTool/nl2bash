@@ -1,8 +1,26 @@
-import bash
+"""
+Node Classes for the Normalized Bash AST.
+"""
 
-right_associate_unary_logic_operators = set(['!', '-not'])
+right_associate_unary_logic_operators \
+    = set([
+        '!',
+        '-not'
+    ])
+left_associate_unary_logic_operators \
+    = set([
+        '-prune'
+    ])
 
-left_associate_unary_logic_operators = set(['-prune'])
+binary_logic_operators \
+    = set([
+        '-and',
+        '-or',
+        '||',
+        '&&',
+        '-o',
+        '-a'
+    ])
 
 def make_parentchild(parent, child):
     parent.addChild(child)
@@ -17,26 +35,22 @@ def make_sibling(lsb, rsb):
 class Node(object):
     num_child = -1      # default value = -1, allow arbitrary number of children
     children_types = [] # list of children types
-                        # a length-one list of representing the common types for each
-                        # child if num_child = -1
-                        # dummy field if num_child = 0
 
     def __init__(self, parent=None, lsb=None, kind="", value=""):
         """
+        :member parent: pointer to parent node
+        :member lsb: pointer to left sibling node
+        :member rsb: pointer to right sibling node
         :member kind: ['pipe',
                       'headcommand',
-                      'logicop',
+                      'unarylogicop',
+                      'binarylogicop'
                       'flag',
-                      'file', 'pattern', 'numberexp',
-                      'sizeexp', 'timeexp', 'permexp',
-                      'username', 'groupname', 'unknown',
-                      'number', 'unit', 'op',
+                      'argument',
                       'commandsubstitution',
                       'processsubstitution'
                      ]
         :member value: string value of the node
-        :member parent: pointer to parent node
-        :member lsb: pointer to left sibling node
         :member children: list of child nodes
         """
         self.parent = parent
@@ -46,55 +60,45 @@ class Node(object):
         self.value = value
         self.children = []
 
-    def addChild(self, child):
+    def add_child(self, child):
         self.children.append(child)
 
-    def getNumChildren(self):
-        return len(self.children)
+    def get_children(self):
+        return self.children
 
-    def getLeftChild(self):
+    def get_left_child(self):
         if len(self.children) >= 1:
             return self.children[0]
-        else:
-            return None
+        return None
 
-    def getRightChild(self):
+    def get_right_child(self):
         if len(self.children) >= 1:
             return self.children[-1]
-        else:
-            return None
+        return None
 
-    def getSecond2RightChild(self):
+    def get_2nd_right_child(self):
         if len(self.children) >= 2:
             return self.children[-2]
-        else:
-            return None
+        return None
 
-    def grandparent(self):
-        return self.parent.parent
+    def get_num_of_children(self):
+        return len(self.children)
 
-    def isReservedWord(self):
+    def is_reserved(self):
         if self.kind != "argument":
             return True
-        return self.arg_type == "ReservedWord"
 
-    def is_simple(self):
-        """Check if subtree contains only high-frequency commands."""
-        if self.kind == "headcommand" and not self.value in bash.head_commands:
-            return False
-        for child in self.children:
-            if not child.is_simple():
-                return False
-        return True
+    def is_command(self, value):
+        return self.kind == "headcommand" and self.value == value
 
-    def removeChild(self, child):
+    def remove_child(self, child):
         if child in self.children:
             self.children.remove(child)
 
-    def removeChildByIndex(self, index):
+    def remove_child_by_index(self, index):
         self.children.pop(index)
 
-    def replaceChild(self, child, new_child):
+    def replace_child(self, child, new_child):
         new_child.parent = child.parent
         index = self.children.index(child)
         self.removeChild(child)
@@ -102,7 +106,7 @@ class Node(object):
         make_sibling(child.lsb, new_child)
         make_sibling(new_child, child.rsb)
 
-    def substituteParentheses(self, lp, rp, new_child):
+    def substitute_parentheses(self, lp, rp, new_child):
         # substitute parenthese expression with single node
         assert(lp.parent == rp.parent)
         new_child.parent = rp.parent
@@ -118,7 +122,10 @@ class Node(object):
     def symbol(self):
         return self.kind.upper() + "_" + self.value
 
-# syntax constraints for different kind of nodes
+    @property
+    def grandparent(self):
+        return self.parent.parent
+
 class ArgumentNode(Node):
     num_child = 0
 
@@ -126,18 +133,21 @@ class ArgumentNode(Node):
         super(ArgumentNode, self).__init__(parent, lsb, "argument", value)
         self.arg_type = arg_type
 
-    def getHeadCommand(self):
+    def get_head_command(self):
         ancester = self.parent
         while (ancester.parent and ancester.kind != "headcommand"):
             # if not head command is detect, return "root"
             ancester = ancester.parent
         return ancester
 
+    def is_reserved(self):
+        return self.arg_type == "ReservedWord"
+
 class FlagNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(FlagNode, self).__init__(parent, lsb, "flag", value)
 
-    def getHeadCommand(self):
+    def get_head_command(self):
         ancester = self.parent
         while (ancester.parent and ancester.kind != "headcommand"):
             # if not head command is detect, return "root"
@@ -148,7 +158,7 @@ class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(HeadCommandNode, self).__init__(parent, lsb, "headcommand", value)
 
-    def getHeadCommand(self):
+    def get_head_command(self):
         return self
 
 class UnaryLogicOpNode(Node):
@@ -164,7 +174,7 @@ class UnaryLogicOpNode(Node):
         elif value in left_associate_unary_logic_operators:
             self.associate = UnaryLogicOpNode.LEFT
 
-    def getHeadCommand(self):
+    def get_head_command(self):
         ancester = self.parent
         while (ancester.parent and ancester.kind != "headcommand"):
             # if not head command is detect, return "root"
@@ -178,7 +188,7 @@ class BinaryLogicOpNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(BinaryLogicOpNode, self).__init__(parent, lsb, 'binarylogicop', value)
 
-    def getHeadCommand(self):
+    def get_head_command(self):
         ancester = self.parent
         while (ancester.parent and ancester.kind != "headcommand"):
             # if not head command is detect, return "root"
