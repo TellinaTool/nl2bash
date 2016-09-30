@@ -14,7 +14,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "data"))
 
 import normalizer
 import gazetteer
-import spellcheck,spell_check as spc
+import spellcheck.spell_check as spc
 
 from nltk.stem.wordnet import WordNetLemmatizer
 lmtzr = WordNetLemmatizer()
