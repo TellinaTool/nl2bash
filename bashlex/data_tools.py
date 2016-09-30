@@ -181,8 +181,8 @@ def pretty_print(node, depth=0):
         print("    " * depth)
 
 
-def ast2list(node, order='dfs', ignore_flag_order=False,
-             arg_type_only=False, list=None):
+def ast2list(node, order='dfs', list=None,
+             ignore_flag_order=False, arg_type_only=False):
     """Linearize the AST."""
     if order == 'dfs':
         if arg_type_only and not node.isReservedWord():
