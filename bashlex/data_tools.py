@@ -12,8 +12,9 @@ import re
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "data"))
 
-import bash, normalizer
-import gazetteer, spell_check
+import normalizer
+import gazetteer
+import spellcheck,spell_check as spc
 
 from nltk.stem.wordnet import WordNetLemmatizer
 lmtzr = WordNetLemmatizer()
@@ -24,12 +25,17 @@ _WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
 _SPACE = b"<SPACE>"
 
+def is_english_word(word):
+    """Check if a token is normal English word."""
+    return bool(re.match('[A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
+
 def is_stopword(w):
     return w in gazetteer.ENGLISH_STOPWORDS
 
 def char_tokenizer(sentence, base_tokenizer=None, normalize_digits=False,
                    normalize_long_pattern=False):
     if base_tokenizer:
+        # normalization is not needed for character model
         tokens = base_tokenizer(sentence, normalize_digits=False,
                                 normalize_long_pattern=False)
     else:
@@ -97,7 +103,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         # spelling correction
         if word.isalpha() and word.islower() and len(word) > 2:
             old_w = word
-            word = spell_check.correction(word)
+            word = spc.correction(word)
             if word != old_w:
                 print("spell correction: {} -> {}".format(old_w, word))
 
@@ -115,7 +121,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             word = str(gazetteer.word2num[word])
 
         # normalize regular expressions
-        if not bash.is_english_word(word):
+        if not is_english_word(word):
             # msg = word + ' -> '
             if not word.startswith('"'):
                 word = '"' + word
@@ -131,10 +137,10 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             except AssertionError, e:
                 print("Quotation Error: space inside word " + sentence)
             if normalize_long_pattern:
-                word = bash._LONG_PATTERN
+                word = normalizer._LONG_PATTERN
 
         # normalize digits
-        word = re.sub(bash._DIGIT_RE, bash._NUM, word) \
+        word = re.sub(normalizer._DIGIT_RE, normalizer._NUM, word) \
             if normalize_digits and not word.startswith("-") else word
 
         # remove empty words

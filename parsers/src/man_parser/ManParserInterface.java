@@ -2,6 +2,7 @@ package man_parser;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.sym.Name;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import main.Config;
 import man_parser.cmd.Cmd;
@@ -13,7 +14,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ManParserInterface {
@@ -22,7 +25,7 @@ public class ManParserInterface {
 
         // summarizing options of the file tar.1.txt
 
-        List<Cmd.Command> commands = ManParserInterface.parsePrimitiveGrammar(Config.SynopsisGrammar);
+        List<Cmd.Command> commands = ManParserInterface.parseGrammarFile(Config.SynopsisGrammar).commandsGrammar;
 
         for (Cmd.Command cmd : commands) {
             System.out.println("=== \n" + cmd.toString());
@@ -35,7 +38,6 @@ public class ManParserInterface {
     }
 
     public static void parseManPage(boolean testSmallExamples) throws IOException {
-
         String PREFIX = Config.ProjectFolder;
 
         File[] files = new File(PREFIX +  "data/plain-man").listFiles();
@@ -66,11 +68,38 @@ public class ManParserInterface {
         }
     }
 
-    public static List<Cmd.Command> parsePrimitiveGrammar(String path) throws IOException, ParseException {
+    public static class GrammarFile {
+        public List<Cmd.Command> commandsGrammar = new ArrayList<>();
+        public Map<String, String> nameToTypeDict = new HashMap<>();
+        public Map<String, String> constantNameToSymbol = new HashMap<>();
+        public Map<String, List<Cmd.CmdOp>> nonTerminals = new HashMap<>();
+
+        public GrammarFile(List<Cmd.Command> commandsGrammar, Map<String, List<Cmd.CmdOp>> nonTerminals,
+                           Map<String, String> nameToTypeDict, Map<String, String> constantNameToSymbol) {
+            this.commandsGrammar = commandsGrammar;
+            this.nameToTypeDict = nameToTypeDict;
+            this.constantNameToSymbol = constantNameToSymbol;
+            this.nonTerminals = nonTerminals;
+        }
+    }
+
+    // parse the grammar file
+    public static GrammarFile parseGrammarFile(String path) throws IOException, ParseException {
         List<String> lines = Files.readAllLines(Paths.get(path));
-        int i = 0;
+
         List<Cmd.Command> commands = new ArrayList<>();
+        Map<String, String> nameToTypeDict = new HashMap<>();
+        Map<String, String> constantNameToSymbol = new HashMap<>();
+        Map<String, List<Cmd.CmdOp>> nonTerminals = new HashMap<>();
+
+        List<String> rawCommands = new ArrayList<>();
+        List<String> rawNameToTypes = new ArrayList<>();
+        List<String> rawConstantToType = new ArrayList<>();
+        Map<String, List<String>> rawNonTerminals = new HashMap<>();
+
+        int i = 0;
         while (i < lines.size()) {
+            System.out.println("");
             if (lines.get(i).startsWith("PrimitiveCmd")) {
                 i ++;
                 int l = i;
@@ -80,25 +109,102 @@ public class ManParserInterface {
                     i ++;
                 }
 
-                //System.out.println(+ l + " " + i);
-
-                List<String> primitives = lines.subList(l, i)
+                rawCommands = lines.subList(l, i)
                         .stream().filter(s -> !s.trim().equals("")).map(s -> s.trim()).collect(Collectors.toList());
 
-                //for (String s : primitives)
-                //    System.out.println("> " + s);
-
-                for (String s : primitives) {
-                    System.out.println(s);
-                    String name = s.trim().split("\\s+")[0];
-                    String raw = s.substring(s.indexOf(name) + name.length()).trim();
-                    commands.add(new Cmd.Command(name, parseSynopsisInstance(raw)));
+            } else if (lines.get(i).startsWith("type")) {
+                i++;
+                int l = i;
+                while (i < lines.size()) {
+                    if (indentCount(lines.get(i)) == 0 && !lines.get(i).trim().equals(""))
+                        break;
+                    i++;
                 }
+                rawNameToTypes = lines.subList(l, i)
+                        .stream().filter(s -> !s.trim().equals("")).map(s -> s.trim()).collect(Collectors.toList());
+
+            } else if (lines.get(i).startsWith("constant")) {
+                i++;
+                int l = i;
+                while (i < lines.size()) {
+                    if (indentCount(lines.get(i)) == 0 && !lines.get(i).trim().equals(""))
+                        break;
+                    i++;
+                }
+
+                rawConstantToType = lines.subList(l, i)
+                        .stream().filter(s -> !s.trim().equals("")).map(s -> s.trim()).collect(Collectors.toList());
+
+            } else {
+
+                if (! lines.get(i).contains(":=")) {
+                    i ++;
+                    continue;
+                }
+
+                String ntName = lines.get(i).substring(0, lines.get(i).indexOf(":=")).trim();
+
+                i ++;
+                int l = i;
+                while (i < lines.size()) {
+                    if (indentCount(lines.get(i)) == 0 && !lines.get(i).trim().equals(""))
+                        break;
+                    i ++;
+                }
+
+                List<String> nonTerminalContents = lines.subList(l, i)
+                        .stream().filter(s -> !s.trim().equals("")).map(s -> s.trim()).collect(Collectors.toList());
+
+                rawNonTerminals.put(ntName, nonTerminalContents);
             }
-            i ++;
         }
 
+        for (String s : rawConstantToType) {
+            String[] p = s.split("\\s+");
+            constantNameToSymbol.put(p[0], p[1]);
+        }
+
+        for (String s : rawNameToTypes) {
+            String typeName = s.substring(0, s.indexOf("(")).trim();
+            String[] argnames = s.substring(s.indexOf("(") + 1, s.indexOf(")")).split(",");
+            for (String a : argnames) {
+                nameToTypeDict.put(a.trim(), typeName);
+            }
+        }
+
+        Cmd.ConstantArgDict = constantNameToSymbol;
+        Cmd.NameToTypeDict = nameToTypeDict;
+
+        commands = parsePrimitiveGrammar(rawCommands);
+
+
+        for (Map.Entry<String, List<String>> e : rawNonTerminals.entrySet()) {
+            nonTerminals.put(e.getKey(), parseNonTerminalContent(e.getValue()));
+        }
+
+        return new GrammarFile(commands, nonTerminals, nameToTypeDict, constantNameToSymbol);
+
+    }
+
+    public static List<Cmd.Command> parsePrimitiveGrammar(List<String> rawCommands) throws ParseException {
+        List<Cmd.Command> commands = new ArrayList<>();
+        for (String s : rawCommands) {
+            System.out.println(s);
+            String name = s.trim().split("\\s+")[0];
+            String raw = s.substring(s.indexOf(name) + name.length()).trim();
+            commands.add(new Cmd.Command(name, parseSynopsisInstance(raw)));
+        }
         return commands;
+    }
+
+    public static List<Cmd.CmdOp> parseNonTerminalContent(List<String> cmdOpContents) throws ParseException {
+        List<Cmd.CmdOp> options = new ArrayList<>();
+        for (String s : cmdOpContents) {
+            System.out.println(s);
+            String raw = s.trim();
+            options.add(parseSynopsisInstance(raw));
+        }
+        return options;
     }
 
     public static Cmd.ManPage parseFile(File file) throws IOException {
@@ -117,7 +223,6 @@ public class ManParserInterface {
                 }
                 Pair<List<String>, String> name = parseName(lines.subList(l, i));
                 manpage.setName(name.getKey(), name.getValue());
-                continue;
             } else if (i < lines.size() && lines.get(i).startsWith("SYNOPSIS")) {
                 // segmenting the synopsis section
                 int l = i + 1;
