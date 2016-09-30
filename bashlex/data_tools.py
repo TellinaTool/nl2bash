@@ -185,11 +185,11 @@ def ast2list(node, order='dfs', list=None,
              ignore_flag_order=False, arg_type_only=False):
     """Linearize the AST."""
     if order == 'dfs':
-        if arg_type_only and not node.isReservedWord():
+        if arg_type_only and not node.is_reserved():
             list.append(node.kind.upper() + '_' + node.arg_type)
         else:
             list.append(node.symbol)
-        if node.getNumChildren() > 0:
+        if node.get_num_of_children() > 0:
             if node.kind == "headcommand" and ignore_flag_order:
                 children = sorted(node.children, key=lambda x:x.value)
             else:
@@ -240,7 +240,7 @@ def rewrite(ast, temp):
     arg_slots = normalizer.arg_slots(ast)
 
     def rewrite_fun(node):
-        if node.kind == "argument" and not node.arg_type == "ReservedWord":
+        if node.kind == "argument" and not node.is_reserved():
             for i in xrange(len(arg_slots)):
                 if not arg_slots[i][1] \
                     and arg_slots[i][0].arg_type == node.arg_type:
