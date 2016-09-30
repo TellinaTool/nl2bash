@@ -14,16 +14,16 @@ def ignore_differences(cmd):
 
 def label_distance(s1, s2):
     score_list = {
-        "-ls:::":0,
-        ":::-ls":0,
-        "-print:::":0,
-        ":::-print":0,
-        "-print0:::":0,
-        ":::-print0":0,
-        "-name:::-iname":0,
-        "-iname:::-name":0,
-        "-regex:::-iregex":0,
-        "-iregex:::-regex":0
+        "FLAG_-ls:::":0,
+        ":::FLAG_-ls":0,
+        "FLAG_-print:::":0,
+        ":::FLAG_-print":0,
+        "FLAG_-print0:::":0,
+        ":::FLAG_-print0":0,
+        "FLAG_-name:::FLAG_-iname":0,
+        "FLAG_-iname:::FLAG_-name":0,
+        "FLAG_-regex:::FLAG_-iregex":0,
+        "FLAG_-iregex:::FLAG_-regex":0
     }
 
     pair_key = ":::".join((s1, s2))
