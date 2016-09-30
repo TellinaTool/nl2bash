@@ -151,7 +151,7 @@ def special_command_normalization(cmd):
 def attach_to_tree(node, parent):
     node.parent = parent
     node.lsb = parent.get_right_child()
-    parent.addChild(node)
+    parent.add_child(node)
     if node.lsb:
         node.lsb.rsb = node
 
@@ -294,7 +294,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 node.parent.remove_child(rsb)
                 rsb.lsb = None
                 rsb.rsb = None
-                node.addChild(rsb)
+                node.add_child(rsb)
             elif node.associate == UnaryLogicOpNode.LEFT:
                 # change left sibling to child
                 lsb = node.lsb
@@ -314,7 +314,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 node.parent.remove_child(lsb)
                 lsb.lsb = None
                 lsb.rsb = None
-                node.addChild(lsb)
+                node.add_child(lsb)
             else:
                 raise AttributeError("Cannot decide unary operator "
                                      "assocation: {}".format(node.symbok))
