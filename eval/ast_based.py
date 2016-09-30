@@ -1,7 +1,8 @@
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
-import data_tools
+import data_tools, nast
+import zss
 from extract_rewrites import DBConnection
 
 def ignore_differences(cmd):
@@ -12,7 +13,7 @@ def ignore_differences(cmd):
     cmd = cmd.replace('-regex', '-iregex')
     return cmd
 
-def local_distance(s1, s2, skip_argument=False):
+def local_dist(s1, s2, skip_argument=False):
     score_list = {
         "FLAG_-ls:::":0,
         ":::FLAG_-ls":0,
@@ -23,7 +24,15 @@ def local_distance(s1, s2, skip_argument=False):
         "FLAG_-name:::FLAG_-iname":0,
         "FLAG_-iname:::FLAG_-name":0,
         "FLAG_-regex:::FLAG_-iregex":0,
-        "FLAG_-iregex:::FLAG_-regex":0
+        "FLAG_-iregex:::FLAG_-regex":0,
+        "FLAG_-name:::FLAG_-regex":0,
+        "FLAG_-regex:::FLAG_-name":0,
+        "FLAG_-name:::FLAG_-iregex":0,
+        "FLAG_-iregex:::FLAG_-name":0,
+        "FLAG_-iname:::FLAG_-regex":0,
+        "FLAG_-regex:::FLAG_-iname":0,
+        "FLAG_-iname:::FLAG_-iregex":0,
+        "FLAG_-iregex:::FLAG_-iname":0
     }
 
     pair_key = ":::".join((s1, s2))
@@ -39,11 +48,19 @@ def local_distance(s1, s2, skip_argument=False):
             else:
                 return 1
 
-def str_local_distance(s1, s2):
-    return local_distance(s1, s2)
+def str_local_dist(s1, s2):
+    return local_dist(s1, s2)
 
-def temp_local_distance(s1, s2):
-    return local_distance(s1, s2, skip_argument=True)
+def temp_local_dist(s1, s2):
+    return local_dist(s1, s2, skip_argument=True)
+
+def str_dist(ast1, ast2):
+    return zss.simple_distance(ast1, ast2, nast.Node.get_children,
+                               nast.Node.get_label, str_local_dist)
+
+def temp_dist(ast1, ast2):
+    return zss.simple_distance(ast1, ast2, nast.Node.get_children,
+                               nast.Node.get_label, temp_local_dist)
 
 def get_rewrite_templates(temps, db):
     rewrites = set()
@@ -57,37 +74,35 @@ def get_rewrites(asts, db):
         rewrites |= db.get_rewrites(ast)
     return rewrites
 
-def one_template_match(asts, ast2, rewrite=True):
-    temp2 = ignore_differences(
-        data_tools.ast2template(ast2, loose_constraints=True))
-
-    temps = [data_tools.ast2template(ast1, loose_constraints=True)
-             for ast1 in asts]
+def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
     if rewrite:
         with DBConnection() as db:
-            rewrite_temps = get_rewrite_templates(temps, db)
+            ast_rewrites = get_rewrites(asts, db)
     else:
-        rewrite_temps = temps
+        ast_rewrites = asts
 
-    for temp1 in rewrite_temps:
-        temp1 = ignore_differences(temp1)
-        if temp1 == temp2:
-            return True
-    return False
+    min_dist = sys.maxint
+    for ast1 in ast_rewrites:
+        dist = temp_dist(ast1, ast2) if ignore_arg_value else \
+               str_dist(ast1, ast2)
+        if dist < min_dist:
+            min_dist = dist
 
-def one_string_match(asts, ast2, rewrite=True):
+    return min_dist
+
+def one_match(asts, ast2, rewrite=True, ignore_arg_value=False):
+    if rewrite:
+        with DBConnection() as db:
+            ast_rewrites = get_rewrites(asts, db)
+    else:
+        ast_rewrites = asts
+
     cmd2 = ignore_differences(data_tools.ast2template(
-        ast2, loose_constraints=True, arg_type_only=False))
+        ast2, loose_constraints=True, arg_type_only=ignore_arg_value))
 
-    if rewrite:
-        with DBConnection() as db:
-            rewrites = get_rewrites(asts, db)
-    else:
-        rewrites = asts
-
-    for ast1 in rewrites:
+    for ast1 in ast_rewrites:
         cmd1 = data_tools.ast2template(
-            ast1, loose_constraints=True, arg_type_only=False)
+            ast1, loose_constraints=True, arg_type_only=ignore_arg_value)
         cmd1 = ignore_differences(cmd1)
         if cmd1 == cmd2:
             return True
