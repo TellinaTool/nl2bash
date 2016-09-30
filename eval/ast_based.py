@@ -30,7 +30,10 @@ def label_distance(s1, s2):
     if pair_key in score_list:
         return score_list[pair_key]
     else:
-        return 1
+        if s1 == s2:
+            return 0
+        else:
+            return 1
 
 def get_rewrite_templates(temps, db):
     rewrites = set()
