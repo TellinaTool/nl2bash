@@ -71,8 +71,7 @@ def type_check(word, possible_types):
 
 def is_unary_logic_op(node, parent):
     if node.word == "!":
-        return parent and parent.kind == "headcommand" \
-               and parent.value == "find"
+        return parent and parent.is_command("find")
     return node.word in right_associate_unary_logic_operators \
            or node.word in left_associate_unary_logic_operators
 
@@ -159,7 +158,7 @@ def attach_to_tree(node, parent):
 def detach_from_tree(node, parent):
     if not parent:
         return
-    parent.removeChild(node)
+    parent.remove_child(node)
     node.parent = None
     if node.lsb:
         node.lsb.rsb = node.rsb
@@ -292,7 +291,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     unprocessed_unary_logic_ops.append(node)
                     return
                 make_sibling(node, rsb.rsb)
-                node.parent.removeChild(rsb)
+                node.parent.remove_child(rsb)
                 rsb.lsb = None
                 rsb.rsb = None
                 node.addChild(rsb)
@@ -312,7 +311,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     # it is often triggered by the bizarreness of -prune
                     return
                 make_sibling(lsb.lsb, node)
-                node.parent.removeChild(lsb)
+                node.parent.remove_child(lsb)
                 lsb.lsb = None
                 lsb.rsb = None
                 node.addChild(lsb)
@@ -325,7 +324,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             if node.parent.kind == "binarylogicop" \
                     and node.parent.value == "-and":
                 if node.parent.get_num_of_children() == 1:
-                    node.grandparent().replaceChild(node.parent, node)
+                    node.grandparent.replace_child(node.parent, node)
 
         def adjust_binary_operators(node):
             # change right sibling to Child
@@ -347,20 +346,20 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
             make_sibling(node, rsb.rsb)
             make_sibling(lsb.lsb, node)
-            node.parent.removeChild(rsb)
-            node.parent.removeChild(lsb)
+            node.parent.remove_child(rsb)
+            node.parent.remove_child(lsb)
             rsb.rsb = None
             lsb.lsb = None
 
             if lsb.kind == "binarylogicop" and lsb.value == node.value:
                 for lsbc in lsb.children:
-                    make_parentchild(node, lsbc)
-                make_parentchild(node, rsb)
+                    make_parent_child(node, lsbc)
+                make_parent_child(node, rsb)
                 lsbcr = lsb.getRightChild()
                 make_sibling(lsbcr, rsb)
             else:
-                make_parentchild(node, lsb)
-                make_parentchild(node, rsb)
+                make_parent_child(node, lsb)
+                make_parent_child(node, rsb)
                 make_sibling(lsb, rsb)
 
             # resolve single child of binary operators left as the result of
@@ -368,7 +367,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             if node.parent.kind == "binarylogicop" \
                     and node.parent.value == "-and":
                 if node.parent.get_num_of_children() == 1:
-                    node.grandparent().replaceChild(node.parent, node)
+                    node.grandparent.replace_child(node.parent, node)
 
         def attach_flag(node, attach_point_info):
             attach_point = attach_point_info[0]
@@ -556,16 +555,16 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             # popping pushed states off the stack
             popped = stack.pop()
             while (popped.value != "("):
-                head_command.removeChild(popped)
+                head_command.remove_child(popped)
                 popped = stack.pop()
             lparenth = popped
             if not rparenth:
                 # unbalanced brackets
                 rparenth = ArgumentNode(value=")")
-                make_parentchild(stack_top.parent, rparenth)
+                make_parent_child(stack_top.parent, rparenth)
                 make_sibling(stack_top, rparenth)
             new_child = organize_buffer(lparenth, rparenth)
-            i = head_command.substituteParentheses(lparenth, rparenth,
+            i = head_command.substitute_parentheses(lparenth, rparenth,
                                                    new_child)
             depth -= 1
             if depth > 0:
@@ -826,7 +825,7 @@ def prune_ast(node):
             else:
                 prune_ast_fun(child)
         for child in to_remove:
-            node.removeChild(child)
+            node.remove_child(child)
     if not node:
         return None
     node = copy.deepcopy(node)
