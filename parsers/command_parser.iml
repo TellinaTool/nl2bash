@@ -5,9 +5,10 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="antlr-4.5.3-complete (2)" level="project" />
-    <orderEntry type="library" name="jackson-annotations-2.7.0" level="project" />
+    <orderEntry type="library" exported="" name="antlr-4.5.3-complete (2)" level="project" />
+    <orderEntry type="library" exported="" name="jackson-annotations-2.7.0" level="project" />
+    <orderEntry type="library" name="antlr-4.5.3-complete" level="project" />
   </component>
 </module>
