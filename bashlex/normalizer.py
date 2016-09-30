@@ -150,7 +150,7 @@ def special_command_normalization(cmd):
 
 def attach_to_tree(node, parent):
     node.parent = parent
-    node.lsb = parent.getRightChild()
+    node.lsb = parent.get_right_child()
     parent.addChild(node)
     if node.lsb:
         node.lsb.rsb = node
@@ -355,7 +355,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 for lsbc in lsb.children:
                     make_parent_child(node, lsbc)
                 make_parent_child(node, rsb)
-                lsbcr = lsb.getRightChild()
+                lsbcr = lsb.get_right_child()
                 make_sibling(lsbcr, rsb)
             else:
                 make_parent_child(node, lsb)
@@ -399,7 +399,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             arg_type = man_lookup.get_flag_arg_type(head_cmd, flag)
             if arg_type:
                 # flag is expecting an argument
-                attach_point = attach_point.getRightChild()
+                attach_point = attach_point.get_right_child()
                 return (attach_point, ["argument"], [arg_type])
             else:
                 # flag does not take arguments
