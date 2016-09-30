@@ -12,7 +12,7 @@ def ignore_differences(cmd):
     cmd = cmd.replace('-regex', '-iregex')
     return cmd
 
-def local_distance(s1, s2, ignore_arg=False):
+def local_distance(s1, s2, skip_argument=False):
     score_list = {
         "FLAG_-ls:::":0,
         ":::FLAG_-ls":0,
@@ -33,13 +33,17 @@ def local_distance(s1, s2, ignore_arg=False):
         if s1 == s2:
             return 0
         else:
-            if s1.startswith("ARGUMENT_") and s2.startswith("ARGUMENT_") and ignore_arg:
+            if s1.startswith("ARGUMENT_") and s2.startswith("ARGUMENT_") \
+                    and skip_argument:
                 return 0
             else:
                 return 1
 
 def str_local_distance(s1, s2):
+    return local_distance(s1, s2)
 
+def temp_local_distance(s1, s2):
+    return local_distance(s1, s2, skip_argument=True)
 
 def get_rewrite_templates(temps, db):
     rewrites = set()
