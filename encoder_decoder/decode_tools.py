@@ -148,7 +148,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                                          os.path.join(FLAGS.train_dir, "{}-{}.jpg".format(bucket_id, batch_id)))
 
 
-def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
+def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
     """
     Simple command line decoding interface.
     """
