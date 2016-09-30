@@ -251,7 +251,7 @@ def test_ted():
         ast2 = data_tools.bash_parser(cmd2)
         dist = zss.simple_distance(
             ast1, ast2, nast.Node.get_children, nast.Node.get_label,
-            ast_based.label_distance
+            ast_based.temp_local_distance
         )
         print("ted = {}".format(dist))
         print()
