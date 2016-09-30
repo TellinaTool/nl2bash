@@ -1,5 +1,4 @@
 import os, sys
-import re
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
 import data_tools
@@ -12,6 +11,26 @@ def ignore_differences(cmd):
     cmd = cmd.replace('-name', '-iname')
     cmd = cmd.replace('-regex', '-iregex')
     return cmd
+
+def label_distance(s1, s2):
+    score_list = {
+        "-ls:::":0,
+        ":::-ls":0,
+        "-print:::":0,
+        ":::-print":0,
+        "-print0:::":0,
+        ":::-print0":0,
+        "-name:::-iname":0,
+        "-iname:::-name":0,
+        "-regex:::-iregex":0,
+        "-iregex:::-regex":0
+    }
+
+    pair_key = ":::".join((s1, s2))
+    if pair_key in score_list:
+        return score_list[pair_key]
+    else:
+        return 1
 
 def get_rewrite_templates(temps, db):
     rewrites = set()
@@ -47,15 +66,13 @@ def one_string_match(asts, ast2, rewrite=True):
     cmd2 = ignore_differences(data_tools.ast2template(
         ast2, loose_constraints=True, arg_type_only=False))
 
-    cmds = [data_tools.ast2command(ast1, loose_constraints=True)
-            for ast1 in asts]
     if rewrite:
         with DBConnection() as db:
-            rewrite_cmds = get_rewrites(asts, db)
+            rewrites = get_rewrites(asts, db)
     else:
-        rewrite_cmds = asts
+        rewrites = asts
 
-    for ast1 in rewrite_cmds:
+    for ast1 in rewrites:
         cmd1 = data_tools.ast2template(
             ast1, loose_constraints=True, arg_type_only=False)
         cmd1 = ignore_differences(cmd1)

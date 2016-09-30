@@ -22,7 +22,7 @@ binary_logic_operators \
         '-a'
     ])
 
-def make_parentchild(parent, child):
+def make_parent_child(parent, child):
     parent.addChild(child)
     child.parent = parent
 
@@ -101,7 +101,7 @@ class Node(object):
     def replace_child(self, child, new_child):
         new_child.parent = child.parent
         index = self.children.index(child)
-        self.removeChild(child)
+        self.remove_child(child)
         self.children.insert(index, new_child)
         make_sibling(child.lsb, new_child)
         make_sibling(new_child, child.rsb)
@@ -113,8 +113,8 @@ class Node(object):
         make_sibling(lp.lsb, new_child)
         make_sibling(new_child, rp.rsb)
         index = self.children.index(lp)
-        self.removeChild(lp)
-        self.removeChild(rp)
+        self.remove_child(lp)
+        self.remove_child(rp)
         self.children.insert(index, new_child)
         return index
 
@@ -226,3 +226,4 @@ class ProcessSubstitutionNode(Node):
             self.value = value
         else:
             raise ValueError("Value of a processsubstitution has to be '<' or '>'.")
+
