@@ -13,7 +13,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 
 import data_utils, data_tools
-import ast_based
+import nast
+import ast_based, zss
 from eval_archive import DBConnection
 
 
@@ -77,7 +78,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                     print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
                     # print("AST: ")
                     # data_tools.pretty_print(tree, 0)
-                    print()
+            print()
             if top1_correct_temp:
                 num_top1_correct_temp += 1
             if top5_correct_temp:
@@ -240,4 +241,20 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
         o_f.write("Top 10 Template Match Score = %.2f" % (num_top10_correct_temp/num_eval) + "\n")
         o_f.write("Top 10 String Match Score = %.2f" % (num_top10_correct/num_eval) + "\n")
     o_f.write("\n")
+
+def test_ted():
+    while True:
+        cmd1 = raw_input(">cmd1: ")
+        cmd2 = raw_input(">cmd2: ")
+        ast1 = data_tools.bash_parser(cmd1)
+        ast2 = data_tools.bash_parser(cmd2)
+        dist = zss.simple_distance(
+            ast1, ast2, nast.Node.get_children, nast.Node.symbol,
+            ast_based.label_distance
+        )
+        print("ted = {}".format(dist))
+        print()
+
+if __name__ == "__main__":
+    test_ted()
 

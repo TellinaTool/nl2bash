@@ -6,7 +6,7 @@ import functools
 import random
 import re
 import sqlite3
-import os, sys
+import sys
 sys.path.append("..")
 sys.path.append("../../bashlex")
 import warnings
