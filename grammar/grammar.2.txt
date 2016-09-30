@@ -9,14 +9,14 @@ type
 		TarFormat (tar_format)
 
 constants
-		SEMICOLON ;
+		SEMICOLON \;
 		PLUS +
-		EXCLAMATION !
-		BRACKETS {}
+		EXCLAMATION \!
+		BRACKETS \{\}
 		ACE ACE
-		LB (
-		RB )
-		{} {}
+		LB \(
+		RB \)
+		{} \{\}
 
 PrimitiveCmd :=
 
@@ -124,10 +124,8 @@ find_primitive_exp :=
 		-depth
 		-depth n
 		-empty 
-		-exec utility [ argument ... ] SEMICOLON 
-		-exec utility [ argument ...] BRACKETS ...
-		-execdir utility [ argument ... ] SEMICOLON 
-		-execdir utility [ argument ... ] 
+		-exec command SEMICOLON 
+		-execdir command SEMICOLON 
 		-flags MINUSflags
 		-flags PLUSflags
 		-flags flags
@@ -158,8 +156,8 @@ find_primitive_exp :=
 		-noignore_readdir_race
 		-noleaf
 		-nouser
-		-ok utility [ argument ... ] SEMICOLON
-		-okdir utility [ argument ...] SEMICOLON
+		-ok command SEMICOLON
+		-okdir command SEMICOLON
 		-path pattern
 		-perm permmode
 		-perm MINUSpermmode
