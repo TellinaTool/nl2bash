@@ -195,8 +195,8 @@ def ast2list(node, order='dfs', list=None,
             else:
                 children = node.children
             for child in children:
-                ast2list(child, order, ignore_flag_order,
-                         arg_type_only, list)
+                ast2list(child, order, list,
+                         ignore_flag_order, arg_type_only)
             list.append(normalizer._H_NO_EXPAND)
         else:
             list.append(normalizer._V_NO_EXPAND)
@@ -269,7 +269,7 @@ if __name__ == "__main__":
             print("Pruned AST:")
             pretty_print(pruned_tree, 0)
             # print(to_command(norm_tree))
-            search_history = ast2list(norm_tree, 'dfs', [])
+            search_history = ast2list(norm_tree, 'dfs', list=[])
             for state in search_history:
                 print(state)
             tree = list2ast(search_history + ['<PAD>'])
