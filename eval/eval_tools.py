@@ -55,7 +55,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                 pred_cmd, score = predictions[i]
                 tree = data_tools.bash_parser(pred_cmd)
                 # evaluation ignoring flag orders
-                if ast_based.one_template_match(gt_trees, tree):
+                if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
                     if i < 1:
                         top1_correct_temp = True
                         top5_correct_temp = True
@@ -65,7 +65,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                         top10_correct_temp = True
                     elif i < 10:
                         top10_correct_temp = True
-                if ast_based.one_string_match(gt_trees, tree):
+                if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
                     if i < 1:
                         top1_correct = True
                         top5_correct = True
@@ -161,7 +161,8 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                     judgement_str = "y" if temp_judge else "n"
                     print("Correct template [y/n]: %s" % judgement_str)
                 else:
-                    temp_judge = ast_based.one_template_match(gt_trees, tree, rewrite=False)
+                    temp_judge = ast_based.one_match(gt_trees, tree, rewrite=False,
+                                                     ignore_arg_value=True)
                     if not temp_judge:
                         inp = raw_input("Correct template [y/n]: ")
                         if inp == "y":
@@ -187,7 +188,8 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                         judgement_str = "y" if str_judge else "n"
                         print("Correct command [y/n]: %s" % judgement_str)
                     else:
-                        str_judge = ast_based.one_string_match(gt_trees, tree, rewrite=False)
+                        str_judge = ast_based.one_match(gt_trees, tree, rewrite=False,
+                                                        ignore_arg_value=False)
                         if not str_judge:
                             inp = raw_input("Correct command [y/n]: ")
                             if inp == "y":
@@ -251,7 +253,7 @@ def test_ted():
         ast2 = data_tools.bash_parser(cmd2)
         dist = zss.simple_distance(
             ast1, ast2, nast.Node.get_children, nast.Node.get_label,
-            ast_based.temp_local_distance
+            ast_based.temp_local_dist
         )
         print("ted = {}".format(dist))
         print()
