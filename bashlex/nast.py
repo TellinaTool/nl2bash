@@ -66,6 +66,9 @@ class Node(object):
     def get_children(self):
         return self.children
 
+    def get_label(self):
+        return self.kind.upper() + "_" + self.value
+    
     def get_left_child(self):
         if len(self.children) >= 1:
             return self.children[0]
