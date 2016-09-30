@@ -15,7 +15,7 @@ public class Main {
         if (args.length < 2) {
             System.out.println("usage: java -jar command_parser -parse command");
             System.out.println("       java -jar command_parser -parse_file filename");
-            // System.out.println("       java -jar command_parser -make_grammar grammar_file");
+            //System.out.println("       java -jar command_parser -make_grammar grammar_file");
             return;
         }
 

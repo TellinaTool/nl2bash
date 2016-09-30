@@ -555,7 +555,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             sys.exit()
 
         head_command = head_commands[0]
-        # pretty_print(head_command)
 
         # process (embedded) parenthese -- treat as implicit "-and"
         stack = []
