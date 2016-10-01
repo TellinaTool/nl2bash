@@ -24,7 +24,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
 from data_tools import basic_tokenizer, bash_tokenizer, char_tokenizer
-import data_tools, normalizer
+import bash, data_tools, normalizer
 
 import tensorflow as tf
 
@@ -67,13 +67,22 @@ def is_option(word):
     return word.startswith('-') or word.startswith("FLAG_")
 
 
+def is_simple(ast):
+    # Check if tree contains only high-frequency commands
+    if ast.kind == "headcommand" and not ast.value in bash.head_commands:
+        return False
+    for child in ast.children:
+        if not is_simple(child):
+            return False
+    return True
+
+
 def clean_dir(dir):
     for f_name in os.listdir(dir):
         f_path = os.path.join(dir, f_name)
         try:
             if os.path.isfile(f_path):
                 os.unlink(f_path)
-            #elif os.path.isdir(file_path): shutil.rmtree(file_path)
         except Exception as e:
             print(e)
 

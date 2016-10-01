@@ -7,7 +7,7 @@ import collections
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
-import data_tools
+import data_tools, normalizer
 import sqlite3
 
 class DBConnection(object):
@@ -60,6 +60,32 @@ class DBConnection(object):
                            (s1, s2)):
             return True
         return False
+
+
+def rewrite(ast, temp):
+    """Rewrite an AST into one using the given template."""
+    arg_slots = normalizer.arg_slots(ast)
+
+    def rewrite_fun(node):
+        if node.kind == "argument" and not node.is_reserved():
+            for i in xrange(len(arg_slots)):
+                if not arg_slots[i][1] and arg_slots[i][0].arg_type == node.arg_type:
+                    node.value = arg_slots[i][0].value
+                    arg_slots[i][1] = True
+                    break
+        else:
+            for child in node.children:
+                rewrite_fun(child)
+
+    # This is heuristically implemented in two steps.
+    # Step 1 constructs an AST using the given template.
+    # Step 2 fills the argument slots in the new AST using the argument
+    #        slot from the original AST.
+    ast2 = normalizer.normalize_ast(temp)
+    rewrite_fun(ast2)
+
+    return ast2
+
 
 def extract_rewrites(data):
     nls, cms = data

@@ -1,22 +1,22 @@
-type ::= 
-		File (file, source_file, target_file, xfile, file1, file2)
-		Directory (directory, exdir)
-		Path (path)
-
-		String (name, gname, eofstr, replstr, string, command, extension, option, uname, owner)
-		Pattern (pattern, prog)
-
-		Number (n, num, number, replacements, maxprocs, incr, bytes, count, mask)
-		Time (time, nmin)
+type
+		File (f, file, source_file, target_file, xfile, file1, file2, filename, directory, exdir, dir, path, progfile, command_file, zipfile, archive-file)
+		Number (n, num, number, replacements, maxprocs, incr, bytes, count, mask, depth, MINUSa, PLUSa, EQUALa, nmin, a)
+		Permission (permmode, MINUSpermmode, PLUSpermmode)
+		String (name, gname, eofstr, replstr, string, command, extension, option, uname, owner, MINUSflags, PLUSflags, flags, type, t, findexp, tar_format, options, program, format, varEQvalue, prog, owner, first, last, suffixes, list, pattern, fs, argument, utility)
+		Time (time, date)
 		Size (size, blocksize)
 		Date (date)
-
-		Permission (permmode)
-
 		TarFormat (tar_format)
 
-		Utility (utility)
-		Argument (argument)
+constants
+		SEMICOLON ;
+		PLUS +
+		EXCLAMATION !
+		BRACKETS {}
+		ACE ACE
+		LB (
+		RB )
+		{} {}
 
 PrimitiveCmd ::=
 
@@ -34,9 +34,9 @@ PrimitiveCmd ::=
 
 		egrep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
 				
-		cp [-R [-H | -L | -P]] [ [-fi] | [-n]] [-apvX] source_file target_file
+		cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] source_file target_file
 				
-		cp [-R [-H | -L | -P]] [ [-fi] | [-n]] [-apvX] source_file ... directory
+		cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] source_file ... directory
 				
 		ls [-ABCFGHLOPRSTUW@abcdefghiklmnopqrstuwx1] [file ...]
 

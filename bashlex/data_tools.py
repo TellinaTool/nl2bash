@@ -12,8 +12,9 @@ import re
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "data"))
 
-import bash, normalizer
-import gazetteer, spell_check
+import normalizer
+import gazetteer
+import spellcheck,spell_check as spc
 
 from nltk.stem.wordnet import WordNetLemmatizer
 lmtzr = WordNetLemmatizer()
@@ -24,12 +25,17 @@ _WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
 _SPACE = b"<SPACE>"
 
+def is_english_word(word):
+    """Check if a token is normal English word."""
+    return bool(re.match('[A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
+
 def is_stopword(w):
     return w in gazetteer.ENGLISH_STOPWORDS
 
 def char_tokenizer(sentence, base_tokenizer=None, normalize_digits=False,
                    normalize_long_pattern=False):
     if base_tokenizer:
+        # normalization is not needed for character model
         tokens = base_tokenizer(sentence, normalize_digits=False,
                                 normalize_long_pattern=False)
     else:
@@ -97,7 +103,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         # spelling correction
         if word.isalpha() and word.islower() and len(word) > 2:
             old_w = word
-            word = spell_check.correction(word)
+            word = spc.correction(word)
             if word != old_w:
                 print("spell correction: {} -> {}".format(old_w, word))
 
@@ -115,7 +121,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             word = str(gazetteer.word2num[word])
 
         # normalize regular expressions
-        if not bash.is_english_word(word):
+        if not is_english_word(word):
             # msg = word + ' -> '
             if not word.startswith('"'):
                 word = '"' + word
@@ -131,10 +137,10 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             except AssertionError, e:
                 print("Quotation Error: space inside word " + sentence)
             if normalize_long_pattern:
-                word = bash._LONG_PATTERN
+                word = normalizer._LONG_PATTERN
 
         # normalize digits
-        word = re.sub(bash._DIGIT_RE, bash._NUM, word) \
+        word = re.sub(normalizer._DIGIT_RE, normalizer._NUM, word) \
             if normalize_digits and not word.startswith("-") else word
 
         # remove empty words
@@ -175,15 +181,15 @@ def pretty_print(node, depth=0):
         print("    " * depth)
 
 
-def ast2list(node, order='dfs', ignore_flag_order=False,
-             arg_type_only=False, list=None):
+def ast2list(node, order='dfs', list=None,
+             ignore_flag_order=False, arg_type_only=False):
     """Linearize the AST."""
     if order == 'dfs':
-        if arg_type_only and not node.isReservedWord():
+        if arg_type_only and not node.is_reserved():
             list.append(node.kind.upper() + '_' + node.arg_type)
         else:
             list.append(node.symbol)
-        if node.getNumChildren() > 0:
+        if node.get_num_of_children() > 0:
             if node.kind == "headcommand" and ignore_flag_order:
                 children = sorted(node.children, key=lambda x:x.value)
             else:
@@ -228,27 +234,6 @@ def cmd2template(cmd, normalize_digits=True, normalize_long_pattern=True,
     tree = normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,
                          recover_quotation)
     return ast2template(tree, loose_constraints, arg_type_only)
-
-
-def rewrite(ast, temp):
-    arg_slots = normalizer.arg_slots(ast)
-
-    def rewrite_fun(node):
-        if node.kind == "argument" and not node.arg_type == "ReservedWord":
-            for i in xrange(len(arg_slots)):
-                if not arg_slots[i][1] \
-                    and arg_slots[i][0].arg_type == node.arg_type:
-                    node.value = arg_slots[i][0].value
-                    arg_slots[i][1] = True
-                    break
-        else:
-            for child in node.children:
-                rewrite_fun(child)
-
-    ast2 = normalizer.normalize_ast(temp)
-    rewrite_fun(ast2)
-
-    return ast2
 
 
 if __name__ == "__main__":
