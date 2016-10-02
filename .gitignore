@@ -48,6 +48,9 @@ manual.eval.results*
 .idea
 *.iml
 
+# production of intellij project
+parsers/out/production/*
+
 # User-specific stuff:
 baselines/man-parser/.idea/*
 
