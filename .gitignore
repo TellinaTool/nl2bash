@@ -46,6 +46,7 @@ manual.eval.results*
 
 # ideaJ file
 .idea
+*.iml
 
 # User-specific stuff:
 baselines/man-parser/.idea/*

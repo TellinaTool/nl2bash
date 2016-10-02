@@ -12,7 +12,10 @@ import java.nio.file.Paths;
 public class Main {
 
     public static void main(String[] args) throws IOException, ParseException {
-        if (args.length < 2) {
+
+        testParseCmd();
+
+        if (args.length < 1) {
             System.out.println("usage: java -jar command_parser -parse command");
             System.out.println("       java -jar command_parser -parse_file filename");
             //System.out.println("       java -jar command_parser -make_grammar grammar_file");
@@ -20,7 +23,7 @@ public class Main {
         }
 
         if (args[0].equals("-make_grammar")) {
-            Config.SynopsisGrammar = args[1];
+            //Config.SynopsisGrammar = args[1];
             String g4 = genG4FromSynopsis();
             System.out.println(g4);
         } else if (args[0].equals("-parse")) {
@@ -50,8 +53,15 @@ public class Main {
         String[] cmds = {
             "mv -f -v ./src/file.text ./src/file.text2 ../../dst",
             "find . -name '*~' -print0",
-            "find . -exec util {} -name \"*java*\" ",
-            "find xargstest/ -name 'file??'"
+            "find . -exec mv -f -v ./src/file.text ./src/file.text2 {} ; -name \"*java*\" ",
+            "find xargstest/ -name 'file??'",
+                "find . -name *.txt -type d",
+                "find . -type d -name *.txt",
+                "find . -name $( echo hello.txt )",
+                "find . -name \"my_name_is_red.txt\"",
+                "find . -not -name \"*.txt\"",
+                "find . -name \"*.txt\" -prune -type d",
+                "find . -name *.jpg -or -name *.txt"
         };
 
         for (String cmd : cmds) {
