@@ -35,6 +35,7 @@ __pycache__
 baselines/man-parser/.idea/*
 
 # Misc
+MANIFEST
 .DS_Store
 *.key
 eval.*
