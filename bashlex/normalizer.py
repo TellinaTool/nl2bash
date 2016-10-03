@@ -1012,6 +1012,6 @@ if __name__ == "__main__":
         except AttributeError, e:
             print(e)
         """
-        cmd = ' '.join(normalize_ast(cmd).to_tokens())
+        cmd = ' '.join(to_tokens(normalize_ast(cmd)))
         o_f.write(cmd.strip() + '\n')
 
