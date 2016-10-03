@@ -1003,6 +1003,7 @@ if __name__ == "__main__":
     for cmd in i_f.readlines():
         cmd = cmd.strip()
         cmd = special_command_normalization(cmd)
+<<<<<<< HEAD
         try:
             str = ''
             for token in tokenizer.split(cmd):
@@ -1012,4 +1013,10 @@ if __name__ == "__main__":
             print(e)
         except AttributeError, e:
             print(e)
+=======
+        # str = ''
+        # for token in tokenizer.split(cmd):
+        #     str += cmd + ' '
+        o_f.write(cmd.strip() + '\n')
+>>>>>>> 7f5692185046ebea4f887dbeae747e770601ff87
 
