@@ -128,6 +128,7 @@ def special_command_normalization(cmd):
         cmd = cmd.replace("\xd0\xbe".decode('utf-8'), "o") 
         cmd = cmd.replace('‘'.decode('utf-8'), '\'')
         cmd = cmd.replace('’'.decode('utf-8'), '\'')
+    cmd = re.sub("-prin($| )", '-print', cmd)
         
     ## remove shell character
     if cmd.startswith("\$ "):
