@@ -1002,7 +1002,7 @@ if __name__ == "__main__":
 
     for cmd in i_f.readlines():
         cmd = cmd.strip()
-        cmd = special_command_normalization(cmd)
+        cmd = ' '.join(normalize_ast(cmd).to_tokens())
         # str = ''
         # for token in tokenizer.split(cmd):
         #     str += cmd + ' '
