@@ -124,8 +124,8 @@ find_primitive_exp :=
 		-depth
 		-depth n
 		-empty 
-		-exec command SEMICOLON 
-		-execdir command SEMICOLON 
+		-exec :command: SEMICOLON 
+		-execdir :command: SEMICOLON 
 		-flags MINUSflags
 		-flags PLUSflags
 		-flags flags
