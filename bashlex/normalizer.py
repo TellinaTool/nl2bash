@@ -143,9 +143,9 @@ def special_command_normalization(cmd):
     tar_fix = re.compile(' tar \w')
     if cmd.startswith('tar'):
         cmd = ' ' + cmd
-        for w in re.findall(tar_fix, cmd):
-            cmd = cmd.replace(w, w.replace('tar ', 'tar -'))
-        cmd = cmd.strip()
+    for w in re.findall(tar_fix, cmd):
+        cmd = cmd.replace(w, w.replace(' tar ', ' tar -'))
+    cmd = cmd.strip()
     return cmd
 
 def attach_to_tree(node, parent):
