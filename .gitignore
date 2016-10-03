@@ -47,6 +47,10 @@ manual.eval.results*
 
 # ideaJ file
 .idea
+*.iml
+
+# production of intellij project
+parsers/out/production/*
 
 # User-specific stuff:
 baselines/man-parser/.idea/*
