@@ -129,12 +129,20 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                 num_top5_correct += 1
             if top10_correct:
                 num_top10_correct += 1
+
             total_top1_temp_dist += top1_temp_dist
             total_top5_temp_dist += top5_temp_dist
             total_top10_temp_dist += top10_temp_dist
             total_top1_dist += top1_dist
             total_top5_dist += top5_dist
             total_top10_dist += top10_dist
+
+            print("top1_temp_dist = {}".format(top1_temp_dist))
+            print("top5_temp_dist = {}".format(top5_temp_dist))
+            print("top10_temp_dist = {}".format(top10_temp_dist))
+            print("top1_dist = {}".format(top1_dist))
+            print("top5_dist = {}".format(top5_dist))
+            print("top10_dist = {}".format(top10_dist))
 
     #TODO: compute top-K matching scores
     top1_temp_match_score = num_top1_correct_temp / num_eval
