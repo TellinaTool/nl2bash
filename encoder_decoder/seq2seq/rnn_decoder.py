@@ -81,6 +81,8 @@ class RNNDecoder(decoder.Decoder):
                             # [self.batch_size * self.beam_size, num_classes]
                             projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                             output_symbol = tf.argmax(projected_output, 1)
+                            print(past_output_symbols.dtype)
+                            print(output_symbol.dtype)
                             past_output_symbols = tf.concat(1, [past_output_symbols,
                                                                 tf.expand_dims(output_symbol, 1)])
                             input = tf.cast(output_symbol, dtype=tf.int32)
