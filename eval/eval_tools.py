@@ -67,6 +67,8 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                 # evaluation ignoring flag orders
                 min_temp_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=True)
                 min_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=False)
+                print("min_temp_dist = {}".format(min_temp_dist))
+                print("min_dist = {}".format(min_dist))
                 if i < 1:
                     if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
                         top1_correct_temp = True
@@ -137,12 +139,12 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
             total_top5_dist += top5_dist
             total_top10_dist += top10_dist
 
-            print("top1_temp_dist = {}".format(top1_temp_dist))
-            print("top5_temp_dist = {}".format(top5_temp_dist))
-            print("top10_temp_dist = {}".format(top10_temp_dist))
-            print("top1_dist = {}".format(top1_dist))
-            print("top5_dist = {}".format(top5_dist))
-            print("top10_dist = {}".format(top10_dist))
+            # print("top1_temp_dist = {}".format(top1_temp_dist))
+            # print("top5_temp_dist = {}".format(top5_temp_dist))
+            # print("top10_temp_dist = {}".format(top10_temp_dist))
+            # print("top1_dist = {}".format(top1_dist))
+            # print("top5_dist = {}".format(top5_dist))
+            # print("top10_dist = {}".format(top10_dist))
 
     #TODO: compute top-K matching scores
     top1_temp_match_score = num_top1_correct_temp / num_eval
