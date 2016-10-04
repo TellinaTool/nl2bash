@@ -88,6 +88,9 @@ def is_binary_logic_op(node, parent):
             return True
         else:
             return False
+    if node.word == ',':
+        if parent and parent.is_command("find"):
+            return True
     return node.word in binary_logic_operators
 
 def special_command_normalization(cmd):
@@ -430,14 +433,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     norm_node = UnaryLogicOpNode(child.word)
                     attach_to_tree(norm_node, attach_point)
                     unary_logic_ops.append(norm_node)
-                elif child.word in binary_logic_operators:
-                    if is_binary_logic_op(child, attach_point):
-                        norm_node = BinaryLogicOpNode(child.word)
-                        attach_to_tree(norm_node, attach_point)
-                        binary_logic_ops.append(norm_node)
-                    else:
-                        attach_point_info = \
-                            attach_flag(child, attach_point_info)
+                elif is_binary_logic_op(child, attach_point):
+                    norm_node = BinaryLogicOpNode(child.word)
+                    attach_to_tree(norm_node, attach_point)
+                    binary_logic_ops.append(norm_node)
                 else:
                     if child.word == "--" and not attach_point.is_command("awk"):
                         attach_point_info = (attach_point_info[0],
@@ -860,7 +859,7 @@ def list_to_ast(list, order='dfs'):
             symbol = list[i]
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
                 current = current.parent
-                if current and current.is_headcomand():
+                if current and current.is_headcommand():
                     arg_status_stack.pop()
             else:
                 kind, value = symbol.split('_', 1)
