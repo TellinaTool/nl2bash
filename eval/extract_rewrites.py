@@ -50,7 +50,7 @@ class DBConnection(object):
         s1 = data_tools.ast2template(ast, loose_constraints=True)
         c = self.cursor
         for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", (s1,)):
-            rewrites.add(data_tools.rewrite(ast, s2))
+            rewrites.add(rewrite(ast, s2))
         return rewrites
 
     def exist_rewrite(self, pair):
