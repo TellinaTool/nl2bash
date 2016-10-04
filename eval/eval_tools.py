@@ -35,7 +35,6 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
         for nl_temp in grouped_dataset:
             nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_temp]
             nl_str = nl_strs[0]
-            nl = nls[0]
 
             gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
 
@@ -129,7 +128,6 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
         for i in xrange(len(grouped_dataset)):
             nl_strs, cm_strs, nls, search_historys = grouped_dataset[i]
             nl_str = nl_strs[0]
-            nl = nls[0]
 
             if num_evaled == num_eval:
                 break

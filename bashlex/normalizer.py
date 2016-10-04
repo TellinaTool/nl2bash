@@ -128,6 +128,7 @@ def special_command_normalization(cmd):
         cmd = cmd.replace("\xd0\xbe".decode('utf-8'), "o") 
         cmd = cmd.replace('‘'.decode('utf-8'), '\'')
         cmd = cmd.replace('’'.decode('utf-8'), '\'')
+
     cmd = re.sub("-prin($| )", '-print', cmd)
         
     ## remove shell character
@@ -188,7 +189,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     def normalize_word(node, kind, norm_digit, norm_long_pattern,
                        recover_quote, arg_type=""):
         w = recover_quotation(node) if recover_quote else node.word
-        if kind == "argument" and arg_type != "Permission":
+        if kind == "argument":
             if ' ' in w:
                 try:
                     assert(w.startswith('"') and w.endswith('"'))
@@ -213,7 +214,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
     def normalize_argument(node, current, arg_type):
         value = normalize_word(node, "argument", normalize_digits,
-                normalize_long_pattern, recover_quotation, arg_type=arg_type)
+                               normalize_long_pattern, recover_quotation,
+                               arg_type=arg_type)
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
         attach_to_tree(norm_node, current)
         return norm_node
@@ -307,7 +309,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if lsb.value == ")":
                     unprocessed_unary_logic_ops.append(node)
                     return
-                if lsb.value == "(":
+                if (lsb.kind == "binarylogicop" and lsb.get_num_of_children() < 2) \
+                        or lsb.value == "(":
                     # TODO: this corner case is not handled very well
                     # it is often triggered by the bizarreness of -prune
                     return
@@ -614,7 +617,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         if head_command.value == "find":
             arguments = []
             for child in head_command.children:
-                if child.kind == "argument":
+                if child.is_argument():
                     arguments.append(child)
             if head_command.get_num_of_children() > 0 and len(arguments) < 1:
                 norm_node = ArgumentNode(value=".", arg_type="File")
@@ -626,8 +629,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             head_command.value = "grep"
             flag_present = False
             for child in head_command.children:
-                if child.kind == "flag" \
-                    and child.value in ["-E", "--extended-regexp"]:
+                if child.is_option() and child.value in ["-E", "--extended-regexp"]:
                     flag_present = True
             if not flag_present:
                 norm_node = FlagNode(value="-E")
@@ -639,8 +641,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             head_command.value = "grep"
             flag_present = False
             for child in head_command.children:
-                if child.kind == "flag" \
-                    and child.value in ["-F", "--fixed-strings"]:
+                if child.is_option() and child.value in ["-F", "--fixed-strings"]:
                     flag_present = True
             if not flag_present:
                 norm_node = FlagNode(value="-F")
@@ -800,7 +801,7 @@ def arg_slots(node):
     slots = []
 
     def arg_slot_fun(node):
-        if node.kind == "argument":
+        if node.is_argument():
             slots.append([node.parent.value, node, False])
         else:
             for child in node.children:
@@ -816,21 +817,34 @@ def prune_ast(node):
     def prune_ast_fun(node):
         to_remove = []
         for child in node.children:
-            if child.kind == "argument" and \
-                not child.arg_type == "ReservedWord":
-                    if child.lsb:
-                        child.lsb.rsb = child.rsb
-                    if child.rsb:
-                        child.rsb.lsb = child.lsb
-                    to_remove.append(child)
+            if child.is_argument() and not child.is_reserved():
+                if child.lsb:
+                    child.lsb.rsb = child.rsb
+                if child.rsb:
+                    child.rsb.lsb = child.lsb
+                to_remove.append(child)
             else:
                 prune_ast_fun(child)
         for child in to_remove:
             node.remove_child(child)
+
     if not node:
         return None
     node = copy.deepcopy(node)
     prune_ast_fun(node)
+
+    return node
+
+
+def order_ast(node):
+    """Return an ast with sorted argument nodes."""
+    def order_ast_fun(node):
+        for child in node.chidren:
+            pass
+    if not node:
+        return None
+    node = copy.deepcopy(node)
+    order_ast_fun(node)
 
     return node
 
@@ -846,19 +860,19 @@ def list_to_ast(list, order='dfs'):
             symbol = list[i]
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
                 current = current.parent
-                if current and current.kind == "headcomand":
+                if current and current.is_headcomand():
                     arg_status_stack.pop()
             else:
                 kind, value = symbol.split('_', 1)
                 kind = kind.lower()
                 # add argument types
                 if kind == "argument":
-                    if current.kind == "flag":
+                    if current.is_option():
                         head_cmd = current.get_head_command().value
                         flag = current.value
                         arg_type = \
                             man_lookup.get_flag_arg_type(head_cmd, flag)
-                    elif current.kind == "headcommand":
+                    elif current.is_headcommand():
                         arg_type = cmd_arg_type_check(
                             value, arg_status_stack[-1])
                     else:
@@ -896,7 +910,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
 
     def to_tokens_fun(node):
         tokens = []
-        if node.kind == "root":
+        if node.is_root():
             try:
                 assert(loose_constraints or node.get_num_of_children() == 1)
             except AssertionError, e:
@@ -935,13 +949,13 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                 tokens.append(node.value + "(")
                 tokens += to_tokens_fun(node.children[0])
                 tokens.append(")")
-        elif node.kind == "headcommand":
+        elif node.is_headcommand():
             tokens.append(node.value)
             children = sorted(node.children, key=lambda x:x.value) \
                 if ifo else node.children
             for child in children:
                 tokens += to_tokens_fun(child)
-        elif node.kind == "flag":
+        elif node.is_option():
             if '::' in node.value:
                 value, op = node.value.split('::')
                 tokens.append(value)
@@ -979,11 +993,11 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     if node.get_num_of_children() > 0:
                         tokens += to_tokens_fun(node.children[0])
                     tokens.append(node.value)
-        elif node.kind == "argument":
+        elif node.is_argument():
             assert(loose_constraints or node.get_num_of_children() == 0)
             if wat:
                 tokens.append(node.symbol)
-            elif ato and not node.arg_type == "ReservedWord":
+            elif ato and not node.is_reserved():
                 if loose_constraints and not node.arg_type:
                     tokens.append("Unknown")
                 else:
