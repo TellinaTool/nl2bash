@@ -863,6 +863,7 @@ def list_to_ast(list, order='dfs'):
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
                 current = current.parent
                 if current and current.is_headcommand():
+                    print(current.value)
                     arg_status_stack.pop()
             else:
                 kind, value = symbol.split('_', 1)
