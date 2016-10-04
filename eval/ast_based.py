@@ -75,6 +75,10 @@ def get_rewrites(asts, db):
     return rewrites
 
 def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
+    # tolerate ungrammatical predictions
+    if not ast2:
+        ast2 = data_tools.bash_parser("find")
+
     if rewrite:
         with DBConnection() as db:
             ast_rewrites = get_rewrites(asts, db)
