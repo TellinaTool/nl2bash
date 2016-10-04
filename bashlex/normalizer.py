@@ -90,7 +90,10 @@ def is_binary_logic_op(node, parent):
             return False
     if node.word == ',':
         if parent and parent.is_command("find"):
+            node.word = "-and"
             return True
+        else:
+            return False
     return node.word in binary_logic_operators
 
 def special_command_normalization(cmd):
