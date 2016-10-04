@@ -307,7 +307,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if lsb.value == ")":
                     unprocessed_unary_logic_ops.append(node)
                     return
-                if lsb.kind == "binarylogicop" or lsb.value == "(":
+                if lsb.value == "(":
                     # TODO: this corner case is not handled very well
                     # it is often triggered by the bizarreness of -prune
                     return
@@ -954,6 +954,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     op = "\\;"
                 tokens.append(op)
         elif node.kind == "binarylogicop":
+            print(cmd)
             assert(loose_constraints or node.get_num_of_children() > 1)
             if lc and node.get_num_of_children() < 2:
                 for child in node.children:
@@ -1012,6 +1013,10 @@ if __name__ == "__main__":
         except AttributeError, e:
             print(e)
         """
-        cmd = ' '.join(to_tokens(normalize_ast(cmd)))
+        cmd = ' '.join(to_tokens(normalize_ast(cmd, normalize_digits=False,
+                                     normalize_long_pattern=False)))
+        # str = ''
+        # for token in tokenizer.split(cmd):
+        #     str += cmd + ' '
         o_f.write(cmd.strip() + '\n')
 
