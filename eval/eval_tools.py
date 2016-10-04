@@ -23,18 +23,12 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
     num_top1_correct_temp = 0.0
     num_top5_correct_temp = 0.0
     num_top10_correct_temp = 0.0
-    top1_temp_dist = sys.maxint
-    top5_temp_dist = sys.maxint
-    top10_temp_dist = sys.maxint
     total_top1_temp_dist = 0.0
     total_top5_temp_dist = 0.0
     total_top10_temp_dist = 0.0
     num_top1_correct = 0.0
     num_top5_correct = 0.0
     num_top10_correct = 0.0
-    top1_dist = sys.maxint
-    top5_dist = sys.maxint
-    top10_dist = sys.maxint
     total_top1_dist = 0.0
     total_top5_dist = 0.0
     total_top10_dist = 0.0
@@ -62,6 +56,13 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
 
             top1_correct_temp, top5_correct_temp, top10_correct_temp = False, False, False
             top1_correct, top5_correct, top10_correct = False, False, False
+            top1_temp_dist = sys.maxint
+            top5_temp_dist = sys.maxint
+            top10_temp_dist = sys.maxint
+            top1_dist = sys.maxint
+            top5_dist = sys.maxint
+            top10_dist = sys.maxint
+
             for i in xrange(len(predictions)):
                 pred_cmd, score = predictions[i]
                 tree = data_tools.bash_parser(pred_cmd)
