@@ -128,6 +128,7 @@ def special_command_normalization(cmd):
         cmd = cmd.replace("\xd0\xbe".decode('utf-8'), "o") 
         cmd = cmd.replace('‘'.decode('utf-8'), '\'')
         cmd = cmd.replace('’'.decode('utf-8'), '\'')
+    cmd = re.sub("-prin($| )", '-print', cmd)
         
     ## remove shell character
     if cmd.startswith("\$ "):
@@ -143,9 +144,9 @@ def special_command_normalization(cmd):
     tar_fix = re.compile(' tar \w')
     if cmd.startswith('tar'):
         cmd = ' ' + cmd
-        for w in re.findall(tar_fix, cmd):
-            cmd = cmd.replace(w, w.replace('tar ', 'tar -'))
-        cmd = cmd.strip()
+    for w in re.findall(tar_fix, cmd):
+        cmd = cmd.replace(w, w.replace(' tar ', ' tar -'))
+    cmd = cmd.strip()
     return cmd
 
 def attach_to_tree(node, parent):
@@ -1013,9 +1014,10 @@ if __name__ == "__main__":
 
     for cmd in i_f.readlines():
         cmd = cmd.strip()
-        cmd = special_command_normalization(cmd)
-        str = ''
-        for token in tokenizer.split(cmd):
-            str += cmd + ' '
-        o_f.write(str.strip() + '\n')
+        cmd = ' '.join(normalize_ast(cmd, normalize_digits=False,
+                                     normalize_long_pattern=False).to_tokens())
+        # str = ''
+        # for token in tokenizer.split(cmd):
+        #     str += cmd + ' '
+        o_f.write(cmd.strip() + '\n')
 
