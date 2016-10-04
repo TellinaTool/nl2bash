@@ -22,9 +22,21 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
     num_top1_correct_temp = 0.0
     num_top5_correct_temp = 0.0
     num_top10_correct_temp = 0.0
+    top1_temp_dist = sys.maxint
+    top5_temp_dist = sys.maxint
+    top10_temp_dist = sys.maxint
+    total_top1_temp_dist = 0.0
+    total_top5_temp_dist = 0.0
+    total_top10_temp_dist = 0.0
     num_top1_correct = 0.0
     num_top5_correct = 0.0
     num_top10_correct = 0.0
+    top1_dist = sys.maxint
+    top5_dist = sys.maxint
+    top10_dist = sys.maxint
+    total_top1_dist = 0.0
+    total_top5_dist = 0.0
+    total_top10_dist = 0.0
     num_eval = 0
 
     use_bucket = False if model == "knn" else True
@@ -53,26 +65,53 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                 pred_cmd, score = predictions[i]
                 tree = data_tools.bash_parser(pred_cmd)
                 # evaluation ignoring flag orders
-                if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
-                    if i < 1:
+                min_temp_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=True)
+                min_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=False)
+                if i < 1:
+                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
                         top1_correct_temp = True
                         top5_correct_temp = True
                         top10_correct_temp = True
-                    elif i < 5:
-                        top5_correct_temp = True
-                        top10_correct_temp = True
-                    elif i < 10:
-                        top10_correct_temp = True
-                if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
-                    if i < 1:
+                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
                         top1_correct = True
                         top5_correct = True
                         top10_correct = True
-                    elif i < 5:
+                    if min_temp_dist < top1_temp_dist:
+                        top1_temp_dist = min_temp_dist
+                    if min_temp_dist < top5_temp_dist:
+                        top5_temp_dist = min_temp_dist
+                    if min_temp_dist < top10_temp_dist:
+                        top10_temp_dist = min_temp_dist
+                    if min_dist < top1_dist:
+                        top1_dist = min_dist
+                    if min_dist < top5_dist:
+                        top5_dist = min_dist
+                    if min_dist < top10_dist:
+                        top10_dist = min_dist
+                elif i < 5:
+                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
+                        top5_correct_temp = True
+                        top10_correct_temp = True
+                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
                         top5_correct = True
                         top10_correct = True
-                    elif i < 10:
+                    if min_temp_dist < top5_temp_dist:
+                        top5_temp_dist = min_temp_dist
+                    if min_temp_dist < top10_temp_dist:
+                        top10_temp_dist = min_temp_dist
+                    if min_dist < top5_dist:
+                        top5_dist = min_dist
+                    if min_dist < top10_dist:
+                        top10_dist = min_dist
+                elif i < 10:
+                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
+                        top10_correct_temp = True
+                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
                         top10_correct = True
+                    if min_temp_dist < top10_temp_dist:
+                        top10_temp_dist = min_temp_dist
+                    if min_dist < top10_dist:
+                        top10_dist = min_dist
                 if verbose:
                     print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
                     # print("AST: ")
@@ -90,18 +129,37 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
                 num_top5_correct += 1
             if top10_correct:
                 num_top10_correct += 1
+            total_top1_temp_dist += top1_temp_dist
+            total_top5_temp_dist += top5_temp_dist
+            total_top10_temp_dist += top10_temp_dist
+            total_top1_dist += top1_dist
+            total_top5_dist += top5_dist
+            total_top10_dist += top10_dist
 
     #TODO: compute top-K matching scores
-    top1_temp_match_score = num_top1_correct_temp/num_eval
-    top1_string_match_score = num_top1_correct/num_eval
+    top1_temp_match_score = num_top1_correct_temp / num_eval
+    top1_string_match_score = num_top1_correct / num_eval
+    avg_top1_temp_dist = (total_top1_temp_dist + 0.0) / num_eval
+    avg_top1_dist = (total_top1_dist + 0.0) / num_eval
     print("%d examples evaluated" % num_eval)
-    print("Percentage of Template Match = %.2f" % top1_temp_match_score)
-    print("Percentage of String Match = %.2f" % top1_string_match_score)
+    print("Percentage of top 1 Match (template-only) = %.2f" % top1_temp_match_score)
+    print("Percentage of top 1 Match (whole-string) = %.2f" % top1_string_match_score)
+    print("Average top 1 Tree Edit Distance (template-only) = %.2f" % avg_top1_temp_dist)
+    print("Average top 1 Tree Edit Distance (whole-string) = %.2f" % avg_top1_dist)
     if len(predictions) > 1:
         print("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval))
         print("Top 5 String Match Score = %.2f" % (num_top5_correct/num_eval))
+        avg_top5_temp_dist = (total_top5_temp_dist + 0.0) / num_eval
+        avg_top5_dist = (total_top5_dist + 0.0) / num_eval
+        print("Average top 5 Tree Edit Distance (template-only) = %.2f" % avg_top5_temp_dist)
+        print("Average top 5 Tree Edit Distance (whole-string) = %.2f" % avg_top5_dist)
+    if len(predictions) > 5:
         print("Top 10 Template Match Score = %.2f" % (num_top10_correct_temp/num_eval))
         print("Top 10 String Match Score = %.2f" % (num_top10_correct/num_eval))
+        avg_top10_temp_dist = (total_top10_temp_dist + 0.0) / num_eval
+        avg_top10_dist = (total_top10_dist + 0.0) / num_eval
+        print("Average top 10 Tree Edit Distance (template-only) = %.2f" % avg_top10_temp_dist)
+        print("Average top 10 Tree Edit Distance (whole-string) = %.2f" % avg_top10_dist)
     print()
 
     return top1_temp_match_score, top1_string_match_score
