@@ -128,6 +128,7 @@ def special_command_normalization(cmd):
         cmd = cmd.replace("\xd0\xbe".decode('utf-8'), "o") 
         cmd = cmd.replace('‘'.decode('utf-8'), '\'')
         cmd = cmd.replace('’'.decode('utf-8'), '\'')
+
     cmd = re.sub("-prin($| )", '-print', cmd)
         
     ## remove shell character
@@ -308,7 +309,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if lsb.value == ")":
                     unprocessed_unary_logic_ops.append(node)
                     return
-                if lsb.kind == "binarylogicop" or lsb.value == "(":
+                if (lsb.kind == "binarylogicop" and lsb.get_num_of_children() < 2) \
+                        or lsb.value == "(":
                     # TODO: this corner case is not handled very well
                     # it is often triggered by the bizarreness of -prune
                     return
@@ -838,7 +840,7 @@ def order_ast(node):
     """Return an ast with sorted argument nodes."""
     def order_ast_fun(node):
         for child in node.chidren:
-            if child.kind
+            pass
     if not node:
         return None
     node = copy.deepcopy(node)

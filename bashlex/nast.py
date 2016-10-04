@@ -188,6 +188,8 @@ class UnaryLogicOpNode(Node):
             self.associate = UnaryLogicOpNode.RIGHT
         elif value in left_associate_unary_logic_operators:
             self.associate = UnaryLogicOpNode.LEFT
+        else:
+            raise ValueError("Unrecognized unary logic operator: {}".format(value))
 
     def get_head_command(self):
         ancester = self.parent
