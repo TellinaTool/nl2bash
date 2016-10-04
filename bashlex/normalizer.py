@@ -861,9 +861,9 @@ def list_to_ast(list, order='dfs'):
                 break
             symbol = list[i]
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
-                current = current.parent
                 if current and current.is_headcommand():
                     arg_status_stack.pop()
+                current = current.parent
             else:
                 kind, value = symbol.split('_', 1)
                 kind = kind.lower()
