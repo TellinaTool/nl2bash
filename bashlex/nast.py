@@ -94,6 +94,18 @@ class Node(object):
     def is_command(self, value):
         return self.kind == "headcommand" and self.value == value
 
+    def is_headcommand(self):
+        return self.kind == "headcommand"
+
+    def is_option(self):
+        return self.kind == "flag"
+
+    def is_argument(self):
+        return self.kind == "argument"
+
+    def is_root(self):
+        return self.kind == "root"
+
     def remove_child(self, child):
         if child in self.children:
             self.children.remove(child)
@@ -176,6 +188,8 @@ class UnaryLogicOpNode(Node):
             self.associate = UnaryLogicOpNode.RIGHT
         elif value in left_associate_unary_logic_operators:
             self.associate = UnaryLogicOpNode.LEFT
+        else:
+            raise ValueError("Unrecognized unary logic operator: {}".format(value))
 
     def get_head_command(self):
         ancester = self.parent
