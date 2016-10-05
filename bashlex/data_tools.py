@@ -198,12 +198,11 @@ def ast2list(node, order='dfs', list=None, ignore_flag_order=False, arg_type_onl
             else:
                 children = node.children
             for child in children:
-                ast2list(child, order, list,
-                         ignore_flag_order, arg_type_only)
+                ast2list(child, order, list, ignore_flag_order, arg_type_only,
+                         with_parent)
             list.append(normalizer._H_NO_EXPAND)
         else:
             list.append(normalizer._V_NO_EXPAND)
-    print(list)
     return list
 
 
