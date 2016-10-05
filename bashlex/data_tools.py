@@ -212,9 +212,9 @@ def list2ast(list, order='dfs'):
 
 
 def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
-               arg_type_only=False):
-    return normalizer.to_tokens(node, loose_constraints,
-                                ignore_flag_order, arg_type_only)
+               arg_type_only=False, with_parent=False):
+    return normalizer.to_tokens(node, loose_constraints, ignore_flag_order, arg_type_only,
+                                with_parent=with_parent)
 
 
 def ast2command(node, loose_constraints=False, ignore_flag_order=False):
