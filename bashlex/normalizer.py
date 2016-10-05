@@ -410,7 +410,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 return attach_point_info
 
         def look_above(attach_point):
-            head_cmd = attach_point.headcommand()
+            head_cmd = attach_point.headcommand
             return (head_cmd, ["flags", "arguments"], None)
 
         # Attach point format: (pointer_to_the_attach_point,
