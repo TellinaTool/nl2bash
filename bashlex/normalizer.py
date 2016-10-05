@@ -398,7 +398,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     if verbose:
                         print(str)
 
-            head_cmd = attach_point.get_head_command().value
+            head_cmd = attach_point.headcommand.value
             flag = node.word
             arg_type = man_lookup.get_flag_arg_type(head_cmd, flag)
             if arg_type:
@@ -410,7 +410,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 return attach_point_info
 
         def look_above(attach_point):
-            head_cmd = attach_point.get_head_command()
+            head_cmd = attach_point.headcommand()
             return (head_cmd, ["flags", "arguments"], None)
 
         # Attach point format: (pointer_to_the_attach_point,
@@ -867,7 +867,7 @@ def list_to_ast(list, order='dfs'):
                 # add argument types
                 if kind == "argument":
                     if current.is_option():
-                        head_cmd = current.get_head_command().value
+                        head_cmd = current.headcommand.value
                         flag = current.value
                         arg_type = \
                             man_lookup.get_flag_arg_type(head_cmd, flag)
