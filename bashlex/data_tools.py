@@ -189,7 +189,7 @@ def ast2list(node, order='dfs', list=None, ignore_flag_order=False, arg_type_onl
             list.append(node.prefix + node.arg_type)
         else:
             if node.is_option() and with_parent and node.parent:
-                list.append(node.prefix + node.parent.value + "@@" + node.value)
+                list.append(node.prefix + node.headcommand.value + "@@" + node.value)
             else:
                 list.append(node.symbol)
         if node.get_num_of_children() > 0:
