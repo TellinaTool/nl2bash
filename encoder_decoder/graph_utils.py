@@ -42,24 +42,10 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["beam_size"] = FLAGS.beam_size
     params["top_k"] = FLAGS.top_k
 
-    model_sig = FLAGS.encoder_topology
-    model_sig += '-{}'.format(FLAGS.rnn_cell)
-    if FLAGS.use_attention:
-        model_sig += '-attention'
-    model_sig += '-{}'.format(FLAGS.batch_size)
-    model_sig += '-{}'.format(FLAGS.encoder_input_keep)
-    model_sig += '-{}'.format(FLAGS.encoder_output_keep)
-    model_sig += '-{}'.format(FLAGS.decoder_input_keep)
-    model_sig += '-{}'.format(FLAGS.decoder_output_keep)
-    if FLAGS.canonical:
-        model_sig += '.canonical'
-    elif FLAGS.normalized:
-        model_sig += '.normalized'
-    setattr(FLAGS, "train_dir", os.path.join(FLAGS.train_dir, model_sig))
+    model_subdir, model_sig = get_model_signature(FLAGS)
+    setattr(FLAGS, "train_dir", os.path.join(FLAGS.train_dir, model_subdir))
 
     # construct model directory
-    model_sig += "-{}".format(FLAGS.decoding_algorithm)
-    model_sig += "-{}".format(FLAGS.beam_size)
     params["model_sig"] = model_sig
 
     if forward_only:
@@ -91,6 +77,26 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         session.run(tf.initialize_all_variables())
     
     return model, global_epochs
+
+
+def get_model_signature(FLAGS):
+    model_subdir = FLAGS.encoder_topology
+    model_subdir += '-{}'.format(FLAGS.rnn_cell)
+    if FLAGS.use_attention:
+        model_subdir += '-attention'
+    model_subdir += '-{}'.format(FLAGS.batch_size)
+    model_subdir += '-{}'.format(FLAGS.encoder_input_keep)
+    model_subdir += '-{}'.format(FLAGS.encoder_output_keep)
+    model_subdir += '-{}'.format(FLAGS.decoder_input_keep)
+    model_subdir += '-{}'.format(FLAGS.decoder_output_keep)
+    if FLAGS.canonical:
+        model_subdir += '.canonical'
+    elif FLAGS.normalized:
+        model_subdir += '.normalized'
+
+    model_sig = model_subdir + "-{}".format(FLAGS.decoding_algorithm)
+    model_sig += "-{}".format(FLAGS.beam_size)
+    return model_subdir, model_sig
 
 
 def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1, output_keep_prob=1):
