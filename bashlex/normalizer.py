@@ -571,7 +571,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 make_sibling(stack_top, rparenth)
             new_child = organize_buffer(lparenth, rparenth)
             i = head_command.substitute_parentheses(lparenth, rparenth,
-                                                   new_child)
+                                                    new_child)
             depth -= 1
             if depth > 0:
                 # embedded parenthese
@@ -614,6 +614,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
         for bl in unprocessed_binary_logic_ops:
             adjust_binary_operators(bl)
+
+        # process same options -- treat as implicit "-and"
 
         # recover omitted arguments
         if head_command.value == "find":
@@ -819,7 +821,7 @@ def prune_ast(node):
     def prune_ast_fun(node):
         to_remove = []
         for child in node.children:
-            if child.is_argument() and not child.is_reserved():
+            if child.is_argument() and child.is_open_vocab():
                 if child.lsb:
                     child.lsb.rsb = child.rsb
                 if child.rsb:
@@ -998,7 +1000,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
             assert(loose_constraints or node.get_num_of_children() == 0)
             if wat:
                 tokens.append(node.symbol)
-            elif ato and not node.is_reserved():
+            elif ato and node.is_open_vocab():
                 if loose_constraints and not node.arg_type:
                     tokens.append("Unknown")
                 else:
