@@ -1215,7 +1215,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"t",
-                        "arg_type":"Unknown",
+                        "arg_type":"FileType",
                         "isList":false
                      }
                   ]
@@ -1233,7 +1233,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"t",
-                        "arg_type":"Unknown",
+                        "arg_type":"FileType",
                         "isList":false
                      }
                   ]
@@ -2555,7 +2555,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"t",
-                        "arg_type":"Unknown",
+                        "arg_type":"FileType",
                         "isList":false
                      }
                   ]
@@ -2573,7 +2573,7 @@
                      {
                         "type":"argument_option",
                         "arg_name":"t",
-                        "arg_type":"Unknown",
+                        "arg_type":"FileType",
                         "isList":false
                      }
                   ]
