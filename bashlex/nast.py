@@ -66,16 +66,9 @@ class Node(object):
     def get_children(self):
         return self.children
 
+    # node label used for evaluation ONLY
     def get_label(self):
-        if self.kind == "argument" and self.parent:
-            label = self.kind.upper() + "_" + self.value + ":::" + \
-                    self.parent.get_label()
-            if not self.is_open_vocab():
-                label = "CLOSED_" + label
-        else:
-            label = self.kind.upper() + "_" + self.value
-
-        return label
+        return self.kind.upper() + "_" + self.value
 
     def get_left_child(self):
         if len(self.children) >= 1:
@@ -142,8 +135,12 @@ class Node(object):
         return index
 
     @property
+    def prefix(self):
+        return self.kind.upper() + "_"
+
+    @property
     def symbol(self):
-        return self.kind.upper() + "_" + self.value
+        return self.prefix + self.value
 
     @property
     def grandparent(self):
@@ -162,6 +159,16 @@ class ArgumentNode(Node):
             # if not head command is detect, return "root"
             ancester = ancester.parent
         return ancester
+
+    def get_label(self):
+        if self.parent:
+            label = self.kind.upper() + "_" + self.value + ":::" + \
+                    self.parent.get_label()
+        else:
+            label = self.kind.upper() + "_" + self.value
+        if not self.is_open_vocab():
+            label += ":::CLOSED"
+        return label
 
     def is_reserved(self):
         return self.arg_type == "ReservedWord"
@@ -191,6 +198,13 @@ class FlagNode(Node):
             # if not head command is detect, return "root"
             ancester = ancester.parent
         return ancester
+
+    @property
+    def symbol(self):
+        if self.parent:
+            return self.kind.upper() + "_" + self.parent.value + ":::" + self.value
+        else:
+            return self.kind.upper() + "_" + self.value
 
 class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):

@@ -186,7 +186,7 @@ def ast2list(node, order='dfs', list=None,
     """Linearize the AST."""
     if order == 'dfs':
         if arg_type_only and node.is_argument() and node.is_open_vocab():
-            list.append(node.kind.upper() + '_' + node.arg_type)
+            list.append(node.prefix + node.arg_type)
         else:
             list.append(node.symbol)
         if node.get_num_of_children() > 0:
