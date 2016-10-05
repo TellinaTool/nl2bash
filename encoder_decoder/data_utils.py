@@ -534,7 +534,7 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
         for nl, cmd in data_point:
             ast = data_tools.bash_parser(cmd)
             if ast:
-                if ast.is_simple():
+                if is_simple(ast):
                     nl_tokens = data_tools.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(ast)
                     cm_seq = data_tools.ast2list(ast, list=[])
