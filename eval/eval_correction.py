@@ -18,6 +18,11 @@ correct_temp_pairs = [
     (
         "To list the number of directories in the `/usr/share' directory tree\n",
         "find /usr/share -type d | wc -l"
+    ),
+    (
+        "search for a file in current folder excluding the search in the folder "
+        "./ignored_directory\n",
+        "find \( -path File -prune -or -print \) File"
     )]
 
 error_temp_pairs = [
