@@ -862,7 +862,7 @@ def list_to_ast(list, order='dfs'):
             symbol = list[i]
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
                 if current and current.is_headcommand():
-                    print(current.value)
+                    # print(current.value)
                     arg_status_stack.pop()
                 current = current.parent
             else:
@@ -971,7 +971,6 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     op = "\\;"
                 tokens.append(op)
         elif node.kind == "binarylogicop":
-            print(cmd)
             assert(loose_constraints or node.get_num_of_children() > 1)
             if lc and node.get_num_of_children() < 2:
                 for child in node.children:
