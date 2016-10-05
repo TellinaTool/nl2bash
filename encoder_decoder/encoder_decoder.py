@@ -428,9 +428,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                self.losses[bucket_id]]          # Loss for this batch.
         else:
             if bucket_id == -1:
-                output_feed = [self.losses]                     # Loss for this batch.
-                output_feed.append(self.output_symbols)         # Batch output sequence
-                output_feed.append(self.output_logits)          # Batch output scores
+                output_feed = [self.output_symbols]             # Loss for this batch.
+                output_feed.append(self.output_logits)          # Batch output sequence
+                output_feed.append(self.losses)                 # Batch output scores
             else:
                 output_feed = [self.output_symbols[bucket_id]]  # Loss for this batch.
                 output_feed.append(self.output_logits[bucket_id])   # Batch output sequence
