@@ -36,7 +36,7 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
     if FLAGS.decoding_algorithm == "beam_search":
         predictions = reduce(lambda x,y: x + y, output_symbols)
     else:
-        predictions = output_symbols
+        predictions = [output_symbols]
 
     for i in xrange(len(predictions)):
         outputs = [int(pred) for pred in predictions[i]]
