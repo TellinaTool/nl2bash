@@ -193,7 +193,7 @@ def eval(construct_model_dir=True, verbose=True):
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
         _, dev_set, _ = load_data()
 
-        return eval_tools.eval_set(model.model_dir, dev_set, rev_nl_vocab,
+        return eval_tools.eval_set(model.model_sig, dev_set, rev_nl_vocab,
                                    verbose=verbose)
 
 
@@ -206,7 +206,7 @@ def manual_eval(num_eval):
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
         _, dev_set, _ = load_data(use_buckets=False)
 
-        eval_tools.manual_eval(model.model_dir, dev_set, rev_nl_vocab,
+        eval_tools.manual_eval(model.model_sig, dev_set, rev_nl_vocab,
                                FLAGS.train_dir, num_eval)
 
 

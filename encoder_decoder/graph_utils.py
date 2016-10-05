@@ -42,28 +42,25 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["beam_size"] = FLAGS.beam_size
     params["top_k"] = FLAGS.top_k
 
+    model_sig = FLAGS.encoder_topology
+    model_sig += '-{}'.format(FLAGS.rnn_cell)
+    if FLAGS.use_attention:
+        model_sig += '-attention'
+    model_sig += '-{}'.format(FLAGS.batch_size)
+    model_sig += '-{}'.format(FLAGS.encoder_input_keep)
+    model_sig += '-{}'.format(FLAGS.encoder_output_keep)
+    model_sig += '-{}'.format(FLAGS.decoder_input_keep)
+    model_sig += '-{}'.format(FLAGS.decoder_output_keep)
+    if FLAGS.canonical:
+        model_sig += '.canonical'
+    elif FLAGS.normalized:
+        model_sig += '.normalized'
+    setattr(FLAGS, "train_dir", os.path.join(FLAGS.train_dir, model_sig))
+
     # construct model directory
-    if construct_model_dir:
-        model_dir = os.path.join(FLAGS.train_dir, FLAGS.encoder_topology)
-        model_dir += '-{}'.format(FLAGS.rnn_cell)
-        if FLAGS.use_attention:
-            model_dir += '-attention'
-        model_dir += '-{}'.format(FLAGS.batch_size)
-        model_dir += '-{}'.format(FLAGS.encoder_input_keep)
-        model_dir += '-{}'.format(FLAGS.encoder_output_keep)
-        model_dir += '-{}'.format(FLAGS.decoder_input_keep)
-        model_dir += '-{}'.format(FLAGS.decoder_output_keep)
-        if FLAGS.canonical:
-            model_dir += '.canonical'
-        elif FLAGS.normalized:
-            model_dir += '.normalized'
-        setattr(FLAGS, "train_dir", model_dir)
-    else:
-        if FLAGS.train_dir.endswith('/'):
-            model_dir = FLAGS.train_dir[:-1].split('/')[-1]
-        else:
-            model_dir = FLAGS.train_dir.split('/')[-1]
-    params["model_dir"] = model_dir
+    model_sig += "-{}".format(FLAGS.decoding_algorithm)
+    model_sig += "-{}".format(FLAGS.beam_size)
+    params["model_sig"] = model_sig
 
     if forward_only:
         params["batch_size"] = 1
@@ -302,5 +299,5 @@ class NNModel(object):
         return self.hyperparams["top_k"]
 
     @property
-    def model_dir(self):
-        return self.hyperparams["model_dir"]
+    def model_sig(self):
+        return self.hyperparams["model_sig"]
