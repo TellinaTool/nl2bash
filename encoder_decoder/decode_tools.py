@@ -90,7 +90,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
         data_utils.bucket_grouped_data(grouped_dataset, model.buckets)
 
     with DBConnection() as db:
-        db.remove_model(model.model_dir)
+        db.remove_model(model.model_sig)
 
         for bucket_id in xrange(len(model.buckets)):
             batch_nl_strs = bucketed_nl_strs[bucket_id]
@@ -124,7 +124,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                 if FLAGS.decoding_algorithm == "greedy":
                     tree, pred_cmd, outputs = batch_outputs[batch_id]
                     score = output_logits[batch_id]
-                    db.add_prediction(model.model_dir, nl_str, pred_cmd, float(score))
+                    db.add_prediction(model.model_sig, nl_str, pred_cmd, float(score))
                     if verbose:
                         print("Prediction: {} ({})".format(pred_cmd, score))
                         # print("AST: ")
@@ -139,7 +139,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                                 top_k_predictions[j]
                             print("Prediction {}: {} ({}) ".format(j+1,
                                 top_k_pred_cmd, top_k_scores[j]))
-                            db.add_prediction(model.model_dir, nl_str, top_k_pred_cmd,
+                            db.add_prediction(model.model_sig, nl_str, top_k_pred_cmd,
                                               top_k_scores[j], update_mode=False)
                             # print("AST: ")
                             # data_tools.pretty_print(top_k_pred_tree, 0)
