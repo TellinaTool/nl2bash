@@ -70,12 +70,12 @@ class Node(object):
         if self.kind == "argument" and self.parent:
             label = self.kind.upper() + "_" + self.value + ":::" + \
                     self.parent.get_label()
+            if self.is_open_vocab():
+                label = "CLOSED_" + label
         else:
             label = self.kind.upper() + "_" + self.value
-        if self.is_open_vocab():
-            return label
-        else:
-            return "CLOSED_" + label
+
+        return label
 
     def get_left_child(self):
         if len(self.children) >= 1:
