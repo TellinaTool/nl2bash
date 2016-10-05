@@ -188,7 +188,7 @@ def ast2list(node, order='dfs', list=None, ignore_flag_order=False, arg_type_onl
         if arg_type_only and node.is_argument() and node.is_open_vocab():
             list.append(node.prefix + node.arg_type)
         else:
-            if node.is_option() and with_parent and node.parent:
+            if node.is_option() and with_parent and node.headcommand:
                 list.append(node.prefix + node.headcommand.value + "@@" + node.value)
             else:
                 list.append(node.symbol)
@@ -203,6 +203,7 @@ def ast2list(node, order='dfs', list=None, ignore_flag_order=False, arg_type_onl
             list.append(normalizer._H_NO_EXPAND)
         else:
             list.append(normalizer._V_NO_EXPAND)
+    print(list)
     return list
 
 
