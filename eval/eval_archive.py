@@ -47,8 +47,9 @@ class DBConnection(object):
                       (pred_cmd, score, model, nl))
         else:
             if self.exist_score(model, nl, pred_cmd):
-                c.execute("UPDATE Output SET score = ? WHERE model = ? AND nl = ? AND pred_cmd = ?",
-                      (score, model, nl, pred_cmd))
+                if update_mode:
+                    c.execute("UPDATE Output SET score = ? WHERE model = ? AND nl = ? AND pred_cmd = ?",
+                          (score, model, nl, pred_cmd))
             else:
                 c.execute("INSERT INTO Output (model, nl, pred_cmd, score) VALUES (?, ?, ?, ?)",
                       (model, nl, pred_cmd, score))
