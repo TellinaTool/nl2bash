@@ -963,7 +963,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                 token = node.value
             if wp:
                 if node.parent:
-                    token = node.parent.value + "@@" + token
+                    token = node.headcommand.value + "@@" + token
                 else:
                     token = "@@" + token
             tokens.append(token)
