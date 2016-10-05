@@ -192,20 +192,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     if not cmd:
         return None
 
-    def normalize_word(node, kind, norm_digit, norm_long_pattern,
-                       recover_quote, arg_type=""):
+    def normalize_word(node, recover_quote):
         w = recover_quotation(node) if recover_quote else node.word
-        if kind == "argument":
-            if ' ' in w:
-                try:
-                    assert(w.startswith('"') and w.endswith('"'))
-                except AssertionError, e:
-                    if verbose:
-                        print("Quotation Error: space inside word " + w)
-                if norm_long_pattern:
-                    w = _LONG_PATTERN
-            if norm_digit:
-                w = re.sub(_DIGIT_RE, _NUM, w)
         return w
 
     def recover_quotation(node):
@@ -219,23 +207,29 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                or cmd[node.pos[1]-1] in ['"', '\'']
 
     def normalize_argument(node, current, arg_type):
-        value = normalize_word(node, "argument", normalize_digits,
-                               normalize_long_pattern, recover_quotation,
-                               arg_type=arg_type)
+        value = normalize_word(node, recover_quotation)
+        if normalize_digits and arg_type != "Permission":
+            value = re.sub(_DIGIT_RE, _NUM, value)
+        if normalize_long_pattern:
+            if ' ' in value:
+                try:
+                    assert(value.startswith('"') and value.endswith('"'))
+                except AssertionError, e:
+                    if verbose:
+                        print("Quotation Error: space inside word " + value)
+                value = _LONG_PATTERN
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
         attach_to_tree(norm_node, current)
         return norm_node
 
     def normalize_flag(node, current):
-        value = normalize_word(node, "flag", normalize_digits,
-                               normalize_long_pattern, recover_quotation)
+        value = normalize_word(node, recover_quotation)
         norm_node = FlagNode(value=value)
         attach_to_tree(norm_node, current)
         return norm_node
 
     def normalize_headcommand(node, current):
-        value = normalize_word(node, "headcommand", normalize_digits,
-                               normalize_long_pattern, recover_quotation)
+        value = normalize_word(node, recover_quotation)
         norm_node = HeadCommandNode(value=value)
         attach_to_tree(norm_node, current)
         return norm_node
@@ -904,7 +898,7 @@ def list_to_ast(list, order='dfs'):
 
 
 def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
-              arg_type_only=False, with_arg_type=False):
+              arg_type_only=False, with_arg_type=False, with_parent=False):
     if not node:
         return []
 
@@ -912,6 +906,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
     ifo = ignore_flag_order
     ato = arg_type_only
     wat = with_arg_type
+    wp = with_parent
 
     def to_tokens_fun(node):
         tokens = []
@@ -961,11 +956,18 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
             for child in children:
                 tokens += to_tokens_fun(child)
         elif node.is_option():
+            assert(loose_constraints or node.parent)
             if '::' in node.value:
                 value, op = node.value.split('::')
-                tokens.append(value)
+                token = value
             else:
-                tokens.append(node.value)
+                token = node.value
+            if wp:
+                if node.parent:
+                    token = node.parent.value + "@@" + token
+                else:
+                    token = "@@" + token
+            tokens.append(token)
             for child in node.children:
                 tokens += to_tokens_fun(child)
             if '::' in node.value:
@@ -999,15 +1001,13 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     tokens.append(node.value)
         elif node.is_argument():
             assert(loose_constraints or node.get_num_of_children() == 0)
-            if wat:
-                tokens.append(node.symbol)
-            elif ato and node.is_open_vocab():
-                if loose_constraints and not node.arg_type:
-                    tokens.append("Unknown")
-                else:
-                    tokens.append(node.arg_type)
+            if ato and node.is_open_vocab():
+                token = node.arg_type
             else:
-                tokens.append(node.value)
+                token = node.value
+            if wat:
+                token = token + "_" + node.arg_type
+            tokens.append(token)
             if lc:
                 for child in node.children:
                     tokens += to_tokens_fun(child)

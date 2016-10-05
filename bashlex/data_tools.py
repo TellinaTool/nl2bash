@@ -181,14 +181,17 @@ def pretty_print(node, depth=0):
         print("    " * depth)
 
 
-def ast2list(node, order='dfs', list=None,
-             ignore_flag_order=False, arg_type_only=False):
+def ast2list(node, order='dfs', list=None, ignore_flag_order=False, arg_type_only=False,
+             with_parent=False):
     """Linearize the AST."""
     if order == 'dfs':
         if arg_type_only and node.is_argument() and node.is_open_vocab():
-            list.append(node.kind.upper() + '_' + node.arg_type)
+            list.append(node.prefix + node.arg_type)
         else:
-            list.append(node.symbol)
+            if node.is_option() and with_parent and node.parent:
+                list.append(node.prefix + node.parent.value + "@@" + node.value)
+            else:
+                list.append(node.symbol)
         if node.get_num_of_children() > 0:
             if node.kind == "headcommand" and ignore_flag_order:
                 children = sorted(node.children, key=lambda x:x.value)
