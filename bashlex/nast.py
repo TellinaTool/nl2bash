@@ -67,7 +67,11 @@ class Node(object):
         return self.children
 
     def get_label(self):
-        return self.kind.upper() + "_" + self.value
+        if self.kind == "argument" and self.parent:
+            return self.parent.get_label() + ":::" + \
+                   self.kind.upper() + "_" + self.value
+        else:
+            return self.kind.upper() + "_" + self.value
 
     def get_left_child(self):
         if len(self.children) >= 1:
