@@ -143,6 +143,16 @@ class Node(object):
         return self.prefix + self.value
 
     @property
+    def headcommand(self):
+        if self.kind == "headcommand":
+            return self
+        ancester = self.parent
+        while (ancester.parent and ancester.kind != "headcommand"):
+            # if not head command is detect, return "root"
+            ancester = ancester.parent
+        return ancester
+
+    @property
     def grandparent(self):
         return self.parent.parent
 
@@ -153,12 +163,7 @@ class ArgumentNode(Node):
         super(ArgumentNode, self).__init__(parent, lsb, "argument", value)
         self.arg_type = arg_type
 
-    def get_head_command(self):
-        ancester = self.parent
-        while (ancester.parent and ancester.kind != "headcommand"):
-            # if not head command is detect, return "root"
-            ancester = ancester.parent
-        return ancester
+
 
     def get_label(self):
         if self.parent:
@@ -192,13 +197,6 @@ class FlagNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(FlagNode, self).__init__(parent, lsb, "flag", value)
 
-    def get_head_command(self):
-        ancester = self.parent
-        while (ancester.parent and ancester.kind != "headcommand"):
-            # if not head command is detect, return "root"
-            ancester = ancester.parent
-        return ancester
-
     @property
     def symbol(self):
         if self.parent:
@@ -209,9 +207,6 @@ class FlagNode(Node):
 class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(HeadCommandNode, self).__init__(parent, lsb, "headcommand", value)
-
-    def get_head_command(self):
-        return self
 
 class UnaryLogicOpNode(Node):
     num_child = 1
@@ -228,26 +223,12 @@ class UnaryLogicOpNode(Node):
         else:
             raise ValueError("Unrecognized unary logic operator: {}".format(value))
 
-    def get_head_command(self):
-        ancester = self.parent
-        while (ancester.parent and ancester.kind != "headcommand"):
-            # if not head command is detect, return "root"
-            ancester = ancester.parent
-        return ancester
-
 class BinaryLogicOpNode(Node):
     num_child = 2
     children_types = [set('flag'), set('flag')]
 
     def __init__(self, value="", parent=None, lsb=None):
         super(BinaryLogicOpNode, self).__init__(parent, lsb, 'binarylogicop', value)
-
-    def get_head_command(self):
-        ancester = self.parent
-        while (ancester.parent and ancester.kind != "headcommand"):
-            # if not head command is detect, return "root"
-            ancester = ancester.parent
-        return ancester
 
 class RedirectNode(Node):
     num_child = 2
