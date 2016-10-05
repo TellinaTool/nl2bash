@@ -119,7 +119,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                         print("GT Command {}: {}".format(j+1, cm_strs[j].strip()))
                 if FLAGS.decoding_algorithm == "greedy":
                     tree, pred_cmd, outputs = batch_outputs[0]
-                    score = output_logits[0]
+                    score = output_logits
                     db.add_prediction(model.model_dir, nl_str, pred_cmd, float(score))
                     if verbose:
                         print("Prediction: {} ({})".format(pred_cmd, score))
