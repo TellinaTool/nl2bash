@@ -158,6 +158,21 @@ class ArgumentNode(Node):
     def is_reserved(self):
         return self.arg_type == "ReservedWord"
 
+    def is_open_vocab(self):
+        if self.is_reserved():
+            return False
+        if self.arg_type == "FileType":
+            return False
+        if self.arg_type == "Size":
+            return False
+        if self.arg_type == "Time":
+            return False
+        if self.arg_type == "Number":
+            return False
+        if self.arg_type == "Permission":
+            return False
+        return True
+
 class FlagNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(FlagNode, self).__init__(parent, lsb, "flag", value)
