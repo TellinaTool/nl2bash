@@ -53,7 +53,10 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
                 tokens = []
                 for output in outputs:
                     if output < len(rev_cm_vocab):
-                        tokens.append(rev_cm_vocab[output])
+                        pred_token = rev_cm_vocab[output]
+                        if "@@" in pred_token:
+                            pred_token = pred_token.split("@@")[-1]
+                        tokens.append(pred_token)
                     else:
                         tokens.append(data_utils._UNK)
                 cmd = " ".join(tokens)
