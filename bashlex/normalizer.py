@@ -897,7 +897,7 @@ def list_to_ast(list, order='dfs'):
 
 
 def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
-              arg_type_only=False, with_arg_type=False):
+              arg_type_only=False, with_arg_type=False, with_parent=False):
     if not node:
         return []
 
@@ -905,6 +905,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
     ifo = ignore_flag_order
     ato = arg_type_only
     wat = with_arg_type
+    wp = with_parent
 
     def to_tokens_fun(node):
         tokens = []
@@ -954,11 +955,18 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
             for child in children:
                 tokens += to_tokens_fun(child)
         elif node.is_option():
+            assert(loose_constraints or node.parent)
             if '::' in node.value:
                 value, op = node.value.split('::')
-                tokens.append(value)
+                token = value
             else:
-                tokens.append(node.value)
+                token = node.value
+            if wp:
+                if node.parent:
+                    token = node.parent.value + "@@" + token
+                else:
+                    token = "@@" + token
+            tokens.append(token)
             for child in node.children:
                 tokens += to_tokens_fun(child)
             if '::' in node.value:
@@ -992,12 +1000,13 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     tokens.append(node.value)
         elif node.is_argument():
             assert(loose_constraints or node.get_num_of_children() == 0)
-            if wat:
-                tokens.append(node.symbol)
-            elif ato and node.is_open_vocab():
-                tokens.append(node.prefix + node.arg_type)
+            if ato and node.is_open_vocab():
+                token = node.arg_type
             else:
-                tokens.append(node.symbol)
+                token = node.value
+            if wat:
+                token = token + "_" + node.arg_type
+            tokens.append(token)
             if lc:
                 for child in node.children:
                     tokens += to_tokens_fun(child)
