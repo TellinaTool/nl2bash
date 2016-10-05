@@ -74,10 +74,10 @@ def create_model(session, forward_only, construct_model_dir=True):
     """
     if FLAGS.decoder_topology in ['basic_tree']:
         return graph_utils.create_model(session, FLAGS, Seq2TreeModel, _buckets,
-                                                        forward_only, construct_model_dir)
+                                        forward_only, construct_model_dir)
     elif FLAGS.decoder_topology in ['rnn']:
         return graph_utils.create_model(session, FLAGS, Seq2SeqModel, _buckets,
-                                                        forward_only, construct_model_dir)
+                                        forward_only, construct_model_dir)
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
@@ -188,12 +188,17 @@ def eval(construct_model_dir=True, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
+<<<<<<< HEAD
         model, _ = create_model(sess, forward_only=True,
                                 construct_model_dir=construct_model_dir)
+=======
+        _, model_sig = graph_utils.get_model_signature(FLAGS)
+
+>>>>>>> 02f9609a0d63f8841aa11fc22d9971a599ec0cbe
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
         _, dev_set, _ = load_data()
 
-        return eval_tools.eval_set(model.model_sig, dev_set, rev_nl_vocab,
+        return eval_tools.eval_set(model_sig, dev_set, rev_nl_vocab,
                                    verbose=verbose)
 
 
@@ -201,12 +206,12 @@ def manual_eval(num_eval):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True)
+        _, model_sig = graph_utils.get_model_signature(FLAGS)
 
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
         _, dev_set, _ = load_data(use_buckets=False)
 
-        eval_tools.manual_eval(model.model_sig, dev_set, rev_nl_vocab,
+        eval_tools.manual_eval(model_sig, dev_set, rev_nl_vocab,
                                FLAGS.train_dir, num_eval)
 
 
