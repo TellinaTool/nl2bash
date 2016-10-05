@@ -70,7 +70,7 @@ class Node(object):
         if self.kind == "argument" and self.parent:
             label = self.kind.upper() + "_" + self.value + ":::" + \
                     self.parent.get_label()
-            if self.is_open_vocab():
+            if not self.is_open_vocab():
                 label = "CLOSED_" + label
         else:
             label = self.kind.upper() + "_" + self.value
