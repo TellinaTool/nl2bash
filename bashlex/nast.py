@@ -183,8 +183,8 @@ class ArgumentNode(Node):
             return False
         if self.arg_type == "Number":
             return False
-        if self.arg_type == "Permission":
-            return False
+        # if self.arg_type == "Permission":
+        #     return False
         return True
 
 class FlagNode(Node):
