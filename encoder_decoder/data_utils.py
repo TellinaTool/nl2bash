@@ -530,28 +530,31 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
         (8) path to the Command vocabulary file.
     """
 
+    with_parent = True
+
     def add_to_set(data_point, data_set):
         for nl, cmd in data_point:
             ast = data_tools.bash_parser(cmd)
             if ast:
                 if is_simple(ast):
                     nl_tokens = data_tools.basic_tokenizer(nl)
-                    cm_tokens = data_tools.ast2tokens(ast)
-                    cm_seq = data_tools.ast2list(ast, list=[])
+                    cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
+                    cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
-                        pruned_ast, loose_constraints=True)
-                    cm_pruned_seq = data_tools.ast2list(pruned_ast, list=[])
+                        pruned_ast, loose_constraints=True, with_parent=with_parent)
+                    cm_pruned_seq = data_tools.ast2list(
+                        pruned_ast, list=[], with_parent=with_parent)
                     cm_normalized_tokens = data_tools.ast2tokens(
-                        ast, loose_constraints=True, arg_type_only=True)
+                        ast, loose_constraints=True, arg_type_only=True, with_parent=with_parent)
                     cm_normalized_seq = data_tools.ast2list(
-                        ast, arg_type_only=True, list=[])
+                        ast, arg_type_only=True, list=[], with_parent=with_parent)
                     cm_canonical_tokens = data_tools.ast2tokens(
-                        ast, loose_constraints=True, arg_type_only=True,
-                        ignore_flag_order=True)
+                        ast, loose_constraints=True, arg_type_only=True, ignore_flag_order=True,
+                        with_parent=with_parent)
                     cm_canonical_seq = data_tools.ast2list(
-                        ast, arg_type_only=True, ignore_flag_order=True,
-                        list=[])
+                        ast, arg_type_only=True, ignore_flag_order=True, list=[],
+                        with_parent=with_parent)
                     data_set["nl_list"].append(nl)
                     data_set["nl_token_list"].append(nl_tokens)
                     data_set["cm_list"].append(cmd)
