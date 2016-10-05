@@ -68,8 +68,8 @@ class Node(object):
 
     def get_label(self):
         if self.kind == "argument" and self.parent:
-            return self.parent.get_label() + ":::" + \
-                   self.kind.upper() + "_" + self.value
+            return self.kind.upper() + "_" + self.value + ":::" + \
+                   self.parent.get_label()
         else:
             return self.kind.upper() + "_" + self.value
 
