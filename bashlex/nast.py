@@ -163,14 +163,8 @@ class ArgumentNode(Node):
         super(ArgumentNode, self).__init__(parent, lsb, "argument", value)
         self.arg_type = arg_type
 
-
-
     def get_label(self):
-        if self.parent:
-            label = self.kind.upper() + "_" + self.value + ":::" + \
-                    self.parent.get_label()
-        else:
-            label = self.kind.upper() + "_" + self.value
+        label = self.kind.upper() + "_" + self.value
         if not self.is_open_vocab():
             label += ":::CLOSED"
         return label
@@ -197,12 +191,11 @@ class FlagNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(FlagNode, self).__init__(parent, lsb, "flag", value)
 
-    @property
-    def symbol(self):
+    def get_label(self):
         if self.parent:
-            return self.kind.upper() + "_" + self.parent.value + ":::" + self.value
+            label = self.prefix + self.headcommand.value + "@@" + self.value
         else:
-            return self.kind.upper() + "_" + self.value
+            label = self.prefix + self.value
 
 class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
