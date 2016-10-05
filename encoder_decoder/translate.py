@@ -149,7 +149,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
                     formatted_example = model.get_batch(dev_set, bucket_id)
-                    _, eval_loss, output_logits, _ = model.step(sess, formatted_example, bucket_id,
+                    _, output_logits, eval_loss, _ = model.step(sess, formatted_example, bucket_id,
                                                              forward_only=True)
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
