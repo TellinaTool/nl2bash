@@ -532,7 +532,7 @@ def prepare_data(data, data_dir, nl_vocab_size, cm_vocab_size):
         (8) path to the Command vocabulary file.
     """
 
-    with_parent = True
+    with_parent = False
 
     def add_to_set(data_point, data_set):
         for nl, cmd in data_point:
