@@ -144,6 +144,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("/bin/echo", "echo")
     cmd = cmd.replace(" exec sed ", " -exec sed ")
     cmd = cmd.replace(" xargs -iname ", " xargs ")
+    cmd = cmd.replace(" -chour +1 ", " -cmin 60 ")
 
     ## remove shell character
     if cmd.startswith("\$ "):
@@ -405,7 +406,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                          (attach_point.value == "tail" and options.isdigit()) or
                          (attach_point.value == "head" and options.startswith("n")) or
                          (attach_point.value == "tail" and options.startswith("n")) or
-                         (attach_point.value == "xargs" and options.startswith("l"))):
+                         (attach_point.value == "xargs" and options.startswith("l")) or
+                         (attach_point.value == "xargs" and options.startswith("P"))):
                         node.word = re.sub(_DIGIT_RE, _NUM, node.word)
                         normalize_flag(node, attach_point)
                     else:
@@ -518,9 +520,19 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                             attach_point_info = look_above(attach_point)
                     else:
                         # need to decide ast_node_kind
-                        if child.word.startswith("-") \
-                            and not (attach_point.value in ["head", "tail"]
-                            and child.word[1:].isdigit()):
+                        if child.word.startswith("-") and \
+                                not ((attach_point.value in ["head", "tail"]
+                                      and child.word[1:].isdigit()) or
+                                     (attach_point.value in ["chmod"]
+                                      and ('r' in child.word or
+                                           'x' in child.word or
+                                           'w' in child.word or
+                                           'X' in child.word or
+                                           's' in child.word or
+                                           't' in child.word or
+                                           'u' in child.word or
+                                           'g' in child.word or
+                                           'o' in child.word))):
                             # child is a flag
                             attach_point_info = \
                                 attach_flag(child, attach_point_info)
