@@ -261,7 +261,7 @@ def sentence_to_token_ids(sentence, vocabulary,
             else:
                 token_ids.append(UNK_ID)
             if w.startswith("FLAG_"):
-                print(sentence)
+                print(w, sentence)
 
     return token_ids
 
