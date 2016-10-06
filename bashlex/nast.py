@@ -146,11 +146,12 @@ class Node(object):
     def headcommand(self):
         if self.kind == "headcommand":
             return self
-        ancester = self
-        while (ancester.parent and ancester.kind != "headcommand"):
+        ancester = self.parent
+        while ancester:
+            if ancester.kind == "headcommand":
+                return ancester
             # if not head command is detect, return "root"
             ancester = ancester.parent
-        return ancester
 
     @property
     def grandparent(self):
