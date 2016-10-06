@@ -107,12 +107,14 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("/usr/bin/grep", "grep")
     cmd = cmd.replace("/bin/rm", "rm")
     cmd = cmd.replace("/bin/mv", "mv")
-    cmd = cmd.replace("/bin/echo", "echo")
     
-    ## correct common spelling errors
+    ## correct common typos
     cmd = cmd.replace("-i{}", "-I {}")
     cmd = cmd.replace("-I{}", "-I {}")
+    cmd = cmd.replace("-L.", "-L")
     cmd = cmd.replace("-mitime", "-mtime")
+    cmd = cmd.replace("-dev", "-xdev")
+    cmd = cmd.replace("-regex-type", "-regextype")
     cmd = cmd.replace(" [] ", " {} ")
     cmd = cmd.replace("-n10", "-n 10")
     cmd = cmd.replace("-\\(", "\\(")
@@ -124,6 +126,7 @@ def special_command_normalization(cmd):
         cmd = cmd.replace("“", '"')
         cmd = cmd.replace("”", '"')
         cmd = cmd.replace("-\xd0\xbe", "-o")
+        cmd = cmd.replace("\xe2\x80\x93 ", "-")
         cmd = cmd.replace('‘', '\'')
         cmd = cmd.replace('’', '\'')
     except UnicodeDecodeError, e:
@@ -131,12 +134,17 @@ def special_command_normalization(cmd):
         cmd = cmd.replace("—".decode('utf-8'), "-")
         cmd = cmd.replace("“".decode('utf-8'), '"')
         cmd = cmd.replace("”".decode('utf-8'), '"')
-        cmd = cmd.replace("\xd0\xbe".decode('utf-8'), "o") 
+        cmd = cmd.replace("\xd0\xbe".decode('utf-8'), "o")
+        cmd = cmd.replace("\xe2\x80\x93 ".decode('utf-8') , "-")
         cmd = cmd.replace('‘'.decode('utf-8'), '\'')
         cmd = cmd.replace('’'.decode('utf-8'), '\'')
 
+    # more typo fixes
     cmd = re.sub("-prin($| )", '-print', cmd)
-        
+    cmd = cmd.replace("/bin/echo", "echo")
+    cmd = cmd.replace(" exec sed ", " -exec sed ")
+    cmd = cmd.replace(" xargs -iname ", " xargs ")
+
     ## remove shell character
     if cmd.startswith("\$ "):
         cmd = re.sub("^\$ ", '', cmd)
@@ -386,17 +394,29 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 # split flags
                 assert(node.word.startswith('-'))
                 options = node.word[1:]
-                if len(options) == 1:
+                if len(options) == 1 and not options.isdigit():
                     normalize_flag(node, attach_point)
                 else:
-                    str = options + " splitted into: "
-                    for option in options:
-                        new_node = copy.deepcopy(node)
-                        new_node.word = '-' + option
-                        normalize_flag(new_node, attach_point)
-                        str += new_node.word + ' '
-                    if verbose:
-                        print(str)
+                    if options[-1].isdigit() and \
+                        ((attach_point.value == "grep" and options.startswith("A")) or
+                         (attach_point.value == "grep" and options.startswith("B")) or
+                         (attach_point.value == "grep" and options.startswith("C")) or
+                         (attach_point.value == "head" and options.isdigit()) or
+                         (attach_point.value == "tail" and options.isdigit()) or
+                         (attach_point.value == "head" and options.startswith("n")) or
+                         (attach_point.value == "tail" and options.startswith("n")) or
+                         (attach_point.value == "xargs" and options.startswith("l"))):
+                        node.word = re.sub(_DIGIT_RE, _NUM, node.word)
+                        normalize_flag(node, attach_point)
+                    else:
+                        str = options + " splitted into: "
+                        for option in options:
+                            new_node = copy.deepcopy(node)
+                            new_node.word = '-' + option
+                            normalize_flag(new_node, attach_point)
+                            str += new_node.word + ' '
+                        if verbose:
+                            print(str)
 
             head_cmd = attach_point.headcommand.value
             flag = node.word
