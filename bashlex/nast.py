@@ -146,7 +146,7 @@ class Node(object):
     def headcommand(self):
         if self.kind == "headcommand":
             return self
-        ancester = self.parent
+        ancester = self
         while (ancester.parent and ancester.kind != "headcommand"):
             # if not head command is detect, return "root"
             ancester = ancester.parent
