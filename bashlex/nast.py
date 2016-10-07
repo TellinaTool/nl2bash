@@ -167,7 +167,7 @@ class ArgumentNode(Node):
     def get_label(self):
         label = self.kind.upper() + "_" + self.value
         if not self.is_open_vocab():
-            label += ":::CLOSED"
+            label = "CLOSED:::" + label
         return label
 
     def is_reserved(self):
