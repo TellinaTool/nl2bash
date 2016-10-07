@@ -67,7 +67,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
                                        name="encoder{0}".format(i)))
-            self.encoder_attn_masks.append(tf.placeholder(tf.int32, shape=[None],
+            self.encoder_attn_masks.append(tf.placeholder(tf.float32, shape=[None],
                                            name="attn_mask{0}".format(i)))
         for i in xrange(self.max_target_length + 1):
             self.decoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
