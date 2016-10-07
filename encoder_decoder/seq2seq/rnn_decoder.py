@@ -15,7 +15,7 @@ class RNNDecoder(decoder.Decoder):
 
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
-                     attention_states=None, num_heads=1,
+                     encoder_attn_masks=None, attention_states=None, num_heads=1,
                      initial_state_attention=False, feed_previous=False):
 
         if self.use_attention \
