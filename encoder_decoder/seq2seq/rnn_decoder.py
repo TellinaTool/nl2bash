@@ -58,7 +58,7 @@ class RNNDecoder(decoder.Decoder):
                                                   shape=[self.batch_size, 1],
                                                   dtype=tf.int64)
                 past_output_logits = tf.constant(0, shape=[self.batch_size],
-                                                 dtype=tf.int64)
+                                                 dtype=tf.float32)
 
             for i, input in enumerate(decoder_inputs):
                 if self.decoding_algorithm == "beam_search":
@@ -85,8 +85,8 @@ class RNNDecoder(decoder.Decoder):
                             output_symbol = tf.argmax(projected_output, 1)
                             past_output_symbols = tf.concat(1, [past_output_symbols,
                                                                 tf.expand_dims(output_symbol, 1)])
-                            past_output_logits = tf.add(past_output_logits
-                                                        + tf.max(projected_output, 1))
+                            past_output_logits = tf.add(past_output_logits,
+                                                        tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
 
                 input_embedding = tf.nn.embedding_lookup(embeddings, input)
@@ -140,8 +140,8 @@ class RNNDecoder(decoder.Decoder):
                                                 tf.expand_dims(output_symbol, 1)])
             past_output_symbols = past_output_symbols[:, 1:]
             output_symbols = tf.split(0, self.batch_size, past_output_symbols)
-            past_output_logits = tf.add(past_output_logits
-                                        + tf.max(projected_output, 1))
+            past_output_logits = tf.add(past_output_logits,
+                                        tf.reduce_max(projected_output, 1))
             if self.use_attention:
                 return output_symbols, past_output_logits, outputs, \
                        state, attn_masks
