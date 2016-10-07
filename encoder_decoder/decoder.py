@@ -45,8 +45,8 @@ class Decoder(graph_utils.NNModel):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on output state
-            output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
-            # output = cell_output
+            # output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
+            output = cell_output
         self.attention_cell_vars = True
         return output, state, attns, attn_mask
 
@@ -97,9 +97,9 @@ class Decoder(graph_utils.NNModel):
             if self.attention_hidden_vars:
                 tf.get_variable_scope().reuse_variables()
             for i in xrange(num_heads):
-                k = tf.get_variable("AttnW_%d" % i, [1, 1, attn_vec_dim, attn_vec_dim])
-                hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
-                # hidden_features.append(hidden)
+                # k = tf.get_variable("AttnW_%d" % i, [1, 1, attn_vec_dim, attn_vec_dim])
+                # hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
+                hidden_features.append(hidden)
                 v.append(tf.get_variable("AttnV_%d" % i, [attn_vec_dim]))
         self.attention_hidden_vars = True
         return hidden, hidden_features, v
