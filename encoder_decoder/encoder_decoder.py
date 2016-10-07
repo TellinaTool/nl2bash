@@ -364,10 +364,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """
         # Unwarp data tensors
         if self.use_copy:
-            encoder_inputs, decoder_inputs, attn_masks, target_weights, \
+            encoder_inputs, attn_masks, decoder_inputs, target_weights, \
             original_encoder_inputs, original_decoder_inputs, copy_masks = formatted_example
         else:
-            encoder_inputs, decoder_inputs, attn_masks, target_weights = formatted_example
+            encoder_inputs, attn_masks, decoder_inputs, target_weights = formatted_example
 
         # Check if the sizes match.
         if bucket_id == -1:
