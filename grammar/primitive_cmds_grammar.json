@@ -293,8 +293,8 @@
                      },
                      {
                         "type":"argument_option",
-                        "arg_name":"nmin",
-                        "arg_type":"Number",
+                        "arg_name":"time",
+                        "arg_type":"Time",
                         "isList":false
                      }
                   ]
@@ -311,8 +311,8 @@
                      },
                      {
                         "type":"argument_option",
-                        "arg_name":"nmin",
-                        "arg_type":"Number",
+                        "arg_name":"time",
+                        "arg_type":"Time",
                         "isList":false
                      }
                   ]
@@ -1640,8 +1640,8 @@
                      },
                      {
                         "type":"argument_option",
-                        "arg_name":"nmin",
-                        "arg_type":"Number",
+                        "arg_name":"time",
+                        "arg_type":"Time",
                         "isList":false
                      }
                   ]
