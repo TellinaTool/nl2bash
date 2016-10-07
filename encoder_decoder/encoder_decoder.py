@@ -283,11 +283,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 np.array([padded_encoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(batch_size)], dtype=np.int32))
 
-            batch_attn_mask = np.ones(batch_size, dtype=np.float32)
+            batch_attn_mask = np.zeros(batch_size, dtype=np.float32)
             for batch_idx in xrange(batch_size):
                 source = padded_encoder_inputs[batch_idx][length_idx]
                 if source == data_utils.PAD_ID:
-                    batch_attn_mask[batch_idx] = 0.0
+                    batch_attn_mask[batch_idx] = -1e10
             batch_attn_masks.append(batch_attn_mask)
             if self.use_copy:
                 raise NotImplementedError
