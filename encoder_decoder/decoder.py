@@ -77,9 +77,10 @@ class Decoder(graph_utils.NNModel):
         self.attention_vars = True
         return attns, attn_mask
 
-    def attention_hidden_layer(self, attention_states, num_heads):
+    def attention_hidden_layer(self, attn_masks, attention_states, num_heads):
         """
         Hidden layer above attention states.
+        :param attn_masks: 2D Tensor [batch_size x attn_length] used to mask out padding symbols
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
         :param num_heads: Number of attention heads that read from from attention_states.
                          Dummy field if attention_states is None.
@@ -89,6 +90,7 @@ class Decoder(graph_utils.NNModel):
 
         # To calculate W1 * h_t we use a 1-by-1 convolution
         hidden = tf.reshape(attention_states, [-1, attn_length, 1, attn_vec_dim])
+        hidden = tf.mul(hidden, tf.reshape(attn_masks, [-1, attn_length, 1, 1]))
         hidden_features = []
         v = []
         with tf.variable_scope("attention_hidden_layer"):
