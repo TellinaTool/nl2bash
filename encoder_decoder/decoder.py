@@ -68,7 +68,8 @@ class Decoder(graph_utils.NNModel):
                 attn_mask = tf.nn.softmax(s)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(
-                    tf.reshape(attn_mask, [-1, attn_length, 1, 1]) * hidden,
+                    tf.reshape(attn_mask, [-1, attn_length, 1, 1]) *
+                                          tf.nn.dropout(hidden, self.attention_keep),
                     [1, 2])
                 ds.append(tf.reshape(d, [-1, attn_vec_dim]))
         attns = tf.concat(1, ds)
