@@ -160,8 +160,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                         % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
-                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]) \
-                    and dev_perplexity < 1.5:
+                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]):
                     return False
            
                 previous_dev_losses.append(dev_loss)
