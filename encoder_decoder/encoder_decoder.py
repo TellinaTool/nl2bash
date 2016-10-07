@@ -342,12 +342,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for _ in xrange(self.batch_size):
             _, _, encoder_input, decoder_input = random.choice(data[bucket_id])
 
-            # Encoder inputs are padded and then reversed.
-            # encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
-            # encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
-
-            # decoder_pad_size = decoder_size - len(decoder_input)
-            # decoder_inputs.append(decoder_input + [data_utils.PAD_ID] * decoder_pad_size)
             encoder_inputs.append(encoder_input)
             decoder_inputs.append(decoder_input)
             
