@@ -64,7 +64,7 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
             cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
             cmd = re.sub('(^\( )|( \( )', '\\(', cmd)
             tree = data_tools.bash_parser(cmd)
-            search_history = None
+            search_history = outputs
         else:
             tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
         batch_outputs.append((tree, cmd, search_history))
@@ -148,6 +148,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                 else:
                     raise ValueError("Unrecognized decoding algorithm: {}."
                          .format(FLAGS.decoding_algorithm))
+
                 if attn_masks != None:
                     visualize_attn_masks(attn_masks[0, :, :], nl, outputs,
                                          rev_nl_vocab, rev_cm_vocab,
