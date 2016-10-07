@@ -124,7 +124,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             self.output_symbols, self.output_logits, self.losses, self.attn_mask = \
                 self.encode_decode(
-                    self.encoder_inputs, self.source_embeddings(),
+                    self.encoder_inputs, self.encoder_attn_masks,
+                    self.source_embeddings(),
                     self.decoder_inputs, self.target_embeddings(),
                     forward_only=forward_only
                 )
