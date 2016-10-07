@@ -31,7 +31,8 @@ class RNNDecoder(decoder.Decoder):
 
             if self.use_attention:
                 hidden, hidden_features, attn_vecs = \
-                    self.attention_hidden_layer(attention_states, num_heads)
+                    self.attention_hidden_layer(encoder_attn_masks, attention_states,
+                                                num_heads)
                 batch_size = tf.shape(attention_states)[0]
                 attn_dim = tf.shape(attention_states)[2]
                 batch_attn_size = tf.pack([batch_size, attn_dim])
