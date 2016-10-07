@@ -25,6 +25,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["max_gradient_norm"] = FLAGS.max_gradient_norm
     params["batch_size"] = FLAGS.batch_size
     params["num_samples"] = FLAGS.num_samples
+    params["attention_keep"] = FLAGS.attention_keep
     params["encoder_input_keep"] = FLAGS.encoder_input_keep
     params["encoder_output_keep"] = FLAGS.encoder_output_keep
     params["decoder_input_keep"] = FLAGS.decoder_input_keep
@@ -50,6 +51,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     if forward_only:
         params["batch_size"] = 1
+        params["attention_keep"] = 1.0
         params["encoder_input_keep"] = 1.0
         params["encoder_output_keep"] = 1.0
         params["decoder_input_keep"] = 1.0
@@ -75,7 +77,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
             os.mkdir(FLAGS.train_dir)
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
-
+    
     return model, global_epochs
 
 
@@ -239,6 +241,10 @@ class NNModel(object):
     @property
     def batch_size(self):
         return self.hyperparams["batch_size"]
+
+    @property
+    def attention_keep(self):
+        return self.hyperparams["attention_keep"]
 
     @property
     def encoder_input_keep(self):

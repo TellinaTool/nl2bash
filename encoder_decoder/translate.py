@@ -189,7 +189,6 @@ def eval(construct_model_dir=True, verbose=True):
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         _, model_sig = graph_utils.get_model_signature(FLAGS)
-
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
         _, dev_set, _ = load_data()
 
@@ -202,7 +201,6 @@ def manual_eval(num_eval):
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         _, model_sig = graph_utils.get_model_signature(FLAGS)
-
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
         _, dev_set, _ = load_data(use_buckets=False)
 

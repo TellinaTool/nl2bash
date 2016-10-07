@@ -23,7 +23,7 @@ binary_logic_operators \
     ])
 
 def make_parent_child(parent, child):
-    parent.addChild(child)
+    parent.add_child(child)
     child.parent = parent
 
 def make_sibling(lsb, rsb):
