@@ -350,7 +350,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             # decoder_inputs.append(decoder_input + [data_utils.PAD_ID] * decoder_pad_size)
             encoder_inputs.append(encoder_input)
             decoder_inputs.append(decoder_input)
-            
+
         return self.format_example(encoder_inputs, decoder_inputs, copy_data=None,
                                    bucket_id=bucket_id)
 
