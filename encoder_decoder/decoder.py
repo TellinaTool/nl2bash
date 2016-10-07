@@ -94,9 +94,9 @@ class Decoder(graph_utils.NNModel):
             if self.attention_hidden_vars:
                 tf.get_variable_scope().reuse_variables()
             for a in xrange(num_heads):
-                # k = tf.get_variable("AttnW_%d" % a, [1, 1, attn_vec_dim, attn_vec_dim])
-                # hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
-                hidden_features.append(hidden)
+                k = tf.get_variable("AttnW_%d" % a, [1, 1, attn_vec_dim, attn_vec_dim])
+                hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
+                # hidden_features.append(hidden)
                 v.append(tf.get_variable("AttnV_%d" % a, [attn_vec_dim]))
         self.attention_hidden_vars = True
         return hidden, hidden_features, v
