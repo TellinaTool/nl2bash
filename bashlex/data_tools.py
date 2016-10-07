@@ -14,7 +14,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "data"))
 
 import normalizer
 import gazetteer
-import spellcheck,spell_check as spc
+import spellcheck.spell_check as spc
 
 from nltk.stem.wordnet import WordNetLemmatizer
 lmtzr = WordNetLemmatizer()
@@ -198,12 +198,11 @@ def ast2list(node, order='dfs', list=None, ignore_flag_order=False, arg_type_onl
             else:
                 children = node.children
             for child in children:
-                ast2list(child, order, ignore_flag_order,
-                         arg_type_only, list)
+                ast2list(child, order, list, ignore_flag_order, arg_type_only,
+                         with_parent)
             list.append(normalizer._H_NO_EXPAND)
         else:
             list.append(normalizer._V_NO_EXPAND)
-    print(list)
     return list
 
 
@@ -252,7 +251,7 @@ if __name__ == "__main__":
             print("Pruned AST:")
             pretty_print(pruned_tree, 0)
             # print(to_command(norm_tree))
-            search_history = ast2list(norm_tree, 'dfs', [])
+            search_history = ast2list(norm_tree, 'dfs', list=[])
             for state in search_history:
                 print(state)
             tree = list2ast(search_history + ['<PAD>'])

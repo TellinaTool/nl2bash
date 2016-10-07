@@ -33,10 +33,7 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
     batch_outputs = []
     batch_size = len(output_symbols)
     
-    if FLAGS.decoding_algorithm == "beam_search":
-        predictions = reduce(lambda x,y: x + y, output_symbols)
-    else:
-        predictions = [output_symbols]
+    predictions = reduce(lambda x,y: x + y, output_symbols)
 
     for i in xrange(len(predictions)):
         outputs = [int(pred) for pred in predictions[i]]
@@ -68,14 +65,13 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
         else:
             tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
         batch_outputs.append((tree, cmd, search_history))
-
+    
     if FLAGS.decoding_algorithm == "beam_search":
         batch_beam_outputs = []
         for i in xrange(batch_size):
             beam_outputs = []
             for j in xrange(FLAGS.beam_size):
                 beam_outputs.append(batch_outputs[i * FLAGS.beam_size + j])
-                print(i * FLAGS.beam_size + j)
             batch_beam_outputs.append(beam_outputs)
         return batch_beam_outputs
     else:
@@ -122,8 +118,8 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                     for j in xrange(len(cm_strs)):
                         print("GT Command {}: {}".format(j+1, cm_strs[j].strip()))
                 if FLAGS.decoding_algorithm == "greedy":
-                    tree, pred_cmd, outputs = batch_outputs[batch_id]
-                    score = output_logits[batch_id]
+                    tree, pred_cmd, outputs = batch_outputs[0]
+                    score = output_logits
                     db.add_prediction(model.model_sig, nl_str, pred_cmd, float(score))
                     if verbose:
                         print("Prediction: {} ({})".format(pred_cmd, score))
@@ -131,16 +127,16 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                         # data_tools.pretty_print(tree, 0)
                         # print()
                 elif FLAGS.decoding_algorithm == "beam_search":
-                    top_k_predictions = batch_outputs[batch_id]
-                    top_k_scores = output_logits[batch_id]
+                    top_k_predictions = batch_outputs[0]
+                    top_k_scores = output_logits[0]
                     if verbose:
-                        for j in xrange(FLAGS.top_k):
+                        for j in xrange(FLAGS.beam_size):
                             top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                                 top_k_predictions[j]
                             print("Prediction {}: {} ({}) ".format(j+1,
                                 top_k_pred_cmd, top_k_scores[j]))
                             db.add_prediction(model.model_sig, nl_str, top_k_pred_cmd,
-                                              top_k_scores[j], update_mode=False)
+                                              float(top_k_scores[j]), update_mode=False)
                             # print("AST: ")
                             # data_tools.pretty_print(top_k_pred_tree, 0)
                     print()
@@ -155,7 +151,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                                          os.path.join(FLAGS.train_dir, "{}-{}.jpg".format(bucket_id, batch_id)))
 
 
-def interactive_decode(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
+def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
     """
     Simple command line decoding interface.
     """
