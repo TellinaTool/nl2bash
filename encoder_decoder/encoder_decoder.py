@@ -284,7 +284,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
             batch_attn_mask = np.ones(batch_size, dtype=np.float32)
             for batch_idx in xrange(batch_size):
-                source = padded_decoder_inputs[batch_idx][length_idx]
+                source = padded_encoder_inputs[batch_idx][length_idx]
                 if source == data_utils.PAD_ID:
                     batch_attn_mask[batch_idx] = 0.0
             batch_attn_masks.append(batch_attn_mask)
