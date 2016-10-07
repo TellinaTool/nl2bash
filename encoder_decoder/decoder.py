@@ -13,7 +13,8 @@ class Decoder(graph_utils.NNModel):
         self.attention_hidden_vars = False
         self.normal_cell_vars = False
 
-    def attention_cell(self, cell, cell_scope, input_embedding, state, attns,
+    def attention_cell(self, cell, cell_scope, input_embedding, state,
+                       encoder_attn_masks, attns,
                        hidden_features, v, num_heads, hidden):
         with tf.variable_scope("AttnInputProjection"):
             if self.attention_cell_vars:
@@ -39,7 +40,8 @@ class Decoder(graph_utils.NNModel):
             # ) = state
 
             attns, attn_mask = \
-                self.attention(v, state, hidden_features, num_heads, hidden)
+                self.attention(v, state, encoder_attn_masks, hidden_features,
+                               num_heads, hidden)
 
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
