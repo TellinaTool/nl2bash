@@ -188,7 +188,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             output_symbols, output_logits, outputs, state, attn_mask = \
                 self.decoder.define_graph(
                     encoder_state, decoder_inputs, target_embeddings,
-                    attention_states, encoder_attn_masks, num_heads=1,
+                    encoder_attn_masks, attention_states, num_heads=1,
                     feed_previous=forward_only)
         else:
             output_symbols, output_logits, outputs, state = \
