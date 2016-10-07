@@ -109,14 +109,15 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("/bin/mv", "mv")
     
     ## correct common typos
+    cmd = cmd.replace("'{}'", "{}")
+    cmd = cmd.replace("\"{}\"", "{}")
     cmd = cmd.replace("-i{}", "-I {}")
     cmd = cmd.replace("-I{}", "-I {}")
+    cmd = cmd.replace(" [] ", " {} ")
     cmd = cmd.replace("-L.", "-L")
     cmd = cmd.replace("-mitime", "-mtime")
     cmd = cmd.replace("-dev", "-xdev")
     cmd = cmd.replace("-regex-type", "-regextype")
-    cmd = cmd.replace(" [] ", " {} ")
-    cmd = cmd.replace("-n10", "-n 10")
     cmd = cmd.replace("-\\(", "\\(")
     cmd = cmd.replace("-\\)", "\\)")
     cmd = cmd.replace("\"\\)", " \\)")

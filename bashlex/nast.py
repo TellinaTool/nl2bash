@@ -178,12 +178,12 @@ class ArgumentNode(Node):
             return False
         if self.arg_type == "FileType":
             return False
-        if self.arg_type == "Size":
-            return False
-        if self.arg_type == "Time":
-            return False
-        if self.arg_type == "Number":
-            return False
+        # if self.arg_type == "Size":
+        #     return False
+        # if self.arg_type == "Time":
+        #     return False
+        # if self.arg_type == "Number":
+        #     return False
         # if self.arg_type == "Permission":
         #     return False
         return True
