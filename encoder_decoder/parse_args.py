@@ -74,6 +74,8 @@ def define_input_flags():
                                 "Batch size to use during training.")
     tf.app.flags.DEFINE_integer("num_samples", 512,
                                 "Number of samples for sampled softmax.")
+    tf.app.flags.DEFINE_float("attention_keep", 1.0,
+                                "Proportion of attention state to keep if dropout is used.")
     tf.app.flags.DEFINE_float("encoder_input_keep", 1.0,
                                 "Proportion of input to keep if dropout is used.")
     tf.app.flags.DEFINE_float("encoder_output_keep", 1.0,
