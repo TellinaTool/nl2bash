@@ -50,7 +50,7 @@ class Decoder(graph_utils.NNModel):
         self.attention_cell_vars = True
         return output, state, attns, attn_mask
 
-    def attention(self, v, state, hidden_features, num_heads, hidden):
+    def attention(self, v, state, encoder_attn_masks, hidden_features, num_heads, hidden):
         assert(len(v) > 0)
         attn_vec_dim = v[0].get_shape()[0].value
         attn_length = hidden.get_shape()[1].value
@@ -64,7 +64,9 @@ class Decoder(graph_utils.NNModel):
                 y = tf.reshape(y, [-1, 1, 1, attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
                 s = tf.reduce_sum(
-                    v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
+                    v[a] * tf.tanh(tf.mul(hidden_features[a],
+                                          tf.reshape(encoder_attn_masks, [-1, attn_length, 1, 1
+                                                                          ]))+ y), [2, 3])
                 attn_mask = tf.nn.softmax(s)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(
@@ -77,7 +79,7 @@ class Decoder(graph_utils.NNModel):
         self.attention_vars = True
         return attns, attn_mask
 
-    def attention_hidden_layer(self, attn_masks, attention_states, num_heads):
+    def attention_hidden_layer(self, attention_states, num_heads):
         """
         Hidden layer above attention states.
         :param attn_masks: 2D Tensor [batch_size x attn_length] used to mask out padding symbols
@@ -90,7 +92,6 @@ class Decoder(graph_utils.NNModel):
 
         # To calculate W1 * h_t we use a 1-by-1 convolution
         hidden = tf.reshape(attention_states, [-1, attn_length, 1, attn_vec_dim])
-        hidden = tf.mul(hidden, tf.reshape(attn_masks, [-1, attn_length, 1, 1]))
         hidden_features = []
         v = []
         with tf.variable_scope("attention_hidden_layer"):
