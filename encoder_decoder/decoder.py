@@ -67,8 +67,8 @@ class Decoder(graph_utils.NNModel):
                 # Attention mask is a softmax of v^T * tanh(...).
                 s = tf.reduce_sum(
                     v[a] * tf.tanh(hidden_features[a]+ y), [2, 3])
+                s = tf.mul(tf.reshape(encoder_attn_masks, s.get_shape()), s)
                 attn_mask = tf.nn.softmax(s)
-                attn_mask = tf.mul(tf.reshape(encoder_attn_masks, attn_mask.get_shape()), attn_mask)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(
                     tf.reshape(attn_mask, [-1, attn_length, 1, 1]) *
