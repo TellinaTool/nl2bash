@@ -45,7 +45,7 @@ class Decoder(graph_utils.NNModel):
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
-
+        self.attention_cell_vars = True
         return output, state, attns, attn_mask
 
     def attention(self, v, state, hidden_features, num_heads, hidden):
