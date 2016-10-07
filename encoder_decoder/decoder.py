@@ -29,16 +29,16 @@ class Decoder(graph_utils.NNModel):
                 cell_scope.reuse_variables()
                 cell_output, state = cell(x, state, cell_scope)
 
-            (
-                cand_symbols,
-                cand_logprobs,
-                beam_symbols,
-                beam_logprobs,
-                cell_state,
-            ) = state
+            # (
+            #     cand_symbols,
+            #     cand_logprobs,
+            #     beam_symbols,
+            #     beam_logprobs,
+            #     cell_state,
+            # ) = state
 
             attns, attn_mask = \
-                self.attention(v, cell_state, hidden_features, num_heads, hidden)
+                self.attention(v, state, hidden_features, num_heads, hidden)
 
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
