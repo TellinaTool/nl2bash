@@ -39,7 +39,7 @@ class RNNDecoder(decoder.Decoder):
                 attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
                          for _ in xrange(num_heads)])
                 if initial_state_attention:
-                    attns = self.attention(encoder_state, hidden_features,
+                    attns, _ = self.attention(encoder_state, hidden_features,
                                            attn_vecs, num_heads, hidden)
 
             if self.decoding_algorithm == "beam_search":
