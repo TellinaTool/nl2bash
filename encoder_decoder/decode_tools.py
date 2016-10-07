@@ -42,8 +42,8 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
         outputs = [int(pred) for pred in predictions[i]]
 
         # If there is an EOS symbol in outputs, cut them at that point.
-        if data_utils.EOS_ID in outputs:
-            outputs = outputs[:outputs.index(data_utils.EOS_ID)]
+        # if data_utils.EOS_ID in outputs:
+        #     outputs = outputs[:outputs.index(data_utils.EOS_ID)]
 
         if FLAGS.decoder_topology == "rnn":
             if FLAGS.char:
