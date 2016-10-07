@@ -290,8 +290,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             batch_attn_masks.append(batch_attn_mask)
             if self.use_copy:
                 raise NotImplementedError
-        print(encoder_size)
-        print(batch_attn_masks)
 
         # Batch decoder inputs are re-indexed decoder_inputs.
         for length_idx in xrange(decoder_size):
