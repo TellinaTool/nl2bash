@@ -40,7 +40,7 @@ FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
 
 # set up data and model directories
-FLAGS.data_dir = os.path.join(os.path.dirname(__file__), "..", "data", FLAGS.data_set)
+FLAGS.data_dir = os.path.join(os.path.dirname(__file__), "..", "data", FLAGS.dataset)
 print("Reading data from {}".format(FLAGS.train_dir))
 
 if FLAGS.decoder_topology in ['basic_tree']:

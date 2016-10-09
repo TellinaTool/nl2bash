@@ -744,11 +744,11 @@ def prepare_data(FLAGS):
         (8) path to the Command vocabulary file.
     """
 
-    if FLAGS.data_set == "bash":
+    if FLAGS.dataset == "bash":
         prepare_bash(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
-    if FLAGS.data_set == "jobs":
+    if FLAGS.dataset == "jobs":
         prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
-    if FLAGS.data_set == "geo":
+    if FLAGS.dataset == "geo":
         prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
-    if FLAGS.data_set == "atis":
+    if FLAGS.dataset == "atis":
         prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
