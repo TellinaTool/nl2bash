@@ -543,9 +543,10 @@ def parse_brackets(line):
             node = nast.Node(kind="node", value=word)
             stack[-1].add_child(node)
             node.parent = stack[-1]
+            prev = node
         i += 1
-        prev = node
-        
+
+
     normalizer.pretty_print(root)
     return root
 
