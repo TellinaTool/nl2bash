@@ -256,7 +256,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         if normalize_digits and arg_type != "Permission":
             value = re.sub(_DIGIT_RE, _NUM, value)
         if normalize_long_pattern:
-            normalize_pattern(value, verbose=verbose)
+            value = normalize_pattern(value, verbose=verbose)
 
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
         attach_to_tree(norm_node, current)
