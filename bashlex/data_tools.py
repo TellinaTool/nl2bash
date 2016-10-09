@@ -131,7 +131,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             # print(msg)
 
         # normalize long patterns
-        if ' ' in word and len(word) > 3:
+        if normalize_long_pattern:
             try:
                 assert(word.startswith('"') and word.endswith('"'))
             except AssertionError, e:
