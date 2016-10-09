@@ -188,6 +188,38 @@ def detach_from_tree(node, parent):
     node.rsb = None
     node.lsb = None
 
+def normalize_pattern(value, verbose=False):
+    value = value.replace("$HOME", "${HOME}")
+    value = value.replace("~", "${HOME}")
+    remove_current_dir = re.compile("./")
+    remove_dir_suffix = re.compile("/$")
+    if not value == "/":
+        value = re.sub(remove_dir_suffix, "", value)
+    value = re.sub(remove_current_dir, "", value)
+    if not (value.startswith("-")
+            or value == "/"
+            or value == "."
+            or value == "${HOME}"):
+        if ' ' in value or len(value) > 15:
+            try:
+                assert(value.startswith('"') and value.endswith('"'))
+            except AssertionError, e:
+                if verbose:
+                    print("Quotation Error: space inside word " + value)
+            value = _LONG_PATTERN
+        elif "$" in value:
+            value = _PARAMETER
+        elif value[0] in ['\'', '"'] \
+                or '/' in value \
+                or '\\' in value \
+                or '~' in value \
+                or '@' in value \
+                or "%" in value \
+                or '#' in value \
+                or '?' in value:
+            value = _REGEX
+    return value
+
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                   recover_quotation=True, verbose=False):
     """
@@ -224,24 +256,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         if normalize_digits and arg_type != "Permission":
             value = re.sub(_DIGIT_RE, _NUM, value)
         if normalize_long_pattern:
-            if ' ' in value or len(value) > 15:
-                try:
-                    assert(value.startswith('"') and value.endswith('"'))
-                except AssertionError, e:
-                    if verbose:
-                        print("Quotation Error: space inside word " + value)
-                value = _LONG_PATTERN
-            elif "$" in value:
-                value = _PARAMETER
-            elif value[0] in ['\'', '"'] \
-                    or '/' in value \
-                    or '\\' in value \
-                    or '~' in value \
-                    or '@' in value \
-                    or "%" in value \
-                    or '#' in value \
-                    or '?' in value:
-                value = _REGEX
+            normalize_pattern(value, verbose=verbose)
 
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
         attach_to_tree(norm_node, current)
