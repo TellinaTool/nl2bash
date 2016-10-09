@@ -27,6 +27,10 @@ correct_temp_pairs = [
     (
         "Delete files with inode number specified by [inode-number] under current directory\n",
         "find -exec ls -l {} \; -name Pattern -type d File"
+    ),
+    (
+        "find all fonts which belong to a specific user\n",
+        "find -print -user Pattern File"
     )]
 
 error_temp_pairs = [
