@@ -135,6 +135,10 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                 else:
                     vocab[word] = 1
 
+        # Keep all training vocabulary in the commands
+        if ".cm" in vocabulary_path:
+            min_word_frequency = 0
+
         sorted_vocab = {}
         for v in vocab:
             if vocab[v] >= min_word_frequency:

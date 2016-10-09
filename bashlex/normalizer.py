@@ -121,6 +121,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("-\\(", "\\(")
     cmd = cmd.replace("-\\)", "\\)")
     cmd = cmd.replace("\"\\)", " \\)")
+    cmd = cmd.replace("-\\!", "!")
     try:
         cmd = cmd.replace("— ", "-")
         cmd = cmd.replace("—", "-")
