@@ -43,6 +43,10 @@ correct_temp_pairs = [
     (
         "Remove all Thumbs.db files from the current directory tree\n",
         "find -name Pattern File | xargs rm -f"
+    ),
+    (
+        "find all files in a folder that have a specific word in their name\n",
+        "find -name Pattern -print -type f File"
     )]
 
 error_temp_pairs = [
