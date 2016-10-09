@@ -20,6 +20,8 @@ from nast import *
 
 _NUM = b"_NUM"
 _LONG_PATTERN = b"_LONG_PATTERN"
+_PARAMETER = b"_PARAMETER"
+_REGEX = b"_REGEX"
 _H_NO_EXPAND = b"<H_NO_EXPAND>"
 _V_NO_EXPAND = b"<V_NO_EXPAND>"
 
@@ -229,6 +231,13 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     if verbose:
                         print("Quotation Error: space inside word " + value)
                 value = _LONG_PATTERN
+            elif "$" in value:
+                value = _PARAMETER
+            elif value[0] in ['\'', '"'] or '*' in value or '\/' in value \
+                or '\\' in value or '~' in value or '@' in value or "%" in value \
+                or '#' in value or '?' in value:
+                value = _REGEX
+
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
         attach_to_tree(norm_node, current)
         return norm_node
