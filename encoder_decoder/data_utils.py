@@ -542,7 +542,7 @@ def parse_brackets(line):
                 node.parent = stack[-1]
                 stack.append(node)
             else:
-                stack.append(node)
+                stack.append(root)
         elif word == ")":
             stack.pop()
         else:
