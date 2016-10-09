@@ -6,7 +6,7 @@ import functools
 import random
 import re
 import sqlite3
-import sys
+import os, sys
 sys.path.append("..")
 sys.path.append("../../bashlex")
 import warnings
@@ -375,12 +375,47 @@ class DBConnection(object):
         print("Total number of test clusters: %d (%d pairs)" % (num_test, num_test_pairs))
         print("%.2f pairs per url cluster" % ((num_pairs + 0.0) / num_urls))
 
-        if split_by_template:
-            split_by = "template"
-        else:
-            split_by = "command"
-        with open(data_dir + "/data.by.%s.dat" % split_by, 'w') as o_f:
-            pickle.dump(data, o_f)
+        # if split_by_template:
+        #     split_by = "template"
+        # else:
+        #     split_by = "command"
+        # with open(data_dir + "/data.by.%s.dat" % split_by, 'w') as o_f:
+        #     pickle.dump(data, o_f)
+
+        train_nl_list = []
+        train_cm_list = []
+        dev_nl_list = []
+        dev_cm_list = []
+        test_nl_list = []
+        test_cm_list = []
+
+        numFolds = len(data)
+        for i in xrange(numFolds):
+            if i < numFolds - 2:
+                train_nl_list.append(data[i][0])
+                train_cm_list.append(data[i][1])
+            elif i == numFolds - 2:
+                dev_nl_list.append(data[i][0])
+                dev_cm_list.append(data[i][1])
+            elif i == numFolds - 1:
+                test_nl_list.append(data[i][0])
+                test_cm_list.append(data[i][1])
+
+        def write_data(data_path, data):
+            if not os.path.exists(data_path):
+                with open(data_path, 'w') as o_f:
+                    for line in data:
+                        o_f.write(line.encode('utf-8') + '\n')
+
+        train_path = os.path.join(data_dir, "train")
+        dev_path = os.path.join(data_dir, "dev")
+        test_path = os.path.join(data_dir, "test")
+        write_data(train_path + ".nl", train_nl_list)
+        write_data(train_path + ".cm", train_cm_list)
+        write_data(dev_path + ".nl", dev_nl_list)
+        write_data(dev_path + ".cm", dev_cm_list)
+        write_data(test_path + ".nl", test_nl_list)
+        write_data(test_path + ".cm", test_cm_list)
 
     def dump_htmls(self, output):
         c = self.conn.cursor()
@@ -432,5 +467,5 @@ if __name__ == "__main__":
     #     split_by_template = False
     with DBConnection() as db:
         db.create_schema()
-        db.dump_data(".")
+        db.dump_data(os.path.join(os.path.dirname(__file__), "..", "bash"))
         # db.dump_htmls(os.path.join(os.path.dirname(__file__), "..", "html.txt"))
