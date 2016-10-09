@@ -544,6 +544,7 @@ def parse_brackets(line):
             stack[-1].add_child(node)
             node.parent = stack[-1]
         i += 1
+        prev = node
         
     normalizer.pretty_print(root)
     return root
