@@ -325,13 +325,13 @@ def load_data(use_buckets=True):
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
 
-    with open(FLAGS.data_dir + "data.by.%s.dat" % FLAGS.data_split) as f:
-        data = pickle.load(f)
+    # with open(FLAGS.data_dir + "data.by.%s.dat" % FLAGS.data_split) as f:
+    #     data = pickle.load(f)
 
-    numFolds = len(data)
-    print("%d folds" % numFolds)
+    # numFolds = len(data)
+    # print("%d folds" % numFolds)
 
-    data_utils.prepare_data(data, FLAGS)
+    data_utils.prepare_data(FLAGS)
 
 
 def data_statistics():

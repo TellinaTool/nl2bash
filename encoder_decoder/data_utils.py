@@ -721,7 +721,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     print("maximum num pruned AST search steps = %d" % max_cm_seq_pruned_len)
 
 
-def prepare_data(data, FLAGS):
+def prepare_data(FLAGS):
     """Get data into data_dir, create vocabularies and tokenize data.
 
     Args:
