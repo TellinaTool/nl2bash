@@ -44,7 +44,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["top_k"] = FLAGS.top_k
 
     model_subdir, model_sig = get_model_signature(FLAGS)
-    setattr(FLAGS, "train_dir", os.path.join(FLAGS.train_dir, model_subdir))
+    setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
 
     # construct model directory
     params["model_sig"] = model_sig
@@ -59,12 +59,12 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     model = model_constructor(params, buckets, forward_only)
 
-    ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
+    ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
     global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
 
     if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
         if not forward_only and FLAGS.create_fresh_params:
-            data_utils.clean_dir(FLAGS.train_dir)
+            data_utils.clean_dir(FLAGS.model_dir)
             print("Created model with fresh parameters.")
             global_epochs = 0
             session.run(tf.initialize_all_variables())
@@ -72,9 +72,9 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
             print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
             model.saver.restore(session, ckpt.model_checkpoint_path)
     else:
-        if not os.path.exists(FLAGS.train_dir):
-            print("Making train dir {}".format(FLAGS.train_dir))
-            os.mkdir(FLAGS.train_dir)
+        if not os.path.exists(FLAGS.model_dir):
+            print("Making train dir {}".format(FLAGS.model_dir))
+            os.mkdir(FLAGS.model_dir)
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
     
