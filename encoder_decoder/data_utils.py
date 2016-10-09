@@ -23,7 +23,7 @@ import re
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
-import bash, data_tools, normalizer
+import bash, data_tools, nast, normalizer
 
 import tensorflow as tf
 
@@ -507,16 +507,45 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path,
                         if buckets:
                             for bucket_id, (source_size, target_size) in enumerate(buckets):
                                 if len(source_ids) < source_size and len(target_ids) < target_size:
-                                    data_set[bucket_id].append([source_txt, target_txt, source_ids, target_ids])
+                                    data_set[bucket_id].append(
+                                        [source_txt, target_txt, source_ids, target_ids])
                                     break   
                         else:
                             data_set.append([source_txt, target_txt, source_ids, target_ids])
 
-                        source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
+                        source_txt, target_txt = \
+                            source_txt_file.readline(), target_txt_file.readline()
                         source, target = source_file.readline(), target_file.readline()
     print("  %d data points read." % len(data_set))
     return data_set
 
+
+def parse_brackets(line):
+    """A very simple algorithm for parsing data with parentheses."""
+    if not line.startswith("("):
+        line = "( " + line
+    if not line.endswith(")"):
+        line = line + " )"
+    words = line.strip().split()
+
+    root = nast.Node(kind="root", value="root")
+    stack = []
+    prev = root
+
+    i = 0
+    while i < len(words):
+        word = words[i]
+        if word == "(":
+            stack.append(prev)
+        elif word == ")":
+            stack.pop()
+        else:
+            node = nast.Node(kind="node", value=word)
+            stack[-1].add_child(node)
+            node.parent = stack[-1]
+
+    normalizer.pretty_print(root)
+    return root
 
 class Dataset(object):
     def __init__(self):
@@ -758,3 +787,7 @@ def prepare_data(FLAGS):
         prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
     if FLAGS.dataset == "atis":
         prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+
+
+if __name__ == "__main__":
+    parse_brackets(sys.argv[1])
