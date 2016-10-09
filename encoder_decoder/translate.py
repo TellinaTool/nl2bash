@@ -53,11 +53,13 @@ else:
 print("Saving models to {}".format(FLAGS.model_dir))
 
 # We use a number of buckets and pad to the closest one for efficiency.
-if FLAGS.decoder_topology in ['basic_tree']:
-    _buckets = [(5, 10), (10, 20), (15, 30), (20, 40), (30, 50), (40, 66)]
-elif FLAGS.decoder_topology in ['rnn']:
-    _buckets = [(5, 10), (10, 15), (15, 20), (20, 20), (30, 30), (40, 40)]
-
+if FLAGS.dataset == "bash":
+    if FLAGS.decoder_topology in ['basic_tree']:
+        _buckets = [(5, 10), (10, 20), (15, 30), (20, 40), (30, 50), (40, 66)]
+    elif FLAGS.decoder_topology in ['rnn']:
+        _buckets = [(5, 10), (10, 15), (15, 20), (20, 20), (30, 30), (40, 40)]
+elif FLAGS.dataset == "jobs":
+    _buckets = [(5, 30), (10, 30), (15, 30), (20, 45)]
 
 def create_model(session, forward_only, construct_model_dir=True):
     """
