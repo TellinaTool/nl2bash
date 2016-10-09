@@ -41,7 +41,7 @@ parse_args.define_input_flags()
 
 # set up data and model directories
 FLAGS.data_dir = os.path.join(os.path.dirname(__file__), "..", "data", FLAGS.dataset)
-print("Reading data from {}".format(FLAGS.train_dir))
+print("Reading data from {}".format(FLAGS.model_dir))
 
 if FLAGS.decoder_topology in ['basic_tree']:
     FLAGS.model_dir = os.path.join(os.path.dirname(__file__), "..", "model", "seq2tree")
@@ -147,7 +147,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                     sess.run(model.learning_rate_decay_op)
                 previous_losses.append(loss)
 
-                checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
+                checkpoint_path = os.path.join(FLAGS.model_dir, "translate.ckpt")
                 # Save checkpoint and zero timer and loss.
                 model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1,
                                  write_meta_graph=False)
@@ -215,7 +215,7 @@ def manual_eval(num_eval):
         _, dev_set, _ = load_data(use_buckets=False)
 
         eval_tools.manual_eval(model_sig, dev_set, rev_nl_vocab,
-                               FLAGS.train_dir, num_eval)
+                               FLAGS.model_dir, num_eval)
 
 
 def demo():
@@ -262,7 +262,7 @@ def grid_search(train_set, dev_set):
     best_seed = -1
     best_temp_match_score = 0.0
 
-    model_root_dir = FLAGS.train_dir
+    model_root_dir = FLAGS.model_dir
 
     for row in grid:
         row = nest.flatten(row)
@@ -279,7 +279,7 @@ def grid_search(train_set, dev_set):
             model_dir += '-attention'
         model_dir += '-{}'.format(FLAGS.batch_size)
         model_dir += '-{}'.format(row)
-        setattr(FLAGS, "train_dir", model_dir)
+        setattr(FLAGS, "model_dir", model_dir)
 
         num_trials = 5 if FLAGS.initialization else 1
 

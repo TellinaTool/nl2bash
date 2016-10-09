@@ -162,6 +162,8 @@ class DBConnection(object):
     def unique_pairs(self, head_cmd):
         cmds_dict = {}
         for user, url, nl, cmd, time_stamp in self.pairs():
+            if nl.lower() == "na":
+                continue
             if not cmd:
                 continue
             if not nl:
@@ -392,14 +394,17 @@ class DBConnection(object):
         numFolds = len(data)
         for i in xrange(numFolds):
             if i < numFolds - 2:
-                train_nl_list.append(data[i][0])
-                train_cm_list.append(data[i][1])
+                for j in xrange(len(data[i])):
+                    train_nl_list.append(data[i][j][0])
+                    train_cm_list.append(data[i][j][1])
             elif i == numFolds - 2:
-                dev_nl_list.append(data[i][0])
-                dev_cm_list.append(data[i][1])
+                for j in xrange(len(data[i])):
+                    dev_nl_list.append(data[i][j][0])
+                    dev_cm_list.append(data[i][j][1])
             elif i == numFolds - 1:
-                test_nl_list.append(data[i][0])
-                test_cm_list.append(data[i][1])
+                for j in xrange(len(data[i])):
+                    test_nl_list.append(data[i][j][0])
+                    test_cm_list.append(data[i][j][1])
 
         def write_data(data_path, data):
             if not os.path.exists(data_path):
