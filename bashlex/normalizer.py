@@ -234,7 +234,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             elif "$" in value:
                 value = _PARAMETER
             elif value[0] in ['\'', '"'] \
-                    or '\/' in value \
+                    or '/' in value \
                     or '\\' in value \
                     or '~' in value \
                     or '@' in value \
