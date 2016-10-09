@@ -34,7 +34,8 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
     total_top10_dist = 0.0
     num_eval = 0
 
-    cmd_parser = data_utils.bash_parser if FLAGS else data_utils.parse_brackets
+    cmd_parser = data_tools.bash_parser if FLAGS.dataset == "bash" \
+        else data_utils.parse_brackets
 
     use_bucket = False if model == "knn" else True
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=use_bucket)
@@ -192,7 +193,8 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                                 .values()
     random.shuffle(grouped_dataset, lambda: 0.5208484091114275)
 
-    cmd_parser = data_utils.bash_parser if FLAGS else data_utils.parse_brackets
+    cmd_parser = data_tools.bash_parser if FLAGS.dataset == "bash" \
+        else data_utils.parse_brackets
 
     o_f = open(os.path.join(output_dir, "manual.eval.results"), 'w')
 
