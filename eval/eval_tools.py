@@ -19,7 +19,7 @@ import ast_based, zss
 from eval_archive import DBConnection
 
 
-def eval_set(model, dataset, rev_nl_vocab, verbose=True):
+def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
     num_top1_correct_temp = 0.0
     num_top5_correct_temp = 0.0
     num_top10_correct_temp = 0.0
@@ -34,6 +34,8 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
     total_top10_dist = 0.0
     num_eval = 0
 
+    cmd_parser = data_utils.bash_parser if FLAGS else data_utils.parse_brackets
+
     use_bucket = False if model == "knn" else True
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=use_bucket)
 
@@ -42,7 +44,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
             nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_temp]
             nl_str = nl_strs[0]
 
-            gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
+            gt_trees = [cmd_parser(cmd) for cmd in cm_strs]
 
             predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
@@ -65,7 +67,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
 
             for i in xrange(len(predictions)):
                 pred_cmd, score = predictions[i]
-                tree = data_tools.bash_parser(pred_cmd)
+                tree = cmd_parser(pred_cmd)
                 # evaluation ignoring flag orders
                 min_temp_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=True)
                 min_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=False)
@@ -177,7 +179,7 @@ def eval_set(model, dataset, rev_nl_vocab, verbose=True):
     return top1_temp_match_score, top1_string_match_score
 
 
-def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
+def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
     num_top1_correct_temp = 0.0
     num_top5_correct_temp = 0.0
     num_top10_correct_temp = 0.0
@@ -190,6 +192,8 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                                 .values()
     random.shuffle(grouped_dataset, lambda: 0.5208484091114275)
 
+    cmd_parser = data_utils.bash_parser if FLAGS else data_utils.parse_brackets
+
     o_f = open(os.path.join(output_dir, "manual.eval.results"), 'w')
 
     with DBConnection() as db:
@@ -201,7 +205,7 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
             if num_evaled == num_eval:
                 break
 
-            gt_trees = [data_tools.bash_parser(cmd) for cmd in cm_strs]
+            gt_trees = [cmd_parser(cmd) for cmd in cm_strs]
 
             predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
@@ -218,7 +222,7 @@ def manual_eval(model, dataset, rev_nl_vocab, output_dir, num_eval=30):
                 o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
             for i in xrange(len(predictions[:1])):
                 pred_cmd, score = predictions[i]
-                tree = data_tools.bash_parser(pred_cmd)
+                tree = cmd_parser(pred_cmd)
                 print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
                 o_f.write("Prediction {}: {} ({})\n".format(i+1, pred_cmd, score))
                 print("AST: ")
