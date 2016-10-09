@@ -136,8 +136,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                 assert(word.startswith('"') and word.endswith('"'))
             except AssertionError, e:
                 print("Quotation Error: space inside word " + sentence)
-            if normalize_long_pattern:
-                word = normalizer._LONG_PATTERN
+            word = normalizer.normalize_pattern(word)
 
         # normalize digits
         word = re.sub(normalizer._DIGIT_RE, normalizer._NUM, word) \
