@@ -57,10 +57,14 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
                     else:
                         tokens.append(data_utils._UNK)
                 cmd = " ".join(tokens)
-            cmd = re.sub('( ;\s+)|( ;$)', ' \\; ', cmd)
-            cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
-            cmd = re.sub('(^\( )|( \( )', '\\(', cmd)
-            tree = data_tools.bash_parser(cmd)
+
+            if FLAGS.dataset == "bash":
+                cmd = re.sub('( ;\s+)|( ;$)', ' \\; ', cmd)
+                cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
+                cmd = re.sub('(^\( )|( \( )', ' \\( ', cmd)
+                tree = data_tools.bash_parser(cmd)
+            else:
+                tree = data_utils.parse_brackets(cmd)
             search_history = outputs
         else:
             tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
