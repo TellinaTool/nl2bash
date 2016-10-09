@@ -43,6 +43,8 @@ temp*.txt
 *dump*.txt
 spell.txt
 manual.eval.results*
+*.swp
+*.swo
 /nl2cmd_paper
 
 # ideaJ file

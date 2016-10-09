@@ -352,7 +352,7 @@ def main(_):
     if FLAGS.eval:
         eval()
     elif FLAGS.manual_eval:
-        manual_eval(100)
+        manual_eval(500)
     elif FLAGS.decode:
         decode()
     elif FLAGS.demo:
