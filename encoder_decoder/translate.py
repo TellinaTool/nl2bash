@@ -41,7 +41,7 @@ parse_args.define_input_flags()
 
 # set up data and model directories
 FLAGS.data_dir = os.path.join(os.path.dirname(__file__), "..", "data", FLAGS.dataset)
-print("Reading data from {}".format(FLAGS.train_dir))
+print("Reading data from {}".format(FLAGS.data_dir))
 
 if FLAGS.decoder_topology in ['basic_tree']:
     FLAGS.model_dir = os.path.join(os.path.dirname(__file__), "..", "model", "seq2tree")
