@@ -539,13 +539,15 @@ def read_raw_data(data_dir):
         nl_list.dev = [line.strip() for line in f.readlines()]
     with open(dev_path + ".cm") as f:
         cm_list.dev = [line.strip() for line in f.readlines()]
-    with open(test_path + ".nl") as f:
-        nl_list.test = [line.strip() for line in f.readlines()]
-    with open(test_path + ".cm") as f:
-        cm_list.test = [line.strip() for line in f.readlines()]
-    if not nl_list.dev:
-        nl_list.dev = nl_list.test
-        cm_list.dev = cm_list.test
+    if os.path.exists(test_path + ".nl"):
+        with open(test_path + ".nl") as f:
+            nl_list.test = [line.strip() for line in f.readlines()]
+    if os.path.exists(test_path + ".cm"):
+        with open(test_path + ".cm") as f:
+            cm_list.test = [line.strip() for line in f.readlines()]
+    if not nl_list.test:
+        nl_list.test = nl_list.dev
+        cm_list.test = cm_list.dev
     return nl_list, cm_list
 
 
