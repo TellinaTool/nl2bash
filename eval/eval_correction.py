@@ -31,6 +31,11 @@ correct_temp_pairs = [
     (
         "find all fonts which belong to a specific user\n",
         "find -print -user Pattern File"
+    ),
+    (
+        "find ~/Desktop -name “*.jpg” -o -name “*.gif” -o -name “*.png” -print0 | xargs -0 mv –target-directory "
+        "~/Pictures\n",
+        "find -exec mv {} File + -name Pattern File"
     )]
 
 error_temp_pairs = [
