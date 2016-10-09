@@ -545,7 +545,6 @@ def parse_brackets(line):
             node.parent = stack[-1]
             prev = node
         i += 1
-        prev = node
         
     data_tools.pretty_print(root)
     return root
