@@ -191,7 +191,7 @@ def detach_from_tree(node, parent):
 def normalize_pattern(value, verbose=False):
     value = value.replace("$HOME", "${HOME}")
     value = value.replace("~", "${HOME}")
-    remove_current_dir = re.compile("./")
+    remove_current_dir = re.compile("\./")
     remove_dir_suffix = re.compile("/$")
     if not value == "/":
         value = re.sub(remove_dir_suffix, "", value)
