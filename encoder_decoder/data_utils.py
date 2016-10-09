@@ -530,22 +530,27 @@ def parse_brackets(line):
 
     root = nast.Node(kind="root", value="root")
     stack = []
-    prev = root
 
     i = 0
     while i < len(words):
         word = words[i]
         if word == "(":
-            stack.append(prev)
+            if stack:
+                # creates non-terminal
+                node = nast.Node(kind="nt", value="<n>")
+                stack[-1].add_child(node)
+                node.parent = stack[-1]
+                stack.append(node)
+            else:
+                stack.append(node)
         elif word == ")":
             stack.pop()
         else:
-            node = nast.Node(kind="node", value=word)
+            node = nast.Node(kind="t", value=word)
             stack[-1].add_child(node)
             node.parent = stack[-1]
-            prev = node
         i += 1
-        
+    
     data_tools.pretty_print(root)
     return root
 
