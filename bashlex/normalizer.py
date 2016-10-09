@@ -222,7 +222,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         if normalize_digits and arg_type != "Permission":
             value = re.sub(_DIGIT_RE, _NUM, value)
         if normalize_long_pattern:
-            if ' ' in value:
+            if ' ' in value or len(value) > 15:
                 try:
                     assert(value.startswith('"') and value.endswith('"'))
                 except AssertionError, e:
