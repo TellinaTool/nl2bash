@@ -15,7 +15,7 @@ class RNNDecoder(decoder.Decoder):
 
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
-                     attention_states=None, num_heads=1,
+                     encoder_attn_masks=None, attention_states=None, num_heads=1,
                      initial_state_attention=False, feed_previous=False):
 
         if self.use_attention \
@@ -94,7 +94,7 @@ class RNNDecoder(decoder.Decoder):
                 if self.use_attention:
                     output, state, attns, attn_mask = \
                         self.attention_cell(decoder_cell, decoder_scope,
-                                input_embedding, state, attns,
+                                input_embedding, state, encoder_attn_masks, attns,
                                 hidden_features, attn_vecs, num_heads, hidden)
                     attn_masks.append(tf.expand_dims(attn_mask, 1))
                 else:
