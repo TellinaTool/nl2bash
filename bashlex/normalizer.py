@@ -200,16 +200,10 @@ def normalize_pattern(value, verbose=False):
             or value == "/"
             or value == "."
             or value == "${HOME}"):
-        if ' ' in value or len(value) > 15:
-            try:
-                assert(value.startswith('"') and value.endswith('"'))
-            except AssertionError, e:
-                if verbose:
-                    print("Quotation Error: space inside word " + value)
-            value = _LONG_PATTERN
-        elif "$" in value:
+        if "$" in value:
             value = _PARAMETER
         elif value[0] in ['\'', '"'] \
+                or ' ' in value \
                 or '/' in value \
                 or '\\' in value \
                 or '~' in value \
