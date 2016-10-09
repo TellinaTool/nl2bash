@@ -39,6 +39,10 @@ correct_temp_pairs = [
         "find ~/Desktop -name “*.jpg” -o -name “*.gif” -o -name “*.png” -print0 | xargs -0 mv –target-directory "
         "~/Pictures\n",
         "find -exec mv {} File + -name Pattern File"
+    ),
+    (
+        "Remove all Thumbs.db files from the current directory tree\n",
+        "find -name Pattern File | xargs rm -f"
     )]
 
 error_temp_pairs = [
