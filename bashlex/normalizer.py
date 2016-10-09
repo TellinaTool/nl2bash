@@ -233,9 +233,14 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 value = _LONG_PATTERN
             elif "$" in value:
                 value = _PARAMETER
-            elif value[0] in ['\'', '"'] or '*' in value or '\/' in value \
-                or '\\' in value or '~' in value or '@' in value or "%" in value \
-                or '#' in value or '?' in value:
+            elif value[0] in ['\'', '"'] \
+                    or '\/' in value \
+                    or '\\' in value \
+                    or '~' in value \
+                    or '@' in value \
+                    or "%" in value \
+                    or '#' in value \
+                    or '?' in value:
                 value = _REGEX
 
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
