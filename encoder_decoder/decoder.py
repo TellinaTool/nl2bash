@@ -66,7 +66,7 @@ class Decoder(graph_utils.NNModel):
         attns = tf.concat(1, ds)
         attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
         self.attention_vars = True
-        return attns, attn_mask
+        return attns, encoder_attn_masks
 
     def attention_hidden_layer(self, attention_states, num_heads):
         """
