@@ -60,6 +60,7 @@ class Decoder(graph_utils.NNModel):
             with tf.variable_scope("Attention_%d" % a):
                 if self.attention_vars:
                     tf.get_variable_scope().reuse_variables()
+                # TODO: add linear projection layer
                 # y = tf.nn.rnn_cell._linear(state, attn_vec_dim, True)
                 y = state
                 y = tf.reshape(y, [-1, 1, 1, attn_vec_dim])
@@ -97,6 +98,7 @@ class Decoder(graph_utils.NNModel):
             if self.attention_hidden_vars:
                 tf.get_variable_scope().reuse_variables()
             for i in xrange(num_heads):
+                # TODO: add 1-d convolution layer
                 # k = tf.get_variable("AttnW_%d" % i, [1, 1, attn_vec_dim, attn_vec_dim])
                 # hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
                 hidden_features.append(hidden)
