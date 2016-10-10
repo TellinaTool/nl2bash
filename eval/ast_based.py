@@ -95,7 +95,6 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
     return min_dist
 
 def one_match(asts, ast2, rewrite=True, ignore_arg_value=False):
-    print(len(asts))
     data_tools.pretty_print(asts[0])
     if rewrite:
         with DBConnection() as db:

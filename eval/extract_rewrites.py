@@ -48,11 +48,11 @@ class DBConnection(object):
     def get_rewrites(self, ast):
         rewrites = set([ast])
         s1 = data_tools.ast2template(ast, loose_constraints=True)
-        print("s1: " + s1)
+        # print("s1: " + s1)
         c = self.cursor
         for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", (s1,)):
             rewrites.add(rewrite(ast, s2))
-            print("s2: " + s2)
+            # print("s2: " + s2)
         return rewrites
 
     def exist_rewrite(self, pair):
