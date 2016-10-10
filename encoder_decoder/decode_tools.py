@@ -215,7 +215,7 @@ def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_p
     nl = [rev_nl_vocab[x] for x in source]
     cm = []
     for x in target:
-        if rev_cm_vocab[x] == data_utils._PAD:
+        if rev_cm_vocab[x] == data_utils._EOS:
             break
         cm.append(rev_cm_vocab[x])
 
