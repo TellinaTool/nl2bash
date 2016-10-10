@@ -100,7 +100,7 @@ class Node(object):
 
     def is_open_vocab(self):
         return False
-    
+
     def is_option(self):
         return self.kind == "flag"
 

@@ -587,21 +587,30 @@ def read_raw_data(data_dir):
     return nl_list, cm_list
 
 
-def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
+def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
+                    normalize_digits=True, normalize_long_pattern=True):
     max_len = 0
     for d in data.train:
         if len(d) > max_len:
             max_len = len(d)
 
-    create_vocabulary(vocab_path, data.train, vocab_size)
+    create_vocabulary(vocab_path, data.train, vocab_size,
+                      normalize_digits=normalize_digits,
+                      normalize_long_pattern=normalize_long_pattern)
 
     train_path = os.path.join(data_dir, "train")
     dev_path = os.path.join(data_dir, "dev")
     test_path = os.path.join(data_dir, "test")
 
-    data_to_token_ids(data.train, train_path + suffix, vocab_path)
-    data_to_token_ids(data.dev, dev_path + suffix, vocab_path)
-    data_to_token_ids(data.test, test_path + suffix, vocab_path)
+    data_to_token_ids(data.train, train_path + suffix, vocab_path,
+                      normalize_digits=normalize_digits,
+                      normalize_long_pattern=normalize_long_pattern)
+    data_to_token_ids(data.dev, dev_path + suffix, vocab_path,
+                      normalize_digits=normalize_digits,
+                      normalize_long_pattern=normalize_long_pattern)
+    data_to_token_ids(data.test, test_path + suffix, vocab_path,
+                      normalize_digits=normalize_digits,
+                      normalize_long_pattern=normalize_long_pattern)
 
     return max_len
 
@@ -629,9 +638,11 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
     cm_token_suffix = ".ids%d.cm" % cm_vocab_size
 
     max_nl_token_len = prepare_dataset(nl_token_list, data_dir, nl_token_suffix, nl_vocab_size,
-                                       nl_vocab_path)
+                                       nl_vocab_path, normalize_digits=False,
+                                       normalize_long_pattern=False)
     max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix, cm_vocab_size,
-                                       cm_vocab_path)
+                                       cm_vocab_path, normalize_digits=False,
+                                       normalize_long_pattern=False)
 
     print("maximum num tokens in description = %d" % max_nl_token_len)
     print("maximum num tokens in command = %d" % max_cm_token_len)
