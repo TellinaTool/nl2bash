@@ -1056,7 +1056,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     if node.get_num_of_children() > 0:
                         tokens += to_tokens_fun(node.children[0])
                     tokens.append(node.value)
-        elif node.is_argument():
+        elif node.is_argument() or node.kind in ["t", "nt"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
             if ato and node.is_open_vocab():
                 token = node.arg_type
