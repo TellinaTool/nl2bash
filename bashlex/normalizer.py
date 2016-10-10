@@ -1056,7 +1056,14 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     if node.get_num_of_children() > 0:
                         tokens += to_tokens_fun(node.children[0])
                     tokens.append(node.value)
-        elif node.is_argument() or node.kind in ["t", "nt"]:
+        elif node.kind == "nt":
+            assert(loose_constraints or node.get_num_of_children() > 0)
+            if len(node.children) > 1 and node.children[0].value in ["and", "or"]:
+                children = node.children[:1] + sorted(node.children[1:],
+                                                      key=lambda x:x.value)
+            for child in children:
+                tokens += to_tokens_fun(child)
+        elif node.is_argument() or node.kind in ["t"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
             if ato and node.is_open_vocab():
                 token = node.arg_type
