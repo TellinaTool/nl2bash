@@ -212,11 +212,16 @@ def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
 def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_path):
     target_length, source_length = M.shape
 
-    plt.clf()
-    fig = plt.imshow(M, interpolation='nearest', cmap=plt.cm.Blues)
-
     nl = [rev_nl_vocab[x] for x in source]
-    cm = [rev_cm_vocab[x] for x in target]
+    cm = []
+    for x in target:
+        if rev_cm_vocab[x] == data_utils._PAD:
+            break
+        cm.append(rev_cm_vocab[x])
+
+    plt.clf()
+    fig = plt.imshow(M[:x, :], interpolation='nearest', cmap=plt.cm.Blues)
+
     plt.xticks(xrange(source_length),
                [x.replace("$$", "") for x in reversed(nl + [data_utils._PAD] * (source_length - len(nl)))],
                rotation='vertical')
