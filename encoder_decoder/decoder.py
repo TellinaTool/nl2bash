@@ -48,7 +48,7 @@ class Decoder(graph_utils.NNModel):
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on output state
             attns = tf.zeros(attns.get_shape())
-            output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
+            output = tf.tanh(tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True))
         self.attention_cell_vars = True
         return output, state, attns, attn_mask
 
@@ -67,8 +67,9 @@ class Decoder(graph_utils.NNModel):
                 y = state
                 y = tf.reshape(y, [-1, 1, 1, attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
-                s = tf.reduce_sum(
-                    v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
+                # s = tf.reduce_sum(
+                #     v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
+                s = tf.reduce_sum(tf.mul(hidden_features[a], y), [2, 3])
                 s = tf.add(tf.reshape(encoder_attn_masks, s.get_shape()) * -1e10, s)
                 attn_mask = tf.nn.softmax(s)
                 # Now calculate the attention-weighted vector d.
