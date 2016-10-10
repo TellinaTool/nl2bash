@@ -1061,6 +1061,8 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
             if len(node.children) > 1 and node.children[0].value in ["and", "or"]:
                 children = node.children[:1] + sorted(node.children[1:],
                                                       key=lambda x:x.value)
+            else:
+                children = node.children
             for child in children:
                 tokens += to_tokens_fun(child)
         elif node.is_argument() or node.kind in ["t"]:
