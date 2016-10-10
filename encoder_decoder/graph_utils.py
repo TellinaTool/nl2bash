@@ -82,8 +82,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
 
 def get_model_signature(FLAGS):
-    model_subdir = FLAGS.encoder_topology
-    model_subdir += '-{}'.format(FLAGS.dataset)
+    model_subdir = FLAGS.dataset
+    model_subdir += '-{}'.format(FLAGS.encoder_topology)
     model_subdir += '-{}'.format(FLAGS.rnn_cell)
     if FLAGS.use_attention:
         model_subdir += '-attention'
