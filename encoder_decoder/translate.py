@@ -47,6 +47,10 @@ if FLAGS.dataset == "bash":
         _buckets = [(5, 10), (10, 15), (15, 20), (20, 20), (30, 30), (40, 40)]
 elif FLAGS.dataset == "jobs":
     _buckets = [(5, 30), (10, 30), (15, 30), (20, 45)]
+elif FLAGS.dataset == "geo":
+    _buckets = [(5, 30), (10, 50), (20, 70)]
+elif FLAGS.dataset == "atis":
+    _buckets = [(5, 20), (10, 40), (20, 60), (30, 80), (45, 95)]
 
 def create_model(session, forward_only, construct_model_dir=True):
     """

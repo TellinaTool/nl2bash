@@ -533,6 +533,7 @@ def parse_brackets(line):
     i = 0
     while i < len(words):
         word = words[i]
+        print(word)
         if word == "(":
             if stack:
                 # creates non-terminal
