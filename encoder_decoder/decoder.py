@@ -16,6 +16,8 @@ class Decoder(graph_utils.NNModel):
     def attention_cell(self, cell, cell_scope, input_embedding, state,
                        encoder_attn_masks, attns,
                        hidden_features, v, num_heads, hidden):
+        print("encoder_attn_masks: ", encoder_attn_masks)
+        print("attns: ", attns)
         with tf.variable_scope("AttnInputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
@@ -87,6 +89,7 @@ class Decoder(graph_utils.NNModel):
         :param num_heads: Number of attention heads that read from from attention_states.
                          Dummy field if attention_states is None.
         """
+        print(attention_states)
         attn_length = attention_states.get_shape()[1].value
         attn_vec_dim = attention_states.get_shape()[2].value
 
