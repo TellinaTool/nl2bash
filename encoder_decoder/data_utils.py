@@ -533,7 +533,6 @@ def parse_brackets(line):
     i = 0
     while i < len(words):
         word = words[i]
-        print(word)
         if word == "(":
             if stack:
                 # creates non-terminal
@@ -551,7 +550,9 @@ def parse_brackets(line):
             stack[-1].add_child(node)
             node.parent = stack[-1]
         i += 1
-    
+        if len(stack) == 0:
+            break;
+
     data_tools.pretty_print(root)
     return root
 
