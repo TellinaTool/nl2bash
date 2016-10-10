@@ -552,7 +552,7 @@ def parse_brackets(line):
             node.parent = stack[-1]
         i += 1
     
-    data_tools.pretty_print(root)
+    # data_tools.pretty_print(root)
     return root
 
 class Dataset(object):
