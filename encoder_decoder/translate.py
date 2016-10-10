@@ -169,7 +169,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                 previous_dev_losses.append(dev_loss)
 
                 sys.stdout.flush()
-      
+
     return True
 
 
@@ -361,6 +361,7 @@ def main(_):
         manual_eval(500)
     elif FLAGS.decode:
         decode()
+        eval()
     elif FLAGS.demo:
         demo()
     elif FLAGS.process_data:
