@@ -22,7 +22,7 @@ class Decoder(graph_utils.NNModel):
             # attention mechanism on cell and hidden states
             attn_vec_dim = v[0].get_shape()[0].value
             attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
-            attns = tf.zeros(attns.get_shape())
+            # attns = tf.zeros(attns.get_shape())
             x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
 
             try:
@@ -47,7 +47,7 @@ class Decoder(graph_utils.NNModel):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on output state
-            attns = tf.zeros(attns.get_shape())
+            # attns = tf.zeros(attns.get_shape())
             output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
         self.attention_cell_vars = True
         return output, state, attns, attn_mask
