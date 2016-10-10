@@ -96,7 +96,8 @@ class RNNDecoder(decoder.Decoder):
                         self.attention_cell(decoder_cell, decoder_scope,
                                 input_embedding, state, encoder_attn_masks, attns,
                                 hidden_features, attn_vecs, num_heads, hidden)
-                    attn_masks.append(tf.expand_dims(attn_mask, 1))
+                    # attn_masks.append(tf.expand_dims(attn_mask, 1))
+                    attn_mask.append(tf.expand_dims(encoder_attn_masks, 1))
                 else:
                     output, state = self.normal_cell(decoder_cell,
                                         decoder_scope, input_embedding, state)
