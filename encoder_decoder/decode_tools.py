@@ -214,13 +214,13 @@ def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_p
 
     nl = [rev_nl_vocab[x] for x in source]
     cm = []
-    for x in target:
+    for i, x in enumerate(target):
         if rev_cm_vocab[x] == data_utils._EOS:
             break
         cm.append(rev_cm_vocab[x])
 
     plt.clf()
-    fig = plt.imshow(M[:, :x], interpolation='nearest', cmap=plt.cm.Blues)
+    fig = plt.imshow(M[:i, :], interpolation='nearest', cmap=plt.cm.Blues)
 
     plt.xticks(xrange(source_length),
                [x.replace("$$", "") for x in reversed(nl + [data_utils._PAD] * (source_length - len(nl)))],
