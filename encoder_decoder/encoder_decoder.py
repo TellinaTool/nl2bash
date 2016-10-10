@@ -109,8 +109,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             for bucket_id, bucket in enumerate(self.buckets):
                 print("creating bucket {} ({}, {})...".format(
                                        bucket_id, bucket[0], bucket[1]))
-                bucket_output_symbols, bucket_output_logits, bucket_losses, \
-                attn_mask = \
+                bucket_output_symbols, bucket_output_logits, bucket_losses, attn_mask = \
                     self.encode_decode(
                         self.encoder_inputs[:bucket[0]], self.encoder_attn_masks[:bucket[0]],
                         self.source_embeddings(),
