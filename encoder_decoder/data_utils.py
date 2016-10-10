@@ -544,7 +544,8 @@ def parse_brackets(line):
             else:
                 stack.append(root)
         elif word == ")":
-            stack.pop()
+            if stack:
+                stack.pop()
         else:
             node = nast.Node(kind="t", value=word)
             stack[-1].add_child(node)
