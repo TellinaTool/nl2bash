@@ -553,7 +553,6 @@ def parse_brackets(line):
         if len(stack) == 0:
             break;
 
-    data_tools.pretty_print(root)
     return root
 
 class Dataset(object):
