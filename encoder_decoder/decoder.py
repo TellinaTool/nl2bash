@@ -54,7 +54,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     tf.get_variable_scope().reuse_variables()
                 # y = tf.nn.rnn_cell._linear(state, attn_vec_dim, True)
                 y = state
-                print(y)
                 y = tf.reshape(y, [-1, 1, 1, attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
                 # s = tf.reduce_sum(

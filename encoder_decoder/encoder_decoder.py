@@ -107,19 +107,22 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.losses = []
             self.attn_masks = []
             for bucket_id, bucket in enumerate(self.buckets):
-                print("creating bucket {} ({}, {})...".format(
-                                       bucket_id, bucket[0], bucket[1]))
-                bucket_output_symbols, bucket_output_logits, bucket_losses, attn_mask = \
-                    self.encode_decode(
-                        self.encoder_inputs[:bucket[0]], self.encoder_attn_masks[:bucket[0]],
-                        self.source_embeddings(),
-                        self.decoder_inputs[:bucket[1]], self.target_embeddings(),
-                        forward_only=forward_only
-                    )
-                self.output_symbols.append(bucket_output_symbols)
-                self.output_logits.append(bucket_output_logits)
-                self.losses.append(bucket_losses)
-                self.attn_masks.append(attn_mask)
+                with tf.variable_scope(tf.get_variable_scope(), reuse=True
+                                       if bucket_id > 0 else None) as scope:
+                    print("creating bucket {} ({}, {})...".format(
+                                           bucket_id, bucket[0], bucket[1]))
+                    bucket_output_symbols, bucket_output_logits, bucket_losses, attn_mask = \
+                        self.encode_decode(
+                            self.encoder_inputs[:bucket[0]], self.encoder_attn_masks[:bucket[0]],
+                            self.source_embeddings(),
+                            self.decoder_inputs[:bucket[1]], self.target_embeddings(),
+                            forward_only=forward_only,
+                            scope=scope
+                        )
+                    self.output_symbols.append(bucket_output_symbols)
+                    self.output_logits.append(bucket_output_logits)
+                    self.losses.append(bucket_losses)
+                    self.attn_masks.append(attn_mask)
         else:
             self.output_symbols, self.output_logits, self.losses, self.attn_mask = \
                 self.encode_decode(
@@ -171,9 +174,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def encode_decode(self, encoder_inputs, encoder_attn_masks, source_embeddings,
-                      decoder_inputs, target_embeddings, forward_only):
-        encoder_outputs, encoder_state = self.encoder.define_graph(encoder_inputs,
-                                                               source_embeddings)
+                      decoder_inputs, target_embeddings, forward_only, scope=None):
+
+        encoder_outputs, encoder_state = \
+            self.encoder.define_graph(encoder_inputs, source_embeddings)
 
         if self.rnn_cell == "gru":
             encoder_state.set_shape([self.batch_size, self.dim])
@@ -190,12 +194,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.decoder.define_graph(
                     encoder_state, decoder_inputs, target_embeddings,
                     encoder_attn_masks, attention_states, num_heads=1,
-                    feed_previous=forward_only)
+                    feed_previous=forward_only, scope=scope)
         else:
             output_symbols, output_logits, outputs, state = \
                 self.decoder.define_graph(
                 encoder_state, decoder_inputs, target_embeddings,
-                feed_previous=forward_only)
+                feed_previous=forward_only, scope=scope)
 
         # Losses.
         losses = graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
@@ -334,7 +338,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
           The triple (encoder_inputs, decoder_inputs, target_weights) for
           the constructed batch that has the proper format to call step(...) later.
         """
-        encoder_size, decoder_size = self.buckets[bucket_id]
         encoder_inputs, decoder_inputs = [], []
 
         # Get a random batch of encoder and decoder inputs from data,
