@@ -24,14 +24,17 @@ class RNNDecoder(decoder.Decoder):
                              "known %s" % attention_states.get_shape())
 
         with tf.variable_scope("rnn_decoder") as scope:
-            decoder_cell, decoder_scope = self.decoder_cell()
+            decoder_cell, decoder_scope = self.decoder_cell(scope)
             state = encoder_state
             outputs = []
             attn_masks = []
 
             if self.use_attention:
-                hidden, hidden_features, attn_vecs = \
-                    self.attention_hidden_layer(attention_states, num_heads)
+                decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
+                                                            attention_states,
+                                                            encoder_attn_masks,
+                                                            num_heads,
+                                                            scope)
                 batch_size = tf.shape(attention_states)[0]
                 attn_dim = tf.shape(attention_states)[2]
                 batch_attn_size = tf.pack([batch_size, attn_dim])
@@ -39,8 +42,7 @@ class RNNDecoder(decoder.Decoder):
                 attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
                          for _ in xrange(num_heads)])
                 if initial_state_attention:
-                    attns, _ = self.attention(encoder_state, hidden_features,
-                                           attn_vecs, num_heads, hidden)
+                    attns, _ = decoder_cell.attention(encoder_state)
 
             if self.decoding_algorithm == "beam_search":
                 if not feed_previous:
@@ -93,17 +95,10 @@ class RNNDecoder(decoder.Decoder):
 
                 if self.use_attention:
                     output, state, attns, attn_mask = \
-                        self.attention_cell(decoder_cell, decoder_scope,
-                                input_embedding, state, encoder_attn_masks, attns,
-                                hidden_features, attn_vecs, num_heads, hidden)
+                        decoder_cell(input_embedding, state, attns, decoder_scope)
                     attn_masks.append(tf.expand_dims(attn_mask, 1))
-                    # temp = tf.reshape(encoder_attn_masks, [self.batch_size, attention_states.get_shape()[1].value])
-                    # print(attn_mask)
-                    # print(temp)
-                    # attn_masks.append(tf.expand_dims(temp, 1))
                 else:
-                    output, state = self.normal_cell(decoder_cell,
-                                        decoder_scope, input_embedding, state)
+                    output, state = decoder_cell(input_embedding, state, decoder_scope)
 
                 # record output state to compute the loss.
                 outputs.append(output)
@@ -153,8 +148,8 @@ class RNNDecoder(decoder.Decoder):
                 return output_symbols, past_output_logits, outputs, state
 
 
-    def decoder_cell(self):
-        with tf.variable_scope("decoder_cell") as scope:
+    def decoder_cell(self, scope):
+        with tf.variable_scope(scope or "decoder_cell"):
             cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.decoder_input_keep, self.decoder_output_keep)
