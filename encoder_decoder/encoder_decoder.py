@@ -108,7 +108,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.attn_masks = []
             for bucket_id, bucket in enumerate(self.buckets):
                 with tf.variable_scope(tf.get_variable_scope(), reuse=True
-                                       if bucket_id > 0 else None) as scope:
+                                       if bucket_id > 0 else None):
                     print("creating bucket {} ({}, {})...".format(
                                            bucket_id, bucket[0], bucket[1]))
                     bucket_output_symbols, bucket_output_logits, bucket_losses, attn_mask = \
@@ -117,7 +117,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             self.source_embeddings(),
                             self.decoder_inputs[:bucket[1]], self.target_embeddings(),
                             forward_only=forward_only,
-                            scope=scope
+                            reuse_variables=(bucket_id > 0)
                         )
                     self.output_symbols.append(bucket_output_symbols)
                     self.output_logits.append(bucket_output_logits)
@@ -174,7 +174,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def encode_decode(self, encoder_inputs, encoder_attn_masks, source_embeddings,
-                      decoder_inputs, target_embeddings, forward_only, scope=None):
+                      decoder_inputs, target_embeddings, forward_only,
+                      reuse_variables=False):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
@@ -194,7 +195,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.decoder.define_graph(
                     encoder_state, decoder_inputs, target_embeddings,
                     encoder_attn_masks, attention_states, num_heads=1,
-                    feed_previous=forward_only, scope=scope)
+                    feed_previous=forward_only, reuse_variables=reuse_variables)
         else:
             output_symbols, output_logits, outputs, state = \
                 self.decoder.define_graph(
