@@ -45,6 +45,8 @@ if FLAGS.dataset == "bash":
         _buckets = [(5, 10), (10, 20), (15, 30), (20, 40), (30, 50), (40, 66)]
     elif FLAGS.decoder_topology in ['rnn']:
         _buckets = [(5, 10), (10, 15), (15, 20), (20, 20), (30, 30), (40, 40)]
+elif FLAGS.dataset == "dummy":
+    _buckets = [(5, 30), (10, 30), (15, 30), (20, 45)]
 elif FLAGS.dataset == "jobs":
     _buckets = [(5, 30), (10, 30), (15, 30), (20, 45)]
 elif FLAGS.dataset == "geo":

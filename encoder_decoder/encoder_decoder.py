@@ -181,6 +181,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_state[0].set_shape([self.batch_size, self.dim])
             encoder_state[1].set_shape([self.batch_size, self.dim])
 
+        # encoder_state = tf.zeros(tf.shape(encoder_state))
         if self.use_attention:
             top_states = [tf.reshape(e, [self.batch_size, 1, self.dim])
                           for e in encoder_outputs]
@@ -282,11 +283,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 np.array([padded_encoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(batch_size)], dtype=np.int32))
 
-            batch_attn_mask = np.zeros(batch_size, dtype=np.float32)
+            batch_attn_mask = np.ones(batch_size, dtype=np.float32)
             for batch_idx in xrange(batch_size):
                 source = padded_encoder_inputs[batch_idx][length_idx]
                 if source == data_utils.PAD_ID:
-                    batch_attn_mask[batch_idx] = 1
+                    batch_attn_mask[batch_idx] = 0.0
             batch_attn_masks.append(batch_attn_mask)
             if self.use_copy:
                 raise NotImplementedError

@@ -22,7 +22,8 @@ class Decoder(graph_utils.NNModel):
             # attention mechanism on cell and hidden states
             attn_vec_dim = v[0].get_shape()[0].value
             attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
-            x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
+            # x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
+            x = input_embedding
             try:
                 cell_output, state = cell(x, state, cell_scope)
             except ValueError, e:
@@ -33,11 +34,18 @@ class Decoder(graph_utils.NNModel):
                 self.attention(v, state, encoder_attn_masks, hidden_features,
                                num_heads, hidden)
 
+        with tf.variable_scope("AttnStateProjection"):
+            if self.attention_cell_vars:
+                tf.get_variable_scope().reuse_variables()
+            attn_state = tf.tanh(tf.nn.rnn_cell._linear([state, attns], self.dim, True))
+       
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on output state
-            output = tf.nn.rnn_cell._linear([cell_output] + [attns], self.dim, True)
+            output = tf.nn.rnn_cell._linear(attn_state, self.dim, True)
+            # output = cell_output
+        
         self.attention_cell_vars = True
         return output, state, attns, attn_mask
 
@@ -51,13 +59,17 @@ class Decoder(graph_utils.NNModel):
             with tf.variable_scope("Attention_%d" % a):
                 if self.attention_vars:
                     tf.get_variable_scope().reuse_variables()
-                y = tf.nn.rnn_cell._linear(state, attn_vec_dim, True)
+                # y = tf.nn.rnn_cell._linear(state, attn_vec_dim, True)
+                y = state
+                print(y)
                 y = tf.reshape(y, [-1, 1, 1, attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
+                # s = tf.reduce_sum(
+                #     v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
                 s = tf.reduce_sum(
-                    v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
-                s = tf.add(tf.reshape(encoder_attn_masks, s.get_shape()) * -1e10, s)
+                    v[a] * tf.mul(hidden_features[a], y), [2, 3])
                 attn_mask = tf.nn.softmax(s)
+                attn_mask = tf.mul(tf.reshape(encoder_attn_masks, s.get_shape()), attn_mask)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(
                     tf.reshape(attn_mask, [-1, attn_length, 1, 1]) * hidden,
@@ -67,6 +79,7 @@ class Decoder(graph_utils.NNModel):
         attns.set_shape([self.batch_size, num_heads * attn_vec_dim])
         self.attention_vars = True
         return attns, attn_mask
+        # return attns, tf.tile(tf.expand_dims(v[a], 0), [self.batch_size, 1])
 
     def attention_hidden_layer(self, attention_states, num_heads):
         """
@@ -86,10 +99,11 @@ class Decoder(graph_utils.NNModel):
         with tf.variable_scope("attention_hidden_layer"):
             if self.attention_hidden_vars:
                 tf.get_variable_scope().reuse_variables()
-            for i in xrange(num_heads):
-                k = tf.get_variable("AttnW_%d" % i, [1, 1, attn_vec_dim, attn_vec_dim])
-                hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
-                v.append(tf.get_variable("AttnV_%d" % i, [attn_vec_dim]))
+            for a in xrange(num_heads):
+                # k = tf.get_variable("AttnW_%d" % a, [1, 1, attn_vec_dim, attn_vec_dim])
+                # hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
+                hidden_features.append(hidden)
+                v.append(tf.get_variable("AttnV_%d" % a, [attn_vec_dim]))
         self.attention_hidden_vars = True
         return hidden, hidden_features, v
 
