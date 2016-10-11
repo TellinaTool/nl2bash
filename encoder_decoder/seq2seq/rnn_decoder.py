@@ -23,7 +23,7 @@ class RNNDecoder(decoder.Decoder):
             raise ValueError("Shape[1] and [2] of attention_states must be "
                              "known %s" % attention_states.get_shape())
 
-        with tf.variable_scope(scope or "rnn_decoder") as scope:
+        with tf.variable_scope("rnn_decoder") as scope:
             decoder_cell, decoder_scope = self.decoder_cell(scope)
             state = encoder_state
             outputs = []
@@ -150,7 +150,7 @@ class RNNDecoder(decoder.Decoder):
 
 
     def decoder_cell(self, scope):
-        with tf.variable_scope(scope or "decoder_cell"):
+        with tf.variable_scope("decoder_cell"):
             cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.decoder_input_keep, self.decoder_output_keep)
