@@ -127,8 +127,6 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                 word = '"' + word
             if not word.endswith('"'):
                 word = word + '"'
-            # msg += word
-            # print(msg)
 
         # normalize long patterns
         if normalize_long_pattern:
