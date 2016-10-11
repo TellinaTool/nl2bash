@@ -88,7 +88,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         with tf.variable_scope("AttnStateProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
-            attn_state = tf.tanh(tf([state, attns], dim, True))
+            attn_state = tf.tanh(tf.nn.rnn_cell._linear([state, attns], dim, True))
 
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
