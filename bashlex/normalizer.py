@@ -204,7 +204,6 @@ def normalize_pattern(value, verbose=False):
             value = _PARAMETER
         elif value[0] in ['\'', '"'] \
                 or ' ' in value \
-                or '/' in value \
                 or '\\' in value \
                 or '~' in value \
                 or '@' in value \
