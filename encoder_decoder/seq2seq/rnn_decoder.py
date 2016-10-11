@@ -40,7 +40,7 @@ class RNNDecoder(decoder.Decoder):
                 batch_attn_size = tf.pack([batch_size, attn_dim])
                 # initial attention state
                 attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
-                         for _ in xrange(num_heads)])
+                                      for _ in xrange(num_heads)])
                 if initial_state_attention:
                     attns, _ = decoder_cell.attention(encoder_state)
 

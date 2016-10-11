@@ -134,7 +134,7 @@ class BeamDecoder(object):
 
 class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, output_projection, num_classes, max_len,
-                 start_token=-1, stop_token=-1, beam_size=7):
+                 start_token=-1, stop_token=-1, beam_size=7, use_attention=False):
         # TODO: determine if we can have dynamic shapes instead of pre-filling up to max_len
 
         self.cell = cell
@@ -143,6 +143,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.start_token = start_token
         self.stop_token = stop_token
         self.beam_size = beam_size
+        self.use_attention=use_attention
 
         self.max_len = max_len
 
@@ -159,12 +160,12 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         # self._nondone_mask = tf.reshape(tf.tile(self._nondone_mask, [1, self.beam_size, 1]),
         #     [-1, self.beam_size*self.num_classes])
 
-    def __call__(self, inputs, state, scope=None):
+    def __call__(self, inputs, state, attns=None, scope=None):
         (
-            past_cand_symbols, # [batch_size, max_len]
-            past_cand_logprobs,# [batch_size]
-            past_beam_symbols, # [batch_size*self.beam_size, max_len], right-aligned!!!
-            past_beam_logprobs,# [batch_size*self.beam_size]
+            past_cand_symbols,  # [batch_size, max_len]
+            past_cand_logprobs, # [batch_size]
+            past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
+            past_beam_logprobs, # [batch_size*self.beam_size]
             past_cell_state,
                 ) = state
         batch_size = past_cand_symbols.get_shape()[0].value
@@ -177,10 +178,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         # stop_mask = tf.equal(input_symbols, tf.constant(self.stop_token,
         #                                                 shape=input_symbols.get_shape()))
         cell_inputs = inputs
-        try:
-            cell_outputs, raw_cell_state = self.cell(cell_inputs, past_cell_state, scope)
-        except ValueError, e:
-            scope.reuse_variables()
+        if self.use_attention:
+            cell_outputs, raw_cell_state, attns, attn_mask = \
+                self.cell(cell_inputs, past_cell_state, attns, scope)
+        else:
             cell_outputs, raw_cell_state = self.cell(cell_inputs, past_cell_state, scope)
 
         W, b = self.output_projection
