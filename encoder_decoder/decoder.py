@@ -10,7 +10,8 @@ class Decoder(graph_utils.NNModel):
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
-    def __init__(self, cell, attention_states, encoder_attn_masks, num_heads, reuse_variables=None):
+    def __init__(self, cell, attention_states, encoder_attn_masks, num_heads,
+                 reuse_variables=False):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
@@ -25,9 +26,9 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         hidden = tf.reshape(attention_states, [-1, attn_length, 1, attn_vec_dim])
         hidden_features = []
         v = []
-        with tf.variable_scope("attention_cell_wrapper"):
+        with tf.variable_scope("attention_cell_wrapper") as scope:
             if reuse_variables:
-                tf.get_variable_scope().reuse_variables()
+                scope.reuse_variables()
             for a in xrange(num_heads):
                 # k = tf.get_variable("AttnW_%d" % a, [1, 1, attn_vec_dim, attn_vec_dim])
                 # hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
