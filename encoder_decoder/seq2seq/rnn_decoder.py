@@ -16,7 +16,8 @@ class RNNDecoder(decoder.Decoder):
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      encoder_attn_masks=None, attention_states=None, num_heads=1,
-                     initial_state_attention=False, feed_previous=False, scope=None):
+                     initial_state_attention=False, feed_previous=False,
+                     reuse_variables=False):
 
         if self.use_attention \
                 and not attention_states.get_shape()[1:2].is_fully_defined():
@@ -34,7 +35,7 @@ class RNNDecoder(decoder.Decoder):
                                                             attention_states,
                                                             encoder_attn_masks,
                                                             num_heads,
-                                                            scope)
+                                                            reuse_variables)
                 batch_size = tf.shape(attention_states)[0]
                 attn_dim = tf.shape(attention_states)[2]
                 batch_attn_size = tf.pack([batch_size, attn_dim])
