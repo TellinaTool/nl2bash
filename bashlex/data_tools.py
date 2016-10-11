@@ -121,7 +121,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             word = str(gazetteer.word2num[word])
 
         # normalize regular expressions
-        if not is_english_word(word):
+        if not is_english_word(word) and not word.isdigit():
             # msg = word + ' -> '
             if not word.startswith('"'):
                 word = '"' + word
