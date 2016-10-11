@@ -255,10 +255,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
     def normalize_argument(node, current, arg_type):
         value = normalize_word(node, recover_quotation)
-        if normalize_digits and arg_type != "Permission":
-            value = re.sub(_DIGIT_RE, _NUM, value)
         if normalize_long_pattern:
             value = normalize_pattern(value, verbose=verbose)
+        if normalize_digits and arg_type != "Permission":
+            value = re.sub(_DIGIT_RE, _NUM, value)
 
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
         attach_to_tree(norm_node, current)
