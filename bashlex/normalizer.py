@@ -198,6 +198,7 @@ def normalize_pattern(value, verbose=False):
     value = re.sub(remove_current_dir, "", value)
     if not (value.startswith("-")
             or value == "/"
+            or value == "normal/regular"
             or value == "."
             or value == "${HOME}"):
         if "$" in value:
@@ -211,6 +212,14 @@ def normalize_pattern(value, verbose=False):
                 or '#' in value \
                 or '?' in value:
             value = _REGEX
+        elif '/' in value:
+            if not (('u-' in value and len(value) <= 12) or
+                    ('g-' in value and len(value) <= 12) or
+                    ('o-' in value and len(value) <= 12) or
+                    value[1:].isdigit() or
+                    '+' in value or
+                    '=' in value):
+                value = _REGEX
     return value
 
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,

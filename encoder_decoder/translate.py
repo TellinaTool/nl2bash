@@ -42,9 +42,9 @@ parse_args.define_input_flags()
 # We use a number of buckets and pad to the closest one for efficiency.
 if FLAGS.dataset == "bash":
     if FLAGS.decoder_topology in ['basic_tree']:
-        _buckets = [(5, 10), (10, 20), (15, 30), (20, 40), (30, 50), (40, 66)]
+        _buckets = [(5, 30), (10, 30), (15, 40), (20, 40), (30, 64), (40, 64)]
     elif FLAGS.decoder_topology in ['rnn']:
-        _buckets = [(5, 10), (10, 15), (15, 20), (20, 20), (30, 30), (40, 40)]
+        _buckets = [(5, 20), (10, 20), (15, 30), (20, 30), (30, 40), (40, 40)]
 elif FLAGS.dataset == "dummy":
     _buckets = [(5, 30), (10, 30), (15, 30), (20, 45)]
 elif FLAGS.dataset == "jobs":
@@ -210,7 +210,7 @@ def manual_eval(num_eval):
         _, dev_set, _ = load_data(use_buckets=False)
 
         eval_tools.manual_eval(model_sig, dev_set, rev_nl_vocab, FLAGS,
-                               FLAGS.train_dir, num_eval)
+                               FLAGS.model_dir, num_eval)
 
 
 def demo():

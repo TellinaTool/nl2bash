@@ -200,7 +200,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             output_symbols, output_logits, outputs, state = \
                 self.decoder.define_graph(
                 encoder_state, decoder_inputs, target_embeddings,
-                feed_previous=forward_only, scope=scope)
+                feed_previous=forward_only, reuse_variables=reuse_variables)
 
         # Losses.
         losses = graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
