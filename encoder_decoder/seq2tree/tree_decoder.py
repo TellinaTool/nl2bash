@@ -21,7 +21,8 @@ class BasicTreeDecoder(decoder.Decoder):
     
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      attention_states=None, num_heads=1,
-                     initial_state_attention=False, feed_previous=False):
+                     initial_state_attention=False, feed_previous=False,
+                     reuse_variables=False):
         """
         :param encoder_state: hidden state of the encoder
         :param inputs: placeholders for the discrete inputs of the decoder
@@ -39,7 +40,7 @@ class BasicTreeDecoder(decoder.Decoder):
             In effect, this implements a greedy decoder. It can also be used
             during training to emulate http://arxiv.org/abs/1506.03099.
             If False, decoder_inputs are used as given (the standard decoder case).
-
+        :param reuse_variables: reuse variables in scope.
         :return: Output states and the final hidden state of the decoder. Need
             output_projection to obtain distribution over output vocabulary.
         """
