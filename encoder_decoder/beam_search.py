@@ -83,7 +83,8 @@ class BeamDecoder(object):
         Wraps a cell for use with the beam decoder
         """
         return BeamDecoderCellWrapper(cell, output_projection, self.num_classes, self.max_len,
-                                      self.start_token, self.stop_token, self.beam_size)
+                                      self.start_token, self.stop_token, self.beam_size,
+                                      self.use_attention)
 
     def wrap_state(self, state, output_projection):
         dummy = BeamDecoderCellWrapper(None, output_projection, self.num_classes, self.max_len,
