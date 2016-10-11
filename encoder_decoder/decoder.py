@@ -78,7 +78,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on cell and hidden states
             attn_vec_dim = self.v[0].get_shape()[0].value
-            attns.set_shape([self.batch_size, self.num_heads * attn_vec_dim])
+            attns.set_shape([-1, self.num_heads * attn_vec_dim])
             # x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             x = input_embedding
             cell_output, state = self.cell(x, state, scope)
