@@ -27,7 +27,7 @@ _SPACE = b"<SPACE>"
 
 def is_english_word(word):
     """Check if a token is normal English word."""
-    return bool(re.match('[A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
+    return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
 
 def is_stopword(w):
     return w in gazetteer.ENGLISH_STOPWORDS
@@ -121,7 +121,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             word = str(gazetteer.word2num[word])
 
         # normalize regular expressions
-        if not is_english_word(word) and not word.isdigit():
+        if not is_english_word(word):
             # msg = word + ' -> '
             if not word.startswith('"'):
                 word = '"' + word
