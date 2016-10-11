@@ -34,7 +34,7 @@ def nest_map(func, nested):
     return nest.pack_sequence_as(nested, list(map(func, flat)))
 
 class BeamDecoder(object):
-    def __init__(self, num_classes, start_token=-1, stop_token=-1, beam_size=7, max_len=20):
+    def __init__(self, num_classes, start_token=-1, stop_token=-1, beam_size=7, max_len=20, use_attention=False):
         """
         num_classes: int. Number of output classes used
         start_token: int.
@@ -42,12 +42,14 @@ class BeamDecoder(object):
         beam_size: int.
         max-len: int or scalar Tensor. If this cell is called recurrently more
             than max_len times in a row, the outputs will not be valid!
+        use_attention: if attention is to be used.
         """
         self.num_classes = num_classes
         self.start_token = start_token
         self.stop_token = stop_token
         self.beam_size = beam_size
         self.max_len = max_len
+        self.use_attention = use_attention
 
     @classmethod
     def _tile_along_beam(cls, beam_size, state):
@@ -85,7 +87,8 @@ class BeamDecoder(object):
 
     def wrap_state(self, state, output_projection):
         dummy = BeamDecoderCellWrapper(None, output_projection, self.num_classes, self.max_len,
-                                       self.start_token, self.stop_token, self.beam_size)
+                                       self.start_token, self.stop_token, self.beam_size,
+                                       self.use_attention)
         if nest.is_sequence(state):
             batch_size = nest.flatten(state).get_shape()[0].value
             dtype = nest.flatten(state)[0].dtype

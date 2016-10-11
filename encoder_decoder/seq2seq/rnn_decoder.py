@@ -52,7 +52,8 @@ class RNNDecoder(decoder.Decoder):
                                                        data_utils.ROOT_ID,
                                                        data_utils.EOS_ID,
                                                        self.beam_size,
-                                                       len(decoder_inputs))
+                                                       len(decoder_inputs),
+                                                       self.use_attention)
                 state = beam_decoder.wrap_state(state, self.output_projection)
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
             elif self.decoding_algorithm == "greedy":
