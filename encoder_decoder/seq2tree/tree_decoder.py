@@ -109,10 +109,8 @@ class BasicTreeDecoder(decoder.Decoder):
                         horizontal_cell, horizontal_scope, input_embeddings, state, attns,
                         hidden_features, v, num_heads, hidden)
                 else:
-                    v_output, v_state = self.normal_cell(
-                        vertical_cell, vertical_scope, input_embeddings, state)
-                    h_output, h_state = self.normal_cell(
-                        horizontal_cell, horizontal_scope, input_embeddings, state)
+                    v_output, v_state = vertical_cell(input_embeddings, state, vertical_scope)
+                    h_output, h_state = horizontal_cell(input_embeddings, state, horizontal_scope)
 
                 # select horizontal or vertical computation results for each example
                 # based on its own control state.
