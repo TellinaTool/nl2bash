@@ -232,13 +232,22 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                 past_cand_symbols)
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
 
-        return cell_outputs, (
-            cand_symbols,
-            cand_logprobs,
-            beam_symbols,
-            beam_logprobs,
-            cell_state,
-        )
+        if self.use_attention:
+            return cell_outputs, (
+                cand_symbols,
+                cand_logprobs,
+                beam_symbols,
+                beam_logprobs,
+                cell_state,
+            ), attns, attn_mask
+        else:
+            return cell_outputs, (
+                cand_symbols,
+                cand_logprobs,
+                beam_symbols,
+                beam_logprobs,
+                cell_state,
+            )
 
     @property
     def state_size(self):
