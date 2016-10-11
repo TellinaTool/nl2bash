@@ -103,11 +103,9 @@ def one_match(asts, ast2, rewrite=True, ignore_arg_value=False):
 
     cmd2 = ignore_differences(data_tools.ast2template(
         ast2, loose_constraints=True, arg_type_only=ignore_arg_value))
-    print("cmd2: " + cmd2)
     for ast1 in ast_rewrites:
         cmd1 = data_tools.ast2template(
             ast1, loose_constraints=True, arg_type_only=ignore_arg_value)
-        print("cmd1: " + cmd1)
         cmd1 = ignore_differences(cmd1)
         if cmd1 == cmd2:
             return True
