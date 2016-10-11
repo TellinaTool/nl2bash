@@ -1089,26 +1089,26 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
 
     return to_tokens_fun(node)
 
-if __name__ == "__main__":
+
+def test_tokenization():
     i_f = open(sys.argv[1])
     o_f = open(sys.argv[2], 'w')
 
     for cmd in i_f.readlines():
         cmd = cmd.strip()
-        """try:
-            str = ''
-            for token in tokenizer.split(cmd):
-                str += token + ' '
-            o_f.write(str.strip() + '\n')
-        except TypeError, e:
-            print(e)
-        except AttributeError, e:
-            print(e)
-        """
         cmd = ' '.join(to_tokens(normalize_ast(cmd, normalize_digits=False,
                                      normalize_long_pattern=False)))
         # str = ''
         # for token in tokenizer.split(cmd):
         #     str += cmd + ' '
         o_f.write(cmd.strip() + '\n')
+
+
+def test_normalize_pattern():
+    value = sys.argv[1]
+    print(normalize_pattern(value))
+
+
+if __name__ == "__main__":
+    test_normalize_pattern()
 
