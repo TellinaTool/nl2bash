@@ -23,7 +23,7 @@ class RNNEncoder(Encoder):
         self.embeddings = embeddings
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
-        with tf.variable_scope("encoder_rnn") as scope:
+        with tf.variable_scope("encoder_rnn"):
             if self.encoder_rnn_vars:
                 tf.get_variable_scope().reuse_variables()
             encoder_outputs, encoder_state = \

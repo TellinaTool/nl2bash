@@ -16,14 +16,14 @@ class RNNDecoder(decoder.Decoder):
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      encoder_attn_masks=None, attention_states=None, num_heads=1,
-                     initial_state_attention=False, feed_previous=False):
+                     initial_state_attention=False, feed_previous=False, scope=None):
 
         if self.use_attention \
                 and not attention_states.get_shape()[1:2].is_fully_defined():
             raise ValueError("Shape[1] and [2] of attention_states must be "
                              "known %s" % attention_states.get_shape())
 
-        with tf.variable_scope("rnn_decoder") as scope:
+        with tf.variable_scope(scope or "rnn_decoder") as scope:
             decoder_cell, decoder_scope = self.decoder_cell(scope)
             state = encoder_state
             outputs = []
