@@ -72,6 +72,7 @@ class RNNDecoder(decoder.Decoder):
 
                 if i > 0:
                     scope.reuse_variables()
+                    decoder_scope.reuse_variables()
                     if feed_previous:
                         if self.decoding_algorithm == "beam_search":
                             (
