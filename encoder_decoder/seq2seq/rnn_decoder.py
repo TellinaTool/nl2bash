@@ -30,16 +30,11 @@ class RNNDecoder(decoder.Decoder):
             outputs = []
             attn_masks = []
 
+            # applying cell wrappers: ["attention", "beam"]
             if self.decoding_algorithm == "beam_search":
                 if not feed_previous:
                     # TODO: support beam search training
                     raise NotImplementedError
-                if self.use_attention:
-                    decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
-                                                            attention_states,
-                                                            encoder_attn_masks,
-                                                            num_heads,
-                                                            reuse_variables)
                 beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
                                                        data_utils.ROOT_ID,
                                                        data_utils.EOS_ID,
@@ -48,10 +43,16 @@ class RNNDecoder(decoder.Decoder):
                                                        len(decoder_inputs),
                                                        self.use_attention)
                 state = beam_decoder.wrap_state(state, self.output_projection)
-                decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
-                attention_states = beam_decoder.wrap_input(attention_states)
-                encoder_attn_masks = [beam_decoder.wrap_input(encoder_attn_mask)
+                if self.use_attention:
+                    attention_states = beam_decoder.wrap_input(attention_states)
+                    encoder_attn_masks = [beam_decoder.wrap_input(encoder_attn_mask)
                                       for encoder_attn_mask in encoder_attn_masks]
+                    decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
+                                                            attention_states,
+                                                            encoder_attn_masks,
+                                                            num_heads,
+                                                            reuse_variables)
+                decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
             elif self.decoding_algorithm == "greedy":
                 past_output_symbols = tf.constant(data_utils.ROOT_ID,
                                                   shape=[self.batch_size, 1],
@@ -59,11 +60,11 @@ class RNNDecoder(decoder.Decoder):
                 past_output_logits = tf.constant(0, shape=[self.batch_size],
                                                  dtype=tf.float32)
 
+            # initial attention state
             if self.use_attention:
                 batch_size = tf.shape(attention_states)[0]
                 attn_dim = tf.shape(attention_states)[2]
                 batch_attn_size = tf.pack([batch_size, attn_dim])
-                # initial attention state
                 attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
                                       for _ in xrange(num_heads)])
                 if initial_state_attention:
