@@ -47,6 +47,11 @@ correct_temp_pairs = [
     (
         "find all files in a folder that have a specific word in their name\n",
         "find -name Pattern -print -type f File"
+    ),
+    (
+        "search for directories in the folder \"test\" which end with 5 digits using regular "
+        "expressions\n",
+        "find -regex Pattern -type d File"
     )]
 
 error_temp_pairs = [
