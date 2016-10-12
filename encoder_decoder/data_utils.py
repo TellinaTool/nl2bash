@@ -743,11 +743,11 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix, cm_vocab_size,
                                        cm_vocab_path)
     max_cm_token_norm_len = prepare_dataset(cm_normalized_token_list, data_dir, cm_token_norm_suffix,
-                                            cm_vocab_size, cm_vocab_path)
+                                            cm_vocab_size, cm_norm_vocab_path)
     max_cm_token_norm_order_len = prepare_dataset(cm_canonical_token_list, data_dir,
                                                   cm_token_norm_order_suffix, cm_vocab_size, cm_norm_vocab_path)
     max_cm_token_pruned_len = prepare_dataset(cm_pruned_token_list, data_dir, cm_token_pruned_suffix,
-                                              cm_vocab_size, cm_norm_vocab_path)
+                                              cm_vocab_size, cm_vocab_path)
     max_cm_seq_len = prepare_dataset(cm_seq_list, data_dir, cm_seq_suffix, cm_vocab_size,
                                      cm_ast_vocab_path)
     max_cm_seq_norm_len = prepare_dataset(cm_normalized_seq_list, data_dir, cm_seq_norm_suffix,
