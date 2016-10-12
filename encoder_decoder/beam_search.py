@@ -97,6 +97,8 @@ class BeamDecoder(object):
         else:
             batch_size = state.get_shape()[0].value
             dtype = state.dtype
+
+        self.length_norm = tf.constant(1e-10, shape=[batch_size])
         return dummy._create_state(batch_size, dtype, cell_state=state)
 
     def wrap_input(self, input):
@@ -184,6 +186,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         input_symbols = past_beam_symbols[:, -1]
         stop_mask = tf.equal(input_symbols, tf.constant(self.stop_token,
                                                         shape=input_symbols.get_shape()))
+
         cell_inputs = inputs
         if self.use_attention:
             print(cell_inputs)
@@ -198,10 +201,19 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         logprobs = tf.nn.log_softmax(tf.matmul(cell_outputs, W) + b)
         logprobs = tf.select(stop_mask, tf.zeros(logprobs.get_shape()), logprobs)
-        logprobs_batched = tf.reshape(logprobs + tf.expand_dims(past_beam_logprobs, 1),
-                                      [-1, self.beam_size * self.num_classes])
-        logprobs_batched.set_shape((None, self.beam_size * self.num_classes))
 
+        # length normalization
+        past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.sqrt(self.length_norm))
+        self.length_norm = tf.add(self.length_norm + tf.select(stop_mask,
+                                                               tf.zeros(
+                                                                   self.length_norm.get_shape()),
+                                                               tf.ones(
+                                                                   self.length_norm.get_shape())
+                                                               )
+                                  )
+        logprobs_batched = tf.reshape(logprobs + tf.expand_dims(past_beam_acc_logprobs, 1),
+                                      [-1, self.beam_size * self.num_classes])
+        logprobs_batched = tf.div(logprobs_batched, tf.sqrt(self.length_norm))
         beam_logprobs, indices = tf.nn.top_k(
             #TODO: make sure it's reasonable to remove nondone mask
             tf.reshape(logprobs_batched,
