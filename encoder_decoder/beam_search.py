@@ -195,7 +195,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         # [batch_size * beam_size]
         stop_mask = tf.equal(input_symbols, tf.constant(self.stop_token,
                                                         shape=input_symbols.get_shape(),
-                                                        dtype=tf.float32))
+                                                        dtype=tf.int32))
 
         cell_inputs = inputs
         if self.use_attention:
