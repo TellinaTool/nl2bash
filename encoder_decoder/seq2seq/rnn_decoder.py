@@ -52,7 +52,6 @@ class RNNDecoder(decoder.Decoder):
                 beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
                                                        data_utils.ROOT_ID,
                                                        data_utils.EOS_ID,
-                                                       self.batch_size,
                                                        self.beam_size,
                                                        len(decoder_inputs),
                                                        self.use_attention)
