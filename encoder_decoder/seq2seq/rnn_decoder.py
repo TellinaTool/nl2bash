@@ -29,7 +29,7 @@ class RNNDecoder(decoder.Decoder):
             state = encoder_state
             outputs = []
             attn_masks = []
-
+            
             if self.use_attention:
                 decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
                                                             attention_states,
@@ -64,13 +64,12 @@ class RNNDecoder(decoder.Decoder):
                                                   dtype=tf.int64)
                 past_output_logits = tf.constant(0, shape=[self.batch_size],
                                                  dtype=tf.float32)
-
             for i, input in enumerate(decoder_inputs):
                 if self.decoding_algorithm == "beam_search":
                     input = beam_decoder.wrap_input(input)
                     if self.use_attention:
                         attns = beam_decoder.wrap_input(attns)
-
+               
                 if i > 0:
                     scope.reuse_variables()
                     decoder_scope.reuse_variables()
@@ -94,16 +93,14 @@ class RNNDecoder(decoder.Decoder):
                             past_output_logits = tf.add(past_output_logits,
                                                         tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
-
                 input_embedding = tf.nn.embedding_lookup(embeddings, input)
 
                 if self.use_attention:
                     output, state, attns, attn_mask = \
-                        decoder_cell(input_embedding, state, attns, decoder_scope)
+                        decoder_cell(input_embedding, state, attns, scope=decoder_scope)
                     attn_masks.append(tf.expand_dims(attn_mask, 1))
                 else:
-                    output, state = decoder_cell(input_embedding, state, decoder_scope)
-
+                    output, state = decoder_cell(input_embedding, state, scope=decoder_scope)
                 # record output state to compute the loss.
                 outputs.append(output)
 

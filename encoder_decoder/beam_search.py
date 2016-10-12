@@ -173,7 +173,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             [-1, self.beam_size*self.num_classes])
 
         full_size = self.batch_size * self.beam_size
-        self.length_norm = tf.constant(1e-16, shape=[full_size])
+        self.seq_len = tf.constant(1e-16, shape=[full_size])
         self._done_mask = tf.reshape(
             tf.cast(tf.not_equal(tf.range(self.num_classes), self.stop_token), tf.float32) * -1e18,
             [1, self.num_classes]
@@ -219,18 +219,18 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         done_only_mask = tf.mul(tf.expand_dims(tf.cast(stop_mask, tf.float32), 1), self._done_mask)
         zero_done_mask = tf.ones([full_size, self.num_classes]) -\
                          tf.mul(tf.expand_dims(tf.cast(stop_mask, tf.float32), 1),
-                                tf.tile(tf.cast(tf.equal(tf.range(self.num_classes),
-                                                             self.stop_token),
-                                                tf.float32),
-                                        [stop_mask.get_shape[0].value, 1]))
+                                tf.tile(tf.reshape(tf.cast(tf.equal(tf.range(self.num_classes),
+                                                             self.stop_token), tf.float32), 
+                                                    [1, self.num_classes]),
+                                        [full_size, 1]))
         logprobs = tf.add(logprobs, done_only_mask)
         logprobs = tf.mul(logprobs, zero_done_mask)
 
         # length normalization
-        past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.sqrt(self.length_norm))
-        self.length_norm = tf.add(self.length_norm + tf.cast(stop_mask, tf.float32))
+        past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.sqrt(self.seq_len))
+        self.seq_len = self.seq_len + tf.cast(stop_mask, tf.float32)
         logprobs_batched = logprobs + tf.expand_dims(past_beam_acc_logprobs, 1)
-        logprobs_batched = tf.div(logprobs_batched, tf.sqrt(self.length_norm))
+        logprobs_batched = tf.div(logprobs_batched, tf.expand_dims(tf.sqrt(self.seq_len), 1))
         logprobs_batched = tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes])
         beam_logprobs, indices = tf.nn.top_k(
             #TODO: make sure it's reasonable to remove nondone mask
@@ -311,7 +311,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             cell_state = self.cell.zero_state(batch_size*self.beam_size, dtype=dtype)
         else:
             cell_state = BeamDecoder._tile_along_beam(self.beam_size, cell_state)
-
         full_size = batch_size * self.beam_size
         first_in_beam_mask = tf.equal(tf.range(full_size) % self.beam_size, 0)
 
