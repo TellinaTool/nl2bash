@@ -182,8 +182,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                       self.beam_size) * self.beam_size
 
         input_symbols = past_beam_symbols[:, -1]
-        # stop_mask = tf.equal(input_symbols, tf.constant(self.stop_token,
-        #                                                 shape=input_symbols.get_shape()))
+        stop_mask = tf.equal(input_symbols, tf.constant(self.stop_token,
+                                                        shape=input_symbols.get_shape()))
         cell_inputs = inputs
         if self.use_attention:
             print(cell_inputs)
@@ -197,21 +197,23 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         W, b = self.output_projection
 
         logprobs = tf.nn.log_softmax(tf.matmul(cell_outputs, W) + b)
-        # logprobs = tf.select(stop_mask, tf.zeros(logprobs.get_shape()), logprobs)
+        logprobs = tf.select(stop_mask, tf.zeros(logprobs.get_shape()), logprobs)
         logprobs_batched = tf.reshape(logprobs + tf.expand_dims(past_beam_logprobs, 1),
                                       [-1, self.beam_size * self.num_classes])
         logprobs_batched.set_shape((None, self.beam_size * self.num_classes))
 
         beam_logprobs, indices = tf.nn.top_k(
-            tf.reshape(logprobs_batched + self._nondone_mask, [-1, self.beam_size * self.num_classes]),
+            #TODO: make sure it's reasonable to remove nondone mask
+            tf.reshape(logprobs_batched,
+                       [-1, self.beam_size * self.num_classes]),
             self.beam_size
         )
         beam_logprobs = tf.reshape(beam_logprobs, [-1])
 
         # For continuing to the next symbols
         symbols = indices % self.num_classes # [batch_size, self.beam_size]
-        # symbols = tf.select(tf.reshape(stop_mask, symbols.get_shape()),
-        #                     tf.constant(self.stop_token, shape=symbols.get_shape()), symbols)
+        symbols = tf.select(tf.reshape(stop_mask, symbols.get_shape()),
+                            tf.constant(self.stop_token, shape=symbols.get_shape()), symbols)
         parent_refs = tf.reshape(indices // self.num_classes, [-1]) # [batch_size*self.beam_size]
 
         parent_refs = parent_refs + self.parent_refs_offsets
@@ -227,8 +229,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         )
 
         # Handling for getting a done token
-        logprobs_done = tf.reshape(logprobs_batched,
-                                   [-1, self.beam_size, self.num_classes])[:,:,self.stop_token]
+        logprobs_done = tf.reshape(logprobs_batched, [-1, self.beam_size, self.num_classes])[:,:,
+                        self.stop_token]
         done_parent_refs = tf.to_int32(tf.argmax(logprobs_done, 1))
         done_parent_refs_offsets = tf.range(batch_size) * self.beam_size
         done_symbols = tf.gather(past_beam_symbols, done_parent_refs + done_parent_refs_offsets)
