@@ -220,13 +220,13 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         stop_mask_2d = tf.expand_dims(stop_mask, 1)
         done_only_mask = tf.mul(stop_mask_2d, self._done_mask)
         zero_done_mask = tf.ones([full_size, self.num_classes]) -\
-                         tf.mul(stop_mask_2d, tf.cast(tf.not_equal(self._done_mask, 0), tf.float32))
+                         tf.mul(stop_mask_2d, tf.cast(tf.equal(self._done_mask, 0), tf.float32))
         logprobs = tf.add(logprobs, done_only_mask)
         logprobs = tf.mul(logprobs, zero_done_mask)
 
         # length normalization
         past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.sqrt(self.seq_len))
-        self.seq_len = self.seq_len + tf.cast(stop_mask, tf.float32)
+        self.seq_len = self.seq_len + stop_mask
         logprobs_batched = logprobs + tf.expand_dims(past_beam_acc_logprobs, 1)
         logprobs_batched = tf.div(logprobs_batched, tf.expand_dims(tf.sqrt(self.seq_len), 1))
         logprobs_batched = tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes])
