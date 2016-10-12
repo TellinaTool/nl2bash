@@ -200,6 +200,7 @@ def normalize_pattern(value, verbose=False):
             or value == "/"
             or value == "normal/regular"
             or value == "regular/normal"
+            or value == "files/directories"
             or value == "."
             or value == "${HOME}"):
         if "$" in value:
