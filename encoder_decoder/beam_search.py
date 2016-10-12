@@ -173,15 +173,15 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             [-1, self.beam_size*self.num_classes])
 
         full_size = self.batch_size * self.beam_size
-        self.seq_len = tf.constant(1e-18[full_size])
+        self.seq_len = tf.constant(1e-10, shape=[full_size], dtype=tf.float32)
         self._done_mask = tf.reshape(
-            tf.cast(tf.not_equal(tf.range(self.num_classes), self.stop_token), tf.float32) * -1e18,
+            tf.cast(tf.not_equal(tf.range(self.num_classes), self.stop_token), tf.float32) * -1e2,
             [1, self.num_classes]
         )
         self._done_mask = tf.tile(self._done_mask, [full_size, 1])
 
 
-    def __call__(self, inputs, state, attns=None, scope=None):
+    def __call__(self, inputs, state, attns=None, scope=None, alpha=1.05):
         (
             past_cand_symbols,  # [batch_size, max_len]
             past_cand_logprobs, # [batch_size]
@@ -196,10 +196,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         input_symbols = past_beam_symbols[:, -1]
         # [batch_size * beam_size]
-        stop_mask = tf.cast(tf.equal(input_symbols, tf.constant(self.stop_token,
-                                                        shape=input_symbols.get_shape(),
-                                                        dtype=tf.int32)),
-                            tf.float32)
+        stop_mask = tf.cast(tf.equal(input_symbols, self.stop_token), tf.float32)
 
         cell_inputs = inputs
         if self.use_attention:
@@ -225,12 +222,13 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         logprobs = tf.mul(logprobs, zero_done_mask)
 
         # length normalization
-        past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.sqrt(self.seq_len))
+        past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.pow(self.seq_len, alpha))
         logprobs_batched = logprobs + tf.expand_dims(past_beam_acc_logprobs, 1)
-        logprobs_batched = tf.div(logprobs_batched, tf.expand_dims(tf.sqrt(self.seq_len), 1))
+        seq_len = tf.expand_dims(self.seq_len, 1) + \
+                  tf.mul(tf.ones([full_size, 1]) - stop_mask_2d, 
+                         tf.cast(tf.not_equal(self._done_mask, 0), tf.float32))
+        logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, alpha))
         logprobs_batched = tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes])
-
-        self.seq_len = self.seq_len + stop_mask
 
         beam_logprobs, indices = tf.nn.top_k(
             #TODO: make sure it's reasonable to remove nondone mask
@@ -250,8 +248,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         symbols_history = tf.gather(past_beam_symbols, parent_refs)
         beam_symbols = tf.concat(1, [symbols_history[:,1:], tf.reshape(symbols, [-1, 1])])
-
-        # Handle the output and the cell state shuffling
+        self.seq_len = self.seq_len + tf.cast(tf.not_equal(tf.reshape(symbols, [-1]), 
+                                                           self.stop_token), tf.float32)
         # outputs = tf.reshape(symbols, [-1]) # [batch_size*beam_size, 1]
         cell_state = nest_map(
             lambda element: tf.gather(element, parent_refs),
