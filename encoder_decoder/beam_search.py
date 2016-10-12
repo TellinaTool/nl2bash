@@ -190,7 +190,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         if self.parent_refs_offsets is None:
             self.parent_refs_offsets = (tf.range(batch_size * self.beam_size) //
                                       self.beam_size) * self.beam_size
-
         input_symbols = past_beam_symbols[:, -1]
         # [batch_size * beam_size]
         stop_mask = tf.equal(input_symbols, tf.constant(self.stop_token,
@@ -299,7 +298,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             cell_state = self.cell.zero_state(batch_size*self.beam_size, dtype=dtype)
         else:
             cell_state = BeamDecoder._tile_along_beam(self.beam_size, cell_state)
-
         full_size = batch_size * self.beam_size
         first_in_beam_mask = tf.equal(tf.range(full_size) % self.beam_size, 0)
 
