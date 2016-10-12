@@ -196,9 +196,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         input_symbols = past_beam_symbols[:, -1]
         # [batch_size * beam_size]
-        stop_mask = tf.equal(input_symbols, tf.constant(self.stop_token,
+        stop_mask = tf.cast(tf.equal(input_symbols, tf.constant(self.stop_token,
                                                         shape=input_symbols.get_shape(),
-                                                        dtype=tf.int32))
+                                                        dtype=tf.int32)),
+                            tf.float32)
 
         cell_inputs = inputs
         if self.use_attention:
@@ -216,13 +217,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         logprobs = tf.nn.log_softmax(tf.matmul(cell_outputs, W) + b)
         # set the probabilities of all other symbols following the stop symbol to a very small
         # number
-        done_only_mask = tf.mul(tf.expand_dims(tf.cast(stop_mask, tf.float32), 1), self._done_mask)
+        stop_mask_2d = tf.expand_dims(stop_mask, 1)
+        done_only_mask = tf.mul(stop_mask_2d, self._done_mask)
         zero_done_mask = tf.ones([full_size, self.num_classes]) -\
-                         tf.mul(tf.expand_dims(tf.cast(stop_mask, tf.float32), 1),
-                                tf.tile(tf.reshape(tf.cast(tf.equal(tf.range(self.num_classes),
-                                                             self.stop_token), tf.float32), 
-                                                    [1, self.num_classes]),
-                                        [full_size, 1]))
+                         tf.mul(stop_mask, tf.cast(tf.not_equal(self._done_mask, 0), tf.float32))
         logprobs = tf.add(logprobs, done_only_mask)
         logprobs = tf.mul(logprobs, zero_done_mask)
 
