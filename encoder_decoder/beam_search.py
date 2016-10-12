@@ -34,8 +34,8 @@ def nest_map(func, nested):
     return nest.pack_sequence_as(nested, list(map(func, flat)))
 
 class BeamDecoder(object):
-    def __init__(self, num_classes, start_token=-1, stop_token=-1, beam_size=7, max_len=20,
-                 use_attention=False):
+    def __init__(self, num_classes, start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
+                 max_len=20, use_attention=False):
         """
         num_classes: int. Number of output classes used
         start_token: int.
