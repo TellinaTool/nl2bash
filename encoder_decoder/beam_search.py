@@ -192,13 +192,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         batch_size = past_cand_symbols.get_shape()[0].value
         full_size = batch_size * self.beam_size
         if self.parent_refs_offsets is None:
-<<<<<<< HEAD
-            self.parent_refs_offsets = (tf.range(batch_size * self.beam_size) //
-                                      self.beam_size) * self.beam_size
-=======
             self.parent_refs_offsets = (tf.range(full_size) // self.beam_size) * self.beam_size
 
->>>>>>> 4e7c55730f981bcab1e6d93e1a21bd1fd58ada4e
         input_symbols = past_beam_symbols[:, -1]
         # [batch_size * beam_size]
         stop_mask = tf.equal(input_symbols, tf.constant(self.stop_token,
