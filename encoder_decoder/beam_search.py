@@ -353,3 +353,4 @@ def sparse_boolean_mask(tensor, mask):
         values=tf.boolean_mask(tensor, mask),
         shape=tf.cast(tf.pack([mask_shape[0], tf.reduce_max(mask_lens)]), tf.int64) # For 2D only
     )
+
