@@ -34,6 +34,12 @@ class RNNDecoder(decoder.Decoder):
                 if not feed_previous:
                     # TODO: support beam search training
                     raise NotImplementedError
+                if self.use_attention:
+                    decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
+                                                            attention_states,
+                                                            encoder_attn_masks,
+                                                            num_heads,
+                                                            reuse_variables)
                 beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
                                                        data_utils.ROOT_ID,
                                                        data_utils.EOS_ID,
@@ -54,11 +60,6 @@ class RNNDecoder(decoder.Decoder):
                                                  dtype=tf.float32)
 
             if self.use_attention:
-                decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
-                                                            attention_states,
-                                                            encoder_attn_masks,
-                                                            num_heads,
-                                                            reuse_variables)
                 batch_size = tf.shape(attention_states)[0]
                 attn_dim = tf.shape(attention_states)[2]
                 batch_attn_size = tf.pack([batch_size, attn_dim])
