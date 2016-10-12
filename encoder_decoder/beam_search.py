@@ -190,10 +190,15 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             past_cell_state,
         ) = state
         batch_size = past_cand_symbols.get_shape()[0].value
-
+        full_size = batch_size * self.beam_size
         if self.parent_refs_offsets is None:
+<<<<<<< HEAD
             self.parent_refs_offsets = (tf.range(batch_size * self.beam_size) //
                                       self.beam_size) * self.beam_size
+=======
+            self.parent_refs_offsets = (tf.range(full_size) // self.beam_size) * self.beam_size
+
+>>>>>>> 4e7c55730f981bcab1e6d93e1a21bd1fd58ada4e
         input_symbols = past_beam_symbols[:, -1]
         # [batch_size * beam_size]
         stop_mask = tf.equal(input_symbols, tf.constant(self.stop_token,
@@ -214,9 +219,15 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # [batch_size*beam_size, num_classes]
         logprobs = tf.nn.log_softmax(tf.matmul(cell_outputs, W) + b)
-        logprobs = tf.add(logprobs, tf.mul(tf.expand_dims(tf.cast(stop_mask, tf.float32), 1),
-                                            self._done_mask))
-        logprobs = tf.mul(logprobs, tf.cast(tf.not_equal(self._done_mask, 0), tf.float32))
+        done_only_mask = tf.mul(tf.expand_dims(tf.cast(stop_mask, tf.float32), 1), self._done_mask)
+        zero_done_mask = tf.ones([full_size, self.num_classes]) -\
+                         tf.mul(tf.expand_dims(tf.cast(stop_mask, tf.float32), 1),
+                                tf.tile(tf.cast(tf.equal(tf.range(self.num_classes),
+                                                             self.stop_token),
+                                                tf.float32),
+                                        [stop_mask.get_shape[0].value, 1]))
+        logprobs = tf.add(logprobs, done_only_mask)
+        logprobs = tf.mul(logprobs, zero_done_mask)
 
         # length normalization
         past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.sqrt(self.seq_len))
