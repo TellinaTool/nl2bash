@@ -59,9 +59,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     model = model_constructor(params, buckets, forward_only)
 
-    for var in tf.get_collection(tf.GraphKeys.VARIABLES, scope='rnn_decoder'):
-        print(var.name)
-
     ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
     global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
 
