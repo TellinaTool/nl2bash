@@ -217,7 +217,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         logprobs = tf.nn.log_softmax(tf.matmul(cell_outputs, W) + b)
         logprobs = tf.add(logprobs, tf.mul(tf.expand_dims(tf.cast(stop_mask, tf.float32), 1),
                                             self._done_mask))
-        logprobs = tf.select(self._done_mask,
+        logprobs = tf.select(tf.equal(self._done_mask, 0),
                              tf.zeros(logprobs.get_shape()),
                              logprobs)
 
