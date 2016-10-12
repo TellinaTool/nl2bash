@@ -220,7 +220,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         stop_mask_2d = tf.expand_dims(stop_mask, 1)
         done_only_mask = tf.mul(stop_mask_2d, self._done_mask)
         zero_done_mask = tf.ones([full_size, self.num_classes]) -\
-                         tf.mul(stop_mask, tf.cast(tf.not_equal(self._done_mask, 0), tf.float32))
+                         tf.mul(stop_mask_2d, tf.cast(tf.not_equal(self._done_mask, 0), tf.float32))
         logprobs = tf.add(logprobs, done_only_mask)
         logprobs = tf.mul(logprobs, zero_done_mask)
 
