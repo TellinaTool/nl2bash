@@ -200,9 +200,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         cell_inputs = inputs
         if self.use_attention:
-            print(cell_inputs)
-            print(past_cell_state)
-            print(attns)
             cell_outputs, raw_cell_state, attns, attn_mask = \
                 self.cell(cell_inputs, past_cell_state, attns, scope)
         else:
