@@ -240,7 +240,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # For continuing to the next symbols
         symbols = indices % self.num_classes # [batch_size, self.beam_size]
-        symbols = tf.select(tf.cast(stop_mask, tf.bool),
+        symbols = tf.select(tf.reshape(tf.cast(stop_mask, tf.bool), symbols.get_shape()),
                             tf.constant(self.stop_token, shape=symbols.get_shape()), symbols)
         parent_refs = tf.reshape(indices // self.num_classes, [-1]) # [batch_size*self.beam_size]
 
