@@ -197,10 +197,12 @@ def normalize_pattern(value, verbose=False):
         value = re.sub(remove_dir_suffix, "", value)
     value = re.sub(remove_current_dir, "", value)
     if not (value.startswith("-")
+            or value == "\"/\""
             or value == "/"
-            or value == "normal/regular"
-            or value == "regular/normal"
-            or value == "files/directories"
+            or value == "\"normal/regular\""
+            or value == "\"regular/normal\""
+            or value == "\"files/directories\""
+            or value == "\".\""
             or value == "."
             or value == "${HOME}"):
         if "$" in value:
