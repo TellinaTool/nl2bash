@@ -54,10 +54,27 @@ correct_temp_pairs = [
         "somewhere in its name.\n",
         "find -name Pattern File"
     ),
-    {
+    (
         "list all CSS files (and directories ending with “.css”) under the current directory\n",
         "find -ls -name Pattern File"
-    }]
+    ),
+    (
+        "find  file which case-insensitive name is too in currect directory\n",
+        "find -path File File"
+    ),
+    (
+        "Find files under current directory that contains the string '/bin/ksh'\n",
+        "find -exec grep Pattern {} \; -print -type f File"
+    ),
+    (
+        "find for a word in all the regular files in the current directory\n",
+        "find -type f File | xargs grep -F Pattern"
+    ),
+    (
+        "Find all files, starting from / but ignoring removable media, whose names end with "
+        "\".rpm\"\n",
+        "find ! -name Pattern File"
+    )]
 
 error_temp_pairs = [
     (
