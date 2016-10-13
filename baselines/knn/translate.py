@@ -67,6 +67,21 @@ def decode():
     decode_set(model, dev_set, rev_nl_vocab, rev_cm_vocab)
 
 
+def eval():
+    # Load vocabularies.
+    nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.nl" % FLAGS.nl_vocab_size)
+    cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+    nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
+    cm_vocab, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+
+    train_set, dev_set, _ = load_data()
+    model = knn.KNNModel()
+    model.train(train_set)
+    eval_tools.eval_set(model_name, dev_set, rev_nl_vocab, FLAGS)
+
+
 def manual_eval():
     # Load vocabularies.
     nl_vocab_path = os.path.join(FLAGS.data_dir,
