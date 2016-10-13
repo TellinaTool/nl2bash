@@ -82,6 +82,15 @@ correct_temp_pairs = [
     (
         "Find files with 777 permissions and change them to 755\n",
         "find -exec chmod Unknown {} \; -perm Permission -type f File"
+    ),
+    (
+        "Find all files under and below the current working directory with the word California in "
+        "the file, and count the number of lines in the output\n",
+        "find -exec grep File Pattern {} \; -type f File | wc -l"
+    ),
+    (
+        "Find the top 5 biggest files\n",
+        "find -exec ls -s {} \; -type f File | sort -n -r | head -n Number"
     )]
 
 error_temp_pairs = [
