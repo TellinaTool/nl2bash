@@ -52,6 +52,11 @@ correct_temp_pairs = [
         "search for directories in the folder \"test\" which end with 5 digits using regular "
         "expressions\n",
         "find -regex Pattern -type d File"
+    ),
+    (
+        "Search the current directory and its sub-directories for any file that has \"bsd\""
+        "somewhere in its name.\n",
+        "find -name Pattern File"
     )]
 
 error_temp_pairs = [
