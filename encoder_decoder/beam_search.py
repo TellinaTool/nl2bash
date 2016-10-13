@@ -145,7 +145,7 @@ class BeamDecoder(object):
 class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, output_projection, num_classes, max_len,
                  start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
-                 use_attention=False, alpha=0.75):
+                 use_attention=False, alpha=1.0):
         # TODO: determine if we can have dynamic shapes instead of pre-filling up to max_len
 
         self.cell = cell
@@ -219,12 +219,13 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         logprobs = tf.mul(logprobs, zero_done_mask)
 
         # length normalization
-        # past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.pow(self.seq_len, alpha))
-        # logprobs_batched = logprobs + tf.expand_dims(past_beam_acc_logprobs, 1)
-        # seq_len = tf.expand_dims(self.seq_len, 1) + \
-        #           tf.mul(stop_mask_2d, tf.cast(tf.equal(self._done_mask, 0), tf.float32))
-        # logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, alpha))
-        logprobs_batched = logprobs + tf.expand_dims(past_beam_logprobs, 1)
+        past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.pow(self.seq_len, alpha))
+        logprobs_batched = logprobs + tf.expand_dims(past_beam_acc_logprobs, 1)
+        seq_len = tf.expand_dims(self.seq_len, 1) + \
+                  tf.mul(tf.ones([full_size, 1]) - stop_mask_2d, 
+                         tf.cast(tf.not_equal(self._done_mask, 0), tf.float32))
+        logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, alpha))
+        # logprobs_batched = logprobs + tf.expand_dims(past_beam_logprobs, 1)
         logprobs_batched = tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes])
 
         beam_logprobs, indices = tf.nn.top_k(
@@ -243,8 +244,9 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         symbols_history = tf.gather(past_beam_symbols, parent_refs)
         beam_symbols = tf.concat(1, [symbols_history[:,1:], tf.reshape(symbols, [-1, 1])])
-        self.seq_len = self.seq_len + tf.cast(tf.not_equal(tf.reshape(symbols, [-1]), 
-                                                           self.stop_token), tf.float32)
+        self.seq_len = tf.gather(self.seq_len, parent_refs) + \
+                       tf.cast(tf.not_equal(tf.reshape(symbols, [-1]), 
+                                            self.stop_token), tf.float32)
         # outputs = tf.reshape(symbols, [-1]) # [batch_size*beam_size, 1]
         cell_state = nest_map(
             lambda element: tf.gather(element, parent_refs),
