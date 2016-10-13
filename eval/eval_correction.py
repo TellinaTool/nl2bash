@@ -53,7 +53,11 @@ correct_temp_pairs = [
         "Search the current directory and its sub-directories for any file that has \"bsd\" "
         "somewhere in its name.\n",
         "find -name Pattern File"
-    )]
+    ),
+    {
+        "list all CSS files (and directories ending with “.css”) under the current directory\n",
+        "find -ls -name Pattern File"
+    }]
 
 error_temp_pairs = [
     (
