@@ -15,7 +15,8 @@ correct_temp_pairs = [
         "find -name Pattern File"
     ),
     (
-        "display all the regular files in the folder \"$(FOLDER)\" which are modified in the last $(RETENTION)*24 hours and excluding hidden files\n",
+        "display all the regular files in the folder \"$(FOLDER)\" which are modified in the last "
+        "$(RETENTION)*24 hours and excluding hidden files\n",
         "find File -type Unknown -mtime Time ! -name Pattern"
     ),
     (
@@ -36,11 +37,6 @@ correct_temp_pairs = [
         "find -print -user Pattern File"
     ),
     (
-        "find ~/Desktop -name “*.jpg” -o -name “*.gif” -o -name “*.png” -print0 | xargs -0 mv –target-directory "
-        "~/Pictures\n",
-        "find -exec mv {} File + -name Pattern File"
-    ),
-    (
         "Remove all Thumbs.db files from the current directory tree\n",
         "find -name Pattern File | xargs rm -f"
     ),
@@ -54,7 +50,7 @@ correct_temp_pairs = [
         "find -regex Pattern -type d File"
     ),
     (
-        "Search the current directory and its sub-directories for any file that has \"bsd\""
+        "Search the current directory and its sub-directories for any file that has \"bsd\" "
         "somewhere in its name.\n",
         "find -name Pattern File"
     )]
