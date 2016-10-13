@@ -78,6 +78,10 @@ correct_temp_pairs = [
     (
         "search for a file in current folder excluding those that are present in a specific path\n",
         "find \\( -path File -prune -or -name Pattern \\) -print File"
+    ),
+    (
+        "Find files with 777 permissions and change them to 755\n",
+        "find -exec chmod Unknown {} \; -perm Permission -type f File"
     )]
 
 error_temp_pairs = [
