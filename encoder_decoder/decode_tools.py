@@ -181,10 +181,10 @@ def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
         formatted_example = model.format_example([token_ids], [[data_utils.ROOT_ID]],
                                                  bucket_id=bucket_id)
 
-        # Get output logits for the sentence.
-        _, _, output_logits, _ = model.step(sess, formatted_example, bucket_id,
-                                            forward_only=True)
-        batch_outputs, scores = decode(output_logits, rev_cm_vocab, FLAGS)
+        # Get output for the sentence.
+        output_symbols, output_logits, losses, attn_masks = \
+                    model.step(sess, formatted_example, bucket_id, forward_only=True)
+        batch_outputs = decode(output_symbols, rev_cm_vocab, FLAGS)
 
         if FLAGS.decoding_algorithm == "greedy":
             tree, pred_cmd, outputs = batch_outputs[0]
