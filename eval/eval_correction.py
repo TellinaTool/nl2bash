@@ -26,7 +26,7 @@ correct_temp_pairs = [
     (
         "search for a file in current folder excluding the search in the folder "
         "./ignored_directory\n",
-        "find \( -path File -prune -or -print \) File"
+        "find \\( -path File -prune -or -print \\) File"
     ),
     (
         "Delete files with inode number specified by [inode-number] under current directory\n",
@@ -77,7 +77,7 @@ correct_temp_pairs = [
     ),
     (
         "search for a file in current folder excluding those that are present in a specific path\n",
-        "find \( -path File -prune -or -name Pattern \) -print File"
+        "find \\( -path File -prune -or -name Pattern \\) -print File"
     )]
 
 error_temp_pairs = [
