@@ -178,7 +178,8 @@ def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
                         if model.buckets[b][0] > len(token_ids)])
 
         # Get a 1-element batch to feed the sentence to the model.
-        formatted_example = model.format_example([token_ids], [[data_utils.ROOT_ID]], bucket_id)
+        formatted_example = model.format_example([token_ids], [[data_utils.ROOT_ID]],
+                                                 bucket_id=bucket_id)
 
         # Get output logits for the sentence.
         _, _, output_logits, _ = model.step(sess, formatted_example, bucket_id,
