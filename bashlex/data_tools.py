@@ -67,8 +67,8 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             .replace(' \'', ' "') \
             .replace('\' ', '" ') \
             .replace('`', '"') \
-            .replace('(', '( ') \
-            .replace(')', ' )')
+            .replace('(', ' ( ') \
+            .replace(')', ' ) ')
             # .replace('[', '[ ') \
             # .replace('{', '{ ') \
             # .replace(']', ' ]') \
