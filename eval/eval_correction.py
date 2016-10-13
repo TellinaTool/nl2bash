@@ -74,6 +74,10 @@ correct_temp_pairs = [
         "Find all files, starting from / but ignoring removable media, whose names end with "
         "\".rpm\"\n",
         "find ! -name Pattern File"
+    ),
+    (
+        "search for a file in current folder excluding those that are present in a specific path\n",
+        "find \( -path File -prune -or -name Pattern \) -print File"
     )]
 
 error_temp_pairs = [
