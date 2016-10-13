@@ -264,5 +264,5 @@ def test_bash_parser():
 
 
 if __name__ == "__main__":
-    test_nl_tokenizer()
-
+    # test_nl_tokenizer()
+    test_bash_parser()

@@ -54,6 +54,12 @@ class RNNDecoder(decoder.Decoder):
                                                             reuse_variables)
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
             elif self.decoding_algorithm == "greedy":
+                if self.use_attention:
+                    decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
+                                                            attention_states,
+                                                            encoder_attn_masks,
+                                                            num_heads,
+                                                            reuse_variables)
                 past_output_symbols = tf.constant(data_utils.ROOT_ID,
                                                   shape=[self.batch_size, 1],
                                                   dtype=tf.int64)
