@@ -232,7 +232,14 @@ def cmd2template(cmd, normalize_digits=True, normalize_long_pattern=True,
     return ast2template(tree, loose_constraints, arg_type_only)
 
 
-if __name__ == "__main__":
+def test_nl_tokenizer():
+    while True:
+        nl = raw_input("> ")
+        tokens = basic_tokenizer(nl)
+        print(tokens)
+
+
+def test_bash_parser():
     while True:
         try:
             cmd = raw_input("> ")
@@ -259,4 +266,7 @@ if __name__ == "__main__":
         except EOFError as ex:
             break
 
+
+if __name__ == "__main__":
+    test_nl_tokenizer()
 
