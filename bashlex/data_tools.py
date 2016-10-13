@@ -84,11 +84,11 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     sentence = re.sub('(\.\s+)|(\.$)', ' ', sentence)
 
     # convert abbreviation writings and negations
-    sentence.replace('\'s', ' \'s')
-    sentence.replace('\'re', ' \'re')
-    sentence.replace('\'ve', ' \'ve')
-    sentence.replace('\'d', ' \'d')
-    sentence.replace('\'t', ' \'t')
+    sentence = re.sub('\'s', ' \'s', sentence)
+    sentence = re.sub('\'re', ' \'re', sentence)
+    sentence = re.sub('\'ve', ' \'ve', sentence)
+    sentence = re.sub('\'d', ' \'d', sentence)
+    sentence = re.sub('\'t', ' \'t', sentence)
 
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
 
