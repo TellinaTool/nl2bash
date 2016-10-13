@@ -83,11 +83,12 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     sentence = re.sub('(:\s+)|(:$)', ' ', sentence)
     sentence = re.sub('(\.\s+)|(\.$)', ' ', sentence)
 
-    sentence = re.sub('\'s', '\\\'s', sentence)
-    sentence = re.sub('\'re', '\\\'re', sentence)
-    sentence = re.sub('\'ve', '\\\'ve', sentence)
-    sentence = re.sub('\'d', '\\\'d', sentence)
-    sentence = re.sub('\'t', '\\\'t', sentence)
+    # convert abbreviation writings and negations
+    sentence = re.sub('\'s', ' \'s', sentence)
+    sentence = re.sub('\'re', ' \'re', sentence)
+    sentence = re.sub('\'ve', ' \'ve', sentence)
+    sentence = re.sub('\'d', ' \'d', sentence)
+    sentence = re.sub('\'t', ' \'t', sentence)
 
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
 
@@ -139,13 +140,6 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         # remove empty words
         if not word.strip():
             continue
-
-        # convert possessive expression
-        if len(word) > 2 and word.endswith("'s"):
-            normalized_words.append(word[:-2])
-            normalized_words.append("'s")
-        else:
-            normalized_words.append(word)
 
     return normalized_words
 
