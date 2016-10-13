@@ -207,7 +207,8 @@ def normalize_pattern(value, verbose=False):
             or value == "${HOME}"):
         if "$" in value:
             value = _PARAMETER
-        elif value[0] in ['\'', '"'] \
+        elif (value[0] in ['\'', '"']
+              and value[-1] in ['\'', '"']) \
                 or ' ' in value \
                 or '\\' in value \
                 or '~' in value \
