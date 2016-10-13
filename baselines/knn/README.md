@@ -1,11 +1,11 @@
-### Run on test set
+### Decode test set
 
 `python translate.py --data_dir <data_file_dir> --train_dir <model_result_dir> --decode`
 
-### Run manual evaluation interface
+### Manual evaluation
 
 `python translate.py --data_dir <data_file_dir> --train_dir <model_result_dir> --manual_eval`
 
-### Run original manual evaluation interface
+### Old manual evaluation interface
 
 `python translate.py --data_dir <data_file_dir> --train_dir <model_result_dir> --self_test`
