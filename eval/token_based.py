@@ -1,4 +1,4 @@
-""" Warning: token-based evaluation is not used in the experiments."""
+"""This evaluation method is deprecated."""
 
 import sys
 sys.path.append("../bashlex")
