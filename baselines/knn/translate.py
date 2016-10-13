@@ -22,13 +22,12 @@ def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
     grouped_dataset = data_utils.group_data_by_nl(dataset)
 
     with DBConnection() as db:
+        db.remove_model(model_name)
         num_eval = 0
         for nl_temp in grouped_dataset:
             batch_nl_strs, batch_cm_strs, batch_nls, batch_cmds = \
                 grouped_dataset[nl_temp]
-            
-            batch_size = len(batch_nl_strs)
-            
+
             nl_str = batch_nl_strs[0]
             nl = batch_nls[0]
             if verbose:
