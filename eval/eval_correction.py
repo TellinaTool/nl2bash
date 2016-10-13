@@ -91,6 +91,26 @@ correct_temp_pairs = [
     (
         "Find the top 5 biggest files\n",
         "find -exec ls -s {} \; -type f File | sort -n -r | head -n Number"
+    ),
+    (
+        "remove all the files in current folder which have the extension \"DS_Store\"\n",
+        "find -exec rm -f {} \; -name Pattern -type f File"
+    ),
+    (
+        "Move all Emacs backup files from the current directory tree to ~/backups/\n",
+        "find -name Pattern File | xargs -I Pattern mv File {}"
+    ),
+    (
+        "Return a list of files newer than file poop\n",
+        "find -newer File -print File"
+    ),
+    (
+        "find all files in the file system whose size is bigger than 3GB\n",
+        "find -size Size -type f File"
+    ),
+    (
+        "List all .svn files/directories under current directory\n",
+        "find -name Pattern File | xargs ls -l"
     )]
 
 error_temp_pairs = [
@@ -117,6 +137,15 @@ error_temp_pairs = [
     (
         "list regular file which file name end with 'cache' 'xml' or 'html' in current directory\n",
         "find -name Pattern -type Unknown File"
+    ),
+    (
+        "search for a specific word in all the hidden files in the entire file system and display "
+        "the file name along with the matched line\n",
+        "find -name Pattern File | xargs grep Pattern"
+    ),
+    (
+        "find all '*.c' files under $HOME directory which context contains sprintf\n",
+        "find -exec grep -H File Pattern {} \; -name Pattern -type f File"
     )]
 
 correct_str_pairs = [
