@@ -141,6 +141,8 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         if not word.strip():
             continue
 
+        normalized_words.append(word)
+
     return normalized_words
 
 
