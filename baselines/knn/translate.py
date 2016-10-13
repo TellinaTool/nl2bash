@@ -174,6 +174,8 @@ def load_data():
 def main():
     if FLAGS.manual_eval:
         manual_eval()
+    elif FLAGS.eval:
+        eval()
     elif FLAGS.decode:
         decode()
     elif FLAGS.self_test:
