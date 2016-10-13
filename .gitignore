@@ -45,7 +45,8 @@ spell.txt
 manual.eval.results*
 *.swp
 *.swo
-/nl2cmd_paper
+/paper
+/data/reader
 
 # ideaJ file
 .idea
