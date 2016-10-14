@@ -221,6 +221,8 @@ def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_p
         cm.append(rev_cm_vocab[x])
 
     plt.clf()
+    if len(target) == 0:
+        i = 0
     fig = plt.imshow(M[:i, :], interpolation='nearest', cmap=plt.cm.Blues)
 
     plt.xticks(xrange(source_length),

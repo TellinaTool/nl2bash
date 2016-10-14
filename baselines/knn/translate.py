@@ -95,7 +95,7 @@ def manual_eval():
     model = knn.KNNModel()
     model.train(train_set)
     eval_tools.manual_eval(model_name, dev_set, rev_nl_vocab,
-                               FLAGS.model_dir, num_eval=500)
+                           FLAGS, FLAGS.model_dir, num_eval=500)
 
 # Chenglong's main function
 def original():
