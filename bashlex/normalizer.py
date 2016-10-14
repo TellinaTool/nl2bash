@@ -737,17 +737,24 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 utility = head_command.get_subcommand()
                 assert(utility is not None)
                 for i in xrange(head_command.get_num_of_children()-1):
-                    if head_command.children[i+1].is_headcommand:
+                    if head_command.children[i].is_headcommand:
                         repl_str_flag_node = FlagNode("-I")
                         repl_str_node = ArgumentNode("{}", "ReservedWord")
+                        repl_str_node2 = ArgumentNode("{}", "ReservedWord")
+                        make_sibling(repl_str_flag_node, repl_str_node)
+
                         head_command.children.insert(i, repl_str_flag_node)
                         repl_str_flag_node.parent = head_command
-                        repl_str_flag_node.lsb = head_command.children[i]
-                        head_command.children[i].rsb = repl_str_flag_node
+                        repl_str_flag_node.lsb = head_command.children[i-1]
+                        head_command.children[i-1].rsb = repl_str_flag_node
+
                         head_command.children.insert(i+1, repl_str_node)
                         repl_str_node.parent = head_command
-                        make_sibling(repl_str_flag_node, repl_str_node)
                         repl_str_node.rsb = head_command.children[i+2]
+
+                        repl_str_node2.parent = head_command
+                        repl_str_node2.rsb = head_command.get_right_child()
+                        head_command.children.append(repl_str_node2)
                         break
 
 
