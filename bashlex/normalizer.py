@@ -212,6 +212,7 @@ def normalize_pattern(value, verbose=False):
                 or ' ' in value \
                 or '\\' in value \
                 or '~' in value \
+                or '*' in value \
                 or '@' in value \
                 or "%" in value \
                 or '#' in value \
@@ -264,7 +265,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             value = normalize_pattern(value, verbose=verbose)
         if normalize_digits and arg_type != "Permission":
             value = re.sub(_DIGIT_RE, _NUM, value)
-
+        if value in ["+", ";", "{}"]:
+            arg_type = "ReservedWord"
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
         attach_to_tree(norm_node, current)
         return norm_node
@@ -693,6 +695,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 norm_node.parent = head_command
                 head_command.children.insert(0, norm_node)
 
+        # "grep" normalization
         if head_command.value == "egrep":
             head_command.value = "grep"
             flag_present = False
@@ -716,6 +719,36 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 make_sibling(norm_node, head_command.children[0])
                 norm_node.parent = head_command
                 head_command.children.insert(0, norm_node)
+
+        # "xargs" normalization
+        has_repl_str = False
+        if head_command.value == "xargs":
+            for flag in head_command.get_flags():
+                if flag.value == "-I":
+                    has_repl_str = True
+                    repl_str = flag.get_argument()
+                    assert(repl_str is not None)
+                    if repl_str != "{}":
+                        utility = head_command.get_subcommand()
+                        assert(utility is not None)
+                        utility.normalize_repl_str(repl_str, '{}')
+            # add a replace str if not present
+            if not has_repl_str:
+                utility = head_command.get_subcommand()
+                assert(utility is not None)
+                for i in xrange(head_command.get_num_of_children()-1):
+                    if head_command.children[i+1].is_headcommand:
+                        repl_str_flag_node = FlagNode("-I")
+                        repl_str_node = ArgumentNode("{}", "ReservedWord")
+                        head_command.children.insert(i, repl_str_flag_node)
+                        repl_str_flag_node.parent = head_command
+                        repl_str_flag_node.lsb = head_command.children[i]
+                        head_command.children[i].rsb = repl_str_flag_node
+                        head_command.children.insert(i+1, repl_str_node)
+                        repl_str_node.parent = head_command
+                        make_sibling(repl_str_flag_node, repl_str_node)
+                        repl_str_node.rsb = head_command.children[i+2]
+                        break
 
 
     def normalize(node, current, node_kind="", arg_type=""):
@@ -793,6 +826,12 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         elif node.kind == "parameter":
             # not supported
             raise ValueError("Unsupported: parameters")
+        elif node.kind == "compound":
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
+        elif node.kind == "list":
+            # not supported
+            raise ValueError("Unsupported: %s" % node.kind)
         elif node.kind == "for":
             # not supported
             raise ValueError("Unsupported: %s" % node.kind)
@@ -948,6 +987,8 @@ def list_to_ast(list, order='dfs'):
                         print("Warning: to_ast unrecognized argument "
                               "attachment point {}.".format(current.symbol))
                         arg_type = "Unknown"
+                    if value in ["+", ";", "{}"]:
+                        arg_type = "ReservedWord"
                     node = ArgumentNode(value=value, arg_type=arg_type)
                 elif kind == "flag":
                     node = FlagNode(value=value)

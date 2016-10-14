@@ -60,7 +60,7 @@ class Node(object):
         self.value = value
         self.children = []
 
-    def add_child(self, child):
+    def add_child(self, child, index=None):
         self.children.append(child)
 
     def get_children(self):
@@ -200,10 +200,37 @@ class FlagNode(Node):
             label = self.prefix + self.headcommand.value + "@@" + self.value
         else:
             label = self.prefix + self.value
+        return label
+
+    def get_argument(self):
+        for child in self.children:
+            if child.kind == "argument":
+                return child
 
 class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(HeadCommandNode, self).__init__(parent, lsb, "headcommand", value)
+
+    def get_flags(self):
+        flags = []
+        for child in self.children:
+            if child.is_option():
+                flags.append(child)
+        return flags
+
+    def get_subcommand(self):
+        for child in self.children:
+            if child.is_headcommand():
+                return child
+
+    def normalize_repl_str(self, repl_str, norm):
+        def normalize_repl_str_fun(node):
+            for child in node.children:
+                if child.is_argument() and child.value == repl_str:
+                    child.value = norm
+                else:
+                    normalize_repl_str_fun(child)
+        normalize_repl_str_fun(self)
 
 class UnaryLogicOpNode(Node):
     num_child = 1

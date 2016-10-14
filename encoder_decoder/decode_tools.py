@@ -151,7 +151,8 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                 if attn_masks != None:
                     visualize_attn_masks(attn_masks[0, :, :], nl, outputs,
                                          rev_nl_vocab, rev_cm_vocab,
-                                         os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, batch_id)))
+                                         os.path.join(FLAGS.model_dir,
+                                                      "{}-{}.jpg".format(bucket_id, batch_id)))
 
 
 def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
