@@ -737,7 +737,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 utility = head_command.get_subcommand()
                 assert(utility is not None)
                 for i in xrange(head_command.get_num_of_children()-1):
-                    if head_command.children[i].is_headcommand:
+                    if head_command.children[i].is_headcommand():
                         repl_str_flag_node = FlagNode("-I")
                         repl_str_node = ArgumentNode("{}", "ReservedWord")
                         repl_str_node2 = ArgumentNode("{}", "ReservedWord")
