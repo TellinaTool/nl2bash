@@ -360,7 +360,7 @@ def main(_):
     if FLAGS.eval:
         eval()
     elif FLAGS.manual_eval:
-        manual_eval(500)
+        manual_eval(412)
     elif FLAGS.decode:
         decode()
         eval()
