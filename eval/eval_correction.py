@@ -111,6 +111,15 @@ correct_temp_pairs = [
     (
         "List all .svn files/directories under current directory\n",
         "find -name Pattern File | xargs ls -l"
+    ),
+    (
+        "search for a word in all the files with the extension \"ch\" in the current folder\n",
+        "find -exec grep Pattern {} + -name Pattern -type f File"
+    ),
+    (
+        "search for a specific word in all the hidden files in the entire file system and display "
+        "the file name along with the matched line\n",
+        "find -name Pattern -print0 -type f File | xargs -0 -I {} grep -H -n Pattern {}"
     )]
 
 error_temp_pairs = [

@@ -2255,6 +2255,24 @@
                   "commands": [
                      {
                         "type": "flag_option",
+                        "flag_name": "newerBt"
+                     },
+                     {
+                        "type": "argument_option",
+                        "arg_name": "time",
+                        "arg_type": "Time",
+                        "isList": false
+                     }
+                  ]
+               }
+            },
+            {
+               "type": "optional_option",
+               "cmd": {
+                  "type": "compound_options",
+                  "commands": [
+                     {
+                        "type": "flag_option",
                         "flag_name": "newermt"
                      },
                      {
