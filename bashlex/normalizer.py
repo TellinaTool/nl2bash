@@ -736,7 +736,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             if not has_repl_str:
                 utility = head_command.get_subcommand()
                 assert(utility is not None)
-                for i in xrange(head_command.get_num_of_children()-1):
+                for i in xrange(head_command.get_num_of_children()):
                     print(head_command.children[i].kind)
                     if head_command.children[i].is_headcommand():
                         repl_str_flag_node = FlagNode("-I")
