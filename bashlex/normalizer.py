@@ -729,11 +729,11 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     repl_str = flag.get_argument()
                     assert(repl_str is not None)
                     if repl_str.value != "{}":
-                        repl_str.value = "{}"
-                        repl_str.arg_type = "ReservedWord"
                         utility = head_command.get_subcommand()
                         assert(utility is not None)
-                        utility.normalize_repl_str(repl_str, '{}')
+                        utility.normalize_repl_str(repl_str.value, '{}')
+                        repl_str.value = "{}"
+                        repl_str.arg_type = "ReservedWord"
             # add a replace str if not present
             if not has_repl_str:
                 utility = head_command.get_subcommand()
