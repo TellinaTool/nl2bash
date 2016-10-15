@@ -228,7 +228,7 @@ class HeadCommandNode(Node):
             for child in node.children:
                 if child.is_argument():
                     if repl_str in child.value:
-                        child.value.replace(repl_str, norm)
+                        child.value = child.value.replace(repl_str, norm)
                         if child.value == norm:
                             child.arg_type = "ReservedWord"
                 else:
