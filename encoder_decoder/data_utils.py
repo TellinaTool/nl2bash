@@ -657,8 +657,6 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
             ast = data_tools.bash_parser(cm)
             if ast:
                 if is_simple(ast):
-                    nl_list.append(nl)
-                    cm_list.append(cm)
                     nl_chars = data_tools.char_tokenizer(nl, data_tools.basic_tokenizer,
                                                          normalize_digits=False,
                                                          normalize_long_pattern=False)
@@ -683,6 +681,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                     cm_canonical_seq = data_tools.ast2list(
                         ast, arg_type_only=True, ignore_flag_order=True, list=[],
                         with_parent=with_parent)
+                    getattr(nl_list, split).append(nl)
+                    getattr(cm_list, split).append(cm)
                     getattr(nl_char_list, split).append(nl_chars)
                     getattr(nl_token_list, split).append(nl_tokens)
                     getattr(cm_char_list, split).append(cm_chars)
