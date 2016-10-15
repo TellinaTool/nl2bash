@@ -595,7 +595,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
         if len(d) > max_len:
             max_len = len(d)
 
-    if type(data.train[0]) is not basestring:
+    if isinstance(data.train[0], list):
         create_vocabulary(vocab_path, data.train, vocab_size,
                       normalize_digits=normalize_digits,
                       normalize_long_pattern=normalize_long_pattern)
@@ -604,7 +604,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
     dev_path = os.path.join(data_dir, "dev")
     test_path = os.path.join(data_dir, "test")
 
-    if type(data.train[0]) is basestring:
+    if isinstance(data.train[0], str):
         with open(train_path + suffix, 'w') as o_f:
             for line in data.train:
                 o_f.write(line.strip() + '\n')
@@ -663,9 +663,9 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
 
 def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
 
-    def add_to_set(nl_list, cm_list, split):
+    def add_to_set(nl_data, cm_data, split):
         with_parent = False
-        for nl, cm in zip(getattr(nl_list, split), getattr(cm_list, split)):
+        for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
             ast = data_tools.bash_parser(cm)
             if ast:
                 if is_simple(ast):
