@@ -124,11 +124,8 @@ correct_temp_pairs = [
         "search for a specific word in all the hidden files in the entire file system and display "
         "the file name along with the matched line\n",
         "find -name Pattern -print0 -type f File | xargs -0 -I {} grep -H -n Pattern {}"
-    ),
-    (
-        "change the ownership of all directories in the current folder\n",
-        "find -exec chmod Unknown {} \; -type d File"
-    )]
+    )
+    ]
 
 error_temp_pairs = [
     (
@@ -163,6 +160,10 @@ error_temp_pairs = [
     (
         "find all '*.c' files under $HOME directory which context contains sprintf\n",
         "find -exec grep -H File Pattern {} \; -name Pattern -type f File"
+    ),
+    (
+        "change the ownership of all directories in the current folder\n",
+        "find -exec chmod Unknown {} \; -type d File"
     )]
 
 correct_str_pairs = [
