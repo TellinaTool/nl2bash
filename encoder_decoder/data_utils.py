@@ -435,12 +435,12 @@ def load_data(FLAGS, buckets):
     dev_path = os.path.join(data_dir, "dev")
     test_path = os.path.join(data_dir, "test")
 
-    nl_txt_train = train_path + ".nl"
-    cm_txt_train = train_path + ".cm"
-    nl_txt_dev = dev_path + ".nl"
-    cm_txt_dev = dev_path + ".cm"
-    nl_txt_test = test_path + ".nl"
-    cm_txt_test = test_path + ".cm"
+    nl_txt_train = train_path + ".%d.nl" % FLAGS.nl_vocab_size
+    cm_txt_train = train_path + ".%d.cm" % FLAGS.cm_vocab_size
+    nl_txt_dev = dev_path + ".%d.nl" % FLAGS.nl_vocab_size
+    cm_txt_dev = dev_path + ".%d.cm" % FLAGS.cm_vocab_size
+    nl_txt_test = test_path + ".%d.nl" % FLAGS.nl_vocab_size
+    cm_txt_test = test_path + ".%d.cm" % FLAGS.cm_vocab_size
 
     nl_train = train_path + nl_extention
     cm_train = train_path + cm_extension
