@@ -141,7 +141,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             if normalize_digits and not word.startswith("-") else word
 
         if word == normalizer._REGEX \
-                or word == normalizer._DIGIT_RE\
+                or word == normalizer._NUM\
                 or word == normalizer._PARAMETER:
             root = word
             word += str(entity_dict[root])
