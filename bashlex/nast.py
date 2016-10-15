@@ -228,6 +228,7 @@ class HeadCommandNode(Node):
             for child in node.children:
                 if child.is_argument() and child.value == repl_str:
                     child.value = norm
+                    child.arg_type = "ReservedWord"
                 else:
                     normalize_repl_str_fun(child)
         normalize_repl_str_fun(self)
