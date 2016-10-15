@@ -657,6 +657,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
             ast = data_tools.bash_parser(cm)
             if ast:
                 if is_simple(ast):
+                    nl_list.append(nl)
+                    cm_list.append(cm)
                     nl_chars = data_tools.char_tokenizer(nl, data_tools.basic_tokenizer,
                                                          normalize_digits=False,
                                                          normalize_long_pattern=False)
@@ -695,7 +697,11 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                 else:
                     print("Rare command: " + cm.encode('utf-8'))
 
-    nl_list, cm_list = read_raw_data(data_dir)
+    # unfiltered data
+    nl_data, cm_data = read_raw_data(data_dir)
+
+    nl_list = Dataset()
+    cm_list = Dataset()
     nl_char_list = Dataset()
     nl_token_list = Dataset()
     cm_char_list = Dataset()
@@ -708,9 +714,9 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     cm_canonical_token_list = Dataset()
     cm_canonical_seq_list = Dataset()
 
-    add_to_set(nl_list, cm_list, "train")
-    add_to_set(nl_list, cm_list, "dev")
-    add_to_set(nl_list, cm_list, "test")
+    add_to_set(nl_data, cm_data, "train")
+    add_to_set(nl_data, cm_data, "dev")
+    add_to_set(nl_data, cm_data, "test")
 
     # Create vocabularies of the appropriate sizes.
     nl_char_vocab_path = os.path.join(data_dir, "vocab%d.nl.char" % nl_vocab_size)
