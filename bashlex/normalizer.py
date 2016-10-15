@@ -214,6 +214,7 @@ def normalize_pattern(value, verbose=False):
                 or '~' in value \
                 or '*' in value \
                 or '@' in value \
+                or "%" in value \
                 or '#' in value \
                 or '?' in value:
             value = _REGEX
