@@ -7,6 +7,10 @@ Some manual evaluation correction.
 
 correct_temp_pairs = [
     (
+        "Find all *.csv files under /foo/bar and move them to some_dir\n",
+        "find -exec mv File {} \; -name Pattern File"
+    ),
+    (
         "Find all .c and .h files in the current directory tree and search them for \"expr\"\n",
         "find -name Pattern File | xargs grep -r Pattern"
     ),
@@ -120,6 +124,10 @@ correct_temp_pairs = [
         "search for a specific word in all the hidden files in the entire file system and display "
         "the file name along with the matched line\n",
         "find -name Pattern -print0 -type f File | xargs -0 -I {} grep -H -n Pattern {}"
+    ),
+    (
+        "change the ownership of all directories in the current folder\n",
+        "find -exec chmod Unknown {} \; -type d File"
     )]
 
 error_temp_pairs = [
