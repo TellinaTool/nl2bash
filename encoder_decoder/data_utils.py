@@ -633,16 +633,22 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
         for nl, cm in zip(getattr(nl_list, split), getattr(cm_list, split)):
             nl_tokens = nl.split()
             cm_tokens = cm.split()
+            getattr(nl_list, split).append(nl)
+            getattr(cm_list, split).append(cm)
             getattr(nl_token_list, split).append(nl_tokens)
             getattr(cm_token_list, split).append(cm_tokens)
 
-    nl_list, cm_list = read_raw_data(data_dir)
+    # unfiltered data
+    nl_data, cm_data = read_raw_data(data_dir)
+
+    nl_list = Dataset()
+    cm_list = Dataset()
     nl_token_list = Dataset()
     cm_token_list = Dataset()
 
-    add_to_set(nl_list, cm_list, "train")
-    add_to_set(nl_list, cm_list, "dev")
-    add_to_set(nl_list, cm_list, "test")
+    add_to_set(nl_data, cm_data, "train")
+    add_to_set(nl_data, cm_data, "dev")
+    add_to_set(nl_data, cm_data, "test")
 
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
