@@ -136,6 +136,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                 num_top10_correct += 1
 
             total_top1_temp_dist += top1_temp_dist
+            print(total_top1_temp_dist)
             total_top5_temp_dist += top5_temp_dist
             total_top10_temp_dist += top10_temp_dist
             total_top1_dist += top1_dist
