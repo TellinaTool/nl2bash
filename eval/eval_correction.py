@@ -164,6 +164,10 @@ error_temp_pairs = [
     (
         "change the ownership of all directories in the current folder\n",
         "find -exec chmod Unknown {} \; -type d File"
+    ),
+    (
+        "find foo, Foo, FOo, FOO, etc.\n",
+        "find -iname Pattern -type f File File"
     )]
 
 correct_str_pairs = [

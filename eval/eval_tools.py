@@ -69,52 +69,40 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
             for i in xrange(len(predictions)):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
+                pred_temp = data_tools.ast2template(tree)
                 # evaluation ignoring flag orders
                 min_temp_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=True)
                 min_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=False)
                 print("min_temp_dist = {}".format(min_temp_dist))
                 print("min_dist = {}".format(min_dist))
-                if i < 1:
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
+
+                if ast_based.one_match(gt_trees, tree, ignore_arg_value=True) \
+                        or db.get_str_judgement((nl_str, pred_cmd)):
+                    if i < 1:
                         top1_correct_temp = True
+                    if i < 5:
                         top5_correct_temp = True
+                    if i < 10:
                         top10_correct_temp = True
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
+                if ast_based.one_match(gt_trees, tree, ignore_arg_value=False) \
+                        or db.get_temp_judgement((nl_str, pred_temp)):
+                    if i < 1:
                         top1_correct = True
+                    if i < 5:
                         top5_correct = True
+                    if i < 10:
                         top10_correct = True
+                if i < 1:
                     if min_temp_dist < top1_temp_dist:
                         top1_temp_dist = min_temp_dist
-                    if min_temp_dist < top5_temp_dist:
-                        top5_temp_dist = min_temp_dist
-                    if min_temp_dist < top10_temp_dist:
-                        top10_temp_dist = min_temp_dist
                     if min_dist < top1_dist:
                         top1_dist = min_dist
-                    if min_dist < top5_dist:
-                        top5_dist = min_dist
-                    if min_dist < top10_dist:
-                        top10_dist = min_dist
-                elif i < 5:
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
-                        top5_correct_temp = True
-                        top10_correct_temp = True
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
-                        top5_correct = True
-                        top10_correct = True
+                if i < 5:
                     if min_temp_dist < top5_temp_dist:
                         top5_temp_dist = min_temp_dist
-                    if min_temp_dist < top10_temp_dist:
-                        top10_temp_dist = min_temp_dist
                     if min_dist < top5_dist:
                         top5_dist = min_dist
-                    if min_dist < top10_dist:
-                        top10_dist = min_dist
-                elif i < 10:
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
-                        top10_correct_temp = True
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
-                        top10_correct = True
+                if i < 10:
                     if min_temp_dist < top10_temp_dist:
                         top10_temp_dist = min_temp_dist
                     if min_dist < top10_dist:
