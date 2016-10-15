@@ -595,7 +595,8 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
         if len(d) > max_len:
             max_len = len(d)
 
-    create_vocabulary(vocab_path, data.train, vocab_size,
+    if type(data.train[0]) is not basestring:
+        create_vocabulary(vocab_path, data.train, vocab_size,
                       normalize_digits=normalize_digits,
                       normalize_long_pattern=normalize_long_pattern)
 
@@ -603,15 +604,26 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
     dev_path = os.path.join(data_dir, "dev")
     test_path = os.path.join(data_dir, "test")
 
-    data_to_token_ids(data.train, train_path + suffix, vocab_path,
-                      normalize_digits=normalize_digits,
-                      normalize_long_pattern=normalize_long_pattern)
-    data_to_token_ids(data.dev, dev_path + suffix, vocab_path,
-                      normalize_digits=normalize_digits,
-                      normalize_long_pattern=normalize_long_pattern)
-    data_to_token_ids(data.test, test_path + suffix, vocab_path,
-                      normalize_digits=normalize_digits,
-                      normalize_long_pattern=normalize_long_pattern)
+    if type(data.train[0]) is basestring:
+        with open(train_path + suffix, 'w') as o_f:
+            for line in data.train:
+                o_f.write(line.strip() + '\n')
+        with open(dev_path + suffix, 'w') as o_f:
+            for line in data.dev:
+                o_f.write(line.strip() + '\n')
+        with open(test_path + suffix, 'w') as o_f:
+            for line in data.test:
+                o_f.write(line.strip() + '\n')
+    else:
+        data_to_token_ids(data.train, train_path + suffix, vocab_path,
+                          normalize_digits=normalize_digits,
+                          normalize_long_pattern=normalize_long_pattern)
+        data_to_token_ids(data.dev, dev_path + suffix, vocab_path,
+                          normalize_digits=normalize_digits,
+                          normalize_long_pattern=normalize_long_pattern)
+        data_to_token_ids(data.test, test_path + suffix, vocab_path,
+                          normalize_digits=normalize_digits,
+                          normalize_long_pattern=normalize_long_pattern)
 
     return max_len
 
@@ -728,6 +740,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     cm_ast_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast.norm" %
                                           cm_vocab_size)
 
+    nl_suffix = ".%d.nl" % nl_vocab_size
+    cm_suffix = ".%d.cm" % cm_vocab_size
     nl_char_suffix = ".cids%d.nl" % nl_vocab_size
     cm_char_suffix = ".cids%d.cm" % cm_vocab_size
     nl_token_suffix = ".ids%d.nl" % nl_vocab_size
@@ -740,6 +754,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     cm_seq_norm_order_suffix = ".seq%d.cm.norm.order" % cm_vocab_size
     cm_seq_pruned_suffix = ".seq%d.cm.pruned" % cm_vocab_size
 
+    _ = prepare_dataset(nl_list, data_dir, nl_suffix, nl_vocab_size, None)
+    _ = prepare_dataset(cm_list, data_dir, cm_suffix, cm_vocab_size, None)
     max_nl_char_len = prepare_dataset(nl_char_list, data_dir, nl_char_suffix, nl_vocab_size,
                                       nl_char_vocab_path)
     max_cm_char_len = prepare_dataset(cm_char_list, data_dir, cm_char_suffix, cm_vocab_size,
