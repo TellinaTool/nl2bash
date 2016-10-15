@@ -135,14 +135,16 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         # normalize long patterns
         if normalize_long_pattern:
             word = normalizer.normalize_pattern(word)
-            if word == normalizer._REGEX \
-                    or word == normalizer._DIGIT_RE:
-                word = word + str(entity_dict[word])
-                entity_dict[word] += 1
 
         # normalize digits
         word = re.sub(normalizer._DIGIT_RE, normalizer._NUM, word) \
             if normalize_digits and not word.startswith("-") else word
+
+        if word == normalizer._REGEX \
+                or word == normalizer._DIGIT_RE\
+                or word == normalizer._PARAMETER:
+            word = word + str(entity_dict[word])
+            entity_dict[word] += 1
 
         # remove empty words
         if not word.strip():
