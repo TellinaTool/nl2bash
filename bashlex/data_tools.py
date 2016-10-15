@@ -143,8 +143,9 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         if word == normalizer._REGEX \
                 or word == normalizer._DIGIT_RE\
                 or word == normalizer._PARAMETER:
-            word = word + str(entity_dict[word])
-            entity_dict[word] += 1
+            root = word
+            word += str(entity_dict[root])
+            entity_dict[root] += 1
 
         # remove empty words
         if not word.strip():
