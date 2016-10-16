@@ -17,7 +17,7 @@ import normalizer
 import gazetteer
 import spellcheck.spell_check as spc
 
-# from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.stem.wordnet import WordNetLemmatizer
 lmtzr = WordNetLemmatizer()
 # from nltk.stem import SnowballStemmer
 # snowball_stemmer = SnowballStemmer("english")
