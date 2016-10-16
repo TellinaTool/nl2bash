@@ -10,8 +10,8 @@ class Decoder(graph_utils.NNModel):
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
-    def __init__(self, cell, attention_states, encoder_attn_masks, num_heads,
-                 attention_keep, reuse_variables=False):
+    def __init__(self, cell, attention_states, encoder_attn_masks, attention_keep,
+                 num_heads, reuse_variables=False):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
