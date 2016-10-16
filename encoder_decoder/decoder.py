@@ -77,7 +77,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attention_vars = True
         return attns, attn_mask
 
-    def __call__(self, input_embedding, state, attns, attention_keep, scope=None):
+    def __call__(self, input_embedding, state, attns, scope=None):
         dim = state.get_shape()[1].value
         with tf.variable_scope("AttnInputProjection"):
             if self.attention_cell_vars:
