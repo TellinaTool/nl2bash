@@ -47,6 +47,7 @@ def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
                     print("AST: ")
                     data_tools.pretty_print(tree, 0)
                     print
+                print(score)
                 db.add_prediction(model_name, nl_str, pred_cmd, float(score))
             
             num_eval += 1
