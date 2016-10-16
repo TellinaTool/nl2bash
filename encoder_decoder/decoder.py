@@ -39,7 +39,9 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
         self.num_heads = num_heads
+        print(self.num_heads)
         self.attention_keep = attention_keep
+        print(self.attention_keep)
         self.hidden = hidden
         self.hidden_features = hidden_features
         self.v = v

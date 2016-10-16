@@ -59,6 +59,7 @@ class RNNDecoder(decoder.Decoder):
                     decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
                                                             attention_states,
                                                             encoder_attn_masks,
+                                                            self.attention_keep,
                                                             num_heads,
                                                             reuse_variables)
                 past_output_symbols = tf.constant(data_utils.ROOT_ID,
