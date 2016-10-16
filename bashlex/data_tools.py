@@ -127,10 +127,6 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         if word in gazetteer.word2num:
             word = str(gazetteer.word2num[word])
 
-        # lemmatization
-        if lemmatization:
-            word = stemmer.stem(word)
-
         # quotation recovery
         if not is_english_word(word):
             # msg = word + ' -> '
@@ -146,6 +142,10 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         # normalize digits
         word = re.sub(normalizer._DIGIT_RE, normalizer._NUM, word) \
             if normalize_digits and not word.startswith("-") else word
+
+        # lemmatization
+        if lemmatization:
+            word = stemmer.stem(word)
 
         # if word == normalizer._REGEX \
         #         or word == normalizer._NUM\
