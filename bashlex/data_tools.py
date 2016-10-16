@@ -17,10 +17,10 @@ import normalizer
 import gazetteer
 import spellcheck.spell_check as spc
 
-from nltk.stem.wordnet import WordNetLemmatizer
-lmtzr = WordNetLemmatizer()
-# from nltk.stem import SnowballStemmer
-# snowball_stemmer = SnowballStemmer("english")
+# from nltk.stem.wordnet import WordNetLemmatizer
+# lmtzr = WordNetLemmatizer()
+from nltk.stem import SnowballStemmer
+stemmer = SnowballStemmer("english")
 
 # Regular expressions used to tokenize an English sentence.
 _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
@@ -129,7 +129,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
 
         # lemmatization
         if lemmatization:
-            word = lmtzr.lemmatize(word)
+            word = stemmer.stem(word)
 
         # quotation recovery
         if not is_english_word(word):
