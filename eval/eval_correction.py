@@ -124,8 +124,11 @@ correct_temp_pairs = [
         "search for a specific word in all the hidden files in the entire file system and display "
         "the file name along with the matched line\n",
         "find -name Pattern -print0 -type f File | xargs -0 -I {} grep -H -n Pattern {}"
-    )
-    ]
+    ),
+    (
+        "find the count of text files that are present in the current working directory.\n",
+        "find -name Pattern File | wc -l"
+    )]
 
 error_temp_pairs = [
     (
@@ -168,6 +171,14 @@ error_temp_pairs = [
     (
         "find foo, Foo, FOo, FOO, etc.\n",
         "find -iname Pattern -type f File File"
+    ),
+    (
+        "Delete all files in the \"${S}/bundled-libs\" folder except \"libbass.so\"\n",
+        "find -delete \( -name Pattern -or -name Pattern -or -name Pattern \) -type f File"
+    ),
+    (
+        "Find files that are 0 bytes in size in the current directory and remove them\n",
+        "find -exec rm {} \; -size Size File"
     )]
 
 correct_str_pairs = [

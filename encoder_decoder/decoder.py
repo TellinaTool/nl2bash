@@ -39,9 +39,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
         self.num_heads = num_heads
-        print(self.num_heads)
         self.attention_keep = attention_keep
-        print(self.attention_keep)
         self.hidden = hidden
         self.hidden_features = hidden_features
         self.v = v
@@ -65,9 +63,9 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 # Attention mask is a softmax of v^T * tanh(...).
                 # s = tf.reduce_sum(
                 #     v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
-                # s = tf.reduce_sum(
-                #     self.v[a] * tf.mul(self.hidden_features[a], y), [2, 3])
-                s = tf.reduce_sum(tf.mul(self.hidden_features[a], y), [2, 3])
+                s = tf.reduce_sum(
+                    self.v[a] * tf.mul(self.hidden_features[a], y), [2, 3])
+                # s = tf.reduce_sum(tf.mul(self.hidden_features[a], y), [2, 3])
                 attn_mask = tf.nn.softmax(s)
                 attn_mask = tf.mul(tf.reshape(self.encoder_attn_masks, s.get_shape()), attn_mask)
                 # Now calculate the attention-weighted vector d.
@@ -89,7 +87,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             # attns.set_shape([None, self.num_heads * attn_vec_dim])
             # x = tf.nn.rnn_cell._linear([input_embedding] + [attns], self.dim, True)
             x = input_embedding
-            cell_output, state = self.cell(x, state, scope)
+            _, state = self.cell(x, state, scope)
             attns, attn_mask = self.attention(state)
 
         with tf.variable_scope("AttnStateProjection"):

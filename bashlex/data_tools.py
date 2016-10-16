@@ -17,8 +17,10 @@ import normalizer
 import gazetteer
 import spellcheck.spell_check as spc
 
-from nltk.stem.wordnet import WordNetLemmatizer
-lmtzr = WordNetLemmatizer()
+# from nltk.stem.wordnet import WordNetLemmatizer
+# lmtzr = WordNetLemmatizer()
+from nltk.stem import SnowballStemmer
+snowball_stemmer = SnowballStemmer("english")
 
 # Regular expressions used to tokenize an English sentence.
 _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
@@ -28,6 +30,9 @@ _SPACE = b"<SPACE>"
 
 def is_english_word(word):
     """Check if a token is normal English word."""
+    if bool(re.match('[A-Za-z\-\'\(\)]+$', word, re.IGNORECASE)):
+        if word[-1].isdigit():
+            return False
     return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
 
 def is_stopword(w):
@@ -91,6 +96,8 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     sentence = re.sub('\'d', ' \'d', sentence)
     sentence = re.sub('\'t', ' \'t', sentence)
 
+    sentence = re.sub("^[T|t]o ", '', sentence)
+
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
 
     # entity_dict = collections.defaultdict(int)
@@ -111,10 +118,6 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             if word != old_w:
                 print("spell correction: {} -> {}".format(old_w, word))
 
-        # lemmatization
-        if lemmatization:
-            word = lmtzr.lemmatize(word)
-
         # remove English stopwords
         if remove_stop_words:
             if word in gazetteer.ENGLISH_STOPWORDS:
@@ -124,7 +127,11 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         if word in gazetteer.word2num:
             word = str(gazetteer.word2num[word])
 
-        # normalize regular expressions
+        # lemmatization
+        if lemmatization:
+            word = snowball_stemmer.stem(word)
+
+        # quotation recovery
         if not is_english_word(word):
             # msg = word + ' -> '
             if not word.startswith('"'):

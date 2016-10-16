@@ -203,7 +203,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             cell_outputs, raw_cell_state, attns, attn_mask = \
                 self.cell(cell_inputs, past_cell_state, attns, scope)
         else:
-            cell_outputs, raw_cell_state = self.cell(cell_inputs, past_cell_state, scope)
+            cell_outputs, raw_cell_state = \
+                self.cell(cell_inputs, past_cell_state, scope)
 
         W, b = self.output_projection
 

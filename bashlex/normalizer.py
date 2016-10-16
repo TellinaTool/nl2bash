@@ -189,6 +189,8 @@ def detach_from_tree(node, parent):
     node.lsb = None
 
 def normalize_pattern(value, verbose=False):
+    if value.isupper():
+        return _REGEX
     value = value.replace("$HOME", "${HOME}")
     value = value.replace("~", "${HOME}")
     remove_current_dir = re.compile("\./")
