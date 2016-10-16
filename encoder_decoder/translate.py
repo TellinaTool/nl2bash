@@ -56,26 +56,7 @@ elif FLAGS.dataset == "atis":
 
 def create_model(session, forward_only, construct_model_dir=True):
     """
-    :param source_vocab_size: size of the source vocabulary.
-    :param target_vocab_size: size of the target vocabulary.
-    :param max_source_length: maximum length of the source sequence
-        (necessary for static graph construction).
-    :param max_target_length: maximum length of the target sequence
-        (necessary for static graph construction).
-    :param dim: dimension of each layer in the model.
-    :param num_layers: number of layers in the model.
-    :param max_gradient_norm: gradients are clipped to maximally this norm.
-    :param batch_size: the size of the batches used during training or decoding.
-    :param learning_rate: learning rate to start with.
-    :param learning_rate_decay_factor: decay learning rate by this much when needed.
-            not import if the adam optimizer is used.
-    :param input_keep_prob: proportion of input to keep if dropout is used.
-    :param output_keep_prob: proportion of output to keep if dropout is used.
-    :param num_samples: number of samples for sampled softmax.
-
-    :param decoder_topology: topology of the tree rnn decoder.
-    :param decoding_algorithm: decoding algorithm used.
-    :param
+    Refer parse_args.py for model parameter explanations.
     """
     if FLAGS.decoder_topology in ['basic_tree']:
         return graph_utils.create_model(session, FLAGS, Seq2TreeModel, _buckets,
@@ -189,7 +170,7 @@ def decode(construct_model_dir=True, verbose=True):
                                                 FLAGS, verbose)
 
 
-def eval(construct_model_dir=True, verbose=True):
+def eval(verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
@@ -226,12 +207,10 @@ def demo():
 
 
 def train_and_eval(train_set, dev_set):
-    train(train_set, dev_set, FLAGS.num_epochs,
-          construct_model_dir=False)
+    train(train_set, dev_set, construct_model_dir=False)
     tf.reset_default_graph()
     decode(construct_model_dir=False, verbose=False)
-    temp_match_score, eval_match_score = eval(construct_model_dir=False,
-                                              verbose=False)
+    temp_match_score, eval_match_score = eval(verbose=False)
     tf.reset_default_graph()
     return temp_match_score, eval_match_score
 
@@ -268,13 +247,13 @@ def grid_search(train_set, dev_set):
         for i in xrange(num_hps):
             print("* {}: {}".format(hyperparameters[i], row[i]))
 
-        model_dir = os.path.join(model_root_dir, FLAGS.encoder_topology)
-        model_dir += '-{}'.format(FLAGS.rnn_cell)
-        if FLAGS.use_attention:
-            model_dir += '-attention'
-        model_dir += '-{}'.format(FLAGS.batch_size)
-        model_dir += '-{}'.format(row)
-        setattr(FLAGS, "model_dir", model_dir)
+        # model_dir = os.path.join(model_root_dir, FLAGS.encoder_topology)
+        # model_dir += '-{}'.format(FLAGS.rnn_cell)
+        # if FLAGS.use_attention:
+        #     model_dir += '-attention'
+        # model_dir += '-{}'.format(FLAGS.batch_size)
+        # model_dir += '-{}'.format(row)
+        # setattr(FLAGS, "model_dir", model_dir)
 
         num_trials = 5 if FLAGS.initialization else 1
 

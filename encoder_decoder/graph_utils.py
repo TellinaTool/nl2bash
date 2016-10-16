@@ -10,8 +10,7 @@ import tensorflow as tf
 import data_utils
 
 
-def create_model(session, FLAGS, model_constructor, buckets, forward_only,
-                 construct_model_dir=True):
+def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params = collections.defaultdict()
     params["source_vocab_size"] = FLAGS.nl_vocab_size
     params["target_vocab_size"] = FLAGS.cm_vocab_size
