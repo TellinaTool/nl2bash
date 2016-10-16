@@ -30,7 +30,7 @@ _SPACE = b"<SPACE>"
 
 def is_english_word(word):
     """Check if a token is normal English word."""
-    if bool(re.match('[A-Za-z\-\'\(\)]+$', word, re.IGNORECASE)):
+    if any(x.isalpha() for x in word):
         if word[-1].isdigit():
             return False
     return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
