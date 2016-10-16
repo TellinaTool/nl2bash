@@ -65,7 +65,8 @@ def define_input_flags():
 
     # learning hyperparameters
     tf.app.flags.DEFINE_boolean("char", False, "Set to True for training character models.")
-    tf.app.flags.DEFINE_boolean("canonical", False, "Set to True for learning with normalized command with canonical option order.")
+    tf.app.flags.DEFINE_boolean("canonical", False, "Set to True for learning with normalized command with "
+                                                    "canonical option order.")
     tf.app.flags.DEFINE_boolean("normalized", False, "Set to True for learning with normalized command.")
     tf.app.flags.DEFINE_string("rnn_cell", "gru", "Type of RNN cell to use.")
     tf.app.flags.DEFINE_string("optimizer", "adam", "Type of numeric optimization algorithm to use.")

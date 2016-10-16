@@ -93,7 +93,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
 
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
 
-    entity_dict = collections.defaultdict(int)
+    # entity_dict = collections.defaultdict(int)
 
     normalized_words = []
     for i in xrange(len(words)):
@@ -140,12 +140,12 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         word = re.sub(normalizer._DIGIT_RE, normalizer._NUM, word) \
             if normalize_digits and not word.startswith("-") else word
 
-        if word == normalizer._REGEX \
-                or word == normalizer._NUM\
-                or word == normalizer._PARAMETER:
-            root = word
-            word += str(entity_dict[root])
-            entity_dict[root] += 1
+        # if word == normalizer._REGEX \
+        #         or word == normalizer._NUM\
+        #         or word == normalizer._PARAMETER:
+        #     root = word
+        #     word += str(entity_dict[root])
+        #     entity_dict[root] += 1
 
         # remove empty words
         if not word.strip():
@@ -256,13 +256,10 @@ def test_bash_parser():
             pretty_print(norm_tree, 0)
             print("Pruned AST:")
             pretty_print(pruned_tree, 0)
-            # print(to_command(norm_tree))
             search_history = ast2list(norm_tree, 'dfs', list=[])
             for state in search_history:
                 print(state)
             tree = list2ast(search_history + ['<PAD>'])
-            # pretty_print(tree, 0)
-            # print(to_template(tree, arg_type_only=False))
             print()
             print("Command Template (flags in alphabetical order):")
             print(ast2template(norm_tree))

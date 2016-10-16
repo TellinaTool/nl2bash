@@ -1148,8 +1148,9 @@ def test_tokenization():
 
     for cmd in i_f.readlines():
         cmd = cmd.strip()
-        cmd = ' '.join(to_tokens(normalize_ast(cmd, normalize_digits=False,
-                                     normalize_long_pattern=False)))
+        cmd = ' '.join(to_tokens(normalize_ast(cmd,
+                            normalize_digits=False,
+                            normalize_long_pattern=False)))
         # str = ''
         # for token in tokenizer.split(cmd):
         #     str += cmd + ' '
