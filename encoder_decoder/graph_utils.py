@@ -87,6 +87,7 @@ def get_model_signature(FLAGS):
     model_subdir += '-{}'.format(FLAGS.rnn_cell)
     if FLAGS.use_attention:
         model_subdir += '-attention'
+        model_subdir += '-{}'.format(FLAGS.attention_keep)
     model_subdir += '-{}'.format(FLAGS.batch_size)
     model_subdir += '-{}'.format(FLAGS.encoder_input_keep)
     model_subdir += '-{}'.format(FLAGS.encoder_output_keep)

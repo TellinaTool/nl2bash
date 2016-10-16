@@ -49,5 +49,6 @@ word2num = {'one':   1, 'eleven':     11,
             'sixty':   60,
             'seventy': 70,
             'eighty':  80,
-            'ninety':  90
+            'ninety':  90,
+            'twenty-four': 24
 }
