@@ -64,7 +64,8 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
             top1_correct_temp, top3_correct_temp, top5_correct_temp, top10_correct_temp = \
                 False, False, False, False
             top1_correct, top3_correct, top5_correct, top10_correct = \
-                False, False, False
+                False, False, False, False
+
             top1_temp_dist = sys.maxint
             top3_temp_dist = sys.maxint
             top5_temp_dist = sys.maxint
