@@ -92,13 +92,13 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             attn_state = tf.tanh(tf.nn.rnn_cell._linear([state, attns], dim, True))
+            attn_state = tf.nn.dropout(attn_state, self.attention_keep)
 
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear(attn_state, dim, True)
-            # output = cell_output
 
         self.attention_cell_vars = True
         return output, state, attns, attn_mask
