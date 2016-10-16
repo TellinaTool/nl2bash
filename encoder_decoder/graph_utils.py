@@ -26,6 +26,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["batch_size"] = FLAGS.batch_size
     params["num_samples"] = FLAGS.num_samples
     params["attention_keep"] = FLAGS.attention_keep
+    print(FLAGS.attention_keep)
     params["encoder_input_keep"] = FLAGS.encoder_input_keep
     params["encoder_output_keep"] = FLAGS.encoder_output_keep
     params["decoder_input_keep"] = FLAGS.decoder_input_keep
