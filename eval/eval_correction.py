@@ -179,6 +179,10 @@ error_temp_pairs = [
     (
         "Find files that are 0 bytes in size in the current directory and remove them\n",
         "find -exec rm {} \; -size Size File"
+    ),
+    (
+        "force delete all the directories in a folder which  have a specific name\n",
+        "find -exec rm -f {} \; -name Pattern -type d File"
     )]
 
 correct_str_pairs = [

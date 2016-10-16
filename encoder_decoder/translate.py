@@ -247,14 +247,6 @@ def grid_search(train_set, dev_set):
         for i in xrange(num_hps):
             print("* {}: {}".format(hyperparameters[i], row[i]))
 
-        # model_dir = os.path.join(model_root_dir, FLAGS.encoder_topology)
-        # model_dir += '-{}'.format(FLAGS.rnn_cell)
-        # if FLAGS.use_attention:
-        #     model_dir += '-attention'
-        # model_dir += '-{}'.format(FLAGS.batch_size)
-        # model_dir += '-{}'.format(row)
-        # setattr(FLAGS, "model_dir", model_dir)
-
         num_trials = 5 if FLAGS.initialization else 1
 
         for t in xrange(num_trials):
