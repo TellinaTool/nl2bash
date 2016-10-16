@@ -37,13 +37,14 @@ def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
                 for j in xrange(len(batch_cm_strs)):
                     print("GT Command {}: {}".format(j+1, batch_cm_strs[j].strip()))
             top_k_results = model.test(nl, 10)
-            for nn, cmd, score in top_k_results:
+            for i in xrange(len(top_k_results)):
+                nn, cmd, score = top_k_results[i]
                 nn_str = ' '.join([rev_nl_vocab[i] for i in nn])
                 pred_cmd = ' '.join([rev_cm_vocab[i] for i in cmd])
                 tree = data_tools.bash_parser(pred_cmd)
                 if verbose:
                     print("NN: {}".format(nn_str))
-                    print("Prediction: {} ({})".format(pred_cmd, score))
+                    print("Prediction {}: {} ({})".format(i, pred_cmd, score))
                     print("AST: ")
                     data_tools.pretty_print(tree, 0)
                     print
