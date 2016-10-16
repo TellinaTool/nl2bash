@@ -208,9 +208,9 @@ def normalize_pattern(value, verbose=False):
             or value == "."
             or value == "${HOME}"):
         if "$" in value:
-            value = _PARAMETER
-        elif (value[0] in ['\'', '"']
-              and value[-1] in ['\'', '"']) \
+            return _PARAMETER
+        if (value[0] in ['\'', '"']
+            and value[-1] in ['\'', '"']) \
                 or ' ' in value \
                 or '\\' in value \
                 or '~' in value \
@@ -219,15 +219,22 @@ def normalize_pattern(value, verbose=False):
                 or "%" in value \
                 or '#' in value \
                 or '?' in value:
-            value = _REGEX
-        elif '/' in value:
+            return _REGEX
+        if '/' in value:
             if not (('u-' in value and len(value) <= 12) or
                     ('g-' in value and len(value) <= 12) or
                     ('o-' in value and len(value) <= 12) or
                     value[1:].isdigit() or
                     '+' in value or
                     '=' in value):
-                value = _REGEX
+                return _REGEX
+    for i, c in enumerate(value):
+        if c == ".":
+            if i == 0 or i == len(value)-1 \
+                or not value[i-1].isdigit() \
+                or not value[i+1].isdigit():
+                return _REGEX
+
     return value
 
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
