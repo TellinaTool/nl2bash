@@ -11,12 +11,13 @@ class Decoder(graph_utils.NNModel):
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def __init__(self, cell, attention_states, encoder_attn_masks, num_heads,
-                 reuse_variables=False):
+                 attention_keep, reuse_variables=False):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
         :param num_heads: Number of attention heads that read from from attention_states.
                          Dummy field if attention_states is None.
+        :param attention_keep: attention hidden state dropout
         :param reuse_variables: reuse variables in scope.
         """
         attn_length = attention_states.get_shape()[1].value
@@ -38,6 +39,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
         self.num_heads = num_heads
+        self.attention_keep = attention_keep
         self.hidden = hidden
         self.hidden_features = hidden_features
         self.v = v
@@ -75,7 +77,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attention_vars = True
         return attns, attn_mask
 
-    def __call__(self, input_embedding, state, attns, scope=None):
+    def __call__(self, input_embedding, state, attns, attention_keep, scope=None):
         dim = state.get_shape()[1].value
         with tf.variable_scope("AttnInputProjection"):
             if self.attention_cell_vars:

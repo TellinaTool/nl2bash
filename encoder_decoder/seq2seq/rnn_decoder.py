@@ -50,6 +50,7 @@ class RNNDecoder(decoder.Decoder):
                     decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
                                                             attention_states,
                                                             encoder_attn_masks,
+                                                            self.attention_keep,
                                                             num_heads,
                                                             reuse_variables)
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
