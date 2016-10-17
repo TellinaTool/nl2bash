@@ -21,6 +21,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             Dummy field if attention_states is None.
         :param reuse_variables: reuse variables in scope.
         """
+        attention_states = tf.nn.dropout(attention_states, attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
         attn_vec_dim = attention_states.get_shape()[2].value
 
@@ -46,8 +47,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.hidden_features = hidden_features
         self.v = v
 
-        attention_states = tf.nn.dropout(attention_states, self.attention_input_keep)
-        
         # variable sharing
         self.attention_vars = False
         self.attention_cell_vars = False
