@@ -10,6 +10,10 @@ correct_temp_pairs = [
         "search for a specific word in all the hidden files in the entire file system and display the file name along "
         "with the matched line\n",
         "find -exec grep -H Pattern {} \; -name Pattern File"
+    ),
+    (
+        "create a tar ball of all pdf files in current folder\n",
+        "find -name Pattern -print File | xargs -I {} tar -f File -r -v {}"
     )]
 
 error_temp_pairs = [

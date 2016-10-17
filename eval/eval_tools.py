@@ -186,7 +186,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
         print("Average top 10 Tree Edit Distance (whole-string) = %.2f" % avg_top10_dist)
     print()
 
-    return top1_temp_match_score, top1_string_match_score
+    return top1_temp_match_score, top1_string_match_score, avg_top1_temp_dist, avg_top1_dist
 
 
 def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
