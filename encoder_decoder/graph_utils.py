@@ -25,7 +25,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["max_gradient_norm"] = FLAGS.max_gradient_norm
     params["batch_size"] = FLAGS.batch_size
     params["num_samples"] = FLAGS.num_samples
-    params["attention_keep"] = FLAGS.attention_keep
+    params["attention_input_keep"] = FLAGS.attention_input_keep
+    params["attention_output_keep"] = FLAGS.attention_output_keep
     params["encoder_input_keep"] = FLAGS.encoder_input_keep
     params["encoder_output_keep"] = FLAGS.encoder_output_keep
     params["decoder_input_keep"] = FLAGS.decoder_input_keep
@@ -249,8 +250,12 @@ class NNModel(object):
         return self.hyperparams["batch_size"]
 
     @property
-    def attention_keep(self):
-        return self.hyperparams["attention_keep"]
+    def attention_input_keep(self):
+        return self.hyperparams["attention_input_keep"]
+
+    @property
+    def attention_output_keep(self):
+        return self.hyperparams["attention_output_keep"]
 
     @property
     def encoder_input_keep(self):

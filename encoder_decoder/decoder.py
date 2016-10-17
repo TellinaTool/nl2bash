@@ -10,16 +10,19 @@ class Decoder(graph_utils.NNModel):
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
-    def __init__(self, cell, attention_states, encoder_attn_masks, attention_keep,
-                 num_heads, reuse_variables=False):
+    def __init__(self, cell, attention_states, encoder_attn_masks, attention_input_keep,
+                 attention_output_keep, num_heads, reuse_variables=False):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
+        :param attention_input_keep: attention input state dropout
+        :param attention_output_keep: attention hidden state dropout
         :param num_heads: Number of attention heads that read from from attention_states.
-                         Dummy field if attention_states is None.
-        :param attention_keep: attention hidden state dropout
+            Dummy field if attention_states is None.
         :param reuse_variables: reuse variables in scope.
         """
+        attention_states = tf.nn.dropout(attention_states, self.attention_input_keep)
+
         attn_length = attention_states.get_shape()[1].value
         attn_vec_dim = attention_states.get_shape()[2].value
 
@@ -39,7 +42,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
         self.num_heads = num_heads
-        self.attention_keep = attention_keep
+        self.attention_input_keep = attention_input_keep
+        self.attention_output_keep = attention_output_keep
         self.hidden = hidden
         self.hidden_features = hidden_features
         self.v = v
@@ -94,7 +98,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             attn_state = tf.tanh(tf.nn.rnn_cell._linear([state, attns], dim, True))
-            attn_state = tf.nn.dropout(attn_state, self.attention_keep)
+            attn_state = tf.nn.dropout(attn_state, self.attention_output_keep)
 
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
