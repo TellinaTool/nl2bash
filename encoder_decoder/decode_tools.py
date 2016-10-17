@@ -149,7 +149,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                     raise ValueError("Unrecognized decoding algorithm: {}."
                          .format(FLAGS.decoding_algorithm))
 
-                if attn_masks != None:
+                if attn_masks is not None:
                     visualize_attn_masks(attn_masks[0, :, :], nl, outputs,
                                          rev_nl_vocab, rev_cm_vocab,
                                          os.path.join(FLAGS.model_dir,
