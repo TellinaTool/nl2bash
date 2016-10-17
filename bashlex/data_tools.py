@@ -109,7 +109,6 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     normalized_words = []
     for i in xrange(len(words)):
         word = words[i].strip()
-
         # remove unnecessary upper cases
         if lower_case:
             if len(word) > 1 and word[0].isupper() and word[1:].islower():
