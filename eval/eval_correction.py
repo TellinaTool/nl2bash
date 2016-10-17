@@ -73,6 +73,10 @@ error_temp_pairs = [
     (
         "copy the file header.shtml to each directory under dir1, dir2, dir3, or dir4\n",
         "find -exec cp File {} \; -name Pattern -type f File"
+    ),
+    (
+        "Find PHP files with abstract classes\n",
+        "find -iname Pattern File"
     )]
 
 correct_str_pairs = [
