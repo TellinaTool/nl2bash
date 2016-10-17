@@ -670,7 +670,7 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
 def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
 
     def add_to_set(nl_data, cm_data, split):
-        with_parent = False
+        with_parent = True
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
             ast = data_tools.bash_parser(cm)
             if ast:
