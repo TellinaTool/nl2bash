@@ -125,7 +125,8 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                         top10_dist = min_dist
                 if verbose:
                     print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
-                    print()
+            if verbose:
+                print()
             if top1_correct_temp:
                 num_top1_correct_temp += 1
             if top3_correct_temp:
