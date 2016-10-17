@@ -57,6 +57,10 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                     normalize_long_pattern=True, lemmatization=True,
                     remove_stop_words=True):
     """Very basic tokenizer: used for English tokenization."""
+
+    # remove content in parentheses
+    sentence = re.sub(r'\([^)]*\)', '', sentence)
+
     try:
         sentence = sentence.replace("“", '"')
         sentence = sentence.replace("”", '"')

@@ -183,6 +183,10 @@ error_temp_pairs = [
     (
         "force delete all the directories in a folder which  have a specific name\n",
         "find -exec rm -f {} \; -name Pattern -type d File"
+    ),
+    (
+        "copy the file header.shtml to each directory under dir1, dir2, dir3, or dir4\n",
+        "find -exec cp File {} \; -name Pattern -type f File"
     )]
 
 correct_str_pairs = [
