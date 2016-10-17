@@ -82,8 +82,6 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                 # evaluation ignoring flag orders
                 min_temp_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=True)
                 min_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=False)
-                print("min_temp_dist = {}".format(min_temp_dist))
-                print("min_dist = {}".format(min_dist))
 
                 if ast_based.one_match(gt_trees, tree, ignore_arg_value=True) \
                         or db.get_str_judgement((nl_str, pred_cmd)):
@@ -127,7 +125,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                         top10_dist = min_dist
                 if verbose:
                     print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
-            print()
+                    print()
             if top1_correct_temp:
                 num_top1_correct_temp += 1
             if top3_correct_temp:

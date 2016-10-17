@@ -240,6 +240,7 @@ def grid_search(train_set, dev_set):
         row = nest.flatten(row)
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
+        FLAGS.model_dir = model_root_dir
 
         print("Trying parameter set: ")
         for i in xrange(num_hps):
