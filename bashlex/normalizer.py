@@ -189,7 +189,7 @@ def detach_from_tree(node, parent):
     node.lsb = None
 
 def normalize_pattern(value, verbose=False):
-    if value.isupper():
+    if value.isalpha() and value.isupper():
         return _REGEX
     value = value.replace("$HOME", "${HOME}")
     value = value.replace("~", "${HOME}")

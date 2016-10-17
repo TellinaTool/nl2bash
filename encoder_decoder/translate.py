@@ -156,7 +156,7 @@ def train(train_set, dev_set, construct_model_dir=True):
     return True
 
 
-def decode(construct_model_dir=True, verbose=True):
+def decode(data_set, construct_model_dir=True, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
@@ -164,21 +164,19 @@ def decode(construct_model_dir=True, verbose=True):
                                 construct_model_dir=construct_model_dir)
 
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
-        _, dev_set, _ = load_data()
 
-        decode_tools.decode_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
+        decode_tools.decode_set(sess, model, data_set, rev_nl_vocab, rev_cm_vocab,
                                                 FLAGS, verbose)
 
 
-def eval(verbose=True):
+def eval(data_set, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         _, model_sig = graph_utils.get_model_signature(FLAGS)
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
-        _, dev_set, _ = load_data()
 
-        return eval_tools.eval_set(model_sig, dev_set, rev_nl_vocab, FLAGS,
+        return eval_tools.eval_set(model_sig, data_set, rev_nl_vocab, FLAGS,
                                    verbose=verbose)
 
 
@@ -329,12 +327,14 @@ def main(_):
     print("Saving models to {}".format(FLAGS.model_dir))
 
     if FLAGS.eval:
-        eval()
+        _, dev_set, _ = load_data()
+        eval(dev_set)
     elif FLAGS.manual_eval:
         manual_eval(412)
     elif FLAGS.decode:
-        decode()
-        eval()
+        _, dev_set, _ = load_data()
+        decode(dev_set)
+        eval(dev_set)
     elif FLAGS.demo:
         demo()
     elif FLAGS.process_data:
