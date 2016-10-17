@@ -47,8 +47,9 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     model_subdir, model_sig = get_model_signature(FLAGS)
     params["model_sig"] = model_sig
 
-    if construct_model_dir or True:
+    if construct_model_dir:
         setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
+    print("model_dir={}".format(FLAGS.model_dir))
 
     if forward_only:
         params["batch_size"] = 1
@@ -76,7 +77,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
             model.saver.restore(session, ckpt.model_checkpoint_path)
     else:
         if not os.path.exists(FLAGS.model_dir):
-            print("Making train dir {}".format(FLAGS.model_dir))
+            print("Making model_dir...")
             os.mkdir(FLAGS.model_dir)
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
