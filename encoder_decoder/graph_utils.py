@@ -11,7 +11,7 @@ import data_utils
 
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
-                construct_model_dir=True):
+                 construct_model_dir=True):
     params = collections.defaultdict()
     params["source_vocab_size"] = FLAGS.nl_vocab_size
     params["target_vocab_size"] = FLAGS.cm_vocab_size
@@ -43,8 +43,9 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["beam_size"] = FLAGS.beam_size
     params["top_k"] = FLAGS.top_k
 
-    model_subdir, model_sig = get_model_signature(FLAGS)
-    setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
+    if construct_model_dir:
+        model_subdir, model_sig = get_model_signature(FLAGS)
+        setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
 
     # construct model directory
     params["model_sig"] = model_sig
@@ -56,6 +57,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         params["encoder_output_keep"] = 1.0
         params["decoder_input_keep"] = 1.0
         params["decoder_output_keep"] = 1.0
+    else:
+        params["decoding_algorithm"] = "greedy"
 
     model = model_constructor(params, buckets, forward_only)
 
