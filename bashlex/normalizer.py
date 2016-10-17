@@ -532,7 +532,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                                              word="",
                                                              parts=[],
                                                              pos=(-1,-1))
-                                # print(new_command_node)
                                 new_command_node.parts = []
                                 subcommand_added = False
                                 for j in xrange(ind, len(node.parts)):
@@ -546,7 +545,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                         subcommand_added = True
                                         break
                                     else:
-                                        # print(node.parts[j])
                                         new_command_node.parts.\
                                             append(node.parts[j])
                                 if not subcommand_added:
@@ -748,7 +746,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 utility = head_command.get_subcommand()
                 assert(utility is not None)
                 for i in xrange(head_command.get_num_of_children()):
-                    print(head_command.children[i].kind)
                     if head_command.children[i].is_headcommand():
                         repl_str_flag_node = FlagNode("-I")
                         repl_str_node = ArgumentNode("{}", "ReservedWord")

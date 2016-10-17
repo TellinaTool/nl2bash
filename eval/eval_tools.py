@@ -84,7 +84,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                 min_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=False)
 
                 if ast_based.one_match(gt_trees, tree, ignore_arg_value=True) \
-                        or db.get_str_judgement((nl_str, pred_cmd)):
+                        or db.get_temp_judgement((nl_str, pred_temp)):
                     if i < 1:
                         top1_correct_temp = True
                     if i < 3:
@@ -94,7 +94,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                     if i < 10:
                         top10_correct_temp = True
                 if ast_based.one_match(gt_trees, tree, ignore_arg_value=False) \
-                        or db.get_temp_judgement((nl_str, pred_temp)):
+                        or db.get_str_judgement((nl_str, pred_cmd)):
                     if i < 1:
                         top1_correct = True
                     if i < 3:
