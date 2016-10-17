@@ -142,7 +142,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                                               float(top_k_scores[j]), update_mode=False)
                             # print("AST: ")
                             # data_tools.pretty_print(top_k_pred_tree, 0)
-                    print()
+                        print()
                     outputs = top_k_predictions[0][2]
                 else:
                     raise ValueError("Unrecognized decoding algorithm: {}."
