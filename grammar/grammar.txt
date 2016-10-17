@@ -72,6 +72,8 @@ PrimitiveCmd ::=
 
 		chown [-fhv] [-R [-H | -L | -P]] owner file ...
 
+		chown [-fhv] [-R [-H | -L | -P]] group file ...
+
 		head [ [-n count] | [-c bytes]] [file ...]
 
 		tail [-F | -f | -r] [-q] [ [-b number] | [-c number] | [-n number]] [file ...]
