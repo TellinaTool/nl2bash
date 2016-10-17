@@ -205,7 +205,7 @@ def demo():
 
 
 def train_and_eval(train_set, dev_set):
-    train(train_set, dev_set, construct_model_dir=False)
+    train(train_set, dev_set, construct_model_dir=True)
     tf.reset_default_graph()
     decode(dev_set, construct_model_dir=False, verbose=False)
     temp_match_score, eval_match_score = eval(dev_set, verbose=False)
