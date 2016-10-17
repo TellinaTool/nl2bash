@@ -47,7 +47,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     model_subdir, model_sig = get_model_signature(FLAGS)
     params["model_sig"] = model_sig
 
-    if construct_model_dir:
+    if construct_model_dir or True:
         setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
 
     if forward_only:
