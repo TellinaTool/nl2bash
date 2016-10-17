@@ -132,16 +132,17 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                 elif FLAGS.decoding_algorithm == "beam_search":
                     top_k_predictions = batch_outputs[0]
                     top_k_scores = output_logits[0]
-                    if verbose:
-                        for j in xrange(FLAGS.beam_size):
-                            top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
-                                top_k_predictions[j]
+                    for j in xrange(FLAGS.beam_size):
+                        top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
+                            top_k_predictions[j]
+                        if verbose:
                             print("Prediction {}: {} ({}) ".format(j+1,
                                 top_k_pred_cmd, top_k_scores[j]))
-                            db.add_prediction(model.model_sig, nl_str, top_k_pred_cmd,
-                                              float(top_k_scores[j]), update_mode=False)
-                            # print("AST: ")
-                            # data_tools.pretty_print(top_k_pred_tree, 0)
+                        db.add_prediction(model.model_sig, nl_str, top_k_pred_cmd,
+                                          float(top_k_scores[j]), update_mode=False)
+                        # print("AST: ")
+                        # data_tools.pretty_print(top_k_pred_tree, 0)
+                    if verbose:
                         print()
                     outputs = top_k_predictions[0][2]
                 else:
