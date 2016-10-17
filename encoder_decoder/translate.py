@@ -152,7 +152,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                 previous_dev_losses.append(dev_loss)
 
                 sys.stdout.flush()
-
+                break
     return True
 
 
