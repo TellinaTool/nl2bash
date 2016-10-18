@@ -114,6 +114,10 @@ class RNNDecoder(decoder.Decoder):
                 if self.use_attention:
                     output, state, attns, attn_mask = \
                         decoder_cell(input_embedding, state, attns, scope=decoder_scope)
+                    batch_size = tf.shape(attention_states)[0]
+                    attn_length = tf.shape(attention_states)[1]
+                    if self.decoding_algorithm == "beam_search":
+                        attn_mask = tf.reshape(attn_mask, [batch_size, self.beam_size, attn_length])
                     attn_masks.append(tf.expand_dims(attn_mask, 1))
                 else:
                     output, state = decoder_cell(input_embedding, state, scope=decoder_scope)

@@ -150,7 +150,11 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                          .format(FLAGS.decoding_algorithm))
 
                 if attn_masks is not None:
-                    visualize_attn_masks(attn_masks[0, :, :], nl, outputs,
+                    if FLAGS.decoding_algorithm == "greedy":
+                        M = attn_masks[0, :, :]
+                    elif FLAGS.decoding_algorithm == "beam_search":
+                        M = attn_masks[0, 0, :, :]
+                    visualize_attn_masks(M, nl, outputs,
                                          rev_nl_vocab, rev_cm_vocab,
                                          os.path.join(FLAGS.model_dir,
                                                       "{}-{}.jpg".format(bucket_id, batch_id)))
@@ -217,14 +221,15 @@ def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_p
     nl = [rev_nl_vocab[x] for x in source]
     cm = []
     for i, x in enumerate(target):
+        cm.append(rev_cm_vocab[x])
         if rev_cm_vocab[x] == data_utils._EOS:
             break
-        cm.append(rev_cm_vocab[x])
+
 
     plt.clf()
     if len(target) == 0:
         i = 0
-    fig = plt.imshow(M[:i, :], interpolation='nearest', cmap=plt.cm.Blues)
+    fig = plt.imshow(M[:i+1, :], interpolation='nearest', cmap=plt.cm.Blues)
 
     plt.xticks(xrange(source_length),
                [x.replace("$$", "") for x in reversed(nl + [data_utils._PAD] * (source_length - len(nl)))],

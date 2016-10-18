@@ -271,7 +271,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
 
         if self.use_attention:
-            print(attn_mask.get_shape())
             return cell_outputs, (
                 cand_symbols,
                 cand_logprobs,
