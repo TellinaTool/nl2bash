@@ -515,7 +515,7 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path,
                         source_txt, target_txt = \
                             source_txt_file.readline(), target_txt_file.readline()
                         source, target = source_file.readline(), target_file.readline()
-    print("  %d data points read." % len(data_set))
+    print("  %d data points read." % counter)
     return data_set
 
 
