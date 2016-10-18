@@ -247,6 +247,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         parent_refs = parent_refs + self.parent_refs_offsets
 
         symbols_history = tf.gather(past_beam_symbols, parent_refs)
+        attn_mask = tf.gather(attn_mask, parent_refs)
         beam_symbols = tf.concat(1, [symbols_history[:,1:], tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]), 
@@ -266,8 +267,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         logprobs_done_max = tf.reduce_max(logprobs_done, 1)
         cand_symbols = tf.select(logprobs_done_max > past_cand_logprobs,
-                                done_symbols,
-                                past_cand_symbols)
+                                done_symbols, past_cand_symbols)
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
 
         if self.use_attention:
