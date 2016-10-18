@@ -1,5 +1,8 @@
 """
 Beam decoder for tensorflow
+Credit: code adapted from
+https://gist.github.com/nikitakit/6ab61a73b86c50ad88d409bac3c3d09f
+
 Sample usage:
 ```
 beam_decoder = BeamDecoder(NUM_CLASSES, beam_size=10, max_len=MAX_LEN)
@@ -268,6 +271,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
 
         if self.use_attention:
+            print(attn_mask.get_shape())
             return cell_outputs, (
                 cand_symbols,
                 cand_logprobs,
