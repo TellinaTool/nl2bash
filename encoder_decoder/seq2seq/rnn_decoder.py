@@ -65,6 +65,8 @@ class RNNDecoder(decoder.Decoder):
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
             elif self.decoding_algorithm == "greedy":
                 if self.use_attention:
+                    encoder_attn_masks = [tf.expand_dims(encoder_attn_mask, 1)
+                                          for encoder_attn_mask in encoder_attn_masks]
                     encoder_attn_masks = tf.concat(1, encoder_attn_masks)
                     decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
                                                             attention_states,
