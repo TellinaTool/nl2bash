@@ -87,6 +87,11 @@ error_temp_pairs = [
         "search for a specific word in all the hidden files in the entire file system and display "
         "the file name along with the matched line\n",
         "find -name Pattern -type f File | xargs -I {} grep Pattern {}"
+    ),
+    (
+        "Find all files and directories in the current directory tree with \"linkin park\" in " \
+        "their names and copy them to /Users/tommye/Desktop/LP",
+        "find -name Pattern -print0 File | xargs -0 -I {} cp File {}"
     )]
 
 correct_str_pairs = [
