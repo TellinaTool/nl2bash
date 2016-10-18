@@ -184,7 +184,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self._done_mask = tf.tile(self._done_mask, [full_size, 1])
 
 
-    def __call__(self, inputs, state, attns=None, scope=None, alpha=1.05):
+    def __call__(self, inputs, state, attn_masks=None, scope=None, alpha=1.05):
         (
             past_cand_symbols,  # [batch_size, max_len]
             past_cand_logprobs, # [batch_size]
@@ -203,8 +203,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         cell_inputs = inputs
         if self.use_attention:
-            cell_outputs, raw_cell_state, attns, attn_mask = \
-                self.cell(cell_inputs, past_cell_state, attns, scope)
+            cell_outputs, raw_cell_state, attn_masks = \
+                self.cell(cell_inputs, past_cell_state, attn_masks, scope)
         else:
             cell_outputs, raw_cell_state = \
                 self.cell(cell_inputs, past_cell_state, scope)
@@ -247,7 +247,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         parent_refs = parent_refs + self.parent_refs_offsets
 
         symbols_history = tf.gather(past_beam_symbols, parent_refs)
-        attn_mask = tf.gather(attn_mask, parent_refs)
+        attn_masks = tf.gather(attn_masks, parent_refs)
         beam_symbols = tf.concat(1, [symbols_history[:,1:], tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]), 
@@ -277,7 +277,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 beam_symbols,
                 beam_logprobs,
                 cell_state,
-            ), attns, attn_mask
+            ), attn_masks
         else:
             return cell_outputs, (
                 cand_symbols,
