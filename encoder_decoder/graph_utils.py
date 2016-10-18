@@ -54,7 +54,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     if forward_only:
         params["batch_size"] = 1
-        params["attention_keep"] = 1.0
+        params["attention_input_keep"] = 1.0
+        params["attention_output_keep"] = 1.0
         params["encoder_input_keep"] = 1.0
         params["encoder_output_keep"] = 1.0
         params["decoder_input_keep"] = 1.0
@@ -92,7 +93,8 @@ def get_model_signature(FLAGS):
     model_subdir += '-{}'.format(FLAGS.rnn_cell)
     if FLAGS.use_attention:
         model_subdir += '-attention'
-        model_subdir += '-{}'.format(FLAGS.attention_keep)
+        model_subdir += '-{}'.format(FLAGS.attention_input_keep)
+        model_subdir += '-{}'.format(FLAGS.attention_output_keep)
     model_subdir += '-{}'.format(FLAGS.batch_size)
     model_subdir += '-{}'.format(FLAGS.encoder_input_keep)
     model_subdir += '-{}'.format(FLAGS.encoder_output_keep)
