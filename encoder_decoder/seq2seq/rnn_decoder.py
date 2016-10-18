@@ -51,8 +51,10 @@ class RNNDecoder(decoder.Decoder):
                 if self.use_attention:
                     attention_states = beam_decoder.wrap_input(attention_states)
                     attn_masks = tf.tile(attn_masks, [self.beam_size, 1, 1])
-                    encoder_attn_masks = [beam_decoder.wrap_input(encoder_attn_mask)
-                                      for encoder_attn_mask in encoder_attn_masks]
+                    encoder_attn_masks = [
+                        tf.expand_dims(beam_decoder.wrap_input(encoder_attn_mask), 1)
+                        for encoder_attn_mask in encoder_attn_masks]
+                    encoder_attn_masks = tf.concat(1, encoder_attn_masks)
                     decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
                                                             attention_states,
                                                             encoder_attn_masks,
