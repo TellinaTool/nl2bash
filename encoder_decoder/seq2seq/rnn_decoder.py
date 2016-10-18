@@ -29,6 +29,12 @@ class RNNDecoder(decoder.Decoder):
             state = encoder_state
             outputs = []
 
+            # prepare attention masks
+            if self.use_attention:
+                batch_size = tf.shape(attention_states)[0]
+                attn_length = tf.shape(attention_states)[1]
+                attn_masks = tf.zeros([batch_size, 0, attn_length])
+
             # applying cell wrappers: ["attention", "beam"]
             if self.decoding_algorithm == "beam_search":
                 if not feed_previous:
@@ -44,6 +50,7 @@ class RNNDecoder(decoder.Decoder):
                 state = beam_decoder.wrap_state(state, self.output_projection)
                 if self.use_attention:
                     attention_states = beam_decoder.wrap_input(attention_states)
+                    attn_masks = beam_decoder.wrap_input(attn_masks)
                     encoder_attn_masks = [beam_decoder.wrap_input(encoder_attn_mask)
                                       for encoder_attn_mask in encoder_attn_masks]
                     decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
@@ -68,12 +75,6 @@ class RNNDecoder(decoder.Decoder):
                                                   dtype=tf.int64)
                 past_output_logits = tf.constant(0, shape=[self.batch_size],
                                                  dtype=tf.float32)
-
-            # initial attention state
-            if self.use_attention:
-                batch_size = tf.shape(attention_states)[0]
-                attn_length = tf.shape(attention_states)[1]
-                attn_masks = tf.zeros([batch_size, 0, attn_length])
 
             for i, input in enumerate(decoder_inputs):
                 if self.decoding_algorithm == "beam_search":
