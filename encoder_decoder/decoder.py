@@ -78,7 +78,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                                   * self.hidden_features[a], [1, 2])
                 ds.append(tf.reshape(d, [-1, self.attn_dim]))
         attns = tf.concat(1, ds)
-        attns.set_shape([None, self.num_heads * self.attn_vec_dim])
+        attns.set_shape([None, self.num_heads * self.attn_dim])
         self.attention_vars = True
         return attns, attn_mask
 
