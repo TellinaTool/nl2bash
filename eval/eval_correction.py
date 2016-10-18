@@ -80,8 +80,13 @@ error_temp_pairs = [
     ),
     (
         "display all the regular files in the folder \"$(FOLDER)\" which are modified "
-        "in the last $(RETENTION)*24 hours and excluding hidden files",
+        "in the last $(RETENTION)*24 hours and excluding hidden files\n",
         "find ! -path File -mtime Time -type f File"
+    ),
+    (
+        "search for a specific word in all the hidden files in the entire file system and display "
+        "the file name along with the matched line\n",
+        "find -name Pattern -type f File | xargs -I {} grep Pattern {}"
     )]
 
 correct_str_pairs = [

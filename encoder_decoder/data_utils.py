@@ -321,7 +321,7 @@ def bucket_grouped_data(grouped_dataset, buckets):
 
         # Which bucket does it belong to?
         bucket_id = min([b for b in xrange(len(buckets))
-                        if buckets[b][0] > len(nls[0])])
+                        if buckets[b][0] >= len(nls[0])])
 
         batch_nl_strs[bucket_id].append(nl_strs[0])
         batch_cm_strs[bucket_id].append(cm_strs)
@@ -505,7 +505,8 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path,
                             target_ids.append(EOS_ID)
                         if buckets:
                             for bucket_id, (source_size, target_size) in enumerate(buckets):
-                                if len(source_ids) < source_size and len(target_ids) < target_size:
+                                if len(source_ids) <= source_size \
+                                        and len(target_ids) <= target_size:
                                     data_set[bucket_id].append(
                                         [source_txt, target_txt, source_ids, target_ids])
                                     break   
