@@ -321,7 +321,7 @@ def bucket_grouped_data(grouped_dataset, buckets):
 
         # Which bucket does it belong to?
         bucket_id = min([b for b in xrange(len(buckets))
-                        if buckets[b][0] >= len(nls[0])])
+                        if buckets[b][0] > len(nls[0])])
 
         batch_nl_strs[bucket_id].append(nl_strs[0])
         batch_cm_strs[bucket_id].append(cm_strs)
@@ -435,12 +435,12 @@ def load_data(FLAGS, buckets):
     dev_path = os.path.join(data_dir, "dev")
     test_path = os.path.join(data_dir, "test")
 
-    nl_txt_train = train_path + ".%d.nl" % FLAGS.nl_vocab_size
-    cm_txt_train = train_path + ".%d.cm" % FLAGS.cm_vocab_size
-    nl_txt_dev = dev_path + ".%d.nl" % FLAGS.nl_vocab_size
-    cm_txt_dev = dev_path + ".%d.cm" % FLAGS.cm_vocab_size
-    nl_txt_test = test_path + ".%d.nl" % FLAGS.nl_vocab_size
-    cm_txt_test = test_path + ".%d.cm" % FLAGS.cm_vocab_size
+    nl_txt_train = train_path + ".nl"
+    cm_txt_train = train_path + ".cm"
+    nl_txt_dev = dev_path + ".nl"
+    cm_txt_dev = dev_path + ".cm"
+    nl_txt_test = test_path + ".nl"
+    cm_txt_test = test_path + ".cm"
 
     nl_train = train_path + nl_extention
     cm_train = train_path + cm_extension
@@ -505,11 +505,10 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path,
                             target_ids.append(EOS_ID)
                         if buckets:
                             for bucket_id, (source_size, target_size) in enumerate(buckets):
-                                if len(source_ids) <= source_size \
-                                        and len(target_ids) <= target_size:
+                                if len(source_ids) < source_size and len(target_ids) < target_size:
                                     data_set[bucket_id].append(
                                         [source_txt, target_txt, source_ids, target_ids])
-                                    break   
+                                    break
                         else:
                             data_set.append([source_txt, target_txt, source_ids, target_ids])
 
@@ -596,8 +595,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
         if len(d) > max_len:
             max_len = len(d)
 
-    if isinstance(data.train[0], list):
-        create_vocabulary(vocab_path, data.train, vocab_size,
+    create_vocabulary(vocab_path, data.train, vocab_size,
                       normalize_digits=normalize_digits,
                       normalize_long_pattern=normalize_long_pattern)
 
@@ -605,26 +603,15 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
     dev_path = os.path.join(data_dir, "dev")
     test_path = os.path.join(data_dir, "test")
 
-    if isinstance(data.train[0], str):
-        with open(train_path + suffix, 'w') as o_f:
-            for line in data.train:
-                o_f.write(line.strip() + '\n')
-        with open(dev_path + suffix, 'w') as o_f:
-            for line in data.dev:
-                o_f.write(line.strip() + '\n')
-        with open(test_path + suffix, 'w') as o_f:
-            for line in data.test:
-                o_f.write(line.strip() + '\n')
-    else:
-        data_to_token_ids(data.train, train_path + suffix, vocab_path,
-                          normalize_digits=normalize_digits,
-                          normalize_long_pattern=normalize_long_pattern)
-        data_to_token_ids(data.dev, dev_path + suffix, vocab_path,
-                          normalize_digits=normalize_digits,
-                          normalize_long_pattern=normalize_long_pattern)
-        data_to_token_ids(data.test, test_path + suffix, vocab_path,
-                          normalize_digits=normalize_digits,
-                          normalize_long_pattern=normalize_long_pattern)
+    data_to_token_ids(data.train, train_path + suffix, vocab_path,
+                      normalize_digits=normalize_digits,
+                      normalize_long_pattern=normalize_long_pattern)
+    data_to_token_ids(data.dev, dev_path + suffix, vocab_path,
+                      normalize_digits=normalize_digits,
+                      normalize_long_pattern=normalize_long_pattern)
+    data_to_token_ids(data.test, test_path + suffix, vocab_path,
+                      normalize_digits=normalize_digits,
+                      normalize_long_pattern=normalize_long_pattern)
 
     return max_len
 
@@ -634,22 +621,16 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
         for nl, cm in zip(getattr(nl_list, split), getattr(cm_list, split)):
             nl_tokens = nl.split()
             cm_tokens = cm.split()
-            getattr(nl_list, split).append(nl)
-            getattr(cm_list, split).append(cm)
             getattr(nl_token_list, split).append(nl_tokens)
             getattr(cm_token_list, split).append(cm_tokens)
 
-    # unfiltered data
-    nl_data, cm_data = read_raw_data(data_dir)
-
-    nl_list = Dataset()
-    cm_list = Dataset()
+    nl_list, cm_list = read_raw_data(data_dir)
     nl_token_list = Dataset()
     cm_token_list = Dataset()
 
-    add_to_set(nl_data, cm_data, "train")
-    add_to_set(nl_data, cm_data, "dev")
-    add_to_set(nl_data, cm_data, "test")
+    add_to_set(nl_list, cm_list, "train")
+    add_to_set(nl_list, cm_list, "dev")
+    add_to_set(nl_list, cm_list, "test")
 
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
@@ -670,9 +651,9 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
 
 def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
 
-    def add_to_set(nl_data, cm_data, split):
-        with_parent = True
-        for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
+    def add_to_set(nl_list, cm_list, split):
+        with_parent = False
+        for nl, cm in zip(getattr(nl_list, split), getattr(cm_list, split)):
             ast = data_tools.bash_parser(cm)
             if ast:
                 if is_simple(ast):
@@ -747,8 +728,6 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     cm_ast_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast.norm" %
                                           cm_vocab_size)
 
-    nl_suffix = ".%d.nl" % nl_vocab_size
-    cm_suffix = ".%d.cm" % cm_vocab_size
     nl_char_suffix = ".cids%d.nl" % nl_vocab_size
     cm_char_suffix = ".cids%d.cm" % cm_vocab_size
     nl_token_suffix = ".ids%d.nl" % nl_vocab_size
@@ -761,8 +740,6 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     cm_seq_norm_order_suffix = ".seq%d.cm.norm.order" % cm_vocab_size
     cm_seq_pruned_suffix = ".seq%d.cm.pruned" % cm_vocab_size
 
-    _ = prepare_dataset(nl_list, data_dir, nl_suffix, nl_vocab_size, None)
-    _ = prepare_dataset(cm_list, data_dir, cm_suffix, cm_vocab_size, None)
     max_nl_char_len = prepare_dataset(nl_char_list, data_dir, nl_char_suffix, nl_vocab_size,
                                       nl_char_vocab_path)
     max_cm_char_len = prepare_dataset(cm_char_list, data_dir, cm_char_suffix, cm_vocab_size,
