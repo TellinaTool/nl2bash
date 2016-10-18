@@ -77,6 +77,11 @@ error_temp_pairs = [
     (
         "Find PHP files with abstract classes\n",
         "find -iname Pattern File"
+    ),
+    (
+        "display all the regular files in the folder \"$(FOLDER)\" which are modified "
+        "in the last $(RETENTION)*24 hours and excluding hidden files",
+        "find ! -path File -mtime Time -type f File"
     )]
 
 correct_str_pairs = [
