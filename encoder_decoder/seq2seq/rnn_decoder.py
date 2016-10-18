@@ -50,7 +50,7 @@ class RNNDecoder(decoder.Decoder):
                 state = beam_decoder.wrap_state(state, self.output_projection)
                 if self.use_attention:
                     attention_states = beam_decoder.wrap_input(attention_states)
-                    attn_masks = beam_decoder.wrap_input(attn_masks)
+                    attn_masks = tf.tile(attn_masks, [self.beam_size, 1, 1])
                     encoder_attn_masks = [beam_decoder.wrap_input(encoder_attn_mask)
                                       for encoder_attn_mask in encoder_attn_masks]
                     decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
@@ -134,10 +134,10 @@ class RNNDecoder(decoder.Decoder):
             top_k_logits = tf.split(0, self.batch_size, top_k_logits)
             top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
                             for top_k_logit in top_k_logits]
-            # attn_masks = tf.reshape(attn_masks, [self.batch_size,
-            #                                      self.beam_size,
-            #                                      len(decoder_inputs),
-            #                                      attention_states.get_shape()[1].value])
+            attn_masks = tf.reshape(attn_masks, [self.batch_size,
+                                                 self.beam_size,
+                                                 len(decoder_inputs),
+                                                 attention_states.get_shape()[1].value])
             if self.use_attention:
                 return top_k_outputs, top_k_logits, outputs, state, attn_masks
             else:

@@ -259,7 +259,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         )
 
         # Handling for getting a done token
-        logprobs_done = tf.reshape(logprobs_batched, [-1, self.beam_size, self.num_classes])[:,:,self.stop_token]
+        logprobs_done = tf.reshape(logprobs_batched,
+                                   [-1, self.beam_size, self.num_classes])[:,:,self.stop_token]
         done_parent_refs = tf.to_int32(tf.argmax(logprobs_done, 1))
         done_parent_refs_offsets = tf.range(batch_size) * self.beam_size
         done_symbols = tf.gather(past_beam_symbols, done_parent_refs + done_parent_refs_offsets)

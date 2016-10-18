@@ -153,7 +153,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                     if FLAGS.decoding_algorithm == "greedy":
                         M = attn_masks[0, :, :]
                     elif FLAGS.decoding_algorithm == "beam_search":
-                        M = attn_masks[0, :, :]
+                        M = attn_masks[0, 0, :, :]
                     visualize_attn_masks(M, nl, outputs, rev_nl_vocab, rev_cm_vocab,
                                          os.path.join(FLAGS.model_dir,
                                                       "{}-{}.jpg".format(bucket_id, batch_id)))
