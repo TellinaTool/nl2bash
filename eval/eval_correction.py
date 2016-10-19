@@ -14,6 +14,15 @@ correct_temp_pairs = [
     (
         "create a tar ball of all pdf files in current folder\n",
         "find -name Pattern -print File | xargs -I {} tar -f File -r -v {}"
+    ),
+    (
+        "start from current directory, skip the directory src/emacs and print it then skip all files and directories "
+        "under it, and print the names of the other files found\n",
+        "find \( -path File -prune -or -type f \) -print File"
+    ),
+    (
+        "find all files in a folder that have a specific word in their name\n",
+        "find -name Pattern -print File"
     )]
 
 error_temp_pairs = [
@@ -90,8 +99,45 @@ error_temp_pairs = [
     ),
     (
         "Find all files and directories in the current directory tree with \"linkin park\" in " \
-        "their names and copy them to /Users/tommye/Desktop/LP",
+        "their names and copy them to /Users/tommye/Desktop/LP\n",
         "find -name Pattern -print0 File | xargs -0 -I {} cp File {}"
+    ),
+    (
+        "display the top 20 biggest files in the current folder which are present in the same partition as that of "
+        "the current folder\n"
+        "find -printf Pattern -type f File | sort -n -r | head -n Number"
+    ),
+    (
+        "Find all *.tex regular files in maximum 2 levels down the current directory\n",
+        "find -maxdepth Number -type f File"
+    ),
+    (
+        "display all the regular files in the current folder which dont not have the permission 777\n",
+        "find -perm Permission -type f File"
+    ),
+    (
+        "find any files in the current directory that begin with a number\n",
+        "find -name Pattern File"
+    ),
+    (
+        "find  directory which case-insensitive name is too in currect directory\n",
+        "find -name Pattern -type d File"
+    ),
+    (
+        "find  directory which case-insensitive name is too in currect directory\n",
+        "find -name Pattern -print -type d File"
+    ),
+    (
+        "find file which case-insensitive name is foo in current directory.\n",
+        "find -name Pattern File"
+    ),
+    (
+        "Remove all \"work\" directories residing in /usr/ports and below\n",
+        "find -exec rm {} \; -name Pattern -type d File"
+    ),
+    (
+        "Remove all \"work\" directories residing in /usr/ports and below\n",
+        "find -exec rm {} \; -name Pattern -type d File"
     )]
 
 correct_str_pairs = [
