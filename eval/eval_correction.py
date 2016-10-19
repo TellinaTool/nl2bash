@@ -104,7 +104,7 @@ error_temp_pairs = [
     ),
     (
         "display the top 20 biggest files in the current folder which are present in the same partition as that of "
-        "the current folder\n"
+        "the current folder\n",
         "find -printf Pattern -type f File | sort -n -r | head -n Number"
     ),
     (
