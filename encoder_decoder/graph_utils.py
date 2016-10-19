@@ -321,6 +321,10 @@ class NNModel(object):
         return self.hyperparams["beam_order"]
 
     @property
+    def alpha(self):
+        return self.hyperparams["alpha"]
+
+    @property
     def top_k(self):
         return self.hyperparams["top_k"]
 
