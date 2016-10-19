@@ -52,6 +52,10 @@ correct_temp_pairs = [
     (
         "find all occurences of a file in the file system which belong to the user root\n",
         "find -print -user Pattern File"
+    ),
+    (
+        "Remove files in the current directory tree modified more than 31 days ago recursively\n",
+        "find -exec rm {} \; -mtime Time File"
     )]
 
 error_temp_pairs = [
