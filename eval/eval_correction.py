@@ -23,6 +23,35 @@ correct_temp_pairs = [
     (
         "find all files in a folder that have a specific word in their name\n",
         "find -name Pattern -print File"
+    ),
+    (
+        "Remove files in the current directory tree modified more than 31 days ago recursively\n",
+        "find -exec rm {} \; -mtime Time File"
+    ),
+    (
+        "dispaly a long listig of all the files in the current folder which are bigger than 100KB\n",
+        "find -exec ls -l {} \; -size Size File"
+    ),
+    (
+        "display all the files in the kat folder\n",
+        "find File"
+    ),
+    (
+        "display all sqlite files in the current directory along with their timestamp\n",
+        "find -printf Pattern File"
+    ),
+    (
+        "display all the regular/normal files in the folder /path/ which have not been modified today ( from day "
+        "start ie, 00:00 )\n",
+        "find -mtime Time -type f File"
+    ),
+    (
+        "find the largest file in the current directory and sub directories\n",
+        "find -maxdepth Number -printf Pattern -type f File | sort -n -r | head -n Number"
+    ),
+    (
+        "find all occurences of a file in the file system which belong to the user root\n",
+        "find -print -user Pattern File"
     )]
 
 error_temp_pairs = [
