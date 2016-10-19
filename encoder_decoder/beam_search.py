@@ -148,7 +148,7 @@ class BeamDecoder(object):
 class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, output_projection, num_classes, max_len,
                  start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
-                 use_attention=False, alpha=1.0):
+                 use_attention=False):
         # TODO: determine if we can have dynamic shapes instead of pre-filling up to max_len
 
         self.cell = cell
@@ -184,7 +184,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self._done_mask = tf.tile(self._done_mask, [full_size, 1])
 
 
-    def __call__(self, inputs, state, attn_masks=None, scope=None, alpha=1.05):
+    def __call__(self, inputs, state, attn_masks=None, scope=None, alpha=0.9):
         (
             past_cand_symbols,  # [batch_size, max_len]
             past_cand_logprobs, # [batch_size]
@@ -359,3 +359,7 @@ def sparse_boolean_mask(tensor, mask):
         shape=tf.cast(tf.pack([mask_shape[0], tf.reduce_max(mask_lens)]), tf.int64) # For 2D only
     )
 
+if __name__ == "__main__":
+    a = tf.zeros([10])
+    b = BeamDecoder._tile_along_beam(4, a)
+    print(b)

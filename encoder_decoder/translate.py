@@ -357,7 +357,9 @@ def main(_):
     else:
         train_set, dev_set, _ = load_data()
         train(train_set, dev_set)
-
-
+        tf.reset_default_graph()
+        decode(dev_set)
+        eval(dev_set)
+    
 if __name__ == "__main__":
     tf.app.run()
