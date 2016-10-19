@@ -33,6 +33,8 @@ def is_english_word(word):
     if any(x.isalpha() for x in word):
         if word[-1].isdigit():
             return False
+    if any(x.isupper() for x in word):
+        return False
     return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
 
 def is_stopword(w):
@@ -111,7 +113,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         word = words[i].strip()
         # remove unnecessary upper cases
         if lower_case:
-            if len(word) > 1 and word[0].isupper() and word[1:].islower():
+            if i == 0 and word[0].isupper() and len(word) > 1 and word[1:].islower():
                 word = word.lower()
 
         # spelling correction

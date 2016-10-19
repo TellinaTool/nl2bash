@@ -191,9 +191,11 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
 
 def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
     num_top1_correct_temp = 0.0
+    num_top3_correct_temp = 0.0
     num_top5_correct_temp = 0.0
     num_top10_correct_temp = 0.0
     num_top1_correct = 0.0
+    num_top3_correct = 0.0
     num_top5_correct = 0.0
     num_top10_correct = 0.0
     num_evaled = 0
@@ -231,7 +233,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
             for j in xrange(len(cm_strs)):
                 print("GT Command %d: " % (j+1) + cm_strs[j].strip())
                 o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
-            for i in xrange(len(predictions[:1])):
+            for i in xrange(len(predictions[:3])):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
                 print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
@@ -261,6 +263,11 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                 if temp_judge:
                     if i < 1:
                         top1_correct_temp = True
+                        top3_correct_temp = True
+                        top5_correct_temp = True
+                        top10_correct_temp = True
+                    elif i < 3:
+                        top3_correct_temp = True
                         top5_correct_temp = True
                         top10_correct_temp = True
                     elif i < 5:
@@ -290,6 +297,11 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                     if str_judge:
                         if i < 1:
                             top1_correct = True
+                            top3_correct = True
+                            top5_correct = True
+                            top10_correct = True
+                        elif i < 3:
+                            top3_correct = True
                             top5_correct = True
                             top10_correct = True
                         elif i < 5:
@@ -309,12 +321,16 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
             num_evaled += 1
             if top1_correct_temp:
                 num_top1_correct_temp += 1
+            if top3_correct_temp:
+                num_top3_correct_temp += 1
             if top5_correct_temp:
                 num_top5_correct_temp += 1
             if top10_correct_temp:
                 num_top10_correct_temp += 1
             if top1_correct:
                 num_top1_correct += 1
+            if top3_correct:
+                num_top3_correct += 1
             if top5_correct:
                 num_top5_correct += 1
             if top10_correct:
@@ -324,7 +340,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
     print("%d examples evaluated" % num_eval)
     print("Top 1 Template Match Score = %.2f" % (num_top1_correct_temp/num_eval))
     print("Top 1 String Match Score = %.2f" % (num_top1_correct/num_eval))
-    if len(predictions) > 1:
+    if len(predictions) > 3:
         print("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval))
         print("Top 5 String Match Score = %.2f" % (num_top5_correct/num_eval))
         print("Top 10 Template Match Score = %.2f" % (num_top10_correct_temp/num_eval))
