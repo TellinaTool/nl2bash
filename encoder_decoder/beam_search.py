@@ -38,7 +38,7 @@ def nest_map(func, nested):
 
 class BeamDecoder(object):
     def __init__(self, num_classes, start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
-                 max_len=20, use_attention=False):
+                 max_len=20, use_attention=False, alpha=1.0):
         """
         num_classes: int. Number of output classes used
         start_token: int.
@@ -47,6 +47,7 @@ class BeamDecoder(object):
         max-len: int or scalar Tensor. If this cell is called recurrently more
             than max_len times in a row, the outputs will not be valid!
         use_attention: if attention is to be used.
+        alpha: parameter used for length normalization.
         """
         self.num_classes = num_classes
         self.start_token = start_token
@@ -55,6 +56,9 @@ class BeamDecoder(object):
         self.beam_size = beam_size
         self.max_len = max_len
         self.use_attention = use_attention
+        self.alpha = alpha
+
+        print("Creating beam search decoder: alpha = {}".format(self.alpha))
 
     @classmethod
     def _tile_along_beam(cls, beam_size, state):
@@ -90,13 +94,15 @@ class BeamDecoder(object):
         return BeamDecoderCellWrapper(cell, output_projection, self.num_classes, self.max_len,
                                       self.start_token, self.stop_token,
                                       self.batch_size, self.beam_size,
-                                      self.use_attention)
+                                      self.use_attention,
+                                      self.alpha)
 
     def wrap_state(self, state, output_projection):
         dummy = BeamDecoderCellWrapper(None, output_projection, self.num_classes, self.max_len,
                                        self.start_token, self.stop_token,
                                        self.batch_size, self.beam_size,
-                                       self.use_attention)
+                                       self.use_attention,
+                                       self.alpha)
         if nest.is_sequence(state):
             batch_size = nest.flatten(state).get_shape()[0].value
             dtype = nest.flatten(state)[0].dtype
@@ -158,7 +164,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.stop_token = stop_token
         self.batch_size = batch_size
         self.beam_size = beam_size
-        self.use_attention=use_attention
+        self.use_attention = use_attention
+        self.alpha = alpha
 
         self.max_len = max_len
 
@@ -184,7 +191,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self._done_mask = tf.tile(self._done_mask, [full_size, 1])
 
 
-    def __call__(self, inputs, state, attn_masks=None, scope=None, alpha=1.05):
+    def __call__(self, inputs, state, attn_masks=None, scope=None):
         (
             past_cand_symbols,  # [batch_size, max_len]
             past_cand_logprobs, # [batch_size]
@@ -223,12 +230,12 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         logprobs = tf.mul(logprobs, zero_done_mask)
 
         # length normalization
-        past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.pow(self.seq_len, alpha))
+        past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.pow(self.seq_len, self.alpha))
         logprobs_batched = logprobs + tf.expand_dims(past_beam_acc_logprobs, 1)
         seq_len = tf.expand_dims(self.seq_len, 1) + \
                   tf.mul(tf.ones([full_size, 1]) - stop_mask_2d, 
                          tf.cast(tf.not_equal(self._done_mask, 0), tf.float32))
-        logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, alpha))
+        logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, self.alpha))
         # logprobs_batched = logprobs + tf.expand_dims(past_beam_logprobs, 1)
         logprobs_batched = tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes])
 

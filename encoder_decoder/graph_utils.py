@@ -42,6 +42,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
     params["beam_size"] = FLAGS.beam_size
+    params["alpha"] = FLAGS.alpha
     params["top_k"] = FLAGS.top_k
 
     # construct model directory

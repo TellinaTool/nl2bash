@@ -46,7 +46,8 @@ class RNNDecoder(decoder.Decoder):
                                                        self.batch_size,
                                                        self.beam_size,
                                                        len(decoder_inputs),
-                                                       self.use_attention)
+                                                       self.use_attention,
+                                                       self.alpha)
                 state = beam_decoder.wrap_state(state, self.output_projection)
                 if self.use_attention:
                     attention_states = beam_decoder.wrap_input(attention_states)
