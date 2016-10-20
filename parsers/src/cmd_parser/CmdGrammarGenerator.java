@@ -13,6 +13,24 @@ import java.util.stream.Collectors;
 public class CmdGrammarGenerator {
 
     static Set<String> argTypeCollector = new HashSet<>();
+    static Map<String, String> argumentRegex = new HashMap<>();
+    static
+    {
+        argumentRegex.put("arg_Date", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_File", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Unknown", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Date", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_File", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_TarFormat", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Number", "DIGITS \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Constant", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Constant", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Time", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Size", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Permission", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_String", "STRING \n    | '$(' command ')'; \n\n");
+
+    }
 
     /**
      * Generate g4 grammar for given commands
@@ -104,7 +122,10 @@ public class CmdGrammarGenerator {
 
         String typeDef = "";
         for (String s : argTypeCollector) {
-            typeDef += s + " : STRING \n    | '$(' command ')'; \n\n";
+            if (argumentRegex.containsKey(s))
+                typeDef += s + " : " + argumentRegex.get(s);
+            else
+                typeDef += s + " : STRING \n    | '$(' command ')'; \n\n";
         }
 
         String epilogue =
@@ -115,7 +136,8 @@ public class CmdGrammarGenerator {
                 "STRING : (~(' ' | '-'))+ \n" +
                 "       | '\"' (~'\"')+ '\"'\n" +
                 "       |  '\\'' (~'\\'')+ '\\''\n" +
-                "       ;\n" +
+                "       ;\n\n" +
+                "DIGITS : ('-' | '+')? ( '0' .. '9' | '.' ) +; \n\n" +
                 "WS : [ \\t\\n\\r] + -> skip;";
 
         return prologue + "\n\n" + content + "\n" + epilogue;
