@@ -203,6 +203,12 @@ public interface CommandsVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitChown1(CommandsParser.Chown1Context ctx);
 	/**
+	 * Visit a parse tree produced by {@link CommandsParser#chgrp1}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChgrp1(CommandsParser.Chgrp1Context ctx);
+	/**
 	 * Visit a parse tree produced by {@link CommandsParser#head1}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -820,6 +826,36 @@ public interface CommandsVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitCd_op1(CommandsParser.Cd_op1Context ctx);
+	/**
+	 * Visit a parse tree produced by {@link CommandsParser#chgrp_op0}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChgrp_op0(CommandsParser.Chgrp_op0Context ctx);
+	/**
+	 * Visit a parse tree produced by {@link CommandsParser#chgrp_op1}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChgrp_op1(CommandsParser.Chgrp_op1Context ctx);
+	/**
+	 * Visit a parse tree produced by {@link CommandsParser#chgrp_op2}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChgrp_op2(CommandsParser.Chgrp_op2Context ctx);
+	/**
+	 * Visit a parse tree produced by {@link CommandsParser#chgrp_op3}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChgrp_op3(CommandsParser.Chgrp_op3Context ctx);
+	/**
+	 * Visit a parse tree produced by {@link CommandsParser#chgrp_op4}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChgrp_op4(CommandsParser.Chgrp_op4Context ctx);
 	/**
 	 * Visit a parse tree produced by {@link CommandsParser#chmod_op0}.
 	 * @param ctx the parse tree

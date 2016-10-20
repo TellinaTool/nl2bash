@@ -44,6 +44,7 @@ public class TreeBuilder extends AbstractParseTreeVisitor {
     public CmdTreeNode buildCmdTree(ParseTree node) {
 
         CmdTreeNode cmdNode = new CmdTreeNode();
+
         if (node.getChildCount() != 0)
             cmdNode.setContent(node.toStringTree(parser).split(" ")[0].substring(1));
         else

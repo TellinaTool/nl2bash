@@ -33,6 +33,7 @@ primitive_command : find1
 	    | chmod4
 	    | chmod5
 	    | chown1
+	    | chgrp1
 	    | head1
 	    | tail1
 	    | seq1
@@ -77,6 +78,7 @@ chmod3 : 'chmod' ((chmod_op0) | (chmod_op8) | (chmod_op1) | (chmod_op3) | (chmod
 chmod4 : 'chmod' ((chmod_op0) | (chmod_op8) | (chmod_op1) | (chmod_op3) | (chmod_op10))* (arg_File)+;
 chmod5 : 'chmod' ((chmod_op0) | (chmod_op8) | (chmod_op1) | (chmod_op3) | (chmod_op11))* (arg_File)+;
 chown1 : 'chown' ((chown_op0) | (chown_op1) | (chown_op2) | (chown_op4))* arg_String (arg_File)+;
+chgrp1 : 'chgrp' ((chgrp_op0) | (chgrp_op1) | (chgrp_op2) | (chgrp_op4))* arg_Unknown (arg_File)+;
 head1 : 'head' ((head_op2) | (head_op3))*;
 tail1 : 'tail' ((tail_op0) | (tail_op1) | (tail_op5) | (tail_op6))*;
 seq1 : 'seq' ((seq_op0) | (seq_op1) | (seq_op2) | (seq_op3) | (seq_op5))* arg_String;
@@ -412,6 +414,11 @@ cat_op6 : '-v';
 cat_op7 : (arg_File)+;
 cd_op0 : '-L' | '-P';
 cd_op1 : arg_File;
+chgrp_op0 : '-f';
+chgrp_op1 : '-h';
+chgrp_op2 : '-v';
+chgrp_op3 : '-H' | '-L' | '-P';
+chgrp_op4 : '-R' (chgrp_op3)? ;
 chmod_op0 : '-f';
 chmod_op1 : '-v';
 chmod_op10 : '-C';
@@ -814,7 +821,7 @@ arg_Unknown : STRING
 arg_TarFormat : STRING 
     | '$(' command ')'; 
 
-arg_Number : STRING 
+arg_Number : DIGITS 
     | '$(' command ')'; 
 
 arg_Constant : STRING 
@@ -841,4 +848,7 @@ STRING : (~(' ' | '-'))+
        | '"' (~'"')+ '"'
        |  '\'' (~'\'')+ '\''
        ;
+
+DIGITS : ('-' | '+')? ( '0' .. '9' | '.' ) +; 
+
 WS : [ \t\n\r] + -> skip;

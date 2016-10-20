@@ -92,6 +92,10 @@ public class CmdTreeNode {
     public String toCommand() {
         if (this.children.size() == 0)
             return this.getContent();
+
+        if (this.getContent().startsWith("arg_"))
+            return this.getContent();
+
         String s = "";
         for (int i = 0; i < this.children.size(); i ++) {
             s += " " + this.children.get(i).toCommand();
