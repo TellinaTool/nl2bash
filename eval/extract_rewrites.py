@@ -10,6 +10,32 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 import data_tools, normalizer
 import sqlite3
 
+def rewrite(ast, temp):
+    """Rewrite an AST into one using the given template."""
+    arg_slots = normalizer.arg_slots(ast)
+
+    def rewrite_fun(node):
+        if node.kind == "argument" and not node.is_reserved():
+            for i in xrange(len(arg_slots)):
+                if not arg_slots[i][1] and arg_slots[i][0].arg_type == node.arg_type:
+                    node.value = arg_slots[i][0].value
+                    arg_slots[i][1] = True
+                    break
+        else:
+            for child in node.children:
+                rewrite_fun(child)
+
+    # This is heuristically implemented in two steps.
+    # Step 1 constructs an AST using the given template.
+    # Step 2 fills the argument slots in the new AST using the argument
+    #        slot from the original AST.
+    ast2 = normalizer.normalize_ast(temp)
+    if not ast2 is None:
+        rewrite_fun(ast2)
+
+    return ast2
+
+
 class DBConnection(object):
     def __init__(self):
         self.conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 
@@ -38,23 +64,37 @@ class DBConnection(object):
         c.execute("INSERT INTO Rewrites (s1, s2) VALUES (?, ?)", pair)
         self.conn.commit()
 
+    def clean_rewrites(self):
+        c = self.cursor
+        non_grammatical = []
+        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites"):
+            try:
+                data_tools.bash_parser(s1)
+            except:
+                non_grammatical.append(s1)
+            try:
+                data_tools.bash_parser(s2)
+            except:
+                non_grammatical.append(s2)
+        for s in non_grammatical:
+            c.execute("DELETE FROM Rewrites WHERE s1 = ?", (s,))
+            c.execute("DELETE FROM Rewrites WHERE s2 = ?", (s,))
+
     def get_rewrite_templates(self, s1):
         rewrites = set([s1])
         c = self.cursor
-        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", (s1,)):
+        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrit7es WHERE s1 = ?", (s1,)):
             rewrites.add(s2)
         return rewrites
 
     def get_rewrites(self, ast):
         rewrites = set([ast])
         s1 = data_tools.ast2template(ast, loose_constraints=True)
-        # print("s1: " + s1)
         c = self.cursor
         for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", (s1,)):
             rw = rewrite(ast, s2)
             if not rw is None:
                 rewrites.add(rw)
-            # print("s2: " + s2)
         return rewrites
 
     def exist_rewrite(self, pair):
@@ -66,30 +106,10 @@ class DBConnection(object):
         return False
 
 
-def rewrite(ast, temp):
-    """Rewrite an AST into one using the given template."""
-    arg_slots = normalizer.arg_slots(ast)
-
-    def rewrite_fun(node):
-        if node.kind == "argument" and not node.is_reserved():
-            for i in xrange(len(arg_slots)):
-                if not arg_slots[i][1] and arg_slots[i][0].arg_type == node.arg_type:
-                    node.value = arg_slots[i][0].value
-                    arg_slots[i][1] = True
-                    break
-        else:
-            for child in node.children:
-                rewrite_fun(child)
-
-    # This is heuristically implemented in two steps.
-    # Step 1 constructs an AST using the given template.
-    # Step 2 fills the argument slots in the new AST using the argument
-    #        slot from the original AST.
-    ast2 = normalizer.normalize_ast(temp)
-    if not ast2 is None:
-        rewrite_fun(ast2)
-
-    return ast2
+def clean_rewrites():
+    with DBConnection() as db:
+        db.create_schema()
+        db.clean_rewrites()
 
 
 def extract_rewrites(data):
@@ -169,7 +189,7 @@ if __name__ == "__main__":
     with open(cm_path) as f:
         cms = f.readlines()
 
-    # extract_rewrites((nls, cms))
+    extract_rewrites((nls, cms))
 
     while True:
         try:
