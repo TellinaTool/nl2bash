@@ -189,6 +189,8 @@ def detach_from_tree(node, parent):
     node.lsb = None
 
 def normalize_pattern(value, verbose=False):
+    if value.isalpha() and value.isupper():
+        return _REGEX
     value = value.replace("$HOME", "${HOME}")
     value = value.replace("~", "${HOME}")
     remove_current_dir = re.compile("\./")
@@ -206,9 +208,9 @@ def normalize_pattern(value, verbose=False):
             or value == "."
             or value == "${HOME}"):
         if "$" in value:
-            value = _PARAMETER
-        elif (value[0] in ['\'', '"']
-              and value[-1] in ['\'', '"']) \
+            return _PARAMETER
+        if (value[0] in ['\'', '"']
+            and value[-1] in ['\'', '"']) \
                 or ' ' in value \
                 or '\\' in value \
                 or '~' in value \
@@ -217,15 +219,22 @@ def normalize_pattern(value, verbose=False):
                 or "%" in value \
                 or '#' in value \
                 or '?' in value:
-            value = _REGEX
-        elif '/' in value:
+            return _REGEX
+        if '/' in value:
             if not (('u-' in value and len(value) <= 12) or
                     ('g-' in value and len(value) <= 12) or
                     ('o-' in value and len(value) <= 12) or
                     value[1:].isdigit() or
                     '+' in value or
                     '=' in value):
-                value = _REGEX
+                return _REGEX
+    for i, c in enumerate(value):
+        if c == ".":
+            if i == 0 or i == len(value)-1 \
+                or not value[i-1].isdigit() \
+                or not value[i+1].isdigit():
+                return _REGEX
+
     return value
 
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
@@ -523,7 +532,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                                              word="",
                                                              parts=[],
                                                              pos=(-1,-1))
-                                # print(new_command_node)
                                 new_command_node.parts = []
                                 subcommand_added = False
                                 for j in xrange(ind, len(node.parts)):
@@ -537,7 +545,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                         subcommand_added = True
                                         break
                                     else:
-                                        # print(node.parts[j])
                                         new_command_node.parts.\
                                             append(node.parts[j])
                                 if not subcommand_added:
@@ -728,26 +735,31 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     has_repl_str = True
                     repl_str = flag.get_argument()
                     assert(repl_str is not None)
-                    if repl_str != "{}":
+                    if repl_str.value != "{}":
                         utility = head_command.get_subcommand()
                         assert(utility is not None)
-                        utility.normalize_repl_str(repl_str, '{}')
+                        utility.normalize_repl_str(repl_str.value, '{}')
+                        repl_str.value = "{}"
+                        repl_str.arg_type = "ReservedWord"
             # add a replace str if not present
             if not has_repl_str:
                 utility = head_command.get_subcommand()
                 assert(utility is not None)
-                for i in xrange(head_command.get_num_of_children()-1):
-                    if head_command.children[i+1].is_headcommand:
+                for i in xrange(head_command.get_num_of_children()):
+                    if head_command.children[i].is_headcommand():
                         repl_str_flag_node = FlagNode("-I")
                         repl_str_node = ArgumentNode("{}", "ReservedWord")
+                        repl_str_node2 = ArgumentNode("{}", "ReservedWord")
+                        make_parent_child(repl_str_flag_node, repl_str_node)
+
                         head_command.children.insert(i, repl_str_flag_node)
                         repl_str_flag_node.parent = head_command
-                        repl_str_flag_node.lsb = head_command.children[i]
-                        head_command.children[i].rsb = repl_str_flag_node
-                        head_command.children.insert(i+1, repl_str_node)
-                        repl_str_node.parent = head_command
-                        make_sibling(repl_str_flag_node, repl_str_node)
-                        repl_str_node.rsb = head_command.children[i+2]
+                        repl_str_flag_node.lsb = head_command.children[i-1]
+                        head_command.children[i-1].rsb = repl_str_flag_node
+
+                        repl_str_node2.parent = head_command
+                        repl_str_node2.rsb = head_command.get_right_child()
+                        head_command.children.append(repl_str_node2)
                         break
 
 
@@ -1142,8 +1154,9 @@ def test_tokenization():
 
     for cmd in i_f.readlines():
         cmd = cmd.strip()
-        cmd = ' '.join(to_tokens(normalize_ast(cmd, normalize_digits=False,
-                                     normalize_long_pattern=False)))
+        cmd = ' '.join(to_tokens(normalize_ast(cmd,
+                            normalize_digits=False,
+                            normalize_long_pattern=False)))
         # str = ''
         # for token in tokenizer.split(cmd):
         #     str += cmd + ' '

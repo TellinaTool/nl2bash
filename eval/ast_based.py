@@ -71,7 +71,8 @@ def get_rewrite_templates(temps, db):
 def get_rewrites(asts, db):
     rewrites = set()
     for ast in asts:
-        rewrites |= db.get_rewrites(ast)
+        if ast is not None:
+            rewrites |= db.get_rewrites(ast)
     return rewrites
 
 def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):

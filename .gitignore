@@ -30,6 +30,7 @@ __pycache__
 
 # Database file
 *.db
+*.txt
 
 # User-specific stuff:
 baselines/man-parser/.idea/*

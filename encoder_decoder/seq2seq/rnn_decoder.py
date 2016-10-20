@@ -28,7 +28,12 @@ class RNNDecoder(decoder.Decoder):
             decoder_cell, decoder_scope = self.decoder_cell()
             state = encoder_state
             outputs = []
-            attn_masks = []
+
+            # prepare attention masks
+            if self.use_attention:
+                batch_size = tf.shape(attention_states)[0]
+                attn_length = tf.shape(attention_states)[1]
+                attn_masks = tf.zeros([batch_size, 0, attn_length])
 
             # applying cell wrappers: ["attention", "beam"]
             if self.decoding_algorithm == "beam_search":
@@ -41,23 +46,34 @@ class RNNDecoder(decoder.Decoder):
                                                        self.batch_size,
                                                        self.beam_size,
                                                        len(decoder_inputs),
-                                                       self.use_attention)
+                                                       self.use_attention,
+                                                       self.alpha)
                 state = beam_decoder.wrap_state(state, self.output_projection)
                 if self.use_attention:
                     attention_states = beam_decoder.wrap_input(attention_states)
-                    encoder_attn_masks = [beam_decoder.wrap_input(encoder_attn_mask)
-                                      for encoder_attn_mask in encoder_attn_masks]
+                    attn_masks = tf.tile(attn_masks, [self.beam_size, 1, 1])
+                    encoder_attn_masks = [
+                        tf.expand_dims(beam_decoder.wrap_input(encoder_attn_mask), 1)
+                        for encoder_attn_mask in encoder_attn_masks]
+                    encoder_attn_masks = tf.concat(1, encoder_attn_masks)
                     decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
                                                             attention_states,
                                                             encoder_attn_masks,
+                                                            self.attention_input_keep,
+                                                            self.attention_output_keep,
                                                             num_heads,
                                                             reuse_variables)
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
             elif self.decoding_algorithm == "greedy":
                 if self.use_attention:
+                    encoder_attn_masks = [tf.expand_dims(encoder_attn_mask, 1)
+                                          for encoder_attn_mask in encoder_attn_masks]
+                    encoder_attn_masks = tf.concat(1, encoder_attn_masks)
                     decoder_cell = decoder.AttentionCellWrapper(decoder_cell,
                                                             attention_states,
                                                             encoder_attn_masks,
+                                                            self.attention_input_keep,
+                                                            self.attention_output_keep,
                                                             num_heads,
                                                             reuse_variables)
                 past_output_symbols = tf.constant(data_utils.ROOT_ID,
@@ -66,21 +82,9 @@ class RNNDecoder(decoder.Decoder):
                 past_output_logits = tf.constant(0, shape=[self.batch_size],
                                                  dtype=tf.float32)
 
-            # initial attention state
-            if self.use_attention:
-                batch_size = tf.shape(attention_states)[0]
-                attn_dim = tf.shape(attention_states)[2]
-                batch_attn_size = tf.pack([batch_size, attn_dim])
-                attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
-                                      for _ in xrange(num_heads)])
-                if initial_state_attention:
-                    attns, _ = decoder_cell.attention(encoder_state)
-
             for i, input in enumerate(decoder_inputs):
                 if self.decoding_algorithm == "beam_search":
                     input = beam_decoder.wrap_input(input)
-                    if self.use_attention:
-                        attns = beam_decoder.wrap_input(attns)
                
                 if i > 0:
                     scope.reuse_variables()
@@ -108,16 +112,12 @@ class RNNDecoder(decoder.Decoder):
                 input_embedding = tf.nn.embedding_lookup(embeddings, input)
 
                 if self.use_attention:
-                    output, state, attns, attn_mask = \
-                        decoder_cell(input_embedding, state, attns, scope=decoder_scope)
-                    attn_masks.append(tf.expand_dims(attn_mask, 1))
+                    output, state, attn_masks = \
+                        decoder_cell(input_embedding, state, attn_masks, scope=decoder_scope)
                 else:
                     output, state = decoder_cell(input_embedding, state, scope=decoder_scope)
                 # record output state to compute the loss.
                 outputs.append(output)
-
-        if self.use_attention:
-             attn_masks = tf.concat(1, attn_masks)
 
         # Beam-search output
         if self.decoding_algorithm == "beam_search":
@@ -141,6 +141,10 @@ class RNNDecoder(decoder.Decoder):
             top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
                             for top_k_logit in top_k_logits]
             if self.use_attention:
+                attn_masks = tf.reshape(attn_masks, [self.batch_size,
+                                                 self.beam_size,
+                                                 len(decoder_inputs),
+                                                 attention_states.get_shape()[1].value])
                 return top_k_outputs, top_k_logits, outputs, state, attn_masks
             else:
                 return top_k_outputs, top_k_logits, outputs, state

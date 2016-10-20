@@ -8,6 +8,7 @@ Domain-specific natural Language and bash command tokenizer.
 # builtin
 from __future__ import print_function
 
+import collections
 import re
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "data"))
@@ -16,8 +17,10 @@ import normalizer
 import gazetteer
 import spellcheck.spell_check as spc
 
-from nltk.stem.wordnet import WordNetLemmatizer
-lmtzr = WordNetLemmatizer()
+# from nltk.stem.wordnet import WordNetLemmatizer
+# lmtzr = WordNetLemmatizer()
+from nltk.stem import SnowballStemmer
+stemmer = SnowballStemmer("english")
 
 # Regular expressions used to tokenize an English sentence.
 _WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
@@ -27,6 +30,11 @@ _SPACE = b"<SPACE>"
 
 def is_english_word(word):
     """Check if a token is normal English word."""
+    if any(x.isalpha() for x in word):
+        if word[-1].isdigit():
+            return False
+    if word.isalpha() and any(x.isupper() for x in word):
+        return False
     return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
 
 def is_stopword(w):
@@ -51,6 +59,10 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                     normalize_long_pattern=True, lemmatization=True,
                     remove_stop_words=True):
     """Very basic tokenizer: used for English tokenization."""
+
+    # remove content in parentheses
+    sentence = re.sub(r'\([^)]*\)', '', sentence)
+
     try:
         sentence = sentence.replace("“", '"')
         sentence = sentence.replace("”", '"')
@@ -90,15 +102,18 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     sentence = re.sub('\'d', ' \'d', sentence)
     sentence = re.sub('\'t', ' \'t', sentence)
 
+    sentence = re.sub("^[T|t]o ", '', sentence)
+
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
+
+    # entity_dict = collections.defaultdict(int)
 
     normalized_words = []
     for i in xrange(len(words)):
         word = words[i].strip()
-
         # remove unnecessary upper cases
         if lower_case:
-            if len(word) > 1 and word[0].isupper() and word[1:].islower():
+            if i == 0 and word[0].isupper() and len(word) > 1 and word[1:].islower():
                 word = word.lower()
 
         # spelling correction
@@ -107,10 +122,6 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             word = spc.correction(word)
             if word != old_w:
                 print("spell correction: {} -> {}".format(old_w, word))
-
-        # lemmatization
-        if lemmatization:
-            word = lmtzr.lemmatize(word)
 
         # remove English stopwords
         if remove_stop_words:
@@ -121,7 +132,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         if word in gazetteer.word2num:
             word = str(gazetteer.word2num[word])
 
-        # normalize regular expressions
+        # quotation recovery
         if not is_english_word(word):
             # msg = word + ' -> '
             if not word.startswith('"'):
@@ -137,9 +148,24 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         word = re.sub(normalizer._DIGIT_RE, normalizer._NUM, word) \
             if normalize_digits and not word.startswith("-") else word
 
+        # lemmatization
+        if lemmatization:
+            word = stemmer.stem(word)
+
+        # if word == normalizer._REGEX \
+        #         or word == normalizer._NUM\
+        #         or word == normalizer._PARAMETER:
+        #     root = word
+        #     word += str(entity_dict[root])
+        #     entity_dict[root] += 1
+
         # remove empty words
         if not word.strip():
             continue
+
+        # maintain special tokens
+        if word.startswith('_'):
+            word = word.upper()
 
         normalized_words.append(word)
 
@@ -246,13 +272,10 @@ def test_bash_parser():
             pretty_print(norm_tree, 0)
             print("Pruned AST:")
             pretty_print(pruned_tree, 0)
-            # print(to_command(norm_tree))
             search_history = ast2list(norm_tree, 'dfs', list=[])
             for state in search_history:
                 print(state)
             tree = list2ast(search_history + ['<PAD>'])
-            # pretty_print(tree, 0)
-            # print(to_template(tree, arg_type_only=False))
             print()
             print("Command Template (flags in alphabetical order):")
             print(ast2template(norm_tree))

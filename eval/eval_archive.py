@@ -41,6 +41,7 @@ class DBConnection(object):
     # --- Prediction ---
     def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):
         nl = unicode(nl)
+        pred_cmd = unicode(pred_cmd)
         c = self.cursor
         if update_mode and self.exist_prediction(model, nl):
             c.execute("UPDATE Output SET pred_cmd = ? score = ? WHERE model = ? AND nl = ?",
@@ -62,6 +63,7 @@ class DBConnection(object):
 
     def exist_score(self, model, nl, pred_cmd):
         nl = unicode(nl)
+        pred_cmd = unicode(pred_cmd)
         c = self.cursor
         for _ in c.execute("SELECT 1 FROM Output WHERE model = ? AND nl = ? AND pred_cmd = ?",
                            (model, nl, pred_cmd)):

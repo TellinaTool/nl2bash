@@ -7,110 +7,107 @@ Some manual evaluation correction.
 
 correct_temp_pairs = [
     (
-        "Find all .c and .h files in the current directory tree and search them for \"expr\"\n",
-        "find -name Pattern File | xargs grep -r Pattern"
+        "search for a specific word in all the hidden files in the entire file system and display the file name along "
+        "with the matched line\n",
+        "find -exec grep -H Pattern {} \; -name Pattern File"
     ),
     (
-        "Search the current directory tree for files containing \"sh\" in their names\n",
-        "find -name Pattern File"
+        "create a tar ball of all pdf files in current folder\n",
+        "find -name Pattern -print File | xargs -I {} tar -f File -r -v {}"
     ),
     (
-        "display all the regular files in the folder \"$(FOLDER)\" which are modified in the last "
-        "$(RETENTION)*24 hours and excluding hidden files\n",
-        "find File -type Unknown -mtime Time ! -name Pattern"
-    ),
-    (
-        "To list the number of directories in the `/usr/share' directory tree\n",
-        "find /usr/share -type d | wc -l"
-    ),
-    (
-        "search for a file in current folder excluding the search in the folder "
-        "./ignored_directory\n",
-        "find \\( -path File -prune -or -print \\) File"
-    ),
-    (
-        "Delete files with inode number specified by [inode-number] under current directory\n",
-        "find -exec ls -l {} \; -name Pattern -type d File"
-    ),
-    (
-        "find all fonts which belong to a specific user\n",
-        "find -print -user Pattern File"
-    ),
-    (
-        "Remove all Thumbs.db files from the current directory tree\n",
-        "find -name Pattern File | xargs rm -f"
+        "start from current directory, skip the directory src/emacs and print it then skip all files and directories "
+        "under it, and print the names of the other files found\n",
+        "find \( -path File -prune -or -type f \) -print File"
     ),
     (
         "find all files in a folder that have a specific word in their name\n",
-        "find -name Pattern -print -type f File"
+        "find -name Pattern -print File"
     ),
     (
-        "search for directories in the folder \"test\" which end with 5 digits using regular "
-        "expressions\n",
-        "find -regex Pattern -type d File"
+        "Remove files in the current directory tree modified more than 31 days ago recursively\n",
+        "find -exec rm {} \; -mtime Time File"
     ),
     (
-        "Search the current directory and its sub-directories for any file that has \"bsd\" "
-        "somewhere in its name.\n",
-        "find -name Pattern File"
+        "dispaly a long listig of all the files in the current folder which are bigger than 100KB\n",
+        "find -exec ls -l {} \; -size Size File"
     ),
     (
-        "list all CSS files (and directories ending with “.css”) under the current directory\n",
-        "find -ls -name Pattern File"
+        "display all the files in the kat folder\n",
+        "find File"
     ),
     (
-        "find  file which case-insensitive name is too in currect directory\n",
-        "find -path File File"
+        "display all sqlite files in the current directory along with their timestamp\n",
+        "find -printf Pattern File"
     ),
     (
-        "Find files under current directory that contains the string '/bin/ksh'\n",
-        "find -exec grep Pattern {} \; -print -type f File"
+        "display all the regular/normal files in the folder /path/ which have not been modified today ( from day "
+        "start ie, 00:00 )\n",
+        "find -mtime Time -type f File"
     ),
     (
-        "find for a word in all the regular files in the current directory\n",
-        "find -type f File | xargs grep -F Pattern"
+        "find the largest file in the current directory and sub directories\n",
+        "find -maxdepth Number -printf Pattern -type f File | sort -n -r | head -n Number"
     ),
     (
-        "Find all files, starting from / but ignoring removable media, whose names end with "
-        "\".rpm\"\n",
-        "find ! -name Pattern File"
+        "find all occurences of a file in the file system which belong to the user root\n",
+        "find -print -user Pattern File"
     ),
     (
-        "search for a file in current folder excluding those that are present in a specific path\n",
-        "find \\( -path File -prune -or -name Pattern \\) -print File"
+        "Remove all broken symbolic links in /usr/ports/packages\n",
+        "find -type l -xtype l File | xargs -I {} rm {}"
     ),
     (
-        "Find files with 777 permissions and change them to 755\n",
-        "find -exec chmod Unknown {} \; -perm Permission -type f File"
-    ),
-    (
-        "Find all files under and below the current working directory with the word California in "
-        "the file, and count the number of lines in the output\n",
-        "find -exec grep File Pattern {} \; -type f File | wc -l"
-    ),
-    (
-        "Find the top 5 biggest files\n",
-        "find -exec ls -s {} \; -type f File | sort -n -r | head -n Number"
-    ),
-    (
-        "remove all the files in current folder which have the extension \"DS_Store\"\n",
-        "find -exec rm -f {} \; -name Pattern -type f File"
-    ),
-    (
-        "Move all Emacs backup files from the current directory tree to ~/backups/\n",
-        "find -name Pattern File | xargs -I Pattern mv File {}"
+        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
+        "find -type l -xtype l File | xargs -I {} rm {}"
     ),
     (
         "Return a list of files newer than file poop\n",
-        "find -newer File -print File"
+        "find -exec ls -l {} \; -newer File File"
     ),
     (
-        "find all files in the file system whose size is bigger than 3GB\n",
-        "find -size Size -type f File"
+        "Find files that are 0 bytes in size in the current directory and remove them\n",
+        "find -exec rm {} \; -size Size File"
     ),
     (
-        "List all .svn files/directories under current directory\n",
-        "find -name Pattern File | xargs ls -l"
+        "Find files that are 0 bytes in size in the current directory and remove them\n",
+        "find -print -size Size File | xargs -I {} rm {}"
+    ),
+    (
+        "Find all *.texi files in /usr/local/doc\n",
+        "find -iname Pattern -type f File"
+    ),
+    (
+        "Delete files containing whitespaces without recursion\n",
+        "find -exec rm -f {} \; -name Pattern -type f File"
+    ),
+    (
+        "Remove files in the current directory tree modified more than 31 days ago recursively\n",
+        "find -exec rm {} \; -mtime Time File"
+    ),
+    (
+        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
+        "find -exec rm {} \; -xtype l File"
+    ),
+    (
+        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
+        "find -exec rm {} \; -type l -xtype l File"
+    ),
+    (
+        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
+        "find -print0 -xtype l File | xargs -0 -I {} rm {}"
+    ),
+    (
+        "Archive all *html files using tar.\n",
+        "find -name Pattern -print0 File | xargs -0 -I {} tar -f File -u {}"
+    ),
+    (
+        "create a tar ball of all pdf files in current folder\n",
+        "find -name Pattern -print0 File | xargs -0 -I {} tar -f File -u {}"
+    ),
+    (
+        "create a tar ball of all pdf files in current folder\n",
+        "find -name Pattern -print0 File | xargs -0 -I {} tar -f File -r -v {}"
     )]
 
 error_temp_pairs = [
@@ -146,6 +143,106 @@ error_temp_pairs = [
     (
         "find all '*.c' files under $HOME directory which context contains sprintf\n",
         "find -exec grep -H File Pattern {} \; -name Pattern -type f File"
+    ),
+    (
+        "change the ownership of all directories in the current folder\n",
+        "find -exec chmod Unknown {} \; -type d File"
+    ),
+    (
+        "find foo, Foo, FOo, FOO, etc.\n",
+        "find -iname Pattern -type f File File"
+    ),
+    (
+        "Delete all files in the \"${S}/bundled-libs\" folder except \"libbass.so\"\n",
+        "find -delete \( -name Pattern -or -name Pattern -or -name Pattern \) -type f File"
+    ),
+    (
+        "Find files that are 0 bytes in size in the current directory and remove them\n",
+        "find -exec rm {} \; -size Size File"
+    ),
+    (
+        "force delete all the directories in a folder which  have a specific name\n",
+        "find -exec rm -f {} \; -name Pattern -type d File"
+    ),
+    (
+        "copy the file header.shtml to each directory under dir1, dir2, dir3, or dir4\n",
+        "find -exec cp File {} \; -name Pattern -type f File"
+    ),
+    (
+        "Find PHP files with abstract classes\n",
+        "find -iname Pattern File"
+    ),
+    (
+        "display all the regular files in the folder \"$(FOLDER)\" which are modified "
+        "in the last $(RETENTION)*24 hours and excluding hidden files\n",
+        "find ! -path File -mtime Time -type f File"
+    ),
+    (
+        "search for a specific word in all the hidden files in the entire file system and display "
+        "the file name along with the matched line\n",
+        "find -name Pattern -type f File | xargs -I {} grep Pattern {}"
+    ),
+    (
+        "Find all files and directories in the current directory tree with \"linkin park\" in " \
+        "their names and copy them to /Users/tommye/Desktop/LP\n",
+        "find -name Pattern -print0 File | xargs -0 -I {} cp File {}"
+    ),
+    (
+        "display the top 20 biggest files in the current folder which are present in the same partition as that of "
+        "the current folder\n",
+        "find -printf Pattern -type f File | sort -n -r | head -n Number"
+    ),
+    (
+        "Find all *.tex regular files in maximum 2 levels down the current directory\n",
+        "find -maxdepth Number -type f File"
+    ),
+    (
+        "display all the regular files in the current folder which dont not have the permission 777\n",
+        "find -perm Permission -type f File"
+    ),
+    (
+        "find any files in the current directory that begin with a number\n",
+        "find -name Pattern File"
+    ),
+    (
+        "find  directory which case-insensitive name is too in currect directory\n",
+        "find -name Pattern -type d File"
+    ),
+    (
+        "find  directory which case-insensitive name is too in currect directory\n",
+        "find -name Pattern -print -type d File"
+    ),
+    (
+        "find file which case-insensitive name is foo in current directory.\n",
+        "find -name Pattern File"
+    ),
+    (
+        "Remove all \"work\" directories residing in /usr/ports and below\n",
+        "find -exec rm {} \; -name Pattern -type d File"
+    ),
+    (
+        "Remove all \"work\" directories residing in /usr/ports and below\n",
+        "find -exec rm {} \; -name Pattern -type d File"
+    ),
+    (
+        "List root's regular files with permissions 4000\n",
+        "find -exec ls -l {} \; -perm Permission -print -type f File"
+    ),
+    (
+        "display all sqlite files in the current directory along with their timestamp\n",
+        "find -printf Pattern File"
+    ),
+    (
+        "Find .gif and .png image files in ~/Desktop and move them to the ~/Pictures directory.\n",
+        "find -exec mv File {} \; -name Pattern File"
+    ),
+    (
+        "display all the files in the current directory excluding the paths \"targert\", \"tools\", \"git\"\n",
+        "find \( -path File -prune -or -print \) File"
+    ),
+    (
+        "Delete all .svn files/directories under current directory\n",
+        "find -exec rm {} \; -name Pattern File"
     )]
 
 correct_str_pairs = [

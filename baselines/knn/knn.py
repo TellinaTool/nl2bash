@@ -31,9 +31,12 @@ class KNNModel(object):
         self.nl_vec_to_cmd_vec = nl_vec_to_cmd_vec
 
     def test(self, test_vec, k):
-        nl, score = self.find_k_nearest_neighbor(test_vec, self.nl_vec_list, k)[0]
-        cmd = self.nl_vec_to_cmd_vec[str(nl)]
-        return nl, cmd, score
+        top_knns = self.find_k_nearest_neighbor(test_vec, self.nl_vec_list, k)
+        top_k_results = []
+        for nl, score in top_knns:
+            cmd = self.nl_vec_to_cmd_vec[str(nl)]
+            top_k_results.append((nl, cmd, score))
+        return top_k_results
 
     # given a token, return idf
     def get_idf(self, k):

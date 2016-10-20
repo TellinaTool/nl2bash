@@ -21,15 +21,19 @@ from eval_archive import DBConnection
 
 def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
     num_top1_correct_temp = 0.0
+    num_top3_correct_temp = 0.0
     num_top5_correct_temp = 0.0
     num_top10_correct_temp = 0.0
     total_top1_temp_dist = 0.0
+    total_top3_temp_dist = 0.0
     total_top5_temp_dist = 0.0
     total_top10_temp_dist = 0.0
     num_top1_correct = 0.0
+    num_top3_correct = 0.0
     num_top5_correct = 0.0
     num_top10_correct = 0.0
     total_top1_dist = 0.0
+    total_top3_dist = 0.0
     total_top5_dist = 0.0
     total_top10_dist = 0.0
     num_eval = 0
@@ -57,88 +61,95 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                     print("GT Command {}: ".format(j+1) + cm_strs[j].strip())
             num_eval += 1
 
-            top1_correct_temp, top5_correct_temp, top10_correct_temp = False, False, False
-            top1_correct, top5_correct, top10_correct = False, False, False
+            top1_correct_temp, top3_correct_temp, top5_correct_temp, top10_correct_temp = \
+                False, False, False, False
+            top1_correct, top3_correct, top5_correct, top10_correct = \
+                False, False, False, False
+
             top1_temp_dist = sys.maxint
+            top3_temp_dist = sys.maxint
             top5_temp_dist = sys.maxint
             top10_temp_dist = sys.maxint
             top1_dist = sys.maxint
+            top3_dist = sys.maxint
             top5_dist = sys.maxint
             top10_dist = sys.maxint
 
             for i in xrange(len(predictions)):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
+                pred_temp = data_tools.ast2template(tree, loose_constraints=True)
                 # evaluation ignoring flag orders
                 min_temp_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=True)
                 min_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=False)
-                print("min_temp_dist = {}".format(min_temp_dist))
-                print("min_dist = {}".format(min_dist))
-                if i < 1:
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
+
+                if ast_based.one_match(gt_trees, tree, ignore_arg_value=True) \
+                        or db.get_temp_judgement((nl_str, pred_temp)):
+                    if i < 1:
                         top1_correct_temp = True
+                    if i < 3:
+                        top3_correct_temp = True
+                    if i < 5:
                         top5_correct_temp = True
+                    if i < 10:
                         top10_correct_temp = True
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
+                if ast_based.one_match(gt_trees, tree, ignore_arg_value=False) \
+                        or db.get_str_judgement((nl_str, pred_cmd)):
+                    if i < 1:
                         top1_correct = True
+                    if i < 3:
+                        top3_correct = True
+                    if i < 5:
                         top5_correct = True
+                    if i < 10:
                         top10_correct = True
+                if i < 1:
                     if min_temp_dist < top1_temp_dist:
                         top1_temp_dist = min_temp_dist
-                    if min_temp_dist < top5_temp_dist:
-                        top5_temp_dist = min_temp_dist
-                    if min_temp_dist < top10_temp_dist:
-                        top10_temp_dist = min_temp_dist
                     if min_dist < top1_dist:
                         top1_dist = min_dist
-                    if min_dist < top5_dist:
-                        top5_dist = min_dist
-                    if min_dist < top10_dist:
-                        top10_dist = min_dist
-                elif i < 5:
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
-                        top5_correct_temp = True
-                        top10_correct_temp = True
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
-                        top5_correct = True
-                        top10_correct = True
+                if i < 3:
+                    if min_temp_dist < top3_temp_dist:
+                        top3_temp_dist = min_temp_dist
+                    if min_dist < top3_dist:
+                        top3_dist = min_dist
+                if i < 5:
                     if min_temp_dist < top5_temp_dist:
                         top5_temp_dist = min_temp_dist
-                    if min_temp_dist < top10_temp_dist:
-                        top10_temp_dist = min_temp_dist
                     if min_dist < top5_dist:
                         top5_dist = min_dist
-                    if min_dist < top10_dist:
-                        top10_dist = min_dist
-                elif i < 10:
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
-                        top10_correct_temp = True
-                    if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
-                        top10_correct = True
+                if i < 10:
                     if min_temp_dist < top10_temp_dist:
                         top10_temp_dist = min_temp_dist
                     if min_dist < top10_dist:
                         top10_dist = min_dist
                 if verbose:
                     print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
-            print()
+            if verbose:
+                print()
             if top1_correct_temp:
                 num_top1_correct_temp += 1
+            if top3_correct_temp:
+                num_top3_correct_temp += 1
             if top5_correct_temp:
                 num_top5_correct_temp += 1
             if top10_correct_temp:
                 num_top10_correct_temp += 1
             if top1_correct:
                 num_top1_correct += 1
+            if top3_correct:
+                num_top3_correct += 1
             if top5_correct:
                 num_top5_correct += 1
             if top10_correct:
                 num_top10_correct += 1
 
             total_top1_temp_dist += top1_temp_dist
+            total_top3_temp_dist += top3_temp_dist
             total_top5_temp_dist += top5_temp_dist
             total_top10_temp_dist += top10_temp_dist
             total_top1_dist += top1_dist
+            total_top3_dist += top3_dist
             total_top5_dist += top5_dist
             total_top10_dist += top10_dist
 
@@ -153,6 +164,13 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
     print("Average top 1 Tree Edit Distance (template-only) = %.2f" % avg_top1_temp_dist)
     print("Average top 1 Tree Edit Distance (whole-string) = %.2f" % avg_top1_dist)
     if len(predictions) > 1:
+        print("Top 3 Template Match Score = %.2f" % (num_top3_correct_temp/num_eval))
+        print("Top 3 String Match Score = %.2f" % (num_top3_correct/num_eval))
+        avg_top3_temp_dist = (total_top3_temp_dist + 0.0) / num_eval
+        avg_top3_dist = (total_top3_dist + 0.0) / num_eval
+        print("Average top 3 Tree Edit Distance (template-only) = %.2f" % avg_top3_temp_dist)
+        print("Average top 3 Tree Edit Distance (whole-string) = %.2f" % avg_top3_dist)
+    if len(predictions) > 3:
         print("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval))
         print("Top 5 String Match Score = %.2f" % (num_top5_correct/num_eval))
         avg_top5_temp_dist = (total_top5_temp_dist + 0.0) / num_eval
@@ -168,14 +186,16 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
         print("Average top 10 Tree Edit Distance (whole-string) = %.2f" % avg_top10_dist)
     print()
 
-    return top1_temp_match_score, top1_string_match_score
+    return top1_temp_match_score, top1_string_match_score, avg_top1_temp_dist, avg_top1_dist
 
 
 def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
     num_top1_correct_temp = 0.0
+    num_top3_correct_temp = 0.0
     num_top5_correct_temp = 0.0
     num_top10_correct_temp = 0.0
     num_top1_correct = 0.0
+    num_top3_correct = 0.0
     num_top5_correct = 0.0
     num_top10_correct = 0.0
     num_evaled = 0
@@ -213,7 +233,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
             for j in xrange(len(cm_strs)):
                 print("GT Command %d: " % (j+1) + cm_strs[j].strip())
                 o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
-            for i in xrange(len(predictions[:1])):
+            for i in xrange(len(predictions[:3])):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
                 print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
@@ -243,6 +263,11 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                 if temp_judge:
                     if i < 1:
                         top1_correct_temp = True
+                        top3_correct_temp = True
+                        top5_correct_temp = True
+                        top10_correct_temp = True
+                    elif i < 3:
+                        top3_correct_temp = True
                         top5_correct_temp = True
                         top10_correct_temp = True
                     elif i < 5:
@@ -272,6 +297,11 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                     if str_judge:
                         if i < 1:
                             top1_correct = True
+                            top3_correct = True
+                            top5_correct = True
+                            top10_correct = True
+                        elif i < 3:
+                            top3_correct = True
                             top5_correct = True
                             top10_correct = True
                         elif i < 5:
@@ -291,12 +321,16 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
             num_evaled += 1
             if top1_correct_temp:
                 num_top1_correct_temp += 1
+            if top3_correct_temp:
+                num_top3_correct_temp += 1
             if top5_correct_temp:
                 num_top5_correct_temp += 1
             if top10_correct_temp:
                 num_top10_correct_temp += 1
             if top1_correct:
                 num_top1_correct += 1
+            if top3_correct:
+                num_top3_correct += 1
             if top5_correct:
                 num_top5_correct += 1
             if top10_correct:
@@ -306,7 +340,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
     print("%d examples evaluated" % num_eval)
     print("Top 1 Template Match Score = %.2f" % (num_top1_correct_temp/num_eval))
     print("Top 1 String Match Score = %.2f" % (num_top1_correct/num_eval))
-    if len(predictions) > 1:
+    if len(predictions) > 3:
         print("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval))
         print("Top 5 String Match Score = %.2f" % (num_top5_correct/num_eval))
         print("Top 10 Template Match Score = %.2f" % (num_top10_correct_temp/num_eval))

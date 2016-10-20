@@ -2255,6 +2255,24 @@
                   "commands": [
                      {
                         "type": "flag_option",
+                        "flag_name": "newerBt"
+                     },
+                     {
+                        "type": "argument_option",
+                        "arg_name": "time",
+                        "arg_type": "Time",
+                        "isList": false
+                     }
+                  ]
+               }
+            },
+            {
+               "type": "optional_option",
+               "cmd": {
+                  "type": "compound_options",
+                  "commands": [
+                     {
+                        "type": "flag_option",
                         "flag_name": "newermt"
                      },
                      {
@@ -7218,6 +7236,13 @@
                      "type":"optional_option",
                      "cmd":{
                         "type":"flag_option",
+                        "flag_name":"h"
+                     }
+                  },
+                  {
+                     "type":"optional_option",
+                     "cmd":{
+                        "type":"flag_option",
                         "flag_name":"v"
                      }
                   }
@@ -7258,6 +7283,85 @@
             {
                "type":"argument_option",
                "arg_name":"owner",
+               "arg_type":"Pattern",
+               "isList":false
+            },
+            {
+               "type":"argument_option",
+               "arg_name":"file",
+               "arg_type":"File",
+               "isList":true
+            }
+         ]
+      }
+   },
+   {
+      "type":"command",
+      "name":"chgrp",
+      "option":{
+         "type":"compound_options",
+         "commands":[
+            {
+               "type":"compound_options",
+               "commands":[
+                  {
+                     "type":"optional_option",
+                     "cmd":{
+                        "type":"flag_option",
+                        "flag_name":"f"
+                     }
+                  },
+                  {
+                     "type":"optional_option",
+                     "cmd":{
+                        "type":"flag_option",
+                        "flag_name":"h"
+                     }
+                  },
+                  {
+                     "type":"optional_option",
+                     "cmd":{
+                        "type":"flag_option",
+                        "flag_name":"v"
+                     }
+                  }
+               ]
+            },
+            {
+               "type":"optional_option",
+               "cmd":{
+                  "type":"compound_options",
+                  "commands":[
+                     {
+                        "type":"flag_option",
+                        "flag_name":"R"
+                     },
+                     {
+                        "type":"optional_option",
+                        "cmd":{
+                           "type":"exclusive_options",
+                           "commands":[
+                              {
+                                 "type":"flag_option",
+                                 "flag_name":"H"
+                              },
+                              {
+                                 "type":"flag_option",
+                                 "flag_name":"L"
+                              },
+                              {
+                                 "type":"flag_option",
+                                 "flag_name":"P"
+                              }
+                           ]
+                        }
+                     }
+                  ]
+               }
+            },
+            {
+               "type":"argument_option",
+               "arg_name":"groups",
                "arg_type":"Pattern",
                "isList":false
             },

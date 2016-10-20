@@ -25,7 +25,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["max_gradient_norm"] = FLAGS.max_gradient_norm
     params["batch_size"] = FLAGS.batch_size
     params["num_samples"] = FLAGS.num_samples
-    params["attention_keep"] = FLAGS.attention_keep
+    params["attention_input_keep"] = FLAGS.attention_input_keep
+    params["attention_output_keep"] = FLAGS.attention_output_keep
     params["encoder_input_keep"] = FLAGS.encoder_input_keep
     params["encoder_output_keep"] = FLAGS.encoder_output_keep
     params["decoder_input_keep"] = FLAGS.decoder_input_keep
@@ -41,21 +42,27 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     params["decoding_algorithm"] = FLAGS.decoding_algorithm
     params["beam_size"] = FLAGS.beam_size
+    params["alpha"] = FLAGS.alpha
     params["top_k"] = FLAGS.top_k
 
-    model_subdir, model_sig = get_model_signature(FLAGS)
-    setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
-
     # construct model directory
+    model_subdir, model_sig = get_model_signature(FLAGS)
     params["model_sig"] = model_sig
+
+    if construct_model_dir:
+        setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
+    print("model_dir={}".format(FLAGS.model_dir))
 
     if forward_only:
         params["batch_size"] = 1
-        params["attention_keep"] = 1.0
+        params["attention_input_keep"] = 1.0
+        params["attention_output_keep"] = 1.0
         params["encoder_input_keep"] = 1.0
         params["encoder_output_keep"] = 1.0
         params["decoder_input_keep"] = 1.0
         params["decoder_output_keep"] = 1.0
+    else:
+        params["decoding_algorithm"] = "greedy"
 
     model = model_constructor(params, buckets, forward_only)
 
@@ -73,7 +80,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
             model.saver.restore(session, ckpt.model_checkpoint_path)
     else:
         if not os.path.exists(FLAGS.model_dir):
-            print("Making train dir {}".format(FLAGS.model_dir))
+            print("Making model_dir...")
             os.mkdir(FLAGS.model_dir)
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
@@ -87,6 +94,8 @@ def get_model_signature(FLAGS):
     model_subdir += '-{}'.format(FLAGS.rnn_cell)
     if FLAGS.use_attention:
         model_subdir += '-attention'
+        model_subdir += '-{}'.format(FLAGS.attention_input_keep)
+        model_subdir += '-{}'.format(FLAGS.attention_output_keep)
     model_subdir += '-{}'.format(FLAGS.batch_size)
     model_subdir += '-{}'.format(FLAGS.encoder_input_keep)
     model_subdir += '-{}'.format(FLAGS.encoder_output_keep)
@@ -244,8 +253,12 @@ class NNModel(object):
         return self.hyperparams["batch_size"]
 
     @property
-    def attention_keep(self):
-        return self.hyperparams["attention_keep"]
+    def attention_input_keep(self):
+        return self.hyperparams["attention_input_keep"]
+
+    @property
+    def attention_output_keep(self):
+        return self.hyperparams["attention_output_keep"]
 
     @property
     def encoder_input_keep(self):
@@ -306,6 +319,10 @@ class NNModel(object):
     @property
     def beam_order(self):
         return self.hyperparams["beam_order"]
+
+    @property
+    def alpha(self):
+        return self.hyperparams["alpha"]
 
     @property
     def top_k(self):

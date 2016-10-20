@@ -65,7 +65,8 @@ def define_input_flags():
 
     # learning hyperparameters
     tf.app.flags.DEFINE_boolean("char", False, "Set to True for training character models.")
-    tf.app.flags.DEFINE_boolean("canonical", False, "Set to True for learning with normalized command with canonical option order.")
+    tf.app.flags.DEFINE_boolean("canonical", False, "Set to True for learning with normalized command with "
+                                                    "canonical option order.")
     tf.app.flags.DEFINE_boolean("normalized", False, "Set to True for learning with normalized command.")
     tf.app.flags.DEFINE_string("rnn_cell", "gru", "Type of RNN cell to use.")
     tf.app.flags.DEFINE_string("optimizer", "adam", "Type of numeric optimization algorithm to use.")
@@ -78,8 +79,10 @@ def define_input_flags():
                                 "Batch size to use during training.")
     tf.app.flags.DEFINE_integer("num_samples", 512,
                                 "Number of samples for sampled softmax.")
-    tf.app.flags.DEFINE_float("attention_keep", 1.0,
-                                "Proportion of attention state to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("attention_input_keep", 1.0,
+                              "Proportion of attention input state to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("attention_output_keep", 1.0,
+                                "Proportion of attention hidden state to keep if dropout is used.")
     tf.app.flags.DEFINE_float("encoder_input_keep", 1.0,
                                 "Proportion of input to keep if dropout is used.")
     tf.app.flags.DEFINE_float("encoder_output_keep", 1.0,
@@ -99,4 +102,5 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
     tf.app.flags.DEFINE_integer("beam_size", -1, "Size of beam for beam search.")
     tf.app.flags.DEFINE_integer("beam_order", -1, "Order for beam search.")
-    tf.app.flags.DEFINE_integer("top_k", 3, "Top-k highest-scoring structures to output.")
+    tf.app.flags.DEFINE_float("alpha", 0.5, "Beam search length regularization.")
+    tf.app.flags.DEFINE_integer("top_k", 5, "Top-k highest-scoring structures to output.")

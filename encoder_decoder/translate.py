@@ -56,26 +56,7 @@ elif FLAGS.dataset == "atis":
 
 def create_model(session, forward_only, construct_model_dir=True):
     """
-    :param source_vocab_size: size of the source vocabulary.
-    :param target_vocab_size: size of the target vocabulary.
-    :param max_source_length: maximum length of the source sequence
-        (necessary for static graph construction).
-    :param max_target_length: maximum length of the target sequence
-        (necessary for static graph construction).
-    :param dim: dimension of each layer in the model.
-    :param num_layers: number of layers in the model.
-    :param max_gradient_norm: gradients are clipped to maximally this norm.
-    :param batch_size: the size of the batches used during training or decoding.
-    :param learning_rate: learning rate to start with.
-    :param learning_rate_decay_factor: decay learning rate by this much when needed.
-            not import if the adam optimizer is used.
-    :param input_keep_prob: proportion of input to keep if dropout is used.
-    :param output_keep_prob: proportion of output to keep if dropout is used.
-    :param num_samples: number of samples for sampled softmax.
-
-    :param decoder_topology: topology of the tree rnn decoder.
-    :param decoding_algorithm: decoding algorithm used.
-    :param
+    Refer parse_args.py for model parameter explanations.
     """
     if FLAGS.decoder_topology in ['basic_tree']:
         return graph_utils.create_model(session, FLAGS, Seq2TreeModel, _buckets,
@@ -171,11 +152,10 @@ def train(train_set, dev_set, construct_model_dir=True):
                 previous_dev_losses.append(dev_loss)
 
                 sys.stdout.flush()
-
     return True
 
 
-def decode(construct_model_dir=True, verbose=True):
+def decode(data_set, construct_model_dir=True, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
@@ -183,21 +163,19 @@ def decode(construct_model_dir=True, verbose=True):
                                 construct_model_dir=construct_model_dir)
 
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
-        _, dev_set, _ = load_data()
 
-        decode_tools.decode_set(sess, model, dev_set, rev_nl_vocab, rev_cm_vocab,
+        decode_tools.decode_set(sess, model, data_set, rev_nl_vocab, rev_cm_vocab,
                                                 FLAGS, verbose)
 
 
-def eval(construct_model_dir=True, verbose=True):
+def eval(data_set, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         _, model_sig = graph_utils.get_model_signature(FLAGS)
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
-        _, dev_set, _ = load_data()
 
-        return eval_tools.eval_set(model_sig, dev_set, rev_nl_vocab, FLAGS,
+        return eval_tools.eval_set(model_sig, data_set, rev_nl_vocab, FLAGS,
                                    verbose=verbose)
 
 
@@ -226,14 +204,13 @@ def demo():
 
 
 def train_and_eval(train_set, dev_set):
-    train(train_set, dev_set, FLAGS.num_epochs,
-          construct_model_dir=False)
+    train(train_set, dev_set, construct_model_dir=True)
     tf.reset_default_graph()
-    decode(construct_model_dir=False, verbose=False)
-    temp_match_score, eval_match_score = eval(construct_model_dir=False,
-                                              verbose=False)
+    decode(dev_set, construct_model_dir=False, verbose=False)
+    temp_match_score, _, temp_dist, _ = \
+        eval(dev_set, verbose=False)
     tf.reset_default_graph()
-    return temp_match_score, eval_match_score
+    return temp_match_score, temp_dist
 
 
 def grid_search(train_set, dev_set):
@@ -256,6 +233,7 @@ def grid_search(train_set, dev_set):
     best_hp_set = [-1] * num_hps
     best_seed = -1
     best_temp_match_score = 0.0
+    best_temp_dist = 100
 
     model_root_dir = FLAGS.model_dir
 
@@ -263,40 +241,37 @@ def grid_search(train_set, dev_set):
         row = nest.flatten(row)
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
+        FLAGS.model_dir = model_root_dir
 
         print("Trying parameter set: ")
         for i in xrange(num_hps):
             print("* {}: {}".format(hyperparameters[i], row[i]))
-
-        model_dir = os.path.join(model_root_dir, FLAGS.encoder_topology)
-        model_dir += '-{}'.format(FLAGS.rnn_cell)
-        if FLAGS.use_attention:
-            model_dir += '-attention'
-        model_dir += '-{}'.format(FLAGS.batch_size)
-        model_dir += '-{}'.format(row)
-        setattr(FLAGS, "model_dir", model_dir)
 
         num_trials = 5 if FLAGS.initialization else 1
 
         for t in xrange(num_trials):
             seed = random.getrandbits(32)
             tf.set_random_seed(seed)
-            temp_match_score, eval_match_score = \
+            temp_match_score, temp_dist = \
                 train_and_eval(train_set, dev_set)
             print("Parameter set: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], row[i]))
             print("random seed: {}".format(seed))
             print("template match score = {}".format(temp_match_score))
+            print("template distance = {}".format(temp_dist))
             print("Best parameter set so far: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
             print("Best random seed so far: {}".format(best_seed))
             print("Best template match score so far = {}".format(best_temp_match_score))
-            if temp_match_score > best_temp_match_score:
+            print("Best template distance so far = {}".format(best_temp_dist))
+            # if temp_match_score > best_temp_match_score:
+            if temp_dist < best_temp_dist:
                 best_hp_set = row
                 best_seed = seed
                 best_temp_match_score = temp_match_score
+                best_temp_dist = temp_dist
                 print("☺ New best parameter setting found")
 
     print()
@@ -305,7 +280,8 @@ def grid_search(train_set, dev_set):
     for i in xrange(num_hps):
         print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
     print("Best seed = {}".format(best_seed))
-    print("Best emplate match score = {}".format(best_temp_match_score))
+    print("Best template match score = {}".format(best_temp_match_score))
+    print("Best template distance = {}".format(best_temp_dist))
     print("*****************************")
 
 
@@ -358,12 +334,14 @@ def main(_):
     print("Saving models to {}".format(FLAGS.model_dir))
 
     if FLAGS.eval:
-        eval()
+        _, dev_set, _ = load_data()
+        eval(dev_set)
     elif FLAGS.manual_eval:
-        manual_eval(500)
+        manual_eval(410)
     elif FLAGS.decode:
-        decode()
-        eval()
+        _, dev_set, _ = load_data()
+        decode(dev_set)
+        eval(dev_set)
     elif FLAGS.demo:
         demo()
     elif FLAGS.process_data:

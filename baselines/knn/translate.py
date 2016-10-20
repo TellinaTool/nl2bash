@@ -36,17 +36,20 @@ def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
                 print("English: " + nl_temp)
                 for j in xrange(len(batch_cm_strs)):
                     print("GT Command {}: {}".format(j+1, batch_cm_strs[j].strip()))
-            nn, cmd, score = model.test(nl, 1)
-            nn_str = ' '.join([rev_nl_vocab[i] for i in nn])
-            pred_cmd = ' '.join([rev_cm_vocab[i] for i in cmd])
-            tree = data_tools.bash_parser(pred_cmd)
-            if verbose:
-                print("NN: {}".format(nn_str))
-                print("Prediction: {} ({})".format(pred_cmd, score))
-                print("AST: ")
-                data_tools.pretty_print(tree, 0)
-                print
-            db.add_prediction(model_name, nl_str, pred_cmd, float(score))
+            top_k_results = model.test(nl, 10)
+            for i in xrange(len(top_k_results)):
+                nn, cmd, score = top_k_results[i]
+                nn_str = ' '.join([rev_nl_vocab[i] for i in nn])
+                pred_cmd = ' '.join([rev_cm_vocab[i] for i in cmd])
+                tree = data_tools.bash_parser(pred_cmd)
+                if verbose:
+                    print("NN: {}".format(nn_str))
+                    print("Prediction {}: {} ({})".format(i, pred_cmd, score))
+                    print("AST: ")
+                    data_tools.pretty_print(tree, 0)
+                    print
+                db.add_prediction(model_name, nl_str, pred_cmd, float(score),
+                                  update_mode=False)
             
             num_eval += 1
 

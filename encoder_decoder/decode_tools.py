@@ -132,25 +132,29 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                 elif FLAGS.decoding_algorithm == "beam_search":
                     top_k_predictions = batch_outputs[0]
                     top_k_scores = output_logits[0]
-                    if verbose:
-                        for j in xrange(FLAGS.beam_size):
-                            top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
-                                top_k_predictions[j]
+                    for j in xrange(min(FLAGS.beam_size, 10)):
+                        top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
+                            top_k_predictions[j]
+                        if verbose:
                             print("Prediction {}: {} ({}) ".format(j+1,
                                 top_k_pred_cmd, top_k_scores[j]))
-                            db.add_prediction(model.model_sig, nl_str, top_k_pred_cmd,
-                                              float(top_k_scores[j]), update_mode=False)
-                            # print("AST: ")
-                            # data_tools.pretty_print(top_k_pred_tree, 0)
-                    print()
+                        db.add_prediction(model.model_sig, nl_str, top_k_pred_cmd,
+                                          float(top_k_scores[j]), update_mode=False)
+                        # print("AST: ")
+                        # data_tools.pretty_print(top_k_pred_tree, 0)
+                    if verbose:
+                        print()
                     outputs = top_k_predictions[0][2]
                 else:
                     raise ValueError("Unrecognized decoding algorithm: {}."
                          .format(FLAGS.decoding_algorithm))
 
-                if attn_masks != None:
-                    visualize_attn_masks(attn_masks[0, :, :], nl, outputs,
-                                         rev_nl_vocab, rev_cm_vocab,
+                if attn_masks is not None:
+                    if FLAGS.decoding_algorithm == "greedy":
+                        M = attn_masks[0, :, :]
+                    elif FLAGS.decoding_algorithm == "beam_search":
+                        M = attn_masks[0, 0, :, :]
+                    visualize_attn_masks(M, nl, outputs, rev_nl_vocab, rev_cm_vocab,
                                          os.path.join(FLAGS.model_dir,
                                                       "{}-{}.jpg".format(bucket_id, batch_id)))
 
@@ -216,14 +220,15 @@ def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_p
     nl = [rev_nl_vocab[x] for x in source]
     cm = []
     for i, x in enumerate(target):
+        cm.append(rev_cm_vocab[x])
         if rev_cm_vocab[x] == data_utils._EOS:
             break
-        cm.append(rev_cm_vocab[x])
+
 
     plt.clf()
     if len(target) == 0:
         i = 0
-    fig = plt.imshow(M[:i, :], interpolation='nearest', cmap=plt.cm.Blues)
+    fig = plt.imshow(M[:i+1, :], interpolation='nearest', cmap=plt.cm.Blues)
 
     plt.xticks(xrange(source_length),
                [x.replace("$$", "") for x in reversed(nl + [data_utils._PAD] * (source_length - len(nl)))],

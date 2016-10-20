@@ -51,7 +51,9 @@ class DBConnection(object):
         # print("s1: " + s1)
         c = self.cursor
         for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", (s1,)):
-            rewrites.add(rewrite(ast, s2))
+            rw = rewrite(ast, s2)
+            if not rw is None:
+                rewrites.add(rw)
             # print("s2: " + s2)
         return rewrites
 
@@ -84,7 +86,8 @@ def rewrite(ast, temp):
     # Step 2 fills the argument slots in the new AST using the argument
     #        slot from the original AST.
     ast2 = normalizer.normalize_ast(temp)
-    rewrite_fun(ast2)
+    if not ast2 is None:
+        rewrite_fun(ast2)
 
     return ast2
 
@@ -139,7 +142,6 @@ def extract_rewrites(data):
         for nl, cm_temps in sorted(bash_paraphrases.items(),
                                    key=lambda x: len(x[1]), reverse=True):
             if len(cm_temps) >= 2:
-                print(nl)
                 for cm_temp1 in cm_temps:
                     for cm_temp2 in cm_temps:
                         if cm_temp1 == cm_temp2:

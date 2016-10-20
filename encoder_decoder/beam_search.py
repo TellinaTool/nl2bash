@@ -1,5 +1,8 @@
 """
 Beam decoder for tensorflow
+Credit: code adapted from
+https://gist.github.com/nikitakit/6ab61a73b86c50ad88d409bac3c3d09f
+
 Sample usage:
 ```
 beam_decoder = BeamDecoder(NUM_CLASSES, beam_size=10, max_len=MAX_LEN)
@@ -35,7 +38,7 @@ def nest_map(func, nested):
 
 class BeamDecoder(object):
     def __init__(self, num_classes, start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
-                 max_len=20, use_attention=False):
+                 max_len=20, use_attention=False, alpha=1.0):
         """
         num_classes: int. Number of output classes used
         start_token: int.
@@ -44,6 +47,7 @@ class BeamDecoder(object):
         max-len: int or scalar Tensor. If this cell is called recurrently more
             than max_len times in a row, the outputs will not be valid!
         use_attention: if attention is to be used.
+        alpha: parameter used for length normalization.
         """
         self.num_classes = num_classes
         self.start_token = start_token
@@ -52,6 +56,9 @@ class BeamDecoder(object):
         self.beam_size = beam_size
         self.max_len = max_len
         self.use_attention = use_attention
+        self.alpha = alpha
+
+        print("Creating beam search decoder: alpha = {}".format(self.alpha))
 
     @classmethod
     def _tile_along_beam(cls, beam_size, state):
@@ -87,13 +94,15 @@ class BeamDecoder(object):
         return BeamDecoderCellWrapper(cell, output_projection, self.num_classes, self.max_len,
                                       self.start_token, self.stop_token,
                                       self.batch_size, self.beam_size,
-                                      self.use_attention)
+                                      self.use_attention,
+                                      self.alpha)
 
     def wrap_state(self, state, output_projection):
         dummy = BeamDecoderCellWrapper(None, output_projection, self.num_classes, self.max_len,
                                        self.start_token, self.stop_token,
                                        self.batch_size, self.beam_size,
-                                       self.use_attention)
+                                       self.use_attention,
+                                       self.alpha)
         if nest.is_sequence(state):
             batch_size = nest.flatten(state).get_shape()[0].value
             dtype = nest.flatten(state)[0].dtype
@@ -155,7 +164,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.stop_token = stop_token
         self.batch_size = batch_size
         self.beam_size = beam_size
-        self.use_attention=use_attention
+        self.use_attention = use_attention
+        self.alpha = alpha
 
         self.max_len = max_len
 
@@ -181,7 +191,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self._done_mask = tf.tile(self._done_mask, [full_size, 1])
 
 
-    def __call__(self, inputs, state, attns=None, scope=None, alpha=1.05):
+    def __call__(self, inputs, state, attn_masks=None, scope=None):
         (
             past_cand_symbols,  # [batch_size, max_len]
             past_cand_logprobs, # [batch_size]
@@ -200,10 +210,11 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         cell_inputs = inputs
         if self.use_attention:
-            cell_outputs, raw_cell_state, attns, attn_mask = \
-                self.cell(cell_inputs, past_cell_state, attns, scope)
+            cell_outputs, raw_cell_state, attn_masks = \
+                self.cell(cell_inputs, past_cell_state, attn_masks, scope)
         else:
-            cell_outputs, raw_cell_state = self.cell(cell_inputs, past_cell_state, scope)
+            cell_outputs, raw_cell_state = \
+                self.cell(cell_inputs, past_cell_state, scope)
 
         W, b = self.output_projection
 
@@ -219,12 +230,12 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         logprobs = tf.mul(logprobs, zero_done_mask)
 
         # length normalization
-        past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.pow(self.seq_len, alpha))
+        past_beam_acc_logprobs = tf.mul(past_beam_logprobs, tf.pow(self.seq_len, self.alpha))
         logprobs_batched = logprobs + tf.expand_dims(past_beam_acc_logprobs, 1)
         seq_len = tf.expand_dims(self.seq_len, 1) + \
                   tf.mul(tf.ones([full_size, 1]) - stop_mask_2d, 
                          tf.cast(tf.not_equal(self._done_mask, 0), tf.float32))
-        logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, alpha))
+        logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, self.alpha))
         # logprobs_batched = logprobs + tf.expand_dims(past_beam_logprobs, 1)
         logprobs_batched = tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes])
 
@@ -243,6 +254,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         parent_refs = parent_refs + self.parent_refs_offsets
 
         symbols_history = tf.gather(past_beam_symbols, parent_refs)
+        if attn_masks is not None:
+            attn_masks = tf.gather(attn_masks, parent_refs)
         beam_symbols = tf.concat(1, [symbols_history[:,1:], tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]), 
@@ -254,16 +267,15 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         )
 
         # Handling for getting a done token
-        logprobs_done = tf.reshape(logprobs_batched, [-1, self.beam_size, self.num_classes])[:,:,
-                        self.stop_token]
+        logprobs_done = tf.reshape(logprobs_batched,
+                                   [-1, self.beam_size, self.num_classes])[:,:,self.stop_token]
         done_parent_refs = tf.to_int32(tf.argmax(logprobs_done, 1))
         done_parent_refs_offsets = tf.range(batch_size) * self.beam_size
         done_symbols = tf.gather(past_beam_symbols, done_parent_refs + done_parent_refs_offsets)
 
         logprobs_done_max = tf.reduce_max(logprobs_done, 1)
         cand_symbols = tf.select(logprobs_done_max > past_cand_logprobs,
-                                done_symbols,
-                                past_cand_symbols)
+                                done_symbols, past_cand_symbols)
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
 
         if self.use_attention:
@@ -273,7 +285,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 beam_symbols,
                 beam_logprobs,
                 cell_state,
-            ), attns, attn_mask
+            ), attn_masks
         else:
             return cell_outputs, (
                 cand_symbols,
