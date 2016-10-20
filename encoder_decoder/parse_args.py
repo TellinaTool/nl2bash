@@ -59,8 +59,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("data_dir", os.path.join(os.path.dirname(__file__), "data"),
                                "Raw data directory")
     tf.app.flags.DEFINE_string("data_split", "command", "Data split criteria")
-    tf.app.flags.DEFINE_string("model_dir", os.path.join(os.path.dirname(__file__), "model"),
-                               "Directory to save trained models.")
+    tf.app.flags.DEFINE_string("model_dir", "model", "Directory to save trained models.")
     tf.app.flags.DEFINE_boolean("create_fresh_params", False, "Set to force remove previously trained models.")
 
     # learning hyperparameters

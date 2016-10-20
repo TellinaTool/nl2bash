@@ -9,14 +9,14 @@ type
 		TarFormat (tar_format)
 
 constants
-		SEMICOLON \;
+		SEMICOLON ;
 		PLUS +
-		EXCLAMATION \!
-		BRACKETS \{\}
+		EXCLAMATION !
+		BRACKETS {}
 		ACE ACE
-		LB \(
-		RB \)
-		{} \{\}
+		LB (
+		RB )
+		{} {}
 
 PrimitiveCmd :=
 
@@ -27,6 +27,8 @@ PrimitiveCmd :=
 		mv [-f | -i | -n] [-v] source_file target_file
 
 		mv [-f | -i | -n] [-v] source_file ... directory
+
+		mv [-f | -i | -n] [-v] -t directory source_file ...
 
 		sort [-bdfgiMnrckmosStTuz] [file ...]
 				
@@ -50,7 +52,9 @@ PrimitiveCmd :=
 		 
 		tar -x [ -b blocksize] [ -C directory] [ --chroot] [ --exclude pattern] [ -f file] [ -I] [ --include pattern] [ -k] [ --keep-newer-files] [ -l] [ -m] [ --numeric-owner] [ -O] [ -o] [ --options options] [ -P] [ -p] [ -q] [ -S] [ --strip-components count] [ -s pattern] [ -T filename] [ -U] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [pattern ...]
 
-		xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr] [-L number] [-n number [-x]] [-P maxprocs] [-s size] [utility [argument ...]]
+		xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr] [-L number] [-n number [-x]] [-P maxprocs] [-s size] [:command: | string ...]
+
+		xargs [-0prtx] [-E eofstr] [-e [eofstr]] [--eof[=eofstr]] [--null] [-d delimiter] [--delimiter delimiter] [-I replstr] [-i[replacestr]] [--replace[=replstr]] [-l [maxlines]] [-L maxlines] [--max-lines [=maxlines]] [-n maxargs] [--max-args=maxargs] [-s maxchars] [--max-chars=maxchars] [-P maxprocs] [--max-procs=maxprocs] [--process-slot-var=name] [--interactive] [--verbose] [--exit] [--no-run-if-empty] [--arg-file=file] [--show-limits] [--version] [--help] [:command: | string ...]
 
 		sed [-E] [-a] [-l] [-n] command [file ...]
 				
@@ -101,80 +105,232 @@ PrimitiveCmd :=
 find_expression :=
 		-true
 		-false
-		:find_primitive_exp:
-		LB :find_expression: RB
-		-not :find_expression:
+		:find_exp_list:
+		LB :find_expression: RB		
 		:find_expression: -and :find_expression:
 		:find_expression: -or :find_expression:
+		:find_expression: -o :find_expression:
+		-not :find_expression:
 		EXCLAMATION :find_expression:
 
+find_exp_list :=
+		:find_primitive_exp: ...
+
 find_primitive_exp :=
+		:find_primitive_exp_op0:
+		:find_primitive_exp_op1:
+		:find_primitive_exp_op2:
+		:find_primitive_exp_op3:
+		:find_primitive_exp_op4:
+		:find_primitive_exp_op5:
+		:find_primitive_exp_op6:
+		:find_primitive_exp_op7:
+		:find_primitive_exp_op8:
+		:find_primitive_exp_op9:
+		:find_primitive_exp_op10:
+		:find_primitive_exp_op11:
+		:find_primitive_exp_op12:
+		:find_primitive_exp_op13:
+		:find_primitive_exp_op14:
+		:find_primitive_exp_op15:
+		:find_primitive_exp_op16:
+		:find_primitive_exp_op17:
+		:find_primitive_exp_op18:
+		:find_primitive_exp_op19:
+		:find_primitive_exp_op20:
+		:find_primitive_exp_op21:
+		:find_primitive_exp_op22:
+		:find_primitive_exp_op23:
+		:find_primitive_exp_op24:
+		:find_primitive_exp_op25:
+		:find_primitive_exp_op26:
+		:find_primitive_exp_op27:
+		:find_primitive_exp_op28:
+		:find_primitive_exp_op29:
+		:find_primitive_exp_op30:
+		:find_primitive_exp_op31:
+		:find_primitive_exp_op32:
+		:find_primitive_exp_op33:
+		:find_primitive_exp_op34:
+		:find_primitive_exp_op35:
+		:find_primitive_exp_op36:
+		:find_primitive_exp_op37:
+		:find_primitive_exp_op38:
+		:find_primitive_exp_op39:
+		:find_primitive_exp_op40:
+		:find_primitive_exp_op41:
+		:find_primitive_exp_op42:
+		:find_primitive_exp_op43:
+		:find_primitive_exp_op44:
+		:find_primitive_exp_op45:
+		:find_primitive_exp_op46:
+		:find_primitive_exp_op47:
+		:find_primitive_exp_op48:
+		:find_primitive_exp_op49:
+		:find_primitive_exp_op50:
+		:find_primitive_exp_op51:
+		:find_primitive_exp_op52:
+		:find_primitive_exp_op53:
+		:find_primitive_exp_op54:
+		:find_primitive_exp_op55:
+		:find_primitive_exp_op56:
+		:find_primitive_exp_op57:
+		:find_primitive_exp_op58:
+		:find_primitive_exp_op59:
+		:find_primitive_exp_op60:
+		:find_primitive_exp_op61:
+		:find_primitive_exp_op62:
+		:find_primitive_exp_op63:
+		:find_primitive_exp_op64:
+		:find_primitive_exp_op65:
+		:find_primitive_exp_op66:
+		:find_primitive_exp_op67:
+		:find_primitive_exp_op68:
+		:find_primitive_exp_op69:
+		:find_primitive_exp_op70:
+		:find_primitive_exp_op71:
+	
+find_primitive_exp_op0  := 
 		-not findexp
+find_primitive_exp_op1  := 
 		-Bmin nmin
+find_primitive_exp_op2  := 
 		-Bnewer file
+find_primitive_exp_op3  := 
 		-Btime time
+find_primitive_exp_op4  := 
 		-acl
+find_primitive_exp_op5  := 
 		-amin nmin
+find_primitive_exp_op6  := 
 		-anewer file
+find_primitive_exp_op7  := 
 		-atime time
+find_primitive_exp_op8  := 
 		-cmin nmin
+find_primitive_exp_op9  := 
 		-cnewer file
+find_primitive_exp_op10  := 
 		-ctime nmin
+find_primitive_exp_op11  := 
 		-d
+find_primitive_exp_op12  := 
 		-daystart
+find_primitive_exp_op13  := 
 		-delete
+find_primitive_exp_op14  := 
 		-depth
+find_primitive_exp_op15  := 
 		-depth n
-		-empty 
-		-exec :command: SEMICOLON 
-		-execdir :command: SEMICOLON 
+find_primitive_exp_op16  := 
+		-empty
+find_primitive_exp_op17  := 
+		-exec :command: SEMICOLON
+find_primitive_exp_op18  := 
+		-exec :command: PLUS
+find_primitive_exp_op19  := 
+		-execdir :command: SEMICOLON
+find_primitive_exp_op20  := 
+		-execdir :command: PLUS
+find_primitive_exp_op21  := 
 		-flags MINUSflags
+find_primitive_exp_op22  := 
 		-flags PLUSflags
+find_primitive_exp_op23  := 
 		-flags flags
-		-fstype type 
-		-gid gname 
-		-group gname 
+find_primitive_exp_op24  := 
+		-fstype type
+find_primitive_exp_op25  := 
+		-gid gname
+find_primitive_exp_op26  := 
+		-group gname
+find_primitive_exp_op27  := 
 		-ignore_readdir_race
-		-ilname pattern 
-		-ilname pattern 
-		-iname pattern 
-		-inum n 
-		-ipath pattern 
+find_primitive_exp_op28  := 
+		-ilname pattern
+find_primitive_exp_op29  := 
+		-ilname pattern
+find_primitive_exp_op30  := 
+		-iname pattern
+find_primitive_exp_op31  := 
+		-inum n
+find_primitive_exp_op32  := 
+		-ipath pattern
+find_primitive_exp_op33  := 
 		-iregex pattern
+find_primitive_exp_op34  := 
 		-iwholename pattern
-		-links n 
-		-lname pattern 
-		-ls 
-		-maxdepth n 
-		-mindepth n 
-		-mmin n 
+find_primitive_exp_op35  := 
+		-links n
+find_primitive_exp_op36  := 
+		-lname pattern
+find_primitive_exp_op37  := 
+		-ls
+find_primitive_exp_op38  := 
+		-maxdepth n
+find_primitive_exp_op39  := 
+		-mindepth n
+find_primitive_exp_op40  := 
+		-mmin n
+find_primitive_exp_op41  := 
 		-mnewer file
+find_primitive_exp_op42  := 
 		-mount
-		-mtime time 
+find_primitive_exp_op43  := 
+		-mtime time
+find_primitive_exp_op44  := 
 		-name pattern
+find_primitive_exp_op45  := 
 		-newer file
+find_primitive_exp_op46  := 
 		-newerXY file
+find_primitive_exp_op47  := 
 		-nogroup
+find_primitive_exp_op48  := 
 		-noignore_readdir_race
+find_primitive_exp_op49  := 
 		-noleaf
+find_primitive_exp_op50  := 
 		-nouser
-		-ok command SEMICOLON
-		-okdir command SEMICOLON
+find_primitive_exp_op51  := 
+		-ok :command: SEMICOLON
+find_primitive_exp_op52  := 
+		-ok :command: PLUS
+find_primitive_exp_op53  := 
+		-okdir :command: SEMICOLON
+find_primitive_exp_op54  := 
 		-path pattern
+find_primitive_exp_op55  := 
 		-perm permmode
+find_primitive_exp_op56  := 
 		-perm MINUSpermmode
+find_primitive_exp_op57  := 
 		-perm PLUSpermmode
+find_primitive_exp_op58  := 
 		-print
+find_primitive_exp_op59  := 
 		-print0
+find_primitive_exp_op60  := 
 		-printf pattern
+find_primitive_exp_op61  := 
 		-prune
+find_primitive_exp_op62  := 
 		-regex pattern
+find_primitive_exp_op63  := 
 		-samefile name
+find_primitive_exp_op64  := 
 		-size size
+find_primitive_exp_op65  := 
 		-type t
+find_primitive_exp_op66  := 
 		-xtype t
+find_primitive_exp_op67  := 
 		-uid uname
+find_primitive_exp_op68  := 
 		-user uname
+find_primitive_exp_op69  := 
 		-wholename pattern
+find_primitive_exp_op70  := 
 		-xattr
+find_primitive_exp_op71  := 
 		-xattrname name

@@ -12,6 +12,26 @@ import java.util.stream.Collectors;
  */
 public class CmdGrammarGenerator {
 
+    static Set<String> argTypeCollector = new HashSet<>();
+    static Map<String, String> argumentRegex = new HashMap<>();
+    static
+    {
+        argumentRegex.put("arg_Date", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_File", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Unknown", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Date", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_File", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_TarFormat", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Number", "DIGITS \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Constant", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Constant", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Time", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Size", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_Permission", "STRING \n    | '$(' command ')'; \n\n");
+        argumentRegex.put("arg_String", "STRING \n    | '$(' command ')'; \n\n");
+
+    }
+
     /**
      * Generate g4 grammar for given commands
      * @param commands The list of commands to be processed
@@ -26,6 +46,9 @@ public class CmdGrammarGenerator {
 
         String content = "";
 
+        content += "command : primitive_command \n" +
+                "           | primitive_command ('|' primitive_command)*; \n\n";
+
         List<String> commandDef = new ArrayList<>();
         Set<String> nonTerminals = new HashSet<>();
 
@@ -39,7 +62,7 @@ public class CmdGrammarGenerator {
             nonTerminals.addAll(p.b);
         }
 
-        content += "command : ";
+        content += "primitive_command : ";
 
         // generating command non-terminals
         List<String> commandNonTerminal = new ArrayList<>();
@@ -67,7 +90,6 @@ public class CmdGrammarGenerator {
         }
 
         content += "\n";
-
 
         for (Map.Entry<String, List<Cmd.CmdOp>> e : cmdNonTerminals.entrySet()) {
             content += e.getKey() + " : ";
@@ -97,18 +119,25 @@ public class CmdGrammarGenerator {
             content += t + ";" + "\n";
         }
 
-        // definition of terminals
-        String epilogue = "//File : STRING; \n" +
-                "//Permission: STRING; \n" +
-                "//Size: STRING; \n" +
-                "//Time: STRING; \n" +
-                "//Argument: STRING; \n" +
-                "//Utility: STRING; \n" +
-                "//Number: STRING; \n" +
-                "//Pattern: STRING; \n" +
-                "//String : STRING; \n" +
-                "//STRING : ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '.' | '_' | '/' ) + ; \n" +
-                "STRING : ( ~' ' ) + ; \n" +
+
+        String typeDef = "";
+        for (String s : argTypeCollector) {
+            if (argumentRegex.containsKey(s))
+                typeDef += s + " : " + argumentRegex.get(s);
+            else
+                typeDef += s + " : STRING \n    | '$(' command ')'; \n\n";
+        }
+
+        String epilogue =
+                typeDef +
+                "//arg : ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '.' | '_' | '/' ) + ; \n\n" +
+                "arg : STRING \n" +
+                "    | '$(' command ')'; \n\n" +
+                "STRING : (~(' ' | '-'))+ \n" +
+                "       | '\"' (~'\"')+ '\"'\n" +
+                "       |  '\\'' (~'\\'')+ '\\''\n" +
+                "       ;\n\n" +
+                "DIGITS : ('-' | '+')? ( '0' .. '9' | '.' ) +; \n\n" +
                 "WS : [ \\t\\n\\r] + -> skip;";
 
         return prologue + "\n\n" + content + "\n" + epilogue;
@@ -201,7 +230,9 @@ public class CmdGrammarGenerator {
         } else if (option instanceof Cmd.Ar) {
 
             String argTok;
-            String enhancedType =  ((Cmd.Ar) option).arg_type + "=STRING";
+            String enhancedType =  "arg_" + ((Cmd.Ar) option).arg_type;
+
+            argTypeCollector.add(enhancedType);
 
             if (((Cmd.Ar) option).arg_type.equals("Constant"))
                 argTok = "'" + ((Cmd.Ar) option).arg_name + "'";
@@ -261,6 +292,7 @@ public class CmdGrammarGenerator {
             }
 
         } else if (option instanceof Cmd.Opt) {
+
             List<String> emitted  = new ArrayList<>();
 
             Pair<String, List<String>> p = emitGrammar(((Cmd.Opt) option).cmd, ((Cmd.Opt) option).type);
