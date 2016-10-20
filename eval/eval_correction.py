@@ -80,6 +80,34 @@ correct_temp_pairs = [
     (
         "Delete files containing whitespaces without recursion\n",
         "find -exec rm -f {} \; -name Pattern -type f File"
+    ),
+    (
+        "Remove files in the current directory tree modified more than 31 days ago recursively\n",
+        "find -exec rm {} \; -mtime Time File"
+    ),
+    (
+        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
+        "find -exec rm {} \; -xtype l File"
+    ),
+    (
+        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
+        "find -exec rm {} \; -type l -xtype l File"
+    ),
+    (
+        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
+        "find -print0 -xtype l File | xargs -0 -I {} rm {}"
+    ),
+    (
+        "Archive all *html files using tar.\n",
+        "find -name Pattern -print0 File | xargs -0 -I {} tar -f File -u {}"
+    ),
+    (
+        "create a tar ball of all pdf files in current folder\n",
+        "find -name Pattern -print0 File | xargs -0 -I {} tar -f File -u {}"
+    ),
+    (
+        "create a tar ball of all pdf files in current folder\n",
+        "find -name Pattern -print0 File | xargs -0 -I {} tar -f File -r -v {}"
     )]
 
 error_temp_pairs = [
