@@ -254,7 +254,6 @@ public class ManParserInterface {
                                     new Cmd.DescriptionPair(parseSynopsisInstance(optionPart.substring(0, k)), desc.getValue()));
                                 added = true;
                             } catch (ParseException e) {
-                                System.out.println("FUCK: " + e);
                                 continue;
                             }
                         } else if (optionPart.charAt(k) == '[') {

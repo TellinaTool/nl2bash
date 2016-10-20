@@ -4,6 +4,7 @@
 -Bmin n
 -Bnewer file
 -Btime n
+-atime
 -acl
 -amin n
 -anewer file

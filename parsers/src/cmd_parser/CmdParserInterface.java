@@ -17,7 +17,34 @@ public class CmdParserInterface {
 
         CommandsParser parser = new CommandsParser(tokens);
         ParseTree tree = parser.command();
-        return tree.toStringTree(parser);
+        //printParseTree(tree, 0);
+
+
+
+        CmdTreeNode cmdTree = new TreeBuilder(parser).buildCmdTree(tree);
+
+        String s = cmdTree.toCommand();
+        //System.out.println(cmdTree.toCommand());
+        cmdTree.sortChildren();
+        //System.out.println(cmdTree.toCommand());
+        //cmdTree.prettyPrint(0);
+        //System.out.println("=================================");
+
+
+        //return tree.toStringTree(parser);
+        return s + "\n" + cmdTree.toCommand() + "\n";
+    }
+
+    public static void printParseTree(ParseTree t, int indent) {
+
+        String space = "";
+        for (int i = 0; i < indent; i ++)
+            space += "\t";
+
+        System.out.println(space + "[[" + t.getText() + "]]");
+        for (int i = 0; i < t.getChildCount(); i ++) {
+            printParseTree(t.getChild(i), indent + 1);
+        }
     }
 
 }

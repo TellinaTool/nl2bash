@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
  */
 public class CmdGrammarGenerator {
 
+    static Set<String> argTypeCollector = new HashSet<>();
+
     /**
      * Generate g4 grammar for given commands
      * @param commands The list of commands to be processed
@@ -26,6 +28,9 @@ public class CmdGrammarGenerator {
 
         String content = "";
 
+        content += "command : primitive_command \n" +
+                "           | primitive_command ('|' primitive_command)*; \n\n";
+
         List<String> commandDef = new ArrayList<>();
         Set<String> nonTerminals = new HashSet<>();
 
@@ -39,7 +44,7 @@ public class CmdGrammarGenerator {
             nonTerminals.addAll(p.b);
         }
 
-        content += "command : ";
+        content += "primitive_command : ";
 
         // generating command non-terminals
         List<String> commandNonTerminal = new ArrayList<>();
@@ -67,7 +72,6 @@ public class CmdGrammarGenerator {
         }
 
         content += "\n";
-
 
         for (Map.Entry<String, List<Cmd.CmdOp>> e : cmdNonTerminals.entrySet()) {
             content += e.getKey() + " : ";
@@ -97,18 +101,21 @@ public class CmdGrammarGenerator {
             content += t + ";" + "\n";
         }
 
-        // definition of terminals
-        String epilogue = "//File : STRING; \n" +
-                "//Permission: STRING; \n" +
-                "//Size: STRING; \n" +
-                "//Time: STRING; \n" +
-                "//Argument: STRING; \n" +
-                "//Utility: STRING; \n" +
-                "//Number: STRING; \n" +
-                "//Pattern: STRING; \n" +
-                "//String : STRING; \n" +
-                "//STRING : ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '.' | '_' | '/' ) + ; \n" +
-                "STRING : ( ~' ' ) + ; \n" +
+
+        String typeDef = "";
+        for (String s : argTypeCollector) {
+            typeDef += s + " : STRING \n    | '$(' command ')'; \n\n";
+        }
+
+        String epilogue =
+                typeDef +
+                "//arg : ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '.' | '_' | '/' ) + ; \n\n" +
+                "arg : STRING \n" +
+                "    | '$(' command ')'; \n\n" +
+                "STRING : (~(' ' | '-'))+ \n" +
+                "       | '\"' (~'\"')+ '\"'\n" +
+                "       |  '\\'' (~'\\'')+ '\\''\n" +
+                "       ;\n" +
                 "WS : [ \\t\\n\\r] + -> skip;";
 
         return prologue + "\n\n" + content + "\n" + epilogue;
@@ -201,7 +208,9 @@ public class CmdGrammarGenerator {
         } else if (option instanceof Cmd.Ar) {
 
             String argTok;
-            String enhancedType =  ((Cmd.Ar) option).arg_type + "=STRING";
+            String enhancedType =  "arg_" + ((Cmd.Ar) option).arg_type;
+
+            argTypeCollector.add(enhancedType);
 
             if (((Cmd.Ar) option).arg_type.equals("Constant"))
                 argTok = "'" + ((Cmd.Ar) option).arg_name + "'";
@@ -261,6 +270,7 @@ public class CmdGrammarGenerator {
             }
 
         } else if (option instanceof Cmd.Opt) {
+
             List<String> emitted  = new ArrayList<>();
 
             Pair<String, List<String>> p = emitGrammar(((Cmd.Opt) option).cmd, ((Cmd.Opt) option).type);
