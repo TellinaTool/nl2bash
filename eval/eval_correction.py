@@ -52,6 +52,34 @@ correct_temp_pairs = [
     (
         "find all occurences of a file in the file system which belong to the user root\n",
         "find -print -user Pattern File"
+    ),
+    (
+        "Remove all broken symbolic links in /usr/ports/packages\n",
+        "find -type l -xtype l File | xargs -I {} rm {}"
+    ),
+    (
+        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
+        "find -type l -xtype l File | xargs -I {} rm {}"
+    ),
+    (
+        "Return a list of files newer than file poop\n",
+        "find -exec ls -l {} \; -newer File File"
+    ),
+    (
+        "Find files that are 0 bytes in size in the current directory and remove them\n",
+        "find -exec rm {} \; -size Size File"
+    ),
+    (
+        "Find files that are 0 bytes in size in the current directory and remove them\n",
+        "find -print -size Size File | xargs -I {} rm {}"
+    ),
+    (
+        "Find all *.texi files in /usr/local/doc\n",
+        "find -iname Pattern -type f File"
+    ),
+    (
+        "Delete files containing whitespaces without recursion\n",
+        "find -exec rm -f {} \; -name Pattern -type f File"
     )]
 
 error_temp_pairs = [
@@ -167,6 +195,26 @@ error_temp_pairs = [
     (
         "Remove all \"work\" directories residing in /usr/ports and below\n",
         "find -exec rm {} \; -name Pattern -type d File"
+    ),
+    (
+        "List root's regular files with permissions 4000\n",
+        "find -exec ls -l {} \; -perm Permission -print -type f File"
+    ),
+    (
+        "display all sqlite files in the current directory along with their timestamp\n",
+        "find -printf Pattern File"
+    ),
+    (
+        "Find .gif and .png image files in ~/Desktop and move them to the ~/Pictures directory.\n",
+        "find -exec mv File {} \; -name Pattern File"
+    ),
+    (
+        "display all the files in the current directory excluding the paths \"targert\", \"tools\", \"git\"\n",
+        "find \( -path File -prune -or -print \) File"
+    ),
+    (
+        "Delete all .svn files/directories under current directory\n",
+        "find -exec rm {} \; -name Pattern File"
     )]
 
 correct_str_pairs = [
