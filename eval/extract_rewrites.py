@@ -68,13 +68,11 @@ class DBConnection(object):
         c = self.cursor
         non_grammatical = []
         for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites"):
-            try:
-                data_tools.bash_parser(s1)
-            except:
+            ast = data_tools.bash_parser(s1)
+            if not ast:
                 non_grammatical.append(s1)
-            try:
-                data_tools.bash_parser(s2)
-            except:
+            ast2 = data_tools.bash_parser(s2)
+            if not ast2:
                 non_grammatical.append(s2)
         for s in non_grammatical:
             print("Removing %s from Rewrites" % s)
