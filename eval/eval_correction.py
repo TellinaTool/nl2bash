@@ -205,20 +205,8 @@ error_temp_pairs = [
         "find -name Pattern File"
     ),
     (
-        "find  directory which case-insensitive name is too in currect directory\n",
-        "find -name Pattern -type d File"
-    ),
-    (
-        "find  directory which case-insensitive name is too in currect directory\n",
-        "find -name Pattern -print -type d File"
-    ),
-    (
         "find file which case-insensitive name is foo in current directory.\n",
         "find -name Pattern File"
-    ),
-    (
-        "Remove all \"work\" directories residing in /usr/ports and below\n",
-        "find -exec rm {} \; -name Pattern -type d File"
     ),
     (
         "Remove all \"work\" directories residing in /usr/ports and below\n",
