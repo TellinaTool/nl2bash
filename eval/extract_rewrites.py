@@ -77,6 +77,7 @@ class DBConnection(object):
             except:
                 non_grammatical.append(s2)
         for s in non_grammatical:
+            print("Removing %s from Rewrites" % s)
             c.execute("DELETE FROM Rewrites WHERE s1 = ?", (s,))
             c.execute("DELETE FROM Rewrites WHERE s2 = ?", (s,))
 
@@ -189,12 +190,12 @@ if __name__ == "__main__":
     with open(cm_path) as f:
         cms = f.readlines()
 
-    extract_rewrites((nls, cms))
-
-    while True:
-        try:
-            cmd = raw_input("> ")
-            cmd = cmd.decode("utf-8")
-            test_rewrite(cmd)
-        except EOFError as ex:
-            break
+    # extract_rewrites((nls, cms))
+    # while True:
+    #     try:
+    #         cmd = raw_input("> ")
+    #         cmd = cmd.decode("utf-8")
+    #         test_rewrite(cmd)
+    #     except EOFError as ex:
+    #         break
+    clean_rewrites()
