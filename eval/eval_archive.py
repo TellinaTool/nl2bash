@@ -38,6 +38,11 @@ class DBConnection(object):
 
         self.conn.commit()
 
+    # --- Tree Edit Distance ---
+    def add_ted(self):
+        
+    def get_ted(self):
+
     # --- Prediction ---
     def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):
         nl = unicode(nl)
@@ -98,7 +103,8 @@ class DBConnection(object):
         nl = unicode(nl)
         c = self.cursor
         if not self.exist_str_pair((nl, pred_cmd)):
-            c.execute("INSERT INTO StrArchives (nl, pred_cmd, judgement) VALUES (?, ?, ?)", (nl, pred_cmd, judgement))
+            c.execute("INSERT INTO StrArchives (nl, pred_cmd, judgement) VALUES (?, ?, ?)",
+                      (nl, pred_cmd, judgement))
         self.conn.commit()
 
     def add_temp_judgement(self, triple):
@@ -106,7 +112,8 @@ class DBConnection(object):
         nl = unicode(nl)
         c = self.cursor
         if not self.exist_temp_pair((nl, pred_temp)):
-            c.execute("INSERT INTO TempArchives (nl, pred_temp, judgement) VALUES (?, ?, ?)", (nl, pred_temp, judgement))
+            c.execute("INSERT INTO TempArchives (nl, pred_temp, judgement) VALUES (?, ?, ?)",
+                      (nl, pred_temp, judgement))
         self.conn.commit()
 
     def get_str_judgement(self, pair):
@@ -184,7 +191,8 @@ class DBConnection(object):
     def get_nl_pred_temp(self, nl):
         nl = unicode(nl)
         c = self.cursor
-        for nl, pred_temp, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ?", (nl,)):
+        for nl, pred_temp, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ?",
+                                                  (nl,)):
             print(nl, pred_temp, judgement)
 
     def get_correct_temps(self, nl):
