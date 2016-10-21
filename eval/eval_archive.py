@@ -39,9 +39,12 @@ class DBConnection(object):
         self.conn.commit()
 
     # --- Tree Edit Distance ---
-    def add_ted(self):
-        
-    def get_ted(self):
+    def add_ted(self, cmd1, cmd2, dist):
+        c = self.cursor
+        c.execute("INSERT INTO TreeEditDistance (cmd1, cmd2, dist)",)
+
+    def get_ted(self, cmd1, cmd2):
+        c = self.cursor
 
     # --- Prediction ---
     def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):
