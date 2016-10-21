@@ -87,25 +87,25 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
     else:
         ast_rewrites = asts
 
-    with ea.DBConnection as db:
+    with ea.DBConnection() as db:
         min_dist = sys.maxint
         cmd2 = data_tools.ast2template(ast2)
         for ast1 in ast_rewrites:
             cmd1 = data_tools.ast2template(ast1)
-            temp_dist = db.get_temp_dist(cmd1, cmd2)
-            str_dist = db.get_str_dist(cmd1, cmd2)
+            t_dist = db.get_temp_dist(cmd1, cmd2)
+            s_dist = db.get_str_dist(cmd1, cmd2)
             if ignore_arg_value:
-                if temp_dist is None:
+                if t_dist is None:
                     dist = temp_dist(ast1, ast2)
-                    db.add_temp_dist(cmd1, cmd2, temp_dist)
+                    db.add_temp_dist(cmd1, cmd2, t_dist)
                 else:
-                    dist = temp_dist
+                    dist = t_dist
             else:
-                if str_dist is None:
+                if s_dist is None:
                     dist = str_dist(ast1, ast2)
-                    db.add_str_dist(cmd1, cmd2, str_dist)
+                    db.add_str_dist(cmd1, cmd2, s_dist)
                 else:
-                    dist = str_dist
+                    dist = s_dist
             if dist < min_dist:
                 min_dist = dist
 
