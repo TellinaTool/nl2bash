@@ -455,6 +455,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                          (attach_point.value == "tail" and options.isdigit()) or
                          (attach_point.value == "head" and options.startswith("n")) or
                          (attach_point.value == "tail" and options.startswith("n")) or
+                         (attach_point.value == "awk" and options.startswith("F")) or
+                         (attach_point.value == "xargs" and options.startswith("n")) or
                          (attach_point.value == "xargs" and options.startswith("l")) or
                          (attach_point.value == "xargs" and options.startswith("P"))):
                         node.word = re.sub(_DIGIT_RE, _NUM, node.word)
