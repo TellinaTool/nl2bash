@@ -758,9 +758,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         repl_str_flag_node.lsb = head_command.children[i-1]
                         head_command.children[i-1].rsb = repl_str_flag_node
 
-                        repl_str_node2.parent = head_command
-                        repl_str_node2.rsb = head_command.get_right_child()
-                        head_command.children.append(repl_str_node2)
+                        sub_command = head_command.children[i+1]
+                        repl_str_node2.parent = sub_command
+                        repl_str_node2.lsb = sub_command.get_right_child()
+                        sub_command.children.append(repl_str_node2)
                         break
 
 
