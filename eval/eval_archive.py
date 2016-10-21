@@ -31,7 +31,8 @@ class DBConnection(object):
 
         c.execute("CREATE TABLE IF NOT EXISTS Output (model TEXT, nl TEXT, pred_cmd TEXT, score FLOAT)")
 
-        c.execute("CREATE TABLE IF NOT EXISTS TreeEditDistance (cmd1 TEXT, cmd2 TEXT, dist FLOAT)")
+        c.execute("CREATE TABLE IF NOT EXISTS StrTED (cmd1 TEXT, cmd2 TEXT, dist FLOAT)")
+        c.execute("CREATE TABLE IF NOT EXISTS TempTED (cmd1 TEXT, cmd2 TEXT, dist FLOAT)")
 
         c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, pred_cmd TEXT, judgement INT)")
         c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, pred_temp TEXT, judgement INT)")
@@ -39,12 +40,35 @@ class DBConnection(object):
         self.conn.commit()
 
     # --- Tree Edit Distance ---
-    def add_ted(self, cmd1, cmd2, dist):
+    def add_str_dist(self, cmd1, cmd2, dist):
+        cmd1 = unicode(cmd1)
+        cmd2 = unicode(cmd2)
         c = self.cursor
-        c.execute("INSERT INTO TreeEditDistance (cmd1, cmd2, dist)",)
+        c.execute("INSERT INTO StrTED (cmd1, cmd2, dist) VALUES (?, ?, ?)", (cmd1, cmd2, dist))
+        self.conn.commit()
 
-    def get_ted(self, cmd1, cmd2):
+    def add_temp_dist(self, cmd1, cmd2, dist):
+        cmd1 = unicode(cmd1)
+        cmd2 = unicode(cmd2)
         c = self.cursor
+        c.execute("INSERT INTO TempTED (cmd1, cmd2, dist) VALUES (?, ?, ?)", (cmd1, cmd2, dist))
+        self.conn.commit()
+
+    def get_str_dist(self, cmd1, cmd2):
+        cmd1 = unicode(cmd1)
+        cmd2 = unicode(cmd2)
+        c = self.cursor
+        for _, _, dist in \
+            c.execute("SELECT cmd1, cmd2, dist FORM StrTED WHERE cmd1 = ?, cmd2 = ?", (cmd1, cmd2)):
+            return dist
+
+    def get_temp_dist(self, cmd1, cmd2):
+        cmd1 = unicode(cmd1)
+        cmd2 = unicode(cmd2)
+        c = self.cursor
+        for _, _, dist in \
+            c.execute("SELECT cmd1, cmd2, dist FROM TempTED WHERE cmd1 = ?, cmd2 = ?", (cmd1, cmd2)):
+            return dist
 
     # --- Prediction ---
     def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):

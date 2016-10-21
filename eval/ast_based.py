@@ -3,7 +3,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
 import data_tools, nast
 import zss
-from extract_rewrites import DBConnection
+import extract_rewrites as er
+import eval_archive as ea
 
 def ignore_differences(cmd):
     cmd = cmd.replace('-ls', '')
@@ -81,23 +82,38 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
         ast2 = data_tools.bash_parser("find")
 
     if rewrite:
-        with DBConnection() as db:
+        with er.DBConnection() as db:
             ast_rewrites = get_rewrites(asts, db)
     else:
         ast_rewrites = asts
 
-    min_dist = sys.maxint
-    for ast1 in ast_rewrites:
-        dist = temp_dist(ast1, ast2) if ignore_arg_value else \
-               str_dist(ast1, ast2)
-        if dist < min_dist:
-            min_dist = dist
+    with ea.DBConnection() as db:
+        min_dist = sys.maxint
+        cmd2 = data_tools.ast2template(ast2)
+        for ast1 in ast_rewrites:
+            cmd1 = data_tools.ast2template(ast1)
+            t_dist = db.get_temp_dist(cmd1, cmd2)
+            s_dist = db.get_str_dist(cmd1, cmd2)
+            if ignore_arg_value:
+                if t_dist is None:
+                    dist = temp_dist(ast1, ast2)
+                    db.add_temp_dist(cmd1, cmd2, t_dist)
+                else:
+                    dist = t_dist
+            else:
+                if s_dist is None:
+                    dist = str_dist(ast1, ast2)
+                    db.add_str_dist(cmd1, cmd2, s_dist)
+                else:
+                    dist = s_dist
+            if dist < min_dist:
+                min_dist = dist
 
     return min_dist
 
 def one_match(asts, ast2, rewrite=True, ignore_arg_value=False):
     if rewrite:
-        with DBConnection() as db:
+        with er.DBConnection() as db:
             ast_rewrites = get_rewrites(asts, db)
     else:
         ast_rewrites = asts
