@@ -88,14 +88,13 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
 
     min_dist = sys.maxint
     for ast1 in ast_rewrites:
-        data_tools.pretty_print(ast1)
-        data_tools.pretty_print(ast2)
+        # data_tools.pretty_print(ast1)
+        # data_tools.pretty_print(ast2)
         dist = temp_dist(ast1, ast2) if ignore_arg_value else \
                str_dist(ast1, ast2)
         if dist < min_dist:
             min_dist = dist
-        print(dist)
-        print()
+        # print()
 
     return min_dist
 
