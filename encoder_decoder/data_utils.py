@@ -653,9 +653,13 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
 
+    nl_suffix = ".%d.nl" % nl_vocab_size
+    cm_suffix = ".%d.cm" % cm_vocab_size
     nl_token_suffix = ".ids%d.nl" % nl_vocab_size
     cm_token_suffix = ".ids%d.cm" % cm_vocab_size
 
+    _ = prepare_dataset(nl_list, data_dir, nl_suffix, nl_vocab_size, None)
+    _ = prepare_dataset(cm_list, data_dir, cm_suffix, cm_vocab_size, None)
     max_nl_token_len = prepare_dataset(nl_token_list, data_dir, nl_token_suffix, nl_vocab_size,
                                        nl_vocab_path, normalize_digits=False,
                                        normalize_long_pattern=False)
