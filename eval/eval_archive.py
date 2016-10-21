@@ -187,6 +187,16 @@ class DBConnection(object):
         for nl, pred_temp, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ?", (nl,)):
             print(nl, pred_temp, judgement)
 
+    def get_correct_temps(self, nl):
+        nl = unicode(nl)
+        c = self.cursor
+        temps = []
+        for nl, pred_temp, judgement in c.execute("SELECT nl, pred_temp, judgement FROM "
+                                                 "TempArchives WHERE nl = ? AND judgement = 1",
+                                                  (nl,)):
+            temps.append(pred_temp)
+        return temps
+
     def correction(self):
         for pair in correct_temp_pairs:
             self.correct_temp_pair(pair)

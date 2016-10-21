@@ -50,6 +50,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
             nl_str = nl_strs[0]
 
             gt_trees = [cmd_parser(cmd) for cmd in cm_strs]
+            gt_trees = gt_trees + [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_str)]
 
             predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
@@ -83,8 +84,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                 min_temp_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=True)
                 min_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=False)
 
-                if ast_based.one_match(gt_trees, tree, ignore_arg_value=True) \
-                        or db.get_temp_judgement((nl_str, pred_temp)):
+                if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
                     if i < 1:
                         top1_correct_temp = True
                     if i < 3:
@@ -93,8 +93,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                         top5_correct_temp = True
                     if i < 10:
                         top10_correct_temp = True
-                if ast_based.one_match(gt_trees, tree, ignore_arg_value=False) \
-                        or db.get_str_judgement((nl_str, pred_cmd)):
+                if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
                     if i < 1:
                         top1_correct = True
                     if i < 3:

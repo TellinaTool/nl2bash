@@ -234,7 +234,6 @@ def normalize_pattern(value, verbose=False):
                 or not value[i-1].isdigit() \
                 or not value[i+1].isdigit():
                 return _REGEX
-
     return value
 
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
