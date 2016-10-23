@@ -154,7 +154,7 @@ class BeamDecoder(object):
 class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, output_projection, num_classes, max_len,
                  start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
-                 use_attention=False):
+                 use_attention=False, alpha=1.0):
         # TODO: determine if we can have dynamic shapes instead of pre-filling up to max_len
 
         self.cell = cell

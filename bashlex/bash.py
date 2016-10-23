@@ -34,8 +34,6 @@ head_commands = [
     "grep",
     "egrep",
     "fgrep",
-    "sed",
-    "awk",
     "ls",
     "rm",
     "cp",

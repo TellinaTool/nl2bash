@@ -286,6 +286,21 @@ def test_bash_parser():
             break
 
 
+def data_preparation(nl_file, cm_file, outfile):
+    with open(nl_file) as f:
+        nl_list = f.readlines()
+    with open(cm_file) as f:
+        cm_list = f.readlines()
+    with open(outfile, 'w') as o_f:
+        for i in xrange(len(nl_list)):
+            nl = nl_list[i].decode('utf-8')
+            cm = cm_list[i].decode('utf-8')
+            o_f.write(' '.join(basic_tokenizer(nl, normalize_digits=False, normalize_long_pattern=False)).encode('utf-8') + '\n')
+            o_f.write(cm.encode('utf-8') + '\n')
+            o_f.write('\n')
+
+
 if __name__ == "__main__":
     # test_nl_tokenizer()
-    test_bash_parser()
+    # test_bash_parser()
+    data_preparation(sys.argv[1], sys.argv[2], sys.argv[3])
