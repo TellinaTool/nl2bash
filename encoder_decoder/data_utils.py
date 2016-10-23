@@ -629,15 +629,15 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
 
 
 def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
-    def add_to_set(nl_list, cm_list, split):
-        for nl, cm in zip(getattr(nl_list, split), getattr(cm_list, split)):
+    def add_to_set(nl_data, cm_data, split):
+        for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
             nl_tokens = nl.split()
             cm_tokens = cm.split()
             getattr(nl_list, split).append(nl)
             getattr(cm_list, split).append(cm)
             getattr(nl_token_list, split).append(nl_tokens)
             getattr(cm_token_list, split).append(cm_tokens)
-
+    
     # unfiltered data
     nl_data, cm_data = read_raw_data(data_dir)
 
