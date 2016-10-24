@@ -830,13 +830,15 @@ def prepare_data(FLAGS):
         (8) path to the Command vocabulary file.
     """
 
-    if FLAGS.dataset == "bash":
+    if FLAGS.dataset in ["bash", "bash.cl"]:
         prepare_bash(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
     if FLAGS.dataset == "jobs":
         prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
     if FLAGS.dataset == "geo":
         prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
     if FLAGS.dataset == "atis":
+        prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+    if FLAGS.dataset == "dummy":
         prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
 
 

@@ -52,7 +52,7 @@ elif FLAGS.dataset == "jobs":
 elif FLAGS.dataset == "geo":
     _buckets = [(5, 70), (10, 70), (20, 70)]
 elif FLAGS.dataset == "atis":
-    _buckets = [(5, 20), (10, 40), (20, 60), (30, 80), (45, 95)]
+    _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
 
 def create_model(session, forward_only, construct_model_dir=True):
     """
@@ -296,12 +296,6 @@ def load_data(use_buckets=True):
 
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
-
-    # with open(FLAGS.data_dir + "data.by.%s.dat" % FLAGS.data_split) as f:
-    #     data = pickle.load(f)
-
-    # numFolds = len(data)
-    # print("%d folds" % numFolds)
 
     data_utils.prepare_data(FLAGS)
 
