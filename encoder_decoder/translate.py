@@ -207,8 +207,7 @@ def train_and_eval(train_set, dev_set):
     train(train_set, dev_set, construct_model_dir=True)
     tf.reset_default_graph()
     decode(dev_set, construct_model_dir=False, verbose=False)
-    temp_match_score, _, temp_dist, _ = \
-        eval(dev_set, verbose=False)
+    temp_match_score, _, temp_dist, _ = eval(dev_set, verbose=False)
     tf.reset_default_graph()
     return temp_match_score, temp_dist
 
@@ -342,9 +341,6 @@ def main(_):
         process_data()
     elif FLAGS.data_stats:
         data_statistics()
-    elif FLAGS.sample_train:
-        train_set, dev_set, _ = load_data(FLAGS.sample_size)
-        train(train_set, dev_set)
     elif FLAGS.grid_search:
         train_set, dev_set, _ = load_data()
         grid_search(train_set, dev_set)
@@ -352,7 +348,7 @@ def main(_):
         train_set, dev_set, _ = load_data()
         train(train_set, dev_set)
         tf.reset_default_graph()
-        decode(dev_set)
+        decode(dev_set, construct_model_dir=False)
         eval(dev_set)
     
 if __name__ == "__main__":
