@@ -350,7 +350,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
 
     o_f.write("\n")
     o_f.write("%d examples evaluated" % num_eval + "\n")
-    o_f.write("Top 1 Template Match Score = %.2f" % (num_top1_correct_temp/num_eval) + "\n")
+    o_f.write("Top 1 Template MatchScore = %.2f" % (num_top1_correct_temp/num_eval) + "\n")
     o_f.write("Top 1 String Match Score = %.2f" % (num_top1_correct/num_eval) + "\n")
     if len(predictions) > 1:
         o_f.write("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval) + "\n")
