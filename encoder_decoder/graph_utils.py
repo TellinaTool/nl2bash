@@ -46,7 +46,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["top_k"] = FLAGS.top_k
 
     params["beta"] = FLAGS.beta
-    
+
     # construct model directory
     model_subdir, model_sig = get_model_signature(FLAGS)
     params["model_sig"] = model_sig
@@ -172,7 +172,7 @@ def map_fn(fn, elems, batch_size):
 
 
 def attention_reg(attn_masks):
-    return tf.l2_loss(tf.reduce_sum(attn_masks, 0) - 1)
+    return tf.nn.l2_loss(tf.reduce_sum(attn_masks, 0) - 1)
 
 
 def sequence_loss(logits, targets, target_weights, loss_function):
