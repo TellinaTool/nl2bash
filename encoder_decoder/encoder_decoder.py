@@ -208,7 +208,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                                self.output_projection(),
                                                self.num_samples,
                                                self.target_vocab_size
-                                           ))
+                                           )) \
+                 + self.beta * graph_utils.attention_reg(attn_mask)
 
         if self.use_attention:
             return output_symbols, output_logits, losses, attn_mask

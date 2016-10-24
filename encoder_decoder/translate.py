@@ -17,7 +17,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "seq2seq"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "seq2tree"))
 
-import cPickle as pickle
 import itertools
 import math
 import numpy as np
