@@ -73,7 +73,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 s = tf.reduce_sum(tf.mul(self.hidden, y), [2, 3])
                 s = s - (1 - self.encoder_attn_masks) * 1e10
                 attn_mask = tf.nn.softmax(s)
-                attn_mask = tf.mul(self.encoder_attn_masks, attn_mask)
+                # attn_mask = tf.mul(self.encoder_attn_masks, attn_mask)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(tf.reshape(attn_mask, [-1, self.attn_length, 1, 1])
                                   * self.hidden_features[a], [1, 2])
