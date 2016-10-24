@@ -203,13 +203,18 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 feed_previous=forward_only, reuse_variables=reuse_variables)
 
         # Losses.
+        if self.use_attention:
+            attention_loss = self.beta * graph_utils.attention_reg(attn_mask)
+        else:
+            attention_loss = 0
+
         losses = graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
-                                           graph_utils.softmax_loss(
-                                               self.output_projection(),
-                                               self.num_samples,
-                                               self.target_vocab_size
-                                           )) \
-                 + self.beta * graph_utils.attention_reg(attn_mask)
+                                               graph_utils.softmax_loss(
+                                                   self.output_projection(),
+                                                   self.num_samples,
+                                                   self.target_vocab_size
+                                               )) \
+                 + attention_loss
 
         if self.use_attention:
             return output_symbols, output_logits, losses, attn_mask
