@@ -221,8 +221,10 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
 
             predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
-            top1_correct_temp, top5_correct_temp, top10_correct_temp = False, False, False
-            top1_correct, top5_correct, top10_correct = False, False, False
+            top1_correct_temp, top3_correct_temp, top5_correct_temp, top10_correct_temp = \
+                False, False, False, False
+            top1_correct, top3_correct, top5_correct, top10_correct = \
+                False, False, False, False
 
             # evaluation ignoring ordering of flags
             print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
@@ -348,7 +350,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
 
     o_f.write("\n")
     o_f.write("%d examples evaluated" % num_eval + "\n")
-    o_f.write("Top 1 Template Match Score = %.2f" % (num_top1_correct_temp/num_eval) + "\n")
+    o_f.write("Top 1 Template MatchScore = %.2f" % (num_top1_correct_temp/num_eval) + "\n")
     o_f.write("Top 1 String Match Score = %.2f" % (num_top1_correct/num_eval) + "\n")
     if len(predictions) > 1:
         o_f.write("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval) + "\n")

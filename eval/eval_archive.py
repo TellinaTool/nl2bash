@@ -59,7 +59,7 @@ class DBConnection(object):
         cmd2 = unicode(cmd2)
         c = self.cursor
         for _, _, dist in \
-            c.execute("SELECT cmd1, cmd2, dist FORM StrTED WHERE cmd1 = ?, cmd2 = ?", (cmd1, cmd2)):
+            c.execute("SELECT cmd1, cmd2, dist FROM StrTED WHERE cmd1 = ? AND cmd2 = ?", (cmd1, cmd2)):
             return dist
 
     def get_temp_dist(self, cmd1, cmd2):
@@ -67,7 +67,7 @@ class DBConnection(object):
         cmd2 = unicode(cmd2)
         c = self.cursor
         for _, _, dist in \
-            c.execute("SELECT cmd1, cmd2, dist FROM TempTED WHERE cmd1 = ?, cmd2 = ?", (cmd1, cmd2)):
+            c.execute("SELECT cmd1, cmd2, dist FROM TempTED WHERE cmd1 = ? AND cmd2 = ?", (cmd1, cmd2)):
             return dist
 
     # --- Prediction ---

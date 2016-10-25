@@ -10,7 +10,8 @@ _, final_state = tf.nn.seq2seq.rnn_decoder(
                         [beam_decoder.wrap_input(initial_input)] + [None] * (MAX_LEN - 1),
                         beam_decoder.wrap_state(initial_state),
                         beam_decoder.wrap_cell(my_cell),
-                        loop_function = lambda prev_symbol, i: tf.nn.embedding_lookup(my_embedding, prev_symbol)
+                        loop_function = lambda prev_symbol,
+                        i: tf.nn.embedding_lookup(my_embedding, prev_symbol)
                     )
 best_dense = beam_decoder.unwrap_output_dense(final_state) # Dense tensor output, right-aligned
 best_sparse = beam_decoder.unwrap_output_sparse(final_state) # Output, this time as a sparse tensor
@@ -366,3 +367,7 @@ def sparse_boolean_mask(tensor, mask):
         shape=tf.cast(tf.pack([mask_shape[0], tf.reduce_max(mask_lens)]), tf.int64) # For 2D only
     )
 
+if __name__ == "__main__":
+    a = tf.zeros([10])
+    b = BeamDecoder._tile_along_beam(4, a)
+    print(b)
