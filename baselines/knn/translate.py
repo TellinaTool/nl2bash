@@ -40,7 +40,13 @@ def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
             for i in xrange(len(top_k_results)):
                 nn, cmd, score = top_k_results[i]
                 nn_str = ' '.join([rev_nl_vocab[i] for i in nn])
-                pred_cmd = ' '.join([rev_cm_vocab[i] for i in cmd])
+                tokens = []
+                for i in cmd:
+                    pred_token = rev_cm_vocab[i]
+                    if "@@" in pred_token:
+                        pred_token = pred_token.split("@@")[-1]
+                    tokens.append(pred_token)
+                pred_cmd = ' '.join(tokens)
                 tree = data_tools.bash_parser(pred_cmd)
                 if verbose:
                     print("NN: {}".format(nn_str))

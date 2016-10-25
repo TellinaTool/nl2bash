@@ -17,7 +17,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "seq2seq"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "seq2tree"))
 
-import cPickle as pickle
 import itertools
 import math
 import numpy as np
@@ -42,17 +41,17 @@ parse_args.define_input_flags()
 # We use a number of buckets and pad to the closest one for efficiency.
 if FLAGS.dataset in ["bash", "bash.cl"]:
     if FLAGS.decoder_topology in ['basic_tree']:
-        _buckets = [(5, 30), (10, 30), (15, 40), (20, 40), (30, 64), (40, 64)]
+        _buckets = [(5, 30), (10, 30), (15, 40), (20, 40), (30, 64)]
     elif FLAGS.decoder_topology in ['rnn']:
-        _buckets = [(5, 20), (10, 20), (15, 30), (20, 30), (30, 40), (40, 40)]
+        _buckets = [(5, 20), (10, 20), (15, 30), (20, 30), (30, 40)]
 elif FLAGS.dataset == "dummy":
-    _buckets = [(5, 30), (10, 30), (15, 30), (20, 45)]
+    _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
 elif FLAGS.dataset == "jobs":
     _buckets = [(5, 30), (10, 30), (15, 30), (20, 45)]
 elif FLAGS.dataset == "geo":
     _buckets = [(5, 70), (10, 70), (20, 70)]
 elif FLAGS.dataset == "atis":
-    _buckets = [(5, 20), (10, 40), (20, 60), (30, 80), (45, 95)]
+    _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
 
 def create_model(session, forward_only, construct_model_dir=True):
     """
@@ -103,7 +102,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                                  if train_buckets_scale[i] > random_number_01])
                 formatted_example = model.get_batch(train_set, bucket_id)
                 _, step_loss, _, _ = model.step(sess, formatted_example, bucket_id,
-                                             forward_only=False)
+                                                forward_only=False)
                 loss += step_loss
                 current_step += 1
 
@@ -137,11 +136,12 @@ def train(train_set, dev_set, construct_model_dir=True):
                     formatted_example = model.get_batch(dev_set, bucket_id)
                     _, output_logits, eval_loss, _ = model.step(sess, formatted_example, bucket_id,
                                                              forward_only=True)
-                    dev_loss += eval_loss
+                    dev_loss += eval_loss * len(dev_set[bucket_id])
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
-                dev_perplexity = math.exp(dev_loss/len(_buckets)) if dev_loss < 300 else float('inf')
+                dev_size = sum(len(dev_set[bucket_id]) for bucket_id in xrange(len(_buckets)))
+                dev_perplexity = math.exp(dev_loss/dev_size) if dev_loss < 1000 else float('inf')
                 print("global step %d learning rate %.4f dev_perplexity %.2f" 
                         % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
 
@@ -207,8 +207,7 @@ def train_and_eval(train_set, dev_set):
     train(train_set, dev_set, construct_model_dir=True)
     tf.reset_default_graph()
     decode(dev_set, construct_model_dir=False, verbose=False)
-    temp_match_score, _, temp_dist, _ = \
-        eval(dev_set, verbose=False)
+    temp_match_score, _, temp_dist, _ = eval(dev_set, verbose=False)
     tf.reset_default_graph()
     return temp_match_score, temp_dist
 
@@ -297,12 +296,6 @@ def load_data(use_buckets=True):
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
 
-    # with open(FLAGS.data_dir + "data.by.%s.dat" % FLAGS.data_split) as f:
-    #     data = pickle.load(f)
-
-    # numFolds = len(data)
-    # print("%d folds" % numFolds)
-
     data_utils.prepare_data(FLAGS)
 
 
@@ -337,7 +330,7 @@ def main(_):
         _, dev_set, _ = load_data()
         eval(dev_set)
     elif FLAGS.manual_eval:
-        manual_eval(410)
+        manual_eval(405)
     elif FLAGS.decode:
         _, dev_set, _ = load_data()
         decode(dev_set)
@@ -348,16 +341,15 @@ def main(_):
         process_data()
     elif FLAGS.data_stats:
         data_statistics()
-    elif FLAGS.sample_train:
-        train_set, dev_set, _ = load_data(FLAGS.sample_size)
-        train(train_set, dev_set)
     elif FLAGS.grid_search:
         train_set, dev_set, _ = load_data()
         grid_search(train_set, dev_set)
     else:
         train_set, dev_set, _ = load_data()
         train(train_set, dev_set)
-
-
+        tf.reset_default_graph()
+        decode(dev_set, construct_model_dir=False)
+        eval(dev_set)
+    
 if __name__ == "__main__":
     tf.app.run()

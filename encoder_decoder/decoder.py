@@ -11,7 +11,7 @@ class Decoder(graph_utils.NNModel):
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def __init__(self, cell, attention_states, encoder_attn_masks, attention_input_keep,
-                 attention_output_keep, num_heads, reuse_variables=False):
+                 attention_output_keep, num_heads=1, reuse_variables=False):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
@@ -24,7 +24,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         attention_states = tf.nn.dropout(attention_states, attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
         attn_vec_dim = attention_states.get_shape()[2].value
-        attn_dim = attn_vec_dim / 2
+        attn_dim = attn_vec_dim 
 
         # To calculate W1 * h_t we use a 1-by-1 convolution
         hidden = tf.reshape(attention_states, [-1, attn_length, 1, attn_vec_dim])
@@ -34,9 +34,9 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             if reuse_variables:
                 scope.reuse_variables()
             for a in xrange(num_heads):
-                k = tf.get_variable("AttnW_%d" % a, [1, 1, attn_vec_dim, attn_dim])
-                hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
-                # hidden_features.append(hidden)
+                # k = tf.get_variable("AttnW_%d" % a, [1, 1, attn_vec_dim, attn_dim])
+                # hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
+                hidden_features.append(hidden)
                 v.append(tf.get_variable("AttnV_%d" % a, [attn_vec_dim]))
 
         self.cell = cell
@@ -71,8 +71,9 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 # s = tf.reduce_sum(
                 #     self.v[a] * tf.mul(self.hidden_features[a], y), [2, 3])
                 s = tf.reduce_sum(tf.mul(self.hidden, y), [2, 3])
+                s = s - (1 - self.encoder_attn_masks) * 1e12
                 attn_mask = tf.nn.softmax(s)
-                attn_mask = tf.mul(self.encoder_attn_masks, attn_mask)
+                # attn_mask = tf.mul(self.encoder_attn_masks, attn_mask)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(tf.reshape(attn_mask, [-1, self.attn_length, 1, 1])
                                   * self.hidden_features[a], [1, 2])
@@ -94,13 +95,13 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             attn_state = tf.tanh(tf.nn.rnn_cell._linear([state, attns], dim, True))
-            attn_state = tf.nn.dropout(attn_state, self.attention_output_keep)
 
         with tf.variable_scope("AttnOutputProjection"):
             if self.attention_cell_vars:
                 tf.get_variable_scope().reuse_variables()
             # attention mechanism on output state
-            output = tf.nn.rnn_cell._linear(attn_state, dim, True)
+            output = tf.nn.rnn_cell._linear(
+                tf.nn.dropout(attn_state, self.attention_output_keep), dim, True)
 
         self.attention_cell_vars = True
 

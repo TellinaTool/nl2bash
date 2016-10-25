@@ -159,8 +159,7 @@ class RNNDecoder(decoder.Decoder):
             past_output_logits = tf.add(past_output_logits,
                                         tf.reduce_max(projected_output, 1))
             if self.use_attention:
-                return output_symbols, past_output_logits, outputs, \
-                       state, attn_masks
+                return output_symbols, past_output_logits, outputs, state, attn_masks
             else:
                 return output_symbols, past_output_logits, outputs, state
 
