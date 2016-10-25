@@ -89,6 +89,7 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
 
     with ea.DBConnection() as db:
         min_dist = sys.maxint
+        data_tools.pretty_print(ast2)
         cmd2 = data_tools.ast2template(ast2)
         for ast1 in ast_rewrites:
             cmd1 = data_tools.ast2template(ast1)
