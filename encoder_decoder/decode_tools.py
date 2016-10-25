@@ -57,7 +57,7 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
                         tokens.append(data_utils._UNK)
                 cmd = " ".join(tokens)
 
-            if FLAGS.dataset == "bash":
+            if FLAGS.dataset in ["bash", "bash.cl"]:
                 cmd = re.sub('( ;\s+)|( ;$)', ' \\; ', cmd)
                 cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
                 cmd = re.sub('(^\( )|( \( )', ' \\( ', cmd)
