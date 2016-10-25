@@ -34,8 +34,8 @@ class RNNEncoder(Encoder):
     def encoder_cell(self):
         """RNN cell for the encoder."""
         with tf.variable_scope("encoder_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope, self.dim,
-                                                      self.num_layers)
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
+                                                      self.dim, self.num_layers)
             self.encoder_cell_vars = True
         return cell, scope
 
@@ -58,16 +58,16 @@ class BiRNNEncoder(Encoder):
         with tf.variable_scope("forward_rnn") as scope:
             if self.forward_rnn_vars:
                 tf.get_variable_scope().reuse_variables()
-            output_fw, state_fw = tf.nn.rnn(self.fw_cell, input_embeddings, dtype=tf.float32,
-                                            scope=scope)
+            output_fw, state_fw = tf.nn.rnn(self.fw_cell, input_embeddings,
+                                            dtype=tf.float32, scope=scope)
             self.forward_rnn_vars = True
 
         with tf.variable_scope("backward_rnn") as scope:
             reversed_input_embeddings = [e for e in reversed(input_embeddings)]
             if self.backward_rnn_vars:
                 tf.get_variable_scope().reuse_variables()
-            output_bw, state_bw = tf.nn.rnn(self.bw_cell, reversed_input_embeddings, dtype=tf.float32,
-                                            scope=scope)
+            output_bw, state_bw = tf.nn.rnn(self.bw_cell, reversed_input_embeddings,
+                                            dtype=tf.float32, scope=scope)
             self.backward_rnn_vars = True
 
         output_bw = [e for e in reversed(output_bw)]
@@ -118,6 +118,3 @@ class BiRNNEncoder(Encoder):
             w = tf.get_variable("proj_w", [self.dim * 2, self.dim])
             b = tf.get_variable("proj_b", [self.dim])
         return (w, b)
-
-
-
