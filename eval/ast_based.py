@@ -105,13 +105,11 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
             if ignore_arg_value:
                 if t_dist is None:
                     dist = temp_dist(ast1, ast2)
-                    db.add_temp_dist(cmd1, cmd2, t_dist)
                 else:
                     dist = t_dist
             else:
                 if s_dist is None:
                     dist = str_dist(ast1, ast2)
-                    db.add_str_dist(cmd1, cmd2, s_dist)
                 else:
                     dist = s_dist
             if dist < min_dist:
