@@ -99,15 +99,9 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
         min_dist = sys.maxint
         cmd2 = data_tools.ast2template(ast2, loose_constraints=True)
         for ast1 in ast_rewrites:
-<<<<<<< HEAD
             cmd1 = data_tools.ast2template(ast1)
-            t_dist = db.get_temp_dist(cmd1, cmd2)
-            s_dist = db.get_str_dist(cmd1, cmd2)
-=======
-            cmd1 = data_tools.ast2template(ast1, loose_constraints=True)
             # t_dist = db.get_temp_dist(cmd1, cmd2)
             # s_dist = db.get_str_dist(cmd1, cmd2)
->>>>>>> 8a5cc2847ed8de4555556a1114a213b832a020bd
             if ignore_arg_value:
                 dist = temp_dist(ast1, ast2)
             else:
