@@ -84,7 +84,8 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
 def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
              verbose=True):
 
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True)
+    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
+                                                  use_nl_temp = FLAGS.dataset.startswith("bash"))
     bucketed_nl_strs, bucketed_cm_strs, bucketed_nls, bucketed_cmds = \
         data_utils.bucket_grouped_data(grouped_dataset, model.buckets)
 
