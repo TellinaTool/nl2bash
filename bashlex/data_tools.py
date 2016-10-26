@@ -57,7 +57,7 @@ def char_tokenizer(sentence, base_tokenizer=None, normalize_digits=False,
 
 def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                     normalize_long_pattern=True, lemmatization=True,
-                    remove_stop_words=True):
+                    remove_stop_words=True, correct_spell=True):
     """Very basic tokenizer: used for English tokenization."""
 
     # remove content in parentheses
@@ -117,11 +117,12 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
                 word = word.lower()
 
         # spelling correction
-        if word.isalpha() and word.islower() and len(word) > 2:
-            old_w = word
-            word = spc.correction(word)
-            if word != old_w:
-                print("spell correction: {} -> {}".format(old_w, word))
+        if correct_spell:
+            if word.isalpha() and word.islower() and len(word) > 2:
+                old_w = word
+                word = spc.correction(word)
+                if word != old_w:
+                    print("spell correction: {} -> {}".format(old_w, word))
 
         # remove English stopwords
         if remove_stop_words:
