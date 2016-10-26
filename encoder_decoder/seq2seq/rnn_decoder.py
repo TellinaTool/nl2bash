@@ -25,7 +25,7 @@ class RNNDecoder(decoder.Decoder):
                              "known %s" % attention_states.get_shape())
 
         with tf.variable_scope("decoder_rnn") as scope:
-            decoder_cell, decoder_scope = self.decoder_cell()
+            decoder_cell, decoder_scope = self.decoder_cell(scope)
             state = encoder_state
             outputs = []
 
