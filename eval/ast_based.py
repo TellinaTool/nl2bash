@@ -100,18 +100,12 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
         cmd2 = data_tools.ast2template(ast2)
         for ast1 in ast_rewrites:
             cmd1 = data_tools.ast2template(ast1, loose_constraints=True)
-            t_dist = db.get_temp_dist(cmd1, cmd2)
-            s_dist = db.get_str_dist(cmd1, cmd2)
+            # t_dist = db.get_temp_dist(cmd1, cmd2)
+            # s_dist = db.get_str_dist(cmd1, cmd2)
             if ignore_arg_value:
-                if t_dist is None:
-                    dist = temp_dist(ast1, ast2)
-                else:
-                    dist = t_dist
+                dist = temp_dist(ast1, ast2)
             else:
-                if s_dist is None:
-                    dist = str_dist(ast1, ast2)
-                else:
-                    dist = s_dist
+                dist = str_dist(ast1, ast2)
             if dist < min_dist:
                 min_dist = dist
 
