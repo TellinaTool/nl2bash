@@ -42,7 +42,9 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
         else data_utils.parse_brackets
 
     use_bucket = False if model == "knn" else True
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=use_bucket)
+
+    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=use_bucket,
+                                                  use_nl_temp = FLAGS.dataset.startswith("bash"))
 
     with DBConnection() as db:
         for nl_temp in grouped_dataset:
@@ -79,7 +81,6 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
             for i in xrange(len(predictions)):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
-                pred_temp = data_tools.ast2template(tree, loose_constraints=True)
                 # evaluation ignoring flag orders
                 min_temp_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=True)
                 min_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=False)
