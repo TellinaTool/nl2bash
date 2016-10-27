@@ -1126,8 +1126,10 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     tokens.append(node.value)
         elif node.kind == "nt":
             assert(loose_constraints or node.get_num_of_children() > 0)
+            tokens.append("(")
             for child in node.children:
                 tokens += to_tokens_fun(child)
+            tokens.append(")")
         elif node.is_argument() or node.kind in ["t"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
             if ato and node.is_open_vocab():
