@@ -1172,4 +1172,3 @@ def test_normalize_pattern():
 
 if __name__ == "__main__":
     test_normalize_pattern()
-
