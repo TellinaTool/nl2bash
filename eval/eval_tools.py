@@ -39,8 +39,8 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
 
     num_eval = 0
 
-    cmd_parser = data_tools.bash_parser if FLAGS.dataset == "bash" \
-        else data_utils.parse_brackets
+    cmd_parser = data_tools.bash_parser if FLAGS.dataset.startswith("bash") \
+        else data_tools.paren_parser
 
     use_bucket = False if model == "knn" else True
 
@@ -83,10 +83,12 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
                 # evaluation ignoring flag orders
+                temp_match = ast_based.one_match(gt_trees, tree, ignore_arg_value=True)
+                str_match = ast_based.one_match(gt_trees, tree, ignore_arg_value=False)
                 min_temp_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=True)
                 min_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=False)
 
-                if ast_based.one_match(gt_trees, tree, ignore_arg_value=True):
+                if temp_match:
                     if i < 1:
                         top1_correct_temp = True
                     if i < 3:
@@ -95,7 +97,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                         top5_correct_temp = True
                     if i < 10:
                         top10_correct_temp = True
-                if ast_based.one_match(gt_trees, tree, ignore_arg_value=False):
+                if str_match:
                     if i < 1:
                         top1_correct = True
                     if i < 3:
@@ -125,7 +127,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                     if min_dist < top10_dist:
                         top10_dist = min_dist
                 if verbose:
-                    print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
+                    print("Prediction {}: {} ({}) ({})".format(i+1, pred_cmd, score, temp_match))
             if verbose:
                 print()
             if top1_correct_temp:
