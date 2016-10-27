@@ -30,11 +30,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         hidden = tf.reshape(attention_states, [-1, attn_length, 1, attn_vec_dim])
         hidden_features = []
         v = []
-        with tf.variable_scope("attention_cell_wrapper") as scope:
-            # for var in tf.all_variables():
-            #     print(var.name)
-            if reuse_variables:
-                scope.reuse_variables()
+        with tf.variable_scope("attention_cell_wrapper", reuse=reuse_variables):
             for a in xrange(num_heads):
                 # k = tf.get_variable("AttnW_%d" % a, [1, 1, attn_vec_dim, attn_dim])
                 # hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
@@ -54,28 +50,22 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.v = v
 
         # variable sharing
-        self.attention_vars = False
-        self.attention_cell_vars = False
+        self.resue_variables = reuse_variables
 
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
         ds = []  # Results of attention reads will be stored here.
         for a in xrange(self.num_heads):
-            with tf.variable_scope("Attention_%d" % a):
-                if self.attention_vars:
-                    tf.get_variable_scope().reuse_variables()
-                # y = tf.nn.rnn_cell._linear(state, attn_vec_dim, True)
-                y = state
-                y = tf.reshape(y, [-1, 1, 1, self.attn_vec_dim])
+            with tf.variable_scope("Attention_%d" % a, reuse=self.reuse_variables):
+                y = tf.reshape(state, [-1, 1, 1, self.attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
                 # s = tf.reduce_sum(
                 #     v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
                 # s = tf.reduce_sum(
                 #     self.v[a] * tf.mul(self.hidden_features[a], y), [2, 3])
-                s = tf.reduce_sum(tf.mul(self.hidden, y), [2, 3])
+                s = tf.reduce_sum(tf.mul(self.hidden_features[a], y), [2, 3])
                 s = s - (1 - self.encoder_attn_masks) * 1e12
                 attn_mask = tf.nn.softmax(s)
-                # attn_mask = tf.mul(self.encoder_attn_masks, attn_mask)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(tf.reshape(attn_mask, [-1, self.attn_length, 1, 1])
                                   * self.hidden_features[a], [1, 2])
@@ -87,20 +77,14 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def __call__(self, input_embedding, state, attn_masks, scope=None):
         dim = state.get_shape()[1].value
-        with tf.variable_scope("AttnInputProjection"):
-            if self.attention_cell_vars:
-                tf.get_variable_scope().reuse_variables()
+        with tf.variable_scope("AttnInputProjection", reuse=self.reuse_variables):
             _, state = self.cell(input_embedding, state, scope)
             attns, attn_mask = self.attention(state)
 
-        with tf.variable_scope("AttnStateProjection"):
-            if self.attention_cell_vars:
-                tf.get_variable_scope().reuse_variables()
+        with tf.variable_scope("AttnStateProjection", reuse=self.reuse_variables):
             attn_state = tf.tanh(tf.nn.rnn_cell._linear([state, attns], dim, True))
 
-        with tf.variable_scope("AttnOutputProjection"):
-            if self.attention_cell_vars:
-                tf.get_variable_scope().reuse_variables()
+        with tf.variable_scope("AttnOutputProjection", reuse=self.reuse_variables):
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear(
                 tf.nn.dropout(attn_state, self.attention_output_keep), dim, True)
