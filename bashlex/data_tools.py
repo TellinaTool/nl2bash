@@ -256,9 +256,9 @@ def cmd2template(cmd, normalize_digits=True, normalize_long_pattern=True,
 
 def paren_parser(line):
     def order_child_fun(node):
+        for child in node.children:
+            order_child_fun(child)
         if len(node.children) > 1 and node.children[0].value in ["and", "or"]:
-            for child in node.children:
-                order_child_fun(child)
             node.children = node.children[:1] + sorted(node.children[1:],
                     key=lambda x:(x.value if x.kind == "t" else x.children[0].value))
 
