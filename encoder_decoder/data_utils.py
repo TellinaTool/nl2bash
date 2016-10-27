@@ -501,6 +501,7 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path,
                             print("  reading data line %d" % counter)
                             sys.stdout.flush()
                         source_ids = [int(x) for x in source.split()]
+                        source_ids
                         target_ids = [int(x) for x in target.split()]
                         if append_head_token:
                             target_ids.insert(0, ROOT_ID)
