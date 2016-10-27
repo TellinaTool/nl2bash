@@ -501,7 +501,6 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path,
                             print("  reading data line %d" % counter)
                             sys.stdout.flush()
                         source_ids = [int(x) for x in source.split()]
-                        source_ids
                         target_ids = [int(x) for x in target.split()]
                         if append_head_token:
                             target_ids.insert(0, ROOT_ID)
@@ -522,42 +521,6 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path,
     print("  %d data points read." % counter)
     return data_set
 
-
-def parse_brackets(line):
-    """A very simple algorithm for parsing data with parentheses."""
-    if not line.startswith("("):
-        line = "( " + line
-    if not line.endswith(")"):
-        line = line + " )"
-    words = line.strip().split()
-
-    root = nast.Node(kind="root", value="root")
-    stack = []
-
-    i = 0
-    while i < len(words):
-        word = words[i]
-        if word == "(":
-            if stack:
-                # creates non-terminal
-                node = nast.Node(kind="nt", value="<n>")
-                stack[-1].add_child(node)
-                node.parent = stack[-1]
-                stack.append(node)
-            else:
-                stack.append(root)
-        elif word == ")":
-            if stack:
-                stack.pop()
-        else:
-            node = nast.Node(kind="t", value=word)
-            stack[-1].add_child(node)
-            node.parent = stack[-1]
-        i += 1
-        if len(stack) == 0:
-            break;
-
-    return root
 
 class Dataset(object):
     def __init__(self):
@@ -847,4 +810,4 @@ def prepare_data(FLAGS):
 
 
 if __name__ == "__main__":
-    parse_brackets(sys.argv[1])
+    data_tools.paren_parser(sys.argv[1])
