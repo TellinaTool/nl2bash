@@ -24,9 +24,10 @@ class RNNDecoder(decoder.Decoder):
             raise ValueError("Shape[1] and [2] of attention_states must be "
                              "known %s" % attention_states.get_shape())
 
-        with tf.variable_scope("rnn_decoder") as scope:
-            decoder_cell, decoder_scope = self.decoder_cell()
+        with tf.variable_scope("decoder_rnn") as scope:
+            decoder_cell, decoder_scope = self.decoder_cell(scope)
             state = encoder_state
+            W, b = self.output_projection
             outputs = []
 
             # prepare attention masks
@@ -100,7 +101,6 @@ class RNNDecoder(decoder.Decoder):
                             ) = state
                             input = past_beam_symbols[:, -1]
                         elif self.decoding_algorithm == "greedy":
-                            W, b = self.output_projection
                             # [self.batch_size * self.beam_size, num_classes]
                             projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                             output_symbol = tf.argmax(projected_output, 1)
@@ -119,53 +119,51 @@ class RNNDecoder(decoder.Decoder):
                 # record output state to compute the loss.
                 outputs.append(output)
 
-        # Beam-search output
-        if self.decoding_algorithm == "beam_search":
-            (
-                past_cand_symbols,  # [batch_size, max_len]
-                past_cand_logprobs, # [batch_size]
-                past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
-                past_beam_logprobs, # [batch_size*self.beam_size]
-                past_cell_state,
-            ) = state
-            # [self.batch_size, self.beam_size, max_len]
-            top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size, self.beam_size, -1])
-            top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
-            top_k_outputs = [tf.split(0, self.beam_size, tf.squeeze(top_k_output, squeeze_dims=[0]))
-                             for top_k_output in top_k_outputs]
-            top_k_outputs = [[tf.squeeze(output, squeeze_dims=[0]) for output in top_k_output]
-                             for top_k_output in top_k_outputs]
-            # [self.batch_size, self.beam_size]
-            top_k_logits = tf.reshape(past_beam_logprobs, [self.batch_size, self.beam_size])
-            top_k_logits = tf.split(0, self.batch_size, top_k_logits)
-            top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
-                            for top_k_logit in top_k_logits]
-            if self.use_attention:
-                attn_masks = tf.reshape(attn_masks, [self.batch_size,
-                                                 self.beam_size,
-                                                 len(decoder_inputs),
-                                                 attention_states.get_shape()[1].value])
-                return top_k_outputs, top_k_logits, outputs, state, attn_masks
+            # Beam-search output
+            if self.decoding_algorithm == "beam_search":
+                (
+                    past_cand_symbols,  # [batch_size, max_len]
+                    past_cand_logprobs, # [batch_size]
+                    past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
+                    past_beam_logprobs, # [batch_size*self.beam_size]
+                    past_cell_state,
+                ) = state
+                # [self.batch_size, self.beam_size, max_len]
+                top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size, self.beam_size, -1])
+                top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
+                top_k_outputs = [tf.split(0, self.beam_size, tf.squeeze(top_k_output, squeeze_dims=[0]))
+                                 for top_k_output in top_k_outputs]
+                top_k_outputs = [[tf.squeeze(output, squeeze_dims=[0]) for output in top_k_output]
+                                 for top_k_output in top_k_outputs]
+                # [self.batch_size, self.beam_size]
+                top_k_logits = tf.reshape(past_beam_logprobs, [self.batch_size, self.beam_size])
+                top_k_logits = tf.split(0, self.batch_size, top_k_logits)
+                top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
+                                for top_k_logit in top_k_logits]
+                if self.use_attention:
+                    attn_masks = tf.reshape(attn_masks, [self.batch_size, self.beam_size,
+                                                         len(decoder_inputs),
+                                                         attention_states.get_shape()[1].value])
+                    return top_k_outputs, top_k_logits, outputs, state, attn_masks
+                else:
+                    return top_k_outputs, top_k_logits, outputs, state
             else:
-                return top_k_outputs, top_k_logits, outputs, state
-        else:
-            W, b = self.output_projection
-            projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
-            output_symbol = tf.argmax(projected_output, 1)
-            past_output_symbols = tf.concat(1, [past_output_symbols,
-                                                tf.expand_dims(output_symbol, 1)])
-            past_output_symbols = past_output_symbols[:, 1:]
-            output_symbols = tf.split(0, self.batch_size, past_output_symbols)
-            past_output_logits = tf.add(past_output_logits,
-                                        tf.reduce_max(projected_output, 1))
-            if self.use_attention:
-                return output_symbols, past_output_logits, outputs, state, attn_masks
-            else:
-                return output_symbols, past_output_logits, outputs, state
+                projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
+                output_symbol = tf.argmax(projected_output, 1)
+                past_output_symbols = tf.concat(1, [past_output_symbols,
+                                                    tf.expand_dims(output_symbol, 1)])
+                past_output_symbols = past_output_symbols[:, 1:]
+                output_symbols = tf.split(0, self.batch_size, past_output_symbols)
+                past_output_logits = tf.add(past_output_logits,
+                                            tf.reduce_max(projected_output, 1))
+                if self.use_attention:
+                    return output_symbols, past_output_logits, outputs, state, attn_masks
+                else:
+                    return output_symbols, past_output_logits, outputs, state
 
 
-    def decoder_cell(self):
-        with tf.variable_scope("decoder_cell") as scope:
+    def decoder_cell(self, scope):
+        with tf.variable_scope(scope or "decoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.decoder_input_keep, self.decoder_output_keep)

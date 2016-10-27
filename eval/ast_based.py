@@ -77,6 +77,14 @@ def get_rewrites(asts, db):
     return rewrites
 
 def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
+    """
+    Compute the minimum tree edit distance of the prediction to the set of ground truth ASTs.
+    :param asts: set of gold ASTs.
+    :param ast2: predicted AST.
+    :param rewrite: set to true if rewrite ground truths with templates.
+    :param ignore_arg_value: set to true if ignore literal values in the ASTs.
+    :return:
+    """
     # tolerate ungrammatical predictions
     if not ast2:
         ast2 = data_tools.bash_parser("find")
@@ -89,24 +97,15 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
 
     with ea.DBConnection() as db:
         min_dist = sys.maxint
-        data_tools.pretty_print(ast2)
-        cmd2 = data_tools.ast2template(ast2)
+        cmd2 = data_tools.ast2template(ast2, loose_constraints=True)
         for ast1 in ast_rewrites:
             cmd1 = data_tools.ast2template(ast1)
-            t_dist = db.get_temp_dist(cmd1, cmd2)
-            s_dist = db.get_str_dist(cmd1, cmd2)
+            # t_dist = db.get_temp_dist(cmd1, cmd2)
+            # s_dist = db.get_str_dist(cmd1, cmd2)
             if ignore_arg_value:
-                if t_dist is None:
-                    dist = temp_dist(ast1, ast2)
-                    db.add_temp_dist(cmd1, cmd2, t_dist)
-                else:
-                    dist = t_dist
+                dist = temp_dist(ast1, ast2)
             else:
-                if s_dist is None:
-                    dist = str_dist(ast1, ast2)
-                    db.add_str_dist(cmd1, cmd2, s_dist)
-                else:
-                    dist = s_dist
+                dist = str_dist(ast1, ast2)
             if dist < min_dist:
                 min_dist = dist
 

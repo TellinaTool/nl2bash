@@ -331,13 +331,16 @@ def bucket_grouped_data(grouped_dataset, buckets):
     return batch_nl_strs, batch_cm_strs, batch_nls, batch_cmds
 
 
-def group_data_by_nl(dataset, use_bucket=False):
+def group_data_by_nl(dataset, use_bucket=False, use_nl_temp=True):
     if use_bucket:
         dataset = reduce(lambda x,y: x + y, dataset)
     grouped_dataset = {}
     for i in xrange(len(dataset)):
         nl_str, cm_str, nl, search_history = dataset[i]
-        nl_template = " ".join(data_tools.basic_tokenizer(nl_str.decode("utf-8")))
+        if use_nl_temp:
+            nl_template = " ".join(data_tools.basic_tokenizer(nl_str.decode("utf-8")))
+        else:
+            nl_template = nl_str
         if nl_template in grouped_dataset:
             grouped_dataset[nl_template][0].append(nl_str)
             grouped_dataset[nl_template][1].append(cm_str)
@@ -498,6 +501,7 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path,
                             print("  reading data line %d" % counter)
                             sys.stdout.flush()
                         source_ids = [int(x) for x in source.split()]
+                        source_ids
                         target_ids = [int(x) for x in target.split()]
                         if append_head_token:
                             target_ids.insert(0, ROOT_ID)
