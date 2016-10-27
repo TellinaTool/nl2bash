@@ -231,6 +231,10 @@ error_temp_pairs = [
     (
         "Delete all .svn files/directories under current directory\n",
         "find -exec rm {} \; -name Pattern File"
+    ),
+    (
+        "Copy file header.shtml to directories dir1, dir2, dir3, and dir4\n",
+        "find -exec cp File {} \; -name Pattern File"
     )]
 
 correct_str_pairs = [
