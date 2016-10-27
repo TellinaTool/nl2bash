@@ -50,7 +50,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.v = v
 
         # variable sharing
-        self.resue_variables = reuse_variables
+        self.reuse_variables = reuse_variables
 
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
