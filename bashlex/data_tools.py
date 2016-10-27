@@ -293,7 +293,7 @@ def paren_parser(line):
             node.parent = stack[-1]
         i += 1
         if len(stack) == 0:
-            break;
+            break
 
     # order nodes
     order_child_fun(root)
