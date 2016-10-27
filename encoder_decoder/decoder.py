@@ -31,6 +31,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         hidden_features = []
         v = []
         with tf.variable_scope("attention_cell_wrapper") as scope:
+            # for var in tf.all_variables():
+            #     print(var.name)
             if reuse_variables:
                 scope.reuse_variables()
             for a in xrange(num_heads):
