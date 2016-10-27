@@ -36,6 +36,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
     total_top3_dist = 0.0
     total_top5_dist = 0.0
     total_top10_dist = 0.0
+
     num_eval = 0
 
     cmd_parser = data_tools.bash_parser if FLAGS.dataset == "bash" \
