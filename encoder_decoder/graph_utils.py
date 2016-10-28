@@ -175,7 +175,7 @@ def map_fn(fn, elems, batch_size):
 
 def attention_reg(attn_masks):
     diff = tf.reduce_sum(attn_masks, 1) - 3
-    return tf.reduce_sum(tf.square(diff))
+    return tf.log(tf.reduce_sum(tf.square(diff)) / attn_masks.get_shape()[0].value)
 
 
 def sequence_loss(logits, targets, target_weights, loss_function):
