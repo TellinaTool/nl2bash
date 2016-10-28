@@ -108,6 +108,18 @@ correct_temp_pairs = [
     (
         "create a tar ball of all pdf files in current folder\n",
         "find -name Pattern -print0 File | xargs -0 -I {} tar -f File -r -v {}"
+    ),
+    (
+        "display all the files in the entire file system which are bigger than 10MB\n",
+        "find -exec ls -l -s {} \; -size Size File"
+    ),
+    (
+        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
+        "find -type l -xtype l File | xargs -I {} rm -f {}"
+    ),
+    (
+        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
+        "find -exec rm -f {} \; -type l -xtype l File"
     )]
 
 error_temp_pairs = [
@@ -231,6 +243,19 @@ error_temp_pairs = [
     (
         "Delete all .svn files/directories under current directory\n",
         "find -exec rm {} \; -name Pattern File"
+    ),
+    (
+        "Copy file header.shtml to directories dir1, dir2, dir3, and dir4\n",
+        "find -exec cp File {} \; -name Pattern File"
+    ),
+    (
+        "Count the number of files/directories named file1 under current directory\n",
+        "find -exec wc -l {} \; -name Pattern File"
+    ),
+    (
+        "search for all the directories ending with \".mp3\" in the file system and move them to "
+                                                         "the folder /mnt/mp3\n",
+        "find -iname Pattern -print0 -type f File | xargs -0 -I {} mv File {}"
     )]
 
 correct_str_pairs = [

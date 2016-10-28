@@ -1126,13 +1126,10 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     tokens.append(node.value)
         elif node.kind == "nt":
             assert(loose_constraints or node.get_num_of_children() > 0)
-            if len(node.children) > 1 and node.children[0].value in ["and", "or"]:
-                children = node.children[:1] + sorted(node.children[1:],
-                                                      key=lambda x:x.value)
-            else:
-                children = node.children
-            for child in children:
+            tokens.append("(")
+            for child in node.children:
                 tokens += to_tokens_fun(child)
+            tokens.append(")")
         elif node.is_argument() or node.kind in ["t"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
             if ato and node.is_open_vocab():
@@ -1172,4 +1169,3 @@ def test_normalize_pattern():
 
 if __name__ == "__main__":
     test_normalize_pattern()
-

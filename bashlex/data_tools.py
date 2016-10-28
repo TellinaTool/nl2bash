@@ -8,12 +8,11 @@ Domain-specific natural Language and bash command tokenizer.
 # builtin
 from __future__ import print_function
 
-import collections
 import re
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "data"))
 
-import normalizer
+import nast, normalizer
 import gazetteer
 import spellcheck.spell_check as spc
 
@@ -253,6 +252,53 @@ def cmd2template(cmd, normalize_digits=True, normalize_long_pattern=True,
     tree = normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,
                          recover_quotation)
     return ast2template(tree, loose_constraints, arg_type_only)
+
+
+def paren_parser(line):
+    def order_child_fun(node):
+        for child in node.children:
+            order_child_fun(child)
+        if len(node.children) > 1 and node.children[0].value in ["and", "or"]:
+            node.children = node.children[:1] + sorted(node.children[1:],
+                    key=lambda x:(x.value if x.kind == "t" else x.children[0].value))
+
+    """A very simple algorithm for parsing data with parentheses."""
+    if not line.startswith("("):
+        line = "( " + line
+    if not line.endswith(")"):
+        line = line + " )"
+    words = line.strip().split()
+
+    root = nast.Node(kind="root", value="root")
+    stack = []
+
+    i = 0
+    while i < len(words):
+        word = words[i]
+        if word == "(":
+            if stack:
+                # creates non-terminal
+                node = nast.Node(kind="nt", value="<n>")
+                stack[-1].add_child(node)
+                node.parent = stack[-1]
+                stack.append(node)
+            else:
+                stack.append(root)
+        elif word == ")":
+            if stack:
+                stack.pop()
+        else:
+            node = nast.Node(kind="t", value=word)
+            stack[-1].add_child(node)
+            node.parent = stack[-1]
+        i += 1
+        if len(stack) == 0:
+            break
+
+    # order nodes
+    order_child_fun(root)
+
+    return root
 
 
 def test_nl_tokenizer():
