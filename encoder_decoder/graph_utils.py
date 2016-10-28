@@ -174,7 +174,7 @@ def map_fn(fn, elems, batch_size):
 
 
 def attention_reg(attn_masks):
-    diff = tf.reduce_sum(attn_masks, 1) - 1
+    diff = tf.reduce_sum(attn_masks, 1) - 3
     return tf.reduce_sum(tf.square(diff))
 
 
