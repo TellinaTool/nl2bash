@@ -18,7 +18,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param attention_input_keep: attention input state dropout
         :param attention_output_keep: attention hidden state dropout
         :param num_heads: Number of attention heads that read from from attention_states.
-            Dummy field if attention_states is None.
+                          Dummy field if attention_states is None.
         :param reuse_variables: reuse variables in scope.
         """
         attention_states = tf.nn.dropout(attention_states, attention_input_keep)
