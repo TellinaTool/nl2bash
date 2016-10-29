@@ -141,12 +141,14 @@ def train(train_set, dev_set, construct_model_dir=True):
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
                 dev_size = sum(len(dev_set[bucket_id]) for bucket_id in xrange(len(_buckets)))
-                dev_perplexity = math.exp(dev_loss/dev_size) if dev_loss < 1000 else float('inf')
+                dev_loss = dev_loss / dev_size
+                dev_perplexity = math.exp(dev_loss) if dev_loss < 1000 else float('inf')
                 print("global step %d learning rate %.4f dev_perplexity %.2f" 
                         % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
-                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-10:]):
+                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]) \
+                    and (FLAGS.dataset.startswith("bash") or t >= 10):
                     return False
            
                 previous_dev_losses.append(dev_loss)
@@ -334,7 +336,7 @@ def main(_):
     elif FLAGS.decode:
         _, dev_set, _ = load_data()
         decode(dev_set)
-        eval(dev_set)
+        eval(dev_set, verbose=False)
     elif FLAGS.demo:
         demo()
     elif FLAGS.process_data:
@@ -349,7 +351,7 @@ def main(_):
         train(train_set, dev_set)
         tf.reset_default_graph()
         decode(dev_set, construct_model_dir=False)
-        eval(dev_set)
+        eval(dev_set, verbose=False)
     
 if __name__ == "__main__":
     tf.app.run()

@@ -810,4 +810,7 @@ def prepare_data(FLAGS):
 
 
 if __name__ == "__main__":
-    data_tools.paren_parser(sys.argv[1])
+    ast = data_tools.paren_parser(sys.argv[1])
+    data_tools.pretty_print(ast)
+    print(data_tools.ast2template(
+            ast, loose_constraints=True, arg_type_only=True))
