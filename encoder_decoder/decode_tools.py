@@ -63,7 +63,7 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
                 cmd = re.sub('(^\( )|( \( )', ' \\( ', cmd)
                 tree = data_tools.bash_parser(cmd)
             else:
-                tree = data_utils.parse_brackets(cmd)
+                tree = data_tools.paren_parser(cmd)
             search_history = outputs
         else:
             tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)

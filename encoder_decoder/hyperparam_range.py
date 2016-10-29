@@ -1,8 +1,8 @@
 """Range of hyperparameters for grid search."""
 
 hyperparam_range = {
-    "attention_input_keep": [0.5, 0.6, 0.7, 0.8],
-    "attention_output_keep": [0.5, 0.6, 0.7, 0.8],
+    "attention_input_keep": [0.4, 0.6, 0.8, 1.0],
+    "attention_output_keep": [0.4, 0.6, 0.8, 1.0],
     "encoder_input_keep": [0.6, 0.7, 0.8],
     "encoder_output_keep": [0.6, 0.7, 0.8],
     "decoder_input_keep": [0.6, 0.7, 0.8],
