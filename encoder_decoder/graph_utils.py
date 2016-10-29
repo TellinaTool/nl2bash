@@ -98,9 +98,11 @@ def get_model_signature(FLAGS):
         model_subdir += '-attention'
         model_subdir += '-{}'.format(FLAGS.attention_input_keep)
         model_subdir += '-{}'.format(FLAGS.attention_output_keep)
+        model_subdir += '-{}'.format(FLAGS.beta)
     model_subdir += '-{}'.format(FLAGS.batch_size)
     model_subdir += '-{}'.format(FLAGS.dim)
     model_subdir += '-{}'.format(FLAGS.num_layers)
+    model_subdir += '-{}'.format(FLAGS.learning_rate)
     model_subdir += '-{}'.format(FLAGS.encoder_input_keep)
     model_subdir += '-{}'.format(FLAGS.encoder_output_keep)
     model_subdir += '-{}'.format(FLAGS.decoder_input_keep)
