@@ -141,7 +141,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
                 dev_size = sum(len(dev_set[bucket_id]) for bucket_id in xrange(len(_buckets)))
-                dev_perplexity = math.exp(dev_loss/dev_size) if dev_loss < 1000 else float('inf')
+                dev_perplexity = math.exp(dev_loss/dev_size) if dev_loss < 300 else float('inf')
                 print("global step %d learning rate %.4f dev_perplexity %.2f" 
                         % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
 
