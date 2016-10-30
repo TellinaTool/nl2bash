@@ -234,6 +234,7 @@ def deprecated(func):
 class NNModel(object):
     def __init__(self, hyperparams):
         self.hyperparams = hyperparams
+        self.batch_size = self.hyperparams["batch_size"]
 
     @property
     def use_sampled_softmax(self):
@@ -258,10 +259,6 @@ class NNModel(object):
     @property
     def dim(self):
         return self.hyperparams["dim"]
-
-    @property
-    def batch_size(self):
-        return self.hyperparams["batch_size"]
 
     @property
     def attention_input_keep(self):
