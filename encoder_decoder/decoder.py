@@ -86,11 +86,11 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __call__(self, input_embedding, state, attn_masks, scope=None):
         dim = state.get_shape()[1].value
         with tf.variable_scope("AttnInputProjection", reuse=self.reuse_variables):
-            _, state = self.cell(input_embedding, state, scope)
+            cell_output, state = self.cell(input_embedding, state, scope)
             attns, attn_mask = self.attention(state)
 
         with tf.variable_scope("AttnStateProjection", reuse=self.reuse_variables):
-            attn_state = tf.tanh(tf.nn.rnn_cell._linear([state, attns], dim, True))
+            attn_state = tf.tanh(tf.nn.rnn_cell._linear([cell_output, attns], dim, True))
 
         with tf.variable_scope("AttnOutputProjection", reuse=self.reuse_variables):
             # attention mechanism on output state
