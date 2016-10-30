@@ -4,6 +4,7 @@ import os
 import sys
 
 import tensorflow as tf
+from tensorflow.python.util import nest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -27,14 +28,16 @@ class RNNDecoder(decoder.Decoder):
         with tf.variable_scope("decoder_rnn") as scope:
             decoder_cell, decoder_scope = self.decoder_cell(scope)
             state = encoder_state
+            if nest.is_sequence(encoder_state):
+                self.batch_size = encoder_state[0].get_shape()[0].value
+            else:
+                self.batch_size = encoder_state.get_shape()[0].value
             W, b = self.output_projection
             outputs = []
 
             # prepare attention masks
             if self.use_attention:
-                batch_size = tf.shape(attention_states)[0]
-                attn_length = tf.shape(attention_states)[1]
-                attn_masks = tf.zeros([batch_size, 0, attn_length])
+                attn_masks = None
 
             # applying cell wrappers: ["attention", "beam"]
             if self.decoding_algorithm == "beam_search":
@@ -52,7 +55,6 @@ class RNNDecoder(decoder.Decoder):
                 state = beam_decoder.wrap_state(state, self.output_projection)
                 if self.use_attention:
                     attention_states = beam_decoder.wrap_input(attention_states)
-                    attn_masks = tf.tile(attn_masks, [self.beam_size, 1, 1])
                     encoder_attn_masks = [
                         tf.expand_dims(beam_decoder.wrap_input(encoder_attn_mask), 1)
                         for encoder_attn_mask in encoder_attn_masks]

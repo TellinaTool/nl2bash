@@ -103,5 +103,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         self.attention_cell_vars = True
 
-        attn_masks = tf.concat(1, [attn_masks, tf.expand_dims(attn_mask, 1)])
+        attn_masks = tf.concat(1, [attn_masks, tf.expand_dims(attn_mask, 1)]) if attn_masks \
+            else tf.expand_dims(attn_mask, 1)
         return output, state, attn_masks
