@@ -19,17 +19,7 @@ best_sparse = beam_decoder.unwrap_output_sparse(final_state) # Output, this time
 """
 
 import tensorflow as tf
-
-try:
-    from tensorflow.python.util import nest
-except ImportError:
-    # Backwards-compatibility
-    from tensorflow.python.ops import rnn_cell
-    class NestModule(object): pass
-    nest = NestModule()
-    nest.is_sequence = rnn_cell._is_sequence
-    nest.flatten = rnn_cell._unpacked_state
-    nest.pack_sequence_as = rnn_cell._packed_state
+from tensorflow.python.util import nest
 
 def nest_map(func, nested):
     if not nest.is_sequence(nested):
@@ -105,7 +95,7 @@ class BeamDecoder(object):
                                        self.use_attention,
                                        self.alpha)
         if nest.is_sequence(state):
-            batch_size = nest.flatten(state).get_shape()[0].value
+            batch_size = nest.flatten(state)[0].get_shape()[0].value
             dtype = nest.flatten(state)[0].dtype
         else:
             batch_size = state.get_shape()[0].value
@@ -261,7 +251,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]), 
                                             self.stop_token), tf.float32)
-        # outputs = tf.reshape(symbols, [-1]) # [batch_size*beam_size, 1]
         cell_state = nest_map(
             lambda element: tf.gather(element, parent_refs),
             raw_cell_state
