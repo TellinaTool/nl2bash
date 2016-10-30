@@ -131,7 +131,7 @@ def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1, outp
     """
     with tf.variable_scope(scope):
         if type == "lstm":
-            cell = tf.nn.rnn_cell.BasicLSTMCell(dim, state_is_tuple=True)
+            cell = tf.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
         elif type == "gru":
             cell = tf.nn.rnn_cell.GRUCell(dim)
         else:
