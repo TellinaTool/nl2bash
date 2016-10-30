@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow.python.util import nest
 
 import graph_utils
 
@@ -55,6 +56,13 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
         ds = []  # Results of attention reads will be stored here.
+        if nest.is_sequence(state):  # If the query is a tuple, flatten it.
+            query_list = nest.flatten(state)
+            for q in query_list:  # Check that ndims == 2 if specified.
+              ndims = q.get_shape().ndims
+              if ndims:
+                assert ndims == 2
+            state = tf.concat(1, query_list)
         for a in xrange(self.num_heads):
             with tf.variable_scope("Attention_%d" % a, reuse=self.reuse_variables):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_vec_dim])
