@@ -114,6 +114,7 @@ def get_model_signature(FLAGS):
 
     model_sig = model_subdir + "-{}".format(FLAGS.decoding_algorithm)
     model_sig += "-{}".format(FLAGS.beam_size)
+    model_sig += ("-test" if FLAGS.test else "-dev")
     return model_subdir, model_sig
 
 
