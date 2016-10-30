@@ -57,12 +57,13 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         """Put attention masks on hidden using hidden_features and query."""
         ds = []  # Results of attention reads will be stored here.
         if nest.is_sequence(state):  # If the query is a tuple, flatten it.
-            query_list = nest.flatten(state)
-            for q in query_list:  # Check that ndims == 2 if specified.
-              ndims = q.get_shape().ndims
-              if ndims:
-                assert ndims == 2
-            state = tf.concat(1, query_list)
+            # query_list = nest.flatten(state)
+            # for q in query_list:  # Check that ndims == 2 if specified.
+            #   ndims = q.get_shape().ndims
+            #   if ndims:
+            #     assert ndims == 2
+            # state = tf.concat(1, query_list)
+            state = state[1]
         for a in xrange(self.num_heads):
             with tf.variable_scope("Attention_%d" % a, reuse=self.reuse_variables):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_vec_dim])
@@ -85,7 +86,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def __call__(self, input_embedding, state, attn_masks, scope=None):
         if nest.is_sequence(state):
-            dim = state[0].get_shape()[1].value
+            dim = state[1].get_shape()[1].value
         else:
             dim = state.get_shape()[1].value
         with tf.variable_scope("AttnInputProjection", reuse=self.reuse_variables):
