@@ -29,9 +29,9 @@ class RNNDecoder(decoder.Decoder):
             decoder_cell, decoder_scope = self.decoder_cell(scope)
             state = encoder_state
             if nest.is_sequence(encoder_state):
-                self.batch_size = encoder_state[0].get_shape()[0].value
+                self.hyperparams["batch_size"] = encoder_state[0].get_shape()[0].value
             else:
-                self.batch_size = encoder_state.get_shape()[0].value
+                self.hyperparams["batch_size"] = encoder_state.get_shape()[0].value
             W, b = self.output_projection
             outputs = []
 

@@ -10,6 +10,7 @@ import numpy as np
 
 import data_utils, graph_utils
 import tensorflow as tf
+from tensorflow.python.util import nest
 
 class EncoderDecoderModel(graph_utils.NNModel):
 
@@ -179,6 +180,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
+
+        if nest.is_sequence(encoder_state):
+            self.hyperparams["batch_size"] = encoder_state[0].get_shape()[0].value
+        else:
+            self.hyperparams["batch_size"] = encoder_state.get_shape()[0].value
 
         if self.rnn_cell == "gru":
             encoder_state.set_shape([self.batch_size, self.dim*self.num_layers])
