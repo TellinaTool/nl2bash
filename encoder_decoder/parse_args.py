@@ -33,6 +33,8 @@ def define_input_flags():
                                 "Set to True for data preprocessing.")
     tf.app.flags.DEFINE_boolean("decode", False,
                                 "Set to True for decoding.")
+    tf.app.flags.DEFINE_boolean("test", False,
+                                "Set to True to decode and evaluate on the test set.")
     tf.app.flags.DEFINE_boolean("demo", False,
                                 "Set to True for interactive demo.")
     tf.app.flags.DEFINE_boolean("bucket_selection", False,

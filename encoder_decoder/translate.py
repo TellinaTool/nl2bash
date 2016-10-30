@@ -337,6 +337,10 @@ def main(_):
         _, dev_set, _ = load_data()
         decode(dev_set)
         eval(dev_set, verbose=False)
+    elif FLAGS.test:
+        _, test_set, _ = load_data()
+        decode(test_set)
+        eval(test_set, verbose=False)
     elif FLAGS.demo:
         demo()
     elif FLAGS.process_data:
