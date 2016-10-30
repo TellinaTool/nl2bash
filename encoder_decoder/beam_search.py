@@ -95,12 +95,10 @@ class BeamDecoder(object):
                                        self.use_attention,
                                        self.alpha)
         if nest.is_sequence(state):
-            batch_size = nest.flatten(state)[0].get_shape()[0].value
             dtype = nest.flatten(state)[0].dtype
         else:
-            batch_size = state.get_shape()[0].value
             dtype = state.dtype
-        return dummy._create_state(batch_size, dtype, cell_state=state)
+        return dummy._create_state(self.batch_size, dtype, cell_state=state)
 
     def wrap_input(self, input):
         """
