@@ -210,7 +210,6 @@ def softmax_loss(output_projection, num_samples, target_vocab_size):
             labels = tf.reshape(labels, [-1, 1])
             return tf.nn.sampled_softmax_loss(w_t, b, inputs, labels, num_samples,
                                               target_vocab_size)
-
         loss_function = sampled_loss
     else:
         loss_function = tf.nn.softmax_cross_entropy_with_logits
