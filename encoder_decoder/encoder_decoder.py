@@ -195,9 +195,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                                    len(decoder_inputs),
                                                    self.use_attention,
                                                    self.alpha)
-            self.targets = [beam_decoder.wrap_input(target) for target in self.targets]
-            self.target_weights = [beam_decoder.wrap_input(target_weight)
-                                   for target_weight in self.target_weights]
+            targets = [beam_decoder.wrap_input(target) for target in self.targets]
+            target_weights = [beam_decoder.wrap_input(target_weight)
+                              for target_weight in self.target_weights]
+        else:
+            targets = self.targets
+            target_weights = self.target_weights
 
         if self.rnn_cell == "gru":
             encoder_state.set_shape([self.batch_size, self.dim*self.num_layers])
@@ -205,7 +208,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_state[0].set_shape([self.batch_size, self.dim*self.num_layers])
             encoder_state[1].set_shape([self.batch_size, self.dim*self.num_layers])
 
-        # encoder_state = tf.zeros(tf.shape(encoder_state))
         if self.use_attention:
             top_states = [tf.reshape(e, [self.batch_size, 1, self.dim])
                           for e in encoder_outputs]
@@ -228,7 +230,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             attention_loss = 0
 
-        losses = graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
+        losses = graph_utils.sequence_loss(outputs, targets, target_weights,
                                            graph_utils.softmax_loss(
                                                self.output_projection(),
                                                self.num_samples,
