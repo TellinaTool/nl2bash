@@ -103,11 +103,11 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
             if bucket_size % FLAGS.batch_size != 0:
                 num_batches += 1
 
-            for i in xrange(num_batches):
-                batch_nl_strs = bucket_nl_strs[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
-                batch_cm_strs = bucket_cm_strs[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
-                batch_nls = bucket_nls[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
-                batch_cmds = bucket_cmds[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
+            for b in xrange(num_batches):
+                batch_nl_strs = bucket_nl_strs[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
+                batch_cm_strs = bucket_cm_strs[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
+                batch_nls = bucket_nls[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
+                batch_cmds = bucket_cmds[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
 
                 # make a full batch
                 if len(batch_nl_strs) < FLAGS.batch_size:
@@ -124,7 +124,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                 batch_outputs = decode(output_symbols, rev_cm_vocab, FLAGS)
 
                 for batch_id in xrange(batch_size):
-                    example_id = i * FLAGS.batch_size + batch_id
+                    example_id = b * FLAGS.batch_size + batch_id
                     nl_str = batch_nl_strs[batch_id]
                     cm_strs = batch_cm_strs[batch_id]
                     nl = batch_nls[batch_id]
