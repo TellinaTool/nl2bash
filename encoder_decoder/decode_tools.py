@@ -30,8 +30,7 @@ def to_readable(outputs, rev_cm_vocab):
 
 def decode(output_symbols, rev_cm_vocab, FLAGS):
     batch_outputs = []
-    batch_size = len(output_symbols)
-   
+
     for i in xrange(len(output_symbols)):
         top_k_predictions = output_symbols[i]
         assert((FLAGS.decoding_algorithm == "greedy") or 
@@ -78,6 +77,7 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
                 beam_outputs.append((tree, cmd, search_history))
         if FLAGS.decoding_algorithm == "beam_search":
             batch_outputs.append(beam_outputs)
+
     return batch_outputs
 
 
