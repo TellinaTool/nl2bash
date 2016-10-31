@@ -297,8 +297,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         return 1
 
     def _create_state(self, batch_size, dtype, cell_state=None):
-        cand_symbols = tf.fill([batch_size, self.max_len], tf.constant(self.start_token,
-                                                                       dtype=tf.int32))
+        cand_symbols = tf.fill([batch_size, self.max_len],
+                               tf.constant(self.start_token, dtype=tf.int32))
         cand_logprobs = tf.ones((batch_size,), dtype=tf.float32) * -float('inf')
         cand_symbols.set_shape([batch_size, self.max_len])
 
@@ -309,8 +309,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         full_size = batch_size * self.beam_size
         first_in_beam_mask = tf.equal(tf.range(full_size) % self.beam_size, 0)
 
-        beam_symbols = tf.fill([full_size, self.max_len], tf.constant(self.start_token,
-                                                                      dtype=tf.int32))
+        beam_symbols = tf.fill([full_size, self.max_len],
+                               tf.constant(self.start_token, dtype=tf.int32))
         beam_logprobs = tf.select(
             first_in_beam_mask,
             tf.fill([full_size], 0.0),

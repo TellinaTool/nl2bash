@@ -136,9 +136,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Gradients and SGD updates in the backward direction.
         params = tf.trainable_variables()
         if not forward_only:
-            if self.hyperparams["optimizer"] == "sgd":
+            if self.optimizer == "sgd":
                 opt = tf.train.GradientDescentOptimizer(self.learning_rate)
-            elif self.hyperparams["optimizer"] == "adam":
+            elif self.optimizer == "adam":
                 opt = tf.train.AdamOptimizer(self.learning_rate, beta1=0.9,
                                              beta2=0.999, epsilon=1e-08)
             else:
