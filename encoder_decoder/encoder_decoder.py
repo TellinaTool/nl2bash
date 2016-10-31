@@ -8,9 +8,11 @@ import random
 
 import numpy as np
 
-import data_utils, graph_utils
 import tensorflow as tf
 from tensorflow.python.util import nest
+
+import beam_search, data_utils, graph_utils
+
 
 class EncoderDecoderModel(graph_utils.NNModel):
 
@@ -181,6 +183,22 @@ class EncoderDecoderModel(graph_utils.NNModel):
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
 
+        if self.decoding_algorithm == "beam_search":
+            if not forward_only:
+                # TODO: support beam search training
+                raise NotImplementedError
+            beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
+                                                   data_utils.ROOT_ID,
+                                                   data_utils.EOS_ID,
+                                                   self.batch_size,
+                                                   self.beam_size,
+                                                   len(decoder_inputs),
+                                                   self.use_attention,
+                                                   self.alpha)
+            self.targets = [beam_decoder.wrap_input(target) for target in self.targets]
+            self.target_weights = [beam_decoder.wrap_input(target_weight)
+                                   for target_weight in self.target_weights]
+
         if self.rnn_cell == "gru":
             encoder_state.set_shape([self.batch_size, self.dim*self.num_layers])
         elif self.rnn_cell == "lstm":
@@ -196,7 +214,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.decoder.define_graph(
                     encoder_state, decoder_inputs, target_embeddings,
                     encoder_attn_masks, attention_states, num_heads=1,
-                    feed_previous=forward_only, reuse_variables=reuse_variables)
+                    beam_decoder=beam_decoder, feed_previous=forward_only,
+                    reuse_variables=reuse_variables)
         else:
             output_symbols, output_logits, outputs, state = \
                 self.decoder.define_graph(
@@ -209,7 +228,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             attention_loss = 0
 
-        print(outputs)
         losses = graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
                                            graph_utils.softmax_loss(
                                                self.output_projection(),
