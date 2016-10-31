@@ -171,7 +171,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self._nondone_mask = tf.reshape(tf.tile(self._nondone_mask, [1, self.beam_size, 1]),
             [-1, self.beam_size*self.num_classes])
 
-        full_size = tf.reshape(self._nondone_mask, [-1, self.num_classes]).get_shape()[0].value
+        full_size = self.batch_size * self.beam_size
         self.seq_len = tf.constant(1e-10, shape=[full_size], dtype=tf.float32)
         self._done_mask = tf.reshape(
             tf.cast(tf.not_equal(tf.range(self.num_classes), self.stop_token), tf.float32) * -1e2,
