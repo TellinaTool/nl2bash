@@ -111,17 +111,20 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
 
                 # make a full batch
                 if len(batch_nl_strs) < FLAGS.batch_size:
+                    batch_size = len(batch_nl_strs)
                     batch_nl_strs = batch_nl_strs + [batch_nl_strs[-1]] * (FLAGS.batch_size - len(batch_nl_strs))
                     batch_cm_strs = batch_cm_strs + [batch_cm_strs[-1]] * (FLAGS.batch_size - len(batch_nl_strs))
                     batch_nls = batch_nls + [batch_nls[-1]] * (FLAGS.batch_size - len(batch_nl_strs))
                     batch_cmds = batch_cmds + [batch_cmds[-1]] * (FLAGS.batch_size - len(batch_nl_strs))
+                else:
+                    batch_size = FLAGS.batch_size
 
                 formatted_example = model.format_example(batch_nls, batch_cmds, bucket_id=bucket_id)
                 output_symbols, output_logits, losses, attn_masks = \
                         model.step(sess, formatted_example, bucket_id, forward_only=True)
                 batch_outputs = decode(output_symbols, rev_cm_vocab, FLAGS)
 
-                for batch_id in xrange(FLAGS.batch_size):
+                for batch_id in xrange(batch_size):
                     example_id = i * FLAGS.batch_size + batch_id
                     nl_str = batch_nl_strs[batch_id]
                     cm_strs = batch_cm_strs[batch_id]
