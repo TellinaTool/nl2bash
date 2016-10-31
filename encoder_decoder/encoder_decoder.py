@@ -270,10 +270,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_size, decoder_size = self.max_source_length, self.max_target_length
 
         batch_size = len(encoder_inputs)
-
         padded_encoder_inputs = []
         padded_decoder_inputs = []
-
         for batch_idx in xrange(batch_size):
             encoder_input = encoder_inputs[batch_idx]
             decoder_input = decoder_inputs[batch_idx]

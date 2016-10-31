@@ -31,54 +31,54 @@ def to_readable(outputs, rev_cm_vocab):
 def decode(output_symbols, rev_cm_vocab, FLAGS):
     batch_outputs = []
     batch_size = len(output_symbols)
-    
-    predictions = reduce(lambda x,y: x + y, output_symbols)
-
-    for i in xrange(len(predictions)):
-        outputs = [int(pred) for pred in predictions[i]]
-
-        # If there is an EOS symbol in outputs, cut them at that point.
-        if data_utils.EOS_ID in outputs:
-            outputs = outputs[:outputs.index(data_utils.EOS_ID)]
-
-        if FLAGS.decoder_topology == "rnn":
-            if FLAGS.char:
-                cmd = "".join([tf.compat.as_str(rev_cm_vocab[output])
-                               for output in outputs]).replace(data_utils._UNK, ' ')
-            else:
-                tokens = []
-                for output in outputs:
-                    if output < len(rev_cm_vocab):
-                        pred_token = rev_cm_vocab[output]
-                        if "@@" in pred_token:
-                            pred_token = pred_token.split("@@")[-1]
-                        tokens.append(pred_token)
-                    else:
-                        tokens.append(data_utils._UNK)
-                cmd = " ".join(tokens)
-
-            if FLAGS.dataset in ["bash", "bash.cl"]:
-                cmd = re.sub('( ;\s+)|( ;$)', ' \\; ', cmd)
-                cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
-                cmd = re.sub('(^\( )|( \( )', ' \\( ', cmd)
-                tree = data_tools.bash_parser(cmd)
-            else:
-                tree = data_tools.paren_parser(cmd)
-            search_history = outputs
-        else:
-            tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
-        batch_outputs.append((tree, cmd, search_history))
-    
-    if FLAGS.decoding_algorithm == "beam_search":
-        batch_beam_outputs = []
-        for i in xrange(batch_size):
+   
+    for i in xrange(len(output_symbols)):
+        top_k_predictions = output_symbols[i]
+        assert((FLAGS.decoding_algorithm == "greedy") or 
+               len(top_k_predictions) == FLAGS.beam_size)
+        if FLAGS.decoding_algorithm == "beam_search":
             beam_outputs = []
-            for j in xrange(FLAGS.beam_size):
-                beam_outputs.append(batch_outputs[i * FLAGS.beam_size + j])
-            batch_beam_outputs.append(beam_outputs)
-        return batch_beam_outputs
-    else:
-        return batch_outputs
+        for j in xrange(len(top_k_predictions)):
+            prediction = top_k_predictions[j]
+            outputs = [int(pred) for pred in prediction]
+
+            # If there is an EOS symbol in outputs, cut them at that point.
+            if data_utils.EOS_ID in outputs:
+                outputs = outputs[:outputs.index(data_utils.EOS_ID)]
+
+            if FLAGS.decoder_topology == "rnn":
+                if FLAGS.char:
+                    cmd = "".join([tf.compat.as_str(rev_cm_vocab[output])
+                               for output in outputs]).replace(data_utils._UNK, ' ')
+                else:
+                    tokens = []
+                    for output in outputs:
+                        if output < len(rev_cm_vocab):
+                            pred_token = rev_cm_vocab[output]
+                            if "@@" in pred_token:
+                                pred_token = pred_token.split("@@")[-1]
+                            tokens.append(pred_token)
+                        else:
+                            tokens.append(data_utils._UNK)
+                    cmd = " ".join(tokens)
+
+                if FLAGS.dataset in ["bash", "bash.cl"]:
+                    cmd = re.sub('( ;\s+)|( ;$)', ' \\; ', cmd)
+                    cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
+                    cmd = re.sub('(^\( )|( \( )', ' \\( ', cmd)
+                    tree = data_tools.bash_parser(cmd)
+                else:
+                    tree = data_tools.paren_parser(cmd)
+                search_history = outputs
+            else:
+                tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
+            if FLAGS.decoding_algorithm == "greedy":
+                batch_outputs.append((tree, cmd, search_history))
+            else:
+                beam_outputs.append((tree, cmd, search_history))
+        if FLAGS.decoding_algorithm == "beam_search":
+            batch_outputs.append(beam_outputs)
+    return batch_outputs
 
 
 def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
@@ -104,21 +104,20 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                 num_batches += 1
 
             for i in xrange(num_batches):
-                batch_nl_strs = bucket_nl_strs[i*num_batches:(i+1)*num_batches]
-                batch_cm_strs = bucket_cm_strs[i*num_batches:(i+1)*num_batches]
-                batch_nls = bucket_nls[i*num_batches:(i+1)*num_batches]
-                batch_cmds = bucket_cmds[i*num_batches:(i+1)*num_batches]
+                batch_nl_strs = bucket_nl_strs[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
+                batch_cm_strs = bucket_cm_strs[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
+                batch_nls = bucket_nls[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
+                batch_cmds = bucket_cmds[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
 
                 # make a full batch
                 if len(batch_nl_strs) < FLAGS.batch_size:
                     batch_size = len(batch_nl_strs)
                     batch_nl_strs = batch_nl_strs + [batch_nl_strs[-1]] * (FLAGS.batch_size - len(batch_nl_strs))
-                    batch_cm_strs = batch_cm_strs + [batch_cm_strs[-1]] * (FLAGS.batch_size - len(batch_nl_strs))
-                    batch_nls = batch_nls + [batch_nls[-1]] * (FLAGS.batch_size - len(batch_nl_strs))
-                    batch_cmds = batch_cmds + [batch_cmds[-1]] * (FLAGS.batch_size - len(batch_nl_strs))
+                    batch_cm_strs = batch_cm_strs + [batch_cm_strs[-1]] * (FLAGS.batch_size - len(batch_cm_strs))
+                    batch_nls = batch_nls + [batch_nls[-1]] * (FLAGS.batch_size - len(batch_nls))
+                    batch_cmds = batch_cmds + [batch_cmds[-1]] * (FLAGS.batch_size - len(batch_cmds))
                 else:
                     batch_size = FLAGS.batch_size
-
                 formatted_example = model.format_example(batch_nls, batch_cmds, bucket_id=bucket_id)
                 output_symbols, output_logits, losses, attn_masks = \
                         model.step(sess, formatted_example, bucket_id, forward_only=True)

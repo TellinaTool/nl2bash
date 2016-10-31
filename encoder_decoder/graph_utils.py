@@ -206,7 +206,6 @@ def softmax_loss(output_projection, num_samples, target_vocab_size):
     if num_samples > 0:
         w, b = output_projection
         w_t = tf.transpose(w)
-
         def sampled_loss(inputs, labels):
             labels = tf.reshape(labels, [-1, 1])
             return tf.nn.sampled_softmax_loss(w_t, b, inputs, labels, num_samples,

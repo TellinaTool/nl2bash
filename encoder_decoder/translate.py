@@ -148,7 +148,8 @@ def train(train_set, dev_set, construct_model_dir=True):
 
                 # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
                 if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]) \
-                    and (FLAGS.dataset.startswith("bash") or t >= 10):
+                    and t >= 10:
+                    # and (FLAGS.dataset.startswith("bash") or t >= 10):
                     return False
            
                 previous_dev_losses.append(dev_loss)
@@ -338,7 +339,7 @@ def main(_):
         decode(dev_set)
         eval(dev_set, verbose=False)
     elif FLAGS.test:
-        _, test_set, _ = load_data()
+        _, _, test_set = load_data()
         decode(test_set)
         eval(test_set, verbose=False)
     elif FLAGS.demo:
