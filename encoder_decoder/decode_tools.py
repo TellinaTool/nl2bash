@@ -159,7 +159,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                             # data_tools.pretty_print(top_k_pred_tree, 0)
                         if verbose:
                             print()
-                        outputs = top_k_predictions[batch_id][2]
+                        outputs = top_k_predictions[0][2]
                     else:
                         raise ValueError("Unrecognized decoding algorithm: {}."
                              .format(FLAGS.decoding_algorithm))
