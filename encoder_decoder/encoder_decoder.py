@@ -181,11 +181,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
 
-        if nest.is_sequence(encoder_state):
-            self.hyperparams["batch_size"] = encoder_state[0].get_shape()[0].value
-        else:
-            self.hyperparams["batch_size"] = encoder_state.get_shape()[0].value
-
         if self.rnn_cell == "gru":
             encoder_state.set_shape([self.batch_size, self.dim*self.num_layers])
         elif self.rnn_cell == "lstm":
