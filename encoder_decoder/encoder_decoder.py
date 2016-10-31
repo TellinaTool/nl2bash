@@ -210,11 +210,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
             attention_loss = 0
 
         losses = graph_utils.sequence_loss(outputs, self.targets, self.target_weights,
-                                               graph_utils.softmax_loss(
-                                                   self.output_projection(),
-                                                   self.num_samples,
-                                                   self.target_vocab_size
-                                               )) \
+                                           graph_utils.softmax_loss(
+                                               self.output_projection(),
+                                               self.num_samples,
+                                               self.target_vocab_size
+                                           )) \
                  + attention_loss
 
         if self.use_attention:
