@@ -56,6 +56,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     print("model_dir={}".format(FLAGS.model_dir))
 
     if forward_only:
+        params["batch_size"] = 100
         params["attention_input_keep"] = 1.0
         params["attention_output_keep"] = 1.0
         params["encoder_input_keep"] = 1.0
@@ -321,6 +322,10 @@ class NNModel(object):
     @property
     def decoding_algorithm(self):
         return self.hyperparams["decoding_algorithm"]
+
+    @property
+    def optimizer(self):
+        return self.hyperparams["optimizer"]
 
     @property
     def beam_size(self):
