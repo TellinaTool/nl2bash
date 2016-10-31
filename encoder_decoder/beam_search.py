@@ -48,8 +48,7 @@ class BeamDecoder(object):
         self.max_len = max_len
         self.use_attention = use_attention
         self.alpha = alpha
-
-        print("Creating beam search decoder: alpha = {}".format(self.alpha))
+        print("creating beam search decoder: alpha = {}".format(self.alpha))
 
     @classmethod
     def _tile_along_beam(cls, beam_size, state):
