@@ -204,13 +204,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
             target_weights = self.target_weights
 
         if self.rnn_cell == "gru":
-            encoder_state.set_shape([self.batch_size, self.dim*self.num_layers])
+            encoder_state.set_shape([None, self.dim*self.num_layers])
         elif self.rnn_cell == "lstm":
-            encoder_state[0].set_shape([self.batch_size, self.dim*self.num_layers])
-            encoder_state[1].set_shape([self.batch_size, self.dim*self.num_layers])
+            encoder_state[0].set_shape([None, self.dim*self.num_layers])
+            encoder_state[1].set_shape([None, self.dim*self.num_layers])
 
         if self.use_attention:
-            top_states = [tf.reshape(e, [self.batch_size, 1, self.dim])
+            top_states = [tf.reshape(e, [-1, 1, self.dim])
                           for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
             output_symbols, output_logits, outputs, state, attn_mask = \
@@ -446,7 +446,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
-        input_feed[last_target] = np.zeros([self.batch_size], dtype=np.int32)
+        input_feed[last_target] = np.zeros(decoder_inputs[0].shape, dtype=np.int32)
 
         # Output feed: depends on whether we do a backward step or not.
         if not forward_only:
