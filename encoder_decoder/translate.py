@@ -167,8 +167,8 @@ def decode(data_set, construct_model_dir=True, verbose=True):
 
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
 
-        decode_tools.decode_set(sess, model, data_set, rev_nl_vocab, rev_cm_vocab,
-                                                FLAGS, verbose)
+        decode_tools.decode_set(sess, model, data_set,
+                                rev_nl_vocab, rev_cm_vocab, FLAGS, verbose)
 
 
 def eval(data_set, verbose=True):
@@ -203,8 +203,7 @@ def demo():
 
         nl_vocab, _, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
 
-        decode_tools.demo(
-            sess, model, nl_vocab, rev_cm_vocab, FLAGS)
+        decode_tools.demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS)
 
 
 def train_and_eval(train_set, dev_set):
