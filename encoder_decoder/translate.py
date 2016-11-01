@@ -100,7 +100,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                 random_number_01 = np.random.random_sample()
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
                                  if train_buckets_scale[i] > random_number_01])
-                formatted_example = model.get_batch(train_set, bucket_id)
+                formatted_example = model.get_bucket(train_set, bucket_id)
                 _, step_loss, _, _ = model.step(sess, formatted_example, bucket_id,
                                                 forward_only=False)
                 loss += step_loss
