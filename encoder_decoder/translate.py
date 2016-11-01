@@ -51,7 +51,7 @@ elif FLAGS.dataset == "jobs":
 elif FLAGS.dataset == "geo":
     _buckets = [(5, 70), (10, 70), (20, 70)]
 elif FLAGS.dataset == "atis":
-    _buckets = [(20, 95), (30, 95), (45, 95)]
+    _buckets = [(20, 95), (30, 95), (40, 95)]
 
 def create_model(session, forward_only, construct_model_dir=True):
     """
