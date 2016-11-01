@@ -376,7 +376,22 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_inputs.append(encoder_input)
             decoder_inputs.append(decoder_input)
 
-        return self.format_example(encoder_inputs, decoder_inputs, copy_data=None,
+        return self.format_example(encoder_inputs, decoder_inputs, copy_data=copy_data,
+                                   bucket_id=bucket_id)
+
+
+    def get_bucket(self, data, bucket_id, copy_data=None):
+        """Get all data points from the specified bucket, prepare for step.
+        """
+
+        encoder_inputs, decoder_inputs = [], []
+
+        for i in xrange(self.len(data)):
+            _, _, encoder_input, decoder_input = data[bucket_id][i]
+            encoder_inputs.append(encoder_input)
+            decoder_inputs.append(decoder_input)
+
+        return self.format_example(encoder_inputs, decoder_inputs, copy_data=copy_data,
                                    bucket_id=bucket_id)
 
 
