@@ -64,11 +64,8 @@ class RNNDecoder(decoder.Decoder):
                                                             self.attention_output_keep,
                                                             num_heads,
                                                             reuse_variables)
-                past_output_symbols = tf.constant(data_utils.ROOT_ID,
-                                                  shape=decoder_inputs[0].get_shape(),
-                                                  dtype=tf.int64)
-                past_output_logits = tf.constant(0, shape=decoder_inputs[0].get_shape()[0].value,
-                                                 dtype=tf.float32)
+                past_output_symbols = decoder_inputs[0]
+                past_output_logits = decoder_inputs[0] * 0
 
             for i, input in enumerate(decoder_inputs):
                 if self.decoding_algorithm == "beam_search":
