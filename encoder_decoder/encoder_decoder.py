@@ -386,7 +386,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         encoder_inputs, decoder_inputs = [], []
 
-        for i in xrange(len(data)):
+        for i in xrange(len(data[bucket_id])):
             _, _, encoder_input, decoder_input = data[bucket_id][i]
             encoder_inputs.append(encoder_input)
             decoder_inputs.append(decoder_input)
