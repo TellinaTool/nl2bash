@@ -65,9 +65,9 @@ class RNNDecoder(decoder.Decoder):
                                                             num_heads,
                                                             reuse_variables)
                 past_output_symbols = tf.constant(data_utils.ROOT_ID,
-                                                  shape=[self.batch_size, 1],
+                                                  shape=decoder_inputs[0].get_shape(),
                                                   dtype=tf.int64)
-                past_output_logits = tf.constant(0, shape=[self.batch_size],
+                past_output_logits = tf.constant(0, shape=decoder_inputs[0].get_shape()[0].value,
                                                  dtype=tf.float32)
 
             for i, input in enumerate(decoder_inputs):
@@ -140,7 +140,7 @@ class RNNDecoder(decoder.Decoder):
                 past_output_symbols = tf.concat(1, [past_output_symbols,
                                                     tf.expand_dims(output_symbol, 1)])
                 past_output_symbols = past_output_symbols[:, 1:]
-                output_symbols = tf.split(0, self.batch_size, past_output_symbols)
+                output_symbols = tf.unpack(past_output_symbols, axis=0)
                 past_output_logits = tf.add(past_output_logits,
                                             tf.reduce_max(projected_output, 1))
                 if self.use_attention:

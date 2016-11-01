@@ -196,7 +196,6 @@ def sequence_loss(logits, targets, target_weights, loss_function):
         total_size += 1e-12  # Just to avoid division by 0 for all-0 weights.
         log_perps /= total_size
 
-    print(log_perps)
     avg_log_perps = tf.reduce_mean(log_perps)
 
     return avg_log_perps
