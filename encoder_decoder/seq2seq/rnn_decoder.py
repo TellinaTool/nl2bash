@@ -4,10 +4,11 @@ import os
 import sys
 
 import tensorflow as tf
+from tensorflow.python.util import nest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-import decoder, beam_search, data_utils, graph_utils
+import decoder, data_utils, graph_utils
 
 class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, output_projection=None):
@@ -16,8 +17,8 @@ class RNNDecoder(decoder.Decoder):
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      encoder_attn_masks=None, attention_states=None, num_heads=1,
-                     initial_state_attention=False, feed_previous=False,
-                     reuse_variables=False):
+                     initial_state_attention=False, beam_decoder=None,
+                     feed_previous=False, reuse_variables=False):
 
         if self.use_attention \
                 and not attention_states.get_shape()[1:2].is_fully_defined():
@@ -32,27 +33,13 @@ class RNNDecoder(decoder.Decoder):
 
             # prepare attention masks
             if self.use_attention:
-                batch_size = tf.shape(attention_states)[0]
-                attn_length = tf.shape(attention_states)[1]
-                attn_masks = tf.zeros([batch_size, 0, attn_length])
+                attn_masks = None
 
             # applying cell wrappers: ["attention", "beam"]
             if self.decoding_algorithm == "beam_search":
-                if not feed_previous:
-                    # TODO: support beam search training
-                    raise NotImplementedError
-                beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
-                                                       data_utils.ROOT_ID,
-                                                       data_utils.EOS_ID,
-                                                       self.batch_size,
-                                                       self.beam_size,
-                                                       len(decoder_inputs),
-                                                       self.use_attention,
-                                                       self.alpha)
                 state = beam_decoder.wrap_state(state, self.output_projection)
                 if self.use_attention:
                     attention_states = beam_decoder.wrap_input(attention_states)
-                    attn_masks = tf.tile(attn_masks, [self.beam_size, 1, 1])
                     encoder_attn_masks = [
                         tf.expand_dims(beam_decoder.wrap_input(encoder_attn_mask), 1)
                         for encoder_attn_mask in encoder_attn_masks]

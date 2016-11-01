@@ -7,45 +7,6 @@ Some manual evaluation correction.
 
 correct_temp_pairs = [
     (
-        "search for a specific word in all the hidden files in the entire file system and display the file name along "
-        "with the matched line\n",
-        "find -exec grep -H Pattern {} \; -name Pattern File"
-    ),
-    (
-        "create a tar ball of all pdf files in current folder\n",
-        "find -name Pattern -print File | xargs -I {} tar -f File -r -v {}"
-    ),
-    (
-        "start from current directory, skip the directory src/emacs and print it then skip all files and directories "
-        "under it, and print the names of the other files found\n",
-        "find \( -path File -prune -or -type f \) -print File"
-    ),
-    (
-        "find all files in a folder that have a specific word in their name\n",
-        "find -name Pattern -print File"
-    ),
-    (
-        "Remove files in the current directory tree modified more than 31 days ago recursively\n",
-        "find -exec rm {} \; -mtime Time File"
-    ),
-    (
-        "dispaly a long listig of all the files in the current folder which are bigger than 100KB\n",
-        "find -exec ls -l {} \; -size Size File"
-    ),
-    (
-        "display all the files in the kat folder\n",
-        "find File"
-    ),
-    (
-        "display all sqlite files in the current directory along with their timestamp\n",
-        "find -printf Pattern File"
-    ),
-    (
-        "display all the regular/normal files in the folder /path/ which have not been modified today ( from day "
-        "start ie, 00:00 )\n",
-        "find -mtime Time -type f File"
-    ),
-    (
         "find the largest file in the current directory and sub directories\n",
         "find -maxdepth Number -printf Pattern -type f File | sort -n -r | head -n Number"
     ),
@@ -120,38 +81,13 @@ correct_temp_pairs = [
     (
         "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
         "find -exec rm -f {} \; -type l -xtype l File"
+    ),
+    (
+        "display all the text files in the current folder  and do not search in the bin directory\n",
+        "find -maxdepth Number \( -name Pattern -prune -or -name Pattern \) File"
     )]
 
 error_temp_pairs = [
-    (
-        "find  file which case-insensitive name is too in currect directory\n",
-        "find -name Pattern File"
-    ),
-    (
-        "Search directory foo for files containing \"foo/bar\" in their full names\n",
-        "find foo -type f -iname foo | grep foo"
-    ),
-    (
-        "display all sqlite files in the current directory along with their timestamp\n",
-        "find -name Pattern File"
-    ),
-    (
-        "Find all *.tex regular files under current directory\n",
-        "find -type Unknown File"
-    ),
-    (
-        "List root's regular files with permissions 4000\n",
-        "find -exec ls -l {} \; -perm Permission -type Unknown File"
-    ),
-    (
-        "list regular file which file name end with 'cache' 'xml' or 'html' in current directory\n",
-        "find -name Pattern -type Unknown File"
-    ),
-    (
-        "search for a specific word in all the hidden files in the entire file system and display "
-        "the file name along with the matched line\n",
-        "find -name Pattern File | xargs grep Pattern"
-    ),
     (
         "find all '*.c' files under $HOME directory which context contains sprintf\n",
         "find -exec grep -H File Pattern {} \; -name Pattern -type f File"
@@ -256,6 +192,11 @@ error_temp_pairs = [
         "search for all the directories ending with \".mp3\" in the file system and move them to "
                                                          "the folder /mnt/mp3\n",
         "find -iname Pattern -print0 -type f File | xargs -0 -I {} mv File {}"
+    ),
+    (
+        "Find files with 002 permission in entire file system and print them with the string 'has world write "
+        "permissions' appended after every path\n",
+        "find -exec ls -l {} \; -perm Permission -type f File"
     )]
 
 correct_str_pairs = [

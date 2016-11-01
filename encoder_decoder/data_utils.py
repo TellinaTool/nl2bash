@@ -563,9 +563,14 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
             max_len = len(d)
 
     if isinstance(data.train[0], list):
+        if "bash" in data_dir:
+            min_word_freq = 2
+        else:
+            min_word_freq = 0
         create_vocabulary(vocab_path, data.train, vocab_size,
                       normalize_digits=normalize_digits,
-                      normalize_long_pattern=normalize_long_pattern)
+                      normalize_long_pattern=normalize_long_pattern,
+                      min_word_frequency=min_word_freq)
 
     train_path = os.path.join(data_dir, "train")
     dev_path = os.path.join(data_dir, "dev")
@@ -810,4 +815,7 @@ def prepare_data(FLAGS):
 
 
 if __name__ == "__main__":
-    data_tools.paren_parser(sys.argv[1])
+    ast = data_tools.paren_parser(sys.argv[1])
+    data_tools.pretty_print(ast)
+    print(data_tools.ast2template(
+            ast, loose_constraints=True, arg_type_only=True))

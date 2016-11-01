@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow.python.util import nest
 
 import graph_utils
 
@@ -18,7 +19,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param attention_input_keep: attention input state dropout
         :param attention_output_keep: attention hidden state dropout
         :param num_heads: Number of attention heads that read from from attention_states.
-            Dummy field if attention_states is None.
+                          Dummy field if attention_states is None.
         :param reuse_variables: reuse variables in scope.
         """
         attention_states = tf.nn.dropout(attention_states, attention_input_keep)
@@ -55,6 +56,14 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
         ds = []  # Results of attention reads will be stored here.
+        if nest.is_sequence(state):  # If the query is a tuple, flatten it.
+            # query_list = nest.flatten(state)
+            # for q in query_list:  # Check that ndims == 2 if specified.
+            #   ndims = q.get_shape().ndims
+            #   if ndims:
+            #     assert ndims == 2
+            # state = tf.concat(1, query_list)
+            state = state[1]
         for a in xrange(self.num_heads):
             with tf.variable_scope("Attention_%d" % a, reuse=self.reuse_variables):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_vec_dim])
@@ -76,13 +85,16 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         return attns, attn_mask
 
     def __call__(self, input_embedding, state, attn_masks, scope=None):
-        dim = state.get_shape()[1].value
+        if nest.is_sequence(state):
+            dim = state[1].get_shape()[1].value
+        else:
+            dim = state.get_shape()[1].value
         with tf.variable_scope("AttnInputProjection", reuse=self.reuse_variables):
-            _, state = self.cell(input_embedding, state, scope)
+            cell_output, state = self.cell(input_embedding, state, scope)
             attns, attn_mask = self.attention(state)
 
         with tf.variable_scope("AttnStateProjection", reuse=self.reuse_variables):
-            attn_state = tf.tanh(tf.nn.rnn_cell._linear([state, attns], dim, True))
+            attn_state = tf.tanh(tf.nn.rnn_cell._linear([cell_output, attns], dim, True))
 
         with tf.variable_scope("AttnOutputProjection", reuse=self.reuse_variables):
             # attention mechanism on output state
@@ -91,5 +103,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         self.attention_cell_vars = True
 
-        attn_masks = tf.concat(1, [attn_masks, tf.expand_dims(attn_mask, 1)])
+        attn_masks = tf.concat(1, [attn_masks, tf.expand_dims(attn_mask, 1)]) if attn_masks is not None \
+            else tf.expand_dims(attn_mask, 1)
         return output, state, attn_masks

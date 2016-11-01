@@ -19,17 +19,7 @@ best_sparse = beam_decoder.unwrap_output_sparse(final_state) # Output, this time
 """
 
 import tensorflow as tf
-
-try:
-    from tensorflow.python.util import nest
-except ImportError:
-    # Backwards-compatibility
-    from tensorflow.python.ops import rnn_cell
-    class NestModule(object): pass
-    nest = NestModule()
-    nest.is_sequence = rnn_cell._is_sequence
-    nest.flatten = rnn_cell._unpacked_state
-    nest.pack_sequence_as = rnn_cell._packed_state
+from tensorflow.python.util import nest
 
 def nest_map(func, nested):
     if not nest.is_sequence(nested):
@@ -58,8 +48,7 @@ class BeamDecoder(object):
         self.max_len = max_len
         self.use_attention = use_attention
         self.alpha = alpha
-
-        print("Creating beam search decoder: alpha = {}".format(self.alpha))
+        print("creating beam search decoder: alpha = {}".format(self.alpha))
 
     @classmethod
     def _tile_along_beam(cls, beam_size, state):
@@ -105,12 +94,10 @@ class BeamDecoder(object):
                                        self.use_attention,
                                        self.alpha)
         if nest.is_sequence(state):
-            batch_size = nest.flatten(state).get_shape()[0].value
             dtype = nest.flatten(state)[0].dtype
         else:
-            batch_size = state.get_shape()[0].value
             dtype = state.dtype
-        return dummy._create_state(batch_size, dtype, cell_state=state)
+        return dummy._create_state(self.batch_size, dtype, cell_state=state)
 
     def wrap_input(self, input):
         """
@@ -261,7 +248,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]), 
                                             self.stop_token), tf.float32)
-        # outputs = tf.reshape(symbols, [-1]) # [batch_size*beam_size, 1]
         cell_state = nest_map(
             lambda element: tf.gather(element, parent_refs),
             raw_cell_state
@@ -310,8 +296,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         return 1
 
     def _create_state(self, batch_size, dtype, cell_state=None):
-        cand_symbols = tf.fill([batch_size, self.max_len], tf.constant(self.start_token,
-                                                                       dtype=tf.int32))
+        cand_symbols = tf.fill([batch_size, self.max_len],
+                               tf.constant(self.start_token, dtype=tf.int32))
         cand_logprobs = tf.ones((batch_size,), dtype=tf.float32) * -float('inf')
         cand_symbols.set_shape([batch_size, self.max_len])
 
@@ -322,8 +308,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         full_size = batch_size * self.beam_size
         first_in_beam_mask = tf.equal(tf.range(full_size) % self.beam_size, 0)
 
-        beam_symbols = tf.fill([full_size, self.max_len], tf.constant(self.start_token,
-                                                                      dtype=tf.int32))
+        beam_symbols = tf.fill([full_size, self.max_len],
+                               tf.constant(self.start_token, dtype=tf.int32))
         beam_logprobs = tf.select(
             first_in_beam_mask,
             tf.fill([full_size], 0.0),
