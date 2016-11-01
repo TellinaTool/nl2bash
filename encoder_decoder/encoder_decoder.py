@@ -199,6 +199,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             target_weights = [beam_decoder.wrap_input(target_weight)
                               for target_weight in self.target_weights]
         else:
+            beam_decoder = None
             targets = self.targets
             target_weights = self.target_weights
 
