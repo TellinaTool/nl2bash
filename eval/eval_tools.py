@@ -39,13 +39,15 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
 
     num_eval = 0
 
-    cmd_parser = data_tools.bash_parser if FLAGS.dataset.startswith("bash") \
+    eval_bash = FLAGS.dataset.startswith("bash")
+
+    cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
 
     use_bucket = False if model == "knn" else True
 
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=use_bucket,
-                                                  use_nl_temp = FLAGS.dataset.startswith("bash"))
+    grouped_dataset = data_utils.group_data_by_nl(
+        dataset, use_bucket=use_bucket, use_nl_temp = eval_bash)
 
     with DBConnection() as db:
         for nl_temp in grouped_dataset:
@@ -53,6 +55,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
             nl_str = nl_strs[0]
 
             gt_trees = [cmd_parser(cmd) for cmd in cm_strs]
+            num_gts = len(gt_trees)
             gt_trees = gt_trees + [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_str)]
 
             predictions = db.get_top_k_predictions(model, nl_str, k=10)
@@ -63,7 +66,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
                 print("English: " + nl_temp)
                 for j in xrange(len(cm_strs)):
                     print("GT Command {}: ".format(j+1) + cm_strs[j].strip())
-            num_eval += 1
+            num_eval += (1 if eval_bash else num_gts)
 
             top1_correct_temp, top3_correct_temp, top5_correct_temp, top10_correct_temp = \
                 False, False, False, False
@@ -131,21 +134,21 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
             if verbose:
                 print()
             if top1_correct_temp:
-                num_top1_correct_temp += 1
+                num_top1_correct_temp += (1 if eval_bash else num_gts)
             if top3_correct_temp:
-                num_top3_correct_temp += 1
+                num_top3_correct_temp += (1 if eval_bash else num_gts)
             if top5_correct_temp:
-                num_top5_correct_temp += 1
+                num_top5_correct_temp += (1 if eval_bash else num_gts)
             if top10_correct_temp:
-                num_top10_correct_temp += 1
+                num_top10_correct_temp += (1 if eval_bash else num_gts)
             if top1_correct:
-                num_top1_correct += 1
+                num_top1_correct += (1 if eval_bash else num_gts)
             if top3_correct:
-                num_top3_correct += 1
+                num_top3_correct += (1 if eval_bash else num_gts)
             if top5_correct:
-                num_top5_correct += 1
+                num_top5_correct += (1 if eval_bash else num_gts)
             if top10_correct:
-                num_top10_correct += 1
+                num_top10_correct += (1 if eval_bash else num_gts)
 
             total_top1_temp_dist += top1_temp_dist
             total_top3_temp_dist += top3_temp_dist

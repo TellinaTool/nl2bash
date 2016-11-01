@@ -56,7 +56,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     print("model_dir={}".format(FLAGS.model_dir))
 
     if forward_only:
-        params["batch_size"] = 1
+        FLAGS.batch_size = 100
+        params["batch_size"] = 100
         params["attention_input_keep"] = 1.0
         params["attention_output_keep"] = 1.0
         params["encoder_input_keep"] = 1.0
@@ -98,9 +99,11 @@ def get_model_signature(FLAGS):
         model_subdir += '-attention'
         model_subdir += '-{}'.format(FLAGS.attention_input_keep)
         model_subdir += '-{}'.format(FLAGS.attention_output_keep)
+        model_subdir += '-{}'.format(FLAGS.beta)
     model_subdir += '-{}'.format(FLAGS.batch_size)
     model_subdir += '-{}'.format(FLAGS.dim)
     model_subdir += '-{}'.format(FLAGS.num_layers)
+    model_subdir += '-{}'.format(FLAGS.learning_rate)
     model_subdir += '-{}'.format(FLAGS.encoder_input_keep)
     model_subdir += '-{}'.format(FLAGS.encoder_output_keep)
     model_subdir += '-{}'.format(FLAGS.decoder_input_keep)
@@ -112,6 +115,7 @@ def get_model_signature(FLAGS):
 
     model_sig = model_subdir + "-{}".format(FLAGS.decoding_algorithm)
     model_sig += "-{}".format(FLAGS.beam_size)
+    model_sig += ("-test" if FLAGS.test else "-dev")
     return model_subdir, model_sig
 
 
@@ -128,7 +132,7 @@ def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1, outp
     """
     with tf.variable_scope(scope):
         if type == "lstm":
-            cell = tf.nn.rnn_cell.BasicLSTMCell(dim, state_is_tuple=True)
+            cell = tf.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
         elif type == "gru":
             cell = tf.nn.rnn_cell.GRUCell(dim)
         else:
@@ -175,8 +179,7 @@ def map_fn(fn, elems, batch_size):
 
 def attention_reg(attn_masks):
     diff = tf.reduce_sum(attn_masks, 1) - 1
-    return tf.log(tf.reduce_sum(tf.square(diff)) / (attn_masks.get_shape()[0].value
-                                             * attn_masks.get_shape()[1].value))
+    return tf.reduce_mean(tf.square(diff))
 
 
 def sequence_loss(logits, targets, target_weights, loss_function):
@@ -203,12 +206,10 @@ def softmax_loss(output_projection, num_samples, target_vocab_size):
     if num_samples > 0:
         w, b = output_projection
         w_t = tf.transpose(w)
-
         def sampled_loss(inputs, labels):
             labels = tf.reshape(labels, [-1, 1])
             return tf.nn.sampled_softmax_loss(w_t, b, inputs, labels, num_samples,
                                               target_vocab_size)
-
         loss_function = sampled_loss
     else:
         loss_function = tf.nn.softmax_cross_entropy_with_logits
@@ -321,6 +322,10 @@ class NNModel(object):
     @property
     def decoding_algorithm(self):
         return self.hyperparams["decoding_algorithm"]
+
+    @property
+    def optimizer(self):
+        return self.hyperparams["optimizer"]
 
     @property
     def beam_size(self):

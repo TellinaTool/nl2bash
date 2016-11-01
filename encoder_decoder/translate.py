@@ -41,9 +41,9 @@ parse_args.define_input_flags()
 # We use a number of buckets and pad to the closest one for efficiency.
 if FLAGS.dataset in ["bash", "bash.cl"]:
     if FLAGS.decoder_topology in ['basic_tree']:
-        _buckets = [(5, 30), (10, 30), (15, 40), (20, 40), (30, 64)]
+        _buckets = [(5, 30), (10, 30), (20, 40), (30, 64), (40, 64)]
     elif FLAGS.decoder_topology in ['rnn']:
-        _buckets = [(5, 20), (10, 20), (15, 30), (20, 30), (30, 40)]
+        _buckets = [(5, 20), (10, 20), (20, 30), (30, 40), (40, 40)]
 elif FLAGS.dataset == "dummy":
     _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
 elif FLAGS.dataset == "jobs":
@@ -141,12 +141,15 @@ def train(train_set, dev_set, construct_model_dir=True):
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
                 dev_size = sum(len(dev_set[bucket_id]) for bucket_id in xrange(len(_buckets)))
-                dev_perplexity = math.exp(dev_loss/dev_size) if dev_loss < 1000 else float('inf')
+                dev_loss = dev_loss / dev_size
+                dev_perplexity = math.exp(dev_loss) if dev_loss < 1000 else float('inf')
                 print("global step %d learning rate %.4f dev_perplexity %.2f" 
                         % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
-                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-10:]):
+                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]) \
+                    and t >= 10:
+                    # and (FLAGS.dataset.startswith("bash") or t >= 10):
                     return False
            
                 previous_dev_losses.append(dev_loss)
@@ -334,7 +337,11 @@ def main(_):
     elif FLAGS.decode:
         _, dev_set, _ = load_data()
         decode(dev_set)
-        eval(dev_set)
+        eval(dev_set, verbose=False)
+    elif FLAGS.test:
+        _, _, test_set = load_data()
+        decode(test_set)
+        eval(test_set, verbose=False)
     elif FLAGS.demo:
         demo()
     elif FLAGS.process_data:
@@ -349,7 +356,7 @@ def main(_):
         train(train_set, dev_set)
         tf.reset_default_graph()
         decode(dev_set, construct_model_dir=False)
-        eval(dev_set)
+        eval(dev_set, verbose=False)
     
 if __name__ == "__main__":
     tf.app.run()
