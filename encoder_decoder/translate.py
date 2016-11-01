@@ -330,7 +330,7 @@ def main(_):
     print("Saving models to {}".format(FLAGS.model_dir))
 
     if FLAGS.eval:
-        _, dev_set, _ = load_data()
+        _, dev_set, test_set = load_data()
         eval(dev_set)
     elif FLAGS.manual_eval:
         manual_eval(405)
