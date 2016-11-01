@@ -136,8 +136,7 @@ class RNNDecoder(decoder.Decoder):
                 output_symbol = tf.argmax(projected_output, 1)
                 past_output_symbols = tf.concat(1, [past_output_symbols,
                                                     tf.expand_dims(output_symbol, 1)])
-                past_output_symbols = past_output_symbols[:, 1:]
-                output_symbols = tf.unpack(past_output_symbols)
+                output_symbols = past_output_symbols[:, 1:]
                 past_output_logits = tf.add(past_output_logits,
                                             tf.reduce_max(projected_output, 1))
                 if self.use_attention:
