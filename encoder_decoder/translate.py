@@ -51,7 +51,7 @@ elif FLAGS.dataset == "jobs":
 elif FLAGS.dataset == "geo":
     _buckets = [(5, 70), (10, 70), (20, 70)]
 elif FLAGS.dataset == "atis":
-    _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
+    _buckets = [(10, 95), (20, 95), (30, 95), (45, 95)]
 
 def create_model(session, forward_only, construct_model_dir=True):
     """
@@ -100,7 +100,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                 random_number_01 = np.random.random_sample()
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
                                  if train_buckets_scale[i] > random_number_01])
-                formatted_example = model.get_bucket(train_set, bucket_id)
+                formatted_example = model.get_batch(train_set, bucket_id)
                 _, step_loss, _, _ = model.step(sess, formatted_example, bucket_id,
                                                 forward_only=False)
                 loss += step_loss
@@ -133,7 +133,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                     if len(dev_set[bucket_id]) == 0:
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
-                    formatted_example = model.get_batch(dev_set, bucket_id)
+                    formatted_example = model.get_bucket(dev_set, bucket_id)
                     _, output_logits, eval_loss, _ = model.step(sess, formatted_example, bucket_id,
                                                              forward_only=True)
                     dev_loss += eval_loss * len(dev_set[bucket_id])
