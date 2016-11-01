@@ -41,9 +41,9 @@ parse_args.define_input_flags()
 # We use a number of buckets and pad to the closest one for efficiency.
 if FLAGS.dataset in ["bash", "bash.cl"]:
     if FLAGS.decoder_topology in ['basic_tree']:
-        _buckets = [(5, 30), (10, 30), (20, 40), (30, 64), (40, 64)]
+        _buckets = [(20, 64), (30, 64), (40, 64)]
     elif FLAGS.decoder_topology in ['rnn']:
-        _buckets = [(5, 20), (10, 20), (20, 30), (30, 40), (40, 40)]
+        _buckets = [(20, 50), (30, 50), (40, 50)]
 elif FLAGS.dataset == "dummy":
     _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
 elif FLAGS.dataset == "jobs":
@@ -176,6 +176,7 @@ def eval(data_set, verbose=True):
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         _, model_sig = graph_utils.get_model_signature(FLAGS)
+        print("evaluate " + model_sig + "...")
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
 
         return eval_tools.eval_set(model_sig, data_set, rev_nl_vocab, FLAGS,
@@ -331,7 +332,10 @@ def main(_):
 
     if FLAGS.eval:
         _, dev_set, test_set = load_data()
-        eval(dev_set)
+        if FLAGS.test:
+            eval(test_set)
+        else:
+            eval(dev_set)
     elif FLAGS.manual_eval:
         manual_eval(405)
     elif FLAGS.decode:
@@ -341,7 +345,7 @@ def main(_):
     elif FLAGS.test:
         _, _, test_set = load_data()
         decode(test_set)
-        eval(test_set, verbose=False)
+        eval(test_set)
     elif FLAGS.demo:
         demo()
     elif FLAGS.process_data:
