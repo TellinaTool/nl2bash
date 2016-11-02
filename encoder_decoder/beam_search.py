@@ -1,5 +1,5 @@
 """
-Beam decoder for tensorflow
+Beam decoder with length normalization
 Credit: code adapted from
 https://gist.github.com/nikitakit/6ab61a73b86c50ad88d409bac3c3d09f
 """
