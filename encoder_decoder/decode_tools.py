@@ -63,7 +63,7 @@ def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
         if FLAGS.decoding_algorithm == "greedy":
             tree, pred_cmd, outputs = batch_outputs[0]
             score = output_logits[0]
-            print(pred_cmd)
+            print("{} ({})".format(pred_cmd, score))
         elif FLAGS.decoding_algorithm == "beam_search":
             top_k_predictions = batch_outputs[0]
             top_k_scores = output_logits[0]
