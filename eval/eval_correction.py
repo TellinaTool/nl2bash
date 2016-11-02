@@ -85,65 +85,14 @@ correct_temp_pairs = [
     (
         "display all the text files in the current folder  and do not search in the bin directory\n",
         "find -maxdepth Number \( -name Pattern -prune -or -name Pattern \) File"
+    ),
+    (
+        "Find all files, starting from / but ignoring removable media, whose names end with "
+        "\".rpm\"\n",
+        "find -name Pattern -prune File"
     )]
 
 error_temp_pairs = [
-    (
-        "find all '*.c' files under $HOME directory which context contains sprintf\n",
-        "find -exec grep -H File Pattern {} \; -name Pattern -type f File"
-    ),
-    (
-        "change the ownership of all directories in the current folder\n",
-        "find -exec chmod Unknown {} \; -type d File"
-    ),
-    (
-        "find foo, Foo, FOo, FOO, etc.\n",
-        "find -iname Pattern -type f File File"
-    ),
-    (
-        "Delete all files in the \"${S}/bundled-libs\" folder except \"libbass.so\"\n",
-        "find -delete \( -name Pattern -or -name Pattern -or -name Pattern \) -type f File"
-    ),
-    (
-        "Find files that are 0 bytes in size in the current directory and remove them\n",
-        "find -exec rm {} \; -size Size File"
-    ),
-    (
-        "force delete all the directories in a folder which  have a specific name\n",
-        "find -exec rm -f {} \; -name Pattern -type d File"
-    ),
-    (
-        "copy the file header.shtml to each directory under dir1, dir2, dir3, or dir4\n",
-        "find -exec cp File {} \; -name Pattern -type f File"
-    ),
-    (
-        "Find PHP files with abstract classes\n",
-        "find -iname Pattern File"
-    ),
-    (
-        "display all the regular files in the folder \"$(FOLDER)\" which are modified "
-        "in the last $(RETENTION)*24 hours and excluding hidden files\n",
-        "find ! -path File -mtime Time -type f File"
-    ),
-    (
-        "search for a specific word in all the hidden files in the entire file system and display "
-        "the file name along with the matched line\n",
-        "find -name Pattern -type f File | xargs -I {} grep Pattern {}"
-    ),
-    (
-        "Find all files and directories in the current directory tree with \"linkin park\" in " \
-        "their names and copy them to /Users/tommye/Desktop/LP\n",
-        "find -name Pattern -print0 File | xargs -0 -I {} cp File {}"
-    ),
-    (
-        "display the top 20 biggest files in the current folder which are present in the same partition as that of "
-        "the current folder\n",
-        "find -printf Pattern -type f File | sort -n -r | head -n Number"
-    ),
-    (
-        "Find all *.tex regular files in maximum 2 levels down the current directory\n",
-        "find -maxdepth Number -type f File"
-    ),
     (
         "display all the regular files in the current folder which dont not have the permission 777\n",
         "find -perm Permission -type f File"
