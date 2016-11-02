@@ -56,7 +56,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     print("model_dir={}".format(FLAGS.model_dir))
 
     if forward_only:
-        FLAGS.batch_size = 100
+        if not FLAGS.demo:
+            FLAGS.batch_size = 100
         params["batch_size"] = 100
         params["attention_input_keep"] = 1.0
         params["attention_output_keep"] = 1.0
@@ -196,8 +197,7 @@ def sequence_loss(logits, targets, target_weights, loss_function):
         total_size += 1e-12  # Just to avoid division by 0 for all-0 weights.
         log_perps /= total_size
 
-    batch_size = logits[0].get_shape()[0].value
-    avg_log_perps = tf.reduce_sum(log_perps) / tf.cast(batch_size, dtype=tf.float32)
+    avg_log_perps = tf.reduce_mean(log_perps)
 
     return avg_log_perps
 

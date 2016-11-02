@@ -28,6 +28,55 @@ def to_readable(outputs, rev_cm_vocab):
     return tree, cmd, search_history
 
 
+def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
+    """
+    Simple command line decoding interface.
+    """
+
+    # Decode from standard input.
+    sys.stdout.write("> ")
+    sys.stdout.flush()
+    sentence = sys.stdin.readline()
+
+    while sentence:
+        # Get token-ids for the input sentence.
+        if FLAGS.char:
+            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+                                                         data_tools.char_tokenizer, data_tools.basic_tokenizer)
+        else:
+            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+                                                         data_tools.basic_tokenizer, None)
+
+        # Which bucket does it belong to?
+        bucket_id = min([b for b in xrange(len(model.buckets))
+                        if model.buckets[b][0] > len(token_ids)])
+
+        # Get a 1-element batch to feed the sentence to the model.
+        formatted_example = model.format_example([token_ids], [[data_utils.ROOT_ID]],
+                                                 bucket_id=bucket_id)
+
+        # Get output for the sentence.
+        output_symbols, output_logits, losses, attn_masks = \
+                    model.step(sess, formatted_example, bucket_id, forward_only=True)
+        batch_outputs = decode(output_symbols, rev_cm_vocab, FLAGS)
+
+        if FLAGS.decoding_algorithm == "greedy":
+            tree, pred_cmd, outputs = batch_outputs[0]
+            score = output_logits[0]
+            print("{} ({})".format(pred_cmd, score))
+        elif FLAGS.decoding_algorithm == "beam_search":
+            top_k_predictions = batch_outputs[0]
+            top_k_scores = output_logits[0]
+            for j in xrange(min(FLAGS.beam_size, 10)):
+                top_k_pred_tree, top_k_pred_cmd, top_k_outputs = top_k_predictions[j]
+                print("Prediction {}: {} ({}) ".format(
+                    j+1, top_k_pred_cmd, top_k_scores[j]))
+            print()
+        print("> ", end="")
+        sys.stdout.flush()
+        sentence = sys.stdin.readline()
+
+
 def decode(output_symbols, rev_cm_vocab, FLAGS):
     batch_outputs = []
 
@@ -103,11 +152,11 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
             if bucket_size % FLAGS.batch_size != 0:
                 num_batches += 1
 
-            for i in xrange(num_batches):
-                batch_nl_strs = bucket_nl_strs[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
-                batch_cm_strs = bucket_cm_strs[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
-                batch_nls = bucket_nls[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
-                batch_cmds = bucket_cmds[i*FLAGS.batch_size:(i+1)*FLAGS.batch_size]
+            for b in xrange(num_batches):
+                batch_nl_strs = bucket_nl_strs[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
+                batch_cm_strs = bucket_cm_strs[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
+                batch_nls = bucket_nls[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
+                batch_cmds = bucket_cmds[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
 
                 # make a full batch
                 if len(batch_nl_strs) < FLAGS.batch_size:
@@ -124,7 +173,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                 batch_outputs = decode(output_symbols, rev_cm_vocab, FLAGS)
 
                 for batch_id in xrange(batch_size):
-                    example_id = i * FLAGS.batch_size + batch_id
+                    example_id = b * FLAGS.batch_size + batch_id
                     nl_str = batch_nl_strs[batch_id]
                     cm_strs = batch_cm_strs[batch_id]
                     nl = batch_nls[batch_id]
@@ -172,61 +221,6 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                             M = attn_masks[batch_id, 0, :, :]
                         visualize_attn_masks(M, nl, outputs, rev_nl_vocab, rev_cm_vocab,
                                              os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
-
-
-def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
-    """
-    Simple command line decoding interface.
-    """
-
-    # Decode from standard input.
-    sys.stdout.write("> ")
-    sys.stdout.flush()
-    sentence = sys.stdin.readline()
-
-    while sentence:
-        # Get token-ids for the input sentence.
-        if FLAGS.char:
-            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
-                                                         data_tools.char_tokenizer, data_tools.basic_tokenizer)
-        else:
-            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
-                                                         data_tools.basic_tokenizer, None)
-
-        # Which bucket does it belong to?
-        bucket_id = min([b for b in xrange(len(model.buckets))
-                        if model.buckets[b][0] > len(token_ids)])
-
-        # Get a 1-element batch to feed the sentence to the model.
-        formatted_example = model.format_example([token_ids], [[data_utils.ROOT_ID]],
-                                                 bucket_id=bucket_id)
-
-        # Get output for the sentence.
-        output_symbols, output_logits, losses, attn_masks = \
-                    model.step(sess, formatted_example, bucket_id, forward_only=True)
-        batch_outputs = decode(output_symbols, rev_cm_vocab, FLAGS)
-
-        if FLAGS.decoding_algorithm == "greedy":
-            tree, pred_cmd, outputs = batch_outputs[0]
-            print()
-            print(pred_cmd)
-            print()
-            data_tools.pretty_print(tree, 0)
-            print()
-        elif FLAGS.decoding_algorithm == "beam_search":
-            top_k_search_histories, decode_scores = model.beam_decode(FLAGS.beam_size, FLAGS.top_k)
-            print()
-            for i in xrange(FLAGS.top_k):
-                outputs = top_k_search_histories[i]
-                tree, cmd, _ = to_readable(outputs, rev_cm_vocab)
-                print("prediction %d (%.2f): " % (i, decode_scores[i]) + cmd)
-                print()
-                data_tools.pretty_print(tree, 0)
-                print()
-
-        print("> ", end="")
-        sys.stdout.flush()
-        sentence = sys.stdin.readline()
 
 
 def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_path):
