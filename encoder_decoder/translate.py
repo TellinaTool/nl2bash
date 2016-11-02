@@ -41,9 +41,9 @@ parse_args.define_input_flags()
 # We use a number of buckets and pad to the closest one for efficiency.
 if FLAGS.dataset in ["bash", "bash.cl"]:
     if FLAGS.decoder_topology in ['basic_tree']:
-        _buckets = [(5, 30), (10, 30), (20, 40), (30, 64), (40, 64)]
+        _buckets = [(20, 64), (30, 64), (40, 64)]
     elif FLAGS.decoder_topology in ['rnn']:
-        _buckets = [(5, 20), (10, 20), (20, 30), (30, 40), (40, 40)]
+        _buckets = [(20, 50), (30, 50), (40, 50)]
 elif FLAGS.dataset == "dummy":
     _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
 elif FLAGS.dataset == "jobs":
@@ -51,7 +51,7 @@ elif FLAGS.dataset == "jobs":
 elif FLAGS.dataset == "geo":
     _buckets = [(5, 70), (10, 70), (20, 70)]
 elif FLAGS.dataset == "atis":
-    _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
+    _buckets = [(20, 95), (30, 95), (40, 95)]
 
 def create_model(session, forward_only, construct_model_dir=True):
     """
@@ -133,7 +133,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                     if len(dev_set[bucket_id]) == 0:
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
-                    formatted_example = model.get_batch(dev_set, bucket_id)
+                    formatted_example = model.get_bucket(dev_set, bucket_id)
                     _, output_logits, eval_loss, _ = model.step(sess, formatted_example, bucket_id,
                                                              forward_only=True)
                     dev_loss += eval_loss * len(dev_set[bucket_id])
@@ -167,8 +167,8 @@ def decode(data_set, construct_model_dir=True, verbose=True):
 
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
 
-        decode_tools.decode_set(sess, model, data_set, rev_nl_vocab, rev_cm_vocab,
-                                                FLAGS, verbose)
+        decode_tools.decode_set(sess, model, data_set,
+                                rev_nl_vocab, rev_cm_vocab, FLAGS, verbose)
 
 
 def eval(data_set, verbose=True):
@@ -176,6 +176,7 @@ def eval(data_set, verbose=True):
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         _, model_sig = graph_utils.get_model_signature(FLAGS)
+        print("evaluate " + model_sig + "...")
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
 
         return eval_tools.eval_set(model_sig, data_set, rev_nl_vocab, FLAGS,
@@ -202,8 +203,7 @@ def demo():
 
         nl_vocab, _, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
 
-        decode_tools.demo(
-            sess, model, nl_vocab, rev_cm_vocab, FLAGS)
+        decode_tools.demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS)
 
 
 def train_and_eval(train_set, dev_set):
@@ -330,8 +330,11 @@ def main(_):
     print("Saving models to {}".format(FLAGS.model_dir))
 
     if FLAGS.eval:
-        _, dev_set, _ = load_data()
-        eval(dev_set)
+        _, dev_set, test_set = load_data()
+        if FLAGS.test:
+            eval(test_set)
+        else:
+            eval(dev_set)
     elif FLAGS.manual_eval:
         manual_eval(405)
     elif FLAGS.decode:
@@ -341,7 +344,7 @@ def main(_):
     elif FLAGS.test:
         _, _, test_set = load_data()
         decode(test_set)
-        eval(test_set, verbose=False)
+        eval(test_set)
     elif FLAGS.demo:
         demo()
     elif FLAGS.process_data:
