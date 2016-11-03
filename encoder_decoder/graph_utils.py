@@ -6,8 +6,10 @@ from __future__ import print_function
 
 import collections
 import functools
-import os
+import os, sys
 import warnings
+if sys.version_info > (3, 0):
+    from six.moves import xrange
 
 import tensorflow as tf
 
