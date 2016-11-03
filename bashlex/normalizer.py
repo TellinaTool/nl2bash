@@ -133,7 +133,7 @@ def special_command_normalization(cmd):
         cmd = cmd.replace("\xe2\x80\x93 ", "-")
         cmd = cmd.replace('‘', '\'')
         cmd = cmd.replace('’', '\'')
-    except UnicodeDecodeError, e:
+    except UnicodeDecodeError:
         cmd = cmd.replace("— ".decode('utf-8'), "-")
         cmd = cmd.replace("—".decode('utf-8'), "-")
         cmd = cmd.replace("“".decode('utf-8'), '"')
@@ -825,7 +825,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         elif node.kind == "command":
             try:
                 normalize_command(node, current)
-            except AssertionError, e:
+            except AssertionError:
                 raise AssertionError("normalized_command AssertionError")
         elif hasattr(node, 'parts'):
             for child in node.parts:
@@ -873,28 +873,28 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
     try:
         cmd2 = cmd.encode('utf-8')
-    except UnicodeDecodeError, e:
+    except UnicodeDecodeError:
         cmd2 = cmd
 
     try:
         tree = bparser.parse(cmd)
-    except tokenizer.MatchedPairError, e:
+    except tokenizer.MatchedPairError:
         print("Cannot parse: %s - MatchedPairError" % cmd2)
         # return basic_tokenizer(cmd, normalize_digits, False)
         return None
-    except errors.ParsingError, e:
+    except errors.ParsingError:
         print("Cannot parse: %s - ParsingError" % cmd2)
         # return basic_tokenizer(cmd, normalize_digits, False)
         return None
-    except NotImplementedError, e:
+    except NotImplementedError:
         print("Cannot parse: %s - NotImplementedError" % cmd2)
         # return basic_tokenizer(cmd, normalize_digits, False)
         return None
-    except IndexError, e:
+    except IndexError:
         print("Cannot parse: %s - IndexError" % cmd2)
         # empty command
         return None
-    except AttributeError, e:
+    except AttributeError:
         print("Cannot parse: %s - AttributeError" % cmd2)
         # not a bash command
         return None
@@ -1038,7 +1038,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
         if node.is_root():
             try:
                 assert(loose_constraints or node.get_num_of_children() == 1)
-            except AssertionError, e:
+            except AssertionError:
                 return []
             if lc:
                 for child in node.children:
