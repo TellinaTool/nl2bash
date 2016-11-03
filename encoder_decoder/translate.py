@@ -12,8 +12,6 @@ from __future__ import print_function
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "seq2seq"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "seq2tree"))
 
@@ -27,12 +25,11 @@ from tqdm import tqdm
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-import data_utils, graph_utils
-import decode_tools, hyperparam_range
-import eval_tools
-import parse_args
-from seq2seq_model import Seq2SeqModel
-from seq2tree_model import Seq2TreeModel
+from encoder_decoder import data_utils, graph_utils
+from encoder_decoder import decode_tools, hyperparam_range, parse_args
+from eval import eval_tools
+from seq2seq.seq2seq_model import Seq2SeqModel
+from seq2tree.seq2tree_model import Seq2TreeModel
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -53,15 +50,18 @@ elif FLAGS.dataset == "geo":
 elif FLAGS.dataset == "atis":
     _buckets = [(20, 95), (30, 95), (40, 95)]
 
-def create_model(session, forward_only, construct_model_dir=True):
+def create_model(session, forward_only, construct_model_dir=True, buckets=None):
     """
     Refer parse_args.py for model parameter explanations.
     """
+    if buckets is None:
+        buckets = _buckets
+
     if FLAGS.decoder_topology in ['basic_tree']:
-        return graph_utils.create_model(session, FLAGS, Seq2TreeModel, _buckets,
+        return graph_utils.create_model(session, FLAGS, Seq2TreeModel, buckets,
                                         forward_only, construct_model_dir)
     elif FLAGS.decoder_topology in ['rnn']:
-        return graph_utils.create_model(session, FLAGS, Seq2SeqModel, _buckets,
+        return graph_utils.create_model(session, FLAGS, Seq2SeqModel, buckets,
                                         forward_only, construct_model_dir)
     else:
         raise ValueError("Unrecognized decoder topology: {}."

@@ -2,6 +2,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -29,10 +33,10 @@ def to_readable(outputs, rev_cm_vocab):
 def translate_fun(sentence, sess, model, nl_vocab, rev_cm_vocab, FLAGS):
     # Get token-ids for the input sentence.
     if FLAGS.char:
-        token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+        token_ids = data_utils.sentence_to_token_ids(sentence, nl_vocab,
                                                      data_tools.char_tokenizer, data_tools.basic_tokenizer)
     else:
-        token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+        token_ids = data_utils.sentence_to_token_ids(sentence, nl_vocab,
                                                      data_tools.basic_tokenizer, None)
 
     # Which bucket does it belong to?
