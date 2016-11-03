@@ -1,6 +1,10 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import re, collections, enum
 
-import flags, shutils, butils, errors, heredoc, state
+from bashlex import flags, shutils, butils, errors, heredoc, state
 
 sh_syntaxtab = collections.defaultdict(set)
 
