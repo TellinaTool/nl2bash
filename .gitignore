@@ -44,9 +44,11 @@ temp*.txt
 *dump*.txt
 spell.txt
 manual.eval.results*
+*beam_search.eval
 beam_search*eval*
 *.swp
 *.swo
+*.debug
 /paper
 /data/reader
 
