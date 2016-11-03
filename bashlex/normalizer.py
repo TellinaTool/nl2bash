@@ -19,12 +19,12 @@ from bashlex import bast, errors, tokenizer, bparser
 from bashlex.nast import *
 from grammar.lookup import ManPageLookUp
 
-_NUM = b"_NUM"
-_LONG_PATTERN = b"_LONG_PATTERN"
-_PARAMETER = b"_PARAMETER"
-_REGEX = b"_REGEX"
-_H_NO_EXPAND = b"<H_NO_EXPAND>"
-_V_NO_EXPAND = b"<V_NO_EXPAND>"
+_NUM = "_NUM"
+_LONG_PATTERN = "_LONG_PATTERN"
+_PARAMETER = "_PARAMETER"
+_REGEX = "_REGEX"
+_H_NO_EXPAND = "<H_NO_EXPAND>"
+_V_NO_EXPAND = "<V_NO_EXPAND>"
 
 _DIGIT_RE = re.compile(br"\d+")
 
