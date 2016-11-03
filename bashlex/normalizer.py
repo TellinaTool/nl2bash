@@ -26,7 +26,7 @@ _REGEX = "_REGEX"
 _H_NO_EXPAND = "<H_NO_EXPAND>"
 _V_NO_EXPAND = "<V_NO_EXPAND>"
 
-_DIGIT_RE = re.compile(br"\d+")
+_DIGIT_RE = re.compile(r"\d+")
 
 man_lookup = ManPageLookUp([os.path.join(
     os.path.dirname(__file__), "..", "grammar", "primitive_cmds_grammar.json")])
