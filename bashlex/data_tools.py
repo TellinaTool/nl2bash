@@ -67,7 +67,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         sentence = sentence.replace("”", '"')
         sentence = sentence.replace('‘', '\'')
         sentence = sentence.replace('’', '\'')
-    except UnicodeDecodeError, e:
+    except UnicodeDecodeError:
         sentence = sentence.replace("“".decode('utf-8'), '"')
         sentence = sentence.replace("”".decode('utf-8'), '"')
         sentence = sentence.replace('‘'.decode('utf-8'), '\'')
@@ -192,7 +192,7 @@ def pretty_print(node, depth=0):
         print("    " * depth + node.kind.upper() + '(' + node.value + ')')
         for child in node.children:
             pretty_print(child, depth+1)
-    except AttributeError, e:
+    except AttributeError:
         print("    " * depth)
 
 
