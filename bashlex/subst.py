@@ -1,6 +1,10 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import copy
 
-import bast, flags, tokenizer, errors
+from bashlex import bast, flags, tokenizer, errors
 
 def _recursiveparse(parserobj, base, sindex, tokenizerargs=None):
     # TODO: fix this hack that prevents mutual import

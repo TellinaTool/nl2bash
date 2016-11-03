@@ -1,5 +1,9 @@
 """Utility functions related to graph construction."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import collections
 import functools
 import os
@@ -7,7 +11,7 @@ import warnings
 
 import tensorflow as tf
 
-import data_utils
+from encoder_decoder import data_utils
 
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,

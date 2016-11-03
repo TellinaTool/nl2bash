@@ -9,7 +9,7 @@ class ManPageLookUp(object):
     def get_arg_types(self, cmd, verbose=False):
         try:
             return self.table[cmd]["arguments"]
-        except KeyError, e:
+        except KeyError:
             # TODO: This exception is not handled very well.
             if verbose:
                 print("Error: command {} doesn't exist".format(cmd))
@@ -19,7 +19,7 @@ class ManPageLookUp(object):
     def get_flag_arg_type(self, cmd, flag, verbose=False):
         try:
             arg_type = self.table[cmd]["flags"][flag]
-        except KeyError, e:
+        except KeyError:
             # TODO: This exception is not handled very well.
             # This is mostly due to missing flags of commands in the grammar.
             if verbose:

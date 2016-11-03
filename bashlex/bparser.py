@@ -1,6 +1,10 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os, copy
 
-import yacc, tokenizer, state, bast, subst, flags, errors, heredoc
+from bashlex import yacc, tokenizer, state, bast, subst, flags, errors, heredoc
 
 def _partsspan(parts):
     return parts[0].pos[0], parts[-1].pos[1]

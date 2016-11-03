@@ -7,14 +7,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import re
-import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 
 import tensorflow as tf
 
-import data_utils, data_tools
-from eval_archive import DBConnection
+from encoder_decoder import data_utils
+from bashlex import data_tools
+from eval.eval_archive import DBConnection
 
 def to_readable(outputs, rev_cm_vocab):
     search_history = [data_utils._ROOT]
@@ -28,6 +26,31 @@ def to_readable(outputs, rev_cm_vocab):
     return tree, cmd, search_history
 
 
+def translate_fun(sentence, sess, model, nl_vocab, rev_cm_vocab, FLAGS):
+    # Get token-ids for the input sentence.
+    if FLAGS.char:
+        token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+                                                     data_tools.char_tokenizer, data_tools.basic_tokenizer)
+    else:
+        token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
+                                                     data_tools.basic_tokenizer, None)
+
+    # Which bucket does it belong to?
+    bucket_id = min([b for b in xrange(len(model.buckets))
+                    if model.buckets[b][0] > len(token_ids)])
+
+    # Get a 1-element batch to feed the sentence to the model.
+    formatted_example = model.format_example([token_ids], [[data_utils.ROOT_ID]],
+                                             bucket_id=bucket_id)
+
+    # Get output for the sentence.
+    output_symbols, output_logits, losses, attn_masks = \
+                model.step(sess, formatted_example, bucket_id, forward_only=True)
+    batch_outputs = decode(output_symbols, rev_cm_vocab, FLAGS)
+
+    return batch_outputs, output_logits
+
+
 def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
     """
     Simple command line decoding interface.
@@ -39,26 +62,8 @@ def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
     sentence = sys.stdin.readline()
 
     while sentence:
-        # Get token-ids for the input sentence.
-        if FLAGS.char:
-            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
-                                                         data_tools.char_tokenizer, data_tools.basic_tokenizer)
-        else:
-            token_ids = data_utils.sentence_to_token_ids(tf.compat.as_bytes(sentence), nl_vocab,
-                                                         data_tools.basic_tokenizer, None)
-
-        # Which bucket does it belong to?
-        bucket_id = min([b for b in xrange(len(model.buckets))
-                        if model.buckets[b][0] > len(token_ids)])
-
-        # Get a 1-element batch to feed the sentence to the model.
-        formatted_example = model.format_example([token_ids], [[data_utils.ROOT_ID]],
-                                                 bucket_id=bucket_id)
-
-        # Get output for the sentence.
-        output_symbols, output_logits, losses, attn_masks = \
-                    model.step(sess, formatted_example, bucket_id, forward_only=True)
-        batch_outputs = decode(output_symbols, rev_cm_vocab, FLAGS)
+        batch_outputs, output_logits = translate_fun(
+            sentence, sess, model, nl_vocab, rev_cm_vocab, FLAGS)
 
         if FLAGS.decoding_algorithm == "greedy":
             tree, pred_cmd, outputs = batch_outputs[0]
@@ -68,7 +73,8 @@ def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
             top_k_predictions = batch_outputs[0]
             top_k_scores = output_logits[0]
             for j in xrange(min(FLAGS.beam_size, 10)):
-                top_k_pred_tree, top_k_pred_cmd, top_k_outputs = top_k_predictions[j]
+                top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
+                    top_k_predictions[j]
                 print("Prediction {}: {} ({}) ".format(
                     j+1, top_k_pred_cmd, top_k_scores[j]))
             print()
