@@ -59,6 +59,10 @@
 # own risk!
 # ----------------------------------------------------------------------------
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 __version__    = "3.4"
 __tabversion__ = "3.2"       # Table version
 
@@ -86,7 +90,7 @@ pickle_protocol = 0            # Protocol to use when writing pickle files
 
 import re, types, sys, os.path
 
-import butils
+from bashlex import butils
 
 # Compatibility function for python 2.6/3.0
 if sys.version_info[0] < 3:
