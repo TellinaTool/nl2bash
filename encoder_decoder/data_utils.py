@@ -21,9 +21,8 @@ from __future__ import print_function
 import os
 import re
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
 
-import bash, data_tools, nast, normalizer
+from bashlex import bash, data_tools, normalizer
 
 import tensorflow as tf
 
