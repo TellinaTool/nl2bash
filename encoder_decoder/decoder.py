@@ -1,7 +1,14 @@
-import tensorflow as tf
-from tensorflow.python.util import nest
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-import graph_utils
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
+
+import tensorflow as tf
+
+from encoder_decoder import graph_utils
 
 class Decoder(graph_utils.NNModel):
     def __init__(self, hyperparameters, output_projection=None):
