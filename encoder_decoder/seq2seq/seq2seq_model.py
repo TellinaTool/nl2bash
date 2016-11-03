@@ -4,12 +4,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
-import sys
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from encoder_decoder import EncoderDecoderModel
-import encoder, rnn_decoder
+from encoder_decoder.encoder_decoder import EncoderDecoderModel
+from encoder_decoder import encoder
+from seq2seq import rnn_decoder
 
 
 class Seq2SeqModel(EncoderDecoderModel):
