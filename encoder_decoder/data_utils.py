@@ -28,22 +28,22 @@ import bash, data_tools, nast, normalizer
 import tensorflow as tf
 
 # Special vocabulary symbols - we always put them at the start.
-_PAD = b"_PAD"
-_EOS = b"_EOS"
-_UNK = b"_UNK"
-_ARG_UNK = b"ARGUMENT_UNK"
-_UTL_UNK = b"HEADCOMMAND_UNK"
-_FLAG_UNK = b"FLAG_UNK"
+_PAD = "_PAD"
+_EOS = "_EOS"
+_UNK = "_UNK"
+_ARG_UNK = "ARGUMENT_UNK"
+_UTL_UNK = "HEADCOMMAND_UNK"
+_FLAG_UNK = "FLAG_UNK"
 
-_SPACE = b"<SPACE>"
+_SPACE = "<SPACE>"
 
-_H_NO_EXPAND = b"<H_NO_EXPAND>"
-_V_NO_EXPAND = b"<V_NO_EXPAND>"
+_H_NO_EXPAND = "<H_NO_EXPAND>"
+_V_NO_EXPAND = "<V_NO_EXPAND>"
 
-_GO = b"_GO"                    # seq2seq start symbol
-_ROOT = b"ROOT_"                # seq2tree start symbol
+_GO = "_GO"                    # seq2seq start symbol
+_ROOT = "ROOT_"                # seq2tree start symbol
 
-_NUM = b"_NUM"
+_NUM = "_NUM"
 
 _START_VOCAB = [_PAD, _EOS, _UNK, _ARG_UNK, _UTL_UNK, _FLAG_UNK,
                 _H_NO_EXPAND, _V_NO_EXPAND, _GO, _ROOT]
