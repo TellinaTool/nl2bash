@@ -26,13 +26,13 @@ class TokenOverlap(object):
     def get_command_list(cmd, verbose=False):
         try:
             parse = bashlex.parse(cmd)
-        except bashlex.errors.ParsingError, e:
+        except bashlex.errors.ParsingError:
             return TokenOverlap.get_command_list_rule_based(cmd)
-        except bashlex.tokenizer.MatchedPairError, e:
+        except bashlex.tokenizer.MatchedPairError:
             return TokenOverlap.get_command_list_rule_based(cmd)
-        except NotImplementedError, e:
+        except NotImplementedError:
             return TokenOverlap.get_command_list_rule_based(cmd)
-        except AttributeError, e:
+        except AttributeError:
             return TokenOverlap.get_command_list_rule_based(cmd)
 
         command_list = []

@@ -6,15 +6,19 @@ Domain-specific natural Language and bash command tokenizer.
 """
 
 # builtin
+from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 
-import re
-import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "data"))
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
 
-import nast, normalizer
-import gazetteer
-import spellcheck.spell_check as spc
+import re
+
+from bashlex import nast, normalizer
+from data import gazetteer
+from data.spellcheck import spell_check as spc
 
 # from nltk.stem.wordnet import WordNetLemmatizer
 # lmtzr = WordNetLemmatizer()
@@ -22,10 +26,10 @@ from nltk.stem import SnowballStemmer
 stemmer = SnowballStemmer("english")
 
 # Regular expressions used to tokenize an English sentence.
-_WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
-_WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
+_WORD_SPLIT = re.compile("^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
+_WORD_SPLIT_RESPECT_QUOTES = re.compile('(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
-_SPACE = b"<SPACE>"
+_SPACE = "<SPACE>"
 
 def is_english_word(word):
     """Check if a token is normal English word."""
@@ -60,14 +64,15 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     """Very basic tokenizer: used for English tokenization."""
 
     # remove content in parentheses
-    sentence = re.sub(r'\([^)]*\)', '', sentence)
+    _PAREN_REMOVE = re.compile('\([^)]*\)')
+    sentence = re.sub(_PAREN_REMOVE, '', sentence)
 
     try:
         sentence = sentence.replace("“", '"')
         sentence = sentence.replace("”", '"')
         sentence = sentence.replace('‘', '\'')
         sentence = sentence.replace('’', '\'')
-    except UnicodeDecodeError, e:
+    except UnicodeDecodeError:
         sentence = sentence.replace("“".decode('utf-8'), '"')
         sentence = sentence.replace("”".decode('utf-8'), '"')
         sentence = sentence.replace('‘'.decode('utf-8'), '\'')
@@ -192,7 +197,7 @@ def pretty_print(node, depth=0):
         print("    " * depth + node.kind.upper() + '(' + node.value + ')')
         for child in node.children:
             pretty_print(child, depth+1)
-    except AttributeError, e:
+    except AttributeError:
         print("    " * depth)
 
 
