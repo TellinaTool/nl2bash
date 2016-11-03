@@ -82,7 +82,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
             top5_dist = sys.maxint
             top10_dist = sys.maxint
 
-            for i in xrange(len(predictions)):
+            for i in xrange(min(1, len(predictions))):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
                 # evaluation ignoring flag orders
@@ -165,27 +165,27 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
     avg_top1_temp_dist = (total_top1_temp_dist + 0.0) / num_eval
     avg_top1_dist = (total_top1_dist + 0.0) / num_eval
     print("%d examples evaluated" % num_eval)
-    print("Percentage of top 1 Match (template-only) = %.2f" % top1_temp_match_score)
-    print("Percentage of top 1 Match (whole-string) = %.2f" % top1_string_match_score)
+    print("Percentage of top 1 Match (template-only) = %.3f" % top1_temp_match_score)
+    print("Percentage of top 1 Match (whole-string) = %.3f" % top1_string_match_score)
     print("Average top 1 Tree Edit Distance (template-only) = %.2f" % avg_top1_temp_dist)
     print("Average top 1 Tree Edit Distance (whole-string) = %.2f" % avg_top1_dist)
     if len(predictions) > 1:
-        print("Top 3 Template Match Score = %.2f" % (num_top3_correct_temp/num_eval))
-        print("Top 3 String Match Score = %.2f" % (num_top3_correct/num_eval))
+        print("Top 3 Template Match Score = %.3f" % (num_top3_correct_temp/num_eval))
+        print("Top 3 String Match Score = %.3f" % (num_top3_correct/num_eval))
         avg_top3_temp_dist = (total_top3_temp_dist + 0.0) / num_eval
         avg_top3_dist = (total_top3_dist + 0.0) / num_eval
         print("Average top 3 Tree Edit Distance (template-only) = %.2f" % avg_top3_temp_dist)
         print("Average top 3 Tree Edit Distance (whole-string) = %.2f" % avg_top3_dist)
     if len(predictions) > 3:
-        print("Top 5 Template Match Score = %.2f" % (num_top5_correct_temp/num_eval))
-        print("Top 5 String Match Score = %.2f" % (num_top5_correct/num_eval))
+        print("Top 5 Template Match Score = %.3f" % (num_top5_correct_temp/num_eval))
+        print("Top 5 String Match Score = %.3f" % (num_top5_correct/num_eval))
         avg_top5_temp_dist = (total_top5_temp_dist + 0.0) / num_eval
         avg_top5_dist = (total_top5_dist + 0.0) / num_eval
         print("Average top 5 Tree Edit Distance (template-only) = %.2f" % avg_top5_temp_dist)
         print("Average top 5 Tree Edit Distance (whole-string) = %.2f" % avg_top5_dist)
     if len(predictions) > 5:
-        print("Top 10 Template Match Score = %.2f" % (num_top10_correct_temp/num_eval))
-        print("Top 10 String Match Score = %.2f" % (num_top10_correct/num_eval))
+        print("Top 10 Template Match Score = %.3f" % (num_top10_correct_temp/num_eval))
+        print("Top 10 String Match Score = %.3f" % (num_top10_correct/num_eval))
         avg_top10_temp_dist = (total_top10_temp_dist + 0.0) / num_eval
         avg_top10_dist = (total_top10_dist + 0.0) / num_eval
         print("Average top 10 Tree Edit Distance (template-only) = %.2f" % avg_top10_temp_dist)
