@@ -60,7 +60,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     """Very basic tokenizer: used for English tokenization."""
 
     # remove content in parentheses
-    _PAREN_REMOVE = re.compile(r'\([^)]*\)')
+    _PAREN_REMOVE = re.compile(b'\([^)]*\)')
     sentence = re.sub(_PAREN_REMOVE, '', sentence)
 
     try:
