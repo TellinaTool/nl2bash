@@ -12,8 +12,6 @@ from __future__ import print_function
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "seq2seq"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "seq2tree"))
 
@@ -27,12 +25,11 @@ from tqdm import tqdm
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-import data_utils, graph_utils
-import decode_tools, hyperparam_range
-import eval_tools
-import parse_args
-from seq2seq_model import Seq2SeqModel
-from seq2tree_model import Seq2TreeModel
+from encoder_decoder import data_utils, graph_utils
+from encoder_decoder import decode_tools, hyperparam_range
+frome eval import eval_tools
+from seq2seq.seq2seq_model import Seq2SeqModel
+from seq2tree.seq2tree_model import Seq2TreeModel
 
 FLAGS = tf.app.flags.FLAGS
 
