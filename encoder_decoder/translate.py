@@ -50,15 +50,18 @@ elif FLAGS.dataset == "geo":
 elif FLAGS.dataset == "atis":
     _buckets = [(20, 95), (30, 95), (40, 95)]
 
-def create_model(session, forward_only, construct_model_dir=True):
+def create_model(session, forward_only, construct_model_dir=True, buckets=None):
     """
     Refer parse_args.py for model parameter explanations.
     """
+    if buckets is None:
+        buckets = _buckets
+
     if FLAGS.decoder_topology in ['basic_tree']:
-        return graph_utils.create_model(session, FLAGS, Seq2TreeModel, _buckets,
+        return graph_utils.create_model(session, FLAGS, Seq2TreeModel, buckets,
                                         forward_only, construct_model_dir)
     elif FLAGS.decoder_topology in ['rnn']:
-        return graph_utils.create_model(session, FLAGS, Seq2SeqModel, _buckets,
+        return graph_utils.create_model(session, FLAGS, Seq2SeqModel, buckets,
                                         forward_only, construct_model_dir)
     else:
         raise ValueError("Unrecognized decoder topology: {}."
