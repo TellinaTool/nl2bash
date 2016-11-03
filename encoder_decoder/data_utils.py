@@ -21,6 +21,8 @@ from __future__ import print_function
 import os
 import re
 import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
 
 from bashlex import bash, data_tools, normalizer
 
