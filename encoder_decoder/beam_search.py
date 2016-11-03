@@ -1,21 +1,7 @@
 """
-Beam decoder for tensorflow
+Beam decoder with length normalization
 Credit: code adapted from
 https://gist.github.com/nikitakit/6ab61a73b86c50ad88d409bac3c3d09f
-
-Sample usage:
-```
-beam_decoder = BeamDecoder(NUM_CLASSES, beam_size=10, max_len=MAX_LEN)
-_, final_state = tf.nn.seq2seq.rnn_decoder(
-                        [beam_decoder.wrap_input(initial_input)] + [None] * (MAX_LEN - 1),
-                        beam_decoder.wrap_state(initial_state),
-                        beam_decoder.wrap_cell(my_cell),
-                        loop_function = lambda prev_symbol,
-                        i: tf.nn.embedding_lookup(my_embedding, prev_symbol)
-                    )
-best_dense = beam_decoder.unwrap_output_dense(final_state) # Dense tensor output, right-aligned
-best_sparse = beam_decoder.unwrap_output_sparse(final_state) # Output, this time as a sparse tensor
-```
 """
 
 import tensorflow as tf

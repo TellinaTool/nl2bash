@@ -199,6 +199,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             target_weights = [beam_decoder.wrap_input(target_weight)
                               for target_weight in self.target_weights]
         else:
+            beam_decoder = None
             targets = self.targets
             target_weights = self.target_weights
 
@@ -221,8 +222,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             output_symbols, output_logits, outputs, state = \
                 self.decoder.define_graph(
-                encoder_state, decoder_inputs, target_embeddings,
-                feed_previous=forward_only, reuse_variables=reuse_variables)
+                    encoder_state, decoder_inputs, target_embeddings,
+                    beam_decoder=beam_decoder, feed_previous=forward_only, 
+                    reuse_variables=reuse_variables)
 
         # Losses.
         if self.use_attention:
