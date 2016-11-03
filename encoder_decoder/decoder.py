@@ -7,6 +7,7 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 import tensorflow as tf
+from tensorflow.python.utils import nest
 
 from encoder_decoder import graph_utils
 
