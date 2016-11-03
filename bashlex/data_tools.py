@@ -10,6 +10,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
+
 import re
 
 from bashlex import nast, normalizer
@@ -22,10 +26,10 @@ from nltk.stem import SnowballStemmer
 stemmer = SnowballStemmer("english")
 
 # Regular expressions used to tokenize an English sentence.
-_WORD_SPLIT = re.compile(b"^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
-_WORD_SPLIT_RESPECT_QUOTES = re.compile(b'(?:[^\s,"]|"(?:\\.|[^"])*")+')
+_WORD_SPLIT = re.compile("^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
+_WORD_SPLIT_RESPECT_QUOTES = re.compile('(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
-_SPACE = b"<SPACE>"
+_SPACE = "<SPACE>"
 
 def is_english_word(word):
     """Check if a token is normal English word."""
@@ -60,7 +64,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     """Very basic tokenizer: used for English tokenization."""
 
     # remove content in parentheses
-    _PAREN_REMOVE = re.compile(b'\([^)]*\)')
+    _PAREN_REMOVE = re.compile('\([^)]*\)')
     sentence = re.sub(_PAREN_REMOVE, '', sentence)
 
     try:
