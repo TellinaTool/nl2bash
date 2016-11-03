@@ -1,11 +1,17 @@
 """A set of tree decoder modules used in the encoder-decoder framework."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import numpy as np
 import os, sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
+
 import tensorflow as tf
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import decoder, data_utils, graph_utils
+from encoder_decoder import decoder, data_utils, graph_utils
 
 DEBUG = False
 

@@ -13,6 +13,9 @@ from __future__ import print_function
 import copy
 import os
 import re
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
 
 # bashlex stuff
 from bashlex import bast, errors, tokenizer, bparser
