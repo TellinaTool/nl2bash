@@ -7,14 +7,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import re
-import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 
 import tensorflow as tf
 
-import data_utils, data_tools
-from eval_archive import DBConnection
+from encoder_decoder import data_utils
+from bashlex import data_tools
+from eval.eval_archive import DBConnection
 
 def to_readable(outputs, rev_cm_vocab):
     search_history = [data_utils._ROOT]
