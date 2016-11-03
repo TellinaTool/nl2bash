@@ -1,14 +1,14 @@
 """
 Database which stores model predictions and manual judgements.
 """
+from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 
-import os, sys
+import os
 import sqlite3
-from eval_correction import *
+from eval.eval_correction import *
 
-reload(sys)  
-sys.setdefaultencoding('utf-8')
 
 class DBConnection(object):
     def __init__(self):
