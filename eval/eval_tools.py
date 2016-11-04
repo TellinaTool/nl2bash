@@ -9,14 +9,11 @@ from __future__ import print_function
 import random
 
 import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "encoder_decoder"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
 
-import data_utils, data_tools
-import nast
-import ast_based, zss
-from eval_archive import DBConnection
+from encoder_decoder import data_utils
+from bashlex import data_tools, nast
+from eval import ast_based, zss
+from eval.eval_archive import DBConnection
 
 
 def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
