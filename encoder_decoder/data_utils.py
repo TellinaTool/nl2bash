@@ -404,7 +404,7 @@ def load_vocab(FLAGS):
     return nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab
 
 
-def load_data(FLAGS, buckets):
+def load_data(FLAGS, buckets=None):
     print("Loading data from %s" % FLAGS.data_dir)
 
     data_dir = FLAGS.data_dir
@@ -814,6 +814,24 @@ def prepare_data(FLAGS):
     if FLAGS.dataset == "dummy":
         prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
 
+
+def ratio(ll):
+    return float(reduce(lambda x, y: x + y, [len(l) for l in ll])) / len(ll)
+
+def data_stats(FLAGS):
+    train_set, dev_set, test_set = load_data(FLAGS)
+    temp = len(group_data_by_nl(train_set))
+    print("train cmd/nl ratio = {}".format(ratio(temp)))
+    temp = len(group_data_by_nl(dev_set))
+    print("dev cmd/nl ratio = {}".format(ratio(temp)))
+    temp = len(group_data_by_nl(test_set))
+    print("test cmd/nl ratio = {}".format(ratio(temp)))
+    temp = len(group_data_by_cm(train_set))
+    print("train nl/cmd ratio = {}".format(ratio(temp)))
+    temp = len(group_data_by_cm(dev_set))
+    print("dev nl/cmd ratio = {}".format(ratio(temp)))
+    temp = len(group_data_by_cm(test_set))
+    print("test nl/cmd ratio = {}".format(ratio(temp)))
 
 if __name__ == "__main__":
     ast = data_tools.paren_parser(sys.argv[1])
