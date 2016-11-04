@@ -5,9 +5,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
+import os, sys
 import sqlite3
-from eval.eval_correction import *
+
+sys.path.append(os.path.dirname(__file__))
+from eval_correction import *
 
 
 class DBConnection(object):
@@ -30,8 +32,8 @@ class DBConnection(object):
         c = self.cursor
 
         c.execute("CREATE TABLE IF NOT EXISTS NL (id INTEGER PRIMARY KEY, nl TEXT)")
-        c.execute("CREATE TABLE IF NOT EXISTS Cmd (id INTEGER PRIMARY KEY, cmd TEXT")
-        c.execute("CREATE TABLE IF NOT EXISTS Temp (id INTEGER PRIMARY KEY, temp TEXT")
+        c.execute("CREATE TABLE IF NOT EXISTS Cmd (id INTEGER PRIMARY KEY, cmd TEXT)")
+        c.execute("CREATE TABLE IF NOT EXISTS Temp (id INTEGER PRIMARY KEY, temp TEXT)")
 
         c.execute("CREATE TABLE IF NOT EXISTS ModelOutput ("
                   "model TEXT,"
@@ -46,15 +48,14 @@ class DBConnection(object):
 
         c.execute("CREATE TABLE IF NOT EXISTS CmdTED ("
                   "cmd1_id INT,"
-                  "cmd2_id INT"
+                  "cmd2_id INT,"
                   "dist FLOAT,"
                   "FOREIGN KEY(cmd1_id) REFERENCES Cmd(id),"
                   "FOREIGN KEY(cmd2_id) REFERENCES Cmd(id)"
                   ")")
         c.execute("CREATE TABLE IF NOT EXISTS StrTED (cmd1 TEXT, cmd2 TEXT, dist FLOAT)")
 
-        c.execute("CREATE TABLE IF NOT EXISTS TempTED (cmd1 TEXT, cmd2 TEXT, dist FLOAT)")
-        c.execute("ALTER TABLE foo TempTED TO TempTED2")
+        c.execute("CREATE TABLE IF NOT EXISTS TempTED2 (cmd1 TEXT, cmd2 TEXT, dist FLOAT)")
         c.execute("CREATE TABLE IF NOT EXISTS TempTED ("
                   "temp1_id INT,"
                   "temp2_id INT,"
@@ -85,36 +86,46 @@ class DBConnection(object):
 
     def migration(self):
         c = self.cursor
+        
+        old_outputs = []
         for model, nl, pred_cmd, score in c.execute("SELECT * FROM Output"):
+            old_outputs.append((model, nl, pred_cmd, score))
+        for model, nl, pred_cmd, score in old_outputs:
+            print(model, nl, pred_cmd, score)
             nl_id = self.add_nl(nl)
             cmd_id = self.add_cmd(pred_cmd)
-            c.execute("INSERT INTO ModelOutput (model, nl_id, cmd_id, score)",
+            c.execute("INSERT INTO ModelOutput (model, nl_id, cmd_id, score) VALUES (?, ?, ?, ?)",
                       (model, nl_id, cmd_id, score))
+            self.conn.commit()
 
-        for cmd1, cmd2, dist in c.execute("SELECT * FROM StrTED"):
+        """for cmd1, cmd2, dist in c.execute("SELECT * FROM StrTED"):
             cmd1_id = self.add_cmd(cmd1)
             cmd2_id = self.add_cmd(cmd2)
-            c.execute("INSERT INTO StrTED (cmd1_id, cmd2_id, dist)",
+            c.execute("INSERT INTO CmdTED (cmd1_id, cmd2_id, dist) VALUES (?, ?, ?)",
                       (cmd1_id, cmd2_id, dist))
+            self.conn.commit()
 
         for temp1, temp2, dist in c.execute("SELECT * FROM TempTED2"):
             temp1_id = self.add_temp(temp1)
             temp2_id = self.add_temp(temp2)
-            c.execute("INSERT INTO TempTED (temp1_id, temp2_id, dist)",
+            c.execute("INSERT INTO TempTED (temp1_id, temp2_id, dist) VALUES (?, ?, ?)",
                       (temp1_id, temp2_id, dist))
+            self.conn.commit()
 
         for nl, cmd, judgement in c.execute("SELECT * FROM StrArchives"):
             nl_id = self.add_nl(nl)
             cmd_id = self.add_cmd(cmd)
-            c.execute("INSERT INTO CmdJudge (nl_id, cmd_id, judgement)",
+            c.execute("INSERT INTO CmdJudge (nl_id, cmd_id, judgement) VALUES (?, ?, ?)",
                       (nl_id, cmd_id, judgement))
+            self.conn.commit()
 
-        for nl, temp, judgement in c.execute("SELECT * FROM TempArchives"):
-            nl_id = self.add_nl(nl)
-            temp_id = self.add_temp(temp)
-            c.execute("INSERT INTO TempJudge (nl_id, temp_id, judgement",
+        for nl, temp, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives"):
+            nl_id = self.add_nl(nl, c)
+            temp_id = self.add_temp(temp, c)
+            c.execute("INSERT INTO TempJudge (nl_id, temp_id, judgement) VALUES (?, ?, ?)",
                       (nl_id, temp_id, judgement))
-        self.conn.commit()
+            self.conn.commit()
+        """
 
     def add_nl(self, nl):
         nl_id = self.get_nl_id(nl)
@@ -374,4 +385,3 @@ if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
     db.migration()
-    
