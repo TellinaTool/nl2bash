@@ -29,15 +29,134 @@ class DBConnection(object):
     def create_schema(self):
         c = self.cursor
 
-        c.execute("CREATE TABLE IF NOT EXISTS Output (model TEXT, nl TEXT, pred_cmd TEXT, score FLOAT)")
+        c.execute("CREATE TABLE IF NOT EXISTS NL (id INTEGER PRIMARY KEY, nl TEXT)")
+        c.execute("CREATE TABLE IF NOT EXISTS Cmd (id INTEGER PRIMARY KEY, cmd TEXT")
+        c.execute("CREATE TABLE IF NOT EXISTS Temp (id INTEGER PRIMARY KEY, temp TEXT")
 
+        c.execute("CREATE TABLE IF NOT EXISTS ModelOutput ("
+                  "model TEXT,"
+                  "nl_id INT,"
+                  "cmd_id INT,"
+                  "score FLOAT,"
+                  "FOREIGN KEY(nl_id) REFERENCES NL(id),"
+                  "FOREIGN KEY(cmd_id) REFERENCES Cmd(id)"
+                  ")")
+        c.execute("CREATE TABLE IF NOT EXISTS Output ("
+                  "model TEXT, nl TEXT, pred_cmd TEXT, score FLOAT)")
+
+        c.execute("CREATE TABLE IF NOT EXISTS CmdTED ("
+                  "cmd1_id INT,"
+                  "cmd2_id INT"
+                  "dist FLOAT,"
+                  "FOREIGN KEY(cmd1_id) REFERENCES Cmd(id),"
+                  "FOREIGN KEY(cmd2_id) REFERENCES Cmd(id)"
+                  ")")
         c.execute("CREATE TABLE IF NOT EXISTS StrTED (cmd1 TEXT, cmd2 TEXT, dist FLOAT)")
-        c.execute("CREATE TABLE IF NOT EXISTS TempTED (cmd1 TEXT, cmd2 TEXT, dist FLOAT)")
 
+        c.execute("CREATE TABLE IF NOT EXISTS TempTED (cmd1 TEXT, cmd2 TEXT, dist FLOAT)")
+        c.execute("ALTER TABLE foo TempTED TO TempTED2")
+        c.execute("CREATE TABLE IF NOT EXISTS TempTED ("
+                  "temp1_id INT,"
+                  "temp2_id INT,"
+                  "dist FLOAT,"
+                  "FOREIGN KEY(temp1_id) REFERENCES Temp(id),"
+                  "FOREIGN KEY(temp2_id) REFERENCES Temp(id)"
+                  ")")
+
+        c.execute("CREATE TABLE IF NOT EXISTS CmdJudge ("
+                  "nl_id INT,"
+                  "cmd_id INT,"
+                  "judgement INT,"
+                  "FOREIGN KEY(nl_id) REFERENCES NL(id),"
+                  "FOREIGN KEY(cmd_id) REFERENCES Cmd(id)"
+                  ")")
         c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, pred_cmd TEXT, judgement INT)")
+
+        c.execute("CREATE TABLE IF NOT EXISTS TempJudge ("
+                  "nl_id INT,"
+                  "temp_id INT,"
+                  "judgement INT,"
+                  "FOREIGN KEY(nl_id) REFERENCES NL(id),"
+                  "FOREIGN KEY(temp_id) REFERENCES Cmd(id)"
+                  ")")
         c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, pred_temp TEXT, judgement INT)")
 
         self.conn.commit()
+
+    def migration(self):
+        c = self.cursor
+        for model, nl, pred_cmd, score in c.execute("SELECT * FROM Output"):
+            nl_id = self.add_nl(nl)
+            cmd_id = self.add_cmd(pred_cmd)
+            c.execute("INSERT INTO ModelOutput (model, nl_id, cmd_id, score)",
+                      (model, nl_id, cmd_id, score))
+
+        for cmd1, cmd2, dist in c.execute("SELECT * FROM StrTED"):
+            cmd1_id = self.add_cmd(cmd1)
+            cmd2_id = self.add_cmd(cmd2)
+            c.execute("INSERT INTO StrTED (cmd1_id, cmd2_id, dist)",
+                      (cmd1_id, cmd2_id, dist))
+
+        for temp1, temp2, dist in c.execute("SELECT * FROM TempTED2"):
+            temp1_id = self.add_temp(temp1)
+            temp2_id = self.add_temp(temp2)
+            c.execute("INSERT INTO TempTED (temp1_id, temp2_id, dist)",
+                      (temp1_id, temp2_id, dist))
+
+        for nl, cmd, judgement in c.execute("SELECT * FROM StrArchives"):
+            nl_id = self.add_nl(nl)
+            cmd_id = self.add_cmd(cmd)
+            c.execute("INSERT INTO CmdJudge (nl_id, cmd_id, judgement)",
+                      (nl_id, cmd_id, judgement))
+
+        for nl, temp, judgement in c.execute("SELECT * FROM TempArchives"):
+            nl_id = self.add_nl(nl)
+            temp_id = self.add_temp(temp)
+            c.execute("INSERT INTO TempJudge (nl_id, temp_id, judgement",
+                      (nl_id, temp_id, judgement))
+        self.conn.commit()
+
+    def add_nl(self, nl):
+        nl_id = self.get_nl_id(nl)
+        if nl_id is not None:
+            return nl_id
+        c = self.cursor
+        c.execute("INSERT INTO NL (nl) VALUES (?)", (nl,))
+        self.conn.commit()
+        return c.lastrowid
+
+    def get_nl_id(self, nl):
+        c = self.cursor
+        for id, _ in c.execute("SELECT * FROM NL WHERE nl = ?", (nl,)):
+            return id
+
+    def add_cmd(self, cmd):
+        cmd_id = self.get_cmd_id(cmd)
+        if cmd_id is not None:
+            return cmd_id
+        c = self.cursor
+        c.execute("INSERT INTO Cmd (cmd) VALUES (?)", (cmd,))
+        self.conn.commit()
+        return c.lastrowid
+
+    def get_cmd_id(self, cmd):
+        c = self.cursor
+        for id, _ in c.execute("SELECT * FROM Cmd WHERE cmd = ?", (cmd,)):
+            return id
+
+    def add_temp(self, temp):
+        temp_id = self.get_temp_id(temp)
+        if temp_id is not None:
+            return temp_id
+        c = self.cursor
+        c.execute("INSERT INTO Temp (temp) VALUES (?)", (temp,))
+        self.conn.commit()
+        return c.lastrowid
+
+    def get_temp_id(self, temp):
+        c = self.cursor
+        for id, _ in c.execute("SELECT * FROM Temp WHERE temp = ?", (temp,)):
+            return id
 
     # --- Tree Edit Distance ---
     def add_str_dist(self, cmd1, cmd2, dist):
@@ -254,5 +373,5 @@ class DBConnection(object):
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
-    db.correction()
+    db.migration()
     
