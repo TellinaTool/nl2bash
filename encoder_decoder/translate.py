@@ -303,13 +303,7 @@ def process_data():
 
 
 def data_statistics():
-    train_set, dev_set, test_set = load_data(use_buckets=False)
-    print(len(data_utils.group_data_by_nl(train_set)))
-    print(len(data_utils.group_data_by_nl(dev_set)))
-    print(len(data_utils.group_data_by_nl(test_set)))
-    print("data count = %d" % len(data_utils.group_data_by_cm(train_set)))
-    print("data count = %d" % len(data_utils.group_data_by_cm(dev_set)))
-    print("data count = %d" % len(data_utils.group_data_by_cm(test_set)))
+    data_utils.data_stats()
 
 
 def main(_):

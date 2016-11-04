@@ -128,6 +128,7 @@ class DBConnection(object):
         """
 
     def add_nl(self, nl):
+        nl = unicode(nl)
         nl_id = self.get_nl_id(nl)
         if nl_id is not None:
             return nl_id
@@ -137,11 +138,13 @@ class DBConnection(object):
         return c.lastrowid
 
     def get_nl_id(self, nl):
+        nl = unicode(nl)
         c = self.cursor
         for id, _ in c.execute("SELECT * FROM NL WHERE nl = ?", (nl,)):
             return id
 
     def add_cmd(self, cmd):
+        cmd = unicode(cmd)
         cmd_id = self.get_cmd_id(cmd)
         if cmd_id is not None:
             return cmd_id
@@ -151,11 +154,13 @@ class DBConnection(object):
         return c.lastrowid
 
     def get_cmd_id(self, cmd):
+        cmd = unicode(cmd)
         c = self.cursor
         for id, _ in c.execute("SELECT * FROM Cmd WHERE cmd = ?", (cmd,)):
             return id
 
     def add_temp(self, temp):
+        temp = unicode(temp)
         temp_id = self.get_temp_id(temp)
         if temp_id is not None:
             return temp_id
@@ -165,6 +170,7 @@ class DBConnection(object):
         return c.lastrowid
 
     def get_temp_id(self, temp):
+        temp = unicode(temp)
         c = self.cursor
         for id, _ in c.execute("SELECT * FROM Temp WHERE temp = ?", (temp,)):
             return id
