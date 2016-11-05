@@ -97,35 +97,50 @@ class DBConnection(object):
             c.execute("INSERT INTO ModelOutput (model, nl_id, cmd_id, score) VALUES (?, ?, ?, ?)",
                       (model, nl_id, cmd_id, score))
             self.conn.commit()
-
-        """for cmd1, cmd2, dist in c.execute("SELECT * FROM StrTED"):
+        
+        old_outputs = []
+        for cmd1, cmd2, dist in c.execute("SELECT * FROM StrTED"):
+            old_outputs.append((cmd1, cmd2, dist))
+        for cmd1, cmd2, dist in old_outputs:
+            print(cmd1, cmd2, dist)
             cmd1_id = self.add_cmd(cmd1)
             cmd2_id = self.add_cmd(cmd2)
             c.execute("INSERT INTO CmdTED (cmd1_id, cmd2_id, dist) VALUES (?, ?, ?)",
                       (cmd1_id, cmd2_id, dist))
             self.conn.commit()
 
+        old_outputs = []
         for temp1, temp2, dist in c.execute("SELECT * FROM TempTED2"):
+            old_outputs.append((temp1, temp2, dist))
+        for temp1, temp2, dist in old_outputs:
+            print(temp1, temp2, dist)
             temp1_id = self.add_temp(temp1)
             temp2_id = self.add_temp(temp2)
             c.execute("INSERT INTO TempTED (temp1_id, temp2_id, dist) VALUES (?, ?, ?)",
                       (temp1_id, temp2_id, dist))
             self.conn.commit()
-
+        
+        old_outputs = []
         for nl, cmd, judgement in c.execute("SELECT * FROM StrArchives"):
+            old_outputs.append((nl, cmd, judgement))
+        for nl, cmd, judgement in old_outputs:
             nl_id = self.add_nl(nl)
             cmd_id = self.add_cmd(cmd)
+            print(nl, cmd, judgement)
             c.execute("INSERT INTO CmdJudge (nl_id, cmd_id, judgement) VALUES (?, ?, ?)",
                       (nl_id, cmd_id, judgement))
             self.conn.commit()
 
+        old_outputs = []
         for nl, temp, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives"):
-            nl_id = self.add_nl(nl, c)
-            temp_id = self.add_temp(temp, c)
+            old_outputs.append((nl, temp, judgement))
+        for nl, temp, judgement in old_outputs:
+            nl_id = self.add_nl(nl)
+            temp_id = self.add_temp(temp)
+            print(nl, temp, judgement)
             c.execute("INSERT INTO TempJudge (nl_id, temp_id, judgement) VALUES (?, ?, ?)",
                       (nl_id, temp_id, judgement))
             self.conn.commit()
-        """
 
     def add_nl(self, nl):
         nl = unicode(nl)
