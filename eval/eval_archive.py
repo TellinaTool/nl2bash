@@ -192,51 +192,57 @@ class DBConnection(object):
 
     # --- Tree Edit Distance ---
     def add_str_dist(self, cmd1, cmd2, dist):
-        cmd1 = unicode(cmd1)
-        cmd2 = unicode(cmd2)
+        cmd1_id = self.add_cmd(cmd1)
+        cmd2_id = self.add_cmd(cmd2)
         c = self.cursor
-        c.execute("INSERT INTO StrTED (cmd1, cmd2, dist) VALUES (?, ?, ?)", (cmd1, cmd2, dist))
+        c.execute("INSERT INTO CmdTED (cmd1_id, cmd2_id, dist) VALUES (?, ?, ?)",
+                  (cmd1_id, cmd2_id, dist))
         self.conn.commit()
 
-    def add_temp_dist(self, cmd1, cmd2, dist):
-        cmd1 = unicode(cmd1)
-        cmd2 = unicode(cmd2)
+    def add_temp_dist(self, temp1, temp2, dist):
+        temp1_id = self.add_temp(temp1)
+        temp2_id = self.add_temp(temp2)
         c = self.cursor
-        c.execute("INSERT INTO TempTED (cmd1, cmd2, dist) VALUES (?, ?, ?)", (cmd1, cmd2, dist))
+        c.execute("INSERT INTO TempTED (temp1_id, temp2_id, dist) VALUES (?, ?, ?)",
+                  (temp1_id, temp2_id, dist))
         self.conn.commit()
 
     def get_str_dist(self, cmd1, cmd2):
-        cmd1 = unicode(cmd1)
-        cmd2 = unicode(cmd2)
+        cmd1_id = self.get_cmd_id(cmd1)
+        if cmd1_id is None:
+            return None
+        cmd2_id = self.get_cmd_id(cmd2)
+        if cmd2_id is None:
+            return None
         c = self.cursor
-        for _, _, dist in \
-            c.execute("SELECT cmd1, cmd2, dist FROM StrTED WHERE cmd1 = ? AND cmd2 = ?", (cmd1, cmd2)):
+        for _, _, dist in c.execute("SELECT cmd1_id, cmd2_id, dist FROM CmdTED WHERE cmd1_id = ?, "
+                                    "cmd2_id = ?", (cmd1_id, cmd2_id)):
             return dist
 
-    def get_temp_dist(self, cmd1, cmd2):
-        cmd1 = unicode(cmd1)
-        cmd2 = unicode(cmd2)
+    def get_temp_dist(self, temp1, temp2):
+        temp1_id = self.get_temp_id(temp1)
+        if temp1_id is None:
+            return None
+        temp2_id = self.get_temp_id(temp2)
+        if temp2_id is None:
+            return None
         c = self.cursor
-        for _, _, dist in \
-            c.execute("SELECT cmd1, cmd2, dist FROM TempTED WHERE cmd1 = ? AND cmd2 = ?", (cmd1, cmd2)):
+        for _, _, dist in c.execute("SELECT temp1_id, temp2_id, dist FROM TempTED WHERE temp1_id "
+                                    "= ? AND temp2_id = ?", (temp1_id, temp2_id)):
             return dist
 
     # --- Prediction ---
+
     def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):
-        nl = unicode(nl)
-        pred_cmd = unicode(pred_cmd)
+        nl_id = self.get_nl_id(nl)
+        cmd_id = self.get_cmd_id(pred_cmd)
         c = self.cursor
         if update_mode and self.exist_prediction(model, nl):
-            c.execute("UPDATE Output SET pred_cmd = ? score = ? WHERE model = ? AND nl = ?",
-                      (pred_cmd, score, model, nl))
+            c.execute("UPDATE Output SET cmd_id = ? score = ? WHERE model = ? AND nl_id = ?",
+                      (cmd_id, score, model, nl_id))
         else:
-            if self.exist_score(model, nl, pred_cmd):
-                if update_mode:
-                    c.execute("UPDATE Output SET score = ? WHERE model = ? AND nl = ? AND pred_cmd = ?",
-                          (score, model, nl, pred_cmd))
-            else:
-                c.execute("INSERT INTO Output (model, nl, pred_cmd, score) VALUES (?, ?, ?, ?)",
-                      (model, nl, pred_cmd, score))
+            c.execute("INSERT INTO Output (model, nl_id, cmd_id, score) VALUES (?, ?, ?, ?)",
+                      (model, nl_id, cmd_id, score))
         self.conn.commit()
 
     def remove_model(self, model):
@@ -244,33 +250,26 @@ class DBConnection(object):
         c = self.cursor
         c.execute("DELETE FROM Output WHERE model = ?", (model,))
 
-    def exist_score(self, model, nl, pred_cmd):
-        nl = unicode(nl)
-        pred_cmd = unicode(pred_cmd)
-        c = self.cursor
-        for _ in c.execute("SELECT 1 FROM Output WHERE model = ? AND nl = ? AND pred_cmd = ?",
-                           (model, nl, pred_cmd)):
-            return True
-        return False
-
     def exist_prediction(self, model, nl):
-        nl = unicode(nl)
+        nl_id = self.get_nl_id(nl)
         c = self.cursor
-        for _ in c.execute("SELECT 1 FROM Output WHERE model = ? AND nl = ?", (model, nl)):
+        for _ in c.execute("SELECT 1 FROM ModelOutput WHERE model = ? AND nl_id = ?",
+                           (model, nl_id)):
             return True
         return False
 
     def get_prediction(self, model, nl):
-        nl = unicode(nl)
         return self.get_top_k_predictions(model, nl, 1)[0]
 
     def get_top_k_predictions(self, model, nl, k):
-        nl = unicode(nl)
+        nl_id = self.get_nl_id(nl)
         c = self.cursor
         predictions = []
-        for _, _, pred_cmd, score in \
-            c.execute("SELECT model, nl, pred_cmd, score FROM Output WHERE model = ? AND nl = ?",
-                      (model, nl)):
+        for _, _, _, score, pred_cmd in \
+            c.execute("SELECT ModelOutput.model, ModelOutput.nl_id, ModelOutput.cmd_id, "
+                      "ModelOutput.score, Cmd.cmd, Cmd.id FROM ModelOutput JOIN Cmd ON "
+                      "ModelOutput.cmd_id = Cmd.id WHERE ModelOutput.model = ? AND "
+                      "ModelOutput.nl_id = ?", (model, nl_id)):
             predictions.append((pred_cmd, score))
         sorted_predictions = sorted(predictions, key=lambda x:x[1], reverse=True)
         return sorted_predictions[:k]
@@ -278,110 +277,122 @@ class DBConnection(object):
     # --- Manual Evaluation ---
     def add_str_judgement(self, triple):
         nl, pred_cmd, judgement = triple
-        nl = unicode(nl)
         c = self.cursor
         if not self.exist_str_pair((nl, pred_cmd)):
-            c.execute("INSERT INTO StrArchives (nl, pred_cmd, judgement) VALUES (?, ?, ?)",
-                      (nl, pred_cmd, judgement))
-        self.conn.commit()
-
-    def add_temp_judgement(self, triple):
-        nl, pred_temp, judgement = triple
-        nl = unicode(nl)
-        c = self.cursor
-        if not self.exist_temp_pair((nl, pred_temp)):
-            c.execute("INSERT INTO TempArchives (nl, pred_temp, judgement) VALUES (?, ?, ?)",
-                      (nl, pred_temp, judgement))
+            nl_id = self.get_nl_id(nl)
+            cmd_id = self.get_cmd_id(pred_cmd)
+            c.execute("INSERT INTO CmdJudge (nl_id, cmd_id, judgement) VALUES (?, ?, ?)",
+                      (nl_id, cmd_id, judgement))
         self.conn.commit()
 
     def get_str_judgement(self, pair):
         nl, pred_cmd = pair
-        nl = unicode(nl)
         c = self.cursor
-        for _, _, judgement in c.execute("SELECT nl, pred_cmd, judgement FROM StrArchives WHERE nl = ? AND pred_cmd = ?",
+        for _, _, judgement in c.execute("SELECT CmdJudge.nl_id, CmdJudge.cmd_id, "
+                                         "CmdJudge.judgement FROM CmdJudge "
+                                         "JOIN Cmd ON CmdJudge.cmd_id = Cmd.id "
+                                         "JOIN NL ON CmdJudge.nl_id = NL.id "
+                                         "WHERE NL.nl = ? AND Cmd.cmd = ?",
                                          (nl, pred_cmd)):
-            return judgement
-
-    def get_temp_judgement(self, pair):
-        nl, pred_temp = pair
-        nl = unicode(nl)
-        c = self.cursor
-        for _, _, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ? AND pred_temp = ?",
-                                         (nl, pred_temp)):
             return judgement
 
     def exist_str_pair(self, pair):
         nl, pred_cmd = pair
-        nl = unicode(nl)
         c = self.cursor
-        for _ in c.execute("SELECT 1 FROM StrArchives WHERE nl = ? AND pred_cmd = ?", (nl, pred_cmd)):
+        for _ in c.execute("SELECT 1 FROM CmdJudge "
+                           "JOIN Cmd ON CmdJudge.cmd_id = Cmd.id "
+                           "JOIN NL ON CmdJudge.nl_id = NL.id "
+                           "WHERE NL.nl = ? AND Cmd.cmd = ?", (nl, pred_cmd)):
             return True
         return False
+
+    def add_temp_judgement(self, triple):
+        nl, pred_temp, judgement = triple
+        c = self.cursor
+        if not self.exist_temp_pair((nl, pred_temp)):
+            nl_id = self.get_nl_id(nl)
+            temp_id = self.get_temp_id(pred_temp)
+            c.execute("INSERT INTO TempArchives (nl_id, temp_id, judgement) VALUES (?, ?, ?)",
+                      (nl_id, temp_id, judgement))
+        self.conn.commit()
 
     def exist_temp_pair(self, pair):
         nl, pred_temp = pair
-        nl = unicode(nl)
         c = self.cursor
-        for _ in c.execute("SELECT 1 FROM TempArchives WHERE nl = ? AND pred_temp = ?", (nl, pred_temp)):
+        for _ in c.execute("SELECT 1 FROM TempJudge "
+                           "JOIN Temp ON TempJudge.temp_id = Temp.id "
+                           "JOIN NL ON TempJudge.nl_id = NL.id "
+                           "WHERE NL.nl = ? AND Temp.temp = ?", (nl, pred_temp)):
             return True
         return False
 
-    def correct_str_pair(self, pair):
-        nl, pred_cmd = pair
+    def get_temp_judgement(self, pair):
+        nl, pred_temp = pair
+        c = self.cursor
+        for _, _, judgement in c.execute("SELECT TempJudge.nl_id, TempJudge.temp_id, "
+                                         "TempJudge.judgement FROM TempJudge "
+                                         "JOIN Temp ON TempJudge.temp_id = Temp.id "
+                                         "JOIN NL ON TempJudge.nl_id = NL.id "
+                                         "WHERE NL.nl = ? AND Temp.temp = ?",
+                                         (nl, pred_temp)):
+            return judgement
+
+    def get_nl_cmd_judge(self, nl):
         nl = unicode(nl)
         c = self.cursor
-        c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND pred_cmd = ?",
-                  (1, nl, pred_cmd))
+        for nl, pred_cmd, judgement in c.execute("SELECT CmdJudge.nl_id, CmdJudge.cmd_id, "
+                                                 "CmdJudge.judgement FROM CmdJudge "
+                                                 "JOIN NL ON CmdJudge.nl_id = NL.id "
+                                                 "WHERE NL.nl = ?", (nl,)):
+            print("English description: {}".format(nl))
+            print("Prediction: {} ({})".format(pred_cmd, judgement))
+
+    def get_nl_temp_judge(self, nl):
+        nl = unicode(nl)
+        c = self.cursor
+        for nl, pred_temp, judgement in c.execute("SELECT TempJudge.nl_id, TempJudge.temp_id, "
+                                                  "TempJudge.judgement FROM TempJudge "
+                                                  "JOIN NL ON TempJudge.nl_id = NL.id "
+                                                  "WHERE NL.nl = ?", (nl,)):
+            print("English description: {}".format(nl))
+            print("Prediction: {} ({})".format(pred_temp, judgement))
+
+    # Correction
+    def correct_str_pair(self, pair):
+        nl, pred_cmd = pair
+        nl_id = self.get_nl_id(nl)
+        cmd_id = self.get_cmd_id(pred_cmd)
+        c = self.cursor
+        c.execute("UPDATE CmdJudge SET judgement = ? WHERE nl_id = ? AND cmd_id = ?",
+                  (1, nl_id, cmd_id))
         self.conn.commit()
 
     def correct_temp_pair(self, pair):
         nl, pred_temp = pair
-        nl = unicode(nl)
+        nl_id = self.get_nl_id(nl)
+        temp_id = self.get_temp_id(pred_temp)
         c = self.cursor
-        c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND pred_temp = ?",
-                  (1, nl, pred_temp))
+        c.execute("UPDATE TempJudge SET judgement = ? WHERE nl_id = ? AND temp_id = ?",
+                  (1, nl_id, temp_id))
         self.conn.commit()
 
     def error_str_pair(self, pair):
         nl, pred_cmd = pair
-        nl = unicode(nl)
+        nl_id = self.get_nl_id(nl)
+        cmd_id = self.get_cmd_id(pred_cmd)
         c = self.cursor
-        c.execute("UPDATE StrArchives SET judgement = ? WHERE nl = ? AND pred_cmd = ?",
-                  (0, nl, pred_cmd))
+        c.execute("UPDATE CmdJudge SET judgement = ? WHERE nl_id = ? AND cmd_id = ?",
+                  (0, nl_id, cmd_id))
         self.conn.commit()
 
     def error_temp_pair(self, pair):
         nl, pred_temp = pair
-        nl = unicode(nl)
+        nl_id = self.get_nl_id(nl)
+        temp_id = self.get_temp_id(pred_temp)
         c = self.cursor
-        c.execute("UPDATE TempArchives SET judgement = ? WHERE nl = ? AND pred_temp = ?",
-                  (0, nl, pred_temp))
+        c.execute("UPDATE TempJudge SET judgement = ? WHERE nl_id = ? AND temp_id = ?",
+                  (0, nl_id, temp_id))
         self.conn.commit()
-
-    def get_nl_pred_cmd(self, nl):
-        nl = unicode(nl)
-        c = self.cursor
-        for nl, pred_cmd, judgement in c.execute("SELECT nl, pred_cmd, judgement FROM StrArchives WHERE nl = ?", (nl,)):
-            print(nl)
-            print(pred_cmd) 
-            print(judgement)
-
-    def get_nl_pred_temp(self, nl):
-        nl = unicode(nl)
-        c = self.cursor
-        for nl, pred_temp, judgement in c.execute("SELECT nl, pred_temp, judgement FROM TempArchives WHERE nl = ?",
-                                                  (nl,)):
-            print(nl, pred_temp, judgement)
-
-    def get_correct_temps(self, nl):
-        nl = unicode(nl)
-        c = self.cursor
-        temps = []
-        for nl, pred_temp, judgement in c.execute("SELECT nl, pred_temp, judgement FROM "
-                                                 "TempArchives WHERE nl = ? AND judgement = 1",
-                                                  (nl,)):
-            temps.append(pred_temp)
-        return temps
 
     def correction(self):
         for pair in correct_temp_pairs:
@@ -395,12 +406,13 @@ class DBConnection(object):
        
     def debug(self):
         c = self.cursor
-        for model, nl, pred_cmd, score in c.execute("SELECT model, nl, pred_cmd, score FROM Output"):
-            if "*.tex" in nl:
-                print(model)
-                print(nl)
-                print(pred_cmd)
-                print(score)                
+        for nl, temp, _, _, judgement in c.execute("SELECT NL.nl, Temp.temp, TempJudge.model, "
+                                                   "TempJudge.nl_id, TempJudge.temp_id, "
+                                                   "TempJudge.judgement FROM TempJudge "
+                                                   "JOIN NL ON TempJudge.nl_id = NL.id "
+                                                   "JOIN Cmd ON TempJudge.cmd_id = Cmd.id"):
+            print("English description: {}".format(nl))
+            print("Prediction: {} ({})".format(temp, judgement))
  
 if __name__ == "__main__":
     db = DBConnection()
