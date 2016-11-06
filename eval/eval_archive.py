@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import collections
 import os, sys
 import sqlite3
 
@@ -397,6 +398,22 @@ class DBConnection(object):
             self.error_temp_pair(pair)
         for pair in error_str_pairs:
             self.error_str_pair(pair)
+
+    def polymorphism(self):
+        poly = collections.defaultdict(set)
+        for nl, temp, _, _, judgement in c.execute("SELECT NL.nl, Temp.temp, "
+                                                   "TempJudge.nl_id, TempJudge.temp_id, "
+                                                   "TempJudge.judgement FROM TempJudge "
+                                                   "JOIN NL ON TempJudge.nl_id = NL.id "
+                                                   "JOIN Temp ON TempJudge.temp_id = Temp.id "
+                                                   "WHERE TempJudge.judgement = 1"):
+            poly[nl].add(temp)
+
+        for nl, cmds in sorted(poly.items(), key=lambda x:len(x[1]), reverse=True)[:5]:
+            print("English description: {}".format(nl.strip()))
+            for i in xrange(cmds):
+                print("Prediction {}: {}".format(i, cmds[i]))
+
        
     def debug(self):
         c = self.cursor
@@ -413,4 +430,4 @@ class DBConnection(object):
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
-    db.debug()
+    db.polymorphism()
