@@ -818,20 +818,33 @@ def prepare_data(FLAGS):
 def ratio(ll):
     return float(reduce(lambda x, y: x + y, [len(l) for l in ll])) / len(ll)
 
+def pp(ll)
+    num_pp = 0
+    for l in ll:
+        if len(l) > 1:
+            num_pp += 1
+    return float(num_pp) / len(ll)
+
 def data_stats(FLAGS):
     train_set, dev_set, test_set = load_data(FLAGS)
     temp = len(group_data_by_nl(train_set))
     print("train cmd/nl ratio = {}".format(ratio(temp)))
+    print("train %cmd(nl+) = {}".format(pp(temp)))
     temp = len(group_data_by_nl(dev_set))
     print("dev cmd/nl ratio = {}".format(ratio(temp)))
+    print("dev %cmd(nl+) = {}".format(pp(temp)))
     temp = len(group_data_by_nl(test_set))
     print("test cmd/nl ratio = {}".format(ratio(temp)))
+    print("test %cmd(nl+) = {}".format(pp(temp)))
     temp = len(group_data_by_cm(train_set))
     print("train nl/cmd ratio = {}".format(ratio(temp)))
+    print("train %nl(cmd+) = {}".format(pp(temp)))
     temp = len(group_data_by_cm(dev_set))
     print("dev nl/cmd ratio = {}".format(ratio(temp)))
+    print("dev %nl(cmd+) = {}".format(pp(temp)))
     temp = len(group_data_by_cm(test_set))
     print("test nl/cmd ratio = {}".format(ratio(temp)))
+    print("test %nl(cmd+) = {}".format(pp(temp)))
 
 if __name__ == "__main__":
     ast = data_tools.paren_parser(sys.argv[1])
