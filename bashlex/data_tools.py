@@ -10,15 +10,22 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import sys
+import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
 import re
 
-from bashlex import nast, normalizer
-from data import gazetteer
-from data.spellcheck import spell_check as spc
+try:
+    from bashlex import nast, normalizer
+    from data import gazetteer
+    from data.spellcheck import spell_check as spc
+except ImportError:
+    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
+    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "data"))
+    import nast, normalizer
+    import gazetteer
+    from spellcheck import spell_check as spc
 
 # from nltk.stem.wordnet import WordNetLemmatizer
 # lmtzr = WordNetLemmatizer()

@@ -43,8 +43,6 @@ class DBConnection(object):
                   "FOREIGN KEY(nl_id) REFERENCES NL(id),"
                   "FOREIGN KEY(cmd_id) REFERENCES Cmd(id)"
                   ")")
-        c.execute("CREATE TABLE IF NOT EXISTS Output ("
-                  "model TEXT, nl TEXT, pred_cmd TEXT, score FLOAT)")
 
         c.execute("CREATE TABLE IF NOT EXISTS CmdTED ("
                   "cmd1_id INT,"
@@ -53,9 +51,7 @@ class DBConnection(object):
                   "FOREIGN KEY(cmd1_id) REFERENCES Cmd(id),"
                   "FOREIGN KEY(cmd2_id) REFERENCES Cmd(id)"
                   ")")
-        c.execute("CREATE TABLE IF NOT EXISTS StrTED (cmd1 TEXT, cmd2 TEXT, dist FLOAT)")
-
-        c.execute("CREATE TABLE IF NOT EXISTS TempTED2 (cmd1 TEXT, cmd2 TEXT, dist FLOAT)")
+        
         c.execute("CREATE TABLE IF NOT EXISTS TempTED ("
                   "temp1_id INT,"
                   "temp2_id INT,"
@@ -71,7 +67,6 @@ class DBConnection(object):
                   "FOREIGN KEY(nl_id) REFERENCES NL(id),"
                   "FOREIGN KEY(cmd_id) REFERENCES Cmd(id)"
                   ")")
-        c.execute("CREATE TABLE IF NOT EXISTS StrArchives (nl TEXT, pred_cmd TEXT, judgement INT)")
 
         c.execute("CREATE TABLE IF NOT EXISTS TempJudge ("
                   "nl_id INT,"
@@ -80,7 +75,6 @@ class DBConnection(object):
                   "FOREIGN KEY(nl_id) REFERENCES NL(id),"
                   "FOREIGN KEY(temp_id) REFERENCES Cmd(id)"
                   ")")
-        c.execute("CREATE TABLE IF NOT EXISTS TempArchives (nl TEXT, pred_temp TEXT, judgement INT)")
 
         self.conn.commit()
 
@@ -406,15 +400,17 @@ class DBConnection(object):
        
     def debug(self):
         c = self.cursor
-        for nl, temp, _, _, judgement in c.execute("SELECT NL.nl, Temp.temp, TempJudge.model, "
+        for nl, temp, _, _, judgement in c.execute("SELECT NL.nl, Temp.temp, "
                                                    "TempJudge.nl_id, TempJudge.temp_id, "
                                                    "TempJudge.judgement FROM TempJudge "
                                                    "JOIN NL ON TempJudge.nl_id = NL.id "
-                                                   "JOIN Cmd ON TempJudge.cmd_id = Cmd.id"):
-            print("English description: {}".format(nl))
+                                                   "JOIN Temp ON TempJudge.temp_id = Temp.id "
+                                                   "WHERE TempJudge.judgement = 1"):
+            print("English description: {}".format(nl.strip()))
             print("Prediction: {} ({})".format(temp, judgement))
+            print()
  
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
-    db.migration()
+    db.debug()

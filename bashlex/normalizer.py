@@ -18,9 +18,15 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 # bashlex stuff
-from bashlex import bast, errors, tokenizer, bparser
-from bashlex.nast import *
-from grammar.lookup import ManPageLookUp
+try:
+    from bashlex import bast, errors, tokenizer, bparser
+    from bashlex.nast import *
+    from grammar.lookup import ManPageLookUp
+except ImportError:
+    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "grammar"))
+    import bast, errors, tokenizer, bparser
+    from nast import *
+    from lookup import ManPageLookUp
 
 _NUM = "_NUM"
 _LONG_PATTERN = "_LONG_PATTERN"
