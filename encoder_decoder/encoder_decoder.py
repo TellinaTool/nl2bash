@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import sys
+import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
@@ -14,7 +14,10 @@ import numpy as np
 
 import tensorflow as tf
 
-from encoder_decoder import beam_search, data_utils, graph_utils
+if os.getcwd() == os.path.dirname(__file__):
+    import data_utils, graph_utils, beam_search
+else:
+    from encoder_decoder import data_utils, graph_utils, beam_search
 
 
 class EncoderDecoderModel(graph_utils.NNModel):

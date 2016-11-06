@@ -13,7 +13,10 @@ if sys.version_info > (3, 0):
 
 import tensorflow as tf
 
-from encoder_decoder import data_utils
+if os.getcwd() == os.path.dirname(__file__):
+    import data_utils
+else:
+    from encoder_decoder import data_utils
 
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
