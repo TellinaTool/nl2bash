@@ -24,7 +24,12 @@ import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlex import bash, data_tools, normalizer
+if os.path.realpath(__file__).startswith(os.getcwd()):
+    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
+    import bash, data_tools, normalizer
+else:
+    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+    from bashlex import bash, data_tools, normalizer
 
 import tensorflow as tf
 
@@ -353,13 +358,16 @@ def group_data_by_nl(dataset, use_bucket=False, use_nl_temp=True):
     return grouped_dataset
 
 
-def group_data_by_cm(dataset, use_bucket=False):
+def group_data_by_cm(dataset, use_bucket=False, use_cm_temp=True):
     if use_bucket:
         dataset = reduce(lambda x,y: x + y, dataset)
     grouped_dataset = {}
     for i in xrange(len(dataset)):
         nl_str, cm_str, nl, search_history = dataset[i]
-        cm_template = data_tools.cmd2template(cm_str)
+        if use_cm_temp:
+            cm_template = data_tools.cmd2template(cm_str)
+        else:
+            cm_template = cm_str
         if cm_template in grouped_dataset:
             grouped_dataset[cm_template][0].append(nl_str)
             grouped_dataset[cm_template][1].append(cm_str)
@@ -816,21 +824,25 @@ def prepare_data(FLAGS):
 
 
 def ratio(ll):
-    return float(reduce(lambda x, y: x + y, [len(l) for l in ll])) / len(ll)
+    # for l in ll.values():
+    #     if len(l[1]) > 3:
+    #         print(l[1])
+    print(sum([len(l[1]) for l in ll.values()]))
+    return float(sum([len(set(l[1])) for l in ll.values()])) / len(ll)
 
 def data_stats(FLAGS):
     train_set, dev_set, test_set = load_data(FLAGS)
-    temp = len(group_data_by_nl(train_set))
+    temp = group_data_by_nl(train_set, use_nl_temp=FLAGS.dataset.startswith("bash"))
     print("train cmd/nl ratio = {}".format(ratio(temp)))
-    temp = len(group_data_by_nl(dev_set))
+    temp = group_data_by_nl(dev_set, use_nl_temp=FLAGS.dataset.startswith("bash"))
     print("dev cmd/nl ratio = {}".format(ratio(temp)))
-    temp = len(group_data_by_nl(test_set))
+    temp = group_data_by_nl(test_set, use_nl_temp=FLAGS.dataset.startswith("bash"))
     print("test cmd/nl ratio = {}".format(ratio(temp)))
-    temp = len(group_data_by_cm(train_set))
+    temp = group_data_by_cm(train_set, use_cm_temp=FLAGS.dataset.startswith("bash"))
     print("train nl/cmd ratio = {}".format(ratio(temp)))
-    temp = len(group_data_by_cm(dev_set))
+    temp = group_data_by_cm(dev_set, use_cm_temp=FLAGS.dataset.startswith("bash"))
     print("dev nl/cmd ratio = {}".format(ratio(temp)))
-    temp = len(group_data_by_cm(test_set))
+    temp = group_data_by_cm(test_set, use_cm_temp=FLAGS.dataset.startswith("bash"))
     print("test nl/cmd ratio = {}".format(ratio(temp)))
 
 if __name__ == "__main__":
