@@ -15,6 +15,16 @@ from bashlex import data_tools, nast
 from eval import ast_based, zss
 from eval.eval_archive import DBConnection
 
+error_types = {
+    2 : "extra utility",
+    3 : "missing utility",
+    4 : "confused utility",
+    5 : "extra flag",
+    6 : "missing flag",
+    7 : "confused flag",
+    8 : "logic error",
+    9 : "count error"
+}
 
 def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
     num_top1_correct_temp = 0.0
@@ -238,7 +248,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
             for j in xrange(len(cm_strs)):
                 print("GT Command %d: " % (j+1) + cm_strs[j].strip())
                 o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
-            for i in xrange(len(predictions[:3])):
+            for i in xrange(min(1, len(predictions))):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
                 print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
@@ -250,7 +260,8 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                 str_judge = db.get_str_judgement((nl_str, pred_cmd))
                 temp_judge = db.get_temp_judgement((nl_str, pred_temp))
                 if temp_judge is not None:
-                    judgement_str = "y" if temp_judge else "n"
+                    judgement_str = "y" if temp_judge == 1 \
+                        else "n ({})".format(error_types[temp_judge])
                     print("Correct template [y/n]: %s" % judgement_str)
                 else:
                     temp_judge = ast_based.one_match(gt_trees, tree, rewrite=False,
@@ -262,7 +273,18 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                             db.add_temp_judgement((nl_str, pred_temp, 1))
                         else:
                             temp_judge = False
-                            db.add_temp_judgement((nl_str, pred_temp, 0))
+                            error_type = raw_input(
+                                "Error type: \n"
+                                "(2) extra utility \n"
+                                "(3) missing utility \n"
+                                "(4) confused utility \n"
+                                "(5) extra flag \n"
+                                "(6) missing flag \n"
+                                "(7) confused flag \n"
+                                "(8) logic error\n"
+                                "(9) count error"
+                            )
+                            db.add_temp_judgement((nl_str, pred_temp, int(error_type)))
                     else:
                         print("Correct template [y/n]: y")
                 if temp_judge:
@@ -282,7 +304,8 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                         top10_correct_temp = True
                     o_f.write("C")
                     if str_judge is not None:
-                        judgement_str = "y" if str_judge else "n"
+                        judgement_str = "y" if str_judge == 1 \
+                            else "n ({})".format(error_types[str_judge])
                         print("Correct command [y/n]: %s" % judgement_str)
                     else:
                         str_judge = ast_based.one_match(gt_trees, tree, rewrite=False,
