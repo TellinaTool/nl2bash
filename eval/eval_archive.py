@@ -229,6 +229,8 @@ class DBConnection(object):
     # --- Prediction ---
 
     def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):
+        nl = nl.decode('utf-8')
+        pred_cmd = pred_cmd.decode('utf-8')
         nl_id = self.add_nl(nl)
         cmd_id = self.add_cmd(pred_cmd)
         c = self.cursor
@@ -236,7 +238,7 @@ class DBConnection(object):
             c.execute("UPDATE ModelOutput SET cmd_id = ? score = ? WHERE model = ? AND nl_id = ?",
                       (cmd_id, score, model, nl_id))
         else:
-            c.execute("INSERT INTO Output (model, nl_id, cmd_id, score) VALUES (?, ?, ?, ?)",
+            c.execute("INSERT INTO ModelOutput (model, nl_id, cmd_id, score) VALUES (?, ?, ?, ?)",
                       (model, nl_id, cmd_id, score))
         self.conn.commit()
 
