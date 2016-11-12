@@ -1,7 +1,6 @@
 #!/usr/bin/env python2.7
 
 import collections
-import cPickle as pickle
 import functools
 import random
 import re
@@ -170,61 +169,17 @@ class DBConnection(object):
                 continue
             if not self.head_present(cmd, head_cmd):
                 continue
-            if not is_QA_website(url):
-                url_key = url + str(random.getrandbits(32))
-            else:
-                url_key = url
+            # if not is_QA_website(url):
+            #     url_key = url + str(random.getrandbits(32))
+            # else:
+            #     url_key = url
+            url_key = url
             if not url_key in cmds_dict:
                 cmds_dict[url_key] = {}
             if not nl in cmds_dict[url_key]:
                 cmds_dict[url_key][nl] = set()
             cmds_dict[url_key][nl].add(cmd)
         return cmds_dict
-
-    @deprecated
-    def unique_pairs_by_signature(self):
-        unique_pairs = self.unique_pairs()
-        cmds_dict = collections.defaultdict(list)
-        num_errors = 0
-        for cmd in unique_pairs:
-            if not cmd:
-                continue
-            signature = cmd2template(cmd, arg_type_only=split_by_template)
-            if not signature:
-                num_errors += 1
-                continue
-            for nl in unique_pairs[cmd]:
-                cmds_dict[signature].append((cmd, nl))
-        print("Unable to parse %d commands" % num_errors)
-        return cmds_dict
-
-    @deprecated
-    def unique_pairs_by_description(self, head_cmd):
-        unique_pairs = self.unique_pairs(head_cmd)
-        desp_dict = collections.defaultdict(list)
-        num_errors = 0
-        for cmd in unique_pairs:
-            if not cmd:
-                continue
-            tokens = bash_tokenizer(cmd)
-            if not tokens:
-                num_errors += 1
-                continue
-            # print(cmd.encode('utf-8'))
-            # print(' '.join(tokens))
-            # print
-            for nl in unique_pairs[cmd]:
-                """inserted = False
-                for nl2 in desp_dict:
-                    if token_overlap(nl, nl2) > 0.6:
-                        desp_dict[nl2].append((cmd, nl))
-                        inserted = True
-                        break
-                if not inserted:
-                    desp_dict[nl].append((cmd, nl))
-                """
-                desp_dict[nl].append(cmd)
-        return desp_dict
 
     def dump_data(self, data_dir, num_folds=10):
         # First-pass: group pairs by URLs
@@ -272,7 +227,7 @@ class DBConnection(object):
         # Third-pass: group url clusters by commands
         templates = {}
         merged_urls_by_cmd = []
-        for i in xrange(len(urls)):
+        """for i in xrange(len(urls)):
             if i in merged_urls_by_nl:
                 continue
             url = urls[i]
@@ -314,6 +269,7 @@ class DBConnection(object):
                         pairs[url2][nl] = pairs[url][nl]
                 merged_urls_by_cmd.append(i)
         print("%d urls merged by cmd" % len(merged_urls_by_cmd))
+        """
 
         remained_urls = []
         for i in xrange(len(urls)):
@@ -340,7 +296,7 @@ class DBConnection(object):
         for i in xrange(len(sorted_urls)):
             url = sorted_urls[i]
             url_size = reduce(lambda x, y: x+y, [len(pairs[url][nl]) for nl in pairs[url]])
-            # print("url %d (%d)" % (i, url_size))
+            print("url %d (%d)" % (i, url_size))
             if i < top_k:
                 ind = random.randrange(num_folds - 2)
                 num_train += 1
