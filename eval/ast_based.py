@@ -1,10 +1,11 @@
-import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
+from __future__ import absolute_import
 
-import data_tools, nast
-import zss
-import extract_rewrites as er
-import eval_archive as ea
+import sys
+
+from bashlex import data_tools, nast
+from eval import zss
+from eval import extract_rewrites as er
+from eval import eval_archive as ea
 
 def ignore_differences(cmd):
     cmd = cmd.replace('-ls', '')
@@ -35,8 +36,11 @@ def local_dist(s1, s2, skip_argument=False):
         "FLAG_-iname:::FLAG_-iregex":0,
         "FLAG_-iregex:::FLAG_-iname":0
     }
-
-    pair_key = ":::".join((s1, s2))
+    
+    try:
+        pair_key = ":::".join((s1, s2))
+    except UnicodeDecodeError:
+        pair_key = ":::".join((s1.decode('utf-8'), s2.decode('utf-8')))
     if pair_key in score_list:
         return score_list[pair_key]
     else:
@@ -83,7 +87,6 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
     :param ast2: predicted AST.
     :param rewrite: set to true if rewrite ground truths with templates.
     :param ignore_arg_value: set to true if ignore literal values in the ASTs.
-    :return:
     """
     # tolerate ungrammatical predictions
     if not ast2:
@@ -98,6 +101,8 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
     with ea.DBConnection() as db:
         min_dist = sys.maxint
         for ast1 in ast_rewrites:
+            # data_tools.pretty_print(ast1)
+            # data_tools.pretty_print(ast2)
             if ignore_arg_value:
                 dist = temp_dist(ast1, ast2)
             else:
