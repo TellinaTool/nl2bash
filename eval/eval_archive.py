@@ -229,11 +229,11 @@ class DBConnection(object):
     # --- Prediction ---
 
     def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):
-        nl_id = self.get_nl_id(nl)
-        cmd_id = self.get_cmd_id(pred_cmd)
+        nl_id = self.add_nl(nl)
+        cmd_id = self.add_cmd(pred_cmd)
         c = self.cursor
         if update_mode and self.exist_prediction(model, nl):
-            c.execute("UPDATE Output SET cmd_id = ? score = ? WHERE model = ? AND nl_id = ?",
+            c.execute("UPDATE ModelOutput SET cmd_id = ? score = ? WHERE model = ? AND nl_id = ?",
                       (cmd_id, score, model, nl_id))
         else:
             c.execute("INSERT INTO Output (model, nl_id, cmd_id, score) VALUES (?, ?, ?, ?)",
@@ -243,7 +243,7 @@ class DBConnection(object):
     def remove_model(self, model):
         print("removing record of {} from database".format(model))
         c = self.cursor
-        c.execute("DELETE FROM Output WHERE model = ?", (model,))
+        c.execute("DELETE FROM ModelOutput WHERE model = ?", (model,))
 
     def exist_prediction(self, model, nl):
         nl_id = self.get_nl_id(nl)
