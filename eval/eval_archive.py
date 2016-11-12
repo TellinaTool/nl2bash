@@ -259,14 +259,14 @@ class DBConnection(object):
         return self.get_top_k_predictions(model, nl, 1)[0]
 
     def get_top_k_predictions(self, model, nl, k):
-        nl_id = self.get_nl_id(nl)
         c = self.cursor
         predictions = []
-        for _, _, _, score, pred_cmd in \
-            c.execute("SELECT ModelOutput.model, ModelOutput.nl_id, ModelOutput.cmd_id, "
-                      "ModelOutput.score, Cmd.cmd, Cmd.id FROM ModelOutput JOIN Cmd ON "
-                      "ModelOutput.cmd_id = Cmd.id WHERE ModelOutput.model = ? AND "
-                      "ModelOutput.nl_id = ?", (model, nl_id)):
+        for score, pred_cmd in \
+            c.execute("SELECT ModelOutput.score, Cmd.cmd FROM ModelOutput "
+                      "JOIN NL ON ModelOutput.nl_id = NL.id "
+                      "JOIN Cmd ON ModelOutput.cmd_id = Cmd.id "
+                      "WHERE ModelOutput.model = ? AND "
+                      "NL.nl = ?", (model, nl)):
             predictions.append((pred_cmd, score))
         sorted_predictions = sorted(predictions, key=lambda x:x[1], reverse=True)
         return sorted_predictions[:k]
@@ -358,20 +358,24 @@ class DBConnection(object):
     def get_correct_cmds(self, nl):
         nl = unicode(nl)
         c = self.cursor
-        for pred_cmd in c.execute("SELECT Cmd.cmd FROM CmdJudge "
+        correct_cmds = []
+        for pred_cmd, in c.execute("SELECT Cmd.cmd FROM CmdJudge "
                                   "JOIN NL ON CmdJudge.nl_id = NL.id "
                                   "JOIN Cmd ON CmdJudge.cmd_id = Cmd.id "
                                   "WHERE NL.nl = ? AND CmdJudge.judgement = 1", (nl,)):
-            yield pred_cmd
+            correct_cmds.append(pred_cmd)
+        return correct_cmds
 
     def get_correct_temps(self, nl):
         nl = unicode(nl)
         c = self.cursor
-        for pred_temp in c.execute("SELECT Temp.temp FROM TempJudge "
+        correct_temps = []
+        for pred_temp, in c.execute("SELECT Temp.temp FROM TempJudge "
                                     "JOIN NL ON TempJudge.nl_id = NL.id "
                                     "JOIN Temp ON TempJudge.temp_id = Temp.id "
                                     "WHERE NL.nl = ? AND TempJudge.judgement = 1", (nl,)):
-            yield pred_temp
+            correct_temps.append(pred_temp)
+        return correct_temps
 
     # Correction
     def correct_str_pair(self, pair):
