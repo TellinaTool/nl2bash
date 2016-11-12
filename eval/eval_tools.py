@@ -288,7 +288,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                             db.add_temp_judgement((nl_str, pred_temp, int(error_type)))
                     else:
                         print("Correct template [y/n]: y")
-                if temp_judge:
+                if temp_judge == 1:
                     if i < 1:
                         top1_correct_temp = True
                         top3_correct_temp = True
@@ -323,7 +323,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                                 db.add_str_judgement((nl_str, pred_cmd, 0))
                         else:
                             print("Correct command [y/n]: y")
-                    if str_judge:
+                    if str_judge == 1:
                         if i < 1:
                             top1_correct = True
                             top3_correct = True
