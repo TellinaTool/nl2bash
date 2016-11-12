@@ -16,6 +16,7 @@ from eval import ast_based, zss
 from eval.eval_archive import DBConnection
 
 error_types = {
+    0 : "unmarked error",
     2 : "extra utility",
     3 : "missing utility",
     4 : "confused utility",
@@ -282,7 +283,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                                 "(6) missing flag \n"
                                 "(7) confused flag \n"
                                 "(8) logic error\n"
-                                "(9) count error"
+                                "(9) count error\n"
                             )
                             db.add_temp_judgement((nl_str, pred_temp, int(error_type)))
                     else:
