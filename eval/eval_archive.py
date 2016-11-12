@@ -337,7 +337,7 @@ class DBConnection(object):
     def get_nl_cmd_judge(self, nl):
         nl = unicode(nl)
         c = self.cursor
-        for nl, pred_cmd, judgement in c.execute("SELECT CmdJudge.nl_id, CmdJudge.cmd_id, "
+        for nl, pred_cmd, judgement in c.execute("SELECT NL.nl, Cmd.cmd, "
                                                  "CmdJudge.judgement FROM CmdJudge "
                                                  "JOIN NL ON CmdJudge.nl_id = NL.id "
                                                  "WHERE NL.nl = ?", (nl,)):
@@ -347,12 +347,31 @@ class DBConnection(object):
     def get_nl_temp_judge(self, nl):
         nl = unicode(nl)
         c = self.cursor
-        for nl, pred_temp, judgement in c.execute("SELECT TempJudge.nl_id, TempJudge.temp_id, "
+        for nl, pred_temp, judgement in c.execute("SELECT NL.nl, Temp.temp, "
                                                   "TempJudge.judgement FROM TempJudge "
                                                   "JOIN NL ON TempJudge.nl_id = NL.id "
+                                                  "JOIN Temp ON TempJudge.temp_id = Temp.id"
                                                   "WHERE NL.nl = ?", (nl,)):
             print("English description: {}".format(nl))
             print("Prediction: {} ({})".format(pred_temp, judgement))
+
+    def get_correct_cmds(self, nl):
+        nl = unicode(nl)
+        c = self.cursor
+        for pred_cmd in c.execute("SELECT Cmd.cmd FROM CmdJudge "
+                                  "JOIN NL ON CmdJudge.nl_id = NL.id "
+                                  "JOIN Cmd ON CmdJudge.cmd_id = Cmd.id "
+                                  "WHERE NL.nl = ? AND CmdJudge.judgement = 1", (nl,)):
+            yield pred_cmd
+
+    def get_correct_temps(self, nl):
+        nl = unicode(nl)
+        c = self.cursor
+        for pred_temp in c.execute("SELECT Temp.temp FROM TempJudge "
+                                    "JOIN NL ON TempJudge.nl_id = NL.id "
+                                    "JOIN Temp ON TempJudge.temp_id = Temp.id "
+                                    "WHERE NL.nl = ? AND TempJudge.judgement = 1", (nl,)):
+            yield pred_temp
 
     # Correction
     def correct_str_pair(self, pair):
