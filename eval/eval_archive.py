@@ -401,6 +401,7 @@ class DBConnection(object):
 
     def polymorphism(self):
         poly = collections.defaultdict(set)
+        c = self.cursor
         for nl, temp, _, _, judgement in c.execute("SELECT NL.nl, Temp.temp, "
                                                    "TempJudge.nl_id, TempJudge.temp_id, "
                                                    "TempJudge.judgement FROM TempJudge "
@@ -409,9 +410,10 @@ class DBConnection(object):
                                                    "WHERE TempJudge.judgement = 1"):
             poly[nl].add(temp)
 
-        for nl, cmds in sorted(poly.items(), key=lambda x:len(x[1]), reverse=True)[:5]:
+        for nl, cmds in sorted(poly.items(), key=lambda x:len(x[1]), reverse=True)[:20]:
             print("English description: {}".format(nl.strip()))
-            for i in xrange(cmds):
+            cmds = list(cmds)
+            for i in xrange(len(cmds)):
                 print("Prediction {}: {}".format(i, cmds[i]))
 
        
