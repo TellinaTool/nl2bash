@@ -276,8 +276,8 @@ class DBConnection(object):
         nl, pred_cmd, judgement = triple
         c = self.cursor
         if not self.exist_str_pair((nl, pred_cmd)):
-            nl_id = self.get_nl_id(nl)
-            cmd_id = self.get_cmd_id(pred_cmd)
+            nl_id = self.add_nl(nl)
+            cmd_id = self.add_cmd(pred_cmd)
             c.execute("INSERT INTO CmdJudge (nl_id, cmd_id, judgement) VALUES (?, ?, ?)",
                       (nl_id, cmd_id, judgement))
         self.conn.commit()
@@ -307,9 +307,9 @@ class DBConnection(object):
         nl, pred_temp, judgement = triple
         c = self.cursor
         if not self.exist_temp_pair((nl, pred_temp)):
-            nl_id = self.get_nl_id(nl)
-            temp_id = self.get_temp_id(pred_temp)
-            c.execute("INSERT INTO TempArchives (nl_id, temp_id, judgement) VALUES (?, ?, ?)",
+            nl_id = self.add_nl(nl)
+            temp_id = self.add_temp(pred_temp)
+            c.execute("INSERT INTO TempJudge (nl_id, temp_id, judgement) VALUES (?, ?, ?)",
                       (nl_id, temp_id, judgement))
         self.conn.commit()
 
