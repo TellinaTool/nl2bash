@@ -227,9 +227,8 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
 
     with DBConnection() as db:
         db.create_schema()
-        example_id = 0
-        while example_id < len(grouped_dataset):
-            nl_strs, cm_strs, nls, search_historys = grouped_dataset[example_id]
+        while num_evaled < len(grouped_dataset):
+            nl_strs, cm_strs, nls, search_historys = grouped_dataset[num_evaled]
             nl_str = nl_strs[0]
 
             if num_evaled == num_eval:
@@ -271,7 +270,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                     if not temp_judge:
                         inp = raw_input("Correct template [y/n]: ")
                         if inp == "REVERSE":
-                            example_id -= 1
+                            num_evaled -= 1
                             mandatory_judge = True
                             continue
                         elif inp == "y":
@@ -373,9 +372,9 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
             if top10_correct:
                 num_top10_correct += 1
 
-            example_id += 1
             mandatory_judge = False
-    print()
+            print()
+
     print("%d examples evaluated" % num_eval)
     print("Top 1 Template Match Score = %.2f" % (num_top1_correct_temp/num_eval))
     print("Top 1 String Match Score = %.2f" % (num_top1_correct/num_eval))
@@ -386,7 +385,6 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
         print("Top 10 String Match Score = %.2f" % (num_top10_correct/num_eval))
     print()
 
-    o_f.write("\n")
     o_f.write("%d examples evaluated" % num_eval + "\n")
     o_f.write("Top 1 Template MatchScore = %.2f" % (num_top1_correct_temp/num_eval) + "\n")
     o_f.write("Top 1 String Match Score = %.2f" % (num_top1_correct/num_eval) + "\n")
