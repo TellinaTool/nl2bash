@@ -223,7 +223,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
 
     o_f = open(os.path.join(output_dir, "manual.eval.results"), 'w')
 
-    mandate_judge = False
+    mandatory_judge = False
 
     with DBConnection() as db:
         db.create_schema()
@@ -261,7 +261,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                 pred_temp = data_tools.ast2template(tree, loose_constraints=True)
                 str_judge = db.get_str_judgement((nl_str, pred_cmd))
                 temp_judge = db.get_temp_judgement((nl_str, pred_temp))
-                if temp_judge is not None and not mandate_judge:
+                if temp_judge is not None and not mandatory_judge:
                     judgement_str = "y" if temp_judge == 1 \
                         else "n ({})".format(error_types[temp_judge])
                     print("Correct template [y/n]: %s" % judgement_str)
@@ -272,7 +272,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                         inp = raw_input("Correct template [y/n]: ")
                         if inp == "REVERSE":
                             i -= 1
-                            mandate_judge = True
+                            mandatory_judge = True
                             continue
                         elif inp == "y":
                             temp_judge = True
@@ -309,7 +309,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                     elif i < 10:
                         top10_correct_temp = True
                     o_f.write("C")
-                    if str_judge is not None and not mandate_judge:
+                    if str_judge is not None and not mandatory_judge:
                         judgement_str = "y" if str_judge == 1 \
                             else "n ({})".format(error_types[str_judge])
                         print("Correct command [y/n]: %s" % judgement_str)
@@ -319,7 +319,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                         if not str_judge:
                             inp = raw_input("Correct command [y/n]: ")
                             if inp == "REVERSE":
-                                mandate_judge = True
+                                mandatory_judge = True
                                 continue
                             elif inp == "y":
                                 str_judge = True
@@ -374,7 +374,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                 num_top10_correct += 1
 
             i += 1
-            mandate_judge = False
+            mandatory_judge = False
     print()
     print("%d examples evaluated" % num_eval)
     print("Top 1 Template Match Score = %.2f" % (num_top1_correct_temp/num_eval))
