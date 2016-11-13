@@ -227,9 +227,9 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
 
     with DBConnection() as db:
         db.create_schema()
-        i = 0
-        while i < len(grouped_dataset):
-            nl_strs, cm_strs, nls, search_historys = grouped_dataset[i]
+        example_id = 0
+        while example_id < len(grouped_dataset):
+            nl_strs, cm_strs, nls, search_historys = grouped_dataset[example_id]
             nl_str = nl_strs[0]
 
             if num_evaled == num_eval:
@@ -271,7 +271,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                     if not temp_judge:
                         inp = raw_input("Correct template [y/n]: ")
                         if inp == "REVERSE":
-                            i -= 1
+                            example_id -= 1
                             mandatory_judge = True
                             continue
                         elif inp == "y":
@@ -373,7 +373,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
             if top10_correct:
                 num_top10_correct += 1
 
-            i += 1
+            example_id += 1
             mandatory_judge = False
     print()
     print("%d examples evaluated" % num_eval)
