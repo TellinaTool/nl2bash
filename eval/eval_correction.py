@@ -7,89 +7,9 @@ Some manual evaluation correction.
 
 correct_temp_pairs = [
     (
-        "find the largest file in the current directory and sub directories\n",
-        "find -maxdepth Number -printf Pattern -type f File | sort -n -r | head -n Number"
-    ),
-    (
-        "find all occurences of a file in the file system which belong to the user root\n",
-        "find -print -user Pattern File"
-    ),
-    (
-        "Remove all broken symbolic links in /usr/ports/packages\n",
-        "find -type l -xtype l File | xargs -I {} rm {}"
-    ),
-    (
-        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
-        "find -type l -xtype l File | xargs -I {} rm {}"
-    ),
-    (
-        "Return a list of files newer than file poop\n",
-        "find -exec ls -l {} \; -newer File File"
-    ),
-    (
-        "Find files that are 0 bytes in size in the current directory and remove them\n",
-        "find -exec rm {} \; -size Size File"
-    ),
-    (
-        "Find files that are 0 bytes in size in the current directory and remove them\n",
-        "find -print -size Size File | xargs -I {} rm {}"
-    ),
-    (
-        "Find all *.texi files in /usr/local/doc\n",
-        "find -iname Pattern -type f File"
-    ),
-    (
-        "Delete files containing whitespaces without recursion\n",
-        "find -exec rm -f {} \; -name Pattern -type f File"
-    ),
-    (
-        "Remove files in the current directory tree modified more than 31 days ago recursively\n",
-        "find -exec rm {} \; -mtime Time File"
-    ),
-    (
-        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
-        "find -exec rm {} \; -xtype l File"
-    ),
-    (
-        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
-        "find -exec rm {} \; -type l -xtype l File"
-    ),
-    (
-        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
-        "find -print0 -xtype l File | xargs -0 -I {} rm {}"
-    ),
-    (
-        "Archive all *html files using tar.\n",
-        "find -name Pattern -print0 File | xargs -0 -I {} tar -f File -u {}"
-    ),
-    (
-        "create a tar ball of all pdf files in current folder\n",
-        "find -name Pattern -print0 File | xargs -0 -I {} tar -f File -u {}"
-    ),
-    (
-        "create a tar ball of all pdf files in current folder\n",
-        "find -name Pattern -print0 File | xargs -0 -I {} tar -f File -r -v {}"
-    ),
-    (
-        "display all the files in the entire file system which are bigger than 10MB\n",
-        "find -exec ls -l -s {} \; -size Size File"
-    ),
-    (
-        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
-        "find -type l -xtype l File | xargs -I {} rm -f {}"
-    ),
-    (
-        "Remove all broken symlinks from the /usr/ports/packages directory tree\n",
-        "find -exec rm -f {} \; -type l -xtype l File"
-    ),
-    (
-        "display all the text files in the current folder  and do not search in the bin directory\n",
-        "find -maxdepth Number \( -name Pattern -prune -or -name Pattern \) File"
-    ),
-    (
-        "Find all files, starting from / but ignoring removable media, whose names end with "
-        "\".rpm\"\n",
-        "find -name Pattern -prune File"
+        "Print the list of files from the \"/zu/durchsuchender/Ordner\" directory tree whose "
+        "names begin with \"beispieldatei\" and which contain string \"Beispielinhalt\"\n",
+        "find -exec grep -l Pattern {} \; -name Pattern File"
     )]
 
 error_temp_pairs = [
