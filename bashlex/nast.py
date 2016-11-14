@@ -237,7 +237,7 @@ class HeadCommandNode(Node):
 
 class UnaryLogicOpNode(Node):
     num_child = 1
-    children_types = [set('flag')]
+    children_types = [set('flag', 'bracket', 'unarylogicop', 'binarylogicop')]
     LEFT = 0
     RIGHT = 1
 
@@ -251,11 +251,18 @@ class UnaryLogicOpNode(Node):
             raise ValueError("Unrecognized unary logic operator: {}".format(value))
 
 class BinaryLogicOpNode(Node):
-    num_child = 2
-    children_types = [set('flag'), set('flag')]
+    num_child = -1
+    children_types = [set('flag', 'bracket', 'unarylogicop', 'binarylogicop')]
 
     def __init__(self, value="", parent=None, lsb=None):
         super(BinaryLogicOpNode, self).__init__(parent, lsb, 'binarylogicop', value)
+
+class BracketNode(Node):
+    num_child = -1
+    children_types = [set('flag', 'bracket', 'unarylogicop', 'binarylogicop')]
+
+    def __init__(self, parent=None, lsb=None):
+        super(BracketNode, self).__init__(parent, lsb, 'bracket', '')
 
 class RedirectNode(Node):
     num_child = 2
