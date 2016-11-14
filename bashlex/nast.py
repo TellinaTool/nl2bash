@@ -237,7 +237,7 @@ class HeadCommandNode(Node):
 
 class UnaryLogicOpNode(Node):
     num_child = 1
-    children_types = [set('flag', 'bracket', 'unarylogicop', 'binarylogicop')]
+    children_types = [set(['flag', 'bracket', 'unarylogicop', 'binarylogicop'])]
     LEFT = 0
     RIGHT = 1
 
@@ -252,14 +252,14 @@ class UnaryLogicOpNode(Node):
 
 class BinaryLogicOpNode(Node):
     num_child = -1
-    children_types = [set('flag', 'bracket', 'unarylogicop', 'binarylogicop')]
+    children_types = [set(['flag', 'bracket', 'unarylogicop', 'binarylogicop'])]
 
     def __init__(self, value="", parent=None, lsb=None):
         super(BinaryLogicOpNode, self).__init__(parent, lsb, 'binarylogicop', value)
 
 class BracketNode(Node):
     num_child = -1
-    children_types = [set('flag', 'bracket', 'unarylogicop', 'binarylogicop')]
+    children_types = [set(['flag', 'bracket', 'unarylogicop', 'binarylogicop'])]
 
     def __init__(self, parent=None, lsb=None):
         super(BracketNode, self).__init__(parent, lsb, 'bracket', '')
