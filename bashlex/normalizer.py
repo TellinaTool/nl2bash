@@ -392,10 +392,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
             # resolve single child of binary operators left as the result of
             # parentheses processing
-            if node.parent.kind == "binarylogicop" \
-                    and node.parent.value == "-and":
-                if node.parent.get_num_of_children() == 1:
-                    node.grandparent.replace_child(node.parent, node)
+            if node.parent.kind == "bracket" and node.parent.get_num_of_children() == 1:
+                node.grandparent.replace_child(node.parent, node)
 
         def adjust_binary_operators(node):
             # change right sibling to Child
@@ -1110,17 +1108,8 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     op = "\\;"
                 tokens.append(op)
         elif node.kind == "binarylogicop":
-            assert(loose_constraints or node.get_num_of_children() > 1)
-            if lc and node.get_num_of_children() < 2:
-                for child in node.children:
-                    tokens += to_tokens_fun(child)
-            else:
-                tokens.append("\\(")
-                for i in xrange(len(node.children)-1):
-                    tokens += to_tokens_fun(node.children[i])
-                    tokens.append(node.value)
-                tokens += to_tokens_fun(node.children[-1])
-                tokens.append("\\)")
+            assert(loose_constraints or node.get_num_of_children() == 0)
+            tokens.append(node.value)
         elif node.kind == "unarylogicop":
             assert((loose_constraints or node.associate == UnaryLogicOpNode.LEFT)
                    or node.get_num_of_children() == 1)
@@ -1134,6 +1123,18 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     if node.get_num_of_children() > 0:
                         tokens += to_tokens_fun(node.children[0])
                     tokens.append(node.value)
+        elif node.kind == "bracket":
+            assert(loose_constraints or node.get_num_of_children() > 1)
+            if lc and node.get_num_of_children() < 2:
+                for child in node.children:
+                    tokens += to_tokens_fun(child)
+            else:
+                tokens.append("\\(")
+                for i in xrange(len(node.children)-1):
+                    tokens += to_tokens_fun(node.children[i])
+                    tokens.append(node.value)
+                tokens += to_tokens_fun(node.children[-1])
+                tokens.append("\\)")
         elif node.kind == "nt":
             assert(loose_constraints or node.get_num_of_children() > 0)
             tokens.append("(")
