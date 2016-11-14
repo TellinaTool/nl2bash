@@ -325,13 +325,13 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         def organize_buffer(lparenth, rparenth):
             node = lparenth.rsb
             while node != rparenth:
-                if node.kind == "unarylogicop":
-                    adjust_unary_operators(node)
+                # if node.kind == "unarylogicop":
+                #     adjust_unary_operators(node)
                 node = node.rsb
             node = lparenth.rsb
             while node != rparenth:
-                if node.kind == "binarylogicop":
-                    adjust_binary_operators(node)
+                # if node.kind == "binarylogicop":
+                #     adjust_binary_operators(node)
                 node = node.rsb
             node = lparenth.rsb
             if node.rsb == rparenth:
@@ -693,11 +693,11 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         assert(len(stack) == 0)
         assert(depth == 0)
 
-        for ul in unprocessed_unary_logic_ops:
-            adjust_unary_operators(ul)
+        # for ul in unprocessed_unary_logic_ops:
+        #     adjust_unary_operators(ul)
 
-        for bl in unprocessed_binary_logic_ops:
-            adjust_binary_operators(bl)
+        # for bl in unprocessed_binary_logic_ops:
+        #     adjust_binary_operators(bl)
 
         # process same options -- treat as implicit "-and"
 
