@@ -337,7 +337,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
             if node.rsb == rparenth:
                 return lparenth.rsb
             else:
-                norm_node = BinaryLogicOpNode(value="-and")
+                norm_node = BracketNode()
                 while node != rparenth:
                     attach_to_tree(node, norm_node)
                     node = node.rsb
