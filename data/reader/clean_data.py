@@ -161,6 +161,8 @@ class DBConnection(object):
     def unique_pairs(self, head_cmd):
         cmds_dict = {}
         for user, url, nl, cmd, time_stamp in self.pairs():
+            nl = nl.strip()
+            cmd = cmd.strip()
             if nl.lower() == "na":
                 continue
             if not cmd:
@@ -173,7 +175,7 @@ class DBConnection(object):
             #     url_key = url + str(random.getrandbits(32))
             # else:
             #     url_key = url
-            url_key = url
+            url_key = url + str(random.getrandbits(32))
             if not url_key in cmds_dict:
                 cmds_dict[url_key] = {}
             if not nl in cmds_dict[url_key]:
@@ -278,7 +280,9 @@ class DBConnection(object):
             if i in merged_urls_by_nl:
                 continue
             remained_urls.append(urls[i])
-        sorted_urls = sorted(remained_urls, key=lambda x:len(pairs[url]), reverse=True)
+        sorted_urls = sorted(remained_urls, key=lambda x:
+                             reduce(lambda a, b: a+b, [len(pairs[x][nl]) for nl in pairs[x]]), 
+                             reverse=True)
 
         data = collections.defaultdict(list)
 
@@ -291,13 +295,16 @@ class DBConnection(object):
         num_test_pairs = 0
         num_urls = 0
 
-        top_k = 5
+        top_k = 0
 
         for i in xrange(len(sorted_urls)):
             url = sorted_urls[i]
             url_size = reduce(lambda x, y: x+y, [len(pairs[url][nl]) for nl in pairs[url]])
-            print("url %d (%d)" % (i, url_size))
+            # print("url %d (%d)" % (i, url_size))
             if i < top_k:
+                for nl in pairs[url]:
+                    print(nl)
+                print("-------------")
                 ind = random.randrange(num_folds - 2)
                 num_train += 1
                 num_train_pairs += url_size
