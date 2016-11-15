@@ -89,7 +89,7 @@ def train(train_set, dev_set, construct_model_dir=True):
         # A bucket scale is a list of increasing numbers from 0 to 1 that we'll use
         # to select a bucket. Length of [scale[i], scale[i+1]] is proportional to
         # the size if i-th training bucket, as used later.
-        train_buckets_scale = [sum(train_bucket_sizes[:i + 1]) / train_total_size
+        train_buckets_scale = [sum(train_bucket_sizes[:i+1]) / train_total_size
                                for i in xrange(len(train_bucket_sizes))]
 
         loss, dev_loss, epoch_time = 0.0, 0.0, 0.0
@@ -157,7 +157,6 @@ def train(train_set, dev_set, construct_model_dir=True):
                 # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
                 if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]) \
                     and t >= 10:
-                    # and (FLAGS.dataset.startswith("bash") or t >= 10):
                     return False
            
                 previous_dev_losses.append(dev_loss)
@@ -177,13 +176,14 @@ def decode(data_set, construct_model_dir=True, verbose=True):
 
         decode_tools.decode_set(sess, model, data_set,
                                 rev_nl_vocab, rev_cm_vocab, FLAGS, verbose)
+        return model.model_sig
 
 
-def eval(data_set, verbose=True):
+def eval(data_set, model_sig=None, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        _, model_sig = graph_utils.get_model_signature(FLAGS)
+        if model_sig is None:
+            _, model_sig = graph_utils.get_model_signature(FLAGS)
         print("evaluate " + model_sig + "...")
         _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
 
@@ -338,15 +338,15 @@ def main(_):
         else:
             eval(dev_set)
     elif FLAGS.manual_eval:
-        manual_eval(405)
+        manual_eval(100)
     elif FLAGS.decode:
         _, dev_set, _ = load_data()
-        decode(dev_set)
-        eval(dev_set, verbose=False)
+        model_sig = decode(dev_set)
+        eval(dev_set, model_sig=model_sig, verbose=False)
     elif FLAGS.test:
         _, _, test_set = load_data()
-        decode(test_set)
-        eval(test_set)
+        model_sig = decode(test_set)
+        eval(test_set, model_sig=model_sig, verbose=False)
     elif FLAGS.demo:
         demo()
     elif FLAGS.process_data:
@@ -360,8 +360,8 @@ def main(_):
         train_set, dev_set, _ = load_data()
         train(train_set, dev_set)
         tf.reset_default_graph()
-        decode(dev_set, construct_model_dir=False)
-        eval(dev_set, verbose=False)
+        model_sig = decode(dev_set, construct_model_dir=False)
+        eval(dev_set, model_sig, verbose=False)
     
 if __name__ == "__main__":
     tf.app.run()

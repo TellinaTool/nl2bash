@@ -1109,20 +1109,24 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                 tokens.append(op)
         elif node.kind == "binarylogicop":
             assert(loose_constraints or node.get_num_of_children() == 0)
-            tokens.append(node.value)
-        elif node.kind == "unarylogicop":
-            assert((loose_constraints or node.associate == UnaryLogicOpNode.LEFT)
-                   or node.get_num_of_children() == 1)
-            if lc and node.get_num_of_children() < 1:
-                tokens.append(node.value)
+            if lc and node.get_num_of_children() > 0:
+                for child in node.children[:-1]:
+                    tokens += to_tokens_fun(node.children[0])
+                    tokens.append(node.value)
+                tokens += to_tokens_fun(node.children[-1])
             else:
+                tokens.append(node.value)
+        elif node.kind == "unarylogicop":
+            assert(loose_constraints or node.get_num_of_children() == 0)
+            if lc and node.get_num_of_children() > 0:
                 if node.associate == UnaryLogicOpNode.RIGHT:
                     tokens.append(node.value)
                     tokens += to_tokens_fun(node.children[0])
                 else:
-                    if node.get_num_of_children() > 0:
-                        tokens += to_tokens_fun(node.children[0])
+                    tokens += to_tokens_fun(node.children[0])
                     tokens.append(node.value)
+            else:
+                tokens.append(node.value)
         elif node.kind == "bracket":
             assert(loose_constraints or node.get_num_of_children() > 1)
             if lc and node.get_num_of_children() < 2:
