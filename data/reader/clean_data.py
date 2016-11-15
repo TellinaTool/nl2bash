@@ -171,6 +171,8 @@ class DBConnection(object):
                 continue
             if not self.head_present(cmd, head_cmd):
                 continue
+            if len(nl.split()) > 40:
+                continue
             # if not is_QA_website(url):
             #     url_key = url + str(random.getrandbits(32))
             # else:
