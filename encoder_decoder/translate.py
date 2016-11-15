@@ -46,9 +46,9 @@ parse_args.define_input_flags()
 # We use a number of buckets and pad to the closest one for efficiency.
 if FLAGS.dataset in ["bash", "bash.cl"]:
     if FLAGS.decoder_topology in ['basic_tree']:
-        _buckets = [(20, 64), (30, 64), (40, 64)]
+        _buckets = [(20, 64), (25, 64), (35, 64)]
     elif FLAGS.decoder_topology in ['rnn']:
-        _buckets = [(20, 50), (30, 50), (40, 50)]
+        _buckets = [(20, 50), (25, 50), (35, 50)]
 elif FLAGS.dataset == "dummy":
     _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
 elif FLAGS.dataset == "jobs":
