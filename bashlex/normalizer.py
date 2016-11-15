@@ -325,19 +325,19 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         def organize_buffer(lparenth, rparenth):
             node = lparenth.rsb
             while node != rparenth:
-                if node.kind == "unarylogicop":
-                    adjust_unary_operators(node)
+                # if node.kind == "unarylogicop":
+                #     adjust_unary_operators(node)
                 node = node.rsb
             node = lparenth.rsb
             while node != rparenth:
-                if node.kind == "binarylogicop":
-                    adjust_binary_operators(node)
+                # if node.kind == "binarylogicop":
+                #     adjust_binary_operators(node)
                 node = node.rsb
             node = lparenth.rsb
             if node.rsb == rparenth:
                 return lparenth.rsb
             else:
-                norm_node = BinaryLogicOpNode(value="-and")
+                norm_node = BracketNode()
                 while node != rparenth:
                     attach_to_tree(node, norm_node)
                     node = node.rsb
@@ -392,10 +392,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
             # resolve single child of binary operators left as the result of
             # parentheses processing
-            if node.parent.kind == "binarylogicop" \
-                    and node.parent.value == "-and":
-                if node.parent.get_num_of_children() == 1:
-                    node.grandparent.replace_child(node.parent, node)
+            if node.parent.kind == "bracket" and node.parent.get_num_of_children() == 1:
+                node.grandparent.replace_child(node.parent, node)
 
         def adjust_binary_operators(node):
             # change right sibling to Child
@@ -693,11 +691,11 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         assert(len(stack) == 0)
         assert(depth == 0)
 
-        for ul in unprocessed_unary_logic_ops:
-            adjust_unary_operators(ul)
+        # for ul in unprocessed_unary_logic_ops:
+        #     adjust_unary_operators(ul)
 
-        for bl in unprocessed_binary_logic_ops:
-            adjust_binary_operators(bl)
+        # for bl in unprocessed_binary_logic_ops:
+        #     adjust_binary_operators(bl)
 
         # recover omitted arguments
         if head_command.value == "find":
@@ -1108,6 +1106,26 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     op = "\\;"
                 tokens.append(op)
         elif node.kind == "binarylogicop":
+            assert(loose_constraints or node.get_num_of_children() == 0)
+            if lc and node.get_num_of_children() > 0:
+                for child in node.children[:-1]:
+                    tokens += to_tokens_fun(node.children[0])
+                    tokens.append(node.value)
+                tokens += to_tokens_fun(node.children[-1])
+            else:
+                tokens.append(node.value)
+        elif node.kind == "unarylogicop":
+            assert(loose_constraints or node.get_num_of_children() == 0)
+            if lc and node.get_num_of_children() > 0:
+                if node.associate == UnaryLogicOpNode.RIGHT:
+                    tokens.append(node.value)
+                    tokens += to_tokens_fun(node.children[0])
+                else:
+                    tokens += to_tokens_fun(node.children[0])
+                    tokens.append(node.value)
+            else:
+                tokens.append(node.value)
+        elif node.kind == "bracket":
             assert(loose_constraints or node.get_num_of_children() > 1)
             if lc and node.get_num_of_children() < 2:
                 for child in node.children:
@@ -1119,19 +1137,6 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     tokens.append(node.value)
                 tokens += to_tokens_fun(node.children[-1])
                 tokens.append("\\)")
-        elif node.kind == "unarylogicop":
-            assert((loose_constraints or node.associate == UnaryLogicOpNode.LEFT)
-                   or node.get_num_of_children() == 1)
-            if lc and node.get_num_of_children() < 1:
-                tokens.append(node.value)
-            else:
-                if node.associate == UnaryLogicOpNode.RIGHT:
-                    tokens.append(node.value)
-                    tokens += to_tokens_fun(node.children[0])
-                else:
-                    if node.get_num_of_children() > 0:
-                        tokens += to_tokens_fun(node.children[0])
-                    tokens.append(node.value)
         elif node.kind == "nt":
             assert(loose_constraints or node.get_num_of_children() > 0)
             tokens.append("(")

@@ -162,7 +162,7 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
 
         # lemmatization
         if lemmatization:
-            word = stemmer.stem(word)
+            word = stemmer.stem(word.decode('utf-8'))
 
         # if word == normalizer._REGEX \
         #         or word == normalizer._NUM\

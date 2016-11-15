@@ -272,6 +272,7 @@ class DBConnection(object):
         return sorted_predictions[:k]
 
     # --- Manual Evaluation ---
+    
     def add_str_judgement(self, triple):
         nl, pred_cmd, judgement = triple
         c = self.cursor
@@ -457,4 +458,4 @@ class DBConnection(object):
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
-    db.polymorphism()
+    db.correction()
