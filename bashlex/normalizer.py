@@ -699,8 +699,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         for bl in unprocessed_binary_logic_ops:
             adjust_binary_operators(bl)
 
-        # process same options -- treat as implicit "-and"
-
         # recover omitted arguments
         if head_command.value == "find":
             arguments = []
