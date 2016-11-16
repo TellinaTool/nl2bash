@@ -1109,7 +1109,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
             assert(loose_constraints or node.get_num_of_children() == 0)
             if lc and node.get_num_of_children() > 0:
                 for child in node.children[:-1]:
-                    tokens += to_tokens_fun(node.children[0])
+                    tokens += to_tokens_fun(child)
                     tokens.append(node.value)
                 tokens += to_tokens_fun(node.children[-1])
             else:
