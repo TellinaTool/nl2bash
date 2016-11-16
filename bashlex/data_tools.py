@@ -360,6 +360,6 @@ def data_preparation(nl_file, cm_file, outfile):
 
 
 if __name__ == "__main__":
-    # test_nl_tokenizer()
-    test_bash_parser()
+    test_nl_tokenizer()
+    # test_bash_parser()
     # data_preparation(sys.argv[1], sys.argv[2], sys.argv[3])
