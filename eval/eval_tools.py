@@ -223,7 +223,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
 
     o_f = open(os.path.join(output_dir, "manual.eval.results"), 'w')
 
-    mandatory_judge = False
+    rejudge = False
 
     with DBConnection() as db:
         db.create_schema()
@@ -251,16 +251,18 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
             for j in xrange(len(cm_strs)):
                 print("GT Command %d: " % (j+1) + cm_strs[j].strip())
                 o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
-            for i in xrange(min(1, len(predictions))):
-                pred_cmd, score = predictions[i]
+
+            pred_id = 0
+            while pred_id < min(1, len(predictions)):
+                pred_cmd, score = predictions[pred_id]
                 tree = cmd_parser(pred_cmd)
-                print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
-                o_f.write("Prediction {}: {} ({})\n".format(i+1, pred_cmd, score))
+                print("Prediction {}: {} ({})".format(pred_id+1, pred_cmd, score))
+                o_f.write("Prediction {}: {} ({})\n".format(pred_id+1, pred_cmd, score))
                 print()
                 pred_temp = data_tools.ast2template(tree, loose_constraints=True)
                 str_judge = db.get_str_judgement((nl_str, pred_cmd))
                 temp_judge = db.get_temp_judgement((nl_str, pred_temp))
-                if temp_judge is not None and not mandatory_judge:
+                if temp_judge is not None and not rejudge:
                     judgement_str = "y" if temp_judge == 1 \
                         else "n ({})".format(error_types[temp_judge])
                     print("Correct template [y/n]: %s" % judgement_str)
@@ -270,45 +272,45 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                     if not temp_judge:
                         inp = raw_input("Correct template [y/n]: ")
                         if inp == "REVERSE":
-                            num_evaled -= 1
-                            mandatory_judge = True
-                            continue
-                        elif inp == "y":
-                            temp_judge = True
-                            db.add_temp_judgement((nl_str, pred_temp, 1))
+                            rejudge = True
                         else:
-                            temp_judge = False
-                            error_type = raw_input(
-                                "Error type: \n"
-                                "(2) extra utility \n"
-                                "(3) missing utility \n"
-                                "(4) confused utility \n"
-                                "(5) extra flag \n"
-                                "(6) missing flag \n"
-                                "(7) confused flag \n"
-                                "(8) logic error\n"
-                                "(9) count error\n"
-                            )
-                            db.add_temp_judgement((nl_str, pred_temp, int(error_type)))
+                            if inp == "y":
+                                temp_judge = True
+                                db.add_temp_judgement((nl_str, pred_temp, 1))
+                            else:
+                                temp_judge = False
+                                error_type = raw_input(
+                                    "Error type: \n"
+                                    "(2) extra utility \n"
+                                    "(3) missing utility \n"
+                                    "(4) confused utility \n"
+                                    "(5) extra flag \n"
+                                    "(6) missing flag \n"
+                                    "(7) confused flag \n"
+                                    "(8) logic error\n"
+                                    "(9) count error\n"
+                                )
+                                db.add_temp_judgement((nl_str, pred_temp, int(error_type)))
+                            rejudge = False
                     else:
                         print("Correct template [y/n]: y")
                 if temp_judge == 1:
-                    if i < 1:
+                    if pred_id < 1:
                         top1_correct_temp = True
                         top3_correct_temp = True
                         top5_correct_temp = True
                         top10_correct_temp = True
-                    elif i < 3:
+                    elif pred_id < 3:
                         top3_correct_temp = True
                         top5_correct_temp = True
                         top10_correct_temp = True
-                    elif i < 5:
+                    elif pred_id < 5:
                         top5_correct_temp = True
                         top10_correct_temp = True
-                    elif i < 10:
+                    elif pred_id < 10:
                         top10_correct_temp = True
                     o_f.write("C")
-                    if str_judge is not None and not mandatory_judge:
+                    if str_judge is not None and not rejudge:
                         judgement_str = "y" if str_judge == 1 \
                             else "n ({})".format(error_types[str_judge])
                         print("Correct command [y/n]: %s" % judgement_str)
@@ -318,7 +320,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                         if not str_judge:
                             inp = raw_input("Correct command [y/n]: ")
                             if inp == "REVERSE":
-                                mandatory_judge = True
+                                rejudge = True
                                 continue
                             elif inp == "y":
                                 str_judge = True
@@ -331,19 +333,19 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                         else:
                             print("Correct command [y/n]: y")
                     if str_judge == 1:
-                        if i < 1:
+                        if pred_id < 1:
                             top1_correct = True
                             top3_correct = True
                             top5_correct = True
                             top10_correct = True
-                        elif i < 3:
+                        elif pred_id < 3:
                             top3_correct = True
                             top5_correct = True
                             top10_correct = True
-                        elif i < 5:
+                        elif pred_id < 5:
                             top5_correct = True
                             top10_correct = True
-                        elif i < 10:
+                        elif pred_id < 10:
                             top10_correct = True
                         o_f.write("C")
                     else:
@@ -354,25 +356,31 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
                 o_f.write("\n")
                 o_f.write("\n")
 
-            num_evaled += 1
-            if top1_correct_temp:
-                num_top1_correct_temp += 1
-            if top3_correct_temp:
-                num_top3_correct_temp += 1
-            if top5_correct_temp:
-                num_top5_correct_temp += 1
-            if top10_correct_temp:
-                num_top10_correct_temp += 1
-            if top1_correct:
-                num_top1_correct += 1
-            if top3_correct:
-                num_top3_correct += 1
-            if top5_correct:
-                num_top5_correct += 1
-            if top10_correct:
-                num_top10_correct += 1
+                pred_id += 1
 
-            mandatory_judge = False
+            if rejudge:
+                num_evaled -= 1
+            else:
+                num_evaled += 1
+                if top1_correct_temp:
+                    num_top1_correct_temp += 1
+                if top3_correct_temp:
+                    num_top3_correct_temp += 1
+                if top5_correct_temp:
+                    num_top5_correct_temp += 1
+                if top10_correct_temp:
+                    num_top10_correct_temp += 1
+                if top1_correct:
+                    num_top1_correct += 1
+                if top3_correct:
+                    num_top3_correct += 1
+                if top5_correct:
+                    num_top5_correct += 1
+                if top10_correct:
+                    num_top10_correct += 1
+            
+            rejudge = False
+            
             print()
 
     print("%d examples evaluated" % num_eval)
