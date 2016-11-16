@@ -229,7 +229,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
         db.create_schema()
         while num_evaled < len(grouped_dataset):
             nl_strs, cm_strs, nls, search_historys = grouped_dataset[num_evaled]
-            nl_str = nl_strs[0]
+            nl_str = nl_strs[0].decode('utf-8')
 
             if num_evaled == num_eval:
                 break
@@ -247,7 +247,7 @@ def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
             print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
             o_f.write("Example %d (%d)" % (num_evaled+1, len(cm_strs)) + "\n")
             print("English: " + nl_str.strip())
-            o_f.write("English: " + nl_str)
+            o_f.write("English: " + nl_str.encode('utf-8'))
             for j in xrange(len(cm_strs)):
                 print("GT Command %d: " % (j+1) + cm_strs[j].strip())
                 o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
