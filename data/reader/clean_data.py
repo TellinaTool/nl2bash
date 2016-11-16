@@ -113,16 +113,11 @@ class DBConnection(object):
         c.execute("CREATE INDEX IF NOT EXISTS Urls_url ON Urls (url)")
         c.execute("CREATE INDEX IF NOT EXISTS Urls_sp  ON Urls (search_phrase)")
 
-        c.execute("CREATE TABLE IF NOT EXISTS SearchContent (url TEXT, fingerprint TEXT, min_distance INT, " +
-                                                            "max_score FLOAT, avg_score FLOAT, num_cmds INT, " +
-                                                            "num_visits INT, html TEXT)")
+        c.execute("CREATE TABLE IF NOT EXISTS SearchContent "
+                  "(url TEXT, fingerprint TEXT, min_distance INT, " +
+                  "max_score FLOAT, avg_score FLOAT, num_cmds INT, " +
+                  "num_visits INT, html TEXT)")
         c.execute("CREATE INDEX IF NOT EXISTS SearchContent_url ON SearchContent (url)")
-        # c.execute("ALTER TABLE SearchContent ADD num_cmds INT")
-        # c.execute("ALTER TABLE SearchContent ADD num_visits INT")
-        # c.execute("ALTER TABLE SearchContent ADD avg_score FLOAT")
-        # c.execute("ALTER TABLE SearchContent ADD max_score FLOAT")
-        # c.execute("CREATE INDEX IF NOT EXISTS SearchContent_num_cmds ON SearchContent (num_cmds)")
-        # c.execute("CREATE INDEX IF NOT EXISTS SearchContent_avg_score ON SearchContent (avg_score)")
         c.execute("CREATE INDEX IF NOT EXISTS SearchContent_idx ON SearchContent (avg_score, num_cmds, num_visits)")
 
         c.execute("CREATE TABLE IF NOT EXISTS Commands (url TEXT, cmd TEXT)")
@@ -130,22 +125,15 @@ class DBConnection(object):
 
         c.execute("CREATE TABLE IF NOT EXISTS Skipped (url TEXT, user_id INT, time_stamp INT)")
         c.execute("CREATE INDEX IF NOT EXISTS Skipped_idx ON Skipped (user_id, url)")
-        # c.execute("ALTER TABLE Skipped ADD time_stamp INT")
 
         c.execute("CREATE TABLE IF NOT EXISTS NoPairs (url TEXT, user_id INT, time_stamp INT)")
         c.execute("CREATE INDEX IF NOT EXISTS NoPairs_idx ON NoPairs (user_id, url)")
-        # c.execute("ALTER TABLE NoPairs ADD time_stamp INT")
 
         c.execute("CREATE TABLE IF NOT EXISTS Pairs   (url TEXT, user_id INT, nl TEXT, cmd TEXT, time_stamp INT, judgement FLOAT)")
         c.execute("CREATE INDEX IF NOT EXISTS Pairs_idx ON Pairs (user_id, url)")
-        # c.execute("ALTER TABLE Pairs ADD time_stamp INT")
-        # c.execute("ALTER TABLE Pairs ADD judgement FLOAT")
 
         c.execute("CREATE TABLE IF NOT EXISTS Users   (user_id INT, first_name TEXT, last_name TEXT, alias TEXT, time_stamp INT)")
         c.execute("CREATE INDEX IF NOT EXISTS Users_userid ON Users (user_id)")
-        # c.execute("ALTER TABLE Users Add alias TEXT")
-        # c.execute("ALTER TABLE Users Add time_stamp INT")
-        # c.execute("ALTER TABLE Users Add recall FLOAT")
 
         c.execute("CREATE TABLE IF NOT EXISTS TokenCounts (token TEXT, count INT)")
         c.execute("CREATE INDEX IF NOT EXISTS TokenCounts_token ON TokenCounts (token)")
@@ -170,6 +158,8 @@ class DBConnection(object):
             if not nl:
                 continue
             if not self.head_present(cmd, head_cmd):
+                continue
+            if len(nl.split()) == 1:
                 continue
             if len(nl.split()) > 40:
                 continue
@@ -229,9 +219,10 @@ class DBConnection(object):
         print("%d urls merged by nl" % len(merged_urls_by_nl))
 
         # Third-pass: group url clusters by commands
-        templates = {}
+
         merged_urls_by_cmd = []
-        """for i in xrange(len(urls)):
+        """templates = {}
+        for i in xrange(len(urls)):
             if i in merged_urls_by_nl:
                 continue
             url = urls[i]
