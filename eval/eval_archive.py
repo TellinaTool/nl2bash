@@ -259,6 +259,7 @@ class DBConnection(object):
         return self.get_top_k_predictions(model, nl, 1)[0]
 
     def get_top_k_predictions(self, model, nl, k):
+        nl = unicode(nl)
         c = self.cursor
         predictions = []
         for score, pred_cmd in \
