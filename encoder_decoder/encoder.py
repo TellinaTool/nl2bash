@@ -1,9 +1,13 @@
 """A set of encoder modules used in the encoder-decoder framework."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-import graph_utils
+from encoder_decoder import graph_utils
 
 
 class Encoder(graph_utils.NNModel):
