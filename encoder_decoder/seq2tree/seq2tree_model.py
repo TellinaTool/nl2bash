@@ -6,15 +6,9 @@ from __future__ import print_function
 
 import os, sys
 
-if os.path.realpath(__file__).startswith(os.getcwd()):
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-    from encoder_decoder import EncoderDecoderModel
-    import encoder
-    import tree_decoder    
-else:
-    from encoder_decoder.encoder_decoder import EncoderDecoderModel
-    from encoder_decoder import encoder
-    from seq2tree import tree_decoder
+from encoder_decoder.encoder_decoder import EncoderDecoderModel
+from encoder_decoder import encoder
+from . import tree_decoder
 
 
 class Seq2TreeModel(EncoderDecoderModel):
