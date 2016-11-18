@@ -8,7 +8,7 @@ import os, sys
 
 from encoder_decoder.encoder_decoder import EncoderDecoderModel
 from encoder_decoder import encoder
-from .seq2seq import rnn_decoder
+from . import rnn_decoder
 
 
 class Seq2SeqModel(EncoderDecoderModel):
