@@ -155,7 +155,10 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
 
         # lemmatization
         if lemmatization:
-            word = stemmer.stem(word.decode('utf-8'))
+            try:
+                word = stemmer.stem(word.decode('utf-8'))
+            except AttributeError:
+                word = stemmer.stem(word)
 
         # if word == normalizer._REGEX \
         #         or word == normalizer._NUM\
