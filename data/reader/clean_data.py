@@ -142,15 +142,23 @@ class DBConnection(object):
 
     def pairs(self):
         c = self.conn.cursor()
-        for user, url, nl, cmd, time_stamp in c.execute("SELECT user_id, url, nl, cmd, time_stamp FROM Pairs"):
-            yield (user, url, nl, cmd, time_stamp)
+        for user, url, nl, cmd, time_stamp, judgement in c.execute("SELECT user_id, url, nl, cmd, time_stamp, judgement FROM Pairs"):
+            if judgement == 1 or judgement == -1:
+                yield (user, url, nl, cmd, time_stamp)
+            else:
+                print nl
+                print cmd
         c.close()
 
     def unique_pairs(self, head_cmd):
         cmds_dict = {}
+        valid_users = [1, 2, 8, 23, 24, 26, 30, 31, 32, 33, 34]
+
         for user, url, nl, cmd, time_stamp in self.pairs():
             nl = nl.strip()
             cmd = cmd.strip()
+            if not user in valid_users:
+                continue
             if nl.lower() == "na":
                 continue
             if not cmd:
