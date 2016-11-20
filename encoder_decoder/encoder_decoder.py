@@ -219,37 +219,39 @@ class EncoderDecoderModel(graph_utils.NNModel):
             top_states = [tf.reshape(e, [-1, 1, self.dim])
                           for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
-            output_symbols, output_logits, outputs, state, attn_mask = \
-                self.decoder.define_graph(
-                    encoder_state, decoder_inputs, target_embeddings,
-                    encoder_attn_masks, attention_states, num_heads=1,
-                    beam_decoder=beam_decoder, feed_previous=forward_only,
-                    reuse_variables=reuse_variables)
         else:
-            output_symbols, output_logits, outputs, state = \
-                self.decoder.define_graph(
-                    encoder_state, decoder_inputs, target_embeddings,
-                    beam_decoder=beam_decoder, feed_previous=forward_only, 
-                    reuse_variables=reuse_variables)
+            attention_states = None
 
         # Losses.
-        if self.use_attention:
-            attention_loss = self.beta * graph_utils.attention_reg(attn_mask)
+        decoder_outputs = self.decoder.define_graph(
+            encoder_state, decoder_inputs, target_embeddings,
+            encoder_attn_masks, attention_states, num_heads=1,
+            beam_decoder=beam_decoder, feed_previous=forward_only,
+            reuse_variables=reuse_variables
+        )
+        if self.training_algorithm == "standard":
+            output_symbols, output_logits, outputs, state, \
+                attn_mask = decoder_outputs
+            encoder_decoder_loss = graph_utils.sequence_loss(
+                outputs, targets, target_weights,
+                graph_utils.softmax_loss(
+                   self.output_projection(),
+                   self.num_samples,
+                   self.target_vocab_size
+                ))
+        elif self.training_algorithm == "bso":
+            output_symbols, output_logits, outputs, state, \
+                attn_mask, bso_losses = decoder_outputs
+            encoder_decoder_loss = tf.add_n(bso_losses)
         else:
-            attention_loss = 0
+            raise AttributeError("Unrecognized training algorithm.")
 
-        losses = graph_utils.sequence_loss(outputs, targets, target_weights,
-                                           graph_utils.softmax_loss(
-                                               self.output_projection(),
-                                               self.num_samples,
-                                               self.target_vocab_size
-                                           )) \
-                 + attention_loss
+        attention_loss = self.beta * graph_utils.attention_reg(attn_mask) \
+            if self.use_attention else 0
 
-        if self.use_attention:
-            return output_symbols, output_logits, losses, attn_mask
-        else:
-            return output_symbols, output_logits, losses, None
+        losses = encoder_decoder_loss + attention_loss
+
+        return output_symbols, output_logits, losses, attn_mask
 
 
     def source_embeddings(self):

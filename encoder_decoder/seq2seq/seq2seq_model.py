@@ -4,8 +4,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os, sys
-
 from encoder_decoder.encoder_decoder import EncoderDecoderModel
 from encoder_decoder import encoder
 from . import rnn_decoder

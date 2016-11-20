@@ -34,8 +34,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["max_gradient_norm"] = FLAGS.max_gradient_norm
     params["batch_size"] = FLAGS.batch_size
     params["num_samples"] = FLAGS.num_samples
-    params["attention_input_keep"] = FLAGS.attention_input_keep
-    params["attention_output_keep"] = FLAGS.attention_output_keep
     params["encoder_input_keep"] = FLAGS.encoder_input_keep
     params["encoder_output_keep"] = FLAGS.encoder_output_keep
     params["decoder_input_keep"] = FLAGS.decoder_input_keep
@@ -43,8 +41,17 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
     params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
-    params["use_attention"] = FLAGS.use_attention
+
+    params["training_algorithm"] = FLAGS.training_algorithm
+    if FLAGS.training_algorithm == "bso":
+        assert(FLAGS.decoding_algorithm == "beam_search")
+
     params["use_copy"] = FLAGS.use_copy
+
+    params["use_attention"] = FLAGS.use_attention
+    params["attention_input_keep"] = FLAGS.attention_input_keep
+    params["attention_output_keep"] = FLAGS.attention_output_keep
+    params["beta"] = FLAGS.beta
 
     params["encoder_topology"] = FLAGS.encoder_topology
     params["decoder_topology"] = FLAGS.decoder_topology
@@ -53,8 +60,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["beam_size"] = FLAGS.beam_size
     params["alpha"] = FLAGS.alpha
     params["top_k"] = FLAGS.top_k
-
-    params["beta"] = FLAGS.beta
 
     # construct model directory
     model_subdir, model_sig = get_model_signature(FLAGS)
@@ -331,6 +336,10 @@ class NNModel(object):
     @property
     def max_target_length(self):
         return self.hyperparams["max_target_length"]
+
+    @property
+    def training_algorithm(self):
+        return self.hyperparams["training_algorithm"]
 
     @property
     def decoding_algorithm(self):

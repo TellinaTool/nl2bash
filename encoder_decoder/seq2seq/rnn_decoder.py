@@ -4,7 +4,6 @@ import os
 import sys
 
 import tensorflow as tf
-from tensorflow.python.util import nest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -17,11 +16,16 @@ class RNNDecoder(decoder.Decoder):
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      encoder_attn_masks=None, attention_states=None, num_heads=1,
-                     initial_state_attention=False, beam_decoder=None,
-                     feed_previous=False, reuse_variables=False):
-
-        if self.use_attention \
-                and not attention_states.get_shape()[1:2].is_fully_defined():
+                     beam_decoder=None, feed_previous=False, reuse_variables=False):
+        """
+        :return output_symbols: batch of discrete output sequences
+        :return output_logits: batch of output sequence scores
+        :return outputs: batch output states
+        :return state: batch final hidden states
+        :return attn_masks: batch attention masks (if attention mechanism is used)
+        :return bso_losses: beam search optimization loss (if beam search optimization is used)
+        """
+        if self.use_attention and not attention_states.get_shape()[1:2].is_fully_defined():
             raise ValueError("Shape[1] and [2] of attention_states must be "
                              "known %s" % attention_states.get_shape())
 
@@ -30,10 +34,8 @@ class RNNDecoder(decoder.Decoder):
             state = encoder_state
             W, b = self.output_projection
             outputs = []
-
-            # prepare attention masks
-            if self.use_attention:
-                attn_masks = None
+            attn_masks = []
+            bso_losses = []
 
             # applying cell wrappers: ["attention", "beam"]
             if self.decoding_algorithm == "beam_search":
@@ -93,15 +95,30 @@ class RNNDecoder(decoder.Decoder):
                             past_output_logits = tf.add(past_output_logits,
                                                         tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
+
                 input_embedding = tf.nn.embedding_lookup(embeddings, input)
 
-                if self.use_attention:
-                    output, state, attn_masks = \
-                        decoder_cell(input_embedding, state, attn_masks, scope=decoder_scope)
+                if self.training_algorithm == "standard":
+                    if self.use_attention:
+                        output, state, attn_masks = \
+                            decoder_cell(input_embedding, state, attn_masks, scope=decoder_scope)
+                    else:
+                        output, state = decoder_cell(input_embedding, state, scope=decoder_scope)
+                elif self.training_algorithm == "bso":
+                    if self.use_attention:
+                        output, state, attn_masks = \
+                            decoder_cell(input_embedding, state, attn_masks, scope=decoder_scope)
+                    else:
+                        output, state = decoder_cell(input_embedding, state, scope=decoder_scope)
+
                 else:
-                    output, state = decoder_cell(input_embedding, state, scope=decoder_scope)
+                    raise AttributeError("Unrecognized training algorithm.")
+
                 # record output state to compute the loss.
                 outputs.append(output)
+
+            if self.use_attention:
+                attn_masks = tf.concat(1, attn_masks)
 
             # Beam-search output
             if self.decoding_algorithm == "beam_search":
@@ -126,11 +143,9 @@ class RNNDecoder(decoder.Decoder):
                                 for top_k_logit in top_k_logits]
                 if self.use_attention:
                     attn_masks = tf.reshape(attn_masks, [self.batch_size, self.beam_size,
-                                                         len(decoder_inputs),
-                                                         attention_states.get_shape()[1].value])
-                    return top_k_outputs, top_k_logits, outputs, state, attn_masks
-                else:
-                    return top_k_outputs, top_k_logits, outputs, state
+                                            len(decoder_inputs), attention_states.get_shape()[1].value])
+
+                return top_k_outputs, top_k_logits, outputs, state, attn_masks
             else:
                 projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                 output_symbol = tf.argmax(projected_output, 1)
@@ -139,10 +154,7 @@ class RNNDecoder(decoder.Decoder):
                 output_symbols = past_output_symbols[:, 1:]
                 past_output_logits = tf.add(past_output_logits,
                                             tf.reduce_max(projected_output, 1))
-                if self.use_attention:
-                    return output_symbols, past_output_logits, outputs, state, attn_masks
-                else:
-                    return output_symbols, past_output_logits, outputs, state
+                return output_symbols, past_output_logits, outputs, state, attn_masks
 
 
     def decoder_cell(self, scope):
