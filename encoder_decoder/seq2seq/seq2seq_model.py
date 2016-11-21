@@ -6,9 +6,9 @@ from __future__ import print_function
 
 import os, sys
 
-from encoder_decoder.encoder_decoder import EncoderDecoderModel
+from encoder_decoder.framework import EncoderDecoderModel
 from encoder_decoder import encoder
-from . import rnn_decoder
+from seq2seq import rnn_decoder
 
 
 class Seq2SeqModel(EncoderDecoderModel):
