@@ -110,7 +110,5 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 tf.nn.dropout(attn_state, self.attention_output_keep), dim, True)
 
         self.attention_cell_vars = True
-
-        attn_masks = tf.concat(1, [attn_masks, tf.expand_dims(attn_mask, 1)]) if attn_masks is not None \
-            else tf.expand_dims(attn_mask, 1)
+        attn_masks.append(tf.expand_dims(attn_mask, 1))
         return output, state, attn_masks
