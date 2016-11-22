@@ -22,11 +22,22 @@ from tqdm import tqdm
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from encoder_decoder import data_utils, graph_utils
-from encoder_decoder import decode_tools, hyperparam_range, parse_args
-from eval import eval_tools
-from .seq2seq.seq2seq_model import Seq2SeqModel
-from .seq2tree.seq2tree_model import Seq2TreeModel
+if __name__ == "__main__":
+    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
+    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
+    sys.path.append(os.path.join(os.path.dirname(__file__), "seq2seq"))
+    sys.path.append(os.path.join(os.path.dirname(__file__), "seq2tree"))
+    import data_utils, graph_utils
+    import decode_tools, hyperparam_range, parse_args
+    import eval_tools
+    from seq2seq_model import Seq2SeqModel
+    from seq2tree_model import Seq2TreeModel
+else:
+    from encoder_decoder import data_utils, graph_utils, decode_tools
+    from encoder_decoder import hyperparam_range, parse_args
+    from eval import eval_tools
+    from .seq2seq.seq2seq_model import Seq2SeqModel
+    from .seq2tree.seq2tree_model import Seq2TreeModel
 
 FLAGS = tf.app.flags.FLAGS
 
