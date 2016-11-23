@@ -6,9 +6,12 @@ from __future__ import print_function
 
 import os, sys
 
-from encoder_decoder.encoder_decoder import EncoderDecoderModel
+from encoder_decoder.framework import EncoderDecoderModel
 from encoder_decoder import encoder
-from . import tree_decoder
+try:
+    from . import tree_decoder
+except ImportError:
+    from seq2tree import tree_decoder
 
 
 class Seq2TreeModel(EncoderDecoderModel):
