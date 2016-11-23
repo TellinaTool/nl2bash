@@ -37,11 +37,11 @@ def to_readable(outputs, rev_cm_vocab):
 def translate_fun(sentence, sess, model, nl_vocab, rev_cm_vocab, FLAGS):
     # Get token-ids for the input sentence.
     if FLAGS.char:
-        token_ids = data_utils.sentence_to_token_ids(sentence, nl_vocab,
-                                                     data_tools.char_tokenizer, data_tools.basic_tokenizer)
+        token_ids = data_utils.sentence_to_token_ids(
+            sentence, nl_vocab, data_tools.char_tokenizer, data_tools.basic_tokenizer)
     else:
-        token_ids = data_utils.sentence_to_token_ids(sentence, nl_vocab,
-                                                     data_tools.basic_tokenizer, None)
+        token_ids = data_utils.sentence_to_token_ids(
+            sentence, nl_vocab, data_tools.basic_tokenizer, None)
 
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
@@ -144,9 +144,7 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
     return batch_outputs
 
 
-def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
-             verbose=True):
-
+def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS, verbose=True):
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
                                                   use_nl_temp = FLAGS.dataset.startswith("bash"))
     bucketed_nl_strs, bucketed_cm_strs, bucketed_nls, bucketed_cmds = \
@@ -175,10 +173,14 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                 # make a full batch
                 if len(batch_nl_strs) < FLAGS.batch_size:
                     batch_size = len(batch_nl_strs)
-                    batch_nl_strs = batch_nl_strs + [batch_nl_strs[-1]] * (FLAGS.batch_size - len(batch_nl_strs))
-                    batch_cm_strs = batch_cm_strs + [batch_cm_strs[-1]] * (FLAGS.batch_size - len(batch_cm_strs))
-                    batch_nls = batch_nls + [batch_nls[-1]] * (FLAGS.batch_size - len(batch_nls))
-                    batch_cmds = batch_cmds + [batch_cmds[-1]] * (FLAGS.batch_size - len(batch_cmds))
+                    pad_size = FLAGS.batch_size - len(batch_nl_strs)
+                    batch_nl_strs = batch_nl_strs + [batch_nl_strs[-1]] * pad_size
+                    assert(len(batch_cm_strs) == batch_size)
+                    batch_cm_strs = batch_cm_strs + [batch_cm_strs[-1]] * pad_size
+                    assert(len(batch_nls) == batch_size)
+                    batch_nls = batch_nls + [batch_nls[-1]] * pad_size
+                    assert(len(batch_cmds) == batch_size)
+                    batch_cmds = batch_cmds + [batch_cmds[-1]] * pad_size
                 else:
                     batch_size = FLAGS.batch_size
                 formatted_example = model.format_example(batch_nls, batch_cmds, bucket_id=bucket_id)
@@ -234,7 +236,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS,
                         elif FLAGS.decoding_algorithm == "beam_search":
                             M = attn_masks[batch_id, 0, :, :]
                         visualize_attn_masks(M, nl, outputs, rev_nl_vocab, rev_cm_vocab,
-                                             os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
+                            os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
 
 
 def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_path):
@@ -247,14 +249,14 @@ def visualize_attn_masks(M, source, target, rev_nl_vocab, rev_cm_vocab, output_p
         if rev_cm_vocab[x] == data_utils._EOS:
             break
 
-
     plt.clf()
     if len(target) == 0:
         i = 0
     fig = plt.imshow(M[:i+1, :], interpolation='nearest', cmap=plt.cm.Blues)
 
+    pad_size = source_length - len(nl)
     plt.xticks(xrange(source_length),
-               [x.replace("$$", "") for x in reversed(nl + [data_utils._PAD] * (source_length - len(nl)))],
+               [x.replace("$$", "") for x in reversed(nl + [data_utils._PAD] * pad_size)],
                rotation='vertical')
     plt.yticks(xrange(len(cm)),
                [x.replace("$$", "") for x in cm],
