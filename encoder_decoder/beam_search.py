@@ -213,7 +213,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                   tf.mul(tf.ones([full_size, 1]) - stop_mask_2d, 
                          tf.cast(tf.not_equal(self._done_mask, 0), tf.float32))
         logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, self.alpha))
-        # logprobs_batched = logprobs + tf.expand_dims(past_beam_logprobs, 1)
         logprobs_batched = tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes])
 
         beam_logprobs, indices = tf.nn.top_k(
