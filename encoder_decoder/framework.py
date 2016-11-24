@@ -64,24 +64,23 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     def define_graph(self, forward_only):
         # Feeds for inputs.
-        self.encoder_inputs = []  # encoder inputs.
-        self.encoder_attn_masks = []      # mask out PAD symbols in the encoder
-        self.decoder_inputs = []  # decoder inputs (always start with "root").
-        self.target_weights = []  # weights at each position of the target sequence.
+        self.encoder_inputs = []        # encoder inputs.
+        self.encoder_attn_masks = []    # mask out PAD symbols in the encoder
+        self.decoder_inputs = []        # decoder inputs (always start with "root").
+        self.target_weights = []        # weights at each position of the target sequence.
 
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
-                                       name="encoder{0}".format(i)))
+                                                      name="encoder{0}".format(i)))
             self.encoder_attn_masks.append(tf.placeholder(tf.float32, shape=[None],
-                                           name="attn_mask{0}".format(i)))
+                                                          name="attn_mask{0}".format(i)))
         for i in xrange(self.max_target_length + 1):
             self.decoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
                                                       name="decoder{0}".format(i)))
             self.target_weights.append(tf.placeholder(tf.float32, shape=[None],
                                                       name="weight{0}".format(i)))
         # Our targets are decoder inputs shifted by one.
-        self.targets = [self.decoder_inputs[i + 1]
-                        for i in xrange(self.max_target_length)]
+        self.targets = [self.decoder_inputs[i + 1] for i in xrange(self.max_target_length)]
 
         if self.use_copy:
             self.original_encoder_inputs = []   # original encoder inputs.
@@ -219,7 +218,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.decoder.define_graph(
                     encoder_state, decoder_inputs, target_embeddings,
                     encoder_attn_masks, attention_states, num_heads=1,
-                    beam_decoder=beam_decoder, feed_previous=forward_only,
+                    beam_decoder=beam_decoder, forward_only=forward_only,
                     reuse_variables=reuse_variables)
         else:
             output_symbols, output_logits, outputs, state, _ = \
@@ -267,8 +266,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             if self.target_embedding_vars:
                 tf.get_variable_scope().reuse_variables()
-            embeddings = tf.get_variable("embedding", [self.target_vocab_size,
-                                                       self.dim],
+            embeddings = tf.get_variable("embedding",
+                                         [self.target_vocab_size, self.dim],
                                          initializer=initializer)
             self.target_embedding_vars = True
             return embeddings
@@ -288,7 +287,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     def format_example(self, encoder_inputs, decoder_inputs, copy_data=None,
                        bucket_id=-1):
-        """Prepare data to feed in step()"""
+        """Prepare data to feed in step()
+        :return decoder_inputs: [<GO>, 1, 2, 3, <EOS>]
+        :return weights: [1, 1, 1, 1, 0]
+        """
         if bucket_id >= 0:
             encoder_size, decoder_size = self.buckets[bucket_id]
         else:
@@ -386,7 +388,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def get_bucket(self, data, bucket_id, copy_data=None):
         """Get all data points from the specified bucket, prepare for step.
         """
-
         encoder_inputs, decoder_inputs = [], []
 
         for i in xrange(len(data[bucket_id])):
