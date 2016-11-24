@@ -228,22 +228,29 @@ class EncoderDecoderModel(graph_utils.NNModel):
             beam_decoder=beam_decoder, feed_previous=forward_only,
             reuse_variables=reuse_variables
         )
-        if self.training_algorithm == "standard":
-            output_symbols, output_logits, outputs, state, \
-                attn_mask = decoder_outputs
-            encoder_decoder_loss = graph_utils.sequence_loss(
-                outputs, targets, target_weights,
-                graph_utils.softmax_loss(
-                   self.output_projection(),
-                   self.num_samples,
-                   self.target_vocab_size
-                ))
-        elif self.training_algorithm == "bso":
+
+        if not forward_only and self.training_algorithm == "bso":
             output_symbols, output_logits, outputs, state, \
                 attn_mask, bso_losses = decoder_outputs
-            encoder_decoder_loss = tf.add_n(bso_losses)
         else:
-            raise AttributeError("Unrecognized training algorithm.")
+            output_symbols, output_logits, outputs, state, \
+                attn_mask = decoder_outputs
+
+        if forward_only:
+            encoder_decoder_loss = 0
+        else:
+            if self.training_algorithm == "standard":
+                encoder_decoder_loss = graph_utils.sequence_loss(
+                                           outputs, targets, target_weights,
+                                           graph_utils.softmax_loss(
+                                               self.output_projection(),
+                                               self.num_samples,
+                                               self.target_vocab_size
+                                       ))
+            elif self.training_algorithm == "bso":
+                encoder_decoder_loss = tf.add_n(bso_losses)
+            else:
+                raise AttributeError("Unrecognized training algorithm.")
 
         attention_loss = self.beta * graph_utils.attention_reg(attn_mask) \
             if self.use_attention else 0
