@@ -15,10 +15,7 @@ import re
 
 import tensorflow as tf
 
-if os.getcwd() == os.path.dirname(__file__):
-    import data_utils
-else:
-    from encoder_decoder import data_utils
+from encoder_decoder import data_utils
 from bashlex import data_tools
 from eval.eval_archive import DBConnection
 

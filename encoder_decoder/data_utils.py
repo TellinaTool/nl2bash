@@ -14,6 +14,7 @@
 # ==============================================================================
 
 """Utilities for tokenizing & generating vocabularies."""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -25,12 +26,7 @@ import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-if os.path.realpath(__file__).startswith(os.getcwd()):
-    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
-    import bash, data_tools, normalizer
-else:
-    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-    from bashlex import bash, data_tools, normalizer
+from bashlex import bash, data_tools, normalizer
 
 import numpy as np
 import tensorflow as tf
