@@ -174,7 +174,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             past_cand_logprobs, # [batch_size]
             past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
             past_beam_logprobs, # [batch_size*self.beam_size]
-            past_cell_state,
+            past_cell_state,    # [batch_size*self.beam_size, dim]
         ) = state
         batch_size = past_cand_symbols.get_shape()[0].value
         full_size = batch_size * self.beam_size
@@ -197,11 +197,11 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # [batch_size*beam_size, num_classes]
         logprobs = tf.nn.log_softmax(tf.matmul(cell_outputs, W) + b)
-        # set the probabilities of all other symbols following the stop symbol to a very small
-        # number
+        # set the probabilities of all other symbols following the stop symbol
+        # to a very small number
         stop_mask_2d = tf.expand_dims(stop_mask, 1)
         done_only_mask = tf.mul(stop_mask_2d, self._done_mask)
-        zero_done_mask = tf.ones([full_size, self.num_classes]) -\
+        zero_done_mask = tf.ones([full_size, self.num_classes]) - \
                          tf.mul(stop_mask_2d, tf.cast(tf.equal(self._done_mask, 0), tf.float32))
         logprobs = tf.add(logprobs, done_only_mask)
         logprobs = tf.mul(logprobs, zero_done_mask)

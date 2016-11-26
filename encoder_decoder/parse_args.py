@@ -93,7 +93,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
 
     tf.app.flags.DEFINE_string("training_algorithm", "standard", "training algorithm to use.")
-    tf.app.flags.DEFINE_integer("num_gts", 1, "maximum number of ground truths per example.")
 
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
 
@@ -112,3 +111,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("beam_order", -1, "Order for beam search.")
     tf.app.flags.DEFINE_float("alpha", 0.5, "Beam search length normalization parameter.")
     tf.app.flags.DEFINE_integer("top_k", 5, "Top-k highest-scoring structures to output.")
+
+    tf.app.flags.DEFINE_integer("num_gts", 1, "maximum number of ground truths per example.")
+    tf.app.flags.DEFINE_integer("margin", 1, "margin for margin-based loss function")
