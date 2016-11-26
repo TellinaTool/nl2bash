@@ -187,7 +187,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
 
-        print(self.decoding_algorithm)
         if self.decoding_algorithm == "beam_search":
             beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
                                                    data_utils.ROOT_ID,
