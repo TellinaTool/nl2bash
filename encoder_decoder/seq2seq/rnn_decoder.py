@@ -34,6 +34,7 @@ class RNNDecoder(decoder.Decoder):
             decoder_cell, decoder_scope = self.decoder_cell(scope)
 
             outputs = []
+            beam_attn_masks = []
             attn_masks = []
             bso_losses = []
 
@@ -44,16 +45,16 @@ class RNNDecoder(decoder.Decoder):
 
             if self.use_attention:
                 ## Reference Search
-                beam_encoder_attn_masks = [beam_decoder.wrap_input(encoder_attn_mask)
+                encoder_attn_masks = [beam_decoder.wrap_input(encoder_attn_mask)
                                   for encoder_attn_mask in encoder_attn_masks]
-                beam_encoder_attn_masks = [tf.expand_dims(beam_encoder_attn_mask)
-                                  for beam_encoder_attn_mask in beam_encoder_attn_masks]
-                beam_encoder_attn_masks = tf.concat(1, beam_encoder_attn_masks)
-                beam_attention_states = beam_decoder.wrap_input(attention_states)
+                encoder_attn_masks = [tf.expand_dims(beam_encoder_attn_mask)
+                                  for beam_encoder_attn_mask in encoder_attn_masks]
+                encoder_attn_masks = tf.concat(1, encoder_attn_masks)
+                attention_states = beam_decoder.wrap_input(attention_states)
                 decoder_cell = decoder.AttentionCellWrapper(
                     decoder_cell,
-                    beam_attention_states,
-                    beam_encoder_attn_masks,
+                    attention_states,
+                    encoder_attn_masks,
                     self.attention_input_keep,
                     self.attention_ouptut_keep,
                     num_heads,
@@ -61,6 +62,7 @@ class RNNDecoder(decoder.Decoder):
                 )
 
             ## Beam Search
+            beam_state = state
             beam_decoder_cell = \
                 beam_decoder.wrap_cell(decoder_cell, self.output_projection)
 
@@ -68,7 +70,7 @@ class RNNDecoder(decoder.Decoder):
             partial_target_weights = None
 
             for i, input in enumerate(decoder_inputs):
-                beam_input = beam_decoder.wrap_input(input)
+                input = beam_decoder.wrap_input(input)
 
                 if partial_target_symbols is None:
                     partial_target_symbols = tf.expand_dims(
@@ -81,7 +83,7 @@ class RNNDecoder(decoder.Decoder):
                     if i == len(decoder_inputs) - 1:
                         # last target is a dummy token
                         partial_target_symbols = tf.concat(partial_target_symbols,
-                            tf.expand_dims(tf.zeros(beam_input.get_shape()), 1)
+                            tf.expand_dims(tf.zeros(input.get_shape()), 1)
                         )
                     else:
                         partial_target_symbols = tf.concat(partial_target_symbols,
@@ -101,11 +103,8 @@ class RNNDecoder(decoder.Decoder):
                         past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
                         past_beam_logprobs, # [batch_size*self.beam_size]
                         past_cell_state,    # [batch_size*self.beam_size, dim]
-                    ) = beam_state
+                    ) = state
                     beam_input = past_beam_symbols[:, -1]
-
-                    ## Reference Search
-                    input = tf.cast(output_symbol, dtype=tf.int32)
 
                 input_embedding = tf.nn.embedding_lookup(embeddings, input)
                 beam_input_embedding = tf.nn.embedding_lookup(embeddings, beam_input)
@@ -166,7 +165,7 @@ class RNNDecoder(decoder.Decoder):
                     beam_logprobs = tf.reshape(past_beam_logprobs, [-1, self.beam_size])
                     pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
                     step_loss = (gt_logprobs - pred_logprobs) - self.margin
-                    bso_losses.append(step_loss)
+                    bso_losses.append(tf.reduce_mean(step_loss))
 
                     # resume using reference search states if ground_truth fell off beam
                     assert(partial_beam_symbols.get_shape() == partial_target_symbols.get_shape())
@@ -189,33 +188,33 @@ class RNNDecoder(decoder.Decoder):
                                     cell_state
                                  )
 
-                if self.use_attention:
-                    attn_masks = tf.concat(1, attn_masks)
+            if self.use_attention:
+                beam_attn_masks = tf.concat(1, beam_attn_masks)
 
-                # Beam-search output
-                (
-                    past_cand_symbols,  # [batch_size, max_len]
-                    past_cand_logprobs, # [batch_size]
-                    past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
-                    past_beam_logprobs, # [batch_size*self.beam_size]
-                    past_cell_state,
-                ) = beam_state
-                # [self.batch_size, self.beam_size, max_len]
-                top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size, self.beam_size, -1])
-                top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
-                top_k_outputs = [tf.split(0, self.beam_size, tf.squeeze(top_k_output, squeeze_dims=[0]))
-                                 for top_k_output in top_k_outputs]
-                top_k_outputs = [[tf.squeeze(output, squeeze_dims=[0]) for output in top_k_output]
-                                 for top_k_output in top_k_outputs]
-                # [self.batch_size, self.beam_size]
-                top_k_logits = tf.reshape(past_beam_logprobs, [self.batch_size, self.beam_size])
-                top_k_logits = tf.split(0, self.batch_size, top_k_logits)
-                top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
-                                for top_k_logit in top_k_logits]
-                if self.use_attention:
-                    attn_masks = tf.reshape(attn_masks, [self.batch_size, self.beam_size,
-                                            len(decoder_inputs), attention_states.get_shape()[1].value])
-                return top_k_outputs, top_k_logits, outputs, beam_state, attn_masks
+            # Beam-search output
+            (
+                past_cand_symbols,  # [batch_size, max_len]
+                past_cand_logprobs, # [batch_size]
+                past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
+                past_beam_logprobs, # [batch_size*self.beam_size]
+                past_cell_state,
+            ) = beam_state
+            # [self.batch_size, self.beam_size, max_len]
+            top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size, self.beam_size, -1])
+            top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
+            top_k_outputs = [tf.split(0, self.beam_size, tf.squeeze(top_k_output, squeeze_dims=[0]))
+                             for top_k_output in top_k_outputs]
+            top_k_outputs = [[tf.squeeze(output, squeeze_dims=[0]) for output in top_k_output]
+                             for top_k_output in top_k_outputs]
+            # [self.batch_size, self.beam_size]
+            top_k_logits = tf.reshape(past_beam_logprobs, [self.batch_size, self.beam_size])
+            top_k_logits = tf.split(0, self.batch_size, top_k_logits)
+            top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
+                            for top_k_logit in top_k_logits]
+            if self.use_attention:
+                beam_attn_masks = tf.reshape(beam_attn_masks, [self.batch_size, self.beam_size,
+                                        len(decoder_inputs), attention_states.get_shape()[1].value])
+            return top_k_outputs, top_k_logits, outputs, beam_state, beam_attn_masks, bso_losses
 
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
