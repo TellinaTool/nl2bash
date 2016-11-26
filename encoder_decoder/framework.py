@@ -227,7 +227,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 attn_mask, bso_losses = self.decoder.define_bso_graph(
                 encoder_state, decoder_inputs, target_embeddings,
                 encoder_attn_masks, attention_states, num_heads=1,
-                beam_decoder=beam_decoder, feed_previous=forward_only,
+                beam_decoder=beam_decoder, forward_only=forward_only,
                 reuse_variables=reuse_variables
             )
         else:
@@ -235,7 +235,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 attn_mask = self.decoder.define_graph(
                 encoder_state, decoder_inputs, target_embeddings,
                 encoder_attn_masks, attention_states, num_heads=1,
-                beam_decoder=beam_decoder, feed_previous=forward_only,
+                beam_decoder=beam_decoder, forward_only=forward_only,
                 reuse_variables=reuse_variables
             )
 
