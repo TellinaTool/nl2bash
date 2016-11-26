@@ -110,6 +110,7 @@ def get_model_signature(FLAGS):
     model_subdir = FLAGS.dataset
     model_subdir += '-{}'.format(FLAGS.encoder_topology)
     model_subdir += '-{}'.format(FLAGS.rnn_cell)
+    model_subdir += '-{}'.format(FLAGS.training_algorithm)
     if FLAGS.use_attention:
         model_subdir += '-attention'
         model_subdir += '-{}'.format(FLAGS.attention_input_keep)
