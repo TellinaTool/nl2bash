@@ -9,10 +9,9 @@ import os, sys
 from encoder_decoder.framework import EncoderDecoderModel
 from encoder_decoder import encoder
 try:
-    from . import tree_decoder
-except ImportError:
     from seq2tree import tree_decoder
-
+except ImportError:
+    import tree_decoder
 
 class Seq2TreeModel(EncoderDecoderModel):
     """Sequence-to-tree models.

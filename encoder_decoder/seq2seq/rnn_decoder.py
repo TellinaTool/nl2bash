@@ -38,11 +38,6 @@ class RNNDecoder(decoder.Decoder):
             attn_masks = []
             bso_losses = []
 
-            init_input = beam_decoder.wrap_input(decoder_inputs[0])
-            state = beam_decoder.wrap_state(encoder_state, self.output_projection)
-            past_output_symbols = None
-            past_output_logits = tf.cast(init_input * 0, tf.float32)
-
             if self.use_attention:
                 ## Reference Search
                 encoder_attn_masks = [beam_decoder.wrap_input(encoder_attn_mask)
@@ -62,23 +57,28 @@ class RNNDecoder(decoder.Decoder):
                 )
 
             ## Beam Search
-            beam_state = state
             beam_decoder_cell = \
                 beam_decoder.wrap_cell(decoder_cell, self.output_projection)
+
+            # initial input and state
+            init_input = beam_decoder.wrap_input(decoder_inputs[0])
+            state = beam_decoder.wrap_input(encoder_state)
+            beam_state = beam_decoder.wrap_state(encoder_state, self.output_projection)
+            past_output_symbols = None
+            past_output_logits = tf.cast(init_input * 0, tf.float32)
 
             partial_target_symbols = None
             partial_target_weights = None
 
             for i, input in enumerate(decoder_inputs):
-                input = beam_decoder.wrap_input(input)
-                beam_input = input 
+                beam_input = beam_decoder.wrap_input(input)
 
                 if partial_target_symbols is None:
                     partial_target_symbols = tf.expand_dims(
-                        beam_decoder.wrap_input(decoder_inputs[i+1]), 1
+                        decoder_inputs[i+1], 1
                     )
                     partial_target_weights = tf.expand_dims(
-                        beam_decoder.wrap_input(target_weights[i]), 1
+                        target_weights[i], 1
                     )
                 else:
                     if i == len(decoder_inputs) - 1:
@@ -88,15 +88,16 @@ class RNNDecoder(decoder.Decoder):
                         )
                     else:
                         partial_target_symbols = tf.concat(partial_target_symbols,
-                            tf.expand_dims(beam_decoder.wrap_input(decoder_inputs[i+1]), 1)
+                            tf.expand_dims(decoder_inputs[i+1], 1)
                         )
                     partial_target_weights = tf.concat(partial_target_weights,
-                        tf.expand_dims(beam_decoder.wrap_input(target_weights[i]), 1), 1
+                        tf.expand_dims(target_weights[i], 1), 1
                     )
-
+                partial_target_symbols.set_shape([self.batch_size, i+1])
+                partial_target_weights.set_shape([self.batch_size, i+1])
+    
                 if i > 0:
                     scope.reuse_variables()
-                    decoder_scope.reuse_variables()
                     ## Beam Search
                     (
                         past_cand_symbols,  # [batch_size, max_len]
@@ -113,11 +114,13 @@ class RNNDecoder(decoder.Decoder):
                     beam_output, beam_state, beam_attn_masks = \
                         beam_decoder_cell(beam_input_embedding, beam_state, beam_attn_masks,
                                           scope=decoder_scope)
+                    decoder_scope.reuse_variables()
                     output, state, attn_masks = \
                         decoder_cell(input_embedding, state, attn_masks, scope=decoder_scope)
                 else:
                     beam_output, beam_state = \
                         beam_decoder_cell(beam_input_embedding, beam_state, scope=decoder_scope)
+                    decoder_scope.reuse_variables() 
                     output, state = decoder_cell(input_embedding, state, scope=decoder_scope)
                 outputs.append(output)
 
@@ -142,28 +145,41 @@ class RNNDecoder(decoder.Decoder):
                         past_cell_state,
                     ) = beam_state
                     # [batch_size*beam_size, (i+1)]
-                    partial_beam_symbols = past_beam_symbols[-(i+1):]
+                    partial_beam_symbols = past_beam_symbols[:, -(i+1):]
 
                     # check if ground truth has fell off the beam
-                    in_beam = tf.equal(tf.reduce_add(tf.mul(tf.cast(tf.equal(
+                    in_beam = tf.equal(tf.reduce_sum(tf.mul(tf.cast(tf.equal(
                                                                         partial_beam_symbols,
                                                                         partial_target_symbols),
                                                                     tf.int32),
-                                                            partial_target_weights),
+                                                            tf.cast(beam_decoder.wrap_input(
+                                                                        partial_target_weights),
+                                                                    tf.int32)
+                                                           ),
                                                     1),
-                                       tf.reduce_add(partial_target_weights, 1)
+                                       tf.cast(tf.reduce_sum(partial_target_weights, 1),
+                                               tf.int32)
                     )
-                    in_beam = tf.reduce_add(tf.reshape(in_beam, [-1, self.beam_size]), 1)
+                    in_beam = tf.reduce_sum(tf.reshape(tf.cast(in_beam, tf.int32), 
+                                                       [-1, self.beam_size]), 1)
 
-                    # compute the loss in current step
-                    ground_truth_logprobs = tf.gather_nd(projected_output, zip(beam_decoder.wrap_input(tf.range(
-                                                                                    self.batch_size)),
-                                                                               partial_target_symbols[:,-1]))
+                    # compute the loss in current step 
+                    # (notice that one batch has only one loss, hence the notion of "compressed")
+                    search_complete = tf.equal(partial_target_weights[:, -1], 0)
+                    compressed_batch_index = tf.range(0, self.batch_size*self.beam_size, self.beam_size)
+                    compressed_target_symbols = 
+                    compressed_projected_output = tf.gather_nd(projected_output,
+                                                               tf.reshape
+                    ground_truth_logprobs = tf.gather_nd(projected_output, 
+                                                         tf.reshape([tf.range(self.batch_size*self.beam_size),
+                                                                     partial_target_symbols[:,-1]],
+                                                                    [self.batch_size*self.beam_size, 2]
+                                                                   )
+                                                        )
                     gt_logprobs = tf.reshape(ground_truth_logprobs, [-1, self.beam_size])
                     gt_logprobs = gt_logprobs[:, 0]
-                    search_complete = tf.equal(partial_target_weights[:, -1], 0)
                     beam_logprobs = tf.reshape(past_beam_logprobs, [-1, self.beam_size])
-                    pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
+                    pred_logprobs = tf.select(tf.reshape(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
                     step_loss = (gt_logprobs - pred_logprobs) - self.margin
                     bso_losses.append(tf.reduce_mean(step_loss))
 
