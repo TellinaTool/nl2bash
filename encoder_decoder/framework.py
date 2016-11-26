@@ -47,7 +47,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
           beam_decoder: beam search decoder.
           use_attention: if set, use attention model.
         """
-
         super(EncoderDecoderModel, self).__init__(hyperparams)
         self.buckets = buckets
 
@@ -188,6 +187,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
 
+        print(self.decoding_algorithm)
         if self.decoding_algorithm == "beam_search":
             if not forward_only:
                 # TODO: support beam search training
