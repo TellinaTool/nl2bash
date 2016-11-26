@@ -42,6 +42,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["training_algorithm"] = FLAGS.training_algorithm
     if FLAGS.training_algorithm == "bso":
         assert(FLAGS.decoding_algorithm == "beam_search")
+    params["margin"] = FLAGS.margin
 
     params["use_copy"] = FLAGS.use_copy
 
@@ -368,3 +369,7 @@ class NNModel(object):
     @property
     def model_sig(self):
         return self.hyperparams["model_sig"]
+
+    @property
+    def margin(self):
+        return self.hyperparams["margin"]
