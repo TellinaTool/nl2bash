@@ -71,6 +71,7 @@ class RNNDecoder(decoder.Decoder):
 
             for i, input in enumerate(decoder_inputs):
                 input = beam_decoder.wrap_input(input)
+                beam_input = input 
 
                 if partial_target_symbols is None:
                     partial_target_symbols = tf.expand_dims(
@@ -103,12 +104,11 @@ class RNNDecoder(decoder.Decoder):
                         past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
                         past_beam_logprobs, # [batch_size*self.beam_size]
                         past_cell_state,    # [batch_size*self.beam_size, dim]
-                    ) = state
+                    ) = beam_state
                     beam_input = past_beam_symbols[:, -1]
 
                 input_embedding = tf.nn.embedding_lookup(embeddings, input)
                 beam_input_embedding = tf.nn.embedding_lookup(embeddings, beam_input)
-
                 if self.use_attention:
                     beam_output, beam_state, beam_attn_masks = \
                         beam_decoder_cell(beam_input_embedding, beam_state, beam_attn_masks,
