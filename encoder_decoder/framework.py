@@ -222,7 +222,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if not forward_only and self.training_algorithm == "bso":
             output_symbols, output_logits, outputs, state, \
                 attn_mask, bso_losses = self.decoder.define_bso_graph(
-                encoder_state, decoder_inputs, target_embeddings,
+                encoder_state, decoder_inputs, target_weights, target_embeddings,
                 encoder_attn_masks, attention_states, num_heads=1,
                 beam_decoder=beam_decoder, forward_only=forward_only,
                 reuse_variables=reuse_variables
