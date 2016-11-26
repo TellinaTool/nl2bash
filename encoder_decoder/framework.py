@@ -189,9 +189,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.encoder.define_graph(encoder_inputs, source_embeddings)
 
         if self.decoding_algorithm == "beam_search":
-            if not forward_only:
-                # TODO: support beam search training
-                raise NotImplementedError
             beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
                                                    data_utils.ROOT_ID,
                                                    data_utils.EOS_ID,

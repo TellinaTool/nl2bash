@@ -79,8 +79,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         params["encoder_output_keep"] = 1.0
         params["decoder_input_keep"] = 1.0
         params["decoder_output_keep"] = 1.0
-    else:
-        params["decoding_algorithm"] = "greedy"
 
     model = model_constructor(params, buckets, forward_only)
 
