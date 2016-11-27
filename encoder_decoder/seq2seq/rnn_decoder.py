@@ -162,7 +162,7 @@ class RNNDecoder(decoder.Decoder):
                     # (notice that one batch has only one loss, hence the notion of "compressed")
                     search_complete = tf.equal(partial_target_weights[:, -1], 0)
                     gt_logprobs = tf.gather(tf.reshape(projected_output, [-1]),
-                                            tf.range(self.batch_size) * tf.target_vocab_size +
+                                            tf.range(self.batch_size) * self.target_vocab_size +
                                             partial_target_symbols[:-1]
                                             )
                     beam_logprobs = tf.reshape(past_beam_logprobs, [-1, self.beam_size])
