@@ -123,7 +123,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                 # Print statistics for the previous epoch.
                 loss /= FLAGS.steps_per_epoch
                 ppx = math.exp(loss) if loss < 300 else float('inf')
-                print("learning rate %.4f epoch-time %.2f perplexity %.2f" % (
+                print("learning rate %.4f epoch-time %.4f perplexity %.2f" % (
                     model.learning_rate.eval(), epoch_time, ppx))
 
                 # Decrease learning rate if no improvement of loss was seen over last 3 times.
