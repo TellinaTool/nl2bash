@@ -119,7 +119,7 @@ class RNNDecoder(decoder.Decoder):
                     ) = beam_state
                     beam_input = past_beam_symbols[:, -1]
 
-                input_embedding = tf.nn.embedding_lookup(embeddings, input)
+                input_embedding = tf.gather(embeddings, input)
                 beam_input_embedding = tf.nn.embedding_lookup(embeddings, beam_input)
                 if self.use_attention:
                     output, state, attn_masks = \
@@ -137,15 +137,7 @@ class RNNDecoder(decoder.Decoder):
 
                 W, b = self.output_projection
                 projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
-                # output_symbol = tf.argmax(projected_output, 1)
-                # if past_output_symbols is None:
-                #     past_output_symbols = tf.expand_dims(output_symbol, 1)
-                # else:
-                #     past_output_symbols = tf.concat(1, [past_output_symbols,
-                #                                     tf.expand_dims(output_symbol, 1)])
-                # past_output_logits = tf.add(past_output_logits,
-                #                             tf.reduce_max(projected_output, 1))
-
+                
                 # compute search-based training loss
                 if not forward_only:
                     (
@@ -161,9 +153,9 @@ class RNNDecoder(decoder.Decoder):
                     # compute the loss in current step 
                     # (notice that one batch has only one loss, hence the notion of "compressed")
                     search_complete = tf.equal(partial_target_weights[:, -1], 0)
-                    gt_logprobs = tf.gather(tf.reshape(projected_output, [-1]),
-                                            tf.range(self.batch_size) * tf.target_vocab_size +
-                                            partial_target_symbols[:-1]
+                    gt_logprobs = tf.nn.embedding_lookup(tf.reshape(projected_output, [-1]),
+                                            tf.range(self.batch_size) * self.target_vocab_size +
+                                            partial_target_symbols[:, -1]
                                             )
                     beam_logprobs = tf.reshape(past_beam_logprobs, [-1, self.beam_size])
                     pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
@@ -202,7 +194,6 @@ class RNNDecoder(decoder.Decoder):
                     )
                     beam_logprobs = tf.select(in_beam, past_beam_logprobs, ground_truth_logprobs)
                     cell_state = tf.select(in_beam, past_cell_state, beam_decoder.wrap_input(state))
-
                     beam_state = (
                                     past_cand_symbols,
                                     past_cand_logprobs,
