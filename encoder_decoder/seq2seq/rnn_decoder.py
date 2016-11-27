@@ -118,7 +118,7 @@ class RNNDecoder(decoder.Decoder):
                 # compute search-based training loss
                 if not forward_only:
                     W, b = self.output_projection
-                    projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
+                    projected_output = tf.nn.softmax(tf.matmul(output, W) + b)
 
                     (
                         past_cand_symbols,  # [batch_size, max_len]
@@ -133,13 +133,13 @@ class RNNDecoder(decoder.Decoder):
                     # compute the loss in current step 
                     # (notice that one batch has only one loss, hence the notion of "compressed")
                     search_complete = tf.equal(partial_target_weights[:, -1], 0)
-                    gt_logprobs = tf.nn.embedding_lookup(tf.reshape(projected_output, [-1]),
-                                            tf.range(self.batch_size) * self.target_vocab_size +
-                                            partial_target_symbols[:, -1]
-                                  )
+                    gt_probs = tf.nn.embedding_lookup(tf.reshape(projected_output, [-1]),
+                                   tf.range(self.batch_size) * self.target_vocab_size +
+                                   partial_target_symbols[:, -1]
+                               )
                     beam_logprobs = tf.reshape(past_beam_logprobs, [-1, self.beam_size])
                     pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
-                    step_loss = (gt_logprobs - pred_logprobs) - self.margin
+                    step_loss = (gt_probs - tf.exp(pred_logprobs)) - self.margin
                     bso_losses.append(tf.reduce_mean(step_loss))
 
                     # resume using reference search states if ground_truth fell off beam
@@ -169,7 +169,7 @@ class RNNDecoder(decoder.Decoder):
                     first_in_beam_mask = tf.equal(tf.range(full_size) % self.beam_size, 0)
                     ground_truth_logprobs = tf.select(
                         first_in_beam_mask,
-                        beam_decoder.wrap_input(gt_logprobs),
+                        beam_decoder.wrap_input(tf.log(gt_probs)),
                         tf.fill([full_size], -1e18)
                     )
                     beam_logprobs = tf.select(in_beam, past_beam_logprobs, ground_truth_logprobs)
