@@ -186,6 +186,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
+        targets = self.targets
+        target_weights = self.target_weights
 
         if self.decoding_algorithm == "beam_search":
             beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
@@ -196,17 +198,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                                    len(decoder_inputs),
                                                    self.use_attention,
                                                    self.alpha)
-            if forward_only or self.training_algorithm != "bso":
-                targets = [beam_decoder.wrap_input(target) for target in self.targets]
-                target_weights = [beam_decoder.wrap_input(target_weight)
-                                  for target_weight in self.target_weights]
-            else:
-                targets = self.targets
-                target_weights = self.target_weights
         else:
             beam_decoder = None
-            targets = self.targets
-            target_weights = self.target_weights
 
         if self.rnn_cell == "gru":
             encoder_state.set_shape([None, self.dim*self.num_layers])
