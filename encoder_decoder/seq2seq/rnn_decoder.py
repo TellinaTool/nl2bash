@@ -72,41 +72,21 @@ class RNNDecoder(decoder.Decoder):
             else:
                 beam_decoder_cell = \
                     beam_decoder.wrap_cell(decoder_cell, self.output_projection)
+
             # initial input and state
             state = encoder_state
             beam_state = beam_decoder.wrap_state(encoder_state, self.output_projection)
-            # past_output_symbols = None
-            # past_output_logits = tf.cast(decoder_inputs[0] * 0, tf.float32)
 
-            partial_target_symbols = None
-            partial_target_weights = None
-
-            for i, input in enumerate(decoder_inputs):
+            # add a dummy decoder input
+            decoder_inputs.append(tf.fill([self.batch_size], 0))
+            
+            for i, input in enumerate(decoder_inputs[:-1]):
                 beam_input = beam_decoder.wrap_input(input)
 
-                if partial_target_symbols is None:
-                    partial_target_symbols = tf.expand_dims(
-                        decoder_inputs[i+1], 1
-                    )
-                    partial_target_weights = tf.expand_dims(
-                        target_weights[i], 1
-                    )
-                else:
-                    if i == len(decoder_inputs) - 1:
-                        # last target is a dummy token
-                        partial_target_symbols = tf.concat(1, [partial_target_symbols,
-                            tf.fill([self.batch_size, 1], 0)]
-                        )
-                    else:
-                        partial_target_symbols = tf.concat(1, [partial_target_symbols,
-                            tf.expand_dims(decoder_inputs[i+1], 1)]
-                        )
-                    partial_target_weights = tf.concat(1, [partial_target_weights,
-                        tf.expand_dims(target_weights[i], 1)]
-                    )
-                partial_target_symbols.set_shape([self.batch_size, i+1])
-                partial_target_weights.set_shape([self.batch_size, i+1])
-    
+                partial_target_symbols = tf.reshape(decoder_inputs[1:i+2],
+                                                    [self.batch_size, i+1])
+                partial_target_weights = tf.reshape(target_weights[:i+1],
+                                                    [self.batch_size, i+1])
                 if i > 0:
                     scope.reuse_variables()
                     ## Beam Search
@@ -119,7 +99,7 @@ class RNNDecoder(decoder.Decoder):
                     ) = beam_state
                     beam_input = past_beam_symbols[:, -1]
 
-                input_embedding = tf.nn.embedding_lookup(embeddings, input)
+                input_embedding = tf.gather(embeddings, input)
                 beam_input_embedding = tf.nn.embedding_lookup(embeddings, beam_input)
                 if self.use_attention:
                     output, state, attn_masks = \
@@ -137,15 +117,7 @@ class RNNDecoder(decoder.Decoder):
 
                 W, b = self.output_projection
                 projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
-                # output_symbol = tf.argmax(projected_output, 1)
-                # if past_output_symbols is None:
-                #     past_output_symbols = tf.expand_dims(output_symbol, 1)
-                # else:
-                #     past_output_symbols = tf.concat(1, [past_output_symbols,
-                #                                     tf.expand_dims(output_symbol, 1)])
-                # past_output_logits = tf.add(past_output_logits,
-                #                             tf.reduce_max(projected_output, 1))
-
+                
                 # compute search-based training loss
                 if not forward_only:
                     (
@@ -161,10 +133,10 @@ class RNNDecoder(decoder.Decoder):
                     # compute the loss in current step 
                     # (notice that one batch has only one loss, hence the notion of "compressed")
                     search_complete = tf.equal(partial_target_weights[:, -1], 0)
-                    gt_logprobs = tf.gather(tf.reshape(projected_output, [-1]),
+                    gt_logprobs = tf.nn.embedding_lookup(tf.reshape(projected_output, [-1]),
                                             tf.range(self.batch_size) * self.target_vocab_size +
-                                            partial_target_symbols[:-1]
-                                            )
+                                            partial_target_symbols[:, -1]
+                                  )
                     beam_logprobs = tf.reshape(past_beam_logprobs, [-1, self.beam_size])
                     pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
                     step_loss = (gt_logprobs - pred_logprobs) - self.margin
@@ -202,7 +174,6 @@ class RNNDecoder(decoder.Decoder):
                     )
                     beam_logprobs = tf.select(in_beam, past_beam_logprobs, ground_truth_logprobs)
                     cell_state = tf.select(in_beam, past_cell_state, beam_decoder.wrap_input(state))
-
                     beam_state = (
                                     past_cand_symbols,
                                     past_cand_logprobs,
@@ -210,9 +181,6 @@ class RNNDecoder(decoder.Decoder):
                                     beam_logprobs,
                                     cell_state
                                  )
-
-            if self.use_attention:
-                beam_attn_masks = tf.concat(1, beam_attn_masks)
 
             # Beam-search output
             (
@@ -222,6 +190,7 @@ class RNNDecoder(decoder.Decoder):
                 past_beam_logprobs, # [batch_size*self.beam_size]
                 past_cell_state,
             ) = beam_state
+
             # [self.batch_size, self.beam_size, max_len]
             top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size, self.beam_size, -1])
             top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
@@ -234,9 +203,12 @@ class RNNDecoder(decoder.Decoder):
             top_k_logits = tf.split(0, self.batch_size, top_k_logits)
             top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
                             for top_k_logit in top_k_logits]
+
             if self.use_attention:
+                beam_attn_masks = tf.concat(1, beam_attn_masks)
                 beam_attn_masks = tf.reshape(beam_attn_masks, [self.batch_size, self.beam_size,
                                         len(decoder_inputs), attention_states.get_shape()[1].value])
+
             return top_k_outputs, top_k_logits, outputs, beam_state, beam_attn_masks, bso_losses
 
 
