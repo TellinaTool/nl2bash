@@ -182,9 +182,6 @@ class RNNDecoder(decoder.Decoder):
                                     cell_state
                                  )
 
-            if self.use_attention:
-                beam_attn_masks = tf.concat(1, beam_attn_masks)
-
             # Beam-search output
             (
                 past_cand_symbols,  # [batch_size, max_len]
@@ -193,6 +190,7 @@ class RNNDecoder(decoder.Decoder):
                 past_beam_logprobs, # [batch_size*self.beam_size]
                 past_cell_state,
             ) = beam_state
+
             # [self.batch_size, self.beam_size, max_len]
             top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size, self.beam_size, -1])
             top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
@@ -205,9 +203,12 @@ class RNNDecoder(decoder.Decoder):
             top_k_logits = tf.split(0, self.batch_size, top_k_logits)
             top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
                             for top_k_logit in top_k_logits]
+
             if self.use_attention:
+                beam_attn_masks = tf.concat(1, beam_attn_masks)
                 beam_attn_masks = tf.reshape(beam_attn_masks, [self.batch_size, self.beam_size,
                                         len(decoder_inputs), attention_states.get_shape()[1].value])
+
             return top_k_outputs, top_k_logits, outputs, beam_state, beam_attn_masks, bso_losses
 
 
