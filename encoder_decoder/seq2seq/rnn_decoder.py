@@ -114,12 +114,12 @@ class RNNDecoder(decoder.Decoder):
                     beam_output, beam_state = \
                         beam_decoder_cell(beam_input_embedding, beam_state, scope=decoder_scope)
                 outputs.append(output)
-
-                W, b = self.output_projection
-                projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                 
                 # compute search-based training loss
                 if not forward_only:
+                    W, b = self.output_projection
+                    projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
+
                     (
                         past_cand_symbols,  # [batch_size, max_len]
                         past_cand_logprobs, # [batch_size]
