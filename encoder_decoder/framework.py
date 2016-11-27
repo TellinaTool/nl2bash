@@ -252,7 +252,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.use_attention else 0
 
         losses = encoder_decoder_loss + attention_loss
-
         return output_symbols, output_logits, losses, attn_mask
 
 
