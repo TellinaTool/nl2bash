@@ -52,8 +52,8 @@ if FLAGS.dataset in ["bash", "bash.cl"]:
 elif FLAGS.dataset == "dummy":
     _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
 elif FLAGS.dataset == "jobs":
-    # _buckets = [(5, 30), (10, 30), (15, 30), (20, 45)]
-    _buckets = [(5, 10)]
+    # _buckets = [(10, 30), (15, 30), (20, 45)]
+    _buckets = [(10, 10)]
 elif FLAGS.dataset == "geo":
     _buckets = [(5, 70), (10, 70), (20, 70)]
 elif FLAGS.dataset == "atis":
@@ -142,7 +142,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                     if len(dev_set[bucket_id]) == 0:
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
-                    formatted_example = model.get_bucket(dev_set, bucket_id)
+                    formatted_example = model.get_batch(dev_set, bucket_id)
                     _, output_logits, eval_loss, _ = model.step(sess, formatted_example, bucket_id,
                                                              forward_only=True)
                     dev_loss += eval_loss * len(dev_set[bucket_id])
