@@ -209,7 +209,7 @@ class RNNDecoder(decoder.Decoder):
                 beam_attn_masks = tf.reshape(beam_attn_masks, [self.batch_size, self.beam_size,
                                         len(decoder_inputs), attention_states.get_shape()[1].value])
 
-            return top_k_outputs, top_k_logits, outputs, beam_state, beam_attn_masks, bso_losses
+        return top_k_outputs, top_k_logits, outputs, beam_state, beam_attn_masks, bso_losses
 
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
