@@ -78,16 +78,15 @@ class RNNDecoder(decoder.Decoder):
             beam_state = beam_decoder.wrap_state(encoder_state, self.output_projection)
 
             # add a dummy decoder input
-            decoder_inputs.append(tf.fill([self.batch_size]))
+            decoder_inputs.append(tf.fill([self.batch_size], 0))
             
             for i, input in enumerate(decoder_inputs[:-1]):
                 beam_input = beam_decoder.wrap_input(input)
 
-                partial_target_symbols = tf.reshape(decoder_inputs[1:i+1],
+                partial_target_symbols = tf.reshape(decoder_inputs[1:i+2],
                                                     [self.batch_size, i+1])
                 partial_target_weights = tf.reshape(target_weights[:i+1],
                                                     [self.batch_size, i+1])
-    
                 if i > 0:
                     scope.reuse_variables()
                     ## Beam Search
@@ -137,7 +136,7 @@ class RNNDecoder(decoder.Decoder):
                     gt_logprobs = tf.nn.embedding_lookup(tf.reshape(projected_output, [-1]),
                                             tf.range(self.batch_size) * self.target_vocab_size +
                                             partial_target_symbols[:, -1]
-                                            )
+                                  )
                     beam_logprobs = tf.reshape(past_beam_logprobs, [-1, self.beam_size])
                     pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
                     step_loss = (gt_logprobs - pred_logprobs) - self.margin
