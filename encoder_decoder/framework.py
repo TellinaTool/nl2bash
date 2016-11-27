@@ -117,7 +117,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 with tf.variable_scope(tf.get_variable_scope(), reuse=True
                                        if bucket_id > 0 else None):
                     print("creating bucket {} ({}, {})...".format(
-                                           bucket_id, bucket[0], bucket[1]))
+                        bucket_id, bucket[0], bucket[1]))
                     bucket_output_symbols, bucket_output_logits, bucket_losses, attn_mask = \
                         self.encode_decode(
                             self.encoder_inputs[:bucket[0]], self.encoder_attn_masks[:bucket[0]],
@@ -140,8 +140,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 )
 
         # Gradients and SGD updates in the backward direction.
-        params = tf.trainable_variables()
         if not forward_only:
+            params = tf.trainable_variables()
             if self.optimizer == "sgd":
                 opt = tf.train.GradientDescentOptimizer(self.learning_rate)
             elif self.optimizer == "adam":
@@ -244,7 +244,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                                self.target_vocab_size
                                        ))
             elif self.training_algorithm == "bso":
-                encoder_decoder_loss = tf.add_n(bso_losses)
+                encoder_decoder_loss = tf.add_n(
+                    [x * y for x, y in zip(bso_losses, self.target_weights)])
             else:
                 raise AttributeError("Unrecognized training algorithm.")
 
