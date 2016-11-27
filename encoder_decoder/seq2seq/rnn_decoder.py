@@ -72,40 +72,21 @@ class RNNDecoder(decoder.Decoder):
             else:
                 beam_decoder_cell = \
                     beam_decoder.wrap_cell(decoder_cell, self.output_projection)
+
             # initial input and state
             state = encoder_state
             beam_state = beam_decoder.wrap_state(encoder_state, self.output_projection)
-            # past_output_symbols = None
-            # past_output_logits = tf.cast(decoder_inputs[0] * 0, tf.float32)
 
-            partial_target_symbols = None
-            partial_target_weights = None
-
-            for i, input in enumerate(decoder_inputs):
+            # add a dummy decoder input
+            decoder_inputs.append(tf.fill([self.batch_size]))
+            
+            for i, input in enumerate(decoder_inputs[:-1]):
                 beam_input = beam_decoder.wrap_input(input)
 
-                if partial_target_symbols is None:
-                    partial_target_symbols = tf.expand_dims(
-                        decoder_inputs[i+1], 1
-                    )
-                    partial_target_weights = tf.expand_dims(
-                        target_weights[i], 1
-                    )
-                else:
-                    if i == len(decoder_inputs) - 1:
-                        # last target is a dummy token
-                        partial_target_symbols = tf.concat(1, [partial_target_symbols,
-                            tf.fill([self.batch_size, 1], 0)]
-                        )
-                    else:
-                        partial_target_symbols = tf.concat(1, [partial_target_symbols,
-                            tf.expand_dims(decoder_inputs[i+1], 1)]
-                        )
-                    partial_target_weights = tf.concat(1, [partial_target_weights,
-                        tf.expand_dims(target_weights[i], 1)]
-                    )
-                partial_target_symbols.set_shape([self.batch_size, i+1])
-                partial_target_weights.set_shape([self.batch_size, i+1])
+                partial_target_symbols = tf.reshape(decoder_inputs[1:i+1],
+                                                    [self.batch_size, i+1])
+                partial_target_weights = tf.reshape(target_weights[:i+1],
+                                                    [self.batch_size, i+1])
     
                 if i > 0:
                     scope.reuse_variables()
