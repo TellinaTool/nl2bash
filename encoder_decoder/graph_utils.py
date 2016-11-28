@@ -81,14 +81,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         params["encoder_output_keep"] = 1.0
         params["decoder_input_keep"] = 1.0
         params["decoder_output_keep"] = 1.0
-    else:
-        pretrain_dir = ""
-        # load pre-trained parameteres for advanced training algorithms
-        if FLAGS.training_algorithm == "bso":
-            FLAGS.training_algorithm = "standard"
-            pretrain_model_subdir, pretrain_model_sig = get_model_signature(FLAGS)
-            pretrain_dir = os.path.join(model_root_dir, pretrain_model_subdir)
-            FLAGS.training_algorithm = "bso"
+
 
     model = model_constructor(params, buckets, forward_only)
 
@@ -106,7 +99,9 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
             data_utils.clean_dir(FLAGS.model_dir)
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
-        if pretrain_dir:
+        if FLAGS.pretrained_model_subdir:
+            # load pre-trained parameteres for advanced training algorithms
+            pretrain_dir = os.path.join(model_root_dir, FLAGS.pretrained_model_subdir)
             pretrain_ckpt = tf.train.get_checkpoint_state(pretrain_dir)
             print("Reading pre-trained model parameters from {}"
                   .format(pretrain_ckpt.model_checkpoint_path))
@@ -255,6 +250,7 @@ def deprecated(func):
         return func(*args, **kwargs)
 
     return new_func
+
 
 class NNModel(object):
     def __init__(self, hyperparams):

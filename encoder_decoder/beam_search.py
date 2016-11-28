@@ -18,16 +18,18 @@ def nest_map(func, nested):
 
 class BeamDecoder(object):
     def __init__(self, num_classes, start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
-                 max_len=20, use_attention=False, alpha=1.0):
+                 max_len=20, use_attention=False, alpha=1.0, locally_normalized=False):
         """
-        num_classes: int. Number of output classes used
-        start_token: int.
-        stop_token: int.
-        beam_size: int.
-        max-len: int or scalar Tensor. If this cell is called recurrently more
+        :param num_classes: int. Number of output classes used
+        :param start_token: int.
+        :param stop_token: int.
+        :param beam_size: int.
+        :param max-len: int or scalar Tensor. If this cell is called recurrently more
             than max_len times in a row, the outputs will not be valid!
-        use_attention: if attention is to be used.
-        alpha: parameter used for length normalization.
+        :param use_attention: if attention is to be used.
+        :param alpha: parameter used for length normalization.
+        :param locally_normalized: set to true if local normalization is to be performed
+               at each search step.
         """
         self.num_classes = num_classes
         self.start_token = start_token
@@ -37,6 +39,7 @@ class BeamDecoder(object):
         self.max_len = max_len
         self.use_attention = use_attention
         self.alpha = alpha
+        self.locally_normalized = locally_normalized
         print("creating beam search decoder: alpha = {}".format(self.alpha))
 
     @classmethod
@@ -196,7 +199,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         W, b = self.output_projection
 
         # [batch_size*beam_size, num_classes]
-        logprobs = tf.nn.log_softmax(tf.matmul(cell_outputs, W) + b)
+        if self.locally_normalized:
+            logprobs = tf.nn.log_softmax(tf.matmul(cell_outputs, W) + b)
+        else:
+            logprobs = tf.nn.log(tf.matmul(cell_outputs, W) + b)
         # set the probabilities of all other symbols following the stop symbol
         # to a very small number
         stop_mask_2d = tf.expand_dims(stop_mask, 1)
