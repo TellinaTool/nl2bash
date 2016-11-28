@@ -139,7 +139,8 @@ class RNNDecoder(decoder.Decoder):
                                )
                     beam_logprobs = tf.reshape(past_beam_logprobs, [-1, self.beam_size])
                     pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
-                    step_loss = self.margin - (gt_probs - tf.exp(pred_logprobs))
+                    step_loss = tf.maximum(self.margin - (gt_probs - tf.exp(pred_logprobs)), 0)
+                    # step_loss = pred_logprobs
                     bso_losses.append(step_loss)
 
                     # resume using reference search states if ground_truth fell off beam
