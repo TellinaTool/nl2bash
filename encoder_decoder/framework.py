@@ -167,6 +167,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.gradient_norms = norm
                 self.updates = opt.apply_gradients(zip(clipped_gradients, params))
 
+        for var in tf.all_variables():
+            print(var.name)
         self.saver = tf.train.Saver(tf.all_variables())
 
 
