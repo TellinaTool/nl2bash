@@ -77,8 +77,9 @@ class RNNDecoder(decoder.Decoder):
             state = encoder_state
             beam_state = beam_decoder.wrap_state(encoder_state, self.output_projection)
 
-            # add a dummy decoder input
+            # add a dummy step
             decoder_inputs.append(tf.fill([self.batch_size], 0))
+            target_weights.append(tf.fill([self.batch_size], 0))
             
             for i, input in enumerate(decoder_inputs[:-1]):
                 beam_input = beam_decoder.wrap_input(input)
@@ -132,7 +133,7 @@ class RNNDecoder(decoder.Decoder):
 
                     # compute the loss in current step 
                     # (notice that one batch has only one loss, hence the notion of "compressed")
-                    search_complete = tf.equal(partial_target_weights[:, -1], 0)
+                    search_complete = tf.equal(target_weights[i+1], 0)
                     gt_probs = tf.nn.embedding_lookup(tf.reshape(projected_output, [-1]),
                                    tf.range(self.batch_size) * self.target_vocab_size +
                                    partial_target_symbols[:, -1]
