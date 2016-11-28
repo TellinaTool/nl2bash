@@ -18,7 +18,7 @@ def nest_map(func, nested):
 
 class BeamDecoder(object):
     def __init__(self, num_classes, start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
-                 max_len=20, use_attention=False, alpha=1.0, locally_normalized=False):
+                 max_len=20, use_attention=False, alpha=1.0, locally_normalized=True):
         """
         :param num_classes: int. Number of output classes used
         :param start_token: int.
@@ -73,18 +73,20 @@ class BeamDecoder(object):
         """
         Wraps a cell for use with the beam decoder
         """
-        return BeamDecoderCellWrapper(cell, output_projection, self.num_classes, self.max_len,
+        return BeamDecoderCellWrapper(cell, output_projection,
+                                      self.num_classes, self.max_len,
                                       self.start_token, self.stop_token,
                                       self.batch_size, self.beam_size,
-                                      self.use_attention,
-                                      self.alpha)
+                                      self.use_attention, self.alpha,
+                                      self.locally_normalized)
 
     def wrap_state(self, state, output_projection):
-        dummy = BeamDecoderCellWrapper(None, output_projection, self.num_classes, self.max_len,
+        dummy = BeamDecoderCellWrapper(None, output_projection,
+                                       self.num_classes, self.max_len,
                                        self.start_token, self.stop_token,
                                        self.batch_size, self.beam_size,
-                                       self.use_attention,
-                                       self.alpha)
+                                       self.use_attention, self.alpha,
+                                       self.locally_normalized)
         if nest.is_sequence(state):
             dtype = nest.flatten(state)[0].dtype
         else:
@@ -134,7 +136,7 @@ class BeamDecoder(object):
 class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, output_projection, num_classes, max_len,
                  start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
-                 use_attention=False, alpha=1.0):
+                 use_attention=False, alpha=1.0, locally_normalized=True):
         # TODO: determine if we can have dynamic shapes instead of pre-filling up to max_len
 
         self.cell = cell
@@ -146,7 +148,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.beam_size = beam_size
         self.use_attention = use_attention
         self.alpha = alpha
-
+        self.locally_normalized = locally_normalized
         self.max_len = max_len
 
         self.parent_refs_offsets = None
