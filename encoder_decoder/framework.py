@@ -233,7 +233,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
             )
 
         if forward_only:
-            encoder_decoder_loss = 0
+            encoder_decoder_loss = graph_utils.sequence_loss(
+                                       outputs, targets, target_weights,
+                                       graph_utils.softmax_loss(
+                                           self.output_projection(),
+                                           self.num_samples,
+                                           self.target_vocab_size
+                                   ))
         else:
             if self.training_algorithm == "standard":
                 encoder_decoder_loss = graph_utils.sequence_loss(
@@ -297,7 +303,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     def format_example(self, encoder_inputs, decoder_inputs, copy_data=None,
                        bucket_id=-1):
-        """Prepare data to feed in step()
+        """
+        Prepare data to feed in step()
         :return decoder_inputs: [<GO>, 1, 2, 3, <EOS>]
         :return weights: [1, 1, 1, 1, 0]
         """
