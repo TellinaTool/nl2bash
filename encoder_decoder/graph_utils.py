@@ -97,8 +97,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
             os.mkdir(FLAGS.model_dir)
         else:
             data_utils.clean_dir(FLAGS.model_dir)
-        print("Created model with fresh parameters.")
-        session.run(tf.initialize_all_variables())
         if FLAGS.pretrained_model_subdir:
             # load pre-trained parameteres for advanced training algorithms
             pretrain_dir = os.path.join(model_root_dir, FLAGS.pretrained_model_subdir)
@@ -106,6 +104,12 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
             print("Reading pre-trained model parameters from {}"
                   .format(pretrain_ckpt.model_checkpoint_path))
             model.saver.restore(session, pretrain_ckpt.model_checkpoint_path)
+            model.learning_rate = tf.Variable(float(FLAGS.learning_rate),
+                                         trainable=False)
+        else:
+            print("Created model with fresh parameters.")
+            session.run(tf.initialize_all_variables())
+
 
     return model, global_epochs
 
