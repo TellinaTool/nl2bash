@@ -105,7 +105,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
                   .format(pretrain_ckpt.model_checkpoint_path))
             model.saver.restore(session, pretrain_ckpt.model_checkpoint_path)
             model.learning_rate.assign(float(FLAGS.learning_rate))
-            with tf.Session() as sess:
+            with tf.Session(session) as sess:
                 model.learning_rate.eval()
         else:
             print("Created model with fresh parameters.")
