@@ -253,7 +253,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                        ))
             elif self.training_algorithm == "bso":
                 encoder_decoder_loss = tf.reshape(
-                    [tf.mul(x, y) for x, y in zip(bso_losses, self.target_weights)],
+                    [tf.mul(x, y) for x, y in zip(bso_losses, target_weights)],
                     [self.batch_size, self.max_target_length])
                 encoder_decoder_loss = tf.reduce_mean(encoder_decoder_loss)
             else:

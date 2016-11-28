@@ -78,8 +78,8 @@ class RNNDecoder(decoder.Decoder):
             beam_state = beam_decoder.wrap_state(encoder_state, self.output_projection)
 
             # add a dummy step
-            decoder_inputs.append(tf.fill([self.batch_size], 0))
-            target_weights.append(tf.fill([self.batch_size], 0))
+            decoder_inputs = decoder_inputs + [tf.fill([self.batch_size], 0)]
+            target_weights = target_weights + [tf.fill([self.batch_size], 0)]
             
             for i, input in enumerate(decoder_inputs[:-1]):
                 beam_input = beam_decoder.wrap_input(input)
