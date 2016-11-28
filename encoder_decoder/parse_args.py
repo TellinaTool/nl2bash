@@ -114,4 +114,4 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("top_k", 5, "Top-k highest-scoring structures to output.")
 
     tf.app.flags.DEFINE_integer("num_gts", 1, "maximum number of ground truths per example.")
-    tf.app.flags.DEFINE_integer("margin", 1, "margin for margin-based loss function")
+    tf.app.flags.DEFINE_float("margin", 1.0, "margin for margin-based loss function")
