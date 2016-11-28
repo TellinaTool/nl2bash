@@ -186,8 +186,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
-        targets = self.targets
-        target_weights = self.target_weights
+        targets = self.targets[:len(decoder_inputs)]
+        target_weights = self.target_weights[:len(decoder_inputs)]
 
         if self.decoding_algorithm == "beam_search":
             beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
