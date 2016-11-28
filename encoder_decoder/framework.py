@@ -250,8 +250,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                                self.target_vocab_size
                                        ))
             elif self.training_algorithm == "bso":
-                encoder_decoder_loss = tf.add_n(
-                    [tf.mul(x, y) for x, y in zip(bso_losses, self.target_weights)])
+                encoder_decoder_loss = tf.reshape(
+                    [tf.mul(x, y) for x, y in zip(bso_losses, self.target_weights)],
+                    [self.batch_size, self.max_target_length])
                 encoder_decoder_loss = tf.reduce_mean(encoder_decoder_loss)
             else:
                 raise AttributeError("Unrecognized training algorithm.")
