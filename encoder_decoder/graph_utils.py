@@ -106,7 +106,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
             data_utils.clean_dir(FLAGS.model_dir)
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
-        if FLAGS.pretrain_dir:
+        if pretrain_dir:
             pretrain_ckpt = tf.train.get_checkpoint_state(pretrain_dir)
             print("Reading pre-trained model parameters from {}"
                   .format(pretrain_ckpt.model_checkpoint_path))
