@@ -298,7 +298,10 @@ class RNNDecoder(decoder.Decoder):
                     output, state = decoder_cell(input_embedding, state, scope=decoder_scope)
 
                 # record output state to compute the loss.
-                outputs.append(output)
+                if bs_decoding:
+                    outputs.append(tf.gather(output, tf.range(self.batch_size) * self.beam_size))
+                else:
+                    outputs.append(output)
 
             if self.use_attention:
                 # Tensor list --> tenosr
