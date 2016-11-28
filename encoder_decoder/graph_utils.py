@@ -108,6 +108,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         session.run(tf.initialize_all_variables())
         if FLAGS.pretrain_dir:
             pretrain_ckpt = tf.train.get_checkpoint_state(pretrain_dir)
+            print("Reading pre-trained model parameters from {}"
+                  .format(pretrain_ckpt.model_checkpoint_path))
             model.saver.restore(session, pretrain_ckpt.model_checkpoint_path)
 
     return model, global_epochs
