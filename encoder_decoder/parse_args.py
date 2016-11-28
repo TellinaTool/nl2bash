@@ -93,6 +93,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
 
     tf.app.flags.DEFINE_string("training_algorithm", "standard", "training algorithm to use.")
+    tf.app.flags.DEFINE_string("pretrained_model_subdir", "", "signature of pretrained model.")
 
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
 
