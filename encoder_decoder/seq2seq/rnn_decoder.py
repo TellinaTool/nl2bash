@@ -226,6 +226,8 @@ class RNNDecoder(decoder.Decoder):
             raise ValueError("Shape[1] and [2] of attention_states must be "
                              "known %s" % attention_states.get_shape())
 
+        bs_decoding = forward_only and self.decoding_algorithm == "beam_search"
+
         with tf.variable_scope("decoder_rnn") as scope:
             decoder_cell, decoder_scope = self.decoder_cell(scope)
             state = encoder_state
@@ -233,14 +235,14 @@ class RNNDecoder(decoder.Decoder):
             attn_masks = []
 
             # applying cell wrappers: ["attention", "beam"]
-            if self.decoding_algorithm == "beam_search":
+            if bs_decoding:
                 state = beam_decoder.wrap_state(state, self.output_projection)
-            elif self.decoding_algorithm == "greedy":
+            else:
                 past_output_symbols = tf.expand_dims(tf.cast(decoder_inputs[0], tf.int64), 1)
                 past_output_logits = tf.cast(decoder_inputs[0] * 0, tf.float32)
 
             if self.use_attention:
-                if self.decoding_algorithm == "beam_search":
+                if bs_decoding:
                     encoder_attn_masks = [beam_decoder.wrap_input(encoder_attn_mask)
                                       for encoder_attn_mask in encoder_attn_masks]
                     attention_states = beam_decoder.wrap_input(attention_states)
@@ -256,11 +258,11 @@ class RNNDecoder(decoder.Decoder):
                                                 num_heads,
                                                 reuse_variables)
 
-            if self.decoding_algorithm == "beam_search":
+            if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
 
             for i, input in enumerate(decoder_inputs):
-                if self.decoding_algorithm == "beam_search":
+                if bs_decoding:
                     input = beam_decoder.wrap_input(input)
 
                 if i > 0:
@@ -302,7 +304,7 @@ class RNNDecoder(decoder.Decoder):
                 # Tensor list --> tenosr
                 attn_masks = tf.concat(1, attn_masks)
 
-            if self.decoding_algorithm == "beam_search":
+            if bs_decoding:
                 # Beam-search output
                 (
                     past_cand_symbols,  # [batch_size, max_len]
