@@ -63,6 +63,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     model_subdir, model_sig = get_model_signature(FLAGS)
     params["model_sig"] = model_sig
 
+    model_root_dir = FLAGS.model_dir
     if construct_model_dir:
         setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
     print("model_dir={}".format(FLAGS.model_dir))
@@ -80,28 +81,35 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         params["encoder_output_keep"] = 1.0
         params["decoder_input_keep"] = 1.0
         params["decoder_output_keep"] = 1.0
+    else:
+        pretrain_dir = ""
+        # load pre-trained parameteres for advanced training algorithms
+        if FLAGS.training_algorithm == "bso":
+            FLAGS.training_algorithm = "standard"
+            pretrain_model_subdir, pretrain_model_sig = get_model_signature(FLAGS)
+            pretrain_dir = os.path.join(model_root_dir, pretrain_model_subdir)
+            FLAGS.training_algorithm = "bso"
 
     model = model_constructor(params, buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
     global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
 
-    if ckpt and tf.gfile.Exists(ckpt.model_checkpoint_path):
-        if not forward_only and FLAGS.create_fresh_params:
-            data_utils.clean_dir(FLAGS.model_dir)
-            print("Created model with fresh parameters.")
-            global_epochs = 0
-            session.run(tf.initialize_all_variables())
-        else:
-            print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
-            model.saver.restore(session, ckpt.model_checkpoint_path)
+    if forward_only or not FLAGS.create_fresh_params:
+        print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
+        model.saver.restore(session, ckpt.model_checkpoint_path)
     else:
         if not os.path.exists(FLAGS.model_dir):
             print("Making model_dir...")
             os.mkdir(FLAGS.model_dir)
+        else:
+            data_utils.clean_dir(FLAGS.model_dir)
         print("Created model with fresh parameters.")
         session.run(tf.initialize_all_variables())
-    
+        if FLAGS.pretrain_dir:
+            pretrain_ckpt = tf.train.get_checkpoint_state(pretrain_dir)
+            model.saver.restore(session, pretrain_ckpt.model_checkpoint_path)
+
     return model, global_epochs
 
 
