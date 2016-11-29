@@ -86,10 +86,10 @@ class RNNDecoder(decoder.Decoder):
             for i, input in enumerate(decoder_inputs[:-1]):
                 beam_input = beam_decoder.wrap_input(input)
 
-                partial_target_symbols = tf.reshape(decoder_inputs[1:i+2],
-                                                    [self.batch_size, i+1])
-                partial_target_weights = tf.reshape(target_weights[:i+1],
-                                                    [self.batch_size, i+1])
+                partial_target_symbols = tf.transpose(tf.reshape(decoder_inputs[1:i+2],
+                                                        [i+1, self.batch_size]))
+                partial_target_weights = tf.transpose(tf.reshape(target_weights[:i+1],
+                                                        [i+1, self.batch_size]))
                 if i > 0:
                     scope.reuse_variables()
                     ## Beam Search
@@ -147,9 +147,11 @@ class RNNDecoder(decoder.Decoder):
                     # length normalization
                     ground_truth_logprobs = tf.div(
                                                 tf.reduce_sum(
-                                                    tf.reshape(
-                                                        gt_logprobs,
-                                                        [self.batch_size, -1]
+                                                    tf.transpose(
+                                                        tf.reshape(
+                                                            gt_logprobs,
+                                                            [-1, self.batch_size]
+                                                        ),
                                                     ),
                                                 1),
                                                 tf.pow(tf.reduce_sum(

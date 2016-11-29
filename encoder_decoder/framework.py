@@ -255,9 +255,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                                self.target_vocab_size
                                        ))
             elif self.training_algorithm == "bso":
-                encoder_decoder_loss = tf.reshape(
-                    [tf.mul(x, y) for x, y in zip(bso_losses, target_weights)],
-                    [self.batch_size, self.max_target_length])
+                encoder_decoder_loss = tf.transpose(
+                    tf.reshape(
+                        [tf.mul(x, y) for x, y in zip(bso_losses, target_weights)],
+                        [-1, self.batch_size]
+                    )
+                )
                 encoder_decoder_loss = tf.reduce_mean(encoder_decoder_loss)
             else:
                 raise AttributeError("Unrecognized training algorithm.")
@@ -506,8 +509,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed.append(self.attn_masks[bucket_id])
 
         outputs = session.run(output_feed, input_feed)
-        for ii in xrange(len(outputs[3])):
-            print("{}: {}".format(ii, outputs[3][ii]))
+        assert(np.count_nonzero(output_feed[3]) == self.batch_size)
 
         if not forward_only:
             # Gradient norm, loss, no outputs, [attention_masks]
