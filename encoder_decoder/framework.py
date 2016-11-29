@@ -217,7 +217,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             attention_states = None
 
         # Losses.
-        if not forward_only and self.training_algorithm == "bso":
+        if self.training_algorithm == "bso":
             output_symbols, output_logits, outputs, state, \
                 attn_mask, bso_losses = self.decoder.define_bso_graph(
                 encoder_state, decoder_inputs, target_weights, target_embeddings,
