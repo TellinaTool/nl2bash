@@ -458,9 +458,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(encoder_size):
             input_feed[self.encoder_inputs[l].name] = encoder_inputs[l]
             input_feed[self.encoder_attn_masks[l].name] = attn_masks[l]
+        tw_check = None
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = decoder_inputs[l]
             input_feed[self.target_weights[l].name] = target_weights[l]
+            if tw_check is None:
+                tw_check = target_weights[l]
+            else:
+                tw_check += target_weights[l]
+            assert(np.count_nonzero(tw_check) == self.batch_size)
         if self.use_copy:
             for l in xrange(encoder_size):
                 input_feed[self.original_encoder_inputs[l].name] = original_encoder_inputs[l]
