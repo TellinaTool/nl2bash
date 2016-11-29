@@ -38,7 +38,7 @@ class RNNDecoder(decoder.Decoder):
             outputs = []
             bso_losses = []
             gt_logprobs = []
-            debug_quantities = []
+            debug_vars = []
 
             full_size = self.batch_size * self.beam_size
 
@@ -161,7 +161,7 @@ class RNNDecoder(decoder.Decoder):
                     pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
                     step_loss = tf.maximum(self.margin - (tf.exp(ground_truth_logprobs) - tf.exp(pred_logprobs)), 0)
                     bso_losses.append(step_loss)
-                    debug_quantities.append(tf.reduce_sum(
+                    debug_vars.append(tf.reduce_sum(
                                                     partial_target_weights,
                                                     1
                                             ))
@@ -233,7 +233,7 @@ class RNNDecoder(decoder.Decoder):
                                         len(decoder_inputs), attention_states.get_shape()[1].value])
 
         return top_k_outputs, top_k_logits, outputs, beam_state, beam_attn_masks, bso_losses, \
-            debug_quantities
+            debug_vars
 
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
