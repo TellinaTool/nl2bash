@@ -266,7 +266,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         losses = encoder_decoder_loss + attention_loss
 
-        return output_symbols, output_logits, losses, attn_mask
+        return output_symbols, output_logits, losses, attn_mask, debug_quantities
 
 
     def source_embeddings(self):
