@@ -470,7 +470,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 tw_check = target_weights[l]
             else:
                 tw_check += target_weights[l]
-            # assert(np.count_nonzero(tw_check) == self.batch_size)
         if self.use_copy:
             for l in xrange(encoder_size):
                 input_feed[self.original_encoder_inputs[l].name] = original_encoder_inputs[l]
@@ -510,7 +509,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed.append(self.attn_masks[bucket_id])
 
         outputs = session.run(output_feed, input_feed)
-        print(output_feed[3])
+        assert(np.count_nonzero(output_feed[3]) == self.batch_size)
 
         if not forward_only:
             # Gradient norm, loss, no outputs, [attention_masks]
