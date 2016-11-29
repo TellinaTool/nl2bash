@@ -71,6 +71,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.encoder_attn_masks = []    # mask out PAD symbols in the encoder
         self.decoder_inputs = []        # decoder inputs (always start with "root").
         self.target_weights = []        # weights at each position of the target sequence.
+        self.debug_vars = []
 
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
@@ -119,7 +120,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     print("creating bucket {} ({}, {})...".format(
                         bucket_id, bucket[0], bucket[1]))
                     bucket_output_symbols, bucket_output_logits, bucket_losses, attn_mask, \
-                        debug_quantities = \
+                        debug_vars = \
                         self.encode_decode(
                             self.encoder_inputs[:bucket[0]], self.encoder_attn_masks[:bucket[0]],
                             self.source_embeddings(),
@@ -131,7 +132,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     self.output_logits.append(bucket_output_logits)
                     self.losses.append(bucket_losses)
                     self.attn_masks.append(attn_mask)
-                    self.debug_quantities.append(debug_quantities)
+                    self.debug_vars.append(debug_vars)
         else:
             self.output_symbols, self.output_logits, self.losses, self.attn_mask = \
                 self.encode_decode(
@@ -221,7 +222,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Losses.
         if self.training_algorithm == "bso":
             output_symbols, output_logits, outputs, state, \
-                attn_mask, bso_losses, debug_quantities = self.decoder.define_bso_graph(
+                attn_mask, bso_losses, debug_vars = self.decoder.define_bso_graph(
                 encoder_state, decoder_inputs, target_weights, target_embeddings,
                 encoder_attn_masks, attention_states, num_heads=1,
                 beam_decoder=beam_decoder, forward_only=forward_only,
@@ -266,7 +267,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         losses = encoder_decoder_loss + attention_loss
 
-        return output_symbols, output_logits, losses, attn_mask, debug_quantities
+        return output_symbols, output_logits, losses, attn_mask, debug_vars
 
 
     def source_embeddings(self):
@@ -500,7 +501,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed = [self.output_symbols[bucket_id]]      # Loss for this batch.
                 output_feed.append(self.output_logits[bucket_id])   # Batch output sequence
                 output_feed.append(self.losses[bucket_id])          # Batch output logits
-                output_feed.append(self.debug_quantities[bucket_id])
+                output_feed.append(self.debug_vars[bucket_id])
 
         if self.use_attention:
             if bucket_id == -1:
