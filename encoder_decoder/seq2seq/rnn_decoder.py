@@ -100,17 +100,21 @@ class RNNDecoder(decoder.Decoder):
                     ) = beam_state
                     beam_input = past_beam_symbols[:, -1]
 
-                input_embedding = tf.gather(embeddings, input)
+                input_embedding = tf.nn.embedding_lookup(embeddings, input)
                 beam_input_embedding = tf.nn.embedding_lookup(embeddings, beam_input)
                 if self.use_attention:
+                    ## Reference Search
                     output, state, attn_masks = \
                         decoder_cell(input_embedding, state, attn_masks, scope=decoder_scope)
+                    ## Beam Search
                     decoder_scope.reuse_variables()
                     beam_output, beam_state, beam_attn_masks = \
                         beam_decoder_cell(beam_input_embedding, beam_state, beam_attn_masks,
                                           scope=decoder_scope)
                 else:
+                    ## Reference Search
                     output, state = decoder_cell(input_embedding, state, scope=decoder_scope)
+                    ## Beam Search
                     decoder_scope.reuse_variables()
                     beam_output, beam_state = \
                         beam_decoder_cell(beam_input_embedding, beam_state, scope=decoder_scope)
@@ -141,7 +145,6 @@ class RNNDecoder(decoder.Decoder):
                     beam_logprobs = tf.reshape(past_beam_logprobs, [-1, self.beam_size])
                     pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
                     step_loss = tf.maximum(self.margin - (gt_probs - tf.exp(pred_logprobs)), 0)
-                    # step_loss = pred_logprobs
                     bso_losses.append(step_loss)
 
                     # resume using reference search states if ground_truth fell off beam
