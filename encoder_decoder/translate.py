@@ -52,8 +52,7 @@ if FLAGS.dataset in ["bash", "bash.cl"]:
 elif FLAGS.dataset == "dummy":
     _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
 elif FLAGS.dataset == "jobs":
-    # _buckets = [(10, 30), (15, 30), (20, 45)]
-    _buckets = [(10, 10)]
+    _buckets = [(10, 30), (15, 30), (20, 45)]
 elif FLAGS.dataset == "geo":
     _buckets = [(5, 70), (10, 70), (20, 70)]
 elif FLAGS.dataset == "atis":
