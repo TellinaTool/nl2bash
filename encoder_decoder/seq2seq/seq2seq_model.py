@@ -11,7 +11,10 @@ from encoder_decoder import encoder
 try:
     from seq2seq import rnn_decoder
 except ImportError:
-    import rnn_decoder
+    try:
+        from . import rnn_decoder
+    except ImportError:
+        import rnn_decoder
 
 class Seq2SeqModel(EncoderDecoderModel):
     """Sequence-to-sequence model with attention and for multiple buckets.

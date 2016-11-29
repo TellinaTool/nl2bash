@@ -167,6 +167,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.gradient_norms = norm
                 self.updates = opt.apply_gradients(zip(clipped_gradients, params))
 
+        for var in tf.all_variables():
+            print(var.name)
         self.saver = tf.train.Saver(tf.all_variables())
 
 
@@ -186,8 +188,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
-        targets = self.targets
-        target_weights = self.target_weights
+        targets = self.targets[:len(decoder_inputs)]
+        target_weights = self.target_weights[:len(decoder_inputs)]
 
         if self.decoding_algorithm == "beam_search":
             beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
@@ -250,8 +252,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                                self.target_vocab_size
                                        ))
             elif self.training_algorithm == "bso":
-                encoder_decoder_loss = tf.add_n(
-                    [x * y for x, y in zip(bso_losses, self.target_weights)])
+                encoder_decoder_loss = tf.reshape(
+                    [tf.mul(x, y) for x, y in zip(bso_losses, target_weights)],
+                    [self.batch_size, self.max_target_length])
                 encoder_decoder_loss = tf.reduce_mean(encoder_decoder_loss)
             else:
                 raise AttributeError("Unrecognized training algorithm.")
