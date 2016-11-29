@@ -466,7 +466,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 tw_check = target_weights[l]
             else:
                 tw_check += target_weights[l]
-            assert(np.count_nonzero(tw_check) == self.batch_size)
+            # assert(np.count_nonzero(tw_check) == self.batch_size)
         if self.use_copy:
             for l in xrange(encoder_size):
                 input_feed[self.original_encoder_inputs[l].name] = original_encoder_inputs[l]

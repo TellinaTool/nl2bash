@@ -154,7 +154,7 @@ class RNNDecoder(decoder.Decoder):
                                                 tf.pow(tf.reduce_sum(
                                                     partial_target_weights,
                                                     1
-                                                ), self.alpha) + 1e-12
+                                                ), self.alpha)
                                             )
                     beam_logprobs = tf.reshape(past_beam_logprobs, [-1, self.beam_size])
                     pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
