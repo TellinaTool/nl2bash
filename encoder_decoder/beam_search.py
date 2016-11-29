@@ -18,16 +18,16 @@ def nest_map(func, nested):
 
 class BeamDecoder(object):
     def __init__(self, num_classes, start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
-                 max_len=20, use_attention=False, alpha=1.0):
+                 max_len=20, use_attention=False, alpha=1.0, locally_normalize=True):
         """
-        num_classes: int. Number of output classes used
-        start_token: int.
-        stop_token: int.
-        beam_size: int.
-        max-len: int or scalar Tensor. If this cell is called recurrently more
-            than max_len times in a row, the outputs will not be valid!
-        use_attention: if attention is to be used.
-        alpha: parameter used for length normalization.
+        :param num_classes: int. Number of output classes used
+        :param start_token: int.
+        :param stop_token: int.
+        :param beam_size: int.
+        :param max-len: int or scalar Tensor. If this cell is called recurrently more
+                        than max_len times in a row, the outputs will not be valid!
+        :param use_attention: if attention is to be used.
+        :param alpha: parameter used for length normalization.
         """
         self.num_classes = num_classes
         self.start_token = start_token
