@@ -126,7 +126,7 @@ class RNNDecoder(decoder.Decoder):
                 if not forward_only:
                     W, b = self.output_projection
                     # projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
-                    projected_output = tf.log(tf.matmul(output, W) + b)
+                    projected_output = tf.matmul(output, W) + b
                     (
                         past_cand_symbols,  # [batch_size, max_len]
                         past_cand_logprobs, # [batch_size]
