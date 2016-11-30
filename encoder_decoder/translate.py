@@ -225,6 +225,35 @@ def train_and_eval(train_set, dev_set):
     return temp_match_score, temp_dist
 
 
+def cross_validation(train_set):
+    num_folds = FLAGS.num_folds
+    print("======== {}-fold Cross Validation ========".format(num_folds))
+
+    match_scores = []
+    dists = []
+
+    # divide training data into N-folds
+    train_folds = data_utils.fold_split(train_set, num_folds)
+    for fold_id in xrange(num_folds):
+        print()
+        print("Fold {}".format(fold_id))
+        print()
+        cv_train_set = []
+        for i in xrange(num_folds):
+            if i != fold_id:
+                cv_train_set += train_folds[i]
+        cv_dev_set = train_folds[fold_id]
+        train(cv_train_set, cv_dev_set)
+        tf.reset_default_graph()
+        model_sig = decode(cv_dev_set, construct_model_dir=False)
+        match_score, _, dist, _ = \
+            eval(cv_dev_set, model_sig, verbose=False)
+        match_scores.append(match_score)
+        dists.append(dist)
+
+    print("cross validation template match score = {}".format(sum(match_scores) / num_folds))
+    print("cross validation template distance = {}".format(sum(dists) / num_folds))
+
 def grid_search(train_set, dev_set):
     FLAGS.create_fresh_params = True
 
@@ -358,6 +387,9 @@ def main(_):
     elif FLAGS.grid_search:
         train_set, dev_set, _ = load_data()
         grid_search(train_set, dev_set)
+    elif FLAGS.cross_valid:
+        train_set, _, _ = load_data()
+        cross_validation(train_set)
     else:
         train_set, dev_set, _ = load_data()
         train(train_set, dev_set)
