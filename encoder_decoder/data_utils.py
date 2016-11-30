@@ -533,8 +533,8 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path,
 def fold_split(data_set, num_folds):
     # randomly split a dataset for cross validation
     data_folds = [[] for i in xrange(num_folds)]
-    num_rep = len(data_set) / num_folds + 1
-    fold_ids = xrange(num_folds) * num_rep
+    num_rep = int(len(data_set) / num_folds) + 1
+    fold_ids = range(num_folds) * num_rep
     random.shuffle(fold_ids)
     for i in xrange(len(data_set)):
         data_point = data_set[i]
