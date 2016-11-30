@@ -29,6 +29,7 @@ if sys.version_info > (3, 0):
 from bashlex import bash, data_tools, normalizer
 
 import numpy as np
+import random
 import tensorflow as tf
 
 # Special vocabulary symbols - we always put them at the start.
@@ -527,6 +528,19 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path,
                         source, target = source_file.readline(), target_file.readline()
     print("  %d data points read." % counter)
     return data_set
+
+
+def fold_split(data_set, num_folds):
+    # randomly split a dataset for cross validation
+    data_folds = [[] for i in xrange(num_folds)]
+    num_rep = len(data_set) / num_folds + 1
+    fold_ids = xrange(num_folds) * num_rep
+    random.shuffle(fold_ids)
+    for i in xrange(len(data_set)):
+        data_point = data_set[i]
+        fold_id = fold_ids[i]
+        data_folds[fold_id].append(data_point)
+    return data_folds
 
 
 class Dataset(object):
