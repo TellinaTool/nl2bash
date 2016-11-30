@@ -50,7 +50,7 @@ if FLAGS.dataset in ["bash", "bash.cl"]:
     elif FLAGS.decoder_topology in ['rnn']:
         _buckets = [(20, 40), (25, 40), (30, 40)]
 elif FLAGS.dataset == "dummy":
-    _buckets = [(5, 30), (10, 40), (20, 60), (30, 80), (45, 95)]
+    _buckets = [(20, 95), (30, 95), (45, 95)]
 elif FLAGS.dataset == "jobs":
     # _buckets = [(10, 45), (15, 45), (20, 45)]
     _buckets = [(20, 45)]
@@ -236,10 +236,17 @@ def cross_validation(train_set):
     train_folds = data_utils.fold_split_bucket(train_set, num_folds)
     for fold_id in xrange(num_folds):
         print("\nFold {}\n".format(fold_id))
-        cv_train_set = []
+        if _buckets:
+            cv_train_set = [[] for _ in xrange(len(_buckets))]
+        else:
+            cv_train_set = []
         for i in xrange(num_folds):
             if i != fold_id:
-                cv_train_set += train_folds[i]
+                if _buckets:
+                    for bucket_id in xrange(len(_buckets)):
+                        cv_train_set[bucket_id] += train_folds[i][bucket_id]
+                else:
+                    cv_train_set += train_folds[i]
         cv_dev_set = train_folds[fold_id]
         train(cv_train_set, cv_dev_set)
         tf.reset_default_graph()
