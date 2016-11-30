@@ -164,7 +164,7 @@ class RNNDecoder(decoder.Decoder):
                                             )
                     beam_logprobs = tf.reshape(past_beam_logprobs, [-1, self.beam_size])
                     pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
-                    step_loss = tf.maximum(self.margin - (tf.exp(ground_truth_logprobs) - tf.exp(pred_logprobs)), 0)
+                    step_loss = tf.maximum(self.margin - (ground_truth_logprobs - pred_logprobs), 0)
                     bso_losses.append(step_loss)
                     debug_vars.append(tf.reduce_sum(partial_target_weights, 1))
 
