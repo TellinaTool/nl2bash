@@ -14,6 +14,11 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("epochs_per_checkpoint", 1,
                                 "How many training steps to do per checkpoint.")
 
+    tf.app.flags.DEFINE_boolean("cross_valid", False,
+                                "Set to True for cross validation.")
+    tf.app.flags.DEFINE_integer("num_folds", 5,
+                                "Number of folds in cross validation.")
+
     tf.app.flags.DEFINE_boolean("grid_search", False,
                                 "Set to True for grid search.")
     tf.app.flags.DEFINE_string("tuning", "initialization,output_keep_prob,num_samples",
