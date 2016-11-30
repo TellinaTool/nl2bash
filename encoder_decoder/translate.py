@@ -244,6 +244,7 @@ def cross_validation(train_set):
         train(cv_train_set, cv_dev_set)
         tf.reset_default_graph()
         model_sig = decode(cv_dev_set, construct_model_dir=False)
+        tf.reset_default_graph()
         match_score, _, dist, _ = \
             eval(cv_dev_set, model_sig, verbose=False)
         match_scores.append(match_score)
