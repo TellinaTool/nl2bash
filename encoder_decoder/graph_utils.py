@@ -105,11 +105,9 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
                   .format(pretrain_ckpt.model_checkpoint_path))
             model.saver.restore(session, pretrain_ckpt.model_checkpoint_path)
             session.run(model.learning_rate.assign(tf.constant(FLAGS.learning_rate)))
-            session.run(model.learning_rate.eval())
         else:
             print("Created model with fresh parameters.")
             session.run(tf.initialize_all_variables())
-
 
     return model, global_epochs
 
