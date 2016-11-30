@@ -535,9 +535,9 @@ def fold_split_bucket(data_set, num_folds):
     # randomly split each bucket
     num_buckets = len(data_set)
     data_folds = [[] for _ in xrange(num_folds)]
-    for bucket_id in num_buckets:
+    for bucket_id in xrange(num_buckets):
         bucket_data_folds = fold_split(data_set[bucket_id], num_folds)
-        for fold_id in num_folds:
+        for fold_id in xrange(num_folds):
             data_folds[bucket_id].append(bucket_data_folds[fold_id])
     return data_folds
 
