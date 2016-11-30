@@ -170,8 +170,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.gradient_norms = norm
                 self.updates = opt.apply_gradients(zip(clipped_gradients, params))
 
-        for var in tf.all_variables():
-            print(var.name)
         self.saver = tf.train.Saver(tf.all_variables())
 
 
@@ -464,6 +462,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = decoder_inputs[l]
             input_feed[self.target_weights[l].name] = target_weights[l]
+            # print("target weight {}: {}".format(l, target_weights[l]))
         if self.use_copy:
             for l in xrange(encoder_size):
                 input_feed[self.original_encoder_inputs[l].name] = original_encoder_inputs[l]
@@ -485,6 +484,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed = [self.updates[bucket_id],         # Update Op that does SGD.
                                self.gradient_norms[bucket_id],  # Gradient norm.
                                self.losses[bucket_id]]          # Loss for this batch.
+                output_feed.append(self.debug_vars[bucket_id])
         else:
             if bucket_id == -1:
                 output_feed = [self.output_symbols]             # Loss for this batch.
@@ -503,7 +503,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed.append(self.attn_masks[bucket_id])
 
         outputs = session.run(output_feed, input_feed)
-        assert(np.count_nonzero(output_feed[3]) == self.batch_size)
+        for l in xrange(len(output_feed[3])):
+            # print("{}: {}".format(l, outputs[3][l]))
+            assert(np.count_nonzero(outputs[3][l]) == self.batch_size)
 
         if not forward_only:
             # Gradient norm, loss, no outputs, [attention_masks]
