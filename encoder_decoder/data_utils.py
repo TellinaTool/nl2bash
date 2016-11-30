@@ -530,9 +530,21 @@ def read_data(source_txt_path, target_txt_path, source_path, target_path,
     return data_set
 
 
+def fold_split_bucket(data_set, num_folds):
+    # if a dataset is grouped by buckets
+    # randomly split each bucket
+    num_buckets = len(data_set)
+    data_folds = [[] for _ in xrange(num_folds)]
+    for bucket_id in num_buckets:
+        bucket_data_folds = fold_split(data_set[bucket_id], num_folds)
+        for fold_id in num_folds:
+            data_folds[bucket_id].append(bucket_data_folds[fold_id])
+    return data_folds
+
+
 def fold_split(data_set, num_folds):
     # randomly split a dataset for cross validation
-    data_folds = [[] for i in xrange(num_folds)]
+    data_folds = [[] for _ in xrange(num_folds)]
     num_rep = int(len(data_set) / num_folds) + 1
     fold_ids = range(num_folds) * num_rep
     random.shuffle(fold_ids)
