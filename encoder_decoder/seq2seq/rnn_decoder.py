@@ -140,10 +140,13 @@ class RNNDecoder(decoder.Decoder):
                     # compute the loss in current step 
                     # (notice that one batch has only one loss, hence the notion of "compressed")
                     search_complete = tf.equal(target_weights[i+1], 0)
-                    gt_logprobs.append(tf.nn.embedding_lookup(tf.reshape(projected_output, [-1]),
-                                       tf.range(self.batch_size) * self.target_vocab_size +
-                                       partial_target_symbols[:, -1]
-                                   ))
+                    gt_logprobs.append(
+                        tf.nn.embedding_lookup(
+                            tf.reshape(projected_output, [-1]),
+                            tf.range(self.batch_size) * self.target_vocab_size +
+                                partial_target_symbols[:, -1]
+                        )
+                    )
                     # length normalization
                     ground_truth_logprobs = tf.div(
                                                 tf.reduce_sum(
@@ -163,10 +166,8 @@ class RNNDecoder(decoder.Decoder):
                     pred_logprobs = tf.select(search_complete, beam_logprobs[:, 0], beam_logprobs[:, -1])
                     step_loss = tf.maximum(self.margin - (tf.exp(ground_truth_logprobs) - tf.exp(pred_logprobs)), 0)
                     bso_losses.append(step_loss)
-                    debug_vars.append(tf.reduce_sum(
-                                                    partial_target_weights,
-                                                    1
-                                            ))
+                    debug_vars.append(tf.reduce_sum(partial_target_weights, 1))
+
                     # resume using reference search states if ground_truth fell off beam
                     # check if ground truth has fell off the beam
                     # [self.batch_size*self.beam_size]
