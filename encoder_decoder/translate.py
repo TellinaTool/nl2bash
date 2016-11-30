@@ -233,11 +233,9 @@ def cross_validation(train_set):
     dists = []
 
     # divide training data into N-folds
-    train_folds = data_utils.fold_split(train_set, num_folds)
+    train_folds = data_utils.fold_split_bucket(train_set, num_folds)
     for fold_id in xrange(num_folds):
-        print()
-        print("Fold {}".format(fold_id))
-        print()
+        print("\nFold {}\n".format(fold_id))
         cv_train_set = []
         for i in xrange(num_folds):
             if i != fold_id:
