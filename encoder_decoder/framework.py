@@ -203,7 +203,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                                    self.beam_size,
                                                    len(decoder_inputs),
                                                    self.use_attention,
-                                                   self.alpha)
+                                                   self.alpha,
+                                                   locally_normalized=(
+                                                       self.training_algorithm != "bso"
+                                                   ))
         else:
             beam_decoder = None
 
