@@ -166,8 +166,14 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         full_size = self.batch_size * self.beam_size
         self.seq_len = tf.constant(1e-10, shape=[full_size], dtype=tf.float32)
+        # [self.batch_size*self.beam_size, self.num_classes]
+        # [- - _STOP - - - ]
+        # [-100 -100 0 -100 -100 -100]
+        # [-100 -100 0 -100 -100 -100]
+        # [-100 -100 0 -100 -100 -100]
+        # [-100 -100 0 -100 -100 -100]
         self._done_mask = tf.reshape(
-            tf.cast(tf.not_equal(tf.range(self.num_classes), self.stop_token), tf.float32) * -1e2,
+            tf.cast(tf.not_equal(tf.range(self.num_classes), self.stop_token), tf.float32) * -1e18,
             [1, self.num_classes]
         )
         self._done_mask = tf.tile(self._done_mask, [full_size, 1])
@@ -188,6 +194,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         input_symbols = past_beam_symbols[:, -1]
         # [batch_size * beam_size]
+        # - 0
+        # _STOP 1
+        # - 0
+        # - 0
         stop_mask = tf.cast(tf.equal(input_symbols, self.stop_token), tf.float32)
 
         cell_inputs = inputs
@@ -204,11 +214,21 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         if self.locally_normalized:
             logprobs = tf.nn.log_softmax(tf.matmul(cell_outputs, W) + b)
         else:
-            logprobs = tf.nn.log(tf.matmul(cell_outputs, W) + b)
+            logprobs = tf.matmul(cell_outputs, W) + b
         # set the probabilities of all other symbols following the stop symbol
         # to a very small number
         stop_mask_2d = tf.expand_dims(stop_mask, 1)
+        # [- - _STOP - - - ]
+        # [0 0 0 0 0 0]
+        # [-100 -100 0 -100 -100 -100]
+        # [0 0 0 0 0 0]
+        # [0 0 0 0 0 0]
         done_only_mask = tf.mul(stop_mask_2d, self._done_mask)
+        # [- - _STOP - - - ]
+        # [1 1 1 1 1 1]
+        # [1 1 0 1 1 1]
+        # [1 1 1 1 1 1]
+        # [1 1 1 1 1 1]
         zero_done_mask = tf.ones([full_size, self.num_classes]) - \
                          tf.mul(stop_mask_2d, tf.cast(tf.equal(self._done_mask, 0), tf.float32))
         logprobs = tf.add(logprobs, done_only_mask)
