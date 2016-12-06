@@ -16,7 +16,7 @@ if sys.version_info > (3, 0):
 
 import re
 
-from bashlex import nast, normalizer
+from bashlex import bash, nast, normalizer
 from data import gazetteer
 from data.spellcheck import spell_check as spc
 
@@ -42,6 +42,15 @@ def is_english_word(word):
 
 def is_stopword(w):
     return w in gazetteer.ENGLISH_STOPWORDS
+
+def is_simple(ast):
+    # Check if tree contains only high-frequency commands
+    if ast.kind == "headcommand" and not ast.value in bash.head_commands:
+        return False
+    for child in ast.children:
+        if not is_simple(child):
+            return False
+    return True
 
 def char_tokenizer(sentence, base_tokenizer=None, normalize_digits=False,
                    normalize_long_pattern=False):
