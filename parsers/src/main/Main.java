@@ -37,6 +37,9 @@ public class Main {
             Files.lines(Paths.get(args[0])).forEach(x -> System.out.println(CmdParserInterface.parse(x)));
         } else if (args[0].equals("-test")) {
             testParseCmd();
+        } else if (args[0].equals("-gen-primitive-cmd-json")) {
+            System.out.println("???");
+            //ManParserInterface.parseSynopsisBNF(args[2]);
         }
 
         //ManParserInterface.parseGrammarFile(Config.SynopsisGrammar);
