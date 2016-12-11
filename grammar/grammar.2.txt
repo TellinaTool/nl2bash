@@ -1,13 +1,11 @@
 type
-		File        (file, source_file, target_file, xfile, file1, file2, filename, progfile, command_file, zipfile,
-		             archive-file, reference)
+		File        (file, source_file, target_file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, reference)
 		Directory   (directory, exdir, dir)
 		Path        (path)
 		Permission  (permmode, MINUSpermmode, PLUSpermmode)
 		Date        (date)
 		Prog        (command, prog, program, utility, varEQvalue)
-		Regex       (name, gname, uname, eofstr, replstr, string, extension, option, options, MINUSflags, PLUSflags,
-		             flags, type, findexp, format, owner, group, first, last, suffixes, pattern, fs, mask)
+		Regex       (name, gname, uname, eofstr, replstr, string, extension, option, options, MINUSflags, PLUSflags, flags, type, findexp, format, owner, group, first, last, suffixes, pattern, fs, mask)
 		Number      (n, num, number, replacements, maxprocs, incr, bytes, count, depth)
 		Time        (time, date)
 		Size        (size, blocksize)
