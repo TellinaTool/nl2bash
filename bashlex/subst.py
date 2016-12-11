@@ -8,7 +8,7 @@ from bashlex import bast, flags, tokenizer, errors
 
 def _recursiveparse(parserobj, base, sindex, tokenizerargs=None):
     # TODO: fix this hack that prevents mutual import
-    import bparser
+    from bashlex import bparser
 
     tok = parserobj.tok
 

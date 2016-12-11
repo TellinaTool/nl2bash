@@ -26,7 +26,7 @@ import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlex import bash, data_tools, normalizer
+from bashlex import data_tools, normalizer
 
 import numpy as np
 import random
@@ -69,16 +69,6 @@ _DIGIT_RE = re.compile(br"\d")
 
 def is_option(word):
     return word.startswith('-') or word.startswith("FLAG_")
-
-
-def is_simple(ast):
-    # Check if tree contains only high-frequency commands
-    if ast.kind == "headcommand" and not ast.value in bash.head_commands:
-        return False
-    for child in ast.children:
-        if not is_simple(child):
-            return False
-    return True
 
 
 def clean_dir(dir):
@@ -683,7 +673,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
             ast = data_tools.bash_parser(cm)
             if ast:
-                if is_simple(ast):
+                if data_tools.is_simple(ast):
                     nl_chars = data_tools.char_tokenizer(nl, data_tools.basic_tokenizer,
                                                          normalize_digits=False,
                                                          normalize_long_pattern=False)

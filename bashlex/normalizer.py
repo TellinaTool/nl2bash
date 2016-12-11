@@ -161,13 +161,13 @@ def special_command_normalization(cmd):
     cmd = cmd.replace(" -chour +1 ", " -cmin 60 ")
 
     ## remove shell character
-    if cmd.startswith("\$ "):
+    if cmd.startswith("$ "):
         cmd = re.sub("^\$ ", '', cmd)
-    if cmd.startswith("\# "):
+    if cmd.startswith("# "):
         cmd = re.sub("^\# ", '', cmd)
-    if cmd.startswith("\$find "):
+    if cmd.startswith("$find "):
         cmd = re.sub("^\$find ", "find ", cmd)
-    if cmd.startswith("\#find "):
+    if cmd.startswith("#find "):
         cmd = re.sub("^\#find ", "find ", cmd)
 
     ## the first argument of "tar" is always interpreted as an option
