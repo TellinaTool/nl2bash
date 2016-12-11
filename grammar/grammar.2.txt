@@ -1,12 +1,16 @@
 type
-		File (f, file, source_file, target_file, xfile, file1, file2, filename, directory, exdir, dir, path, progfile, command_file, zipfile, archive-file)
-		Number (n, num, number, replacements, maxprocs, incr, bytes, count, mask, depth, MINUSa, PLUSa, EQUALa, nmin, a)
-		Permission (permmode, MINUSpermmode, PLUSpermmode)
-		String (name, gname, eofstr, replstr, string, command, extension, option, uname, owner, MINUSflags, PLUSflags, flags, type, t, findexp, tar_format, options, program, format, varEQvalue, prog, owner, first, last, suffixes, list, pattern, fs, argument, utility)
-		Time (time, date)
-		Size (size, blocksize)
-		Date (date)
-		TarFormat (tar_format)
+		File        (file, source_file, target_file, xfile, file1, file2, filename, progfile, command_file, zipfile,
+		             archive-file, reference)
+		Directory   (directory, exdir, dir)
+		Path        (path)
+		Permission  (permmode, MINUSpermmode, PLUSpermmode)
+		Date        (date)
+		Prog        (command, prog, program, utility, varEQvalue)
+		Regex       (name, gname, uname, eofstr, replstr, string, extension, option, options, MINUSflags, PLUSflags,
+		             flags, type, findexp, format, owner, group, first, last, suffixes, pattern, fs, mask)
+		Number      (n, num, number, replacements, maxprocs, incr, bytes, count, depth)
+		Time        (time, date)
+		Size        (size, blocksize)
 
 constants
 		SEMICOLON ;
@@ -283,7 +287,7 @@ find_primitive_exp_op44  :=
 find_primitive_exp_op45  := 
 		-newer file
 find_primitive_exp_op46  := 
-		-newerXY file
+		-newerXY reference
 find_primitive_exp_op47  := 
 		-nogroup
 find_primitive_exp_op48  := 
@@ -334,3 +338,9 @@ find_primitive_exp_op70  :=
 		-xattr
 find_primitive_exp_op71  := 
 		-xattrname name
+
+X :=
+        a | B | c | m
+
+Y :=
+        a | B | c | m | t
