@@ -15,7 +15,7 @@ public class ManParserInterfaceTest {
     @Test
     public void test() {
         try {
-            ManParserInterface.parseSynopsisBNF("../grammar/grammar.2.txt");
+            ManParserInterface.parseSynopsisBNF("../grammar/grammar.txt");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParseException e) {
