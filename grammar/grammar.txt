@@ -1,18 +1,21 @@
 type
-		File (f, file, source_file, target_file, xfile, file1, file2, filename, directory, exdir, dir, path, progfile, command_file, zipfile, archive-file)
-		Number (n, num, number, replacements, maxprocs, incr, bytes, count, mask, depth, MINUSa, PLUSa, EQUALa, nmin, a)
-		Permission (permmode, MINUSpermmode, PLUSpermmode)
-		String (name, gname, eofstr, replstr, string, command, extension, option, uname, owner, MINUSflags, PLUSflags, flags, type, t, findexp, tar_format, options, program, format, varEQvalue, prog, owner, first, last, suffixes, list, pattern, fs, argument, utility)
-		Time (time, date)
-		Size (size, blocksize)
-		Date (date)
-		TarFormat (tar_format)
+		File        (file, source_file, target_file, xfile, file1, file2, filename, progfile, command_file, zipfile,
+		             archive-file, reference)
+		Directory   (directory, exdir, dir)
+		Path        (path)
+		Permission  (permmode, MINUSpermmode, PLUSpermmode)
+		Date        (date)
+		Prog        (command, prog, program, utility, varEQvalue)
+		Regex       (name, gname, uname, eofstr, replstr, string, extension, option, options, MINUSflags, PLUSflags,
+		             flags, type, findexp, format, owner, group, first, last, suffixes, pattern, fs, mask)
+		Number      (n, num, number, replacements, maxprocs, incr, bytes, count, depth)
+		Time        (time, date)
+		Size        (size, blocksize)
 
 constants
 		SEMICOLON ;
 		PLUS +
 		EXCLAMATION !
-		BRACKETS {}
 		ACE ACE
 		LB (
 		RB )
@@ -20,9 +23,9 @@ constants
 
 PrimitiveCmd ::=
 
-		find [-H | -L | -P] [-EXdsx] [-f path] path ... [ -true ] [ -false ] [ -not findexp ] [ -Bmin nmin ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin nmin ] [ -anewer file ] [-atime time] [ -cmin nmin ] [ -cnewer file ] [ -ctime nmin ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -exec utility [ argument ... ] SEMICOLON ] [ -exec utility [ argument ...] BRACKETS ...] [ -execdir utility [ argument ... ] SEMICOLON ] [ -execdir utility [ argument ... ] ] [ -flags MINUSflags] [-flags PLUSflags] [-flags flags] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -newerXY file ] [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok utility [ argument ... ] SEMICOLON] [ -okdir utility [ argument ...] SEMICOLON ] [ -path pattern ] [ -perm permmode ] [ -perm MINUSpermmode ] [ -perm PLUSpermmode ] [ -print ] [ -print0 ] [-printf pattern] [ -prune ] [ -regex pattern ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [ -and ] [ -or ] [ -not ] [ EXCLAMATION ]
+		find [-H | -L | -P] [-EXdsx] [-f path] path ... [ -true ] [ -false ] [ -not findexp ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime n ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -exec utility [ argument ... ] SEMICOLON ] [ -exec utility [ argument ...] BRACKETS ...] [ -execdir utility [ argument ... ] SEMICOLON ] [ -execdir utility [ argument ... ] ] [ -flags MINUSflags] [-flags PLUSflags] [-flags flags] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -newerXY reference ] [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok utility [ argument ... ] SEMICOLON] [ -okdir utility [ argument ...] SEMICOLON ] [ -path pattern ] [ -perm permmode ] [ -perm MINUSpermmode ] [ -perm PLUSpermmode ] [ -print ] [ -print0 ] [-printf pattern] [ -prune ] [ -regex pattern ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [ -and ] [ -or ] [ -not ] [ EXCLAMATION ]
 
-		find [-H | -L | -P] [-EXdsx] -f path [path ...] [ -true ] [ -false ] [ -not findexp ] [ -Bmin nmin ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin nmin ] [ -anewer file ] [-atime time] [ -cmin nmin ] [ -cnewer file ] [ -ctime nmin ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -exec utility [ argument ... ] SEMICOLON ] [ -exec utility [ argument ...] BRACKETS ...] [ -execdir utility [ argument ... ] SEMICOLON ] [ -execdir utility [ argument ... ] ] [ -flags MINUSflags] [-flags PLUSflags] [-flags flags] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -newerXY file ] [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok utility [ argument ... ] SEMICOLON] [ -okdir utility [ argument ...] SEMICOLON ] [ -path pattern ] [ -perm permmode ] [ -perm MINUSpermmode ] [ -perm PLUSpermmode ] [ -print ] [ -print0 ] [-printf pattern] [ -prune ] [ -regex pattern ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [ -and ] [ -or ] [ -not ] [ EXCLAMATION ]
+		find [-H | -L | -P] [-EXdsx] -f path [path ...] [ -true ] [ -false ] [ -not findexp ] [ -Bmin n ] [ -Bnewer file ] [ -Btime time ] [ -acl ] [ -amin n ] [ -anewer file ] [-atime time] [ -cmin n ] [ -cnewer file ] [ -ctime n ] [ -d ] [ -daystart ] [ -delete ] [ -depth ] [ -depth n ] [ -empty ] [ -exec utility [ argument ... ] SEMICOLON ] [ -exec utility [ argument ...] BRACKETS ...] [ -execdir utility [ argument ... ] SEMICOLON ] [ -execdir utility [ argument ... ] ] [ -flags MINUSflags] [-flags PLUSflags] [-flags flags] [ -fstype type ] [ -gid gname ] [ -group gname ] [ -ignore_readdir_race ] [ -ilname pattern ] [ -ilname pattern ] [ -iname pattern ] [ -inum n ] [ -ipath pattern ] [ -iregex pattern ] [ -iwholename pattern ] [ -links n ] [ -lname pattern ] [ -ls ] [ -maxdepth n ] [ -mindepth n ] [ -mmin n ] [ -mnewer file ] [ -mount ] [ -mtime time ] [ -name pattern ] [ -newer file ] [ -newerXY reference ] [ -nogroup ] [ -noignore_readdir_race ] [ -noleaf ] [ -nouser ] [ -ok utility [ argument ... ] SEMICOLON] [ -okdir utility [ argument ...] SEMICOLON ] [ -path pattern ] [ -perm permmode ] [ -perm MINUSpermmode ] [ -perm PLUSpermmode ] [ -print ] [ -print0 ] [-printf pattern] [ -prune ] [ -regex pattern ] [ -samefile name ] [ -size size ] [ -type t ] [ -xtype t ] [ -uid uname ] [ -user uname ] [ -wholename pattern ] [ -xattr ] [ -xattrname name ] [ -and ] [ -or ] [ -not ] [ EXCLAMATION ]
 
 		mv [-f | -i | -n] [-v] source_file target_file
 
@@ -33,16 +36,16 @@ PrimitiveCmd ::=
 		grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
 
 		egrep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
-				
+
 		cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] source_file target_file
 				
 		cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] source_file ... directory
 				
 		ls [-ABCFGHLOPRSTUW@abcdefghiklmnopqrstuwx1] [file ...]
 
-		tar -c [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format tar_format] [ -f file] [ -H] [ -h] [ -I] [ --include pattern] [ -j] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [ -y] [ -z] [ -Z] [[file ...] | [directory ...]]
+		tar -c [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format format] [ -f file] [ -H] [ -h] [ -I] [ --include pattern] [ -j] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [ -y] [ -z] [ -Z] [[file ...] | [directory ...]]
 		 
-		tar -r -f archive-file [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format tar_format] [ -f file] [ -H] [ -h] [ -I] [ --include pattern] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [[file ...] | [directory ...]]
+		tar -r -f archive-file [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format format] [ -f file] [ -H] [ -h] [ -I] [ --include pattern] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [[file ...] | [directory ...]]
 		 
 		tar -u -f archive-file [ -b blocksize] [ -C directory] [ --exclude pattern] [ --format format] [ -f file] [ -I] [ --include pattern] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [[file ...] | [directory ...]]
 		 
@@ -72,7 +75,7 @@ PrimitiveCmd ::=
 
 		chown [-fhv] [-R [-H | -L | -P]] owner file ...
 
-		chown [-fhv] [-R [-H | -L | -P]] group file ...
+		chgrp [-fhv] [-R [-H | -L | -P]] group file ...
 
 		head [ [-n count] | [-c bytes]] [file ...]
 
@@ -84,7 +87,7 @@ PrimitiveCmd ::=
 
 		cat [-benstuv] [file ...]
 
-		zip  [-aABcdDeEfFghjklLmoqrRSTuvVwXyz] [-AT] [-EXCLAMATION] [-DOLLAR]  [--longoption]  [-b path] [-n suffixes] [-t date] [-tt date] [zipfile [file ...]]  [-xi list]
+		zip  [-aABcdDeEfFghjklLmoqrRSTuvVwXyz] [-AT] [-EXCLAMATION] [-DOLLAR]  [--longoption]  [-b path] [-n suffixes] [-t date] [-tt date] [zipfile [file ...]]  [-xi file ...]
 
 		unzip [-Z] [-cflptTuvzabjnoqsCKLMVWX] file [file ...]  [-x xfile ...] [-d exdir]
 
