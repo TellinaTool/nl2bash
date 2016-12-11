@@ -40,7 +40,6 @@ public class Main {
         }
 
         //ManParserInterface.parseGrammarFile(Config.SynopsisGrammar);
-        //genG4FromSynopsis();
         //testParseCmd();
     }
 

@@ -21,11 +21,11 @@ import java.util.stream.Collectors;
 
 public class ManParserInterface {
 
-    public static void parseSynopsisBNF() throws IOException, ParseException {
+    public static void parseSynopsisBNF(String filePath) throws IOException, ParseException {
 
         // summarizing options of the file tar.1.txt
 
-        List<Cmd.Command> commands = ManParserInterface.parseGrammarFile(Config.SynopsisGrammar).commandsGrammar;
+        List<Cmd.Command> commands = ManParserInterface.parseGrammarFile(filePath).commandsGrammar;
 
         for (Cmd.Command cmd : commands) {
             System.out.println("=== \n" + cmd.toString());
