@@ -179,7 +179,9 @@ class ArgumentNode(Node):
     def is_open_vocab(self):
         if self.is_reserved():
             return False
-        if self.arg_type == "FileType":
+        if self.arg_type == "Type":
+            return False
+        if self.arg_type == "Option":
             return False
         # if self.arg_type == "Size":
         #     return False
