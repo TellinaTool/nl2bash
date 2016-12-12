@@ -1,7 +1,7 @@
 type
-		File        (file, source_file, target_file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, reference)
+		File        (file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, reference)
 		Directory   (directory, exdir, dir)
-		Path        (path)
+		Path        (path, source_file, target_file)
 		Permission  (permmode, MINUSpermmode, PLUSpermmode)
 		DateTime    (date, reference)
 		Prog        (command, prog, program, utility, varEQvalue)
