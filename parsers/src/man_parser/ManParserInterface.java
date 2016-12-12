@@ -21,14 +21,14 @@ import java.util.stream.Collectors;
 
 public class ManParserInterface {
 
-    public static void parseSynopsisBNF(String filePath) throws IOException, ParseException {
+    public static void parseSynopsisBNF() throws IOException, ParseException {
 
         // summarizing options of the file tar.1.txt
 
-        List<Cmd.Command> commands = ManParserInterface.parseGrammarFile(filePath).commandsGrammar;
+        List<Cmd.Command> commands = ManParserInterface.parseGrammarFile(Config.SynopsisGrammar).commandsGrammar;
 
         for (Cmd.Command cmd : commands) {
-            System.out.println("=== \n" + cmd.toString());
+         //   System.out.println("=== \n" + cmd.toString());
         }
 
         ObjectMapper mapper = new ObjectMapper();
@@ -99,7 +99,6 @@ public class ManParserInterface {
 
         int i = 0;
         while (i < lines.size()) {
-            System.out.println("");
             if (lines.get(i).startsWith("PrimitiveCmd")) {
                 i ++;
                 int l = i;
@@ -189,7 +188,6 @@ public class ManParserInterface {
     public static List<Cmd.Command> parsePrimitiveGrammar(List<String> rawCommands) throws ParseException {
         List<Cmd.Command> commands = new ArrayList<>();
         for (String s : rawCommands) {
-            System.out.println(s);
             String name = s.trim().split("\\s+")[0];
             String raw = s.substring(s.indexOf(name) + name.length()).trim();
             commands.add(new Cmd.Command(name, parseSynopsisInstance(raw)));
@@ -200,7 +198,6 @@ public class ManParserInterface {
     public static List<Cmd.CmdOp> parseNonTerminalContent(List<String> cmdOpContents) throws ParseException {
         List<Cmd.CmdOp> options = new ArrayList<>();
         for (String s : cmdOpContents) {
-            System.out.println(s);
             String raw = s.trim();
             options.add(parseSynopsisInstance(raw));
         }
@@ -282,7 +279,6 @@ public class ManParserInterface {
             i ++;
         }
 
-        System.out.println(manpage.toString());
         return manpage;
     }
 

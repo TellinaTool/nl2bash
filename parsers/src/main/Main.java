@@ -21,11 +21,10 @@ public class Main {
         if (args.length < 1) {
             System.out.println("usage: java -jar command_parser -parse command");
             System.out.println("       java -jar command_parser -parse_file filename");
+            System.out.println("       java -jar command_parser -gen-primitive-cmd-json grammar_file optionword");
             //System.out.println("       java -jar command_parser -make_grammar grammar_file");
             return;
         }
-
-        args[0] = "-test";
 
         if (args[0].equals("-make_grammar")) {
             //Config.SynopsisGrammar = args[1];
@@ -38,8 +37,9 @@ public class Main {
         } else if (args[0].equals("-test")) {
             testParseCmd();
         } else if (args[0].equals("-gen-primitive-cmd-json")) {
-            System.out.println("???");
-            //ManParserInterface.parseSynopsisBNF(args[2]);
+            Config.OptionWordDictionary = args[2];
+            Config.SynopsisGrammar = args[1];
+            ManParserInterface.parseSynopsisBNF();
         }
 
         //ManParserInterface.parseGrammarFile(Config.SynopsisGrammar);
