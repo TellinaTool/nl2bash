@@ -67,7 +67,7 @@ def make_grammar_from_options(x, command_table, optional=False, ):
     arg_table = command_table["arguments"]
 
     if x["type"] == "compound_options":
-        if x["commands"][0]["type"] == "flag_option" and \
+        if x["commands"][0]["type"] in ["flag_option", "long_flag_option"] and \
             (len(x) == 2 and x["commands"][1]["type"] == "argument_option"):
                 flag_name = "-" + x["commands"][0]["flag_name"]
                 if not flag_name in flag_table:
