@@ -38,7 +38,7 @@ _V_NO_EXPAND = "<V_NO_EXPAND>"
 _DIGIT_RE = re.compile(r"\d+")
 
 man_lookup = ManPageLookUp([os.path.join(
-    os.path.dirname(__file__), "..", "grammar", "primitive_cmds_grammar_v0.1.json")])
+    os.path.dirname(__file__), "..", "grammar", "primitive_cmds_grammar.json")])
 
 def cmd_arg_type_check(word, arg_status):
     arg_types = []
