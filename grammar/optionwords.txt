@@ -1,6 +1,5 @@
 -true
 -false
--not findexp
 -Bmin n
 -Bnewer file
 -Btime n
@@ -11,6 +10,7 @@
 -cmin n
 -cnewer file
 -ctime n
+-daystart
 -exec
 -execdir
 -ok
@@ -44,6 +44,26 @@
 -name pattern
 -newer file
 -newerXY file
+-neweraa file
+-newerBa file
+-newerca file
+-newerma file
+-neweraB file
+-newerBB file
+-newercB file
+-newermB file
+-newerac file
+-newerBc file
+-newercc file
+-newermm file
+-neweram file
+-newerBm file
+-newercm file
+-newermm file
+-newerat reference
+-newerBt reference
+-newerct reference
+-newermt reference
 -nogroup
 -noignore_readdir_race
 -noleaf
@@ -54,6 +74,7 @@
 -print0
 -prune
 -regex pattern
+-regextype type
 -samefile name
 -size n
 -type t
@@ -63,6 +84,7 @@
 -xattr
 -xattrname name
 -xi
+-xtype t
 -and
 -or
 -not
@@ -73,5 +95,3 @@
 -TWO
 -THREE
 -AT
--daystart
--xtype
