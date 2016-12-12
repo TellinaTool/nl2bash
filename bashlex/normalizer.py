@@ -38,7 +38,7 @@ _V_NO_EXPAND = "<V_NO_EXPAND>"
 _DIGIT_RE = re.compile(r"\d+")
 
 man_lookup = ManPageLookUp([os.path.join(
-    os.path.dirname(__file__), "..", "grammar", "primitive_cmds_grammar.json")])
+    os.path.dirname(__file__), "..", "grammar", "primitive_cmds_grammar_v0.1.json")])
 
 def cmd_arg_type_check(word, arg_status):
     arg_types = []
@@ -130,6 +130,8 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("-mitime", "-mtime")
     cmd = cmd.replace("-dev", "-xdev")
     cmd = cmd.replace("-regex-type", "-regextype")
+    cmd = cmd.replace(" ( ", " \\( ")
+    cmd = cmd.replace(" ) ", " \\) ")
     cmd = cmd.replace("-\\(", "\\(")
     cmd = cmd.replace("-\\)", "\\)")
     cmd = cmd.replace("\"\\)", " \\)")
