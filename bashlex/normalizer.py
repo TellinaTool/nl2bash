@@ -534,7 +534,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                             attach_point_info = \
                                 (norm_node, ["flag", "argument"], None)
                         elif node_kind == "argument":
-                            if possible_arg_types and "Utility" in possible_arg_types:
+                            if possible_arg_types and "Prog" in possible_arg_types:
                                 # embedded command leaded by
                                 # ["-exec", "-execdir", "-ok", "-okdir"]
                                 new_command_node = bast.node(kind="command",
@@ -594,7 +594,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 attach_flag(child, attach_point_info)
                         else:
                             # child is an argument
-                            if expecting("Utility"):
+                            if expecting("Prog"):
                                 # embedded command leaded by
                                 # ["sh", "csh", "ksh", "tcsh",
                                 #  "zsh", "bash", "exec", "xargs"]
@@ -749,9 +749,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         repl_str.value = "{}"
                         repl_str.arg_type = "ReservedWord"
             # add a replace str if not present
-            if not has_repl_str:
-                utility = head_command.get_subcommand()
-                assert(utility is not None)
+            utility = head_command.get_subcommand()
+            if not has_repl_str and utility is not None:
                 for i in xrange(head_command.get_num_of_children()):
                     if head_command.children[i].is_headcommand():
                         repl_str_flag_node = FlagNode("-I")
@@ -902,6 +901,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         return None
     except AttributeError:
         print("Cannot parse: %s - AttributeError" % cmd2)
+        # not a bash command
+        return None
+    except AssersionError:
+        print("Cannot parse: %s - AssertionError" % cmd2)
         # not a bash command
         return None
 
