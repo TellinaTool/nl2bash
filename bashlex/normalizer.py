@@ -1139,7 +1139,6 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                 tokens.append("\\(")
                 for i in xrange(len(node.children)-1):
                     tokens += to_tokens_fun(node.children[i])
-                    tokens.append(node.value)
                 tokens += to_tokens_fun(node.children[-1])
                 tokens.append("\\)")
         elif node.kind == "nt":
