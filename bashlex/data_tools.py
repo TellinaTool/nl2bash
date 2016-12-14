@@ -256,7 +256,7 @@ def ast2command(node, loose_constraints=False, ignore_flag_order=False):
 def ast2template(node, loose_constraints=False, arg_type_only=True):
     # convert a bash AST to a template that contains only reserved words and argument types
     # flags are alphabetically ordered
-    tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order=True,
+    tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order=False,
                                   arg_type_only=arg_type_only)
     return ' '.join(tokens) 
 
