@@ -176,6 +176,9 @@ class ArgumentNode(Node):
             label = "CLOSED:::" + label
         return label
 
+    def is_bracket(self):
+        return self.value == "\\(" or self.value == "\\)"
+    
     def is_reserved(self):
         return self.arg_type == "ReservedWord"
 
@@ -241,7 +244,7 @@ class HeadCommandNode(Node):
 
     def add_child(self, child, index=None):
         super(HeadCommandNode, self).add_child(child)
-        if child.is_argument():
+        if child.is_argument() and not child.is_bracket():
             # command argument
             self.arg_dict[""][child.arg_type] += 1
             child.set_index(self.arg_dict[""][child.arg_type])
