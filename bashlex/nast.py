@@ -2,6 +2,8 @@
 Node Classes for the Normalized Bash AST.
 """
 
+import collections
+
 right_associate_unary_logic_operators \
     = set([
         '!',
@@ -166,6 +168,7 @@ class ArgumentNode(Node):
     def __init__(self, value="", arg_type="", parent=None, lsb=None):
         super(ArgumentNode, self).__init__(parent, lsb, "argument", value)
         self.arg_type = arg_type
+        self.index = 1
 
     def get_label(self):
         label = self.kind.upper() + "_" + self.value
@@ -193,9 +196,29 @@ class ArgumentNode(Node):
         #     return False
         return True
 
+    def to_index(self):
+        if self.parent.kind == "headcommand":
+            if self.headcommand.arg_dict[""][self.arg_type] > 1:
+                return True
+            else:
+                return False
+        else:
+            if self.headcommand.arg_dict[self.parent.value][self.arg_type] > 1:
+                return True
+            else:
+                return False
+
+    def set_index(self, ind):
+        self.index = ind
+
 class FlagNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(FlagNode, self).__init__(parent, lsb, "flag", value)
+
+    def add_child(self, child, index=None):
+        super(FlagNode, self).add_child(child)
+        self.headcommand.arg_dict[self.value][child.arg_type] += 1
+        child.set_index(self.headcommand.arg_dict[self.value][child.arg_type])
 
     def get_label(self):
         if self.parent:
@@ -212,6 +235,16 @@ class FlagNode(Node):
 class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(HeadCommandNode, self).__init__(parent, lsb, "headcommand", value)
+        self.arg_dict = collections.defaultdict(
+            collections.defaultdict(int)
+        )
+
+    def add_child(self, child, index=None):
+        super(HeadCommandNode, self).add_child(child)
+        if child.is_argument():
+            # command argument
+            self.arg_dict[""][child.arg_type] += 1
+            child.set_index(self.arg_dict[""][child.arg_type])
 
     def get_flags(self):
         flags = []
