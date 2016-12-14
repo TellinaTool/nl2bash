@@ -1,8 +1,8 @@
 ## Process data:
 
-The following script converts the parallel corpus into format read by the neural network:
+Suppose the parallel corpus is placed at `../data/<dataset_name>`. The following script converts the parallel corpus into format read by the neural network:
 
-`./train.sh --process_data --dataset bash`
+`./train.sh --process_data --dataset <dataset_name>`
 
 ## Train the model:
 
