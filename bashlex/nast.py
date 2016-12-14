@@ -152,7 +152,7 @@ class Node(object):
         if self.kind == "headcommand":
             return self
         ancester = self.parent
-        while ancester:
+        while ancester is not None:
             if ancester.kind == "headcommand":
                 return ancester
             # if not head command is detect, return "root"
