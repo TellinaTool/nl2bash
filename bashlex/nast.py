@@ -218,7 +218,7 @@ class FlagNode(Node):
     def add_child(self, child, index=None):
         super(FlagNode, self).add_child(child)
         if not self.value in self.headcommand.arg_dict:
-            self.headcommand.arg_dict = collections.defaultdict(int)
+            self.headcommand.arg_dict[self.value] = collections.defaultdict(int)
         self.headcommand.arg_dict[self.value][child.arg_type] += 1
         child.set_index(self.headcommand.arg_dict[self.value][child.arg_type])
 
