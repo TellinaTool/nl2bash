@@ -136,6 +136,8 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("-\\(", "\\(")
     cmd = cmd.replace("-\\)", "\\)")
     cmd = cmd.replace("\"\\)", " \\)")
+    cmd = cmd.replace("\\(-", "\\( -")
+    cmd = cmd.replace("e\\)", "e \\)")
     cmd = cmd.replace("-\\!", "!")
     try:
         cmd = cmd.replace("— ", "-")
@@ -164,7 +166,8 @@ def special_command_normalization(cmd):
     cmd = cmd.replace(" exec sed ", " -exec sed ")
     cmd = cmd.replace(" xargs -iname ", " xargs ")
     cmd = cmd.replace(" -chour +1 ", " -cmin 60 ")
-    cmd = cmd.replace(" -target-directory ", " target-directory=")
+    cmd = cmd.replace(" -target-directory ", " --target-directory=")
+    cmd = cmd.replace("- perm", "-perm")
 
     ## remove shell character
     if cmd.startswith("$ "):
@@ -297,7 +300,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
     def normalize_flag(node, current):
         if '=' in node.word:
-            value = node.rsplit('=', 1)[0] + '=Unknown'
+            value = node.word.rsplit('=', 1)[0] + '=Unknown'
         else:
             value = normalize_word(node, recover_quotation)
         norm_node = FlagNode(value=value)
