@@ -53,7 +53,7 @@ def translate_fun(sentence, sess, model, nl_vocab, rev_cm_vocab, FLAGS):
                 model.step(sess, formatted_example, bucket_id, forward_only=True)
     batch_outputs = decode(output_symbols, rev_cm_vocab, FLAGS)
 
-    return batch_outputs, output_logits
+    return batch_outputs[:100], output_logits[:100]
 
 
 def demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS):
@@ -131,10 +131,13 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
                 search_history = outputs
             else:
                 tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
-            if FLAGS.decoding_algorithm == "greedy":
-                batch_outputs.append((tree, cmd, search_history))
-            else:
-                beam_outputs.append((tree, cmd, search_history))
+            if not tree is None:
+                # filter out non-grammatical output
+                temp = data_tools.ast2template(tree, ignore_flag_order=False)
+                if FLAGS.decoding_algorithm == "greedy":
+                    batch_outputs.append((tree, temp, search_history))
+                else:
+                    beam_outputs.append((tree, temp, search_history))
         if FLAGS.decoding_algorithm == "beam_search":
             batch_outputs.append(beam_outputs)
 
