@@ -292,7 +292,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         return norm_node
 
     def normalize_flag(node, current):
-        value = normalize_word(node, recover_quotation)
+        if '=' in node.word:
+            value = node.rsplit('=', 1)[0] + '=Unknown'
+        else:
+            value = normalize_word(node, recover_quotation)
         norm_node = FlagNode(value=value)
         attach_to_tree(norm_node, current)
         return norm_node
@@ -1033,8 +1036,8 @@ def list_to_ast(list, order='dfs'):
     return root
 
 
-def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
-              arg_type_only=False, with_arg_type=False, with_parent=False):
+def to_tokens(node, loose_constraints=False, ignore_flag_order=False, arg_type_only=False,
+              with_arg_type=False, with_parent=False, index_arg = False):
     if not node:
         return []
 
@@ -1043,6 +1046,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
     ato = arg_type_only
     wat = with_arg_type
     wp = with_parent
+    ia = index_arg
 
     def to_tokens_fun(node):
         tokens = []
