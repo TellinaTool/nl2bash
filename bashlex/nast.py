@@ -217,6 +217,8 @@ class FlagNode(Node):
 
     def add_child(self, child, index=None):
         super(FlagNode, self).add_child(child)
+        if not self.value in self.headcommand.arg_dict:
+            self.headcommand.arg_dict = collections.defaultdict(int)
         self.headcommand.arg_dict[self.value][child.arg_type] += 1
         child.set_index(self.headcommand.arg_dict[self.value][child.arg_type])
 
@@ -235,9 +237,7 @@ class FlagNode(Node):
 class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(HeadCommandNode, self).__init__(parent, lsb, "headcommand", value)
-        self.arg_dict = collections.defaultdict(
-            collections.defaultdict(int)
-        )
+        self.arg_dict = {"":collections.defaultdict(int)}
 
     def add_child(self, child, index=None):
         super(HeadCommandNode, self).add_child(child)
