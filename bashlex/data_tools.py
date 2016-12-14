@@ -253,10 +253,10 @@ def ast2command(node, loose_constraints=False, ignore_flag_order=False):
     return ' '.join(normalizer.to_tokens(node, loose_constraints, ignore_flag_order))
 
 
-def ast2template(node, loose_constraints=False, arg_type_only=True):
+def ast2template(node, loose_constraints=False, ignore_flag_order=True, arg_type_only=True):
     # convert a bash AST to a template that contains only reserved words and argument types
     # flags are alphabetically ordered
-    tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order=True,
+    tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order,
                                   arg_type_only=arg_type_only, index_arg=True)
     return ' '.join(tokens) 
 
@@ -341,10 +341,10 @@ def test_bash_parser():
                 print(state)
             tree = list2ast(search_history + ['<PAD>'])
             print()
-            print("Command Template (flags in alphabetical order):")
-            print(ast2template(norm_tree))
-            print("Pruned Command Template (flags in alphabetical order):")
-            print(ast2template(pruned_tree))
+            print("Command Template:")
+            print(ast2template(norm_tree, ignore_flag_order=False))
+            print("Pruned Command Template:")
+            print(ast2template(pruned_tree, ignore_flag_order=False))
             print()
         except EOFError as ex:
             break
@@ -359,7 +359,8 @@ def data_preparation(nl_file, cm_file, outfile):
         for i in xrange(len(nl_list)):
             nl = nl_list[i].decode('utf-8')
             cm = cm_list[i].decode('utf-8')
-            o_f.write(' '.join(basic_tokenizer(nl, normalize_digits=False, normalize_long_pattern=False)).encode('utf-8') + '\n')
+            o_f.write(' '.join(basic_tokenizer(nl, normalize_digits=False,
+                                               normalize_long_pattern=False)).encode('utf-8') + '\n')
             o_f.write(cm.encode('utf-8') + '\n')
             o_f.write('\n')
 
