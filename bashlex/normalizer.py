@@ -1167,7 +1167,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False, arg_type_o
             if wat:
                 token = token + "_" + node.arg_type
             if ia and node.to_index():
-                token = token + "-{num:02d}".format(node.index)
+                token = token + "-{:02d}".format(node.index)
             tokens.append(token)
             if lc:
                 for child in node.children:
