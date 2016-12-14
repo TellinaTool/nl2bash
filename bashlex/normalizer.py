@@ -124,6 +124,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("'{}'", "{}")
     cmd = cmd.replace("\"{}\"", "{}")
     cmd = cmd.replace("-i{}", "-I {}")
+    cmd = cmd.replace("-i%", "-I %")
     cmd = cmd.replace("-I{}", "-I {}")
     cmd = cmd.replace(" [] ", " {} ")
     cmd = cmd.replace("-L.", "-L")
@@ -138,6 +139,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("-\\!", "!")
     try:
         cmd = cmd.replace("— ", "-")
+        cmd = cmd.replace("–", "-")
         cmd = cmd.replace("—", "-")
         cmd = cmd.replace("“", '"')
         cmd = cmd.replace("”", '"')
@@ -147,6 +149,7 @@ def special_command_normalization(cmd):
         cmd = cmd.replace('’', '\'')
     except UnicodeDecodeError:
         cmd = cmd.replace("— ".decode('utf-8'), "-")
+        cmd = cmd.replace("–".decode('utf-8'), "-")
         cmd = cmd.replace("—".decode('utf-8'), "-")
         cmd = cmd.replace("“".decode('utf-8'), '"')
         cmd = cmd.replace("”".decode('utf-8'), '"')
@@ -161,6 +164,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace(" exec sed ", " -exec sed ")
     cmd = cmd.replace(" xargs -iname ", " xargs ")
     cmd = cmd.replace(" -chour +1 ", " -cmin 60 ")
+    cmd = cmd.replace(" -target-directory ", " target-directory=")
 
     ## remove shell character
     if cmd.startswith("$ "):
