@@ -1,4 +1,7 @@
 ## Process data:
+
+The following script converts the parallel corpus into format read by the neural network:
+
 `./train.sh --process_data --dataset bash`
 
 ## Train the model:
