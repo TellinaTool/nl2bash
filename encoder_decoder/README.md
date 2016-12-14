@@ -1,3 +1,8 @@
+## Process data:
+`./train.sh --process_data --dataset bash`
+
 ## Train the model:
 
-`python translate.py --data_dir /path/to/train/set --train_dir /path/to/saved/model --use_attention`
+The following script is a start to run experiments on the bash dataset:
+
+`./bash-attn.sh`
