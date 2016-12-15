@@ -1,5 +1,6 @@
 package cmd_parser;
 
+import javafx.util.Pair;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -11,7 +12,8 @@ import cmd_parser.parser.*;
  */
 public class CmdParserInterface {
 
-    public static String parse(String command) {
+    // result: original pair and the pair after parse.
+    public static Pair<String, String> parse(String command) {
         CommandsLexer lexer = new CommandsLexer(new ANTLRInputStream(command));
         CommonTokenStream tokens = new CommonTokenStream( lexer );
 
@@ -19,24 +21,19 @@ public class CmdParserInterface {
         ParseTree tree = parser.command();
         //printParseTree(tree, 0);
 
-
-
         CmdTreeNode cmdTree = new TreeBuilder(parser).buildCmdTree(tree);
 
         String s = cmdTree.toCommand();
-        //System.out.println(cmdTree.toCommand());
-        cmdTree.sortChildren();
-        //System.out.println(cmdTree.toCommand());
-        //cmdTree.prettyPrint(0);
-        //System.out.println("=================================");
 
+        // sorted version
+        cmdTree.sortChildren();
 
         //return tree.toStringTree(parser);
-        return s + "\n" + cmdTree.toCommand() + "\n";
+        return new Pair<>(s, cmdTree.toCommand());
     }
 
+    // print the parse tree
     public static void printParseTree(ParseTree t, int indent) {
-
         String space = "";
         for (int i = 0; i < indent; i ++)
             space += "\t";
