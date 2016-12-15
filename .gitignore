@@ -65,3 +65,4 @@ baselines/man-parser/.idea/*
 # sensitive data
 baselines/knn/data/*
 data/bash/*
+parsers/test_data/*
