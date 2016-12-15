@@ -130,6 +130,8 @@ def special_command_normalization(cmd):
     cmd = cmd.replace("-mitime", "-mtime")
     cmd = cmd.replace("-dev", "-xdev")
     cmd = cmd.replace("-regex-type", "-regextype")
+    cmd = cmd.replace(" ( ", " \\( ")
+    cmd = cmd.replace(" ) ", " \\) ")
     cmd = cmd.replace("-\\(", "\\(")
     cmd = cmd.replace("-\\)", "\\)")
     cmd = cmd.replace("\"\\)", " \\)")
@@ -290,7 +292,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         return norm_node
 
     def normalize_flag(node, current):
-        value = normalize_word(node, recover_quotation)
+        if '=' in node.word:
+            value = node.rsplit('=', 1)[0] + '=Unknown'
+        else:
+            value = normalize_word(node, recover_quotation)
         norm_node = FlagNode(value=value)
         attach_to_tree(norm_node, current)
         return norm_node
@@ -534,7 +539,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                             attach_point_info = \
                                 (norm_node, ["flag", "argument"], None)
                         elif node_kind == "argument":
-                            if possible_arg_types and "Utility" in possible_arg_types:
+                            if possible_arg_types and "Prog" in possible_arg_types:
                                 # embedded command leaded by
                                 # ["-exec", "-execdir", "-ok", "-okdir"]
                                 new_command_node = bast.node(kind="command",
@@ -594,7 +599,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 attach_flag(child, attach_point_info)
                         else:
                             # child is an argument
-                            if expecting("Utility"):
+                            if expecting("Prog"):
                                 # embedded command leaded by
                                 # ["sh", "csh", "ksh", "tcsh",
                                 #  "zsh", "bash", "exec", "xargs"]
@@ -749,9 +754,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         repl_str.value = "{}"
                         repl_str.arg_type = "ReservedWord"
             # add a replace str if not present
-            if not has_repl_str:
-                utility = head_command.get_subcommand()
-                assert(utility is not None)
+            utility = head_command.get_subcommand()
+            if not has_repl_str and utility is not None:
                 for i in xrange(head_command.get_num_of_children()):
                     if head_command.children[i].is_headcommand():
                         repl_str_flag_node = FlagNode("-I")
@@ -904,6 +908,10 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         print("Cannot parse: %s - AttributeError" % cmd2)
         # not a bash command
         return None
+    except AssersionError:
+        print("Cannot parse: %s - AssertionError" % cmd2)
+        # not a bash command
+        return None
 
     if len(tree) > 1:
         print("Doesn't support command with multiple root nodes: %s" % cmd2)
@@ -1028,8 +1036,8 @@ def list_to_ast(list, order='dfs'):
     return root
 
 
-def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
-              arg_type_only=False, with_arg_type=False, with_parent=False):
+def to_tokens(node, loose_constraints=False, ignore_flag_order=False, arg_type_only=False,
+              with_arg_type=False, with_parent=False, index_arg = False):
     if not node:
         return []
 
@@ -1038,6 +1046,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
     ato = arg_type_only
     wat = with_arg_type
     wp = with_parent
+    ia = index_arg
 
     def to_tokens_fun(node):
         tokens = []
@@ -1134,7 +1143,6 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                 tokens.append("\\(")
                 for i in xrange(len(node.children)-1):
                     tokens += to_tokens_fun(node.children[i])
-                    tokens.append(node.value)
                 tokens += to_tokens_fun(node.children[-1])
                 tokens.append("\\)")
         elif node.kind == "nt":
@@ -1151,6 +1159,8 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                 token = node.value
             if wat:
                 token = token + "_" + node.arg_type
+            if ia and node.to_index():
+                token = token + "-{:02d}".format(node.index)
             tokens.append(token)
             if lc:
                 for child in node.children:
