@@ -7,6 +7,8 @@ class ManPageLookUp(object):
         self.table = load_syntax(path, verbose=False)
 
     def get_arg_types(self, cmd, verbose=False):
+        # format of an argument entry
+        # [semantic_type, is_list, filled]
         try:
             return self.table[cmd]["arguments"]
         except KeyError:

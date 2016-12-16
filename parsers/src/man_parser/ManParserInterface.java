@@ -21,20 +21,15 @@ import java.util.stream.Collectors;
 
 public class ManParserInterface {
 
-    public static void parseSynopsisBNF() throws IOException, ParseException {
+    public static String parseSynopsisBNF() throws IOException, ParseException {
 
         // summarizing options of the file tar.1.txt
 
         List<Cmd.Command> commands = ManParserInterface.parseGrammarFile(Config.SynopsisGrammar).commandsGrammar;
 
-        for (Cmd.Command cmd : commands) {
-         //   System.out.println("=== \n" + cmd.toString());
-        }
-
         ObjectMapper mapper = new ObjectMapper();
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        String jsonInString = mapper.writeValueAsString(commands);
-        System.out.println(jsonInString);
+        return mapper.writeValueAsString(commands);
     }
 
     public static void parseManPage(boolean testSmallExamples) throws IOException {

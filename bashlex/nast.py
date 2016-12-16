@@ -2,6 +2,8 @@
 Node Classes for the Normalized Bash AST.
 """
 
+import collections
+
 right_associate_unary_logic_operators \
     = set([
         '!',
@@ -150,7 +152,7 @@ class Node(object):
         if self.kind == "headcommand":
             return self
         ancester = self.parent
-        while ancester:
+        while ancester is not None:
             if ancester.kind == "headcommand":
                 return ancester
             # if not head command is detect, return "root"
@@ -166,6 +168,7 @@ class ArgumentNode(Node):
     def __init__(self, value="", arg_type="", parent=None, lsb=None):
         super(ArgumentNode, self).__init__(parent, lsb, "argument", value)
         self.arg_type = arg_type
+        self.index = 1
 
     def get_label(self):
         label = self.kind.upper() + "_" + self.value
@@ -173,6 +176,9 @@ class ArgumentNode(Node):
             label = "CLOSED:::" + label
         return label
 
+    def is_bracket(self):
+        return self.value == "\\(" or self.value == "\\)"
+    
     def is_reserved(self):
         return self.arg_type == "ReservedWord"
 
@@ -193,9 +199,32 @@ class ArgumentNode(Node):
         #     return False
         return True
 
+    def to_index(self):
+        print(self.headcommand.arg_dict)
+        if self.parent.kind == "headcommand":
+            if self.headcommand.arg_dict[""][self.arg_type] > 1:
+                return True
+            else:
+                return False
+        else:
+            if self.headcommand.arg_dict[self.parent.value][self.arg_type] > 1:
+                return True
+            else:
+                return False
+
+    def set_index(self, ind):
+        self.index = ind
+
 class FlagNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(FlagNode, self).__init__(parent, lsb, "flag", value)
+
+    def add_child(self, child, index=None):
+        super(FlagNode, self).add_child(child)
+        if not self.value in self.headcommand.arg_dict:
+            self.headcommand.arg_dict[self.value] = collections.defaultdict(int)
+        self.headcommand.arg_dict[self.value][child.arg_type] += 1
+        child.set_index(self.headcommand.arg_dict[self.value][child.arg_type])
 
     def get_label(self):
         if self.parent:
@@ -212,6 +241,14 @@ class FlagNode(Node):
 class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(HeadCommandNode, self).__init__(parent, lsb, "headcommand", value)
+        self.arg_dict = {"":collections.defaultdict(int)}
+
+    def add_child(self, child, index=None):
+        super(HeadCommandNode, self).add_child(child)
+        if child.is_argument() and not child.is_bracket():
+            # command argument
+            self.arg_dict[""][child.arg_type] += 1
+            child.set_index(self.arg_dict[""][child.arg_type])
 
     def get_flags(self):
         flags = []
