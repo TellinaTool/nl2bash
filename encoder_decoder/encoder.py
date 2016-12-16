@@ -79,32 +79,33 @@ class BiRNNEncoder(Encoder):
         # Concat each of the forward/backward outputs
         flat_output_fw = nest.flatten(output_fw)
         flat_output_bw = nest.flatten(output_bw)
-        flat_outputs = tuple(tf.add(fw, bw) for fw, bw in zip(flat_output_fw, flat_output_bw))
+        flat_outputs = tuple(tf.concat(1, [fw, bw]) for fw, bw in zip(flat_output_fw,
+                                                                     flat_output_bw))
         outputs = nest.pack_sequence_as(structure=output_fw, flat_sequence=flat_outputs)
 
-        # W, b = self.output_projection()
-        # projected_outputs = [tf.matmul(output, W) + b for output in outputs]
-
         if self.rnn_cell == "gru":
-            state = tf.add(state_fw, state_bw)
+            state = tf.concat(1, [state_fw, state_bw])
         elif self.rnn_cell == "lstm":
             cell_fw, hidden_fw = state_fw
             cell_bw, hidden_bw = state_bw
-            cell = tf.add(cell_fw, cell_bw)
-            hidden = tf.add(hidden_fw, hidden_bw)
+            cell = tf.concat(1, [cell_fw, cell_bw])
+            hidden = tf.concat(1, [hidden_fw, hidden_bw])
             state = tf.nn.rnn_cell.LSTMStateTuple(cell, hidden)
         else:
             raise AttributeError("Unrecognized RNN cell type.")
 
         return outputs, state
 
-
+    # Each rnn in the bi-directional encoder have dimension which is half of the decoder
+    # the hidden states of the two rnns are concatenated as the hidden states of the bi-directional
+    # encoder
     def forward_cell(self):
         """RNN cell for the forward RNN."""
         with tf.variable_scope("forward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
-                                                      self.dim, self.num_layers,
-                                                      self.encoder_input_keep, self.encoder_output_keep)
+                                                      self.dim/2, self.num_layers,
+                                                      self.encoder_input_keep,
+                                                      self.encoder_output_keep)
         return cell, scope
 
 
@@ -112,11 +113,13 @@ class BiRNNEncoder(Encoder):
         """RNN cell for the backward RNN."""
         with tf.variable_scope("backward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
-                                                      self.dim, self.num_layers,
-                                                      self.encoder_input_keep, self.encoder_output_keep)
+                                                      self.dim/2, self.num_layers,
+                                                      self.encoder_input_keep,
+                                                      self.encoder_output_keep)
         return cell, scope
 
 
+    @graph_utils.deprecated
     def output_projection(self):
         with tf.variable_scope("birnn_output_projection"):
             w = tf.get_variable("proj_w", [self.dim * 2, self.dim])
