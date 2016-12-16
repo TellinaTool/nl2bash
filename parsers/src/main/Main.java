@@ -44,7 +44,10 @@ public class Main {
                 System.out.println(p.getKey() + "\n" + p.getValue());
             });
         } else if (args[0].equals("-test")) {
-            testParseCmd();
+            if (args.length >= 2 && args[1].equals("-print-fail"))
+                testParseCmd(true);
+            else
+                testParseCmd(false);
         } else if (args[0].equals("-gen-primitive-cmd-json")) {
             if (args.length < 3)
                 Main.printRunningInstruction();
@@ -63,9 +66,11 @@ public class Main {
         System.out.println("        java -jar command_parser -parse command");
         System.out.println("    [2] Parse all commands in a file, each command in a line.");
         System.out.println("        java -jar command_parser -parse_file filename");
-        System.out.println("    [3] Build the json representation of the command grammar, with the help of optionword.");
+        System.out.println("    [3] Test the parse result on the default given file.");
+        System.out.println("        java -jar command_parser -test [-print-fail]");
+        System.out.println("    [4] Build the json representation of the command grammar, with the help of optionword.");
         System.out.println("        java -jar command_parser -gen-primitive-cmd-json grammar_file optionword");
-        System.out.println("    [4] Generate g4 grammar file: (you may want to generate to \"src/cmd_parser/parser/Commands.g4\")");
+        System.out.println("    [5] Generate g4 grammar file: (you may want to generate to \"src/cmd_parser/parser/Commands.g4\")");
         System.out.println("        java -jar command_parser -make-grammar [target_file]");
     }
 
@@ -81,7 +86,7 @@ public class Main {
         return CmdGrammarGenerator.genG4(gf.commandsGrammar, gf.nonTerminals, null);
     }
 
-    public static void testParseCmd() throws IOException {
+    public static void testParseCmd(boolean printFail) throws IOException {
         String[] cmds = {
                 "find -E -L /home/peter -name *~ -print0 | xargs -0 rm {}",
                 "find -L -E /home/peter -name *~ -print0 | xargs -0 rm {}",
@@ -117,13 +122,15 @@ public class Main {
                 String parseLog = new String( baos.toByteArray(), Charset.defaultCharset() );
                 if (! parseLog.trim().equals("")) {
                     //print unparsed commands
-                    System.out.println("[Failed to parse] " + s);
+                    if (printFail)
+                        System.out.println("[Failed to parse] " + s);
                 } else {
                     // print parsed commands
-                    System.out.println(s);
-                    System.out.println(cmdParsedPair.getKey() + "\n" + cmdParsedPair.getValue());
+                    if (!printFail) {
+                        System.out.println(s);
+                        System.out.println(cmdParsedPair.getKey() + "\n" + cmdParsedPair.getValue());
+                    }
                 }
-
                 baos.reset();
             }
         );
