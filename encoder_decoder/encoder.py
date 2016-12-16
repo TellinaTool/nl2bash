@@ -58,47 +58,21 @@ class BiRNNEncoder(Encoder):
         self.embeddings = embeddings
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
-
-        with tf.variable_scope("forward_rnn") as scope:
-            if self.forward_rnn_vars:
-                tf.get_variable_scope().reuse_variables()
-            output_fw, state_fw = tf.nn.rnn(self.fw_cell, input_embeddings,
-                                            dtype=tf.float32, scope=scope)
-            self.forward_rnn_vars = True
-
-        with tf.variable_scope("backward_rnn") as scope:
-            reversed_input_embeddings = [e for e in reversed(input_embeddings)]
-            if self.backward_rnn_vars:
-                tf.get_variable_scope().reuse_variables()
-            output_bw, state_bw = tf.nn.rnn(self.bw_cell, reversed_input_embeddings,
-                                            dtype=tf.float32, scope=scope)
-            self.backward_rnn_vars = True
-
-        output_bw = [e for e in reversed(output_bw)]
-
-        # Concat each of the forward/backward outputs
-        flat_output_fw = nest.flatten(output_fw)
-        flat_output_bw = nest.flatten(output_bw)
-        flat_outputs = tuple(tf.concat(1, [fw, bw]) for fw, bw in zip(flat_output_fw,
-                                                                     flat_output_bw))
-        outputs = nest.pack_sequence_as(structure=output_fw, flat_sequence=flat_outputs)
-
+        outputs, state_fw, state_bw = tf.rnn.bidirectional_rnn(self.fw_cell,
+                                                               self.bw_cell,
+                                                               input_embeddings)
         if self.rnn_cell == "gru":
-            state = tf.concat(1, [state_fw, state_bw])
+            state = outputs[-1]
         elif self.rnn_cell == "lstm":
-            cell_fw, hidden_fw = state_fw
-            cell_bw, hidden_bw = state_bw
-            cell = tf.concat(1, [cell_fw, cell_bw])
-            hidden = tf.concat(1, [hidden_fw, hidden_bw])
-            state = tf.nn.rnn_cell.LSTMStateTuple(cell, hidden)
+            raise NotImplementedError
         else:
             raise AttributeError("Unrecognized RNN cell type.")
 
         return outputs, state
 
     # Each rnn in the bi-directional encoder have dimension which is half of the decoder
-    # the hidden states of the two rnns are concatenated as the hidden states of the bi-directional
-    # encoder
+    # the hidden states of the two rnns are concatenated as the hidden states of
+    # the bi-directional encoder
     def forward_cell(self):
         """RNN cell for the forward RNN."""
         with tf.variable_scope("forward_cell") as scope:
