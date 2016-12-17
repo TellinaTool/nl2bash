@@ -1,7 +1,7 @@
-# Bash Parser
+# Heuristics-based Bash Parser
 
-This folder contains the implementation of a general purpose bash command parser, which is implemented on top of the [bashlex](https://github.com/idank/bashlex) tool.
-The current version of the parser does not parse multi-statement code blocks.
+This folder contains the implementation of a general purpose bash command parser, which is implemented on top of the [bashlex](https://github.com/idank/bashlex) tool. It parses a bash oneliner command based on the man-page grammars and heuristics.
+The current parser does not parse multi-command code blocks.
 
 ## Test the parser in a simple interactive commandline interface:
 
