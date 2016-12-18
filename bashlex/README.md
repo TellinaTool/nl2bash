@@ -6,16 +6,19 @@ The current parser does not parse multi-command code blocks.
 
 ### Test the parser in a simple interactive commandline interface:
 
-```python data_tools.py
+```
+python data_tools.py
 ```
 
 ### Input: 
-```find /mnt/naspath ! \( -name .snapshot -prune \) -type f -mtime 0 -print0
+```
+find /mnt/naspath ! \( -name .snapshot -prune \) -type f -mtime 0 -print0
 ```
 
 ### Output:
 The output of the parser is the AST structure of the input bash command, with open-vocabulary arguments in the command replaced by their types.
-```ROOT()
+```
+ROOT()
     HEADCOMMAND(find)
         ARGUMENT(_REGEX)
         UNARYLOGICOP(!)
