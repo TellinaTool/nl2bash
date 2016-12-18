@@ -1,4 +1,4 @@
- ## Build primitve_cmd_XX
+## Build primitve_cmd_XX
 
 Find the jar file in out/artifacts/parsers_jar/parsers.jar.
 
