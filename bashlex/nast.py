@@ -200,6 +200,7 @@ class ArgumentNode(Node):
         return True
 
     def to_index(self):
+        print(self.headcommand.arg_dict)
         if self.parent.kind == "headcommand":
             if self.headcommand.arg_dict[""][self.arg_type] > 1:
                 return True
