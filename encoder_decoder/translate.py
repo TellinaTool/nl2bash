@@ -46,19 +46,19 @@ parse_args.define_input_flags()
 # We use a number of buckets and pad to the closest one for efficiency.
 if FLAGS.dataset in ["bash", "bash.cl"]:
     if FLAGS.decoder_topology in ['basic_tree']:
-        _buckets = [(30, 72)]
+        _buckets = [(30, 72)] if not FLAGS.explanation else [(72, 30)]
     elif FLAGS.decoder_topology in ['rnn']:
-        _buckets = [(30, 40)]
+        _buckets = [(30, 40)] if not FLAGS.explanation else [(72, 30)]
 elif FLAGS.dataset == "dummy":
-    _buckets = [(20, 95), (30, 95), (45, 95)]
+    _buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explanation else \
+        [(95, 20), (95, 30), (95, 45)]
 elif FLAGS.dataset == "jobs":
-    # _buckets = [(10, 45), (15, 45), (20, 45)]
-    _buckets = [(20, 45)]
+    _buckets = [(20, 45)] if not FLAGS.explanation else [(45, 20)]
 elif FLAGS.dataset == "geo":
-    # _buckets = [(5, 70), (10, 70), (20, 70)]
-    _buckets = [(20, 70)]
+    _buckets = [(20, 70)] if not FLAGS.explanation else [(70, 20)]
 elif FLAGS.dataset == "atis":
-    _buckets = [(20, 95), (30, 95), (40, 95)]
+    _buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explanation else \
+        [(95, 20), (95, 30), (95, 40)]
 
 def create_model(session, forward_only, construct_model_dir=True, buckets=None):
     """
@@ -174,35 +174,31 @@ def decode(data_set, construct_model_dir=True, verbose=True):
         model, _ = create_model(sess, forward_only=True,
                                 construct_model_dir=construct_model_dir)
 
-        _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
+        _, rev_sc_vocab, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
 
         decode_tools.decode_set(sess, model, data_set,
-                                rev_nl_vocab, rev_cm_vocab, FLAGS, verbose)
+                                rev_sc_vocab, rev_tg_vocab, FLAGS, verbose)
         return model.model_sig
 
 
 def eval(data_set, model_sig=None, verbose=True):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        if model_sig is None:
-            _, model_sig = graph_utils.get_model_signature(FLAGS)
-        print("evaluate " + model_sig + "...")
-        _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
+    if model_sig is None:
+        _, model_sig = graph_utils.get_model_signature(FLAGS)
+    print("evaluate " + model_sig + "...")
+    _, rev_sc_vocab, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
 
-        return eval_tools.eval_set(model_sig, data_set, rev_nl_vocab, FLAGS,
-                                   verbose=verbose)
+    return eval_tools.eval_set(model_sig, data_set, rev_sc_vocab, FLAGS,
+                               verbose=verbose)
 
 
 def manual_eval(num_eval):
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        # Create model and load parameters.
-        _, model_sig = graph_utils.get_model_signature(FLAGS)
-        _, rev_nl_vocab, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
-        _, dev_set, _ = load_data(use_buckets=False)
+    # Create model and load parameters.
+    _, model_sig = graph_utils.get_model_signature(FLAGS)
+    _, rev_sc_vocab, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
+    _, dev_set, _ = load_data(use_buckets=False)
 
-        eval_tools.manual_eval(model_sig, dev_set, rev_nl_vocab, FLAGS,
-                               FLAGS.model_dir, num_eval)
+    eval_tools.manual_eval(model_sig, dev_set, rev_sc_vocab, FLAGS,
+                           FLAGS.model_dir, num_eval)
 
 
 def demo():
@@ -211,9 +207,9 @@ def demo():
         # Create model and load parameters.
         model, _ = create_model(sess, forward_only=True)
 
-        nl_vocab, _, _, rev_cm_vocab = data_utils.load_vocab(FLAGS)
+        sc_vocab, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
 
-        decode_tools.demo(sess, model, nl_vocab, rev_cm_vocab, FLAGS)
+        decode_tools.demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS)
 
 
 def train_and_eval(train_set, dev_set):
@@ -401,7 +397,8 @@ def main(_):
         train(train_set, dev_set)
         tf.reset_default_graph()
         model_sig = decode(dev_set, construct_model_dir=False)
-        eval(dev_set, model_sig, verbose=False)
+        if not FLAGS.explanation:
+            eval(dev_set, model_sig, verbose=False)
     
 if __name__ == "__main__":
     tf.app.run()
