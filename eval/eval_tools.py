@@ -27,7 +27,7 @@ error_types = {
     9 : "count error"
 }
 
-def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
+def eval_set(model, dataset, rev_sc_vocab, FLAGS, verbose=True):
     num_top1_correct_temp = 0.0
     num_top3_correct_temp = 0.0
     num_top5_correct_temp = 0.0
@@ -55,7 +55,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
     use_bucket = False if model == "knn" else True
 
     grouped_dataset = data_utils.group_data_by_nl(
-        dataset, use_bucket=use_bucket, use_nl_temp = eval_bash)
+        dataset, use_bucket=use_bucket, use_sc_temp = eval_bash)
 
     with DBConnection() as db:
         for nl_temp in grouped_dataset:
@@ -203,7 +203,7 @@ def eval_set(model, dataset, rev_nl_vocab, FLAGS, verbose=True):
     return top1_temp_match_score, top1_string_match_score, avg_top1_temp_dist, avg_top1_dist
 
 
-def manual_eval(model, dataset, rev_nl_vocab, FLAGS, output_dir, num_eval=30):
+def manual_eval(model, dataset, rev_sc_vocab, FLAGS, output_dir, num_eval=30):
     num_top1_correct_temp = 0.0
     num_top3_correct_temp = 0.0
     num_top5_correct_temp = 0.0

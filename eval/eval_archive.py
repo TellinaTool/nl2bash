@@ -155,7 +155,7 @@ class DBConnection(object):
 
     def add_cmd(self, cmd):
         cmd = unicode(cmd)
-        cmd_id = self.get_cmd_id(cmd)
+        cmd_id = self.get_cm_id(cmd)
         if cmd_id is not None:
             return cmd_id
         c = self.cursor
@@ -163,7 +163,7 @@ class DBConnection(object):
         self.conn.commit()
         return c.lastrowid
 
-    def get_cmd_id(self, cmd):
+    def get_cm_id(self, cmd):
         cmd = unicode(cmd)
         c = self.cursor
         for id, _ in c.execute("SELECT * FROM Cmd WHERE cmd = ?", (cmd,)):
@@ -203,10 +203,10 @@ class DBConnection(object):
         self.conn.commit()
 
     def get_str_dist(self, cmd1, cmd2):
-        cmd1_id = self.get_cmd_id(cmd1)
+        cmd1_id = self.get_cm_id(cmd1)
         if cmd1_id is None:
             return None
-        cmd2_id = self.get_cmd_id(cmd2)
+        cmd2_id = self.get_cm_id(cmd2)
         if cmd2_id is None:
             return None
         c = self.cursor
@@ -336,7 +336,7 @@ class DBConnection(object):
                                          (nl, pred_temp)):
             return judgement
 
-    def get_nl_cmd_judge(self, nl):
+    def get_nl_cm_judge(self, nl):
         nl = unicode(nl)
         c = self.cursor
         for nl, pred_cmd, judgement in c.execute("SELECT NL.nl, Cmd.cmd, "
@@ -383,7 +383,7 @@ class DBConnection(object):
     def correct_str_pair(self, pair):
         nl, pred_cmd = pair
         nl_id = self.get_nl_id(nl)
-        cmd_id = self.get_cmd_id(pred_cmd)
+        cmd_id = self.get_cm_id(pred_cmd)
         c = self.cursor
         c.execute("UPDATE CmdJudge SET judgement = ? WHERE nl_id = ? AND cmd_id = ?",
                   (1, nl_id, cmd_id))
@@ -401,7 +401,7 @@ class DBConnection(object):
     def error_str_pair(self, pair):
         nl, pred_cmd = pair
         nl_id = self.get_nl_id(nl)
-        cmd_id = self.get_cmd_id(pred_cmd)
+        cmd_id = self.get_cm_id(pred_cmd)
         c = self.cursor
         c.execute("UPDATE CmdJudge SET judgement = ? WHERE nl_id = ? AND cmd_id = ?",
                   (0, nl_id, cmd_id))

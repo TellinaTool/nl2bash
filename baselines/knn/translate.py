@@ -18,31 +18,31 @@ data_dir = FLAGS.data_dir
 
 model_name = "knn"
 
-def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
-    grouped_dataset = data_utils.group_data_by_nl(dataset)
+def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
+    grouped_dataset = data_utils.group_data_by_sc(dataset)
 
     with DBConnection() as db:
         db.remove_model(model_name)
         num_eval = 0
-        for nl_temp in grouped_dataset:
-            batch_nl_strs, batch_cm_strs, batch_nls, batch_cmds = \
-                grouped_dataset[nl_temp]
+        for sc_temp in grouped_dataset:
+            batch_sc_strs, batch_tg_strs, batch_scs, batch_cmds = \
+                grouped_dataset[sc_temp]
 
-            nl_str = batch_nl_strs[0]
-            nl = batch_nls[0]
+            sc_str = batch_sc_strs[0]
+            nl = batch_scs[0]
             if verbose:
                 print("Example {}".format(num_eval+1))
-                print("Original English: " + nl_str.strip())
-                print("English: " + nl_temp)
-                for j in xrange(len(batch_cm_strs)):
-                    print("GT Command {}: {}".format(j+1, batch_cm_strs[j].strip()))
+                print("Original English: " + sc_str.strip())
+                print("English: " + sc_temp)
+                for j in xrange(len(batch_tg_strs)):
+                    print("GT Command {}: {}".format(j+1, batch_tg_strs[j].strip()))
             top_k_results = model.test(nl, 10)
             for i in xrange(len(top_k_results)):
                 nn, cmd, score = top_k_results[i]
-                nn_str = ' '.join([rev_nl_vocab[i] for i in nn])
+                nn_str = ' '.join([rev_sc_vocab[i] for i in nn])
                 tokens = []
                 for i in cmd:
-                    pred_token = rev_cm_vocab[i]
+                    pred_token = rev_tg_vocab[i]
                     if "@@" in pred_token:
                         pred_token = pred_token.split("@@")[-1]
                     tokens.append(pred_token)
@@ -54,7 +54,7 @@ def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
                     print("AST: ")
                     data_tools.pretty_print(tree, 0)
                     print
-                db.add_prediction(model_name, nl_str, pred_cmd, float(score),
+                db.add_prediction(model_name, sc_str, pred_cmd, float(score),
                                   update_mode=False)
             
             num_eval += 1
@@ -62,121 +62,121 @@ def decode_set(model, dataset, rev_nl_vocab, rev_cm_vocab, verbose=True):
 
 def decode():
     # Load vocabularies.
-    nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.nl" % FLAGS.nl_vocab_size)
-    cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm" % FLAGS.cm_vocab_size)
-    nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-    cm_vocab, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+    sc_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.nl" % FLAGS.sc_vocab_size)
+    tg_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.cm" % FLAGS.tg_vocab_size)
+    sc_vocab, rev_sc_vocab = data_utils.initialize_vocabulary(sc_vocab_path)
+    tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
 
     train_set, dev_set, _ = load_data()
     model = knn.KNNModel()
     model.train(train_set)
 
-    decode_set(model, dev_set, rev_nl_vocab, rev_cm_vocab)
+    decode_set(model, dev_set, rev_sc_vocab, rev_tg_vocab)
 
 
 def eval():
     # Load vocabularies.
-    nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.nl" % FLAGS.nl_vocab_size)
-    cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-    nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-    cm_vocab, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+    sc_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.nl" % FLAGS.sc_vocab_size)
+    tg_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.cm.ast" % FLAGS.tg_vocab_size)
+    sc_vocab, rev_sc_vocab = data_utils.initialize_vocabulary(sc_vocab_path)
+    tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
 
     train_set, dev_set, _ = load_data()
     model = knn.KNNModel()
     model.train(train_set)
-    eval_tools.eval_set(model_name, dev_set, rev_nl_vocab, FLAGS)
+    eval_tools.eval_set(model_name, dev_set, rev_sc_vocab, FLAGS)
 
 
 def manual_eval():
     # Load vocabularies.
-    nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.nl" % FLAGS.nl_vocab_size)
-    cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-    nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-    cm_vocab, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+    sc_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.nl" % FLAGS.sc_vocab_size)
+    tg_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.cm.ast" % FLAGS.tg_vocab_size)
+    sc_vocab, rev_sc_vocab = data_utils.initialize_vocabulary(sc_vocab_path)
+    tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
 
     train_set, dev_set, _ = load_data()
     model = knn.KNNModel()
     model.train(train_set)
-    eval_tools.manual_eval(model_name, dev_set, rev_nl_vocab,
+    eval_tools.manual_eval(model_name, dev_set, rev_sc_vocab,
                            FLAGS, FLAGS.model_dir, num_eval=500)
 
 # Chenglong's main function
 def original():
     # test_vec = [26, 12, 10, 11, 15, 17, 28, 171, 18, 339]
 
-    # print "[command] ", decode_vec_to_str(test_vec, nl_dictionary)
+    # print "[command] ", decode_vec_to_str(test_vec, sc_dictionary)
 
     # find k nearest neighbor
-    # knn = find_k_nearest_neighbor(test_vec, nl_vec_list, 1)
+    # knn = find_k_nearest_neighbor(test_vec, sc_vec_list, 1)
 
     # for p in knn:
     #  print "[nn vec] ", p
     # print the decoding result of these filters
-    #  print "[nearest neighbor] ", decode_vec_to_str(p[0], nl_dictionary)
+    #  print "[nearest neighbor] ", decode_vec_to_str(p[0], sc_dictionary)
 
     sys.stdout = open('result.txt', 'w')
 
     # Load vocabularies.
-    nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.nl" % FLAGS.nl_vocab_size)
-    cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm" % FLAGS.cm_vocab_size)
-    nl_vocab, rev_nl_vocab = data_utils.initialize_vocabulary(nl_vocab_path)
-    cm_vocab, rev_cm_vocab = data_utils.initialize_vocabulary(cm_vocab_path)
+    sc_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.nl" % FLAGS.sc_vocab_size)
+    tg_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.cm" % FLAGS.tg_vocab_size)
+    sc_vocab, rev_sc_vocab = data_utils.initialize_vocabulary(sc_vocab_path)
+    tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
     # the file containing traning nl vectors and cmd vectors
     train_set, dev_set, _ = load_data()
 
     model = knn.KNNModel()
     model.train(train_set)
 
-    test_cmd_vec_list = [cmd_vec for _, _, _, cmd_vec in dev_set]
-    test_nl_vec_list = [nl_vec for _, _, nl_vec, _ in dev_set]
+    test_tg_vec_list = [cmd_vec for _, _, _, cmd_vec in dev_set]
+    test_sc_vec_list = [sc_vec for _, _, sc_vec, _ in dev_set]
 
-    for i in range(len(test_nl_vec_list)):
-        test_vec = test_nl_vec_list[i]
-        cmd_vec = test_cmd_vec_list[i]
+    for i in range(len(test_sc_vec_list)):
+        test_vec = test_sc_vec_list[i]
+        cmd_vec = test_tg_vec_list[i]
 
         nl, cmd, score = model.test(test_vec, 1)
 
         print "[text-case ", i, "] ========================================================="
         print "  [original-pair]"
-        print "     ", knn.decode_vec_to_str(test_vec, rev_nl_vocab)
-        print "     ", knn.decode_vec_to_str(cmd_vec, rev_cm_vocab)
+        print "     ", knn.decode_vec_to_str(test_vec, rev_sc_vocab)
+        print "     ", knn.decode_vec_to_str(cmd_vec, rev_tg_vocab)
         print "  [new-pair]"
-        print "     ", knn.decode_vec_to_str(nl, rev_nl_vocab)
-        print "     ", knn.decode_vec_to_str(cmd, rev_cm_vocab)
-        print knn.decode_vec_to_str(cmd, rev_cm_vocab)
+        print "     ", knn.decode_vec_to_str(nl, rev_sc_vocab)
+        print "     ", knn.decode_vec_to_str(cmd, rev_tg_vocab)
+        print knn.decode_vec_to_str(cmd, rev_tg_vocab)
 
 
 def load_data():
     print("Loading data from %s" % FLAGS.data_dir)
-    nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
-    cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
+    sc_extention = ".ids%d.nl" % FLAGS.sc_vocab_size
+    tg_extension = ".ids%d.cm" % FLAGS.tg_vocab_size
 
-    nl_txt_train = os.path.join(data_dir, "train") + ".nl"
-    cm_txt_train = os.path.join(data_dir, "train") + ".cm"
-    nl_txt_dev = os.path.join(data_dir, "dev") + ".nl"
-    cm_txt_dev = os.path.join(data_dir, "dev") + ".cm"
-    nl_txt_test = os.path.join(data_dir, "test") + ".nl"
-    cm_txt_test = os.path.join(data_dir, "test") + ".cm"
+    sc_txt_train = os.path.join(data_dir, "train") + ".nl"
+    tg_txt_train = os.path.join(data_dir, "train") + ".cm"
+    sc_txt_dev = os.path.join(data_dir, "dev") + ".nl"
+    tg_txt_dev = os.path.join(data_dir, "dev") + ".cm"
+    sc_txt_test = os.path.join(data_dir, "test") + ".nl"
+    tg_txt_test = os.path.join(data_dir, "test") + ".cm"
 
-    nl_train = os.path.join(data_dir, "train") + nl_extention
-    cm_train = os.path.join(data_dir, "train") + cm_extension
-    nl_dev = os.path.join(data_dir, "dev") + nl_extention
-    cm_dev = os.path.join(data_dir, "dev") + cm_extension
-    nl_test = os.path.join(data_dir, "test") + nl_extention
-    cm_test = os.path.join(data_dir, "test") + cm_extension
+    sc_train = os.path.join(data_dir, "train") + sc_extention
+    tg_train = os.path.join(data_dir, "train") + tg_extension
+    sc_dev = os.path.join(data_dir, "dev") + sc_extention
+    tg_dev = os.path.join(data_dir, "dev") + tg_extension
+    sc_test = os.path.join(data_dir, "test") + sc_extention
+    tg_test = os.path.join(data_dir, "test") + tg_extension
 
-    train_set = data_utils.read_data(nl_txt_train, cm_txt_train, nl_train, cm_train, None,
+    train_set = data_utils.read_data(sc_txt_train, tg_txt_train, sc_train, tg_train, None,
                                      FLAGS.max_train_data_size)
-    dev_set = data_utils.read_data(nl_txt_dev, cm_txt_dev, nl_dev, cm_dev, None)
-    test_set = data_utils.read_data(nl_txt_test, cm_txt_test, nl_test, cm_test, None)
+    dev_set = data_utils.read_data(sc_txt_dev, tg_txt_dev, sc_dev, tg_dev, None)
+    test_set = data_utils.read_data(sc_txt_test, tg_txt_test, sc_test, tg_test, None)
 
     return train_set, dev_set, test_set
 

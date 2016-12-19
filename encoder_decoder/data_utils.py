@@ -21,7 +21,6 @@ from __future__ import print_function
 
 import collections
 import os
-import re
 import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
@@ -63,12 +62,6 @@ H_NO_EXPAND_ID = 6
 V_NO_EXPAND_ID = 7
 GO_ID = 8
 ROOT_ID = 9
-
-# Regular expressions used to tokenize.
-_DIGIT_RE = re.compile(br"\d")
-
-def is_option(word):
-    return word.startswith('-') or word.startswith("FLAG_")
 
 
 def clean_dir(dir):
@@ -265,19 +258,19 @@ def sentence_to_token_ids(sentence, vocabulary,
     return token_ids
 
 
-def data_to_token_ids(data, target_path, vocabulary_path,
+def data_to_token_ids(data, tg_id_path, vocabulary_path,
                       tokenizer=None, base_tokenizer=None,
                       normalize_digits=True, normalize_long_pattern=True,
                       with_arg_types=False):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
-    sentence_to_token_ids, and saves the result to target_path. See comment
+    sentence_to_token_ids, and saves the result to tg_id_path. See comment
     for sentence_to_token_ids on the details of token-ids format.
 
     Args:
       data: list of lines each of which corresponds to a data point.
-      target_path: path where the file with token-ids will be created.
+      tg_id_path: path where the file with token-ids will be created.
       vocabulary_path: path to the vocabulary file.
       tokenizer: a function to use to tokenize each sentence;
         if None, basic_tokenizer will be used.
@@ -285,10 +278,10 @@ def data_to_token_ids(data, target_path, vocabulary_path,
       normalize_digits: Boolean; if true, all digits are replaced by 0s.
     """
     max_token_num = 0
-    if not tf.gfile.Exists(target_path):
+    if not tf.gfile.Exists(tg_id_path):
         print("Tokenizing data (%d)" % len(data))
         vocab, _ = initialize_vocabulary(vocabulary_path)
-        tokens_file = tf.gfile.GFile(target_path, mode="w")
+        tokens_file = tf.gfile.GFile(tg_id_path, mode="w")
         counter = 0
         for line in data:
             counter += 1
@@ -303,221 +296,6 @@ def data_to_token_ids(data, target_path, vocabulary_path,
                               + "\n")
         tokens_file.close()
     return max_token_num
-
-
-def bucket_grouped_data(grouped_dataset, buckets):
-    batch_nl_strs = [[] for _ in buckets]
-    batch_cm_strs = [[] for _ in buckets]
-    batch_nls = [[] for _ in buckets]
-    batch_cmds = [[] for _ in buckets]
-
-    for nl_temp in grouped_dataset:
-        nl_strs, cm_strs, nls, cmds = grouped_dataset[nl_temp]
-
-        # Which bucket does it belong to?
-        bucket_id = min([b for b in xrange(len(buckets))
-                        if buckets[b][0] > len(nls[0])])
-
-        batch_nl_strs[bucket_id].append(nl_strs[0])
-        batch_cm_strs[bucket_id].append(cm_strs)
-        batch_nls[bucket_id].append(nls[0])
-        batch_cmds[bucket_id].append([ROOT_ID])
-
-    return batch_nl_strs, batch_cm_strs, batch_nls, batch_cmds
-
-
-def group_data_by_nl(dataset, use_bucket=False, use_nl_temp=True):
-    if use_bucket:
-        dataset = reduce(lambda x,y: x + y, dataset)
-    grouped_dataset = {}
-    for i in xrange(len(dataset)):
-        nl_str, cm_str, nl, search_history = dataset[i]
-        if use_nl_temp:
-            nl_template = " ".join(data_tools.basic_tokenizer(nl_str.decode("utf-8")))
-        else:
-            nl_template = nl_str
-        if nl_template in grouped_dataset:
-            grouped_dataset[nl_template][0].append(nl_str)
-            grouped_dataset[nl_template][1].append(cm_str)
-            grouped_dataset[nl_template][2].append(nl)
-            grouped_dataset[nl_template][3].append(search_history)
-        else:
-            grouped_dataset[nl_template] = [[nl_str], [cm_str], [nl], [search_history]]
-
-    return grouped_dataset
-
-
-def group_data_by_cm(dataset, use_bucket=False, use_cm_temp=True):
-    if use_bucket:
-        dataset = reduce(lambda x,y: x + y, dataset)
-    grouped_dataset = {}
-    for i in xrange(len(dataset)):
-        nl_str, cm_str, nl, search_history = dataset[i]
-        if use_cm_temp:
-            cm_template = data_tools.cmd2template(cm_str)
-        else:
-            cm_template = cm_str
-        if cm_template in grouped_dataset:
-            grouped_dataset[cm_template][0].append(nl_str)
-            grouped_dataset[cm_template][1].append(cm_str)
-            grouped_dataset[cm_template][2].append(nl)
-            grouped_dataset[cm_template][3].append(search_history)
-        else:
-            grouped_dataset[cm_template] = [[nl_str], [cm_str], [nl], [search_history]]
-
-    return grouped_dataset
-
-
-def load_vocab(FLAGS):
-    if FLAGS.decoder_topology in ['rnn']:
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                         "vocab%d.nl" % FLAGS.nl_vocab_size)
-        if FLAGS.canonical:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.norm" % FLAGS.cm_vocab_size)
-        elif FLAGS.normalized:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.norm" % FLAGS.cm_vocab_size)
-        else:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm" % FLAGS.cm_vocab_size)
-    elif FLAGS.decoder_topology in ['basic_tree']:
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                         "vocab%d.nl" % FLAGS.nl_vocab_size)
-        if FLAGS.canonical:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.ast.norm" % FLAGS.cm_vocab_size)
-        elif FLAGS.normalized:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.ast.norm" % FLAGS.cm_vocab_size)
-        else:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
-    else:
-        raise ValueError("Unrecognized decoder topology: {}."
-                         .format(FLAGS.decoder_topology))
-    nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
-    cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
-    return nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab
-
-
-def load_data(FLAGS, buckets=None):
-    print("Loading data from %s" % FLAGS.data_dir)
-
-    data_dir = FLAGS.data_dir
-
-    if FLAGS.char:
-        nl_extention = ".cids%d.nl" % FLAGS.nl_vocab_size
-        cm_extension = ".cids%d.cm" % FLAGS.cm_vocab_size
-        append_head_token = True
-        append_end_token = True
-    elif FLAGS.decoder_topology in ["rnn"]:
-        nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
-        if FLAGS.canonical:
-            cm_extension = ".ids%d.cm.norm.order" % FLAGS.cm_vocab_size
-        elif FLAGS.normalized:
-            cm_extension = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
-        else:
-            cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
-        append_head_token = True
-        append_end_token = True
-    elif FLAGS.decoder_topology in ["basic_tree"]:
-        nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
-        if FLAGS.canonical:
-            cm_extension = ".seq%d.cm.norm.order" % FLAGS.cm_vocab_size
-        elif FLAGS.normalized:
-            cm_extension = ".seq%d.cm.norm" % FLAGS.cm_vocab_size
-        else:
-            cm_extension = ".seq%d.cm" % FLAGS.cm_vocab_size
-        append_head_token = False
-        append_end_token = False
-
-    train_path = os.path.join(data_dir, "train")
-    dev_path = os.path.join(data_dir, "dev")
-    test_path = os.path.join(data_dir, "test")
-
-    nl_txt_train = train_path + ".%d.nl" % FLAGS.nl_vocab_size
-    cm_txt_train = train_path + ".%d.cm" % FLAGS.cm_vocab_size
-    nl_txt_dev = dev_path + ".%d.nl" % FLAGS.nl_vocab_size
-    cm_txt_dev = dev_path + ".%d.cm" % FLAGS.cm_vocab_size
-    nl_txt_test = test_path + ".%d.nl" % FLAGS.nl_vocab_size
-    cm_txt_test = test_path + ".%d.cm" % FLAGS.cm_vocab_size
-
-    nl_train = train_path + nl_extention
-    cm_train = train_path + cm_extension
-    nl_dev = dev_path + nl_extention
-    cm_dev = dev_path + cm_extension
-    nl_test = test_path + nl_extention
-    cm_test = test_path + cm_extension
-
-    train_set = read_data(nl_txt_train, cm_txt_train, nl_train, cm_train,
-                          buckets, FLAGS.max_train_data_size,
-                          append_head_token=append_head_token,
-                          append_end_token=append_end_token)
-    dev_set = read_data(nl_txt_dev, cm_txt_dev, nl_dev, cm_dev, buckets,
-                        append_head_token=append_head_token,
-                        append_end_token=append_end_token)
-    test_set = read_data(nl_txt_test, cm_txt_test, nl_test, cm_test, buckets,
-                         append_head_token=append_head_token,
-                         append_end_token=append_end_token)
-
-    return train_set, dev_set, test_set
-
-
-def read_data(source_txt_path, target_txt_path, source_path, target_path,
-              buckets=None, max_num_examples=None,
-              append_head_token=False, append_end_token=False):
-    """Read data from source and target files and put into buckets.
-    :param source_txt_path: path to the file containing the original source
-    strings.
-    :param target_txt_path: path to the file containing the original target
-    strings.
-    :param source_path: path to the file with token-ids for the source language.
-    :param target_path: path to the file with token-ids for the target language.
-    :param buckets: bucket sizes for training.
-    :param max_num_examples: maximum number of lines to read. Read complete data files if
-        this entry is 0 or None.
-    """
-    if buckets:
-        data_set = [[] for _ in buckets]
-    else:
-        data_set = []
-
-    with tf.gfile.GFile(source_txt_path, mode="r") as source_txt_file:
-        with tf.gfile.GFile(target_txt_path, mode="r") as target_txt_file:
-            with tf.gfile.GFile(source_path, mode="r") as source_file:
-                with tf.gfile.GFile(target_path, mode="r") as target_file:
-                    source_txt, target_txt = source_txt_file.readline(), target_txt_file.readline()
-                    source, target = source_file.readline(), target_file.readline()
-                    counter = 0
-                    while source:
-                        assert(target)
-                        if max_num_examples and counter < max_num_examples:
-                            break
-                        counter += 1
-                        if counter % 1000 == 0:
-                            print("  reading data line %d" % counter)
-                            sys.stdout.flush()
-                        source_ids = [int(x) for x in source.split()]
-                        target_ids = [int(x) for x in target.split()]
-                        if append_head_token:
-                            target_ids.insert(0, ROOT_ID)
-                        if append_end_token:
-                            target_ids.append(EOS_ID)
-                        if buckets:
-                            for bucket_id, (source_size, target_size) in enumerate(buckets):
-                                if len(source_ids) < source_size and len(target_ids) < target_size:
-                                    data_set[bucket_id].append(
-                                        [source_txt, target_txt, source_ids, target_ids])
-                                    break
-                        else:
-                            data_set.append([source_txt, target_txt, source_ids, target_ids])
-
-                        source_txt, target_txt = \
-                            source_txt_file.readline(), target_txt_file.readline()
-                        source, target = source_file.readline(), target_file.readline()
-    print("  %d data points read." % counter)
-    return data_set
 
 
 def fold_split_bucket(data_set, num_folds):
@@ -632,7 +410,7 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
             getattr(cm_list, split).append(cm)
             getattr(nl_token_list, split).append(nl_tokens)
             getattr(cm_token_list, split).append(cm_tokens)
-    
+
     # unfiltered data
     nl_data, cm_data = read_raw_data(data_dir)
 
@@ -842,10 +620,242 @@ def prepare_data(FLAGS):
         prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
 
 
+# --- Load Datasets -- #
+
+def bucket_grouped_data(grouped_dataset, buckets):
+    batch_sc_strs = [[] for _ in buckets]
+    batch_tg_strs = [[] for _ in buckets]
+    batch_scs = [[] for _ in buckets]
+    batch_tgs = [[] for _ in buckets]
+
+    for sc_temp in grouped_dataset:
+        sc_strs, tg_strs, scs, _ = grouped_dataset[sc_temp]
+
+        # Which bucket does it belong to?
+        bucket_id = min([b for b in xrange(len(buckets))
+                        if buckets[b][0] > len(scs[0])])
+
+        batch_sc_strs[bucket_id].append(sc_strs[0])
+        batch_tg_strs[bucket_id].append(tg_strs)
+        batch_scs[bucket_id].append(scs[0])
+        batch_tgs[bucket_id].append([ROOT_ID])
+
+    return batch_sc_strs, batch_tg_strs, batch_scs, batch_tgs
+
+
+def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
+    if use_bucket:
+        dataset = reduce(lambda x,y: x + y, dataset)
+    grouped_dataset = {}
+    for i in xrange(len(dataset)):
+        nl_str, cm_str, nl, cm = dataset[i]
+        if use_temp:
+            nl_template = " ".join(data_tools.basic_tokenizer(nl_str.decode("utf-8")))
+        else:
+            nl_template = nl_str
+        if nl_template in grouped_dataset:
+            grouped_dataset[nl_template][0].append(nl_str)
+            grouped_dataset[nl_template][1].append(cm_str)
+            grouped_dataset[nl_template][2].append(nl)
+            grouped_dataset[nl_template][3].append(cm)
+        else:
+            grouped_dataset[nl_template] = [[nl_str], [cm_str], [nl], [cm]]
+
+    return grouped_dataset
+
+
+def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
+    if use_bucket:
+        dataset = reduce(lambda x,y: x + y, dataset)
+    grouped_dataset = {}
+    for i in xrange(len(dataset)):
+        nl_str, cm_str, nl, cm = dataset[i]
+        if use_temp:
+            cm_template = data_tools.cmd2template(cm_str)
+        else:
+            cm_template = cm_str
+        if cm_template in grouped_dataset:
+            grouped_dataset[cm_template][0].append(cm_str)
+            grouped_dataset[cm_template][1].append(nl_str)
+            grouped_dataset[cm_template][2].append(cm)
+            grouped_dataset[cm_template][3].append(nl)
+        else:
+            grouped_dataset[cm_template] = [[nl_str], [cm_str], [cm], [nl]]
+
+    return grouped_dataset
+
+
+def load_vocab(FLAGS):
+    if FLAGS.decoder_topology in ['rnn']:
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                         "vocab%d.nl" % FLAGS.nl_vocab_size)
+        if FLAGS.canonical:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm.norm" % FLAGS.cm_vocab_size)
+        elif FLAGS.normalized:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm.norm" % FLAGS.cm_vocab_size)
+        else:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm" % FLAGS.cm_vocab_size)
+    elif FLAGS.decoder_topology in ['basic_tree']:
+        nl_vocab_path = os.path.join(FLAGS.data_dir,
+                                         "vocab%d.nl" % FLAGS.nl_vocab_size)
+        if FLAGS.canonical:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm.ast.norm" % FLAGS.cm_vocab_size)
+        elif FLAGS.normalized:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm.ast.norm" % FLAGS.cm_vocab_size)
+        else:
+            cm_vocab_path = os.path.join(FLAGS.data_dir,
+                                        "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+    else:
+        raise ValueError("Unrecognized decoder topology: {}."
+                         .format(FLAGS.decoder_topology))
+
+    nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
+    cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
+
+    if FLAGS.explanation:
+        return cm_vocab, rev_cm_vocab, nl_vocab, rev_nl_vocab
+    else:
+        return nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab
+
+
+def load_data(FLAGS, buckets=None):
+    print("Loading data from %s" % FLAGS.data_dir)
+
+    data_dir = FLAGS.data_dir
+
+    if FLAGS.char:
+        nl_extention = ".cids%d.nl" % FLAGS.nl_vocab_size
+        cm_extention = ".cids%d.cm" % FLAGS.cm_vocab_size
+        append_head_token = True
+        append_end_token = True
+    elif FLAGS.decoder_topology in ["rnn"]:
+        nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
+        if FLAGS.canonical:
+            cm_extention = ".ids%d.cm.norm.order" % FLAGS.cm_vocab_size
+        elif FLAGS.normalized:
+            cm_extention = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
+        else:
+            cm_extention = ".ids%d.cm" % FLAGS.cm_vocab_size
+        append_head_token = True
+        append_end_token = True
+    elif FLAGS.decoder_topology in ["basic_tree"]:
+        nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
+        if FLAGS.canonical:
+            cm_extention = ".seq%d.cm.norm.order" % FLAGS.cm_vocab_size
+        elif FLAGS.normalized:
+            cm_extention = ".seq%d.cm.norm" % FLAGS.cm_vocab_size
+        else:
+            cm_extention = ".seq%d.cm" % FLAGS.cm_vocab_size
+        append_head_token = False
+        append_end_token = False
+
+    train_path = os.path.join(data_dir, "train")
+    dev_path = os.path.join(data_dir, "dev")
+    test_path = os.path.join(data_dir, "test")
+
+    nl_txt_train = train_path + ".%d.nl" % FLAGS.nl_vocab_size
+    cm_txt_train = train_path + ".%d.cm" % FLAGS.cm_vocab_size
+    nl_txt_dev = dev_path + ".%d.nl" % FLAGS.nl_vocab_size
+    cm_txt_dev = dev_path + ".%d.cm" % FLAGS.cm_vocab_size
+    nl_txt_test = test_path + ".%d.nl" % FLAGS.nl_vocab_size
+    cm_txt_test = test_path + ".%d.cm" % FLAGS.cm_vocab_size
+
+    if FLAGS.explanation:
+        nl_train = train_path + cm_extention
+        cm_train = train_path + nl_extention
+        nl_dev = dev_path + cm_extention
+        cm_dev = dev_path + nl_extention
+        nl_test = test_path + cm_extention
+        cm_test = test_path + nl_extention
+    else:
+        nl_train = train_path + nl_extention
+        cm_train = train_path + cm_extention
+        nl_dev = dev_path + nl_extention
+        cm_dev = dev_path + cm_extention
+        nl_test = test_path + nl_extention
+        cm_test = test_path + cm_extention
+
+    train_set = read_data(nl_txt_train, cm_txt_train, nl_train, cm_train,
+                          buckets, FLAGS.max_train_data_size,
+                          append_head_token=append_head_token,
+                          append_end_token=append_end_token)
+    dev_set = read_data(nl_txt_dev, cm_txt_dev, nl_dev, cm_dev, buckets,
+                        append_head_token=append_head_token,
+                        append_end_token=append_end_token)
+    test_set = read_data(nl_txt_test, cm_txt_test, nl_test, cm_test, buckets,
+                         append_head_token=append_head_token,
+                         append_end_token=append_end_token)
+
+    return train_set, dev_set, test_set
+
+
+def read_data(sc_path, tg_path, sc_id_path, tg_id_path,
+              buckets=None, max_num_examples=None,
+              append_head_token=False, append_end_token=False):
+    """Read preprocessed data from source and target files and put into buckets.
+    :param sc_path: path to the file containing the original source
+    strings.
+    :param tg_path: path to the file containing the original target
+    strings.
+    :param sc_id_path: path to the file with token-ids for the source language.
+    :param tg_id_path: path to the file with token-ids for the target language.
+    :param buckets: bucket sizes for training.
+    :param max_num_examples: maximum number of lines to read. Read complete
+           data files if this entry is 0 or None.
+    """
+    if buckets:
+        data_set = [[] for _ in buckets]
+    else:
+        data_set = []
+
+    with tf.gfile.GFile(sc_path, mode="r") as sc_file:
+        with tf.gfile.GFile(tg_path, mode="r") as tg_file:
+            with tf.gfile.GFile(sc_id_path, mode="r") as sc_id_file:
+                with tf.gfile.GFile(tg_id_path, mode="r") as tg_id_file:
+                    sc_txt, tg_txt = sc_file.readline(), tg_file.readline()
+                    sc, tg = sc_id_file.readline(), tg_id_file.readline()
+                    counter = 0
+                    while sc:
+                        assert(tg)
+                        if max_num_examples and counter < max_num_examples:
+                            break
+                        counter += 1
+                        if counter % 1000 == 0:
+                            print("  reading data line %d" % counter)
+                            sys.stdout.flush()
+                        sc_ids = [int(x) for x in sc.split()]
+                        tg_ids = [int(x) for x in tg.split()]
+                        if append_head_token:
+                            tg_ids.insert(0, ROOT_ID)
+                        if append_end_token:
+                            tg_ids.append(EOS_ID)
+                        if buckets:
+                            for bucket_id, (sc_size, tg_size) in enumerate(buckets):
+                                if len(sc_ids) < sc_size and len(tg_ids) < tg_size:
+                                    data_set[bucket_id].append(
+                                        [sc_txt, tg_txt, sc_ids, tg_ids])
+                                    break
+                        else:
+                            data_set.append([sc_txt, tg_txt, sc_ids, tg_ids])
+
+                        sc_txt, tg_txt = \
+                            sc_path.readline(), tg_path.readline()
+                        sc, tg = sc_path.readline(), tg_id_path.readline()
+    print("  %d data points read." % counter)
+    return data_set
+
+
 def ratio(ll, x):
     print(sum([len(l[x]) for l in ll.values()]))
     return float(sum([len(set(l[x])) for l in ll.values()])) / len(ll)
 
+
+# --- Data Statistics --- #
 
 def pp(ll):
     num_pp = 0
@@ -870,34 +880,35 @@ def entropy(data):
 
 def data_stats(FLAGS):
     train_set, dev_set, test_set = load_data(FLAGS)
-    train_by_nl = group_data_by_nl(train_set, use_nl_temp=FLAGS.dataset.startswith("bash"))
+    train_by_nl = group_data_by_nl(train_set, use_temp=FLAGS.dataset.startswith("bash"))
     print(len(train_by_nl))
     print("train cmd/nl ratio = {}".format(ratio(train_by_nl, 1)))
     print("train %nl(cmd+) = {}".format(pp(train_by_nl)))
     print("train entropy = {}".format(entropy(train_set)))
-    dev_by_nl = group_data_by_nl(dev_set, use_nl_temp=FLAGS.dataset.startswith("bash"))
+    dev_by_nl = group_data_by_nl(dev_set, use_temp=FLAGS.dataset.startswith("bash"))
     print("dev cmd/nl ratio = {}".format(ratio(dev_by_nl, 1)))
     print("dev %nl(cmd+) = {}".format(pp(dev_by_nl)))
     print("dev nl overlap = {}".format(overlap(train_by_nl, dev_by_nl)))
     print("dev entropy = {}".format(entropy(dev_set)))
-    test_by_nl = group_data_by_nl(test_set, use_nl_temp=FLAGS.dataset.startswith("bash"))
+    test_by_nl = group_data_by_nl(test_set, use_temp=FLAGS.dataset.startswith("bash"))
     print("test cmd/nl ratio = {}".format(ratio(test_by_nl, 1)))
     print("test %nl(cmd+) = {}".format(pp(test_by_nl)))
     print("test nl overlap = {}".format(overlap(train_by_nl, test_by_nl)))
     print("test entropy = {}".format(entropy(test_set)))
     print("total entropy = {}".format(entropy(train_set + dev_set + test_set)))
-    train_by_cm = group_data_by_cm(train_set, use_cm_temp=FLAGS.dataset.startswith("bash"))
+    train_by_cm = group_data_by_cm(train_set, use_temp=FLAGS.dataset.startswith("bash"))
     print(len(train_by_cm))
     print("train nl/cmd ratio = {}".format(ratio(train_by_cm, 0)))
     print("train %cmd(nl+) = {}".format(pp(train_by_cm)))
-    dev_by_cm = group_data_by_cm(dev_set, use_cm_temp=FLAGS.dataset.startswith("bash"))
+    dev_by_cm = group_data_by_cm(dev_set, use_temp=FLAGS.dataset.startswith("bash"))
     print("dev nl/cmd ratio = {}".format(ratio(dev_by_cm, 0)))
     print("dev %cmd(nl+) = {}".format(pp(dev_by_cm)))
     print("dev cm overlap = {}".format(overlap(train_by_cm, dev_by_cm)))
-    test_by_cm = group_data_by_cm(test_set, use_cm_temp=FLAGS.dataset.startswith("bash"))
+    test_by_cm = group_data_by_cm(test_set, use_temp=FLAGS.dataset.startswith("bash"))
     print("test nl/cmd ratio = {}".format(ratio(test_by_cm, 0)))
     print("test %cmd(nl+) = {}".format(pp(test_by_cm)))
     print("test cm overlap = {}".format(overlap(train_by_cm, test_by_cm)))
+
 
 if __name__ == "__main__":
     ast = data_tools.paren_parser(sys.argv[1])
