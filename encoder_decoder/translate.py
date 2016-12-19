@@ -48,7 +48,7 @@ if FLAGS.dataset in ["bash", "bash.cl"]:
     if FLAGS.decoder_topology in ['basic_tree']:
         _buckets = [(30, 72)] if not FLAGS.explanation else [(72, 30)]
     elif FLAGS.decoder_topology in ['rnn']:
-        _buckets = [(30, 40)] if not FLAGS.explanation else [(72, 30)]
+        _buckets = [(30, 40)] if not FLAGS.explanation else [(40, 30)]
 elif FLAGS.dataset == "dummy":
     _buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explanation else \
         [(95, 20), (95, 30), (95, 45)]
@@ -375,7 +375,8 @@ def main(_):
     elif FLAGS.decode:
         _, dev_set, _ = load_data()
         model_sig = decode(dev_set)
-        eval(dev_set, model_sig=model_sig, verbose=False)
+        if not FLAGS.explanation:
+            eval(dev_set, model_sig=model_sig, verbose=False)
     elif FLAGS.test:
         _, _, test_set = load_data()
         model_sig = decode(test_set)

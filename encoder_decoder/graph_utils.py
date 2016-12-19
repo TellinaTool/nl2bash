@@ -114,6 +114,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
 def get_model_signature(FLAGS):
     model_subdir = FLAGS.dataset
+    if FLAGS.explanation:
+        model_subdir += '-expl'
     model_subdir += '-{}'.format(FLAGS.encoder_topology)
     model_subdir += '-{}'.format(FLAGS.rnn_cell)
     model_subdir += '-{}'.format(FLAGS.training_algorithm)

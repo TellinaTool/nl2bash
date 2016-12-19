@@ -268,7 +268,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     """
     cmd = cmd.replace('\n', ' ').strip()
     cmd = special_command_normalization(cmd)
-
     if not cmd:
         return None
 
@@ -589,9 +588,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     else:
                         # need to decide ast_node_kind
                         if child.word.startswith("-") and \
-                                not ((attach_point.value in ["head", "tail"]
-                                      and child.word[1:].isdigit()) or
-                                     (attach_point.value in ["chmod"]
+                                not ((attach_point.value in ["chmod"]
                                       and ('r' in child.word or
                                            'x' in child.word or
                                            'w' in child.word or
@@ -768,13 +765,13 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                         repl_str_flag_node = FlagNode("-I")
                         repl_str_node = ArgumentNode("{}", "ReservedWord")
                         repl_str_node2 = ArgumentNode("{}", "ReservedWord")
-                        make_parent_child(repl_str_flag_node, repl_str_node)
 
                         head_command.children.insert(i, repl_str_flag_node)
                         repl_str_flag_node.parent = head_command
                         repl_str_flag_node.lsb = head_command.children[i-1]
                         head_command.children[i-1].rsb = repl_str_flag_node
 
+                        make_parent_child(repl_str_flag_node, repl_str_node)
                         sub_command = head_command.children[i+1]
                         repl_str_node2.parent = sub_command
                         repl_str_node2.lsb = sub_command.get_right_child()
@@ -915,7 +912,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         print("Cannot parse: %s - AttributeError" % cmd2)
         # not a bash command
         return None
-    except AssersionError:
+    except AssertionError:
         print("Cannot parse: %s - AssertionError" % cmd2)
         # not a bash command
         return None
@@ -934,7 +931,6 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     except AssertionError as err:
         print("%s - %s" % (err.args[0], cmd2))
         return None
-
     return normalized_tree
 
 
@@ -1043,8 +1039,9 @@ def list_to_ast(list, order='dfs'):
     return root
 
 
-def to_tokens(node, loose_constraints=False, ignore_flag_order=False, arg_type_only=False,
-              with_arg_type=False, with_parent=False, index_arg = False):
+def to_tokens(node, loose_constraints=False, ignore_flag_order=False, 
+              arg_type_only=False, with_arg_type=False, with_parent=False, 
+              index_arg = False):
     if not node:
         return []
 
@@ -1142,7 +1139,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False, arg_type_o
             else:
                 tokens.append(node.value)
         elif node.kind == "bracket":
-            assert(loose_constraints or node.get_num_of_children() > 1)
+            assert(loose_constraints or node.get_num_of_children() >= 1)
             if lc and node.get_num_of_children() < 2:
                 for child in node.children:
                     tokens += to_tokens_fun(child)
