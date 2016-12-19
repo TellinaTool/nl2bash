@@ -177,7 +177,7 @@ class ArgumentNode(Node):
         return label
 
     def is_bracket(self):
-        return self.value == "\\(" or self.value == "\\)"
+        return self.value == "(" or self.value == ")"
     
     def is_reserved(self):
         return self.arg_type == "ReservedWord"
@@ -200,7 +200,6 @@ class ArgumentNode(Node):
         return True
 
     def to_index(self):
-        print(self.headcommand.arg_dict)
         if self.parent.kind == "headcommand":
             if self.headcommand.arg_dict[""][self.arg_type] > 1:
                 return True
@@ -221,10 +220,11 @@ class FlagNode(Node):
 
     def add_child(self, child, index=None):
         super(FlagNode, self).add_child(child)
-        if not self.value in self.headcommand.arg_dict:
-            self.headcommand.arg_dict[self.value] = collections.defaultdict(int)
-        self.headcommand.arg_dict[self.value][child.arg_type] += 1
-        child.set_index(self.headcommand.arg_dict[self.value][child.arg_type])
+        if child.is_argument():
+            if not self.value in self.headcommand.arg_dict:
+                self.headcommand.arg_dict[self.value] = collections.defaultdict(int)
+            self.headcommand.arg_dict[self.value][child.arg_type] += 1
+            child.set_index(self.headcommand.arg_dict[self.value][child.arg_type])
 
     def get_label(self):
         if self.parent:
