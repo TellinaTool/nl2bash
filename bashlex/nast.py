@@ -178,7 +178,7 @@ class ArgumentNode(Node):
 
     def is_bracket(self):
         return self.value == "\\(" or self.value == "\\)"
-    
+
     def is_reserved(self):
         return self.arg_type == "ReservedWord"
 
