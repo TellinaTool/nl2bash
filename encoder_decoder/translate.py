@@ -139,26 +139,26 @@ def train(train_set, dev_set, construct_model_dir=True):
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
-                for bucket_id in xrange(len(_buckets)):
+                repeated_samples = range(len(_buckets)) * 10
+                for bucket_id in repeated_samples:
                     if len(dev_set[bucket_id]) == 0:
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
                     formatted_example = model.get_batch(dev_set, bucket_id)
                     _, output_logits, eval_loss, _ = model.step(sess, formatted_example, bucket_id,
-                                                             forward_only=True)
-                    dev_loss += eval_loss * len(dev_set[bucket_id])
+                                                                forward_only=True)
+                    dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 
-                dev_size = sum(len(dev_set[bucket_id]) for bucket_id in xrange(len(_buckets)))
+                dev_size = 10
                 dev_loss = dev_loss / dev_size
                 dev_perplexity = math.exp(dev_loss) if dev_loss < 1000 else float('inf')
                 print("global step %d learning rate %.4f dev_perplexity %.2f" 
                         % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
-                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]) \
-                    and t >= 10:
+                if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]):
                     return False
            
                 previous_dev_losses.append(dev_loss)

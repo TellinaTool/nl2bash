@@ -671,6 +671,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     def add_to_set(nl_data, cm_data, split):
         with_parent = True
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
+            print(cm)
             ast = data_tools.bash_parser(cm)
             if ast:
                 if data_tools.is_simple(ast):
@@ -682,6 +683,10 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                                                          normalize_long_pattern=False)
                     nl_tokens = data_tools.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
+                    for token in cm_tokens:
+                        if token == "find@@-prune)":
+                            print(cm)
+                            sys.exit()
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(

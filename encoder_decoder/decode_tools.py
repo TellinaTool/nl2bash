@@ -123,7 +123,7 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
 
                 if FLAGS.dataset in ["bash", "bash.cl"]:
                     cmd = re.sub('( ;\s+)|( ;$)', ' \\; ', cmd)
-                    cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
+                    # cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
                     cmd = re.sub('(^\( )|( \( )', ' \\( ', cmd)
                     tree = data_tools.bash_parser(cmd)
                 else:
@@ -131,13 +131,17 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
                 search_history = outputs
             else:
                 tree, cmd, search_history = to_readable(outputs, rev_cm_vocab)
+        
             if not tree is None:
                 # filter out non-grammatical output
-                temp = data_tools.ast2template(tree, ignore_flag_order=False)
+                temp = data_tools.ast2template(tree, loose_constraints=True, 
+                                               ignore_flag_order=False)
                 if FLAGS.decoding_algorithm == "greedy":
                     batch_outputs.append((tree, temp, search_history))
                 else:
                     beam_outputs.append((tree, temp, search_history))
+            # else:
+            #     print("prediction \"{}\" dropped due do parsing error".format(cmd))
         if FLAGS.decoding_algorithm == "beam_search":
             batch_outputs.append(beam_outputs)
 
@@ -145,8 +149,8 @@ def decode(output_symbols, rev_cm_vocab, FLAGS):
 
 
 def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS, verbose=True):
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
-                                                  use_nl_temp = FLAGS.dataset.startswith("bash"))
+    grouped_dataset = data_utils.group_data_by_nl(
+        dataset, use_bucket=True, use_nl_temp = FLAGS.dataset.startswith("bash"))
     bucketed_nl_strs, bucketed_cm_strs, bucketed_nls, bucketed_cmds = \
         data_utils.bucket_grouped_data(grouped_dataset, model.buckets)
 
@@ -213,8 +217,7 @@ def decode_set(sess, model, dataset, rev_nl_vocab, rev_cm_vocab, FLAGS, verbose=
                     elif FLAGS.decoding_algorithm == "beam_search":
                         top_k_predictions = batch_outputs[batch_id]
                         top_k_scores = output_logits[batch_id]
-                        assert(len(top_k_predictions) == FLAGS.beam_size)
-                        for j in xrange(min(FLAGS.beam_size, 10)):
+                        for j in xrange(min(FLAGS.beam_size, len(top_k_predictions), 10)):
                             top_k_pred_tree, top_k_pred_cmd, top_k_outputs = top_k_predictions[j]
                             if verbose:
                                 print("Prediction {}: {} ({}) ".format(
