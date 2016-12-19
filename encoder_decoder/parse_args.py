@@ -14,6 +14,9 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("epochs_per_checkpoint", 1,
                                 "How many training steps to do per checkpoint.")
 
+    tf.app.flags.DEFINE_boolean("explanation", True,
+                                "Set to True to translate code to natural language.")
+
     tf.app.flags.DEFINE_boolean("cross_valid", False,
                                 "Set to True for cross validation.")
     tf.app.flags.DEFINE_integer("num_folds", 5,
@@ -59,10 +62,10 @@ def define_input_flags():
 
     # training data property
     tf.app.flags.DEFINE_string("dataset", "bash", "select dataset to use.")
-    tf.app.flags.DEFINE_integer("nl_vocab_size", 1000, "English vocabulary size.")
-    tf.app.flags.DEFINE_integer("cm_vocab_size", 1000, "command vocabulary size.")
-    tf.app.flags.DEFINE_integer("max_nl_length", 40, "maximum length of the English sentence.")
-    tf.app.flags.DEFINE_integer("max_cm_length", 64, "maximum length of the command traversal sequence.")
+    tf.app.flags.DEFINE_integer("sc_vocab_size", 1000, "source vocabulary size.")
+    tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size.")
+    tf.app.flags.DEFINE_integer("max_sc_length", 40, "maximum length of the source token sequence.")
+    tf.app.flags.DEFINE_integer("max_tg_length", 64, "maximum length of the target token sequence.")
     tf.app.flags.DEFINE_string("data_dir", os.path.join(os.path.dirname(__file__), "data"),
                                "Raw data directory")
     tf.app.flags.DEFINE_string("data_split", "command", "Data split criteria")

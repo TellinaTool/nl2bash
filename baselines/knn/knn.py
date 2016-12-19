@@ -13,28 +13,28 @@ class KNNModel(object):
 
         # the file containing training nl vectors and cmd vectors
         cmd_vec_list = [cmd_vec for _, _, _, cmd_vec in train_set]
-        nl_vec_list = [nl_vec for _, _, nl_vec, _ in train_set]
+        sc_vec_list = [sc_vec for _, _, sc_vec, _ in train_set]
 
-        nl_vec_to_cmd_vec = {}
+        sc_vec_to_tg_vec = {}
         for i in range(self.data_size):
-            nl_vec_to_cmd_vec[str(nl_vec_list[i])] = cmd_vec_list[i]
+            sc_vec_to_tg_vec[str(sc_vec_list[i])] = cmd_vec_list[i]
 
         # calculate term weight based on tf-idf
-        for vec in nl_vec_list:
+        for vec in sc_vec_list:
             for k in set(vec):
                 if k in self.term_occur_count:
                     self.term_occur_count[k] += 1
                 else:
                     self.term_occur_count[k] = 1
 
-        self.nl_vec_list = nl_vec_list
-        self.nl_vec_to_cmd_vec = nl_vec_to_cmd_vec
+        self.sc_vec_list = sc_vec_list
+        self.sc_vec_to_tg_vec = sc_vec_to_tg_vec
 
     def test(self, test_vec, k):
-        top_knns = self.find_k_nearest_neighbor(test_vec, self.nl_vec_list, k)
+        top_knns = self.find_k_nearest_neighbor(test_vec, self.sc_vec_list, k)
         top_k_results = []
         for nl, score in top_knns:
-            cmd = self.nl_vec_to_cmd_vec[str(nl)]
+            cmd = self.sc_vec_to_tg_vec[str(nl)]
             top_k_results.append((nl, cmd, score))
         return top_k_results
 
@@ -56,7 +56,7 @@ class KNNModel(object):
         return r
 
     # compute the distance between two natural language vectors
-    def compute_nl_vec_distance(self, nlvec1, nlvec2):
+    def compute_sc_vec_distance(self, nlvec1, nlvec2):
         overlapped_tok = list(set(nlvec1) & set(nlvec2))
 
         nlvec1_weighted_len = 0.
@@ -82,7 +82,7 @@ class KNNModel(object):
 
     # sort and find top k most rated bitvectors
     def find_k_nearest_neighbor(self, vec, vec_list, k):
-        scored_vec_list = map(lambda v: (v, self.compute_nl_vec_distance(vec, v)),
+        scored_vec_list = map(lambda v: (v, self.compute_sc_vec_distance(vec, v)),
                               vec_list)
         return heapq.nlargest(k, scored_vec_list, key=lambda x: x[1])
 
