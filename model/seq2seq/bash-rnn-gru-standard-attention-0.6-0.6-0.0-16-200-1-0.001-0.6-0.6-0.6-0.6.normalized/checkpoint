@@ -1,0 +1,6 @@
+model_checkpoint_path: "translate.ckpt-42"
+all_model_checkpoint_paths: "translate.ckpt-38"
+all_model_checkpoint_paths: "translate.ckpt-39"
+all_model_checkpoint_paths: "translate.ckpt-40"
+all_model_checkpoint_paths: "translate.ckpt-41"
+all_model_checkpoint_paths: "translate.ckpt-42"

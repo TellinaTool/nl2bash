@@ -2,6 +2,7 @@ package main;
 
 import cmd_parser.CmdGrammarGenerator;
 import cmd_parser.CmdParserInterface;
+import javafx.util.Pair;
 import man_parser.parser.ParseException;
 import man_parser.ManParserInterface;
 import org.antlr.v4.runtime.RecognitionException;
@@ -19,31 +20,58 @@ public class Main {
     public static void main(String[] args) throws IOException, ParseException {
 
         if (args.length < 1) {
-            System.out.println("usage: java -jar command_parser -parse command");
-            System.out.println("       java -jar command_parser -parse_file filename");
-            System.out.println("       java -jar command_parser -gen-primitive-cmd-json grammar_file optionword");
-            //System.out.println("       java -jar command_parser -make_grammar grammar_file");
+            Main.printRunningInstruction();
             return;
         }
 
         if (args[0].equals("-make_grammar")) {
-            //Config.SynopsisGrammar = args[1];
             String g4 = genG4FromSynopsis();
-            Files.write(Paths.get("src/cmd_parser/parser/Commands.g4"), g4.getBytes());
+
+            if (args.length == 1) {
+                System.out.println(g4);
+                //Config.SynopsisGrammar = args[1];
+            } else {
+                String targetFile = args[1];
+                //a typical location "src/cmd_parser/parser/Commands.g4";
+                Files.write(Paths.get(targetFile), g4.getBytes());
+            }
         } else if (args[0].equals("-parse")) {
-            System.out.println(CmdParserInterface.parse(args[1]));
+            Pair<String, String> p = CmdParserInterface.parse(args[1]);
+            System.out.println(p.getKey() + "\n" + p.getValue());
         } else if (args[0].equals("-parse_file")) {
-            Files.lines(Paths.get(args[0])).forEach(x -> System.out.println(CmdParserInterface.parse(x)));
+            Files.lines(Paths.get(args[0])).forEach(x -> {
+                Pair<String, String> p = CmdParserInterface.parse(x);
+                System.out.println(p.getKey() + "\n" + p.getValue());
+            });
         } else if (args[0].equals("-test")) {
-            testParseCmd();
+            if (args.length >= 2 && args[1].equals("-print-fail"))
+                testParseCmd(true);
+            else
+                testParseCmd(false);
         } else if (args[0].equals("-gen-primitive-cmd-json")) {
+            if (args.length < 3)
+                Main.printRunningInstruction();
             Config.OptionWordDictionary = args[2];
             Config.SynopsisGrammar = args[1];
-            ManParserInterface.parseSynopsisBNF();
+            System.out.println(ManParserInterface.parseSynopsisBNF());
         }
 
         //ManParserInterface.parseGrammarFile(Config.SynopsisGrammar);
         //testParseCmd();
+    }
+
+    private static void printRunningInstruction() {
+        System.out.println("Usages: java -jar command_parser -parse command");
+        System.out.println("    [1] Parse a command:");
+        System.out.println("        java -jar command_parser -parse command");
+        System.out.println("    [2] Parse all commands in a file, each command in a line.");
+        System.out.println("        java -jar command_parser -parse_file filename");
+        System.out.println("    [3] Test the parse result on the default given file.");
+        System.out.println("        java -jar command_parser -test [-print-fail]");
+        System.out.println("    [4] Build the json representation of the command grammar, with the help of optionword.");
+        System.out.println("        java -jar command_parser -gen-primitive-cmd-json grammar_file optionword");
+        System.out.println("    [5] Generate g4 grammar file: (you may want to generate to \"src/cmd_parser/parser/Commands.g4\")");
+        System.out.println("        java -jar command_parser -make-grammar [target_file]");
     }
 
     public static String genG4FromSynopsis() {
@@ -58,7 +86,7 @@ public class Main {
         return CmdGrammarGenerator.genG4(gf.commandsGrammar, gf.nonTerminals, null);
     }
 
-    public static void testParseCmd() throws IOException {
+    public static void testParseCmd(boolean printFail) throws IOException {
         String[] cmds = {
                 "find -E -L /home/peter -name *~ -print0 | xargs -0 rm {}",
                 "find -L -E /home/peter -name *~ -print0 | xargs -0 rm {}",
@@ -83,8 +111,6 @@ public class Main {
 
         String testDataPath = "test_data/train.correct.cm";
 
-        int u = 0;
-
         //System.err
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         System.setErr(new PrintStream(baos));
@@ -92,17 +118,19 @@ public class Main {
         Files.lines(Paths.get(testDataPath)).forEach(
             x -> {
                 String s = x.replace("\\)", ")").replace("\\(", "(").replace("\\;", ";");
-                String cmdParsedPair = CmdParserInterface.parse(s);
+                Pair<String, String> cmdParsedPair = CmdParserInterface.parse(s);
                 String parseLog = new String( baos.toByteArray(), Charset.defaultCharset() );
                 if (! parseLog.trim().equals("")) {
                     //print unparsed commands
-                  //  System.out.println(s);
+                    if (printFail)
+                        System.out.println("[Failed to parse] " + s);
                 } else {
                     // print parsed commands
-                    System.out.println(s);
-                    System.out.println(cmdParsedPair);
+                    if (!printFail) {
+                        System.out.println(s);
+                        System.out.println(cmdParsedPair.getKey() + "\n" + cmdParsedPair.getValue());
+                    }
                 }
-
                 baos.reset();
             }
         );
