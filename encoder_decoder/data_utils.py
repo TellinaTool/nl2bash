@@ -449,7 +449,6 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     def add_to_set(nl_data, cm_data, split):
         with_parent = True
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
-            print(cm)
             ast = data_tools.bash_parser(cm)
             if ast:
                 if data_tools.is_simple(ast):
@@ -461,10 +460,6 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                                                          normalize_long_pattern=False)
                     nl_tokens = data_tools.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
-                    for token in cm_tokens:
-                        if token == "find@@-prune)":
-                            print(cm)
-                            sys.exit()
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
@@ -523,10 +518,9 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     cm_char_vocab_path = os.path.join(data_dir, "vocab%d.cm.char" % cm_vocab_size)
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
-    cm_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.norm" % cm_vocab_size)
+    cm_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.norm" % nl_vocab_size)
     cm_ast_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast" % cm_vocab_size)
-    cm_ast_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast.norm" %
-                                          cm_vocab_size)
+    cm_ast_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast.norm" % cm_vocab_size)
 
     nl_suffix = ".%d.nl" % nl_vocab_size
     cm_suffix = ".%d.cm" % cm_vocab_size
@@ -544,14 +538,14 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
 
     _ = prepare_dataset(nl_list, data_dir, nl_suffix, nl_vocab_size, None)
     _ = prepare_dataset(cm_list, data_dir, cm_suffix, cm_vocab_size, None)
-    max_nl_char_len = prepare_dataset(nl_char_list, data_dir, nl_char_suffix, nl_vocab_size,
-                                      nl_char_vocab_path)
-    max_cm_char_len = prepare_dataset(cm_char_list, data_dir, cm_char_suffix, cm_vocab_size,
-                                      cm_char_vocab_path)
-    max_nl_token_len = prepare_dataset(nl_token_list, data_dir, nl_token_suffix, nl_vocab_size,
-                                       nl_vocab_path)
-    max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix, cm_vocab_size,
-                                       cm_vocab_path)
+    max_nl_char_len = prepare_dataset(nl_char_list, data_dir, nl_char_suffix, 
+                                      nl_vocab_size, nl_char_vocab_path)
+    max_cm_char_len = prepare_dataset(cm_char_list, data_dir, cm_char_suffix, 
+                                      cm_vocab_size, cm_char_vocab_path)
+    max_nl_token_len = prepare_dataset(nl_token_list, data_dir, nl_token_suffix, 
+                                       nl_vocab_size, nl_vocab_path)
+    max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix, 
+                                       cm_vocab_size, cm_vocab_path)
     max_cm_token_norm_len = prepare_dataset(cm_normalized_token_list, data_dir, cm_token_norm_suffix,
                                             cm_vocab_size, cm_norm_vocab_path)
     max_cm_token_norm_order_len = prepare_dataset(cm_canonical_token_list, data_dir,
@@ -609,15 +603,15 @@ def prepare_data(FLAGS):
     """
 
     if FLAGS.dataset in ["bash", "bash.cl"]:
-        prepare_bash(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+        prepare_bash(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
     if FLAGS.dataset == "jobs":
-        prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
     if FLAGS.dataset == "geo":
-        prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
     if FLAGS.dataset == "atis":
-        prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
     if FLAGS.dataset == "dummy":
-        prepare_jobs(FLAGS.data_dir, FLAGS.nl_vocab_size, FLAGS.cm_vocab_size)
+        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
 
 
 # --- Load Datasets -- #
@@ -688,28 +682,28 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
 def load_vocab(FLAGS):
     if FLAGS.decoder_topology in ['rnn']:
         nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                         "vocab%d.nl" % FLAGS.nl_vocab_size)
+                                         "vocab%d.nl" % FLAGS.sc_vocab_size)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.norm" % FLAGS.cm_vocab_size)
+                                        "vocab%d.cm.norm" % FLAGS.sc_vocab_size)
         elif FLAGS.normalized:
             cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.norm" % FLAGS.cm_vocab_size)
+                                        "vocab%d.cm.norm" % FLAGS.sc_vocab_size)
         else:
             cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm" % FLAGS.cm_vocab_size)
+                                        "vocab%d.cm" % FLAGS.sc_vocab_size)
     elif FLAGS.decoder_topology in ['basic_tree']:
         nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                         "vocab%d.nl" % FLAGS.nl_vocab_size)
+                                         "vocab%d.nl" % FLAGS.sc_vocab_size)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.ast.norm" % FLAGS.cm_vocab_size)
+                                        "vocab%d.cm.ast.norm" % FLAGS.sc_vocab_size)
         elif FLAGS.normalized:
             cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.ast.norm" % FLAGS.cm_vocab_size)
+                                        "vocab%d.cm.ast.norm" % FLAGS.sc_vocab_size)
         else:
             cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.ast" % FLAGS.cm_vocab_size)
+                                        "vocab%d.cm.ast" % FLAGS.sc_vocab_size)
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
@@ -729,28 +723,28 @@ def load_data(FLAGS, buckets=None):
     data_dir = FLAGS.data_dir
 
     if FLAGS.char:
-        nl_extention = ".cids%d.nl" % FLAGS.nl_vocab_size
-        cm_extention = ".cids%d.cm" % FLAGS.cm_vocab_size
+        nl_extention = ".cids%d.nl" % FLAGS.sc_vocab_size
+        cm_extention = ".cids%d.cm" % FLAGS.sc_vocab_size
         append_head_token = True
         append_end_token = True
     elif FLAGS.decoder_topology in ["rnn"]:
-        nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
+        nl_extention = ".ids%d.nl" % FLAGS.sc_vocab_size
         if FLAGS.canonical:
-            cm_extention = ".ids%d.cm.norm.order" % FLAGS.cm_vocab_size
+            cm_extention = ".ids%d.cm.norm.order" % FLAGS.sc_vocab_size
         elif FLAGS.normalized:
-            cm_extention = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
+            cm_extention = ".ids%d.cm.norm" % FLAGS.sc_vocab_size
         else:
-            cm_extention = ".ids%d.cm" % FLAGS.cm_vocab_size
+            cm_extention = ".ids%d.cm" % FLAGS.sc_vocab_size
         append_head_token = True
         append_end_token = True
     elif FLAGS.decoder_topology in ["basic_tree"]:
-        nl_extention = ".ids%d.nl" % FLAGS.nl_vocab_size
+        nl_extention = ".ids%d.nl" % FLAGS.sc_vocab_size
         if FLAGS.canonical:
-            cm_extention = ".seq%d.cm.norm.order" % FLAGS.cm_vocab_size
+            cm_extention = ".seq%d.cm.norm.order" % FLAGS.sc_vocab_size
         elif FLAGS.normalized:
-            cm_extention = ".seq%d.cm.norm" % FLAGS.cm_vocab_size
+            cm_extention = ".seq%d.cm.norm" % FLAGS.sc_vocab_size
         else:
-            cm_extention = ".seq%d.cm" % FLAGS.cm_vocab_size
+            cm_extention = ".seq%d.cm" % FLAGS.sc_vocab_size
         append_head_token = False
         append_end_token = False
 
@@ -758,39 +752,43 @@ def load_data(FLAGS, buckets=None):
     dev_path = os.path.join(data_dir, "dev")
     test_path = os.path.join(data_dir, "test")
 
-    nl_txt_train = train_path + ".%d.nl" % FLAGS.nl_vocab_size
-    cm_txt_train = train_path + ".%d.cm" % FLAGS.cm_vocab_size
-    nl_txt_dev = dev_path + ".%d.nl" % FLAGS.nl_vocab_size
-    cm_txt_dev = dev_path + ".%d.cm" % FLAGS.cm_vocab_size
-    nl_txt_test = test_path + ".%d.nl" % FLAGS.nl_vocab_size
-    cm_txt_test = test_path + ".%d.cm" % FLAGS.cm_vocab_size
+    nl_txt_train = train_path + ".%d.nl" % FLAGS.sc_vocab_size
+    cm_txt_train = train_path + ".%d.cm" % FLAGS.sc_vocab_size
+    nl_txt_dev = dev_path + ".%d.nl" % FLAGS.sc_vocab_size
+    cm_txt_dev = dev_path + ".%d.cm" % FLAGS.sc_vocab_size
+    nl_txt_test = test_path + ".%d.nl" % FLAGS.sc_vocab_size
+    cm_txt_test = test_path + ".%d.cm" % FLAGS.sc_vocab_size
+
+    nl_train = train_path + nl_extention
+    cm_train = train_path + cm_extention
+    nl_dev = dev_path + nl_extention
+    cm_dev = dev_path + cm_extention
+    nl_test = test_path + nl_extention
+    cm_test = test_path + cm_extention
 
     if FLAGS.explanation:
-        nl_train = train_path + cm_extention
-        cm_train = train_path + nl_extention
-        nl_dev = dev_path + cm_extention
-        cm_dev = dev_path + nl_extention
-        nl_test = test_path + cm_extention
-        cm_test = test_path + nl_extention
-    else:
-        nl_train = train_path + nl_extention
-        cm_train = train_path + cm_extention
-        nl_dev = dev_path + nl_extention
-        cm_dev = dev_path + cm_extention
-        nl_test = test_path + nl_extention
-        cm_test = test_path + cm_extention
-
-    train_set = read_data(nl_txt_train, cm_txt_train, nl_train, cm_train,
+        train_set = read_data(cm_txt_train, nl_txt_train, cm_train, nl_train,
                           buckets, FLAGS.max_train_data_size,
                           append_head_token=append_head_token,
                           append_end_token=append_end_token)
-    dev_set = read_data(nl_txt_dev, cm_txt_dev, nl_dev, cm_dev, buckets,
+        dev_set = read_data(cm_txt_dev, nl_txt_dev, cm_dev, nl_dev, buckets,
                         append_head_token=append_head_token,
                         append_end_token=append_end_token)
-    test_set = read_data(nl_txt_test, cm_txt_test, nl_test, cm_test, buckets,
+        test_set = read_data(cm_txt_test, nl_txt_test, cm_test, nl_test, buckets,
                          append_head_token=append_head_token,
                          append_end_token=append_end_token)
-
+    else:
+        train_set = read_data(nl_txt_train, cm_txt_train, nl_train, cm_train,
+                          buckets, FLAGS.max_train_data_size,
+                          append_head_token=append_head_token,
+                          append_end_token=append_end_token)
+        dev_set = read_data(nl_txt_dev, cm_txt_dev, nl_dev, cm_dev, buckets,
+                        append_head_token=append_head_token,
+                        append_end_token=append_end_token)
+        test_set = read_data(nl_txt_test, cm_txt_test, nl_test, cm_test, buckets,
+                         append_head_token=append_head_token,
+                         append_end_token=append_end_token)
+    
     return train_set, dev_set, test_set
 
 
@@ -844,8 +842,8 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path,
                             data_set.append([sc_txt, tg_txt, sc_ids, tg_ids])
 
                         sc_txt, tg_txt = \
-                            sc_path.readline(), tg_path.readline()
-                        sc, tg = sc_path.readline(), tg_id_path.readline()
+                            sc_file.readline(), tg_file.readline()
+                        sc, tg = sc_id_file.readline(), tg_id_file.readline()
     print("  %d data points read." % counter)
     return data_set
 

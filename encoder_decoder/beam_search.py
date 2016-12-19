@@ -259,7 +259,13 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         symbols_history = tf.gather(past_beam_symbols, parent_refs)
         if attn_masks is not None:
-            attn_masks = tf.gather(attn_masks, parent_refs)
+            num_attn_masks = len(attn_masks)
+            attn_masks = tf.split(1, num_attn_masks,
+                            tf.gather(
+                                tf.concat(1, attn_masks), 
+                                 parent_refs
+                            )
+                         )
         beam_symbols = tf.concat(1, [symbols_history[:,1:], tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]), 

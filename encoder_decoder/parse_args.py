@@ -14,7 +14,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("epochs_per_checkpoint", 1,
                                 "How many training steps to do per checkpoint.")
 
-    tf.app.flags.DEFINE_boolean("explanation", True,
+    tf.app.flags.DEFINE_boolean("explanation", False,
                                 "Set to True to translate code to natural language.")
 
     tf.app.flags.DEFINE_boolean("cross_valid", False,

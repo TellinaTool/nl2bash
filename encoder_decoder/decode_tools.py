@@ -108,7 +108,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
 
             if FLAGS.decoder_topology == "rnn":
                 if FLAGS.char:
-                    cmd = "".join([tf.compat.as_str(rev_tg_vocab[output])
+                    tg = "".join([tf.compat.as_str(rev_tg_vocab[output])
                                for output in outputs]).replace(data_utils._UNK, ' ')
                 else:
                     tokens = []
@@ -120,24 +120,26 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
                             tokens.append(pred_token)
                         else:
                             tokens.append(data_utils._UNK)
-                    cmd = " ".join(tokens)
-
+                    tg = " ".join(tokens)
                 if FLAGS.explanation:
-                    tree = []
+                    tree = None
                 else:
                     if FLAGS.dataset in ["bash", "bash.cl"]:
-                        cmd = re.sub('( ;\s+)|( ;$)', ' \\; ', cmd)
-                        # cmd = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
-                        cmd = re.sub('(^\( )|( \( )', ' \\( ', cmd)
-                        tree = data_tools.bash_parser(cmd)
+                        tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
+                        # tg = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
+                        tg = re.sub('(^\( )|( \( )', ' \\( ', tg)
+                        tree = data_tools.bash_parser(tg)
                     else:
-                        tree = data_tools.paren_parser(cmd)
+                        tree = data_tools.paren_parser(tg)
             else:
-                tree, cmd, outputs = to_readable(outputs, rev_tg_vocab)
+                tree, tg, outputs = to_readable(outputs, rev_tg_vocab)
 
-            if not tree is None:
+            if not tree is None or FLAGS.explanation:
                 # filter out non-grammatical output
-                temp = data_tools.ast2template(tree, loose_constraints=True, 
+                if FLAGS.explanation:
+                    temp = tg
+                else:
+                    temp = data_tools.ast2template(tree, loose_constraints=True, 
                                                ignore_flag_order=False)
                 if FLAGS.decoding_algorithm == "greedy":
                     batch_outputs.append((tree, temp, outputs))
@@ -150,12 +152,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
 
 
 def decode_set(sess, model, dataset, rev_sc_vocab, rev_tg_vocab, FLAGS, verbose=True):
-    if FLAGS.explanation:
-        group_data_by_sc = data_utils.group_data_by_cm
-    else:
-        group_data_by_sc = data_utils.group_data_by_nl
-    grouped_dataset = group_data_by_sc(dataset, use_bucket=True,
-                                       use_temp = FLAGS.dataset.startswith("bash"))
+    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
+        use_temp=FLAGS.dataset.startswith("bash") and not FLAGS.explanation)
     bucketed_sc_strs, bucketed_tg_strs, bucketed_scs, bucketed_tgs = \
         data_utils.bucket_grouped_data(grouped_dataset, model.buckets)
 
@@ -201,8 +199,8 @@ def decode_set(sess, model, dataset, rev_sc_vocab, rev_tg_vocab, FLAGS, verbose=
                     example_id = b * FLAGS.batch_size + batch_id
                     sc_str = batch_sc_strs[batch_id]
                     tg_strs = batch_tg_strs[batch_id]
-                    nl = batch_scs[batch_id]
-                    sc_temp = ' '.join([rev_sc_vocab[i] for i in nl])
+                    sc = batch_scs[batch_id]
+                    sc_temp = ' '.join([rev_sc_vocab[i] for i in sc])
 
                     if verbose:
                         print("Example {}:{}".format(bucket_id, example_id))
@@ -238,7 +236,7 @@ def decode_set(sess, model, dataset, rev_sc_vocab, rev_tg_vocab, FLAGS, verbose=
                             M = attn_masks[batch_id, :, :]
                         elif FLAGS.decoding_algorithm == "beam_search":
                             M = attn_masks[batch_id, 0, :, :]
-                        visualize_attn_masks(M, nl, outputs, rev_sc_vocab, rev_tg_vocab,
+                        visualize_attn_masks(M, sc, outputs, rev_sc_vocab, rev_tg_vocab,
                             os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
 
 

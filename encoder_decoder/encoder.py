@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
+from tensorflow.python.ops import rnn
 from tensorflow.python.util import nest
 
 from encoder_decoder import graph_utils
@@ -58,9 +59,10 @@ class BiRNNEncoder(Encoder):
         self.embeddings = embeddings
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
-        outputs, state_fw, state_bw = tf.rnn.bidirectional_rnn(self.fw_cell,
-                                                               self.bw_cell,
-                                                               input_embeddings)
+        outputs, state_fw, state_bw = rnn.bidirectional_rnn(self.fw_cell,
+                                                            self.bw_cell,
+                                                            input_embeddings,
+                                                            dtype=tf.float32)
         if self.rnn_cell == "gru":
             state = outputs[-1]
         elif self.rnn_cell == "lstm":

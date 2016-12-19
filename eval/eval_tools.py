@@ -55,7 +55,7 @@ def eval_set(model, dataset, rev_sc_vocab, FLAGS, verbose=True):
     use_bucket = False if model == "knn" else True
 
     grouped_dataset = data_utils.group_data_by_nl(
-        dataset, use_bucket=use_bucket, use_sc_temp = eval_bash)
+        dataset, use_bucket=use_bucket, use_temp = eval_bash)
 
     with DBConnection() as db:
         for nl_temp in grouped_dataset:
@@ -214,8 +214,8 @@ def manual_eval(model, dataset, rev_sc_vocab, FLAGS, output_dir, num_eval=30):
     num_top10_correct = 0.0
     num_evaled = 0
 
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=False) \
-                                .values()
+    grouped_dataset = data_utils.group_data_by_nl(
+                            dataset, use_bucket=False).values()
     random.shuffle(grouped_dataset, lambda: 0.5208484091114275)
 
     cmd_parser = data_tools.bash_parser if FLAGS.dataset == "bash" \
