@@ -21,6 +21,9 @@
 
 # Java
 *.class
+
+# auto-generated files
+parsetab.py
 /man-parser/out
 
 # Shell scripts
@@ -29,9 +32,6 @@
 # Database file
 *.db
 *.txt
-
-# User-specific stuff:
-baselines/man-parser/.idea/*
 
 # Misc
 MANIFEST
