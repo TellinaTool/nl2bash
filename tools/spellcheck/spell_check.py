@@ -9,6 +9,7 @@ MIT license: www.opensource.org/licenses/mit-license.php
 import os, re, collections
 from collections import Counter
 
+
 current_folder = os.path.dirname(__file__)
 
 def words(text): return re.findall(r'\w+', text.lower())
@@ -125,7 +126,9 @@ def Testset(lines):
 
 if __name__ == "__main__":
     if not os.path.exists(os.path.join(current_folder, "most_common.txt")):
+        # extract most common words from text file
         extract_top_frequent_words(os.path.join(current_folder, "html.txt"), 30000)
+
     while True:
         try:
             word = raw_input("> ")
