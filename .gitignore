@@ -63,3 +63,5 @@ parsers/out/production/*
 baselines/knn/data/*
 data/bash/*
 parsers/test_data/*
+*.cm*
+*.nl*
