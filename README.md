@@ -9,3 +9,7 @@ Follow the instructions on the [official website](https://www.tensorflow.org/ver
 ```
 export PYTHONPATH=`pwd`
 ```
+
+### Set up other tools:
+
+* [Spelling Corrector](https://github.com/TellinaTool/tellina_learning_module/blob/master/tools/spellcheck/)
