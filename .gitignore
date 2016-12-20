@@ -17,9 +17,7 @@
 *.sublime-*
 
 # Python
-__pycache__
 *.pyc
-/baseline0/src/model.py
 
 # Java
 *.class
@@ -52,15 +50,14 @@ beam_search*eval*
 /paper
 /data/reader
 
-# ideaJ file
+# IDE-specific stuff:
+__pycache__
 .idea
 *.iml
+site_config.py
 
 # production of intellij project
 parsers/out/production/*
-
-# User-specific stuff:
-baselines/man-parser/.idea/*
 
 # sensitive data
 baselines/knn/data/*
