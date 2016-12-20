@@ -1,7 +1,7 @@
-bashlex
 nltk
 bs4
 matplotlib
+pylzma=0.4.8
 
 # zss
 nose>=1.1.2
