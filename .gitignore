@@ -51,6 +51,7 @@ beam_search*eval*
 *.debug
 /paper
 /data/reader
+tools/spellcheck/*.txt
 
 # ideaJ file
 .idea
