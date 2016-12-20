@@ -18,7 +18,7 @@ import re
 
 from bashlex import bash, nast, normalizer
 from data import gazetteer
-from data.spellcheck import spell_check as spc
+from tools.spellcheck import spell_check as spc
 
 # from nltk.stem.wordnet import WordNetLemmatizer
 # lmtzr = WordNetLemmatizer()
