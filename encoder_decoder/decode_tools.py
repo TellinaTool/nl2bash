@@ -158,6 +158,7 @@ def decode_set(sess, model, dataset, rev_sc_vocab, rev_tg_vocab, FLAGS, verbose=
         data_utils.bucket_grouped_data(grouped_dataset, model.buckets)
 
     with DBConnection() as db:
+        db.create_schema()
         db.remove_model(model.model_sig)
 
         for bucket_id in xrange(len(model.buckets)):
