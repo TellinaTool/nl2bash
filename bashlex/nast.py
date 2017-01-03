@@ -50,7 +50,8 @@ class Node(object):
                       'flag',
                       'argument',
                       'commandsubstitution',
-                      'processsubstitution'
+                      'processsubstitution',
+                      'bracket'
                      ]
         :member value: string value of the node
         :member children: list of child nodes
