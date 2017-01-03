@@ -43,7 +43,7 @@ class Node(object):
         :member parent: pointer to parent node
         :member lsb: pointer to left sibling node
         :member rsb: pointer to right sibling node
-        :member kind: ['pipe',
+        :member kind: ['pipeline',
                       'headcommand',
                       'unarylogicop',
                       'binarylogicop'
