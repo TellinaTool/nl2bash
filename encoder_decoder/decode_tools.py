@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import sys
+
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
@@ -17,6 +18,7 @@ import tensorflow as tf
 
 from encoder_decoder import data_utils
 from bashlex import data_tools
+from nlp_tools import tokenizer
 from eval.eval_archive import DBConnection
 
 
@@ -24,10 +26,10 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS):
     # Get token-ids for the input sentence.
     if FLAGS.char:
         token_ids = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, data_tools.char_tokenizer, data_tools.basic_tokenizer)
+            sentence, sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
     else:
         token_ids = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, data_tools.basic_tokenizer, None)
+            sentence, sc_vocab, tokenizer.basic_tokenizer, None)
 
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
@@ -139,8 +141,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
                 if FLAGS.explanation:
                     temp = tg
                 else:
-                    temp = data_tools.ast2template(tree, loose_constraints=True, 
-                                               ignore_flag_order=False)
+                    temp = data_tools.ast2template(tree, loose_constraints=True,
+                                                   ignore_flag_order=False)
                 if FLAGS.decoding_algorithm == "greedy":
                     batch_outputs.append((tree, temp, outputs))
                 else:
