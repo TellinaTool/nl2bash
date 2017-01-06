@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
 """
 A natural language command tokenizer.
 """
@@ -17,10 +20,10 @@ _WORD_SPLIT = re.compile("^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
 _WORD_SPLIT_RESPECT_QUOTES = re.compile('(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
 
-def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
-                    normalize_long_pattern=True, lemmatization=True,
-                    remove_stop_words=True, correct_spell=True):
-    """Very basic tokenizer: used for English tokenization."""
+def clean_sentence(sentence):
+    """
+    Fix punctuation errors and extract main content of a sentence.
+    """
 
     # remove content in parentheses
     _PAREN_REMOVE = re.compile('\([^)]*\)')
@@ -66,10 +69,19 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
     sentence = re.sub('\'t', ' \'t', sentence)
 
     sentence = re.sub("^[T|t]o ", '', sentence)
+    sentence = re.sub('\$\{HOME\}', '\$HOME', sentence)
+    sentence = re.sub('"?normal\/regular"?', 'regular', sentence)
+    sentence = re.sub('"?regular\/normal"?', 'regular', sentence)
+    sentence = re.sub('"?files\/directories"?', 'files and directories', sentence)
 
+    return sentence
+
+
+def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
+                    remove_stop_words=True, correct_spell=True):
+    """Very basic tokenizer: used for English tokenization."""
+    sentence = clean_sentence(sentence)
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
-
-    # entity_dict = collections.defaultdict(int)
 
     normalized_words = []
     for i in xrange(len(words)):
@@ -96,22 +108,6 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
         if word in constants.word2num:
             word = str(constants.word2num[word])
 
-        # quotation recovery
-        if not is_english_word(word):
-            # msg = word + ' -> '
-            if not word.startswith('"'):
-                word = '"' + word
-            if not word.endswith('"'):
-                word = word + '"'
-
-        # normalize long patterns
-        if normalize_long_pattern:
-            word = ner.normalize_named_entity(word)
-
-        # normalize digits
-        word = ner.normalize_number_in_token(word)\
-            if normalize_digits and not word.startswith("-") else word
-
         # lemmatization
         if lemmatization:
             try:
@@ -119,38 +115,21 @@ def basic_tokenizer(sentence, lower_case=True, normalize_digits=True,
             except AttributeError:
                 word = stemmer.stem(word)
 
-        # index entities in text
-        # if word == normalizer._REGEX \
-        #         or word == normalizer._NUM\
-        #         or word == normalizer._PARAMETER:
-        #     root = word
-        #     word += str(entity_dict[root])
-        #     entity_dict[root] += 1
-
         # remove empty words
         if not word.strip():
             continue
 
-        # maintain special tokens
-        if word.startswith('_'):
-            word = word.upper()
-
         normalized_words.append(word)
 
-    return normalized_words
+    return normalized_words, entities
+
+
+def ner_tokenizer(sentence):
+    words = basic_tokenizer(sentence)
+    return ner.annotate(words)
 
 
 # --- Utility functions --- #
-
-def is_english_word(word):
-    """Check if a token is normal English word."""
-    if any(x.isalpha() for x in word):
-        if word[-1].isdigit():
-            return False
-    if word.isalpha() and any(x.isupper() for x in word):
-        return False
-    return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
-
 
 def is_stopword(w):
     return w in constants.ENGLISH_STOPWORDS

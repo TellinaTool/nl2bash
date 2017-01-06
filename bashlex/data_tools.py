@@ -5,7 +5,6 @@
 Domain-specific natural Language and bash command tokenizer.
 """
 
-# builtin
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -24,8 +23,7 @@ def is_simple(ast):
     return True
 
 
-def char_tokenizer(sentence, base_tokenizer=None, normalize_digits=False,
-                   normalize_long_pattern=False):
+def char_tokenizer(sentence, base_tokenizer=None):
     if base_tokenizer:
         # normalization is not needed for character model
         tokens = base_tokenizer(sentence, normalize_digits=False,
@@ -128,7 +126,8 @@ def paren_parser(line):
             order_child_fun(child)
         if len(node.children) > 1 and node.children[0].value in ["and", "or"]:
             node.children = node.children[:1] + sorted(node.children[1:],
-                    key=lambda x:(x.value if x.kind == "t" else (x.children[0].value if x.children else x.value)))
+                    key=lambda x:(x.value if x.kind == "t" else (
+                        x.children[0].value if x.children else x.value)))
 
     """A very simple algorithm for parsing data with parentheses."""
     if not line.startswith("("):

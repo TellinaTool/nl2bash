@@ -1,20 +1,21 @@
 _SPACE = "<SPACE>"
-_NUM = "_NUM"
+
+_NUMBER = "_NUMBER"
 _LONG_PATTERN = "_LONG_PATTERN"
 _PARAMETER = "_PARAMETER"
 _REGEX = "_REGEX"
 
 ENGLISH_STOPWORDS = {
-    "a",
-    "an",
+    # "a",
+    # "an",
     "the",
-    "be",
-    "is",
-    "been",
-    "being",
-    "was",
-    "were",
-    "are",
+    # "be",
+    # "is",
+    # "been",
+    # "being",
+    # "was",
+    # "were",
+    # "are",
     "has",
     "have",
     "had",
@@ -66,7 +67,7 @@ ENGLISH_STOPWORDS = {
     "she's",
     # "it",
     "it's",
-    "its",
+    # "its",
     "itself",
     "we",
     "we'd",
@@ -89,9 +90,9 @@ ENGLISH_STOPWORDS = {
     "let's",
     "this",
     # "that",
-    "these",
-    "those",
-    "what",
+    # "these",
+    # "those",
+    # "what",
     "what's",
     # "which",
     # "whose",
@@ -118,4 +119,46 @@ word2num = {'one':   1, 'eleven':     11,
             'eighty':  80,
             'ninety':  90,
             'twenty-four': 24
+}
+
+size_units = {
+    'b',
+    'k',
+    'm',
+    'g',
+    't',
+    'kb',
+    'mb',
+    'gb',
+    'tb',
+    'byt',
+    'byte',
+    'kilobyt',
+    'kilobyte',
+    'megabyt',
+    'megabyte',
+    'gigabyt',
+    'gigabyte',
+    'terabyt',
+    'terabyte'
+}
+
+duration_units = {
+    's',
+    'm',
+    'h',
+    'd',
+    'w',
+    'm',
+    'y',
+    'sec',
+    'second',
+    'min',
+    'minut',
+    'minute',
+    'hour',
+    'day',
+    'week',
+    'month',
+    'year'
 }
