@@ -107,7 +107,7 @@ def annotate(tokens):
     sentence = annotate_ner(_DIGIT_RE, constants._NUMBER, sentence, entities)
 
     # -- Path
-    _PATH_RE = re.compile(quotation_safe(r'([^ ]*/)+[^ ]*'))
+    _PATH_RE = re.compile(quotation_safe(r'([^ ]*\/)+[^ ]*'))
     sentence = annotate_ner(_PATH_RE, _PATH, sentence, entities)
 
     # -- File/Directory
