@@ -120,7 +120,7 @@ def annotate(tokens):
                       r'cpp|cc|o|htm|asp|cer|jsp|json|rss|xhtml|odp|ppt|pptx|' \
                       r'class|h|sh|swift|vb|ods|xlr|xlsx|xls|ini|msi|sys|tmp|' \
                       r'drv|dmp|dll|bak|3gp|flv|h264|avi|mkv|mov|m4v|rm|mpg|' \
-                      r'mpeg|swf|wmv|doc|docx|tex|pdf|rtf|wps|wpd|xz)'
+                      r'mpeg|swf|wmv|doc|docx|tex|pdf|rtf|wps|wpd|xz|cvs)'
     _FILE_RE = re.compile(quotation_safe(r'([^ ]*\.[^ ]*|' + file_extensions + ')'))
     sentence = annotate_ner(_FILE_RE, _FILE, sentence, entities)
 
@@ -131,7 +131,7 @@ def annotate(tokens):
     normalized_words = []
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
     for w in words:
-        if not is_english_word(w):
+        if not w.startswith('_') and not is_english_word(w):
             normalized_words.append(constants._REGEX)
         else:
             normalized_words.append(w)
