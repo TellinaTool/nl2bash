@@ -80,7 +80,7 @@ def annotate(tokens):
                         r'[,|\s]' + r'(' + standard_time + r')?'
 
     numerical_permission = r'[+|-]?[0-7]{3,4}'
-    pattern_permission = r'([u|g|o]+[+|-][r|w|x|s|u|t]+)+'
+    pattern_permission = r'([u|g|o]+[+|-|=][r|w|x|s|u|t]+)+'
     permission_bit = r'(suid|sgid|sticky|sticki)(\sbit)?'
     # -- Size
     _SIZE_RE = re.compile(quotation_safe(r'(\d+|a)\s*' + _SIZE_UNIT))
@@ -106,7 +106,7 @@ def annotate(tokens):
     sentence = annotate_ner(_DIGIT_RE, constants._NUMBER, sentence, entities)
 
     # -- Path
-    _PATH_RE = re.compile(quotation_safe(r'([^\s]*/)+[^\s]*'))
+    _PATH_RE = re.compile(quotation_safe(r'([^ ]*/)+[^ ]*'))
     sentence = annotate_ner(_PATH_RE, _PATH, sentence, entities)
 
     # -- File/Directory
@@ -123,7 +123,7 @@ def annotate(tokens):
     sentence = annotate_ner(_FILE_RE, _FILE, sentence, entities)
 
     # -- Other patterns
-    _REGEX_RE = re.compile(r'\s(".+"|.*[\*|\\|\~|\@|\%|\#|\?]+.*)(\s|$)')
+    _REGEX_RE = re.compile(r'\s(".+"|.*[\*|\\|\~|\@|\%|\#|\?|\+|\$|\{|\}]+.*)(\s|$)')
     sentence = annotate_ner(_REGEX_RE, constants._REGEX, sentence, entities)
 
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
