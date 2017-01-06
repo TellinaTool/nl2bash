@@ -22,10 +22,12 @@ from __future__ import print_function
 import collections
 import os
 import sys
+
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from bashlex import data_tools, normalizer
+from bashlex import normalizer, data_tools
+from nlp_tools import tokenizer
 
 import numpy as np
 import random
@@ -39,18 +41,12 @@ _ARG_UNK = "ARGUMENT_UNK"
 _UTL_UNK = "HEADCOMMAND_UNK"
 _FLAG_UNK = "FLAG_UNK"
 
-_SPACE = "<SPACE>"
-
-_H_NO_EXPAND = "<H_NO_EXPAND>"
-_V_NO_EXPAND = "<V_NO_EXPAND>"
-
 _GO = "_GO"                    # seq2seq start symbol
 _ROOT = "ROOT_"                # seq2tree start symbol
 
-_NUM = "_NUM"
 
 _START_VOCAB = [_PAD, _EOS, _UNK, _ARG_UNK, _UTL_UNK, _FLAG_UNK,
-                _H_NO_EXPAND, _V_NO_EXPAND, _GO, _ROOT]
+                normalizer._H_NO_EXPAND, normalizer._V_NO_EXPAND, _GO, _ROOT]
 
 PAD_ID = 0
 EOS_ID = 1
@@ -452,13 +448,13 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
             ast = data_tools.bash_parser(cm)
             if ast:
                 if data_tools.is_simple(ast):
-                    nl_chars = data_tools.char_tokenizer(nl, data_tools.basic_tokenizer,
+                    nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer,
                                                          normalize_digits=False,
                                                          normalize_long_pattern=False)
-                    cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer,
+                    cm_chars = data_tools.char_tokenizer(cm, tokenizer.bash_tokenizer,
                                                          normalize_digits=False,
                                                          normalize_long_pattern=False)
-                    nl_tokens = data_tools.basic_tokenizer(nl)
+                    nl_tokens, _ = data_tools.ner_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
@@ -644,7 +640,8 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
     for i in xrange(len(dataset)):
         nl_str, cm_str, nl, cm = dataset[i]
         if use_temp:
-            nl_template = " ".join(data_tools.basic_tokenizer(nl_str.decode("utf-8")))
+            words, entities = nlp_tools.basic_tokenizer(nl_str.decode("utf-8"))
+            nl_template = " ".join()
         else:
             nl_template = nl_str
         if nl_template in grouped_dataset:
