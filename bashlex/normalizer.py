@@ -21,6 +21,7 @@ if sys.version_info > (3, 0):
 from bashlex import bast, errors, tokenizer, bparser
 from bashlex.nast import *
 from grammar.lookup import ManPageLookUp
+from nlp_tools import ner
 
 _H_NO_EXPAND = "<H_NO_EXPAND>"
 _V_NO_EXPAND = "<V_NO_EXPAND>"
@@ -196,13 +197,13 @@ def detach_from_tree(node, parent):
     node.lsb = None
 
 def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
-                  recover_quotation=True, verbose=False):
+                  recover_quotes=True, verbose=False):
     """
     Convert the bashlex parse tree of a command into the normalized form.
     :param cmd: bash command to parse
     :param normalize_digits: replace all digits in the tree with the special
-                             _NUM symbol
-    :param recover_quotation: if set, retain quotation marks in the command
+                             _NUMBER symbol
+    :param recover_quotes: if set, retain quotation marks in the command
     :param verbose: if set, print error message.
     :return normalized_tree
     """
@@ -211,8 +212,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     if not cmd:
         return None
 
-    def normalize_word(node, recover_quote):
-        w = recover_quotation(node) if recover_quote else node.word
+    def normalize_word(node, recover_quotes):
+        w = recover_quotation(node) if recover_quotes else node.word
         return w
 
     def recover_quotation(node):
@@ -226,11 +227,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                or cmd[node.pos[1]-1] in ['"', '\'']
 
     def normalize_argument(node, current, arg_type):
-        value = normalize_word(node, recover_quotation)
-        if normalize_long_pattern:
-            value = normalize_pattern(value, verbose=verbose)
-        if normalize_digits and arg_type != "Permission":
-            value = re.sub(_DIGIT_RE, _NUM, value)
+        value = normalize_word(node, recover_quotes)
         if value in ["+", ";", "{}"]:
             arg_type = "ReservedWord"
         norm_node = ArgumentNode(value=value, arg_type=arg_type)
@@ -241,13 +238,13 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         if '=' in node.word:
             value = node.word.rsplit('=', 1)[0] + '=Unknown'
         else:
-            value = normalize_word(node, recover_quotation)
+            value = normalize_word(node, recover_quotes)
         norm_node = FlagNode(value=value)
         attach_to_tree(norm_node, current)
         return norm_node
 
     def normalize_headcommand(node, current):
-        value = normalize_word(node, recover_quotation)
+        value = normalize_word(node, recover_quotes)
         norm_node = HeadCommandNode(value=value)
         attach_to_tree(norm_node, current)
         return norm_node
@@ -417,7 +414,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                          (attach_point.value == "xargs" and options.startswith("n")) or
                          (attach_point.value == "xargs" and options.startswith("l")) or
                          (attach_point.value == "xargs" and options.startswith("P"))):
-                        node.word = re.sub(_DIGIT_RE, _NUM, node.word)
+                        node.word = ner.normalize_number_in_token(node.word)
                         normalize_flag(node, attach_point)
                     else:
                         str = options + " splitted into: "
