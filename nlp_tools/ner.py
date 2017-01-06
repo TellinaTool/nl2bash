@@ -10,7 +10,6 @@ import collections
 import re
 
 from . import constants
-from .tokenizer import *
 
 _SIZE = "_SIZE"
 _TIMESPAN = "_TIMESPAN"
@@ -123,7 +122,7 @@ def annotate(tokens):
     sentence = annotate_ner(_FILE_RE, _FILE, sentence, entities)
 
     # -- Other patterns
-    _REGEX_RE = re.compile(r'\s"[^ ]+"(\s|$)')
+    _REGEX_RE = re.compile(r'\s".+"(\s|$)')
     sentence = annotate_ner(_REGEX_RE, constants._REGEX, sentence, entities)
 
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
@@ -138,9 +137,3 @@ def annotate_ner(pattern, category, sentence, entities):
 
 def normalize_number_in_token(token):
     return re.sub(_DIGIT_RE, constants._NUMBER, token)
-
-if __name__ == "__main__":
-    while True:
-        input = raw_input('> ')
-        tokens = basic_tokenizer(input)
-        print(annotate(tokens))
