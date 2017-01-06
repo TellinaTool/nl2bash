@@ -10,7 +10,6 @@ import collections
 import re
 
 from . import constants
-from .tokenizer import *
 
 _SIZE = "_SIZE"
 _TIMESPAN = "_TIMESPAN"
@@ -155,9 +154,3 @@ def is_english_word(word):
     if word.isalpha() and any(x.isupper() for x in word):
         return False
     return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
-
-if __name__ == "__main__":
-    while True:
-        input = raw_input('> ')
-        tokens = basic_tokenizer(input)
-        print(annotate(tokens))
