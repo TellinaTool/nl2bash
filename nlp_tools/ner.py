@@ -81,6 +81,7 @@ def annotate(tokens):
     numerical_permission = r'[+|-]?[0-7]{3,4}'
     pattern_permission = r'([u|g|o]+[+|-|=][r|w|x|s|u|t]+)+'
     permission_bit = r'(suid|sgid|sticky|sticki)(\sbit)?'
+    permission_bit_set = r'(set)*(uid|gid|sticky|sticki)(=\d+)*'
     # -- Size
     _SIZE_RE = re.compile(quotation_safe(r'(\d+|a)\s*' + _SIZE_UNIT))
     sentence = annotate_ner(_SIZE_RE, _SIZE, sentence, entities)
@@ -98,7 +99,8 @@ def annotate(tokens):
 
     # -- Permission
     _PERMISSION_RE = re.compile(quotation_safe('(' + numerical_permission + '|' +
-                    pattern_permission + '|' + permission_bit + ')'))
+                    pattern_permission + '|' + permission_bit + '|' +
+                    permission_bit_set + ')'))
     sentence = annotate_ner(_PERMISSION_RE, _PERMISSION, sentence, entities)
 
     # -- Number
@@ -125,9 +127,15 @@ def annotate(tokens):
     _REGEX_RE = re.compile(r'\s(".+"|.*[\*|\\|\~|\@|\%|\#|\?|\+|\$|\{|\}]+.*)(\s|$)')
     sentence = annotate_ner(_REGEX_RE, constants._REGEX, sentence, entities)
 
+    normalized_words = []
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
+    for w in words:
+        if not is_english_word(w):
+            normalized_words.append(constants._REGEX)
+        else:
+            normalized_words.append(w)
 
-    return words, entities
+    return normalized_words, entities
 
 def annotate_ner(pattern, category, sentence, entities):
     for m in re.finditer(pattern, sentence):
@@ -137,3 +145,12 @@ def annotate_ner(pattern, category, sentence, entities):
 
 def normalize_number_in_token(token):
     return re.sub(_DIGIT_RE, constants._NUMBER, token)
+
+def is_english_word(word):
+    """Check if a token is normal English word."""
+    if any(x.isalpha() for x in word):
+        if word[-1].isdigit():
+            return False
+    if word.isalpha() and any(x.isupper() for x in word):
+        return False
+    return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
