@@ -123,7 +123,7 @@ def annotate(tokens):
     sentence = annotate_ner(_FILE_RE, _FILE, sentence, entities)
 
     # -- Other patterns
-    _REGEX_RE = re.compile(r'\s"[^ ]+"(\s|$)')
+    _REGEX_RE = re.compile(r'\s(".+"|.*[\*|\\|\~|\@|\%|\#|\?]+.*)(\s|$)')
     sentence = annotate_ner(_REGEX_RE, constants._REGEX, sentence, entities)
 
     words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
