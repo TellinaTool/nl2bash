@@ -231,8 +231,7 @@ def sentence_to_token_ids(sentence, vocabulary,
                               normalize_long_pattern=normalize_long_pattern)
             entities = None
         else:
-            words, entities = tokenizer(sentence, normalize_digits=normalize_digits,
-                              normalize_long_pattern=normalize_long_pattern)
+            words, entities = tokenizer(sentence)
 
     token_ids = []
     for w in words:
