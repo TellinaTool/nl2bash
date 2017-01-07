@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 """
-A natural language command tokenizer.
+Natural language input tokenizer.
 """
 
 import re, sys
