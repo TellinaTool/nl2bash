@@ -121,7 +121,7 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
 
         normalized_words.append(word)
 
-    return normalized_words, entities
+    return normalized_words
 
 
 def ner_tokenizer(sentence):
