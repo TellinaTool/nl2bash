@@ -231,8 +231,7 @@ def sentence_to_token_ids(sentence, vocabulary,
                               normalize_long_pattern=normalize_long_pattern)
             entities = None
         else:
-            words, entities = tokenizer(sentence, normalize_digits=normalize_digits,
-                              normalize_long_pattern=normalize_long_pattern)
+            words, entities = tokenizer(sentence)
 
     token_ids = []
     for w in words:
@@ -449,13 +448,9 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
             ast = data_tools.bash_parser(cm)
             if ast:
                 if data_tools.is_simple(ast):
-                    nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer,
-                                                         normalize_digits=False,
-                                                         normalize_long_pattern=False)
-                    cm_chars = data_tools.char_tokenizer(cm, tokenizer.bash_tokenizer,
-                                                         normalize_digits=False,
-                                                         normalize_long_pattern=False)
-                    nl_tokens, _ = data_tools.ner_tokenizer(nl)
+                    nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
+                    cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
+                    nl_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
@@ -641,8 +636,8 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
     for i in xrange(len(dataset)):
         nl_str, cm_str, nl, cm = dataset[i]
         if use_temp:
-            words, entities = nlp_tools.basic_tokenizer(nl_str.decode("utf-8"))
-            nl_template = " ".join()
+            words, _ = tokenizer.ner_tokenizer(nl_str.decode("utf-8"))
+            nl_template = " ".join(words)
         else:
             nl_template = nl_str
         if nl_template in grouped_dataset:

@@ -5,8 +5,9 @@
 A natural language command tokenizer.
 """
 
-from .constants import *
-from . import ner
+import re
+
+from . import constants, ner
 from .spellcheck import spell_check as spc
 
 # from nltk.stem.wordnet import WordNetLemmatizer
@@ -76,7 +77,7 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
                     remove_stop_words=True, correct_spell=True):
     """Very basic tokenizer: used for English tokenization."""
     sentence = clean_sentence(sentence)
-    words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
+    words = re.findall(constants._WORD_SPLIT_RESPECT_QUOTES, sentence)
 
     normalized_words = []
     for i in xrange(len(words)):
@@ -96,11 +97,11 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
 
         # remove English stopwords
         if remove_stop_words:
-            if word in ENGLISH_STOPWORDS:
+            if word in constants.ENGLISH_STOPWORDS:
                 continue
 
         # covert number words into numbers
-        if word in word2num:
+        if word in constants.word2num:
             word = str(word2num[word])
 
         # lemmatization

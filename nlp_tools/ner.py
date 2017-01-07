@@ -9,7 +9,7 @@ from __future__ import print_function
 import collections
 import re
 
-from .constants import *
+from . import constants
 
 def add_space(s):
     return ' ' + s + ' '
@@ -18,7 +18,7 @@ def decorate_boundaries(r):
     """
     Match named entity boundary characters s.a. quotations and whitespaces.
     """
-    return include_space(quotation_safe(r))
+    return constants.include_space(constants.quotation_safe(r))
 
 def annotate(tokens):
     """
@@ -56,56 +56,57 @@ def annotate(tokens):
     standard_time = r'\d+:\d+:\d+\.?\d*'
     standard_datetime = r'\d{1,4}[\/-]\d{1,4}[\/-]\d{1,4}' \
                         r'([,|\s]' + standard_time + r')?'
-    textual_datetime = _MONTH_RE + r'(\s\d{0,2})?([,|\s]\d{2,4})?' \
+    textual_datetime = constants._MONTH_RE + r'(\s\d{0,2})?([,|\s]\d{2,4})?' \
                         r'([,|\s]' + standard_time + r')?'
 
     permission_bit = r'(suid|sgid|sticky|sticki)(\sbit)?'
     permission_bit_set = r'(set)*(uid|gid|sticky|sticki)(=\d+)*'
 
     # -- Size
-    _SIZE_RE = re.compile(decorate_boundaries(r'(\d+|a)\s*' + _SIZE_UNIT))
-    sentence = annotate_ner(_SIZE_RE, _SIZE, sentence, entities)
+    _SIZE_RE = re.compile(decorate_boundaries(r'(\d+|a)\s*' + constants._SIZE_UNIT))
+    sentence = annotate_ner(_SIZE_RE, constants._SIZE, sentence, entities)
 
     # -- Timespan
     _DURATION_RE = re.compile(decorate_boundaries(
         r'(\d+|a|this|next(\s\d+)?|last(\s\d+)?|previous(\s\d+)?)\s*'
-        + _DURATION_UNIT))
-    sentence = annotate_ner(_DURATION_RE, _TIMESPAN, sentence, entities)
+        + constants._DURATION_UNIT))
+    sentence = annotate_ner(_DURATION_RE, constants._TIMESPAN, sentence, entities)
 
     # -- DateTime
     _DATETIME_RE = re.compile(decorate_boundaries('(' + rel_day + '|' +
                     standard_time + '|' + standard_datetime + '|' +
                     textual_datetime + ')'))
-    sentence = annotate_ner(_DATETIME_RE, _DATETIME, sentence, entities)
+    sentence = annotate_ner(_DATETIME_RE, constants._DATETIME, sentence, entities)
 
     # -- Permission
     _PERMISSION_RE = re.compile(decorate_boundaries('(' +
-                _NUMERICAL_PERMISSION_RE + '|' + _PATTERN_PERMISSION_RE + '|' +
+                constants._NUMERICAL_PERMISSION_RE + '|' + 
+                constants._PATTERN_PERMISSION_RE + '|' +
                 permission_bit + '|' + permission_bit_set + ')'))
-    sentence = annotate_ner(_PERMISSION_RE, _PERMISSION, sentence, entities)
+    sentence = annotate_ner(_PERMISSION_RE, constants._PERMISSION, sentence, entities)
 
     # -- Number
-    _NUMBER_RE = re.compile(decorate_boundaries(_DIGIT_RE))
-    sentence = annotate_ner(_NUMBER_RE, _NUMBER, sentence, entities)
+    _NUMBER_RE = re.compile(decorate_boundaries(constants._DIGIT_RE))
+    sentence = annotate_ner(_NUMBER_RE, constants._NUMBER, sentence, entities)
 
     # -- Path
     _PATH_RE = re.compile(decorate_boundaries(r'([^ ]*\/)+[^ ]*'))
-    sentence = annotate_ner(_PATH_RE, _PATH, sentence, entities)
+    sentence = annotate_ner(_PATH_RE, constants._PATH, sentence, entities)
 
     # -- File/Directory
     _FILE_RE = re.compile(decorate_boundaries(r'([^ ]*\.[^ ]*|' +
-                          _FILE_EXTENSION_RE + ')'))
-    sentence = annotate_ner(_FILE_RE, _FILE, sentence, entities)
+                          constants._FILE_EXTENSION_RE + ')'))
+    sentence = annotate_ner(_FILE_RE, constants._FILE, sentence, entities)
 
     # -- Other patterns
-    _REGEX_RE = re.compile(decorate_boundaries(_SPECIAL_SYMBOL_RE))
-    sentence = annotate_ner(_REGEX_RE, _REGEX, sentence, entities)
+    _REGEX_RE = re.compile(decorate_boundaries(constants._SPECIAL_SYMBOL_RE))
+    sentence = annotate_ner(_REGEX_RE, constants._REGEX, sentence, entities)
 
     normalized_words = []
-    words = re.findall(_WORD_SPLIT_RESPECT_QUOTES, sentence)
+    words = re.findall(constants._WORD_SPLIT_RESPECT_QUOTES, sentence)
     for w in words:
         if not w.startswith('_') and not is_english_word(w):
-            normalized_words.append(_REGEX)
+            normalized_words.append(constants._REGEX)
         else:
             normalized_words.append(w)
 
