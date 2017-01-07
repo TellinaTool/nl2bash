@@ -235,3 +235,6 @@ def quotation_safe(r):
     Match a regular expression with or without quotation marks.
     """
     return r'"?' + r + r'"?'
+
+def with_quotation(s):
+    return s[0] in ['"', '\''] and s[-1] in ['"', '\'']
