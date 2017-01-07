@@ -229,8 +229,9 @@ def sentence_to_token_ids(sentence, vocabulary,
         if base_tokenizer:
             words = tokenizer(sentence, base_tokenizer, normalize_digits=normalize_digits,
                               normalize_long_pattern=normalize_long_pattern)
+            entities = None
         else:
-            words = tokenizer(sentence, normalize_digits=normalize_digits,
+            words, entities = tokenizer(sentence, normalize_digits=normalize_digits,
                               normalize_long_pattern=normalize_long_pattern)
 
     token_ids = []
@@ -251,7 +252,7 @@ def sentence_to_token_ids(sentence, vocabulary,
             if w.startswith("FLAG_"):
                 print(w, sentence)
 
-    return token_ids
+    return token_ids, entities
 
 
 def data_to_token_ids(data, tg_id_path, vocabulary_path,
@@ -283,7 +284,7 @@ def data_to_token_ids(data, tg_id_path, vocabulary_path,
             counter += 1
             if counter % 1000 == 0:
                 print("  tokenizing line %d" % counter)
-            token_ids = sentence_to_token_ids(line, vocab, tokenizer, base_tokenizer,
+            token_ids, _ = sentence_to_token_ids(line, vocab, tokenizer, base_tokenizer,
                                               normalize_digits, normalize_long_pattern,
                                               with_arg_types)
             if len(token_ids) > max_token_num:

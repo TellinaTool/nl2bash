@@ -25,26 +25,38 @@ from eval.eval_archive import DBConnection
 def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS):
     # Get token-ids for the input sentence.
     if FLAGS.char:
-        token_ids = data_utils.sentence_to_token_ids(
+        token_ids, entities = data_utils.sentence_to_token_ids(
             sentence, sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
     else:
-        token_ids = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, tokenizer.basic_tokenizer, None)
+        token_ids, entities = data_utils.sentence_to_token_ids(
+            sentence, sc_vocab, tokenizer.ner_tokenizer, None)
 
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
                     if model.buckets[b][0] > len(token_ids)])
 
     # Get a 1-element batch to feed the sentence to the model.
-    formatted_example = model.format_example([token_ids], [[data_utils.ROOT_ID]],
-                                             bucket_id=bucket_id)
+    formatted_example = model.format_example(
+        [token_ids], [[data_utils.ROOT_ID]], bucket_id=bucket_id)
 
     # Get output for the sentence.
     output_symbols, output_logits, losses, attn_masks = \
-                model.step(sess, formatted_example, bucket_id, forward_only=True)
+        model.step(sess, formatted_example, bucket_id, forward_only=True)
     batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS)
 
-    return batch_outputs[:100], output_logits[:100]
+    # Fill in arguments
+    batch_outputs_with_arguments = []
+    beam_outputs_with_arguments = []
+    if entities:
+        top_k_predictions = batch_outputs[0]
+        for j in xrange(len(top_k_predictions)):
+            top_k_pred_tree, top_k_pred_cmd, top_k_outputs = top_k_predictions[j]
+            if data_tools.fill_arguments(top_k_pred_tree, entities):
+                beam_outputs_with_arguments.append((top_k_pred_tree,
+                    top_k_pred_cmd, top_k_outputs))
+    batch_outputs_with_arguments.append(beam_outputs_with_arguments)
+
+    return batch_outputs_with_arguments, output_logits
 
 
 def demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS):
@@ -128,7 +140,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
                 else:
                     if FLAGS.dataset in ["bash", "bash.cl"]:
                         tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
-                        # tg = re.sub('( \)\s+)|( \)$)', ' \\) ', cmd)
+                        # tg = re.sub('( \)\s+)|( \)$)', ' \\) ', tg)
                         tg = re.sub('(^\( )|( \( )', ' \\( ', tg)
                         tree = data_tools.bash_parser(tg)
                     else:
