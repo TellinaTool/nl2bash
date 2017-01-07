@@ -167,7 +167,7 @@ def fill_arguments(node, arguments):
             return copy_file_name(value)
         if arg_type == 'Permission':
             return copy_permission(value)
-        if arg_type == 'Datetime':
+        if arg_type == 'DateTime':
             return copy_datetime(value)
         if arg_type == 'Timespan':
             return copy_timespan(value)
