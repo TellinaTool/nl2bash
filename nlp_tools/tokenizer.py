@@ -5,19 +5,14 @@
 A natural language command tokenizer.
 """
 
-import re
-
-from . import constants, ner
+from .constants import *
+from . import ner
 from .spellcheck import spell_check as spc
 
 # from nltk.stem.wordnet import WordNetLemmatizer
 # lmtzr = WordNetLemmatizer()
 from nltk.stem import SnowballStemmer
 stemmer = SnowballStemmer("english")
-
-# Regular expressions used to tokenize an English sentence.
-_WORD_SPLIT = re.compile("^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$")
-_WORD_SPLIT_RESPECT_QUOTES = re.compile('(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
 
 def clean_sentence(sentence):
@@ -101,12 +96,12 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
 
         # remove English stopwords
         if remove_stop_words:
-            if word in constants.ENGLISH_STOPWORDS:
+            if word in ENGLISH_STOPWORDS:
                 continue
 
         # covert number words into numbers
-        if word in constants.word2num:
-            word = str(constants.word2num[word])
+        if word in word2num:
+            word = str(word2num[word])
 
         # lemmatization
         if lemmatization:
