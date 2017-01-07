@@ -18,7 +18,7 @@ WORDS = collections.defaultdict(int)
 if os.path.exists(os.path.join(current_folder, "most_common.txt")):
     with open(os.path.join(current_folder, 'most_common.txt')) as f:
         for line in f:
-	    word, freq = line.strip().split('\t')
+            word, freq = line.strip().split('\t')
             WORDS[word] = int(freq)
 
 def extract_top_frequent_words(input, top_k):
