@@ -125,15 +125,15 @@ def fill_arguments(node, arguments):
         if duration_unit.startswith('mon'):
             return '{}d'.format(number*30)
         if duration_unit.startswith('w'):
-            return '{}d'.format(number*7)
+            return '{}w'.format(number)
         if duration_unit.startswith('d'):
             return '{}d'.format(number)
         if duration_unit.startswith('h'):
-            return '{}m'.format(number*60)
+            return '{}h'.format(number)
         if duration_unit.startswith('m'):
             return '{}m'.format(number)
         if duration_unit.startswith('s'):
-            return '{}m'.format(number / 60)
+            return '{}s'.format(number)
 
         raise AttributeError("Cannot parse timespan: {}".format(value))
 
