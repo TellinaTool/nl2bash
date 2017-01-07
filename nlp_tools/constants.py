@@ -55,11 +55,11 @@ digitize_month = {
     "dec": "12"
 }
 
-_SIZE_UNIT = r'(b|k|m|g|t|kb|mb|gb|tb|byt|byte|kilobyt|kilobyte|kilo byte|' \
-             r'megabyt|megabyte|mega byte|gigabyt|gigabyte|terabyt|terabyte)'
+_SIZE_UNIT = r'(kilobyte|kilobyt|kilo byte|megabyte|megabyt|mega byte|gigabyte|' \
+             r'gigabyt|terabyte|terabyt|byte|byt|kb|mb|gb|tb|b|k|m|g|t)'
 
-_DURATION_UNIT = r'(s|m|h|d|w|y|sec|second|min|minut|minute|hour|day|week|' \
-             r'mon|month|yr|year)'
+_DURATION_UNIT = r'(second|sec|minute|minut|min|hour|hr|day|week|' \
+             r'month|mon|year|yr|s|m|h|d|w|y)'
 
 # Regular expressions used to tokenize an English sentence.
 _WORD_SPLIT = "^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$"
