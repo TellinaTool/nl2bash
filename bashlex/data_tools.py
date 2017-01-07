@@ -209,7 +209,7 @@ def fill_arguments(node, arguments):
                     arguments['Regex'].pop(0)
             elif node.arg_type == 'Regex':
                 if arguments['File']:
-                    value = copy_value(node.arg_type, arguments['File'][0])
+                    value = copy_value('File', arguments['File'][0])
                     if value is not None:
                         node.value = value
                     arguments['File'].pop(0)
