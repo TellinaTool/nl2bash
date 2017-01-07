@@ -53,8 +53,8 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS):
         if data_tools.fill_arguments(top_k_pred_tree, entities):
             top_k_pred_cmd = data_tools.ast2command(top_k_pred_tree,
                 loose_constraints=True, ignore_flag_order=False)
-        beam_outputs_with_arguments.append((top_k_pred_tree, 
-            top_k_pred_cmd, top_k_outputs))
+            beam_outputs_with_arguments.append((top_k_pred_tree,
+                top_k_pred_cmd, top_k_outputs))
     batch_outputs_with_arguments.append(beam_outputs_with_arguments)
 
     return batch_outputs_with_arguments, output_logits
