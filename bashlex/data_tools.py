@@ -68,7 +68,7 @@ def fill_arguments(node, arguments):
         if re.match(special_symbol_re, value):
             return value
         elif re.match(file_extension_re, value):
-            return '"\*\.' + value + '"'
+            return '"*.' + value + '"'
         else:
             raise AttributeError('Unrecognized file name: {}'.format(value))
 
