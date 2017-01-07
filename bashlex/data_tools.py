@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import collections, re
+import collections, copy, re
 
 from bashlex import bash, nast, normalizer
 from nlp_tools import constants
@@ -58,6 +58,10 @@ def fill_arguments(node, arguments):
     Fill the argument slot in a command template with the argument values
     extracted from the natural language.
     """
+    if arguments is None:
+        # no constants detected in the natural language query
+        return True
+
     def copy_file_name(value):
         special_symbol_re = re.compile(constants._SPECIAL_SYMBOL_RE)
         file_extension_re = re.compile(constants._FILE_EXTENSION_RE)
@@ -78,10 +82,12 @@ def fill_arguments(node, arguments):
             return None
 
     def copy_datetime(value):
-        standard_datetime_dash_re = re.compile(r'\d{1,4}[-]\d{1,4}[-]\d{1,4}')
-        standard_datetime_slash_re = re.compile(r'\d{1,4}[\/]\d{1,4}[\/]\d{1,4}')
-        textual_datetime_re = re.compile(constants._MONTH_RE +
-                                         r'(\s\d{0,2})?([,|\s]\d{2,4})?')
+        standard_datetime_dash_re = re.compile(constants.quotation_safe(
+            r'\d{1,4}[-]\d{1,4}[-]\d{1,4}'))
+        standard_datetime_slash_re = re.compile(constants.quotation_safe(
+            r'\d{1,4}[\/]\d{1,4}[\/]\d{1,4}'))
+        textual_datetime_re = re.compile(constants.quotation_safe(
+            constants._MONTH_RE + r'(\s\d{0,2})?([,|\s]\d{2,4})?'))
         month_re = re.compile(constants._MONTH_RE)
         digit_re = re.compile(constants._DIGIT_RE)
         if re.match(standard_datetime_dash_re, value):
@@ -90,7 +96,7 @@ def fill_arguments(node, arguments):
             return re.sub(re.compile(r'\/'), '-', value)
         elif re.match(textual_datetime_re, value):
             # TODO: refine rules for date formatting
-            month = re.match(month_re, value).group(0)
+            month = re.search(month_re, value).group(0)
             month = constants.digitize_month[month[:3]]
             date_year = re.findall(digit_re, value)
             if len(date_year) == 2:
@@ -108,8 +114,9 @@ def fill_arguments(node, arguments):
     def copy_timespan(value):
         digit_re = re.compile(constants._DIGIT_RE)
         duration_unit_re = re.compile(constants._DURATION_UNIT)
-        number = re.match(digit_re, value).group(0)
-        duration_unit = re.match(duration_unit_re, value).group(0)
+        m = re.search(digit_re, value)
+        number = m.group(0) if m else '1'
+        duration_unit = re.search(duration_unit_re, value).group(0)        
 
         # TODO: refine rules for time span formatting and calculation
         number = int(number)
@@ -133,8 +140,9 @@ def fill_arguments(node, arguments):
     def copy_size(value):
         digit_re = re.compile(constants._DIGIT_RE)
         size_unit_re = re.compile(constants._SIZE_UNIT)
-        number = re.match(digit_re, value).group(0)
-        size_unit = re.match(size_unit_re, value).group(0)
+        m = re.search(digit_re, value)
+        number = m.group(0) if m else '1'
+        size_unit = re.search(size_unit_re, value).group(0)
         if size_unit.startswith('b'):
             return number
         elif size_unit.startswith('k'):
@@ -165,6 +173,11 @@ def fill_arguments(node, arguments):
             return copy_timespan(value)
         if arg_type == 'Size':
             return copy_size(value)
+        if arg_type in ['Username', 'Groupname']:
+            return value
+        if arg_type == 'Regex':
+            print(value)
+            return value
 
     def fill_arguments_fun(node, arguments):
         if node.is_argument():
@@ -173,7 +186,9 @@ def fill_arguments(node, arguments):
                 if not value is None:
                     node.value = value
                 arguments[node.arg_type].pop(0)
-            elif node.arg_type in ['Directory', 'Path']:
+            elif node.arg_type == 'Path':
+                node.value = '.'
+            elif node.arg_type == 'Directory':
                 if arguments['File']:
                     value = copy_value(node.arg_type, arguments['File'][0])
                     if value is not None:
@@ -192,19 +207,13 @@ def fill_arguments(node, arguments):
                         node.value = value
                         return
                     arguments['Regex'].pop(0)
-            elif node.arg_type in ['Regex']:
+            elif node.arg_type == 'Regex':
                 if arguments['File']:
                     value = copy_value(node.arg_type, arguments['File'][0])
                     if value is not None:
                         node.value = value
                     arguments['File'].pop(0)
                     return
-                if arguments['Regex']:
-                    value = copy_value(node.arg_type, arguments['Regex'][0])
-                    if value is not None:
-                        node.value = value
-                        return
-                    arguments['Regex'].pop(0)
         else:
             for child in node.children:
                 fill_arguments_fun(child, arguments)
@@ -212,7 +221,7 @@ def fill_arguments(node, arguments):
     renamed_arguments = collections.defaultdict(list)
     for key in constants.ner_to_ast_arg_type:
         arg_type = constants.ner_to_ast_arg_type[key]
-        renamed_arguments[arg_type] = arguments[key]
+        renamed_arguments[arg_type] = copy.deepcopy(arguments[key])
     arguments = renamed_arguments
     fill_arguments_fun(node, arguments)
 

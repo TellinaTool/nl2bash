@@ -216,15 +216,15 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         w = recover_quotation(node) if recover_quotes else node.word
         return w
 
+    def with_quotation(node):
+        return cmd[node.pos[0]] in ['"', '\''] \
+            or cmd[node.pos[1]-1] in ['"', '\'']
+
     def recover_quotation(node):
         if with_quotation(node):
             return cmd[node.pos[0] : node.pos[1]]
         else:
             return node.word
-
-    def with_quotation(node):
-        return cmd[node.pos[0]] in ['"', '\''] \
-               or cmd[node.pos[1]-1] in ['"', '\'']
 
     def normalize_argument(node, current, arg_type):
         value = normalize_word(node, recover_quotes)
