@@ -117,7 +117,7 @@ def fill_arguments(node, arguments):
         m = re.search(digit_re, value)
         number = m.group(0) if m else '1'
         duration_unit = re.search(duration_unit_re, value).group(0)        
-
+        print(duration_unit)
         # TODO: refine rules for time span formatting and calculation
         number = int(number)
         if duration_unit.startswith('y'):
