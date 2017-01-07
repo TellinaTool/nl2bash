@@ -9,7 +9,7 @@ from __future__ import print_function
 import collections
 import re
 
-import constants
+from . import constants
 
 def add_space(s):
     return ' ' + s + ' '
@@ -120,7 +120,7 @@ def annotate_ner(pattern, category, sentence, entities):
     return sentence
 
 def normalize_number_in_token(token):
-    return re.sub(re.compile(_DIGIT_RE), _NUMBER, token)
+    return re.sub(re.compile(constants._DIGIT_RE), constants._NUMBER, token)
 
 def is_english_word(word):
     """Check if a token is normal English word."""

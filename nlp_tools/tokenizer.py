@@ -7,8 +7,8 @@ A natural language command tokenizer.
 
 import re
 
-import constants, ner
-from spellcheck import spell_check as spc
+from . import constants, ner
+from .spellcheck import spell_check as spc
 
 # from nltk.stem.wordnet import WordNetLemmatizer
 # lmtzr = WordNetLemmatizer()
@@ -102,7 +102,7 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
 
         # covert number words into numbers
         if word in constants.word2num:
-            word = str(word2num[word])
+            word = str(constants.word2num[word])
 
         # lemmatization
         if lemmatization:
