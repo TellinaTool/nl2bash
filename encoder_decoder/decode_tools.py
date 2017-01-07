@@ -29,7 +29,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS):
             sentence, sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
     else:
         token_ids = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, tokenizer.basic_tokenizer, None)
+            sentence, sc_vocab, tokenizer.ner_tokenizer, None)
 
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
