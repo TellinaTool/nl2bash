@@ -197,6 +197,22 @@ def fill_arguments(node, arguments):
                     node.value = value
                     return
                 arguments['Regex'].pop(0)
+        elif node.arg_type in ['Regex']:
+            if arguments['File']:
+                value = copy_value(node.arg_type, arguments['File'][0])
+                if value is not None:
+                    node.value = value
+                arguments['File'].pop(0)
+                return
+            if arguments['Regex']:
+                value = copy_value(node.arg_type, arguments['Regex'][0])
+                if value is not None:
+                    node.value = value
+                    return
+                arguments['Regex'].pop(0)
+    else:
+        for child in node.children:
+            fill_arguments(child, arguments)
 
     # The template should fit in all arguments
     for key in arguments:
