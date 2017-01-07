@@ -228,7 +228,7 @@ def include_space(r):
     A regular expression has to have a whitespace or other separator at both
     ends.
     """
-    return r'(^|\s)' + r + r'(\s|$)'
+    return r'[^|\s]' + r + r'[\s|$]'
 
 def quotation_safe(r):
     """

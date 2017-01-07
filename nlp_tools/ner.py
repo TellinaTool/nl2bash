@@ -9,7 +9,7 @@ from __future__ import print_function
 import collections
 import re
 
-from . import constants
+import constants
 
 def add_space(s):
     return ' ' + s + ' '
@@ -103,13 +103,13 @@ def annotate(tokens):
     sentence = annotate_ner(_REGEX_RE, constants._REGEX, sentence, entities)
 
     normalized_words = []
-    words = re.findall(constants._WORD_SPLIT_RESPECT_QUOTES, sentence)
+    words = re.findall(re.compile(constants._WORD_SPLIT_RESPECT_QUOTES), sentence)
     for w in words:
         if not w.startswith('_') and not is_english_word(w):
             normalized_words.append(constants._REGEX)
+            entities[constants._REGEX].append(w)
         else:
             normalized_words.append(w)
-
     return normalized_words, entities
 
 
