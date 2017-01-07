@@ -149,7 +149,7 @@ def fill_arguments(node, arguments):
             raise AttributeError('Unrecognized size unit: {}'.format(size_unit))
 
     def copy_value(arg_type, value):
-        if normalizer.with_quotation(value):
+        if constants.with_quotation(value):
             return value
         if arg_type in ['Number', 'Path']:
             return value
