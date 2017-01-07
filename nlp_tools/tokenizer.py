@@ -5,7 +5,9 @@
 A natural language command tokenizer.
 """
 
-import re
+import re, sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
 
 from . import constants, ner
 from .spellcheck import spell_check as spc
