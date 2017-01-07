@@ -9,8 +9,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import collections, re
+
 from bashlex import bash, nast, normalizer
-from nlp_tools.constants import _SPACE
+from nlp_tools import constants
 
 
 def is_simple(ast):
@@ -33,22 +35,174 @@ def char_tokenizer(sentence, base_tokenizer=None):
     for token in tokens:
         for c in token:
             chars.append(c)
-        chars.append(_SPACE)
+        chars.append(constants._SPACE)
     return chars[:-1]
 
 
 def bash_tokenizer(cmd, normalize_digits=True, normalize_long_pattern=True,
                    recover_quotation=True):
-    tree = normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,
-                         recover_quotation)
+    tree = normalizer.normalize_ast(cmd, normalize_digits,
+                                    normalize_long_pattern, recover_quotation)
     return normalizer.to_tokens(tree)
 
 
 def bash_parser(cmd, normalize_digits=True, normalize_long_pattern=True,
                 recover_quotation=True):
     """Parse bash command into AST."""
-    return normalizer.normalize_ast(cmd, normalize_digits, normalize_long_pattern,
-                                    recover_quotation)
+    return normalizer.normalize_ast(cmd, normalize_digits,
+                                    normalize_long_pattern, recover_quotation)
+
+
+def fill_arguments(node, arguments):
+    """
+    Fill the argument slot in a command template with the argument values
+    extracted from the natural language.
+    """
+    def copy_file_name(value):
+        special_symbol_re = re.compile(constants._SPECIAL_SYMBOL_RE)
+        file_extension_re = re.compile(constants._FILE_EXTENSION_RE)
+        if re.match(special_symbol_re, value):
+            return value
+        elif re.match(file_extension_re, value):
+            return '"\*\.' + value + '"'
+        else:
+            raise AttributeError('Unrecognized file name: {}'.format(value))
+
+    def copy_permission(value):
+        numerical_permission_re = re.compile(constants._NUNERICAL_PERMISSION_RE)
+        pattern_permission_re = re.compile(constants._PATTERN_PERMISSION_RE)
+        if re.match(numerical_permission_re) or re.match(pattern_permission_re):
+            return value
+        else:
+            # TODO: write rules to synthesize permission pattern
+            return None
+
+    def copy_datetime(value):
+        standard_datetime_dash_re = re.compile(r'\d{1,4}[-]\d{1,4}[-]\d{1,4}')
+        standard_datetime_slash_re = re.compile(r'\d{1,4}[\/]\d{1,4}[\/]\d{1,4}')
+        textual_datetime_re = re.compile(constants._MONTH_RE +
+                                         r'(\s\d{0,2})?([,|\s]\d{2,4})?')
+        month_re = re.compile(constants._MONTH_RE)
+        digit_re = re.compile(constants._DIGIT_RE)
+        if re.match(standard_datetime_dash_re, value):
+            return value
+        elif re.match(standard_datetime_slash_re, value):
+            return re.sub(re.compile(r'\/'), '-', value)
+        elif re.match(textual_datetime_re, value):
+            # TODO: refine rules for date formatting
+            month = re.match(month_re, value).group(0)
+            month = constants.digitize_month[month[:3]]
+            date_year = re.findall(digit_re, value)
+            if len(date_year) == 2:
+                date = date_year[0]
+                year = date_year[1]
+            else:
+                if ',' in value:
+                    year = date_year[0]
+                else:
+                    date = date_year[0]
+            return '{}-{}-{}'.format(year, month, date)
+        else:
+            raise AttributeError("Cannot parse date/time: {}".format(value))
+
+    def copy_timespan(value):
+        digit_re = re.compile(constants._DIGIT_RE)
+        duration_unit_re = re.compile(constants._DURATION_UNIT)
+        number = re.match(digit_re, value).group(0)
+        duration_unit = re.match(duration_unit_re, value).group(0)
+
+        # TODO: refine rules for time span formatting and calculation
+        number = int(number)
+        if duration_unit.startswith('y'):
+            return '{}d'.format(number*365)
+        if duration_unit.startswith('mon'):
+            return '{}d'.format(number*30)
+        if duration_unit.startswith('w'):
+            return '{}d'.format(number*7)
+        if duration_unit.startswith('d'):
+            return '{}d'.format(number)
+        if duration_unit.startswith('h'):
+            return '{}m'.format(number*60)
+        if duration_unit.startswith('m'):
+            return '{}m'.format(number)
+        if duration_unit.startswith('s'):
+            return '{}m'.format(number / 60)
+
+        raise AttributeError("Cannot parse timespan: {}".format(value))
+
+    def copy_size(value):
+        digit_re = re.compile(constants._DIGIT_RE)
+        size_unit_re = re.compile(constants._SIZE_UNIT)
+        number = re.match(digit_re, value).group(0)
+        size_unit = re.match(size_unit_re, value).group(0)
+        if size_unit.startswith('b'):
+            return number
+        elif size_unit.startswith('k'):
+            return number + 'k'
+        elif size_unit.startswith('m'):
+            return number + 'M'
+        elif size_unit.startswith('g'):
+            return number + 'G'
+        elif size_unit.startswith('t'):
+            return str(float(number)*10) + 'G'
+        else:
+            raise AttributeError('Unrecognized size unit: {}'.format(size_unit))
+
+    def copy_value(arg_type, value):
+        if normalizer.with_quotation(value):
+            return value
+        if arg_type in ['Number', 'Path']:
+            return value
+        if arg_type == 'File':
+            return copy_file_name(value)
+        if arg_type == 'Directory':
+            return copy_file_name(value)
+        if arg_type == 'Permission':
+            return copy_permission(value)
+        if arg_type == 'Datetime':
+            return copy_datetime(value)
+        if arg_type == 'Timespan':
+            return copy_timespan(value)
+        if arg_type == 'Size':
+            return copy_size(value)
+
+    renamed_arguments = collections.defaultdict(list)
+    for key in constants.ner_to_ast_arg_type:
+        arg_type = constants.ner_to_ast_arg_type[key]
+        renamed_arguments[arg_type] = arguments[key]
+    arguments = renamed_arguments
+
+    if node.is_argument():
+        if arguments[node.arg_type]:
+            value = copy_value(node.arg_type, arguments[node.arg_type][0])
+            if not value is None:
+                node.value = value
+            arguments[node.arg_type].pop(0)
+        elif node.arg_type in ['Directory', 'Path']:
+            if arguments['File']:
+                value = copy_value(node.arg_type, arguments['File'][0])
+                if value is not None:
+                    node.value = value
+                arguments['File'].pop(0)
+                return
+            if arguments['Regex']:
+                value = copy_value(node.arg_type, arguments['Regex'][0])
+                if value is not None:
+                    node.value = value
+                arguments['Regex'].pop(0)
+        elif node.arg_type in ['Username', 'Groupname']:
+            if arguments['Regex']:
+                value = copy_value(node.arg_type, arguments['Regex'][0])
+                if value is not None:
+                    node.value = value
+                    return
+                arguments['Regex'].pop(0)
+
+    # The template should fit in all arguments
+    for key in arguments:
+        if arguments[key]:
+            return False
+    return True
 
 
 def pretty_print(node, depth=0):
