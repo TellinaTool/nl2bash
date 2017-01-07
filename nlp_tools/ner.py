@@ -9,7 +9,7 @@ from __future__ import print_function
 import collections
 import re
 
-from . import constants
+import constants
 
 def add_space(s):
     return ' ' + s + ' '

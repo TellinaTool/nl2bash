@@ -7,8 +7,8 @@ A natural language command tokenizer.
 
 import re
 
-from . import constants, ner
-from .spellcheck import spell_check as spc
+import constants, ner
+from spellcheck import spell_check as spc
 
 # from nltk.stem.wordnet import WordNetLemmatizer
 # lmtzr = WordNetLemmatizer()
