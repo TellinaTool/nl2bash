@@ -166,53 +166,55 @@ def fill_arguments(node, arguments):
         if arg_type == 'Size':
             return copy_size(value)
 
+    def fill_arguments_fun(node, arguments):
+        if node.is_argument():
+            if arguments[node.arg_type]:
+                value = copy_value(node.arg_type, arguments[node.arg_type][0])
+                if not value is None:
+                    node.value = value
+                arguments[node.arg_type].pop(0)
+            elif node.arg_type in ['Directory', 'Path']:
+                if arguments['File']:
+                    value = copy_value(node.arg_type, arguments['File'][0])
+                    if value is not None:
+                        node.value = value
+                    arguments['File'].pop(0)
+                    return
+                if arguments['Regex']:
+                    value = copy_value(node.arg_type, arguments['Regex'][0])
+                    if value is not None:
+                        node.value = value
+                    arguments['Regex'].pop(0)
+            elif node.arg_type in ['Username', 'Groupname']:
+                if arguments['Regex']:
+                    value = copy_value(node.arg_type, arguments['Regex'][0])
+                    if value is not None:
+                        node.value = value
+                        return
+                    arguments['Regex'].pop(0)
+            elif node.arg_type in ['Regex']:
+                if arguments['File']:
+                    value = copy_value(node.arg_type, arguments['File'][0])
+                    if value is not None:
+                        node.value = value
+                    arguments['File'].pop(0)
+                    return
+                if arguments['Regex']:
+                    value = copy_value(node.arg_type, arguments['Regex'][0])
+                    if value is not None:
+                        node.value = value
+                        return
+                    arguments['Regex'].pop(0)
+        else:
+            for child in node.children:
+                fill_arguments_fun(child, arguments)
+
     renamed_arguments = collections.defaultdict(list)
     for key in constants.ner_to_ast_arg_type:
         arg_type = constants.ner_to_ast_arg_type[key]
         renamed_arguments[arg_type] = arguments[key]
     arguments = renamed_arguments
-
-    if node.is_argument():
-        if arguments[node.arg_type]:
-            value = copy_value(node.arg_type, arguments[node.arg_type][0])
-            if not value is None:
-                node.value = value
-            arguments[node.arg_type].pop(0)
-        elif node.arg_type in ['Directory', 'Path']:
-            if arguments['File']:
-                value = copy_value(node.arg_type, arguments['File'][0])
-                if value is not None:
-                    node.value = value
-                arguments['File'].pop(0)
-                return
-            if arguments['Regex']:
-                value = copy_value(node.arg_type, arguments['Regex'][0])
-                if value is not None:
-                    node.value = value
-                arguments['Regex'].pop(0)
-        elif node.arg_type in ['Username', 'Groupname']:
-            if arguments['Regex']:
-                value = copy_value(node.arg_type, arguments['Regex'][0])
-                if value is not None:
-                    node.value = value
-                    return
-                arguments['Regex'].pop(0)
-        elif node.arg_type in ['Regex']:
-            if arguments['File']:
-                value = copy_value(node.arg_type, arguments['File'][0])
-                if value is not None:
-                    node.value = value
-                arguments['File'].pop(0)
-                return
-            if arguments['Regex']:
-                value = copy_value(node.arg_type, arguments['Regex'][0])
-                if value is not None:
-                    node.value = value
-                    return
-                arguments['Regex'].pop(0)
-    else:
-        for child in node.children:
-            fill_arguments(child, arguments)
+    fill_arguments_fun(node, arguments)
 
     # The template should fit in all arguments
     for key in arguments:
