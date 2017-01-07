@@ -5,10 +5,12 @@
 A natural language command tokenizer.
 """
 
-import re
+import re, sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
 
-import constants, ner
-from spellcheck import spell_check as spc
+from . import constants, ner
+from .spellcheck import spell_check as spc
 
 # from nltk.stem.wordnet import WordNetLemmatizer
 # lmtzr = WordNetLemmatizer()
