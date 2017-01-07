@@ -33,7 +33,7 @@ _FILE_EXTENSION_RE = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|
         r'vb|ods|xlr|xlsx|xls|ini|msi|sys|tmp|drv|dmp|dll|bak|3gp|flv|h264|avi|' \
         r'mkv|mov|m4v|rm|mpg|mpeg|swf|wmv|doc|docx|tex|pdf|rtf|wps|wpd|xz|cvs)'
 
-_NUNERICAL_PERMISSION_RE = r'[+|-]?[0-7]{3,4}'
+_NUMERICAL_PERMISSION_RE = r'[+|-]?[0-7]{3,4}'
 _PATTERN_PERMISSION_RE = r'([u|g|o]+[+|-|=][r|w|x|s|u|t]+)+'
 
 _MONTH_RE = r'(january|jan|jan.|february|feb|feb.|march|mar|mar.|april|apr|apr.|' \

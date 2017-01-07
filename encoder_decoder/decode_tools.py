@@ -54,7 +54,9 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS):
             if data_tools.fill_arguments(top_k_pred_tree, entities):
                 beam_outputs_with_arguments.append((top_k_pred_tree,
                     top_k_pred_cmd, top_k_outputs))
-    batch_outputs_with_arguments.append(beam_outputs_with_arguments)
+        batch_outputs_with_arguments.append(beam_outputs_with_arguments)
+    else:
+        batch_outputs_with_arguments = batch_outputs
 
     return batch_outputs_with_arguments, output_logits
 
