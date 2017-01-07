@@ -181,7 +181,7 @@ def fill_arguments(node, arguments):
 
     def fill_arguments_fun(node, arguments):
         if node.is_argument():
-            if arguments[node.arg_type]:
+            if node.arg_type != 'Regex' and arguments[node.arg_type]:
                 value = copy_value(node.arg_type, arguments[node.arg_type][0])
                 if not value is None:
                     node.value = value
@@ -213,6 +213,12 @@ def fill_arguments(node, arguments):
                     if value is not None:
                         node.value = value
                     arguments['File'].pop(0)
+                    return
+                if arguments['Regex']:
+                    value = copy_value(node.arg_type, arguments['Regex'][0])
+                    if value is not None:
+                        node.value = value
+                    arguments['Regex'].pop(0)
                     return
         else:
             for child in node.children:
