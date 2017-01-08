@@ -8,7 +8,7 @@ type
 		Type        (t, type)
 		Option      (option, options, MINUSflags, PLUSflags, flags)
 		Regex       (name, gname, uname, eofstr, fs, replstr, string, extension, format, owner, group, first, last, suffix, suffixes, pattern, mask)
-		Number      (n, num, number, replacements, maxprocs, incr, count, depth)
+		Number      (n, num, number, replacements, maxlines, maxargs, maxprocs, incr, count, depth)
 		Timespan    (time)
 		Size        (size, bytes, blocksize)
 
@@ -56,9 +56,9 @@ PrimitiveCmd ::=
 
 		tar -x [ -b blocksize] [ -C directory] [ --chroot] [ --exclude pattern] [ -f file] [ -I] [ --include pattern] [ -k] [ --keep-newer-files] [ -l] [ -m] [ --numeric-owner] [ -O] [ -o] [ --options options] [ -P] [ -p] [ -q] [ -S] [ --strip-components count] [ -s pattern] [ -T filename] [ -U] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [pattern ...]
 
-		xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr] [-L number] [-n number [-x]] [-P maxprocs] [-s size] [utility [argument ...]]
+		xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr] [-L maxlines] [-n maxargs [-x]] [-P maxprocs] [-s size] [utility [argument ...]]
 
-		xargs [-0prtx] [-E eofstr] [-e [eofstr]] [--eof[=eofstr]] [--null] [-d delimiter] [--delimiter delimiter] [-I replstr] [-i[replacestr]] [--replace[=replstr]] [-l [maxlines]] [-L number] [--max-lines [=maxlines]] [-n maxargs] [--max-args=maxargs] [-s maxchars] [--max-chars=maxchars] [-P maxprocs] [--max-procs=maxprocs] [--process-slot-var=name] [--interactive] [--verbose] [--exit] [--no-run-if-empty] [--arg-file=file] [--show-limits] [--version] [--help] [:command: | string ...]
+		xargs [-0prtx] [-E eofstr] [-e [eofstr]] [--eof[=eofstr]] [--null] [-d delimiter] [--delimiter delimiter] [-I replstr] [-i[replacestr]] [--replace[=replstr]] [-l [maxlines]] [-L maxlines] [--max-lines[=maxlines]] [-n maxargs] [--max-args=maxargs] [-s maxchars] [--max-chars=maxchars] [-P maxprocs] [--max-procs=maxprocs] [--process-slot-var=name] [--interactive] [--verbose] [--exit] [--no-run-if-empty] [--arg-file=file] [--show-limits] [--version] [--help] [:command: | string ...]
 
 		rm [-dfiPRrvW] file ... [ --recursive ] [ --no-preserve-root ] [ --preserve-root ]
 
