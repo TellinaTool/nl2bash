@@ -422,14 +422,16 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                                 not value:
                             value = 'n'
                         new_option = '-' + value + '=' + arg_value
-                        new_node = bast.node(word=new_option, kind='word')
+                        new_node = copy.deepcopy(node)
+                        new_node.word = new_option
                         normalize_flag(new_node, attach_point)
                         str += new_option
                     else:
                         str = options + " splitted into: "
                         for option in options:
                             new_option = '-' + option
-                            new_node = bast.node(word=new_option, kind='word')
+                            new_node = copy.deepcopy(node)
+                            new_node.word = new_option
                             normalize_flag(new_node, attach_point)
                             str += new_node.word + ' '
                     if verbose:
