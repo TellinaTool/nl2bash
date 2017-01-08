@@ -97,11 +97,16 @@ def make_grammar_from_options(x, command_table, optional=False, ):
 
     if x["type"] == "compound_options":
         if x["commands"][0]["type"] in ["flag_option", "long_flag_option"] and \
-            (len(x) == 2 and x["commands"][1]["type"] == "argument_option"):
+          (len(x) == 2 and (x["commands"][1]["type"] == "argument_option" or
+            ("cmd" in x["commands"][1] and
+             x["commands"][1]["cmd"]["type"] == "argument_option"))):
                 flag_name = "-" + x["commands"][0]["flag_name"]
                 if not flag_name in flag_table:
                     flag_table[flag_name] = set()
-                arg_type = x["commands"][1]["arg_type"]
+                if not "arg_type" in x["commands"][1] and "cmd" in x["commands"][1]:
+                    arg_type = x["commands"][1]["cmd"]["arg_type"]
+                else:
+                    arg_type = x["commands"][1]["arg_type"]
                 flag_table[flag_name].add(arg_type)
                 if len(flag_table[flag_name]) > 1:
                     raise Exception("multiple argument types for {}".format(flag_name))
