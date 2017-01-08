@@ -880,7 +880,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     except AssertionError as err:
         print("%s - %s" % (err.args[0], cmd2))
         return None
-    
+
     return normalized_tree
 
 
