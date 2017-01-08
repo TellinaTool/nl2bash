@@ -286,7 +286,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
 
 
 def ast2command(node, loose_constraints=False, ignore_flag_order=False):
-    return ' '.join(normalizer.to_tokens(node, loose_constraints, ignore_flag_order))
+    return normalizer.to_command(node, loose_constraints, ignore_flag_order)
 
 
 def ast2template(node, loose_constraints=False, ignore_flag_order=True, arg_type_only=True):
@@ -364,17 +364,17 @@ def test_bash_parser():
             print()
             print("AST:")
             pretty_print(norm_tree, 0)
-            print("Pruned AST:")
-            pretty_print(pruned_tree, 0)
-            search_history = ast2list(norm_tree, 'dfs', list=[])
-            for state in search_history:
-                print(state)
-            tree = list2ast(search_history + ['<PAD>'])
-            print()
+            # print("Pruned AST:")
+            # pretty_print(pruned_tree, 0)
+            # search_history = ast2list(norm_tree, 'dfs', list=[])
+            # for state in search_history:
+            #     print(state)
             print("Command Template:")
             print(ast2template(norm_tree, ignore_flag_order=False))
-            print("Pruned Command Template:")
-            print(ast2template(pruned_tree, ignore_flag_order=False))
+            print("Command: ")
+            print(ast2command(norm_tree, ignore_flag_order=False))
+            # print("Pruned Command Template:")
+            # print(ast2template(pruned_tree, ignore_flag_order=False))
             print()
         except EOFError as ex:
             break
