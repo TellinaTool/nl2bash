@@ -116,8 +116,8 @@ def fill_arguments(node, arguments):
         duration_unit_re = re.compile(constants._DURATION_UNIT)
         m = re.search(digit_re, value)
         number = m.group(0) if m else '1'
-        duration_unit = re.search(duration_unit_re, value).group(0)        
-        print(duration_unit)
+        duration_unit = sorted(re.findall(duration_unit_re, value),
+                               key=lambda x:len(x), reverse=True)[0]
         # TODO: refine rules for time span formatting and calculation
         number = int(number)
         if duration_unit.startswith('y'):
@@ -142,7 +142,8 @@ def fill_arguments(node, arguments):
         size_unit_re = re.compile(constants._SIZE_UNIT)
         m = re.search(digit_re, value)
         number = m.group(0) if m else '1'
-        size_unit = re.search(size_unit_re, value).group(0)
+        size_unit = sorted(re.findall(size_unit_re, value),
+                           key=lambda x:len(x), reverse=True)[0]
         if size_unit.startswith('b'):
             return number
         elif size_unit.startswith('k'):
