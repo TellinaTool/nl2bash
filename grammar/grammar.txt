@@ -36,7 +36,7 @@ PrimitiveCmd ::=
 
 		sort [-bdfgiMnrckmosStTuz] [file ...]
 
-		grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
+		grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--color[=when]] [--colour[=when]] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
 
 		cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] source_file target_file [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
 
@@ -46,15 +46,15 @@ PrimitiveCmd ::=
 
 		ls [-ABCFGHLOPRSTUW@abcdefghiklmnopqrstuwx1] [file ...]
 
-		tar -c [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format format] [ -f file] [ -H] [ -h] [ -I] [ --include pattern] [ -j] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [ -y] [ -z] [ -Z] [[file ...] | [directory ...]]
+		tar -c [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format format] [ -f file] [--file[=file]] [ -H] [ -h] [ -I] [ --include pattern] [ -j] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [ -y] [ -z] [ -Z] [[file ...] | [directory ...]]
 
-		tar -r -f archive-file [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format format] [ -f file] [ -H] [ -h] [ -I] [ --include pattern] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [[file ...] | [directory ...]]
+		tar -r -f archive-file [ -b blocksize] [ -C directory] [ --check-links] [ --exclude pattern] [ --format format] [ -f file] [--file[=file]] [ -H] [ -h] [ -I] [ --include pattern] [ -L] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ --nodump] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [[file ...] | [directory ...]]
 
-		tar -u -f archive-file [ -b blocksize] [ -C directory] [ --exclude pattern] [ --format format] [ -f file] [ -I] [ --include pattern] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [[file ...] | [directory ...]]
+		tar -u -f archive-file [ -b blocksize] [ -C directory] [ --exclude pattern] [ --format format] [ -f file] [--file[=file]] [ -I] [ --include pattern] [ -l] [ -n] [ --newer date] [ --newer-mtime date] [ --newer-than file] [ --newer-mtime-than file] [ -o] [ --one-file-system] [ --options options] [ -P] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [[file ...] | [directory ...]]
 
-		tar -t [ -b blocksize] [ -C directory] [ --exclude pattern] [ -f file] [ -I] [ --include pattern] [ -l] [ -O] [ --options options] [ -P] [ -q] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [pattern ...]
+		tar -t [ -b blocksize] [ -C directory] [ --exclude pattern] [ -f file] [--file[=file]] [ -I] [ --include pattern] [ -l] [ -O] [ --options options] [ -P] [ -q] [ -s pattern] [ -T filename] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [pattern ...]
 
-		tar -x [ -b blocksize] [ -C directory] [ --chroot] [ --exclude pattern] [ -f file] [ -I] [ --include pattern] [ -k] [ --keep-newer-files] [ -l] [ -m] [ --numeric-owner] [ -O] [ -o] [ --options options] [ -P] [ -p] [ -q] [ -S] [ --strip-components count] [ -s pattern] [ -T filename] [ -U] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [pattern ...]
+		tar -x [ -b blocksize] [ -C directory] [ --chroot] [ --exclude pattern] [ -f file] [--file[=file]] [ -I] [ --include pattern] [ -k] [ --keep-newer-files] [ -l] [ -m] [ --numeric-owner] [ -O] [ -o] [ --options options] [ -P] [ -p] [ -q] [ -S] [ --strip-components count] [ -s pattern] [ -T filename] [ -U] [ --use-compress-program program] [ -v] [ --version] [ -w] [ -X filename] [pattern ...]
 
 		xargs [-0opt] [-E eofstr] [-I replstr [-R replacements]] [-J replstr] [-L maxlines] [-n maxargs [-x]] [-P maxprocs] [-s maxchars] [utility [argument ...]]
 
