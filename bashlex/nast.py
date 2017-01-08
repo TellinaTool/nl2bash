@@ -239,6 +239,9 @@ class FlagNode(Node):
             if child.kind == "argument":
                 return child
 
+    def is_long_option(self):
+        return self.value.startswith('--')
+
 class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
         super(HeadCommandNode, self).__init__(parent, lsb, "headcommand", value)
