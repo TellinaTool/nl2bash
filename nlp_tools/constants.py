@@ -10,6 +10,9 @@ _DIRECTORY = "_DIRECTORY"
 _PERMISSION = "_PERMISSION"
 _REGEX = "_REGEX"
 
+_PATTERNS = ['Regex', 'File', 'Directory', 'Path']
+_QUANTITIES = ['Number', 'Size', 'Timespan', 'DateTime', 'Permission']
+
 ner_to_ast_arg_type = {
     _FILE: "File",
     _DIRECTORY: "Directory",
@@ -33,7 +36,7 @@ _FILE_EXTENSION_RE = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|
         r'vb|ods|xlr|xlsx|xls|ini|msi|sys|tmp|drv|dmp|dll|bak|3gp|flv|h264|avi|' \
         r'mkv|mov|m4v|rm|mpg|mpeg|swf|wmv|doc|docx|tex|pdf|rtf|wps|wpd|xz|cvs)'
 
-_NUMERICAL_PERMISSION_RE = r'[+|-]?[0-7]{3,4}'
+_NUMERICAL_PERMISSION_RE = r'[0-7]{3,4}'
 _PATTERN_PERMISSION_RE = r'([u|g|o]+[+|-|=][r|w|x|s|u|t]+)+'
 
 _MONTH_RE = r'(january|jan|jan.|february|feb|feb.|march|mar|mar.|april|apr|apr.|' \
@@ -235,6 +238,15 @@ def quotation_safe(r):
     Match a regular expression with or without quotation marks.
     """
     return r'"?' + r + r'"?'
+
+def polarity_safe(r):
+    """
+    Match a regular expression with or without "+/-" signs.
+    """
+    return r'[+|-]?' + r
+
+def add_quotations(s):
+    return '"' + s + '"'
 
 def with_quotation(s):
     return s[0] in ['"', '\''] and s[-1] in ['"', '\'']
