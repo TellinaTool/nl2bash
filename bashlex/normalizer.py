@@ -869,8 +869,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     if len(tree) > 1:
         print("Doesn't support command with multiple root nodes: %s" % cmd2)
     normalized_tree = Node(kind="root")
-    normalize(tree[0], normalized_tree)
-    """try:
+    try:
         normalize(tree[0], normalized_tree)
     except ValueError as err:
         print("%s - %s" % (err.args[0], cmd2))
@@ -881,7 +880,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     except AssertionError as err:
         print("%s - %s" % (err.args[0], cmd2))
         return None
-    """
+    
     return normalized_tree
 
 
