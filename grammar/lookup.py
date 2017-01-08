@@ -57,7 +57,7 @@ class ManPageLookUp(object):
         if arg_type:
             return list(arg_type)[0]
         else:
-            return 'Unknown'
+            return None
 
 # classes to build tree from json file
 def load_syntax(json_files, verbose=True):
