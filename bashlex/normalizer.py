@@ -18,7 +18,7 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 # bashlex stuff
-from bashlex import bast, errors, tokenizer, bparser
+from bashlex import bash, bast, errors, tokenizer, bparser
 from bashlex.nast import *
 from grammar.lookup import ManPageLookUp
 from nlp_tools import ner
@@ -407,9 +407,12 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if len(options) == 1 and not options.isdigit():
                     normalize_flag(node, attach_point)
                 else:
-                    if options[-1].isdigit():
-                        str = options + " reformed to: "
+                    if options[-1].isdigit() and (
+                      (attach_point.value == "head" and options.isdigit()) or
+                      (attach_point.value == "tail" and options.isdigit()) or
+                      (options[0] in bash.float_arguments[attach_point.value])):
                         # flag contains a floading argument
+                        str = options + " reformed to: "
                         m = re.match('[a-zA-Z]', options)
                         value = m.group(0) if m else ''
                         m = re.search('\d+$', options)
