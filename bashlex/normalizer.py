@@ -410,8 +410,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     if options[-1].isdigit() and (
                       (attach_point.value == "head" and options.isdigit()) or
                       (attach_point.value == "tail" and options.isdigit()) or
-                      (bash.float_arguments[attach_point.value] and
-                        options[0] in bash.float_arguments[attach_point.value])):
+                      (attach_point.value in bash.float_arguments and
+                           (options[0] in bash.float_arguments[attach_point.value]))):
                         # flag contains a floading argument
                         str = options + " reformed to: "
                         m = re.match('[a-zA-Z]', options)
