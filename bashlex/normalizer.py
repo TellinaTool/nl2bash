@@ -236,11 +236,16 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
 
     def normalize_flag(node, current):
         if '=' in node.word:
-            value = node.word.rsplit('=', 1)[0] + '=Unknown'
+            value, arg_value = node.word.rsplit('=', 1)
+            norm_node = FlagNode(value=value)
+            arg_node = ArgumentNode(value=arg_value,
+                arg_type=man_lookup.get_flag_arg_type(current.value, value))
+            attach_to_tree(norm_node, current)
+            attach_to_tree(arg_node, norm_node)
         else:
             value = normalize_word(node, recover_quotes)
-        norm_node = FlagNode(value=value)
-        attach_to_tree(norm_node, current)
+            norm_node = FlagNode(value=value)
+            attach_to_tree(norm_node, current)
         return norm_node
 
     def normalize_headcommand(node, current):
@@ -402,29 +407,30 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                 if len(options) == 1 and not options.isdigit():
                     normalize_flag(node, attach_point)
                 else:
-                    if options[-1].isdigit() and \
-                        ((attach_point.value == "grep" and options.startswith("A")) or
-                         (attach_point.value == "grep" and options.startswith("B")) or
-                         (attach_point.value == "grep" and options.startswith("C")) or
-                         (attach_point.value == "head" and options.isdigit()) or
-                         (attach_point.value == "tail" and options.isdigit()) or
-                         (attach_point.value == "head" and options.startswith("n")) or
-                         (attach_point.value == "tail" and options.startswith("n")) or
-                         (attach_point.value == "awk" and options.startswith("F")) or
-                         (attach_point.value == "xargs" and options.startswith("n")) or
-                         (attach_point.value == "xargs" and options.startswith("l")) or
-                         (attach_point.value == "xargs" and options.startswith("P"))):
-                        node.word = ner.normalize_number_in_token(node.word)
-                        normalize_flag(node, attach_point)
+                    if options[-1].isdigit():
+                        str = options + " reformed to: "
+                        # flag contains a floading argument
+                        m = re.match('[a-zA-Z]', options)
+                        value = m.group(0) if m else ''
+                        m = re.search('\d+$', options)
+                        arg_value = m.group(0) if m else ''
+                        print(attach_point.value)
+                        if attach_point.value in ['head', 'tail'] and \
+                                not value:
+                            value = 'n'
+                        new_option = '-' + value + '=' + arg_value
+                        new_node = bast.node(word=new_option, kind='word')
+                        normalize_flag(new_node, attach_point)
+                        str += new_option
                     else:
                         str = options + " splitted into: "
                         for option in options:
-                            new_node = copy.deepcopy(node)
-                            new_node.word = '-' + option
+                            new_option = '-' + option
+                            new_node = bast.node(word=new_option, kind='word')
                             normalize_flag(new_node, attach_point)
                             str += new_node.word + ' '
-                        if verbose:
-                            print(str)
+                    if verbose:
+                        print(str)
 
             head_cmd = attach_point.headcommand.value
             flag = node.word
@@ -857,7 +863,8 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     if len(tree) > 1:
         print("Doesn't support command with multiple root nodes: %s" % cmd2)
     normalized_tree = Node(kind="root")
-    try:
+    normalize(tree[0], normalized_tree)
+    """try:
         normalize(tree[0], normalized_tree)
     except ValueError as err:
         print("%s - %s" % (err.args[0], cmd2))
@@ -868,6 +875,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     except AssertionError as err:
         print("%s - %s" % (err.args[0], cmd2))
         return None
+    """
     return normalized_tree
 
 
