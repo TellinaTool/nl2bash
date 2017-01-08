@@ -1,3 +1,30 @@
+"""
+# TODO: add stdin & stdout types
+simplified_bash_syntax = [
+    "Command ::= SingleCommand | Pipe",
+    "Pipe ::= Command '|' Command",
+    "SingleCommand ::= HeadCommand [OptionList]",
+    "OptionList ::= Option | OptionList",
+    "Option ::= Flag [Argument] | LogicOp Option",
+    "Argument ::= SingleArgument | CommandSubstitution | ProcessSubstitution",
+    "CommandSubstitution ::= ` Command `",
+    "ProcessSubstitution ::= <( Command ) | >( Command )"
+]
+
+arg_syntax = [
+    "File",
+    "Pattern",
+    "Number",
+    "NumberExp ::= -Number | +Number",
+    "SizeExp ::= Number(k) | Number(M) | Number(G) | Number(T) | Number(P)",
+    "TimeExp ::= Number(s) | Number(m) | Number(h) | Number(d) | Number(w)",
+    # TODO: add fine-grained permission pattern
+    "PermissionMode",
+    "UserName",
+    "GroupName",
+    "Unknown"
+]
+"""
 import collections
 import json
 import os
@@ -30,7 +57,7 @@ class ManPageLookUp(object):
         if arg_type:
             return list(arg_type)[0]
         else:
-            return None
+            return 'Unknown'
 
 # classes to build tree from json file
 def load_syntax(json_files, verbose=True):
