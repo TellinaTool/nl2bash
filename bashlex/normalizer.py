@@ -1206,7 +1206,15 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
         elif node.is_argument() or node.kind in ["t"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
             if ato and node.is_open_vocab():
-                token = node.arg_type
+                if node.arg_type in constants._QUANTITIES:
+                    if node.value.startswith('+'):
+                        token = '+{}'.format(node.arg_type)
+                    elif node.value.startswith('-'):
+                        token = '-{}'.format(node.arg_type)
+                    else:
+                        token = node.arg_type
+                else:
+                    token = node.arg_type
             else:
                 token = node.value
             if wat:
