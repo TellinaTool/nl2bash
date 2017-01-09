@@ -63,30 +63,32 @@ def annotate(tokens):
     permission_bit_set = r'(set)*(uid|gid|sticky|sticki)(=\d+)*'
 
     # -- Size
-    _SIZE_RE = re.compile(decorate_boundaries(r'(\d+|a)\s*' + constants._SIZE_UNIT))
+    _SIZE_RE = re.compile(decorate_boundaries(
+        constants.polarity_safe(r'(\d+|a)\s*') + constants._SIZE_UNIT))
     sentence = annotate_ner(_SIZE_RE, constants._SIZE, sentence, entities)
 
     # -- Timespan
-    _DURATION_RE = re.compile(decorate_boundaries(
+    _DURATION_RE = re.compile(decorate_boundaries(constants.polarity_safe(
         r'(\d+|a|this|next(\s\d+)?|last(\s\d+)?|previous(\s\d+)?)\s*'
-        + constants._DURATION_UNIT))
+        + constants._DURATION_UNIT)))
     sentence = annotate_ner(_DURATION_RE, constants._TIMESPAN, sentence, entities)
 
     # -- DateTime
-    _DATETIME_RE = re.compile(decorate_boundaries('(' + rel_day + '|' +
-                    standard_time + '|' + standard_datetime + '|' +
-                    textual_datetime + ')'))
+    _DATETIME_RE = re.compile(decorate_boundaries(constants.polarity_safe(
+                    '(' + rel_day + '|' + standard_time + '|' +
+                    standard_datetime + '|' + textual_datetime + ')')))
     sentence = annotate_ner(_DATETIME_RE, constants._DATETIME, sentence, entities)
 
     # -- Permission
-    _PERMISSION_RE = re.compile(decorate_boundaries('(' +
-                constants._NUMERICAL_PERMISSION_RE + '|' + 
-                constants._PATTERN_PERMISSION_RE + '|' +
-                permission_bit + '|' + permission_bit_set + ')'))
+    _PERMISSION_RE = re.compile(decorate_boundaries(constants.polarity_safe(
+                    '(' + constants._NUMERICAL_PERMISSION_RE + '|' +
+                    constants._PATTERN_PERMISSION_RE + '|' +
+                    permission_bit + '|' + permission_bit_set + ')')))
     sentence = annotate_ner(_PERMISSION_RE, constants._PERMISSION, sentence, entities)
 
     # -- Number
-    _NUMBER_RE = re.compile(decorate_boundaries(constants._DIGIT_RE))
+    _NUMBER_RE = re.compile(decorate_boundaries(
+        constants.polarity_safe(constants._DIGIT_RE)))
     sentence = annotate_ner(_NUMBER_RE, constants._NUMBER, sentence, entities)
 
     # -- Path
