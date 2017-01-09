@@ -120,20 +120,26 @@ def fill_arguments(node, arguments):
                                key=lambda x:len(x), reverse=True)[0]
         # TODO: refine rules for time span formatting and calculation
         number = int(number)
+        if value.startswith('+'):
+            sign = '+'
+        elif value.startswith('-'):
+            sign = '-'
+        else:
+            sign = ''
         if duration_unit.startswith('y'):
-            return '{}d'.format(number*365)
+            return sign + '{}d'.format(number*365)
         if duration_unit.startswith('mon'):
-            return '{}d'.format(number*30)
+            return sign + '{}d'.format(number*30)
         if duration_unit.startswith('w'):
-            return '{}w'.format(number)
+            return sign + '{}w'.format(number)
         if duration_unit.startswith('d'):
-            return '{}d'.format(number)
+            return sign + '{}d'.format(number)
         if duration_unit.startswith('h'):
-            return '{}h'.format(number)
+            return sign + '{}h'.format(number)
         if duration_unit.startswith('m'):
-            return '{}m'.format(number)
+            return sign + '{}m'.format(number)
         if duration_unit.startswith('s'):
-            return '{}s'.format(number)
+            return sign + '{}s'.format(number)
 
         raise AttributeError("Cannot parse timespan: {}".format(value))
 
@@ -144,16 +150,23 @@ def fill_arguments(node, arguments):
         number = m.group(0) if m else '1'
         size_unit = sorted(re.findall(size_unit_re, value),
                            key=lambda x:len(x), reverse=True)[0]
+        number = int(number)
+        if value.startswith('+'):
+            sign = '+'
+        elif value.startswith('-'):
+            sign = '-'
+        else:
+            sign = ''
         if size_unit.startswith('b'):
-            return number
+            return sign + '{}'.format(number)
         elif size_unit.startswith('k'):
-            return number + 'k'
+            return sign + '{}k'.format(number)
         elif size_unit.startswith('m'):
-            return number + 'M'
+            return sign + '{}M'.format(number)
         elif size_unit.startswith('g'):
-            return number + 'G'
+            return sign + '{}G'.format(number)
         elif size_unit.startswith('t'):
-            return str(float(number)*10) + 'G'
+            return sign + '{}G'.format((number)*10)
         else:
             raise AttributeError('Unrecognized size unit: {}'.format(size_unit))
 
@@ -163,8 +176,6 @@ def fill_arguments(node, arguments):
         if arg_type in ['Number', 'Path']:
             return value
         if arg_type == 'File':
-            return copy_file_name(value)
-        if arg_type == 'Directory':
             return copy_file_name(value)
         if arg_type == 'Permission':
             return copy_permission(value)
@@ -177,49 +188,48 @@ def fill_arguments(node, arguments):
         if arg_type in ['Username', 'Groupname']:
             return value
         if arg_type == 'Regex':
-            print(value)
             return value
 
     def fill_arguments_fun(node, arguments):
+        def fill_argument(arg_type):
+            value = copy_value(arg_type, arguments[arg_type][0])
+            if value is not None:
+                if arg_type in constants._PATTERNS:
+                    if not constants.with_quotation(value):
+                        node.value = constants.add_quotations(value)
+                    else:
+                        node.value = value
+                elif arg_type in constants._QUANTITIES:
+                    if node.value.startswith('+'):
+                        node.value = value if value.startswith('+') else \
+                            '+{}'.format(value)
+                    elif node.value.startswith('-'):
+                        node.value = value if value.startswith('-') else \
+                            '-{}'.format(value)
+                    else:
+                        node.value = value
+            arguments[arg_type].pop(0)
+
         if node.is_argument():
             if node.arg_type != 'Regex' and arguments[node.arg_type]:
-                value = copy_value(node.arg_type, arguments[node.arg_type][0])
-                if not value is None:
-                    node.value = value
-                arguments[node.arg_type].pop(0)
+                fill_argument(node.arg_type)
             elif node.arg_type == 'Path':
                 node.value = '.'
             elif node.arg_type == 'Directory':
                 if arguments['File']:
-                    value = copy_value(node.arg_type, arguments['File'][0])
-                    if value is not None:
-                        node.value = value
-                    arguments['File'].pop(0)
+                    fill_argument('File')
                     return
                 if arguments['Regex']:
-                    value = copy_value(node.arg_type, arguments['Regex'][0])
-                    if value is not None:
-                        node.value = value
-                    arguments['Regex'].pop(0)
+                    fill_argument('Regex')
             elif node.arg_type in ['Username', 'Groupname']:
                 if arguments['Regex']:
-                    value = copy_value(node.arg_type, arguments['Regex'][0])
-                    if value is not None:
-                        node.value = value
-                        return
-                    arguments['Regex'].pop(0)
+                    fill_argument('Regex')
             elif node.arg_type == 'Regex':
                 if arguments['File']:
-                    value = copy_value('File', arguments['File'][0])
-                    if value is not None:
-                        node.value = value
-                    arguments['File'].pop(0)
+                    fill_argument('File')
                     return
                 if arguments['Regex']:
-                    value = copy_value(node.arg_type, arguments['Regex'][0])
-                    if value is not None:
-                        node.value = value
-                    arguments['Regex'].pop(0)
+                    fill_argument('Regex')
                     return
         else:
             for child in node.children:
@@ -286,7 +296,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
 
 
 def ast2command(node, loose_constraints=False, ignore_flag_order=False):
-    return ' '.join(normalizer.to_tokens(node, loose_constraints, ignore_flag_order))
+    return normalizer.to_command(node, loose_constraints, ignore_flag_order)
 
 
 def ast2template(node, loose_constraints=False, ignore_flag_order=True, arg_type_only=True):
@@ -364,17 +374,17 @@ def test_bash_parser():
             print()
             print("AST:")
             pretty_print(norm_tree, 0)
-            print("Pruned AST:")
-            pretty_print(pruned_tree, 0)
-            search_history = ast2list(norm_tree, 'dfs', list=[])
-            for state in search_history:
-                print(state)
-            tree = list2ast(search_history + ['<PAD>'])
-            print()
+            # print("Pruned AST:")
+            # pretty_print(pruned_tree, 0)
+            # search_history = ast2list(norm_tree, 'dfs', list=[])
+            # for state in search_history:
+            #     print(state)
             print("Command Template:")
             print(ast2template(norm_tree, ignore_flag_order=False))
-            print("Pruned Command Template:")
-            print(ast2template(pruned_tree, ignore_flag_order=False))
+            print("Command: ")
+            print(ast2command(norm_tree, ignore_flag_order=False))
+            # print("Pruned Command Template:")
+            # print(ast2template(pruned_tree, ignore_flag_order=False))
             print()
         except EOFError as ex:
             break

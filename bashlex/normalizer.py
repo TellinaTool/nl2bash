@@ -21,7 +21,7 @@ if sys.version_info > (3, 0):
 from bashlex import bash, bast, errors, tokenizer, bparser
 from bashlex.nast import *
 from grammar.lookup import ManPageLookUp
-from nlp_tools import ner
+from nlp_tools import constants
 
 _H_NO_EXPAND = "<H_NO_EXPAND>"
 _V_NO_EXPAND = "<V_NO_EXPAND>"
@@ -537,16 +537,9 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
                     else:
                         # need to decide ast_node_kind
                         if child.word.startswith("-") and \
-                                not ((attach_point.value in ["chmod"]
-                                      and ('r' in child.word or
-                                           'x' in child.word or
-                                           'w' in child.word or
-                                           'X' in child.word or
-                                           's' in child.word or
-                                           't' in child.word or
-                                           'u' in child.word or
-                                           'g' in child.word or
-                                           'o' in child.word))):
+                            not ((attach_point.value in ["chmod"]
+                                and re.match(constants._NUMERICAL_PERMISSION_RE,
+                                    child.word))):
                             # child is a flag
                             attach_point_info = \
                                 attach_flag(child, attach_point_info)
@@ -880,7 +873,7 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
     except AssertionError as err:
         print("%s - %s" % (err.args[0], cmd2))
         return None
-    
+
     return normalized_tree
 
 
@@ -989,6 +982,114 @@ def list_to_ast(list, order='dfs'):
     return root
 
 
+def to_command(node, loose_constraints=False, ignore_flag_order=False):
+    if not node:
+        return ''
+
+    lc = loose_constraints
+    ifo = ignore_flag_order
+
+    def to_command_fun(node):
+        str = ''
+        if node.is_root():
+            assert(loose_constraints or node.get_num_of_children() == 1)
+            if lc:
+                for child in node.children():
+                    str += to_command_fun(child)
+            else:
+                str += to_command_fun(node.get_left_child())
+        elif node.kind == 'pipeline':
+            assert(loose_constraints or node.get_num_of_children() > 1)
+            if lc and node.get_num_of_children() < 1:
+                str += ''
+            elif lc and node.get_num_of_children() == 1:
+                str += to_command_fun(node.get_left_child())
+            else:
+                for child in node.children[:-1]:
+                    str += to_command_fun(child)
+                    str += ' | '
+                str += to_command_fun(node.get_right_child())
+        elif node.kind == "commandsubstitution":
+            assert(loose_constraints or node.get_num_of_children() == 1)
+            if lc and node.get_num_of_children() < 1:
+                str += ''
+            else:
+                str += '$('
+                str += to_command_fun(node.get_left_child())
+                str += ')'
+        elif node.kind == 'processsubstitution':
+            assert(loose_constraints or node.get_num_of_children() == 1)
+            if lc and node.get_num_of_children() < 1:
+                str += ''
+            else:
+                str += '{}('.format(node.value)
+                str += to_command_fun(node.get_left_child())
+                str += ')'
+        elif node.is_headcommand():
+            str += node.value + ' '
+            children = sorted(node.children, key=lambda x:x.value) \
+                if ifo else node.children
+            for child in children:
+                str += to_command_fun(child) + ' '
+            str = str.strip()
+        elif node.is_option():
+            assert(loose_constraints or node.parent)
+            if '::' in node.value:
+                value, op = node.value.split('::')
+                str += value + ' '
+            else:
+                arg_connector = '=' if (node.is_long_option() and
+                                        node.children) else ' '
+                str += node.value + arg_connector
+            for child in node.children:
+                str += to_command_fun(child) + ' '
+            if '::' in node.value:
+                if op == ';':
+                    op = "\\;"
+                str += op + ' '
+            str = str.strip()
+        elif node.kind == "binarylogicop":
+            assert(loose_constraints or node.get_num_of_children() == 0)
+            if lc and node.get_num_of_children() > 0:
+                for child in node.children[:-1]:
+                    str += to_command_fun(child) + ' '
+                    str += node.value + ' '
+                str += to_command_fun(node.children[-1])
+                str = str.strip()
+            else:
+                str += node.value + ' '
+        elif node.kind == "unarylogicop":
+            assert(loose_constraints or node.get_num_of_children() == 0)
+            if lc and node.get_num_of_children() > 0:
+                if node.associate == UnaryLogicOpNode.RIGHT:
+                    str += '{} {}'.format(node.value,
+                                to_command_fun(node.get_left_child()))
+                else:
+                    str += '{} {}'.format(
+                        to_command_fun(node.get_left_child()), node.value)
+            else:
+                str += node.value + ' '
+        elif node.kind == "bracket":
+            assert(loose_constraints or node.get_num_of_children() >= 1)
+            if lc and node.get_num_of_children() < 2:
+                for child in node.children:
+                    str += to_command_fun(child)
+            else:
+                str += "\\( "
+                for i in xrange(len(node.children)-1):
+                    str += to_command_fun(node.children[i])
+                str += to_command_fun(node.children[-1])
+                str += " \\)"
+        elif node.is_argument():
+            assert(loose_constraints or node.get_num_of_children() == 0)
+            str += node.value
+            if lc:
+                for child in node.children:
+                    str += to_command_fun(child)
+        return str
+
+    return to_command_fun(node)
+
 def to_tokens(node, loose_constraints=False, ignore_flag_order=False, 
               arg_type_only=False, with_arg_type=False, with_parent=False, 
               index_arg = False):
@@ -1005,10 +1106,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
     def to_tokens_fun(node):
         tokens = []
         if node.is_root():
-            try:
-                assert(loose_constraints or node.get_num_of_children() == 1)
-            except AssertionError:
-                return []
+            assert(loose_constraints or node.get_num_of_children() == 1)
             if lc:
                 for child in node.children:
                     tokens += to_tokens_fun(child)
@@ -1108,7 +1206,15 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
         elif node.is_argument() or node.kind in ["t"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
             if ato and node.is_open_vocab():
-                token = node.arg_type
+                if node.arg_type in constants._QUANTITIES:
+                    if node.value.startswith('+'):
+                        token = '+{}'.format(node.arg_type)
+                    elif node.value.startswith('-'):
+                        token = '-{}'.format(node.arg_type)
+                    else:
+                        token = node.arg_type
+                else:
+                    token = node.arg_type
             else:
                 token = node.value
             if wat:
