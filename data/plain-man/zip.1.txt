@@ -6,19 +6,8 @@ NAME
        zip - package and compress (archive) files
 
 SYNOPSIS
-       zip  [-aABcdDeEfFghjklLmoqrRSTuvVwXyz!@$] [--longoption ...]  [-b path]
+       zip  [-aABcdDeEfFghjklLmoqrRSTuvVwXyz@$] [--longoption ...]  [-b path]
        [-n suffixes] [-t date] [-tt date] [zipfile [file ...]]  [-xi list]
-
-       zipcloak (see separate man page)
-
-       zipnote (see separate man page)
-
-       zipsplit (see separate man page)
-
-       Note:  Command line processing in zip has been changed to support  long
-       options  and  handle all options and arguments more consistently.  Some
-       old command lines that depend on command line  inconsistencies  may  no
-       longer work.
 
 DESCRIPTION
        zip  is  a compression and file packaging utility for Unix, VMS, MSDOS,
