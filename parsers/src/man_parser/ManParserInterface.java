@@ -1,6 +1,7 @@
 package man_parser;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.sym.Name;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,26 +36,58 @@ public class ManParserInterface {
     public static void parseManPage(boolean testSmallExamples) throws IOException {
         String PREFIX = Config.ProjectFolder;
 
-        File[] files = new File(PREFIX +  "data/plain-man").listFiles();
-
         if (testSmallExamples) {
             String[] targetFiles = {
-                    PREFIX + "data/plain-man/grep.1.txt",
-                    PREFIX + "data/plain-man/find_cheat.1.txt",
-                    PREFIX + "data/plain-man/xargs.1.txt",
+                    PREFIX + "data/plain-man/find.1.txt",
+                    PREFIX + "data/plain-man/mv.1.txt",
                     PREFIX + "data/plain-man/sort.1.txt",
+                    PREFIX + "data/plain-man/grep.1.txt",
+                    PREFIX + "data/plain-man/egrep.1.txt",
                     PREFIX + "data/plain-man/cp.1.txt",
                     PREFIX + "data/plain-man/ls.1.txt",
-                    PREFIX + "data/plain-man/tar.1.txt"
+                    PREFIX + "data/plain-man/tar.1.txt",
+                    PREFIX + "data/plain-man/xargs.1.txt",
+                    PREFIX + "data/plain-man/sed.1.txt",
+                    PREFIX + "data/plain-man/awk.1.txt",
+                    PREFIX + "data/plain-man/rm.1.txt",
+                    PREFIX + "data/plain-man/cd.1.txt",
+                    PREFIX + "data/plain-man/wc.1.txt",
+                    PREFIX + "data/plain-man/chmod.1.txt",
+                    PREFIX + "data/plain-man/chgrp.1.txt",
+                    PREFIX + "data/plain-man/head.1.txt",
+                    PREFIX + "data/plain-man/tail.1.txt",
+                    PREFIX + "data/plain-man/seq.1.txt",
+                    PREFIX + "data/plain-man/unlink.1.txt",
+                    PREFIX + "data/plain-man/cat.1.txt",
+                    PREFIX + "data/plain-man/zip.1.txt",
+                    PREFIX + "data/plain-man/unzip.1.txt",
+                    PREFIX + "data/plain-man/du.1.txt",
+                    PREFIX + "data/plain-man/echo.1.txt",
+                    PREFIX + "data/plain-man/diff.1.txt",
+                    PREFIX + "data/plain-man/comm.1.txt",
+                    PREFIX + "data/plain-man/sh.1.txt"//*/
+                    //PREFIX + "data/plain-man/xargs.1.txt",
+                    //PREFIX + "data/plain-man/sort.1.txt",
+                    //PREFIX + "data/plain-man/cp.1.txt",
+                    //PREFIX + "data/plain-man/ls.1.txt",
+                    //PREFIX + "data/plain-man/tar.1.txt"
             };
             List<Cmd.ManPage> manPages = new ArrayList<>();
             for (String f : targetFiles) {
-                manPages.add(ManParserInterface.parseFile(new File(f)));
+                System.out.println(f);
+                Cmd.ManPage mp = ManParserInterface.parseFile(new File(f));
+                if (mp.aliases.isEmpty())
+                    System.out.println("???" + f);
+                manPages.add(mp);
+
             }
             ObjectMapper mapper = new ObjectMapper();
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
             String jsonInString = mapper.writeValueAsString(manPages);
             System.out.println(jsonInString);
         } else {
+            File[] files = new File(PREFIX +  "data/plain-man").listFiles();
+
             for (File f : files) {
                 if (! f.getName().matches("\\w*\\.\\d\\.txt"))
                     continue;
@@ -214,7 +247,7 @@ public class ManParserInterface {
                     i ++;
                 }
                 Pair<List<String>, String> name = parseName(lines.subList(l, i));
-                manpage.setName(name.getKey(), name.getValue());
+                manpage.setName(name.getKey(), name.getKey().get(0) + ": " + name.getValue() + "\n");
             } else if (i < lines.size() && lines.get(i).startsWith("SYNOPSIS")) {
                 // segmenting the synopsis section
                 int l = i + 1;
@@ -222,6 +255,7 @@ public class ManParserInterface {
                 while (indentCount(lines.get(i)) != 0) {
                     i ++;
                 }
+                manpage.rawSynopsis =lines.subList(l,i).stream().reduce("", (x,y)->(x.trim() + "\n" + y.trim())).trim();
                 List<Pair<String, Cmd.CmdOp>> options = parseSynopsis(manpage.getName(), lines.subList(l,i));
                 for (Pair<String, Cmd.CmdOp> pair : options) {
                     manpage.optionLists.add(pair.getValue());
@@ -234,7 +268,7 @@ public class ManParserInterface {
                     i ++;
                 }
                 Pair<String, List<Pair<String, String>>> descSec = parseDescription(lines.subList(l, i));
-                manpage.description += descSec.getKey();
+                manpage.description += descSec.getKey() + "\n";
                 for (Pair<String, String> desc : descSec.getValue()) {
                     String optionPart = desc.getKey();
                     int inOuterLevel = 0;
@@ -263,6 +297,48 @@ public class ManParserInterface {
                         }
                     }
                 }
+                i --;
+            } else if (i < lines.size() && (lines.get(i).startsWith("PRIMARIES")
+                            || lines.get(i).startsWith("USE")
+                            || lines.get(i).startsWith("OPTIONS"))) {
+
+                // segmenting the PRIMARIES section, specially for the find command
+                int l = i + 1;
+                i ++;
+
+                while(indentCount(lines.get(i)) != 0 || lines.get(i).equals("")) {
+                    i ++;
+                }
+                Pair<String, List<Pair<String, String>>> descSec = parseDescription(lines.subList(l, i));
+                for (Pair<String, String> desc : descSec.getValue()) {
+                    String optionPart = desc.getKey();
+                    int inOuterLevel = 0;
+                    boolean added = false;
+                    for (int k = 0; k < optionPart.length(); k ++) {
+                        if (optionPart.charAt(k) == ',' && inOuterLevel == 0) {
+                            try {
+                                manpage.optionDesc.add(
+                                        new Cmd.DescriptionPair(parseSynopsisInstance(optionPart.substring(0, k)), desc.getValue()));
+                                added = true;
+                            } catch (ParseException e) {
+                                continue;
+                            }
+                        } else if (optionPart.charAt(k) == '[') {
+                            inOuterLevel ++;
+                        } else if (optionPart.charAt(k) == '[') {
+                            inOuterLevel --;
+                        }
+                    }
+                    if (! added) {
+                        try {
+                            manpage.optionDesc.add(
+                                    new Cmd.DescriptionPair(parseSynopsisInstance(optionPart), desc.getValue()));
+                        } catch (ParseException e) {
+                            continue;
+                        }
+                    }
+                }
+                i --;
             } else if (i < lines.size() && lines.get(i).startsWith("EXAMPLES")) {
                 int l = i + 1;
                 i ++;
@@ -271,6 +347,7 @@ public class ManParserInterface {
                 }
                 parseExample(lines.subList(l, i));
             }
+
             i ++;
         }
 
@@ -356,7 +433,9 @@ public class ManParserInterface {
             else
                 i ++;
         }
-        instrdesc = lines.subList(l, i-2).stream().reduce("", (x,y) -> x + "\n" + y).replaceFirst("\\s+$", "");
+
+        if (i != 0)
+            instrdesc = lines.subList(l, i-2).stream().reduce("", (x,y) -> x + "\n" + y).replaceFirst("\\s+$", "");
 
         // start parsing options
         List<Pair<String, String>> optionList = new ArrayList<>();
