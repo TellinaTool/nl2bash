@@ -158,7 +158,7 @@ def fill_arguments(node, arguments):
         else:
             sign = ''
         if size_unit.startswith('b'):
-            return sign + '{}'.format(number)
+            return sign + '{}c'.format(number)
         elif size_unit.startswith('k'):
             return sign + '{}k'.format(number)
         elif size_unit.startswith('m'):
