@@ -994,7 +994,7 @@ def to_command(node, loose_constraints=False, ignore_flag_order=False):
         if node.is_root():
             assert(loose_constraints or node.get_num_of_children() == 1)
             if lc:
-                for child in node.children():
+                for child in node.children:
                     str += to_command_fun(child)
             else:
                 str += to_command_fun(node.get_left_child())
