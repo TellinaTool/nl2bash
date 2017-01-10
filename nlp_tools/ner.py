@@ -64,13 +64,15 @@ def annotate(tokens):
 
     # -- Size
     _SIZE_RE = re.compile(decorate_boundaries(
-        constants.polarity_safe(r'(\d+|a)\s*') + constants._SIZE_UNIT))
+        constants.polarity_safe(r'({}|a)\s*'.format(constants._DIGIT_RE)) +
+        constants._SIZE_UNIT))
     sentence = annotate_ner(_SIZE_RE, constants._SIZE, sentence, entities)
 
     # -- Timespan
     _DURATION_RE = re.compile(decorate_boundaries(constants.polarity_safe(
-        r'(\d+|a|this|next(\s\d+)?|last(\s\d+)?|previous(\s\d+)?)\s*'
-        + constants._DURATION_UNIT)))
+        r'({}|a|this|next(\s{})?|last(\s{})?|previous(\s{})?)\s*'.format(
+            constants._DIGIT_RE, constants._DIGIT_RE, constants._DIGIT_RE,
+            constants._DIGIT_RE) + constants._DURATION_UNIT)))
     sentence = annotate_ner(_DURATION_RE, constants._TIMESPAN, sentence, entities)
 
     # -- DateTime
