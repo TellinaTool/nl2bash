@@ -158,7 +158,7 @@ def fill_arguments(node, arguments):
         else:
             sign = ''
         if size_unit.startswith('b'):
-            return sign + '{}'.format(number)
+            return sign + '{}c'.format(number)
         elif size_unit.startswith('k'):
             return sign + '{}k'.format(number)
         elif size_unit.startswith('m'):
@@ -264,6 +264,10 @@ def ast2list(node, order='dfs', list=None, ignore_flag_order=False, arg_type_onl
     """Linearize the AST."""
     if order == 'dfs':
         if arg_type_only and node.is_argument() and node.is_open_vocab():
+            print(node.headcommand.value)
+            print(node.parent.value)
+            print(node.value)
+            print(node.arg_type)
             list.append(node.prefix + node.arg_type)
         else:
             if node.is_option() and with_parent and node.headcommand:
