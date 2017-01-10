@@ -30,7 +30,7 @@ _DIGIT_RE = r'\d+(.\d+)?'
 _SPECIAL_SYMBOL_RE = r'.*[\.\*|\\|\~|\@|\%|\#|\?|\+|\$|\{|\}]+.*'
 _FILE_EXTENSION_RE = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|' \
         r'rar|rpm|gz|bin|dmg|iso|vcd|vcr|dvd|csv|dat|db|log|mdb|sav|sql|' \
-        r'tar|xml|apk|bat|bin|cgi|pl|com|html|css|js|exe|gadget|jar|py|wsf|fnt|' \
+        r'xml|apk|bat|bin|cgi|pl|com|html|css|js|exe|gadget|jar|py|wsf|fnt|' \
         r'fon|otf|ttf|ai|bmp|gif|ico|jpg|jpeg|png|psd|svg|tif|java|php|txt|c|' \
         r'cpp|cc|o|htm|asp|cer|jsp|json|rss|xhtml|odp|ppt|pptx|class|h|sh|swift|' \
         r'vb|ods|xlr|xlsx|xls|ini|msi|sys|tmp|drv|dmp|dll|bak|3gp|flv|h264|avi|' \
