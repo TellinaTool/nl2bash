@@ -169,7 +169,6 @@ def fill_arguments(node, arguments):
         number = m.group(0) if m else '1'
         size_unit = sorted(re.findall(size_unit_re, value),
                            key=lambda x:len(x), reverse=True)[0]
-        number = int(number)
         if value.startswith('+'):
             sign = '+'
         elif value.startswith('-'):
