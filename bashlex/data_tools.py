@@ -211,7 +211,7 @@ def fill_arguments(node, arguments):
     def copy_value(arg_type, value):
         if constants.with_quotation(value):
             return value
-        if arg_type in ['Number', 'Directory', 'Path']:
+        if arg_type in ['Number', 'Directory']:
             return value
         if arg_type == 'File':
             return copy_file_name(value)
@@ -252,11 +252,11 @@ def fill_arguments(node, arguments):
             if node.arg_type != 'Regex' and arguments[node.arg_type]:
                 fill_argument(node.arg_type)
             elif node.arg_type == 'Path':
+                if arguments['Directory']:
+                    fill_argument('Directory')
+                    return
                 node.value = '.'
             elif node.arg_type == 'Directory':
-                if arguments['Path']:
-                    fill_argument('Path')
-                    return
                 if arguments['File']:
                     fill_argument('File')
                     return
