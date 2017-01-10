@@ -119,7 +119,6 @@ def fill_arguments(node, arguments):
         duration_unit = sorted(re.findall(duration_unit_re, value),
                                key=lambda x:len(x), reverse=True)[0]
         # TODO: refine rules for time span formatting and calculation
-        number = int(number)
         if value.startswith('+'):
             sign = '+'
         elif value.startswith('-'):
@@ -127,19 +126,39 @@ def fill_arguments(node, arguments):
         else:
             sign = ''
         if duration_unit.startswith('y'):
-            return sign + '{}d'.format(number*365)
+            return sign + '{}d'.format(int(float(number)*365))
         if duration_unit.startswith('mon'):
-            return sign + '{}d'.format(number*30)
+            return sign + '{}d'.format(int(float(number)*30))
         if duration_unit.startswith('w'):
-            return sign + '{}w'.format(number)
+            if '.' in number:
+                number = int(float(number) * 7)
+                unit = 'd'
+            else:
+                unit = 'w'
+            return sign + '{}{}'.format(number, unit)
         if duration_unit.startswith('d'):
-            return sign + '{}d'.format(number)
+            if '.' in number:
+                number = int(float(number) * 24)
+                unit = 'h'
+            else:
+                unit = 'd'
+            return sign + '{}{}'.format(number, unit)
         if duration_unit.startswith('h'):
-            return sign + '{}h'.format(number)
+            if '.' in number:
+                number = int(float(number) * 60)
+                unit = 'm'
+            else:
+                unit = 'h'
+            return sign + '{}{}'.format(number, unit)
         if duration_unit.startswith('m'):
-            return sign + '{}m'.format(number)
+            if '.' in number:
+                number = int(float(number) * 60)
+                unit = 's'
+            else:
+                unit = 'm'
+            return sign + '{}{}'.format(number, unit)
         if duration_unit.startswith('s'):
-            return sign + '{}s'.format(number)
+            return sign + '{}s'.format(int(number))
 
         raise AttributeError("Cannot parse timespan: {}".format(value))
 
@@ -158,15 +177,35 @@ def fill_arguments(node, arguments):
         else:
             sign = ''
         if size_unit.startswith('b'):
-            return sign + '{}c'.format(number)
+            number = int(float(number))
+            unit = 'c'
+            return sign + '{}{}'.format(number, unit)
         elif size_unit.startswith('k'):
-            return sign + '{}k'.format(number)
+            if '.' in number:
+                number = int(float(number) * 1000)
+                unit = 'c'
+            else:
+                unit = 'k'
+            return sign + '{}{}'.format(number, unit)
         elif size_unit.startswith('m'):
-            return sign + '{}M'.format(number)
+            if '.' in number:
+                number = int(float(number) * 1000)
+                unit = 'k'
+            else:
+                unit = 'M'
+            return sign + '{}{}'.format(number, unit)
         elif size_unit.startswith('g'):
-            return sign + '{}G'.format(number)
+            if '.' in number:
+                number = int(float(number) * 1000)
+                unit = 'M'
+            else:
+                unit = 'G'
+            return sign + '{}{}'.format(number, unit)
         elif size_unit.startswith('t'):
-            return sign + '{}G'.format((number)*10)
+            if '.' in number:
+                number = int(float(number) * 1000)
+                unit = 'G'
+            return sign + '{}{}'.format(number, unit)
         else:
             raise AttributeError('Unrecognized size unit: {}'.format(size_unit))
 

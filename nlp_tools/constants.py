@@ -250,3 +250,6 @@ def add_quotations(s):
 
 def with_quotation(s):
     return s[0] in ['"', '\''] and s[-1] in ['"', '\'']
+
+def is_float(s):
+    return '.' in s
