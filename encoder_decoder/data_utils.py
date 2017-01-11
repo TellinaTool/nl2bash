@@ -224,6 +224,7 @@ def sentence_to_token_ids(sentence, vocabulary,
     """
     if type(sentence) is list:
         words = sentence
+        entities = None
         with_arg_type = True
     else:
         if base_tokenizer:
@@ -460,6 +461,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                         pruned_ast, list=[], with_parent=with_parent)
                     cm_normalized_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True, with_parent=with_parent)
+                    print(cm)
                     cm_normalized_seq = data_tools.ast2list(
                         ast, arg_type_only=True, list=[], with_parent=with_parent)
                     cm_canonical_tokens = data_tools.ast2tokens(
