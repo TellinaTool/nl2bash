@@ -162,6 +162,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
                     batch_outputs.append((tree, temp, outputs))
                 else:
                     beam_outputs.append((tree, temp, outputs))
+            else:
+                print(tg)
         if FLAGS.decoding_algorithm == "beam_search":
             if beam_outputs:
                 batch_outputs.append(beam_outputs)
