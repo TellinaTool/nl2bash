@@ -73,7 +73,7 @@ def fill_arguments(node, arguments):
             raise AttributeError('Unrecognized file name: {}'.format(value))
 
     def copy_permission(value):
-        numerical_permission_re = re.compile(constants._NUNERICAL_PERMISSION_RE)
+        numerical_permission_re = re.compile(constants._NUMERICAL_PERMISSION_RE)
         pattern_permission_re = re.compile(constants._PATTERN_PERMISSION_RE)
         if re.match(numerical_permission_re) or re.match(pattern_permission_re):
             return value
