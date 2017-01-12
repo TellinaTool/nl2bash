@@ -145,7 +145,6 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
                         tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
                         # tg = re.sub('( \)\s+)|( \)$)', ' \\) ', tg)
                         tg = re.sub('(^\( )|( \( )', ' \\( ', tg)
-                        print(tg)
                         tree = data_tools.bash_parser(tg)
                     else:
                         tree = data_tools.paren_parser(tg)
