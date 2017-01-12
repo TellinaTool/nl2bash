@@ -75,7 +75,8 @@ def fill_arguments(node, arguments):
     def copy_permission(value):
         numerical_permission_re = re.compile(constants._NUMERICAL_PERMISSION_RE)
         pattern_permission_re = re.compile(constants._PATTERN_PERMISSION_RE)
-        if re.match(numerical_permission_re) or re.match(pattern_permission_re):
+        if re.match(numerical_permission_re, value) or \
+                re.match(pattern_permission_re, value):
             return value
         else:
             # TODO: write rules to synthesize permission pattern
