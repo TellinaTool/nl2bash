@@ -151,7 +151,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
             else:
                 tree, tg, outputs = to_readable(outputs, rev_tg_vocab)
 
-            if not tree is None or FLAGS.explanation:
+            if tree is not None or FLAGS.explanation:
                 # filter out non-grammatical output
                 if FLAGS.explanation:
                     temp = tg
@@ -163,7 +163,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
                 else:
                     beam_outputs.append((tree, temp, outputs))
         if FLAGS.decoding_algorithm == "beam_search":
-            batch_outputs.append(beam_outputs)
+            if beam_outputs:
+                batch_outputs.append(beam_outputs)
 
     return batch_outputs
 
