@@ -67,10 +67,12 @@ def fill_arguments(node, arguments):
         file_extension_re = re.compile(constants._FILE_EXTENSION_RE)
         if re.match(special_symbol_re, value):
             return value
-        elif re.match(file_extension_re, value):
-            return '"*.' + value + '"'
         else:
-            raise AttributeError('Unrecognized file name: {}'.format(value))
+            match = re.match(file_extension_re, value)
+            if match:
+                return '"*.' + match.group(0) + '"'
+            else:
+                raise AttributeError('Unrecognized file name: {}'.format(value))
 
     def copy_permission(value):
         numerical_permission_re = re.compile(constants._NUMERICAL_PERMISSION_RE)
