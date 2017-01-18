@@ -39,9 +39,13 @@ _FILE_EXTENSION_RE = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|
 _NUMERICAL_PERMISSION_RE = r'[0-7]{3,4}'
 _PATTERN_PERMISSION_RE = r'([u|g|o]+[+|-|=][r|w|x|s|u|t]+)+'
 
+# Credit: time expressions adapted from
+# https://github.com/nltk/nltk_contrib/blob/master/nltk_contrib/timex.py
 _MONTH_RE = r'(january|jan|jan.|february|feb|feb.|march|mar|mar.|april|apr|apr.|' \
             r'may|june|jun|jun.|july|jul|jul.|august|aug|aug.|september|sep|sep.|' \
             r'october|oct|oct.|november|nov|nov.|december|dec|dec.)'
+_REL_DAY_RE = r'(today|yesterday|tomorrow|the day before yesterday|' \
+              r'the day after tomorrow)'
 
 digitize_month = {
     "jan": "01",

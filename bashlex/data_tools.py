@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import collections, copy, re
+import collections, copy, datetime, re
 
 from bashlex import bash, nast, normalizer
 from nlp_tools import constants
@@ -67,30 +67,37 @@ def fill_arguments(node, arguments):
         file_extension_re = re.compile(constants._FILE_EXTENSION_RE)
         if re.match(special_symbol_re, value):
             return value
-        elif re.match(file_extension_re, value):
-            return '"*.' + value + '"'
         else:
-            raise AttributeError('Unrecognized file name: {}'.format(value))
+            match = re.match(file_extension_re, value)
+            if match:
+                return '"*.' + match.group(0) + '"'
+            else:
+                raise AttributeError('Unrecognized file name: {}'.format(value))
 
     def copy_permission(value):
-        numerical_permission_re = re.compile(constants._NUNERICAL_PERMISSION_RE)
+        numerical_permission_re = re.compile(constants._NUMERICAL_PERMISSION_RE)
         pattern_permission_re = re.compile(constants._PATTERN_PERMISSION_RE)
-        if re.match(numerical_permission_re) or re.match(pattern_permission_re):
+        if re.match(numerical_permission_re, value) or \
+                re.match(pattern_permission_re, value):
             return value
         else:
             # TODO: write rules to synthesize permission pattern
             return None
 
     def copy_datetime(value):
+        standard_time = re.compile(constants.quotation_safe(
+            r'\d+:\d+:\d+\.?\d*'))
         standard_datetime_dash_re = re.compile(constants.quotation_safe(
             r'\d{1,4}[-]\d{1,4}[-]\d{1,4}'))
         standard_datetime_slash_re = re.compile(constants.quotation_safe(
             r'\d{1,4}[\/]\d{1,4}[\/]\d{1,4}'))
         textual_datetime_re = re.compile(constants.quotation_safe(
             constants._MONTH_RE + r'(\s\d{0,2})?([,|\s]\d{2,4})?'))
+        rel_day_re = re.compile(constants.quotation_safe(constants._REL_DAY_RE))
         month_re = re.compile(constants._MONTH_RE)
         digit_re = re.compile(constants._DIGIT_RE)
-        if re.match(standard_datetime_dash_re, value):
+        if re.match(standard_time, value) or \
+                re.match(standard_datetime_dash_re, value):
             return value
         elif re.match(standard_datetime_slash_re, value):
             return re.sub(re.compile(r'\/'), '-', value)
@@ -108,6 +115,21 @@ def fill_arguments(node, arguments):
                 else:
                     date = date_year[0]
             return '{}-{}-{}'.format(year, month, date)
+        elif re.match(rel_day_re, value):
+            if value == 'today':
+                date = datetime.date.today()
+            elif value == 'yesterday':
+                date = datetime.date.today() - datetime.timedelta(1)
+            elif value == 'the day before yesterday':
+                date = datetime.date.today() - datetime.timedelta(2)
+            elif value == 'tomorrow':
+                date = datetime.date.today() + datetime.timedelta(1)
+            elif value == 'the day after tomorrow':
+                date = datetime.date.today() + datetime.timedelta(2)
+            else:
+                raise AttributeError("Cannot parse relative date expression: {}"
+                                     .format(value))
+            return date.strftime('%y-%m-%d')
         else:
             raise AttributeError("Cannot parse date/time: {}".format(value))
 
@@ -254,6 +276,12 @@ def fill_arguments(node, arguments):
             elif node.arg_type == 'Path':
                 if arguments['Directory']:
                     fill_argument('Directory')
+                    return
+                if arguments['File']:
+                    fill_argument('File')
+                    return
+                if arguments['Regex']:
+                    fill_argument('Regex')
                     return
                 node.value = '.'
             elif node.arg_type == 'Directory':
