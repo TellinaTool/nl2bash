@@ -65,16 +65,12 @@ public class ManParserInterface {
                     PREFIX + "data/plain-man/echo.1.txt",
                     PREFIX + "data/plain-man/diff.1.txt",
                     PREFIX + "data/plain-man/comm.1.txt",
-                    PREFIX + "data/plain-man/sh.1.txt"//*/
-                    //PREFIX + "data/plain-man/xargs.1.txt",
-                    //PREFIX + "data/plain-man/sort.1.txt",
-                    //PREFIX + "data/plain-man/cp.1.txt",
-                    //PREFIX + "data/plain-man/ls.1.txt",
-                    //PREFIX + "data/plain-man/tar.1.txt"
+                    PREFIX + "data/plain-man/sh.1.txt"
             };
+
             List<Cmd.ManPage> manPages = new ArrayList<>();
             for (String f : targetFiles) {
-                System.out.println(f);
+                //System.out.println(f);
                 Cmd.ManPage mp = ManParserInterface.parseFile(new File(f));
                 if (mp.aliases.isEmpty())
                     System.out.println("???" + f);
