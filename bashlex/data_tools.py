@@ -223,9 +223,8 @@ def fill_arguments(node, arguments):
                 unit = 'G'
             return sign + '{}{}'.format(number, unit)
         elif size_unit.startswith('t'):
-            if '.' in number:
-                number = int(float(number) * 1000)
-                unit = 'G'
+            number = int(float(number) * 1000)
+            unit = 'G'
             return sign + '{}{}'.format(number, unit)
         else:
             raise AttributeError('Unrecognized size unit: {}'.format(size_unit))
