@@ -53,8 +53,10 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS):
         if data_tools.fill_arguments(top_k_pred_tree, entities):
             top_k_pred_cmd = data_tools.ast2command(top_k_pred_tree,
                 loose_constraints=True, ignore_flag_order=False)
-            beam_outputs_with_arguments.append((top_k_pred_tree,
-                top_k_pred_cmd, top_k_outputs))
+            if len(top_k_pred_cmd) < 120:
+                # exclude abnormaly long commands from the output
+                beam_outputs_with_arguments.append((top_k_pred_tree,
+                    top_k_pred_cmd, top_k_outputs))
     batch_outputs_with_arguments.append(beam_outputs_with_arguments)
 
     return batch_outputs_with_arguments, output_logits
@@ -149,7 +151,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
             else:
                 tree, tg, outputs = to_readable(outputs, rev_tg_vocab)
 
-            if not tree is None or FLAGS.explanation:
+            if tree is not None or FLAGS.explanation:
                 # filter out non-grammatical output
                 if FLAGS.explanation:
                     temp = tg
@@ -160,8 +162,11 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
                     batch_outputs.append((tree, temp, outputs))
                 else:
                     beam_outputs.append((tree, temp, outputs))
+            else:
+                print(tg)
         if FLAGS.decoding_algorithm == "beam_search":
-            batch_outputs.append(beam_outputs)
+            if beam_outputs:
+                batch_outputs.append(beam_outputs)
 
     return batch_outputs
 

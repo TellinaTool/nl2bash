@@ -51,8 +51,6 @@ def annotate(tokens):
 
     # Credit: time expressions adapted from
     # https://github.com/nltk/nltk_contrib/blob/master/nltk_contrib/timex.py
-    rel_day = r'(today|yesterday|tomorrow|the day before yesterday|' \
-              r'the day after tomorrow)'
     standard_time = r'\d+:\d+:\d+\.?\d*'
     standard_datetime = r'\d{1,4}[\/-]\d{1,4}[\/-]\d{1,4}' \
                         r'([,|\s]' + standard_time + r')?'
@@ -77,7 +75,7 @@ def annotate(tokens):
 
     # -- DateTime
     _DATETIME_RE = re.compile(decorate_boundaries(constants.polarity_safe(
-                    '(' + rel_day + '|' + standard_time + '|' +
+                    '(' + constants._REL_DAY_RE + '|' + standard_time + '|' +
                     standard_datetime + '|' + textual_datetime + ')')))
     sentence = annotate_ner(_DATETIME_RE, constants._DATETIME, sentence, entities)
 
@@ -104,7 +102,8 @@ def annotate(tokens):
 
     # -- File
     _FILE_RE = re.compile(decorate_boundaries(r'([^ ]*\.[^ ]*|' +
-                    r'([^ ]*\/)+[^ ]*|' + constants._FILE_EXTENSION_RE + ')'))
+                    r'([^ ]*\/)+[^ ]*|' + constants._FILE_EXTENSION_RE +
+                    r's?' + ')'))
     sentence = annotate_ner(_FILE_RE, constants._FILE, sentence, entities)
 
     # -- Other patterns
