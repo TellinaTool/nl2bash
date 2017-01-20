@@ -280,9 +280,10 @@ def fill_arguments(node, arguments):
                 if arguments['File']:
                     fill_argument('File')
                     return
-                if arguments['Regex']:
+                """if arguments['Regex']:
                     fill_argument('Regex')
                     return
+                """
                 node.value = '.'
             elif node.arg_type == 'Directory':
                 if arguments['File']:
