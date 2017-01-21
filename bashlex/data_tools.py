@@ -106,6 +106,7 @@ def fill_arguments(node, arguments):
             month = re.search(month_re, value).group(0)
             month = constants.digitize_month[month[:3]]
             date_year = re.findall(digit_re, value)
+            print(date_year)
             if len(date_year) == 2:
                 date = date_year[0]
                 year = date_year[1]
