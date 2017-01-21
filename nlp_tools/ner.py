@@ -9,7 +9,7 @@ from __future__ import print_function
 import collections
 import re
 
-import constants
+from . import constants
 
 def add_space(s):
     return ' ' + s + ' '
@@ -58,7 +58,7 @@ def annotate(tokens):
                         r'([,|\s]' + standard_time + r')?'
 
     permission_bit = r'(suid|sgid|sticky|sticki)(\sbit)?'
-    permission_bit_set = r'(set)*(uid|gid|sticky|sticki)(=\d+)*'
+    permission_bit_set = r'(set)?(uid|gid|sticky|sticki)(=\d+)*'
 
     # -- Size
     _SIZE_RE = re.compile(decorate_boundaries(
