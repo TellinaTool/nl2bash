@@ -114,6 +114,7 @@ def fill_arguments(node, arguments):
                     year = date_year[0]
                 else:
                     date = date_year[0]
+            print(date_year)
             return '{}-{}-{}'.format(year, month, date)
         elif re.match(rel_day_re, value):
             if value == 'today':
