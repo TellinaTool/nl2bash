@@ -25,7 +25,7 @@ ner_to_ast_arg_type = {
     _NUMBER: "Number",
 }
 
-_DIGIT_RE = r'\d+(.\d+)?'
+_DIGIT_RE = r'\d+(\.\d+)?'
 
 _SPECIAL_SYMBOL_RE = r'[^ ]*[\.\*|\\|\~|\@|\%|\#|\?|\+|\$|\{|\}]+[^ ]*'
 _FILE_EXTENSION_RE = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|' \
