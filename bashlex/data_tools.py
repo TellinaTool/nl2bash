@@ -111,7 +111,7 @@ def fill_arguments(node, arguments):
             if len(date_year) == 2:
                 date = date_year[0]
                 year = date_year[1]
-                formatted_datetime = '{}-{}-{:02}'.format(year, month, date)
+                formatted_datetime = '{}-{}-{:02}'.format(year, month, int(date))
             else:
                 if ',' in value:
                     year = date_year[0]
@@ -119,7 +119,7 @@ def fill_arguments(node, arguments):
                 else:
                     date = date_year[0]
                     formatted_datetime = '{}-{}-{:02}'.format(
-                        datetime.datetime.now().year, month, date)
+                        datetime.datetime.now().year, month, int(date))
             return formatted_datetime
         elif re.match(rel_day_re, value):
             if value == 'today':
