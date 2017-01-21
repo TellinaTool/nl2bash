@@ -15,10 +15,8 @@ public class ManParserInterfaceTest {
     @Test
     public void test() {
         try {
-            ManParserInterface.parseSynopsisBNF();
+            ManParserInterface.parseManPage(true);
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
             e.printStackTrace();
         }
     }

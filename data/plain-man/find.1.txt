@@ -156,6 +156,11 @@ PRIMARIES
      -d      Same as depth.  GNU find implements this as a primary in mistaken
              emulation of FreeBSD find(1).
 
+     -daystart
+            Measure times (for -amin, -atime, -cmin, -ctime, -mmin, and -mtime) 
+            from the beginning of today rather than from 24 hours ago. 
+            This option only affects tests which appear later on the command line.
+
      -delete
              Delete found files and/or directories.  Always returns true.
              This executes from the current working directory as find recurses

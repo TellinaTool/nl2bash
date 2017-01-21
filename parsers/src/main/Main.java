@@ -54,6 +54,8 @@ public class Main {
             Config.OptionWordDictionary = args[2];
             Config.SynopsisGrammar = args[1];
             System.out.println(ManParserInterface.parseSynopsisBNF());
+        } else if (args[0].equals("-parse_manpage")) {
+            ManParserInterface.parseManPage(true);
         }
 
         //ManParserInterface.parseGrammarFile(Config.SynopsisGrammar);
@@ -72,6 +74,9 @@ public class Main {
         System.out.println("        java -jar command_parser -gen-primitive-cmd-json grammar_file optionword");
         System.out.println("    [5] Generate g4 grammar file: (you may want to generate to \"src/cmd_parser/parser/Commands.g4\")");
         System.out.println("        java -jar command_parser -make-grammar [target_file]");
+        System.out.println("    [6] Parse plain text manpages into a json file, which is used in explaining commands.");
+        System.out.println("        java -jar command_parser -parse_manpage");
+
     }
 
     public static String genG4FromSynopsis() {

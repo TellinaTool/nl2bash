@@ -48,6 +48,7 @@ class Node(object):
                       'unarylogicop',
                       'binarylogicop'
                       'flag',
+                      'root',
                       'argument',
                       'commandsubstitution',
                       'processsubstitution',
