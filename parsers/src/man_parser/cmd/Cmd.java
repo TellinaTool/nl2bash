@@ -19,6 +19,7 @@ public class Cmd {
         String type = "man_parser";
         public List<String> aliases = new ArrayList<>();
         public String description = "";
+        public String rawSynopsis = "";
 
         // one option may have more than once synopsis
         public List<CmdOp> optionLists = new ArrayList<>();
@@ -205,7 +206,7 @@ public class Cmd {
         public String description;
 
         public DescriptionPair(CmdOp fst, String desc) {
-            this.name = fst.toString();
+            this.name = fst.toString().trim();
             this.option = fst;
             this.description = desc;
         }

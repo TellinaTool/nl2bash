@@ -224,9 +224,8 @@ def fill_arguments(node, arguments):
                 unit = 'G'
             return sign + '{}{}'.format(number, unit)
         elif size_unit.startswith('t'):
-            if '.' in number:
-                number = int(float(number) * 1000)
-                unit = 'G'
+            number = int(float(number) * 1000)
+            unit = 'G'
             return sign + '{}{}'.format(number, unit)
         else:
             raise AttributeError('Unrecognized size unit: {}'.format(size_unit))
@@ -281,9 +280,10 @@ def fill_arguments(node, arguments):
                 if arguments['File']:
                     fill_argument('File')
                     return
-                if arguments['Regex']:
+                """if arguments['Regex']:
                     fill_argument('Regex')
                     return
+                """
                 node.value = '.'
             elif node.arg_type == 'Directory':
                 if arguments['File']:

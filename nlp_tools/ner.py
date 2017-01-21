@@ -9,7 +9,7 @@ from __future__ import print_function
 import collections
 import re
 
-from . import constants
+import constants
 
 def add_space(s):
     return ' ' + s + ' '
@@ -98,7 +98,7 @@ def annotate(tokens):
     # -- Directory
     _DIRECTORY_RE = re.compile(decorate_boundaries(r'[^ ]*\/'))
     sentence = annotate_ner(_DIRECTORY_RE, constants._DIRECTORY, sentence,
-                            entities )
+                            entities)
 
     # -- File
     _FILE_RE = re.compile(decorate_boundaries(r'([^ ]*\.[^ ]*|' +
