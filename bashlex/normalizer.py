@@ -196,13 +196,11 @@ def detach_from_tree(node, parent):
     node.rsb = None
     node.lsb = None
 
-def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
-                  recover_quotes=True, verbose=False):
+def normalize_ast(cmd, recover_quotes=True, verbose=False):
     """
     Convert the bashlex parse tree of a command into the normalized form.
+
     :param cmd: bash command to parse
-    :param normalize_digits: replace all digits in the tree with the special
-                             _NUMBER symbol
     :param recover_quotes: if set, retain quotation marks in the command
     :param verbose: if set, print error message.
     :return normalized_tree
@@ -836,15 +834,12 @@ def normalize_ast(cmd, normalize_digits=True, normalize_long_pattern=True,
         tree = bparser.parse(cmd)
     except tokenizer.MatchedPairError:
         print("Cannot parse: %s - MatchedPairError" % cmd2)
-        # return basic_tokenizer(cmd, normalize_digits, False)
         return None
     except errors.ParsingError:
         print("Cannot parse: %s - ParsingError" % cmd2)
-        # return basic_tokenizer(cmd, normalize_digits, False)
         return None
     except NotImplementedError:
         print("Cannot parse: %s - NotImplementedError" % cmd2)
-        # return basic_tokenizer(cmd, normalize_digits, False)
         return None
     except IndexError:
         print("Cannot parse: %s - IndexError" % cmd2)
@@ -1236,9 +1231,7 @@ def test_tokenization():
 
     for cmd in i_f.readlines():
         cmd = cmd.strip()
-        cmd = ' '.join(to_tokens(normalize_ast(cmd,
-                            normalize_digits=False,
-                            normalize_long_pattern=False)))
+        cmd = ' '.join(to_tokens(normalize_ast(cmd)))
         # str = ''
         # for token in tokenizer.split(cmd):
         #     str += cmd + ' '
