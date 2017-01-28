@@ -12,6 +12,7 @@ _REGEX = "_REGEX"
 
 _PATTERNS = ['Regex', 'File', 'Directory', 'Path']
 _QUANTITIES = ['Number', 'Size', 'Timespan', 'DateTime', 'Permission']
+_ENTITIES = _PATTERNS + _QUANTITIES
 
 ner_to_ast_arg_type = {
     _FILE: "File",
@@ -34,7 +35,7 @@ _FILE_EXTENSION_RE = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|
         r'fon|otf|ttf|ai|bmp|gif|ico|jpg|jpeg|png|psd|svg|tif|java|php|txt|c|' \
         r'cpp|cc|o|htm|asp|cer|jsp|json|rss|xhtml|odp|ppt|pptx|class|h|sh|swift|' \
         r'vb|ods|xlr|xlsx|xls|ini|msi|sys|tmp|drv|dmp|dll|bak|3gp|flv|h264|avi|' \
-        r'mkv|mov|m4v|rm|mpg|mpeg|swf|wmv|doc|docx|tex|pdf|rtf|wps|wpd|xz|cvs)'
+        r'mkv|mov|m4v|rm|mpg|mpeg|swf|wmv|doc|docx|tex|pdf|rtf|wps|wpd|xz|cvs)$'
 
 _NUMERICAL_PERMISSION_RE = r'[0-7]{3,4}'
 _PATTERN_PERMISSION_RE = r'([u|g|o]+[+|-|=][r|w|x|s|u|t]+)+'
@@ -257,3 +258,6 @@ def with_quotation(s):
 
 def is_float(s):
     return '.' in s
+
+def is_stopword(w):
+    return w in ENGLISH_STOPWORDS

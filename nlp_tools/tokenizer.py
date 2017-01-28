@@ -5,6 +5,10 @@
 Natural language input tokenizer.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import re, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
@@ -70,7 +74,8 @@ def clean_sentence(sentence):
     sentence = re.sub('\$\{HOME\}', '\$HOME', sentence)
     sentence = re.sub('"?normal\/regular"?', 'regular', sentence)
     sentence = re.sub('"?regular\/normal"?', 'regular', sentence)
-    sentence = re.sub('"?files\/directories"?', 'files and directories', sentence)
+    sentence = re.sub(
+        '"?files\/directories"?', 'files and directories', sentence)
 
     return sentence
 
@@ -86,7 +91,8 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
         word = words[i].strip()
         # remove unnecessary upper cases
         if lower_case:
-            if i == 0 and word[0].isupper() and len(word) > 1 and word[1:].islower():
+            if i == 0 and word[0].isupper() \
+                    and len(word) > 1 and word[1:].islower():
                 word = word.lower()
 
         # spelling correction
@@ -126,18 +132,13 @@ def ner_tokenizer(sentence):
     words = basic_tokenizer(sentence)
     return ner.annotate(words)
 
-
 # --- Utility functions --- #
-
-def is_stopword(w):
-    return w in constants.ENGLISH_STOPWORDS
-
 
 def test_nl_tokenizer():
     while True:
         nl = raw_input("> ")
-        tokens = ner_tokenizer(nl)
-        print(tokens)
+        tokens, ners = ner_tokenizer(nl)
+        print(tokens, ners)
 
 
 if __name__ == '__main__':
