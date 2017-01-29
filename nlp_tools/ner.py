@@ -59,10 +59,11 @@ def annotate(tokens):
     sentence = annotate_ner(_SIZE_RE, constants._SIZE, sentence, entities)
 
     # -- Timespan
+    time_num_re = r'((24\*|60\*)?{}|{}(\*24|\*60))'.format(
+        constants._DIGIT_RE, constants._DIGIT_RE)
     _DURATION_RE = re.compile(decorate_boundaries(constants.polarity_safe(
-        r'({}(\*24|\*60)?|a\s|this\s|next(\s{}(\*24|\*60)?)?\s|last(\s{}(\*24|\*60)?)?\s|previous(\s{}(\*24|\*60)?)?\s)\s*'.format(
-            constants._DIGIT_RE, constants._DIGIT_RE, constants._DIGIT_RE,
-            constants._DIGIT_RE) + constants._DURATION_UNIT)))
+        r'({}|a\s|this\s|next(\s{})?\s|last(\s{})?\s|previous(\s{})?\s)\s*'.format(
+            time_num_re, time_num_re, time_num_re, time_num_re) + constants._DURATION_UNIT)))
     sentence = annotate_ner(
         _DURATION_RE, constants._TIMESPAN, sentence, entities)
 
