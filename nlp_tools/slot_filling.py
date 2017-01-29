@@ -39,7 +39,11 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
             return True
         if slot_type.endswith('Number'):
             return strip_sign(slot_value) == extract_number(filler_value)
-        return strip_sign(slot_value) == strip_sign(filler_value)
+        if strip_sign(slot_value) == strip_sign(filler_value):
+            return True
+        else:
+            if slot_type.endswith('Timespan') or slot_type.endswith('Size'):
+                return strip_sign(slot_value) == extract_number(filler_value)
 
 def slot_filler_type_match(slot_type, filler_type):
     """Check if the category of a slot in the command matches that of the slot
@@ -114,8 +118,6 @@ def get_slot_alignment(nl, cm):
             if j in matched_slots:
                 continue
             slot_value, slot_type = cm_slots[j]
-            print(nl)
-            print(cm)
             print(slot_value, slot_type, filler_value, filler_type)
             if slot_filler_type_match(slot_type, filler_type) and \
               slot_filler_value_match(slot_value, filler_value, slot_type):
