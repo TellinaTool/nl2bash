@@ -48,9 +48,9 @@ _PATTERN_PERMISSION_RE = r'([u|g|o]+[+|-|=][r|w|x|s|u|t]+)+'
 
 # Credit: time expressions adapted from
 # https://github.com/nltk/nltk_contrib/blob/master/nltk_contrib/timex.py
-_MONTH_RE = r'(january|jan|jan.|february|feb|feb.|march|mar|mar.|april|apr|apr.|' \
-            r'may|june|jun|jun.|july|jul|jul.|august|aug|aug.|september|sep|sep.|' \
-            r'october|oct|oct.|november|nov|nov.|december|dec|dec.)'
+_MONTH_RE = r'(january|jan|jan\.|february|feb|feb\.|march|mar|mar\.|april|apr|apr\.|' \
+            r'may|june|jun|jun\.|july|jul|jul\.|august|aug|aug\.|september|sep|sep\.|' \
+            r'october|oct|oct\.|november|nov|nov\.|december|dec|dec\.)'
 _REL_DAY_RE = r'(today|yesterday|tomorrow|the day before yesterday|' \
               r'the day after tomorrow)'
 
