@@ -33,7 +33,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
         return pattern
 
     if slot_type in constants._PATTERNS:
-        return strip(slot_value) == strip(filler_value)
+        return strip(slot_value).lower() == strip(filler_value)
     else:
         if filler_value is None and slot_type == 'Permission':
             return True
