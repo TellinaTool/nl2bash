@@ -163,7 +163,6 @@ def annotate_ner(pattern, category, sentence, entities):
             else m.end(0)
         sentence = sentence[:rep_start] + '_' * (rep_end - rep_start) + \
                    sentence[rep_end:]
-        print(sentence)
         ner_by_pos[(rep_start, rep_end)] = (surface, category)
         ner_by_category[category].append((surface, rep_start, rep_end))
     return sentence
