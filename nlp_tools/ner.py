@@ -151,7 +151,7 @@ def annotate_ner(pattern, category, sentence, entities):
             # "May" the month and "may" the modal verb
             if surface == 'may':
                 continue
-        if category == constants._FILE:
+        if category in constants._PATTERNS:
             if surface in ['i.e', 'i.e.', 'e.g', 'e.g.',
                            's.a', 's.a.', 's.t', 's.t.']:
                 continue
