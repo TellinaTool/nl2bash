@@ -29,6 +29,8 @@ def slot_filler_value_match(slot_value, filler_value, slot_category):
             pattern = pattern[:-1]
         if pattern[0] in ['*']:
             pattern = pattern[1:]
+        if pattern[-1] in ['$']:
+            pattern = pattern[:-1]
         return pattern
 
     def strip_sign(pattern):
