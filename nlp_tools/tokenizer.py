@@ -114,10 +114,11 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
 
         # lemmatization
         if lemmatization:
-            try:
-                word = stemmer.stem(word.decode('utf-8'))
-            except AttributeError:
-                word = stemmer.stem(word)
+            if not re.match(constants._SPECIAL_SYMBOL_RE, word):
+                try:
+                    word = stemmer.stem(word.decode('utf-8'))
+                except AttributeError:
+                    word = stemmer.stem(word)
 
         # remove empty words
         if not word.strip():
