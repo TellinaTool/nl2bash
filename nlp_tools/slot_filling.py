@@ -11,14 +11,14 @@ from bashlex.data_tools import bash_tokenizer
 
 # --- Slot-Filler Alignment --- #
 
-def slot_filler_value_match(slot_value, filler_value, slot_category):
+def slot_filler_value_match(slot_value, filler_value, slot_type):
     """(Loosely) check if a slot filler extracted from the natural language
         matches a the slot in the command. Used for generating alignments from
         the training data.
 
        :param slot_value: slot value as shown in the bash command
        :param filler_value: slot filler value extracted from the natural language
-       :param slot_category: category of the slot in the command
+       :param slot_type: category of the slot in the command
     """
     def strip(pattern):
         while pattern[0] in ['"', '\'', '*', '\\']:
@@ -32,18 +32,18 @@ def slot_filler_value_match(slot_value, filler_value, slot_category):
             pattern = pattern[1:]
         return pattern
 
-    if slot_category in constants._PATTERNS:
+    if slot_type in constants._PATTERNS:
         return strip(slot_value) == strip(filler_value)
     else:
         return strip_sign(slot_value) == strip_sign(filler_value)
 
-def slot_filler_category_match(slot_category, filler_category):
+def slot_filler_type_match(slot_type, filler_type):
     """Check if the category of a slot in the command matches that of the slot
     filler extracted from the natural language. Used for generating alignments
     from the training data.
 
-    :param slot_category: slot category in the bash command
-    :param filler_category: slot filler category extracted from the natural
+    :param slot_type: slot category in the bash command
+    :param filler_type: slot filler category extracted from the natural
         language.
     """
     category_matches = {
@@ -56,6 +56,9 @@ def slot_filler_category_match(slot_category, filler_category):
         '_TIMESPAN:::Timespan',
         '_TIMESPAN:::+Timespan',
         '_TIMESPAN:::-Timespan',
+        '_TIMESPAN:::Number',
+        '_TIMESPAN:::+Number',
+        '_TIMESPAN:::-Number',
         '_DATETIME:::DateTime',
         '_DATETIME:::+DateTime',
         '_DATETIME:::-DateTime',
@@ -76,7 +79,7 @@ def slot_filler_category_match(slot_category, filler_category):
         '_REGEX:::Regex'
     }
 
-    return '{}:::{}'.format(filler_category, slot_category) in category_matches
+    return '{}:::{}'.format(filler_type, slot_type) in category_matches
 
 def get_slot_alignment(nl, cm):
     """Align the slot fillers extracted from the natural language with the
@@ -99,15 +102,15 @@ def get_slot_alignment(nl, cm):
     mappings = collections.defaultdict()
     matched_slots = set()
     for i in nl_fillers:
-        surface, filler_category = nl_fillers[i]
-        filler_value = extract_value(filler_category, surface)
+        surface, filler_type = nl_fillers[i]
+        filler_value = extract_value(filler_type, surface)
         matched = False
         for j in cm_slots:
             if j in matched_slots:
                 continue
-            slot_value, slot_category = cm_slots[j]
-            if slot_filler_category_match(slot_category, filler_category) and \
-              slot_filler_value_match(slot_value, filler_value, slot_category):
+            slot_value, slot_type = cm_slots[j]
+            if slot_filler_type_match(slot_type, filler_type) and \
+              slot_filler_value_match(slot_value, filler_value, slot_type):
                 mappings[i] = j
                 matched_slots.add(j)
                 matched = True
@@ -130,8 +133,10 @@ def extract_value(arg_type, value):
         if value[-1] in ['"', '\'']:
             value = value[:-1]
 
-    if arg_type in ['Number', 'Directory']:
+    if arg_type in ['Directory']:
         value = value
+    elif arg_type == 'Number':
+        value = extract_number(value)
     elif arg_type == 'File':
         value = extract_filename(value)
     elif arg_type == 'Permission':
@@ -153,6 +158,15 @@ def extract_value(arg_type, value):
         value = constants.add_quotations(value)
     return value
 
+def extract_number(value):
+    digit_re = re.compile(constants._DIGIT_RE)
+    match = re.search(digit_re, value)
+    if match:
+        return match.group(0)
+    else:
+        raise AttributeError('Cannot find number representation in pattern {}'
+                             .format(value))
+
 def extract_filename(value):
     """Extract file names."""
     special_symbol_re = re.compile(constants._SPECIAL_SYMBOL_RE)
@@ -164,7 +178,7 @@ def extract_filename(value):
         if match:
             return '"*.' + match.group(0) + '"'
         else:
-            raise AttributeError('Unrecognized file name: {}'.format(value))
+            raise AttributeError('Unrecognized file name {}'.format(value))
 
 def extract_permission(value):
     """Extract permission patterns."""
@@ -342,17 +356,22 @@ def heuristic_slot_filling(node, entities):
 
     def slot_filling_fun(node, arguments):
         arguments = collections.defaultdict(list)
-        for filler_category in constants.category_conversion:
-            slot_category = constants.category_conversion[filler_category]
-            arguments[slot_category] = \
-                copy.deepcopy(constants.category_conversion[filler_category])
+        for filler_type in constants.category_conversion:
+            slot_type = constants.category_conversion[filler_type]
+            arguments[slot_type] = \
+                copy.deepcopy(constants.category_conversion[filler_type])
 
-        def fill_argument(arg_type):
-            value = extract_value(arg_type, arguments[arg_type][0][0])
+        def fill_argument(filler_type, slot_type=None):
+            if slot_type is None:
+                slot_type = filler_type
+            surface = arguments[filler_type][0][0]
+            value = extract_value(filler_type, surface)
+            if filler_type == 'Timespan' and slot_type == 'Number':
+                value = extract_value(slot_type, value)
             if value is not None:
-                if arg_type in constants._PATTERNS:
+                if slot_type in constants._PATTERNS:
                     node.value = value
-                elif arg_type in constants._QUANTITIES:
+                elif slot_type in constants._QUANTITIES:
                     if node.value.startswith('+'):
                         node.value = value if value.startswith('+') else \
                             '+{}'.format(value)
@@ -361,34 +380,34 @@ def heuristic_slot_filling(node, entities):
                             '-{}'.format(value)
                     else:
                         node.value = value
-            arguments[arg_type].pop(0)
+            arguments[filler_type].pop(0)
 
         if node.is_argument():
             if node.arg_type != 'Regex' and arguments[node.arg_type]:
                 fill_argument(node.arg_type)
+            elif node.arg_type == 'Number':
+                if arguments['Timespan']:
+                    fill_argument(filler_type='Timespan', slot_type='Number')
             elif node.arg_type == 'Path':
                 if arguments['Directory']:
-                    fill_argument('Directory')
+                    fill_argument(filler_type='Directory', slot_type='Path')
                     return
                 if arguments['File']:
-                    fill_argument('File')
+                    fill_argument(filler_type='File', slot_type='Path')
                     return
                 node.value = '.'
             elif node.arg_type == 'Directory':
                 if arguments['File']:
-                    fill_argument('File')
+                    fill_argument(filler_type='File', slot_type='Directory')
                     return
                 if arguments['Regex']:
-                    fill_argument('Regex')
+                    fill_argument(filler_type='Regex', slot_type='Directory')
             elif node.arg_type in ['Username', 'Groupname']:
                 if arguments['Regex']:
-                    fill_argument('Regex')
+                    fill_argument(filler_type='Regex', slot_type='Username')
             elif node.arg_type == 'Regex':
                 if arguments['File']:
-                    fill_argument('File')
-                    return
-                if arguments['Regex']:
-                    fill_argument('Regex')
+                    fill_argument(filler_type='File', slot_type='Regex')
                     return
         else:
             for child in node.children:
