@@ -11,19 +11,23 @@ _PERMISSION = "_PERMISSION"
 _REGEX = "_REGEX"
 
 _PATTERNS = ['Regex', 'File', 'Directory', 'Path']
-_QUANTITIES = ['Number', 'Size', 'Timespan', 'DateTime', 'Permission']
+_QUANTITIES = ['Number', '+Number', '-Number',
+               'Size', '+Size', '-Size',
+               'Timespan', '+Timespan', '-Timespan',
+               'DateTime', '+DateTime', '-DateTime',
+               'Permission', '+Permission', '-Permission']
 _ENTITIES = _PATTERNS + _QUANTITIES
 
-ner_to_ast_arg_type = {
-    _FILE: "File",
-    _DIRECTORY: "Directory",
-    _PATH: "Path",
-    _PERMISSION: "Permission",
-    _DATETIME: "DateTime",
-    _TIMESPAN: "Timespan",
-    _REGEX: "Regex",
-    _SIZE: "Size",
-    _NUMBER: "Number",
+category_conversion = {
+    _FILE: 'File',
+    _DIRECTORY: 'Directory',
+    _PATH: 'Path',
+    _PERMISSION: 'Permission',
+    _DATETIME: 'DateTime',
+    _TIMESPAN: 'Timespan',
+    _REGEX: 'Regex',
+    _SIZE: 'Size',
+    _NUMBER: 'Number',
 }
 
 _DIGIT_RE = r'\d*\.?\d+'

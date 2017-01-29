@@ -50,7 +50,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS):
     top_k_predictions = batch_outputs[0]
     for j in xrange(len(top_k_predictions)):
         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = top_k_predictions[j]
-        if data_tools.fill_arguments(top_k_pred_tree, entities):
+        if data_tools.heuristic_slot_filling(top_k_pred_tree, entities):
             top_k_pred_cmd = data_tools.ast2command(top_k_pred_tree,
                 loose_constraints=True, ignore_flag_order=False)
             if len(top_k_pred_cmd) < 120:
@@ -141,7 +141,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
                 if FLAGS.explanation:
                     tree = None
                 else:
-                    if FLAGS.dataset in ["bash", "bash.cl"]:
+                    if FLAGS.dataset.startswith("bash"):
                         tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
                         # tg = re.sub('( \)\s+)|( \)$)', ' \\) ', tg)
                         tg = re.sub('(^\( )|( \( )', ' \\( ', tg)
