@@ -21,12 +21,12 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
        :param slot_type: category of the slot in the command
     """
     def strip(pattern):
-        while pattern[0] in ['"', '\'', '\*', '\\', '/']:
+        while pattern[0] in ['"', '\'', '*', '\\', '/']:
             if len(pattern) > 1:
                 pattern = pattern[1:]
             else:
                 break
-        while pattern[-1] in ['"', '\'', '\\', '/', '\$', '\*']:
+        while pattern[-1] in ['"', '\'', '\\', '/', '$', '*']:
             if len(pattern) > 1:
                 pattern = pattern[:-1]
             else:
