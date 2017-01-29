@@ -33,12 +33,12 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
         return pattern
 
     if slot_type in constants._PATTERNS:
-        if slot_type == 'Number':
-            return strip(slot_value) == extract_number(filler_value)
         return strip(slot_value) == strip(filler_value)
     else:
         if filler_value is None and slot_type == 'Permission':
             return True
+        if slot_type.endswith('Number'):
+            return strip_sign(slot_value) == extract_number(filler_value)
         return strip_sign(slot_value) == strip_sign(filler_value)
 
 def slot_filler_type_match(slot_type, filler_type):
@@ -113,6 +113,9 @@ def get_slot_alignment(nl, cm):
             if j in matched_slots:
                 continue
             slot_value, slot_type = cm_slots[j]
+            print(nl)
+            print(cm)
+            print(slot_value, slot_type, filler_value, filler_type)
             if slot_filler_type_match(slot_type, filler_type) and \
               slot_filler_value_match(slot_value, filler_value, slot_type):
                 mappings[i] = j
