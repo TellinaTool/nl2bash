@@ -175,6 +175,7 @@ def extract_filename(value):
     """Extract file names."""
     special_symbol_re = re.compile(constants._SPECIAL_SYMBOL_RE)
     file_extension_re = re.compile(constants._FILE_EXTENSION_RE)
+    path_re = re.compile(constants._PATH_RE)
     if re.match(special_symbol_re, value):
         return value
     else:
@@ -182,6 +183,9 @@ def extract_filename(value):
         if match:
             return '"*.' + match.group(0) + '"'
         else:
+            match = re.search(path_re, value)
+            if match:
+                return match.group(0)
             raise AttributeError('Unrecognized file name {}'.format(value))
 
 def extract_permission(value):
