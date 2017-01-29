@@ -207,6 +207,7 @@ size_units = {
     'tb',
     'byt',
     'byte',
+    'block',
     'kilobyt',
     'kilobyte',
     'megabyt',
