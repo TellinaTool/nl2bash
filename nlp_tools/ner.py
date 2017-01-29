@@ -129,7 +129,7 @@ def annotate(tokens):
             if not is_english_word(w):
                 # catch missed patterns in the final pass
                 normalized_words.append(constants._REGEX)
-                ner_by_token_id = (w, constants._REGEX)
+                ner_by_token_id[i] = (w, constants._REGEX)
                 ner_by_pos[(m.start(0), m.end(0))] = (w, constants._REGEX)
                 ner_by_category[constants._REGEX].append(
                     (w, m.start(0), m.end(0)))
