@@ -155,7 +155,7 @@ def get_slot_alignment(nl, cm):
             if (filler_value and is_parameter(filler_value)) or \
                     slot_filler_type_match(slot_type, filler_type):
                 if filler_type in constants.category_conversion and \
-                  constants.category_conversion[filler_type] == slot_type:
+                  slot_type.endswith(constants.category_conversion[filler_type]):
                     type_equal_slot = j
                     num_type_equal += 1
                 type_matched_slot = j
