@@ -106,7 +106,8 @@ def get_slot_alignment(nl, cm):
     for i in xrange(len(cm_tokens_with_types)):
         if cm_tokens_with_types[i] in constants._ENTITIES:
             cm_slots[i] = (cm_tokens[i], cm_tokens_with_types[i])
-
+    print(nl_fillers)
+    print(cm_slots)
     # Step 2: construct one-to-one mappings for the token ids from both sides
     mappings = collections.defaultdict()
     matched_slots = set()
@@ -118,12 +119,16 @@ def get_slot_alignment(nl, cm):
             if j in matched_slots:
                 continue
             slot_value, slot_type = cm_slots[j]
-            print(slot_value, slot_type, filler_value, filler_type)
+            print(nl)
+            print(cm)
             if slot_filler_type_match(slot_type, filler_type) and \
               slot_filler_value_match(slot_value, filler_value, slot_type):
+                print(slot_value, slot_type, filler_value, filler_type)
                 mappings[i] = j
                 matched_slots.add(j)
                 matched = True
+            if matched:
+                break
         if not matched:
             raise ValueError('nl: {}\ncm: {}\nfiller {} is not matched to '
                              'any slot'.format(nl, cm, surface))
