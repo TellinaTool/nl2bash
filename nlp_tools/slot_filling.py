@@ -56,7 +56,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
         if constants.remove_quotation(slot_value).lower() == \
             constants.remove_quotation(filler_value):
             return True
-        if is_parameter(filler_value):
+        if filler_value and is_parameter(filler_value):
             return strip(strip_sign(slot_value)).lower() == \
                    strip(filler_value).lower()
         else:
@@ -128,7 +128,6 @@ def get_slot_alignment(nl, cm):
     # and the slots in the command
     tokens, entities = tokenizer.ner_tokenizer(nl)
     nl_fillers, _, _ = entities
-
     cm_tokens = bash_tokenizer(cm)
     cm_tokens_with_types = bash_tokenizer(cm, arg_type_only=True)
     assert(len(cm_tokens) == len(cm_tokens_with_types))

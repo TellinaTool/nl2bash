@@ -416,7 +416,6 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         value = m.group(0) if m else ''
                         m = re.search('\d+$', options)
                         arg_value = m.group(0) if m else ''
-                        print(attach_point.value)
                         if attach_point.value in ['head', 'tail'] and \
                                 not value:
                             value = 'n'
