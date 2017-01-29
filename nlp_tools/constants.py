@@ -30,8 +30,6 @@ category_conversion = {
     _NUMBER: 'Number',
 }
 
-_DIGIT_RE = r'\d*\.?\d+'
-
 _SPECIAL_SYMBOL_RE = r'[^ ]*[\.\*|\\|\~|\@|\%|\#|\?|\+|\$|\{|\}]+[^ ]*'
 _FILE_EXTENSION_RE = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|' \
         r'rar|rpm|gz|bin|dmg|iso|vcd|vcr|dvd|csv|dat|db|log|mdb|sav|sql|' \
@@ -40,6 +38,10 @@ _FILE_EXTENSION_RE = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|
         r'cpp|cc|o|htm|asp|cer|jsp|json|rss|xhtml|odp|ppt|pptx|class|h|sh|swift|' \
         r'vb|ods|xlr|xlsx|xls|ini|msi|sys|tmp|drv|dmp|dll|bak|3gp|flv|h264|avi|' \
         r'mkv|mov|m4v|rm|mpg|mpeg|swf|wmv|doc|docx|tex|pdf|rtf|wps|wpd|xz|cvs)$'
+
+_PATH_RE = r'([^ ]*\/)+[^ ]*'
+
+_DIGIT_RE = r'\d*\.?\d+'
 
 _NUMERICAL_PERMISSION_RE = r'[0-7]{3,4}'
 _PATTERN_PERMISSION_RE = r'([u|g|o]+[+|-|=][r|w|x|s|u|t]+)+'

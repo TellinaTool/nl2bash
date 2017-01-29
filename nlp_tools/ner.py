@@ -96,8 +96,8 @@ def annotate(tokens):
     sentence = annotate_ner(_NUMBER_RE, constants._NUMBER, sentence, entities)
 
     # -- Path
-    # _PATH_RE = re.compile(decorate_boundaries(r'([^ ]*\/)+[^ ]*'))
-    # sentence = annotate_ner(_PATH_RE, constants._PATH, sentence, entities)
+    # path_re = re.compile(decorate_boundaries(constants._PATH_RE))
+    # sentence = annotate_ner(path_re, constants._PATH, sentence, entities)
 
     # -- Directory
     _DIRECTORY_RE = re.compile(decorate_boundaries(r'[^ ]*\/'))
