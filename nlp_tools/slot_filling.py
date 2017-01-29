@@ -53,6 +53,9 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
     if slot_type in constants._PATTERNS or (filler_value and is_parameter(filler_value)):
         if slot_value.lower() == filler_value:
             return True
+        if constants.remove_quotation(slot_value).lower() == \
+            constants.remove_quotation(filler_value):
+            return True
         if filler_value and is_parameter(filler_value):
             return strip(strip_sign(slot_value)).lower() == \
                    strip(filler_value).lower()
