@@ -38,6 +38,10 @@ PrimitiveCmd ::=
 
 		grep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--color[=when]] [--colour[=when]] [--context[=num]] [--label] [--line-buffered] [--null] [pattern] [file ...]
 
+        egrep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--color[=when]] [--colour[=when]] [--label] [--line-buffered] [--null] [pattern] [file ...]
+
+        fgrep [-abcdDEFGHhIiJLlmnOopqRSsUVvwxZ] [-A num] [-B num] [-C num] [-e pattern] [-f file] [--context[=num]] [--color[=when]] [--colour[=when]] [--label] [--line-buffered] [--null] [pattern] [file ...]
+
 		cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] source_file target_file [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
 
 		cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] source_file ... directory [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
