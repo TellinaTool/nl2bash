@@ -70,7 +70,7 @@ digitize_month = {
 }
 
 _SIZE_UNIT = r'(kilobyte|kilobyt|kilo byte|megabyte|megabyt|mega byte|gigabyte|' \
-             r'gigabyt|terabyte|terabyt|byte|byt|kb|mb|gb|tb|b|k|m|g|t)'
+             r'gigabyt|terabyte|terabyt|block|byte|byt|kb|mb|gb|tb|c|b|k|m|g|t)'
 
 _DURATION_UNIT = r'(second|sec|minute|minut|min|hour|hr|day|week|' \
              r'month|mon|year|yr|s|m|h|d|w|y)'
