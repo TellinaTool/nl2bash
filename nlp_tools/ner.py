@@ -105,7 +105,7 @@ def annotate(tokens):
         _DIRECTORY_RE, constants._DIRECTORY, sentence, entities)
 
     # -- File
-    _FILE_RE = re.compile(decorate_boundaries(r'([^ ]*\.[^ ]*|' +
+    _FILE_RE = re.compile(decorate_boundaries(r'([^ ]*\.[^ ]+|' +
                     r'([^ ]*\/)+[^ ]*|' + constants._FILE_EXTENSION_RE +
                     r's?' + ')'))
     sentence = annotate_ner(_FILE_RE, constants._FILE, sentence, entities)
@@ -147,6 +147,10 @@ def annotate_ner(pattern, category, sentence, entities):
             # TODO: rule-based system is not good at differentiating between
             # "May" the month and "may" the modal verb
             if surface == 'may':
+                continue
+        if category == constants._FILE:
+            if surface in ['i.e', 'i.e.', 'e.g', 'e.g.',
+                           's.a', 's.a.', 's.t', 's.t.']:
                 continue
         # replace recognized entities with placeholders to ensure that entity
         # position calculation is always correct
