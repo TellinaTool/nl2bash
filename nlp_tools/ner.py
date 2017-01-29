@@ -69,7 +69,7 @@ def annotate(tokens):
 
     # -- DateTime
     # Credit: time expressions adapted from
-    # https://github.com/nltk/nltk_contrib/blob/master/nltk_contrib/timex.py
+    # https://github.com/nltk/nltk_contrib/blob/master/nltk_contrib/tc imex.py
     standard_time = r'\d+:\d+:\d+\.?\d*'
     standard_datetime = r'\d{1,4}[\/-]\d{1,4}[\/-]\d{1,4}' \
                         r'([,|\s]' + standard_time + r')?'
@@ -112,8 +112,10 @@ def annotate(tokens):
     sentence = annotate_ner(_FILE_RE, constants._FILE, sentence, entities)
 
     # -- Other patterns
-    _REGEX_RE = re.compile(decorate_boundaries(constants._SPECIAL_SYMBOL_RE))
-    sentence = annotate_ner(_REGEX_RE, constants._REGEX, sentence, entities)
+    _REGEX_QUOTED_RE = re.compile(decorate_boundaries(constants._QUOTED_RE))
+    sentence = annotate_ner(_REGEX_QUOTED_RE, constants._REGEX, sentence, entities)
+    _REGEX_SPECIAL_RE = re.compile(decorate_boundaries(constants._SPECIAL_SYMBOL_RE))
+    sentence = annotate_ner(_REGEX_SPECIAL_RE, constants._REGEX, sentence, entities)
 
     # prepare list of tokens
     normalized_words = []
@@ -124,7 +126,7 @@ def annotate(tokens):
         w = m.group(0)
         if set(w) == {'_'}:
             surface, category = ner_by_pos[(m.start(0), m.end(0))]
-            normalized_words.append(surface)
+            normalized_words.append(category)
             ner_by_token_id[i] = (surface, category)
         else:
             if not is_english_word(w):
@@ -161,6 +163,7 @@ def annotate_ner(pattern, category, sentence, entities):
             else m.end(0)
         sentence = sentence[:rep_start] + '_' * (rep_end - rep_start) + \
                    sentence[rep_end:]
+        print(sentence)
         ner_by_pos[(rep_start, rep_end)] = (surface, category)
         ner_by_category[category].append((surface, rep_start, rep_end))
     return sentence
