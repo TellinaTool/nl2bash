@@ -21,12 +21,12 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
        :param slot_type: category of the slot in the command
     """
     def strip(pattern):
-        while pattern[0] in ['"', '\'', '*', '\\', '/']:
+        while pattern[0] in ['"', '\'', '\*', '\\', '/']:
             if len(pattern) > 1:
                 pattern = pattern[1:]
             else:
                 break
-        while pattern[-1] in ['"', '\'', '\\', '/', '$', '*']:
+        while pattern[-1] in ['"', '\'', '\\', '/', '\$', '\*']:
             if len(pattern) > 1:
                 pattern = pattern[:-1]
             else:
@@ -123,24 +123,33 @@ def get_slot_alignment(nl, cm):
         surface, filler_type = nl_fillers[i]
         filler_value = extract_value(filler_type, surface)
         matched = False
+        type_matched_slot = -1
+        num_type_matched = 0
         for j in cm_slots:
             if j in matched_slots:
                 continue
             slot_value, slot_type = cm_slots[j]
-            if slot_filler_type_match(slot_type, filler_type) and \
-              slot_filler_value_match(slot_value, filler_value, slot_type):
-                # print(slot_value, slot_type, filler_value, filler_type)
-                mappings[i] = j
-                matched_slots.add(j)
-                matched = True
+            if slot_filler_type_match(slot_type, filler_type):
+                type_matched_slot = j
+                num_type_matched += 1
+                if slot_filler_value_match(slot_value, filler_value, slot_type):
+                    # print(slot_value, slot_type, filler_value, filler_type)
+                    mappings[i] = j
+                    matched_slots.add(j)
+                    matched = True
             if matched:
                 break
         if not matched:
-            print('nl: {}'.format(nl))
-            print('cm: {}'.format(cm))
-            print(nl_fillers)
-            print(cm_slots)
-            print('filler {} is not matched to any slot\n'.format(surface.encode('utf-8')))
+            if num_type_matched == 1:
+                mappings[i] = type_matched_slot
+                matched_slots.add(j)
+            else:
+                print('nl: {}'.format(nl))
+                print('cm: {}'.format(cm))
+                print(nl_fillers)
+                print(cm_slots)
+                print('filler {} is not matched to any slot\n'
+                      .format(surface.encode('utf-8')))
     return mappings
 
 # --- Slot filler extractors --- #
