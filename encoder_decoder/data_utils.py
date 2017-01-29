@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
+# =============================================================================
 
 """Utilities for tokenizing & generating vocabularies."""
 
@@ -27,7 +27,7 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 from bashlex import normalizer, data_tools
-from nlp_tools import tokenizer
+from nlp_tools import tokenizer, slot_filling
 
 import numpy as np
 import random
@@ -70,10 +70,28 @@ def clean_dir(dir):
             print(e)
 
 
+def get_buckets(FLAGS):
+    # We use a number of buckets and pad to the closest one for efficiency.
+    if FLAGS.dataset.startswith("bash"):
+        if FLAGS.decoder_topology in ['basic_tree']:
+            buckets = [(30, 72)] if not FLAGS.explanation else [(72, 30)]
+        elif FLAGS.decoder_topology in ['rnn']:
+            buckets = [(30, 40)] if not FLAGS.explanation else [(40, 30)]
+    elif FLAGS.dataset == "dummy":
+        buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explanation else \
+            [(95, 20), (95, 30), (95, 45)]
+    elif FLAGS.dataset == "jobs":
+        buckets = [(20, 45)] if not FLAGS.explanation else [(45, 20)]
+    elif FLAGS.dataset == "geo":
+        buckets = [(20, 70)] if not FLAGS.explanation else [(70, 20)]
+    elif FLAGS.dataset == "atis":
+        buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explanation else \
+            [(95, 20), (95, 30), (95, 40)]
+    return buckets
+
+
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
-                      tokenizer=None, base_tokenizer=None,
-                      normalize_digits=True, normalize_long_pattern=True,
-                      min_word_frequency=2):
+                      tokenizer=None, base_tokenizer=None, min_word_frequency=2):
     """Create vocabulary file (if it does not exist yet) from data file.
 
     Data file is assumed to contain one sentence per line. Each sentence is
@@ -89,7 +107,6 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
       tokenizer: a function to use to tokenize each data sentence;
         if None, basic_tokenizer will be used.
       base_tokenizer: base_tokenizer used for separating a string into chars.
-      normalize_digits: Boolean; if true, all digits are replaced by 0s.
       min_word_frequency: word frequency threshold below which a word is
         goint to be marked as _UNK.
     """
@@ -106,11 +123,9 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                 tokens = line
             else:
                 if base_tokenizer:
-                    tokens = tokenizer(line, base_tokenizer, normalize_digits=normalize_digits,
-                                       normalize_long_pattern=normalize_long_pattern)
+                    tokens = tokenizer(line, base_tokenizer)
                 else:
-                    tokens = tokenizer(line, normalize_digits=normalize_digits,
-                                       normalize_long_pattern=normalize_long_pattern)
+                    tokens = tokenizer(line)
             if not tokens:
                 continue
             for word in tokens:
@@ -177,7 +192,8 @@ def initialize_vocabulary(vocabulary_path):
         raise ValueError("Vocabulary file %s not found.", vocabulary_path)
 
 
-def token_ids_to_sentences(inputs, rev_vocab, head_appended=False, char_model=False):
+def token_ids_to_sentences(inputs, rev_vocab, head_appended=False,
+                           char_model=False):
     batch_size = len(inputs[0])
     sentences = []
     for i in xrange(batch_size):
@@ -201,10 +217,7 @@ def token_ids_to_sentences(inputs, rev_vocab, head_appended=False, char_model=Fa
     return sentences
 
 
-def sentence_to_token_ids(sentence, vocabulary,
-                          tokenizer, base_tokenizer,
-                          normalize_digits=True,
-                          normalize_long_pattern=True,
+def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                           with_arg_type=False):
     """Convert a string to list of integers representing token-ids.
 
@@ -217,7 +230,6 @@ def sentence_to_token_ids(sentence, vocabulary,
       vocabulary: a dictionary mapping tokens to integers.
       tokenizer: a function to use to tokenize each sentence;
         if None, basic_tokenizer will be used.
-      normalize_digits: Boolean; if true, all digits are replaced by 0s.
 
     Returns:
       a list of integers, the token-ids for the sentence.
@@ -228,8 +240,7 @@ def sentence_to_token_ids(sentence, vocabulary,
         with_arg_type = True
     else:
         if base_tokenizer:
-            words = tokenizer(sentence, base_tokenizer, normalize_digits=normalize_digits,
-                              normalize_long_pattern=normalize_long_pattern)
+            words = tokenizer(sentence, base_tokenizer)
             entities = None
         else:
             words, entities = tokenizer(sentence)
@@ -255,10 +266,8 @@ def sentence_to_token_ids(sentence, vocabulary,
     return token_ids, entities
 
 
-def data_to_token_ids(data, tg_id_path, vocabulary_path,
-                      tokenizer=None, base_tokenizer=None,
-                      normalize_digits=True, normalize_long_pattern=True,
-                      with_arg_types=False):
+def data_to_token_ids(data, tg_id_path, vocabulary_path, tokenizer=None,
+                      base_tokenizer=None, with_arg_types=False):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
@@ -272,7 +281,6 @@ def data_to_token_ids(data, tg_id_path, vocabulary_path,
       tokenizer: a function to use to tokenize each sentence;
         if None, basic_tokenizer will be used.
       base_tokenizer: base tokenizer used for splitting strings into characters.
-      normalize_digits: Boolean; if true, all digits are replaced by 0s.
     """
     max_token_num = 0
     if not tf.gfile.Exists(tg_id_path):
@@ -284,9 +292,8 @@ def data_to_token_ids(data, tg_id_path, vocabulary_path,
             counter += 1
             if counter % 1000 == 0:
                 print("  tokenizing line %d" % counter)
-            token_ids, _ = sentence_to_token_ids(line, vocab, tokenizer, base_tokenizer,
-                                              normalize_digits, normalize_long_pattern,
-                                              with_arg_types)
+            token_ids, _ = sentence_to_token_ids(
+                line, vocab, tokenizer, base_tokenizer, with_arg_types)
             if len(token_ids) > max_token_num:
                 max_token_num = len(token_ids)
             tokens_file.write(" ".join([str(tok) for tok in token_ids])
@@ -353,8 +360,7 @@ def read_raw_data(data_dir):
     return nl_list, cm_list
 
 
-def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
-                    normalize_digits=True, normalize_long_pattern=True):
+def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
     max_len = 0
     for d in data.train:
         if len(d) > max_len:
@@ -366,9 +372,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
         else:
             min_word_freq = 0
         create_vocabulary(vocab_path, data.train, vocab_size,
-                      normalize_digits=normalize_digits,
-                      normalize_long_pattern=normalize_long_pattern,
-                      min_word_frequency=min_word_freq)
+                          min_word_frequency=min_word_freq)
 
     train_path = os.path.join(data_dir, "train")
     dev_path = os.path.join(data_dir, "dev")
@@ -385,15 +389,9 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
             for line in data.test:
                 o_f.write(line.strip() + '\n')
     else:
-        data_to_token_ids(data.train, train_path + suffix, vocab_path,
-                          normalize_digits=normalize_digits,
-                          normalize_long_pattern=normalize_long_pattern)
-        data_to_token_ids(data.dev, dev_path + suffix, vocab_path,
-                          normalize_digits=normalize_digits,
-                          normalize_long_pattern=normalize_long_pattern)
-        data_to_token_ids(data.test, test_path + suffix, vocab_path,
-                          normalize_digits=normalize_digits,
-                          normalize_long_pattern=normalize_long_pattern)
+        data_to_token_ids(data.train, train_path + suffix, vocab_path)
+        data_to_token_ids(data.dev, dev_path + suffix, vocab_path)
+        data_to_token_ids(data.test, test_path + suffix, vocab_path)
 
     return max_len
 
@@ -430,12 +428,12 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
 
     _ = prepare_dataset(nl_list, data_dir, nl_suffix, nl_vocab_size, None)
     _ = prepare_dataset(cm_list, data_dir, cm_suffix, cm_vocab_size, None)
-    max_nl_token_len = prepare_dataset(nl_token_list, data_dir, nl_token_suffix, nl_vocab_size,
-                                       nl_vocab_path, normalize_digits=False,
-                                       normalize_long_pattern=False)
-    max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix, cm_vocab_size,
-                                       cm_vocab_path, normalize_digits=False,
-                                       normalize_long_pattern=False)
+    max_nl_token_len = prepare_dataset(nl_token_list, data_dir,
+                                       nl_token_suffix, nl_vocab_size,
+                                       nl_vocab_path)
+    max_cm_token_len = prepare_dataset(cm_token_list, data_dir,
+                                       cm_token_suffix, cm_vocab_size,
+                                       cm_vocab_path)
 
     print("maximum num tokens in description = %d" % max_nl_token_len)
     print("maximum num tokens in command = %d" % max_cm_token_len)
@@ -596,7 +594,7 @@ def prepare_data(FLAGS):
         (8) path to the Command vocabulary file.
     """
 
-    if FLAGS.dataset in ["bash", "bash.cl"]:
+    if FLAGS.dataset.startswith("bash"):
         prepare_bash(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
     if FLAGS.dataset == "jobs":
         prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
@@ -607,6 +605,25 @@ def prepare_data(FLAGS):
     if FLAGS.dataset == "dummy":
         prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
 
+
+def prepare_slot_filling_data(FLAGS):
+    data_dir = FLAGS.data_dir
+    nl_vocab_size = FLAGS.nl_vocab_size
+    cm_vocab_size = FLAGS.cm_vocab_size
+    nl_path = os.path.join(data_dir, 'train.{}.nl'.format(nl_vocab_size))
+    cm_path = os.path.join(data_dir, 'train.{}.cm'.format(cm_vocab_size))
+    nl_list = [nl.strip() for nl in open(nl_path, 'r').readlines()]
+    cm_list = [cm.strip() for cm in open(cm_path, 'r').readlines()]
+
+    assert(len(nl_list) == len(cm_list))
+
+    with open('train.{}.mappings'.format(nl_vocab_size), 'w') as o_f:
+        for nl, cm in zip(nl_list, cm_list):
+            mappings = slot_filling.get_slot_alignment(nl, cm)
+            if mappings:
+                for i in sorted(mappings.keys()):
+                    o_f.write('{}-{} '.format())
+                o_f.write('\n')
 
 # --- Load Datasets -- #
 
@@ -676,29 +693,29 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
 
 def load_vocab(FLAGS):
     if FLAGS.decoder_topology in ['rnn']:
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                         "vocab%d.nl" % FLAGS.sc_vocab_size)
+        nl_vocab_path = os.path.join(
+            FLAGS.data_dir, "vocab%d.nl" % FLAGS.sc_vocab_size)
         if FLAGS.canonical:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.norm" % FLAGS.sc_vocab_size)
+            cm_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.sc_vocab_size)
         elif FLAGS.normalized:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.norm" % FLAGS.sc_vocab_size)
+            cm_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.sc_vocab_size)
         else:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm" % FLAGS.sc_vocab_size)
+            cm_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.cm" % FLAGS.sc_vocab_size)
     elif FLAGS.decoder_topology in ['basic_tree']:
-        nl_vocab_path = os.path.join(FLAGS.data_dir,
-                                         "vocab%d.nl" % FLAGS.sc_vocab_size)
+        nl_vocab_path = os.path.join(
+            FLAGS.data_dir, "vocab%d.nl" % FLAGS.sc_vocab_size)
         if FLAGS.canonical:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.ast.norm" % FLAGS.sc_vocab_size)
+            cm_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.cm.ast.norm" % FLAGS.sc_vocab_size)
         elif FLAGS.normalized:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.ast.norm" % FLAGS.sc_vocab_size)
+            cm_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.cm.ast.norm" % FLAGS.sc_vocab_size)
         else:
-            cm_vocab_path = os.path.join(FLAGS.data_dir,
-                                        "vocab%d.cm.ast" % FLAGS.sc_vocab_size)
+            cm_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.cm.ast" % FLAGS.sc_vocab_size)
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
@@ -902,9 +919,3 @@ def data_stats(FLAGS):
     print("test %cmd(nl+) = {}".format(pp(test_by_cm)))
     print("test cm overlap = {}".format(overlap(train_by_cm, test_by_cm)))
 
-
-if __name__ == "__main__":
-    ast = data_tools.paren_parser(sys.argv[1])
-    data_tools.pretty_print(ast)
-    print(data_tools.ast2template(
-            ast, loose_constraints=True, arg_type_only=True))

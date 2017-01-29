@@ -138,7 +138,7 @@ def test_nl_tokenizer():
     while True:
         nl = raw_input("> ")
         tokens, ners = ner_tokenizer(nl)
-        print(tokens, ners)
+        print(tokens, ners[0])
 
 
 if __name__ == '__main__':

@@ -47,6 +47,7 @@ def annotate(tokens):
     """
 
     sentence = ' '.join(tokens)
+    ner_by_token_id = collections.defaultdict()
     ner_by_pos = collections.defaultdict()
     ner_by_category = collections.defaultdict(list)
     entities = (ner_by_pos, ner_by_category)
@@ -113,36 +114,45 @@ def annotate(tokens):
     _REGEX_RE = re.compile(decorate_boundaries(constants._SPECIAL_SYMBOL_RE))
     sentence = annotate_ner(_REGEX_RE, constants._REGEX, sentence, entities)
 
-    ner_by_pos, ner_by_category = entities
+    # prepare list of tokens
     normalized_words = []
-    word_matches = re.finditer(
-        re.compile(constants._WORD_SPLIT_RESPECT_QUOTES), sentence)
-    for m in word_matches:
+    ner_by_pos, ner_by_category = entities
+    i = 0
+    for m in re.finditer(
+        re.compile(constants._WORD_SPLIT_RESPECT_QUOTES), sentence):
         w = m.group(0)
         if set(w) == {'_'}:
-            normalized_words.append(ner_by_pos[(m.start(0), m.end(0))][0])
+            surface, category = ner_by_pos[(m.start(0), m.end(0))]
+            normalized_words.append(surface)
+            ner_by_token_id[i] = (surface, category)
         else:
             if not is_english_word(w):
-                # catch missed irregular patterns in the final pass
+                # catch missed patterns in the final pass
                 normalized_words.append(constants._REGEX)
+                ner_by_token_id = (w, constants._REGEX)
                 ner_by_pos[(m.start(0), m.end(0))] = (w, constants._REGEX)
-                ner_by_category[constants._REGEX].append((w, m.start(0), m.end(0)))
+                ner_by_category[constants._REGEX].append(
+                    (w, m.start(0), m.end(0)))
             else:
                 normalized_words.append(w)
+        i += 1
 
-
-    return normalized_words, entities
+    return normalized_words, (ner_by_token_id, ner_by_pos, ner_by_category)
 
 def annotate_ner(pattern, category, sentence, entities):
     ner_by_pos, ner_by_category = entities
     for m in re.finditer(pattern, sentence):
         surface = sentence[m.start(0):m.end(0)].strip()
-        ner_by_pos[(m.start(0), m.end(0))] = (surface, category)
-        ner_by_category[category].append((surface, m.start(0), m.end(0)))
         # replace recognized entities with placeholders to ensure that entity
         # position calculation is always correct
-        sentence = sentence[:m.start(0)] + '_' * (m.end(0) - m.start(0)) + \
-                   sentence[m.end(0):]
+        rep_start = m.start(0) + 1 if re.match(r'\s', sentence[m.start(0)]) \
+            else m.start(0)
+        rep_end = m.end(0) - 1 if re.match(r'\s', sentence[m.end(0)-1]) \
+            else m.end(0)
+        sentence = sentence[:rep_start] + '_' * (rep_end - rep_start) + \
+                   sentence[rep_end:]
+        ner_by_pos[(rep_start, rep_end)] = (surface, category)
+        ner_by_category[category].append((surface, rep_start, rep_end))
     return sentence
 
 def normalize_number_in_token(token):

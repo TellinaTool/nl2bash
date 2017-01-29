@@ -35,9 +35,12 @@ def char_tokenizer(sentence, base_tokenizer=None):
     return chars[:-1]
 
 
-def bash_tokenizer(cmd, recover_quotation=True):
+def bash_tokenizer(cmd, recover_quotation=True, loose_constraints=False,
+        ignore_flag_order=False, arg_type_only=False, with_parent=False):
+    """Tokenize a bash command."""
     tree = normalizer.normalize_ast(cmd, recover_quotation)
-    return normalizer.to_tokens(tree)
+    return normalizer.to_tokens(tree, loose_constraints, ignore_flag_order,
+                                arg_type_only, with_parent=with_parent)
 
 
 def bash_parser(cmd, recover_quotation=True):
@@ -56,6 +59,34 @@ def pretty_print(node, depth=0):
             pretty_print(child, depth+1)
     except AttributeError:
         print("    " * depth)
+
+
+def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
+               arg_type_only=False, with_parent=False):
+    """Convert a bash ast into a list of tokens."""
+    return normalizer.to_tokens(node, loose_constraints, ignore_flag_order,
+                                arg_type_only, with_parent=with_parent)
+
+
+def ast2command(node, loose_constraints=False, ignore_flag_order=False):
+    return normalizer.to_command(node, loose_constraints, ignore_flag_order)
+
+
+def ast2template(node, loose_constraints=False, ignore_flag_order=True,
+                 arg_type_only=True):
+    # convert a bash AST to a template that contains only reserved words and
+    # argument types flags are alphabetically ordered
+    tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order,
+                                  arg_type_only=arg_type_only, index_arg=True)
+    return ' '.join(tokens) 
+
+
+def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
+                loose_constraints=False):
+    # convert a bash command to a template that contains only reserved words
+    # and argument types flags are alphabetically ordered
+    tree = normalizer.normalize_ast(cmd, recover_quotation)
+    return ast2template(tree, loose_constraints, arg_type_only)
 
 
 def ast2list(node, order='dfs', list=None, ignore_flag_order=False,
@@ -91,33 +122,6 @@ def ast2list(node, order='dfs', list=None, ignore_flag_order=False,
 def list2ast(list, order='dfs'):
     """Convert the linearized parse tree back to the AST data structure."""
     return normalizer.list_to_ast(list, order)
-
-
-def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
-               arg_type_only=False, with_parent=False):
-    return normalizer.to_tokens(node, loose_constraints, ignore_flag_order,
-                                arg_type_only, with_parent=with_parent)
-
-
-def ast2command(node, loose_constraints=False, ignore_flag_order=False):
-    return normalizer.to_command(node, loose_constraints, ignore_flag_order)
-
-
-def ast2template(node, loose_constraints=False, ignore_flag_order=True,
-                 arg_type_only=True):
-    # convert a bash AST to a template that contains only reserved words and
-    # argument types flags are alphabetically ordered
-    tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order,
-                                  arg_type_only=arg_type_only, index_arg=True)
-    return ' '.join(tokens) 
-
-
-def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
-                loose_constraints=False):
-    # convert a bash command to a template that contains only reserved words
-    # and argument types flags are alphabetically ordered
-    tree = normalizer.normalize_ast(cmd, recover_quotation)
-    return ast2template(tree, loose_constraints, arg_type_only)
 
 
 def paren_parser(line):

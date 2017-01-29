@@ -40,25 +40,10 @@ else:
     from .seq2tree.seq2tree_model import Seq2TreeModel
 
 FLAGS = tf.app.flags.FLAGS
-
 parse_args.define_input_flags()
 
-# We use a number of buckets and pad to the closest one for efficiency.
-if FLAGS.dataset in ["bash", "bash.cl"]:
-    if FLAGS.decoder_topology in ['basic_tree']:
-        _buckets = [(30, 72)] if not FLAGS.explanation else [(72, 30)]
-    elif FLAGS.decoder_topology in ['rnn']:
-        _buckets = [(30, 40)] if not FLAGS.explanation else [(40, 30)]
-elif FLAGS.dataset == "dummy":
-    _buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explanation else \
-        [(95, 20), (95, 30), (95, 45)]
-elif FLAGS.dataset == "jobs":
-    _buckets = [(20, 45)] if not FLAGS.explanation else [(45, 20)]
-elif FLAGS.dataset == "geo":
-    _buckets = [(20, 70)] if not FLAGS.explanation else [(70, 20)]
-elif FLAGS.dataset == "atis":
-    _buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explanation else \
-        [(95, 20), (95, 30), (95, 40)]
+_buckets = data_utils.get_bucket(FLAGS)
+
 
 def create_model(session, forward_only, construct_model_dir=True, buckets=None):
     """
@@ -256,6 +241,7 @@ def cross_validation(train_set):
     print("cross validation template match score = {}".format(sum(match_scores) / num_folds))
     print("cross validation template distance = {}".format(sum(dists) / num_folds))
 
+
 def grid_search(train_set, dev_set):
     FLAGS.create_fresh_params = True
 
@@ -327,8 +313,8 @@ def grid_search(train_set, dev_set):
     print("Best template distance = {}".format(best_temp_dist))
     print("*****************************")
 
+# --- Pre-processing and data statistics --- #
 
-# Data
 def load_data(use_buckets=True):
     print(FLAGS.data_dir)
     if use_buckets:
@@ -339,9 +325,12 @@ def load_data(use_buckets=True):
 
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
-
     data_utils.prepare_data(FLAGS)
 
+
+def process_slot_filling_data():
+    print("Preparing slot-filling data in %s" % FLAGS.data_dir)
+    data_utils.prepare_slot_filling_data(FLAGS)
 
 def data_statistics():
     data_utils.data_stats(FLAGS)
@@ -352,13 +341,16 @@ def main(_):
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
     
     # set up data and model directories
-    FLAGS.data_dir = os.path.join(os.path.dirname(__file__), "..", "data", FLAGS.dataset)
+    FLAGS.data_dir = os.path.join(
+        os.path.dirname(__file__), "..", "data", FLAGS.dataset)
     print("Reading data from {}".format(FLAGS.data_dir))
 
     if FLAGS.decoder_topology in ['basic_tree']:
-        FLAGS.model_dir = os.path.join(os.path.dirname(__file__), "..", FLAGS.model_dir, "seq2tree")
+        FLAGS.model_dir = os.path.join(
+            os.path.dirname(__file__), "..", FLAGS.model_dir, "seq2tree")
     elif FLAGS.decoder_topology in ['rnn']:
-        FLAGS.model_dir = os.path.join(os.path.dirname(__file__), "..", FLAGS.model_dir, "seq2seq")
+        FLAGS.model_dir = os.path.join(
+            os.path.dirname(__file__), "..", FLAGS.model_dir, "seq2seq")
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
@@ -383,16 +375,18 @@ def main(_):
         eval(test_set, model_sig=model_sig, verbose=False)
     elif FLAGS.demo:
         demo()
-    elif FLAGS.process_data:
-        process_data()
-    elif FLAGS.data_stats:
-        data_statistics()
     elif FLAGS.grid_search:
         train_set, dev_set, _ = load_data()
         grid_search(train_set, dev_set)
     elif FLAGS.cross_valid:
         train_set, _, _ = load_data()
         cross_validation(train_set)
+    elif FLAGS.process_slot_filling:
+        process_slot_filling_data()
+    elif FLAGS.process_data:
+        process_data()
+    elif FLAGS.data_stats:
+        data_statistics()
     else:
         train_set, dev_set, _ = load_data()
         train(train_set, dev_set)
@@ -400,6 +394,7 @@ def main(_):
         model_sig = decode(dev_set, construct_model_dir=False)
         if not FLAGS.explanation:
             eval(dev_set, model_sig, verbose=False)
+
     
 if __name__ == "__main__":
     tf.app.run()
