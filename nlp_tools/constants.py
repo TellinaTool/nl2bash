@@ -265,9 +265,9 @@ def with_quotation(s):
     return s[0] in ['"', '\''] and s[-1] in ['"', '\'']
 
 def remove_quotation(s):
-    if s[0] in ['"', '\'']:
+    if s and s[0] in ['"', '\'']:
         s = s[1:]
-    if s[-1] in ['"', '\'']:
+    if s and s[-1] in ['"', '\'']:
         s = s[:-1]
     return s
 
