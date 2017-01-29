@@ -32,7 +32,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
             else:
                 break
         return pattern
-    print(strip(slot_value), strip(filler_value))
+
     def strip_sign(pattern):
         if pattern[0] in ['-', '+']:
             pattern = pattern[1:]
