@@ -43,7 +43,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
             return True
         else:
             if slot_type.endswith('Timespan') or slot_type.endswith('Size'):
-                return strip_sign(slot_value) == extract_number(filler_value)
+                return extract_number(slot_value) == extract_number(filler_value)
 
 def slot_filler_type_match(slot_type, filler_type):
     """Check if the category of a slot in the command matches that of the slot
