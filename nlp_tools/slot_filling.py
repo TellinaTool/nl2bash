@@ -32,7 +32,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
             else:
                 break
         return pattern
-
+    print(strip(slot_value), strip(filler_value))
     def strip_sign(pattern):
         if pattern[0] in ['-', '+']:
             pattern = pattern[1:]
@@ -143,7 +143,7 @@ def get_slot_alignment(nl, cm):
         if not matched:
             if num_type_matched == 1:
                 mappings[i] = type_matched_slot
-                matched_slots.add(j)
+                matched_slots.add(type_matched_slot)
             else:
                 print('nl: {}'.format(nl))
                 print('cm: {}'.format(cm))
