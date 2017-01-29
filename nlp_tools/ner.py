@@ -54,7 +54,7 @@ def annotate(tokens):
 
     # -- Size
     _SIZE_RE = re.compile(decorate_boundaries(
-        constants.polarity_safe(r'({}|a)\s*'.format(constants._DIGIT_RE)) +
+        constants.polarity_safe(r'({}|a\s)\s*'.format(constants._DIGIT_RE)) +
         constants._SIZE_UNIT))
     sentence = annotate_ner(_SIZE_RE, constants._SIZE, sentence, entities)
 
