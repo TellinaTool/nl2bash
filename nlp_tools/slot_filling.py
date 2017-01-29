@@ -115,6 +115,7 @@ def get_slot_alignment(nl, cm):
                 matched_slots.add(j)
                 matched = True
         if not matched:
+            print(slot_value, slot_type, filler_value, filler_type)
             raise ValueError('nl: {}\ncm: {}\nfiller {} is not matched to '
                              'any slot'.format(nl, cm, surface))
     return mappings
