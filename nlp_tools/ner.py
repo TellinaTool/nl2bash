@@ -60,7 +60,7 @@ def annotate(tokens):
 
     # -- Timespan
     _DURATION_RE = re.compile(decorate_boundaries(constants.polarity_safe(
-        r'({}|a|this|next(\s{})?|last(\s{})?|previous(\s{})?)\s*'.format(
+        r'({}|a\s|this\s|next(\s{})?|last(\s{})?|previous(\s{})?)'.format(
             constants._DIGIT_RE, constants._DIGIT_RE, constants._DIGIT_RE,
             constants._DIGIT_RE) + constants._DURATION_UNIT)))
     sentence = annotate_ner(
