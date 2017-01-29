@@ -33,6 +33,8 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
         return pattern
 
     if slot_type in constants._PATTERNS:
+        if slot_type == 'Number':
+            return strip(slot_value) == extract_number(filler_value)
         return strip(slot_value) == strip(filler_value)
     else:
         return strip_sign(slot_value) == strip_sign(filler_value)
