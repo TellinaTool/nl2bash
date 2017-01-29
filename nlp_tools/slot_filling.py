@@ -142,7 +142,7 @@ def get_slot_alignment(nl, cm):
             if j in matched_slots:
                 continue
             slot_value, slot_type = cm_slots[j]
-            if is_parameter(filler_value) or \
+            if (filler_value and is_parameter(filler_value)) or \
                     slot_filler_type_match(slot_type, filler_type):
                 type_matched_slot = j
                 num_type_matched += 1
@@ -215,20 +215,22 @@ def extract_number(value):
 
 def extract_filename(value):
     """Extract file names."""
+    quoted_span_re = re.compile(constants._QUOTED_RE)
     special_symbol_re = re.compile(constants._SPECIAL_SYMBOL_RE)
     file_extension_re = re.compile(constants._FILE_EXTENSION_RE)
     path_re = re.compile(constants._PATH_RE)
+    if re.match(quoted_span_re, value):
+        return value
     if re.match(special_symbol_re, value):
         return value
+    match = re.search(file_extension_re, value)
+    if match:
+        return '"*.' + match.group(0) + '"'
     else:
-        match = re.search(file_extension_re, value)
+        match = re.search(path_re, value)
         if match:
-            return '"*.' + match.group(0) + '"'
-        else:
-            match = re.search(path_re, value)
-            if match:
-                return match.group(0)
-            raise AttributeError('Unrecognized file name {}'.format(value))
+            return match.group(0)
+        raise AttributeError('Unrecognized file name {}'.format(value))
 
 def extract_permission(value):
     """Extract permission patterns."""
