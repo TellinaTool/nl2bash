@@ -50,7 +50,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
             pattern = pattern[1:]
         return pattern
 
-    if slot_type in constants._PATTERNS:
+    if slot_type in constants._PATTERNS or (filler_value and is_parameter(filler_value)):
         if slot_value.lower() == filler_value:
             return True
         if filler_value and is_parameter(filler_value):
