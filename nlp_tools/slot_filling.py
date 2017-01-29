@@ -109,6 +109,7 @@ def slot_filler_type_match(slot_type, filler_type):
         '_DIRECTORY:::Path',
         '_FILE:::Path',
         '_FILE:::File',
+        '_FILE:::Directory',
         '_FILE:::Regex',
         '_REGEX:::Username',
         '_REGEX:::Groupname',
@@ -145,12 +146,18 @@ def get_slot_alignment(nl, cm):
         matched = False
         type_matched_slot = -1
         num_type_matched = 0
+        type_equal_slot = -1
+        num_type_equal = 0
         for j in cm_slots:
             if j in matched_slots:
                 continue
             slot_value, slot_type = cm_slots[j]
             if (filler_value and is_parameter(filler_value)) or \
                     slot_filler_type_match(slot_type, filler_type):
+                if filler_type in constants.category_conversion and \
+                  constants.category_conversion[filler_type] == slot_type:
+                    type_equal_slot = j
+                    num_type_equal += 1
                 type_matched_slot = j
                 num_type_matched += 1
                 if slot_filler_value_match(slot_value, filler_value, slot_type):
@@ -164,12 +171,16 @@ def get_slot_alignment(nl, cm):
                 mappings[i] = type_matched_slot
                 matched_slots.add(type_matched_slot)
             else:
-                print('nl: {}'.format(nl))
-                print('cm: {}'.format(cm))
-                print(nl_fillers)
-                print(cm_slots)
-                print('filler {} is not matched to any slot\n'
-                      .format(surface.encode('utf-8')))
+                if num_type_equal == 1:
+                    mappings[i] = type_equal_slot
+                    matched_slots.add(type_equal_slot)
+                else:
+                    print('nl: {}'.format(nl))
+                    print('cm: {}'.format(cm))
+                    print(nl_fillers)
+                    print(cm_slots)
+                    print('filler {} is not matched to any slot\n'
+                          .format(surface.encode('utf-8')))
     return mappings
 
 def is_parameter(value):
