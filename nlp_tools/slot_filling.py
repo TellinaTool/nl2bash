@@ -22,9 +22,15 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
     """
     def strip(pattern):
         while pattern[0] in ['"', '\'', '*', '\\']:
-            pattern = pattern[1:]
-        while pattern[-1] in ['"', '\'', '\\', '/', '$']:
-            pattern = pattern[:-1]
+            if len(pattern) > 1:
+                pattern = pattern[1:]
+            else:
+                break
+        while pattern[-1] in ['"', '\'', '\\', '/', '$', '*']:
+            if len(pattern) > 1:
+                pattern = pattern[:-1]
+            else:
+                break
         return pattern
 
     def strip_sign(pattern):
@@ -33,10 +39,13 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
         return pattern
 
     if slot_type in constants._PATTERNS:
-        return strip(slot_value).lower() == strip(filler_value)
+        return strip(slot_value).lower() == strip(filler_value).lower()
     else:
-        if filler_value is None and slot_type == 'Permission':
-            return True
+        if filler_value is None:
+            if slot_type == 'Permission':
+                return True
+            else:
+                return False
         if slot_type.endswith('Number'):
             return strip_sign(slot_value) == extract_number(filler_value)
         if strip_sign(slot_value) == strip_sign(filler_value):
@@ -106,8 +115,7 @@ def get_slot_alignment(nl, cm):
     for i in xrange(len(cm_tokens_with_types)):
         if cm_tokens_with_types[i] in constants._ENTITIES:
             cm_slots[i] = (cm_tokens[i], cm_tokens_with_types[i])
-    print(nl_fillers)
-    print(cm_slots)
+    
     # Step 2: construct one-to-one mappings for the token ids from both sides
     mappings = collections.defaultdict()
     matched_slots = set()
@@ -119,19 +127,20 @@ def get_slot_alignment(nl, cm):
             if j in matched_slots:
                 continue
             slot_value, slot_type = cm_slots[j]
-            print(nl)
-            print(cm)
             if slot_filler_type_match(slot_type, filler_type) and \
               slot_filler_value_match(slot_value, filler_value, slot_type):
-                print(slot_value, slot_type, filler_value, filler_type)
+                # print(slot_value, slot_type, filler_value, filler_type)
                 mappings[i] = j
                 matched_slots.add(j)
                 matched = True
             if matched:
                 break
         if not matched:
-            print('\nnl: {}\ncm: {}\nfiller {} is not matched to '
-                             'any slot\n'.format(nl, cm, surface))
+            print('nl: {}'.format(nl))
+            print('cm: {}'.format(cm))
+            print(nl_fillers)
+            print(cm_slots)
+            print('filler {} is not matched to any slot\n'.format(surface.encode('utf-8')))
     return mappings
 
 # --- Slot filler extractors --- #
