@@ -30,6 +30,7 @@ category_conversion = {
     _NUMBER: 'Number',
 }
 
+_QUOTED_RE = r'"[^"]*"'
 _SPECIAL_SYMBOL_RE = r'[^ ]*[\.\*|\\|\/|\~|\@|\%|\#|\?|\+|\$|\{|\}]+[^ ]*'
 _FILE_EXTENSION_RE = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|' \
         r'rar|rpm|gz|bin|dmg|iso|vcd|vcr|dvd|csv|dat|db|log|mdb|sav|sql|' \
@@ -262,6 +263,13 @@ def add_quotations(s):
 
 def with_quotation(s):
     return s[0] in ['"', '\''] and s[-1] in ['"', '\'']
+
+def remove_quotation(s):
+    if s[0] in ['"', '\'']:
+        s = s[1:]
+    if s[-1] in ['"', '\'']:
+        s = s[:-1]
+    return s
 
 def is_float(s):
     return '.' in s

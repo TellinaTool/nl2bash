@@ -21,6 +21,10 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
        :param slot_type: category of the slot in the command
     """
     def strip(pattern):
+        # special_start_1c_re = re.compile(r'^[\"\'\*\\\/\.-]]')
+        # special_start_2c_re = re.compile(r'^\{\}')
+        # special_end_1c_re = re.compile(r'[\"\'\\\/\$\*\.-]$')
+        # special_end_2c_re = re.compile(r'(\\n|\{\})$')
         while len(pattern) > 1 and \
                 pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-']:
             pattern = pattern[1:]
@@ -28,11 +32,17 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
                 pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-']:
             pattern = pattern[:-1]
         special_start_re = re.compile(r'^\{\}')
+        special_end_re = re.compile(r'(\\n|\{\})$')
         while len(pattern) > 2 and re.search(special_start_re, pattern):
             pattern = pattern[2:]
-        special_end_re = re.compile(r'(\\n$|\{\}$)')
         while len(pattern) > 2 and re.search(special_end_re, pattern):
             pattern = pattern[:-2]
+        while len(pattern) > 1 and \
+                pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-']:
+            pattern = pattern[1:]
+        while len(pattern) > 1 and \
+                pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-']:
+            pattern = pattern[:-1]
         return pattern
 
     def strip_sign(pattern):
@@ -132,11 +142,11 @@ def get_slot_alignment(nl, cm):
             if j in matched_slots:
                 continue
             slot_value, slot_type = cm_slots[j]
-            if slot_filler_type_match(slot_type, filler_type):
+            if is_parameter(filler_value) or \
+                    slot_filler_type_match(slot_type, filler_type):
                 type_matched_slot = j
                 num_type_matched += 1
                 if slot_filler_value_match(slot_value, filler_value, slot_type):
-                    # print(slot_value, slot_type, filler_value, filler_type)
                     mappings[i] = j
                     matched_slots.add(j)
                     matched = True
@@ -155,6 +165,9 @@ def get_slot_alignment(nl, cm):
                       .format(surface.encode('utf-8')))
     return mappings
 
+def is_parameter(value):
+    return constants.remove_quotation(value).startswith('$')
+
 # --- Slot filler extractors --- #
 
 def extract_value(arg_type, value):
@@ -164,10 +177,7 @@ def extract_value(arg_type, value):
 
     # remove quotations if there is any
     if constants.with_quotation(value):
-        if value[0] in ['"', '\'']:
-            value = value[1:]
-        if value[-1] in ['"', '\'']:
-            value = value[:-1]
+        value = constants.remove_quotation(value)
 
     if arg_type in ['Directory']:
         value = value
