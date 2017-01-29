@@ -21,16 +21,18 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
        :param slot_type: category of the slot in the command
     """
     def strip(pattern):
-        while pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-']:
-            if len(pattern) > 1:
-                pattern = pattern[1:]
-            else:
-                break
-        while pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-']:
-            if len(pattern) > 1:
-                pattern = pattern[:-1]
-            else:
-                break
+        while len(pattern) > 1 and \
+                pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-']:
+            pattern = pattern[1:]
+        while len(pattern) > 1 and \
+                pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-']:
+            pattern = pattern[:-1]
+        special_start_re = re.compile(r'^\{\}')
+        while len(pattern) > 2 and re.search(special_start_re, pattern):
+            pattern = pattern[2:]
+        special_end_re = re.compile(r'(\\n$|\{\}$)')
+        while len(pattern) > 2 and re.search(special_end_re, pattern):
+            pattern = pattern[:-2]
         return pattern
 
     def strip_sign(pattern):
