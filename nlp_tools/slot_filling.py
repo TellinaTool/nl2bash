@@ -50,9 +50,14 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
             pattern = pattern[1:]
         return pattern
 
-    if slot_type in constants._PATTERNS or is_parameter(filler_value):
-        print(strip(slot_value), strip(filler_value))
-        return strip(slot_value).lower() == strip(filler_value).lower()
+    if slot_type in constants._PATTERNS:
+        if slot_value.lower() == filler_value:
+            return True
+        if is_parameter(filler_value):
+            return strip(strip_sign(slot_value)).lower() == \
+                   strip(filler_value).lower()
+        else:
+            return strip(slot_value).lower() == strip(filler_value).lower()
     else:
         if filler_value is None:
             if slot_type == 'Permission':
