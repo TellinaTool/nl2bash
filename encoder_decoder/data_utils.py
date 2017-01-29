@@ -608,8 +608,8 @@ def prepare_data(FLAGS):
 
 def prepare_slot_filling_data(FLAGS):
     data_dir = FLAGS.data_dir
-    nl_vocab_size = FLAGS.nl_vocab_size
-    cm_vocab_size = FLAGS.cm_vocab_size
+    nl_vocab_size = FLAGS.sc_vocab_size
+    cm_vocab_size = FLAGS.tg_vocab_size
     nl_path = os.path.join(data_dir, 'train.{}.nl'.format(nl_vocab_size))
     cm_path = os.path.join(data_dir, 'train.{}.cm'.format(cm_vocab_size))
     nl_list = [nl.strip() for nl in open(nl_path, 'r').readlines()]
@@ -622,7 +622,7 @@ def prepare_slot_filling_data(FLAGS):
             mappings = slot_filling.get_slot_alignment(nl, cm)
             if mappings:
                 for i in sorted(mappings.keys()):
-                    o_f.write('{}-{} '.format())
+                    o_f.write('{}-{} '.format(i, mappings[i]))
                 o_f.write('\n')
 
 # --- Load Datasets -- #

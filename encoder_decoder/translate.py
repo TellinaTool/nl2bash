@@ -42,7 +42,7 @@ else:
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
 
-_buckets = data_utils.get_bucket(FLAGS)
+_buckets = data_utils.get_buckets(FLAGS)
 
 
 def create_model(session, forward_only, construct_model_dir=True, buckets=None):
