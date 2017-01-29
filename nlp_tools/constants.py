@@ -16,7 +16,7 @@ _QUANTITIES = ['Number', '+Number', '-Number',
                'Timespan', '+Timespan', '-Timespan',
                'DateTime', '+DateTime', '-DateTime',
                'Permission', '+Permission', '-Permission']
-_ENTITIES = _PATTERNS + _QUANTITIES
+_ENTITIES = _PATTERNS + _QUANTITIES + ['Type', 'Unknown']
 
 category_conversion = {
     _FILE: 'File',
