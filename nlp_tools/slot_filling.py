@@ -37,6 +37,8 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
             return strip(slot_value) == extract_number(filler_value)
         return strip(slot_value) == strip(filler_value)
     else:
+        if filler_value is None and slot_type == 'Permission':
+            return True
         return strip_sign(slot_value) == strip_sign(filler_value)
 
 def slot_filler_type_match(slot_type, filler_type):
