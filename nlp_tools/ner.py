@@ -151,7 +151,8 @@ def annotate_ner(pattern, category, sentence, entities):
             # "May" the month and "may" the modal verb
             if surface == 'may':
                 continue
-        if category in constants._PATTERNS:
+        if category in [constants._FILE, constants._REGEX,
+                        constants._DIRECTORY, constants._PATH]:
             if surface in ['i.e', 'i.e.', 'e.g', 'e.g.',
                            's.a', 's.a.', 's.t', 's.t.']:
                 continue
@@ -172,6 +173,9 @@ def normalize_number_in_token(token):
 
 def is_english_word(word):
     """Check if a token is a normal English word."""
+    if word in ['i.e', 'i.e.', 'e.g', 'e.g.',
+                's.a', 's.a.', 's.t', 's.t.']:
+        return True
     if any(x.isalpha() for x in word):
         if word[-1].isdigit():
             return False
