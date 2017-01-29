@@ -74,6 +74,7 @@ def clean_sentence(sentence):
     sentence = re.sub('\$\{HOME\}', '\$HOME', sentence)
     sentence = re.sub('"?normal\/regular"?', 'regular', sentence)
     sentence = re.sub('"?regular\/normal"?', 'regular', sentence)
+    sentence = re.sub('"?normal/regualar"?', 'regular', sentence)
     sentence = re.sub(
         '"?files\/directories"?', 'files and directories', sentence)
     sentence = re.sub('"?name\/path"?', 'name or path', sentence)
