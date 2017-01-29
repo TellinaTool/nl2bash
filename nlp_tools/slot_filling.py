@@ -131,7 +131,7 @@ def get_slot_alignment(nl, cm):
                 break
         if not matched:
             print('\nnl: {}\ncm: {}\nfiller {} is not matched to '
-                             'any slot'.format(nl, cm, surface))
+                             'any slot\n'.format(nl, cm, surface))
     return mappings
 
 # --- Slot filler extractors --- #
