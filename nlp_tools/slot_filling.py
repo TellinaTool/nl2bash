@@ -54,6 +54,7 @@ def slot_filler_type_match(slot_type, filler_type):
         '_NUMBER:::Number',
         '_NUMBER:::+Number',
         '_NUMBER:::-Number',
+        '_NUMBER:::Regex',
         '_SIZE:::Size',
         '_SIZE:::+Size',
         '_SIZE:::-Size',
@@ -399,6 +400,7 @@ def heuristic_slot_filling(node, entities):
             elif node.arg_type == 'Number':
                 if arguments['Timespan']:
                     fill_argument(filler_type='Timespan', slot_type='Number')
+                    return
             elif node.arg_type == 'Path':
                 if arguments['Directory']:
                     fill_argument(filler_type='Directory', slot_type='Path')
@@ -419,6 +421,9 @@ def heuristic_slot_filling(node, entities):
             elif node.arg_type == 'Regex':
                 if arguments['File']:
                     fill_argument(filler_type='File', slot_type='Regex')
+                    return
+                if arguments['Number']:
+                    fill_argument(filler_type='Number', slot_type='Regex')
                     return
         else:
             for child in node.children:
