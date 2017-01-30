@@ -8,6 +8,7 @@ import collections, copy, datetime, re
 import numpy as np
 
 from . import constants, tokenizer
+from .constants import strip
 from bashlex.data_tools import bash_tokenizer
 
 # --- Slot-Filler Alignment --- #
@@ -20,31 +21,8 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
        :param slot_value: slot value as shown in the bash command
        :param filler_value: slot filler value extracted from the natural language
        :param slot_type: category of the slot in the command
-    """
-    def strip(pattern):
-        # special_start_1c_re = re.compile(r'^[\"\'\*\\\/\.-]]')
-        # special_start_2c_re = re.compile(r'^\{\}')
-        # special_end_1c_re = re.compile(r'[\"\'\\\/\$\*\.-]$')
-        # special_end_2c_re = re.compile(r'(\\n|\{\})$')
-        while len(pattern) > 1 and \
-                pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-', '{', '}']:
-            pattern = pattern[1:]
-        while len(pattern) > 1 and \
-                pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-',
-                                '{', '}']:
-            pattern = pattern[:-1]
-        special_start_re = re.compile(r'^\{\}')
-        special_end_re = re.compile(r'(\\n|\{\})$')
-        while len(pattern) > 2 and re.search(special_end_re, pattern):
-            pattern = pattern[:-2]
-        while len(pattern) > 1 and \
-                pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-']:
-            pattern = pattern[1:]
-        while len(pattern) > 1 and \
-                pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-']:
-            pattern = pattern[:-1]
-        return pattern
 
+    """
     def strip_sign(pattern):
         if pattern[0] in ['-', '+']:
             pattern = pattern[1:]
@@ -265,18 +243,24 @@ def extract_filename(value):
     special_symbol_re = re.compile(constants._SPECIAL_SYMBOL_RE)
     file_extension_re = re.compile(constants._FILE_EXTENSION_RE)
     path_re = re.compile(constants._PATH_RE)
+
+    if re.search(re.compile(r'[^ ]*\.[^ ]+'), value):
+        # the pattern being matched represents a regular file
+        match = re.match(file_extension_re, strip(value))
+        if match:
+            return '"*.' + match.group(0) + '"'
     if re.match(quoted_span_re, value):
         return value
     if re.match(special_symbol_re, value):
         return value
+    # file extension plural
     match = re.search(file_extension_re, value)
     if match:
-        return '"*.' + match.group(0) + '"'
-    else:
-        match = re.search(path_re, value)
-        if match:
-            return match.group(0)
-        raise AttributeError('Unrecognized file name {}'.format(value))
+        return match.group(0)
+    match = re.search(path_re, value)
+    if match:
+        return match.group(0)
+    raise AttributeError('Unrecognized file name {}'.format(value))
 
 def extract_permission(value):
     """Extract permission patterns."""
