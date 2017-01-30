@@ -209,7 +209,7 @@ def get_slot_alignment(nl, cm):
     print()
     for i in remained_fillers:
         print('filler {} is not matched to any slot\n'
-                .format(surface.encode('utf-8')))
+                .format(nl_fillers[i][0].encode('utf-8')))
 
 def is_parameter(value):
     return constants.remove_quotation(value).startswith('$')
