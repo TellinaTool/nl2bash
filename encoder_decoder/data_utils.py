@@ -617,13 +617,14 @@ def prepare_slot_filling_data(FLAGS):
 
     assert(len(nl_list) == len(cm_list))
 
-    with open('train.{}.mappings'.format(nl_vocab_size), 'w') as o_f:
+    with open(os.path.join(
+      data_dir, 'train.{}.mappings'.format(nl_vocab_size)), 'w') as o_f:
         for nl, cm in zip(nl_list, cm_list):
             mappings = slot_filling.get_slot_alignment(nl, cm)
             if mappings:
-                for i in sorted(mappings.keys()):
-                    o_f.write('{}-{} '.format(i, mappings[i]))
-                o_f.write('\n')
+                for i, j in sorted(mappings, key=lambda x:x[0]):
+                    o_f.write('{}-{} '.format(i, j))
+            o_f.write('\n')
 
 # --- Load Datasets -- #
 
