@@ -64,6 +64,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
         else:
             if strip(slot_value).lower() == strip(filler_value).lower():
                 return 1
+        return -np.inf
     else:
         if filler_value is None:
             if slot_type == 'Permission':
@@ -77,7 +78,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
             if slot_type.endswith('Timespan') or slot_type.endswith('Size'):
                 if extract_number(slot_value) == extract_number(filler_value):
                     return 1
-    return 0
+        return 0
 
 def slot_filler_type_match(slot_type, filler_type):
     """Check if the category of a slot in the command matches that of the slot
