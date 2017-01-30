@@ -139,7 +139,7 @@ def stable_marriage_alignment(M):
     preferred_list_by_row = {}
     for i in M:
         preferred_list_by_row[i] = sorted(
-            [(i, M[i][j]) for j in M[i] if M[i][j] > -np.inf],
+            [(j, M[i][j]) for j in M[i] if M[i][j] > -np.inf],
             lambda x:x[1], reverse=True)
 
     remained_rows = M.keys()
