@@ -68,6 +68,8 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
         if filler_value is None:
             if slot_type == 'Permission':
                 return 1
+            else:
+                return 0
         if slot_type.endswith('Number'):
             if strip_sign(slot_value) == extract_number(filler_value):
                 return 1
@@ -140,7 +142,7 @@ def stable_marriage_alignment(M):
     for i in M:
         preferred_list_by_row[i] = sorted(
             [(j, M[i][j]) for j in M[i] if M[i][j] > -np.inf],
-            lambda x:x[1], reverse=True)
+            key=lambda x:x[1], reverse=True)
 
     remained_rows = M.keys()
     matched_cols = {}
@@ -185,7 +187,7 @@ def get_slot_alignment(nl, cm):
             cm_slots[i] = (cm_tokens[i], cm_tokens_with_types[i])
     
     # Step 2: construct one-to-one mappings for the token ids from both sides
-    M = {}                                          # alignment score matrix
+    M = collections.defaultdict(dict)                   # alignment score matrix
     for i in nl_fillers:
         surface, filler_type = nl_fillers[i]
         filler_value = extract_value(filler_type, surface)
@@ -203,10 +205,11 @@ def get_slot_alignment(nl, cm):
     print('cm: {}'.format(cm))
     print(nl_fillers)
     print(cm_slots)
-    print()
+    print
     for (i, j) in mappings:
-        print('{} <-> {}'.format(nl_fillers[i][0], cm_slots[j][0]))
-    print()
+        print(i, j)
+        print('{} <-> {}'.format(nl_fillers[i][0].decode('utf-8'), cm_slots[j][0].decode('utf-8')))
+    print
     for i in remained_fillers:
         print('filler {} is not matched to any slot\n'
                 .format(surface.encode('utf-8')))

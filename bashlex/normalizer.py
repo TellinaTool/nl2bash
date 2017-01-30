@@ -301,7 +301,6 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 if not rsb:
                     print("Warning: unary logic operator without a right "
                           "sibling.")
-                    print(node.parent)
                     return
                 if rsb.value == "(":
                     unprocessed_unary_logic_ops.append(node)
