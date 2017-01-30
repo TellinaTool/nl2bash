@@ -8,7 +8,7 @@ import collections, copy, datetime, re
 import numpy as np
 
 from . import constants, tokenizer
-from bashlex.data_tools import bash_tokenizer
+from bashlex.data_tools import bash_tokenizer, pretty_print
 
 # --- Slot-Filler Alignment --- #
 
@@ -208,11 +208,13 @@ def get_slot_alignment(nl, cm):
     print
     for (i, j) in mappings:
         print(i, j)
-        print('{} <-> {}'.format(nl_fillers[i][0].decode('utf-8'), cm_slots[j][0].decode('utf-8')))
+        # print('{} <-> {}'.format(nl_fillers[i][0].decode('utf-8'), cm_slots[j][0].decode('utf-8')))
     print
     for i in remained_fillers:
         print('filler {} is not matched to any slot\n'
                 .format(nl_fillers[i][0].encode('utf-8')))
+    
+    return mappings    
 
 def is_parameter(value):
     return constants.remove_quotation(value).startswith('$')
@@ -454,14 +456,9 @@ def heuristic_slot_filling(node, entities):
     if ner_by_category is None:
         # no constants detected in the natural language query
         return True
-
+    
     def slot_filling_fun(node, arguments):
-        arguments = collections.defaultdict(list)
-        for filler_type in constants.category_conversion:
-            slot_type = constants.category_conversion[filler_type]
-            arguments[slot_type] = \
-                copy.deepcopy(constants.category_conversion[filler_type])
-
+        
         def fill_argument(filler_type, slot_type=None):
             if slot_type is None:
                 slot_type = filler_type
@@ -482,7 +479,7 @@ def heuristic_slot_filling(node, entities):
                     else:
                         node.value = value
             arguments[filler_type].pop(0)
-
+        
         if node.is_argument():
             if node.arg_type != 'Regex' and arguments[node.arg_type]:
                 fill_argument(node.arg_type)
@@ -517,11 +514,18 @@ def heuristic_slot_filling(node, entities):
         else:
             for child in node.children:
                 slot_filling_fun(child, arguments)
-
-    slot_filling_fun(node, ner_by_category)
+     
+    arguments = collections.defaultdict(list)
+    for filler_type in constants.category_conversion:
+        slot_type = constants.category_conversion[filler_type]
+        arguments[slot_type] = \
+            copy.deepcopy(ner_by_category[filler_type])
+    
+    slot_filling_fun(node, arguments)
 
     # The template should fit in all arguments
-    for key in ner_by_category:
-        if ner_by_category[key]:
+    for key in arguments:
+        if arguments[key]:
             return False
+    
     return True
