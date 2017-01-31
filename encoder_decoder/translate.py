@@ -122,8 +122,7 @@ def train_slot_filling_classifier():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         model, _ = graph_utils.create_model(sess, FLAGS,
-            BinaryLogisticRegressionModel, buckets=None, forward_only=False,
-            construct_model_dir=False)
+            BinaryLogisticRegressionModel, buckets=None, forward_only=False)
         with open(os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
                                .format(FLAGS.sc_vocab_size))) as f:
             train_X, train_Y = pickle.load(f)
