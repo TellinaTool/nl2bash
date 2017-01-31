@@ -9,7 +9,7 @@ import numpy as np
 
 from . import constants, tokenizer
 from .constants import strip
-from bashlex.data_tools import bash_tokenizer
+from bashlex.data_tools import bash_tokenizer, pretty_print
 
 # --- Slot-Filler Alignment --- #
 
@@ -28,7 +28,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
             pattern = pattern[1:]
         return pattern
 
-    if slot_type in constants._PATTERNS:
+    if slot_type in constants._PATTERNS or (filler_value and is_parameter(filler_value)):
         if slot_value.lower() == filler_value:
             return 1
         if constants.remove_quotation(slot_value).lower() == \
@@ -46,6 +46,8 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
         if filler_value is None:
             if slot_type == 'Permission':
                 return 1
+            else:
+                return 0
         if slot_type.endswith('Number'):
             if strip_sign(slot_value) == extract_number(filler_value):
                 return 1
@@ -118,7 +120,7 @@ def stable_marriage_alignment(M):
     for i in M:
         preferred_list_by_row[i] = sorted(
             [(j, M[i][j]) for j in M[i] if M[i][j] > -np.inf],
-            lambda x:x[1], reverse=True)
+            key=lambda x:x[1], reverse=True)
 
     remained_rows = M.keys()
     matched_cols = {}
@@ -163,7 +165,7 @@ def get_slot_alignment(nl, cm):
             cm_slots[i] = (cm_tokens[i], cm_tokens_with_types[i])
     
     # Step 2: construct one-to-one mappings for the token ids from both sides
-    M = {}                                          # alignment score matrix
+    M = collections.defaultdict(dict)                   # alignment score matrix
     for i in nl_fillers:
         surface, filler_type = nl_fillers[i]
         filler_value = extract_value(filler_type, surface)
@@ -181,13 +183,16 @@ def get_slot_alignment(nl, cm):
     print('cm: {}'.format(cm))
     print(nl_fillers)
     print(cm_slots)
-    print()
+    print
     for (i, j) in mappings:
-        print('{} <-> {}'.format(nl_fillers[i][0], cm_slots[j][0]))
-    print()
+        print(i, j)
+        # print('{} <-> {}'.format(nl_fillers[i][0].decode('utf-8'), cm_slots[j][0].decode('utf-8')))
+    print
     for i in remained_fillers:
         print('filler {} is not matched to any slot\n'
                 .format(nl_fillers[i][0].encode('utf-8')))
+    
+    return mappings    
 
 def is_parameter(value):
     return constants.remove_quotation(value).startswith('$')
@@ -435,14 +440,9 @@ def heuristic_slot_filling(node, entities):
     if ner_by_category is None:
         # no constants detected in the natural language query
         return True
-
+    
     def slot_filling_fun(node, arguments):
-        arguments = collections.defaultdict(list)
-        for filler_type in constants.category_conversion:
-            slot_type = constants.category_conversion[filler_type]
-            arguments[slot_type] = \
-                copy.deepcopy(constants.category_conversion[filler_type])
-
+        
         def fill_argument(filler_type, slot_type=None):
             if slot_type is None:
                 slot_type = filler_type
@@ -463,7 +463,7 @@ def heuristic_slot_filling(node, entities):
                     else:
                         node.value = value
             arguments[filler_type].pop(0)
-
+        
         if node.is_argument():
             if node.arg_type != 'Regex' and arguments[node.arg_type]:
                 fill_argument(node.arg_type)
@@ -498,11 +498,18 @@ def heuristic_slot_filling(node, entities):
         else:
             for child in node.children:
                 slot_filling_fun(child, arguments)
-
-    slot_filling_fun(node, ner_by_category)
+     
+    arguments = collections.defaultdict(list)
+    for filler_type in constants.category_conversion:
+        slot_type = constants.category_conversion[filler_type]
+        arguments[slot_type] = \
+            copy.deepcopy(ner_by_category[filler_type])
+    
+    slot_filling_fun(node, arguments)
 
     # The template should fit in all arguments
-    for key in ner_by_category:
-        if ner_by_category[key]:
+    for key in arguments:
+        if arguments[key]:
             return False
+    
     return True
