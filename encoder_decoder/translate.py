@@ -71,16 +71,35 @@ def train_slot_filling_classifier(train_set, dev_set):
         # Create model.
         seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
             Seq2SeqModel, buckets=_buckets, forward_only=True)
+        X, Y = [], []
         for bucket_id in xrange(len(_buckets)):
-            formatted_example = seq2seq_model.get_bucket(train_set, bucket_id)
-            encoder_outputs, decoder_outputs = \
-                seq2seq_model.get_hidden_states(sess, formatted_example, bucket_id)
-            
-        model, _ = graph_utils.create_model(sess, FLAGS,
-            BinaryLogisticRegressionModel, buckets=None, forward_only=False,
-            construct_model_dir=False)
-        model.train(sess, X, Y)
-        model.eval(sess, X, Y)
+            for i in xrange(len(train_set[bucket_id])):
+                mappings = train_set[bucket_id][i][4]
+                if mappings:
+                    encoder_inputs = [train_set[bucket_id][i][2]]
+                    decoder_inputs = [train_set[bucket_id][i][3]]
+                    formatted_example = seq2seq_model.format_example(
+                        encoder_inputs, decoder_inputs, bucket_id=bucket_id)
+                    encoder_outputs, decoder_outputs = seq2seq_model\
+                        .get_hidden_states(sess, formatted_example, bucket_id)
+                    # add positive examples
+                    for f, s in mappings:
+                        # reverse the index of natural language token since the
+                        # encoder input is reversed
+                        f = _buckets[bucket_id][0] - f - 1
+                        print(encoder_inputs[f])
+                        print(decoder_inputs[s])
+                        X.append(encoder_inputs[f])
+                    # add negative examples
+
+
+
+
+        # model, _ = graph_utils.create_model(sess, FLAGS,
+        #     BinaryLogisticRegressionModel, buckets=None, forward_only=False,
+        #     construct_model_dir=False)
+        # model.train(sess, X, Y)
+        # model.eval(sess, X, Y)
 
 # --- Run/train encoder-decoder models --- #
 
