@@ -28,14 +28,14 @@ if __name__ == "__main__":
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
     import data_utils, graph_utils, decode_tools, hyperparam_range, parse_args
     from eval import eval_tools
-    from classifiers import BinaryLogisticRegressionModel
+    from classifiers import kNearestNeighborModel, BinaryLogisticRegressionModel
     from seq2seq.seq2seq_model import Seq2SeqModel
     from seq2tree.seq2tree_model import Seq2TreeModel
 else:
     from encoder_decoder import data_utils, graph_utils, decode_tools
     from encoder_decoder import hyperparam_range, parse_args
     from eval import eval_tools
-    from .classifiers import BinaryLogisticRegressionModel
+    from .classifiers import kNearestNeighborModel, BinaryLogisticRegressionModel
     from .seq2seq.seq2seq_model import Seq2SeqModel
     from .seq2tree.seq2tree_model import Seq2TreeModel
 
@@ -67,13 +67,14 @@ def create_model(session, forward_only, construct_model_dir=True, buckets=None):
 
 # --- Run/train slot-filling classifier --- #
 
-def nn_slot_filling():
+def nn_slot_filling_raw_prediction_test():
     """A nearest-neighbor slot-filling classifier."""
     with open(os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
                                .format(FLAGS.sc_vocab_size))) as f:
         train_X, train_Y = pickle.load(f)
         train_X = np.concatenate(train_X, axis=0)
-        train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y], axis=0)
+        train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
+                                 axis=0)
     with open(os.path.join(FLAGS.data_dir, 'dev.{}.mappings.X.Y'
                                .format(FLAGS.sc_vocab_size))) as f:
         dev_X, dev_Y = pickle.load(f)
@@ -84,22 +85,19 @@ def nn_slot_filling():
 
     # hyperparameters
     k = 1
-    
-    scores = np.matmul(dev_X, train_X.T)
-    nn = np.argpartition(scores, -k, axis=1)[:, -k:]
-    nn_weights = np.concatenate([np.expand_dims(scores[i][nn[i]], 0) for i in xrange(len(nn))], axis=0) 
-    sim_scores = np.sum(nn_weights * train_Y[:, 0][nn], axis=1) / np.sum(nn_weights, axis=1)
-    
+    model = kNearestNeighborModel(k, train_X, train_Y)
+    nn_prediction = model.predict(dev_X)
+
     # compute accuracy on the development set
     threshold = 0.5
     num_total = 0.0
     num_correct = 0.0
-    for i in xrange(len(sim_scores)):
-        if dev_Y[i][0] == 1 and sim_scores[i] >= threshold:
+    for i in xrange(len(nn_prediction)):
+        if dev_Y[i][0] == 1 and nn_prediction[i][0] >= threshold:
             num_correct += 1
-        if dev_Y[i][0] == 0 and sim_scores[i] < threshold:
+        if dev_Y[i][0] == 0 and nn_prediction[i][0] < threshold:
             num_correct += 1
-        print(sim_scores[i], dev_Y[i][0])
+        print(nn_prediction[i][0], dev_Y[i][0])
         num_total += 1
     print("Accuracy: ", num_correct / num_total)
 

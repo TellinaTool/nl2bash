@@ -18,8 +18,32 @@ if os.getcwd() == os.path.dirname(__file__):
 else:
     from encoder_decoder import graph_utils
 
-class BinaryLogisticRegressionModel(graph_utils.NNModel):
 
+class kNearestNeighborModel():
+    #TODO: change the numpy kNN model implementation to Tensorflow
+    def __init__(self, k, train_X, train_Y):
+        """
+        :member k: number of neighboring examples to use
+        :member train_X: [size, dim] features matrix of the training examples
+        :member train_Y: [size, label_dim] label matrix of the training examples
+        """
+        self.k = k
+        self.train_X = train_X
+        self.train_Y = train_Y
+
+    def predict(self, X):
+        sim_scores = np.matmul(X, self.train_X.T)
+        nn = np.argpartition(sim_scores, -self.k, axis=1)[:, -self.k:]
+        nn_weights = np.concatenate([np.expand_dims(sim_scores[i][nn[i]], 0)
+                                     for i in xrange(len(nn))], axis=0)
+        nn_prediction = np.sum(nn_weights * self.train_Y[nn], axis=1) \
+                     / np.sum(nn_weights, axis=1)
+        return nn_prediction
+
+
+class BinaryLogisticRegressionModel(graph_utils.NNModel):
+    # TODO: create separate graphs for the forward and backward passes of the
+    # logistic regression model
     def __init__ (self, hyperparams, buckets=None, forward_only=False):
         super(BinaryLogisticRegressionModel, self)\
             .__init__(hyperparams, buckets)
@@ -43,9 +67,8 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
         # Construct model
         h = tf.nn.sigmoid(tf.matmul(X, Wh))
         self.output_logits = tf.nn.softmax(tf.matmul(h, W) + b)
-        # self.cost = tf.reduce_mean(-tf.reduce_sum(Y*tf.log(self.output_logits),
-        #                                           reduction_indices=1))
-        self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.output_logits, Y))
+        self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+            self.output_logits, Y))
 
         # Optimizer
         opt = tf.train.AdamOptimizer(
