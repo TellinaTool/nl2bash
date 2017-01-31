@@ -71,7 +71,8 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
             batch_X.append(x)
             batch_Y.append(y)
 
-        return np.concatenate(batch_X, axis=0), np.concatenate(batch_Y, axis=0)
+        return np.concatenate(batch_X, axis=0), \
+               np.concatenate(np.expand_dims(batch_Y, axis=0), axis=0)
 
     def train(self, session, X, Y):
         session.run(tf.initialize_all_tables())
