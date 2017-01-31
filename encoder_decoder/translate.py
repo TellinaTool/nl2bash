@@ -67,7 +67,7 @@ def create_model(session, forward_only, construct_model_dir=True, buckets=None):
 
 # --- Run/train slot-filling classifier --- #
 
-def nn_slot_filling_raw_prediction_test():
+def nn_slot_filling_raw_prediction_eval():
     """A nearest-neighbor slot-filling classifier."""
     with open(os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
                                .format(FLAGS.sc_vocab_size))) as f:
@@ -84,7 +84,7 @@ def nn_slot_filling_raw_prediction_test():
     dev_X = dev_X / norm(dev_X, axis=1)[:, None]
 
     # hyperparameters
-    k = 1
+    k = 3
     model = kNearestNeighborModel(k, train_X, train_Y)
     nn_prediction = model.predict(dev_X)
 
@@ -498,7 +498,7 @@ def main(_):
         gen_slot_filling_training_data(train_set, dev_set, test_set)
     elif FLAGS.train_slot_filling:
         # train_slot_filling_classifier()
-        nn_slot_filling()
+        nn_slot_filling_raw_prediction_eval()
     elif FLAGS.process_data:
         process_data()
     elif FLAGS.data_stats:

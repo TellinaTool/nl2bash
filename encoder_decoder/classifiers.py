@@ -36,8 +36,7 @@ class kNearestNeighborModel():
         nn = np.argpartition(sim_scores, -self.k, axis=1)[:, -self.k:]
         nn_weights = np.concatenate([np.expand_dims(sim_scores[i][nn[i]], 0)
                                      for i in xrange(len(nn))], axis=0)
-        nn_prediction = np.sum(nn_weights * self.train_Y[nn], axis=1) \
-                     / np.sum(nn_weights, axis=1)
+        nn_prediction = np.sum(np.expand_dims(nn_weights, 2) * self.train_Y[nn], axis=1) 
         return nn_prediction
 
 
