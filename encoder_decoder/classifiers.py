@@ -26,7 +26,7 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
         self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]),
                                          trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
-            self.learning_rate * hyperparams["learning_rate_decay_factor"])
+        self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
         self.define_graph()
 
@@ -36,13 +36,16 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
         Y = tf.placeholder(tf.float32, [None, 2])
 
         # Model weights
-        W = tf.Variable(tf.zeros([2*self.dim, 2]))
+        Wh = tf.Variable(tf.zeros([2*self.dim, 2*self.dim]))
+        W = tf.Variable(tf.zeros([2*self.dim, 2]))    
         b = tf.Variable(tf.zeros([2]))
 
         # Construct model
-        self.output_logits = tf.nn.softmax(tf.matmul(X, W) + b)
-        self.cost = tf.reduce_mean(-tf.reduce_sum(Y*tf.log(self.output_logits),
-                                                  reduction_indices=1))
+        h = tf.nn.sigmoid(tf.matmul(X, Wh))
+        self.output_logits = tf.nn.softmax(tf.matmul(h, W) + b)
+        # self.cost = tf.reduce_mean(-tf.reduce_sum(Y*tf.log(self.output_logits),
+        #                                           reduction_indices=1))
+        self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.output_logits, Y))
 
         # Optimizer
         opt = tf.train.AdamOptimizer(
@@ -69,10 +72,10 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
         for _ in xrange(self.batch_size):
             x, y = random.choice(data)
             batch_X.append(x)
-            batch_Y.append(y)
+            batch_Y.append(np.expand_dims(y, axis=0))
 
         return np.concatenate(batch_X, axis=0), \
-               np.concatenate(np.expand_dims(batch_Y, axis=0), axis=0)
+               np.concatenate(batch_Y, axis=0)
 
     def train(self, session, X, Y):
         session.run(tf.initialize_all_tables())
@@ -91,16 +94,20 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
 
     def predict(self, session, X):
         # create dummy Y variable
-        Y = np.zeros([len(X)])
+        batch_X = np.concatenate(X, axis=0)
+        dummy_Y = np.zeros([[len(X), 2]])
         output = session.run([self.prediction], feed_dict={
-            self.X: X, self.Y: Y
+            self.X: batch_X, self.Y: dummy_Y
         })
         return output[0]
 
     def eval(self, session, X, Y):
+        batch_X = np.concatenate(X, axis=0)
+        batch_Y = np.concatenate([np.expand_dims(y, axis=0) for y in Y], axis=0)
+        print(batch_X.shape)
         correct_prediction = tf.equal(self.prediction, tf.argmax(self.Y, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         acc = session.run([accuracy], feed_dict={
-            self.X: X, self.Y: Y
+            self.X: batch_X, self.Y: batch_Y
         })
         print("Accuracy: {}".format(acc))
