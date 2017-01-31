@@ -47,6 +47,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
           use_attention: if set, use attention model.
         """
         super(EncoderDecoderModel, self).__init__(hyperparams, buckets)
+        self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]),
+                                         trainable=False)
+        self.learning_rate_decay_op = self.learning_rate.assign(
+            self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
         # variable sharing
         self.output_projection_vars = False
