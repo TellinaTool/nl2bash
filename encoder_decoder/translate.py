@@ -72,18 +72,36 @@ def nn_slot_filling():
     with open(os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
                                .format(FLAGS.sc_vocab_size))) as f:
         train_X, train_Y = pickle.load(f)
+        train_X = np.concatenate(train_X, axis=0)
+        train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y], axis=0)
     with open(os.path.join(FLAGS.data_dir, 'dev.{}.mappings.X.Y'
                                .format(FLAGS.sc_vocab_size))) as f:
         dev_X, dev_Y = pickle.load(f)
-
+        dev_X = np.concatenate(dev_X, axis=0)
     # normalizing the rows of the feature matrices
     train_X = train_X / norm(train_X, axis=1)[:, None]
     dev_X = dev_X / norm(dev_X, axis=1)[:, None]
 
-    sim_scores = dev_X * train_X.T
-
+    # hyperparameters
+    k = 1
+    
+    scores = np.matmul(dev_X, train_X.T)
+    nn = np.argpartition(scores, -k, axis=1)[:, -k:]
+    nn_weights = np.concatenate([np.expand_dims(scores[i][nn[i]], 0) for i in xrange(len(nn))], axis=0) 
+    sim_scores = np.sum(nn_weights * train_Y[:, 0][nn], axis=1) / np.sum(nn_weights, axis=1)
+    
+    # compute accuracy on the development set
+    threshold = 0.5
+    num_total = 0.0
+    num_correct = 0.0
     for i in xrange(len(sim_scores)):
-        print(sim_scores[i], dev_Y[i])
+        if dev_Y[i][0] == 1 and sim_scores[i] >= threshold:
+            num_correct += 1
+        if dev_Y[i][0] == 0 and sim_scores[i] < threshold:
+            num_correct += 1
+        print(sim_scores[i], dev_Y[i][0])
+        num_total += 1
+    print("Accuracy: ", num_correct / num_total)
 
 
 def gen_slot_filling_training_data(train_set, dev_set, test_set):
