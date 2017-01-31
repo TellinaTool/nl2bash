@@ -586,7 +586,7 @@ def prepare_data(FLAGS):
         prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
 
 
-def prepare_slot_filling_data(FLAGS):
+def slot_filling_mapping_induction(FLAGS):
     """Induce the filler-slot alignments on train/dev/test dataset."""
     data_dir = FLAGS.data_dir
     nl_vocab_size = FLAGS.sc_vocab_size

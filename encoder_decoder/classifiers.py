@@ -28,11 +28,11 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
     def define_graph(self):
         # Feeds for inputs
         X = tf.placeholder(tf.float32, [None, 2*self.dim])
-        Y = tf.placeholder(tf.float32, [None])
+        Y = tf.placeholder(tf.float32, [None, 2])
 
         # Model weights
-        W = tf.variable(tf.zeros([2*self.dim, 2]))
-        b = tf.variable(tf.zeros([2]))
+        W = tf.Variable(tf.zeros([2*self.dim, 2]))
+        b = tf.Variable(tf.zeros([2]))
 
         # Construct model
         self.output_logits = tf.nn.softmax(tf.matmul(X, W) + b)
