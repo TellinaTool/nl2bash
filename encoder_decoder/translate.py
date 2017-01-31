@@ -68,8 +68,7 @@ def train_slot_filling_classifier(train_set, dev_set):
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
-            Seq2SeqModel, buckets=_buckets, forward_only=True,
-            construct_model_dir=False)
+            Seq2SeqModel, buckets=_buckets, forward_only=True)
         for bucket_id in xrange(len(_buckets)):
             formatted_example = seq2seq_model.get_bucket(train_set, bucket_id)
             encoder_outputs, decoder_outputs = \
