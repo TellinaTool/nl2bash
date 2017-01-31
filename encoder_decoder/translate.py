@@ -263,9 +263,7 @@ def demo():
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         model, _ = create_model(sess, forward_only=True)
-
         sc_vocab, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
-
         decode_tools.demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS)
 
 
