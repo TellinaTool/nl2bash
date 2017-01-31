@@ -70,7 +70,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     if construct_model_dir:
         setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
     print("model_dir={}".format(FLAGS.model_dir))
-    print("model_sig={}".format(FLAGS.model_sig))
+    print("model_sig={}".format(model_sig))
 
     if forward_only:
         if FLAGS.demo:

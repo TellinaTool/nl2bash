@@ -24,8 +24,7 @@ from tensorflow.python.util import nest
 
 if __name__ == "__main__":
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-    import data_utils, graph_utils
-    from bashlex import decode_tools, hyperparam_range, parse_args
+    import data_utils, graph_utils, decode_tools, hyperparam_range, parse_args
     from eval import eval_tools
     from classifiers import BinaryLogisticRegressionModel
     from seq2seq.seq2seq_model import Seq2SeqModel
