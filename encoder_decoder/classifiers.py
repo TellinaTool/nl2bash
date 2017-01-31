@@ -100,4 +100,7 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
     def eval(self, session, X, Y):
         correct_prediction = tf.equal(self.prediction, tf.argmax(self.Y, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-        print("Accuracy:", accuracy.eval({self.X: X, self.Y: Y}))
+        acc = session.run([accuracy], feed_dict={
+            self.X: X, self.Y: Y
+        })
+        print("Accuracy: {}".format(acc))
