@@ -173,33 +173,36 @@ class RNNDecoder(decoder.Decoder):
                     # [self.batch_size*self.beam_size]
                     pt_symbols = beam_decoder.wrap_input(partial_target_symbols)
                     pt_weights = beam_decoder.wrap_input(partial_target_weights)
-                    in_beam = tf.equal(tf.reduce_sum(tf.mul(tf.cast(tf.equal(
-                                                                        partial_beam_symbols,
-                                                                        pt_symbols
-                                                                    ),
-                                                                    tf.int32),
-                                                            tf.cast(pt_weights,
-                                                                    tf.int32)
-                                                           ),
-                                                    1),
-                                       tf.cast(tf.reduce_sum(pt_weights, 1),
-                                               tf.int32)
-                    )
+                    in_beam = tf.equal(
+                        tf.reduce_sum(
+                            tf.mul(
+                                tf.cast(
+                                    tf.equal(partial_beam_symbols, pt_symbols),
+                                    tf.int32),
+                                tf.cast(pt_weights, tf.int32)), 1),
+                            tf.cast(tf.reduce_sum(pt_weights, 1), tf.int32))
                     # [self.batch_size]
-                    in_beam = tf.cast(tf.reduce_sum(tf.reshape(tf.cast(in_beam, tf.int32),
-                                                               [-1, self.beam_size]), 1),
-                                      tf.bool)
+                    in_beam = tf.cast(
+                        tf.reduce_sum(
+                            tf.reshape(
+                                tf.cast(in_beam, tf.int32),
+                                        [-1, self.beam_size]), 1), tf.bool)
                     in_beam = beam_decoder.wrap_input(in_beam)
-                    beam_symbols = tf.select(in_beam, partial_beam_symbols, pt_symbols)
-                    beam_symbols = tf.concat(1, [past_beam_symbols[:, :-(i+1)], tf.reshape(beam_symbols, [-1, i+1])])
-                    first_in_beam_mask = tf.equal(tf.range(full_size) % self.beam_size, 0)
+                    beam_symbols = tf.select(in_beam, partial_beam_symbols,
+                                             pt_symbols)
+                    beam_symbols = tf.concat(1, [past_beam_symbols[:, :-(i+1)],
+                                        tf.reshape(beam_symbols, [-1, i+1])])
+                    first_in_beam_mask = \
+                        tf.equal(tf.range(full_size) % self.beam_size, 0)
                     ground_truth_logprobs = tf.select(
                         first_in_beam_mask,
                         beam_decoder.wrap_input(ground_truth_logprobs),
                         tf.fill([full_size], -1e18)
                     )
-                    beam_logprobs = tf.select(in_beam, past_beam_logprobs, ground_truth_logprobs)
-                    cell_state = tf.select(in_beam, past_cell_state, beam_decoder.wrap_input(state))
+                    beam_logprobs = tf.select(in_beam, past_beam_logprobs,
+                                              ground_truth_logprobs)
+                    cell_state = tf.select(in_beam, past_cell_state,
+                                           beam_decoder.wrap_input(state))
                     beam_state = (
                                     past_cand_symbols,
                                     past_cand_logprobs,
@@ -240,8 +243,9 @@ class RNNDecoder(decoder.Decoder):
 
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
-                     encoder_attn_masks=None, attention_states=None, num_heads=1,
-                     beam_decoder=None, forward_only=False, reuse_variables=False):
+                     encoder_attn_masks=None, attention_states=None,
+                     num_heads=1, beam_decoder=None,
+                     forward_only=False, reuse_variables=False):
         """
         :return output_symbols: batch of discrete output sequences
         :return output_logits: batch of output sequence scores
@@ -249,7 +253,8 @@ class RNNDecoder(decoder.Decoder):
         :return state: batch final hidden states
         :return attn_masks: batch attention masks (if attention mechanism is used)
         """
-        if self.use_attention and not attention_states.get_shape()[1:2].is_fully_defined():
+        if self.use_attention and \
+                not attention_states.get_shape()[1:2].is_fully_defined():
             raise ValueError("Shape[1] and [2] of attention_states must be "
                              "known %s" % attention_states.get_shape())
 
@@ -265,7 +270,8 @@ class RNNDecoder(decoder.Decoder):
             if bs_decoding:
                 state = beam_decoder.wrap_state(state, self.output_projection)
             else:
-                past_output_symbols = tf.expand_dims(tf.cast(decoder_inputs[0], tf.int64), 1)
+                past_output_symbols = \
+                    tf.expand_dims(tf.cast(decoder_inputs[0], tf.int64), 1)
                 past_output_logits = tf.cast(decoder_inputs[0] * 0, tf.float32)
 
             if self.use_attention:
@@ -286,7 +292,8 @@ class RNNDecoder(decoder.Decoder):
                                                 reuse_variables)
 
             if bs_decoding:
-                decoder_cell = beam_decoder.wrap_cell(decoder_cell, self.output_projection)
+                decoder_cell = beam_decoder.wrap_cell(decoder_cell,
+                                                      self.output_projection)
 
             for i, input in enumerate(decoder_inputs):
                 if bs_decoding:

@@ -70,26 +70,6 @@ def clean_dir(dir):
             print(e)
 
 
-def get_buckets(FLAGS):
-    # We use a number of buckets and pad to the closest one for efficiency.
-    if FLAGS.dataset.startswith("bash"):
-        if FLAGS.decoder_topology in ['basic_tree']:
-            buckets = [(30, 72)] if not FLAGS.explanation else [(72, 30)]
-        elif FLAGS.decoder_topology in ['rnn']:
-            buckets = [(30, 40)] if not FLAGS.explanation else [(40, 30)]
-    elif FLAGS.dataset == "dummy":
-        buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explanation else \
-            [(95, 20), (95, 30), (95, 45)]
-    elif FLAGS.dataset == "jobs":
-        buckets = [(20, 45)] if not FLAGS.explanation else [(45, 20)]
-    elif FLAGS.dataset == "geo":
-        buckets = [(20, 70)] if not FLAGS.explanation else [(70, 20)]
-    elif FLAGS.dataset == "atis":
-        buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explanation else \
-            [(95, 20), (95, 30), (95, 40)]
-    return buckets
-
-
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                       tokenizer=None, base_tokenizer=None, min_word_frequency=2):
     """Create vocabulary file (if it does not exist yet) from data file.
@@ -607,23 +587,28 @@ def prepare_data(FLAGS):
 
 
 def prepare_slot_filling_data(FLAGS):
+    """Induce the filler-slot alignments on train/dev/test dataset."""
     data_dir = FLAGS.data_dir
     nl_vocab_size = FLAGS.sc_vocab_size
     cm_vocab_size = FLAGS.tg_vocab_size
-    nl_path = os.path.join(data_dir, 'train.{}.nl'.format(nl_vocab_size))
-    cm_path = os.path.join(data_dir, 'train.{}.cm'.format(cm_vocab_size))
-    nl_list = [nl.strip() for nl in open(nl_path, 'r').readlines()]
-    cm_list = [cm.strip() for cm in open(cm_path, 'r').readlines()]
 
-    assert(len(nl_list) == len(cm_list))
+    for dataset in ['train', 'dev', 'test']:
+        nl_path = os.path.join(data_dir, '{}.{}.nl'
+                               .format(dataset, nl_vocab_size))
+        cm_path = os.path.join(data_dir, '{}.{}.cm'
+                               .format(dataset, cm_vocab_size))
+        nl_list = [nl.strip() for nl in open(nl_path, 'r').readlines()]
+        cm_list = [cm.strip() for cm in open(cm_path, 'r').readlines()]
 
-    with open('train.{}.mappings'.format(nl_vocab_size), 'w') as o_f:
-        for nl, cm in zip(nl_list, cm_list):
-            mappings = slot_filling.get_slot_alignment(nl, cm)
-            if mappings:
-                for i in sorted(mappings.keys()):
-                    o_f.write('{}-{} '.format(i, mappings[i]))
-                o_f.write('\n')
+        assert(len(nl_list) == len(cm_list))
+
+        with open('{}.{}.mappings'.format(dataset, nl_vocab_size), 'w') as o_f:
+            for nl, cm in zip(nl_list, cm_list):
+                mappings = slot_filling.get_slot_alignment(nl, cm)
+                if mappings:
+                    for i in sorted(mappings.keys()):
+                        o_f.write('{}-{} '.format(i, mappings[i]))
+                    o_f.write('\n')
 
 # --- Load Datasets -- #
 
@@ -729,7 +714,7 @@ def load_vocab(FLAGS):
         return nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab
 
 
-def load_data(FLAGS, buckets=None):
+def load_data(FLAGS, buckets=None, load_mappings=False):
     print("Loading data from %s" % FLAGS.data_dir)
 
     data_dir = FLAGS.data_dir
@@ -780,33 +765,40 @@ def load_data(FLAGS, buckets=None):
 
     if FLAGS.explanation:
         train_set = read_data(cm_txt_train, nl_txt_train, cm_train, nl_train,
-                          buckets, FLAGS.max_train_data_size,
-                          append_head_token=append_head_token,
-                          append_end_token=append_end_token)
+                            buckets, FLAGS.max_train_data_size,
+                            append_head_token=append_head_token,
+                            append_end_token=append_end_token,
+                            load_mappings=load_mappings)
         dev_set = read_data(cm_txt_dev, nl_txt_dev, cm_dev, nl_dev, buckets,
-                        append_head_token=append_head_token,
-                        append_end_token=append_end_token)
+                            append_head_token=append_head_token,
+                            append_end_token=append_end_token,
+                            load_mappings=load_mappings)
         test_set = read_data(cm_txt_test, nl_txt_test, cm_test, nl_test, buckets,
-                         append_head_token=append_head_token,
-                         append_end_token=append_end_token)
+                            append_head_token=append_head_token,
+                            append_end_token=append_end_token,
+                            load_mappings=load_mappings)
     else:
         train_set = read_data(nl_txt_train, cm_txt_train, nl_train, cm_train,
-                          buckets, FLAGS.max_train_data_size,
-                          append_head_token=append_head_token,
-                          append_end_token=append_end_token)
+                            buckets, FLAGS.max_train_data_size,
+                            append_head_token=append_head_token,
+                            append_end_token=append_end_token,
+                            load_mappings=load_mappings)
         dev_set = read_data(nl_txt_dev, cm_txt_dev, nl_dev, cm_dev, buckets,
-                        append_head_token=append_head_token,
-                        append_end_token=append_end_token)
+                            append_head_token=append_head_token,
+                            append_end_token=append_end_token,
+                            load_mappings=load_mappings)
         test_set = read_data(nl_txt_test, cm_txt_test, nl_test, cm_test, buckets,
-                         append_head_token=append_head_token,
-                         append_end_token=append_end_token)
+                            append_head_token=append_head_token,
+                            append_end_token=append_end_token,
+                            load_mappings=load_mappings)
     
     return train_set, dev_set, test_set
 
 
 def read_data(sc_path, tg_path, sc_id_path, tg_id_path,
               buckets=None, max_num_examples=None,
-              append_head_token=False, append_end_token=False):
+              append_head_token=False, append_end_token=False,
+              load_mappings=False):
     """Read preprocessed data from source and target files and put into buckets.
     :param sc_path: path to the file containing the original source
     strings.
@@ -817,45 +809,60 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path,
     :param buckets: bucket sizes for training.
     :param max_num_examples: maximum number of lines to read. Read complete
            data files if this entry is 0 or None.
+    :param load_mappings: load the slot-filler mappings
     """
     if buckets:
         data_set = [[] for _ in buckets]
     else:
         data_set = []
 
-    with tf.gfile.GFile(sc_path, mode="r") as sc_file:
-        with tf.gfile.GFile(tg_path, mode="r") as tg_file:
-            with tf.gfile.GFile(sc_id_path, mode="r") as sc_id_file:
-                with tf.gfile.GFile(tg_id_path, mode="r") as tg_id_file:
-                    sc_txt, tg_txt = sc_file.readline(), tg_file.readline()
-                    sc, tg = sc_id_file.readline(), tg_id_file.readline()
-                    counter = 0
-                    while sc:
-                        assert(tg)
-                        if max_num_examples and counter < max_num_examples:
-                            break
-                        counter += 1
-                        if counter % 1000 == 0:
-                            print("  reading data line %d" % counter)
-                            sys.stdout.flush()
-                        sc_ids = [int(x) for x in sc.split()]
-                        tg_ids = [int(x) for x in tg.split()]
-                        if append_head_token:
-                            tg_ids.insert(0, ROOT_ID)
-                        if append_end_token:
-                            tg_ids.append(EOS_ID)
-                        if buckets:
-                            for bucket_id, (sc_size, tg_size) in enumerate(buckets):
-                                if len(sc_ids) < sc_size and len(tg_ids) < tg_size:
-                                    data_set[bucket_id].append(
-                                        [sc_txt, tg_txt, sc_ids, tg_ids])
-                                    break
-                        else:
-                            data_set.append([sc_txt, tg_txt, sc_ids, tg_ids])
+    sc_file = tf.gfile.GFile(sc_path, mode="r")
+    tg_file = tf.gfile.GFile(tg_path, mode="r")
+    sc_id_file = tf.gfile.GFile(sc_id_path, mode="r")
+    tg_id_file = tf.gfile.GFile(tg_id_path, mode="r")
 
-                        sc_txt, tg_txt = \
-                            sc_file.readline(), tg_file.readline()
-                        sc, tg = sc_id_file.readline(), tg_id_file.readline()
+    counter = 0
+    while True:
+        sc_txt, tg_txt = sc_file.readline(), tg_file.readline()
+        sc, tg = sc_id_file.readline(), tg_id_file.readline()
+        if load_mappings:
+            mapping_path = '.'.join(sc_path.rsplit('.')[:-1]) + '.mappings'
+            mapping_file = tf.gfile.GFile(mapping_path, mode="r")
+            mapping = mapping_file.readline()
+
+        if not sc or not tg:
+            break
+        if max_num_examples and counter < max_num_examples:
+            break
+
+        counter += 1
+        if counter % 1000 == 0:
+            print("  reading data line %d" % counter)
+            sys.stdout.flush()
+
+        sc_ids = [int(x) for x in sc.split()]
+        tg_ids = [int(x) for x in tg.split()]
+        if append_head_token:
+            tg_ids.insert(0, ROOT_ID)
+        if append_end_token:
+            tg_ids.append(EOS_ID)
+        if load_mappings:
+            if mapping.strip():
+                mappings = []
+                for mp in mapping.strip().split():
+                    mappings.append([int(x) for x in mp.split('-')])
+            data_point = [sc_txt, tg_txt, sc_ids, tg_ids, mappings]
+        else:
+            data_point = [sc_txt, tg_txt, sc_ids, tg_ids]
+
+        if buckets:
+            for bucket_id, (sc_size, tg_size) in enumerate(buckets):
+                if len(sc_ids) < sc_size and len(tg_ids) < tg_size:
+                    data_set[bucket_id].append(data_point)
+                    break
+        else:
+            data_set.append(data_point)
+
     print("  %d data points read." % counter)
     return data_set
 
