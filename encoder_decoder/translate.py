@@ -87,19 +87,27 @@ def train_slot_filling_classifier(train_set, dev_set):
                         # reverse the index of natural language token since the
                         # encoder input is reversed
                         f = _buckets[bucket_id][0] - f - 1
-                        print(encoder_inputs[f])
-                        print(decoder_inputs[s])
-                        X.append(encoder_inputs[f])
-                    # add negative examples
-
-
-
-
-        # model, _ = graph_utils.create_model(sess, FLAGS,
-        #     BinaryLogisticRegressionModel, buckets=None, forward_only=False,
-        #     construct_model_dir=False)
-        # model.train(sess, X, Y)
-        # model.eval(sess, X, Y)
+                        assert(f <= len(encoder_outputs))
+                        assert(s <= len(decoder_outputs))
+                        X.append(np.concatenate(
+                            [encoder_outputs[f], decoder_outputs[s]], axis=1))
+                        Y.append(np.array([1, 0]))
+                        # add negative examples
+                        # sample unmatched filler-slot pairs as negative examples
+                        if len(mappings) > 1:
+                            for n_s in [ss for _, ss in mappings if ss != s]:
+                                X.append(np.concatenate(
+                                    [encoder_outputs[f], decoder_outputs[n_s]], axis=1))
+                                Y.append(np.array([0, 1]))
+                if i > 0 and i % 1000 == 0:
+                    print('{} training examples gathered for training slot filling...'
+                         .format(len(X)))
+        assert(len(X) == len(Y))
+        model, _ = graph_utils.create_model(sess, FLAGS,
+            BinaryLogisticRegressionModel, buckets=None, forward_only=False,
+            construct_model_dir=False)
+        model.train(sess, X, Y)
+        model.eval(sess, X, Y)
 
 # --- Run/train encoder-decoder models --- #
 
