@@ -66,8 +66,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("dataset", "bash", "select dataset to use.")
     tf.app.flags.DEFINE_integer("sc_vocab_size", 1000, "source vocabulary size.")
     tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size.")
-    tf.app.flags.DEFINE_integer("max_sc_length", 40, "maximum length of the source token sequence.")
-    tf.app.flags.DEFINE_integer("max_tg_length", 64, "maximum length of the target token sequence.")
+    tf.app.flags.DEFINE_integer("max_sc_length", 100, "maximum length of the source token sequence.")
+    tf.app.flags.DEFINE_integer("max_tg_length", 100, "maximum length of the target token sequence.")
     tf.app.flags.DEFINE_string("data_dir", os.path.join(os.path.dirname(__file__), "data"),
                                "Raw data directory")
     tf.app.flags.DEFINE_string("data_split", "command", "Data split criteria")

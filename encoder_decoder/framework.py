@@ -1,4 +1,5 @@
 """Sequence-to-tree model with an attention mechanism."""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -7,9 +8,7 @@ import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-import math
-import random
-
+import math, random
 import numpy as np
 
 import tensorflow as tf
@@ -47,13 +46,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
           beam_decoder: beam search decoder.
           use_attention: if set, use attention model.
         """
-        super(EncoderDecoderModel, self).__init__(hyperparams)
-        self.buckets = buckets
-
-        self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]),
-                                         trainable=False)
-        self.learning_rate_decay_op = self.learning_rate.assign(
-            self.learning_rate * hyperparams["learning_rate_decay_factor"])
+        super(EncoderDecoderModel, self).__init__(hyperparams, buckets)
 
         # variable sharing
         self.output_projection_vars = False
@@ -74,17 +67,18 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.debug_vars = []
 
         for i in xrange(self.max_source_length):
-            self.encoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
-                                                      name="encoder{0}".format(i)))
-            self.encoder_attn_masks.append(tf.placeholder(tf.float32, shape=[None],
-                                                          name="attn_mask{0}".format(i)))
+            self.encoder_inputs.append(
+                tf.placeholder(tf.int32, shape=[None], name="encoder{0}".format(i)))
+            self.encoder_attn_masks.append(
+                tf.placeholder(tf.float32, shape=[None], name="attn_mask{0}".format(i)))
         for i in xrange(self.max_target_length + 1):
-            self.decoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
-                                                      name="decoder{0}".format(i)))
-            self.target_weights.append(tf.placeholder(tf.float32, shape=[None],
-                                                      name="weight{0}".format(i)))
+            self.decoder_inputs.append(
+                tf.placeholder(tf.int32, shape=[None], name="decoder{0}".format(i)))
+            self.target_weights.append(
+                tf.placeholder(tf.float32, shape=[None], name="weight{0}".format(i)))
         # Our targets are decoder inputs shifted by one.
-        self.targets = [self.decoder_inputs[i + 1] for i in xrange(self.max_target_length)]
+        self.targets = [self.decoder_inputs[i + 1]
+                        for i in xrange(self.max_target_length)]
 
         if self.use_copy:
             self.original_encoder_inputs = []   # original encoder inputs.
@@ -94,13 +88,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.copy_masks = []                # copy masks.
                                                 # mark position in the inputs that are copyable.
             for i in xrange(self.max_source_length):
-                self.original_encoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
-                                                    name="original_encoder{0}".format(i)))
-                self.copy_masks.append(tf.placeholder(tf.int32, shape=[None],
-                                                      name="copy_mask{0}".format(i)))
+                self.original_encoder_inputs.append(
+                    tf.placeholder(tf.int32, shape=[None], name="original_encoder{0}".format(i)))
+                self.copy_masks.append(
+                    tf.placeholder(tf.int32, shape=[None], name="copy_mask{0}".format(i)))
             for i in xrange(self.max_target_length):
-                self.original_decoder_inputs.append(tf.placeholder(tf.int32, shape=[None],
-                                                    name="original_decoder{0}".format(i)))
+                self.original_decoder_inputs.append(
+                    tf.placeholder(tf.int32, shape=[None], name="original_decoder{0}".format(i)))
 
         # Encoder.
         self.define_encoder()
@@ -121,21 +115,20 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         bucket_id, bucket[0], bucket[1]))
                     encode_decode_outputs = \
                         self.encode_decode(
-                            self.encoder_inputs[:bucket[0]], self.encoder_attn_masks[:bucket[0]],
+                            self.encoder_inputs[:bucket[0]],
+                            self.encoder_attn_masks[:bucket[0]],
                             self.source_embeddings(),
-                            self.decoder_inputs[:bucket[1]], self.target_embeddings(),
+                            self.decoder_inputs[:bucket[1]],
+                            self.target_embeddings(),
                             forward_only=forward_only,
                             reuse_variables=(bucket_id > 0)
                         )
-                    # bucket_output_symbols, bucket_output_logits, bucket_losses, attn_mask, \
-                    #     debug_vars = encode_decode_outputs
                     bucket_output_symbols, bucket_output_logits, bucket_losses, attn_mask = \
                         encode_decode_outputs
                     self.output_symbols.append(bucket_output_symbols)
                     self.output_logits.append(bucket_output_logits)
                     self.losses.append(bucket_losses)
                     self.attn_masks.append(attn_mask)
-                    # self.debug_vars.append(debug_vars)
         else:
             self.output_symbols, self.output_logits, self.losses, self.attn_mask = \
                 self.encode_decode(
@@ -186,9 +179,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.decoder = None
 
 
-    def encode_decode(self, encoder_inputs, encoder_attn_masks, source_embeddings,
-                      decoder_inputs, target_embeddings, forward_only,
-                      reuse_variables=False):
+    def encode_decode(self, encoder_inputs, encoder_attn_masks,
+                      source_embeddings, decoder_inputs, target_embeddings, \
+                      forward_only, reuse_variables=False):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
@@ -197,16 +190,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         if self.decoding_algorithm == "beam_search":
             beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
-                                                   data_utils.ROOT_ID,
-                                                   data_utils.EOS_ID,
-                                                   self.batch_size,
-                                                   self.beam_size,
-                                                   len(decoder_inputs),
-                                                   self.use_attention,
-                                                   self.alpha,
-                                                   locally_normalized=(
-                                                       self.training_algorithm != "bso"
-                                                   ))
+                            data_utils.ROOT_ID, data_utils.EOS_ID,
+                            self.batch_size,
+                            self.beam_size,
+                            len(decoder_inputs),
+                            self.use_attention,
+                            self.alpha,
+                            locally_normalized=(
+                                self.training_algorithm != "bso"
+                            ))
         else:
             beam_decoder = None
 
@@ -269,6 +261,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.use_attention else 0
 
         losses = encoder_decoder_loss + attention_loss
+
+        # store encoder/decoder output states
+        self.encoder_outputs = encoder_outputs
+        self.decoder_outputs = outputs
 
         return output_symbols, output_logits, losses, attn_mask
 
@@ -422,63 +418,40 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_inputs.append(encoder_input)
             decoder_inputs.append(decoder_input)
 
-        return self.format_example(encoder_inputs, decoder_inputs, copy_data=copy_data,
-                                   bucket_id=bucket_id)
+        return self.format_example(encoder_inputs, decoder_inputs,
+                                   copy_data=copy_data, bucket_id=bucket_id)
+
+
+    def get_hidden_states(self, session, formatted_example, bucket_id=-1):
+        """Run a step of the model feeding the given inputs and return
+        the hidden state embeddings of the encoder and the decoder.
+        """
+
+        # Input feed: encoder inputs, decoder inputs, target_weights, as provided.
+        input_feed = self.get_input_feed(formatted_example, bucket_id)
+
+        # Output feed: hidden states of the encoder and the decoder
+        output_feed = [self.encoder_outputs, self.decoder_outputs]
+
+        encoder_outputs, decoder_outputs = session.run(output_feed, input_feed)
+        return encoder_outputs, decoder_outputs
 
 
     def step(self, session, formatted_example, bucket_id=-1, forward_only=False):
         """Run a step of the model feeding the given inputs.
         :param session: tensorflow session to use.
         :param encoder_inputs: list of numpy int vectors to feed as encoder inputs.
+        :param attn_masks: list of numpy int vectors to feed as the mask over inputs
+            about which tokens to attend to.
         :param decoder_inputs: list of numpy int vectors to feed as decoder inputs.
         :param target_weights: list of numpy float vectors to feed as target weights.
         :param bucket_id: which bucket of the model to use.
         :param forward_only: whether to do the backward step or only forward.
         :return (gradient_norm, average_perplexity, outputs)
         """
-        # Unwarp data tensors
-        if self.use_copy:
-            encoder_inputs, attn_masks, decoder_inputs, target_weights, \
-            original_encoder_inputs, original_decoder_inputs, copy_masks = formatted_example
-        else:
-            encoder_inputs, attn_masks, decoder_inputs, target_weights = formatted_example
-
-        # Check if the sizes match.
-        if bucket_id == -1:
-            encoder_size, decoder_size = len(encoder_inputs), len(decoder_inputs)
-            assert(encoder_size == self.max_source_length)
-            assert(decoder_size == self.max_target_length)
-        else:
-            encoder_size, decoder_size = self.buckets[bucket_id]
-            if len(encoder_inputs) != encoder_size:
-                raise ValueError("Encoder length must be equal to the one in bucket,"
-                                 " %d != %d." % (len(encoder_inputs), encoder_size))
-            if len(decoder_inputs) != decoder_size:
-                raise ValueError("Decoder length must be equal to the one in bucket,"
-                                 " %d != %d." % (len(decoder_inputs), decoder_size))
-            if len(target_weights) != decoder_size:
-                raise ValueError("Weights length must be equal to the one in bucket,"
-                                 " %d != %d." % (len(target_weights), decoder_size))
 
         # Input feed: encoder inputs, decoder inputs, target_weights, as provided.
-        input_feed = {}
-        for l in xrange(encoder_size):
-            input_feed[self.encoder_inputs[l].name] = encoder_inputs[l]
-            input_feed[self.encoder_attn_masks[l].name] = attn_masks[l]
-        for l in xrange(decoder_size):
-            input_feed[self.decoder_inputs[l].name] = decoder_inputs[l]
-            input_feed[self.target_weights[l].name] = target_weights[l]
-            # print("target weight {}: {}".format(l, target_weights[l]))
-        if self.use_copy:
-            for l in xrange(encoder_size):
-                input_feed[self.original_encoder_inputs[l].name] = original_encoder_inputs[l]
-                input_feed[self.copy_masks[l].name] = copy_masks[l]
-            for l in xrange(decoder_size):
-                input_feed[self.original_decoder_inputs[l].name] = original_decoder_inputs[l]
-
-        # Since our targets are decoder inputs shifted by one, we need one more.
-        last_target = self.decoder_inputs[decoder_size].name
-        input_feed[last_target] = np.zeros(decoder_inputs[0].shape, dtype=np.int32)
+        input_feed = self.get_input_feed(formatted_example, bucket_id)
 
         # Output feed: depends on whether we do a backward step or not.
         if not forward_only:
@@ -509,9 +482,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed.append(self.attn_masks[bucket_id])
 
         outputs = session.run(output_feed, input_feed)
-        # for l in xrange(len(output_feed[3])):
-        #     print("{}: {}".format(l, outputs[3][l]))
-        #     assert(np.count_nonzero(outputs[3][l]) == self.batch_size)
 
         if not forward_only:
             # Gradient norm, loss, no outputs, [attention_masks]
@@ -525,3 +495,51 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 return outputs[0], outputs[1], outputs[2], outputs[-1]
             else:
                 return outputs[0], outputs[1], outputs[2], None
+
+
+    def get_input_feed(self, formatted_example, bucket_id):
+        # Unwarp data tensors
+        if self.use_copy:
+            encoder_inputs, attn_masks, decoder_inputs, target_weights, \
+            original_encoder_inputs, original_decoder_inputs, copy_masks = formatted_example
+        else:
+            encoder_inputs, attn_masks, decoder_inputs, target_weights = formatted_example
+
+        # Check if the sizes match.
+        if bucket_id == -1:
+            encoder_size, decoder_size = len(encoder_inputs), len(decoder_inputs)
+            assert(encoder_size == self.max_source_length)
+            assert(decoder_size == self.max_target_length)
+        else:
+            encoder_size, decoder_size = self.buckets[bucket_id]
+            if len(encoder_inputs) != encoder_size:
+                raise ValueError("Encoder length must be equal to the one in bucket,"
+                                 " %d != %d." % (len(encoder_inputs), encoder_size))
+            if len(decoder_inputs) != decoder_size:
+                raise ValueError("Decoder length must be equal to the one in bucket,"
+                                 " %d != %d." % (len(decoder_inputs), decoder_size))
+            if len(target_weights) != decoder_size:
+                raise ValueError("Weights length must be equal to the one in bucket,"
+                                 " %d != %d." % (len(target_weights), decoder_size))
+
+        input_feed = {}
+        for l in xrange(encoder_size):
+            input_feed[self.encoder_inputs[l].name] = encoder_inputs[l]
+            input_feed[self.encoder_attn_masks[l].name] = attn_masks[l]
+        for l in xrange(decoder_size):
+            input_feed[self.decoder_inputs[l].name] = decoder_inputs[l]
+            input_feed[self.target_weights[l].name] = target_weights[l]
+        if self.use_copy:
+            for l in xrange(encoder_size):
+                input_feed[self.original_encoder_inputs[l].name] = \
+                    original_encoder_inputs[l]
+                input_feed[self.copy_masks[l].name] = copy_masks[l]
+            for l in xrange(decoder_size):
+                input_feed[self.original_decoder_inputs[l].name] = \
+                    original_decoder_inputs[l]
+
+        # Since our targets are decoder inputs shifted by one, we need one more.
+        last_target = self.decoder_inputs[decoder_size].name
+        input_feed[last_target] = np.zeros(decoder_inputs[0].shape, dtype=np.int32)
+
+        return input_feed

@@ -17,7 +17,7 @@ from encoder_decoder import data_utils
 
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
-                 construct_model_dir=True):
+                 construct_model_dir=True, construct_slot_filler=False):
     params = collections.defaultdict()
     params["source_vocab_size"] = FLAGS.sc_vocab_size
     params["target_vocab_size"] = FLAGS.tg_vocab_size
@@ -38,6 +38,9 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
     params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
+
+    params["steps_per_epoch"] = FLAGS.steps_per_epoch
+    params["num_epochs"] = FLAGS.num_epochs
 
     params["training_algorithm"] = FLAGS.training_algorithm
     if FLAGS.training_algorithm == "bso":
@@ -60,13 +63,14 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["top_k"] = FLAGS.top_k
 
     # construct model directory
-    model_subdir, model_sig = get_model_signature(FLAGS)
+    model_subdir, model_sig = get_model_signature(FLAGS, construct_slot_filler)
     params["model_sig"] = model_sig
 
     model_root_dir = FLAGS.model_dir
     if construct_model_dir:
         setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
     print("model_dir={}".format(FLAGS.model_dir))
+    print("model_sig={}".format(FLAGS.model_sig))
 
     if forward_only:
         if FLAGS.demo:
@@ -82,11 +86,11 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         params["decoder_input_keep"] = 1.0
         params["decoder_output_keep"] = 1.0
 
-
     model = model_constructor(params, buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
-    global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) if ckpt else 0
+    global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) \
+        if ckpt else 0
 
     if forward_only or not FLAGS.create_fresh_params:
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
@@ -112,7 +116,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     return model, global_epochs
 
 
-def get_model_signature(FLAGS):
+def get_model_signature(FLAGS, construct_slot_filler):
     model_subdir = FLAGS.dataset
     if FLAGS.explanation:
         model_subdir += '-expl'
@@ -136,15 +140,17 @@ def get_model_signature(FLAGS):
         model_subdir += '.canonical'
     elif FLAGS.normalized:
         model_subdir += '.normalized'
+    if construct_slot_filler:
+        model_subdir += '.slot.filler'
 
     model_sig = model_subdir + "-{}".format(FLAGS.decoding_algorithm)
     model_sig += "-{}".format(FLAGS.beam_size)
     model_sig += ("-test" if FLAGS.test else "-dev")
-    print(model_sig)
     return model_subdir, model_sig
 
 
-def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1, output_keep_prob=1):
+def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1,
+                           output_keep_prob=1):
     """
     Create the multi-layer RNN cell.
     :param type: Type of RNN cell.
@@ -172,6 +178,26 @@ def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1, outp
             cell = tf.nn.rnn_cell.DropoutWrapper(cell, input_keep_prob=input_keep_prob,
                                                  output_keep_prob=output_keep_prob)
     return cell
+
+
+def get_buckets(FLAGS):
+    # We use a number of buckets and pad to the closest one for efficiency.
+    if FLAGS.dataset.startswith("bash"):
+        if FLAGS.decoder_topology in ['basic_tree']:
+            buckets = [(30, 72)] if not FLAGS.explanation else [(72, 30)]
+        elif FLAGS.decoder_topology in ['rnn']:
+            buckets = [(30, 40)] if not FLAGS.explanation else [(40, 30)]
+    elif FLAGS.dataset == "dummy":
+        buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explanation else \
+            [(95, 20), (95, 30), (95, 45)]
+    elif FLAGS.dataset == "jobs":
+        buckets = [(20, 45)] if not FLAGS.explanation else [(45, 20)]
+    elif FLAGS.dataset == "geo":
+        buckets = [(20, 70)] if not FLAGS.explanation else [(70, 20)]
+    elif FLAGS.dataset == "atis":
+        buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explanation else \
+            [(95, 20), (95, 30), (95, 40)]
+    return buckets
 
 
 def switch_mask(mask, candidates):
@@ -232,8 +258,8 @@ def softmax_loss(output_projection, num_samples, target_vocab_size):
         w_t = tf.transpose(w)
         def sampled_loss(inputs, labels):
             labels = tf.reshape(labels, [-1, 1])
-            return tf.nn.sampled_softmax_loss(w_t, b, inputs, labels, num_samples,
-                                              target_vocab_size)
+            return tf.nn.sampled_softmax_loss(w_t, b, inputs, labels,
+                                              num_samples, target_vocab_size)
         loss_function = sampled_loss
     else:
         loss_function = tf.nn.softmax_cross_entropy_with_logits
@@ -257,8 +283,13 @@ def deprecated(func):
 
 
 class NNModel(object):
-    def __init__(self, hyperparams):
+    def __init__(self, hyperparams, buckets=None):
         self.hyperparams = hyperparams
+        self.buckets = buckets
+        self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]),
+                                         trainable=False)
+        self.learning_rate_decay_op = self.learning_rate.assign(
+            self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
     @property
     def use_sampled_softmax(self):
@@ -383,3 +414,13 @@ class NNModel(object):
     @property
     def margin(self):
         return self.hyperparams["margin"]
+
+    # -- training parameters -- #
+
+    @property
+    def num_epochs(self):
+        return self.hyperparams["num_epochs"]
+
+    @property
+    def steps_per_epoch(self):
+        return self.hyperparams["steps_per_epoch"]

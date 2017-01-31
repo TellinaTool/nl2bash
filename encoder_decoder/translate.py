@@ -23,26 +23,25 @@ import tensorflow as tf
 from tensorflow.python.util import nest
 
 if __name__ == "__main__":
-    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
-    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "eval"))
-    sys.path.append(os.path.join(os.path.dirname(__file__), "seq2seq"))
-    sys.path.append(os.path.join(os.path.dirname(__file__), "seq2tree"))
+    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
     import data_utils, graph_utils
-    import decode_tools, hyperparam_range, parse_args
-    import eval_tools
-    from seq2seq_model import Seq2SeqModel
-    from seq2tree_model import Seq2TreeModel
+    from bashlex import decode_tools, hyperparam_range, parse_args
+    from eval import eval_tools
+    from classifiers import BinaryLogisticRegressionModel
+    from seq2seq.seq2seq_model import Seq2SeqModel
+    from seq2tree.seq2tree_model import Seq2TreeModel
 else:
     from encoder_decoder import data_utils, graph_utils, decode_tools
     from encoder_decoder import hyperparam_range, parse_args
     from eval import eval_tools
+    from .classifiers import BinaryLogisticRegressionModel
     from .seq2seq.seq2seq_model import Seq2SeqModel
     from .seq2tree.seq2tree_model import Seq2TreeModel
 
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
 
-_buckets = data_utils.get_buckets(FLAGS)
+_buckets = graph_utils.get_buckets(FLAGS)
 
 
 def create_model(session, forward_only, construct_model_dir=True, buckets=None):
@@ -62,6 +61,28 @@ def create_model(session, forward_only, construct_model_dir=True, buckets=None):
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
 
+
+# --- Run/train slot-filling classifier --- #
+
+def train_slot_filling_classifier(train_set, dev_set):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+        log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model.
+        seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
+            Seq2TreeModel, buckets=_buckets, forward_only=True,
+            construct_model_dir=False)
+        for bucket_id in xrange(len(_buckets)):
+            formatted_example = seq2seq_model.get_bucket(train_set, bucket_id)
+            encoder_outputs, decoder_outputs = \
+                seq2seq_model.get_hidden_states(sess, formatted_example, bucket_id)
+
+        model, _ = graph_utils.create_model(sess, FLAGS,
+            BinaryLogisticRegressionModel, buckets=None, forward_only=False,
+            construct_model_dir=False)
+        model.train(sess, X, Y)
+        model.eval(sess, X, Y)
+
+# --- Run/train encoder-decoder models --- #
 
 def train(train_set, dev_set, construct_model_dir=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
@@ -96,8 +117,8 @@ def train(train_set, dev_set, construct_model_dir=True):
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
                                  if train_buckets_scale[i] > random_number_01])
                 formatted_example = model.get_batch(train_set, bucket_id)
-                _, step_loss, _, _ = model.step(sess, formatted_example, bucket_id,
-                                                forward_only=False)
+                _, step_loss, _, _ = model.step(sess, formatted_example,
+                                                bucket_id, forward_only=False)
                 loss += step_loss
                 current_step += 1
 
@@ -130,8 +151,8 @@ def train(train_set, dev_set, construct_model_dir=True):
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
                     formatted_example = model.get_batch(dev_set, bucket_id)
-                    _, output_logits, eval_loss, _ = model.step(sess, formatted_example, bucket_id,
-                                                                forward_only=True)
+                    _, output_logits, eval_loss, _ = \
+                        model.step(sess, formatted_example, bucket_id, forward_only=True)
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
@@ -238,8 +259,10 @@ def cross_validation(train_set):
         match_scores.append(match_score)
         dists.append(dist)
 
-    print("cross validation template match score = {}".format(sum(match_scores) / num_folds))
-    print("cross validation template distance = {}".format(sum(dists) / num_folds))
+    print("cross validation template match score = {}"
+          .format(sum(match_scores) / num_folds))
+    print("cross validation template distance = {}"
+          .format(sum(dists) / num_folds))
 
 
 def grid_search(train_set, dev_set):
@@ -315,12 +338,12 @@ def grid_search(train_set, dev_set):
 
 # --- Pre-processing and data statistics --- #
 
-def load_data(use_buckets=True):
+def load_data(use_buckets=True, load_mappings=False):
     print(FLAGS.data_dir)
     if use_buckets:
-        return data_utils.load_data(FLAGS, _buckets)
+        return data_utils.load_data(FLAGS, _buckets, load_mappings=load_mappings)
     else:
-        return data_utils.load_data(FLAGS, None)
+        return data_utils.load_data(FLAGS, None, load_mappings=load_mappings)
 
 
 def process_data():
@@ -328,9 +351,10 @@ def process_data():
     data_utils.prepare_data(FLAGS)
 
 
-def process_slot_filling_data():
+def induce_slot_filling_alignment():
     print("Preparing slot-filling data in %s" % FLAGS.data_dir)
     data_utils.prepare_slot_filling_data(FLAGS)
+
 
 def data_statistics():
     data_utils.data_stats(FLAGS)
@@ -382,7 +406,10 @@ def main(_):
         train_set, _, _ = load_data()
         cross_validation(train_set)
     elif FLAGS.process_slot_filling:
-        process_slot_filling_data()
+        induce_slot_filling_alignment()
+    elif FLAGS.train_slot_filling:
+        train_set, dev_set, _ = load_data(load_mappings=True)
+        train_slot_filling_classifier(train_set, dev_set)
     elif FLAGS.process_data:
         process_data()
     elif FLAGS.data_stats:
