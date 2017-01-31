@@ -40,7 +40,7 @@ else:
 
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
-if FLAGS.train_slot_filling:
+if FLAGS.gen_slot_filling_training_data:
     FLAGS.beam_size = 1
 
 _buckets = graph_utils.get_buckets(FLAGS)
@@ -66,7 +66,7 @@ def create_model(session, forward_only, construct_model_dir=True, buckets=None):
 
 # --- Run/train slot-filling classifier --- #
 
-def gen_slot_filling_training_data(train_set, dev_set, test_set, FLAGS):
+def gen_slot_filling_training_data(train_set, dev_set, test_set):
     def get_slot_filling_training_data_fun(dataset, output_file):
         with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
