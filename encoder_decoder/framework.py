@@ -403,8 +403,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Get a random batch of encoder and decoder inputs from data,
         # pad them if needed, reverse encoder inputs and add GO to decoder.
         for _ in xrange(self.batch_size):
-            _, _, encoder_input, decoder_input = random.choice(data[bucket_id])
-
+            random_example = random.choice(data[bucket_id])
+            encoder_input = random_example[2]
+            decoder_input = random_example[3]
             encoder_inputs.append(encoder_input)
             decoder_inputs.append(decoder_input)
 
@@ -418,7 +419,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         encoder_inputs, decoder_inputs = [], []
 
         for i in xrange(len(data[bucket_id])):
-            _, _, encoder_input, decoder_input = data[bucket_id][i]
+            encoder_input = data[bucket_id][i][2]
+            decoder_input = data[bucket_id][i][3]
             encoder_inputs.append(encoder_input)
             decoder_inputs.append(decoder_input)
 

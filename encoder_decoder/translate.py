@@ -73,7 +73,7 @@ def train_slot_filling_classifier(train_set, dev_set):
             formatted_example = seq2seq_model.get_bucket(train_set, bucket_id)
             encoder_outputs, decoder_outputs = \
                 seq2seq_model.get_hidden_states(sess, formatted_example, bucket_id)
-            print(encoder_outputs)
+            
         model, _ = graph_utils.create_model(sess, FLAGS,
             BinaryLogisticRegressionModel, buckets=None, forward_only=False,
             construct_model_dir=False)
