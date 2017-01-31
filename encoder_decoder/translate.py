@@ -67,54 +67,55 @@ def create_model(session, forward_only, construct_model_dir=True, buckets=None):
 # --- Run/train slot-filling classifier --- #
 
 def gen_slot_filling_training_data(train_set, dev_set, test_set):
-    def get_slot_filling_training_data_fun(dataset, output_file):
-        with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+    def get_slot_filling_training_data_fun(model, dataset, output_file):
+        X, Y = [], []
+        for bucket_id in xrange(len(_buckets)):
+            for i in xrange(len(dataset[bucket_id])):
+                mappings = dataset[bucket_id][i][4]
+                if mappings:
+                    encoder_inputs = [dataset[bucket_id][i][2]]
+                    decoder_inputs = [dataset[bucket_id][i][3]]
+                    formatted_example = model.format_example(
+                        encoder_inputs, decoder_inputs, bucket_id=bucket_id)
+                    encoder_outputs, decoder_outputs = model\
+                        .get_hidden_states(sess, formatted_example, bucket_id)
+                    # add positive examples
+                    for f, s in mappings:
+                        # reverse the index of natural language token since the
+                        # encoder input is reversed
+                        f = _buckets[bucket_id][0] - f - 1
+                        assert(f <= len(encoder_outputs))
+                        assert(s <= len(decoder_outputs))
+                        X.append(np.concatenate(
+                            [encoder_outputs[f], decoder_outputs[s]], axis=1))
+                        Y.append(np.array([1, 0]))
+                        # add negative examples
+                        # sample unmatched filler-slot pairs as negative examples
+                        if len(mappings) > 1:
+                            for n_s in [ss for _, ss in mappings if ss != s]:
+                                X.append(np.concatenate(
+                                    [encoder_outputs[f], decoder_outputs[n_s]], axis=1))
+                                Y.append(np.array([0, 1]))
+                if i > 0 and i % 1000 == 0:
+                    print('{} training examples gathered for training slot filling...'
+                         .format(len(X)))
+        assert(len(X) == len(Y))
+
+        with open(output_file, 'w') as o_f:
+            pickle.dump([X, Y], o_f)
+
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
-            # Create model.
-            seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
-                Seq2SeqModel, buckets=_buckets, forward_only=True)
-            X, Y = [], []
-            for bucket_id in xrange(len(_buckets)):
-                for i in xrange(len(dataset[bucket_id])):
-                    mappings = dataset[bucket_id][i][4]
-                    if mappings:
-                        encoder_inputs = [dataset[bucket_id][i][2]]
-                        decoder_inputs = [dataset[bucket_id][i][3]]
-                        formatted_example = seq2seq_model.format_example(
-                            encoder_inputs, decoder_inputs, bucket_id=bucket_id)
-                        encoder_outputs, decoder_outputs = seq2seq_model\
-                            .get_hidden_states(sess, formatted_example, bucket_id)
-                        # add positive examples
-                        for f, s in mappings:
-                            # reverse the index of natural language token since the
-                            # encoder input is reversed
-                            f = _buckets[bucket_id][0] - f - 1
-                            assert(f <= len(encoder_outputs))
-                            assert(s <= len(decoder_outputs))
-                            X.append(np.concatenate(
-                                [encoder_outputs[f], decoder_outputs[s]], axis=1))
-                            Y.append(np.array([1, 0]))
-                            # add negative examples
-                            # sample unmatched filler-slot pairs as negative examples
-                            if len(mappings) > 1:
-                                for n_s in [ss for _, ss in mappings if ss != s]:
-                                    X.append(np.concatenate(
-                                        [encoder_outputs[f], decoder_outputs[n_s]], axis=1))
-                                    Y.append(np.array([0, 1]))
-                    if i > 0 and i % 1000 == 0:
-                        print('{} training examples gathered for training slot filling...'
-                             .format(len(X)))
-            assert(len(X) == len(Y))
+        # Create model.
+        seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
+            Seq2SeqModel, buckets=_buckets, forward_only=True)
 
-            with open(output_file, 'w') as o_f:
-                pickle.dump([X, Y], o_f)
-
-    get_slot_filling_training_data_fun(train_set, os.path.join(
-        FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
-    get_slot_filling_training_data_fun(dev_set, os.path.join(
-        FLAGS.data_dir, 'dev.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
-    get_slot_filling_training_data_fun(test_set, os.path.join(
-        FLAGS.data_dir, 'test.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
+        # get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
+        #     FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
+        get_slot_filling_training_data_fun(seq2seq_model, dev_set, os.path.join(
+            FLAGS.data_dir, 'dev.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
+        get_slot_filling_training_data_fun(seq2seq_model, test_set, os.path.join(
+            FLAGS.data_dir, 'test.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
 
 
 def train_slot_filling_classifier():
