@@ -39,6 +39,8 @@ else:
 
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
+if FLAGS.train_slot_filling:
+    FLAGS.beam_size = 1
 
 _buckets = graph_utils.get_buckets(FLAGS)
 
