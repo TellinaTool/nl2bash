@@ -16,6 +16,7 @@ import cPickle as pickle
 import itertools
 import math
 import numpy as np
+from numpy.linalg import norm
 import random
 import time
 from tqdm import tqdm
@@ -65,6 +66,25 @@ def create_model(session, forward_only, construct_model_dir=True, buckets=None):
 
 
 # --- Run/train slot-filling classifier --- #
+
+def nn_slot_filling():
+    """A nearest-neighbor slot-filling classifier."""
+    with open(os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
+                               .format(FLAGS.sc_vocab_size))) as f:
+        train_X, train_Y = pickle.load(f)
+    with open(os.path.join(FLAGS.data_dir, 'dev.{}.mappings.X.Y'
+                               .format(FLAGS.sc_vocab_size))) as f:
+        dev_X, dev_Y = pickle.load(f)
+
+    # normalizing the rows of the feature matrices
+    train_X = train_X / norm(train_X, axis=1)[:, None]
+    dev_X = dev_X / norm(dev_X, axis=1)[:, None]
+
+    sim_scores = dev_X * train_X.T
+
+    for i in xrange(len(sim_scores)):
+        print(sim_scores[i], dev_Y[i])
+
 
 def gen_slot_filling_training_data(train_set, dev_set, test_set):
     def get_slot_filling_training_data_fun(model, dataset, output_file):
@@ -461,7 +481,8 @@ def main(_):
         train_set, dev_set, test_set = load_data(load_mappings=True)
         gen_slot_filling_training_data(train_set, dev_set, test_set)
     elif FLAGS.train_slot_filling:
-        train_slot_filling_classifier()
+        # train_slot_filling_classifier()
+        nn_slot_filling()
     elif FLAGS.process_data:
         process_data()
     elif FLAGS.data_stats:
