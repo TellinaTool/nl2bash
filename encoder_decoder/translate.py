@@ -131,6 +131,7 @@ def train_slot_filling_classifier():
                                .format(FLAGS.sc_vocab_size))) as f:
             dev_X, dev_Y = pickle.load(f)
         model.train(sess, train_X, train_Y)
+        model.eval(sess, train_X, train_Y)
         model.eval(sess, dev_X, dev_Y)
 
 # --- Run/train encoder-decoder models --- #
