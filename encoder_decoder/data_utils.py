@@ -430,6 +430,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
                     nl_tokens, _ = tokenizer.ner_tokenizer(nl)
+                    print(nl)
+                    print(nl_tokens)
                     cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
@@ -439,7 +441,6 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                         pruned_ast, list=[], with_parent=with_parent)
                     cm_normalized_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True, with_parent=with_parent)
-                    print(cm)
                     cm_normalized_seq = data_tools.ast2list(
                         ast, arg_type_only=True, list=[], with_parent=with_parent)
                     cm_canonical_tokens = data_tools.ast2tokens(
@@ -511,28 +512,27 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     _ = prepare_dataset(nl_list, data_dir, nl_suffix, nl_vocab_size, None)
     _ = prepare_dataset(cm_list, data_dir, cm_suffix, cm_vocab_size, None)
     max_nl_char_len = prepare_dataset(nl_char_list, data_dir, nl_char_suffix, 
-                                      nl_vocab_size, nl_char_vocab_path)
+        nl_vocab_size, nl_char_vocab_path)
     max_cm_char_len = prepare_dataset(cm_char_list, data_dir, cm_char_suffix, 
-                                      cm_vocab_size, cm_char_vocab_path)
+        cm_vocab_size, cm_char_vocab_path)
     max_nl_token_len = prepare_dataset(nl_token_list, data_dir, nl_token_suffix, 
-                                       nl_vocab_size, nl_vocab_path)
+        nl_vocab_size, nl_vocab_path)
     max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix, 
-                                       cm_vocab_size, cm_vocab_path)
+        cm_vocab_size, cm_vocab_path)
     max_cm_token_norm_len = prepare_dataset(cm_normalized_token_list, data_dir, cm_token_norm_suffix,
-                                            cm_vocab_size, cm_norm_vocab_path)
+        cm_vocab_size, cm_norm_vocab_path)
     max_cm_token_norm_order_len = prepare_dataset(cm_canonical_token_list, data_dir,
-                                                  cm_token_norm_order_suffix, cm_vocab_size, cm_norm_vocab_path)
+        cm_token_norm_order_suffix, cm_vocab_size, cm_norm_vocab_path)
     max_cm_token_pruned_len = prepare_dataset(cm_pruned_token_list, data_dir, cm_token_pruned_suffix,
-                                              cm_vocab_size, cm_vocab_path)
+        cm_vocab_size, cm_vocab_path)
     max_cm_seq_len = prepare_dataset(cm_seq_list, data_dir, cm_seq_suffix, cm_vocab_size,
-                                     cm_ast_vocab_path)
+        cm_ast_vocab_path)
     max_cm_seq_norm_len = prepare_dataset(cm_normalized_seq_list, data_dir, cm_seq_norm_suffix,
-                                          cm_vocab_size, cm_ast_norm_vocab_path)
+        cm_vocab_size, cm_ast_norm_vocab_path)
     max_cm_seq_norm_order_len = prepare_dataset(cm_canonical_seq_list, data_dir, cm_seq_norm_order_suffix,
-                                                cm_vocab_size, cm_ast_norm_vocab_path)
+        cm_vocab_size, cm_ast_norm_vocab_path)
     max_cm_seq_pruned_len = prepare_dataset(cm_pruned_seq_list, data_dir, cm_seq_pruned_suffix,
-                                            cm_vocab_size, cm_ast_vocab_path)
-
+        cm_vocab_size, cm_ast_vocab_path)
 
     print("maximum num chars in description = %d" % max_nl_char_len)
     print("maximum num tokens in description = %d" % max_nl_token_len)
@@ -602,13 +602,14 @@ def prepare_slot_filling_data(FLAGS):
 
         assert(len(nl_list) == len(cm_list))
 
-        with open('{}.{}.mappings'.format(dataset, nl_vocab_size), 'w') as o_f:
+        with open(os.path.join(
+          data_dir, 'train.{}.mappings'.format(nl_vocab_size)), 'w') as o_f:
             for nl, cm in zip(nl_list, cm_list):
                 mappings = slot_filling.get_slot_alignment(nl, cm)
                 if mappings:
-                    for i in sorted(mappings.keys()):
-                        o_f.write('{}-{} '.format(i, mappings[i]))
-                    o_f.write('\n')
+                    for i, j in sorted(mappings, key=lambda x:x[0]):
+                        o_f.write('{}-{} '.format(i, j))
+                o_f.write('\n')
 
 # --- Load Datasets -- #
 

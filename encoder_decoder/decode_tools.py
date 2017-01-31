@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from encoder_decoder import data_utils
 from bashlex import data_tools
-from nlp_tools import tokenizer
+from nlp_tools import tokenizer, slot_filling
 from eval.eval_archive import DBConnection
 
 
@@ -50,7 +50,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS):
     top_k_predictions = batch_outputs[0]
     for j in xrange(len(top_k_predictions)):
         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = top_k_predictions[j]
-        if data_tools.heuristic_slot_filling(top_k_pred_tree, entities):
+        if slot_filling.heuristic_slot_filling(top_k_pred_tree, entities):
             top_k_pred_cmd = data_tools.ast2command(top_k_pred_tree,
                 loose_constraints=True, ignore_flag_order=False)
             if len(top_k_pred_cmd) < 120:
@@ -84,6 +84,8 @@ def demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS):
             top_k_predictions = batch_outputs[0]
             top_k_scores = output_logits[0]
             for j in xrange(min(FLAGS.beam_size, 10)):
+                if len(top_k_predictions) <= j:
+                    break
                 top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                     top_k_predictions[j]
                 print("Prediction {}: {} ({}) ".format(
