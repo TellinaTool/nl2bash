@@ -603,7 +603,7 @@ def prepare_slot_filling_data(FLAGS):
         assert(len(nl_list) == len(cm_list))
 
         with open(os.path.join(
-          data_dir, 'train.{}.mappings'.format(nl_vocab_size)), 'w') as o_f:
+          data_dir, '{}.{}.mappings'.format(dataset, nl_vocab_size)), 'w') as o_f:
             for nl, cm in zip(nl_list, cm_list):
                 mappings = slot_filling.get_slot_alignment(nl, cm)
                 if mappings:
@@ -821,14 +821,15 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path,
     tg_file = tf.gfile.GFile(tg_path, mode="r")
     sc_id_file = tf.gfile.GFile(sc_id_path, mode="r")
     tg_id_file = tf.gfile.GFile(tg_id_path, mode="r")
-
+    if load_mappings:
+        mapping_path = '.'.join(sc_path.rsplit('.')[:-1]) + '.mappings'
+        mapping_file = tf.gfile.GFile(mapping_path, mode="r")
+    
     counter = 0
     while True:
         sc_txt, tg_txt = sc_file.readline(), tg_file.readline()
         sc, tg = sc_id_file.readline(), tg_id_file.readline()
         if load_mappings:
-            mapping_path = '.'.join(sc_path.rsplit('.')[:-1]) + '.mappings'
-            mapping_file = tf.gfile.GFile(mapping_path, mode="r")
             mapping = mapping_file.readline()
 
         if not sc or not tg:
@@ -848,8 +849,8 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path,
         if append_end_token:
             tg_ids.append(EOS_ID)
         if load_mappings:
+            mappings = []
             if mapping.strip():
-                mappings = []
                 for mp in mapping.strip().split():
                     mappings.append([int(x) for x in mp.split('-')])
             data_point = [sc_txt, tg_txt, sc_ids, tg_ids, mappings]
