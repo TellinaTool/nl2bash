@@ -41,6 +41,8 @@ def define_input_flags():
                                 "Set to True for data preprocessing.")
     tf.app.flags.DEFINE_boolean("process_slot_filling", False,
                                 "Set to True for processing slot-filling data.")
+    tf.app.flags.DEFINE_boolean("train_slot_filling", False,
+                                "Set to True to train slot-filling classifier.")
     tf.app.flags.DEFINE_boolean("decode", False,
                                 "Set to True for decoding.")
     tf.app.flags.DEFINE_boolean("test", False,
