@@ -45,9 +45,13 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
                                                   reduction_indices=1))
 
         # Optimizer
-        self.optimizer= tf.train.AdamOptimizer(
-            self.learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08)\
-            .minimize(self.cost)
+        opt = tf.train.AdamOptimizer(
+            self.learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08)
+        params = tf.trainable_variables()
+        gradients = tf.gradients(self.cost, params)
+        clipped_gradients, norm = tf.clip_by_global_norm(
+            gradients, self.max_gradient_norm)
+        self.updates.append(opt.apply_gradients(zip(clipped_gradients, params)))
 
         # Prediction
         self.prediction = tf.argmax(self.output_logits, 1)
@@ -76,7 +80,7 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
             avg_cost = 0
             for i in xrange(self.steps_per_epoch):
                 batch_X, batch_Y = self.get_batch(X, Y)
-                _, c = session.run([self.optimizer, self.cost], feed_dict={
+                _, c = session.run([self.updates, self.cost], feed_dict={
                     self.X: batch_X, self.Y: batch_Y
                 })
                 avg_cost += c
