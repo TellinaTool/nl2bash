@@ -23,6 +23,11 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
     def __init__ (self, hyperparams, buckets=None, forward_only=False):
         super(BinaryLogisticRegressionModel, self)\
             .__init__(hyperparams, buckets)
+        self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]),
+                                         trainable=False)
+        self.learning_rate_decay_op = self.learning_rate.assign(
+            self.learning_rate * hyperparams["learning_rate_decay_factor"])
+
         self.define_graph()
 
     def define_graph(self):
