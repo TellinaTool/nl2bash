@@ -73,7 +73,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     print("model_sig={}".format(model_sig))
 
     if forward_only:
-        if FLAGS.demo:
+        if FLAGS.demo or FLAGS.gen_slot_filling_training_data:
             FLAGS.batch_size = 1
             params["batch_size"] = 1
         else:
@@ -85,7 +85,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         params["encoder_output_keep"] = 1.0
         params["decoder_input_keep"] = 1.0
         params["decoder_output_keep"] = 1.0
-
+    
     model = model_constructor(params, buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
@@ -286,10 +286,10 @@ class NNModel(object):
     def __init__(self, hyperparams, buckets=None):
         self.hyperparams = hyperparams
         self.buckets = buckets
-        self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]),
-                                         trainable=False)
-        self.learning_rate_decay_op = self.learning_rate.assign(
-            self.learning_rate * hyperparams["learning_rate_decay_factor"])
+        # self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]),
+        #                                  trainable=False)
+        # self.learning_rate_decay_op = self.learning_rate.assign(
+        #     self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
     @property
     def use_sampled_softmax(self):
