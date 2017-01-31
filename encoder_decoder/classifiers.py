@@ -51,7 +51,7 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
         gradients = tf.gradients(self.cost, params)
         clipped_gradients, norm = tf.clip_by_global_norm(
             gradients, self.max_gradient_norm)
-        self.updates.append(opt.apply_gradients(zip(clipped_gradients, params)))
+        self.updates = opt.apply_gradients(zip(clipped_gradients, params))
 
         # Prediction
         self.prediction = tf.argmax(self.output_logits, 1)
