@@ -19,9 +19,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import collections
-import os
-import sys
+import os, sys
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
@@ -29,6 +27,9 @@ if sys.version_info > (3, 0):
 from bashlex import normalizer, data_tools
 from nlp_tools import tokenizer, slot_filling
 
+import cPickle as pickle
+import collections
+from numpy.linalg import norm
 import numpy as np
 import random
 import tensorflow as tf
@@ -611,6 +612,16 @@ def slot_filling_mapping_induction(FLAGS):
                     for i, j in sorted(mappings, key=lambda x:x[0]):
                         o_f.write('{}-{} '.format(i, j))
                 o_f.write('\n')
+
+def load_slot_filling_data(data_dir):
+    with open(data_dir) as f:
+        train_X, train_Y = pickle.load(f)
+        train_X = np.concatenate(train_X, axis=0)
+        train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
+                                 axis=0)
+        # normalize the rows of the feature matrices
+        train_X = train_X / norm(train_X, axis=1)[:, None]
+    return train_X, train_Y
 
 # --- Load Datasets -- #
 
