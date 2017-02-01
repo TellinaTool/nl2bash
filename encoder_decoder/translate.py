@@ -16,7 +16,6 @@ import cPickle as pickle
 import itertools
 import math
 import numpy as np
-from numpy.linalg import norm
 import random
 import time
 from tqdm import tqdm
@@ -42,7 +41,7 @@ else:
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
 if FLAGS.gen_slot_filling_training_data:
-    FLAGS.beam_size = 1
+    FLAGS.decoding_algorithm = 'greedy'
 
 _buckets = graph_utils.get_buckets(FLAGS)
 
@@ -136,17 +135,8 @@ def train_slot_filling_classifier():
 
 def nn_slot_filling_raw_prediction_eval(train_path, dev_path):
     """A nearest-neighbor slot-filling classifier."""
-    with open(train_path) as f:
-        train_X, train_Y = pickle.load(f)
-        train_X = np.concatenate(train_X, axis=0)
-        train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
-                                 axis=0)
-    with open(dev_path) as f:
-        dev_X, dev_Y = pickle.load(f)
-        dev_X = np.concatenate(dev_X, axis=0)
-    # normalizing the rows of the feature matrices
-    train_X = train_X / norm(train_X, axis=1)[:, None]
-    dev_X = dev_X / norm(dev_X, axis=1)[:, None]
+    train_X, train_Y = data_utils.load_slot_filling_data(train_path)
+    dev_X, dev_Y = data_utils.load_slot_filling_data(dev_path)
 
     # hyperparameters
     k = 3
