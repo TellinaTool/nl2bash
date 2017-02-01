@@ -98,6 +98,7 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
                          .format(len(X)))
         assert(len(X) == len(Y))
 
+        print(X[0], Y[0])
         with open(output_file, 'w') as o_f:
             pickle.dump([X, Y], o_f)
 

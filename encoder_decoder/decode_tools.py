@@ -33,7 +33,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
     else:
         token_ids, entities = data_utils.sentence_to_token_ids(
             sentence, sc_vocab, tokenizer.ner_tokenizer, None)
-
+    print(token_ids)
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
                     if model.buckets[b][0] > len(token_ids)])
@@ -231,14 +231,13 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                                     # use reversed index for the encoder embeddings matrix
                                     ff = len(encoder_outputs) - f - 1
                                     cm_slots_keys = cm_slots.keys()
-                                    print(len(decoder_outputs))
                                     for s in cm_slots_keys:
                                         X.append(np.expand_dims(np.concatenate(
                                             [encoder_outputs[ff][i],
                                              decoder_outputs[s][i*FLAGS.beam_size+j]],
                                             axis=0), 0))
                                     X = np.concatenate(X, axis=0)
-                                    print(X)
+                                    print(X[0][:40])
                                     X = X / norm(X, axis=1)[:, None]
                                     raw_scores = slot_filling_classifier.predict(X)
                                     for ii in xrange(len(raw_scores)):

@@ -619,9 +619,10 @@ def load_slot_filling_data(data_dir):
         train_X = np.concatenate(train_X, axis=0)
         train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
                                  axis=0)
-        print(train_X[0])
+        print(train_X[0][:40])
         # normalize the rows of the feature matrices
         train_X = train_X / norm(train_X, axis=1)[:, None]
+        print(train_X[0][:40])
         assert(len(train_X) == len(train_Y))
         print('{} slot filling examples loaded'.format(len(train_X)))
     return train_X, train_Y
@@ -846,7 +847,6 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path,
         sc, tg = sc_id_file.readline(), tg_id_file.readline()
         if load_mappings:
             mapping = mapping_file.readline()
-
         if not sc or not tg:
             break
         if max_num_examples and counter < max_num_examples:
