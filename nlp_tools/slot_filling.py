@@ -8,10 +8,33 @@ import collections, copy, datetime, re
 import numpy as np
 
 from . import constants, tokenizer
-from .constants import strip
 from bashlex.data_tools import bash_tokenizer, pretty_print
 
 # --- Slot-Filler Alignment --- #
+
+def strip(pattern):
+    # special_start_1c_re = re.compile(r'^[\"\'\*\\\/\.-]]')
+    # special_start_2c_re = re.compile(r'^\{\}')
+    # special_end_1c_re = re.compile(r'[\"\'\\\/\$\*\.-]$')
+    # special_end_2c_re = re.compile(r'(\\n|\{\})$')
+    while len(pattern) > 1 and \
+            pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-', '{', '}']:
+        pattern = pattern[1:]
+    while len(pattern) > 1 and \
+            pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-',
+                            '{', '}']:
+        pattern = pattern[:-1]
+    special_start_re = re.compile(r'^\{\}')
+    special_end_re = re.compile(r'(\\n|\{\})$')
+    while len(pattern) > 2 and re.search(special_end_re, pattern):
+        pattern = pattern[:-2]
+    while len(pattern) > 1 and \
+            pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-']:
+        pattern = pattern[1:]
+    while len(pattern) > 1 and \
+            pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-']:
+        pattern = pattern[:-1]
+    return pattern
 
 def slot_filler_value_match(slot_value, filler_value, slot_type):
     """(Fuzzily) compute the matching score between a slot filler extracted
