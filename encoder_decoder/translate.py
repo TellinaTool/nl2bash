@@ -138,12 +138,12 @@ def nn_slot_filling_raw_prediction_eval(train_path, dev_path):
     dev_X, dev_Y = data_utils.load_slot_filling_data(dev_path)
 
     # hyperparameters
-    k = 1
+    k = 10
     model = KNearestNeighborModel(k, train_X, train_Y)
     nn_prediction = model.predict(dev_X)
 
     # compute accuracy on the development set
-    threshold = 0.5
+    threshold = 0.55
     num_total = 0.0
     num_correct = 0.0
     for i in xrange(len(nn_prediction)):
@@ -433,7 +433,6 @@ def data_statistics():
 
 def main(_):
     if FLAGS.gen_slot_filling_training_data:
-        FLAGS.decoding_algorithm = 'greedy'
         FLAGS.learning_rate = 0
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
