@@ -602,10 +602,11 @@ def slot_filling_mapping_induction(FLAGS):
 
         assert(len(nl_list) == len(cm_list))
 
-        with open(os.path.join(
-          data_dir, '{}.{}.mappings'.format(dataset, nl_vocab_size)), 'w') as o_f:
+        with open(os.path.join(data_dir,
+                '{}.{}.mappings'.format(dataset, nl_vocab_size)), 'w') as o_f:
             for nl, cm in zip(nl_list, cm_list):
-                mappings = slot_filling.get_slot_alignment(nl, cm)
+                mappings = \
+                    slot_filling.slot_filler_stable_marriage_alignment(nl, cm)
                 if mappings:
                     for i, j in sorted(mappings, key=lambda x:x[0]):
                         o_f.write('{}-{} '.format(i, j))

@@ -16,7 +16,6 @@ import cPickle as pickle
 import itertools
 import math
 import numpy as np
-from numpy.linalg import norm
 import random
 import time
 from tqdm import tqdm
@@ -28,14 +27,14 @@ if __name__ == "__main__":
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
     import data_utils, graph_utils, decode_tools, hyperparam_range, parse_args
     from eval import eval_tools
-    from classifiers import kNearestNeighborModel, BinaryLogisticRegressionModel
+    from classifiers import BinaryLogisticRegressionModel
     from seq2seq.seq2seq_model import Seq2SeqModel
     from seq2tree.seq2tree_model import Seq2TreeModel
 else:
     from encoder_decoder import data_utils, graph_utils, decode_tools
     from encoder_decoder import hyperparam_range, parse_args
     from eval import eval_tools
-    from .classifiers import kNearestNeighborModel, BinaryLogisticRegressionModel
+    from .classifiers import BinaryLogisticRegressionModel
     from .seq2seq.seq2seq_model import Seq2SeqModel
     from .seq2tree.seq2tree_model import Seq2TreeModel
 
@@ -67,41 +66,6 @@ def create_model(session, forward_only, construct_model_dir=True, buckets=None):
 
 # --- Run/train slot-filling classifier --- #
 
-def nn_slot_filling_raw_prediction_eval():
-    """A nearest-neighbor slot-filling classifier."""
-    with open(os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
-                               .format(FLAGS.sc_vocab_size))) as f:
-        train_X, train_Y = pickle.load(f)
-        train_X = np.concatenate(train_X, axis=0)
-        train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
-                                 axis=0)
-    with open(os.path.join(FLAGS.data_dir, 'dev.{}.mappings.X.Y'
-                               .format(FLAGS.sc_vocab_size))) as f:
-        dev_X, dev_Y = pickle.load(f)
-        dev_X = np.concatenate(dev_X, axis=0)
-    # normalizing the rows of the feature matrices
-    train_X = train_X / norm(train_X, axis=1)[:, None]
-    dev_X = dev_X / norm(dev_X, axis=1)[:, None]
-
-    # hyperparameters
-    k = 3
-    model = kNearestNeighborModel(k, train_X, train_Y)
-    nn_prediction = model.predict(dev_X)
-
-    # compute accuracy on the development set
-    threshold = 0.5
-    num_total = 0.0
-    num_correct = 0.0
-    for i in xrange(len(nn_prediction)):
-        if dev_Y[i][0] == 1 and nn_prediction[i][0] >= threshold:
-            num_correct += 1
-        if dev_Y[i][0] == 0 and nn_prediction[i][0] < threshold:
-            num_correct += 1
-        print(nn_prediction[i][0], dev_Y[i][0])
-        num_total += 1
-    print("Accuracy: ", num_correct / num_total)
-
-
 def gen_slot_filling_training_data(train_set, dev_set, test_set):
     def get_slot_filling_training_data_fun(model, dataset, output_file):
         X, Y = [], []
@@ -117,8 +81,8 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
                         .get_hidden_states(sess, formatted_example, bucket_id)
                     # add positive examples
                     for f, s in mappings:
-                        # reverse the index of natural language token since the
-                        # encoder input is reversed
+                        # user the reversed index for the encoder embedding
+                        # matrix
                         f = _buckets[bucket_id][0] - f - 1
                         assert(f <= len(encoder_outputs))
                         assert(s <= len(decoder_outputs))
@@ -497,8 +461,7 @@ def main(_):
         train_set, dev_set, test_set = load_data(load_mappings=True)
         gen_slot_filling_training_data(train_set, dev_set, test_set)
     elif FLAGS.train_slot_filling:
-        # train_slot_filling_classifier()
-        nn_slot_filling_raw_prediction_eval()
+        train_slot_filling_classifier()
     elif FLAGS.process_data:
         process_data()
     elif FLAGS.data_stats:

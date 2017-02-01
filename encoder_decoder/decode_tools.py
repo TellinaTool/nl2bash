@@ -11,6 +11,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+import numpy as np
 import os
 import re
 
@@ -18,12 +19,13 @@ import tensorflow as tf
 
 from encoder_decoder import data_utils
 from bashlex import data_tools
-from nlp_tools import tokenizer, slot_filling
+from nlp_tools import constants, slot_filling, tokenizer
 from eval.eval_archive import DBConnection
 
 
 def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS):
     # Get token-ids for the input sentence.
+    # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     if FLAGS.char:
         token_ids, entities = data_utils.sentence_to_token_ids(
             sentence, sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
@@ -39,25 +41,13 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS):
     formatted_example = model.format_example(
         [token_ids], [[data_utils.ROOT_ID]], bucket_id=bucket_id)
 
-    # Get output for the sentence.
+    # Decode the ouptut for this 1-element batch.
+    # Non-grammatical templates and templates that cannot hold all fillers are
+    # filtered out.
     output_symbols, output_logits, losses, attn_masks = \
         model.step(sess, formatted_example, bucket_id, forward_only=True)
-    batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS)
-
-    # Fill in arguments
-    batch_outputs_with_arguments = []
-    beam_outputs_with_arguments = []
-    top_k_predictions = batch_outputs[0]
-    for j in xrange(len(top_k_predictions)):
-        top_k_pred_tree, top_k_pred_cmd, top_k_outputs = top_k_predictions[j]
-        if slot_filling.heuristic_slot_filling(top_k_pred_tree, entities):
-            top_k_pred_cmd = data_tools.ast2command(top_k_pred_tree,
-                loose_constraints=True, ignore_flag_order=False)
-            if len(top_k_pred_cmd) < 120:
-                # exclude abnormaly long commands from the output
-                beam_outputs_with_arguments.append((top_k_pred_tree,
-                    top_k_pred_cmd, top_k_outputs))
-    batch_outputs_with_arguments.append(beam_outputs_with_arguments)
+    batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS,
+                           grammatical_only=True, nl_fillers=entities[0])
 
     return batch_outputs_with_arguments, output_logits
 
@@ -96,19 +86,26 @@ def demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS):
         sentence = sys.stdin.readline()
 
 
-def to_readable(outputs, rev_tg_vocab):
-    search_history = [data_utils._ROOT]
-    for output in outputs:
-        if output < len(rev_tg_vocab):
-            search_history.append(rev_tg_vocab[output])
-        else:
-            search_history.append(data_utils._UNK)
-    tree = data_tools.list2ast(search_history)
-    cmd = data_tools.ast2command(tree, loose_constraints=True)
-    return tree, cmd, search_history
+def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
+           nl_fillers=None, nn_classifier=None):
+    """
+    Transform the neural network output into readable strings and apply the
+    relevant filters.
+    """
+    if nl_fillers is None:
+        assert(nn_classifier is None)
 
+    def to_readable(outputs, rev_tg_vocab):
+        search_history = [data_utils._ROOT]
+        for output in outputs:
+            if output < len(rev_tg_vocab):
+                search_history.append(rev_tg_vocab[output])
+            else:
+                search_history.append(data_utils._UNK)
+        tree = data_tools.list2ast(search_history)
+        cmd = data_tools.ast2command(tree, loose_constraints=True)
+        return tree, cmd, search_history
 
-def decode(output_symbols, rev_tg_vocab, FLAGS):
     batch_outputs = []
 
     for i in xrange(len(output_symbols)):
@@ -118,6 +115,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
         if FLAGS.decoding_algorithm == "beam_search":
             beam_outputs = []
         for j in xrange(len(top_k_predictions)):
+
+            # Step 1: transform the neural network output into readable strings
             prediction = top_k_predictions[j]
             outputs = [int(pred) for pred in prediction]
 
@@ -125,47 +124,95 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
 
+            if nl_fillers is not None:
+                cm_slots = {}
+
+            tree, output_tokens = None, []
             if FLAGS.decoder_topology == "rnn":
                 if FLAGS.char:
                     tg = "".join([tf.compat.as_str(rev_tg_vocab[output])
-                               for output in outputs]).replace(data_utils._UNK, ' ')
+                        for output in outputs]).replace(data_utils._UNK, ' ')
                 else:
-                    tokens = []
-                    for output in outputs:
+                    for i in xrange(len(outputs)):
+                        output = outputs[i]
                         if output < len(rev_tg_vocab):
                             pred_token = rev_tg_vocab[output]
                             if "@@" in pred_token:
                                 pred_token = pred_token.split("@@")[-1]
-                            tokens.append(pred_token)
+                            output_tokens.append(pred_token)
+                            if pred_token in constants._ENTITIES:
+                                cm_slots[i] = (pred_token, pred_token)
                         else:
-                            tokens.append(data_utils._UNK)
-                    tg = " ".join(tokens)
-                if FLAGS.explanation:
-                    tree = None
-                else:
-                    if FLAGS.dataset.startswith("bash"):
-                        tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
-                        # tg = re.sub('( \)\s+)|( \)$)', ' \\) ', tg)
-                        tg = re.sub('(^\( )|( \( )', ' \\( ', tg)
-                        tree = data_tools.bash_parser(tg)
-                    else:
-                        tree = data_tools.paren_parser(tg)
+                            output_tokens.append(data_utils._UNK)
+                    tg = " ".join(output_tokens)
             else:
                 tree, tg, outputs = to_readable(outputs, rev_tg_vocab)
 
-            if tree is not None or FLAGS.explanation:
+            # check if the predicted command templates have enough slots to
+            # hold the fillers (to rule out templates that are trivially
+            # unqualified)
+            if len(cm_slots) >= len(nl_fillers) or nl_fillers is None:
+
+                # Step 2: check if the predicted command template is grammatical
+                if FLAGS.dataset.startswith("bash"):
+                    tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
+                    tree = data_tools.bash_parser(tg)
+                else:
+                    tree = data_tools.paren_parser(tg)
+
                 # filter out non-grammatical output
-                if FLAGS.explanation:
-                    temp = tg
-                else:
-                    temp = data_tools.ast2template(tree, loose_constraints=True,
-                                                   ignore_flag_order=False)
-                if FLAGS.decoding_algorithm == "greedy":
-                    batch_outputs.append((tree, temp, outputs))
-                else:
-                    beam_outputs.append((tree, temp, outputs))
-            else:
-                print(tg)
+                if tree is not None or not grammatical_only:
+                    output_example = False
+                    if FLAGS.explanation:
+                        temp = tg
+                        output_example = True
+                    else:
+                        temp = data_tools.ast2template(tree,
+                            loose_constraints=True, ignore_flag_order=False)
+                        if nl_fillers is None:
+                            output_example = True
+                        else:
+                            # Step 3: match the fillers to the argument slots
+
+                            # Step 3a: prepare alignment score matrix based on
+                            # type info
+                            M = collections.defaultdict(dict)
+                            for i in nl_fillers:
+                                surface, filler_type = nl_fillers[i]
+                                filler_value = extract_value(filler_type, surface)
+                                for j in cm_slots:
+                                    slot_value, slot_type = cm_slots[j]
+                                    if (filler_value and is_parameter(filler_value)) or \
+                                            slot_filler_type_match(slot_type, filler_type):
+                                        M[i][j] = \
+                                            slot_filler_value_match(slot_value, filler_value, slot_type)
+                                    else:
+                                        M[i][j] = -np.inf
+                            X = []
+                            for f in nl_fillers:
+                                assert(f <= len(encoder_outputs))
+                                # user the reversed index for the encoder
+                                # embeddings matrix
+                                for s in cm_slots:
+                                    assert(s <= len(decoder_outputs))
+                                    X.append(np.concatenate(
+                                        [encoder_outputs[f], decoder_outputs[s]], axis=1))
+
+                            mappings, remained_fillers = \
+                                slot_filling.stable_marriage_alignment(M)
+                            if not remained_fillers:
+                                output_example = True
+                                for f, s in mappings:
+                                    output_tokens[s] = nl_fillers[f][0]
+                                tree = data_tools.bash_parser(''.join(output_tokens))
+                                temp = data_tools.ast2command(tree, loose_constraints=True,
+                                                              ignore_flag_order=False)
+                    if output_example:
+                        if FLAGS.decoding_algorithm == "greedy":
+                            batch_outputs.append((tree, temp, outputs))
+                        else:
+                            beam_outputs.append((tree, temp, outputs))
+
         if FLAGS.decoding_algorithm == "beam_search":
             if beam_outputs:
                 batch_outputs.append(beam_outputs)
@@ -173,7 +220,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS):
     return batch_outputs
 
 
-def decode_set(sess, model, dataset, rev_sc_vocab, rev_tg_vocab, FLAGS, verbose=True):
+def decode_set(sess, model, dataset, rev_sc_vocab, rev_tg_vocab,
+               FLAGS, verbose=True):
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
         use_temp=FLAGS.dataset.startswith("bash") and not FLAGS.explanation)
     bucketed_sc_strs, bucketed_tg_strs, bucketed_scs, bucketed_tgs = \
