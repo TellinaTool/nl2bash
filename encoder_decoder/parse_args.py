@@ -66,7 +66,7 @@ def define_input_flags():
                                 "Set to True for logging device placement.")
 
 
-    # training data property
+    # data set parameters
     tf.app.flags.DEFINE_string("dataset", "bash", "select dataset to use.")
     tf.app.flags.DEFINE_integer("sc_vocab_size", 1000, "source vocabulary size.")
     tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size.")
@@ -121,11 +121,14 @@ def define_input_flags():
     tf.app.flags.DEFINE_float("attention_output_keep", 1.0,
                               "Proportion of attention hidden state to keep if dropout is used.")
 
+    # decoding hyperparameters
     tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
     tf.app.flags.DEFINE_integer("beam_size", -1, "Size of beam for beam search.")
     tf.app.flags.DEFINE_integer("beam_order", -1, "Order for beam search.")
     tf.app.flags.DEFINE_float("alpha", 0.5, "Beam search length normalization parameter.")
     tf.app.flags.DEFINE_integer("top_k", 5, "Top-k highest-scoring structures to output.")
+    tf.app.flags.DEFINE_boolean("fill_argument_slots", False, "If set, fill the argument slots in "
+        "the output command with filler constants extracted from the natural language input.")
 
     tf.app.flags.DEFINE_integer("num_gts", 1, "maximum number of ground truths per example.")
     tf.app.flags.DEFINE_float("margin", 1.0, "margin for margin-based loss function")

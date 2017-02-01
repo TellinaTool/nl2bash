@@ -4,13 +4,50 @@
 """Algorithms for filling the argument slots in a command template with the
    argument values extracted from the natural language"""
 
+import cPickle as pickle
 import collections, copy, datetime, re
 import numpy as np
+from numpy.linalg import norm
 
 from . import constants, tokenizer
+from encoder_decoder.classifiers import KNearestNeighborModel
 from bashlex.data_tools import bash_tokenizer, pretty_print
 
-# --- Slot-Filler Alignment --- #
+# --- Slot-filler pair scoring --- #
+
+def nn_slot_filling_raw_prediction_eval(train_path, dev_path):
+    """A nearest-neighbor slot-filling classifier."""
+    with open(train_path) as f:
+        train_X, train_Y = pickle.load(f)
+        train_X = np.concatenate(train_X, axis=0)
+        train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
+                                 axis=0)
+    with open(dev_path) as f:
+        dev_X, dev_Y = pickle.load(f)
+        dev_X = np.concatenate(dev_X, axis=0)
+    # normalizing the rows of the feature matrices
+    train_X = train_X / norm(train_X, axis=1)[:, None]
+    dev_X = dev_X / norm(dev_X, axis=1)[:, None]
+
+    # hyperparameters
+    k = 3
+    model = KNearestNeighborModel(k, train_X, train_Y)
+    nn_prediction = model.predict(dev_X)
+
+    # compute accuracy on the development set
+    threshold = 0.5
+    num_total = 0.0
+    num_correct = 0.0
+    for i in xrange(len(nn_prediction)):
+        if dev_Y[i][0] == 1 and nn_prediction[i][0] >= threshold:
+            num_correct += 1
+        if dev_Y[i][0] == 0 and nn_prediction[i][0] < threshold:
+            num_correct += 1
+        print(nn_prediction[i][0], dev_Y[i][0])
+        num_total += 1
+    print("Accuracy: ", num_correct / num_total)
+
+# --- Slot-filler Alignment --- #
 
 def strip(pattern):
     # special_start_1c_re = re.compile(r'^[\"\'\*\\\/\.-]]')
@@ -51,7 +88,8 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
             pattern = pattern[1:]
         return pattern
 
-    if slot_type in constants._PATTERNS or (filler_value and is_parameter(filler_value)):
+    if slot_type in constants._PATTERNS or \
+            (filler_value and is_parameter(filler_value)):
         if slot_value.lower() == filler_value:
             return 1
         if constants.remove_quotation(slot_value).lower() == \
@@ -171,9 +209,11 @@ def stable_marriage_alignment(M):
     return [(y, x) for (x, (y, score)) in sorted(matched_cols.items(),
             key=lambda x:x[1][1], reverse=True)], remained_rows
 
-def get_slot_alignment(nl, cm):
-    """Align the slot fillers extracted from the natural language with the
-       slots in the command."""
+def slot_filler_stable_marriage_alignment(nl, cm):
+    """Give a pair of (nl, cm) that is known to be the translation of each
+       other, align the slot fillers extracted from the natural language with
+       the slots in the command.
+    """
 
     # Step 1: extract the token ids of the constants in the English sentence
     # and the slots in the command
@@ -188,7 +228,7 @@ def get_slot_alignment(nl, cm):
             cm_slots[i] = (cm_tokens[i], cm_tokens_with_types[i])
     
     # Step 2: construct one-to-one mappings for the token ids from both sides
-    M = collections.defaultdict(dict)                   # alignment score matrix
+    M = collections.defaultdict(dict)               # alignment score matrix
     for i in nl_fillers:
         surface, filler_type = nl_fillers[i]
         filler_value = extract_value(filler_type, surface)
@@ -209,7 +249,8 @@ def get_slot_alignment(nl, cm):
     print
     for (i, j) in mappings:
         print(i, j)
-        # print('{} <-> {}'.format(nl_fillers[i][0].decode('utf-8'), cm_slots[j][0].decode('utf-8')))
+        # print('{} <-> {}'.format(nl_fillers[i][0].decode('utf-8'),
+        # cm_slots[j][0].decode('utf-8')))
     print
     for i in remained_fillers:
         print('filler {} is not matched to any slot\n'
@@ -220,7 +261,7 @@ def get_slot_alignment(nl, cm):
 def is_parameter(value):
     return constants.remove_quotation(value).startswith('$')
 
-# --- Slot filler extractors --- #
+# --- Filler value extractors --- #
 
 def extract_value(arg_type, value):
     """Extract slot filling values from the natural language."""
@@ -453,6 +494,8 @@ def extract_size(value):
     else:
         raise AttributeError('Unrecognized size unit: {}'.format(size_unit))
 
+# --- Slot filling functions --- #
+
 def heuristic_slot_filling(node, entities):
     """
     Fills the argument slots with heuristic rules. This rule-based slot-filling
@@ -463,9 +506,9 @@ def heuristic_slot_filling(node, entities):
     if ner_by_category is None:
         # no constants detected in the natural language query
         return True
-    
+
     def slot_filling_fun(node, arguments):
-        
+
         def fill_argument(filler_type, slot_type=None):
             if slot_type is None:
                 slot_type = filler_type
@@ -486,7 +529,7 @@ def heuristic_slot_filling(node, entities):
                     else:
                         node.value = value
             arguments[filler_type].pop(0)
-        
+
         if node.is_argument():
             if node.arg_type != 'Regex' and arguments[node.arg_type]:
                 fill_argument(node.arg_type)
@@ -521,18 +564,18 @@ def heuristic_slot_filling(node, entities):
         else:
             for child in node.children:
                 slot_filling_fun(child, arguments)
-     
+
     arguments = collections.defaultdict(list)
     for filler_type in constants.category_conversion:
         slot_type = constants.category_conversion[filler_type]
         arguments[slot_type] = \
             copy.deepcopy(ner_by_category[filler_type])
-    
+
     slot_filling_fun(node, arguments)
 
     # The template should fit in all arguments
     for key in arguments:
         if arguments[key]:
             return False
-    
+
     return True
