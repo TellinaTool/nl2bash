@@ -333,7 +333,9 @@ class RNNDecoder(decoder.Decoder):
 
                 # record output state to compute the loss.
                 if bs_decoding:
-                    outputs.append(tf.gather(output, tf.range(self.batch_size) * self.beam_size))
+                    # when doing beam search decoding, the output of each step
+                    # cannot be tracked outside the decoder
+                    pass
                 else:
                     outputs.append(output)
 
