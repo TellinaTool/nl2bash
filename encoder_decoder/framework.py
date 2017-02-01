@@ -443,7 +443,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         return encoder_outputs, decoder_outputs
 
 
-    def step(self, session, formatted_example, bucket_id=-1, forward_only=False):
+    def step(self, session, formatted_example, bucket_id=-1, forward_only=False,
+             return_rnn_hidden_states=False):
         """Run a step of the model feeding the given inputs.
         :param session: tensorflow session to use.
         :param encoder_inputs: list of numpy int vectors to feed as encoder inputs.
@@ -453,6 +454,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         :param target_weights: list of numpy float vectors to feed as target weights.
         :param bucket_id: which bucket of the model to use.
         :param forward_only: whether to do the backward step or only forward.
+        :param return_rnn_hidden_states: if set to True, return the hidden states of the
+            two RNNs.
         :return (gradient_norm, average_perplexity, outputs)
         """
 
@@ -469,7 +472,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed = [self.updates[bucket_id],         # Update Op that does SGD.
                                self.gradient_norms[bucket_id],  # Gradient norm.
                                self.losses[bucket_id]]          # Loss for this batch.
-                # output_feed.append(self.debug_vars[bucket_id])
         else:
             if bucket_id == -1:
                 output_feed = [self.output_symbols]             # Loss for this batch.
@@ -479,7 +481,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed = [self.output_symbols[bucket_id]]      # Loss for this batch.
                 output_feed.append(self.output_logits[bucket_id])   # Batch output sequence
                 output_feed.append(self.losses[bucket_id])          # Batch output logits
-                # output_feed.append(self.debug_vars[bucket_id])
 
         if self.use_attention:
             if bucket_id == -1:
@@ -487,20 +488,33 @@ class EncoderDecoderModel(graph_utils.NNModel):
             else:
                 output_feed.append(self.attn_masks[bucket_id])
 
+        if return_rnn_hidden_states:
+            output_feed.append(self.encoder_outputs)
+            output_feed.append(self.decoder_outputs)
+
         outputs = session.run(output_feed, input_feed)
 
+        outputs_to_return = []
         if not forward_only:
-            # Gradient norm, loss, no outputs, [attention_masks]
-            if self.use_attention:
-                return outputs[1], outputs[2], None, outputs[-1]
-            else:
-                return outputs[1], outputs[2], None, None
+            # Gradient norm, loss, no outputs
+            outputs_to_return.append(outputs[1])
+            outputs_to_return.append(outputs[2])
+            outputs_to_return.append(None)
         else:
-            # No gradient loss, output_symbols, output_logits, [attention_masks]
-            if self.use_attention:
-                return outputs[0], outputs[1], outputs[2], outputs[-1]
-            else:
-                return outputs[0], outputs[1], outputs[2], None
+            # No gradient loss, output_symbols, output_logits
+            outputs_to_return.append(outputs[0])
+            outputs_to_return.append(outputs[1])
+            outputs_to_return.append(outputs[2])
+        # [attention_masks]
+        if self.use_attention:
+            outputs_to_return.append(outputs[3])
+        else:
+            outputs_to_return.append(None)
+        if return_rnn_hidden_states:
+            outputs_to_return.append(outputs[4])
+            outputs_to_return.append(outputs[5])
+
+        return outputs_to_return
 
 
     def get_input_feed(self, formatted_example, bucket_id):

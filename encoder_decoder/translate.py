@@ -81,8 +81,7 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
                         .get_hidden_states(sess, formatted_example, bucket_id)
                     # add positive examples
                     for f, s in mappings:
-                        # user the reversed index for the encoder embedding
-                        # matrix
+                        # use reversed index for the encoder embedding matrix
                         f = _buckets[bucket_id][0] - f - 1
                         assert(f <= len(encoder_outputs))
                         assert(s <= len(decoder_outputs))
@@ -110,8 +109,8 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
         seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
             Seq2SeqModel, buckets=_buckets, forward_only=True)
 
-        # get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
-        #     FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
+        get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
+            FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
         get_slot_filling_training_data_fun(seq2seq_model, dev_set, os.path.join(
             FLAGS.data_dir, 'dev.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
         get_slot_filling_training_data_fun(seq2seq_model, test_set, os.path.join(
@@ -123,7 +122,7 @@ def train_slot_filling_classifier():
         log_device_placement=FLAGS.log_device_placement)) as sess:
         model, _ = graph_utils.create_model(sess, FLAGS,
             BinaryLogisticRegressionModel, buckets=None, forward_only=False,
-            construct_slot_filler=True)
+            construct_slot_filling=True)
         with open(os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
                                .format(FLAGS.sc_vocab_size))) as f:
             train_X, train_Y = pickle.load(f)
