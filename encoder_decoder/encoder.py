@@ -56,13 +56,15 @@ class BiRNNEncoder(Encoder):
         self.backward_rnn_vars = False
 
     def define_graph(self, encoder_inputs, embeddings):
+        # Each rnn in the bi-directional encoder have dimension which is half
+        # of that of the decoder.
+        # The hidden states of the two rnns are concatenated as the hidden
+        # states of the bi-directional encoder.
         self.embeddings = embeddings
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
-        outputs, state_fw, state_bw = rnn.bidirectional_rnn(self.fw_cell,
-                                                            self.bw_cell,
-                                                            input_embeddings,
-                                                            dtype=tf.float32)
+        outputs, state_fw, state_bw = rnn.bidirectional_rnn(
+            self.fw_cell, self.bw_cell, input_embeddings, dtype=tf.float32)
         if self.rnn_cell == "gru":
             state = outputs[-1]
         elif self.rnn_cell == "lstm":
@@ -72,9 +74,6 @@ class BiRNNEncoder(Encoder):
 
         return outputs, state
 
-    # Each rnn in the bi-directional encoder have dimension which is half of the decoder
-    # the hidden states of the two rnns are concatenated as the hidden states of
-    # the bi-directional encoder
     def forward_cell(self):
         """RNN cell for the forward RNN."""
         with tf.variable_scope("forward_cell") as scope:

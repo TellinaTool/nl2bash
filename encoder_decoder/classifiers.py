@@ -19,24 +19,28 @@ else:
     from encoder_decoder import graph_utils
 
 
-class kNearestNeighborModel():
+class KNearestNeighborModel():
     #TODO: change the numpy kNN model implementation to Tensorflow
     def __init__(self, k, train_X, train_Y):
         """
         :member k: number of neighboring examples to use
-        :member train_X: [size, dim] features matrix of the training examples
-        :member train_Y: [size, label_dim] label matrix of the training examples
+        :member train_X: [size, dim] training feature matrix
+        :member train_Y: [size, label_dim] training label matrix
         """
         self.k = k
         self.train_X = train_X
         self.train_Y = train_Y
 
     def predict(self, X):
+        """
+        :param X: [size, dim]
+        """
         sim_scores = np.matmul(X, self.train_X.T)
         nn = np.argpartition(sim_scores, -self.k, axis=1)[:, -self.k:]
         nn_weights = np.concatenate([np.expand_dims(sim_scores[i][nn[i]], 0)
                                      for i in xrange(len(nn))], axis=0)
-        nn_prediction = np.sum(np.expand_dims(nn_weights, 2) * self.train_Y[nn], axis=1) 
+        nn_prediction = np.sum(
+            np.expand_dims(nn_weights, 2) * self.train_Y[nn], axis=1)
         return nn_prediction
 
 
