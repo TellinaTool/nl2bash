@@ -56,6 +56,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
         nl_fillers = entities[0]
         encoder_outputs = model_step_outputs[4]
         decoder_outputs = model_step_outputs[5]
+    print(FLAGS.beam_size)
     print(encoder_outputs.shape)
     print(decoder_outputs.shape)
     batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS,
