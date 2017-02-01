@@ -4,49 +4,12 @@
 """Algorithms for filling the argument slots in a command template with the
    argument values extracted from the natural language"""
 
-import cPickle as pickle
 import collections, copy, datetime, re
 import numpy as np
-from numpy.linalg import norm
 
 from . import constants, tokenizer
 from .constants import strip
-from encoder_decoder.classifiers import KNearestNeighborModel
-from bashlex.data_tools import bash_tokenizer, pretty_print
-
-# --- Slot-filler pair scoring --- #
-
-def nn_slot_filling_raw_prediction_eval(train_path, dev_path):
-    """A nearest-neighbor slot-filling classifier."""
-    with open(train_path) as f:
-        train_X, train_Y = pickle.load(f)
-        train_X = np.concatenate(train_X, axis=0)
-        train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
-                                 axis=0)
-    with open(dev_path) as f:
-        dev_X, dev_Y = pickle.load(f)
-        dev_X = np.concatenate(dev_X, axis=0)
-    # normalizing the rows of the feature matrices
-    train_X = train_X / norm(train_X, axis=1)[:, None]
-    dev_X = dev_X / norm(dev_X, axis=1)[:, None]
-
-    # hyperparameters
-    k = 3
-    model = KNearestNeighborModel(k, train_X, train_Y)
-    nn_prediction = model.predict(dev_X)
-
-    # compute accuracy on the development set
-    threshold = 0.5
-    num_total = 0.0
-    num_correct = 0.0
-    for i in xrange(len(nn_prediction)):
-        if dev_Y[i][0] == 1 and nn_prediction[i][0] >= threshold:
-            num_correct += 1
-        if dev_Y[i][0] == 0 and nn_prediction[i][0] < threshold:
-            num_correct += 1
-        print(nn_prediction[i][0], dev_Y[i][0])
-        num_total += 1
-    print("Accuracy: ", num_correct / num_total)
+from bashlex.data_tools import bash_tokenizer
 
 # --- Slot-filler Alignment --- #
 
