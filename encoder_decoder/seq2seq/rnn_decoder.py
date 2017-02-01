@@ -372,7 +372,7 @@ class RNNDecoder(decoder.Decoder):
                     attn_masks = tf.reshape(attn_masks, [self.batch_size, self.beam_size,
                                             len(decoder_inputs), attention_states.get_shape()[1].value])
                 outputs = [tf.squeeze(s) for s in tf.split(
-                    1, past_cell_states.get_shape(1), past_cell_states)]
+                    1, past_cell_states.get_shape()[1], past_cell_states)]
                 return top_k_outputs, top_k_logits, outputs, state, attn_masks
             else:
                 # Greedy output

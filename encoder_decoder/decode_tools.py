@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 
 import collections
 import numpy as np
+from numpy.linalg import norm
 import re
 
 import tensorflow as tf
@@ -55,9 +56,8 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
         nl_fillers = entities[0]
         encoder_outputs = model_step_outputs[4]
         decoder_outputs = model_step_outputs[5]
-    print(FLAGS.beam_size)
-    print(encoder_outputs.shape)
-    print(decoder_outputs.shape)
+        print(encoder_outputs[0].shape)
+        print(decoder_outputs[0].shape)
     batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS,
                            grammatical_only=True,
                            nl_fillers=nl_fillers,
@@ -80,7 +80,7 @@ def demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS):
                                .format(FLAGS.sc_vocab_size))
         train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
         slot_filling_classifier = \
-                classifiers.KNearestNeighborModel(1, train_X, train_Y)
+                classifiers.KNearestNeighborModel(10, train_X, train_Y)
         print('Slot filling classifier parameters loaded.')
 
     # Decode from standard input.
@@ -163,8 +163,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                     tg = "".join([tf.compat.as_str(rev_tg_vocab[output])
                         for output in outputs]).replace(data_utils._UNK, ' ')
                 else:
-                    for i in xrange(len(outputs)):
-                        output = outputs[i]
+                    for ii in xrange(len(outputs)):
+                        output = outputs[ii]
                         if output < len(rev_tg_vocab):
                             pred_token = rev_tg_vocab[output]
                             if "@@" in pred_token:
@@ -172,7 +172,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                             output_tokens.append(pred_token)
                             if nl_fillers is not None and \
                                     pred_token in constants._ENTITIES:
-                                cm_slots[i] = (pred_token, pred_token)
+                                cm_slots[ii] = (pred_token, pred_token)
                         else:
                             output_tokens.append(data_utils._UNK)
                     tg = " ".join(output_tokens)
@@ -222,29 +222,33 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                             # Step 3b: check if the alignment score matrix generated in
                             # step 3a contains ambiguity
                             for f in M:
-                                if len([M[f][s] for s in M[f] if M[f][s] > -np.inf]) > 1:
+                                if len([s for s in M[f] if M[f][s] > -np.inf]) > 1:
                                     # Step 3c: if there exists ambiguity in the alignment
                                     # generated based on type info, adjust the alignment
                                     # score based on neural network run
                                     X = []
                                     # use reversed index for the encoder embeddings matrix
-                                    f = len(encoder_outputs) - f - 1
-                                    for s in cm_slots:
-                                        X.append(np.concatenate(
-                                            [encoder_outputs[f][i],
+                                    ff = len(encoder_outputs) - f - 1
+                                    cm_slots_keys = cm_slots.keys()
+                                    for s in cm_slots_keys:
+                                        X.append(np.expand_dims(np.concatenate(
+                                            [encoder_outputs[ff][i],
                                              decoder_outputs[s][i*FLAGS.beam_size+j]],
-                                            axis=1))
+                                            axis=0), 0))
                                     X = np.concatenate(X, axis=0)
+                                    X = X / norm(X, axis=1)[:, None]
                                     raw_scores = slot_filling_classifier.predict(X)
-                                    for s in xrange(len(raw_scores)):
-                                        M[f][s] += raw_scores[s]
+                                    for ii in xrange(len(raw_scores)):
+                                        s = cm_slots_keys[ii]
+                                        M[f][s] += raw_scores[ii][0]
+                                        print(nl_filler_values[f], cm_slots[s], raw_scores[ii][0]) 
                             mappings, remained_fillers = \
                                 slot_filling.stable_marriage_alignment(M)
                             if not remained_fillers:
                                 output_example = True
                                 for f, s in mappings:
                                     output_tokens[s] = nl_filler_values[f][0]
-                                tree = data_tools.bash_parser(''.join(output_tokens))
+                                tree = data_tools.bash_parser(' '.join(output_tokens))
                                 temp = data_tools.ast2command(tree, loose_constraints=True,
                                                               ignore_flag_order=False)
                     if output_example:
