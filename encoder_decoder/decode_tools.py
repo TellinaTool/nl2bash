@@ -51,14 +51,16 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
                                     return_rnn_hidden_states=FLAGS.fill_argument_slots)
     output_symbols, output_logits, losses, attn_masks = model_step_outputs[:4]
 
-    encoder_outputs, decoder_outputs = None, None
+    nl_fillers, encoder_outputs, decoder_outputs = None, None, None
     if FLAGS.fill_argument_slots:
+        nl_fillers = entities[0]
         encoder_outputs = model_step_outputs[4]
         decoder_outputs = model_step_outputs[5]
-
+    print(encoder_outputs.shape)
+    print(decoder_outputs.shape)
     batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS,
                            grammatical_only=True,
-                           nl_fillers=entities[0],
+                           nl_fillers=nl_fillers,
                            slot_filling_classifier=slot_filling_classifier,
                            encoder_outputs=encoder_outputs,
                            decoder_outputs=decoder_outputs)
@@ -172,7 +174,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                             if "@@" in pred_token:
                                 pred_token = pred_token.split("@@")[-1]
                             output_tokens.append(pred_token)
-                            if pred_token in constants._ENTITIES:
+                            if nl_fillers is not None and \
+                                    pred_token in constants._ENTITIES:
                                 cm_slots[i] = (pred_token, pred_token)
                         else:
                             output_tokens.append(data_utils._UNK)
@@ -183,7 +186,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
             # check if the predicted command templates have enough slots to
             # hold the fillers (to rule out templates that are trivially
             # unqualified)
-            if len(cm_slots) >= len(nl_fillers) or nl_fillers is None:
+            if nl_fillers is None or len(cm_slots) >= len(nl_fillers):
 
                 # Step 2: check if the predicted command template is grammatical
                 if FLAGS.dataset.startswith("bash"):
@@ -208,11 +211,12 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
 
                             # Step 3a: prepare alignment score matrix based on type info
                             M = collections.defaultdict(dict)
+                            nl_filler_values = collections.defaultdict()
                             for f in nl_fillers:
                                 assert(f <= len(encoder_outputs))
                                 surface, filler_type = nl_fillers[f]
-                                nl_fillers[f][0] = slot_filling.extract_value(
-                                    filler_type, surface)
+                                nl_filler_values[f] = (slot_filling.extract_value(
+                                    filler_type, surface), filler_type)
                                 for s in cm_slots:
                                     assert(s <= len(decoder_outputs))
                                     slot_value, slot_type = cm_slots[s]
@@ -221,7 +225,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                             # Step 3b: check if the alignment score matrix generated in
                             # step 3a contains ambiguity
                             for f in M:
-                                if len(M[f]) > 1:
+                                if len([M[f][s] for s in M[f] if M[f][s] > -np.inf]) > 1:
                                     # Step 3c: if there exists ambiguity in the alignment
                                     # generated based on type info, adjust the alignment
                                     # score based on neural network run
@@ -242,7 +246,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                             if not remained_fillers:
                                 output_example = True
                                 for f, s in mappings:
-                                    output_tokens[s] = nl_fillers[f][0]
+                                    output_tokens[s] = nl_filler_values[f][0]
                                 tree = data_tools.bash_parser(''.join(output_tokens))
                                 temp = data_tools.ast2command(tree, loose_constraints=True,
                                                               ignore_flag_order=False)
