@@ -32,6 +32,9 @@ class KNearestNeighborModel():
         self.train_Y = train_Y
 
     def predict(self, X):
+        """
+        :param X: [size, dim]
+        """
         sim_scores = np.matmul(X, self.train_X.T)
         nn = np.argpartition(sim_scores, -self.k, axis=1)[:, -self.k:]
         nn_weights = np.concatenate([np.expand_dims(sim_scores[i][nn[i]], 0)

@@ -17,7 +17,7 @@ from encoder_decoder import data_utils
 
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
-                 construct_model_dir=True, construct_slot_filler=False):
+                 construct_model_dir=True, construct_slot_filling=False):
     params = collections.defaultdict()
     params["source_vocab_size"] = FLAGS.sc_vocab_size
     params["target_vocab_size"] = FLAGS.tg_vocab_size
@@ -63,7 +63,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["top_k"] = FLAGS.top_k
 
     # construct model directory
-    model_subdir, model_sig = get_model_signature(FLAGS, construct_slot_filler)
+    model_subdir, model_sig = get_model_signature(FLAGS, construct_slot_filling)
     params["model_sig"] = model_sig
 
     model_root_dir = FLAGS.model_dir
@@ -116,7 +116,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     return model, global_epochs
 
 
-def get_model_signature(FLAGS, construct_slot_filler):
+def get_model_signature(FLAGS, construct_slot_filling):
     model_subdir = FLAGS.dataset
     if FLAGS.explanation:
         model_subdir += '-expl'
@@ -140,7 +140,7 @@ def get_model_signature(FLAGS, construct_slot_filler):
         model_subdir += '.canonical'
     elif FLAGS.normalized:
         model_subdir += '.normalized'
-    if construct_slot_filler:
+    if construct_slot_filling:
         model_subdir += '.slot.filler'
 
     model_sig = model_subdir + "-{}".format(FLAGS.decoding_algorithm)
