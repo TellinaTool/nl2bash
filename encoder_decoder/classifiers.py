@@ -44,6 +44,21 @@ class KNearestNeighborModel():
         #     / np.sum(nn_weights, axis=1)[:, None]
         return nn_prediction
 
+    def eval(self, X, Y):
+        nn_prediction = self.predict(X)
+        # compute accuracy
+        threshold = 0.5
+        num_total = 0.0
+        num_correct = 0.0
+        for i in xrange(len(nn_prediction)):
+            if Y[i][0] == 1 and nn_prediction[i][0] >= threshold:
+                num_correct += 1
+            if Y[i][0] == 0 and nn_prediction[i][0] < threshold:
+                num_correct += 1
+            print(nn_prediction[i][0], Y[i][0])
+            num_total += 1
+        print("Accuracy: ", num_correct / num_total)
+
 
 class BinaryLogisticRegressionModel(graph_utils.NNModel):
     # TODO: create separate graphs for the forward and backward passes of the
