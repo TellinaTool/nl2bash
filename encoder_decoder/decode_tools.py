@@ -74,14 +74,16 @@ def demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS):
     slot_filling_classifier = None
     if FLAGS.fill_argument_slots:
         # create slot filling classifier
-        with open(os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
-                               .format(FLAGS.sc_vocab_size))) as f:
+        model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
+                               .format(FLAGS.sc_vocab_size))
+        with open(model_param_dir) as f:
             train_X, train_Y = pickle.load(f)
             train_X = np.concatenate(train_X, axis=0)
             train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
                                      axis=0)
             slot_filling_classifier = \
                 classifiers.KNearestNeighborModel(1, train_X, train_Y)
+        print('Slot filling classifier parameters loaded.')
 
     # Decode from standard input.
     sys.stdout.write("> ")
