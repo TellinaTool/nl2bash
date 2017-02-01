@@ -40,8 +40,6 @@ else:
 
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
-if FLAGS.gen_slot_filling_training_data:
-    FLAGS.learning_rate = 0
 
 _buckets = graph_utils.get_buckets(FLAGS)
 
@@ -106,6 +104,7 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
+        print(FLAGS.decoding_algorithm)
         seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
             Seq2SeqModel, buckets=_buckets, forward_only=False)
 
@@ -139,7 +138,7 @@ def nn_slot_filling_raw_prediction_eval(train_path, dev_path):
     dev_X, dev_Y = data_utils.load_slot_filling_data(dev_path)
 
     # hyperparameters
-    k = 3
+    k = 1
     model = KNearestNeighborModel(k, train_X, train_Y)
     nn_prediction = model.predict(dev_X)
 
@@ -433,6 +432,9 @@ def data_statistics():
 
 
 def main(_):
+    if FLAGS.gen_slot_filling_training_data:
+        FLAGS.decoding_algorithm = 'greedy'
+        FLAGS.learning_rate = 0
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
     
@@ -451,7 +453,6 @@ def main(_):
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
     print("Saving models to {}".format(FLAGS.model_dir))
-
     if FLAGS.eval:
         _, dev_set, test_set = load_data()
         if FLAGS.test:
@@ -504,3 +505,4 @@ def main(_):
     
 if __name__ == "__main__":
     tf.app.run()
+

@@ -18,6 +18,7 @@ from encoder_decoder import data_utils
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
                  construct_model_dir=True, construct_slot_filling=False):
+    print(FLAGS.decoding_algorithm)
     params = collections.defaultdict()
     params["source_vocab_size"] = FLAGS.sc_vocab_size
     params["target_vocab_size"] = FLAGS.tg_vocab_size
@@ -143,8 +144,10 @@ def get_model_signature(FLAGS, construct_slot_filling):
     if construct_slot_filling:
         model_subdir += '.slot.filler'
 
+    print(FLAGS.decoding_algorithm)
     model_sig = model_subdir + "-{}".format(FLAGS.decoding_algorithm)
-    model_sig += "-{}".format(FLAGS.beam_size)
+    if FLAGS.decoding_algorithm == 'beam_search': 
+        model_sig += "-{}".format(FLAGS.beam_size)
     model_sig += ("-test" if FLAGS.test else "-dev")
     return model_subdir, model_sig
 
@@ -181,6 +184,7 @@ def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1,
 
 
 def get_buckets(FLAGS):
+    print(FLAGS.decoding_algorithm)
     # We use a number of buckets and pad to the closest one for efficiency.
     if FLAGS.dataset.startswith("bash"):
         if FLAGS.decoder_topology in ['basic_tree']:
