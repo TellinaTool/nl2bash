@@ -144,7 +144,6 @@ def get_model_signature(FLAGS, construct_slot_filling):
     if construct_slot_filling:
         model_subdir += '.slot.filler'
 
-    print(FLAGS.decoding_algorithm)
     model_sig = model_subdir + "-{}".format(FLAGS.decoding_algorithm)
     if FLAGS.decoding_algorithm == 'beam_search': 
         model_sig += "-{}".format(FLAGS.beam_size)
