@@ -41,7 +41,7 @@ else:
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
 if FLAGS.gen_slot_filling_training_data:
-    FLAGS.decoding_algorithm = 'greedy'
+    FLAGS.learning_rate = 0
 
 _buckets = graph_utils.get_buckets(FLAGS)
 
@@ -107,7 +107,7 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
-            Seq2SeqModel, buckets=_buckets, forward_only=True)
+            Seq2SeqModel, buckets=_buckets, forward_only=False)
 
         get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
             FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
