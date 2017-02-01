@@ -48,9 +48,9 @@ def annotate(tokens):
 
     sentence = ' '.join(tokens)
     ner_by_token_id = collections.defaultdict()
-    ner_by_pos = collections.defaultdict()
+    ner_by_char_pos = collections.defaultdict()
     ner_by_category = collections.defaultdict(list)
-    entities = (ner_by_pos, ner_by_category)
+    entities = (ner_by_char_pos, ner_by_category)
 
     # -- Size
     _SIZE_RE = re.compile(decorate_boundaries(
@@ -119,13 +119,13 @@ def annotate(tokens):
 
     # prepare list of tokens
     normalized_words = []
-    ner_by_pos, ner_by_category = entities
+    ner_by_char_pos, ner_by_category = entities
     i = 0
     for m in re.finditer(
         re.compile(constants._WORD_SPLIT_RESPECT_QUOTES), sentence):
         w = m.group(0)
         if set(w) == {'_'}:
-            surface, category = ner_by_pos[(m.start(0), m.end(0))]
+            surface, category = ner_by_char_pos[(m.start(0), m.end(0))]
             normalized_words.append(category)
             ner_by_token_id[i] = (surface, category)
         else:
@@ -133,17 +133,17 @@ def annotate(tokens):
                 # catch missed patterns in the final pass
                 normalized_words.append(constants._REGEX)
                 ner_by_token_id[i] = (w, constants._REGEX)
-                ner_by_pos[(m.start(0), m.end(0))] = (w, constants._REGEX)
+                ner_by_char_pos[(m.start(0), m.end(0))] = (w, constants._REGEX)
                 ner_by_category[constants._REGEX].append(
                     (w, m.start(0), m.end(0)))
             else:
                 normalized_words.append(w)
         i += 1
 
-    return normalized_words, (ner_by_token_id, ner_by_pos, ner_by_category)
+    return normalized_words, (ner_by_token_id, ner_by_char_pos, ner_by_category)
 
 def annotate_ner(pattern, category, sentence, entities):
-    ner_by_pos, ner_by_category = entities
+    ner_by_char_pos, ner_by_category = entities
     for m in re.finditer(pattern, sentence):
         surface = sentence[m.start(0):m.end(0)].strip()
         if category == constants._DATETIME:
@@ -164,7 +164,7 @@ def annotate_ner(pattern, category, sentence, entities):
             else m.end(0)
         sentence = sentence[:rep_start] + '_' * (rep_end - rep_start) + \
                    sentence[rep_end:]
-        ner_by_pos[(rep_start, rep_end)] = (surface, category)
+        ner_by_char_pos[(rep_start, rep_end)] = (surface, category)
         ner_by_category[category].append((surface, rep_start, rep_end))
     return sentence
 
