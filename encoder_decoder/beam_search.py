@@ -367,7 +367,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             cand_logprobs,
             beam_symbols,
             beam_logprobs,
-            cell_state
+            tf.expand_dims(cell_state, 1)
         )
 
     def zero_state(self, batch_size_times_beam_size, dtype):
