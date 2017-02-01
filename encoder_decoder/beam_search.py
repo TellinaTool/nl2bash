@@ -185,7 +185,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             past_cand_logprobs, # [batch_size]
             past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
             past_beam_logprobs, # [batch_size*self.beam_size]
-            past_cell_state,    # [batch_size*self.beam_size, dim]
+            past_cell_states,    # [batch_size*self.beam_size, max_len, dim]
         ) = state
         batch_size = past_cand_symbols.get_shape()[0].value
         full_size = batch_size * self.beam_size
@@ -201,6 +201,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         stop_mask = tf.cast(tf.equal(input_symbols, self.stop_token), tf.float32)
 
         cell_inputs = inputs
+
+        past_cell_state = self.get_past_cell_state(past_cell_states)
         if self.use_attention:
             cell_outputs, raw_cell_state, attn_masks = \
                 self.cell(cell_inputs, past_cell_state, attn_masks, scope)
@@ -270,9 +272,19 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]), 
                                             self.stop_token), tf.float32)
-        cell_state = nest_map(
+        # if nest.is_sequence(raw_cell_state):
+        #     raw_cell_states = (
+        #         tf.concat(1, [past_cell_states[0], tf.expand_dims(raw_cell_state[0], 1)]),
+        #         tf.concat(1, [past_cell_states[1], tf.expand_dims(raw_cell_state[1], 1)])
+        #     )
+        #     cell_states = (
+        #         nest_map(lambda element: tf.gather(element, parent_refs), raw_cell_states[0]),
+        #         nest_map(lambda element: tf.gather(element, parent_refs), raw_cell_states[1])
+        #     )
+        # TODO: this statement might choke if the cell state is a tuple
+        cell_states = nest_map(
             lambda element: tf.gather(element, parent_refs),
-            raw_cell_state
+            tf.concat(1, [past_cell_states, tf.expand_dims(raw_cell_state, 1)])
         )
 
         # Handling for getting a done token
@@ -293,7 +305,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 cand_logprobs,
                 beam_symbols,
                 beam_logprobs,
-                cell_state,
+                cell_states,
             ), attn_masks
         else:
             return cell_outputs, (
@@ -301,7 +313,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 cand_logprobs,
                 beam_symbols,
                 beam_logprobs,
-                cell_state,
+                cell_states,
             )
 
     @property
@@ -316,6 +328,17 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     @property
     def output_size(self):
         return 1
+
+    def get_past_cell_state(self, past_cell_states):
+        if nest.is_sequence(past_cell_states):
+            # LSTM
+            cell_states, hidden_states = past_cell_states
+            past_cell_state = cell_states[:, -1, :]
+            past_hidden_state = hidden_states[:, -1, :]
+            past_cell_state = (past_cell_state, past_hidden_state)
+        else:
+            past_cell_state = past_cell_states[:, -1, :]
+        return past_cell_state
 
     def _create_state(self, batch_size, dtype, cell_state=None):
         cand_symbols = tf.fill([batch_size, self.max_len],

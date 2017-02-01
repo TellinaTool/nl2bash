@@ -10,7 +10,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-import cPickle as pickle
 import collections
 import numpy as np
 import re
@@ -219,6 +218,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                                     slot_value, slot_type = cm_slots[s]
                                     M[f][s] = 0 if slot_filling.slot_filler_type_match(
                                         slot_type, filler_type) else -np.inf
+
                             # Step 3b: check if the alignment score matrix generated in
                             # step 3a contains ambiguity
                             for f in M:
