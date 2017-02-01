@@ -237,6 +237,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                                              decoder_outputs[s][i*FLAGS.beam_size+j]],
                                             axis=0), 0))
                                     X = np.concatenate(X, axis=0)
+                                    print(X)
                                     X = X / norm(X, axis=1)[:, None]
                                     raw_scores = slot_filling_classifier.predict(X)
                                     for ii in xrange(len(raw_scores)):

@@ -619,6 +619,7 @@ def load_slot_filling_data(data_dir):
         train_X = np.concatenate(train_X, axis=0)
         train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
                                  axis=0)
+        print(train_X[0])
         # normalize the rows of the feature matrices
         train_X = train_X / norm(train_X, axis=1)[:, None]
     return train_X, train_Y
