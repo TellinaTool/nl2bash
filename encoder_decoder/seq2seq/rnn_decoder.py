@@ -35,7 +35,6 @@ class RNNDecoder(decoder.Decoder):
 
             attn_masks = []
             beam_attn_masks = []
-            outputs = []
             bso_losses = []
             gt_logprobs = []
             debug_vars = []
@@ -98,7 +97,7 @@ class RNNDecoder(decoder.Decoder):
                         past_cand_logprobs, # [batch_size]
                         past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
                         past_beam_logprobs, # [batch_size*self.beam_size]
-                        past_cell_state,    # [batch_size*self.beam_size, dim]
+                        past_cell_states,   # [batch_size*self.beam_size, max_len, dim]
                     ) = beam_state
                     beam_input = past_beam_symbols[:, -1]
 
@@ -120,7 +119,6 @@ class RNNDecoder(decoder.Decoder):
                     decoder_scope.reuse_variables()
                     beam_output, beam_state = \
                         beam_decoder_cell(beam_input_embedding, beam_state, scope=decoder_scope)
-                outputs.append(output)
                 
                 # compute search-based training loss
                 if not forward_only:
@@ -132,7 +130,7 @@ class RNNDecoder(decoder.Decoder):
                         past_cand_logprobs, # [batch_size]
                         past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
                         past_beam_logprobs, # [batch_size*self.beam_size]
-                        past_cell_state,
+                        past_cell_states,   # [batch_size*self.beam_size, max_len, dim]
                     ) = beam_state
                     # [batch_size*beam_size, (i+1)]
                     partial_beam_symbols = past_beam_symbols[:, -(i+1):]
@@ -201,14 +199,19 @@ class RNNDecoder(decoder.Decoder):
                     )
                     beam_logprobs = tf.select(in_beam, past_beam_logprobs,
                                               ground_truth_logprobs)
+                    past_cell_state = beam_decoder.\
+                        get_past_cell_state(past_cell_states)
+                    # TODO: this statement might choke if the cell state is a tuple
                     cell_state = tf.select(in_beam, past_cell_state,
                                            beam_decoder.wrap_input(state))
+                    cell_states = tf.concat(1, [past_cell_states,
+                                                tf.expand_dims(cell_state, 1)])
                     beam_state = (
                                     past_cand_symbols,
                                     past_cand_logprobs,
                                     beam_symbols,
                                     beam_logprobs,
-                                    cell_state
+                                    cell_states
                                  )
 
             # Beam-search output
@@ -217,7 +220,7 @@ class RNNDecoder(decoder.Decoder):
                 past_cand_logprobs, # [batch_size]
                 past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
                 past_beam_logprobs, # [batch_size*self.beam_size]
-                past_cell_state,
+                past_cell_states,
             ) = beam_state
 
             # [self.batch_size, self.beam_size, max_len]
@@ -238,7 +241,7 @@ class RNNDecoder(decoder.Decoder):
                 beam_attn_masks = tf.concat(1, beam_attn_masks)
                 beam_attn_masks = tf.reshape(beam_attn_masks, [self.batch_size, self.beam_size,
                                         len(decoder_inputs), attention_states.get_shape()[1].value])
-
+            outputs = tf.split(1, past_cell_states.get_shape(1), past_cell_states)
         return top_k_outputs, top_k_logits, outputs, beam_state, beam_attn_masks, bso_losses
 
 
@@ -310,7 +313,7 @@ class RNNDecoder(decoder.Decoder):
                                 past_cand_logprobs, # [batch_size]
                                 past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
                                 past_beam_logprobs, # [batch_size*self.beam_size]
-                                past_cell_state,
+                                past_cell_states,   # [batch_size*self.beam_size, max_len, dim]
                             ) = state
                             input = past_beam_symbols[:, -1]
                         elif self.decoding_algorithm == "greedy":
@@ -333,8 +336,9 @@ class RNNDecoder(decoder.Decoder):
 
                 # record output state to compute the loss.
                 if bs_decoding:
-                    # when doing beam search decoding, the output of each step
-                    # cannot be tracked outside the decoder
+                    # when doing beam search decoding, the output state of each
+                    # step cannot simply be gathered step-wise outside the decoder
+                    # (speical case: beam_size = 1)
                     pass
                 else:
                     outputs.append(output)
@@ -350,7 +354,7 @@ class RNNDecoder(decoder.Decoder):
                     past_cand_logprobs, # [batch_size]
                     past_beam_symbols,  # [batch_size*self.beam_size, max_len], right-aligned!!!
                     past_beam_logprobs, # [batch_size*self.beam_size]
-                    past_cell_state,
+                    past_cell_states,
                 ) = state
                 # [self.batch_size, self.beam_size, max_len]
                 top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size, self.beam_size, -1])
@@ -367,6 +371,8 @@ class RNNDecoder(decoder.Decoder):
                 if self.use_attention:
                     attn_masks = tf.reshape(attn_masks, [self.batch_size, self.beam_size,
                                             len(decoder_inputs), attention_states.get_shape()[1].value])
+                outputs = [tf.squeeze(s) for s in tf.split(
+                    1, past_cell_states.get_shape(1), past_cell_states)]
                 return top_k_outputs, top_k_logits, outputs, state, attn_masks
             else:
                 # Greedy output
