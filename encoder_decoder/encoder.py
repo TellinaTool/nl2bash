@@ -39,8 +39,8 @@ class RNNEncoder(Encoder):
     def encoder_cell(self):
         """RNN cell for the encoder."""
         with tf.variable_scope("encoder_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
-                                                      self.dim, self.num_layers)
+            cell = graph_utils.create_multilayer_cell(
+                self.rnn_cell, scope, self.dim, self.num_layers)
             self.encoder_cell_vars = True
         return cell, scope
 
