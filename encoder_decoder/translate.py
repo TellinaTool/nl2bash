@@ -483,7 +483,12 @@ def main(_):
         train_set, dev_set, test_set = load_data(load_mappings=True)
         gen_slot_filling_training_data(train_set, dev_set, test_set)
     elif FLAGS.train_slot_filling:
-        train_slot_filling_classifier()
+        # train_slot_filling_classifier()
+        train_path = os.path.join(
+            FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size))
+        dev_path = os.path.join(
+            FLAGS.data_dir, 'dev.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size))
+        nn_slot_filling_raw_prediction_eval(train_path, dev_path)
     elif FLAGS.process_data:
         process_data()
     elif FLAGS.data_stats:
