@@ -621,6 +621,8 @@ def load_slot_filling_data(data_dir):
                                  axis=0)
         # normalize the rows of the feature matrices
         train_X = train_X / norm(train_X, axis=1)[:, None]
+        assert(len(train_X) == len(train_Y))
+        print('{} slot filling examples loaded'.format(len(train_X)))
     return train_X, train_Y
 
 # --- Load Datasets -- #
