@@ -138,20 +138,22 @@ def nn_slot_filling_raw_prediction_eval(train_path, dev_path):
     dev_X, dev_Y = data_utils.load_slot_filling_data(dev_path)
 
     # hyperparameters
-    k = 10
+    k = 1
     model = KNearestNeighborModel(k, train_X, train_Y)
-    nn_prediction = model.predict(dev_X)
+    X = train_X
+    Y = train_Y
+    nn_prediction = model.predict(X)
 
     # compute accuracy on the development set
-    threshold = 0.55
+    threshold = 0.5
     num_total = 0.0
     num_correct = 0.0
     for i in xrange(len(nn_prediction)):
-        if dev_Y[i][0] == 1 and nn_prediction[i][0] >= threshold:
+        if Y[i][0] == 1 and nn_prediction[i][0] >= threshold:
             num_correct += 1
-        if dev_Y[i][0] == 0 and nn_prediction[i][0] < threshold:
+        if Y[i][0] == 0 and nn_prediction[i][0] < threshold:
             num_correct += 1
-        print(nn_prediction[i][0], dev_Y[i][0])
+        print(nn_prediction[i][0], Y[i][0])
         num_total += 1
     print("Accuracy: ", num_correct / num_total)
 

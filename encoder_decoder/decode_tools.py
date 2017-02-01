@@ -80,7 +80,7 @@ def demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS):
                                .format(FLAGS.sc_vocab_size))
         train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
         slot_filling_classifier = \
-                classifiers.KNearestNeighborModel(10, train_X, train_Y)
+                classifiers.KNearestNeighborModel(1, train_X, train_Y)
         print('Slot filling classifier parameters loaded.')
 
     # Decode from standard input.
@@ -230,6 +230,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                                     # use reversed index for the encoder embeddings matrix
                                     ff = len(encoder_outputs) - f - 1
                                     cm_slots_keys = cm_slots.keys()
+                                    print(len(decoder_outputs))
                                     for s in cm_slots_keys:
                                         X.append(np.expand_dims(np.concatenate(
                                             [encoder_outputs[ff][i],
@@ -241,7 +242,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                                     for ii in xrange(len(raw_scores)):
                                         s = cm_slots_keys[ii]
                                         M[f][s] += raw_scores[ii][0]
-                                        print(nl_filler_values[f], cm_slots[s], raw_scores[ii][0]) 
+                                        print(nl_filler_values[f], cm_slots[s], raw_scores[ii][0])
+                                    print('') 
                             mappings, remained_fillers = \
                                 slot_filling.stable_marriage_alignment(M)
                             if not remained_fillers:
