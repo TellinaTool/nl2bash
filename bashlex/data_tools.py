@@ -52,9 +52,9 @@ def pretty_print(node, depth=0):
     """Pretty print the AST."""
     try:
         str = "    " * depth + node.kind.upper() + '(' + node.value + ')'
-    if node.is_argument():
-        str += '<' + node.arg_type + '>'
-    print(str)
+        if node.is_argument():
+            str += '<' + node.arg_type + '>'
+            print(str)
         for child in node.children:
             pretty_print(child, depth+1)
     except AttributeError:
