@@ -12,7 +12,11 @@ from __future__ import print_function
 import os
 import sys
 
-import cPickle as pickle
+if sys.version_info > (3, 0):
+    import _pickle as pickle
+else:
+    import cPickle as pickle
+
 import itertools
 import math
 import numpy as np
