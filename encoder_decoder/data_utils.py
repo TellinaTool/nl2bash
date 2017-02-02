@@ -23,7 +23,6 @@ import os, sys
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
-    import _pickle as pickle
 else:
     import cPickle as pickle
 
