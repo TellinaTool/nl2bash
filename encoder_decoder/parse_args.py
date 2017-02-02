@@ -129,6 +129,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("top_k", 5, "Top-k highest-scoring structures to output.")
     tf.app.flags.DEFINE_boolean("fill_argument_slots", False, "If set, fill the argument slots in "
         "the output command with filler constants extracted from the natural language input.")
+    tf.app.flags.DEFINE_boolean("num_nn_slot_filling", 1, "Number of nearest neighbors to use in "
+                                "the nearest neighbor slot-filling classifier.")
 
     tf.app.flags.DEFINE_integer("num_gts", 1, "maximum number of ground truths per example.")
     tf.app.flags.DEFINE_float("margin", 1.0, "margin for margin-based loss function")
