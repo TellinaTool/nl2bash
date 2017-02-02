@@ -4,5 +4,5 @@ This folder contains the implementation of a statistical spelling corrector and 
 
 To use the spelling corrector, simply decompress the following word list:
 ```
-unxz --keep most_common.txt.xz
+tar xvfJ most_common.tar.xz
 ```

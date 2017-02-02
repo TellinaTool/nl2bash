@@ -10,9 +10,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-import collections
-import numpy as np
-from numpy.linalg import norm
 import re
 
 import tensorflow as tf
@@ -46,8 +43,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
     # filtered out.
     # TODO: align output commands and their scores correctly
     model_step_outputs = model.step(sess, formatted_example, bucket_id,
-                                    forward_only=True,
-                                    return_rnn_hidden_states=FLAGS.fill_argument_slots)
+        forward_only=True, return_rnn_hidden_states=FLAGS.fill_argument_slots)
     output_symbols, output_logits, losses, attn_masks = model_step_outputs[:4]
 
     nl_fillers, encoder_outputs, decoder_outputs = None, None, None
@@ -202,55 +198,14 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                             output_example = True
                         else:
                             # Step 3: match the fillers to the argument slots
-
-                            # Step 3a: prepare alignment score matrix based on type info
-                            M = collections.defaultdict(dict)
-                            nl_filler_values = collections.defaultdict()
-                            for f in nl_fillers:
-                                assert(f <= len(encoder_outputs))
-                                surface, filler_type = nl_fillers[f]
-                                nl_filler_values[f] = (slot_filling.extract_value(
-                                    filler_type, surface), filler_type)
-                                for s in cm_slots:
-                                    assert(s <= len(decoder_outputs))
-                                    slot_value, slot_type = cm_slots[s]
-                                    M[f][s] = 0 if slot_filling.slot_filler_type_match(
-                                        slot_type, filler_type) else -np.inf
-
-                            # Step 3b: check if the alignment score matrix generated in
-                            # step 3a contains ambiguity
-                            for f in M:
-                                if len([s for s in M[f] if M[f][s] > -np.inf]) > 1:
-                                    # Step 3c: if there exists ambiguity in the alignment
-                                    # generated based on type info, adjust the alignment
-                                    # score based on neural network run
-                                    X = []
-                                    # use reversed index for the encoder embeddings matrix
-                                    ff = len(encoder_outputs) - f - 1
-                                    cm_slots_keys = cm_slots.keys()
-                                    for s in cm_slots_keys:
-                                        X.append(np.expand_dims(np.concatenate(
-                                            [encoder_outputs[ff][i],
-                                             decoder_outputs[s][i*FLAGS.beam_size+j]],
-                                            axis=0), 0))
-                                    X = np.concatenate(X, axis=0)
-                                    print(X[0][:40])
-                                    X = X / norm(X, axis=1)[:, None]
-                                    raw_scores = slot_filling_classifier.predict(X)
-                                    for ii in xrange(len(raw_scores)):
-                                        s = cm_slots_keys[ii]
-                                        M[f][s] += raw_scores[ii][0]
-                                        print(nl_filler_values[f], cm_slots[s], raw_scores[ii][0])
-                                    print('') 
-                            mappings, remained_fillers = \
-                                slot_filling.stable_marriage_alignment(M)
-                            if not remained_fillers:
+                            temp = slot_filling.stable_slot_filling(
+                                output_tokens, nl_fillers, cm_slots,
+                                encoder_outputs[i],
+                                decoder_outputs[i*FLAGS.beam_size+j],
+                                slot_filling_classifier
+                            )
+                            if temp is not None:
                                 output_example = True
-                                for f, s in mappings:
-                                    output_tokens[s] = nl_filler_values[f][0]
-                                tree = data_tools.bash_parser(' '.join(output_tokens))
-                                temp = data_tools.ast2command(tree, loose_constraints=True,
-                                                              ignore_flag_order=False)
                     if output_example:
                         if FLAGS.decoding_algorithm == "greedy":
                             batch_outputs.append((tree, temp, outputs))

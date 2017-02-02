@@ -609,7 +609,7 @@ def slot_filling_mapping_induction(FLAGS):
                 '{}.{}.mappings'.format(dataset, nl_vocab_size)), 'w') as o_f:
             for nl, cm in zip(nl_list, cm_list):
                 mappings = \
-                    slot_filling.slot_filler_stable_marriage_alignment(nl, cm)
+                    slot_filling.slot_filler_alignment_induction(nl, cm)
                 if mappings:
                     for i, j in sorted(mappings, key=lambda x:x[0]):
                         o_f.write('{}-{} '.format(i, j))
