@@ -299,7 +299,7 @@ def stable_marriage_alignment(M):
             [(j, M[i][j]) for j in M[i] if M[i][j] > -np.inf],
             key=lambda x:x[1], reverse=True)
 
-    remained_rows = M.keys()
+    remained_rows = list(M.keys())
     matched_cols = {}
 
     while (remained_rows):

@@ -616,15 +616,15 @@ def slot_filling_mapping_induction(FLAGS):
                 o_f.write('\n')
 
 def load_slot_filling_data(data_dir):
-    with open(data_dir) as f:
-        train_X, train_Y = pickle.load(f)
+    with open(data_dir, 'rb') as f:
+        train_X, train_Y = pickle.load(f, encoding='latin-1')
         train_X = np.concatenate(train_X, axis=0)
         train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
                                  axis=0)
-        print(train_X[0][:40])
+        # print(train_X[0][:40])
         # normalize the rows of the feature matrices
         train_X = train_X / norm(train_X, axis=1)[:, None]
-        print(train_X[0][:40])
+        # print(train_X[0][:40])
         assert(len(train_X) == len(train_Y))
         print('{} slot filling examples loaded'.format(len(train_X)))
     return train_X, train_Y
