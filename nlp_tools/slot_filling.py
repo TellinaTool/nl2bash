@@ -7,7 +7,7 @@
 import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
-    
+
 import collections, copy, datetime, re
 import numpy as np
 from numpy.linalg import norm
@@ -84,7 +84,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
             X = []
             # use reversed index for the encoder embeddings matrix
             ff = len(encoder_outputs) - f - 1
-            cm_slots_keys = cm_slots.keys()
+            cm_slots_keys = list(cm_slots.keys())
             for s in cm_slots_keys:
                 X.append(np.expand_dims(np.concatenate(
                     [encoder_outputs[ff], decoder_outputs[s]],
