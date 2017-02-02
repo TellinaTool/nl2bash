@@ -38,7 +38,7 @@ def get_fill_in_value(cm_slot, nl_filler):
     return slot_filler_value
 
 def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
-                        decoder_outputs, slot_filling_classifier, verbose):
+                        decoder_outputs, slot_filling_classifier, verbose=False):
     """
     Fills the argument slots using local alignment scores that are learnt and
     a greedy global alignment algorithm (stable marriage).
