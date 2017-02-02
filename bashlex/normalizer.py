@@ -1050,7 +1050,7 @@ def to_command(node, loose_constraints=False, ignore_flag_order=False):
                 str += to_command_fun(node.children[-1])
                 str = str.strip()
             else:
-                str += node.value + ' '
+                str += node.value
         elif node.kind == "unarylogicop":
             assert(loose_constraints or node.get_num_of_children() == 0)
             if lc and node.get_num_of_children() > 0:
@@ -1061,7 +1061,7 @@ def to_command(node, loose_constraints=False, ignore_flag_order=False):
                     str += '{} {}'.format(
                         to_command_fun(node.get_left_child()), node.value)
             else:
-                str += node.value + ' '
+                str += node.value
         elif node.kind == "bracket":
             assert(loose_constraints or node.get_num_of_children() >= 1)
             if lc and node.get_num_of_children() < 2:
