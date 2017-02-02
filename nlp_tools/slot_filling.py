@@ -108,8 +108,9 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
         temp = ast2command(tree, loose_constraints=True,
                            ignore_flag_order=False)
     else:
+        tree = None
         temp = None
-    return temp
+    return tree, temp
 
 def heuristic_slot_filling(node, entities):
     """
