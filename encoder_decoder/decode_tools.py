@@ -33,7 +33,6 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
     else:
         token_ids, entities = data_utils.sentence_to_token_ids(
             sentence, sc_vocab, tokenizer.ner_tokenizer, None)
-    print(token_ids)
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
                     if model.buckets[b][0] > len(token_ids)])
@@ -56,8 +55,6 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
         nl_fillers = entities[0]
         encoder_outputs = model_step_outputs[4]
         decoder_outputs = model_step_outputs[5]
-        print(encoder_outputs[0].shape)
-        print(decoder_outputs[0].shape)
     batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS,
                            grammatical_only=True,
                            nl_fillers=nl_fillers,
