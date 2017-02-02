@@ -18,7 +18,7 @@ _QUANTITIES = ['Number', '+Number', '-Number',
                'Permission', '+Permission', '-Permission']
 _ENTITIES = _PATTERNS + _QUANTITIES + ['Type', 'Unknown']
 
-category_conversion = {
+type_conversion = {
     _FILE: 'File',
     _DIRECTORY: 'Directory',
     _PATH: 'Path',
