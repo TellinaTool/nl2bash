@@ -23,11 +23,13 @@ import os, sys
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
+    import _pickle as pickle
+else:
+    import cPickle as pickle
 
 from bashlex import normalizer, data_tools
 from nlp_tools import tokenizer, slot_filling
 
-import cPickle as pickle
 import collections
 from numpy.linalg import norm
 import numpy as np

@@ -12,7 +12,11 @@ from __future__ import print_function
 import os
 import sys
 
-import cPickle as pickle
+if sys.version_info > (3, 0):
+    import _pickle as pickle
+else:
+    import cPickle as pickle
+
 import itertools
 import math
 import numpy as np
@@ -84,7 +88,7 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
                         assert(f <= len(encoder_outputs))
                         assert(s <= len(decoder_outputs))
                         X.append(np.concatenate(
-                            [encoder_outputs[f], decoder_outputs[s]], axis=1))
+                            [encoder_outputs[ff], decoder_outputs[s]], axis=1))
                         Y.append(np.array([1, 0]))
                         # add negative examples
                         # sample unmatched filler-slot pairs as negative examples
@@ -93,21 +97,26 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
                                 X.append(np.concatenate(
                                     [encoder_outputs[ff], decoder_outputs[n_s]], axis=1))
                                 Y.append(np.array([0, 1]))
+                        # Debugging
+                        if i == 0:
+                            print(ff)
+                            print(encoder_outputs[ff].shape)
+                            print(X[0].shape)
+                            print(encoder_outputs[ff][0, :40])
+                            print(X[0][0, :40])
                 if i > 0 and i % 1000 == 0:
                     print('{} training examples gathered for training slot filling...'
                          .format(len(X)))
         assert(len(X) == len(Y))
 
-        print(X[0], Y[0])
         with open(output_file, 'w') as o_f:
             pickle.dump([X, Y], o_f)
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
-        print(FLAGS.decoding_algorithm)
         seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
-            Seq2SeqModel, buckets=_buckets, forward_only=False)
+            Seq2SeqModel, buckets=_buckets, forward_only=True)
 
         get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
             FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
@@ -141,8 +150,8 @@ def nn_slot_filling_raw_prediction_eval(train_path, dev_path):
     # hyperparameters
     k = 1
     model = KNearestNeighborModel(k, train_X, train_Y)
-    model.eval(train_X, train_Y)
-    model.eval(dev_X, dev_Y)
+    model.eval(train_X, train_Y, verbose=True)
+    model.eval(dev_X, dev_Y, verbose=False)
 
 
 # --- Run/train encoder-decoder models --- #
@@ -423,6 +432,7 @@ def data_statistics():
 
 def main(_):
     if FLAGS.gen_slot_filling_training_data:
+        FLAGS.beam_size = 1
         FLAGS.learning_rate = 0
 
     # set GPU device
