@@ -47,8 +47,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
     # filtered out.
     # TODO: align output commands and their scores correctly
     model_step_outputs = model.step(sess, formatted_example, bucket_id,
-                                    forward_only=True,
-                                    return_rnn_hidden_states=FLAGS.fill_argument_slots)
+        forward_only=True, return_rnn_hidden_states=FLAGS.fill_argument_slots)
     output_symbols, output_logits, losses, attn_masks = model_step_outputs[:4]
 
     nl_fillers, encoder_outputs, decoder_outputs = None, None, None
