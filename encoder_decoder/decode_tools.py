@@ -25,8 +25,8 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     if FLAGS.char:
-        token_ids, entities = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+        token_ids, entities = data_utils.sentence_to_token_ids(sentence,
+            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
     else:
         token_ids, entities = data_utils.sentence_to_token_ids(
             sentence, sc_vocab, tokenizer.ner_tokenizer, None)
@@ -48,6 +48,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
 
     nl_fillers, encoder_outputs, decoder_outputs = None, None, None
     if FLAGS.fill_argument_slots:
+        assert(slot_filling_classifier is not None)
         nl_fillers = entities[0]
         encoder_outputs = model_step_outputs[4]
         decoder_outputs = model_step_outputs[5]
