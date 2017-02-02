@@ -87,22 +87,24 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
                         ff = _buckets[bucket_id][0] - f - 1
                         assert(f <= len(encoder_outputs))
                         assert(s <= len(decoder_outputs))
-                        X.append(np.concatenate(
-                            [encoder_outputs[ff], decoder_outputs[s]], axis=1))
+                        X.append(np.concatenate([encoder_outputs[:, ff, :],
+                                                 decoder_outputs[:, s, :]],
+                                                axis=1))
                         Y.append(np.array([1, 0]))
                         # add negative examples
                         # sample unmatched filler-slot pairs as negative examples
                         if len(mappings) > 1:
                             for n_s in [ss for _, ss in mappings if ss != s]:
                                 X.append(np.concatenate(
-                                    [encoder_outputs[ff], decoder_outputs[n_s]], axis=1))
+                                    [encoder_outputs[:, ff, :],
+                                     decoder_outputs[:, n_s, :]], axis=1))
                                 Y.append(np.array([0, 1]))
                         # Debugging
                         if i == 0:
                             print(ff)
-                            print(encoder_outputs[ff].shape)
+                            print(encoder_outputs[:, ff, :].shape)
                             print(X[0].shape)
-                            print(encoder_outputs[ff][0, :40])
+                            print(encoder_outputs[:, ff, :][0, :40])
                             print(X[0][0, :40])
                 if i > 0 and i % 1000 == 0:
                     print('{} training examples gathered for training slot filling...'

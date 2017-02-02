@@ -6,11 +6,188 @@
 
 import collections, copy, datetime, re
 import numpy as np
+from numpy.linalg import norm
 
 from . import constants, tokenizer
-from bashlex.data_tools import bash_tokenizer
+from bashlex.data_tools import bash_tokenizer, bash_parser, ast2command
 
-# --- Slot-filler Alignment --- #
+# --- Slot filling functions --- #
+
+def get_fill_in_value(cm_slot, nl_filler):
+    """
+    Compute an argument slot value in the command after it has been filled,
+    mostly deal with file name formatting, adding signs to quantities, etc.
+    :param cm_slot: (slot_value, slot_type)
+    :param nl_filler: (filler_value, filler_type)
+
+    """
+    slot_value, slot_type = cm_slot
+    filler_value, filler_type = nl_filler
+
+    # In most cases the filler can be directly copied into the slot
+    slot_filler_value = filler_value
+
+    if slot_type in constants._QUANTITIES:
+        if slot_value.startswith('+'):
+            slot_filler_value = filler_value if filler_value.startswith('+') \
+                else '+{}'.format(filler_value)
+        elif slot_value.startswith('-'):
+            slot_filler_value = filler_value if filler_value.startswith('-') else \
+                '-{}'.format(filler_value)
+
+    return slot_filler_value
+
+def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
+                        decoder_outputs, slot_filling_classifier, verbose):
+    """
+    Fills the argument slots using local alignment scores that are learnt and
+    a greedy global alignment algorithm (stable marriage).
+
+    :param template_tokens: list of tokens in the command template
+    :param nl_fillers: the slot fillers extracted from the natural language
+        sentence, indexed by token id
+    :param cm_slots: the argument slots in the command template, indexed by
+        token id
+    :param encoder_outputs: [encoder_size, dim] sequence of encoder hidden states
+    :param decoder_outputs: [decoder_size, dim] sequence of decoder hidden states
+    :param slot_filling_classifier: the classifier that produces the local
+        alignment scores
+    :param verbose: print all local alignment scores if set to true
+    """
+
+    # Step a: prepare alignment score matrix based on type info
+    M = collections.defaultdict(dict)
+    nl_filler_values = collections.defaultdict()
+    for f in nl_fillers:
+        assert(f <= len(encoder_outputs))
+        surface, filler_type = nl_fillers[f]
+        nl_filler_values[f] = (extract_value(filler_type, surface),
+                               filler_type)
+        for s in cm_slots:
+            assert(s <= len(decoder_outputs))
+            slot_value, slot_type = cm_slots[s]
+            M[f][s] = 0 if slot_filler_type_match(slot_type, filler_type) \
+                else -np.inf
+
+    # Step b: check if the alignment score matrix generated in
+    # step a contains ambiguity
+    alignment_id = 0
+    for f in M:
+        if len([s for s in M[f] if M[f][s] > -np.inf]) > 1:
+            # Step 3c: if there exists ambiguity in the alignment
+            # generated based on type info, adjust the alignment
+            # score based on neural network run
+            X = []
+            # use reversed index for the encoder embeddings matrix
+            ff = len(encoder_outputs) - f - 1
+            cm_slots_keys = cm_slots.keys()
+            for s in cm_slots_keys:
+                X.append(np.expand_dims(np.concatenate(
+                    [encoder_outputs[ff], decoder_outputs[s]],
+                    axis=0), 0))
+            X = np.concatenate(X, axis=0)
+            X = X / norm(X, axis=1)[:, None]
+            raw_scores = slot_filling_classifier.predict(X)
+            for ii in xrange(len(raw_scores)):
+                s = cm_slots_keys[ii]
+                M[f][s] += raw_scores[ii][0]
+                if verbose:
+                    print('alignment {}: {}\t{}\t{}'.format(
+                        nl_filler_values[f], cm_slots[s], raw_scores[ii][0]))
+
+    mappings, remained_fillers = stable_marriage_alignment(M)
+    if not remained_fillers:
+        for f, s in mappings:
+            template_tokens[s] = get_fill_in_value(cm_slots[s],
+                                                   nl_filler_values[f])
+        tree = bash_parser(' '.join(template_tokens))
+        temp = ast2command(tree, loose_constraints=True,
+                           ignore_flag_order=False)
+    else:
+        temp = None
+    return temp
+
+def heuristic_slot_filling(node, entities):
+    """
+    Fills the argument slots with heuristic rules.
+    This rule-based slot-filling algorithm has high error-rate in practice.
+
+    :param node: the ast of a command template whose slots are to be filled
+    :param entities: the slot fillers extracted from the natural language
+        sentence, indexed by token id, character position and category,
+        respectively.
+    """
+    _, _, ner_by_category = entities
+
+    if ner_by_category is None:
+        # no constants detected in the natural language query
+        return True
+
+    def slot_filling_fun(node, arguments):
+
+        def fill_argument(filler_type, slot_type=None):
+            if slot_type is None:
+                slot_type = filler_type
+            surface = arguments[filler_type][0][0]
+            value = extract_value(filler_type, surface)
+            if filler_type == 'Timespan' and slot_type == 'Number':
+                value = extract_value(slot_type, value)
+            if value is not None:
+                node.value = get_fill_in_value((node.value, node.arg_type),
+                                               (value, filler_type))
+            arguments[filler_type].pop(0)
+
+        if node.is_argument():
+            if node.arg_type != 'Regex' and arguments[node.arg_type]:
+                fill_argument(node.arg_type)
+            elif node.arg_type == 'Number':
+                if arguments['Timespan']:
+                    fill_argument(filler_type='Timespan', slot_type='Number')
+                    return
+            elif node.arg_type == 'Path':
+                if arguments['Directory']:
+                    fill_argument(filler_type='Directory', slot_type='Path')
+                    return
+                if arguments['File']:
+                    fill_argument(filler_type='File', slot_type='Path')
+                    return
+                node.value = '.'
+            elif node.arg_type == 'Directory':
+                if arguments['File']:
+                    fill_argument(filler_type='File', slot_type='Directory')
+                    return
+                if arguments['Regex']:
+                    fill_argument(filler_type='Regex', slot_type='Directory')
+            elif node.arg_type in ['Username', 'Groupname']:
+                if arguments['Regex']:
+                    fill_argument(filler_type='Regex', slot_type='Username')
+            elif node.arg_type == 'Regex':
+                if arguments['File']:
+                    fill_argument(filler_type='File', slot_type='Regex')
+                    return
+                if arguments['Number']:
+                    fill_argument(filler_type='Number', slot_type='Regex')
+                    return
+        else:
+            for child in node.children:
+                slot_filling_fun(child, arguments)
+
+    arguments = collections.defaultdict(list)
+    for filler_type in constants.type_conversion:
+        slot_type = constants.type_conversion[filler_type]
+        arguments[slot_type] = \
+            copy.deepcopy(ner_by_category[filler_type])
+
+    slot_filling_fun(node, arguments)
+
+    # The template should fit in all arguments
+    for key in arguments:
+        if arguments[key]:
+            return False
+
+    return True
+
+# --- Slot-filler Alignment Induction --- #
 
 def slot_filler_value_match(slot_value, filler_value, slot_type):
     """(Fuzzily) compute the matching score between a slot filler extracted
@@ -148,7 +325,7 @@ def stable_marriage_alignment(M):
     return [(y, x) for (x, (y, score)) in sorted(matched_cols.items(),
             key=lambda x:x[1][1], reverse=True)], remained_rows
 
-def slot_filler_stable_marriage_alignment(nl, cm):
+def slot_filler_alignment_induction(nl, cm):
     """Give a pair of (nl, cm) that is known to be the translation of each
        other, align the slot fillers extracted from the natural language with
        the slots in the command.
@@ -204,8 +381,8 @@ def is_parameter(value):
 
 def extract_value(arg_type, value):
     """Extract slot filling values from the natural language."""
-    if arg_type in constants.category_conversion:
-        arg_type = constants.category_conversion[arg_type]
+    if arg_type in constants.type_conversion:
+        arg_type = constants.type_conversion[arg_type]
 
     # remove quotations if there is any
     if constants.with_quotation(value):
@@ -252,22 +429,25 @@ def extract_filename(value):
     file_extension_re = re.compile(constants._FILE_EXTENSION_RE)
     path_re = re.compile(constants._PATH_RE)
 
-    if re.search(re.compile(r'[^ ]*\.[^ ]+'), value):
-        # the pattern being matched represents a regular file
-        match = re.match(file_extension_re, strip(value))
-        if match:
-            return '"*.' + match.group(0) + '"'
-    if re.match(quoted_span_re, value):
-        return value
-    if re.match(special_symbol_re, value):
-        return value
-    # file extension plural
-    match = re.search(file_extension_re, value)
-    if match:
-        return match.group(0)
+    # path
     match = re.search(path_re, value)
     if match:
         return match.group(0)
+    # special symbol
+    if re.match(special_symbol_re, value):
+        return value
+    # file extension
+    # if re.search(re.compile(r'[^ ]*\.[^ ]+'), value):
+    #     # the pattern being matched represents a regular file
+    #     match = re.match(file_extension_re, strip(value))
+    #     if match:
+    #         return '"*.' + match.group(0) + '"'
+    match = re.search(file_extension_re, value)
+    if match:
+        return '"*.' + match.group(0) + '"'
+    # quotes
+    if re.match(quoted_span_re, value):
+        return value
     raise AttributeError('Unrecognized file name {}'.format(value))
 
 def extract_permission(value):
@@ -432,92 +612,6 @@ def extract_size(value):
         return sign + '{}{}'.format(number, unit)
     else:
         raise AttributeError('Unrecognized size unit: {}'.format(size_unit))
-
-# --- Slot filling functions --- #
-
-def heuristic_slot_filling(node, entities):
-    """
-    Fills the argument slots with heuristic rules. This rule-based slot-filling
-    algorithm does not achieve enough accuracy in practice.
-    """
-    _, _, ner_by_category = entities
-
-    if ner_by_category is None:
-        # no constants detected in the natural language query
-        return True
-
-    def slot_filling_fun(node, arguments):
-
-        def fill_argument(filler_type, slot_type=None):
-            if slot_type is None:
-                slot_type = filler_type
-            surface = arguments[filler_type][0][0]
-            value = extract_value(filler_type, surface)
-            if filler_type == 'Timespan' and slot_type == 'Number':
-                value = extract_value(slot_type, value)
-            if value is not None:
-                if slot_type in constants._PATTERNS:
-                    node.value = value
-                elif slot_type in constants._QUANTITIES:
-                    if node.value.startswith('+'):
-                        node.value = value if value.startswith('+') else \
-                            '+{}'.format(value)
-                    elif node.value.startswith('-'):
-                        node.value = value if value.startswith('-') else \
-                            '-{}'.format(value)
-                    else:
-                        node.value = value
-            arguments[filler_type].pop(0)
-
-        if node.is_argument():
-            if node.arg_type != 'Regex' and arguments[node.arg_type]:
-                fill_argument(node.arg_type)
-            elif node.arg_type == 'Number':
-                if arguments['Timespan']:
-                    fill_argument(filler_type='Timespan', slot_type='Number')
-                    return
-            elif node.arg_type == 'Path':
-                if arguments['Directory']:
-                    fill_argument(filler_type='Directory', slot_type='Path')
-                    return
-                if arguments['File']:
-                    fill_argument(filler_type='File', slot_type='Path')
-                    return
-                node.value = '.'
-            elif node.arg_type == 'Directory':
-                if arguments['File']:
-                    fill_argument(filler_type='File', slot_type='Directory')
-                    return
-                if arguments['Regex']:
-                    fill_argument(filler_type='Regex', slot_type='Directory')
-            elif node.arg_type in ['Username', 'Groupname']:
-                if arguments['Regex']:
-                    fill_argument(filler_type='Regex', slot_type='Username')
-            elif node.arg_type == 'Regex':
-                if arguments['File']:
-                    fill_argument(filler_type='File', slot_type='Regex')
-                    return
-                if arguments['Number']:
-                    fill_argument(filler_type='Number', slot_type='Regex')
-                    return
-        else:
-            for child in node.children:
-                slot_filling_fun(child, arguments)
-
-    arguments = collections.defaultdict(list)
-    for filler_type in constants.category_conversion:
-        slot_type = constants.category_conversion[filler_type]
-        arguments[slot_type] = \
-            copy.deepcopy(ner_by_category[filler_type])
-
-    slot_filling_fun(node, arguments)
-
-    # The template should fit in all arguments
-    for key in arguments:
-        if arguments[key]:
-            return False
-
-    return True
 
 def strip(pattern):
     # special_start_1c_re = re.compile(r'^[\"\'\*\\\/\.-]]')
