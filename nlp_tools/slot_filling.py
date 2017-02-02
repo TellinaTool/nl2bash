@@ -4,6 +4,10 @@
 """Algorithms for filling the argument slots in a command template with the
    argument values extracted from the natural language"""
 
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
+    
 import collections, copy, datetime, re
 import numpy as np
 from numpy.linalg import norm
