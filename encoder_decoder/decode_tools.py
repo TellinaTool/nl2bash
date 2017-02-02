@@ -21,7 +21,7 @@ from eval.eval_archive import DBConnection
 
 
 def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
-                  slot_filling_classifier=None):
+                  slot_filling_classifier=None, verbose=False):
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     if FLAGS.char:
@@ -57,7 +57,8 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
                            nl_fillers=nl_fillers,
                            slot_filling_classifier=slot_filling_classifier,
                            encoder_outputs=encoder_outputs,
-                           decoder_outputs=decoder_outputs)
+                           decoder_outputs=decoder_outputs,
+                           verbose=verbose)
 
     return batch_outputs, output_logits
 
