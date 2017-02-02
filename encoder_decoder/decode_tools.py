@@ -25,8 +25,8 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     if FLAGS.char:
-        token_ids, entities = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+        token_ids, entities = data_utils.sentence_to_token_ids(sentence,
+            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
     else:
         token_ids, entities = data_utils.sentence_to_token_ids(
             sentence, sc_vocab, tokenizer.ner_tokenizer, None)
@@ -48,6 +48,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
 
     nl_fillers, encoder_outputs, decoder_outputs = None, None, None
     if FLAGS.fill_argument_slots:
+        assert(slot_filling_classifier is not None)
         nl_fillers = entities[0]
         encoder_outputs = model_step_outputs[4]
         decoder_outputs = model_step_outputs[5]
@@ -203,7 +204,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                             output_example = True
                         else:
                             # Step 3: match the fillers to the argument slots
-                            temp = slot_filling.stable_slot_filling(
+                            tree2, temp = slot_filling.stable_slot_filling(
                                 output_tokens, nl_fillers, cm_slots,
                                 encoder_outputs[i],
                                 decoder_outputs[i*FLAGS.beam_size+j],
@@ -211,6 +212,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                             )
                             if temp is not None:
                                 output_example = True
+                                tree = tree2
                     if output_example:
                         if FLAGS.decoding_algorithm == "greedy":
                             batch_outputs.append((tree, temp, outputs))
@@ -276,7 +278,6 @@ def decode_set(sess, model, dataset, rev_sc_vocab, rev_tg_vocab,
                     tg_strs = batch_tg_strs[batch_id]
                     sc = batch_scs[batch_id]
                     sc_temp = ' '.join([rev_sc_vocab[i] for i in sc])
-
                     if verbose:
                         print("Example {}:{}".format(bucket_id, example_id))
                         print("(Orig) Source: " + sc_str.strip())
