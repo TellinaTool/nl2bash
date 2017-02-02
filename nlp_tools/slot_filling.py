@@ -256,9 +256,9 @@ def slot_filler_type_match(slot_type, filler_type):
         '_TIMESPAN:::Timespan',
         '_TIMESPAN:::+Timespan',
         '_TIMESPAN:::-Timespan',
-        '_TIMESPAN:::Number',
-        '_TIMESPAN:::+Number',
-        '_TIMESPAN:::-Number',
+        # '_TIMESPAN:::Number',
+        # '_TIMESPAN:::+Number',
+        # '_TIMESPAN:::-Number',
         '_DATETIME:::DateTime',
         '_DATETIME:::+DateTime',
         '_DATETIME:::-DateTime',
@@ -341,7 +341,11 @@ def slot_filler_alignment_induction(nl, cm):
     cm_slots = {}
     for i in xrange(len(cm_tokens_with_types)):
         if cm_tokens_with_types[i] in constants._ENTITIES:
-            cm_slots[i] = (cm_tokens[i], cm_tokens_with_types[i])
+            if i > 0 and is_min_flag(cm_tokens_with_types[i-1]):
+                cm_token_type = 'Timespan'
+            else:
+                cm_token_type = cm_tokens_with_types[i]
+            cm_slots[i] = (cm_tokens[i], cm_token_type)
     
     # Step 2: construct one-to-one mappings for the token ids from both sides
     M = collections.defaultdict(dict)               # alignment score matrix
@@ -636,3 +640,8 @@ def strip(pattern):
             pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-']:
         pattern = pattern[:-1]
     return pattern
+
+def is_min_flag(token):
+    if len(token) == 5 and token.endswith('min') and token.startswith('-'):
+        return True
+    return False
