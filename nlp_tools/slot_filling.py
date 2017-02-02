@@ -4,6 +4,10 @@
 """Algorithms for filling the argument slots in a command template with the
    argument values extracted from the natural language"""
 
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
+
 import collections, copy, datetime, re
 import numpy as np
 from numpy.linalg import norm
@@ -38,7 +42,7 @@ def get_fill_in_value(cm_slot, nl_filler):
     return slot_filler_value
 
 def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
-                        decoder_outputs, slot_filling_classifier, verbose=False):
+                    decoder_outputs, slot_filling_classifier, verbose=False):
     """
     Fills the argument slots using local alignment scores that are learnt and
     a greedy global alignment algorithm (stable marriage).
@@ -80,7 +84,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
             X = []
             # use reversed index for the encoder embeddings matrix
             ff = len(encoder_outputs) - f - 1
-            cm_slots_keys = cm_slots.keys()
+            cm_slots_keys = list(cm_slots.keys())
             for s in cm_slots_keys:
                 X.append(np.expand_dims(np.concatenate(
                     [encoder_outputs[ff], decoder_outputs[s]],
@@ -104,8 +108,9 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
         temp = ast2command(tree, loose_constraints=True,
                            ignore_flag_order=False)
     else:
+        tree = None
         temp = None
-    return temp
+    return tree, temp
 
 def heuristic_slot_filling(node, entities):
     """
@@ -299,7 +304,7 @@ def stable_marriage_alignment(M):
             [(j, M[i][j]) for j in M[i] if M[i][j] > -np.inf],
             key=lambda x:x[1], reverse=True)
 
-    remained_rows = M.keys()
+    remained_rows = list(M.keys())
     matched_cols = {}
 
     while (remained_rows):
