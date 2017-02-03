@@ -172,6 +172,21 @@ def paren_parser(line):
     return root
 
 
+def fill_default_value(node):
+    """
+    Fill empty slot in the bash ast with default value.
+    """
+    if node.is_argument():
+        if node.arg_type in constants._ENTITIES:
+            if node.arg_type == 'Path' and node.parent.is_headcommand() \
+                    and node.parent.value == 'find':
+                node.value = '.'
+            elif node.arg_type == 'Regex':
+                node.value = '\'*\''
+            else:
+                node.arg_type = '[' + node.arg_type.lower() + ']'
+
+
 def test_bash_parser():
     while True:
         try:
