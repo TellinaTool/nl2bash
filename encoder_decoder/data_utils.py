@@ -617,7 +617,10 @@ def slot_filling_mapping_induction(FLAGS):
 
 def load_slot_filling_data(data_dir):
     with open(data_dir, 'rb') as f:
-        train_X, train_Y = pickle.load(f, encoding='latin-1')
+        if sys.version_info > (3, 0):
+            train_X, train_Y = pickle.load(f, encoding='latin-1')
+        else:
+            train_X, train_Y = pickle.load(f)
         train_X = np.concatenate(train_X, axis=0)
         train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
                                  axis=0)
