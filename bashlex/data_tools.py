@@ -178,19 +178,22 @@ def fill_default_value(node):
     """
     if node.is_argument():
         if node.arg_type in constants._ENTITIES:
-            print(node.value)
             if node.arg_type == 'Path' and node.parent.is_headcommand() \
-                and node.parent.value == 'find' and node.value == 'Path':
+                and node.parent.value == 'find' and node.value in constants._ENTITIES:
                 node.value = '.'
             elif node.arg_type == 'Regex':
                 if  node.parent.is_headcommand() and node.parent.value == 'grep' \
-                    and  node.value == 'Regex':
+                    and node.value in constants._ENTITIES:
                     node.value = '\'.*\''           
                 elif node.parent.is_option() and node.parent.value == '-name' \
                     and node.value == 'Regex':
                     node.value = '"*"'
+            elif node.arg_type == 'Number' and node.headcommand.value in ['head', 'tail'] \
+                and node.value in constants._ENTITIES:
+                node.value = '10'
             else:
-                node.value = '[' + node.arg_type.lower() + ']'
+                if node.is_open_vocab():
+                    node.value = '[' + node.arg_type.lower() + ']'
     else:
         for child in node.children:
             fill_default_value(child)
