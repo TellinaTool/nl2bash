@@ -304,7 +304,6 @@ def stable_marriage_alignment(M):
             [(j, M[i][j]) for j in M[i] if M[i][j] > -np.inf],
             key=lambda x:x[1], reverse=True)
 
-    print(M)
     remained_rows = list(M.keys())
     matched_cols = {}
 
@@ -327,7 +326,6 @@ def stable_marriage_alignment(M):
                         remained_rows.append(k)
         if not preferred_list_changed:
             break
-    print(remained_rows)
     return [(y, x) for (x, (y, score)) in sorted(matched_cols.items(),
             key=lambda x:x[1][1], reverse=True)], remained_rows
 
