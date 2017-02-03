@@ -14,7 +14,7 @@ from numpy.linalg import norm
 
 from . import constants, tokenizer
 from bashlex.data_tools import bash_tokenizer, bash_parser, ast2command, \
-    fill_default_value
+    fill_default_value, pretty_print
 
 # --- Slot filling functions --- #
 
@@ -107,6 +107,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
                                                    nl_filler_values[f])
         tree = bash_parser(' '.join(template_tokens))
         if not tree is None:
+            print(remained_fillers)
             fill_default_value(tree)
         temp = ast2command(tree, loose_constraints=True,
                            ignore_flag_order=False)
