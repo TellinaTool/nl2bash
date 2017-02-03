@@ -177,19 +177,17 @@ def fill_default_value(node):
     Fill empty slot in the bash ast with default value.
     """
     if node.is_argument():
-        if node.arg_type in constants._ENTITIES:
+        if node.value in constants._ENTITIES:
             if node.arg_type == 'Path' and node.parent.is_headcommand() \
-                and node.parent.value == 'find' and node.value in constants._ENTITIES:
+                and node.parent.value == 'find':
                 node.value = '.'
             elif node.arg_type == 'Regex':
-                if  node.parent.is_headcommand() and node.parent.value == 'grep' \
-                    and node.value in constants._ENTITIES:
+                if  node.parent.is_headcommand() and node.parent.value == 'grep':
                     node.value = '\'.*\''           
                 elif node.parent.is_option() and node.parent.value == '-name' \
                     and node.value == 'Regex':
                     node.value = '"*"'
-            elif node.arg_type == 'Number' and node.headcommand.value in ['head', 'tail'] \
-                and node.value in constants._ENTITIES:
+            elif node.arg_type == 'Number' and node.headcommand.value in ['head', 'tail']:
                 node.value = '10'
             else:
                 if node.is_open_vocab():
