@@ -157,6 +157,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace(" -chour +1 ", " -cmin 60 ")
     cmd = cmd.replace(" -target-directory ", " --target-directory=")
     cmd = cmd.replace("- perm", "-perm")
+    cmd = cmd.replace("'-rd\\n' ", '')
 
     ## remove shell character
     if cmd.startswith("$ "):
@@ -241,13 +242,14 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             attach_to_tree(norm_node, current)
             attach_to_tree(arg_node, norm_node)
         else:
-            value = normalize_word(node, recover_quotes)
+            # value = normalize_word(node, recover_quotes)
+            value = node.word
             norm_node = FlagNode(value=value)
             attach_to_tree(norm_node, current)
         return norm_node
 
     def normalize_headcommand(node, current):
-        value = normalize_word(node, recover_quotes)
+        value = node.word
         norm_node = HeadCommandNode(value=value)
         attach_to_tree(norm_node, current)
         return norm_node
@@ -329,7 +331,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 if (lsb.kind == "binarylogicop" and lsb.get_num_of_children() < 2) \
                         or lsb.value == "(":
                     # TODO: this corner case is not handled very well
-                    # it is often triggered by the bizarreness of -prune
+                    # it is often triggered by the bizarre usage of -prune
                     return
                 make_sibling(lsb.lsb, node)
                 node.parent.remove_child(lsb)
@@ -425,10 +427,12 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         str += new_option
                     else:
                         str = options + " splitted into: "
-                        for option in options:
-                            new_option = '-' + option
+                        for i in xrange(len(options)):
+                            option = options[i]
                             new_node = copy.deepcopy(node)
-                            new_node.word = new_option
+                            new_node.word = '-' + option
+                            new_node.pos = (node.pos[0] + i + 1,
+                                            node.pos[1] + i + 2)
                             normalize_flag(new_node, attach_point)
                             str += new_node.word + ' '
                     if verbose:
@@ -472,8 +476,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                     binary_logic_ops.append(norm_node)
                 else:
                     if child.word == "--" and not attach_point.is_command("awk"):
-                        attach_point_info = (attach_point_info[0],
-                                             ["argument"],
+                        attach_point_info = (attach_point_info[0], ["argument"],
                                              attach_point_info[2])
                         ind += 1
                         continue
@@ -552,8 +555,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                                 new_command_node.parts = []
                                 for j in xrange(ind, len(node.parts)):
                                     new_command_node.parts.append(node.parts[j])
-                                normalize_command(new_command_node,
-                                                  attach_point)
+                                normalize_command(new_command_node, attach_point)
                                 ind = j
                             else:
                                 arg_type = cmd_arg_type_check(child.word, arg_status)
@@ -599,8 +601,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 make_parent_child(stack_top.parent, rparenth)
                 make_sibling(stack_top, rparenth)
             new_child = organize_buffer(lparenth, rparenth)
-            i = head_command.substitute_parentheses(lparenth, rparenth,
-                                                    new_child)
+            i = head_command.substitute_parentheses(
+                lparenth, rparenth, new_child)
             depth -= 1
             if depth > 0:
                 # embedded parenthese
@@ -715,7 +717,6 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         repl_str_node2.lsb = sub_command.get_right_child()
                         sub_command.children.append(repl_str_node2)
                         break
-
 
     def normalize(node, current, node_kind="", arg_type=""):
         # recursively normalize each subtree
@@ -883,7 +884,8 @@ def arg_slots(node):
 
     arg_slot_fun(node)
 
-    return [[node, taken] for _, node, taken in sorted(slots, key=lambda x:x[0])]
+    return [[node, taken] for _, node, taken in
+            sorted(slots, key=lambda x:x[0])]
 
 
 def prune_ast(node):
