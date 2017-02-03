@@ -269,6 +269,9 @@ def decode_set(sess, model, dataset, rev_sc_vocab, rev_tg_vocab,
                 else:
                     batch_size = FLAGS.batch_size
                 formatted_example = model.format_example(batch_scs, batch_tgs, bucket_id=bucket_id)
+                print(formatted_example[0][0].shape, formatted_example[1][0].shape)
+                print(FLAGS.batch_size)
+                print(FLAGS.beam_size)
                 output_symbols, output_logits, losses, attn_masks = \
                         model.step(sess, formatted_example, bucket_id, forward_only=True)
                 batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS)
