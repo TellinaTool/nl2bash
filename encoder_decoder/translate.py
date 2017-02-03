@@ -150,7 +150,7 @@ def nn_slot_filling_raw_prediction_eval(train_path, dev_path):
     dev_X, dev_Y = data_utils.load_slot_filling_data(dev_path)
 
     # hyperparameters
-    k = 1
+    k = 10
     model = KNearestNeighborModel(k, train_X, train_Y)
     model.eval(train_X, train_Y, verbose=True)
     model.eval(dev_X, dev_Y, verbose=False)
@@ -507,4 +507,3 @@ def main(_):
     
 if __name__ == "__main__":
     tf.app.run()
-
