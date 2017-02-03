@@ -107,7 +107,6 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
                                                    nl_filler_values[f])
         tree = bash_parser(' '.join(template_tokens))
         if not tree is None:
-            print(remained_fillers)
             fill_default_value(tree)
         temp = ast2command(tree, loose_constraints=True,
                            ignore_flag_order=False)
