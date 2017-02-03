@@ -161,9 +161,6 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                     for ii in xrange(len(outputs)):
                         output = outputs[ii]
                         if output < len(rev_tg_vocab):
-                            print(ii, len(outputs))
-                            print(output)
-                            print(rev_tg_vocab[output])
                             pred_token = rev_tg_vocab[output]
                             if "@@" in pred_token:
                                 pred_token = pred_token.split("@@")[-1]
@@ -179,7 +176,6 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                         else:
                             output_tokens.append(data_utils._UNK)
                     tg = " ".join(output_tokens)
-                    print(tg)
             else:
                 tree, tg, outputs = to_readable(outputs, rev_tg_vocab)
 
