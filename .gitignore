@@ -50,6 +50,7 @@ beam_search*eval*
 /paper
 /data/reader
 tools/spellcheck/*.txt
+grammar/primitive_cmds_grammar2.json
 
 # IDE-specific stuff:
 __pycache__

@@ -12,7 +12,8 @@ import warnings
 
 from bs4 import BeautifulSoup
 
-from data_tools import basic_tokenizer, bash_tokenizer, is_stopword, cmd2template
+from nlp_tools.tokenizer import basic_tokenizer
+from nlp_tools.constants import is_stopword
 
 html_rel2abs = re.compile('"/[^\s<>]*/*http')
 hypothes_header = re.compile('\<\!\-\- WB Insert \-\-\>.*\<\!\-\- End WB Insert \-\-\>', re.DOTALL)
