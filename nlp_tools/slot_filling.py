@@ -446,9 +446,6 @@ def extract_filename(value):
     match = re.search(path_re, value)
     if match:
         return match.group(0)
-    # special symbol
-    if re.match(special_symbol_re, value):
-        return value
     # file extension
     # if re.search(re.compile(r'[^ ]*\.[^ ]+'), value):
     #     # the pattern being matched represents a regular file
@@ -458,6 +455,9 @@ def extract_filename(value):
     match = re.search(file_extension_re, value)
     if match:
         return '"*.' + match.group(0) + '"'
+    # special symbol
+    if re.match(special_symbol_re, value):
+        return value
     # quotes
     if re.match(quoted_span_re, value):
         return value
@@ -497,18 +497,19 @@ def extract_datetime(value):
         month = re.search(month_re, value).group(0)
         month = constants.digitize_month[month[:3]]
         date_year = re.findall(digit_re, value)
-        if len(date_year) == 2:
-            date = date_year[0]
-            year = date_year[1]
-            formatted_datetime = '{}-{}-{:02}'.format(year, month, int(date))
-        else:
-            if ',' in value:
-                year = date_year[0]
-                formatted_datetime = '{}-{}'.format(year, month)
-            else:
+        if date_year:
+            if len(date_year) == 2:
                 date = date_year[0]
-                formatted_datetime = '{}-{}-{:02}'.format(
-                    datetime.datetime.now().year, month, int(date))
+                year = date_year[1]
+                formatted_datetime = '{}-{}-{:02}'.format(year, month, int(date))
+            else:
+                if ',' in value:
+                    year = date_year[0]
+                    formatted_datetime = '{}-{}'.format(year, month)
+                else:
+                    date = date_year[0]
+                    formatted_datetime = '{}-{}-{:02}'.format(
+                        datetime.datetime.now().year, month, int(date))
         return formatted_datetime
     elif re.match(rel_day_re, value):
         if value == 'today':
