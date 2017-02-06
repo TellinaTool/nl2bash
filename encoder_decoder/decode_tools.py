@@ -93,16 +93,19 @@ def demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS):
             score = output_logits[0]
             print("{} ({})".format(pred_cmd, score))
         elif FLAGS.decoding_algorithm == "beam_search":
-            top_k_predictions = batch_outputs[0]
-            top_k_scores = output_logits[0]
-            for j in xrange(min(FLAGS.beam_size, 10)):
-                if len(top_k_predictions) <= j:
-                    break
-                top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
-                    top_k_predictions[j]
-                print("Prediction {}: {} ({}) ".format(
-                    j+1, top_k_pred_cmd, top_k_scores[j]))
-            print()
+            if batch_outputs:
+                top_k_predictions = batch_outputs[0]
+                top_k_scores = output_logits[0]
+                for j in xrange(min(FLAGS.beam_size, 10, len(batch_outputs[0]))):
+                    if len(top_k_predictions) <= j:
+                        break
+                    top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
+                        top_k_predictions[j]
+                    print("Prediction {}: {} ({}) ".format(
+                        j+1, top_k_pred_cmd, top_k_scores[j]))
+                print()
+            else:
+                print("I'm very sorry, I can't translate this command at the moment.")
         print("> ", end="")
         sys.stdout.flush()
         sentence = sys.stdin.readline()

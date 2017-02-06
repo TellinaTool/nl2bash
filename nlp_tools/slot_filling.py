@@ -98,7 +98,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
                 M[f][s] += raw_scores[ii][0]
                 if verbose:
                     print('alignment {}: {}\t{}\t{}'.format(
-                        nl_filler_values[f], cm_slots[s], raw_scores[ii][0]))
+                        ii, nl_filler_values[f], cm_slots[s], raw_scores[ii][0]))
 
     mappings, remained_fillers = stable_marriage_alignment(M)
     if not remained_fillers:
