@@ -267,9 +267,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         losses = encoder_decoder_loss + attention_loss
 
         # store encoder/decoder output states
-        self.encoder_outputs = tf.concat(1, [tf.expand_dims(e_o, 1)
+        self.encoder_outputs = tf.concat(1, [tf.reshape(e_o, [-1, 1, self.dim])
                                              for e_o in encoder_outputs])
-        self.decoder_outputs = tf.concat(1, [tf.expand_dims(d_o, 1)
+        self.decoder_outputs = tf.concat(1, [tf.reshape(d_o, [-1, 1, self.dim])
                                              for d_o in outputs])
 
         return output_symbols, output_logits, losses, attn_mask
