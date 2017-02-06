@@ -936,7 +936,6 @@ def list_to_ast(list, order='dfs'):
             symbol = list[i]
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
                 if current and current.is_headcommand():
-                    # print(current.value)
                     arg_status_stack.pop()
                 current = current.parent
             else:

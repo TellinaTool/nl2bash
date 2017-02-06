@@ -161,9 +161,6 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                     for ii in xrange(len(outputs)):
                         output = outputs[ii]
                         if output < len(rev_tg_vocab):
-                            print(ii, len(outputs))
-                            print(output)
-                            print(rev_tg_vocab[output])
                             pred_token = rev_tg_vocab[output]
                             if "@@" in pred_token:
                                 pred_token = pred_token.split("@@")[-1]
@@ -179,7 +176,6 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                         else:
                             output_tokens.append(data_utils._UNK)
                     tg = " ".join(output_tokens)
-                    print(tg)
             else:
                 tree, tg, outputs = to_readable(outputs, rev_tg_vocab)
 
@@ -273,6 +269,9 @@ def decode_set(sess, model, dataset, rev_sc_vocab, rev_tg_vocab,
                 else:
                     batch_size = FLAGS.batch_size
                 formatted_example = model.format_example(batch_scs, batch_tgs, bucket_id=bucket_id)
+                print(formatted_example[0][0].shape, formatted_example[1][0].shape)
+                print(FLAGS.batch_size)
+                print(FLAGS.beam_size)
                 output_symbols, output_logits, losses, attn_masks = \
                         model.step(sess, formatted_example, bucket_id, forward_only=True)
                 batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS)
