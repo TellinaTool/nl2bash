@@ -444,6 +444,12 @@ def extract_filename(value):
     match = re.search(path_re, value)
     if match:
         return match.group(0)
+    # quotes
+    if re.match(quoted_span_re, value):
+        return value
+    # special symbol
+    if re.match(special_symbol_re, value):
+        return value
     # file extension
     # if re.search(re.compile(r'[^ ]*\.[^ ]+'), value):
     #     # the pattern being matched represents a regular file
@@ -453,12 +459,6 @@ def extract_filename(value):
     match = re.search(file_extension_re, value)
     if match:
         return '"*.' + match.group(0) + '"'
-    # special symbol
-    if re.match(special_symbol_re, value):
-        return value
-    # quotes
-    if re.match(quoted_span_re, value):
-        return value
     raise AttributeError('Unrecognized file name {}'.format(value))
 
 def extract_permission(value):
@@ -653,3 +653,8 @@ def is_min_flag(token):
     if len(token) == 5 and token.endswith('min') and token.startswith('-'):
         return True
     return False
+
+if __name__ == '__main__':
+    nl = 'Find all btree*.c files under current directory'
+    cm = 'find . -type f -name \'btree*.c\''
+    slot_filler_alignment_induction(nl, cm)
