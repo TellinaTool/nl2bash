@@ -89,8 +89,11 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     if FLAGS.gen_slot_filling_training_data:
         FLAGS.batch_size = 1
+        params["batch_size"] = 1
         FLAGS.beam_size = 1
+        params["beam_size"] = 1
         FLAGS.learning_rate = 0
+        params["learning_rate"] = 1
 
     model = model_constructor(params, buckets, forward_only)
 
