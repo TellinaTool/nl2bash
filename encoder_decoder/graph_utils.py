@@ -93,7 +93,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         FLAGS.beam_size = 1
         params["beam_size"] = 1
         FLAGS.learning_rate = 0
-        params["learning_rate"] = 1
+        params["learning_rate"] = 0
 
     model = model_constructor(params, buckets, forward_only)
 
