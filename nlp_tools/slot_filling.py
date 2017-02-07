@@ -543,22 +543,17 @@ def extract_timespan(value):
     else:
         sign = ''
     if duration_unit.startswith('y'):
-        return sign + '{}d'.format(int(float(number)*365))
+        return sign + '{}'.format(int(float(number)*365))
     if duration_unit.startswith('mon'):
-        return sign + '{}d'.format(int(float(number)*30))
+        return sign + '{}'.format(int(float(number)*30))
     if duration_unit.startswith('w'):
-        if '.' in number:
-            number = int(float(number) * 7)
-            unit = 'd'
-        else:
-            unit = 'w'
-        return sign + '{}{}'.format(number, unit)
+        return sign + '{}'.format(int(float(number)*7))
     if duration_unit.startswith('d'):
         if '.' in number:
             number = int(float(number) * 24)
             unit = 'h'
         else:
-            unit = 'd'
+            unit = ''
         return sign + '{}{}'.format(number, unit)
     if duration_unit.startswith('h'):
         if '.' in number:
