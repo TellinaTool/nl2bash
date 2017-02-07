@@ -74,7 +74,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     print("model_sig={}".format(model_sig))
 
     if forward_only:
-        if FLAGS.demo or FLAGS.gen_slot_filling_training_data:
+        if FLAGS.demo:
             FLAGS.batch_size = 1
             params["batch_size"] = 1
         else:
@@ -86,7 +86,12 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         params["encoder_output_keep"] = 1.0
         params["decoder_input_keep"] = 1.0
         params["decoder_output_keep"] = 1.0
-    
+
+    if FLAGS.gen_slot_filling_training_data:
+        FLAGS.batch_size = 1
+        FLAGS.beam_size = 1
+        FLAGS.learning_rate = 0
+
     model = model_constructor(params, buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
@@ -105,8 +110,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         if FLAGS.pretrained_model_subdir:
             # load pre-trained parameteres for advanced training algorithms
             pretrain_dir = os.path.join(model_root_dir, FLAGS.pretrained_model_subdir)
-            print("Reading pre-trained model parameters from {}"
-                  .format(pretrain_dir))
+            print("Reading pre-trained model parameters from {}".format(pretrain_dir))
             pretrain_ckpt = tf.train.get_checkpoint_state(pretrain_dir)
             model.saver.restore(session, pretrain_ckpt.model_checkpoint_path)
             session.run(model.learning_rate.assign(tf.constant(FLAGS.learning_rate)))

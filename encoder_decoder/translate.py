@@ -432,10 +432,6 @@ def data_statistics():
 
 
 def main(_):
-    if FLAGS.gen_slot_filling_training_data:
-        FLAGS.beam_size = 1
-        FLAGS.learning_rate = 0
-
     # set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
     
