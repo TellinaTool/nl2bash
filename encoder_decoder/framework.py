@@ -51,7 +51,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                          trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
-
+        print(hyperparams["learning_rate"])
+        print(hyperparams["learning_rate_decay_factor"])
         # variable sharing
         self.output_projection_vars = False
         self.source_embedding_vars = False

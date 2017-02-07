@@ -79,8 +79,9 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
                     decoder_inputs = [dataset[bucket_id][i][3]]
                     formatted_example = model.format_example(
                         encoder_inputs, decoder_inputs, bucket_id=bucket_id)
-                    encoder_outputs, decoder_outputs = model\
-                        .get_hidden_states(sess, formatted_example, bucket_id)
+                    _, _, _, _, encoder_outputs, decoder_outputs = model\
+                        .step(sess, formatted_example, bucket_id,
+                              forward_only=True, return_rnn_hidden_states=True)
                     # add positive examples
                     for f, s in mappings:
                         # use reversed index for the encoder embedding matrix
@@ -118,7 +119,7 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
-            Seq2SeqModel, buckets=_buckets, forward_only=True)
+            Seq2SeqModel, buckets=_buckets, forward_only=False)
 
         get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
             FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
