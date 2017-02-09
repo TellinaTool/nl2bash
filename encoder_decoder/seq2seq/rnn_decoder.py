@@ -91,7 +91,6 @@ class RNNDecoder(decoder.Decoder):
                     decoder_scope.reuse_variables()
 
                     if forward_only and not self.force_reading_input:
-                        print('reading decoded input')
                         if self.decoding_algorithm == "beam_search":
                             (
                                 past_cand_symbols,  # [batch_size, max_len]
