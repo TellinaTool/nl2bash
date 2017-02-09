@@ -136,6 +136,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
 
     batch_outputs = []
 
+    num_output_examples = 0
     for i in xrange(len(output_symbols)):
         top_k_predictions = output_symbols[i]
         assert((FLAGS.decoding_algorithm == "greedy") or 
@@ -222,6 +223,12 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                             batch_outputs.append((tree, temp, outputs))
                         else:
                             beam_outputs.append((tree, temp, outputs))
+                        num_output_examples += 1
+
+            # TODO: this threshold is introduced because the slot-filling step
+            # is slow
+            if num_output_examples == 20:
+                break
 
         if FLAGS.decoding_algorithm == "beam_search":
             if beam_outputs:
