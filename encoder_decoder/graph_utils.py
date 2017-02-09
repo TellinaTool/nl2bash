@@ -63,7 +63,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["alpha"] = FLAGS.alpha
     params["top_k"] = FLAGS.top_k
 
-    params["force_read_input"] = False
+    params["force_reading_input"] = False
 
     # construct model directory
     model_subdir, model_sig = get_model_signature(FLAGS, construct_slot_filling)
@@ -439,5 +439,5 @@ class NNModel(object):
         return self.hyperparams["steps_per_epoch"]
 
     @property
-    def force_read_input(self):
+    def force_reading_input(self):
         return self.hyperparams["force_reading_input"]
