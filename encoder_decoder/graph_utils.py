@@ -96,7 +96,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         params["beam_size"] = 1
         FLAGS.learning_rate = 0
         params["learning_rate"] = 0
-        params["force_read_input"] = True
+        params["force_reading_input"] = True
 
     model = model_constructor(params, buckets, forward_only)
 
