@@ -63,6 +63,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["alpha"] = FLAGS.alpha
     params["top_k"] = FLAGS.top_k
 
+    params["force_read_input"] = False
+
     # construct model directory
     model_subdir, model_sig = get_model_signature(FLAGS, construct_slot_filling)
     params["model_sig"] = model_sig
@@ -94,6 +96,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         params["beam_size"] = 1
         FLAGS.learning_rate = 0
         params["learning_rate"] = 0
+        params["force_read_input"] = True
 
     model = model_constructor(params, buckets, forward_only)
 
@@ -434,3 +437,7 @@ class NNModel(object):
     @property
     def steps_per_epoch(self):
         return self.hyperparams["steps_per_epoch"]
+
+    @property
+    def force_read_input(self):
+        return self.hyperparams["force_reading_input"]
