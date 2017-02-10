@@ -398,7 +398,9 @@ def extract_value(filler_type, slot_type, surface):
     # remove quotations if there is any
     if constants.with_quotation(surface):
         value = constants.remove_quotation(surface)
-
+    else:
+        value = surface
+        
     if filler_type in ['Directory']:
         value = value
     elif filler_type == 'Number':
