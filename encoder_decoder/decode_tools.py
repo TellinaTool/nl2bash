@@ -191,7 +191,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                 # Step 2: check if the predicted command template is grammatical
                 if FLAGS.dataset.startswith("bash"):
                     tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
-                    tg = re.sub('( +\s+)|( +$)', ' \\+ ', tg)
+                    tg = re.sub('( \+\s+)|( \+$)', ' \\\+ ', tg)
                     tree = data_tools.bash_parser(tg)
                 else:
                     tree = data_tools.paren_parser(tg)
