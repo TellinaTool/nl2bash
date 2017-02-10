@@ -27,7 +27,8 @@ def get_fill_in_value(cm_slot, nl_filler):
 
     """
     slot_value, slot_type = cm_slot
-    filler_value, filler_type = nl_filler
+    surface, filler_type = nl_filler
+    filler_value = extract_value(filler_type, slot_type, surface)
 
     # In most cases the filler can be directly copied into the slot
     slot_filler_value = filler_value
@@ -62,12 +63,12 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
 
     # Step a: prepare alignment score matrix based on type info
     M = collections.defaultdict(dict)
-    nl_filler_values = collections.defaultdict()
+    # nl_filler_values = collections.defaultdict()
     for f in nl_fillers:
         assert(f <= len(encoder_outputs))
         surface, filler_type = nl_fillers[f]
-        nl_filler_values[f] = (extract_value(filler_type, surface),
-                               filler_type)
+        # nl_filler_values[f] = (extract_value(filler_type, surface),
+        #                        filler_type)
         for s in cm_slots:
             assert(s <= len(decoder_outputs))
             slot_value, slot_type = cm_slots[s]
@@ -98,13 +99,12 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
                 M[f][s] += raw_scores[ii][0]
                 if verbose:
                     print('alignment {}: {}\t{}\t{}'.format(
-                        ii, nl_filler_values[f], cm_slots[s], raw_scores[ii][0]))
+                        ii, nl_fillers[f], cm_slots[s], raw_scores[ii][0]))
 
     mappings, remained_fillers = stable_marriage_alignment(M)
     if not remained_fillers:
         for f, s in mappings:
-            template_tokens[s] = get_fill_in_value(cm_slots[s],
-                                                   nl_filler_values[f])
+            template_tokens[s] = get_fill_in_value(cm_slots[s], nl_fillers[f])
         tree = bash_parser(' '.join(template_tokens))
         if not tree is None:
             fill_default_value(tree)
@@ -390,36 +390,36 @@ def is_parameter(value):
 
 # --- Filler value extractors --- #
 
-def extract_value(arg_type, value):
+def extract_value(filler_type, slot_type, surface):
     """Extract slot filling values from the natural language."""
-    if arg_type in constants.type_conversion:
-        arg_type = constants.type_conversion[arg_type]
+    if filler_type in constants.type_conversion:
+        filler_type = constants.type_conversion[filler_type]
 
     # remove quotations if there is any
-    if constants.with_quotation(value):
-        value = constants.remove_quotation(value)
+    if constants.with_quotation(surface):
+        value = constants.remove_quotation(surface)
 
-    if arg_type in ['Directory']:
+    if filler_type in ['Directory']:
         value = value
-    elif arg_type == 'Number':
+    elif filler_type == 'Number':
         value = extract_number(value)
-    elif arg_type == 'File':
-        value = extract_filename(value)
-    elif arg_type == 'Permission':
+    elif filler_type == 'File':
+        value = extract_filename(value, slot_type)
+    elif filler_type == 'Permission':
         value = extract_permission(value)
-    elif arg_type == 'DateTime':
+    elif filler_type == 'DateTime':
         value = extract_datetime(value)
-    elif arg_type == 'Timespan':
+    elif filler_type == 'Timespan':
         value = extract_timespan(value)
-    elif arg_type == 'Size':
+    elif filler_type == 'Size':
         value = extract_size(value)
-    elif arg_type == 'Regex':
+    elif filler_type == 'Regex':
         value = value
-    elif arg_type in ['Username', 'Groupname']:
+    elif filler_type in ['Username', 'Groupname']:
         value = value
 
     # add quotations for pattern slots
-    if arg_type in constants._PATTERNS and \
+    if filler_type in constants._PATTERNS and \
             not constants.with_quotation(value):
         value = constants.add_quotations(value)
     return value
@@ -433,7 +433,7 @@ def extract_number(value):
         raise AttributeError('Cannot find number representation in pattern {}'
                              .format(value))
 
-def extract_filename(value):
+def extract_filename(value, slot_type='File'):
     """Extract file names."""
     quoted_span_re = re.compile(constants._QUOTED_RE)
     special_symbol_re = re.compile(constants._SPECIAL_SYMBOL_RE)
@@ -458,7 +458,10 @@ def extract_filename(value):
     #         return '"*.' + match.group(0) + '"'
     match = re.search(file_extension_re, value)
     if match:
-        return '"*.' + match.group(0) + '"'
+        if slot_type in ['Directory', 'Path']:
+            return value
+        else:
+            return '"*.' + match.group(0) + '"'
     raise AttributeError('Unrecognized file name {}'.format(value))
 
 def extract_permission(value):
