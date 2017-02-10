@@ -72,7 +72,7 @@ def annotate(tokens):
     # https://github.com/nltk/nltk_contrib/blob/master/nltk_contrib/tc imex.py
     standard_time = r'\d+:\d+:\d+\.?\d*'
     standard_datetime = r'\d{1,4}[\/-]\d{1,4}[\/-]\d{1,4}([,|\s]' + standard_time + r')?'
-    textual_datetime = constants._MONTH_RE \ 
+    textual_datetime = constants._MONTH_RE \
                        + r'(\s\d{0,2}(st|nd|th)?)?([,|\s]\d{2,4})?([,|\s]' \
                        + standard_time + r')?'
     _DATETIME_RE = re.compile(decorate_boundaries(constants.polarity_safe(
