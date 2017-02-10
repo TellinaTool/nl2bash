@@ -9,8 +9,7 @@ from __future__ import print_function
 import collections
 import re
 
-from . import constants
-
+da
 def add_space(s):
     return ' ' + s + ' '
 
@@ -71,10 +70,10 @@ def annotate(tokens):
     # Credit: time expressions adapted from
     # https://github.com/nltk/nltk_contrib/blob/master/nltk_contrib/tc imex.py
     standard_time = r'\d+:\d+:\d+\.?\d*'
-    standard_datetime = r'\d{1,4}[\/-]\d{1,4}[\/-]\d{1,4}' \
-                        r'([,|\s]' + standard_time + r')?'
-    textual_datetime = constants._MONTH_RE + r'(\s\d{0,2}(st|nd|th)?)?([,|\s]\d{2,4})?' \
-                        r'([,|\s]' + standard_time + r')?'
+    standard_datetime = r'\d{1,4}[\/-]\d{1,4}[\/-]\d{1,4}([,|\s]' + standard_time + r')?'
+    textual_datetime = constants._MONTH_RE \ 
+                       + r'(\s\d{0,2}(st|nd|th)?)?([,|\s]\d{2,4})?([,|\s]' \
+                       + standard_time + r')?'
     _DATETIME_RE = re.compile(decorate_boundaries(constants.polarity_safe(
                     '(' + constants._REL_DAY_RE + '|' + standard_time + '|' +
                     standard_datetime + '|' + textual_datetime + ')')))
