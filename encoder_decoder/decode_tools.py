@@ -187,7 +187,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
             # hold the fillers (to rule out templates that are trivially
             # unqualified)
             if nl_fillers is None or len(cm_slots) >= len(nl_fillers):
-		print(tg)
+                print(tg)
                 # Step 2: check if the predicted command template is grammatical
                 if FLAGS.dataset.startswith("bash"):
                     tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
