@@ -474,7 +474,7 @@ def extract_permission(value):
         return value
     else:
         # TODO: write rules to synthesize permission pattern
-        return None
+        return value
 
 def extract_datetime(value):
     """Extract date/time patterns."""
