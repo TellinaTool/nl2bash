@@ -63,12 +63,9 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
 
     # Step a: prepare alignment score matrix based on type info
     M = collections.defaultdict(dict)
-    # nl_filler_values = collections.defaultdict()
     for f in nl_fillers:
         assert(f <= len(encoder_outputs))
         surface, filler_type = nl_fillers[f]
-        # nl_filler_values[f] = (extract_value(filler_type, surface),
-        #                        filler_type)
         for s in cm_slots:
             assert(s <= len(decoder_outputs))
             slot_value, slot_type = cm_slots[s]
@@ -105,7 +102,9 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
     if not remained_fillers:
         for f, s in mappings:
             template_tokens[s] = get_fill_in_value(cm_slots[s], nl_fillers[f])
-        tree = bash_parser(' '.join(template_tokens))
+        cmd = ' '.join(template_tokens)
+        print(cmd)
+        tree = bash_parser(cmd)
         if not tree is None:
             fill_default_value(tree)
         temp = ast2command(tree, loose_constraints=True,
