@@ -52,10 +52,10 @@ def eval_set(model, dataset, rev_sc_vocab, FLAGS, verbose=True):
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
 
-    use_bucket = False if model == "knn" else True
+    bucketed_input = False if model == "knn" else True
 
     grouped_dataset = data_utils.group_data_by_nl(
-        dataset, use_bucket=use_bucket, use_temp = eval_bash)
+        dataset, bucketed_input=bucketed_input, use_temp = eval_bash)
 
     with DBConnection() as db:
         for nl_temp in grouped_dataset:
