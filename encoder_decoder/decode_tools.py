@@ -237,11 +237,21 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
     return batch_outputs
 
 
-def decode_set(sess, model, dataset, vocabs, FLAGS,
-               slot_filling_classifier=None, verbose=True):
+def decode_set(sess, model, dataset, vocabs, FLAGS, verbose=True):
     sc_vocab, rev_sc_vocab, tg_vocab, rev_tg_vocab = vocabs
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
                                                   use_temp=False)
+
+    slot_filling_classifier = None
+    if FLAGS.fill_argument_slots:
+        # create slot filling classifier
+        model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
+                               .format(FLAGS.sc_vocab_size))
+        train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
+        slot_filling_classifier = \
+                classifiers.KNearestNeighborModel(FLAGS.num_nn_slot_filling,
+                                                  train_X, train_Y)
+        print('Slot filling classifier parameters loaded.')
 
     with DBConnection() as db:
         db.create_schema()
