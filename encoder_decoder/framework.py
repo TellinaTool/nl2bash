@@ -224,21 +224,24 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.training_algorithm == "bso":
             output_symbols, output_logits, outputs, state, \
                 attn_mask, bso_losses = self.decoder.define_bso_graph(
-                encoder_state, decoder_inputs, target_weights, target_embeddings,
-                encoder_attn_masks, attention_states, num_heads=1,
-                beam_decoder=beam_decoder, forward_only=forward_only,
-                reuse_variables=reuse_variables
-            )
+                    encoder_state, decoder_inputs, target_weights, target_embeddings,
+                    encoder_attn_masks, attention_states, num_heads=1,
+                    beam_decoder=beam_decoder, forward_only=forward_only,
+                    reuse_variables=reuse_variables
+                )
         else:
             output_symbols, output_logits, outputs, state, \
                 attn_mask = self.decoder.define_graph(
-                encoder_state, decoder_inputs, target_embeddings,
-                encoder_attn_masks, attention_states, num_heads=1,
-                beam_decoder=beam_decoder, forward_only=forward_only,
-                reuse_variables=reuse_variables
-            )
+                    encoder_state, decoder_inputs, target_embeddings,
+                    encoder_attn_masks, attention_states, num_heads=1,
+                    beam_decoder=beam_decoder, forward_only=forward_only,
+                    reuse_variables=reuse_variables
+                )
 
         if forward_only:
+            if self.decoding_algorithm == 'beam_search':
+                outputs = tf.gather(outputs, tf.range(0,
+                    self.batch_size*self.beam_size, self.beam_size))
             encoder_decoder_loss = graph_utils.sequence_loss(
                                        outputs, targets, target_weights,
                                        graph_utils.softmax_loss(
