@@ -323,9 +323,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def format_example(self, encoder_inputs, decoder_inputs, copy_data=None,
                        bucket_id=-1):
         """
-        Prepare data to feed in step()
-        :return decoder_inputs: [<GO>, 1, 2, 3, <EOS>]
-        :return weights: [1, 1, 1, 1, 0]
+        Prepare the data to be fed into the neural model.
+
+        :param encoder_inputs: batch of input sequence indices
+            [[...], [...], ...]
+        :param decoder_inputs: batch of output sequence indices
+            [[...], [...], ...]
+        :param copy_data: set to true if using a copying network
+        :param bucket_id: bucket id of the current batch
+
         """
         if bucket_id >= 0:
             encoder_size, decoder_size = self.buckets[bucket_id]

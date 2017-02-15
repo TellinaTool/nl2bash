@@ -655,8 +655,20 @@ def bucket_grouped_data(grouped_dataset, buckets):
     return batch_sc_strs, batch_tg_strs, batch_scs, batch_tgs
 
 
-def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
-    if use_bucket:
+def group_data_by_nl(dataset, bucketed_input=False, use_temp=True):
+    """
+    Group dataset by the natural language sentence.
+
+    :param dataset: a list of training quadruples (nl_str, cm_str, nl, cm)
+    :param bucket_input: if the input is grouped in buckets
+    :param use_temp: set to true if the dataset is to be grouped by the natural
+        language template; false if the dataset is to be grouped by the natural
+        language strings.
+
+    :return: a dictionary with natural language sentence as the key and data
+        list quadruples as the values.
+    """
+    if bucketed_input:
         dataset = reduce(lambda x,y: x + y, dataset)
     grouped_dataset = {}
     for i in xrange(len(dataset)):

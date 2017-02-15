@@ -254,10 +254,10 @@ def decode(data_set, construct_model_dir=True, verbose=True):
         model, _ = create_model(sess, forward_only=True,
                                 construct_model_dir=construct_model_dir)
 
-        _, rev_sc_vocab, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
+        vocabs = data_utils.load_vocab(FLAGS)
 
-        decode_tools.decode_set(sess, model, data_set,
-                                rev_sc_vocab, rev_tg_vocab, FLAGS, verbose)
+        decode_tools.decode_set(sess, model, data_set, vocabs, FLAGS, verbose)
+
         return model.model_sig
 
 
@@ -274,11 +274,11 @@ def eval(data_set, model_sig=None, verbose=True):
 def manual_eval(num_eval):
     # Create model and load parameters.
     _, model_sig = graph_utils.get_model_signature(FLAGS)
-    _, rev_sc_vocab, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
+    vocabs = data_utils.load_vocab(FLAGS)
     _, dev_set, _ = load_data(use_buckets=False)
 
-    eval_tools.manual_eval(model_sig, dev_set, rev_sc_vocab, FLAGS,
-                           FLAGS.model_dir, num_eval)
+    eval_tools.manual_eval(model_sig, dev_set, vocabs, FLAGS, FLAGS.model_dir,
+                           num_eval)
 
 
 def demo():

@@ -14,7 +14,7 @@ import re
 
 import tensorflow as tf
 
-from encoder_decoder import data_utils, classifiers
+from encoder_decoder import classifiers, data_utils, graph_utils
 from bashlex import data_tools
 from nlp_tools import constants, slot_filling, tokenizer
 from eval.eval_archive import DBConnection
@@ -237,99 +237,62 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
     return batch_outputs
 
 
-def decode_set(sess, model, dataset, rev_sc_vocab, rev_tg_vocab,
-               FLAGS, verbose=True):
+def decode_set(sess, model, dataset, vocabs, FLAGS,
+               slot_filling_classifier=None, verbose=True):
+    sc_vocab, rev_sc_vocab, tg_vocab, rev_tg_vocab = vocabs
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
-        use_temp=FLAGS.dataset.startswith("bash") and not FLAGS.explanation)
-    bucketed_sc_strs, bucketed_tg_strs, bucketed_scs, bucketed_tgs = \
-        data_utils.bucket_grouped_data(grouped_dataset, model.buckets)
+                                                  use_temp=False)
 
     with DBConnection() as db:
         db.create_schema()
         db.remove_model(model.model_sig)
 
-        for bucket_id in xrange(len(model.buckets)):
-            bucket_sc_strs = bucketed_sc_strs[bucket_id]
-            bucket_tg_strs = bucketed_tg_strs[bucket_id]
-            bucket_scs = bucketed_scs[bucket_id]
-            bucket_tgs = bucketed_tgs[bucket_id]
-            bucket_size = len(bucket_sc_strs)
+        sorted_sc_temps = sorted(grouped_dataset.keys(), key=lambda x:len(x))
+        example_id = 0
+        for sc_temp in sorted_sc_temps:
+            example_id += 1
+            sc_strs, tg_strs, scs, tgs = grouped_dataset[sc_temp]
+            assert(len(sc_strs) == len(tg_strs))
+            assert(len(sc_strs) == len(scs))
+            assert(len(sc_strs) == len(tgs))
+            sc_normalized_temp = ' '.join([rev_sc_vocab[i] for i in scs[0]])
+            if verbose:
+                print("Example {}:".format(example_id))
+                print("(Orig) Source: " + sc_temp)
+                print("Source: " + sc_normalized_temp)
+                for j in xrange(len(tg_strs)):
+                    print("GT Target {}: {}".format(j+1, tg_strs[j].strip()))
 
-            num_batches = int(bucket_size / FLAGS.batch_size)
-            if bucket_size % FLAGS.batch_size != 0:
-                num_batches += 1
+            batch_outputs, output_logits = translate_fun(
+                sc_temp, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
+                slot_filling_classifier=slot_filling_classifier)
 
-            for b in xrange(num_batches):
-                batch_sc_strs = bucket_sc_strs[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
-                batch_tg_strs = bucket_tg_strs[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
-                batch_scs = bucket_scs[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
-                batch_tgs = bucket_tgs[b*FLAGS.batch_size:(b+1)*FLAGS.batch_size]
-
-                # make a full batch
-                if len(batch_sc_strs) < FLAGS.batch_size:
-                    batch_size = len(batch_sc_strs)
-                    pad_size = FLAGS.batch_size - len(batch_sc_strs)
-                    batch_sc_strs = batch_sc_strs + [batch_sc_strs[-1]] * pad_size
-                    assert(len(batch_tg_strs) == batch_size)
-                    batch_tg_strs = batch_tg_strs + [batch_tg_strs[-1]] * pad_size
-                    assert(len(batch_scs) == batch_size)
-                    batch_scs = batch_scs + [batch_scs[-1]] * pad_size
-                    assert(len(batch_tgs) == batch_size)
-                    batch_tgs = batch_tgs + [batch_tgs[-1]] * pad_size
+            if FLAGS.decoding_algorithm == "greedy":
+                tree, pred_cmd, outputs = batch_outputs[0]
+                score = output_logits[0]
+                print("{} ({})".format(pred_cmd, score))
+            elif FLAGS.decoding_algorithm == "beam_search":
+                if batch_outputs:
+                    top_k_predictions = batch_outputs[0]
+                    top_k_scores = output_logits[0]
+                    for j in xrange(min(FLAGS.beam_size, 10, len(batch_outputs[0]))):
+                        if len(top_k_predictions) <= j:
+                            break
+                        top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
+                            top_k_predictions[j]
+                        print("Prediction {}: {} ({}) ".format(
+                            j+1, top_k_pred_cmd, top_k_scores[j]))
+                    print()
                 else:
-                    batch_size = FLAGS.batch_size
-                formatted_example = model.format_example(batch_scs, batch_tgs, bucket_id=bucket_id)
-                # print(formatted_example[0][0].shape, formatted_example[1][0].shape)
-                # print(FLAGS.batch_size)
-                # print(FLAGS.beam_size)
-                model_step_outputs = model.step(sess, formatted_example, bucket_id, forward_only=True,
-                    return_rnn_hidden_states=FLAGS.fill_argument_slots)
-                output_symbols, output_logits, losses, attn_masks = model_outputs[:4]
+                    print("I'm very sorry, I can't translate this command at the moment.")
 
-                batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS)
-
-                for batch_id in xrange(batch_size):
-                    example_id = b * FLAGS.batch_size + batch_id
-                    sc_str = batch_sc_strs[batch_id]
-                    tg_strs = batch_tg_strs[batch_id]
-                    sc = batch_scs[batch_id]
-                    sc_temp = ' '.join([rev_sc_vocab[i] for i in sc])
-                    if verbose:
-                        print("Example {}:{}".format(bucket_id, example_id))
-                        print("(Orig) Source: " + sc_str.strip())
-                        print("Source: " + sc_temp)
-                        for j in xrange(len(tg_strs)):
-                            print("GT Target {}: {}".format(j+1, tg_strs[j].strip()))
-                    if FLAGS.decoding_algorithm == "greedy":
-                        tree, pred_cmd, outputs = batch_outputs[batch_id]
-                        score = output_logits[batch_id]
-                        db.add_prediction(model.model_sig, sc_str, pred_cmd, float(score))
-                        if verbose:
-                            print("Prediction: {} ({})".format(pred_cmd, score))
-                    elif FLAGS.decoding_algorithm == "beam_search":
-                        top_k_predictions = batch_outputs[batch_id]
-                        top_k_scores = output_logits[batch_id]
-                        for j in xrange(min(FLAGS.beam_size, len(top_k_predictions), 10)):
-                            top_k_pred_tree, top_k_pred_cmd, top_k_outputs = top_k_predictions[j]
-                            if verbose:
-                                print("Prediction {}: {} ({}) ".format(
-                                    j+1, top_k_pred_cmd, top_k_scores[j]))
-                            db.add_prediction(model.model_sig, sc_str, top_k_pred_cmd,
-                                              float(top_k_scores[j]), update_mode=False)
-                        if verbose:
-                            print()
-                        outputs = top_k_predictions[0][2]
-                    else:
-                        raise ValueError("Unrecognized decoding algorithm: {}."
-                             .format(FLAGS.decoding_algorithm))
-
-                    if attn_masks is not None:
-                        if FLAGS.decoding_algorithm == "greedy":
-                            M = attn_masks[batch_id, :, :]
-                        elif FLAGS.decoding_algorithm == "beam_search":
-                            M = attn_masks[batch_id, 0, :, :]
-                        visualize_attn_masks(M, sc, outputs, rev_sc_vocab, rev_tg_vocab,
-                            os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
+            # if attn_masks is not None:
+            #     if FLAGS.decoding_algorithm == "greedy":
+            #         M = attn_masks[batch_id, :, :]
+            #     elif FLAGS.decoding_algorithm == "beam_search":
+            #         M = attn_masks[batch_id, 0, :, :]
+            #     visualize_attn_masks(M, sc, outputs, rev_sc_vocab, rev_tg_vocab,
+            #         os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
 
 
 def visualize_attn_masks(M, source, target, rev_sc_vocab, rev_tg_vocab, output_path):
