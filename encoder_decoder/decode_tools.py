@@ -240,7 +240,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
 def decode_set(sess, model, dataset, vocabs, FLAGS,
                slot_filling_classifier=None, verbose=True):
     sc_vocab, rev_sc_vocab, tg_vocab, rev_tg_vocab = vocabs
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
+    grouped_dataset = data_utils.group_data_by_nl(dataset, bucketed_input=True,
                                                   use_temp=False)
 
     with DBConnection() as db:
