@@ -219,7 +219,7 @@ def manual_eval(model, dataset, rev_sc_vocab, FLAGS, output_dir, num_eval=30):
     random.shuffle(grouped_dataset, lambda: 0.5208484091114275)
 
     cmd_parser = data_tools.bash_parser if FLAGS.dataset == "bash" \
-        else data_utils.parse_brackets
+        else data_tools.paren_parser
 
     o_f = open(os.path.join(output_dir, "manual.eval.results"), 'w')
 

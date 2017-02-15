@@ -126,7 +126,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     return model, global_epochs
 
 
-def get_model_signature(FLAGS, construct_slot_filling):
+def get_model_signature(FLAGS, construct_slot_filling=False):
     model_subdir = FLAGS.dataset
     if FLAGS.explanation:
         model_subdir += '-expl'

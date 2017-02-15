@@ -282,12 +282,10 @@ def decode_set(sess, model, dataset, rev_sc_vocab, rev_tg_vocab,
                 # print(formatted_example[0][0].shape, formatted_example[1][0].shape)
                 # print(FLAGS.batch_size)
                 # print(FLAGS.beam_size)
-                model_outputs = model.step(sess, formatted_example, bucket_id, forward_only=True,
+                model_step_outputs = model.step(sess, formatted_example, bucket_id, forward_only=True,
                     return_rnn_hidden_states=FLAGS.fill_argument_slots)
-                output_symbols = model_outputs[0]
-                output_logits = model_outputs[1]
-                losses = model_outputs[2]
-                attn_masks = model_outputs[3]
+                output_symbols, output_logits, losses, attn_masks = model_outputs[:4]
+
                 batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS)
 
                 for batch_id in xrange(batch_size):
