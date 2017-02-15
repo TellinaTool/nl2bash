@@ -454,21 +454,16 @@ def main(_):
     print("Saving models to {}".format(FLAGS.model_dir))
     if FLAGS.eval:
         _, dev_set, test_set = load_data()
-        if FLAGS.test:
-            eval(test_set)
-        else:
-            eval(dev_set)
+        dataset = test_set if FLAGS.test else dev_set
+        eval(dataset)
     elif FLAGS.manual_eval:
         manual_eval(100)
     elif FLAGS.decode:
-        _, dev_set, _ = load_data()
-        model_sig = decode(dev_set)
+        _, dev_set, test_set = load_data()
+        dataset = test_set if FLAGS.test else dev_set
+        model_sig = decode(dataset)
         if not FLAGS.explanation:
             eval(dev_set, model_sig=model_sig, verbose=False)
-    elif FLAGS.test:
-        _, _, test_set = load_data()
-        model_sig = decode(test_set)
-        eval(test_set, model_sig=model_sig, verbose=False)
     elif FLAGS.demo:
         demo()
     elif FLAGS.grid_search:
