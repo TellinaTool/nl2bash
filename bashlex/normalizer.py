@@ -1067,13 +1067,12 @@ def to_command(node, loose_constraints=False, ignore_flag_order=False):
             assert(loose_constraints or node.get_num_of_children() >= 1)
             if lc and node.get_num_of_children() < 2:
                 for child in node.children:
-                    str += to_command_fun(child)
+                    str += to_command_fun(child) 
             else:
                 str += "\\( "
                 for i in xrange(len(node.children)-1):
-                    str += to_command_fun(node.children[i])
-                str += to_command_fun(node.children[-1])
-                str += " \\)"
+                    str += to_command_fun(node.children[i]) + ' '
+                str += "\\)"
         elif node.is_argument():
             assert(loose_constraints or node.get_num_of_children() == 0)
             str += node.value
