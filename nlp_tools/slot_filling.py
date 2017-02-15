@@ -46,8 +46,8 @@ def get_fill_in_value(cm_slot, nl_filler):
 def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
                     decoder_outputs, slot_filling_classifier, verbose=False):
     """
-    Fills the argument slots using local alignment scores that are learnt and
-    a greedy global alignment algorithm (stable marriage).
+    Fills the argument slots using learnt local alignment scores and a greedy 
+    global alignment algorithm (stable marriage).
 
     :param template_tokens: list of tokens in the command template
     :param nl_fillers: the slot fillers extracted from the natural language
