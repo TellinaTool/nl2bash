@@ -75,12 +75,10 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     print("model_sig={}".format(model_sig))
 
     if forward_only:
-        if FLAGS.demo:
-            FLAGS.batch_size = 1
-            params["batch_size"] = 1
-        else:
-            FLAGS.batch_size = 100
-            params["batch_size"] = 100
+        # In our experience using large batch size for decoding doesn't
+        # significantly improve computing efficiency.
+        FLAGS.batch_size = 1
+        params["batch_size"] = 1
         params["attention_input_keep"] = 1.0
         params["attention_output_keep"] = 1.0
         params["encoder_input_keep"] = 1.0
@@ -192,7 +190,6 @@ def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1,
 
 
 def get_buckets(FLAGS):
-    print(FLAGS.decoding_algorithm)
     # We use a number of buckets and pad to the closest one for efficiency.
     if FLAGS.dataset.startswith("bash"):
         if FLAGS.decoder_topology in ['basic_tree']:

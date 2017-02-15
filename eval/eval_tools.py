@@ -203,7 +203,7 @@ def eval_set(model, dataset, rev_sc_vocab, FLAGS, verbose=True):
     return top1_temp_match_score, top1_string_match_score, avg_top1_temp_dist, avg_top1_dist
 
 
-def manual_eval(model, dataset, rev_sc_vocab, FLAGS, output_dir, num_eval=30):
+def manual_eval(model, dataset, vocabs, FLAGS, output_dir, num_eval=30):
     num_top1_correct_temp = 0.0
     num_top3_correct_temp = 0.0
     num_top5_correct_temp = 0.0
@@ -214,8 +214,10 @@ def manual_eval(model, dataset, rev_sc_vocab, FLAGS, output_dir, num_eval=30):
     num_top10_correct = 0.0
     num_evaled = 0
 
-    grouped_dataset = data_utils.group_data_by_nl(
-                            dataset, use_bucket=False).values()
+    sc_vocab, rev_sc_vocab, tg_vocab, rev_tg_vocab = vocabs
+
+    grouped_dataset = data_utils.group_data_by_nl(dataset,
+                                                  use_bucket=False).values()
     random.shuffle(grouped_dataset, lambda: 0.5208484091114275)
 
     cmd_parser = data_tools.bash_parser if FLAGS.dataset == "bash" \
