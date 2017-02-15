@@ -281,6 +281,8 @@ def decode_set(sess, model, dataset, vocabs, FLAGS, verbose=True):
                 tree, pred_cmd, outputs = batch_outputs[0]
                 score = output_logits[0]
                 print("{} ({})".format(pred_cmd, score))
+                db.add_prediction(
+                    model.model_sig, sc_temp, pred_cmd, float(score))
             elif FLAGS.decoding_algorithm == "beam_search":
                 if batch_outputs:
                     top_k_predictions = batch_outputs[0]
@@ -292,6 +294,9 @@ def decode_set(sess, model, dataset, vocabs, FLAGS, verbose=True):
                             top_k_predictions[j]
                         print("Prediction {}: {} ({}) ".format(
                             j+1, top_k_pred_cmd, top_k_scores[j]))
+                        db.add_prediction(model.model_sig, sc_temp,
+                            top_k_pred_cmd, float(top_k_scores[j]),
+                            update_mode=False)
                     print()
                 else:
                     print("I'm very sorry, I can't translate this command at the moment.")
