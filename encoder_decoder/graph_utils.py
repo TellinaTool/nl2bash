@@ -18,7 +18,6 @@ from encoder_decoder import data_utils
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
                  construct_model_dir=True, construct_slot_filling=False):
-    print(FLAGS.decoding_algorithm)
     params = collections.defaultdict()
     params["source_vocab_size"] = FLAGS.sc_vocab_size
     params["target_vocab_size"] = FLAGS.tg_vocab_size
