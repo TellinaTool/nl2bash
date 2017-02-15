@@ -655,7 +655,7 @@ def bucket_grouped_data(grouped_dataset, buckets):
     return batch_sc_strs, batch_tg_strs, batch_scs, batch_tgs
 
 
-def group_data_by_nl(dataset, bucketed_input=False, use_temp=True):
+def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
     """
     Group dataset by the natural language sentence.
 
@@ -668,7 +668,7 @@ def group_data_by_nl(dataset, bucketed_input=False, use_temp=True):
     :return: a dictionary with natural language sentence as the key and data
         list quadruples as the values.
     """
-    if bucketed_input:
+    if use_bucket:
         dataset = reduce(lambda x,y: x + y, dataset)
     grouped_dataset = {}
     for i in xrange(len(dataset)):
