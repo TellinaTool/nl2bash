@@ -52,10 +52,10 @@ def eval_set(model, dataset, rev_sc_vocab, FLAGS, verbose=True):
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
 
-    bucketed_input = False if model == "knn" else True
+    use_bucket = False if model == "knn" else True
 
     grouped_dataset = data_utils.group_data_by_nl(
-        dataset, bucketed_input=bucketed_input, use_temp = eval_bash)
+        dataset, use_bucket=use_bucket, use_temp = eval_bash)
 
     with DBConnection() as db:
         for nl_temp in grouped_dataset:
@@ -203,7 +203,7 @@ def eval_set(model, dataset, rev_sc_vocab, FLAGS, verbose=True):
     return top1_temp_match_score, top1_string_match_score, avg_top1_temp_dist, avg_top1_dist
 
 
-def manual_eval(model, dataset, vocabs, FLAGS, output_dir, num_eval=30):
+def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
     num_top1_correct_temp = 0.0
     num_top3_correct_temp = 0.0
     num_top5_correct_temp = 0.0
@@ -214,13 +214,14 @@ def manual_eval(model, dataset, vocabs, FLAGS, output_dir, num_eval=30):
     num_top10_correct = 0.0
     num_evaled = 0
 
-    sc_vocab, rev_sc_vocab, tg_vocab, rev_tg_vocab = vocabs
-
-    grouped_dataset = data_utils.group_data_by_nl(dataset,
-                                                  use_bucket=False).values()
+    grouped_dataset = data_utils.group_data_by_nl(
+        dataset, use_bucket=False).values()
     random.shuffle(grouped_dataset, lambda: 0.5208484091114275)
 
-    cmd_parser = data_tools.bash_parser if FLAGS.dataset == "bash" \
+    if num_eval is None:
+        num_eval = len(grouped_dataset)
+        
+    cmd_parser = data_tools.bash_parser if FLAGS.dataset.startswith("bash") \
         else data_tools.paren_parser
 
     o_f = open(os.path.join(output_dir, "manual.eval.results"), 'w')

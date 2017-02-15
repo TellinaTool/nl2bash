@@ -274,11 +274,12 @@ def eval(data_set, model_sig=None, verbose=True):
 def manual_eval(num_eval):
     # Create model and load parameters.
     _, model_sig = graph_utils.get_model_signature(FLAGS)
-    vocabs = data_utils.load_vocab(FLAGS)
-    _, dev_set, _ = load_data(use_buckets=False)
+    _, dev_set, test_set = load_data(use_buckets=False)
 
-    eval_tools.manual_eval(model_sig, dev_set, vocabs, FLAGS, FLAGS.model_dir,
-                           num_eval)
+    dataset = test_set if FLAGS.test_set else dev_set
+
+    eval_tools.manual_eval(
+        model_sig, dataset, FLAGS, FLAGS.model_dir, num_eval)
 
 
 def demo():
