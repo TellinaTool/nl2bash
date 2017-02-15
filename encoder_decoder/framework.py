@@ -51,8 +51,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                          trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
-        print(hyperparams["learning_rate"])
-        print(hyperparams["learning_rate_decay_factor"])
+        # print(hyperparams["learning_rate"])
+        # print(hyperparams["learning_rate_decay_factor"])
         # variable sharing
         self.output_projection_vars = False
         self.source_embedding_vars = False
@@ -71,6 +71,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.target_weights = []        # weights at each position of the target sequence.
         self.debug_vars = []
 
+        print('beam_size: {}'.format(self.beam_size))
+        print('batch_size: {}'.format(self.batch_size))
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(
                 tf.placeholder(tf.int32, shape=[None], name="encoder{0}".format(i)))
