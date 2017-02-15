@@ -400,7 +400,7 @@ def extract_value(filler_type, slot_type, surface):
         value = constants.remove_quotation(surface)
     else:
         value = surface
-        
+
     if filler_type in ['Directory']:
         value = value
     elif filler_type == 'Number':
