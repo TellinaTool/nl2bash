@@ -445,12 +445,6 @@ def extract_filename(value, slot_type='File'):
     match = re.search(path_re, value)
     if match:
         return match.group(0)
-    # quotes
-    if re.match(quoted_span_re, value):
-        return value
-    # special symbol
-    if re.match(special_symbol_re, value):
-        return value
     # file extension
     # if re.search(re.compile(r'[^ ]*\.[^ ]+'), value):
     #     # the pattern being matched represents a regular file
@@ -462,7 +456,18 @@ def extract_filename(value, slot_type='File'):
         if slot_type in ['Directory', 'Path']:
             return value
         else:
-            return '"*.' + match.group(0) + '"'
+            if (len(match.group(0)) + 0.0) / len(value) > 0.5:
+                # avoid cases in which a file name happen to contain a
+                # substring which is the same as a file extension
+                return '"*.' + match.group(0) + '"'
+            else:
+                return value
+    # quotes
+    if re.match(quoted_span_re, value):
+        return value
+    # special symbol
+    if re.match(special_symbol_re, value):
+        return value
     raise AttributeError('Unrecognized file name {}'.format(value))
 
 def extract_permission(value):
