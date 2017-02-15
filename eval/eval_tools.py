@@ -265,12 +265,12 @@ def manual_eval(model, dataset, rev_sc_vocab, FLAGS, output_dir, num_eval=30):
                 if temp_judge is not None and not rejudge:
                     judgement_str = "y" if temp_judge == 1 \
                         else "n ({})".format(error_types[temp_judge])
-                    print("Correct template [y/n]: %s" % judgement_str)
+                    print("Is the command template correct [y/n]? %s" % judgement_str)
                 else:
                     temp_judge = ast_based.one_match(gt_trees, tree, rewrite=False,
                                                      ignore_arg_value=True)
                     if not temp_judge:
-                        inp = raw_input("Correct template [y/n]: ")
+                        inp = raw_input("Is the command template correct [y/n]? ")
                         if inp == "REVERSE":
                             rejudge = True
                         else:
@@ -293,7 +293,7 @@ def manual_eval(model, dataset, rev_sc_vocab, FLAGS, output_dir, num_eval=30):
                                 db.add_temp_judgement((nl_str, pred_temp, int(error_type)))
                             rejudge = False
                     else:
-                        print("Correct template [y/n]: y")
+                        print("Is the command template correct [y/n]? y")
                 if temp_judge == 1:
                     if pred_id < 1:
                         top1_correct_temp = True
@@ -313,12 +313,12 @@ def manual_eval(model, dataset, rev_sc_vocab, FLAGS, output_dir, num_eval=30):
                     if str_judge is not None and not rejudge:
                         judgement_str = "y" if str_judge == 1 \
                             else "n ({})".format(error_types[str_judge])
-                        print("Correct command [y/n]: %s" % judgement_str)
+                        print("Is the complete command correct [y/n]? %s" % judgement_str)
                     else:
                         str_judge = ast_based.one_match(gt_trees, tree, rewrite=False,
                                                         ignore_arg_value=False)
                         if not str_judge:
-                            inp = raw_input("Correct command [y/n]: ")
+                            inp = raw_input("Is the complete command correct [y/n]? ")
                             if inp == "REVERSE":
                                 rejudge = True
                                 continue
@@ -331,7 +331,7 @@ def manual_eval(model, dataset, rev_sc_vocab, FLAGS, output_dir, num_eval=30):
                                 o_f.write("W")
                                 db.add_str_judgement((nl_str, pred_cmd, 0))
                         else:
-                            print("Correct command [y/n]: y")
+                            print("Is the complete command correct [y/n]? y")
                     if str_judge == 1:
                         if pred_id < 1:
                             top1_correct = True
