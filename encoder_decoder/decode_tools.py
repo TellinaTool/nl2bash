@@ -258,7 +258,7 @@ def decode_set(sess, model, dataset, vocabs, FLAGS,
             sc_normalized_temp = ' '.join([rev_sc_vocab[i] for i in scs[0]])
             if verbose:
                 print("Example {}:".format(example_id))
-                print("(Orig) Source: " + sc_temp)
+                print("(Orig) Source: " + sc_temp.strip())
                 print("Source: " + sc_normalized_temp)
                 for j in xrange(len(tg_strs)):
                     print("GT Target {}: {}".format(j+1, tg_strs[j].strip()))

@@ -241,10 +241,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 )
 
         if forward_only:
-            if self.decoding_algorithm == 'beam_search':
-                outputs = [tf.gather(output, tf.range(0,
-                    self.batch_size*self.beam_size, self.beam_size))
-                    for output in outputs]
+            # if self.decoding_algorithm == 'beam_search':
+            #     outputs = [tf.gather(output, tf.range(0,
+            #         self.batch_size*self.beam_size, self.beam_size))
+            #         for output in outputs]
             encoder_decoder_loss = graph_utils.sequence_loss(
                                        outputs, targets, target_weights,
                                        graph_utils.softmax_loss(
