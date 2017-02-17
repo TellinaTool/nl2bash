@@ -675,7 +675,7 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
     for i in xrange(len(dataset)):
         nl_str, cm_str, nl, cm = dataset[i]
         if use_temp:
-            words, _ = tokenizer.ner_tokenizer(nl_str.decode("utf-8"))
+            words, _ = tokenizer.ner_tokenizer(nl_str)
             nl_template = " ".join(words)
         else:
             nl_template = nl_str

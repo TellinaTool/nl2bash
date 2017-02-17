@@ -102,8 +102,8 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
     if not remained_fillers:
         for f, s in mappings:
             template_tokens[s] = get_fill_in_value(cm_slots[s], nl_fillers[f])
+        print(template_tokens)
         cmd = ' '.join(template_tokens)
-        print(cmd)
         tree = bash_parser(cmd)
         if not tree is None:
             fill_default_value(tree)

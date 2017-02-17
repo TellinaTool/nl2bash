@@ -291,11 +291,27 @@ def decode_set(sess, model, dataset, vocabs, FLAGS, verbose=True):
                             break
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                             top_k_predictions[j]
-                        print("Prediction {}: {} ({}) ".format(
-                            j+1, top_k_pred_cmd, top_k_scores[j]))
-                        db.add_prediction(model.model_sig, sc_temp,
-                            top_k_pred_cmd, float(top_k_scores[j]),
-                            update_mode=False)
+                        try:    
+                            print("Prediction {}: {} ({}) ".format(
+                                j+1, top_k_pred_cmd, top_k_scores[j]))
+                        except UnicodeEncodeError:
+                            print("Prediction {}: {} ({}) ".format(
+                                j+1, 'COMMAND_DECODING_ERROR', top_k_scores[j]))
+                        try:
+                            db.add_prediction(model.model_sig, sc_temp,
+                                top_k_pred_cmd, float(top_k_scores[j]),
+                                update_mode=False)
+                        except UnicodeEncodeError:
+                            try:
+                                db.add_prediction(model.model_sig, 
+                                    sc_temp.encode('utf-8'),
+                                    top_k_pred_cmd.encode('utf-8'), 
+                                    float(top_k_scores[j]),
+                                    update_mode=False)
+                            except UnicodeDecodeError:
+                                db.add_prediction(model.model_sig, '', '',
+                                    float(top_k_scores[j]),
+                                    update_mode=False)
                     print()
                 else:
                     print("I'm very sorry, I can't translate this command at the moment.")
