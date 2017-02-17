@@ -27,7 +27,51 @@ error_types = {
     9 : "count error"
 }
 
-def eval_set(model, dataset, rev_sc_vocab, FLAGS, verbose=True):
+def print_evaluation_form(model, dataset, FLAGS, output_path):
+    with open(output_path, 'w') as o_f:
+        # print evaluation form header
+        o_f.write('example_id, description, ground_truth, prediction, ' +
+                  'correct command, correct template\n')
+
+        example_id = 0
+        eval_bash = FLAGS.dataset.startswith("bash")
+        cmd_parser = data_tools.bash_parser if eval_bash \
+            else data_tools.paren_parser
+        grouped_dataset = data_utils.group_data_by_nl(dataset, use_temp=False)
+
+        with DBConnection() as db:
+            for nl_temp in grouped_dataset:
+                nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_temp]
+                nl_str = nl_strs[0].decode('utf-8')
+
+                gt_trees = [cmd_parser(cmd) for cmd in cm_strs]
+                num_gts = len(gt_trees)
+                gt_trees = gt_trees + [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_str)]
+
+                predictions = db.get_top_k_predictions(model, nl_str, k=10)
+
+                example_id += 1
+                output_str = '{},{},'.format(example_id, nl_temp)
+
+                for i in xrange(min(1, len(predictions))):
+                    pred_cmd, score = predictions[i]
+                    tree = cmd_parser(pred_cmd)
+                    # evaluation ignoring flag orders
+                    temp_match = ast_based.one_match(gt_trees, tree, ignore_arg_value=True)
+                    str_match = ast_based.one_match(gt_trees, tree, ignore_arg_value=False)
+                    if i < len(cm_strs):
+                        output_str += '{},'.format(cm_strs[i])
+                    else:
+                        output_str += ','
+                    output_str += '{},'.format(pred_cmd)
+                    if temp_match:
+                        output_str += 'y,'
+                    if str_match:
+                        output_str += 'y'
+
+        o_f.write(output_str + '\n')
+
+def eval_set(model, dataset, FLAGS, verbose=True):
     num_top1_correct_temp = 0.0
     num_top3_correct_temp = 0.0
     num_top5_correct_temp = 0.0
@@ -46,9 +90,7 @@ def eval_set(model, dataset, rev_sc_vocab, FLAGS, verbose=True):
     total_top10_dist = 0.0
 
     num_eval = 0
-
     eval_bash = FLAGS.dataset.startswith("bash")
-
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
 
@@ -202,7 +244,6 @@ def eval_set(model, dataset, rev_sc_vocab, FLAGS, verbose=True):
 
     return top1_temp_match_score, top1_string_match_score, avg_top1_temp_dist, avg_top1_dist
 
-
 def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
     num_top1_correct_temp = 0.0
     num_top3_correct_temp = 0.0
@@ -220,7 +261,7 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
 
     if num_eval is None:
         num_eval = len(grouped_dataset)
-        
+
     cmd_parser = data_tools.bash_parser if FLAGS.dataset.startswith("bash") \
         else data_tools.paren_parser
 
