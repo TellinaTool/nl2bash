@@ -456,7 +456,6 @@ def extract_filename(value, slot_type='File'):
         if slot_type in ['Directory', 'Path']:
             return value
         else:
-            print(match.group(0), strip(value))
             if (len(match.group(0)) + 0.0) / len(strip(value)) > 0.5:
                 # avoid cases in which a file name happen to contain a
                 # substring which is the same as a file extension
