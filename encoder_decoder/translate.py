@@ -29,7 +29,8 @@ from tensorflow.python.util import nest
 
 if __name__ == "__main__":
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-    import data_utils, graph_utils, decode_tools, hyperparam_range, parse_args
+    import data_stats, data_utils, graph_utils, decode_tools, \
+        hyperparam_range, parse_args
     from eval import eval_tools
     from classifiers import BinaryLogisticRegressionModel, KNearestNeighborModel
     from seq2seq.seq2seq_model import Seq2SeqModel
@@ -264,12 +265,20 @@ def decode(data_set, construct_model_dir=True, verbose=True):
 def eval(data_set, model_sig=None, verbose=True):
     if model_sig is None:
         _, model_sig = graph_utils.get_model_signature(FLAGS)
-    print("evaluate " + model_sig + "...")
-    _, rev_sc_vocab, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
+    print("evaluating " + model_sig)
 
-    return eval_tools.eval_set(model_sig, data_set, rev_sc_vocab, FLAGS,
-                               verbose=verbose)
+    return eval_tools.eval_set(model_sig, data_set, FLAGS, verbose=verbose)
 
+
+def print_eval_form(dataset, model_sig=None)
+    if model_sig is None:
+        model_dir, model_sig = graph_utils.get_model_signature(FLAGS)
+    print("evaluating " + model_sig)
+
+    eval_tools.print_evaluation_form(model_sig, dataset, FLAGS,
+                                     model_dir + "predictions.csv")
+    print("prediction results saved to {}".format(
+        model_dir + 'predictions.csv'))
 
 def manual_eval(num_eval):
     # Create model and load parameters.
@@ -409,7 +418,7 @@ def grid_search(train_set, dev_set):
     print("Best template distance = {}".format(best_temp_dist))
     print("*****************************")
 
-# --- Pre-processing and data statistics --- #
+# --- Pre-processing --- #
 
 def load_data(use_buckets=True, load_mappings=False):
     print(FLAGS.data_dir)
@@ -428,9 +437,10 @@ def induce_slot_filling_mapping():
     print("Preparing slot-filling data in %s" % FLAGS.data_dir)
     data_utils.slot_filling_mapping_induction(FLAGS)
 
+# --- Data Statistics --- #
 
 def data_statistics():
-    data_utils.data_stats(FLAGS)
+    data_stats.data_stats(FLAGS)
 
 
 def main(_):
@@ -455,7 +465,8 @@ def main(_):
     if FLAGS.eval:
         _, dev_set, test_set = load_data()
         dataset = test_set if FLAGS.test else dev_set
-        eval(dataset)
+        # eval(dataset)
+        print_eval_form(dataset)
     elif FLAGS.manual_eval:
         manual_eval(100)
     elif FLAGS.decode:
