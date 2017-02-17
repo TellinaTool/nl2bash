@@ -285,7 +285,7 @@ def manual_eval(num_eval):
     _, model_sig = graph_utils.get_model_signature(FLAGS)
     _, dev_set, test_set = load_data(use_buckets=False)
 
-    dataset = test_set if FLAGS.test_set else dev_set
+    dataset = test_set if FLAGS.test else dev_set
 
     eval_tools.manual_eval(
         model_sig, dataset, FLAGS, FLAGS.model_dir, num_eval)
