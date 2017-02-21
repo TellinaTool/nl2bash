@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from .data_utils import *
+from encoder_decoder.data_utils import *
 
 def ratio(ll, x):
     print(sum([len(l[x]) for l in ll.values()]))
