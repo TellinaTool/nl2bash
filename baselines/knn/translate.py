@@ -75,7 +75,7 @@ def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
                         cm_slots[j] = (pred_token, pred_token_type)
                     tokens.append(pred_token)
                 pred_cmd = ' '.join(tokens[1:-1])
-                # tree = data_tools.bash_parser(pred_cmd)
+                tree = data_tools.bash_parser(pred_cmd)
                 # check if the predicted command templates have enough slots to
                 # hold the fillers (to rule out templates that are trivially
                 # unqualified)
