@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'bashlex'))
@@ -6,10 +10,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'eval'))
 
 import tensorflow as tf
 
-import data_tools, data_utils, eval_tools
-import parse_args
-import knn
-from eval_archive import DBConnection
+from bashlex import data_tools
+from encoder_decoder import data_utils, graph_utils, parse_args
+from eval import eval_tools
+from eval.eval_archive import DBConnection
+from knn import knn
 
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
@@ -53,7 +58,7 @@ def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
                     print("Prediction {}: {} ({})".format(i, pred_cmd, score))
                     print("AST: ")
                     data_tools.pretty_print(tree, 0)
-                    print
+                    print("")
                 db.add_prediction(model_name, sc_str, pred_cmd, float(score),
                                   update_mode=False)
             
@@ -69,11 +74,11 @@ def decode():
     sc_vocab, rev_sc_vocab = data_utils.initialize_vocabulary(sc_vocab_path)
     tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
 
-    train_set, dev_set, _ = load_data()
+    train_set, dev_set, test_set = load_data()
     model = knn.KNNModel()
     model.train(train_set)
 
-    decode_set(model, dev_set, rev_sc_vocab, rev_tg_vocab)
+    decode_set(model, test_set, rev_sc_vocab, rev_tg_vocab)
 
 
 def eval():
@@ -85,10 +90,16 @@ def eval():
     sc_vocab, rev_sc_vocab = data_utils.initialize_vocabulary(sc_vocab_path)
     tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
 
-    train_set, dev_set, _ = load_data()
+    train_set, dev_set, test_set = load_data()
     model = knn.KNNModel()
     model.train(train_set)
-    eval_tools.eval_set(model_name, dev_set, rev_sc_vocab, FLAGS)
+    eval_tools.eval_set(model_name, test_set, FLAGS)
+
+
+def print_eval_form(dataset):
+    eval_tools.print_evaluation_form(model_name, dataset, FLAGS,
+                                     "predictions.csv")
+    print("prediction results saved to {}".format('predictions.csv'))
 
 
 def manual_eval():
@@ -100,10 +111,10 @@ def manual_eval():
     sc_vocab, rev_sc_vocab = data_utils.initialize_vocabulary(sc_vocab_path)
     tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
 
-    train_set, dev_set, _ = load_data()
+    train_set, dev_set, test_set = load_data()
     model = knn.KNNModel()
     model.train(train_set)
-    eval_tools.manual_eval(model_name, dev_set, rev_sc_vocab,
+    eval_tools.manual_eval(model_name, test_set, rev_sc_vocab,
                            FLAGS, FLAGS.model_dir, num_eval=500)
 
 # Chenglong's main function
@@ -144,14 +155,14 @@ def original():
 
         nl, cmd, score = model.test(test_vec, 1)
 
-        print "[text-case ", i, "] ========================================================="
-        print "  [original-pair]"
-        print "     ", knn.decode_vec_to_str(test_vec, rev_sc_vocab)
-        print "     ", knn.decode_vec_to_str(cmd_vec, rev_tg_vocab)
-        print "  [new-pair]"
-        print "     ", knn.decode_vec_to_str(nl, rev_sc_vocab)
-        print "     ", knn.decode_vec_to_str(cmd, rev_tg_vocab)
-        print knn.decode_vec_to_str(cmd, rev_tg_vocab)
+        print("[text-case ", i, "] =========================================================")
+        print("  [original-pair]")
+        print("     ", knn.decode_vec_to_str(test_vec, rev_sc_vocab))
+        print("     ", knn.decode_vec_to_str(cmd_vec, rev_tg_vocab))
+        print("  [new-pair]")
+        print("     ", knn.decode_vec_to_str(nl, rev_sc_vocab))
+        print("     ", knn.decode_vec_to_str(cmd, rev_tg_vocab))
+        print(knn.decode_vec_to_str(cmd, rev_tg_vocab))
 
 
 def load_data():
@@ -188,8 +199,6 @@ def main():
         eval()
     elif FLAGS.decode:
         decode()
-    elif FLAGS.self_test:
-        original()
 
 
 if __name__ == '__main__':
