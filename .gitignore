@@ -36,6 +36,7 @@ parsetab.py
 # Misc
 MANIFEST
 .DS_Store
+*.csv
 *.key
 eval.*
 temp*.txt
