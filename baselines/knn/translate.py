@@ -42,7 +42,7 @@ def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
         for sc_temp in grouped_dataset:
             batch_sc_strs, batch_tg_strs, batch_scs, batch_cmds = \
                 grouped_dataset[sc_temp]
-            _, entities = tokenizer.basic_tokenizer(sc_temp)
+            _, entities = tokenizer.ner_tokenizer(sc_temp)
             nl_fillers = entities[0]
             if nl_fillers is not None:
                 cm_slots = {}
