@@ -1,4 +1,0 @@
-example_id, description, ground_truth, prediction, correct command, correct template
-471,find all the files in the current folder which are writable
-,find . -writable
-,find . -perm [permission],
