@@ -3,18 +3,24 @@ from __future__ import division
 from __future__ import print_function
 
 import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'bashlex'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'encoder_decoder'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'eval'))
 
 import tensorflow as tf
 
-from bashlex import data_tools
-from encoder_decoder import data_utils, graph_utils, parse_args
-from eval import eval_tools
-from eval.eval_archive import DBConnection
-from knn import knn
+if __name__ == "__main__":
+    sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+    sys.path.append(os.path.join(os.path.dirname(__file__)))
+    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "eval"))
+    from bashlex import data_tools
+    from encoder_decoder import data_utils, graph_utils, parse_args
+    from eval import eval_tools
+    from eval.eval_archive import DBConnection
+    import knn_model
+else:
+    from bashlex import data_tools
+    from encoder_decoder import data_utils, graph_utils, parse_args
+    from eval import eval_tools
+    from eval.eval_archive import DBConnection
+    from baselines.knn import knn_model
 
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
