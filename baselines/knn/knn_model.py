@@ -12,12 +12,12 @@ class KNNModel(object):
         self.data_size = len(train_set)
 
         # the file containing training nl vectors and cmd vectors
-        cmd_list = [cmd for _, cmd, _, _ in train_set]
+        cmd_vec_list = [cmd_vec for _, _, _, cmd_vec in train_set]
         sc_vec_list = [sc_vec for _, _, sc_vec, _ in train_set]
 
         sc_vec_to_tg_vec = {}
         for i in range(self.data_size):
-            sc_vec_to_tg_vec[str(sc_vec_list[i])] = cmd_list[i]
+            sc_vec_to_tg_vec[str(sc_vec_list[i])] = cmd_vec_list[i]
 
         # calculate term weight based on tf-idf
         for vec in sc_vec_list:
