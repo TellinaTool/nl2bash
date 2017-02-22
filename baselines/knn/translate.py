@@ -199,6 +199,11 @@ def load_data():
 
 
 def main():
+    # set up data and model directories
+    FLAGS.data_dir = os.path.join(
+        os.path.dirname(__file__), "..", "..", "data", FLAGS.dataset)
+    print("Reading data from {}".format(FLAGS.data_dir))
+
     if FLAGS.manual_eval:
         manual_eval()
     elif FLAGS.eval:
