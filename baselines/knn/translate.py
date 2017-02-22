@@ -108,7 +108,7 @@ def decode():
     sc_vocab_path = os.path.join(FLAGS.data_dir,
                                  "vocab%d.nl" % FLAGS.sc_vocab_size)
     tg_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
+                                 "vocab%d.cm" % FLAGS.tg_vocab_size)
     sc_vocab, rev_sc_vocab = data_utils.initialize_vocabulary(sc_vocab_path)
     tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
 
