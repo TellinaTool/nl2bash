@@ -276,9 +276,9 @@ def print_eval_form(dataset, model_sig=None):
     print("evaluating " + model_sig)
 
     eval_tools.print_evaluation_form(model_sig, dataset, FLAGS,
-                                     model_dir + "predictions.csv")
+        os.path.join(FLAGS.model_dir, model_dir, "predictions.csv"))
     print("prediction results saved to {}".format(
-        model_dir + 'predictions.csv'))
+        os.path.join(FLAGS.model_dir, model_dir, 'predictions.csv')))
 
 def manual_eval(num_eval):
     # Create model and load parameters.
