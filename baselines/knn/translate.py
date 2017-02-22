@@ -30,10 +30,12 @@ data_dir = FLAGS.data_dir
 model_name = "knn"
 
 def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
-    grouped_dataset = data_utils.group_data_by_sc(dataset)
+    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=False,
+                                                  use_temp=False)
 
     with DBConnection() as db:
         db.remove_model(model_name)
+        
         num_eval = 0
         for sc_temp in grouped_dataset:
             batch_sc_strs, batch_tg_strs, batch_scs, batch_cmds = \
@@ -50,24 +52,25 @@ def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
             top_k_results = model.test(nl, 10)
             for i in xrange(len(top_k_results)):
                 nn, cmd, score = top_k_results[i]
-                nn_str = ' '.join([rev_sc_vocab[i] for i in nn])
-                tokens = []
-                for i in cmd:
-                    pred_token = rev_tg_vocab[i]
-                    if "@@" in pred_token:
-                        pred_token = pred_token.split("@@")[-1]
-                    tokens.append(pred_token)
-                pred_cmd = ' '.join(tokens)
-                tree = data_tools.bash_parser(pred_cmd)
+                nn_str = ' '.join([rev_sc_vocab[j] for j in nn])
+                # tokens = []
+                # for j in cmd:
+                #     pred_token = rev_tg_vocab[j]
+                #     if "@@" in pred_token:
+                #         pred_token = pred_token.split("@@")[-1]
+                #     tokens.append(pred_token)
+                # pred_cmd = ' '.join(tokens[1:-1])
+                pred_cmd = cmd
+                # tree = data_tools.bash_parser(pred_cmd)
                 if verbose:
                     print("NN: {}".format(nn_str))
                     print("Prediction {}: {} ({})".format(i, pred_cmd, score))
-                    print("AST: ")
-                    data_tools.pretty_print(tree, 0)
-                    print("")
+                    # print("AST: ")
+                    # data_tools.pretty_print(tree, 0)
+                    # print("")
                 db.add_prediction(model_name, sc_str, pred_cmd, float(score),
                                   update_mode=False)
-            
+            print("")        
             num_eval += 1
 
 
@@ -81,7 +84,7 @@ def decode():
     tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
 
     train_set, dev_set, test_set = load_data()
-    model = knn.KNNModel()
+    model = knn_model.KNNModel()
     model.train(train_set)
 
     decode_set(model, test_set, rev_sc_vocab, rev_tg_vocab)
@@ -172,31 +175,7 @@ def original():
 
 
 def load_data():
-    print("Loading data from %s" % FLAGS.data_dir)
-    sc_extention = ".ids%d.nl" % FLAGS.sc_vocab_size
-    tg_extension = ".ids%d.cm" % FLAGS.tg_vocab_size
-
-    sc_txt_train = os.path.join(data_dir, "train") + ".nl"
-    tg_txt_train = os.path.join(data_dir, "train") + ".cm"
-    sc_txt_dev = os.path.join(data_dir, "dev") + ".nl"
-    tg_txt_dev = os.path.join(data_dir, "dev") + ".cm"
-    sc_txt_test = os.path.join(data_dir, "test") + ".nl"
-    tg_txt_test = os.path.join(data_dir, "test") + ".cm"
-
-    sc_train = os.path.join(data_dir, "train") + sc_extention
-    tg_train = os.path.join(data_dir, "train") + tg_extension
-    sc_dev = os.path.join(data_dir, "dev") + sc_extention
-    tg_dev = os.path.join(data_dir, "dev") + tg_extension
-    sc_test = os.path.join(data_dir, "test") + sc_extention
-    tg_test = os.path.join(data_dir, "test") + tg_extension
-
-    train_set = data_utils.read_data(sc_txt_train, tg_txt_train, sc_train, tg_train, None,
-                                     FLAGS.max_train_data_size)
-    dev_set = data_utils.read_data(sc_txt_dev, tg_txt_dev, sc_dev, tg_dev, None)
-    test_set = data_utils.read_data(sc_txt_test, tg_txt_test, sc_test, tg_test, None)
-
-    return train_set, dev_set, test_set
-
+    return data_utils.load_data(FLAGS, None)
 
 def main():
     # set up data and model directories
