@@ -270,7 +270,7 @@ def eval(data_set, model_sig=None, verbose=True):
     return eval_tools.eval_set(model_sig, data_set, FLAGS, verbose=verbose)
 
 
-def print_eval_form(dataset, model_sig=None)
+def print_eval_form(dataset, model_sig=None):
     if model_sig is None:
         model_dir, model_sig = graph_utils.get_model_signature(FLAGS)
     print("evaluating " + model_sig)
