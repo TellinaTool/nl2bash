@@ -131,15 +131,9 @@ def heuristic_slot_filling(node, ner_by_category):
     def slot_filling_fun(node, arguments):
 
         def fill_argument(filler_type, slot_type=None):
-            if slot_type is None:
-                slot_type = filler_type
             surface = arguments[filler_type][0][0]
-            value = extract_value(filler_type, surface)
-            if filler_type == 'Timespan' and slot_type == 'Number':
-                value = extract_value(slot_type, value)
-            if value is not None:
-                node.value = get_fill_in_value((node.value, node.arg_type),
-                                               (value, filler_type))
+            node.value = get_fill_in_value((node.value, node.arg_type),
+                                           (surface, filler_type))
             arguments[filler_type].pop(0)
 
         if node.is_argument():
@@ -180,8 +174,8 @@ def heuristic_slot_filling(node, ner_by_category):
     arguments = collections.defaultdict(list)
     for filler_type in constants.type_conversion:
         slot_type = constants.type_conversion[filler_type]
-        arguments[slot_type] = \
-            copy.deepcopy(ner_by_category[filler_type])
+        arguments[slot_type] = copy.deepcopy(ner_by_category[filler_type]) \
+            if filler_type in ner_by_category else []
 
     slot_filling_fun(node, arguments)
 
