@@ -132,7 +132,8 @@ def eval():
     train_set, dev_set, test_set = load_data()
     model = knn.KNNModel()
     model.train(train_set)
-    eval_tools.eval_set(model_name, test_set, FLAGS)
+    print_eval_form(test_set)
+    # eval_tools.eval_set(model_name, test_set, FLAGS)
 
 
 def print_eval_form(dataset):
