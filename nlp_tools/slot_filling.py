@@ -114,7 +114,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
         temp = None
     return tree, temp
 
-def heuristic_slot_filling(node, entities):
+def heuristic_slot_filling(node, ner_by_category):
     """
     Fills the argument slots with heuristic rules.
     This rule-based slot-filling algorithm has high error-rate in practice.
@@ -124,8 +124,6 @@ def heuristic_slot_filling(node, entities):
         sentence, indexed by token id, character position and category,
         respectively.
     """
-    _, _, ner_by_category = entities
-
     if ner_by_category is None:
         # no constants detected in the natural language query
         return True
