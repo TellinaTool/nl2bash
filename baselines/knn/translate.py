@@ -43,7 +43,7 @@ def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
             batch_sc_strs, batch_tg_strs, batch_scs, batch_cmds = \
                 grouped_dataset[sc_temp]
             _, entities = tokenizer.ner_tokenizer(sc_temp)
-            nl_fillers = entities[0]
+            nl_fillers = entities[-1]
             if nl_fillers is not None:
                 cm_slots = {}
 
@@ -56,13 +56,14 @@ def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
                 for j in xrange(len(batch_tg_strs)):
                     print("GT Command {}: {}".format(j+1, batch_tg_strs[j].strip()))
             # retrieve top-ranked command template
-            top_k_results = model.test(nl, 10)
+            top_k_results = model.test(nl, 100)
+            count = 0
             for i in xrange(len(top_k_results)):
                 nn, output_tokens, score = top_k_results[i]
                 nn_str = ' '.join([rev_sc_vocab[j] for j in nn])
                 tokens = []
-                for j in output_tokens:
-                    pred_token = rev_tg_vocab[j]
+                for j in xrange(1, len(output_tokens)-1):
+                    pred_token = rev_tg_vocab[output_tokens[j]]
                     if "@@" in pred_token:
                         pred_token = pred_token.split("@@")[-1]
                     if nl_fillers is not None and \
@@ -74,20 +75,17 @@ def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
                             pred_token_type = pred_token
                         cm_slots[j] = (pred_token, pred_token_type)
                     tokens.append(pred_token)
-                pred_cmd = ' '.join(tokens[1:-1])
-                tree = data_tools.bash_parser(pred_cmd)
+                pred_cmd = ' '.join(tokens)
                 # check if the predicted command templates have enough slots to
                 # hold the fillers (to rule out templates that are trivially
                 # unqualified)
                 if nl_fillers is None or len(cm_slots) >= len(nl_fillers):
-                    # print(tg)
                     # Step 2: check if the predicted command template is grammatical
                     if FLAGS.dataset.startswith("bash"):
-                        tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
+                        tg = re.sub('( ;\s+)|( ;$)', ' \\; ', pred_cmd)
                         tree = data_tools.bash_parser(tg)
                     else:
                         tree = data_tools.paren_parser(tg)
-
                     # filter out non-grammatical output
                     if tree is not None:
                         matched = slot_filling.heuristic_slot_filling(tree, nl_fillers)
@@ -99,6 +97,9 @@ def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
                                 print("Prediction {}: {} ({})".format(i, pred_cmd, score))
                             db.add_prediction(model_name, sc_str, pred_cmd, float(score),
                                               update_mode=False)
+                            count += 1
+                if count == 10:
+                    break
             print("")        
             num_eval += 1
 
@@ -108,7 +109,7 @@ def decode():
     sc_vocab_path = os.path.join(FLAGS.data_dir,
                                  "vocab%d.nl" % FLAGS.sc_vocab_size)
     tg_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm" % FLAGS.tg_vocab_size)
+                                 "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
     sc_vocab, rev_sc_vocab = data_utils.initialize_vocabulary(sc_vocab_path)
     tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
 
