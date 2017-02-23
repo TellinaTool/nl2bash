@@ -132,7 +132,7 @@ def heuristic_slot_filling(node, ner_by_category):
 
         def fill_argument(filler_type, slot_type=None):
             surface = arguments[filler_type][0][0]
-            node.value = get_fill_in_value((node.value, node.arg_type),
+            node.value = get_fill_in_value((node.value, slot_type),
                                            (surface, filler_type))
             arguments[filler_type].pop(0)
 
@@ -172,6 +172,7 @@ def heuristic_slot_filling(node, ner_by_category):
                 slot_filling_fun(child, arguments)
 
     arguments = collections.defaultdict(list)
+    print(ner_by_category)
     for filler_type in constants.type_conversion:
         slot_type = constants.type_conversion[filler_type]
         arguments[slot_type] = copy.deepcopy(ner_by_category[filler_type]) \
