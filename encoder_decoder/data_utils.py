@@ -755,31 +755,31 @@ def load_data(FLAGS, buckets=None, load_mappings=False):
     data_dir = FLAGS.data_dir
 
     if FLAGS.char:
-        nl_extention = ".cids%d.nl" % FLAGS.sc_vocab_size
-        cm_extention = ".cids%d.cm" % FLAGS.sc_vocab_size
+        nl_extension = ".cids%d.nl" % FLAGS.sc_vocab_size
+        cm_extension = ".cids%d.cm" % FLAGS.sc_vocab_size
         append_head_token = True
         append_end_token = True
     elif FLAGS.decoder_topology in ["rnn"]:
-        nl_extention = ".ids%d.nl" % FLAGS.sc_vocab_size
+        nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
         if FLAGS.canonical:
-            cm_extention = ".ids%d.cm.norm.order" % FLAGS.sc_vocab_size
+            cm_extension = ".ids%d.cm.norm.order" % FLAGS.sc_vocab_size
         elif FLAGS.normalized:
-            cm_extention = ".ids%d.cm.norm" % FLAGS.sc_vocab_size
+            cm_extension = ".ids%d.cm.norm" % FLAGS.sc_vocab_size
         else:
-            cm_extention = ".ids%d.cm" % FLAGS.sc_vocab_size
+            cm_extension = ".ids%d.cm" % FLAGS.sc_vocab_size
         append_head_token = True
         append_end_token = True
     elif FLAGS.decoder_topology in ["basic_tree"]:
-        nl_extention = ".ids%d.nl" % FLAGS.sc_vocab_size
+        nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
         if FLAGS.canonical:
-            cm_extention = ".seq%d.cm.norm.order" % FLAGS.sc_vocab_size
+            cm_extension = ".seq%d.cm.norm.order" % FLAGS.sc_vocab_size
         elif FLAGS.normalized:
-            cm_extention = ".seq%d.cm.norm" % FLAGS.sc_vocab_size
+            cm_extension = ".seq%d.cm.norm" % FLAGS.sc_vocab_size
         else:
-            cm_extention = ".seq%d.cm" % FLAGS.sc_vocab_size
+            cm_extension = ".seq%d.cm" % FLAGS.sc_vocab_size
         append_head_token = False
         append_end_token = False
-
+    
     train_path = os.path.join(data_dir, "train")
     dev_path = os.path.join(data_dir, "dev")
     test_path = os.path.join(data_dir, "test")
@@ -791,12 +791,12 @@ def load_data(FLAGS, buckets=None, load_mappings=False):
     nl_txt_test = test_path + ".%d.nl" % FLAGS.sc_vocab_size
     cm_txt_test = test_path + ".%d.cm" % FLAGS.sc_vocab_size
 
-    nl_train = train_path + nl_extention
-    cm_train = train_path + cm_extention
-    nl_dev = dev_path + nl_extention
-    cm_dev = dev_path + cm_extention
-    nl_test = test_path + nl_extention
-    cm_test = test_path + cm_extention
+    nl_train = train_path + nl_extension
+    cm_train = train_path + cm_extension
+    nl_dev = dev_path + nl_extension
+    cm_dev = dev_path + cm_extension
+    nl_test = test_path + nl_extension
+    cm_test = test_path + cm_extension
 
     if FLAGS.explanation:
         train_set = read_data(cm_txt_train, nl_txt_train, cm_train, nl_train,
