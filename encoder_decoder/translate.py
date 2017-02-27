@@ -89,6 +89,7 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
         for bucket_id in xrange(len(_buckets)):
             for i in xrange(len(dataset[bucket_id])):
                 sc, tg, sc_ids, tg_ids, gt_mappings = dataset[bucket_id][i]
+                gt_mappings = [tuple(m) for m in gt_mappings]
                 if gt_mappings:
                     _, entities = tokenizer.ner_tokenizer(sc)
                     nl_fillers = entities[0]
