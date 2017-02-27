@@ -175,10 +175,10 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
         seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
             Seq2SeqModel, buckets=_buckets, forward_only=True)
 
-        get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
-            FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
-        get_slot_filling_training_data_fun(seq2seq_model, dev_set, os.path.join(
-            FLAGS.data_dir, 'dev.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
+        # get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
+        #     FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
+        # get_slot_filling_training_data_fun(seq2seq_model, dev_set, os.path.join(
+        #     FLAGS.data_dir, 'dev.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
         get_slot_filling_training_data_fun(seq2seq_model, test_set, os.path.join(
             FLAGS.data_dir, 'test.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
 
