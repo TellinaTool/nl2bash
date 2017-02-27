@@ -421,7 +421,6 @@ def grid_search(train_set, dev_set):
 # --- Pre-processing --- #
 
 def load_data(use_buckets=True, load_mappings=False):
-    print(FLAGS.data_dir)
     if use_buckets:
         return data_utils.load_data(FLAGS, _buckets, load_mappings=load_mappings)
     else:
