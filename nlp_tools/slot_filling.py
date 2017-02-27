@@ -54,8 +54,8 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
         sentence, indexed by token id
     :param cm_slots: the argument slots in the command template, indexed by
         token id
-    :param encoder_outputs: [encoder_size, dim] sequence of encoder hidden states
-    :param decoder_outputs: [decoder_size, dim] sequence of decoder hidden states
+    :param encoder_outputs: [encoder_length, dim] sequence of encoder hidden states
+    :param decoder_outputs: [decoder_length, dim] sequence of decoder hidden states
     :param slot_filling_classifier: the classifier that produces the local
         alignment scores
     :param verbose: print all local alignment scores if set to true
@@ -112,7 +112,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
     else:
         tree = None
         temp = None
-    return tree, temp
+    return tree, temp, mappings
 
 def heuristic_slot_filling(node, ner_by_category):
     """
