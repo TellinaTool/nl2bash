@@ -131,8 +131,7 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
                     for mapping in mappings:
                         if mapping in gt_mappings:
                             num_correct += 1
-                        else:
-                            num_predict += 1
+                    num_predict += len(mappings)
                     num_gt += len(gt_mappings)
 
                     """# add positive examples
