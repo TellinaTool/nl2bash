@@ -212,7 +212,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                                 output_tokens, nl_fillers, cm_slots,
                                 encoder_outputs[i],
                                 decoder_outputs[i*FLAGS.beam_size+j],
-                                slot_filling_classifier
+                                slot_filling_classifier,
+                                verbose=True
                             )
                             if temp is not None:
                                 output_example = True
