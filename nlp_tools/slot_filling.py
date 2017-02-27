@@ -172,7 +172,6 @@ def heuristic_slot_filling(node, ner_by_category):
                 slot_filling_fun(child, arguments)
 
     arguments = collections.defaultdict(list)
-    print(ner_by_category)
     for filler_type in constants.type_conversion:
         slot_type = constants.type_conversion[filler_type]
         arguments[slot_type] = copy.deepcopy(ner_by_category[filler_type]) \
