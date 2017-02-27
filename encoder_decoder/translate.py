@@ -101,8 +101,9 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
                               forward_only=True, return_rnn_hidden_states=True)
                     cm_slots = {}
                     output_tokens = []
-                    for ii in xrange(1, len(tg_ids)-1):
-                        output = tg_ids[ii]
+                    outputs = tg_ids[1:-1]
+                    for ii in xrange(len(outputs)):
+                        output = outputs[ii]
                         if output < len(rev_tg_vocab):
                             pred_token = rev_tg_vocab[output]
                             if "@@" in pred_token:
@@ -111,7 +112,7 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
                             if nl_fillers is not None and \
                                     pred_token in constants._ENTITIES:
                                 if ii > 0 and slot_filling.is_min_flag(
-                                        rev_tg_vocab[tg_ids[ii-1]]):
+                                        rev_tg_vocab[outputs[ii-1]]):
                                     pred_token_type = 'Timespan'
                                 else:
                                     pred_token_type = pred_token
