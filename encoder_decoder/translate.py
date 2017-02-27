@@ -101,7 +101,7 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
                               forward_only=True, return_rnn_hidden_states=True)
                     cm_slots = {}
                     output_tokens = []
-                    for ii in xrange(len(tg_ids)):
+                    for ii in xrange(1, len(tg_ids)-1):
                         output = tg_ids[ii]
                         if output < len(rev_tg_vocab):
                             pred_token = rev_tg_vocab[output]
@@ -125,6 +125,7 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
                                 slot_filling_classifier
                             )
                     print(mappings)
+                    print(gt_mappings)
                     for mapping in mappings:
                         if mapping in gt_mappings:
                             num_correct += 1
