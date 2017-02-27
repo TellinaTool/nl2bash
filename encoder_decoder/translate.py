@@ -31,6 +31,7 @@ if __name__ == "__main__":
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
     import data_stats, data_utils, graph_utils, decode_tools, \
         hyperparam_range, parse_args
+    from nlp_tools import tokenizer, slot_filling, constants
     from eval import eval_tools
     from classifiers import BinaryLogisticRegressionModel, KNearestNeighborModel
     from seq2seq.seq2seq_model import Seq2SeqModel
@@ -38,6 +39,7 @@ if __name__ == "__main__":
 else:
     from encoder_decoder import data_utils, graph_utils, decode_tools
     from encoder_decoder import hyperparam_range, parse_args
+    from nlp_tools import tokenizer, slot_filling, constants
     from eval import eval_tools
     from .classifiers import BinaryLogisticRegressionModel, KNearestNeighborModel
     from .seq2seq.seq2seq_model import Seq2SeqModel
@@ -69,13 +71,27 @@ def create_model(session, forward_only, construct_model_dir=True, buckets=None):
 
 # --- Run/train slot-filling classifier --- #
 
-def gen_slot_filling_training_data(train_set, dev_set, test_set):
+def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
+    slot_filling_classifier = None
+    # create slot filling classifier
+    model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
+                           .format(FLAGS.sc_vocab_size))
+    train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
+    slot_filling_classifier = KNearestNeighborModel(FLAGS.num_nn_slot_filling,
+                                                    train_X, train_Y)
+    print('Slot filling classifier parameters loaded.')
+
     def get_slot_filling_training_data_fun(model, dataset, output_file):
-        X, Y = [], []
+        # X, Y = [], []
+        num_correct = 0.0
+        num_predict = 0.0
+        num_gt = 0.0
         for bucket_id in xrange(len(_buckets)):
             for i in xrange(len(dataset[bucket_id])):
-                mappings = dataset[bucket_id][i][4]
-                if mappings:
+                sc, tg, sc_ids, tg_ids, gt_mappings = dataset[bucket_id][i]
+                if gt_mappings:
+                    _, entities = tokenizer.ner_tokenizer(sc)
+                    nl_fillers = entities[0]
                     encoder_inputs = [dataset[bucket_id][i][2]]
                     decoder_inputs = [dataset[bucket_id][i][3]]
                     formatted_example = model.format_example(
@@ -83,7 +99,40 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
                     _, _, _, _, encoder_outputs, decoder_outputs = model\
                         .step(sess, formatted_example, bucket_id,
                               forward_only=True, return_rnn_hidden_states=True)
-                    # add positive examples
+                    cm_slots = {}
+                    output_tokens = []
+                    for ii in xrange(len(tg_ids)):
+                        output = tg_ids[ii]
+                        if output < len(rev_tg_vocab):
+                            pred_token = rev_tg_vocab[output]
+                            if "@@" in pred_token:
+                                pred_token = pred_token.split("@@")[-1]
+                            output_tokens.append(pred_token)
+                            if nl_fillers is not None and \
+                                    pred_token in constants._ENTITIES:
+                                if ii > 0 and slot_filling.is_min_flag(
+                                        rev_tg_vocab[tg_ids[ii-1]]):
+                                    pred_token_type = 'Timespan'
+                                else:
+                                    pred_token_type = pred_token
+                                cm_slots[ii] = (pred_token, pred_token_type)
+                        else:
+                            output_tokens.append(data_utils._UNK)
+                    tree2, temp, mappings = slot_filling.stable_slot_filling(
+                                output_tokens, nl_fillers, cm_slots,
+                                encoder_outputs[0],
+                                decoder_outputs[0],
+                                slot_filling_classifier
+                            )
+                    print(mappings)
+                    for mapping in mappings:
+                        if mapping in gt_mappings:
+                            num_correct += 1
+                        else:
+                            num_predict += 1
+                    num_gt += len(gt_mappings)
+
+                    """# add positive examples
                     for f, s in mappings:
                         # use reversed index for the encoder embedding matrix
                         ff = _buckets[bucket_id][0] - f - 1
@@ -102,19 +151,23 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
                                      decoder_outputs[:, n_s, :]], axis=1))
                                 Y.append(np.array([0, 1]))
                         # Debugging
-                        if i == 0:
-                            print(ff)
-                            print(encoder_outputs[:, ff, :].shape)
-                            print(X[0].shape)
-                            print(encoder_outputs[:, ff, :][0, :40])
-                            print(X[0][0, :40])
-                if i > 0 and i % 1000 == 0:
-                    print('{} training examples gathered for training slot filling...'
-                         .format(len(X)))
-        assert(len(X) == len(Y))
-
-        with open(output_file, 'w') as o_f:
-            pickle.dump([X, Y], o_f)
+                        # if i == 0:
+                        #     print(ff)
+                        #     print(encoder_outputs[:, ff, :].shape)
+                        #     print(X[0].shape)
+                        #     print(encoder_outputs[:, ff, :][0, :40])
+                        #     print(X[0][0, :40])
+                    """
+                # if i > 0 and i % 1000 == 0:
+                #     print('{} training examples gathered for training slot filling...'
+                #           .format(len(X)))
+        precision = num_correct / num_predict
+        recall = num_correct / num_gt
+        print("Precision: {}".format(precision))
+        print("Recall: {}".format(recall))
+        print("F1: {}".format(2 * precision * recall / (precision + recall)))
+        # with open(output_file, 'w') as o_f:
+        #     pickle.dump([X, Y], o_f)
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
@@ -470,7 +523,9 @@ def main(_):
         induce_slot_filling_mapping()
     elif FLAGS.gen_slot_filling_training_data:
         train_set, dev_set, test_set = load_data(load_mappings=True)
-        gen_slot_filling_training_data(train_set, dev_set, test_set)
+        sc_vocab, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
+        gen_slot_filling_training_data(train_set, dev_set, test_set,
+                                       rev_tg_vocab)
     elif FLAGS.train_slot_filling:
         train_path = os.path.join(
             FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size))
