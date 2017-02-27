@@ -130,22 +130,6 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set):
             FLAGS.data_dir, 'test.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
 
 
-def train_slot_filling_classifier():
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-        log_device_placement=FLAGS.log_device_placement)) as sess:
-        model, _ = graph_utils.create_model(sess, FLAGS,
-            BinaryLogisticRegressionModel, buckets=None, forward_only=False,
-            construct_slot_filling=True)
-        with open(os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
-                               .format(FLAGS.sc_vocab_size))) as f:
-            train_X, train_Y = pickle.load(f)
-        with open(os.path.join(FLAGS.data_dir, 'dev.{}.mappings.X.Y'
-                               .format(FLAGS.sc_vocab_size))) as f:
-            dev_X, dev_Y = pickle.load(f)
-        model.train(sess, train_X, train_Y)
-        model.eval(sess, train_X, train_Y)
-        model.eval(sess, dev_X, dev_Y)
-
 def nn_slot_filling_raw_prediction_eval(train_path, dev_path):
     """A nearest-neighbor slot-filling classifier."""
     train_X, train_Y = data_utils.load_slot_filling_data(train_path)
@@ -488,7 +472,6 @@ def main(_):
         train_set, dev_set, test_set = load_data(load_mappings=True)
         gen_slot_filling_training_data(train_set, dev_set, test_set)
     elif FLAGS.train_slot_filling:
-        # train_slot_filling_classifier()
         train_path = os.path.join(
             FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size))
         dev_path = os.path.join(
