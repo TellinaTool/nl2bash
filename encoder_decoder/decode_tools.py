@@ -20,47 +20,6 @@ from nlp_tools import constants, slot_filling, tokenizer
 from eval.eval_archive import DBConnection
 
 
-def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
-                  slot_filling_classifier=None):
-    # Get token-ids for the input sentence.
-    # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
-    if FLAGS.char:
-        token_ids, entities = data_utils.sentence_to_token_ids(sentence,
-            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
-    else:
-        token_ids, entities = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, tokenizer.ner_tokenizer, None)
-    # Which bucket does it belong to?
-    bucket_id = min([b for b in xrange(len(model.buckets))
-                    if model.buckets[b][0] > len(token_ids)])
-
-    # Get a 1-element batch to feed the sentence to the model.
-    formatted_example = model.format_example(
-        [token_ids], [[data_utils.ROOT_ID]], bucket_id=bucket_id)
-
-    # Decode the ouptut for this 1-element batch.
-    # Non-grammatical templates and templates that cannot hold all fillers are
-    # filtered out.
-    # TODO: align output commands and their scores correctly
-    model_step_outputs = model.step(sess, formatted_example, bucket_id,
-        forward_only=True, return_rnn_hidden_states=FLAGS.fill_argument_slots)
-    output_symbols, output_logits, losses, attn_masks = model_step_outputs[:4]
-
-    nl_fillers, encoder_outputs, decoder_outputs = None, None, None
-    if FLAGS.fill_argument_slots:
-        assert(slot_filling_classifier is not None)
-        nl_fillers = entities[0]
-        encoder_outputs = model_step_outputs[4]
-        decoder_outputs = model_step_outputs[5]
-    batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS,
-                           grammatical_only=True,
-                           nl_fillers=nl_fillers,
-                           slot_filling_classifier=slot_filling_classifier,
-                           encoder_outputs=encoder_outputs,
-                           decoder_outputs=decoder_outputs)
-
-    return batch_outputs, output_logits
-
 
 def demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS):
     """
@@ -109,6 +68,48 @@ def demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS):
         print("> ", end="")
         sys.stdout.flush()
         sentence = sys.stdin.readline()
+
+
+def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
+                  slot_filling_classifier=None):
+    # Get token-ids for the input sentence.
+    # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
+    if FLAGS.char:
+        token_ids, entities = data_utils.sentence_to_token_ids(sentence,
+            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+    else:
+        token_ids, entities = data_utils.sentence_to_token_ids(
+            sentence, sc_vocab, tokenizer.ner_tokenizer, None)
+    # Which bucket does it belong to?
+    bucket_id = min([b for b in xrange(len(model.buckets))
+                    if model.buckets[b][0] > len(token_ids)])
+
+    # Get a 1-element batch to feed the sentence to the model.
+    formatted_example = model.format_example(
+        [token_ids], [[data_utils.ROOT_ID]], bucket_id=bucket_id)
+
+    # Decode the ouptut for this 1-element batch.
+    # Non-grammatical templates and templates that cannot hold all fillers are
+    # filtered out.
+    # TODO: align output commands and their scores correctly
+    model_step_outputs = model.step(sess, formatted_example, bucket_id,
+        forward_only=True, return_rnn_hidden_states=FLAGS.fill_argument_slots)
+    output_symbols, output_logits, losses, attn_masks = model_step_outputs[:4]
+
+    nl_fillers, encoder_outputs, decoder_outputs = None, None, None
+    if FLAGS.fill_argument_slots:
+        assert(slot_filling_classifier is not None)
+        nl_fillers = entities[0]
+        encoder_outputs = model_step_outputs[4]
+        decoder_outputs = model_step_outputs[5]
+    batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS,
+                           grammatical_only=True,
+                           nl_fillers=nl_fillers,
+                           slot_filling_classifier=slot_filling_classifier,
+                           encoder_outputs=encoder_outputs,
+                           decoder_outputs=decoder_outputs)
+
+    return batch_outputs, output_logits
 
 
 def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
@@ -187,7 +188,6 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
             # hold the fillers (to rule out templates that are trivially
             # unqualified)
             if nl_fillers is None or len(cm_slots) >= len(nl_fillers):
-                # print(tg)
                 # Step 2: check if the predicted command template is grammatical
                 if FLAGS.dataset.startswith("bash"):
                     tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
@@ -225,8 +225,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                             beam_outputs.append((tree, temp, outputs))
                         num_output_examples += 1
 
-            # TODO: this threshold is introduced because the slot-filling step
-            # is slow
+            # TODO: the threshold 20 is used since the slot-filling step
+            # can be slow
             if num_output_examples == 20:
                 break
 
@@ -339,7 +339,7 @@ def visualize_attn_masks(M, source, target, rev_sc_vocab, rev_tg_vocab, output_p
     plt.clf()
     if len(target) == 0:
         i = 0
-    fig = plt.imshow(M[:i+1, :], interpolation='nearest', cmap=plt.cm.Blues)
+    plt.imshow(M[:i+1, :], interpolation='nearest', cmap=plt.cm.Blues)
 
     pad_size = source_length - len(nl)
     plt.xticks(xrange(source_length),
