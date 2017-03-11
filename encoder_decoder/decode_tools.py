@@ -209,7 +209,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                             output_example = True
                         else:
                             # Step 3: match the fillers to the argument slots
-                            tree2, temp = slot_filling.stable_slot_filling(
+                            tree2, temp, _ = slot_filling.stable_slot_filling(
                                 output_tokens, nl_fillers, cm_slots,
                                 encoder_outputs[i],
                                 decoder_outputs[i*FLAGS.beam_size+j],
