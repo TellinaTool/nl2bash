@@ -37,14 +37,18 @@ def define_input_flags():
                                 "Set to True for manual evaluation.")
     tf.app.flags.DEFINE_boolean("eval", False,
                                 "Set to True for quantitive evaluation.")
+    tf.app.flags.DEFINE_boolean("gen_eval_sheet", False,
+                                "Set to True to print out model predictions for manual evaluation.")
     tf.app.flags.DEFINE_boolean("process_data", False,
                                 "Set to True for data preprocessing.")
     tf.app.flags.DEFINE_boolean("induce_slot_filling_mapping", False,
                                 "Set to True for slot-filling mapping induction.")
     tf.app.flags.DEFINE_boolean("gen_slot_filling_training_data", False,
                                 "Set to True to generate feature vectors for slot-filling training.")
-    tf.app.flags.DEFINE_boolean("train_slot_filling", False,
-                                "Set to True to train slot-filling classifier.")
+    tf.app.flags.DEFINE_boolean("eval_slot_filling", False,
+                                "Set to True for evaluation of the slot-filling classifier.")
+    tf.app.flags.DEFINE_boolean("eval_local_slot_filling", False,
+                                "Set to True for raw evaluation of the slot-filling classifier.")
     tf.app.flags.DEFINE_boolean("decode", False,
                                 "Set to True for decoding.")
     tf.app.flags.DEFINE_boolean("test", False,
@@ -64,7 +68,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("gpu", '0', "GPU device where the computation is going to be placed.")
     tf.app.flags.DEFINE_boolean("log_device_placement", False,
                                 "Set to True for logging device placement.")
-
 
     # data set parameters
     tf.app.flags.DEFINE_string("dataset", "bash", "select dataset to use.")
