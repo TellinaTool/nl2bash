@@ -6,7 +6,6 @@ from __future__ import print_function
 
 import tensorflow as tf
 from tensorflow.python.ops import rnn
-from tensorflow.python.util import nest
 
 from encoder_decoder import graph_utils
 
@@ -26,7 +25,8 @@ class RNNEncoder(Encoder):
 
     def define_graph(self, encoder_inputs, embeddings):
         self.embeddings = embeddings
-        input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
+        input_embeddings = [tf.nn.embedding_lookup(
+                                self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
         with tf.variable_scope("encoder_rnn"):
             if self.encoder_rnn_vars:
@@ -92,11 +92,3 @@ class BiRNNEncoder(Encoder):
                                                       self.encoder_input_keep,
                                                       self.encoder_output_keep)
         return cell, scope
-
-
-    @graph_utils.deprecated
-    def output_projection(self):
-        with tf.variable_scope("birnn_output_projection"):
-            w = tf.get_variable("proj_w", [self.dim * 2, self.dim])
-            b = tf.get_variable("proj_b", [self.dim])
-        return (w, b)

@@ -743,7 +743,7 @@ def load_vocab(FLAGS):
     nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
 
-    if FLAGS.explanation:
+    if FLAGS.explain:
         return cm_vocab, rev_cm_vocab, nl_vocab, rev_nl_vocab
     else:
         return nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab
@@ -798,7 +798,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False):
     nl_test = test_path + nl_extension
     cm_test = test_path + cm_extension
 
-    if FLAGS.explanation:
+    if FLAGS.explain:
         train_set = read_data(cm_txt_train, nl_txt_train, cm_train, nl_train,
                             buckets, FLAGS.max_train_data_size,
                             append_head_token=append_head_token,

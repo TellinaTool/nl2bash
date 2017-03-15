@@ -126,7 +126,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
 def get_model_signature(FLAGS, construct_slot_filling=False):
     model_subdir = FLAGS.dataset
-    if FLAGS.explanation:
+    if FLAGS.explain:
         model_subdir += '-expl'
     model_subdir += '-{}'.format(FLAGS.encoder_topology)
     model_subdir += '-{}'.format(FLAGS.rnn_cell)
@@ -193,18 +193,18 @@ def get_buckets(FLAGS):
     # We use a number of buckets and pad to the closest one for efficiency.
     if FLAGS.dataset.startswith("bash"):
         if FLAGS.decoder_topology in ['basic_tree']:
-            buckets = [(30, 72)] if not FLAGS.explanation else [(72, 30)]
+            buckets = [(30, 72)] if not FLAGS.explain else [(72, 30)]
         elif FLAGS.decoder_topology in ['rnn']:
-            buckets = [(30, 40)] if not FLAGS.explanation else [(40, 30)]
+            buckets = [(30, 40)] if not FLAGS.explain else [(40, 30)]
     elif FLAGS.dataset == "dummy":
-        buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explanation else \
+        buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explain else \
             [(95, 20), (95, 30), (95, 45)]
     elif FLAGS.dataset == "jobs":
-        buckets = [(20, 45)] if not FLAGS.explanation else [(45, 20)]
+        buckets = [(20, 45)] if not FLAGS.explain else [(45, 20)]
     elif FLAGS.dataset == "geo":
-        buckets = [(20, 70)] if not FLAGS.explanation else [(70, 20)]
+        buckets = [(20, 70)] if not FLAGS.explain else [(70, 20)]
     elif FLAGS.dataset == "atis":
-        buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explanation else \
+        buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explain else \
             [(95, 20), (95, 30), (95, 40)]
     return buckets
 
