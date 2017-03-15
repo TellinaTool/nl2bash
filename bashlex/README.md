@@ -1,4 +1,4 @@
-## Heuristics-based Bash Parser
+## Heuristics-Based Bash Command Parser
 
 This folder contains the implementation of a general purpose bash command parser, which is implemented on top of the [bashlex](https://github.com/idank/bashlex) tool. It parses a bash oneliner command based on the man-page grammars and heuristics.
 
