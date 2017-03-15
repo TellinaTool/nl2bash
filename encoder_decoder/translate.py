@@ -29,19 +29,18 @@ from tensorflow.python.util import nest
 
 if __name__ == "__main__":
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-    import data_stats, data_utils, graph_utils, decode_tools, \
+    import classifiers, data_stats, data_utils, graph_utils, decode_tools, \
         hyperparam_range, parse_args
     from nlp_tools import tokenizer, slot_filling, constants
     from eval import eval_tools
-    from classifiers import BinaryLogisticRegressionModel, KNearestNeighborModel
     from seq2seq.seq2seq_model import Seq2SeqModel
     from seq2tree.seq2tree_model import Seq2TreeModel
 else:
-    from encoder_decoder import data_utils, graph_utils, decode_tools
+    from encoder_decoder import classifiers, data_utils, graph_utils, \
+        decode_tools
     from encoder_decoder import hyperparam_range, parse_args
     from nlp_tools import tokenizer, slot_filling, constants
     from eval import eval_tools
-    from .classifiers import BinaryLogisticRegressionModel, KNearestNeighborModel
     from .seq2seq.seq2seq_model import Seq2SeqModel
     from .seq2tree.seq2tree_model import Seq2TreeModel
 
@@ -71,20 +70,108 @@ def create_model(session, forward_only, construct_model_dir=True, buckets=None):
 
 # --- Run/train slot-filling classifier --- #
 
+def eval_local_slot_filling(train_path, test_path):
+    """
+    Evaluate accuracy of the local slot filling classifier.
+    :param train_path: path to the training data points stored on disk.
+    :param test_path: path to the test data points stored on disk.
+    :return:
+    """
+    train_X, train_Y = data_utils.load_slot_filling_data(train_path)
+    test_X, test_Y = data_utils.load_slot_filling_data(test_path)
+
+    # Create model.
+    model = classifiers.KNearestNeighborModel(FLAGS.num_nn_slot_filling,
+                                              train_X, train_Y)
+    model.eval(train_X, train_Y, verbose=True)
+    model.eval(test_X, test_Y, verbose=False)
+
+
+def eval_slot_filling(dataset):
+    """
+    Evaluate accuracy of the global slot filling algorithm.
+    """
+    model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
+                           .format(FLAGS.sc_vocab_size))
+    train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
+    slot_filling_classifier = classifiers.KNearestNeighborModel(
+        FLAGS.num_nn_slot_filling, train_X, train_Y)
+    print('Slot filling classifier parameters loaded.')
+
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+            log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model.
+        model, global_epochs = graph_utils.create_model(sess, FLAGS,
+            Seq2SeqModel, buckets=_buckets, forward_only=True)
+
+        num_correct = 0.0
+        num_predict = 0.0
+        num_gt = 0.0
+        for bucket_id in xrange(len(_buckets)):
+            for i in xrange(len(dataset[bucket_id])):
+                sc, tg, sc_ids, tg_ids, gt_mappings = dataset[bucket_id][i]
+                gt_mappings = [tuple(m) for m in gt_mappings]
+                if gt_mappings:
+                    _, entities = tokenizer.ner_tokenizer(sc)
+                    nl_fillers = entities[0]
+                    encoder_inputs = [dataset[bucket_id][i][2]]
+                    decoder_inputs = [dataset[bucket_id][i][3]]
+                    formatted_example = model.format_example(
+                        encoder_inputs, decoder_inputs, bucket_id=bucket_id)
+                    _, _, _, _, encoder_outputs, decoder_outputs = model.step(
+                        sess, formatted_example, bucket_id, forward_only=True,
+                        return_rnn_hidden_states=True)
+                    cm_slots = {}
+                    output_tokens = []
+                    outputs = tg_ids[1:-1]
+                    for ii in xrange(len(outputs)):
+                        output = outputs[ii]
+                        if output < len(rev_tg_vocab):
+                            pred_token = rev_tg_vocab[output]
+                            if "@@" in pred_token:
+                                pred_token = pred_token.split("@@")[-1]
+                            output_tokens.append(pred_token)
+                            if nl_fillers is not None and \
+                                    pred_token in constants._ENTITIES:
+                                if ii > 0 and slot_filling.is_min_flag(
+                                        rev_tg_vocab[outputs[ii-1]]):
+                                    pred_token_type = 'Timespan'
+                                else:
+                                    pred_token_type = pred_token
+                                cm_slots[ii] = (pred_token, pred_token_type)
+                        else:
+                            output_tokens.append(data_utils._UNK)
+                    tree2, temp, mappings = slot_filling.stable_slot_filling(
+                                output_tokens, nl_fillers, cm_slots,
+                                encoder_outputs[0], decoder_outputs[0],
+                                slot_filling_classifier)
+                    print(mappings)
+                    print(gt_mappings)
+                    for mapping in mappings:
+                        if mapping in gt_mappings:
+                            num_correct += 1
+                    num_predict += len(mappings)
+                    num_gt += len(gt_mappings)
+
+        precision = num_correct / num_predict
+        recall = num_correct / num_gt
+        print("Precision: {}".format(precision))
+        print("Recall: {}".format(recall))
+        print("F1: {}".format(2 * precision * recall / (precision + recall)))
+
+
 def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
     slot_filling_classifier = None
     # create slot filling classifier
     model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
                            .format(FLAGS.sc_vocab_size))
     train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
-    slot_filling_classifier = KNearestNeighborModel(FLAGS.num_nn_slot_filling,
-                                                    train_X, train_Y)
+    slot_filling_classifier = classifiers.KNearestNeighborModel(
+        FLAGS.num_nn_slot_filling, train_X, train_Y)
     print('Slot filling classifier parameters loaded.')
 
     def get_slot_filling_training_data_fun(model, dataset, output_file):
-        num_correct = 0.0
-        num_predict = 0.0
-        num_gt = 0.0
+        X, Y = [], []
         for bucket_id in xrange(len(_buckets)):
             for i in xrange(len(dataset[bucket_id])):
                 sc, tg, sc_ids, tg_ids, gt_mappings = dataset[bucket_id][i]
@@ -129,13 +216,8 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
                             )
                     print(mappings)
                     print(gt_mappings)
-                    for mapping in mappings:
-                        if mapping in gt_mappings:
-                            num_correct += 1
-                    num_predict += len(mappings)
-                    num_gt += len(gt_mappings)
 
-                    """# add positive examples
+                    # add positive examples
                     for f, s in mappings:
                         # use reversed index for the encoder embedding matrix
                         ff = _buckets[bucket_id][0] - f - 1
@@ -160,17 +242,12 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
                         #     print(X[0].shape)
                         #     print(encoder_outputs[:, ff, :][0, :40])
                         #     print(X[0][0, :40])
-                    """
-                # if i > 0 and i % 1000 == 0:
-                #     print('{} training examples gathered for training slot filling...'
-                #           .format(len(X)))
-        precision = num_correct / num_predict
-        recall = num_correct / num_gt
-        print("Precision: {}".format(precision))
-        print("Recall: {}".format(recall))
-        print("F1: {}".format(2 * precision * recall / (precision + recall)))
-        # with open(output_file, 'w') as o_f:
-        #     pickle.dump([X, Y], o_f)
+                if i > 0 and i % 1000 == 0:
+                    print('{} training examples gathered for training slot filling...'
+                          .format(len(X)))
+
+        with open(output_file, 'w') as o_f:
+            pickle.dump([X, Y], o_f)
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
@@ -178,24 +255,17 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
         seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
             Seq2SeqModel, buckets=_buckets, forward_only=True)
 
-        # get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
-        #     FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
-        # get_slot_filling_training_data_fun(seq2seq_model, dev_set, os.path.join(
-        #     FLAGS.data_dir, 'dev.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
+        get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
+            FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
+        get_slot_filling_training_data_fun(seq2seq_model, dev_set, os.path.join(
+            FLAGS.data_dir, 'dev.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
         get_slot_filling_training_data_fun(seq2seq_model, test_set, os.path.join(
             FLAGS.data_dir, 'test.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
 
 
-def nn_slot_filling_raw_prediction_eval(train_path, dev_path):
-    """A nearest-neighbor slot-filling classifier."""
-    train_X, train_Y = data_utils.load_slot_filling_data(train_path)
-    dev_X, dev_Y = data_utils.load_slot_filling_data(dev_path)
-
-    # hyperparameters
-    model = KNearestNeighborModel(FLAGS.num_nn_slot_filling, train_X, train_Y)
-    model.eval(train_X, train_Y, verbose=True)
-    model.eval(dev_X, dev_Y, verbose=False)
-
+def induce_slot_filling_mapping():
+    print("Preparing slot-filling data in %s" % FLAGS.data_dir)
+    data_utils.slot_filling_mapping_induction(FLAGS)
 
 # --- Run/train encoder-decoder models --- #
 
@@ -310,25 +380,20 @@ def eval(data_set, model_sig=None, verbose=True):
     return eval_tools.eval_set(model_sig, data_set, FLAGS, verbose=verbose)
 
 
-def print_eval_form(dataset, model_sig=None):
-    if model_sig is None:
-        model_dir, model_sig = graph_utils.get_model_signature(FLAGS)
-    print("evaluating " + model_sig)
-
-    eval_tools.print_evaluation_form(model_sig, dataset, FLAGS,
-        os.path.join(FLAGS.model_dir, model_dir, "predictions.csv"))
-    print("prediction results saved to {}".format(
-        os.path.join(FLAGS.model_dir, model_dir, 'predictions.csv')))
-
-def manual_eval(num_eval):
+def manual_eval(dataset, num_eval):
     # Create model and load parameters.
     _, model_sig = graph_utils.get_model_signature(FLAGS)
-    _, dev_set, test_set = load_data(use_buckets=False)
-
-    dataset = test_set if FLAGS.test else dev_set
-
     eval_tools.manual_eval(
         model_sig, dataset, FLAGS, FLAGS.model_dir, num_eval)
+
+
+def gen_eval_sheet(dataset):
+    model_dir, model_sig = graph_utils.get_model_signature(FLAGS)
+    print("evaluating " + model_sig)
+
+    output_path = os.path.join(FLAGS.model_dir, model_dir, "predictions.csv")
+    eval_tools.gen_eval_sheet(model_sig, dataset, FLAGS, output_path)
+    print("prediction results saved to {}".format(output_path))
 
 
 def demo():
@@ -440,7 +505,6 @@ def grid_search(train_set, dev_set):
             print("Best random seed so far: {}".format(best_seed))
             print("Best template match score so far = {}".format(best_temp_match_score))
             print("Best template distance so far = {}".format(best_temp_dist))
-            # if temp_match_score > best_temp_match_score:
             if temp_dist < best_temp_dist:
                 best_hp_set = row
                 best_seed = seed
@@ -458,6 +522,10 @@ def grid_search(train_set, dev_set):
     print("Best template distance = {}".format(best_temp_dist))
     print("*****************************")
 
+def induce_slot_filling_mapping():
+    print("Preparing slot-filling data in %s" % FLAGS.data_dir)
+    data_utils.slot_filling_mapping_induction(FLAGS)
+
 # --- Pre-processing --- #
 
 def load_data(use_buckets=True, load_mappings=False):
@@ -470,11 +538,6 @@ def load_data(use_buckets=True, load_mappings=False):
 def process_data():
     print("Preparing data in %s" % FLAGS.data_dir)
     data_utils.prepare_data(FLAGS)
-
-
-def induce_slot_filling_mapping():
-    print("Preparing slot-filling data in %s" % FLAGS.data_dir)
-    data_utils.slot_filling_mapping_induction(FLAGS)
 
 # --- Data Statistics --- #
 
@@ -501,52 +564,60 @@ def main(_):
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
     print("Saving models to {}".format(FLAGS.model_dir))
-    if FLAGS.eval:
-        _, dev_set, test_set = load_data()
-        dataset = test_set if FLAGS.test else dev_set
-        # eval(dataset)
-        print_eval_form(dataset)
-    elif FLAGS.manual_eval:
-        manual_eval(100)
-    elif FLAGS.decode:
-        _, dev_set, test_set = load_data()
-        dataset = test_set if FLAGS.test else dev_set
-        model_sig = decode(dataset)
-        if not FLAGS.explanation:
-            eval(dev_set, model_sig=model_sig, verbose=False)
-    elif FLAGS.demo:
-        demo()
-    elif FLAGS.grid_search:
-        train_set, dev_set, _ = load_data()
-        grid_search(train_set, dev_set)
-    elif FLAGS.cross_valid:
-        train_set, _, _ = load_data()
-        cross_validation(train_set)
+
+    if FLAGS.data_stats:
+        data_statistics()
+    elif FLAGS.process_data:
+        process_data()
+
     elif FLAGS.induce_slot_filling_mapping:
         induce_slot_filling_mapping()
     elif FLAGS.gen_slot_filling_training_data:
         train_set, dev_set, test_set = load_data(load_mappings=True)
         sc_vocab, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
-        gen_slot_filling_training_data(train_set, dev_set, test_set,
-                                       rev_tg_vocab)
-    elif FLAGS.train_slot_filling:
+        gen_slot_filling_training_data(
+            train_set, dev_set, test_set, rev_tg_vocab)
+    elif FLAGS.eval_slot_filling:
+        train_set, dev_set, test_set = load_data(load_mappings=True)
+        sc_vocab, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
+        dataset = test_set if FLAGS.test else dev_set
+        eval_slot_filling(dataset, rev_tg_vocab)
+    elif FLAGS.eval_local_slot_filling:
         train_path = os.path.join(
             FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size))
         dev_path = os.path.join(
             FLAGS.data_dir, 'dev.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size))
-        nn_slot_filling_raw_prediction_eval(train_path, dev_path)
-    elif FLAGS.process_data:
-        process_data()
-    elif FLAGS.data_stats:
-        data_statistics()
-    else:
-        train_set, dev_set, _ = load_data()
-        train(train_set, dev_set)
-        tf.reset_default_graph()
-        model_sig = decode(dev_set, construct_model_dir=False)
-        if not FLAGS.explanation:
-            eval(dev_set, model_sig, verbose=False)
+        eval_local_slot_filling(train_path, dev_path)
 
+    elif FLAGS.demo:
+        demo()
+
+    else:
+        train_set, dev_set, test_set = load_data()
+        if FLAGS.gen_eval_sheet:
+            dataset = test_set if FLAGS.test else dev_set
+            gen_eval_sheet(dataset)
+        elif FLAGS.eval:
+            dataset = test_set if FLAGS.test else dev_set
+            eval(dataset)
+        elif FLAGS.manual_eval:
+            dataset = test_set if FLAGS.test else dev_set
+            manual_eval(dataset, 100)
+        elif FLAGS.decode:
+            dataset = test_set if FLAGS.test else dev_set
+            model_sig = decode(dataset)
+            if not FLAGS.explanation:
+                eval(dev_set, model_sig=model_sig, verbose=False)
+        elif FLAGS.grid_search:
+            grid_search(train_set, dev_set)
+        elif FLAGS.cross_valid:
+            cross_validation(train_set)
+        else:
+            train(train_set, dev_set)
+            tf.reset_default_graph()
+            model_sig = decode(dev_set, construct_model_dir=False)
+            if not FLAGS.explanation:
+                eval(dev_set, model_sig, verbose=False)
     
 if __name__ == "__main__":
     tf.app.run()
