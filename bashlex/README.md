@@ -1,8 +1,8 @@
-## Heuristics-based Bash Parser
+## Heuristics-Based Bash Parser
 
-This folder contains the implementation of a general purpose bash command parser, which is implemented on top of the [bashlex](https://github.com/idank/bashlex) tool. It parses a bash oneliner command based on the man-page grammars and heuristics.
+This submodule is a generic bash command parser, which is a version of the [bashlex](https://github.com/idank/bashlex) tool augmented with utility-flag, utility-argument and flag-argument relationships. 
 
-The current parser does not parse multi-command code blocks.
+_The parser cannot parse multi-command code blocks._
 
 ### Test the parser in a simple interactive commandline interface:
 
@@ -16,7 +16,7 @@ find /mnt/naspath ! \( -name .snapshot -prune \) -type f -mtime 0 -print0
 ```
 
 ### Output:
-The output of the parser is the AST structure of the input bash command, with open-vocabulary arguments in the command replaced by their types.
+The parser outputs the AST structure of the input bash command. By default the arguments in the command are replaced by their types.
 ```
 ROOT()
     HEADCOMMAND(find)
