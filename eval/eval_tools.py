@@ -254,7 +254,7 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
                 o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
 
             pred_id = 0
-            while pred_id < min(1, len(predictions)):
+            while pred_id < min(3, len(predictions)):
                 pred_cmd, score = predictions[pred_id]
                 tree = cmd_parser(pred_cmd)
                 print("Prediction {}: {} ({})".format(pred_id+1, pred_cmd, score))
