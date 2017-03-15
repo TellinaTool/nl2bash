@@ -1,5 +1,4 @@
 """
-# TODO: add stdin & stdout types
 simplified_bash_syntax = [
     "Command ::= SingleCommand | Pipe",
     "Pipe ::= Command '|' Command",
