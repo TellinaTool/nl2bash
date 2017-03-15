@@ -27,22 +27,12 @@ from tqdm import tqdm
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-if __name__ == "__main__":
-    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-    import classifiers, data_stats, data_utils, graph_utils, decode_tools, \
-        hyperparam_range, parse_args
-    from nlp_tools import tokenizer, slot_filling, constants
-    from eval import eval_tools
-    from seq2seq.seq2seq_model import Seq2SeqModel
-    from seq2tree.seq2tree_model import Seq2TreeModel
-else:
-    from encoder_decoder import classifiers, data_utils, graph_utils, \
-        decode_tools
-    from encoder_decoder import hyperparam_range, parse_args
-    from nlp_tools import tokenizer, slot_filling, constants
-    from eval import eval_tools
-    from .seq2seq.seq2seq_model import Seq2SeqModel
-    from .seq2tree.seq2tree_model import Seq2TreeModel
+from encoder_decoder import classifiers, data_utils, graph_utils, decode_tools
+from encoder_decoder import hyperparam_range, parse_args
+from nlp_tools import tokenizer, slot_filling, constants
+from eval import eval_tools
+from .seq2seq.seq2seq_model import Seq2SeqModel
+from .seq2tree.seq2tree_model import Seq2TreeModel
 
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
