@@ -1,5 +1,4 @@
 """
-# TODO: add stdin & stdout types
 simplified_bash_syntax = [
     "Command ::= SingleCommand | Pipe",
     "Pipe ::= Command '|' Command",
@@ -49,8 +48,8 @@ class ManPageLookUp(object):
         try:
             arg_type = self.table[cmd]["flags"][flag]
         except KeyError:
-            # TODO: This exception is not handled very well.
-            # This is mostly due to missing flags of commands in the grammar.
+            # TODO: This exception is mostly caused by missing command 
+            # flags in the grammar file.
             if verbose:
                 print("Error: {} is not a flag of {}".format(flag, cmd))
             return None
