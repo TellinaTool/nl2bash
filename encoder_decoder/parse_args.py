@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 
 def define_input_flags():
-    # task and flow
+    # translation experiments
     tf.app.flags.DEFINE_integer("max_train_data_size", 0,
                                 "Limit on the size of training data (0: no limit).")
     tf.app.flags.DEFINE_integer("steps_per_epoch", 200,
@@ -41,14 +41,6 @@ def define_input_flags():
                                 "Set to True to print out model predictions for manual evaluation.")
     tf.app.flags.DEFINE_boolean("process_data", False,
                                 "Set to True for data preprocessing.")
-    tf.app.flags.DEFINE_boolean("induce_slot_filling_mapping", False,
-                                "Set to True for slot-filling mapping induction.")
-    tf.app.flags.DEFINE_boolean("gen_slot_filling_training_data", False,
-                                "Set to True to generate feature vectors for slot-filling training.")
-    tf.app.flags.DEFINE_boolean("eval_slot_filling", False,
-                                "Set to True for evaluation of the slot-filling classifier.")
-    tf.app.flags.DEFINE_boolean("eval_local_slot_filling", False,
-                                "Set to True for raw evaluation of the slot-filling classifier.")
     tf.app.flags.DEFINE_boolean("decode", False,
                                 "Set to True for decoding.")
     tf.app.flags.DEFINE_boolean("test", False,
@@ -59,10 +51,17 @@ def define_input_flags():
                                 "Run a bucket_selection if this is set to True.")
     tf.app.flags.DEFINE_boolean("self_test", False,
                                 "Run a self-test if this is set to True.")
-    tf.app.flags.DEFINE_boolean("sample_train", False,
-                                "Train on a subset of data if this is set to True.")
-    tf.app.flags.DEFINE_integer("sample_size", 200,
-                                "Training data sample size")
+
+
+    # slot-filling experiments
+    tf.app.flags.DEFINE_boolean("induce_slot_filling_mapping", False,
+                                "Set to True for slot-filling mapping induction.")
+    tf.app.flags.DEFINE_boolean("gen_slot_filling_training_data", False,
+                                "Set to True to generate feature vectors for slot-filling training.")
+    tf.app.flags.DEFINE_boolean("eval_slot_filling", False,
+                                "Set to True for evaluation of the slot-filling classifier.")
+    tf.app.flags.DEFINE_boolean("eval_local_slot_filling", False,
+                                "Set to True for raw evaluation of the slot-filling classifier.")
 
     # device
     tf.app.flags.DEFINE_string("gpu", '0', "GPU device where the computation is going to be placed.")
@@ -78,14 +77,18 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("data_dir", os.path.join(os.path.dirname(__file__), "data"),
                                "Raw data directory")
     tf.app.flags.DEFINE_string("data_split", "command", "Data split criteria")
-    tf.app.flags.DEFINE_string("model_dir", "model", "Directory to save trained models.")
-    tf.app.flags.DEFINE_boolean("create_fresh_params", False, "Set to force remove previously trained models.")
-
-    # learning hyperparameters
+    tf.app.flags.DEFINE_boolean("sample_train", False,
+                                "Train on a subset of data if this is set to True.")
+    tf.app.flags.DEFINE_integer("sample_size", 200,
+                                "Training data sample size")
     tf.app.flags.DEFINE_boolean("char", False, "Set to True for training character models.")
     tf.app.flags.DEFINE_boolean("canonical", False, "Set to True for learning with normalized command with "
                                                     "canonical option order.")
     tf.app.flags.DEFINE_boolean("normalized", False, "Set to True for learning with normalized command.")
+
+    # learning hyperparameters
+    tf.app.flags.DEFINE_string("model_dir", "model", "Directory to save trained models.")
+    tf.app.flags.DEFINE_boolean("create_fresh_params", False, "Set to force remove previously trained models.")
     tf.app.flags.DEFINE_string("rnn_cell", "gru", "Type of RNN cell to use.")
     tf.app.flags.DEFINE_string("optimizer", "adam", "Type of numeric optimization algorithm to use.")
     tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
@@ -131,7 +134,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_float("alpha", 0.5, "Beam search length normalization parameter.")
     tf.app.flags.DEFINE_integer("top_k", 5, "Top-k highest-scoring structures to output.")
     tf.app.flags.DEFINE_boolean("fill_argument_slots", False, "If set, fill the argument slots in "
-        "the output command with filler constants extracted from the natural language input.")
+                                "the output command with filler constants extracted from the natural language input.")
     tf.app.flags.DEFINE_integer("num_nn_slot_filling", 1, "Number of nearest neighbors to use in "
                                 "the nearest neighbor slot-filling classifier.")
 
