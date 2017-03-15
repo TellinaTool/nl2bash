@@ -37,7 +37,11 @@ def print_evaluation_form(model, dataset, FLAGS, output_path):
         eval_bash = FLAGS.dataset.startswith("bash")
         cmd_parser = data_tools.bash_parser if eval_bash \
             else data_tools.paren_parser
-        grouped_dataset = data_utils.group_data_by_nl(dataset, use_temp=False)
+
+        use_bucket = False if model == "knn" else True
+
+        grouped_dataset = data_utils.group_data_by_nl(dataset, 
+            use_bucket=use_bucket, use_temp=False)
 
         with DBConnection() as db:
             for nl_temp in grouped_dataset:
@@ -49,27 +53,37 @@ def print_evaluation_form(model, dataset, FLAGS, output_path):
                 gt_trees = gt_trees + [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_str)]
 
                 predictions = db.get_top_k_predictions(model, nl_str, k=10)
-
+                while len(predictions) < 3:
+                    predictions.append(('', 0.0))
                 example_id += 1
-                output_str = '{},{},'.format(example_id, nl_temp)
 
-                for i in xrange(min(1, len(predictions))):
+                i = 0
+                for i in xrange(min(3, len(predictions))):
+                    if i == 0:
+                        output_str = '{},{},'.format(example_id, nl_temp.strip().replace(',', ' '))
+                    else:
+                        output_str = ',,'
                     pred_cmd, score = predictions[i]
                     tree = cmd_parser(pred_cmd)
                     # evaluation ignoring flag orders
                     temp_match = ast_based.one_match(gt_trees, tree, ignore_arg_value=True)
                     str_match = ast_based.one_match(gt_trees, tree, ignore_arg_value=False)
                     if i < len(cm_strs):
-                        output_str += '{},'.format(cm_strs[i])
+                        output_str += '"{}",'.format(cm_strs[i].strip())
                     else:
                         output_str += ','
-                    output_str += '{},'.format(pred_cmd)
+                    output_str += '{},'.format(pred_cmd.strip())
                     if temp_match:
                         output_str += 'y,'
+                    else:
+                        output_str += ','
                     if str_match:
                         output_str += 'y'
-
-        o_f.write(output_str + '\n')
+                    o_f.write(output_str + '\n')
+                
+                if i < len(cm_strs) - 1:
+                    for i in xrange(i+1, len(cm_strs)):
+                        output_str = ',,"{}",,,'.format(cm_strs[i])
 
 def eval_set(model, dataset, FLAGS, verbose=True):
     num_top1_correct_temp = 0.0
@@ -297,7 +311,7 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
                 o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
 
             pred_id = 0
-            while pred_id < min(1, len(predictions)):
+            while pred_id < min(3, len(predictions)):
                 pred_cmd, score = predictions[pred_id]
                 tree = cmd_parser(pred_cmd)
                 print("Prediction {}: {} ({})".format(pred_id+1, pred_cmd, score))
