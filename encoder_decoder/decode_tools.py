@@ -199,7 +199,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                 # filter out non-grammatical output
                 if tree is not None or not grammatical_only:
                     output_example = False
-                    if FLAGS.explanation:
+                    if FLAGS.explain:
                         temp = tg
                         output_example = True
                     else:
