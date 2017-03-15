@@ -608,7 +608,7 @@ def main(_):
         elif FLAGS.decode:
             dataset = test_set if FLAGS.test else dev_set
             model_sig = decode(dataset)
-            if not FLAGS.explanation:
+            if not FLAGS.explain:
                 eval(dev_set, model_sig=model_sig, verbose=False)
         elif FLAGS.grid_search:
             grid_search(train_set, dev_set)
@@ -618,7 +618,7 @@ def main(_):
             train(train_set, dev_set)
             tf.reset_default_graph()
             model_sig = decode(dev_set, construct_model_dir=False)
-            if not FLAGS.explanation:
+            if not FLAGS.explain:
                 eval(dev_set, model_sig, verbose=False)
     
 if __name__ == "__main__":
