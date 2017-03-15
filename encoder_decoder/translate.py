@@ -82,7 +82,6 @@ def gen_slot_filling_training_data(train_set, dev_set, test_set, rev_tg_vocab):
     print('Slot filling classifier parameters loaded.')
 
     def get_slot_filling_training_data_fun(model, dataset, output_file):
-        # X, Y = [], []
         num_correct = 0.0
         num_predict = 0.0
         num_gt = 0.0
