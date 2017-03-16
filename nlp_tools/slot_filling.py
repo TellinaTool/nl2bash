@@ -14,7 +14,7 @@ from numpy.linalg import norm
 
 from . import constants, tokenizer
 from bashlex.data_tools import bash_tokenizer, bash_parser, ast2command, \
-    fill_default_value, pretty_print
+    fill_default_value
 
 # --- Slot filling functions --- #
 

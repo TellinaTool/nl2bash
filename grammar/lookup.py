@@ -1,4 +1,6 @@
 """
+Read bash syntax rules from man page grammar.
+
 simplified_bash_syntax = [
     "Command ::= SingleCommand | Pipe",
     "Pipe ::= Command '|' Command",
@@ -24,6 +26,7 @@ arg_syntax = [
     "Unknown"
 ]
 """
+
 import collections
 import json
 import os

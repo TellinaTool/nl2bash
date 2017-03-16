@@ -1,14 +1,16 @@
 """Extract bash templates that are paraphrases to each other."""
 
 # builtin
+from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 
 import collections
 import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "bashlex"))
-
-import data_tools, normalizer
 import sqlite3
+
+from encoder_decoder import data_tools, normalizer
+
 
 def rewrite(ast, temp):
     """Rewrite an AST into one using the given template."""

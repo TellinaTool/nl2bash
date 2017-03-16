@@ -5,12 +5,11 @@ from __future__ import print_function
 import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
+import re
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
-import re
 
 import tensorflow as tf
 
@@ -18,7 +17,6 @@ from encoder_decoder import classifiers, data_utils, graph_utils
 from bashlex import data_tools
 from nlp_tools import constants, slot_filling, tokenizer
 from eval.eval_archive import DBConnection
-
 
 
 def demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS):

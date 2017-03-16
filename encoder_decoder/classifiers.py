@@ -13,10 +13,7 @@ import numpy as np
 
 import tensorflow as tf
 
-if os.getcwd() == os.path.dirname(__file__):
-    import graph_utils
-else:
-    from encoder_decoder import graph_utils
+from encoder_decoder import graph_utils
 
 
 class KNearestNeighborModel():
