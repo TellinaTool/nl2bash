@@ -106,7 +106,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Decoder.
         self.define_decoder()
 
-        # Compute raining outputs and losses in the forward direction.
+        # Compute training outputs and losses in the forward direction.
         if self.buckets:
             self.output_symbols = []
             self.output_logits = []
