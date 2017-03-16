@@ -4,16 +4,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from encoder_decoder.framework import EncoderDecoderModel
-from encoder_decoder import encoder
-
-try:
-    from seq2seq import rnn_decoder
-except ImportError:
-    try:
-        from . import rnn_decoder
-    except ImportError:
-        import rnn_decoder
+from net import encoder
+from net.encoder_decoder import EncoderDecoderModel
+from . import rnn_decoder
 
 class Seq2SeqModel(EncoderDecoderModel):
     """Sequence-to-sequence model with attention and for multiple buckets.
