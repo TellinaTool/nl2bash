@@ -127,12 +127,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             forward_only=forward_only,
                             reuse_variables=(bucket_id > 0)
                         )
-                    bucket_output_symbols, bucket_output_logits, bucket_losses, attn_alignment = \
-                        encode_decode_outputs
+                    bucket_output_symbols, bucket_output_logits, bucket_losses, \
+                        batch_attn_alignment = encode_decode_outputs
                     self.output_symbols.append(bucket_output_symbols)
                     self.output_logits.append(bucket_output_logits)
                     self.losses.append(bucket_losses)
-                    self.attn_alignments.append(attn_alignment)
+                    self.attn_alignments.append(batch_attn_alignment)
         else:
             self.output_symbols, self.output_logits, self.losses, self.attn_alignment = \
                 self.encode_decode(
