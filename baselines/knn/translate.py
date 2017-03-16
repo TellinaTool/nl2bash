@@ -79,25 +79,25 @@ def decode_set(model, dataset, rev_sc_vocab, rev_tg_vocab, verbose=True):
                 # check if the predicted command templates have enough slots to
                 # hold the fillers (to rule out templates that are trivially
                 # unqualified)
+                if FLAGS.dataset.startswith("bash"):
+                    pred_cmd = re.sub('( ;\s+)|( ;$)', ' \\; ', pred_cmd)
+                    tree = data_tools.bash_parser(pred_cmd)
+                else:
+                    tree = data_tools.paren_parser(pred_cmd)
                 if nl_fillers is None or len(cm_slots) >= len(nl_fillers):
                     # Step 2: check if the predicted command template is grammatical
-                    if FLAGS.dataset.startswith("bash"):
-                        tg = re.sub('( ;\s+)|( ;$)', ' \\; ', pred_cmd)
-                        tree = data_tools.bash_parser(tg)
-                    else:
-                        tree = data_tools.paren_parser(tg)
                     # filter out non-grammatical output
                     if tree is not None:
                         matched = slot_filling.heuristic_slot_filling(tree, nl_fillers)
-                        if matched:
-                            slot_filling.fill_default_value(tree)
-                            pred_cmd = data_tools.ast2command(tree)
-                            if verbose:
-                                print("NN: {}".format(nn_str))
-                                print("Prediction {}: {} ({})".format(i, pred_cmd, score))
-                            db.add_prediction(model_name, sc_str, pred_cmd, float(score),
-                                              update_mode=False)
-                            count += 1
+                if tree is not None:
+                    slot_filling.fill_default_value(tree)
+                    pred_cmd = data_tools.ast2command(tree)
+                if verbose:
+                    print("NN: {}".format(nn_str))
+                    print("Prediction {}: {} ({})".format(i, pred_cmd, score))
+                db.add_prediction(model_name, sc_str, pred_cmd, float(score),
+                                      update_mode=False)
+                count += 1
                 if count == 10:
                     break
             print("")        
@@ -130,7 +130,7 @@ def eval():
     tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
 
     train_set, dev_set, test_set = load_data()
-    model = knn.KNNModel()
+    model = knn_model.KNNModel()
     model.train(train_set)
     print_eval_form(test_set)
     # eval_tools.eval_set(model_name, test_set, FLAGS)
@@ -152,7 +152,7 @@ def manual_eval():
     tg_vocab, rev_tg_vocab = data_utils.initialize_vocabulary(tg_vocab_path)
 
     train_set, dev_set, test_set = load_data()
-    model = knn.KNNModel()
+    model = knn_model.KNNModel()
     model.train(train_set)
     eval_tools.manual_eval(model_name, test_set, rev_sc_vocab,
                            FLAGS, FLAGS.model_dir, num_eval=500)

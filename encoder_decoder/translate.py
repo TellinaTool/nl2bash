@@ -14,9 +14,10 @@ import sys
 
 if sys.version_info > (3, 0):
     import _pickle as pickle
+    from six.moves import xrange
 else:
     import cPickle as pickle
-
+    
 import itertools
 import math
 import numpy as np
@@ -120,7 +121,7 @@ def train(train_set, dev_set, construct_model_dir=True):
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
-                repeated_samples = range(len(_buckets)) * 10
+                repeated_samples = list(range(len(_buckets))) * 10
                 for bucket_id in repeated_samples:
                     if len(dev_set[bucket_id]) == 0:
                         print("  eval: empty bucket %d" % (bucket_id))

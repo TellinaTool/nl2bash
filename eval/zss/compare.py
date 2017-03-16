@@ -28,7 +28,7 @@ except ImportError:
         else:
             return 1
 
-from zss.simple_tree import Node
+from eval.zss.simple_tree import Node
 
 
 class AnnotatedTree(object):

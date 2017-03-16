@@ -1,0 +1,13 @@
+\subsection{Natural Language to Bash Command}
+\label{subsec:parser}
+We train the natural language command translator using a set of input/output pairs, each consisting of a natural language query and a command line program, together with manpage descriptions. The online forum StackOverflow has a large volume of input/output pairs. As these conversations are noisy and only a handful of high-quality training pairs can be confidently extracted. On the other hand, Linux man pages are well formatted and contains rich natural language text that explains the usage of each command template and its possible arguments. We propose to use the command-explanation pairs extracted from man pages as additional signals to guide the search for high score rankings, thereby remedies the lack of well-formed training pairs.
+
+We use a linear feature function to score the natural language command to logical representation mappings. The following features are used:
+\begin{itemize}\itemsep-1pt
+	\item association of key words/phrases to partial expressions
+	\item association between partial expressions (e.g. how often do they combined in valid commands)
+	\item similarity of key words/phrases in the command to the man page explanation text of a partial expression
+	\item complexity of the logical formulas and the commands generated from them.
+\end{itemize}
+We use the structured perception algorithm to learn weights of the scoring function from the example pairs. In the training process, the input are pairs collected from StackOverflow, and the target is to learn a scoring functions to evaluate the correspondence between the a natural language sentence and a CLI program. In each training iteration, top ranked logical form are selected and the weights are updated based on its similarity to the ground truth logical form. 
+% We planned to extend learning into an interactive setting once the basic framework is developed.

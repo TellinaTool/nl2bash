@@ -125,6 +125,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("beam_order", -1, "Order for beam search.")
     tf.app.flags.DEFINE_float("alpha", 0.5, "Beam search length normalization parameter.")
     tf.app.flags.DEFINE_integer("top_k", 5, "Top-k highest-scoring structures to output.")
+    tf.app.flags.DEFINE_boolean("grammatical_only", True, "If set, output only grammatical predictions.")
 
     tf.app.flags.DEFINE_boolean("fill_argument_slots", False, "If set, fill the argument slots in "
                                 "the output command with filler constants extracted from the natural language input.")

@@ -1,0 +1,23 @@
+%!TEX root=writeup.tex
+\section{Approach}
+\label{sec:framework}
+
+\begin{figure}
+    \begin{center} \includegraphics[width=4in]{architecture.pdf} \end{center}
+    \caption{The overall architecture of our framework.}
+    \label{fig:arch}
+\end{figure}
+
+\autoref{fig:arch} shows the major components of our translation framework.
+Offline, the tool learns the syntax of common Bash commands using manpages. Both
+the manpages and input-output examples obtained from StackOverflow are used to
+learn an appropriate scoring function. At runtime, the tool enumerates possible
+candidate programs using the learned syntax, scores them using the learned
+scoring function, and presents the top-ranked suggestions to the user.
+
+Section~\ref{subsec:represent} introduces the subset of Bash our tool supports
+and how we obtain that subset automatically from manpages.
+Section~\ref{subsec:parser} describes training and running the semantic parser.
+
+\input{dsl}
+\input{translation}
