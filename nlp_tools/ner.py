@@ -63,13 +63,13 @@ def annotate(tokens):
         constants._DIGIT_RE, constants._DIGIT_RE)
     _DURATION_RE = re.compile(decorate_boundaries(constants.polarity_safe(
         r'({}|a\s|this\s|next(\s{})?\s|last(\s{})?\s|previous(\s{})?\s)\s*'.format(
-            time_num_re, time_num_re, time_num_re, time_num_re) + constants._DURATION_UNIT)))
+        time_num_re, time_num_re, time_num_re, time_num_re) + constants._DURATION_UNIT)))
     sentence = annotate_ner(
         _DURATION_RE, constants._TIMESPAN, sentence, entities)
 
     # -- DateTime
     # Credit: time expressions adapted from
-    # https://github.com/nltk/nltk_contrib/blob/master/nltk_contrib/tc imex.py
+    # https://github.com/nltk/nltk_contrib/blob/master/nltk_contrib/timex.py
     standard_time = r'\d+:\d+:\d+\.?\d*'
     standard_datetime = r'\d{1,4}[\/-]\d{1,4}[\/-]\d{1,4}([,|\s]' + standard_time + r')?'
     textual_datetime = constants._MONTH_RE \

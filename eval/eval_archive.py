@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import print_function
 
 import collections
-import os, sys
+import os
 import sqlite3
 
 from .eval_correction import *

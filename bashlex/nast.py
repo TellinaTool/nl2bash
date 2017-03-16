@@ -339,4 +339,3 @@ class ProcessSubstitutionNode(Node):
             self.value = value
         else:
             raise ValueError("Value of a processsubstitution has to be '<' or '>'.")
-

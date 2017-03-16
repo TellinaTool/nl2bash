@@ -6,7 +6,9 @@
 # URL: <http://nltk.org/>
 # For license information, see LICENSE.TXT
 
+from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 
 from nltk.util import ngrams
 from nltk import word_tokenize
@@ -166,5 +168,5 @@ if __name__ == "__main__":
                   'army', 'always', 'to', 'heed', 'the', 'directions',
                   'of', 'the', 'party', '.']
 
-    print BLEU.compute(candidate1, [reference1], weights)
-    print BLEU.compute(candidate2, [reference1], weights)
+    print(BLEU.compute(candidate1, [reference1], weights))
+    print(BLEU.compute(candidate2, [reference1], weights))

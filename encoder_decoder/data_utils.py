@@ -19,7 +19,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import tensorflow as tf
+
 import functools
+from numpy.linalg import norm
+import numpy as np
+import random
 import os, sys
 
 if sys.version_info > (3, 0):
@@ -30,12 +35,6 @@ else:
 
 from bashlex import normalizer, data_tools
 from nlp_tools import tokenizer, slot_filling
-
-import collections
-from numpy.linalg import norm
-import numpy as np
-import random
-import tensorflow as tf
 
 # Special vocabulary symbols - we always put them at the start.
 _PAD = "_PAD"
