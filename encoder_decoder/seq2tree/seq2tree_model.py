@@ -4,16 +4,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from encoder_decoder.framework import EncoderDecoderModel
 from encoder_decoder import encoder
-
-try:
-    from seq2tree import tree_decoder
-except ImportError:
-    try: 
-        from . import tree_decoder
-    except ImportError:
-        import tree_decoder
+from encoder_decoder.framework import EncoderDecoderModel
+from . import tree_decoder
 
 class Seq2TreeModel(EncoderDecoderModel):
     """Sequence-to-tree models.
