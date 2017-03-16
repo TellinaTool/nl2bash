@@ -1,8 +1,7 @@
 # This Makefile wraps commands used to set up the learning environment.
 
-export MODEL_ROOT=`pwd`
-
 setup:
+	export MODEL_ROOT=`pwd`
 	# Set PYTHONPATH 
 	export PYTHONPATH=$(MODEL_ROOT)
 	# Set up data files used in the learning module
