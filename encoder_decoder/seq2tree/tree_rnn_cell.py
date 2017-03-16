@@ -1,9 +1,6 @@
 """A class of neural tree search algorithms in Tensorflow.
 """
 
-import collections
-import math
-
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import rnn_cell
 from tensorflow.python.ops import variable_scope as vs
@@ -89,7 +86,6 @@ class BasicTreeLSTMCell(TreeRNNCell):
         :param forget_bias: float, The bias added to forget gates.
         :param activation: Activation function of the inner states.
         """
-
         self._num_units = num_units
         self._forget_bias = forget_bias
         self._activation = activation
@@ -114,8 +110,8 @@ class BasicTreeLSTMCell(TreeRNNCell):
             # i = input_gate, j = new_input, f = forget_gate, o = output_gate
             i, j, f, o = array_ops.split(1, 4, concat)
 
-            new_c = [c * rnn_cell.sigmoid(f + self._forget_bias) + rnn_cell.sigmoid(i) *
-                                                                   self._activation(j)]
+            new_c = [c * rnn_cell.sigmoid(f + self._forget_bias)
+                     + rnn_cell.sigmoid(i) * self._activation(j)]
             new_h = self._activation(new_c) * rnn_cell.sigmoid(o)
 
             new_state = rnn_cell.LSTMStateTuple(new_c, new_h)

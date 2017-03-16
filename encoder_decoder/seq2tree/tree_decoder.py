@@ -11,10 +11,7 @@ if sys.version_info > (3, 0):
 
 import tensorflow as tf
 
-if os.path.realpath(__file__).startswith(os.getcwd()):
-    import decoder, data_utils, graph_utils
-else:
-    from encoder_decoder import decoder, data_utils, graph_utils
+from encoder_decoder import decoder, data_utils, graph_utils
 
 DEBUG = False
 
