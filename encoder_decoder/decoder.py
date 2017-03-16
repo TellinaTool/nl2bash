@@ -82,24 +82,24 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 #     self.v[a] * tf.mul(self.hidden_features[a], y), [2, 3])
                 s = tf.reduce_sum(tf.mul(self.hidden_features[a], y), [2, 3])
                 s = s - (1 - self.encoder_attn_masks) * 1e12
-                attn_mask = tf.nn.softmax(s)
+                attn_alignment = tf.nn.softmax(s)
                 # Now calculate the attention-weighted vector d.
-                d = tf.reduce_sum(tf.reshape(attn_mask, [-1, self.attn_length, 1, 1])
+                d = tf.reduce_sum(tf.reshape(attn_alignment, [-1, self.attn_length, 1, 1])
                                   * self.hidden_features[a], [1, 2])
                 ds.append(tf.reshape(d, [-1, self.attn_dim]))
         attns = tf.concat(1, ds)
         attns.set_shape([None, self.num_heads * self.attn_dim])
         self.attention_vars = True
-        return attns, attn_mask
+        return attns, attn_alignment
 
-    def __call__(self, input_embedding, state, attn_masks, scope=None):
+    def __call__(self, input_embedding, state, attn_alignments, scope=None):
         if nest.is_sequence(state):
             dim = state[1].get_shape()[1].value
         else:
             dim = state.get_shape()[1].value
         with tf.variable_scope("AttnInputProjection", reuse=self.reuse_variables):
             cell_output, state = self.cell(input_embedding, state, scope)
-            attns, attn_mask = self.attention(state)
+            attns, attn_alignment = self.attention(state)
 
         with tf.variable_scope("AttnStateProjection", reuse=self.reuse_variables):
             attn_state = tf.tanh(tf.nn.rnn_cell._linear([cell_output, attns], dim, True))
@@ -110,5 +110,5 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 tf.nn.dropout(attn_state, self.attention_output_keep), dim, True)
 
         self.attention_cell_vars = True
-        attn_masks.append(tf.expand_dims(attn_mask, 1))
-        return output, state, attn_masks
+        attn_alignments.append(tf.expand_dims(attn_alignment, 1))
+        return output, state, attn_alignments

@@ -74,7 +74,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.encoder_inputs.append(
                 tf.placeholder(tf.int32, shape=[None], name="encoder{0}".format(i)))
             self.encoder_attn_masks.append(
-                tf.placeholder(tf.float32, shape=[None], name="attn_mask{0}".format(i)))
+                tf.placeholder(tf.float32, shape=[None], name="attn_alignment{0}".format(i)))
         for i in xrange(self.max_target_length + 1):
             self.decoder_inputs.append(
                 tf.placeholder(tf.int32, shape=[None], name="decoder{0}".format(i)))
@@ -111,7 +111,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.output_symbols = []
             self.output_logits = []
             self.losses = []
-            self.attn_masks = []
+            self.attn_alignments = []
             for bucket_id, bucket in enumerate(self.buckets):
                 with tf.variable_scope(tf.get_variable_scope(), reuse=True
                                        if bucket_id > 0 else None):
@@ -127,14 +127,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             forward_only=forward_only,
                             reuse_variables=(bucket_id > 0)
                         )
-                    bucket_output_symbols, bucket_output_logits, bucket_losses, attn_mask = \
+                    bucket_output_symbols, bucket_output_logits, bucket_losses, attn_alignment = \
                         encode_decode_outputs
                     self.output_symbols.append(bucket_output_symbols)
                     self.output_logits.append(bucket_output_logits)
                     self.losses.append(bucket_losses)
-                    self.attn_masks.append(attn_mask)
+                    self.attn_alignments.append(attn_alignment)
         else:
-            self.output_symbols, self.output_logits, self.losses, self.attn_mask = \
+            self.output_symbols, self.output_logits, self.losses, self.attn_alignment = \
                 self.encode_decode(
                     self.encoder_inputs, self.encoder_attn_masks,
                     self.source_embeddings(),
@@ -222,7 +222,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Losses.
         if self.training_algorithm == "bso":
             output_symbols, output_logits, outputs, state, \
-                attn_mask, bso_losses = self.decoder.define_bso_graph(
+                attn_alignment, bso_losses = self.decoder.define_bso_graph(
                     encoder_state, decoder_inputs, target_weights, target_embeddings,
                     encoder_attn_masks, attention_states, num_heads=1,
                     beam_decoder=beam_decoder, forward_only=forward_only,
@@ -230,7 +230,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 )
         else:
             output_symbols, output_logits, outputs, state, \
-                attn_mask = self.decoder.define_graph(
+                attn_alignment = self.decoder.define_graph(
                     encoder_state, decoder_inputs, target_embeddings,
                     encoder_attn_masks, attention_states, num_heads=1,
                     beam_decoder=beam_decoder, forward_only=forward_only,
@@ -265,7 +265,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             else:
                 raise AttributeError("Unrecognized training algorithm.")
 
-        attention_loss = self.beta * graph_utils.attention_reg(attn_mask) \
+        attention_loss = self.beta * graph_utils.attention_reg(attn_alignment) \
             if self.use_attention else 0
 
         losses = encoder_decoder_loss + attention_loss
@@ -276,7 +276,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.decoder_outputs = tf.concat(1, [tf.reshape(d_o, [-1, 1, self.dim])
                                              for d_o in outputs])
 
-        return output_symbols, output_logits, losses, attn_mask
+        return output_symbols, output_logits, losses, attn_alignment
 
 
     def source_embeddings(self):
@@ -349,7 +349,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # create batch-major vectors
         batch_encoder_inputs = []
-        batch_attn_masks = []
+        batch_attn_alignments = []
         batch_decoder_inputs = []
         batch_weights = []
 
@@ -359,12 +359,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 np.array([padded_encoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(batch_size)], dtype=np.int32))
 
-            batch_attn_mask = np.ones(batch_size, dtype=np.float32)
+            batch_attn_alignment = np.ones(batch_size, dtype=np.float32)
             for batch_idx in xrange(batch_size):
                 source = padded_encoder_inputs[batch_idx][length_idx]
                 if source == data_utils.PAD_ID:
-                    batch_attn_mask[batch_idx] = 0.0
-            batch_attn_masks.append(batch_attn_mask)
+                    batch_attn_alignment[batch_idx] = 0.0
+            batch_attn_alignments.append(batch_attn_alignment)
             if self.use_copy:
                 raise NotImplementedError
 
@@ -390,7 +390,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.use_copy:
             raise NotImplementedError
         else:
-            return batch_encoder_inputs, batch_attn_masks,\
+            return batch_encoder_inputs, batch_attn_alignments,\
                    batch_decoder_inputs, batch_weights
 
 
@@ -460,7 +460,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """Run a step of the model feeding the given inputs.
         :param session: tensorflow session to use.
         :param encoder_inputs: list of numpy int vectors to feed as encoder inputs.
-        :param attn_masks: list of numpy int vectors to feed as the mask over inputs
+        :param attn_alignments: list of numpy int vectors to feed as the mask over inputs
             about which tokens to attend to.
         :param decoder_inputs: list of numpy int vectors to feed as decoder inputs.
         :param target_weights: list of numpy float vectors to feed as target weights.
@@ -496,9 +496,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         if self.use_attention:
             if bucket_id == -1:
-                output_feed.append(self.attn_masks)
+                output_feed.append(self.attn_alignments)
             else:
-                output_feed.append(self.attn_masks[bucket_id])
+                output_feed.append(self.attn_alignments[bucket_id])
 
         if return_rnn_hidden_states:
             output_feed.append(self.encoder_outputs)
@@ -532,10 +532,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def get_input_feed(self, formatted_example, bucket_id):
         # Unwarp data tensors
         if self.use_copy:
-            encoder_inputs, attn_masks, decoder_inputs, target_weights, \
+            encoder_inputs, attn_alignments, decoder_inputs, target_weights, \
             original_encoder_inputs, original_decoder_inputs, copy_masks = formatted_example
         else:
-            encoder_inputs, attn_masks, decoder_inputs, target_weights = formatted_example
+            encoder_inputs, attn_alignments, decoder_inputs, target_weights = formatted_example
 
         # Check if the sizes match.
         if bucket_id == -1:
@@ -557,7 +557,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         input_feed = {}
         for l in xrange(encoder_size):
             input_feed[self.encoder_inputs[l].name] = encoder_inputs[l]
-            input_feed[self.encoder_attn_masks[l].name] = attn_masks[l]
+            input_feed[self.encoder_attn_masks[l].name] = attn_alignments[l]
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = decoder_inputs[l]
             input_feed[self.target_weights[l].name] = target_weights[l]

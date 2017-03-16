@@ -98,7 +98,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
     # TODO: align output commands and their scores correctly
     model_step_outputs = model.step(sess, formatted_example, bucket_id,
         forward_only=True, return_rnn_hidden_states=FLAGS.fill_argument_slots)
-    output_symbols, output_logits, losses, attn_masks = model_step_outputs[:4]
+    output_symbols, output_logits, losses, attn_alignments = model_step_outputs[:4]
 
     nl_fillers, encoder_outputs, decoder_outputs = None, None, None
     if FLAGS.fill_argument_slots:
@@ -322,16 +322,16 @@ def decode_set(sess, model, dataset, vocabs, FLAGS, verbose=True):
                 else:
                     print("I'm very sorry, I can't translate this command at the moment.")
 
-            # if attn_masks is not None:
+            # if attn_alignments is not None:
             #     if FLAGS.decoding_algorithm == "greedy":
-            #         M = attn_masks[batch_id, :, :]
+            #         M = attn_alignments[batch_id, :, :]
             #     elif FLAGS.decoding_algorithm == "beam_search":
-            #         M = attn_masks[batch_id, 0, :, :]
-            #     visualize_attn_masks(M, sc, outputs, rev_sc_vocab, rev_tg_vocab,
+            #         M = attn_alignments[batch_id, 0, :, :]
+            #     visualize_attn_alignments(M, sc, outputs, rev_sc_vocab, rev_tg_vocab,
             #         os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
 
 
-def visualize_attn_masks(M, source, target, rev_sc_vocab, rev_tg_vocab, output_path):
+def visualize_attn_alignments(M, source, target, rev_sc_vocab, rev_tg_vocab, output_path):
     target_length, source_length = M.shape
 
     nl = [rev_sc_vocab[x] for x in source]

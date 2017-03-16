@@ -240,8 +240,8 @@ def map_fn(fn, elems, batch_size):
     return _results
 
 
-def attention_reg(attn_masks):
-    diff = tf.reduce_sum(attn_masks, 1) - 1
+def attention_reg(attn_alignments):
+    diff = tf.reduce_sum(attn_alignments, 1) - 1
     return tf.reduce_mean(tf.square(diff))
 
 
