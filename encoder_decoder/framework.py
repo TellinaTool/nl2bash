@@ -1,4 +1,4 @@
-"""Sequence-to-tree model with an attention mechanism."""
+"""Encoder-decoder model with attention mechanism."""
 
 from __future__ import absolute_import
 from __future__ import division
