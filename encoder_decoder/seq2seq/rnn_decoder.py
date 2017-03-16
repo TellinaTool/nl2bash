@@ -1,13 +1,8 @@
 """A set of sequence decoder modules used in the encoder-decoder framework."""
 
-import os
-import sys
-
 import tensorflow as tf
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-import decoder, data_utils, graph_utils
+from encoder_decoder import decoder, graph_utils
 
 class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, output_projection=None):
