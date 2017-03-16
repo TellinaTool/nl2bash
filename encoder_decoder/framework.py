@@ -124,6 +124,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             self.source_embeddings(),
                             self.decoder_inputs[:bucket[1]],
                             self.target_embeddings(),
+                            self.targets[:bucket[1]],
+                            self.target_weights[:bucket[1]],
                             forward_only=forward_only,
                             reuse_variables=(bucket_id > 0)
                         )
@@ -134,13 +136,18 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     self.losses.append(bucket_losses)
                     self.attn_alignments.append(batch_attn_alignment)
         else:
-            self.output_symbols, self.output_logits, self.losses, self.attn_alignment = \
-                self.encode_decode(
-                    self.encoder_inputs, self.encoder_attn_masks,
-                    self.source_embeddings(),
-                    self.decoder_inputs, self.target_embeddings(),
-                    forward_only=forward_only
-                )
+            encode_decode_outputs = self.encode_decode(
+                                        self.encoder_inputs,
+                                        self.encoder_attn_masks,
+                                        self.source_embeddings(),
+                                        self.decoder_inputs,
+                                        self.target_embeddings(),
+                                        self.targets,
+                                        self.target_weights,
+                                        forward_only=forward_only
+                                    )
+            self.output_symbols, self.output_logits, self.losses, \
+                self.attn_alignment = encode_decode_outputs
 
         # Gradients and SGD updates in the backward direction.
         if not forward_only:
@@ -184,13 +191,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def encode_decode(self, encoder_inputs, encoder_attn_masks,
-                      source_embeddings, decoder_inputs, target_embeddings, \
-                      forward_only, reuse_variables=False):
+                      source_embeddings, decoder_inputs, target_embeddings, 
+                      targets, target_weights, forward_only, 
+                      reuse_variables=False):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
-        targets = self.targets[:len(decoder_inputs)]
-        target_weights = self.target_weights[:len(decoder_inputs)]
 
         if self.decoding_algorithm == "beam_search":
             beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
