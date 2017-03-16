@@ -9,8 +9,7 @@ import collections
 import os, sys
 import sqlite3
 
-sys.path.append(os.path.dirname(__file__))
-from eval_correction import *
+from .eval_correction import *
 
 
 class DBConnection(object):
@@ -138,7 +137,7 @@ class DBConnection(object):
             self.conn.commit()
 
     def add_nl(self, nl):
-        nl = unicode(nl)
+        nl = str(nl, 'utf-8')
         nl_id = self.get_nl_id(nl)
         if nl_id is not None:
             return nl_id
@@ -148,13 +147,13 @@ class DBConnection(object):
         return c.lastrowid
 
     def get_nl_id(self, nl):
-        nl = unicode(nl)
+        nl = bytes(nl, 'utf-8')
         c = self.cursor
         for id, _ in c.execute("SELECT * FROM NL WHERE nl = ?", (nl,)):
             return id
 
     def add_cmd(self, cmd):
-        cmd = unicode(cmd)
+        cmd = str(cmd, 'utf-8')
         cmd_id = self.get_cm_id(cmd)
         if cmd_id is not None:
             return cmd_id
@@ -164,13 +163,13 @@ class DBConnection(object):
         return c.lastrowid
 
     def get_cm_id(self, cmd):
-        cmd = unicode(cmd)
+        cmd = bytes(cmd, 'utf-8')
         c = self.cursor
         for id, _ in c.execute("SELECT * FROM Cmd WHERE cmd = ?", (cmd,)):
             return id
 
     def add_temp(self, temp):
-        temp = unicode(temp)
+        temp = str(temp, 'utf-8')
         temp_id = self.get_temp_id(temp)
         if temp_id is not None:
             return temp_id
@@ -180,7 +179,7 @@ class DBConnection(object):
         return c.lastrowid
 
     def get_temp_id(self, temp):
-        temp = unicode(temp)
+        temp = str(temp, 'utf-8')
         c = self.cursor
         for id, _ in c.execute("SELECT * FROM Temp WHERE temp = ?", (temp,)):
             return id
@@ -229,8 +228,8 @@ class DBConnection(object):
     # --- Prediction ---
 
     def add_prediction(self, model, nl, pred_cmd, score, update_mode=True):
-        nl = nl.decode('utf-8')
-        pred_cmd = pred_cmd.decode('utf-8')
+        nl = bytes(nl, 'utf-8')
+        pred_cmd = bytes(pred_cmd, 'utf-8')
         nl_id = self.add_nl(nl)
         cmd_id = self.add_cmd(pred_cmd)
         c = self.cursor
@@ -259,7 +258,7 @@ class DBConnection(object):
         return self.get_top_k_predictions(model, nl, 1)[0]
 
     def get_top_k_predictions(self, model, nl, k):
-        nl = unicode(nl)
+        nl = str(nl, 'utf-8')
         c = self.cursor
         predictions = []
         for score, pred_cmd in \
@@ -337,7 +336,7 @@ class DBConnection(object):
             return judgement
 
     def get_nl_cm_judge(self, nl):
-        nl = unicode(nl)
+        nl = str(nl, 'utf-8')
         c = self.cursor
         for nl, pred_cmd, judgement in c.execute("SELECT NL.nl, Cmd.cmd, "
                                                  "CmdJudge.judgement FROM CmdJudge "
@@ -347,7 +346,7 @@ class DBConnection(object):
             print("Prediction: {} ({})".format(pred_cmd, judgement))
 
     def get_nl_temp_judge(self, nl):
-        nl = unicode(nl)
+        nl = str(nl, 'utf-8')
         c = self.cursor
         for nl, pred_temp, judgement in c.execute("SELECT NL.nl, Temp.temp, "
                                                   "TempJudge.judgement FROM TempJudge "
@@ -358,7 +357,7 @@ class DBConnection(object):
             print("Prediction: {} ({})".format(pred_temp, judgement))
 
     def get_correct_cmds(self, nl):
-        nl = unicode(nl)
+        nl = str(nl, 'utf-8')
         c = self.cursor
         correct_cmds = []
         for pred_cmd, in c.execute("SELECT Cmd.cmd FROM CmdJudge "
@@ -369,7 +368,7 @@ class DBConnection(object):
         return correct_cmds
 
     def get_correct_temps(self, nl):
-        nl = unicode(nl)
+        nl = str(nl, 'utf-8')
         c = self.cursor
         correct_temps = []
         for pred_temp, in c.execute("SELECT Temp.temp FROM TempJudge "

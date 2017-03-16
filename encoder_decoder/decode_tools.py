@@ -74,12 +74,18 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
                   slot_filling_classifier=None):
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
-    if FLAGS.char:
-        token_ids, entities = data_utils.sentence_to_token_ids(sentence,
-            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+    if FLAGS.explain:
+        tokens = data_tools.bash_tokenizer(sentence, arg_type_only=FLAGS.normalized)
+        token_ids, _ = data_utils.sentence_to_token_ids(tokens, sc_vocab,
+                data_tools.bash_tokenizer, None)
     else:
-        token_ids, entities = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, tokenizer.ner_tokenizer, None)
+        if FLAGS.char:
+            token_ids, entities = data_utils.sentence_to_token_ids(sentence,
+                sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+        else:
+            token_ids, entities = data_utils.sentence_to_token_ids(
+                sentence, sc_vocab, tokenizer.ner_tokenizer, None)
+    
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
                     if model.buckets[b][0] > len(token_ids)])
@@ -103,7 +109,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
         encoder_outputs = model_step_outputs[4]
         decoder_outputs = model_step_outputs[5]
     batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS,
-                           grammatical_only=True,
+                           grammatical_only=FLAGS.grammatical_only,
                            nl_fillers=nl_fillers,
                            slot_filling_classifier=slot_filling_classifier,
                            encoder_outputs=encoder_outputs,
@@ -189,12 +195,12 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
             # unqualified)
             if nl_fillers is None or len(cm_slots) >= len(nl_fillers):
                 # Step 2: check if the predicted command template is grammatical
-                if FLAGS.dataset.startswith("bash"):
-                    print(tg)
-                    tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
-                    tree = data_tools.bash_parser(tg)
-                else:
-                    tree = data_tools.paren_parser(tg)
+                if not FLAGS.explain:
+                    if FLAGS.dataset.startswith("bash"):
+                        tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
+                        tree = data_tools.bash_parser(tg)
+                    else:
+                        tree = data_tools.paren_parser(tg)
 
                 # filter out non-grammatical output
                 if tree is not None or not grammatical_only:

@@ -19,6 +19,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import functools
 import os, sys
 
 if sys.version_info > (3, 0):
@@ -669,7 +670,7 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
         list quadruples as the values.
     """
     if use_bucket:
-        dataset = reduce(lambda x,y: x + y, dataset)
+        dataset = functools.reduce(lambda x,y: x + y, dataset)
 
     grouped_dataset = {}
     for i in xrange(len(dataset)):
@@ -692,7 +693,7 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
 
 def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
     if use_bucket:
-        dataset = reduce(lambda x,y: x + y, dataset)
+        dataset = functools.reduce(lambda x,y: x + y, dataset)
     grouped_dataset = {}
     for i in xrange(len(dataset)):
         nl_str, cm_str, nl, cm = dataset[i]

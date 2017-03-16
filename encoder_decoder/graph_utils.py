@@ -95,6 +95,9 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         params["learning_rate"] = 0
         params["force_reading_input"] = True
 
+    if FLAGS.explain:
+        FLAGS.grammatical_only = False
+
     model = model_constructor(params, buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
