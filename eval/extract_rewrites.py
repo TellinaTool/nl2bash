@@ -9,7 +9,7 @@ import collections
 import os, sys
 import sqlite3
 
-from encoder_decoder import data_tools, normalizer
+from bashlex import data_tools, normalizer
 
 
 def rewrite(ast, temp):
