@@ -179,7 +179,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self._done_mask = tf.tile(self._done_mask, [full_size, 1])
 
 
-    def __call__(self, inputs, state, attn_masks=None, scope=None):
+    def __call__(self, inputs, state, attn_alignments=None, scope=None):
         (
             past_cand_symbols,  # [batch_size, max_len]
             past_cand_logprobs, # [batch_size]
@@ -204,8 +204,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         past_cell_state = self.get_past_cell_state(past_cell_states)
         if self.use_attention:
-            cell_outputs, raw_cell_state, attn_masks = \
-                self.cell(cell_inputs, past_cell_state, attn_masks, scope)
+            cell_outputs, raw_cell_state, attn_alignments = \
+                self.cell(cell_inputs, past_cell_state, attn_alignments, scope)
         else:
             cell_outputs, raw_cell_state = \
                 self.cell(cell_inputs, past_cell_state, scope)
@@ -260,11 +260,11 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         parent_refs = parent_refs + self.parent_refs_offsets
 
         symbols_history = tf.gather(past_beam_symbols, parent_refs)
-        if attn_masks is not None:
-            num_attn_masks = len(attn_masks)
-            attn_masks = tf.split(1, num_attn_masks,
+        if attn_alignments is not None:
+            num_attn_alignments = len(attn_alignments)
+            attn_alignments = tf.split(1, num_attn_alignments,
                             tf.gather(
-                                tf.concat(1, attn_masks), 
+                                tf.concat(1, attn_alignments),
                                  parent_refs
                             )
                          )
@@ -306,7 +306,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 beam_symbols,
                 beam_logprobs,
                 cell_states,
-            ), attn_masks
+            ), attn_alignments
         else:
             return cell_outputs, (
                 cand_symbols,

@@ -17,7 +17,7 @@ class RNNDecoder(decoder.Decoder):
         :return output_logits: batch of output sequence scores
         :return outputs: batch output states
         :return state: batch final hidden states
-        :return attn_masks: batch attention masks (if attention mechanism is used)
+        :return attn_alignments: batch attention masks (if attention mechanism is used)
         :return bso_losses: beam search optimization loss (if beam search optimization is used)
         """
 
@@ -33,7 +33,7 @@ class RNNDecoder(decoder.Decoder):
         :return output_logits: batch of output sequence scores
         :return outputs: batch output states
         :return state: batch final hidden states
-        :return attn_masks: batch attention masks (if attention mechanism is used)
+        :return attn_alignments: batch attention masks (if attention mechanism is used)
         """
         if self.use_attention and \
                 not attention_states.get_shape()[1:2].is_fully_defined():
@@ -46,7 +46,7 @@ class RNNDecoder(decoder.Decoder):
             decoder_cell, decoder_scope = self.decoder_cell(scope)
             state = encoder_state
             outputs = []
-            attn_masks = []
+            attn_alignments = []
 
             # applying cell wrappers: ["attention", "beam"]
             if bs_decoding:
@@ -108,8 +108,8 @@ class RNNDecoder(decoder.Decoder):
                 input_embedding = tf.nn.embedding_lookup(embeddings, input)
 
                 if self.use_attention:
-                    output, state, attn_masks = \
-                        decoder_cell(input_embedding, state, attn_masks, scope=decoder_scope)
+                    output, state, attn_alignments = \
+                        decoder_cell(input_embedding, state, attn_alignments, scope=decoder_scope)
                 else:
                     output, state = decoder_cell(input_embedding, state, scope=decoder_scope)
 
@@ -124,7 +124,7 @@ class RNNDecoder(decoder.Decoder):
 
             if self.use_attention:
                 # Tensor list --> tenosr
-                attn_masks = tf.concat(1, attn_masks)
+                attn_alignments = tf.concat(1, attn_alignments)
 
             if bs_decoding:
                 # Beam-search output
@@ -148,11 +148,11 @@ class RNNDecoder(decoder.Decoder):
                 top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
                                 for top_k_logit in top_k_logits]
                 if self.use_attention:
-                    attn_masks = tf.reshape(attn_masks, [self.batch_size, self.beam_size,
+                    attn_alignments = tf.reshape(attn_alignments, [self.batch_size, self.beam_size,
                             len(decoder_inputs), attention_states.get_shape()[1].value])
                 outputs = [tf.squeeze(s, squeeze_dims=[1]) for s in tf.split(
                     1, past_cell_states.get_shape()[1], past_cell_states)[1:]]
-                return top_k_outputs, top_k_logits, outputs, state, attn_masks
+                return top_k_outputs, top_k_logits, outputs, state, attn_alignments
             else:
                 # Greedy output
                 W, b = self.output_projection
@@ -163,7 +163,7 @@ class RNNDecoder(decoder.Decoder):
                 output_symbols = past_output_symbols[:, 1:]
                 past_output_logits = tf.add(past_output_logits,
                                             tf.reduce_max(projected_output, 1))
-                return output_symbols, past_output_logits, outputs, state, attn_masks
+                return output_symbols, past_output_logits, outputs, state, attn_alignments
 
 
     def decoder_cell(self, scope):
