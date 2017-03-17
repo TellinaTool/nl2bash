@@ -70,8 +70,7 @@ class RNNDecoder(decoder.Decoder):
                                                 encoder_attn_masks,
                                                 self.attention_input_keep,
                                                 self.attention_output_keep,
-                                                num_heads,
-                                                reuse_variables)
+                                                num_heads)
 
             if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell,
