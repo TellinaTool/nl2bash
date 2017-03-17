@@ -9,21 +9,6 @@ class RNNDecoder(decoder.Decoder):
         super(RNNDecoder, self).__init__(hyperparameters, output_projection)
 
 
-    def define_bso_graph(self, encoder_state, decoder_inputs, target_weights, embeddings,
-                         encoder_attn_masks=None, attention_states=None, num_heads=1,
-                         beam_decoder=None, forward_only=False, reuse_variables=False):
-        """
-        :return output_symbols: batch of discrete output sequences
-        :return output_logits: batch of output sequence scores
-        :return outputs: batch output states
-        :return state: batch final hidden states
-        :return attn_alignments: batch attention masks (if attention mechanism is used)
-        :return bso_losses: beam search optimization loss (if beam search optimization is used)
-        """
-
-        raise NotImplementedError
-
-
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      encoder_attn_masks=None, attention_states=None,
                      num_heads=1, beam_decoder=None,
@@ -33,7 +18,8 @@ class RNNDecoder(decoder.Decoder):
         :return output_logits: batch of output sequence scores
         :return outputs: batch output states
         :return state: batch final hidden states
-        :return attn_alignments: batch attention masks (if attention mechanism is used)
+        :return attn_alignments: batch attention masks (if attention mechanism
+            is used)
         """
         if self.use_attention and \
                 not attention_states.get_shape()[1:2].is_fully_defined():
