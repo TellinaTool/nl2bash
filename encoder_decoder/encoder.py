@@ -18,7 +18,7 @@ class Encoder(graph_utils.NNModel):
 class RNNEncoder(Encoder):
     def __init__(self, hyperparameters):
         super(RNNEncoder, self).__init__(hyperparameters)
-        self.cell, _ = self.encoder_cell()
+        self.cell = self.encoder_cell()
 
         # variable sharing
         # self.encoder_rnn_vars = False
@@ -41,15 +41,14 @@ class RNNEncoder(Encoder):
         with tf.variable_scope("encoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers)
-            self.encoder_cell_vars = True
-        return cell, scope
+        return cell
 
 
 class BiRNNEncoder(Encoder):
     def __init__(self, hyperparameters):
         super(BiRNNEncoder, self).__init__(hyperparameters)
-        self.fw_cell, _ = self.forward_cell()
-        self.bw_cell, _ = self.backward_cell()
+        self.fw_cell = self.forward_cell()
+        self.bw_cell = self.backward_cell()
 
     def define_graph(self, encoder_inputs, embeddings):
         # Each rnn in the bi-directional encoder have dimension which is half
@@ -77,7 +76,7 @@ class BiRNNEncoder(Encoder):
                                                       self.dim/2, self.num_layers,
                                                       self.encoder_input_keep,
                                                       self.encoder_output_keep)
-        return cell, scope
+        return cell
 
     def backward_cell(self):
         """RNN cell for the backward RNN."""
@@ -86,4 +85,4 @@ class BiRNNEncoder(Encoder):
                                                       self.dim/2, self.num_layers,
                                                       self.encoder_input_keep,
                                                       self.encoder_output_keep)
-        return cell, scope
+        return cell
