@@ -11,8 +11,7 @@ class RNNDecoder(decoder.Decoder):
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      encoder_attn_masks=None, attention_states=None,
-                     num_heads=1, beam_decoder=None,
-                     forward_only=False, reuse_variables=False):
+                     num_heads=1, beam_decoder=None, forward_only=False):
         """
         :return output_symbols: batch of discrete output sequences
         :return output_logits: batch of output sequence scores
@@ -68,7 +67,6 @@ class RNNDecoder(decoder.Decoder):
 
                 if i > 0:
                     scope.reuse_variables()
-                    decoder_scope.reuse_variables()
 
                     if forward_only and not self.force_reading_input:
                         if self.decoding_algorithm == "beam_search":
@@ -94,9 +92,9 @@ class RNNDecoder(decoder.Decoder):
 
                 if self.use_attention:
                     output, state, attn_alignments = \
-                        decoder_cell(input_embedding, state, attn_alignments, scope=decoder_scope)
+                        decoder_cell(input_embedding, state, attn_alignments)
                 else:
-                    output, state = decoder_cell(input_embedding, state, scope=decoder_scope)
+                    output, state = decoder_cell(input_embedding, state)
 
                 # record output state to compute the loss.
                 if bs_decoding:
@@ -157,4 +155,4 @@ class RNNDecoder(decoder.Decoder):
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.decoder_input_keep, self.decoder_output_keep)
             self.encoder_cell_vars = True
-        return cell, scope
+        return cell
