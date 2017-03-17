@@ -13,8 +13,7 @@ import numpy as np
 from numpy.linalg import norm
 
 from . import constants, tokenizer
-from bashlex.data_tools import bash_tokenizer, bash_parser, ast2command, \
-    fill_default_value
+from bashlex import data_tools
 
 # --- Slot filling functions --- #
 
@@ -38,8 +37,8 @@ def get_fill_in_value(cm_slot, nl_filler):
             slot_filler_value = filler_value if filler_value.startswith('+') \
                 else '+{}'.format(filler_value)
         elif slot_value.startswith('-'):
-            slot_filler_value = filler_value if filler_value.startswith('-') else \
-                '-{}'.format(filler_value)
+            slot_filler_value = filler_value if filler_value.startswith('-') \
+                else '-{}'.format(filler_value)
 
     return slot_filler_value
 
@@ -103,10 +102,10 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
         for f, s in mappings:
             template_tokens[s] = get_fill_in_value(cm_slots[s], nl_fillers[f])
         cmd = ' '.join(template_tokens)
-        tree = bash_parser(cmd)
+        tree = data_tools.bash_parser(cmd)
         if not tree is None:
-            fill_default_value(tree)
-        temp = ast2command(tree, loose_constraints=True,
+            data_tools.fill_default_value(tree)
+        temp = data_tools.ast2command(tree, loose_constraints=True,
                            ignore_flag_order=False)
     else:
         tree = None
@@ -254,9 +253,6 @@ def slot_filler_type_match(slot_type, filler_type):
         '_TIMESPAN:::Timespan',
         '_TIMESPAN:::+Timespan',
         '_TIMESPAN:::-Timespan',
-        # '_TIMESPAN:::Number',
-        # '_TIMESPAN:::+Number',
-        # '_TIMESPAN:::-Number',
         '_DATETIME:::DateTime',
         '_DATETIME:::+DateTime',
         '_DATETIME:::-DateTime',
@@ -333,8 +329,8 @@ def slot_filler_alignment_induction(nl, cm):
     # and the slots in the command
     tokens, entities = tokenizer.ner_tokenizer(nl)
     nl_fillers, _, _ = entities
-    cm_tokens = bash_tokenizer(cm)
-    cm_tokens_with_types = bash_tokenizer(cm, arg_type_only=True)
+    cm_tokens = data_tools.bash_tokenizer(cm)
+    cm_tokens_with_types = data_tools.bash_tokenizer(cm, arg_type_only=True)
     assert(len(cm_tokens) == len(cm_tokens_with_types))
     cm_slots = {}
     for i in xrange(len(cm_tokens_with_types)):
