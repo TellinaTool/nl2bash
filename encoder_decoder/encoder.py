@@ -21,7 +21,7 @@ class RNNEncoder(Encoder):
         self.cell, _ = self.encoder_cell()
 
         # variable sharing
-        self.encoder_rnn_vars = False
+        # self.encoder_rnn_vars = False
 
     def define_graph(self, encoder_inputs, embeddings):
         self.embeddings = embeddings
@@ -29,11 +29,11 @@ class RNNEncoder(Encoder):
                                 self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
         with tf.variable_scope("encoder_rnn"):
-            if self.encoder_rnn_vars:
-                tf.get_variable_scope().reuse_variables()
+            # if self.encoder_rnn_vars:
+            #     tf.get_variable_scope().reuse_variables()
             encoder_outputs, encoder_state = \
                 tf.nn.rnn(self.cell, input_embeddings, dtype=tf.float32)
-            self.encoder_rnn_vars = True
+            # self.encoder_rnn_vars = True
         return encoder_outputs, encoder_state
 
     def encoder_cell(self):
@@ -50,10 +50,6 @@ class BiRNNEncoder(Encoder):
         super(BiRNNEncoder, self).__init__(hyperparameters)
         self.fw_cell, _ = self.forward_cell()
         self.bw_cell, _ = self.backward_cell()
-
-        # variable sharing
-        self.forward_rnn_vars = False
-        self.backward_rnn_vars = False
 
     def define_graph(self, encoder_inputs, embeddings):
         # Each rnn in the bi-directional encoder have dimension which is half
@@ -82,7 +78,6 @@ class BiRNNEncoder(Encoder):
                                                       self.encoder_input_keep,
                                                       self.encoder_output_keep)
         return cell, scope
-
 
     def backward_cell(self):
         """RNN cell for the backward RNN."""

@@ -19,8 +19,8 @@ class Decoder(graph_utils.NNModel):
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
-    def __init__(self, cell, attention_states, encoder_attn_masks, attention_input_keep,
-                 attention_output_keep, num_heads=1, reuse_variables=False):
+    def __init__(self, cell, attention_states, encoder_attn_masks,
+                 attention_input_keep, attention_output_keep, num_heads=1):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
@@ -39,7 +39,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         hidden = tf.reshape(attention_states, [-1, attn_length, 1, attn_vec_dim])
         hidden_features = []
         v = []
-        with tf.variable_scope("attention_cell_wrapper", reuse=reuse_variables):
+        with tf.variable_scope("attention_cell_wrapper"):
             for a in xrange(num_heads):
                 # k = tf.get_variable("AttnW_%d" % a, [1, 1, attn_vec_dim, attn_dim])
                 # hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
@@ -58,9 +58,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.hidden_features = hidden_features
         self.v = v
 
-        # variable sharing
-        self.reuse_variables = reuse_variables
-
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
         ds = []  # Results of attention reads will be stored here.
@@ -73,7 +70,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             # state = tf.concat(1, query_list)
             state = state[1]
         for a in xrange(self.num_heads):
-            with tf.variable_scope("Attention_%d" % a, reuse=self.reuse_variables):
+            with tf.variable_scope("Attention_%d" % a):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
                 # s = tf.reduce_sum(
@@ -97,17 +94,18 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             dim = state[1].get_shape()[1].value
         else:
             dim = state.get_shape()[1].value
-        with tf.variable_scope("AttnInputProjection", reuse=self.reuse_variables):
+        with tf.variable_scope("AttnInputProjection"):
             cell_output, state = self.cell(input_embedding, state, scope)
             attns, attn_alignment = self.attention(state)
 
-        with tf.variable_scope("AttnStateProjection", reuse=self.reuse_variables):
-            attn_state = tf.tanh(tf.nn.rnn_cell._linear([cell_output, attns], dim, True))
+        with tf.variable_scope("AttnStateProjection"):
+            attn_state = tf.tanh(tf.nn.rnn_cell._linear(
+                [cell_output, attns], dim, True))
 
-        with tf.variable_scope("AttnOutputProjection", reuse=self.reuse_variables):
+        with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear(
-                tf.nn.dropout(attn_state, self.attention_output_keep), dim, True)
+              tf.nn.dropout(attn_state, self.attention_output_keep), dim, True)
 
         self.attention_cell_vars = True
         attn_alignments.append(tf.expand_dims(attn_alignment, 1))

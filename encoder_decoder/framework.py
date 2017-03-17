@@ -113,28 +113,27 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.losses = []
             self.attn_alignments = []
             for bucket_id, bucket in enumerate(self.buckets):
-                with tf.variable_scope(tf.get_variable_scope(), reuse=True
-                                       if bucket_id > 0 else None):
-                    print("creating bucket {} ({}, {})...".format(
+                print("creating bucket {} ({}, {})...".format(
                         bucket_id, bucket[0], bucket[1]))
-                    encode_decode_outputs = \
-                        self.encode_decode(
-                            self.encoder_inputs[:bucket[0]],
-                            self.encoder_attn_masks[:bucket[0]],
-                            self.source_embeddings(),
-                            self.decoder_inputs[:bucket[1]],
-                            self.target_embeddings(),
-                            self.targets[:bucket[1]],
-                            self.target_weights[:bucket[1]],
-                            forward_only=forward_only,
-                            reuse_variables=(bucket_id > 0)
-                        )
-                    bucket_output_symbols, bucket_output_logits, bucket_losses, \
-                        batch_attn_alignment = encode_decode_outputs
-                    self.output_symbols.append(bucket_output_symbols)
-                    self.output_logits.append(bucket_output_logits)
-                    self.losses.append(bucket_losses)
-                    self.attn_alignments.append(batch_attn_alignment)
+                if bucket_id > 0:
+                    tf.get_variable_scope().reuse_variables()
+                encode_decode_outputs = \
+                    self.encode_decode(
+                        self.encoder_inputs[:bucket[0]],
+                        self.encoder_attn_masks[:bucket[0]],
+                        self.source_embeddings(),
+                        self.decoder_inputs[:bucket[1]],
+                        self.target_embeddings(),
+                        self.targets[:bucket[1]],
+                        self.target_weights[:bucket[1]],
+                        forward_only=forward_only
+                    )
+                bucket_output_symbols, bucket_output_logits, bucket_losses, \
+                    batch_attn_alignment = encode_decode_outputs
+                self.output_symbols.append(bucket_output_symbols)
+                self.output_logits.append(bucket_output_logits)
+                self.losses.append(bucket_losses)
+                self.attn_alignments.append(batch_attn_alignment)
         else:
             encode_decode_outputs = self.encode_decode(
                                         self.encoder_inputs,
@@ -192,8 +191,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
     def encode_decode(self, encoder_inputs, encoder_attn_masks,
                       source_embeddings, decoder_inputs, target_embeddings, 
-                      targets, target_weights, forward_only, 
-                      reuse_variables=False):
+                      targets, target_weights, forward_only):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
@@ -231,17 +229,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 attn_alignment, bso_losses = self.decoder.define_bso_graph(
                     encoder_state, decoder_inputs, target_weights, target_embeddings,
                     encoder_attn_masks, attention_states, num_heads=1,
-                    beam_decoder=beam_decoder, forward_only=forward_only,
-                    reuse_variables=reuse_variables
-                )
+                    beam_decoder=beam_decoder, forward_only=forward_only)
         else:
             output_symbols, output_logits, outputs, state, \
                 attn_alignment = self.decoder.define_graph(
                     encoder_state, decoder_inputs, target_embeddings,
                     encoder_attn_masks, attention_states, num_heads=1,
-                    beam_decoder=beam_decoder, forward_only=forward_only,
-                    reuse_variables=reuse_variables
-                )
+                    beam_decoder=beam_decoder, forward_only=forward_only)
 
         if forward_only:
             # if self.decoding_algorithm == 'beam_search':
@@ -286,24 +280,22 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def source_embeddings(self):
-        with tf.variable_scope("source_embeddings"):
+        with tf.variable_scope("source_embeddings",
+                               reuse=self.source_embedding_vars):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            if self.source_embedding_vars:
-                tf.get_variable_scope().reuse_variables()
-            embeddings = tf.get_variable("embedding", [self.source_vocab_size,
-                                                       self.dim],
+            embeddings = tf.get_variable("embedding",
+                                         [self.source_vocab_size, self.dim],
                                          initializer=initializer)
             self.source_embedding_vars = True
             return embeddings
 
 
     def target_embeddings(self):
-        with tf.variable_scope("target_embeddings"):
+        with tf.variable_scope("target_embeddings",
+                               reuse=self.target_embedding_vars):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            if self.target_embedding_vars:
-                tf.get_variable_scope().reuse_variables()
             embeddings = tf.get_variable("embedding",
                                          [self.target_vocab_size, self.dim],
                                          initializer=initializer)
@@ -312,14 +304,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def output_projection(self):
-        with tf.variable_scope("output_projection"):
-            try:
-                w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
-                b = tf.get_variable("proj_b", [self.target_vocab_size])
-            except ValueError:
-                tf.get_variable_scope().reuse_variables()
-                w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
-                b = tf.get_variable("proj_b", [self.target_vocab_size])
+        with tf.variable_scope("output_projection",
+                               reuse=self.output_projection_vars):
+            w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
+            b = tf.get_variable("proj_b", [self.target_vocab_size])
+            self.output_projection_vars = True
         return (w, b)
 
 
@@ -339,7 +328,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if bucket_id >= 0:
             encoder_size, decoder_size = self.buckets[bucket_id]
         else:
-            encoder_size, decoder_size = self.max_source_length, self.max_target_length
+            encoder_size, decoder_size = \
+                self.max_source_length, self.max_target_length
 
         batch_size = len(encoder_inputs)
         padded_encoder_inputs = []

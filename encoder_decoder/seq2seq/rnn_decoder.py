@@ -166,8 +166,8 @@ class RNNDecoder(decoder.Decoder):
                 return output_symbols, past_output_logits, outputs, state, attn_alignments
 
 
-    def decoder_cell(self, scope):
-        with tf.variable_scope(scope or "decoder_cell") as scope:
+    def decoder_cell(self):
+        with tf.variable_scope("decoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.decoder_input_keep, self.decoder_output_keep)

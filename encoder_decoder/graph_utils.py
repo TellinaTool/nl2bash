@@ -182,13 +182,14 @@ def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1,
             raise ValueError("Unrecognized RNN cell type: {}.".format(type))
 
         if num_layers > 1:
-            cell = tf.nn.rnn_cell.MultiRNNCell([cell] * num_layers,
-                                               state_is_tuple = (type == "lstm"))
+            cell = tf.nn.rnn_cell.MultiRNNCell(
+                [cell] * num_layers, state_is_tuple = (type == "lstm"))
 
         assert(input_keep_prob >= 0 and output_keep_prob >= 0)
         if input_keep_prob < 1 or output_keep_prob < 1:
-            cell = tf.nn.rnn_cell.DropoutWrapper(cell, input_keep_prob=input_keep_prob,
-                                                 output_keep_prob=output_keep_prob)
+            cell = tf.nn.rnn_cell.DropoutWrapper(cell,
+                input_keep_prob=input_keep_prob,
+                output_keep_prob=output_keep_prob)
     return cell
 
 
@@ -298,10 +299,6 @@ class NNModel(object):
     def __init__(self, hyperparams, buckets=None):
         self.hyperparams = hyperparams
         self.buckets = buckets
-        # self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]),
-        #                                  trainable=False)
-        # self.learning_rate_decay_op = self.learning_rate.assign(
-        #     self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
     @property
     def use_sampled_softmax(self):
