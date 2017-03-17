@@ -28,8 +28,8 @@ from tqdm import tqdm
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from encoder_decoder import classifiers, data_utils, graph_utils, decode_tools
-from encoder_decoder import hyperparam_range, parse_args
+from encoder_decoder import classifiers, data_utils, data_stats, graph_utils, \
+    decode_tools, hyperparam_range, parse_args
 from nlp_tools import tokenizer, slot_filling, constants
 from eval import eval_tools
 from .seq2seq.seq2seq_model import Seq2SeqModel
