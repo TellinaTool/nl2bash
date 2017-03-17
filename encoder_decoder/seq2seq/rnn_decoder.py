@@ -28,7 +28,7 @@ class RNNDecoder(decoder.Decoder):
         bs_decoding = forward_only and self.decoding_algorithm == "beam_search"
 
         with tf.variable_scope("decoder_rnn") as scope:
-            decoder_cell, decoder_scope = self.decoder_cell()
+            decoder_cell = self.decoder_cell()
             state = encoder_state
             outputs = []
             attn_alignments = []
