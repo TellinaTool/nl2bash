@@ -40,7 +40,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
           use_lstm: if true, we use LSTM cells instead of GRU cells.
           num_samples: number of samples for sampled softmax.
           forward_only: if set, we do not construct the backward pass in the model.
-          beam_decoder: beam search decoder.
           use_attention: if set, use attention model.
         """
         super(EncoderDecoderModel, self).__init__(hyperparams, buckets)
