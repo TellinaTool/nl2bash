@@ -20,20 +20,14 @@ class RNNEncoder(Encoder):
         super(RNNEncoder, self).__init__(hyperparameters)
         self.cell = self.encoder_cell()
 
-        # variable sharing
-        # self.encoder_rnn_vars = False
-
     def define_graph(self, encoder_inputs, embeddings):
         self.embeddings = embeddings
         input_embeddings = [tf.nn.embedding_lookup(
                                 self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
         with tf.variable_scope("encoder_rnn"):
-            # if self.encoder_rnn_vars:
-            #     tf.get_variable_scope().reuse_variables()
             encoder_outputs, encoder_state = \
                 tf.nn.rnn(self.cell, input_embeddings, dtype=tf.float32)
-            # self.encoder_rnn_vars = True
         return encoder_outputs, encoder_state
 
     def encoder_cell(self):
@@ -66,7 +60,6 @@ class BiRNNEncoder(Encoder):
             raise NotImplementedError
         else:
             raise AttributeError("Unrecognized RNN cell type.")
-
         return outputs, state
 
     def forward_cell(self):
