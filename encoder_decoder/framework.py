@@ -13,7 +13,7 @@ import numpy as np
 
 import tensorflow as tf
 
-from encoder_decoder import data_utils, graph_utils, beam_search
+from encoder_decoder import data_utils, graph_utils
 
 
 class EncoderDecoderModel(graph_utils.NNModel):
@@ -203,20 +203,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
 
-        if self.decoding_algorithm == "beam_search":
-            beam_decoder = beam_search.BeamDecoder(self.target_vocab_size,
-                            data_utils.ROOT_ID, data_utils.EOS_ID,
-                            self.batch_size,
-                            self.beam_size,
-                            len(decoder_inputs),
-                            self.use_attention,
-                            self.alpha,
-                            locally_normalized=(
-                                self.training_algorithm != "bso"
-                            ))
-        else:
-            beam_decoder = None
-
         if self.rnn_cell == "gru":
             encoder_state.set_shape([None, self.dim*self.num_layers])
         elif self.rnn_cell == "lstm":
@@ -236,13 +222,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 attn_alignment, bso_losses = self.decoder.define_bso_graph(
                     encoder_state, decoder_inputs, target_weights, target_embeddings,
                     encoder_attn_masks, attention_states, num_heads=1,
-                    beam_decoder=beam_decoder, forward_only=forward_only)
+                    forward_only=forward_only)
         else:
             output_symbols, output_logits, outputs, state, \
                 attn_alignment = self.decoder.define_graph(
                     encoder_state, decoder_inputs, target_embeddings,
                     encoder_attn_masks, attention_states, num_heads=1,
-                    beam_decoder=beam_decoder, forward_only=forward_only)
+                    forward_only=forward_only)
 
         if forward_only:
             # if self.decoding_algorithm == 'beam_search':
