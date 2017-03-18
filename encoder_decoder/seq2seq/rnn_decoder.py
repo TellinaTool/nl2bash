@@ -11,7 +11,7 @@ class RNNDecoder(decoder.Decoder):
 
     def define_graph(self, encoder_state, decoder_inputs, embeddings,
                      encoder_attn_masks=None, attention_states=None,
-                     num_heads=1, beam_decoder=None, forward_only=False):
+                     num_heads=1, forward_only=False):
         """
         :return output_symbols: batch of discrete output sequences
         :return output_logits: batch of output sequence scores
@@ -35,6 +35,7 @@ class RNNDecoder(decoder.Decoder):
 
             # applying cell wrappers: ["attention", "beam"]
             if bs_decoding:
+                beam_decoder = self.beam_decoder
                 state = beam_decoder.wrap_state(state, self.output_projection)
             else:
                 past_output_symbols = \
