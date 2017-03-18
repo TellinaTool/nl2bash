@@ -202,12 +202,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
 
-        if self.rnn_cell == "gru":
-            encoder_state.set_shape([None, self.dim*self.num_layers])
-        elif self.rnn_cell == "lstm":
-            encoder_state[0].set_shape([None, self.dim*self.num_layers])
-            encoder_state[1].set_shape([None, self.dim*self.num_layers])
-
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim])
                           for e in encoder_outputs]
