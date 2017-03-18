@@ -66,7 +66,7 @@ class BiRNNEncoder(Encoder):
         """RNN cell for the forward RNN."""
         with tf.variable_scope("forward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
-                                                      self.dim/2, self.num_layers,
+                                                      int(self.dim/2), self.num_layers,
                                                       self.encoder_input_keep,
                                                       self.encoder_output_keep)
         return cell
@@ -75,7 +75,7 @@ class BiRNNEncoder(Encoder):
         """RNN cell for the backward RNN."""
         with tf.variable_scope("backward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
-                                                      self.dim/2, self.num_layers,
+                                                      int(self.dim/2), self.num_layers,
                                                       self.encoder_input_keep,
                                                       self.encoder_output_keep)
         return cell
