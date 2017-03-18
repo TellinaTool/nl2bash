@@ -40,8 +40,8 @@ class Seq2SeqModel(EncoderDecoderModel):
     def define_decoder(self):
         """Construct sequence decoders."""
         if self.decoder_topology == "rnn":
-            self.decoder = rnn_decoder.RNNDecoder(self.hyperparams,
-                                                  self.output_projection())
+            self.decoder = rnn_decoder.RNNDecoder(
+                self.hyperparams, self.output_projection())
         else:
             raise ValueError("Unrecognized decoder topology: {}."
                              .format(self.decoder_topology))

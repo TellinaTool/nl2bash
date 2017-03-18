@@ -17,8 +17,8 @@ class RNNDecoder(decoder.Decoder):
         :return output_logits: batch of output sequence scores
         :return outputs: batch output states
         :return state: batch final hidden states
-        :return attn_alignments: batch attention masks (if attention mechanism
-            is used)
+        :return attn_alignments: batch attention masks
+                                 (if attention mechanism is used)
         """
         if self.use_attention and \
                 not attention_states.get_shape()[1:2].is_fully_defined():

@@ -121,7 +121,8 @@ def train(train_set, dev_set, construct_model_dir=True):
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
-                repeated_samples = list(range(len(_buckets))) * 10
+                dev_size = 10
+                repeated_samples = list(range(len(_buckets))) * dev_size
                 for bucket_id in repeated_samples:
                     if len(dev_set[bucket_id]) == 0:
                         print("  eval: empty bucket %d" % (bucket_id))
@@ -132,9 +133,8 @@ def train(train_set, dev_set, construct_model_dir=True):
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
-
-                dev_size = 10
                 dev_loss = dev_loss / dev_size
+
                 dev_perplexity = math.exp(dev_loss) if dev_loss < 1000 else float('inf')
                 print("global step %d learning rate %.4f dev_perplexity %.2f" 
                         % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
@@ -611,6 +611,7 @@ def main(_):
             model_sig = decode(dev_set, construct_model_dir=False)
             if not FLAGS.explain:
                 eval(dev_set, model_sig, verbose=False)
+
     
 if __name__ == "__main__":
     tf.app.run()

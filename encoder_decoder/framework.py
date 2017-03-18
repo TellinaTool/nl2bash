@@ -72,14 +72,18 @@ class EncoderDecoderModel(graph_utils.NNModel):
         print('batch_size: {}'.format(self.batch_size))
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(
-                tf.placeholder(tf.int32, shape=[None], name="encoder{0}".format(i)))
+                tf.placeholder(tf.int32, shape=[None],
+                               name="encoder{0}".format(i)))
             self.encoder_attn_masks.append(
-                tf.placeholder(tf.float32, shape=[None], name="attn_alignment{0}".format(i)))
+                tf.placeholder(tf.float32, shape=[None],
+                               name="attn_alignment{0}".format(i)))
         for i in xrange(self.max_target_length + 1):
             self.decoder_inputs.append(
-                tf.placeholder(tf.int32, shape=[None], name="decoder{0}".format(i)))
+                tf.placeholder(tf.int32, shape=[None],
+                               name="decoder{0}".format(i)))
             self.target_weights.append(
-                tf.placeholder(tf.float32, shape=[None], name="weight{0}".format(i)))
+                tf.placeholder(tf.float32, shape=[None],
+                               name="weight{0}".format(i)))
         # Our targets are decoder inputs shifted by one.
         self.targets = [self.decoder_inputs[i + 1]
                         for i in xrange(self.max_target_length)]
@@ -93,12 +97,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                                 # mark position in the inputs that are copyable.
             for i in xrange(self.max_source_length):
                 self.original_encoder_inputs.append(
-                    tf.placeholder(tf.int32, shape=[None], name="original_encoder{0}".format(i)))
+                    tf.placeholder(tf.int32, shape=[None],
+                                   name="original_encoder{0}".format(i)))
                 self.copy_masks.append(
-                    tf.placeholder(tf.int32, shape=[None], name="copy_mask{0}".format(i)))
+                    tf.placeholder(tf.int32, shape=[None],
+                                   name="copy_mask{0}".format(i)))
             for i in xrange(self.max_target_length):
                 self.original_decoder_inputs.append(
-                    tf.placeholder(tf.int32, shape=[None], name="original_decoder{0}".format(i)))
+                    tf.placeholder(tf.int32, shape=[None],
+                                   name="original_decoder{0}".format(i)))
 
         # Encoder.
         self.define_encoder()
