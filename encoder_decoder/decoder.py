@@ -9,12 +9,24 @@ if sys.version_info > (3, 0):
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from encoder_decoder import graph_utils
+from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
     def __init__(self, hyperparameters, output_projection=None):
         super(Decoder, self).__init__(hyperparameters)
+
         self.output_projection = output_projection
+
+        self.beam_decoder = beam_search.BeamDecoder(
+            self.target_vocab_size,
+            data_utils.ROOT_ID, data_utils.EOS_ID,
+            self.batch_size,
+            self.beam_size,
+            self.use_attention,
+            self.alpha,
+            locally_normalized=(
+                self.training_algorithm != "bso"
+        )) if self.decoding_algorithm == "beam_search" else None
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
