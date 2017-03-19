@@ -47,8 +47,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                          trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
-        # print(hyperparams["learning_rate"])
-        # print(hyperparams["learning_rate_decay_factor"])
+        
         # variable sharing
         self.output_projection_vars = False
         self.source_embedding_vars = False
@@ -201,14 +200,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
-
+        print(encoder_state.get_shape())
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim])
                           for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
         else:
             attention_states = None
-
+        
         # Losses.
         if self.training_algorithm == "bso":
             output_symbols, output_logits, outputs, state, \
