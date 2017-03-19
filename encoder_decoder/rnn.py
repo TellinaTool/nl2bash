@@ -133,8 +133,7 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
         if _is_sequence(state):
             raise NotImplementedError
         else:
-            state = tf.split(1, num_layers, state)
-            print(state)
+            states.append(tf.slice(1, num_layers, state))
       else:
         states.append(state)
 
