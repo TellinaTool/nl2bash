@@ -226,6 +226,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             #     outputs = [tf.gather(output, tf.range(0,
             #         self.batch_size*self.beam_size, self.beam_size))
             #         for output in outputs]
+            print(outputs)
             encoder_decoder_loss = graph_utils.sequence_loss(
                                        outputs, targets, target_weights,
                                        graph_utils.softmax_loss(
@@ -235,6 +236,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                    ))
         else:
             if self.training_algorithm == "standard":
+                print(outputs)
                 encoder_decoder_loss = graph_utils.sequence_loss(
                                            outputs, targets, target_weights,
                                            graph_utils.softmax_loss(

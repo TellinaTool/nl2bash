@@ -202,7 +202,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         else:
             cell_outputs, raw_cell_state = \
                 self.cell(cell_inputs, past_cell_state, scope)
-
         W, b = self.output_projection
 
         # [batch_size*beam_size, num_classes]
@@ -292,7 +291,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         cand_symbols = tf.select(logprobs_done_max > past_cand_logprobs,
                                 done_symbols, past_cand_symbols)
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
-
+        # print(cell_outputs)
+        # print(cell_states)
         if self.use_attention:
             return cell_outputs, (
                 cand_symbols,
@@ -309,7 +309,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 beam_logprobs,
                 cell_states,
             )
-
     @property
     def output_size(self):
         return 1
