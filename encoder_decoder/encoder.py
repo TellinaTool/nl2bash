@@ -30,7 +30,8 @@ class RNNEncoder(Encoder):
                             for encoder_input in encoder_inputs]
         with tf.variable_scope("encoder_rnn"):
             encoder_outputs, encoder_state = \
-                tf.nn.rnn(self.cell, input_embeddings, dtype=tf.float32)
+                rnn.RNNModel(self.cell, input_embeddings,
+                             num_layers=self.num_layers, dtype=tf.float32)
         return encoder_outputs, encoder_state
 
     def encoder_cell(self):
@@ -56,7 +57,8 @@ class BiRNNEncoder(Encoder):
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
         outputs, states_fw, states_bw = rnn.BiRNNModel(
-            self.fw_cell, self.bw_cell, input_embeddings, dtype=tf.float32)
+            self.fw_cell, self.bw_cell, input_embeddings,
+            num_layers=self.num_layers, dtype=tf.float32)
         if self.rnn_cell == "gru":
             if self.num_layers > 1:
                 states = []
