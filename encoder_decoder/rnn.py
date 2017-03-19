@@ -89,7 +89,7 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
     if fixed_batch_size.value:
       batch_size = fixed_batch_size.value
     else:
-      batch_size = tf.array_ops.shape(inputs[0])[0]
+      batch_size = tf.shape(inputs[0])[0]
     if initial_state is not None:
       state = initial_state
     else:
@@ -99,13 +99,13 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
       state = cell.zero_state(batch_size, dtype)
 
     if sequence_length is not None:  # Prepare variables
-      sequence_length = tf.math_ops.to_int32(sequence_length)
-      zero_output = tf.array_ops.zeros(
-          tf.array_ops.pack([batch_size, cell.output_size]), inputs[0].dtype)
+      sequence_length = tf.to_int32(sequence_length)
+      zero_output = tf.zeros(
+          tf.pack([batch_size, cell.output_size]), inputs[0].dtype)
       zero_output.set_shape(
           tf.tensor_shape.TensorShape([fixed_batch_size.value, cell.output_size]))
-      min_sequence_length = tf.math_ops.reduce_min(sequence_length)
-      max_sequence_length = tf.math_ops.reduce_max(sequence_length)
+      min_sequence_length = tf.reduce_min(sequence_length)
+      max_sequence_length = tf.reduce_max(sequence_length)
 
     for time, input_ in enumerate(inputs):
       if time > 0: varscope.reuse_variables()
@@ -205,7 +205,7 @@ def BiRNNModel(cell_fw, cell_bw, inputs,
   output_states_bw = tf.nn.rnn._reverse_seq(tmp_states, sequence_length)
 
   # Concat each of the forward/backward outputs
-  outputs = [tf.array_ops.concat(1, [fw, bw])
+  outputs = [tf.concat(1, [fw, bw])
              for fw, bw in zip(output_fw, output_bw)]
 
   return (outputs, output_states_fw, output_states_bw)
