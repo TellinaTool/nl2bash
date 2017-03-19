@@ -200,7 +200,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs, source_embeddings)
-        print(encoder_state.get_shape())
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim])
                           for e in encoder_outputs]
