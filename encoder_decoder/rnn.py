@@ -4,6 +4,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import collections
+import six
+
 import tensorflow as tf
 
 def RNNModel(cell, inputs, initial_state=None, dtype=None,
@@ -127,7 +130,7 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
 
       outputs.append(output)
       if num_layers > 1:
-        if tf.nn.rnn._is_sequence(state):
+        if _is_sequence(state):
             raise NotImplementedError
         else:
             state = tf.slice(1, num_layers, state)
@@ -198,14 +201,55 @@ def BiRNNModel(cell_fw, cell_bw, inputs,
 
   # Backward direction
   with tf.variable_scope(name + "_BW") as bw_scope:
-    tmp, tmp_states = RNNModel(cell_bw, tf.nn.rnn._reverse_seq(inputs, sequence_length),
+    tmp, tmp_states = RNNModel(cell_bw, _reverse_seq(inputs, sequence_length),
                          initial_state_bw, dtype, sequence_length,
                          num_layers=num_layers, scope=bw_scope)
-  output_bw = tf.nn.rnn._reverse_seq(tmp, sequence_length)
-  output_states_bw = tf.nn.rnn._reverse_seq(tmp_states, sequence_length)
+  output_bw = _reverse_seq(tmp, sequence_length)
+  output_states_bw = _reverse_seq(tmp_states, sequence_length)
 
   # Concat each of the forward/backward outputs
   outputs = [tf.concat(1, [fw, bw])
              for fw, bw in zip(output_fw, output_bw)]
 
   return (outputs, output_states_fw, output_states_bw)
+
+
+def _reverse_seq(input_seq, lengths):
+  """Reverse a list of Tensors up to specified lengths.
+
+  Args:
+    input_seq: Sequence of seq_len tensors of dimension (batch_size, depth)
+    lengths:   A tensor of dimension batch_size, containing lengths for each
+               sequence in the batch. If "None" is specified, simply reverses
+               the list.
+
+  Returns:
+    time-reversed sequence
+  """
+  if lengths is None:
+    return list(reversed(input_seq))
+
+  input_shape = tf.tensor_shape.matrix(None, None)
+  for input_ in input_seq:
+    input_shape.merge_with(input_.get_shape())
+    input_.set_shape(input_shape)
+
+  # Join into (time, batch_size, depth)
+  s_joined = tf.pack(input_seq)
+
+  # TODO(schuster, ebrevdo): Remove cast when reverse_sequence takes int32
+  if lengths is not None:
+    lengths = tf.to_int64(lengths)
+
+  # Reverse along dimension 0
+  s_reversed = tf.reverse_sequence(s_joined, lengths, 0, 1)
+  # Split again into list
+  result = tf.unpack(s_reversed)
+  for r in result:
+    r.set_shape(input_shape)
+  return result
+
+
+def _is_sequence(seq):
+  return (isinstance(seq, collections.Sequence)
+          and not isinstance(seq, six.string_types))
