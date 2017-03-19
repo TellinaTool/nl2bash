@@ -4,10 +4,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
-from tensorflow.python.ops import rnn
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
 
-from encoder_decoder import graph_utils
+import tensorflow as tf
+
+from encoder_decoder import graph_utils, rnn
 
 
 class Encoder(graph_utils.NNModel):
@@ -52,10 +55,16 @@ class BiRNNEncoder(Encoder):
         self.embeddings = embeddings
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
-        outputs, state_fw, state_bw = rnn.bidirectional_rnn(
+        outputs, states_fw, states_bw = rnn.bidirectional_rnn(
             self.fw_cell, self.bw_cell, input_embeddings, dtype=tf.float32)
         if self.rnn_cell == "gru":
-            state = outputs[-1]
+            if self.num_layers > 1:
+                states = []
+                for i in xrange(self.num_layers):
+                    states.append(tf.concat(1, [states_fw[-1][i], states_bw[0][i]]))
+                state = tf.concat(1, states)
+            else:
+                state = tf.concat(1, [states_fw[-1], states_bw[0]])
         elif self.rnn_cell == "lstm":
             raise NotImplementedError
         else:
