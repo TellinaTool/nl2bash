@@ -116,7 +116,8 @@ def train(train_set, dev_set, construct_model_dir=True):
 
                 checkpoint_path = os.path.join(FLAGS.model_dir, "translate.ckpt")
                 # Save checkpoint and zero timer and loss.
-                model.saver.save(sess, checkpoint_path, global_step=global_epochs+t+1,
+                model.saver.save(sess, checkpoint_path,
+                                 global_step=global_epochs+t+1,
                                  write_meta_graph=False)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
