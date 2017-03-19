@@ -55,7 +55,7 @@ class BiRNNEncoder(Encoder):
         self.embeddings = embeddings
         input_embeddings = [tf.nn.embedding_lookup(self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
-        outputs, states_fw, states_bw = rnn.bidirectional_rnn(
+        outputs, states_fw, states_bw = rnn.BiRNNModel(
             self.fw_cell, self.bw_cell, input_embeddings, dtype=tf.float32)
         if self.rnn_cell == "gru":
             if self.num_layers > 1:
