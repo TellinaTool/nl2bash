@@ -184,7 +184,6 @@ def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1,
         if num_layers > 1:
             cell = tf.nn.rnn_cell.MultiRNNCell(
                 [cell] * num_layers, state_is_tuple = (type == "lstm"))
-
         assert(input_keep_prob >= 0 and output_keep_prob >= 0)
         if input_keep_prob < 1 or output_keep_prob < 1:
             cell = tf.nn.rnn_cell.DropoutWrapper(cell,

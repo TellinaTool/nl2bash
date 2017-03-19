@@ -32,7 +32,8 @@ class Decoder(graph_utils.NNModel):
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def __init__(self, cell, attention_states, encoder_attn_masks,
-                 attention_input_keep, attention_output_keep, num_heads=1):
+                 attention_input_keep, attention_output_keep, num_heads,
+                 rnn_cell, num_layers):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
@@ -40,7 +41,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param attention_output_keep: attention hidden state dropout
         :param num_heads: Number of attention heads that read from from attention_states.
                           Dummy field if attention_states is None.
-        :param reuse_variables: reuse variables in scope.
+        :param rnn_cell: Type of rnn cells used.
+        :param num_layers: Number of layers in the RNN cells.
         """
         attention_states = tf.nn.dropout(attention_states, attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
@@ -60,7 +62,9 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
+        self.rnn_cell = rnn_cell
         self.num_heads = num_heads
+        self.num_layers = num_layers
         self.attn_vec_dim = attn_vec_dim
         self.attn_length = attn_length
         self.attn_dim = attn_dim
@@ -106,13 +110,24 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             dim = state[1].get_shape()[1].value
         else:
             dim = state.get_shape()[1].value
+        if self.num_layers > 1:
+            dim /= self.num_layers
+
         with tf.variable_scope("AttnInputProjection"):
-            cell_output, state = self.cell(input_embedding, state, scope)
-            attns, attn_alignment = self.attention(state)
+            _, state = self.cell(input_embedding, state, scope)
+            # If multi-layer RNN cell is used, apply attention to the last layer.
+            if self.num_layers > 1:
+                if self.rnn_cell == 'gru':
+                    top_state = tf.split(1, self.num_layers, state)[-1]
+                elif self.rnn_cell == 'lstm':
+                    raise NotImplementedError
+                else:
+                    raise AttributeError("Unrecognized RNN cell type.")
+            attns, attn_alignment = self.attention(top_state)
 
         with tf.variable_scope("AttnStateProjection"):
             attn_state = tf.tanh(tf.nn.rnn_cell._linear(
-                [cell_output, attns], dim, True))
+                [top_state, attns], dim, True))
 
         with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
