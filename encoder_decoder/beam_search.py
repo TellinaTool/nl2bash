@@ -203,18 +203,19 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         past_cell_state = self.get_past_cell_state(past_cell_states)
         if self.use_attention:
-            cell_outputs, raw_cell_state, attn_alignments = \
+            cell_output, raw_cell_state, attn_alignments = \
                 self.cell(cell_inputs, past_cell_state, attn_alignments, scope)
         else:
-            cell_outputs, raw_cell_state = \
+            cell_output, raw_cell_state = \
                 self.cell(cell_inputs, past_cell_state, scope)
+        print(cell_output)
         W, b = self.output_projection
 
         # [batch_size*beam_size, num_classes]
         if self.locally_normalized:
-            logprobs = tf.nn.log_softmax(tf.matmul(cell_outputs, W) + b)
+            logprobs = tf.nn.log_softmax(tf.matmul(cell_output, W) + b)
         else:
-            logprobs = tf.matmul(cell_outputs, W) + b
+            logprobs = tf.matmul(cell_output, W) + b
         # set the probabilities of all other symbols following the stop symbol
         # to a very small number
         stop_mask_2d = tf.expand_dims(stop_mask, 1)
