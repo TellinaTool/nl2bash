@@ -304,7 +304,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
 
         if self.use_attention:
-            return cell_outputs, (
+            return cell_output, (
                 cand_symbols,
                 cand_logprobs,
                 beam_symbols,
@@ -312,7 +312,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 cell_states,
             ), attn_alignments
         else:
-            return cell_outputs, (
+            return cell_output, (
                 cand_symbols,
                 cand_logprobs,
                 beam_symbols,
