@@ -148,6 +148,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                len(top_k_predictions) == FLAGS.beam_size)
         if FLAGS.decoding_algorithm == "beam_search":
             beam_outputs = []
+        else:
+            top_k_predictions = [top_k_predictions]
         for j in xrange(len(top_k_predictions)):
 
             # Step 1: transform the neural network output into readable strings
