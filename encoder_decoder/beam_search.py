@@ -208,7 +208,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         else:
             cell_output, raw_cell_state = \
                 self.cell(cell_inputs, past_cell_state, scope)
-        print(cell_output)
         W, b = self.output_projection
 
         # [batch_size*beam_size, num_classes]
@@ -270,7 +269,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                  parent_refs
                             )
                          )
-        beam_symbols = tf.concat(1, [symbols_history[:,1:],
+        beam_symbols = tf.concat(1, [symbols_history,
                                      tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]), 
@@ -295,7 +294,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             [-1, self.beam_size, self.num_classes])[:,:,self.stop_token]
         done_parent_refs = tf.to_int32(tf.argmax(logprobs_done, 1))
         done_parent_refs_offsets = tf.range(batch_size) * self.beam_size
-        done_symbols = tf.gather(past_beam_symbols,
+        done_symbols = tf.gather(past_beam_symbols[:, -1:],
                                  done_parent_refs + done_parent_refs_offsets)
 
         logprobs_done_max = tf.reduce_max(logprobs_done, 1)
@@ -392,8 +391,3 @@ def sparse_boolean_mask(tensor, mask):
         shape=tf.cast(tf.pack([mask_shape[0], tf.reduce_max(mask_lens)]),
                       tf.int64) # For 2D only
     )
-
-if __name__ == "__main__":
-    a = tf.zeros([10])
-    b = BeamDecoder._tile_along_beam(4, a)
-    print(b)

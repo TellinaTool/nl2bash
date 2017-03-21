@@ -122,7 +122,7 @@ class RNNDecoder(decoder.Decoder):
                     past_cell_states,
                 ) = state
                 # [self.batch_size, self.beam_size, max_len]
-                top_k_outputs = tf.reshape(past_beam_symbols, [self.batch_size, self.beam_size, -1])
+                top_k_outputs = tf.reshape(past_beam_symbols[:, 1:], [self.batch_size, self.beam_size, -1])
                 top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
                 top_k_outputs = [tf.split(0, self.beam_size, tf.squeeze(top_k_output, squeeze_dims=[0]))
                                  for top_k_output in top_k_outputs]
