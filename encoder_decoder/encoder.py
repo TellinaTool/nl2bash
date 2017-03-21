@@ -29,9 +29,10 @@ class RNNEncoder(Encoder):
                                 self.embeddings, encoder_input)
                             for encoder_input in encoder_inputs]
         with tf.variable_scope("encoder_rnn"):
-            encoder_outputs, encoder_state = \
+            encoder_outputs, encoder_states = \
                 rnn.RNNModel(self.cell, input_embeddings,
                              num_layers=self.num_layers, dtype=tf.float32)
+        encoder_state = encoder_states[-1]
         return encoder_outputs, encoder_state
 
     def encoder_cell(self):

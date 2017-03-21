@@ -123,6 +123,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     raise NotImplementedError
                 else:
                     raise AttributeError("Unrecognized RNN cell type.")
+            else:
+                top_state = state
             attns, attn_alignment = self.attention(top_state)
 
         with tf.variable_scope("AttnStateProjection"):

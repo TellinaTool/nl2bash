@@ -155,7 +155,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
             # Step 1: transform the neural network output into readable strings
             prediction = top_k_predictions[j]
             outputs = [int(pred) for pred in prediction]
-
+            
             # If there is an EOS symbol in outputs, cut them at that point.
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
@@ -203,9 +203,9 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                         tree = data_tools.paren_parser(tg)
 
                 # filter out non-grammatical output
-                if tree is not None or not grammatical_only:
+                if tree is not None and grammatical_only:
                     output_example = False
-                    if FLAGS.explain:
+                    if FLAGS.explain or not FLAGS.dataset.startswith("bash"):
                         temp = tg
                         output_example = True
                     else:

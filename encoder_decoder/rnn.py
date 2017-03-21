@@ -136,7 +136,6 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
             states.append(tf.split(1, num_layers, state))
       else:
         states.append(state)
-
     return (outputs, states)
 
 
