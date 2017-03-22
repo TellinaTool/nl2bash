@@ -147,7 +147,7 @@ class DBConnection(object):
         return c.lastrowid
 
     def get_nl_id(self, nl):
-        nl = bytes(nl, 'utf-8')
+        # nl = bytes(nl, 'utf-8')
         c = self.cursor
         for id, _ in c.execute("SELECT * FROM NL WHERE nl = ?", (nl,)):
             return id
