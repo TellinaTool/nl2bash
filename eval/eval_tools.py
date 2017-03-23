@@ -10,6 +10,10 @@ import random
 
 import os, sys
 
+if sys.version_info > (3, 0):
+    import _pickle as pickle
+    from six.moves import xrange
+
 from encoder_decoder import data_utils
 from bashlex import data_tools, nast
 from eval import tree_dist, zss
@@ -58,7 +62,7 @@ def eval_set(model, dataset, FLAGS, verbose=True):
     with DBConnection() as db:
         for nl_temp in grouped_dataset:
             nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_temp]
-            nl_str = nl_strs[0].decode('utf-8')
+            nl_str = bytes(nl_strs[0], 'utf-8')
 
             gt_trees = [cmd_parser(cmd) for cmd in cm_strs]
             num_gts = len(gt_trees)
@@ -68,7 +72,7 @@ def eval_set(model, dataset, FLAGS, verbose=True):
 
             if verbose:
                 print("Example %d (%d)" % (num_eval, len(cm_strs)))
-                print("Original English: " + nl_str.strip())
+                print("Original English: {}".format(nl_str.strip()))
                 print("English: " + nl_temp)
                 for j in xrange(len(cm_strs)):
                     print("GT Command {}: ".format(j+1) + cm_strs[j].strip())
@@ -79,14 +83,14 @@ def eval_set(model, dataset, FLAGS, verbose=True):
             top1_correct, top3_correct, top5_correct, top10_correct = \
                 False, False, False, False
 
-            top1_temp_dist = sys.maxint
-            top3_temp_dist = sys.maxint
-            top5_temp_dist = sys.maxint
-            top10_temp_dist = sys.maxint
-            top1_dist = sys.maxint
-            top3_dist = sys.maxint
-            top5_dist = sys.maxint
-            top10_dist = sys.maxint
+            top1_temp_dist = 1e8
+            top3_temp_dist = 1e8
+            top5_temp_dist = 1e8
+            top10_temp_dist = 1e8
+            top1_dist = 1e8
+            top3_dist = 1e8
+            top5_dist = 1e8
+            top10_dist = 1e8
 
             for i in xrange(min(1, len(predictions))):
                 pred_cmd, score = predictions[i]
