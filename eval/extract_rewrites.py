@@ -9,6 +9,9 @@ import collections
 import os, sys
 import sqlite3
 
+if sys.version_info > (3, 0):
+    from six.moves import xrange
+
 from bashlex import data_tools, normalizer
 from nlp_tools import tokenizer
 
