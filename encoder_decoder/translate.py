@@ -201,9 +201,9 @@ def train_and_eval(train_set, dev_set):
     train(train_set, dev_set, construct_model_dir=True)
     tf.reset_default_graph()
     decode(dev_set, construct_model_dir=False, verbose=False)
-    temp_match_score, _, temp_dist, _ = eval(dev_set, verbose=False)
+    full_cms, _, cms, _ = eval(dev_set, verbose=False)
     tf.reset_default_graph()
-    return temp_match_score, temp_dist
+    return full_cms, cms
 
 
 def cross_validation(train_set):
@@ -263,8 +263,8 @@ def grid_search(train_set, dev_set):
 
     best_hp_set = [-1] * num_hps
     best_seed = -1
-    best_temp_match_score = 0.0
-    best_temp_dist = 100
+    best_full_cms = 0.0
+    best_cms = 0.0
 
     model_root_dir = FLAGS.model_dir
 
@@ -283,26 +283,25 @@ def grid_search(train_set, dev_set):
         for t in xrange(num_trials):
             seed = random.getrandbits(32)
             tf.set_random_seed(seed)
-            temp_match_score, temp_dist = \
-                train_and_eval(train_set, dev_set)
+            full_cms, cms = train_and_eval(train_set, dev_set)
             print("Parameter set: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], row[i]))
             print("random seed: {}".format(seed))
-            print("template match score = {}".format(temp_match_score))
-            print("template distance = {}".format(temp_dist))
+            print("full template match score = {}".format(full_cms))
+            print("template match score = {}".format(cms))
             print("Best parameter set so far: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
             print("Best random seed so far: {}".format(best_seed))
-            print("Best template match score so far = {}".format(
-                best_temp_match_score))
-            print("Best template distance so far = {}".format(best_temp_dist))
-            if temp_dist < best_temp_dist:
+            print("Best full template match score so far = {}".format(
+                best_full_cms))
+            print("Best template match score so far = {}".format(best_cms))
+            if cms > best_cms:
                 best_hp_set = row
                 best_seed = seed
-                best_temp_match_score = temp_match_score
-                best_temp_dist = temp_dist
+                best_full_cms = full_cms
+                best_cms = cms
                 print("☺ New best parameter setting found")
 
     print()
@@ -311,8 +310,8 @@ def grid_search(train_set, dev_set):
     for i in xrange(num_hps):
         print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
     print("Best seed = {}".format(best_seed))
-    print("Best template match score = {}".format(best_temp_match_score))
-    print("Best template distance = {}".format(best_temp_dist))
+    print("Best full template match score = {}".format(best_full_cms))
+    print("Best template match score = {}".format(best_cms))
     print("*****************************")
 
 def induce_slot_filling_mapping():
