@@ -60,6 +60,7 @@ class DBConnection(object):
                   "FOREIGN KEY(temp2_id) REFERENCES Temp(id)"
                   ")")
 
+        # Manual judgement for pairs
         c.execute("CREATE TABLE IF NOT EXISTS CmdJudge ("
                   "nl_id INT,"
                   "cmd_id INT,"
@@ -425,8 +426,8 @@ class DBConnection(object):
         for pair in error_str_pairs:
             self.error_str_pair(pair)
 
-    def polymorphism(self):
-        poly = collections.defaultdict(set)
+    def positive_examples(self):
+        positive_examples = collections.defaultdict(set)
         c = self.cursor
         for nl, temp, _, _, judgement in c.execute("SELECT NL.nl, Temp.temp, "
                                                    "TempJudge.nl_id, TempJudge.temp_id, "
@@ -434,9 +435,10 @@ class DBConnection(object):
                                                    "JOIN NL ON TempJudge.nl_id = NL.id "
                                                    "JOIN Temp ON TempJudge.temp_id = Temp.id "
                                                    "WHERE TempJudge.judgement = 1"):
-            poly[nl].add(temp)
+            positive_examples[nl].add(temp)
 
-        for nl, cmds in sorted(poly.items(), key=lambda x:len(x[1]), reverse=True)[:20]:
+        for nl, cmds in sorted(positive_examples.items(),
+                               key=lambda x:len(x[1]), reverse=True)[:20]:
             print("English description: {}".format(nl.strip()))
             cmds = list(cmds)
             for i in xrange(len(cmds)):
@@ -454,8 +456,9 @@ class DBConnection(object):
             print("English description: {}".format(nl.strip()))
             print("Prediction: {} ({})".format(temp, judgement))
             print()
+
  
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
-    db.correction()
+    db.positive_examples()

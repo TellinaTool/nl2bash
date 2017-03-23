@@ -10,16 +10,17 @@ import os, sys
 import sqlite3
 
 from bashlex import data_tools, normalizer
-
+from nlp_tools import tokenizer
 
 def rewrite(ast, temp):
-    """Rewrite an AST into one using the given template."""
+    """Rewrite an AST into an equivalent one using the given template."""
     arg_slots = normalizer.arg_slots(ast)
 
     def rewrite_fun(node):
         if node.kind == "argument" and not node.is_reserved():
             for i in xrange(len(arg_slots)):
-                if not arg_slots[i][1] and arg_slots[i][0].arg_type == node.arg_type:
+                if not arg_slots[i][1] \
+                        and arg_slots[i][0].arg_type == node.arg_type:
                     node.value = arg_slots[i][0].value
                     arg_slots[i][1] = True
                     break
@@ -27,10 +28,10 @@ def rewrite(ast, temp):
             for child in node.children:
                 rewrite_fun(child)
 
-    # This is heuristically implemented in two steps.
+    # TODO: This is heuristically implemented in two steps.
     # Step 1 constructs an AST using the given template.
-    # Step 2 fills the argument slots in the new AST using the argument
-    #        slot from the original AST.
+    # Step 2 fills the argument slots in the newly constructed AST using the
+    # argument values from the original AST.
     ast2 = normalizer.normalize_ast(temp)
     if not ast2 is None:
         rewrite_fun(ast2)
@@ -40,10 +41,10 @@ def rewrite(ast, temp):
 
 class DBConnection(object):
     def __init__(self):
-        self.conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 
-                                                 "bash_rewrites.db"),
-                                    detect_types=sqlite3.PARSE_DECLTYPES,
-                                    check_same_thread=False)
+        self.conn = sqlite3.connect(os.path.join(
+            os.path.dirname(__file__), "bash_rewrites.db"),
+            detect_types=sqlite3.PARSE_DECLTYPES,
+            check_same_thread=False)
         self.cursor = self.conn.cursor()
 
     def __enter__(self, *args, **kwargs):
@@ -56,9 +57,7 @@ class DBConnection(object):
 
     def create_schema(self):
         c = self.cursor
-
         c.execute("CREATE TABLE IF NOT EXISTS Rewrites (s1 TEXT, s2 TEXT)")
-
         self.conn.commit()
 
     def add_rewrite(self, pair):
@@ -84,7 +83,8 @@ class DBConnection(object):
     def get_rewrite_templates(self, s1):
         rewrites = set([s1])
         c = self.cursor
-        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrit7es WHERE s1 = ?", (s1,)):
+        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrit7es WHERE s1 = ?",
+                                (s1,)):
             rewrites.add(s2)
         return rewrites
 
@@ -92,7 +92,8 @@ class DBConnection(object):
         rewrites = set([ast])
         s1 = data_tools.ast2template(ast, loose_constraints=True)
         c = self.cursor
-        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?", (s1,)):
+        for s1, s2 in c.execute("SELECT s1, s2 FROM Rewrites WHERE s1 = ?",
+                                (s1,)):
             rw = rewrite(ast, s2)
             if not rw is None:
                 rewrites.add(rw)
@@ -114,8 +115,11 @@ def clean_rewrites():
 
 
 def extract_rewrites(data):
+    """Extract all pairs of rewrites from a parallel corpus."""
     nls, cms = data
-    group_pairs_by_nl = {}
+
+    # Step 1: group pairs with the same natural language description.
+    group_pairs_by_nl = collections.defaultdict(set)
     for nl, cm in zip(nls, cms):
         nl = nl.strip()
         cm = cm.strip()
@@ -125,43 +129,40 @@ def extract_rewrites(data):
             continue
         if not cm:
             continue
-        nl_temp = ' '.join(data_tools.basic_tokenizer(nl.decode('utf-8')))
+        nl_tokens, _ = tokenizer.ner_tokenizer(nl.decode('utf-8'))
+        nl_temp = ' '.join(nl_tokens)
         if not nl_temp in group_pairs_by_nl:
             group_pairs_by_nl[nl_temp] = {}
         cm_temp = data_tools.cmd2template(cm)
         if not cm_temp in group_pairs_by_nl[nl_temp]:
-            group_pairs_by_nl[nl_temp][cm_temp] = collections.defaultdict(int)
-        group_pairs_by_nl[nl_temp][cm_temp][cm] += 1
+            group_pairs_by_nl[nl_temp].add(cm_temp)
 
+    # Step 2: cluster the commands with the same natural language explanations.
     merged = set()
     nls = group_pairs_by_nl.keys()
     for i in xrange(len(nls)):
         nl = nls[i]
-        cm_set = set(group_pairs_by_nl[nl].keys())
+        cm_temp_set = group_pairs_by_nl[nl]
         for j in xrange(i+1, len(nls)):
             nl2 = nls[j]
-            cm_set2 = set(group_pairs_by_nl[nl2].keys())
-            if len(cm_set & cm_set2) >= 2:
-                for cm_temp in cm_set:
+            cm_temp_set2 = group_pairs_by_nl[nl2]
+            if len(cm_temp_set & cm_temp_set2) >= 2:
+                for cm_temp in cm_temp_set:
                     if not cm_temp in group_pairs_by_nl[nl2]:
-                        group_pairs_by_nl[nl2][cm_temp] = \
-                            group_pairs_by_nl[nl][cm_temp]
-                    else:
-                        for cm in group_pairs_by_nl[nl][cm_temp]:
-                            group_pairs_by_nl[nl2][cm_temp][cm] += \
-                                group_pairs_by_nl[nl][cm_temp][cm]
+                        group_pairs_by_nl[nl2].add(cm_temp)
                 merged.add(i)
 
-    bash_paraphrases = {}
+    # Step 3: remove redundant clusters after merge.
+    rewrites = {}
     for i in xrange(len(nls)):
-        if i in merged:
-            continue
-        bash_paraphrases[nls[i]] = group_pairs_by_nl[nls[i]]
+        if not i in merged:
+            rewrites[nls[i]] = group_pairs_by_nl[nls[i]]
 
+    # Step 4: print extracted rewrites and store in database.
     with DBConnection() as db:
         db.create_schema()
-        for nl, cm_temps in sorted(bash_paraphrases.items(),
-                                   key=lambda x: len(x[1]), reverse=True):
+        for nl, cm_temps in sorted(rewrites.items(), key=lambda x: len(x[1]),
+                                   reverse=True):
             if len(cm_temps) >= 2:
                 for cm_temp1 in cm_temps:
                     for cm_temp2 in cm_temps:

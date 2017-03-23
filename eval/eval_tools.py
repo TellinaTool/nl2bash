@@ -12,7 +12,7 @@ import os, sys
 
 from encoder_decoder import data_utils
 from bashlex import data_tools, nast
-from eval import ast_based, zss
+from eval import tree_dist, zss
 from eval.eval_archive import DBConnection
 
 error_types = {
@@ -92,10 +92,10 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
                 # evaluation ignoring flag orders
-                temp_match = ast_based.one_match(gt_trees, tree, ignore_arg_value=True)
-                str_match = ast_based.one_match(gt_trees, tree, ignore_arg_value=False)
-                min_temp_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=True)
-                min_dist = ast_based.min_dist(gt_trees, tree, ignore_arg_value=False)
+                temp_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=True)
+                str_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=False)
+                min_temp_dist = tree_dist.min_dist(gt_trees, tree, ignore_arg_value=True)
+                min_dist = tree_dist.min_dist(gt_trees, tree, ignore_arg_value=False)
 
                 if temp_match:
                     if i < 1:
@@ -268,7 +268,7 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
                         else "n ({})".format(error_types[temp_judge])
                     print("Is the command template correct [y/n]? %s" % judgement_str)
                 else:
-                    temp_judge = ast_based.one_match(gt_trees, tree, rewrite=False,
+                    temp_judge = tree_dist.one_match(gt_trees, tree, rewrite=False,
                                                      ignore_arg_value=True)
                     if not temp_judge:
                         inp = raw_input("Is the command template correct [y/n]? ")
@@ -316,7 +316,7 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
                             else "n ({})".format(error_types[str_judge])
                         print("Is the complete command correct [y/n]? %s" % judgement_str)
                     else:
-                        str_judge = ast_based.one_match(gt_trees, tree, rewrite=False,
+                        str_judge = tree_dist.one_match(gt_trees, tree, rewrite=False,
                                                         ignore_arg_value=False)
                         if not str_judge:
                             inp = raw_input("Is the complete command correct [y/n]? ")
@@ -442,8 +442,8 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                     pred_cmd, score = predictions[i]
                     tree = cmd_parser(pred_cmd)
                     # evaluation ignoring flag orders
-                    temp_match = ast_based.one_match(gt_trees, tree, ignore_arg_value=True)
-                    str_match = ast_based.one_match(gt_trees, tree, ignore_arg_value=False)
+                    temp_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=True)
+                    str_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=False)
                     if i < len(cm_strs):
                         output_str += '{},'.format(cm_strs[i])
                     else:
@@ -465,7 +465,7 @@ def test_ted():
         ast2 = data_tools.bash_parser(cmd2)
         dist = zss.simple_distance(
             ast1, ast2, nast.Node.get_children, nast.Node.get_label,
-            ast_based.temp_local_dist
+            tree_dist.temp_local_dist
         )
         print("ted = {}".format(dist))
         print()
