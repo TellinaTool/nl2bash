@@ -1,5 +1,5 @@
 """
-The set of functions used at test time.
+Compute translation accuracy of a system.
 """
 
 from __future__ import absolute_import
