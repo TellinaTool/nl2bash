@@ -4,6 +4,13 @@ from __future__ import print_function
 
 from bashlex import data_tools
 
+whitelist = [
+    '!',
+    '&',
+    '&&'
+]
+
+
 blacklist = [
     'ls',
     '-ls',
@@ -20,7 +27,8 @@ def get_content_tokens(ast):
     for token in data_tools.ast2tokens(
             ast, loose_constraints=True, arg_type_only=True):
         if ((token.isalnum() and token.islower()) or (token.startswith('-')
-           or token.startswith('+') and len(token) > 1)) and not token in blacklist:
+           or token.startswith('+') and len(token) > 1)) or token in whitelist\
+           and not token in blacklist:
             content_tokens.add(token)
     return content_tokens
 
