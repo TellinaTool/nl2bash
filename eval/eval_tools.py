@@ -79,7 +79,7 @@ def eval_set(model, dataset, FLAGS, verbose=True):
             top1_correct, top3_correct, top5_correct, top10_correct = \
                 False, False, False, False
             top1_cms, top3_cms, top5_cms, top10_cms = 0.0, 0.0, 0.0, 0.0
-            
+
             for i in xrange(min(1, len(predictions))):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
