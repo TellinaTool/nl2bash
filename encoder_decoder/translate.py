@@ -122,7 +122,7 @@ def train(train_set, dev_set, construct_model_dir=True):
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
-                dev_size = 50
+                dev_size = 10
                 repeated_samples = list(range(len(_buckets))) * dev_size
                 for bucket_id in repeated_samples:
                     if len(dev_set[bucket_id]) == 0:
@@ -597,10 +597,11 @@ def main(_):
             dataset = test_set if FLAGS.test else dev_set
             manual_eval(dataset, 100)
         elif FLAGS.decode:
-            dataset = test_set if FLAGS.test else dev_set
-            model_sig = decode(dataset)
+            # dataset = test_set if FLAGS.test else dev_set
+            # model_sig = decode(dataset)
+            model_sig = decode(train_set)
             if not FLAGS.explain:
-                eval(dev_set, model_sig=model_sig, verbose=False)
+                eval(train_set, model_sig=model_sig, verbose=False)
         elif FLAGS.grid_search:
             grid_search(train_set, dev_set)
         elif FLAGS.cross_valid:

@@ -189,7 +189,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                     tg = " ".join(output_tokens)
             else:
                 tree, tg, outputs = to_readable(outputs, rev_tg_vocab)
-
+            
             # check if the predicted command templates have enough slots to
             # hold the fillers (to rule out templates that are trivially
             # unqualified)
