@@ -2,8 +2,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import sys
-
 from bashlex import data_tools
 
 blacklist = [
@@ -32,8 +30,9 @@ def CMS(ast1, ast2):
            (len(token_set1) + len(token_set2))
 
 
-def command_match_score(ast, gts):
-    avg_cms = 0.0
+def command_match_score(gts, ast):
+    max_cms = 0.0
     for gt in gts:
-        avg_cms += CMS(ast, gt)
-    return avg_cms / len(gts)
+        if CMS(ast, gt) > max_cms:
+            max_cms = CMS(ast, gt)
+    return max_cms
