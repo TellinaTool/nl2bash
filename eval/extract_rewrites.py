@@ -186,12 +186,14 @@ if __name__ == "__main__":
     nl_path = sys.argv[1]
     cm_path = sys.argv[2]
 
-    # with open(nl_path) as f:
-    #     nls = f.readlines()
-    # with open(cm_path) as f:
-    #     cms = f.readlines()
+    clean_rewrites()
 
-    # extract_rewrites((nls, cms))
+    with open(nl_path) as f:
+        nls = f.readlines()
+    with open(cm_path) as f:
+        cms = f.readlines()
+
+    extract_rewrites((nls, cms))
     # while True:
     #     try:
     #         cmd = raw_input("> ")
@@ -199,4 +201,3 @@ if __name__ == "__main__":
     #         test_rewrite(cmd)
     #     except EOFError as ex:
     #         break
-    clean_rewrites()
