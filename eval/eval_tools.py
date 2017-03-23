@@ -80,7 +80,7 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                 False, False, False, False
             top1_cms, top3_cms, top5_cms, top10_cms = 0.0, 0.0, 0.0, 0.0
 
-            for i in xrange(min(1, len(predictions))):
+            for i in xrange(min(3, len(predictions))):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
                 # evaluation ignoring flag orders
@@ -151,22 +151,22 @@ def eval_set(model, dataset, FLAGS, verbose=True):
     print("%d examples evaluated" % num_eval)
     print("Percentage of top 1 Match (template-only) = %.3f" % top1_temp_match_score)
     print("Percentage of top 1 Match (whole-string) = %.3f" % top1_string_match_score)
-    print("Average top 1 Tree Edit Distance (whole-string) = %.2f" % avg_top1_cms)
+    print("Average top 1 Template Match Score = %.2f" % avg_top1_cms)
     if len(predictions) > 1:
         print("Top 3 Template Match Score = %.3f" % (num_top3_correct_temp/num_eval))
         print("Top 3 String Match Score = %.3f" % (num_top3_correct/num_eval))
         avg_top3_cms = (total_top3_cms + 0.0) / num_eval
-        print("Average top 3 Tree Edit Distance (whole-string) = %.2f" % avg_top3_cms)
+        print("Average top 3 Template Match Score = %.2f" % avg_top3_cms)
     if len(predictions) > 3:
         print("Top 5 Template Match Score = %.3f" % (num_top5_correct_temp/num_eval))
         print("Top 5 String Match Score = %.3f" % (num_top5_correct/num_eval))
         avg_top5_cms = (total_top5_cms + 0.0) / num_eval
-        print("Average top 5 Tree Edit Distance (whole-string) = %.2f" % avg_top5_cms)
+        print("Average top 5 Template Match Score = %.2f" % avg_top5_cms)
     if len(predictions) > 5:
         print("Top 10 Template Match Score = %.3f" % (num_top10_correct_temp/num_eval))
         print("Top 10 String Match Score = %.3f" % (num_top10_correct/num_eval))
         avg_top10_cms = (total_top10_cms + 0.0) / num_eval
-        print("Average top 10 Tree Edit Distance (whole-string) = %.2f" % avg_top10_cms)
+        print("Average top 10 Template Match Score = %.2f" % avg_top10_cms)
     print()
 
     return top1_temp_match_score, top1_string_match_score
