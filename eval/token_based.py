@@ -18,7 +18,7 @@ def get_content_tokens(ast):
     content_tokens = set()
     for token in data_tools.ast2tokens(
             ast, loose_constraints=True, arg_type_only=True):
-        if not token.isupper() and not token in blacklist:
+        if not token[0].isupper() and not token in blacklist:
             content_tokens.add(token)
     return content_tokens
 
