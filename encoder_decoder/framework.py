@@ -209,11 +209,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
         
         # Losses.
         if self.training_algorithm == "bso":
-            output_symbols, output_logits, outputs, state, \
-                attn_alignment, bso_losses = self.decoder.define_bso_graph(
-                    encoder_state, decoder_inputs, target_weights, target_embeddings,
-                    encoder_attn_masks, attention_states, num_heads=1,
-                    forward_only=forward_only)
+            output_symbols, output_logits, outputs, state, attn_alignment, \
+                bso_losses = self.decoder.define_bso_graph(
+                    encoder_state, decoder_inputs,
+                    target_weights, target_embeddings,
+                    encoder_attn_masks, attention_states,
+                    num_heads=1, forward_only=forward_only)
         else:
             output_symbols, output_logits, outputs, state, \
                 attn_alignment = self.decoder.define_graph(
