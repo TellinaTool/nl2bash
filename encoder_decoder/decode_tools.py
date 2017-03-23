@@ -203,7 +203,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, grammatical_only=True,
                         tree = data_tools.paren_parser(tg)
 
                 # filter out non-grammatical output
-                if tree is not None and grammatical_only:
+                if tree is not None or not grammatical_only:
                     output_example = False
                     if FLAGS.explain or not FLAGS.dataset.startswith("bash"):
                         temp = tg
