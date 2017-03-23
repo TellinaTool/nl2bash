@@ -17,7 +17,7 @@ def get_content_tokens(ast):
     content_tokens = set()
     for token in data_tools.ast2tokens(
             ast, loose_constraints=True, arg_type_only=True):
-        if (token.isalphanumeric() or token.startswith('-')) \
+        if (token.isalnum() or token.startswith('-')) \
                 and not token in blacklist:
             content_tokens.add(token)
     return content_tokens
