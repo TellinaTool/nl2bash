@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 """
-Some manual evaluation correction.
+Manually corrected evaluation errors.
 """
 
 correct_temp_pairs = [
