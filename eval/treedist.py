@@ -7,6 +7,7 @@ import sys
 from bashlex import data_tools, nast
 from eval import zss
 from eval import extract_rewrites as er
+from eval import eval_archive as ea
 
 def ignore_differences(cmd):
     cmd = cmd.replace('-ls', '')
@@ -83,8 +84,7 @@ def get_rewrites(asts, db):
 
 def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
     """
-    Compute the minimum tree edit distance of the prediction to the set of
-        ground truth ASTs.
+    Compute the minimum tree edit distance of the prediction to the set of ground truth ASTs.
     :param asts: set of gold ASTs.
     :param ast2: predicted AST.
     :param rewrite: set to true if rewrite ground truths with templates.
@@ -100,14 +100,17 @@ def min_dist(asts, ast2, rewrite=True, ignore_arg_value=False):
     else:
         ast_rewrites = asts
 
-    min_dist = 1e8
-    for ast1 in ast_rewrites:
-        if ignore_arg_value:
-            dist = temp_dist(ast1, ast2)
-        else:
-            dist = str_dist(ast1, ast2)
-        if dist < min_dist:
-            min_dist = dist
+    with ea.DBConnection() as db:
+        min_dist = sys.maxint
+        for ast1 in ast_rewrites:
+            # data_tools.pretty_print(ast1)
+            # data_tools.pretty_print(ast2)
+            if ignore_arg_value:
+                dist = temp_dist(ast1, ast2)
+            else:
+                dist = str_dist(ast1, ast2)
+            if dist < min_dist:
+                min_dist = dist
 
     return min_dist
 
