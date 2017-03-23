@@ -27,7 +27,7 @@ def CMS(ast1, ast2):
     token_set1 = get_content_tokens(ast1)
     token_set2 = get_content_tokens(ast2)
     return float(len(token_set1 & token_set2)) /\
-           (len(token_set1 + token_set2))
+           (len(token_set1 | token_set2))
 
 
 def command_match_score(gts, ast):
