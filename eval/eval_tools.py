@@ -86,7 +86,7 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                 # evaluation ignoring flag orders
                 temp_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=True)
                 str_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=False)
-                cms = token_based.command_match_score(gt_trees, tree, ignore_arg_value=False)
+                cms = token_based.command_match_score(gt_trees, tree)
 
                 if temp_match:
                     if i < 1:
