@@ -119,7 +119,7 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                     if cms > top10_cms:
                         top10_cms = cms
                 if verbose:
-                    print("Prediction {}: {} ({}) ({})".format(i+1, pred_cmd, score, temp_match))
+                    print("Prediction {}: {} ({}) ({})".format(i+1, pred_cmd, score, cms))
             if verbose:
                 print()
             if top1_correct_temp:
