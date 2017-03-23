@@ -31,6 +31,8 @@ error_types = {
 }
 
 def eval_set(model, dataset, FLAGS, verbose=True):
+    eval_bash = FLAGS.dataset.startswith("bash")
+
     num_top1_correct_temp = 0.0
     num_top3_correct_temp = 0.0
     num_top5_correct_temp = 0.0
@@ -40,13 +42,13 @@ def eval_set(model, dataset, FLAGS, verbose=True):
     num_top5_correct = 0.0
     num_top10_correct = 0.0
 
-    total_top1_cms = 0.0
-    total_top3_cms = 0.0
-    total_top5_cms = 0.0
-    total_top10_cms = 0.0
+    if eval_bash:
+        total_top1_cms = 0.0
+        total_top3_cms = 0.0
+        total_top5_cms = 0.0
+        total_top10_cms = 0.0
 
     num_eval = 0
-    eval_bash = FLAGS.dataset.startswith("bash")
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
 
@@ -78,7 +80,8 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                 False, False, False, False
             top1_correct, top3_correct, top5_correct, top10_correct = \
                 False, False, False, False
-            top1_cms, top3_cms, top5_cms, top10_cms = 0.0, 0.0, 0.0, 0.0
+            if eval_bash:
+                top1_cms, top3_cms, top5_cms, top10_cms = 0.0, 0.0, 0.0, 0.0
 
             for i in xrange(min(3, len(predictions))):
                 pred_cmd, score = predictions[i]
@@ -86,7 +89,10 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                 # evaluation ignoring flag orders
                 temp_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=True)
                 str_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=False)
-                cms = token_based.command_match_score(gt_trees, tree)
+                if eval_bash:
+                    cms = token_based.command_match_score(gt_trees, tree)
+                else:
+                    cms = -1
 
                 if temp_match:
                     if i < 1:
@@ -106,22 +112,28 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                         top5_correct = True
                     if i < 10:
                         top10_correct = True
-                if i < 1:
-                    if cms > top1_cms:
-                        top1_cms = cms
-                if i < 3:
-                    if cms > top3_cms:
-                        top3_cms = cms
-                if i < 5:
-                    if cms > top5_cms:
-                        top5_cms = cms
-                if i < 10:
-                    if cms > top10_cms:
-                        top10_cms = cms
+                if eval_bash:
+                    if i < 1:
+                        if cms > top1_cms:
+                            top1_cms = cms
+                    if i < 3:
+                        if cms > top3_cms:
+                            top3_cms = cms
+                    if i < 5:
+                        if cms > top5_cms:
+                            top5_cms = cms
+                    if i < 10:
+                        if cms > top10_cms:
+                            top10_cms = cms
                 if verbose:
-                    print("Prediction {}: {} ({}) ({})".format(i+1, pred_cmd, score, cms))
+                    if eval_bash:
+                        print("Prediction {}: {} ({}) ({})".format(i+1, pred_cmd, score, cms))
+                    else:
+                        print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
+
             if verbose:
                 print()
+
             if top1_correct_temp:
                 num_top1_correct_temp += (1 if eval_bash else num_gts)
             if top3_correct_temp:
@@ -139,34 +151,40 @@ def eval_set(model, dataset, FLAGS, verbose=True):
             if top10_correct:
                 num_top10_correct += (1 if eval_bash else num_gts)
 
-            total_top1_cms += top1_cms
-            total_top3_cms += top3_cms
-            total_top5_cms += top5_cms
-            total_top10_cms += top10_cms
+            if eval_bash:
+                total_top1_cms += top1_cms
+                total_top3_cms += top3_cms
+                total_top5_cms += top5_cms
+                total_top10_cms += top10_cms
 
     #TODO: compute top-K matching scores
     top1_temp_match_score = num_top1_correct_temp / num_eval
     top1_string_match_score = num_top1_correct / num_eval
-    avg_top1_cms = (total_top1_cms + 0.0) / num_eval
+    if eval_bash:
+        avg_top1_cms = (total_top1_cms + 0.0) / num_eval
     print("%d examples evaluated" % num_eval)
     print("Percentage of top 1 Match (template-only) = %.3f" % top1_temp_match_score)
     print("Percentage of top 1 Match (whole-string) = %.3f" % top1_string_match_score)
-    print("Average top 1 Template Match Score = %.2f" % avg_top1_cms)
+    if eval_bash:
+        print("Average top 1 Template Match Score = %.2f" % avg_top1_cms)
     if len(predictions) > 1:
         print("Top 3 Template Match Score = %.3f" % (num_top3_correct_temp/num_eval))
         print("Top 3 String Match Score = %.3f" % (num_top3_correct/num_eval))
-        avg_top3_cms = (total_top3_cms + 0.0) / num_eval
-        print("Average top 3 Template Match Score = %.2f" % avg_top3_cms)
+        if eval_bash:
+            avg_top3_cms = (total_top3_cms + 0.0) / num_eval
+            print("Average top 3 Template Match Score = %.2f" % avg_top3_cms)
     if len(predictions) > 3:
         print("Top 5 Template Match Score = %.3f" % (num_top5_correct_temp/num_eval))
         print("Top 5 String Match Score = %.3f" % (num_top5_correct/num_eval))
-        avg_top5_cms = (total_top5_cms + 0.0) / num_eval
-        print("Average top 5 Template Match Score = %.2f" % avg_top5_cms)
+        if eval_bash:
+            avg_top5_cms = (total_top5_cms + 0.0) / num_eval
+            print("Average top 5 Template Match Score = %.2f" % avg_top5_cms)
     if len(predictions) > 5:
         print("Top 10 Template Match Score = %.3f" % (num_top10_correct_temp/num_eval))
         print("Top 10 String Match Score = %.3f" % (num_top10_correct/num_eval))
-        avg_top10_cms = (total_top10_cms + 0.0) / num_eval
-        print("Average top 10 Template Match Score = %.2f" % avg_top10_cms)
+        if eval_bash:
+            avg_top10_cms = (total_top10_cms + 0.0) / num_eval
+            print("Average top 10 Template Match Score = %.2f" % avg_top10_cms)
     print()
 
     return top1_temp_match_score, top1_string_match_score
