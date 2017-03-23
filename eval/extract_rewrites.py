@@ -129,10 +129,8 @@ def extract_rewrites(data):
             continue
         if not cm:
             continue
-        nl_tokens, _ = tokenizer.ner_tokenizer(nl.decode('utf-8'))
+        nl_tokens, _ = tokenizer.ner_tokenizer(nl)
         nl_temp = ' '.join(nl_tokens)
-        if not nl_temp in group_pairs_by_nl:
-            group_pairs_by_nl[nl_temp] = {}
         cm_temp = data_tools.cmd2template(cm)
         if not cm_temp in group_pairs_by_nl[nl_temp]:
             group_pairs_by_nl[nl_temp].add(cm_temp)
@@ -162,7 +160,7 @@ def extract_rewrites(data):
     with DBConnection() as db:
         db.create_schema()
         for nl, cm_temps in sorted(rewrites.items(), key=lambda x: len(x[1]),
-                                   reverse=True):
+                                   reverse=True)[:10]:
             if len(cm_temps) >= 2:
                 for cm_temp1 in cm_temps:
                     for cm_temp2 in cm_temps:
