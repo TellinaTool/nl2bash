@@ -1,0 +1,10 @@
+========================================================================
+mkcls is a tool to train word classes by using a
+maximum-likelihood-criterion. The resulting word classes are
+especially suited for language models or statistical translation
+models. The program mkcls was written by Franz Josef Och
+(och@informatik.rwth-aachen.de)
+========================================================================
+
+In order to know about the options of mkcls simply start the program
+without arguments.
