@@ -1,13 +1,14 @@
-SO_DB=../data/stackoverflow/stackoverflow.sqlite
 
-.PHONY: all clean
+.PHONY: gizapp mkcls-v2
 
-%: %.xz
-	unxz --force --keep $<
+all: gizapp mkcls-v2
 
-preprocess: src/preprocess.py
-	python src/preprocess.py $(SO_DB)
+gizapp:
+	$(MAKE) -C GIZA++-v2
+
+mkcls-v2:
+	$(MAKE) -C mkcls-v2
 
 clean:
-	$(RM) ../data/stackoverflow/stackoverflow.sqlite
-	$(RM) src/preprocess.py
+	$(MAKE) -C GIZA++-v2 clean
+	$(MAKE) -C mkcls-v2 clean
