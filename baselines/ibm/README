@@ -1,0 +1,13 @@
+This package contains the GIZA++ toolkit and the mkcls tool, originally
+written by F.J. Och and several other authors.
+
+For more information, refer to the README files and the following pages:
+  http://www.fjoch.com/mkcls.html
+  http://www.fjoch.com/GIZA++.html
+
+
+REVISION HISTORY
+---------------------------------------------------------------------------
+2009-03-21  - Automatically set compile flags properly for MacOSX (Darwin)
+            - Header file naming fixes for g++ 3.4.1
+

@@ -1,0 +1,508 @@
+========================================================================
+GIZA++ is an extension of the program GIZA.
+It is a program for learning statistical translation models from
+bitext. It is an implementation of the models described in
+(Brown et al., 1993), (Vogel et al., 1996), (Och et al., 2000a), 
+(Och et al., 2000b).
+========================================================================
+
+
+
+CONTENTS of this README file:
+
+Part I: GIZA Package Contents
+Part II: How To Compile GIZA
+Part III: How to Run GIZA
+Part IV: Input File Formats
+     A. VOCABULARY FILES
+     B. Bitext Files
+     C. Dictionary File (optional)
+Part V: Output File Formats:
+     A. PROBABILITY TABLES
+	1. T TABLE (translation table)
+	2. N TABLE (Fertility table)
+	3. P0 TABLE
+	4. A TABLE
+	5. D3 TABLE
+	6. D4 TABLE
+	7. D5 TABLE
+	8. HMM TABLE
+     B. ALIGNMENT FILE
+     C. Cross Entropy and Perplexity Files
+     D. Revised Vocabulary files
+Part VI: Literature
+Part VII: New features
+
+HISTORY of this README file:
+
+GIZA++:
+edited: 11 Jan. 2000, Franz Josef Och
+GIZA:
+edited: 16 Aug. 1999, Dan Melamed
+edited: 13 Aug. 1999, Yaser Al-Onaizan
+edited: 20 July 1999, Yaser Al-Onaizan
+edited: 15 July 1999, Yaser Al-Onaizan
+edited: 13 July 1999, Noah Smith
+========================================================================
+
+Part 0: What is GIZA++
+
+GIZA++ is an extension of the program GIZA (part of the SMT toolkit
+EGYPT - http://www.clsp.jhu.edu/ws99/projects/mt/toolkit/ ) which was
+developed by the Statistical Machine Translation team during the
+summer workshop in 1999 at the Center for Language and Speech
+Processing at Johns-Hopkins University (CLSP/JHU). GIZA++ includes a
+lot of additional features. The extensions of GIZA++ were designed and
+written by Franz Josef Och.
+
+Features of GIZA++ not in GIZA:
+
+- Implements full IBM-4 alignment model with a dependency of word
+classes as described in (Brown et al. 1993)
+
+- Implements IBM-5: dependency on word classes, smoothing, ...
+
+- Implements HMM alignment model: Baum-Welch training, Forward-Backward
+algorithm, empty word, dependency on word classes, transfer to
+fertility models, ...
+
+- Implementation of a variant of the IBM-3 and IBM-4
+(-deficientDistortionModel 1) models which allow the training of -p0
+
+- Smoothing for fertility, distortion/alignment parameters
+
+- Significant more efficient training of the fertility models 
+
+- Correct implementation of pegging as described in (Brown et
+al. 1993), implemented a series of heuristics in order to make pegging
+sufficiently efficient
+
+- Completely new parameter mechanism: allows to easily add additional
+parameters
+
+- Improved perplexity calculation for models IBM-1, IBM-2 and HMM (the
+parameter of the Poisson-distribution of the sentence lengths is
+computed automatically from the used training corpus)
+
+========================================================================
+Part I: GIZA++ Package Programs
+
+GIZA++: GIZA++ itself
+
+plain2snt.out: simple tool to transform plain text into GIZA text
+format
+
+snt2plain.out: simple tool to transform GIZA text format into plain
+text
+
+trainGIZA++.sh: Shell script to perform standard training given a
+corpus in GIZA text format
+
+========================================================================
+Part II: How To Compile GIZA++
+
+In order to compile GIZA++ you may need:
+- recent version of the GNU compiler (2.95 or higher)
+- recent version of assembler and linker which do not have restrictions
+  with respect to the length of symbol names
+
+There is a make file in the src directory that will take care of the
+compilation. The most important targets are:
+
+GIZA++: generates an optimized version 
+
+GIZA++.dbg: generates the debug version 
+
+depend: generates the "dependencies" file (make this whenever you add
+source or header files to the package.
+
+========================================================================
+Part III: How To run GIZA++
+
+It's simple:
+
+GIZA++ [config-file] [options]
+
+All options which expect a parameter could also be used in the
+parameter file. For example the command line options
+
+	GIZA++ -S S.vcb -T T.vcb -C ST.snt
+
+corresponds to the config file:
+
+	S: S.vcb
+	T: T.vcb
+	C: ST.snt
+
+If you call GIZA++ without a parameter you get a list of all the
+options. The option names form GIZA are normally still valid. The
+default values of the parameters typically are optimized with respect
+to the corpora I use and typically give good results. It is
+nevertheless important that these parameters are always optimized for
+every new task.
+
+==========================================================================
+Part IV: Input File Formats
+
+A. VOCABULARY FILES
+
+Each entry is stored on one line as follows:
+
+ uniq_id1 string1 no_occurrences1
+ uniq_id2 string2 no_occurrences2
+ uniq_id3 string3 no_occurrences3
+ ....
+
+Here is a sample from an English vocabulary file:
+
+627 abandon 10
+628 abandoned 17
+629 abandoning 2
+630 abandonment 12
+631 abatement 8
+632 abbotsford 2
+
+uniq_ids are sequential positive integer numbers.  0 is reserved for
+the special token NULL.
+
+
+B. Bitext Files
+
+Each sentence pair is stored in three lines. The first line
+is the number of times this sentence pair occurred. The second line is
+the source sentence where each token is replaced by its unique integer
+id from the vocabulary file and the third is the target sentence in
+the same format.
+
+Here's a sample of 3 sentences from English/french corpus:
+
+1
+1 1 226 5008 621 6492 226 6377 6813 226 9505 5100 6824 226 5100 5222 0 614 10243 613
+2769 155 7989 585 1 578 6503 585 8242 578 8142 8541 578 12328 6595 8550 578 6595 6710 1
+1
+1 1 226 6260 11856 11806 1293
+11 1 1 11 155 14888 2649 11447 9457 8488 4168
+1
+1 1 226 7652 1 226 5337 226 6940 12089 5582 8076 12050
+1 1 155 4140 6812 153 1 154 155 14668 15616 10524 9954 1392
+
+C. Dictionary File
+
+This is optional. The dictionary file is of the format:
+
+target_word_id source_word_id
+
+The list should be sorted by the target_word_id.
+
+C. Dictionary Files
+
+If you provide a dictionary and list it in the configuration file,
+GIZA++ will change the cooccurrence counting in the first iteration
+of model 1 to honor the so-called "Dictionary Constraint":
+
+	In parallel sentences "e1 ... en" and "f1 ... fm",
+	ei and fi are counted as a coocurrence pair if one of two
+	conditions is met:  1.) ei and fi occur as an entry in the
+	dictionary, or 2.) ei does not occur in the dictionary with
+	any fj (1 <= j <= m) and fi does not occur in the dictionary
+	with any ej (1 <= j <= n).
+
+The dictionary must a list of pairs, one per line:
+
+	F E
+
+where F is an integer of a target token, and E is the integer of a
+source token.  F may be listed with other Es, and vice versa.
+
+Important:  The dictionary must be sorted by the F integers!
+
+==========================================================================
+Part V: Output File Formats:
+
+For file names, we will use the prefix "prob_table".  This can be
+changed using the -o switch.  The default is a combination of user id
+and time stamp.
+
+
+A. PROBABILITY TABLES
+
+Normally, Model1 is trained first, and the result is used to start
+Model2 training.  Then Model2 is transfered to Model3.  Model3 viterbi
+training follows.  This sequence can be adjusted by the various
+options, either on the command line or in a config file.
+
+1. T TABLE ( *.t3.* )
+
+(translation table)
+
+ prob_table.t1.n = t table after n iterations of Model1 training
+ prob_table.t2.n = t table after n iterations of Model2 training
+ prob_table.t2to3 = t table after transfering Model2 to Model3
+ prob_table.t3.n = t table after n iterations of Model3 training
+ prob_table.4.n = t table after n iterations of Model4 training
+
+Each line is of the following format:
+
+s_id t_id P(t_id/s_id)
+
+where: 
+ s_id: is the unique id for the source token
+ t_id: is the unique id for the target token
+ P(t_id/s_id) the probability of translating s_id as t_id
+
+sample part of a file:
+
+3599 5697 0.0628115
+2056 10686 0.000259988
+8227 3738 3.57132e-13
+5141 13720 5.52332e-12
+10798 4102 6.53047e-06
+8227 3750 6.97502e-14
+7712 14080 6.0365e-20
+7712 14082 2.68323e-17
+7713 1083 3.94464e-15
+7712 14084 2.98768e-15
+
+Similar files will be generated (with the prefix
+"prob_table.actual.xxx" that has the actual tokens instead of their
+unique ids). This is also true for fertility tables. Also the inverse
+probability table will be generated for the final table and it will
+have the infix "ti" .
+
+2. N TABLE ( *.n3.* )
+
+(Fertility table)
+ 
+ prob_table.n2to3 = n table estimated during the transfer from M2 to M3
+ ptob_table.n3.X = n table after X iterations of model3
+
+Each line in this file is of the following format:
+
+source_token_id p0 p1 p2 .... pn
+
+where p0 is the probability that the source token has zero fertility;
+p1, fertility one, ...., and n is the maximum possible fertility as
+defined in the program.
+
+sample:
+
+1 0.475861 0.282418 0.133455 0.0653083 0.0329326 0.00844979 0.0014008
+10 0.249747 0.000107778 0.307767 0.192208 0.0641439 0.15016 0.0358886
+11 0.397111 0.390421 0.19925 0.013382 2.21286e-05 0 0
+12 0.0163432 0.560621 0.374745 0.00231588 0 0 0
+13 1.78045e-07 0.545694 0.299573 0.132127 0.0230494 9.00322e-05 0
+14 1.41918e-18 0.332721 0.300773 0.0334969 0 0 0
+15 0 5.98626e-10 0.47729 0.0230955 0 0 0
+17 0 1.66346e-07 0.895883 0.103948 0 0 0
+
+
+3. P0 TABLE ( *.p0* )
+
+(1 - P0 is the probability of inserting a null after a
+   source word.)
+ 
+This file contains only one line with one real number which is the
+value of P0, the probability of not inserting a NULL token.
+
+
+4. A TABLE ( *.a[23].* )
+
+The file names follow the naming conventions above. The format of each
+line is as follows:
+
+i j l m p(i | j, l, m)
+
+where i, j, l, m are all integers and
+ j = position in target sentence
+ i = position in source sentence
+ l = length of source sentence
+ m = length of target sentence
+and p(i/j,l,m) is the probability that a source word in position i is
+moved to position j in a pair of sentences of length l and m.
+
+sample:
+
+15 14 15 14 0.630798
+15 14 15 15 0.414137
+15 14 15 16 0.268919
+15 14 15 17 0.23171
+15 14 15 18 0.117311
+15 14 15 19 0.119202
+15 14 15 20 0.111369
+15 14 15 21 0.0358169
+
+
+5. D3 TABLE ( *.d3.* )
+
+distortion table
+
+The format is similar to the A table with a slight difference --- the
+position of i & j are switched:
+
+j i l m p(j/i,l,m)
+
+sample:
+
+15 14 14 15 0.286397
+15 14 14 16 0.138898
+15 14 14 17 0.109712
+15 14 14 18 0.0868322
+15 14 14 19 0.0535823
+
+6. D4 TABLE: (( *.d4.* )
+
+distortion table for IBM-4
+
+7. D5 TABLE: ( *.d5.* )
+
+distortion table for IBM-5
+
+8. HMM TABLE: ( *.hhmm.* )
+
+alignment probability table for HMM alignment model
+
+B. ALIGNMENT FILE ( *.A3.* )
+
+In each iteration of the training, and for each sentence pair in the
+training set, the best alignment (viterbi alignment) is written to the
+alignment file (if the dump parameters are set accordingly). The
+alignment file is named prob_table.An.i, where n is the model number
+({1,2, 2to3, 3 or 4}), and i is the iteration number. The format of
+the alignments file is illustrated in the following sample:
+
+# Sentence pair (1)
+il s' agit de la même société qui a changé de propriétaires
+NULL ({ }) UNK ({ }) UNK ({ }) ( ({ }) this ({ 4 11 }) is ({ }) the ({ }) same ({ 6 }) agency ({ }) which ({ 8 }) has ({ }) undergone ({ 1 2 3 7 9 10 12 }) a ({ }) change ({ 5 }) of ({ }) UNK ({ })
+# Sentence pair (2)
+UNK UNK , le propriétaire , dit que cela s' est produit si rapidement qu' il n' en connaît pas la cause exacte
+NULL ({ 4 }) UNK ({ 1 2 }) UNK ({ }) , ({ 3 }) the ({ }) owner ({ 5 22 23 }) , ({ 6 }) says ({ 7 8 }) it ({ }) happened ({ 10 11 12 }) so ({ 13 }) fast ({ 14 19 }) he ({ 16 }) is ({ }) not ({ 20 }) sure ({ 15 17 }) what ({ }) went ({ 18 21 }) wrong ({ 9 })
+
+The alignment file is represented by three lines for each sentence
+pair. The first line is a label that can be used, e.g., as a caption
+for alignment visualization tools.  It contains information about the
+sentence sequential number in the training corpus, sentence lengths,
+and alignment probability. The second line is the target sentence, the
+third line is the source sentence. Each token in the source sentence
+is followed by a set of zero or more numbers. These numbers represent
+the positions of the target words to which this source word is
+connected, according to the alignment.
+
+
+C. Perplexity File ( *.perp )
+
+This file will be generated at the end of training. It summarizes
+perplexity values for each training iteration.  Here is a sample
+perplexity file that illustrates the format. The format is the same
+for cross entropy. If no test corpus was provided, the values for it
+will be set to "N/A".
+
+# train-size test-size iter. model train-perplexity test-perplexity final(y/n) train-viterbi-perp test-viterbi-perp
+	447136 9625 0 1 187067 186722 n 3.34328e+06 3.35352e+06
+	447136 9625 1 1 192.88 248.763 n 909.879 1203.13
+	447136 9625 2 1 99.45 139.214 n 316.363 459.745
+	447136 9625 3 1 83.4746 126.046 n 214.612 341.27
+	447136 9625 4 1 78.6939 124.914 n 179.218 303.169
+	447136 9625 5 2 76.6848 125.986 n 161.874 286.226
+	447136 9625 6 2 50.7452 86.2273 n 84.7227 151.701
+	447136 9625 7 2 42.9178 74.5574 n 63.6644 116.034
+	447136 9625 8 2 40.0651 70.7444 n 56.3186 104.274
+	447136 9625 9 2 38.8471 69.4105 n 53.1277 99.6044
+	447136 9625 10 2to3 38.2561 68.9576 n 51.4856 97.4414
+	447136 9625 11 3 129.993 248.885 n 86.6675 165.012
+	447136 9625 12 3 79.2212 169.902 n 86.4842 171.367
+	447136 9625 13 3 75.0746 164.488 n 84.9647 172.639
+	447136 9625 14 3 73.412 162.765 n 83.5762 172.797
+	447136 9625 15 3 72.6107 162.254 y 82.4575 172.688
+
+
+D. Revised Vocabulary files (*.src.vcb, *.trg.vcb)
+
+The revised vocabulary files are similar in format to the original
+vocabulary files. The only exceptions is that the frequency for each
+token is calculated from the given corpus (i.e. it is exact), which is
+not required in the input.
+
+E. final parameter file: ( *.gizacfg )
+
+This file includes all the parameter settings that were used in order
+to perform this training. This means that starting GIZA using this
+parameter file produces (should produce) the same training.
+
+
+
+Part VI: LITERATURE
+-------------------
+
+The following two articles include a comparison of the alignment
+models implemented in GIZA++:
+
+@INPROCEEDINGS{och00:isa,
+	AUTHOR = {F.~J.~Och and H.~Ney},
+	TITLE ={Improved Statistical Alignment Models},
+	BOOKTITLE = ACL00 ,
+	PAGES ={440--447},
+	ADDRESS={ Hongkong, China},
+	MONTH = {October},
+	YEAR = 2000}
+
+@INPROCEEDINGS{och00:aco,
+	AUTHOR =  {F.~J.~Och and H.~Ney},
+	TITLE = {A Comparison of Alignment Models for Statistical Machine Translation},
+	BOOKTITLE = COLING00,
+	ADDRESS	= {Saarbr\"ucken, Germany},
+	YEAR = {2000},
+	MONTH = {August},
+        PAGES = {1086--1090}
+	}
+
+The following article describes the statistical machine translation
+toolkit EGYPT:
+
+@MISC{ alonaizan99:smt,
+AUTHOR = {Y. Al-Onaizan and J. Curin and M. Jahr and K. Knight and J. Lafferty and I. D. Melamed and F. J. Och and D. Purdy and N. A. Smith and D. Yarowsky},
+TITLE = {Statistical Machine Translation, Final Report, {JHU} Workshop},
+YEAR = {1999},
+ADDRESS = {Baltimore, Maryland, MD},
+NOTE={{\tt http://www.clsp.jhu.edu/ws99/projects/ mt/final\_report/mt-final-report.ps}}
+}
+
+
+The implemented alignment models IBM-1 to IBM-5 and HMM were originally described in:
+
+@ARTICLE{brown93:tmo,
+	AUTHOR	= {Brown, P. F. and Della Pietra, S. A. and Della Pietra, V. J. and Mercer, R. L.},
+	TITLE	= {The Mathematics of Statistical Machine Translation: Parameter Estimation},
+	JOURNAL	= {Computational Linguistics},
+	YEAR	= 1993,
+	VOLUME	= 19,
+	NUMBER	= 2,
+	PAGES	= {263--311}
+}
+
+@INPROCEEDINGS{ vogel96:hbw,
+	AUTHOR	= {Vogel, S. and Ney, H. and Tillmann, C.},
+	TITLE	= {{HMM}-Based Word Alignment in Statistical Translation},
+	YEAR	= 1996,
+	PAGES	= {836--841},
+	MONTH	= {August},
+	ADDRESS	= {Copenhagen},
+	BOOKTITLE	= COLING96
+}
+
+
+Part VII: New features
+======================
+
+2003-06-09: 
+
+- new parameter "-nbestalignments N": prints an N-best list of
+  alignments into a file *.NBEST
+
+- If program is compiled with "-DBINARY_SEARCH_FOR_TTABLE", it uses
+  more memory-efficient data structures for the t table (vector with
+  binary search instead of hash table). Then, the program expects a
+  parameter "-CoocurrenceFile FILE" which specifies a file which
+  includes all lexical coccurrences in the training corpus. This file
+  can be produced by the snt2cooc.out tool.
+
+

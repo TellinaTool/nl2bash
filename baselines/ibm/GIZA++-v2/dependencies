@@ -1,0 +1,635 @@
+#Automatically generated dependecy list
+optimized/alignment.o: alignment.cpp alignment.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h
+optimized/AlignTables.o: AlignTables.cpp AlignTables.h defs.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h transpair_model1.h NTables.h vocab.h \
+  ATables.h Array4.h TTables.h Globals.h alignment.h
+optimized/ATables.o: ATables.cpp ATables.h defs.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h Array4.h Globals.h Parameter.h Pointer.h
+optimized/collCounts.o: collCounts.cpp alignment.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h transpair_model3.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h transpair_model2.h transpair_model1.h \
+  collCounts.h MoveSwapMatrix.h D4Tables.h WordClasses.h \
+  transpair_model4.h D5Tables.h transpair_model5.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h HMMTables.h FlexArray.h Parameter.h Pointer.h
+optimized/Dictionary.o: Dictionary.cpp Dictionary.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h
+optimized/ForwardBackward.o: ForwardBackward.cpp ForwardBackward.h myassert.h \
+  Array.h Vector.h mystl.h mymath.h Array2.h Globals.h defs.h HMMTables.h \
+  FlexArray.h
+optimized/getSentence.o: getSentence.cpp getSentence.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h vocab.h Globals.h Parameter.h Pointer.h
+optimized/hmm.o: hmm.cpp hmm.h Vector.h mystl.h myassert.h mymath.h Array2.h \
+  TTables.h defs.h vocab.h Globals.h ATables.h Array4.h getSentence.h \
+  model2.h model1.h Perplexity.h Dictionary.h WordClasses.h HMMTables.h \
+  FlexArray.h Array.h ForwardBackward.h utility.h Parameter.h Pointer.h \
+  HMMTables.cpp
+optimized/HMMTables.o: HMMTables.cpp HMMTables.h FlexArray.h Array.h Vector.h \
+  mystl.h myassert.h mymath.h Array2.h Globals.h defs.h Parameter.h \
+  Pointer.h
+optimized/logprob.o: logprob.cpp logprob.h
+optimized/main.o: main.cpp getSentence.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h defs.h vocab.h Globals.h TTables.h model1.h Perplexity.h \
+  Dictionary.h model2.h ATables.h Array4.h model3.h MoveSwapMatrix.h \
+  alignment.h transpair_model3.h NTables.h transpair_model2.h \
+  transpair_model1.h transpair_modelhmm.h ForwardBackward.h Array.h hmm.h \
+  WordClasses.h HMMTables.h FlexArray.h D4Tables.h AlignTables.h \
+  file_spec.h utility.h Parameter.h Pointer.h D5Tables.h \
+  transpair_model4.h transpair_model5.h
+optimized/model1.o: model1.cpp model1.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h vocab.h defs.h TTables.h Globals.h getSentence.h Perplexity.h \
+  Dictionary.h utility.h Parameter.h Pointer.h
+optimized/model2.o: model2.cpp model2.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h TTables.h defs.h vocab.h Globals.h ATables.h Array4.h \
+  getSentence.h model1.h Perplexity.h Dictionary.h utility.h Parameter.h \
+  Pointer.h
+optimized/model2to3.o: model2to3.cpp model3.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h MoveSwapMatrix.h alignment.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h transpair_modelhmm.h ForwardBackward.h \
+  Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h D4Tables.h \
+  AlignTables.h utility.h
+optimized/model345-peg.o: model345-peg.cpp model3.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h MoveSwapMatrix.h alignment.h defs.h \
+  transpair_model3.h NTables.h vocab.h ATables.h Array4.h TTables.h \
+  Globals.h transpair_model2.h transpair_model1.h getSentence.h model2.h \
+  model1.h Perplexity.h Dictionary.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h \
+  D4Tables.h AlignTables.h collCounts.h transpair_model4.h
+optimized/model3.o: model3.cpp model3.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h MoveSwapMatrix.h alignment.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h transpair_modelhmm.h ForwardBackward.h \
+  Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h D4Tables.h \
+  AlignTables.h collCounts.h transpair_model4.h utility.h D5Tables.h \
+  transpair_model5.h Parameter.h Pointer.h
+optimized/model3_viterbi.o: model3_viterbi.cpp model3.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h MoveSwapMatrix.h alignment.h defs.h \
+  transpair_model3.h NTables.h vocab.h ATables.h Array4.h TTables.h \
+  Globals.h transpair_model2.h transpair_model1.h getSentence.h model2.h \
+  model1.h Perplexity.h Dictionary.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h \
+  D4Tables.h AlignTables.h utility.h
+optimized/model3_viterbi_with_tricks.o: model3_viterbi_with_tricks.cpp mystl.h \
+  myassert.h mymath.h Array2.h model3.h Vector.h MoveSwapMatrix.h \
+  alignment.h defs.h transpair_model3.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h transpair_model2.h transpair_model1.h \
+  getSentence.h model2.h model1.h Perplexity.h Dictionary.h \
+  transpair_modelhmm.h ForwardBackward.h Array.h hmm.h WordClasses.h \
+  HMMTables.h FlexArray.h D4Tables.h AlignTables.h collCounts.h \
+  transpair_model4.h utility.h D5Tables.h transpair_model5.h Parameter.h \
+  Pointer.h collCounts.cpp
+optimized/MoveSwapMatrix.o: MoveSwapMatrix.cpp MoveSwapMatrix.h alignment.h Vector.h \
+  mystl.h myassert.h mymath.h Array2.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h transpair_model4.h D4Tables.h \
+  WordClasses.h transpair_model5.h D5Tables.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h HMMTables.h FlexArray.h
+optimized/myassert.o: myassert.cpp mystl.h myassert.h mymath.h Array2.h
+optimized/NTables.o: NTables.cpp NTables.h Array2.h mystl.h myassert.h mymath.h \
+  Vector.h defs.h vocab.h Parameter.h Pointer.h Globals.h
+optimized/Parameter.o: Parameter.cpp Parameter.h mystl.h myassert.h mymath.h \
+  Array2.h Pointer.h Globals.h defs.h Vector.h
+optimized/parse.o: parse.cpp defs.h utility.h Perplexity.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h Globals.h TTables.h vocab.h getSentence.h \
+  D4Tables.h WordClasses.h D5Tables.h ATables.h Array4.h Parameter.h \
+  Pointer.h
+optimized/Perplexity.o: Perplexity.cpp Perplexity.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h Globals.h
+optimized/plain2snt.o: plain2snt.cpp
+optimized/reports.o: reports.cpp defs.h vocab.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h Perplexity.h Globals.h getSentence.h TTables.h Parameter.h \
+  Pointer.h
+optimized/snt2cooc.o: snt2cooc.cpp
+optimized/snt2plain.o: snt2plain.cpp
+optimized/transpair_model3.o: transpair_model3.cpp transpair_model3.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h transpair_model2.h \
+  transpair_model1.h
+optimized/transpair_model4.o: transpair_model4.cpp transpair_model4.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h D4Tables.h WordClasses.h \
+  transpair_model3.h transpair_model2.h transpair_model1.h Parameter.h \
+  Pointer.h
+optimized/transpair_model5.o: transpair_model5.cpp transpair_model5.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h D5Tables.h D4Tables.h \
+  WordClasses.h transpair_model4.h transpair_model3.h transpair_model2.h \
+  transpair_model1.h Parameter.h Pointer.h
+optimized/TTables.o: TTables.cpp TTables.h defs.h vocab.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h Globals.h Parameter.h Pointer.h
+optimized/utility.o: utility.cpp mymath.h
+optimized/vocab.o: vocab.cpp vocab.h defs.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h
+#Automatically generated dependecy list
+debug/alignment.o: alignment.cpp alignment.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h
+debug/AlignTables.o: AlignTables.cpp AlignTables.h defs.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h transpair_model1.h NTables.h vocab.h \
+  ATables.h Array4.h TTables.h Globals.h alignment.h
+debug/ATables.o: ATables.cpp ATables.h defs.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h Array4.h Globals.h Parameter.h Pointer.h
+debug/collCounts.o: collCounts.cpp alignment.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h transpair_model3.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h transpair_model2.h transpair_model1.h \
+  collCounts.h MoveSwapMatrix.h D4Tables.h WordClasses.h \
+  transpair_model4.h D5Tables.h transpair_model5.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h HMMTables.h FlexArray.h Parameter.h Pointer.h
+debug/Dictionary.o: Dictionary.cpp Dictionary.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h
+debug/ForwardBackward.o: ForwardBackward.cpp ForwardBackward.h myassert.h \
+  Array.h Vector.h mystl.h mymath.h Array2.h Globals.h defs.h HMMTables.h \
+  FlexArray.h
+debug/getSentence.o: getSentence.cpp getSentence.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h vocab.h Globals.h Parameter.h Pointer.h
+debug/hmm.o: hmm.cpp hmm.h Vector.h mystl.h myassert.h mymath.h Array2.h \
+  TTables.h defs.h vocab.h Globals.h ATables.h Array4.h getSentence.h \
+  model2.h model1.h Perplexity.h Dictionary.h WordClasses.h HMMTables.h \
+  FlexArray.h Array.h ForwardBackward.h utility.h Parameter.h Pointer.h \
+  HMMTables.cpp
+debug/HMMTables.o: HMMTables.cpp HMMTables.h FlexArray.h Array.h Vector.h \
+  mystl.h myassert.h mymath.h Array2.h Globals.h defs.h Parameter.h \
+  Pointer.h
+debug/logprob.o: logprob.cpp logprob.h
+debug/main.o: main.cpp getSentence.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h defs.h vocab.h Globals.h TTables.h model1.h Perplexity.h \
+  Dictionary.h model2.h ATables.h Array4.h model3.h MoveSwapMatrix.h \
+  alignment.h transpair_model3.h NTables.h transpair_model2.h \
+  transpair_model1.h transpair_modelhmm.h ForwardBackward.h Array.h hmm.h \
+  WordClasses.h HMMTables.h FlexArray.h D4Tables.h AlignTables.h \
+  file_spec.h utility.h Parameter.h Pointer.h D5Tables.h \
+  transpair_model4.h transpair_model5.h
+debug/model1.o: model1.cpp model1.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h vocab.h defs.h TTables.h Globals.h getSentence.h Perplexity.h \
+  Dictionary.h utility.h Parameter.h Pointer.h
+debug/model2.o: model2.cpp model2.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h TTables.h defs.h vocab.h Globals.h ATables.h Array4.h \
+  getSentence.h model1.h Perplexity.h Dictionary.h utility.h Parameter.h \
+  Pointer.h
+debug/model2to3.o: model2to3.cpp model3.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h MoveSwapMatrix.h alignment.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h transpair_modelhmm.h ForwardBackward.h \
+  Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h D4Tables.h \
+  AlignTables.h utility.h
+debug/model345-peg.o: model345-peg.cpp model3.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h MoveSwapMatrix.h alignment.h defs.h \
+  transpair_model3.h NTables.h vocab.h ATables.h Array4.h TTables.h \
+  Globals.h transpair_model2.h transpair_model1.h getSentence.h model2.h \
+  model1.h Perplexity.h Dictionary.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h \
+  D4Tables.h AlignTables.h collCounts.h transpair_model4.h
+debug/model3.o: model3.cpp model3.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h MoveSwapMatrix.h alignment.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h transpair_modelhmm.h ForwardBackward.h \
+  Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h D4Tables.h \
+  AlignTables.h collCounts.h transpair_model4.h utility.h D5Tables.h \
+  transpair_model5.h Parameter.h Pointer.h
+debug/model3_viterbi.o: model3_viterbi.cpp model3.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h MoveSwapMatrix.h alignment.h defs.h \
+  transpair_model3.h NTables.h vocab.h ATables.h Array4.h TTables.h \
+  Globals.h transpair_model2.h transpair_model1.h getSentence.h model2.h \
+  model1.h Perplexity.h Dictionary.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h \
+  D4Tables.h AlignTables.h utility.h
+debug/model3_viterbi_with_tricks.o: model3_viterbi_with_tricks.cpp mystl.h \
+  myassert.h mymath.h Array2.h model3.h Vector.h MoveSwapMatrix.h \
+  alignment.h defs.h transpair_model3.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h transpair_model2.h transpair_model1.h \
+  getSentence.h model2.h model1.h Perplexity.h Dictionary.h \
+  transpair_modelhmm.h ForwardBackward.h Array.h hmm.h WordClasses.h \
+  HMMTables.h FlexArray.h D4Tables.h AlignTables.h collCounts.h \
+  transpair_model4.h utility.h D5Tables.h transpair_model5.h Parameter.h \
+  Pointer.h collCounts.cpp
+debug/MoveSwapMatrix.o: MoveSwapMatrix.cpp MoveSwapMatrix.h alignment.h Vector.h \
+  mystl.h myassert.h mymath.h Array2.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h transpair_model4.h D4Tables.h \
+  WordClasses.h transpair_model5.h D5Tables.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h HMMTables.h FlexArray.h
+debug/myassert.o: myassert.cpp mystl.h myassert.h mymath.h Array2.h
+debug/NTables.o: NTables.cpp NTables.h Array2.h mystl.h myassert.h mymath.h \
+  Vector.h defs.h vocab.h Parameter.h Pointer.h Globals.h
+debug/Parameter.o: Parameter.cpp Parameter.h mystl.h myassert.h mymath.h \
+  Array2.h Pointer.h Globals.h defs.h Vector.h
+debug/parse.o: parse.cpp defs.h utility.h Perplexity.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h Globals.h TTables.h vocab.h getSentence.h \
+  D4Tables.h WordClasses.h D5Tables.h ATables.h Array4.h Parameter.h \
+  Pointer.h
+debug/Perplexity.o: Perplexity.cpp Perplexity.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h Globals.h
+debug/plain2snt.o: plain2snt.cpp
+debug/reports.o: reports.cpp defs.h vocab.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h Perplexity.h Globals.h getSentence.h TTables.h Parameter.h \
+  Pointer.h
+debug/snt2cooc.o: snt2cooc.cpp
+debug/snt2plain.o: snt2plain.cpp
+debug/transpair_model3.o: transpair_model3.cpp transpair_model3.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h transpair_model2.h \
+  transpair_model1.h
+debug/transpair_model4.o: transpair_model4.cpp transpair_model4.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h D4Tables.h WordClasses.h \
+  transpair_model3.h transpair_model2.h transpair_model1.h Parameter.h \
+  Pointer.h
+debug/transpair_model5.o: transpair_model5.cpp transpair_model5.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h D5Tables.h D4Tables.h \
+  WordClasses.h transpair_model4.h transpair_model3.h transpair_model2.h \
+  transpair_model1.h Parameter.h Pointer.h
+debug/TTables.o: TTables.cpp TTables.h defs.h vocab.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h Globals.h Parameter.h Pointer.h
+debug/utility.o: utility.cpp mymath.h
+debug/vocab.o: vocab.cpp vocab.h defs.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h
+#Automatically generated dependecy list
+vdebug/alignment.o: alignment.cpp alignment.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h
+vdebug/AlignTables.o: AlignTables.cpp AlignTables.h defs.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h transpair_model1.h NTables.h vocab.h \
+  ATables.h Array4.h TTables.h Globals.h alignment.h
+vdebug/ATables.o: ATables.cpp ATables.h defs.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h Array4.h Globals.h Parameter.h Pointer.h
+vdebug/collCounts.o: collCounts.cpp alignment.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h transpair_model3.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h transpair_model2.h transpair_model1.h \
+  collCounts.h MoveSwapMatrix.h D4Tables.h WordClasses.h \
+  transpair_model4.h D5Tables.h transpair_model5.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h HMMTables.h FlexArray.h Parameter.h Pointer.h
+vdebug/Dictionary.o: Dictionary.cpp Dictionary.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h
+vdebug/ForwardBackward.o: ForwardBackward.cpp ForwardBackward.h myassert.h \
+  Array.h Vector.h mystl.h mymath.h Array2.h Globals.h defs.h HMMTables.h \
+  FlexArray.h
+vdebug/getSentence.o: getSentence.cpp getSentence.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h vocab.h Globals.h Parameter.h Pointer.h
+vdebug/hmm.o: hmm.cpp hmm.h Vector.h mystl.h myassert.h mymath.h Array2.h \
+  TTables.h defs.h vocab.h Globals.h ATables.h Array4.h getSentence.h \
+  model2.h model1.h Perplexity.h Dictionary.h WordClasses.h HMMTables.h \
+  FlexArray.h Array.h ForwardBackward.h utility.h Parameter.h Pointer.h \
+  HMMTables.cpp
+vdebug/HMMTables.o: HMMTables.cpp HMMTables.h FlexArray.h Array.h Vector.h \
+  mystl.h myassert.h mymath.h Array2.h Globals.h defs.h Parameter.h \
+  Pointer.h
+vdebug/logprob.o: logprob.cpp logprob.h
+vdebug/main.o: main.cpp getSentence.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h defs.h vocab.h Globals.h TTables.h model1.h Perplexity.h \
+  Dictionary.h model2.h ATables.h Array4.h model3.h MoveSwapMatrix.h \
+  alignment.h transpair_model3.h NTables.h transpair_model2.h \
+  transpair_model1.h transpair_modelhmm.h ForwardBackward.h Array.h hmm.h \
+  WordClasses.h HMMTables.h FlexArray.h D4Tables.h AlignTables.h \
+  file_spec.h utility.h Parameter.h Pointer.h D5Tables.h \
+  transpair_model4.h transpair_model5.h
+vdebug/model1.o: model1.cpp model1.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h vocab.h defs.h TTables.h Globals.h getSentence.h Perplexity.h \
+  Dictionary.h utility.h Parameter.h Pointer.h
+vdebug/model2.o: model2.cpp model2.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h TTables.h defs.h vocab.h Globals.h ATables.h Array4.h \
+  getSentence.h model1.h Perplexity.h Dictionary.h utility.h Parameter.h \
+  Pointer.h
+vdebug/model2to3.o: model2to3.cpp model3.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h MoveSwapMatrix.h alignment.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h transpair_modelhmm.h ForwardBackward.h \
+  Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h D4Tables.h \
+  AlignTables.h utility.h
+vdebug/model345-peg.o: model345-peg.cpp model3.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h MoveSwapMatrix.h alignment.h defs.h \
+  transpair_model3.h NTables.h vocab.h ATables.h Array4.h TTables.h \
+  Globals.h transpair_model2.h transpair_model1.h getSentence.h model2.h \
+  model1.h Perplexity.h Dictionary.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h \
+  D4Tables.h AlignTables.h collCounts.h transpair_model4.h
+vdebug/model3.o: model3.cpp model3.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h MoveSwapMatrix.h alignment.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h transpair_modelhmm.h ForwardBackward.h \
+  Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h D4Tables.h \
+  AlignTables.h collCounts.h transpair_model4.h utility.h D5Tables.h \
+  transpair_model5.h Parameter.h Pointer.h
+vdebug/model3_viterbi.o: model3_viterbi.cpp model3.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h MoveSwapMatrix.h alignment.h defs.h \
+  transpair_model3.h NTables.h vocab.h ATables.h Array4.h TTables.h \
+  Globals.h transpair_model2.h transpair_model1.h getSentence.h model2.h \
+  model1.h Perplexity.h Dictionary.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h \
+  D4Tables.h AlignTables.h utility.h
+vdebug/model3_viterbi_with_tricks.o: model3_viterbi_with_tricks.cpp mystl.h \
+  myassert.h mymath.h Array2.h model3.h Vector.h MoveSwapMatrix.h \
+  alignment.h defs.h transpair_model3.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h transpair_model2.h transpair_model1.h \
+  getSentence.h model2.h model1.h Perplexity.h Dictionary.h \
+  transpair_modelhmm.h ForwardBackward.h Array.h hmm.h WordClasses.h \
+  HMMTables.h FlexArray.h D4Tables.h AlignTables.h collCounts.h \
+  transpair_model4.h utility.h D5Tables.h transpair_model5.h Parameter.h \
+  Pointer.h collCounts.cpp
+vdebug/MoveSwapMatrix.o: MoveSwapMatrix.cpp MoveSwapMatrix.h alignment.h Vector.h \
+  mystl.h myassert.h mymath.h Array2.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h transpair_model4.h D4Tables.h \
+  WordClasses.h transpair_model5.h D5Tables.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h HMMTables.h FlexArray.h
+vdebug/myassert.o: myassert.cpp mystl.h myassert.h mymath.h Array2.h
+vdebug/NTables.o: NTables.cpp NTables.h Array2.h mystl.h myassert.h mymath.h \
+  Vector.h defs.h vocab.h Parameter.h Pointer.h Globals.h
+vdebug/Parameter.o: Parameter.cpp Parameter.h mystl.h myassert.h mymath.h \
+  Array2.h Pointer.h Globals.h defs.h Vector.h
+vdebug/parse.o: parse.cpp defs.h utility.h Perplexity.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h Globals.h TTables.h vocab.h getSentence.h \
+  D4Tables.h WordClasses.h D5Tables.h ATables.h Array4.h Parameter.h \
+  Pointer.h
+vdebug/Perplexity.o: Perplexity.cpp Perplexity.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h Globals.h
+vdebug/plain2snt.o: plain2snt.cpp
+vdebug/reports.o: reports.cpp defs.h vocab.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h Perplexity.h Globals.h getSentence.h TTables.h Parameter.h \
+  Pointer.h
+vdebug/snt2cooc.o: snt2cooc.cpp
+vdebug/snt2plain.o: snt2plain.cpp
+vdebug/transpair_model3.o: transpair_model3.cpp transpair_model3.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h transpair_model2.h \
+  transpair_model1.h
+vdebug/transpair_model4.o: transpair_model4.cpp transpair_model4.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h D4Tables.h WordClasses.h \
+  transpair_model3.h transpair_model2.h transpair_model1.h Parameter.h \
+  Pointer.h
+vdebug/transpair_model5.o: transpair_model5.cpp transpair_model5.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h D5Tables.h D4Tables.h \
+  WordClasses.h transpair_model4.h transpair_model3.h transpair_model2.h \
+  transpair_model1.h Parameter.h Pointer.h
+vdebug/TTables.o: TTables.cpp TTables.h defs.h vocab.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h Globals.h Parameter.h Pointer.h
+vdebug/utility.o: utility.cpp mymath.h
+vdebug/vocab.o: vocab.cpp vocab.h defs.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h
+#Automatically generated dependecy list
+norm/alignment.o: alignment.cpp alignment.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h
+norm/AlignTables.o: AlignTables.cpp AlignTables.h defs.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h transpair_model1.h NTables.h vocab.h \
+  ATables.h Array4.h TTables.h Globals.h alignment.h
+norm/ATables.o: ATables.cpp ATables.h defs.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h Array4.h Globals.h Parameter.h Pointer.h
+norm/collCounts.o: collCounts.cpp alignment.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h transpair_model3.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h transpair_model2.h transpair_model1.h \
+  collCounts.h MoveSwapMatrix.h D4Tables.h WordClasses.h \
+  transpair_model4.h D5Tables.h transpair_model5.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h HMMTables.h FlexArray.h Parameter.h Pointer.h
+norm/Dictionary.o: Dictionary.cpp Dictionary.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h
+norm/ForwardBackward.o: ForwardBackward.cpp ForwardBackward.h myassert.h \
+  Array.h Vector.h mystl.h mymath.h Array2.h Globals.h defs.h HMMTables.h \
+  FlexArray.h
+norm/getSentence.o: getSentence.cpp getSentence.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h vocab.h Globals.h Parameter.h Pointer.h
+norm/hmm.o: hmm.cpp hmm.h Vector.h mystl.h myassert.h mymath.h Array2.h \
+  TTables.h defs.h vocab.h Globals.h ATables.h Array4.h getSentence.h \
+  model2.h model1.h Perplexity.h Dictionary.h WordClasses.h HMMTables.h \
+  FlexArray.h Array.h ForwardBackward.h utility.h Parameter.h Pointer.h \
+  HMMTables.cpp
+norm/HMMTables.o: HMMTables.cpp HMMTables.h FlexArray.h Array.h Vector.h \
+  mystl.h myassert.h mymath.h Array2.h Globals.h defs.h Parameter.h \
+  Pointer.h
+norm/logprob.o: logprob.cpp logprob.h
+norm/main.o: main.cpp getSentence.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h defs.h vocab.h Globals.h TTables.h model1.h Perplexity.h \
+  Dictionary.h model2.h ATables.h Array4.h model3.h MoveSwapMatrix.h \
+  alignment.h transpair_model3.h NTables.h transpair_model2.h \
+  transpair_model1.h transpair_modelhmm.h ForwardBackward.h Array.h hmm.h \
+  WordClasses.h HMMTables.h FlexArray.h D4Tables.h AlignTables.h \
+  file_spec.h utility.h Parameter.h Pointer.h D5Tables.h \
+  transpair_model4.h transpair_model5.h
+norm/model1.o: model1.cpp model1.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h vocab.h defs.h TTables.h Globals.h getSentence.h Perplexity.h \
+  Dictionary.h utility.h Parameter.h Pointer.h
+norm/model2.o: model2.cpp model2.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h TTables.h defs.h vocab.h Globals.h ATables.h Array4.h \
+  getSentence.h model1.h Perplexity.h Dictionary.h utility.h Parameter.h \
+  Pointer.h
+norm/model2to3.o: model2to3.cpp model3.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h MoveSwapMatrix.h alignment.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h transpair_modelhmm.h ForwardBackward.h \
+  Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h D4Tables.h \
+  AlignTables.h utility.h
+norm/model345-peg.o: model345-peg.cpp model3.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h MoveSwapMatrix.h alignment.h defs.h \
+  transpair_model3.h NTables.h vocab.h ATables.h Array4.h TTables.h \
+  Globals.h transpair_model2.h transpair_model1.h getSentence.h model2.h \
+  model1.h Perplexity.h Dictionary.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h \
+  D4Tables.h AlignTables.h collCounts.h transpair_model4.h
+norm/model3.o: model3.cpp model3.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h MoveSwapMatrix.h alignment.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h transpair_modelhmm.h ForwardBackward.h \
+  Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h D4Tables.h \
+  AlignTables.h collCounts.h transpair_model4.h utility.h D5Tables.h \
+  transpair_model5.h Parameter.h Pointer.h
+norm/model3_viterbi.o: model3_viterbi.cpp model3.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h MoveSwapMatrix.h alignment.h defs.h \
+  transpair_model3.h NTables.h vocab.h ATables.h Array4.h TTables.h \
+  Globals.h transpair_model2.h transpair_model1.h getSentence.h model2.h \
+  model1.h Perplexity.h Dictionary.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h \
+  D4Tables.h AlignTables.h utility.h
+norm/model3_viterbi_with_tricks.o: model3_viterbi_with_tricks.cpp mystl.h \
+  myassert.h mymath.h Array2.h model3.h Vector.h MoveSwapMatrix.h \
+  alignment.h defs.h transpair_model3.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h transpair_model2.h transpair_model1.h \
+  getSentence.h model2.h model1.h Perplexity.h Dictionary.h \
+  transpair_modelhmm.h ForwardBackward.h Array.h hmm.h WordClasses.h \
+  HMMTables.h FlexArray.h D4Tables.h AlignTables.h collCounts.h \
+  transpair_model4.h utility.h D5Tables.h transpair_model5.h Parameter.h \
+  Pointer.h collCounts.cpp
+norm/MoveSwapMatrix.o: MoveSwapMatrix.cpp MoveSwapMatrix.h alignment.h Vector.h \
+  mystl.h myassert.h mymath.h Array2.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h transpair_model4.h D4Tables.h \
+  WordClasses.h transpair_model5.h D5Tables.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h HMMTables.h FlexArray.h
+norm/myassert.o: myassert.cpp mystl.h myassert.h mymath.h Array2.h
+norm/NTables.o: NTables.cpp NTables.h Array2.h mystl.h myassert.h mymath.h \
+  Vector.h defs.h vocab.h Parameter.h Pointer.h Globals.h
+norm/Parameter.o: Parameter.cpp Parameter.h mystl.h myassert.h mymath.h \
+  Array2.h Pointer.h Globals.h defs.h Vector.h
+norm/parse.o: parse.cpp defs.h utility.h Perplexity.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h Globals.h TTables.h vocab.h getSentence.h \
+  D4Tables.h WordClasses.h D5Tables.h ATables.h Array4.h Parameter.h \
+  Pointer.h
+norm/Perplexity.o: Perplexity.cpp Perplexity.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h Globals.h
+norm/plain2snt.o: plain2snt.cpp
+norm/reports.o: reports.cpp defs.h vocab.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h Perplexity.h Globals.h getSentence.h TTables.h Parameter.h \
+  Pointer.h
+norm/snt2cooc.o: snt2cooc.cpp
+norm/snt2plain.o: snt2plain.cpp
+norm/transpair_model3.o: transpair_model3.cpp transpair_model3.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h transpair_model2.h \
+  transpair_model1.h
+norm/transpair_model4.o: transpair_model4.cpp transpair_model4.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h D4Tables.h WordClasses.h \
+  transpair_model3.h transpair_model2.h transpair_model1.h Parameter.h \
+  Pointer.h
+norm/transpair_model5.o: transpair_model5.cpp transpair_model5.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h D5Tables.h D4Tables.h \
+  WordClasses.h transpair_model4.h transpair_model3.h transpair_model2.h \
+  transpair_model1.h Parameter.h Pointer.h
+norm/TTables.o: TTables.cpp TTables.h defs.h vocab.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h Globals.h Parameter.h Pointer.h
+norm/utility.o: utility.cpp mymath.h
+norm/vocab.o: vocab.cpp vocab.h defs.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h
+#Automatically generated dependecy list
+profile/alignment.o: alignment.cpp alignment.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h
+profile/AlignTables.o: AlignTables.cpp AlignTables.h defs.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h transpair_model1.h NTables.h vocab.h \
+  ATables.h Array4.h TTables.h Globals.h alignment.h
+profile/ATables.o: ATables.cpp ATables.h defs.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h Array4.h Globals.h Parameter.h Pointer.h
+profile/collCounts.o: collCounts.cpp alignment.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h transpair_model3.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h transpair_model2.h transpair_model1.h \
+  collCounts.h MoveSwapMatrix.h D4Tables.h WordClasses.h \
+  transpair_model4.h D5Tables.h transpair_model5.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h HMMTables.h FlexArray.h Parameter.h Pointer.h
+profile/Dictionary.o: Dictionary.cpp Dictionary.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h
+profile/ForwardBackward.o: ForwardBackward.cpp ForwardBackward.h myassert.h \
+  Array.h Vector.h mystl.h mymath.h Array2.h Globals.h defs.h HMMTables.h \
+  FlexArray.h
+profile/getSentence.o: getSentence.cpp getSentence.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h vocab.h Globals.h Parameter.h Pointer.h
+profile/hmm.o: hmm.cpp hmm.h Vector.h mystl.h myassert.h mymath.h Array2.h \
+  TTables.h defs.h vocab.h Globals.h ATables.h Array4.h getSentence.h \
+  model2.h model1.h Perplexity.h Dictionary.h WordClasses.h HMMTables.h \
+  FlexArray.h Array.h ForwardBackward.h utility.h Parameter.h Pointer.h \
+  HMMTables.cpp
+profile/HMMTables.o: HMMTables.cpp HMMTables.h FlexArray.h Array.h Vector.h \
+  mystl.h myassert.h mymath.h Array2.h Globals.h defs.h Parameter.h \
+  Pointer.h
+profile/logprob.o: logprob.cpp logprob.h
+profile/main.o: main.cpp getSentence.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h defs.h vocab.h Globals.h TTables.h model1.h Perplexity.h \
+  Dictionary.h model2.h ATables.h Array4.h model3.h MoveSwapMatrix.h \
+  alignment.h transpair_model3.h NTables.h transpair_model2.h \
+  transpair_model1.h transpair_modelhmm.h ForwardBackward.h Array.h hmm.h \
+  WordClasses.h HMMTables.h FlexArray.h D4Tables.h AlignTables.h \
+  file_spec.h utility.h Parameter.h Pointer.h D5Tables.h \
+  transpair_model4.h transpair_model5.h
+profile/model1.o: model1.cpp model1.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h vocab.h defs.h TTables.h Globals.h getSentence.h Perplexity.h \
+  Dictionary.h utility.h Parameter.h Pointer.h
+profile/model2.o: model2.cpp model2.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h TTables.h defs.h vocab.h Globals.h ATables.h Array4.h \
+  getSentence.h model1.h Perplexity.h Dictionary.h utility.h Parameter.h \
+  Pointer.h
+profile/model2to3.o: model2to3.cpp model3.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h MoveSwapMatrix.h alignment.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h transpair_modelhmm.h ForwardBackward.h \
+  Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h D4Tables.h \
+  AlignTables.h utility.h
+profile/model345-peg.o: model345-peg.cpp model3.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h MoveSwapMatrix.h alignment.h defs.h \
+  transpair_model3.h NTables.h vocab.h ATables.h Array4.h TTables.h \
+  Globals.h transpair_model2.h transpair_model1.h getSentence.h model2.h \
+  model1.h Perplexity.h Dictionary.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h \
+  D4Tables.h AlignTables.h collCounts.h transpair_model4.h
+profile/model3.o: model3.cpp model3.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h MoveSwapMatrix.h alignment.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h transpair_modelhmm.h ForwardBackward.h \
+  Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h D4Tables.h \
+  AlignTables.h collCounts.h transpair_model4.h utility.h D5Tables.h \
+  transpair_model5.h Parameter.h Pointer.h
+profile/model3_viterbi.o: model3_viterbi.cpp model3.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h MoveSwapMatrix.h alignment.h defs.h \
+  transpair_model3.h NTables.h vocab.h ATables.h Array4.h TTables.h \
+  Globals.h transpair_model2.h transpair_model1.h getSentence.h model2.h \
+  model1.h Perplexity.h Dictionary.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h WordClasses.h HMMTables.h FlexArray.h \
+  D4Tables.h AlignTables.h utility.h
+profile/model3_viterbi_with_tricks.o: model3_viterbi_with_tricks.cpp mystl.h \
+  myassert.h mymath.h Array2.h model3.h Vector.h MoveSwapMatrix.h \
+  alignment.h defs.h transpair_model3.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h transpair_model2.h transpair_model1.h \
+  getSentence.h model2.h model1.h Perplexity.h Dictionary.h \
+  transpair_modelhmm.h ForwardBackward.h Array.h hmm.h WordClasses.h \
+  HMMTables.h FlexArray.h D4Tables.h AlignTables.h collCounts.h \
+  transpair_model4.h utility.h D5Tables.h transpair_model5.h Parameter.h \
+  Pointer.h collCounts.cpp
+profile/MoveSwapMatrix.o: MoveSwapMatrix.cpp MoveSwapMatrix.h alignment.h Vector.h \
+  mystl.h myassert.h mymath.h Array2.h defs.h transpair_model3.h \
+  NTables.h vocab.h ATables.h Array4.h TTables.h Globals.h \
+  transpair_model2.h transpair_model1.h transpair_model4.h D4Tables.h \
+  WordClasses.h transpair_model5.h D5Tables.h transpair_modelhmm.h \
+  ForwardBackward.h Array.h hmm.h getSentence.h model2.h model1.h \
+  Perplexity.h Dictionary.h HMMTables.h FlexArray.h
+profile/myassert.o: myassert.cpp mystl.h myassert.h mymath.h Array2.h
+profile/NTables.o: NTables.cpp NTables.h Array2.h mystl.h myassert.h mymath.h \
+  Vector.h defs.h vocab.h Parameter.h Pointer.h Globals.h
+profile/Parameter.o: Parameter.cpp Parameter.h mystl.h myassert.h mymath.h \
+  Array2.h Pointer.h Globals.h defs.h Vector.h
+profile/parse.o: parse.cpp defs.h utility.h Perplexity.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h Globals.h TTables.h vocab.h getSentence.h \
+  D4Tables.h WordClasses.h D5Tables.h ATables.h Array4.h Parameter.h \
+  Pointer.h
+profile/Perplexity.o: Perplexity.cpp Perplexity.h Vector.h mystl.h myassert.h \
+  mymath.h Array2.h defs.h Globals.h
+profile/plain2snt.o: plain2snt.cpp
+profile/reports.o: reports.cpp defs.h vocab.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h Perplexity.h Globals.h getSentence.h TTables.h Parameter.h \
+  Pointer.h
+profile/snt2cooc.o: snt2cooc.cpp
+profile/snt2plain.o: snt2plain.cpp
+profile/transpair_model3.o: transpair_model3.cpp transpair_model3.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h transpair_model2.h \
+  transpair_model1.h
+profile/transpair_model4.o: transpair_model4.cpp transpair_model4.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h D4Tables.h WordClasses.h \
+  transpair_model3.h transpair_model2.h transpair_model1.h Parameter.h \
+  Pointer.h
+profile/transpair_model5.o: transpair_model5.cpp transpair_model5.h Array2.h \
+  mystl.h myassert.h mymath.h defs.h Vector.h NTables.h vocab.h ATables.h \
+  Array4.h TTables.h Globals.h alignment.h D5Tables.h D4Tables.h \
+  WordClasses.h transpair_model4.h transpair_model3.h transpair_model2.h \
+  transpair_model1.h Parameter.h Pointer.h
+profile/TTables.o: TTables.cpp TTables.h defs.h vocab.h Vector.h mystl.h \
+  myassert.h mymath.h Array2.h Globals.h Parameter.h Pointer.h
+profile/utility.o: utility.cpp mymath.h
+profile/vocab.o: vocab.cpp vocab.h defs.h Vector.h mystl.h myassert.h mymath.h \
+  Array2.h
