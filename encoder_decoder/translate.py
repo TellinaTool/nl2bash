@@ -413,15 +413,6 @@ def eval_slot_filling(dataset):
 
 
 def gen_slot_filling_training_data():
-    slot_filling_classifier = None
-    # create slot filling classifier
-    model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
-                           .format(FLAGS.sc_vocab_size))
-    train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
-    slot_filling_classifier = classifiers.KNearestNeighborModel(
-        FLAGS.num_nn_slot_filling, train_X, train_Y)
-    print('Slot filling classifier parameters loaded.')
-
     _, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
 
     def get_slot_filling_training_data_fun(model, dataset, output_file):
