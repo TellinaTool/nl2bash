@@ -420,12 +420,8 @@ def gen_slot_filling_training_data():
         for bucket_id in xrange(len(_buckets)):
             for i in xrange(len(dataset[bucket_id])):
                 sc, tg, sc_ids, tg_ids, gt_mappings = dataset[bucket_id][i]
-                print(sc)
-                print(tg)
-                gt_mappings = [tuple(m) for m in gt_mappings]
+                mappings = [tuple(m) for m in gt_mappings]
                 if gt_mappings:
-                    _, entities = tokenizer.ner_tokenizer(sc)
-                    nl_fillers = entities[0]
                     encoder_inputs = [dataset[bucket_id][i][2]]
                     decoder_inputs = [dataset[bucket_id][i][3]]
                     formatted_example = model.format_example(
@@ -433,34 +429,6 @@ def gen_slot_filling_training_data():
                     _, _, _, _, encoder_outputs, decoder_outputs = model\
                         .step(sess, formatted_example, bucket_id,
                               forward_only=True, return_rnn_hidden_states=True)
-                    cm_slots = {}
-                    output_tokens = []
-                    outputs = tg_ids[1:-1]
-                    for ii in xrange(len(outputs)):
-                        output = outputs[ii]
-                        if output < len(rev_tg_vocab):
-                            pred_token = rev_tg_vocab[output]
-                            if "@@" in pred_token:
-                                pred_token = pred_token.split("@@")[-1]
-                            output_tokens.append(pred_token)
-                            if nl_fillers is not None and \
-                                    pred_token in constants._ENTITIES:
-                                if ii > 0 and slot_filling.is_min_flag(
-                                        rev_tg_vocab[outputs[ii-1]]):
-                                    pred_token_type = 'Timespan'
-                                else:
-                                    pred_token_type = pred_token
-                                cm_slots[ii] = (pred_token, pred_token_type)
-                        else:
-                            output_tokens.append(data_utils._UNK)
-                    tree2, temp, mappings = slot_filling.stable_slot_filling(
-                                output_tokens, nl_fillers, cm_slots,
-                                encoder_outputs[0],
-                                decoder_outputs[0],
-                                slot_filling_classifier
-                            )
-                    print(mappings)
-                    print(gt_mappings)
 
                     # add positive examples
                     for f, s in mappings:
