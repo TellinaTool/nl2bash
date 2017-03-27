@@ -1,11 +1,18 @@
-## Process data:
+## Process data
 
 Suppose the parallel corpus is placed at `../data/<dataset_name>`. The following script converts the parallel corpus into format read by the neural network:
+```
+./train.sh --process_data --dataset <dataset_name>
+```
 
-`./train.sh --process_data --dataset <dataset_name>`
+## Run experiments
 
-## Train the model:
+The following script can be used to re-train the Tellina model:
+```
+./bash-final-attn.sh
+```
 
-The following script is a start to run experiments on the bash dataset:
-
-`./bash-attn.sh`
+To reproduce the output on the test set:
+```
+./bash-final-attn.sh --test --decode --fill_argument_slots
+```
