@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import os, copy
 
 from bashlex import yacc, tokenizer, state, bast, subst, flags, errors, heredoc
@@ -51,14 +47,14 @@ def p_redirection_heredoc(p):
     parserobj = p.context
     assert isinstance(parserobj, _parser)
 
-    output = bast.node(kind='word', word=p[len(p) - 1], parts=[],
-                       pos=p.lexspan(len(p)-1))
+    output = bast.node(kind='word', word=p[len(p)-1], parts=[],
+                      pos=p.lexspan(len(p)-1))
     if len(p) == 3:
         p[0] = bast.node(kind='redirect', input=None, type=p[1], heredoc=None,
-                         output=output, pos=(p.lexpos(1), p.endlexpos(2)))
+                        output=output, pos=(p.lexpos(1), p.endlexpos(2)))
     else:
         p[0] = bast.node(kind='redirect', input=p[1], type=p[2], heredoc=None,
-                         output=output, pos=(p.lexpos(1), p.endlexpos(3)))
+                        output=output, pos=(p.lexpos(1), p.endlexpos(3)))
 
     if p.slice[len(p)-2].ttype == tokenizer.tokentype.LESS_LESS:
         parserobj.redirstack.append((p[0], False))
@@ -110,13 +106,13 @@ def p_redirection(p):
         if p.slice[2].ttype == tokenizer.tokentype.WORD:
             output = _expandword(parserobj, p.slice[2])
         p[0] = bast.node(kind='redirect', input=None, type=p[1], heredoc=None,
-                         output=output, pos=(p.lexpos(1), p.endlexpos(2)))
+                        output=output, pos=(p.lexpos(1), p.endlexpos(2)))
     else:
         output = p[3]
         if p.slice[3].ttype == tokenizer.tokentype.WORD:
             output = _expandword(parserobj, p.slice[3])
         p[0] = bast.node(kind='redirect', input=p[1], type=p[2], heredoc=None,
-                         output=output, pos=(p.lexpos(1), p.endlexpos(3)))
+                        output=output, pos=(p.lexpos(1), p.endlexpos(3)))
 
 def _expandword(parser, tokenword):
     if parser._expansionlimit == -1:
@@ -129,7 +125,7 @@ def _expandword(parser, tokenword):
         #
         # (the reason we even expand when limit == 0 is to get quote removal)
         node = bast.node(kind='word', word=tokenword,
-                         pos=(tokenword.lexpos, tokenword.endlexpos), parts=[])
+                        pos=(tokenword.lexpos, tokenword.endlexpos), parts=[])
         return node
     else:
         quoted = bool(tokenword.flags & flags.word.QUOTED)
@@ -146,7 +142,7 @@ def _expandword(parser, tokenword):
             parts = [node for node in parts if 'substitution' not in node.kind]
 
         node = bast.node(kind='word', word=expandedword,
-                         pos=(tokenword.lexpos, tokenword.endlexpos), parts=parts)
+                        pos=(tokenword.lexpos, tokenword.endlexpos), parts=parts)
         return node
 
 def p_simple_command_element(p):
@@ -219,9 +215,9 @@ def p_shell_command(p):
         kind = parts[0].word
         assert kind in ('while', 'until')
         p[0] = bast.node(kind='compound',
-                         redirects=[],
-                         list=[bast.node(kind=kind, parts=parts, pos=_partsspan(parts))],
-                         pos=_partsspan(parts))
+                        redirects=[],
+                        list=[bast.node(kind=kind, parts=parts, pos=_partsspan(parts))],
+                        pos=_partsspan(parts))
 
     assert p[0].kind == 'compound'
 
@@ -238,7 +234,7 @@ def _makeparts(p):
                 parts.append(_expandword(parserobj, p.slice[i]))
             else:
                 parts.append(bast.node(kind='reservedword', word=p[i],
-                                       pos=p.lexspan(i)))
+                                      pos=p.lexspan(i)))
         else:
             pass
 
@@ -263,9 +259,9 @@ def p_for_command(p):
             break # there could be only one in there...
 
     p[0] = bast.node(kind='compound',
-                     redirects=[],
-                     list=[bast.node(kind='for', parts=parts, pos=_partsspan(parts))],
-                     pos=_partsspan(parts))
+                    redirects=[],
+                    list=[bast.node(kind='for', parts=parts, pos=_partsspan(parts))],
+                    pos=_partsspan(parts))
 
 def p_arith_for_command(p):
     '''arith_for_command : FOR ARITH_FOR_EXPRS list_terminator newline_list DO compound_list DONE
@@ -298,7 +294,7 @@ def p_function_def(p):
     name = parts[bast.findfirstkind(parts, 'word')]
 
     p[0] = bast.node(kind='function', name=name, body=body, parts=parts,
-                     pos=_partsspan(parts))
+                    pos=_partsspan(parts))
 
 def p_function_body(p):
     '''function_body : shell_command
@@ -317,7 +313,7 @@ def p_subshell(p):
     rparen = bast.node(kind='reservedword', word=p[3], pos=p.lexspan(3))
     parts = [lparen, p[2], rparen]
     p[0] = bast.node(kind='compound', list=parts, redirects=[],
-                     pos=_partsspan(parts))
+                    pos=_partsspan(parts))
 
 def p_coproc(p):
     '''coproc : COPROC shell_command
@@ -336,9 +332,9 @@ def p_if_command(p):
     # we can always add different nodes for elif/else.
     parts = _makeparts(p)
     p[0] = bast.node(kind='compound',
-                     redirects=[],
-                     list=[bast.node(kind='if', parts=parts, pos=_partsspan(parts))],
-                     pos=_partsspan(parts))
+                    redirects=[],
+                    list=[bast.node(kind='if', parts=parts, pos=_partsspan(parts))],
+                    pos=_partsspan(parts))
 
 def p_group_command(p):
     '''group_command : LEFT_CURLY compound_list RIGHT_CURLY'''
@@ -346,7 +342,7 @@ def p_group_command(p):
     rcurly = bast.node(kind='reservedword', word=p[3], pos=p.lexspan(3))
     parts = [lcurly, p[2], rcurly]
     p[0] = bast.node(kind='compound', list=parts, redirects=[],
-                     pos=_partsspan(parts))
+                    pos=_partsspan(parts))
 
 def p_arith_command(p):
     '''arith_command : ARITH_CMD'''
@@ -498,7 +494,7 @@ def p_pipeline_command(p):
             p[0] = p[1][0]
         else:
             p[0] = bast.node(kind='pipeline', parts=p[1],
-                             pos=(p[1][0].pos[0], p[1][-1].pos[1]))
+                            pos=(p[1][0].pos[0], p[1][-1].pos[1]))
     else:
         # XXX timespec
         node = bast.node(kind='reservedword', word='!', pos=p.lexspan(1))
@@ -508,7 +504,7 @@ def p_pipeline_command(p):
             p[0].pos = (p[0].parts[0].pos[0], p[0].parts[-1].pos[1])
         else:
             p[0] = bast.node(kind='pipeline', parts=[node, p[2]],
-                             pos=(node.pos[0], p[2].pos[1]))
+                            pos=(node.pos[0], p[2].pos[1]))
 
 def p_pipeline(p):
     '''pipeline : pipeline BAR newline_list pipeline
@@ -542,18 +538,36 @@ def p_error(p):
         raise errors.ParsingError('unexpected token %r' % p.value,
                                   p.lexer.source, p.lexpos)
 
-yaccparser = yacc.yacc(tabmodule='parsetab',
+yaccparser = yacc.yacc(tabmodule='bashlex.parsetab',
               outputdir=os.path.dirname(__file__),
               debug=False)
 
-# some hack to fix yacc's reduction on command substitutions
-yaccparser.action[45]['RIGHT_PAREN'] = -155
-yaccparser.action[11]['RIGHT_PAREN'] = -148
-yaccparser.action[133]['RIGHT_PAREN'] = -154
+# some hack to fix yacc's reduction on command substitutions:
+# which state to fix is derived from static transition tables
+# as states are changeable among python versions and architectures
+# the only state that is considered fixed is the initial state: 0
+def get_correction_states():
+    reduce = yaccparser.goto[0]['simple_list'] #~10
+    state2 = yaccparser.action[reduce]['NEWLINE'] #63
+    state1 = yaccparser.goto[reduce]['simple_list_terminator'] #~10
+    return state1, state2
+
+def get_correction_rightparen_states():
+    state1 = yaccparser.goto[0]['pipeline_command']
+    state2 = yaccparser.goto[0]['simple_list1'] #11
+    state_temp = yaccparser.action[state2]['SEMICOLON'] #65
+    state3 = yaccparser.goto[state_temp]['simple_list1']
+    return state1, state2, state3
 
 for tt in tokenizer.tokentype:
-    yaccparser.action[62][tt.name] = -1
-    yaccparser.action[63][tt.name] = -141
+    states = get_correction_states()
+    yaccparser.action[states[0]][tt.name] = -1
+    yaccparser.action[states[1]][tt.name] = -141
+
+states = get_correction_rightparen_states()
+yaccparser.action[states[0]]['RIGHT_PAREN'] = -155
+yaccparser.action[states[1]]['RIGHT_PAREN'] = -148
+yaccparser.action[states[2]]['RIGHT_PAREN'] = -154
 
 def parsesingle(s, strictmode=True, expansionlimit=None, convertpos=False):
     '''like parse, but only consumes a single top level node, e.g. parsing
@@ -566,20 +580,15 @@ def parsesingle(s, strictmode=True, expansionlimit=None, convertpos=False):
 
 def parse(s, strictmode=True, expansionlimit=None, convertpos=False):
     '''parse the input string, returning a list of nodes
-
     top level node kinds are:
-
     - command - a simple command
     - pipeline - a series of simple commands
     - list - a series of one or more pipelines
     - compound - contains constructs for { list; }, (list), if, for..
-
     leafs are word nodes (which in turn can also contain any of the
     aforementioned nodes due to command substitutions).
-
     when strictmode is set to False, we will:
     - skip reading a heredoc if we're at the end of the input
-
     expansionlimit is used to limit the amount of recursive parsing done due to
     command substitutions found during word expansion.
     '''
@@ -614,6 +623,27 @@ def parse(s, strictmode=True, expansionlimit=None, convertpos=False):
 
     return parts
 
+def split(s):
+    '''a utility function that mimics shlex.split but handles more
+    complex shell constructs such as command substitutions inside words
+    >>> list(split('a b"c"\\'d\\''))
+    ['a', 'bcd']
+    >>> list(split('a "b $(c)" $(d) \\'$(e)\\''))
+    ['a', 'b $(c)', '$(d)', '$(e)']
+    >>> list(split('a b\\n'))
+    ['a', 'b', '\\n']
+    '''
+    p = _parser(s)
+    for t in p.tok:
+        if t.ttype == tokenizer.tokentype.WORD:
+            quoted = bool(t.flags & flags.word.QUOTED)
+            doublequoted = quoted and t.value[0] == '"'
+            parts, expandedword = subst._expandwordinternal(p, t, 0,
+                                                            doublequoted, 0, 0)
+            yield expandedword
+        else:
+            yield s[t.lexpos:t.endlexpos]
+
 class _parser(object):
     '''
     this class is mainly used to provide context to the productions
@@ -644,6 +674,7 @@ class _parser(object):
         # state spills over to the next call to parse on it
         theparser = copy.copy(yaccparser)
         tree = theparser.parse(lexer=self.tok, context=self)
+
         return tree
 
 class _endfinder(bast.nodevisitor):

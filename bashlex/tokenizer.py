@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import re, collections, enum
 
 from bashlex import flags, shutils, butils, errors, heredoc, state
@@ -172,6 +168,8 @@ class token(object):
     def __nonzero__(self):
         return not (self.ttype is None and self.value is None)
 
+    __bool__ = __nonzero__
+
     def __eq__(self, other):
         return isinstance(other, token) and (self.type == other.type and
                                              self.value == other.value and
@@ -204,7 +202,7 @@ class tokenizer(object):
         self._shell_eof_token = eoftoken
         self._shell_input_line = s
         self._added_newline = False
-        if self._shell_input_line[-1] != '\n':
+        if self._shell_input_line and self._shell_input_line[-1] != '\n':
             self._shell_input_line += '\n' # bash/parse.y L2431
             self._added_newline = True
         self._shell_input_line_index = 0
@@ -990,8 +988,7 @@ class tokenizer(object):
     def _command_token_position(self, token):
         return (token.ttype == tokentype.ASSIGNMENT_WORD or
                 self._parserstate & parserflags.REDIRLIST or
-                (token.ttype not in (tokentype.SEMI_SEMI, tokentype.SEMI_AND, tokentype.SEMI_SEMI_AND) and
-                 self._reserved_word_acceptable(token)))
+                (token.ttype not in (tokentype.SEMI_SEMI, tokentype.SEMI_AND, tokentype.SEMI_SEMI_AND) and self._reserved_word_acceptable(token)))
 
     def _assignment_acceptable(self, token):
         return self._command_token_position(token) and not self._parserstate & parserflags.CASEPAT
@@ -1158,27 +1155,3 @@ class tokenizer(object):
 
         if self._parserstate & parserflags.CONDEXPR and tokstr == ']]':
             return tokentype.COND_END
-
-def split(s):
-    '''a utility function that mimics shlex.split but handles more
-    complex shell constructs such as command substitutions inside words
-
-    >>> list(split('a b"c"\\'d\\''))
-    ['a', 'bcd']
-    >>> list(split('a "b $(c)" $(d) \\'$(e)\\''))
-    ['a', 'b $(c)', '$(d)', '$(e)']
-    >>> list(split('a b\\n'))
-    ['a', 'b', '\\n']
-    '''
-    from bashlex import subst
-
-    tok = tokenizer(s, state.parserstate())
-    for t in tok:
-        if t.ttype == tokentype.WORD:
-            quoted = bool(t.flags & flags.word.QUOTED)
-            doublequoted = quoted and t.value[0] == '"'
-            parts, expandedword = subst._expandwordinternal(tok, t, 0,
-                                                            doublequoted, 0, 0)
-            yield expandedword
-        else:
-            yield s[t.lexpos:t.endlexpos]
