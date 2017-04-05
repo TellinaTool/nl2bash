@@ -576,8 +576,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     with open(nl_decomposed_vocab_path, 'w') as o_f:
         for token in nl_vocab:
             char_ids = token_to_char_ids(token, nl_char_vocab)
-            o_f.write(' '.join(char_ids) + '\n')
-            
+            o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
+
 
 def prepare_data(FLAGS):
     """Get data into data_dir, create vocabularies and tokenize data.
