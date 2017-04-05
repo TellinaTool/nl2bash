@@ -110,7 +110,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size,
                                                          len(data)))
         vocab = {}
         counter = 0
-        for line in data:
+        for line in set(data):
             counter += 1
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
