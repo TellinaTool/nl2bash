@@ -62,25 +62,21 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("log_device_placement", False,
                                 "Set to True for logging device placement.")
 
-    # data set parameters
+    # data hyperparameters
     tf.app.flags.DEFINE_string("dataset", "bash", "select dataset to use.")
     tf.app.flags.DEFINE_integer("sc_vocab_size", 1000, "source vocabulary size.")
     tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size.")
     tf.app.flags.DEFINE_integer("max_sc_length", 100, "maximum length of the source token sequence.")
     tf.app.flags.DEFINE_integer("max_tg_length", 100, "maximum length of the target token sequence.")
-    tf.app.flags.DEFINE_string("data_dir", os.path.join(os.path.dirname(__file__), "data"),
-                               "Raw data directory")
-    tf.app.flags.DEFINE_string("data_split", "command", "Data split criteria")
-    tf.app.flags.DEFINE_boolean("sample_train", False,
-                                "Train on a subset of data if this is set to True.")
-    tf.app.flags.DEFINE_integer("sample_size", 200,
-                                "Training data sample size")
-    tf.app.flags.DEFINE_boolean("char", False, "Set to True for training character models.")
-    tf.app.flags.DEFINE_boolean("canonical", False, "Set to True for learning with normalized command with "
+    tf.app.flags.DEFINE_string("data_dir", os.path.join(os.path.dirname(__file__), "data"), "Data directory")
+    tf.app.flags.DEFINE_boolean("sample_train", False, "Train on a subset of data if this is set to True.")
+    tf.app.flags.DEFINE_integer("sample_size", 200, "Training data sample size")
+    tf.app.flags.DEFINE_boolean("canonical", False, "Set to True for learning with normalized command with " +
                                                     "canonical option order.")
+    tf.app.flags.DEFINE_boolean("lemmatized", True, "Set to True for learning with lemmatized natural language words.")
     tf.app.flags.DEFINE_boolean("normalized", False, "Set to True for learning with normalized command.")
 
-    # learning hyperparameters
+    # training hyperparameters
     tf.app.flags.DEFINE_string("model_dir", "model", "Directory to save trained models.")
     tf.app.flags.DEFINE_boolean("create_fresh_params", False, "Set to force remove previously trained models.")
     tf.app.flags.DEFINE_string("rnn_cell", "gru", "Type of RNN cell to use.")
@@ -148,4 +144,6 @@ def define_input_flags():
 
     # granularity control
     tf.app.flags.DEFINE_boolean("hybrid", False, "Set to True to train the a character-token hybrid translation model, " +
-                                                 "otherwise train the model at token level only.")
+                                                 "otherwise train the model at token level.")
+    tf.app.flags.DEFINE_boolean("char", False, "Set to True to train pure a character model, " +
+                                               "otherwise train the model at token level.")
