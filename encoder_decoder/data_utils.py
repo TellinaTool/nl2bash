@@ -74,7 +74,7 @@ def clean_dir(dir):
 
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
-                      tokenizer=None, base_tokenizer=None, min_word_frequency=2):
+                    tokenizer=None, base_tokenizer=None, min_word_frequency=2):
     """Create vocabulary file (if it does not exist yet) from data file.
 
     Data file is assumed to contain one sentence per line. Each sentence is
@@ -117,14 +117,10 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                 else:
                     vocab[word] = 1
 
-        # Keep all training vocabulary in the commands
-        if ".cm" in vocabulary_path:
-            min_word_frequency = 0
-
         sorted_vocab = {}
         for v in vocab:
             if vocab[v] >= min_word_frequency:
-                sorted_vocab[v] = vocab[v]
+                sorted_vocab['LF_' + v] = vocab[v]
             else:
                 print("Infrequent token: %s"  % v)
         sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
@@ -320,62 +316,41 @@ class Dataset(object):
 def read_raw_data(data_dir):
     nl_list = Dataset()
     cm_list = Dataset()
-    train_path = os.path.join(data_dir, "train")
-    dev_path = os.path.join(data_dir, "dev")
-    test_path = os.path.join(data_dir, "test")
-    with open(train_path + ".nl") as f:
-        nl_list.train = [line.strip() for line in f.readlines()]
-    with open(train_path + ".cm") as f:
-        cm_list.train = [line.strip() for line in f.readlines()]
-    with open(dev_path + ".nl") as f:
-        nl_list.dev = [line.strip() for line in f.readlines()]
-    with open(dev_path + ".cm") as f:
-        cm_list.dev = [line.strip() for line in f.readlines()]
-    if os.path.exists(test_path + ".nl"):
-        with open(test_path + ".nl") as f:
-            nl_list.test = [line.strip() for line in f.readlines()]
-    if os.path.exists(test_path + ".cm"):
-        with open(test_path + ".cm") as f:
-            cm_list.test = [line.strip() for line in f.readlines()]
-    if not nl_list.test:
-        nl_list.test = nl_list.dev
-        cm_list.test = cm_list.dev
+    for split in ['train', 'dev', 'test']:
+        data_path = os.path.join(data_dir, split)
+        if os.path.exists(data_path + ".nl"):
+            with open(data_path + '.nl') as f:
+                setattr(nl_list, split, [line.strip() for line in f.readlines()])
+        if os.path.exists(data_path + ".cm"):
+            with open(data_path + ".cm") as f:
+                setattr(nl_list, split, [line.strip() for line in f.readlines()])
     return nl_list, cm_list
 
 
 def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
+    if isinstance(data.train[0], list):
+        # save indexed token sequences
+        min_word_freq = 5 \
+            if ("bash" in data_dir and not ".cm" in vocab_path) else 0
+        create_vocabulary(vocab_path, data.train, vocab_size,
+                          min_word_frequency=min_word_freq)
+        for split in ['train', 'dev', 'test']:
+            data_path = os.path.join(data_dir, split)
+            data_to_token_ids(
+                getattr(data, split), data_path + suffix, vocab_path)
+    else:
+        # save string data
+        for split in ['train', 'dev', 'test']:
+            data_path = os.path.join(data_dir, split)
+            with open(data_path + suffix, 'w') as o_f:
+                for line in getattr(data, split):
+                    o_f.write(line.strip() + '\n')
+
+    # compute max training sequence length to determine bucket size
     max_len = 0
     for d in data.train:
         if len(d) > max_len:
             max_len = len(d)
-
-    if isinstance(data.train[0], list):
-        if "bash" in data_dir:
-            min_word_freq = 2
-        else:
-            min_word_freq = 0
-        create_vocabulary(vocab_path, data.train, vocab_size,
-                          min_word_frequency=min_word_freq)
-
-    train_path = os.path.join(data_dir, "train")
-    dev_path = os.path.join(data_dir, "dev")
-    test_path = os.path.join(data_dir, "test")
-
-    if isinstance(data.train[0], str):
-        with open(train_path + suffix, 'w') as o_f:
-            for line in data.train:
-                o_f.write(line.strip() + '\n')
-        with open(dev_path + suffix, 'w') as o_f:
-            for line in data.dev:
-                o_f.write(line.strip() + '\n')
-        with open(test_path + suffix, 'w') as o_f:
-            for line in data.test:
-                o_f.write(line.strip() + '\n')
-    else:
-        data_to_token_ids(data.train, train_path + suffix, vocab_path)
-        data_to_token_ids(data.dev, dev_path + suffix, vocab_path)
-        data_to_token_ids(data.test, test_path + suffix, vocab_path)
-
     return max_len
 
 
@@ -432,7 +407,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                 if data_tools.is_simple(ast):
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
-                    nl_tokens, _ = tokenizer.ner_tokenizer(nl)
+                    nl_tokens = tokenizer.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
@@ -440,6 +415,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                         pruned_ast, loose_constraints=True, with_parent=with_parent)
                     cm_pruned_seq = data_tools.ast2list(
                         pruned_ast, list=[], with_parent=with_parent)
+                    nl_normalized_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_normalized_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True, with_parent=with_parent)
                     cm_normalized_seq = data_tools.ast2list(
@@ -459,6 +435,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                     getattr(cm_seq_list, split).append(cm_seq)
                     getattr(cm_pruned_token_list, split).append(cm_pruned_tokens)
                     getattr(cm_pruned_seq_list, split).append(cm_pruned_seq)
+                    getattr(nl_normalized_token_list, split).append(nl_normalized_tokens)
                     getattr(cm_normalized_token_list, split).append(cm_normalized_tokens)
                     getattr(cm_normalized_seq_list, split).append(cm_normalized_seq)
                     getattr(cm_canonical_token_list, split).append(cm_canonical_tokens)
@@ -472,12 +449,13 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     nl_list = Dataset()
     cm_list = Dataset()
     nl_char_list = Dataset()
-    nl_token_list = Dataset()
     cm_char_list = Dataset()
+    nl_token_list = Dataset()
     cm_token_list = Dataset()
     cm_seq_list = Dataset()
     cm_pruned_token_list = Dataset()
     cm_pruned_seq_list = Dataset()
+    nl_normalized_token_list = Dataset()
     cm_normalized_token_list = Dataset()
     cm_normalized_seq_list = Dataset()
     cm_canonical_token_list = Dataset()
@@ -492,7 +470,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     cm_char_vocab_path = os.path.join(data_dir, "vocab%d.cm.char" % cm_vocab_size)
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
-    cm_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.norm" % nl_vocab_size)
+    nl_norm_vocab_path = os.path.join(data_dir, "vocab%d.nl.norm" % nl_vocab_size)
+    cm_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.norm" % cm_vocab_size)
     cm_ast_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast" % cm_vocab_size)
     cm_ast_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast.norm" % cm_vocab_size)
 
@@ -502,6 +481,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     cm_char_suffix = ".cids%d.cm" % cm_vocab_size
     nl_token_suffix = ".ids%d.nl" % nl_vocab_size
     cm_token_suffix = ".ids%d.cm" % cm_vocab_size
+    nl_token_norm_suffix = ".ids%d.nl.norm" % nl_vocab_size
     cm_token_norm_suffix = ".ids%d.cm.norm" % cm_vocab_size
     cm_token_norm_order_suffix = ".ids%d.cm.norm.order" % cm_vocab_size
     cm_token_pruned_suffix = ".ids%d.cm.pruned" % cm_vocab_size
@@ -520,26 +500,30 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
         nl_vocab_size, nl_vocab_path)
     max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix, 
         cm_vocab_size, cm_vocab_path)
-    max_cm_token_norm_len = prepare_dataset(cm_normalized_token_list, data_dir, cm_token_norm_suffix,
-        cm_vocab_size, cm_norm_vocab_path)
+    max_nl_token_norm_len = prepare_dataset(nl_normalized_token_list, data_dir,
+        nl_token_norm_suffix, nl_vocab_size, nl_norm_vocab_path)
+    max_cm_token_norm_len = prepare_dataset(cm_normalized_token_list, data_dir,
+        cm_token_norm_suffix, cm_vocab_size, cm_norm_vocab_path)
     max_cm_token_norm_order_len = prepare_dataset(cm_canonical_token_list, data_dir,
         cm_token_norm_order_suffix, cm_vocab_size, cm_norm_vocab_path)
-    max_cm_token_pruned_len = prepare_dataset(cm_pruned_token_list, data_dir, cm_token_pruned_suffix,
-        cm_vocab_size, cm_vocab_path)
-    max_cm_seq_len = prepare_dataset(cm_seq_list, data_dir, cm_seq_suffix, cm_vocab_size,
-        cm_ast_vocab_path)
-    max_cm_seq_norm_len = prepare_dataset(cm_normalized_seq_list, data_dir, cm_seq_norm_suffix,
-        cm_vocab_size, cm_ast_norm_vocab_path)
-    max_cm_seq_norm_order_len = prepare_dataset(cm_canonical_seq_list, data_dir, cm_seq_norm_order_suffix,
-        cm_vocab_size, cm_ast_norm_vocab_path)
-    max_cm_seq_pruned_len = prepare_dataset(cm_pruned_seq_list, data_dir, cm_seq_pruned_suffix,
+    max_cm_token_pruned_len = prepare_dataset(cm_pruned_token_list, data_dir,
+        cm_token_pruned_suffix, cm_vocab_size, cm_vocab_path)
+    max_cm_seq_len = prepare_dataset(cm_seq_list, data_dir, cm_seq_suffix,
         cm_vocab_size, cm_ast_vocab_path)
+    max_cm_seq_norm_len = prepare_dataset(cm_normalized_seq_list, data_dir,
+        cm_seq_norm_suffix, cm_vocab_size, cm_ast_norm_vocab_path)
+    max_cm_seq_norm_order_len = prepare_dataset(cm_canonical_seq_list, data_dir,
+        cm_seq_norm_order_suffix, cm_vocab_size, cm_ast_norm_vocab_path)
+    max_cm_seq_pruned_len = prepare_dataset(cm_pruned_seq_list, data_dir,
+        cm_seq_pruned_suffix, cm_vocab_size, cm_ast_vocab_path)
 
     print("maximum num chars in description = %d" % max_nl_char_len)
     print("maximum num tokens in description = %d" % max_nl_token_len)
     print("maximum num chars in command = %d" % max_cm_char_len)
     print("maximum num tokens in command = %d" % max_cm_token_len)
     print("maximum num AST search steps = %d" % max_cm_seq_len)
+    print("maximum num tokens in normalized description = %d" %
+          max_nl_token_norm_len)
     print("maximum num tokens in normalized command = %d" %
           max_cm_token_norm_len)
     print("maximum num normalized AST search steps = %d" %
