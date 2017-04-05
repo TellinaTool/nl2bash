@@ -87,7 +87,7 @@ def clean_sentence(sentence):
 
 def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
                     remove_stop_words=True, correct_spell=True):
-    """Very basic tokenizer: used for English tokenization."""
+    """Very basic English tokenizer."""
     sentence = clean_sentence(sentence)
     words = re.findall(constants._WORD_SPLIT_RESPECT_QUOTES, sentence)
 
@@ -134,8 +134,12 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
     return normalized_words
 
 
-def ner_tokenizer(sentence):
-    words = basic_tokenizer(sentence)
+def ner_tokenizer(sentence, lower_case=True, lemmatization=True,
+                  remove_stop_words=True, correct_spell=True):
+    words = basic_tokenizer(sentence, lower_case=lower_case,
+                            lemmatization=lemmatization,
+                            remove_stop_words=remove_stop_words,
+                            correct_spell=correct_spell)
     return ner.annotate(words)
 
 # --- Utility functions --- #
