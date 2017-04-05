@@ -145,3 +145,7 @@ def define_input_flags():
                                 "Set to True for evaluation of the slot-filling classifier.")
     tf.app.flags.DEFINE_boolean("eval_local_slot_filling", False,
                                 "Set to True for raw evaluation of the slot-filling classifier.")
+
+    # granularity control
+    tf.app.flags.DEFINE_boolean("hybrid", False, "Set to True to train the a character-token hybrid translation model, " +
+                                                 "otherwise train the model at token level only.")
