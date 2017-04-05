@@ -334,7 +334,7 @@ def read_raw_data(data_dir):
 def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
     if isinstance(data.train[0], list):
         # save indexed token sequences
-        min_word_freq = 2 \
+        min_word_freq = 4 \
             if ("bash" in data_dir and not ".cm" in vocab_path) else 0
         create_vocabulary(vocab_path, data.train, vocab_size,
                           min_word_frequency=min_word_freq)
