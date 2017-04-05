@@ -34,7 +34,7 @@ else:
     import cPickle as pickle
 
 from bashlex import normalizer, data_tools
-from nlp_tools import tokenizer, slot_filling
+from nlp_tools import constants, tokenizer, slot_filling
 
 # Special vocabulary symbols - we always put them at the start.
 _PAD = "_PAD"
@@ -74,7 +74,7 @@ def clean_dir(dir):
 
 
 def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
-                    tokenizer=None, base_tokenizer=None, min_word_frequency=2):
+                      min_word_frequency, tokenizer=None, base_tokenizer=None):
     """Create vocabulary file (if it does not exist yet) from data file.
 
     Data file is assumed to contain one sentence per line. Each sentence is
@@ -123,7 +123,7 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                 sorted_vocab[v] = vocab[v]
             else:
                 # print("Infrequent token: %s"  % v)
-                sorted_vocab['LF_' + v] = vocab[v]
+                sorted_vocab['__LF__' + v] = vocab[v]
         sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
         vocab_list = list(_START_VOCAB)
         for v in sorted_vocab:
@@ -174,6 +174,9 @@ def initialize_vocabulary(vocabulary_path):
 
 def token_ids_to_sentences(inputs, rev_vocab, head_appended=False,
                            char_model=False):
+    """
+    Convert a batch of token-id lists to a list of strings.
+    """
     batch_size = len(inputs[0])
     sentences = []
     for i in xrange(batch_size):
@@ -190,10 +193,10 @@ def token_ids_to_sentences(inputs, rev_vocab, head_appended=False,
         # Print out command corresponding to outputs.
         if char_model:
             sentences.append("".join([tf.compat.as_str(rev_vocab[output])
-                             for output in outputs]).replace(_UNK, ' '))
+                for output in outputs]).replace(constants._SPACE, ' '))
         else:
             sentences.append(" ".join([tf.compat.as_str(rev_vocab[output])
-                                   for output in outputs]))
+                                       for output in outputs]))
     return sentences
 
 
@@ -331,7 +334,7 @@ def read_raw_data(data_dir):
 def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
     if isinstance(data.train[0], list):
         # save indexed token sequences
-        min_word_freq = 5 \
+        min_word_freq = 2 \
             if ("bash" in data_dir and not ".cm" in vocab_path) else 0
         create_vocabulary(vocab_path, data.train, vocab_size,
                           min_word_frequency=min_word_freq)
@@ -408,7 +411,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                 if data_tools.is_simple(ast):
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
-                    nl_tokens = tokenizer.basic_tokenizer(nl)
+                    nl_tokens = tokenizer.basic_tokenizer(nl, lemmatization=False)
                     cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
