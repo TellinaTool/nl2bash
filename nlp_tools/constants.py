@@ -276,3 +276,16 @@ def is_float(s):
 
 def is_stopword(w):
     return w in ENGLISH_STOPWORDS
+
+def is_english_word(word):
+    """Check if a token is a normal English word."""
+    if word in ['i.e', 'i.e.', 'e.g', 'e.g.',
+                's.a', 's.a.', 's.t', 's.t.']:
+        return True
+    # if any(x.isalpha() for x in word):
+    #     if word[-1].isdigit():
+    #         return False
+    # if word.isalpha() and any(x.isupper() for x in word):
+    #     return False
+    # return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
+    return bool(re.match('^[a-z]+\-*[a-z]+$', word, re.IGNORECASE))

@@ -129,7 +129,7 @@ def annotate(tokens):
             normalized_words.append(category)
             ner_by_token_id[i] = (surface, category)
         else:
-            if not is_english_word(w):
+            if not constants.is_english_word(w):
                 # catch missed patterns in the final pass
                 normalized_words.append(constants._REGEX)
                 ner_by_token_id[i] = (w, constants._REGEX)
@@ -170,16 +170,3 @@ def annotate_ner(pattern, category, sentence, entities):
 
 def normalize_number_in_token(token):
     return re.sub(re.compile(constants._DIGIT_RE), constants._NUMBER, token)
-
-def is_english_word(word):
-    """Check if a token is a normal English word."""
-    if word in ['i.e', 'i.e.', 'e.g', 'e.g.',
-                's.a', 's.a.', 's.t', 's.t.']:
-        return True
-    # if any(x.isalpha() for x in word):
-    #     if word[-1].isdigit():
-    #         return False
-    # if word.isalpha() and any(x.isupper() for x in word):
-    #     return False
-    # return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
-    return bool(re.match('^[a-z]+\-*[a-z]+$', word, re.IGNORECASE))

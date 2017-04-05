@@ -96,8 +96,11 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
         word = words[i].strip()
         # remove unnecessary upper cases
         if lower_case:
-            if i == 0 and word[0].isupper() \
-                    and len(word) > 1 and word[1:].islower():
+            # if i == 0 and word[0].isupper() \
+            #         and len(word) > 1 and word[1:].islower():
+            #     word = word.lower()
+            if len(word) > 1 and constants.is_english_word(word) \
+                    and not constants.with_quotation(word):
                 word = word.lower()
 
         # spelling correction
