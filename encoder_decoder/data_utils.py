@@ -106,11 +106,11 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size,
         goint to be marked as _UNK.
     """
     if not tf.gfile.Exists(vocab_path):
-        print("Creating vocabulary %s from data (%d)" % (vocab_path,
-                                                         len(data)))
+        print("Creating vocabulary %s from data (%d)" %
+              (vocab_path, len(data)))
         vocab = {}
         counter = 0
-        for line in set(data):
+        for line in data:
             counter += 1
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
