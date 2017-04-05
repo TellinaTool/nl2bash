@@ -77,10 +77,13 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("normalized", False, "Set to True for learning with normalized command.")
 
     # training hyperparameters
-    tf.app.flags.DEFINE_string("model_dir", "model", "Directory to save trained models.")
-    tf.app.flags.DEFINE_boolean("create_fresh_params", False, "Set to force remove previously trained models.")
+    tf.app.flags.DEFINE_string("model_dir", "model",
+                               "Directory to save trained models.")
+    tf.app.flags.DEFINE_boolean("create_fresh_params", False,
+                                "Set to force remove previously trained models.")
     tf.app.flags.DEFINE_string("rnn_cell", "gru", "Type of RNN cell to use.")
-    tf.app.flags.DEFINE_string("optimizer", "adam", "Type of numeric optimization algorithm to use.")
+    tf.app.flags.DEFINE_string("optimizer", "adam",
+                               "Type of numeric optimization algorithm to use.")
     tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
     tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
                               "Learning rate decays by this much.")

@@ -36,7 +36,7 @@ else:
 from bashlex import normalizer, data_tools
 from nlp_tools import constants, tokenizer, slot_filling
 
-# Special vocabulary symbols - we always put them at the start.
+# Special token symbols
 _PAD = "_PAD"
 _EOS = "_EOS"
 _UNK = "_UNK"
@@ -46,10 +46,6 @@ _FLAG_UNK = "FLAG_UNK"
 
 _GO = "_GO"                    # seq2seq start symbol
 _ROOT = "ROOT_"                # seq2tree start symbol
-
-
-_START_VOCAB = [_PAD, _EOS, _UNK, _ARG_UNK, _UTL_UNK, _FLAG_UNK,
-                normalizer._H_NO_EXPAND, normalizer._V_NO_EXPAND, _GO, _ROOT]
 
 PAD_ID = 0
 EOS_ID = 1
@@ -62,6 +58,22 @@ V_NO_EXPAND_ID = 7
 GO_ID = 8
 ROOT_ID = 9
 
+_TOKEN_START_VOCAB = [_PAD, _EOS, _UNK, _ARG_UNK, _UTL_UNK, _FLAG_UNK,
+                normalizer._H_NO_EXPAND, normalizer._V_NO_EXPAND, _GO, _ROOT]
+
+# Special char symbols
+_CPAD = "_CPAD"
+_CEOS = "_CEOS"
+_CUNK = "_CUNK"
+_CGO = "_CGO"
+
+CPAD_ID = 0
+CEOS_ID = 1
+CUNK_ID = 2
+CGO_ID = 4
+
+_CHAR_START_VOCAB = [_CPAD, _CEOS, _CUNK, _CGO]
+
 
 def clean_dir(dir):
     for f_name in os.listdir(dir):
@@ -73,18 +85,18 @@ def clean_dir(dir):
             print(e)
 
 
-def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
+def create_vocabulary(vocab_path, data, max_vocabulary_size,
                       min_word_frequency, tokenizer=None, base_tokenizer=None):
     """Create vocabulary file (if it does not exist yet) from data file.
 
     Data file is assumed to contain one sentence per line. Each sentence is
     tokenized and digits are normalized (if normalize_digits is set).
     Vocabulary contains the most-frequent tokens up to max_vocabulary_size.
-    We write it to vocabulary_path in a one-token-per-line format, so that later
+    We write it to vocab_path in a one-token-per-line format, so that later
     token in the first line gets id=0, second line gets id=1, and so on.
 
     Args:
-      vocabulary_path: path where the vocabulary will be created.
+      vocab_path: path where the vocabulary will be created.
       data: list of lines each of which corresponds to a data point.
       max_vocabulary_size: limit on the size of the created vocabulary.
       tokenizer: a function to use to tokenize each data sentence;
@@ -93,8 +105,8 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
       min_word_frequency: word frequency threshold below which a word is
         goint to be marked as _UNK.
     """
-    if not tf.gfile.Exists(vocabulary_path):
-        print("Creating vocabulary %s from data (%d)" % (vocabulary_path,
+    if not tf.gfile.Exists(vocab_path):
+        print("Creating vocabulary %s from data (%d)" % (vocab_path,
                                                          len(data)))
         vocab = {}
         counter = 0
@@ -125,24 +137,26 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
                 # print("Infrequent token: %s"  % v)
                 sorted_vocab['__LF__' + v] = vocab[v]
         sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
-        vocab_list = list(_START_VOCAB)
+        start_vocab = _CHAR_START_VOCAB \
+            if "char" in vocab_path else _TOKEN_START_VOCAB
+        vocab = list(start_vocab)
         for v in sorted_vocab:
-            if not v in _START_VOCAB:
-                vocab_list.append(v)
+            if not v in start_vocab:
+                vocab.append(v)
 
-        if len(vocab_list) > max_vocabulary_size:
-            vocab_list = vocab_list[:max_vocabulary_size]
-        with tf.gfile.GFile(vocabulary_path, mode="wb") as vocab_file:
-            for w in vocab_list:
+        if len(vocab) > max_vocabulary_size:
+            vocab = vocab[:max_vocabulary_size]
+        with tf.gfile.GFile(vocab_path, mode="wb") as vocab_file:
+            for w in vocab:
                 try:
                     vocab_file.write(w + b"\n")
                 except Exception:
                     vocab_file.write(w.encode('utf-8') + b"\n")
     else:
-        print("Reading vocabulary %s from path" % vocabulary_path)
+        print("Reading vocabulary %s from path" % vocab_path)
 
 
-def initialize_vocabulary(vocabulary_path):
+def initialize_vocabulary(vocab_path):
     """Initialize vocabulary from file.
 
     We assume the vocabulary is stored one-item-per-line, so a file:
@@ -152,24 +166,24 @@ def initialize_vocabulary(vocabulary_path):
     also return the reversed-vocabulary ["dog", "cat"].
 
     Args:
-      vocabulary_path: path to the file containing the vocabulary.
+      vocab_path: path to the file containing the vocabulary.
 
     Returns:
       a pair: the vocabulary (a dictionary mapping string to integers), and
       the reversed vocabulary (a list, which reverses the vocabulary mapping).
 
     Raises:
-      ValueError: if the provided vocabulary_path does not exist.
+      ValueError: if the provided vocab_path does not exist.
     """
-    if tf.gfile.Exists(vocabulary_path):
+    if tf.gfile.Exists(vocab_path):
         rev_vocab = []
-        with tf.gfile.GFile(vocabulary_path, mode="rb") as f:
+        with tf.gfile.GFile(vocab_path, mode="rb") as f:
             rev_vocab.extend(f.readlines())
         rev_vocab = [line.strip() for line in rev_vocab]
         vocab = dict([(x, y) for (y, x) in enumerate(rev_vocab)])
         return vocab, rev_vocab
     else:
-        raise ValueError("Vocabulary file %s not found.", vocabulary_path)
+        raise ValueError("Vocabulary file %s not found.", vocab_path)
 
 
 def token_ids_to_sentences(inputs, rev_vocab, head_appended=False,
@@ -249,7 +263,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     return token_ids, entities
 
 
-def data_to_token_ids(data, tg_id_path, vocabulary_path, tokenizer=None,
+def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                       base_tokenizer=None, with_arg_types=False):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
@@ -260,7 +274,7 @@ def data_to_token_ids(data, tg_id_path, vocabulary_path, tokenizer=None,
     Args:
       data: list of lines each of which corresponds to a data point.
       tg_id_path: path where the file with token-ids will be created.
-      vocabulary_path: path to the vocabulary file.
+      vocab_path: path to the vocabulary file.
       tokenizer: a function to use to tokenize each sentence;
         if None, basic_tokenizer will be used.
       base_tokenizer: base tokenizer used for splitting strings into characters.
@@ -268,7 +282,7 @@ def data_to_token_ids(data, tg_id_path, vocabulary_path, tokenizer=None,
     max_token_num = 0
     if not tf.gfile.Exists(tg_id_path):
         print("Tokenizing data (%d)" % len(data))
-        vocab, _ = initialize_vocabulary(vocabulary_path)
+        vocab, _ = initialize_vocabulary(vocab_path)
         tokens_file = tf.gfile.GFile(tg_id_path, mode="w")
         counter = 0
         for line in data:
@@ -481,8 +495,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
 
     nl_suffix = ".%d.nl" % nl_vocab_size
     cm_suffix = ".%d.cm" % cm_vocab_size
-    nl_char_suffix = ".cids%d.nl" % nl_vocab_size
-    cm_char_suffix = ".cids%d.cm" % cm_vocab_size
+    nl_char_suffix = ".ids%d.nl.char" % nl_vocab_size
+    cm_char_suffix = ".ids%d.cm.char" % cm_vocab_size
     nl_token_suffix = ".ids%d.nl" % nl_vocab_size
     cm_token_suffix = ".ids%d.cm" % cm_vocab_size
     nl_token_norm_suffix = ".ids%d.nl.norm" % nl_vocab_size
@@ -741,8 +755,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False):
     data_dir = FLAGS.data_dir
 
     if FLAGS.char:
-        nl_extension = ".cids%d.nl" % FLAGS.sc_vocab_size
-        cm_extension = ".cids%d.cm" % FLAGS.sc_vocab_size
+        nl_extension = ".ids%d.nl.char" % FLAGS.sc_vocab_size
+        cm_extension = ".ids%d.cm.char" % FLAGS.sc_vocab_size
         append_head_token = True
         append_end_token = True
     elif FLAGS.decoder_topology in ["rnn"]:
