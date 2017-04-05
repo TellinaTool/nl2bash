@@ -1,3 +1,5 @@
+import re
+
 _SPACE = "_SPACE"
 
 _NUMBER = "_NUMBER"
