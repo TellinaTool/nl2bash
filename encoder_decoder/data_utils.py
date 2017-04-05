@@ -120,9 +120,10 @@ def create_vocabulary(vocabulary_path, data, max_vocabulary_size,
         sorted_vocab = {}
         for v in vocab:
             if vocab[v] >= min_word_frequency:
-                sorted_vocab['LF_' + v] = vocab[v]
+                sorted_vocab[v] = vocab[v]
             else:
-                print("Infrequent token: %s"  % v)
+                # print("Infrequent token: %s"  % v)
+                sorted_vocab['LF_' + v] = vocab[v]
         sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
         vocab_list = list(_START_VOCAB)
         for v in sorted_vocab:
