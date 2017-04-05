@@ -323,7 +323,7 @@ def read_raw_data(data_dir):
                 setattr(nl_list, split, [line.strip() for line in f.readlines()])
         if os.path.exists(data_path + ".cm"):
             with open(data_path + ".cm") as f:
-                setattr(nl_list, split, [line.strip() for line in f.readlines()])
+                setattr(cm_list, split, [line.strip() for line in f.readlines()])
     return nl_list, cm_list
 
 
