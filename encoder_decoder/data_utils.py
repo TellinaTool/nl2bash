@@ -568,6 +568,16 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     print("maximum num tokens in pruned command = %d" % max_cm_token_pruned_len)
     print("maximum num pruned AST search steps = %d" % max_cm_seq_pruned_len)
 
+    # compute character representation of tokens
+    nl_vocab, _ = initialize_vocabulary(nl_vocab_path)
+    nl_char_vocab, _ = initialize_vocabulary(nl_char_vocab_path)
+    nl_decomposed_vocab_path = os.path.join(data_dir,
+                                "vocab%d.nl.char.decompose" % nl_vocab_size)
+    with open(nl_decomposed_vocab_path, 'w') as o_f:
+        for token in nl_vocab:
+            char_ids = token_to_char_ids(token, nl_char_vocab)
+            o_f.write(' '.join(char_ids) + '\n')
+            
 
 def prepare_data(FLAGS):
     """Get data into data_dir, create vocabularies and tokenize data.
