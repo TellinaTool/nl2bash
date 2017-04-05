@@ -1,4 +1,4 @@
-_SPACE = "<SPACE>"
+_SPACE = "_SPACE"
 
 _NUMBER = "_NUMBER"
 _SIZE = "_SIZE"
@@ -175,7 +175,7 @@ ENGLISH_STOPWORDS = {
     "how's"
 }
 
-word2num = {'one':   1, 'eleven':     11,
+word2num = {'zero':  0, 'eleven':     11,
             'two':   2, 'twelve':     12,
             'three': 3, 'thirteen':   13,
             'four':  4, 'fourteen':   14,

@@ -203,15 +203,9 @@ class ArgumentNode(Node):
 
     def to_index(self):
         if self.parent.kind == "headcommand":
-            if self.headcommand.arg_dict[""][self.arg_type] > 1:
-                return True
-            else:
-                return False
+            return self.headcommand.arg_dict[""][self.arg_type] > 1
         else:
-            if self.headcommand.arg_dict[self.parent.value][self.arg_type] > 1:
-                return True
-            else:
-                return False
+            return self.headcommand.arg_dict[self.parent.value][self.arg_type] > 1
 
     def set_index(self, ind):
         self.index = ind
@@ -224,9 +218,11 @@ class FlagNode(Node):
         super(FlagNode, self).add_child(child)
         if child.is_argument():
             if not self.value in self.headcommand.arg_dict:
-                self.headcommand.arg_dict[self.value] = collections.defaultdict(int)
+                self.headcommand.arg_dict[self.value] \
+                    = collections.defaultdict(int)
             self.headcommand.arg_dict[self.value][child.arg_type] += 1
-            child.set_index(self.headcommand.arg_dict[self.value][child.arg_type])
+            child.set_index(
+                self.headcommand.arg_dict[self.value][child.arg_type])
 
     def get_label(self):
         if self.parent:
