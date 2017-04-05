@@ -216,7 +216,7 @@ def token_ids_to_sentences(inputs, rev_vocab, head_appended=False,
 
 def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                           with_arg_type=False):
-    """Convert a string to list of integers representing token-ids.
+    """Convert a string to a list of integers representing token-ids.
 
     For example, a sentence "I have a dog" may become tokenized into
     ["I", "have", "a", "dog"] and with vocabulary {"I": 1, "have": 2,
@@ -247,6 +247,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         if w in vocabulary:
             token_ids.append(vocabulary[w])
         else:
+            # Unknown token
             if with_arg_type:
                 kind = w.split('_')[0].lower()
                 if kind == "flag":
@@ -261,6 +262,20 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                 print(w, sentence)
 
     return token_ids, entities
+
+
+def token_to_char_ids(token, vocabulary):
+    """
+    Convert a token to a list of integers representing character-ids.
+    """
+    char_ids = []
+    for c in token:
+        if c in vocabulary:
+            char_ids.append(vocabulary[c])
+        else:
+            # Unknown character
+            char_ids.append(CUNK_ID)
+    return char_ids
 
 
 def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
