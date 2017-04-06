@@ -147,12 +147,13 @@ def define_input_flags():
                                 "Set to True for raw evaluation of the slot-filling classifier.")
 
     # granularity control
+    tf.app.flags.DEFINE_boolean("char", False, "Set to True to train a pure char RNN model.")
+
+    # channel network hyperparameters
     tf.app.flags.DEFINE_boolean("sc_token", True, "Set to True to turn on the token channel in the encoder. "
                                                   + "On by default.")
     tf.app.flags.DEFINE_boolean("sc_char", False, "Set to True to turn on the character channel in the encoder. "
                                                   + "Off by default.")
-
-    # channel network hyperparameters
     tf.app.flags.DEFINE_integer("sc_token_dim", 300, "Basic token embedding dimensions.")
     tf.app.flags.DEFINE_integer("sc_char_dim", 300, "Dimension of each character embeddings.")
     tf.app.flags.DEFINE_string("char_composition", 'rnn', "Specify the character to token composition function.")
