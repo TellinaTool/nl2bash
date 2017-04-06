@@ -8,7 +8,7 @@ import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-import math, random
+import random
 import numpy as np
 
 import tensorflow as tf
@@ -50,8 +50,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         
         # variable sharing
         self.output_projection_vars = False
-        self.source_embedding_vars = False
-        self.target_embedding_vars = False
 
         self.global_epoch = tf.Variable(0, trainable=False)
 
@@ -126,26 +124,22 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     self.encode_decode(
                         self.encoder_inputs[:bucket[0]],
                         self.encoder_attn_masks[:bucket[0]],
-                        self.source_embeddings(),
                         self.decoder_inputs[:bucket[1]],
-                        self.target_embeddings(),
                         self.targets[:bucket[1]],
                         self.target_weights[:bucket[1]],
                         forward_only=forward_only
                     )
                 bucket_output_symbols, bucket_output_logits, bucket_losses, \
-                    batch_attn_alignment = encode_decode_outputs
+                    batch_encoder_input_mask = encode_decode_outputs
                 self.output_symbols.append(bucket_output_symbols)
                 self.output_logits.append(bucket_output_logits)
                 self.losses.append(bucket_losses)
-                self.attn_alignments.append(batch_attn_alignment)
+                self.attn_alignments.append(batch_encoder_input_mask)
         else:
             encode_decode_outputs = self.encode_decode(
                                         self.encoder_inputs,
                                         self.encoder_attn_masks,
-                                        self.source_embeddings(),
                                         self.decoder_inputs,
-                                        self.target_embeddings(),
                                         self.targets,
                                         self.target_weights,
                                         forward_only=forward_only
@@ -184,22 +178,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.saver = tf.train.Saver(tf.all_variables())
 
 
-    def define_encoder(self):
-        """Placeholder function."""
-        self.encoder = None
-
-
-    def define_decoder(self):
-        """Placeholder function."""
-        self.decoder = None
-
-
     def encode_decode(self, encoder_inputs, encoder_attn_masks,
-                      source_embeddings, decoder_inputs, target_embeddings, 
-                      targets, target_weights, forward_only):
+                      decoder_inputs, targets, target_weights, forward_only):
 
         encoder_outputs, encoder_state = \
-            self.encoder.define_graph(encoder_inputs, source_embeddings)
+            self.encoder.define_graph(encoder_inputs)
         if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.dim])
                           for e in encoder_outputs]
@@ -211,16 +194,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.training_algorithm == "bso":
             output_symbols, output_logits, outputs, state, attn_alignment, \
                 bso_losses = self.decoder.define_bso_graph(
-                    encoder_state, decoder_inputs,
-                    target_weights, target_embeddings,
-                    encoder_attn_masks, attention_states,
-                    num_heads=1, forward_only=forward_only)
+                    encoder_state, decoder_inputs, encoder_attn_masks,
+                    attention_states, num_heads=1, forward_only=forward_only)
         else:
             output_symbols, output_logits, outputs, state, \
                 attn_alignment = self.decoder.define_graph(
-                    encoder_state, decoder_inputs, target_embeddings,
-                    encoder_attn_masks, attention_states, num_heads=1,
-                    forward_only=forward_only)
+                    encoder_state, decoder_inputs, encoder_attn_masks,
+                    attention_states, num_heads=1, forward_only=forward_only)
 
         if forward_only:
             # if self.decoding_algorithm == 'beam_search':
@@ -264,28 +244,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
         return output_symbols, output_logits, losses, attn_alignment
 
 
-    def source_embeddings(self):
-        with tf.variable_scope("source_embeddings",
-                               reuse=self.source_embedding_vars):
-            sqrt3 = math.sqrt(3)
-            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding",
-                                         [self.source_vocab_size, self.dim],
-                                         initializer=initializer)
-            self.source_embedding_vars = True
-            return embeddings
+    def define_encoder(self):
+        """Placeholder function."""
+        self.encoder = None
 
 
-    def target_embeddings(self):
-        with tf.variable_scope("target_embeddings",
-                               reuse=self.target_embedding_vars):
-            sqrt3 = math.sqrt(3)
-            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding",
-                                         [self.target_vocab_size, self.dim],
-                                         initializer=initializer)
-            self.target_embedding_vars = True
-            return embeddings
+    def define_decoder(self):
+        """Placeholder function."""
+        self.decoder = None
 
 
     def output_projection(self):
@@ -309,6 +275,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
         :param copy_data: set to true if using a copying network
         :param bucket_id: bucket id of the current batch
 
+        Returns:
+            batch_encoder_inputs: encoder input indices
+            (batched, padded and reversed)
+            batch_encoder_input_masks: encoder input masks
+            (mask out padding symbols, batched)
+            batch_decoder_inputs: decoder input indices
+            (batched, padded)
+            batch_decoder_input_masks: decoder input masks
+            (mask out padding symbols, batched)
         """
         if bucket_id >= 0:
             encoder_size, decoder_size = self.buckets[bucket_id]
@@ -323,16 +298,19 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_input = encoder_inputs[batch_idx]
             decoder_input = decoder_inputs[batch_idx]
             # Encoder inputs are padded and then reversed
-            encoder_pad = [data_utils.PAD_ID] * (encoder_size - len(encoder_input))
-            padded_encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
-            decoder_pad = [data_utils.PAD_ID] * (decoder_size - len(decoder_input))
+            encoder_pad = [data_utils.PAD_ID] * \
+                          (encoder_size - len(encoder_input))
+            padded_encoder_inputs.append(
+                list(reversed(encoder_input + encoder_pad)))
+            decoder_pad = [data_utils.PAD_ID] * \
+                          (decoder_size - len(decoder_input))
             padded_decoder_inputs.append(decoder_input + decoder_pad)
 
         # create batch-major vectors
         batch_encoder_inputs = []
-        batch_attn_alignments = []
+        batch_encoder_input_masks = []
         batch_decoder_inputs = []
-        batch_weights = []
+        batch_decoder_input_masks = []
 
         # Batch encoder inputs are just re-indexed encoder_inputs.
         for length_idx in xrange(encoder_size):
@@ -340,12 +318,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 np.array([padded_encoder_inputs[batch_idx][length_idx]
                           for batch_idx in xrange(batch_size)], dtype=np.int32))
 
-            batch_attn_alignment = np.ones(batch_size, dtype=np.float32)
+            batch_encoder_input_mask = np.ones(batch_size, dtype=np.float32)
             for batch_idx in xrange(batch_size):
                 source = padded_encoder_inputs[batch_idx][length_idx]
                 if source == data_utils.PAD_ID:
-                    batch_attn_alignment[batch_idx] = 0.0
-            batch_attn_alignments.append(batch_attn_alignment)
+                    batch_encoder_input_mask[batch_idx] = 0.0
+            batch_encoder_input_masks.append(batch_encoder_input_mask)
             if self.use_copy:
                 raise NotImplementedError
 
@@ -358,21 +336,21 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 raise NotImplementedError
 
             # Create target_weights to be 0 for targets that are padding.
-            batch_weight = np.ones(batch_size, dtype=np.float32)
+            batch_decoder_input_mask = np.ones(batch_size, dtype=np.float32)
             for batch_idx in xrange(batch_size):
                 # We set weight to 0 if the corresponding target is a PAD symbol.
                 # The corresponding target is decoder_input shifted by 1 forward.
                 if length_idx < decoder_size - 1:
                     target = padded_decoder_inputs[batch_idx][length_idx + 1]
                 if length_idx == decoder_size - 1 or target == data_utils.PAD_ID:
-                    batch_weight[batch_idx] = 0.0
-            batch_weights.append(batch_weight)
+                    batch_decoder_input_mask[batch_idx] = 0.0
+            batch_decoder_input_masks.append(batch_decoder_input_mask)
         
         if self.use_copy:
             raise NotImplementedError
         else:
-            return batch_encoder_inputs, batch_attn_alignments,\
-                   batch_decoder_inputs, batch_weights
+            return batch_encoder_inputs, batch_encoder_input_masks,\
+                   batch_decoder_inputs, batch_decoder_input_masks
 
 
     def get_batch(self, data, bucket_id, copy_data=None):
@@ -419,21 +397,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         return self.format_example(encoder_inputs, decoder_inputs,
                                    copy_data=copy_data, bucket_id=bucket_id)
-
-
-    def get_hidden_states(self, session, formatted_example, bucket_id=-1):
-        """Run a step of the model feeding the given inputs and return
-        the hidden state embeddings of the encoder and the decoder.
-        """
-
-        # Input feed: encoder inputs, decoder inputs, target_weights, as provided.
-        input_feed = self.get_input_feed(formatted_example, bucket_id)
-
-        # Output feed: hidden states of the encoder and the decoder
-        output_feed = [self.encoder_outputs, self.decoder_outputs]
-
-        encoder_outputs, decoder_outputs = session.run(output_feed, input_feed)
-        return encoder_outputs, decoder_outputs
 
 
     def step(self, session, formatted_example, bucket_id=-1, forward_only=False,

@@ -9,7 +9,7 @@ class RNNDecoder(decoder.Decoder):
         super(RNNDecoder, self).__init__(hyperparameters, output_projection)
 
 
-    def define_graph(self, encoder_state, decoder_inputs, embeddings,
+    def define_graph(self, encoder_state, decoder_inputs,
                      encoder_attn_masks=None, attention_states=None,
                      num_heads=1, forward_only=False):
         """
@@ -91,7 +91,8 @@ class RNNDecoder(decoder.Decoder):
                                                         tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
 
-                input_embedding = tf.nn.embedding_lookup(embeddings, input)
+                input_embedding = tf.nn.embedding_lookup(
+                    self.token_embeddings(), input)
 
                 if self.use_attention:
                     output, state, attn_alignments = \

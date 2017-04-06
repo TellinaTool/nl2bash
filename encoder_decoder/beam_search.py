@@ -1,8 +1,9 @@
 """
 Beam decoder with length normalization
-Source
+Adapted from source
 curl -LO 'https://gist.github.com/nikitakit/6ab61a73b86c50ad88d409bac3c3d09f'
 """
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function

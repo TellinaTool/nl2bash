@@ -25,6 +25,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         if not buckets else buckets[-1][0]
     params["max_target_length"] = FLAGS.max_tg_length \
         if not buckets else buckets[-1][1]
+    params["max_source_token_size"] = FLAGS.max_sc_token_size
+    params["max_target_token_size"] = FLAGS.max_tg_token_size
     params["dim"] = FLAGS.dim
     params["rnn_cell"] = FLAGS.rnn_cell
     params["num_layers"] = FLAGS.num_layers
@@ -35,6 +37,13 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["encoder_output_keep"] = FLAGS.encoder_output_keep
     params["decoder_input_keep"] = FLAGS.decoder_input_keep
     params["decoder_output_keep"] = FLAGS.decoder_output_keep
+
+    params["char_channel_dim"] = FLAGS.char_channel_dim
+    params["char_composition"] = FLAGS.char_composition
+    params["char_rnn_cell"] = FLAGS.char_rnn_cell
+    params["char_rnn_num_layers"] = FLAGS.char_rnn_num_layers
+    params["token_char_indices_path"] = FLAGS.token_char_indices_path
+
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
     params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
@@ -299,9 +308,7 @@ class NNModel(object):
         self.hyperparams = hyperparams
         self.buckets = buckets
 
-    @property
-    def use_sampled_softmax(self):
-        return self.num_samples > 0 and self.num_samples < self.target_vocab_size
+    # --- model architecture hyperparameters --- #
 
     @property
     def use_attention(self):
@@ -322,10 +329,6 @@ class NNModel(object):
     @property
     def dim(self):
         return self.hyperparams["dim"]
-
-    @property
-    def batch_size(self):
-        return self.hyperparams["batch_size"]
 
     @property
     def attention_input_keep(self):
@@ -356,14 +359,6 @@ class NNModel(object):
         return self.hyperparams["rnn_cell"]
 
     @property
-    def max_gradient_norm(self):
-        return self.hyperparams["max_gradient_norm"]
-
-    @property
-    def num_samples(self):
-        return self.hyperparams["num_samples"]
-
-    @property
     def num_layers(self):
         return self.hyperparams["num_layers"]
 
@@ -384,8 +379,62 @@ class NNModel(object):
         return self.hyperparams["max_target_length"]
 
     @property
+    def max_source_token_size(self):
+        return self.hyperparams["max_source_token_size"]
+
+    @property
+    def max_target_token_size(self):
+        return self.hyperparams["max_target_token_size"]
+
+    @property
+    def model_sig(self):
+        return self.hyperparams["model_sig"]
+
+    @property
+    def char_channel_dim(self):
+        return self.hyperparams["char_channel_dim"]
+
+    @property
+    def char_composition(self):
+        return self.hyperparams["char_composition"]
+
+    @property
+    def char_rnn_cell(self):
+        return self.hyperparams["char_rnn_cell"]
+
+    @property
+    def char_rnn_num_layers(self):
+        return self.hyperparams["char_rnn_num_layers"]
+
+    @property
+    def token_char_indices_path(self):
+        return self.hyperparams["token_char_indices_path"]
+
+    # -- optimization parameters -- #
+
+    @property
     def training_algorithm(self):
         return self.hyperparams["training_algorithm"]
+
+    @property
+    def use_sampled_softmax(self):
+        return self.num_samples > 0 and self.num_samples < self.target_vocab_size
+
+    @property
+    def num_samples(self):
+        return self.hyperparams["num_samples"]
+
+    @property
+    def batch_size(self):
+        return self.hyperparams["batch_size"]
+
+    @property
+    def max_gradient_norm(self):
+        return self.hyperparams["max_gradient_norm"]
+
+    @property
+    def margin(self):
+        return self.hyperparams["margin"]
 
     @property
     def decoding_algorithm(self):
@@ -414,16 +463,6 @@ class NNModel(object):
     @property
     def top_k(self):
         return self.hyperparams["top_k"]
-
-    @property
-    def model_sig(self):
-        return self.hyperparams["model_sig"]
-
-    @property
-    def margin(self):
-        return self.hyperparams["margin"]
-
-    # -- training parameters -- #
 
     @property
     def num_epochs(self):
