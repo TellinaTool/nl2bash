@@ -25,7 +25,6 @@ def is_simple(ast):
 
 def char_tokenizer(sentence, base_tokenizer=None):
     if base_tokenizer:
-        print(inspect.getargspec(base_tokenizer))
         # normalization is not needed for character model
         if 'lemmatization' in inspect.getargspec(base_tokenizer)[0]:
             tokens = base_tokenizer(sentence, lemmatization=False)
