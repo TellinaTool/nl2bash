@@ -103,7 +103,7 @@ class Encoder(graph_utils.NNModel):
         return output_embeddings
 
     def token_char_index_matrix(self):
-        return np.load(self.token_char_indices_path)
+        return np.load(self.sc_char_features_path)
 
 
 class RNNEncoder(Encoder):
