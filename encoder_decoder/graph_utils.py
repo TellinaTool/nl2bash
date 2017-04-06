@@ -156,7 +156,10 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
         model_subdir += '-{}'.format(FLAGS.attention_output_keep)
         model_subdir += '-{}'.format(FLAGS.beta)
     model_subdir += '-{}'.format(FLAGS.batch_size)
-    model_subdir += '-{}'.format(FLAGS.dim)
+    if FLAGS.sc_token:
+        model_subdir += '-{}'.format(FLAGS.sc_token_dim)
+    if FLAGS.sc_char:
+        model_subdir += '-{}'.format(FLAGS.sc_char_dim)
     model_subdir += '-{}'.format(FLAGS.num_layers)
     model_subdir += '-{}'.format(FLAGS.learning_rate)
     model_subdir += '-{}'.format(FLAGS.encoder_input_keep)
