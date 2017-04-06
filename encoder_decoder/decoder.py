@@ -6,6 +6,7 @@ import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
+import math
 import tensorflow as tf
 from tensorflow.python.util import nest
 
@@ -27,6 +28,30 @@ class Decoder(graph_utils.NNModel):
             locally_normalized=(
                 self.training_algorithm != "bso"
         )) if self.decoding_algorithm == "beam_search" else None
+
+        # variable sharing
+        self.char_embedding_vars = False
+        self.token_embedding_vars = False
+
+    def char_embeddings(self):
+        with tf.variable_scope("decoder_char_embeddings",
+                               reuse=self.char_embedding_vars):
+            sqrt3 = math.sqrt(3)
+            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
+            embeddings = tf.get_variable("embedding",
+                [self.target_vocab_size, self.dim], initializer=initializer)
+            self.char_embedding_vars = True
+            return embeddings
+
+    def token_embeddings(self):
+        with tf.variable_scope("decoder_token_embeddings",
+                               reuse=self.token_embedding_vars):
+            sqrt3 = math.sqrt(3)
+            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
+            embeddings = tf.get_variable("embedding",
+                [self.target_vocab_size, self.dim], initializer=initializer)
+            self.token_embedding_vars = True
+            return embeddings
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):

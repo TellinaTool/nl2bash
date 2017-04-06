@@ -68,6 +68,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size.")
     tf.app.flags.DEFINE_integer("max_sc_length", 100, "maximum length of the source token sequence.")
     tf.app.flags.DEFINE_integer("max_tg_length", 100, "maximum length of the target token sequence.")
+    tf.app.flags.DEFINE_integer("max_sc_token_size", 60, "maximum number of characters in a source token.")
+    tf.app.flags.DEFINE_integer("max_tg_token_size", 60, "maximum number of characters in a target token.")
     tf.app.flags.DEFINE_string("data_dir", os.path.join(os.path.dirname(__file__), "data"), "Data directory")
     tf.app.flags.DEFINE_boolean("sample_train", False, "Train on a subset of data if this is set to True.")
     tf.app.flags.DEFINE_integer("sample_size", 200, "Training data sample size")
@@ -150,3 +152,11 @@ def define_input_flags():
                                                  "otherwise train the model at token level.")
     tf.app.flags.DEFINE_boolean("char", False, "Set to True to train pure a character model, " +
                                                "otherwise train the model at token level.")
+
+    # channel network hyperparameters
+    tf.app.flags.DEFINE_integer("char_channel_dim", 300, "Dimension of each character embeddings.")
+    tf.app.flags.DEFINE_string("char_composition", 'rnn', "Specify the character to token composition function.")
+    tf.app.flags.DEFINE_integer("char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
+    tf.app.flags.DEFINE_integer("char_rnn_num_layers", 1, "Number of layers in the RNN cell used for the character model.")
+    tf.app.flags.DEFINE_string("sc_token_char_indices_path", '',
+                               "Path where the source token-char indices matrix is saved.")
