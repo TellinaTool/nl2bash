@@ -88,8 +88,8 @@ class Encoder(graph_utils.NNModel):
         """
         inputs = np.split(self.token_char_index_matrix(),
                          self.max_source_token_size, axis=1)
-        input_embeddings = [tf.nn.embedding_lookup(
-            self.char_embeddings(), input) for input in inputs]
+        input_embeddings = [tf.squeeze(tf.nn.embedding_lookup(
+            self.char_embeddings(), input)) for input in inputs]
         if self.char_composition == 'rnn':
             with tf.variable_scope("encoder_char_rnn_cell") as scope:
                 cell = graph_utils.create_multilayer_cell(

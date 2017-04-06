@@ -639,7 +639,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
             o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
     print("maximum token size in description = %d" % max_nl_token_size)
 
-    nl_token_char_indices = np.zeros([len(nl_vocab), max_nl_token_size])
+    nl_token_char_indices = np.zeros([len(nl_vocab), max_nl_token_size],
+                                     dtype=np.int32)
     for token_id in xrange(len(char_ids_list)):
         char_ids = char_ids_list[token_id]
         # padding character indices
