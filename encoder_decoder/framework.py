@@ -52,7 +52,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.output_projection_vars = False
 
         self.global_epoch = tf.Variable(0, trainable=False)
-        
+
         # Encoder.
         self.define_encoder()
 
@@ -257,7 +257,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def output_projection(self):
         with tf.variable_scope("output_projection",
                                reuse=self.output_projection_vars):
-            w = tf.get_variable("proj_w", [self.decoder.dim, self.target_vocab_size])
+            w = tf.get_variable("proj_w", [self.encoder.output_dim,
+                                           self.target_vocab_size])
             b = tf.get_variable("proj_b", [self.target_vocab_size])
             self.output_projection_vars = True
         return (w, b)
