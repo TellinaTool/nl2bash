@@ -87,8 +87,8 @@ def clean_dir(dir):
             print(e)
 
 
-def create_vocabulary(vocab_path, data, max_vocabulary_size,
-                      min_word_frequency, tokenizer=None, base_tokenizer=None):
+def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
+                      tokenizer=None, base_tokenizer=None, append_to_vocab=False):
     """Create vocabulary file (if it does not exist yet) from data file.
 
     Data file is assumed to contain one sentence per line. Each sentence is
@@ -101,11 +101,13 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size,
       vocab_path: path where the vocabulary will be created.
       data: list of lines each of which corresponds to a data point.
       max_vocabulary_size: limit on the size of the created vocabulary.
+      min_word_frequency: word frequency threshold below which a word is
+        goint to be marked as _UNK.
       tokenizer: a function to use to tokenize each data sentence;
         if None, basic_tokenizer will be used.
       base_tokenizer: base_tokenizer used for separating a string into chars.
-      min_word_frequency: word frequency threshold below which a word is
-        goint to be marked as _UNK.
+      append_to_vocab: set to true to append new words as unseen to the vocab
+      (used for simplifying testing sentences with unseen tokens).
     """
     if not tf.gfile.Exists(vocab_path):
         print("Creating vocabulary %s from data (%d)" %
@@ -132,34 +134,53 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size,
                     vocab[word] += 1
                 else:
                     vocab[word] = 1
-
-        sorted_vocab = {}
-        for v in vocab:
-            if vocab[v] >= min_word_frequency:
-                sorted_vocab[v] = vocab[v]
-            else:
-                # print("Infrequent token: %s"  % v)
-                sorted_vocab['__LF__' + v] = vocab[v]
-            if "char" in vocab_path:
-                print(v, vocab[v])
-        sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
-        start_vocab = _CHAR_START_VOCAB \
-            if "char" in vocab_path else _TOKEN_START_VOCAB
-        vocab = list(start_vocab)
-        for v in sorted_vocab:
-            if not v in start_vocab:
-                vocab.append(v)
-
-        if len(vocab) > max_vocabulary_size:
-            vocab = vocab[:max_vocabulary_size]
-        with tf.gfile.GFile(vocab_path, mode="wb") as vocab_file:
-            for w in vocab:
-                try:
-                    vocab_file.write(w + b"\n")
-                except Exception:
-                    vocab_file.write(w.encode('utf-8') + b"\n")
     else:
         print("Reading vocabulary %s from path" % vocab_path)
+        vocab, _ = initialize_vocabulary(vocab_path)
+        if append_to_vocab:
+            counter = 0
+            for line in data:
+                counter += 1
+                if counter % 1000 == 0:
+                    print("  processing line %d" % counter)
+                if type(line) is list:
+                    tokens = line
+                else:
+                    if base_tokenizer:
+                        tokens = tokenizer(line, base_tokenizer)
+                    else:
+                        tokens = tokenizer(line)
+                if not tokens:
+                    continue
+                for word in tokens:
+                    if not word in vocab:
+                        vocab['__LF__' + word] = 1
+
+    sorted_vocab = {}
+    for v in vocab:
+        if vocab[v] >= min_word_frequency:
+            sorted_vocab[v] = vocab[v]
+        else:
+            # print("Infrequent token: %s"  % v)
+            sorted_vocab['__LF__' + v] = vocab[v]
+    sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
+    start_vocab = _CHAR_START_VOCAB \
+        if "char" in vocab_path else _TOKEN_START_VOCAB
+    vocab = list(start_vocab)
+    for v in sorted_vocab:
+        print(v, sorted_vocab[v])
+        if not v in start_vocab:
+            vocab.append(v)
+
+    if len(vocab) > max_vocabulary_size:
+        vocab = vocab[:max_vocabulary_size]
+    with tf.gfile.GFile(vocab_path, mode="wb") as vocab_file:
+        for w in vocab:
+            try:
+                vocab_file.write(w + b"\n")
+            except Exception:
+                vocab_file.write(w.encode('utf-8') + b"\n")
+
 
 
 def initialize_vocabulary(vocab_path):
@@ -192,6 +213,117 @@ def initialize_vocabulary(vocab_path):
         raise ValueError("Vocabulary file %s not found.", vocab_path)
 
 
+def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
+                      base_tokenizer=None, with_arg_types=False, use_unk=True):
+    """Tokenize data file and turn into token-ids using given vocabulary file.
+
+    This function loads data line-by-line from data_path, calls the above
+    sentence_to_token_ids, and saves the result to tg_id_path. See comment
+    for sentence_to_token_ids on the details of token-ids format.
+
+    Args:
+      data: list of lines each of which corresponds to a data point.
+      tg_id_path: path where the file with token-ids will be created.
+      vocab_path: path to the vocabulary file.
+      tokenizer: a function to use to tokenize each sentence;
+        if None, basic_tokenizer will be used.
+      base_tokenizer: base tokenizer used for splitting strings into characters.
+      with_arg_types:
+    """
+    max_token_num = 0
+    if not tf.gfile.Exists(tg_id_path):
+        print("Tokenizing data (%d)" % len(data))
+        vocab, _ = initialize_vocabulary(vocab_path)
+        tokens_file = tf.gfile.GFile(tg_id_path, mode="w")
+        counter = 0
+        for line in data:
+            counter += 1
+            if counter % 1000 == 0:
+                print("  tokenizing line %d" % counter)
+            token_ids, _ = sentence_to_token_ids(line, vocab, tokenizer,
+                base_tokenizer, with_arg_types, use_unk=use_unk)
+            if len(token_ids) > max_token_num:
+                max_token_num = len(token_ids)
+            tokens_file.write(" ".join([str(tok) for tok in token_ids])
+                              + "\n")
+        tokens_file.close()
+    return max_token_num
+
+
+def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
+                          with_arg_type=False, use_unk=True):
+    """Convert a string to a list of integers representing token-ids.
+
+    For example, a sentence "I have a dog" may become tokenized into
+    ["I", "have", "a", "dog"] and with vocabulary {"I": 1, "have": 2,
+    "a": 4, "dog": 7"} this function will return [1, 2, 4, 7].
+
+    Args:
+      sentence: The sentence in bytes format to convert to token-ids.
+      vocabulary: A dictionary mapping tokens to integers.
+      tokenizer: A function to use to tokenize each sentence;
+        if None, basic_tokenizer will be used.
+
+      with_arg_type: If the vocabulary contains argument type (used for
+      deciding which type of UNK tokens to use).
+      use_unk: Set to true to replace the low-frequency tokens with UNK.
+
+    Returns:
+      a list of integers, the token-ids for the sentence.
+    """
+    if type(sentence) is list:
+        words = sentence
+        entities = None
+        with_arg_type = True
+    else:
+        if base_tokenizer:
+            words = tokenizer(sentence, base_tokenizer)
+            entities = None
+        else:
+            words, entities = tokenizer(sentence)
+
+    token_ids = []
+    for w in words:
+        if w in vocabulary:
+            token_ids.append(vocabulary[w])
+        else:
+            # Unknown token
+            if not use_unk and ('__LF__' + w) in vocabulary:
+                token_ids.append(vocabulary['__LF__' + w])
+            else:
+                if with_arg_type:
+                    kind = w.split('_')[0].lower()
+                    if kind == "flag":
+                        token_ids.append(FLAG_ID)
+                    elif kind == "headcommand":
+                        token_ids.append(UTL_ID)
+                    else:
+                        token_ids.append(ARG_ID)
+                else:
+                    token_ids.append(UNK_ID)
+            if w.startswith("FLAG_"):
+                print(w, sentence)
+
+    return token_ids, entities
+
+
+def token_to_char_ids(token, vocabulary):
+    """
+    Convert a token to a list of integers representing character-ids.
+    """
+    char_ids = []
+    for c in token:
+        if c in vocabulary:
+            char_ids.append(vocabulary[c])
+        else:
+            if c == ' ':
+                char_ids.append(vocabulary[constants._SPACE])
+            else:
+                # Unknown character
+                char_ids.append(CUNK_ID)
+    return char_ids
+
+
 def token_ids_to_sentences(inputs, rev_vocab, head_appended=False,
                            char_model=False):
     """
@@ -218,109 +350,6 @@ def token_ids_to_sentences(inputs, rev_vocab, head_appended=False,
             sentences.append(" ".join([tf.compat.as_str(rev_vocab[output])
                                        for output in outputs]))
     return sentences
-
-
-def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
-                          with_arg_type=False):
-    """Convert a string to a list of integers representing token-ids.
-
-    For example, a sentence "I have a dog" may become tokenized into
-    ["I", "have", "a", "dog"] and with vocabulary {"I": 1, "have": 2,
-    "a": 4, "dog": 7"} this function will return [1, 2, 4, 7].
-
-    Args:
-      sentence: the sentence in bytes format to convert to token-ids.
-      vocabulary: a dictionary mapping tokens to integers.
-      tokenizer: a function to use to tokenize each sentence;
-        if None, basic_tokenizer will be used.
-
-    Returns:
-      a list of integers, the token-ids for the sentence.
-    """
-    if type(sentence) is list:
-        words = sentence
-        entities = None
-        with_arg_type = True
-    else:
-        if base_tokenizer:
-            words = tokenizer(sentence, base_tokenizer)
-            entities = None
-        else:
-            words, entities = tokenizer(sentence)
-
-    token_ids = []
-    for w in words:
-        if w in vocabulary:
-            token_ids.append(vocabulary[w])
-        else:
-            # Unknown token
-            if with_arg_type:
-                kind = w.split('_')[0].lower()
-                if kind == "flag":
-                    token_ids.append(FLAG_ID)
-                elif kind == "headcommand":
-                    token_ids.append(UTL_ID)
-                else:
-                    token_ids.append(ARG_ID)
-            else:
-                token_ids.append(UNK_ID)
-            if w.startswith("FLAG_"):
-                print(w, sentence)
-
-    return token_ids, entities
-
-
-def token_to_char_ids(token, vocabulary):
-    """
-    Convert a token to a list of integers representing character-ids.
-    """
-    char_ids = []
-    for c in token:
-        if c in vocabulary:
-            char_ids.append(vocabulary[c])
-        else:
-            if c == ' ':
-                char_ids.append(vocabulary[constants._SPACE])
-            else:
-                # Unknown character
-                char_ids.append(CUNK_ID)
-    return char_ids
-
-
-def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
-                      base_tokenizer=None, with_arg_types=False):
-    """Tokenize data file and turn into token-ids using given vocabulary file.
-
-    This function loads data line-by-line from data_path, calls the above
-    sentence_to_token_ids, and saves the result to tg_id_path. See comment
-    for sentence_to_token_ids on the details of token-ids format.
-
-    Args:
-      data: list of lines each of which corresponds to a data point.
-      tg_id_path: path where the file with token-ids will be created.
-      vocab_path: path to the vocabulary file.
-      tokenizer: a function to use to tokenize each sentence;
-        if None, basic_tokenizer will be used.
-      base_tokenizer: base tokenizer used for splitting strings into characters.
-    """
-    max_token_num = 0
-    if not tf.gfile.Exists(tg_id_path):
-        print("Tokenizing data (%d)" % len(data))
-        vocab, _ = initialize_vocabulary(vocab_path)
-        tokens_file = tf.gfile.GFile(tg_id_path, mode="w")
-        counter = 0
-        for line in data:
-            counter += 1
-            if counter % 1000 == 0:
-                print("  tokenizing line %d" % counter)
-            token_ids, _ = sentence_to_token_ids(
-                line, vocab, tokenizer, base_tokenizer, with_arg_types)
-            if len(token_ids) > max_token_num:
-                max_token_num = len(token_ids)
-            tokens_file.write(" ".join([str(tok) for tok in token_ids])
-                              + "\n")
-        tokens_file.close()
-    return max_token_num
 
 
 def fold_split_bucket(data_set, num_folds):
@@ -376,10 +405,19 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
             if ("bash" in data_dir and not ".cm" in vocab_path) else 0
         create_vocabulary(vocab_path, data.train, vocab_size,
                           min_word_frequency=min_word_freq)
+        if suffix.endswith('.nl'):
+            create_vocabulary(vocab_path, data.dev, vocab_size,
+                    min_word_frequency=min_word_freq, append_to_vocab=True)
+            create_vocabulary(vocab_path, data.test, vocab_size,
+                    min_word_frequency=min_word_freq, append_to_vocab=True)
         for split in ['train', 'dev', 'test']:
             data_path = os.path.join(data_dir, split)
-            data_to_token_ids(
-                getattr(data, split), data_path + suffix, vocab_path)
+            data_to_token_ids(getattr(data, split), data_path + suffix,
+                              vocab_path)
+            if suffix.endswith('.nl') or suffix.endswith('.cm'):
+                data_to_token_ids(getattr(data, split),
+                                  data_path + suffix + '.full',
+                                  vocab_path, use_unk=False)
     else:
         # save string data
         for split in ['train', 'dev', 'test']:
@@ -439,7 +477,8 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
     print("maximum num tokens in command = %d" % max_cm_token_len)
 
 
-def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
+def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size,
+                 nl_max_token_size=-1, cm_max_token_size=-1):
 
     def add_to_set(nl_data, cm_data, split):
         with_parent = True
@@ -578,26 +617,37 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     print("maximum num pruned AST search steps = %d" % max_cm_seq_pruned_len)
 
     # compute character representation of tokens
-    nl_vocab, _ = initialize_vocabulary(nl_vocab_path)
-    nl_char_vocab, _ = initialize_vocabulary(nl_char_vocab_path)
-    nl_decomposed_vocab_path = os.path.join(data_dir,
+    if nl_max_token_size > 0:
+        nl_vocab, _ = initialize_vocabulary(nl_vocab_path)
+        nl_char_vocab, _ = initialize_vocabulary(nl_char_vocab_path)
+        nl_decomposed_vocab_path = os.path.join(data_dir,
                                 "vocab%d.nl.char.decompose" % nl_vocab_size)
-    max_nl_token_size = 0
-    with open(nl_decomposed_vocab_path, 'w') as o_f:
-        for token, _ in sorted(nl_vocab.items(), key=lambda x:x[1]):
-            if token.startswith("__SP__"):
-                # special tokens are non-decomposable
-                char_ids = [CATOM_ID]
-            else:
-                if token.startswith("__LF__"):
-                    # remove prefix for low-frequency words
-                    char_ids = token_to_char_ids(token[6:], nl_char_vocab)
+        nl_token_char_indices_path = os.path.join(data_dir,
+                            "vocab%d.nl.char.decompose.mat" % nl_vocab_size)
+        max_nl_token_size = 0
+        nl_token_char_indices = np.zeros([len(nl_vocab), nl_max_token_size])
+        with open(nl_decomposed_vocab_path, 'w') as o_f:
+            token_id = 0
+            for token, _ in sorted(nl_vocab.items(), key=lambda x:x[1]):
+                if token.startswith("__SP__"):
+                    # special tokens are non-decomposable
+                    char_ids = [CATOM_ID]
                 else:
-                    char_ids = token_to_char_ids(token, nl_char_vocab)
-                if len(char_ids) > max_nl_token_size:
-                    max_nl_token_size = len(char_ids)
-            o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
-    print("maximum token size in description = %d" % max_nl_token_size)
+                    if token.startswith("__LF__"):
+                        # remove prefix for low-frequency words
+                        char_ids = token_to_char_ids(token[6:], nl_char_vocab)
+                    else:
+                        char_ids = token_to_char_ids(token, nl_char_vocab)
+                    if len(char_ids) > max_nl_token_size:
+                        max_nl_token_size = len(char_ids)
+                # padding character indices
+                padded_char_ids = [CPAD_ID] * (nl_max_token_size - len(char_ids)) \
+                    + char_ids
+                for j in xrange(len(padded_char_ids)):
+                    nl_token_char_indices[token_id][j] = c_id
+                o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
+        np.save(nl_token_char_indices_path, nl_token_char_indices)
+        print("maximum token size in description = %d" % max_nl_token_size)
 
 
 def prepare_data(FLAGS):

@@ -10,7 +10,7 @@ import six
 import tensorflow as tf
 
 def RNNModel(cell, inputs, initial_state=None, dtype=None,
-        sequence_length=None, num_layers=None, scope=None):
+        sequence_length=None, num_cell_layers=None, scope=None):
   """Creates a recurrent neural network specified by RNNCell `cell`.
 
   The simplest form of RNN network generated is:
@@ -49,6 +49,8 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
       initial_state is not provided.
     sequence_length: Specifies the length of each sequence in inputs.
       An int32 or int64 vector (tensor) size `[batch_size]`, values in `[0, T)`.
+    num_cell_layers: Num of layers of the RNN cell. (Mainly used for generating
+      output state representations for multi-layer RNN cells.)
     scope: VariableScope for the created subgraph; defaults to "RNN".
 
   Returns:
@@ -129,19 +131,19 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
         (output, state) = call_cell()
 
       outputs.append(output)
-      if num_layers > 1:
+      if num_cell_layers > 1:
         if _is_sequence(state):
             raise NotImplementedError
         else:
-            states.append(tf.split(1, num_layers, state))
+            states.append(tf.split(1, num_cell_layers, state))
       else:
         states.append(state)
     return (outputs, states)
 
 
-def BiRNNModel(cell_fw, cell_bw, inputs,
-                      initial_state_fw=None, initial_state_bw=None, dtype=None,
-                      sequence_length=None, num_layers=None, scope=None):
+def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
+               initial_state_bw=None, dtype=None, sequence_length=None,
+               num_cell_layers=None, scope=None):
   """Creates a bidirectional recurrent neural network.
 
   Similar to the unidirectional case above (rnn) but takes input and builds
@@ -169,6 +171,8 @@ def BiRNNModel(cell_fw, cell_bw, inputs,
       either of the initial states are not provided.
     sequence_length: (optional) An int32/int64 vector, size `[batch_size]`,
       containing the actual lengths for each of the sequences.
+    num_cell_layers: Num of layers of the RNN cell. (Mainly used for generating
+      output state representations for multi-layer RNN cells.)
     scope: VariableScope for the created subgraph; defaults to "BiRNN"
 
   Returns:
