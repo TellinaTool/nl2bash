@@ -182,7 +182,6 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                 vocab_file.write(w.encode('utf-8') + b"\n")
 
 
-
 def initialize_vocabulary(vocab_path):
     """Initialize vocabulary from file.
 
@@ -617,6 +616,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
 
     # compute character representation of tokens
     nl_vocab, _ = initialize_vocabulary(nl_vocab_path)
+    print(len(nl_vocab))
     nl_char_vocab, _ = initialize_vocabulary(nl_char_vocab_path)
     nl_decomposed_vocab_path = os.path.join(data_dir,
                             "vocab%d.nl.char.decompose" % nl_vocab_size)
