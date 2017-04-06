@@ -166,7 +166,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                         sorted_vocab.append('__LF__' + word)
 
     start_vocab = _CHAR_START_VOCAB \
-            if "char" in vocab_path else _TOKEN_START_VOCAB
+        if "char" in vocab_path else _TOKEN_START_VOCAB
     vocab = list(start_vocab)
     for v in sorted_vocab:
         if not v in start_vocab:
@@ -477,8 +477,7 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
     print("maximum num tokens in command = %d" % max_cm_token_len)
 
 
-def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size,
-                 nl_max_token_size=-1, cm_max_token_size=-1):
+def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
 
     def add_to_set(nl_data, cm_data, split):
         with_parent = True
@@ -617,38 +616,41 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size,
     print("maximum num pruned AST search steps = %d" % max_cm_seq_pruned_len)
 
     # compute character representation of tokens
-    if nl_max_token_size > 0:
-        nl_vocab, _ = initialize_vocabulary(nl_vocab_path)
-        nl_char_vocab, _ = initialize_vocabulary(nl_char_vocab_path)
-        nl_decomposed_vocab_path = os.path.join(data_dir,
-                                "vocab%d.nl.char.decompose" % nl_vocab_size)
-        nl_token_char_indices_path = os.path.join(data_dir,
-                            "vocab%d.nl.char.decompose.mat" % nl_vocab_size)
-        max_nl_token_size = 0
-        nl_token_char_indices = np.zeros([len(nl_vocab), nl_max_token_size])
-        with open(nl_decomposed_vocab_path, 'w') as o_f:
-            token_id = 0
-            for token, _ in sorted(nl_vocab.items(), key=lambda x:x[1]):
-                if token.startswith("__SP__"):
-                    # special tokens are non-decomposable
-                    char_ids = [CATOM_ID]
+    nl_vocab, _ = initialize_vocabulary(nl_vocab_path)
+    nl_char_vocab, _ = initialize_vocabulary(nl_char_vocab_path)
+    nl_decomposed_vocab_path = os.path.join(data_dir,
+                            "vocab%d.nl.char.decompose" % nl_vocab_size)
+    max_nl_token_size = 0
+    char_ids_list = []
+    with open(nl_decomposed_vocab_path, 'w') as o_f:
+        for token, _ in sorted(nl_vocab.items(), key=lambda x:x[1]):
+            if token.startswith("__SP__"):
+                # special tokens are non-decomposable
+                char_ids = [CATOM_ID]
+            else:
+                if token.startswith("__LF__"):
+                    # remove prefix for low-frequency words
+                    char_ids = token_to_char_ids(token[6:], nl_char_vocab)
                 else:
-                    if token.startswith("__LF__"):
-                        # remove prefix for low-frequency words
-                        char_ids = token_to_char_ids(token[6:], nl_char_vocab)
-                    else:
-                        char_ids = token_to_char_ids(token, nl_char_vocab)
-                    if len(char_ids) > max_nl_token_size:
-                        max_nl_token_size = len(char_ids)
-                # padding character indices
-                padded_char_ids = [CPAD_ID] * (nl_max_token_size - len(char_ids)) \
-                    + char_ids
-                for j in xrange(len(padded_char_ids)):
-                    nl_token_char_indices[token_id][j] = c_id
-                o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
-        np.save(nl_token_char_indices_path, nl_token_char_indices)
-        print("maximum token size in description = %d" % max_nl_token_size)
+                    char_ids = token_to_char_ids(token, nl_char_vocab)
+                if len(char_ids) > max_nl_token_size:
+                    max_nl_token_size = len(char_ids)
+            char_ids_list.append(char_ids)
+            o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
+    print("maximum token size in description = %d" % max_nl_token_size)
 
+    nl_token_char_indices_path = os.path.join(data_dir,
+                            "vocab%d.nl.char.decompose.mat" % nl_vocab_size)
+    nl_token_char_indices = np.zeros([len(nl_vocab), max_nl_token_size])
+    for token_id in xrange(len(char_ids_list)):
+        char_ids = char_ids_list[token_id]
+        # padding character indices
+        padded_char_ids = [CPAD_ID] * (max_nl_token_size - len(char_ids)) \
+            + char_ids
+        for j in xrange(len(padded_char_ids)):
+            nl_token_char_indices[token_id][j] = c_id
+    np.save(nl_token_char_indices_path, nl_token_char_indices)
+    
 
 def prepare_data(FLAGS):
     """Get data into data_dir, create vocabularies and tokenize data.
