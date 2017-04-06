@@ -44,7 +44,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["char_composition"] = FLAGS.char_composition
     params["char_rnn_cell"] = FLAGS.char_rnn_cell
     params["char_rnn_num_layers"] = FLAGS.char_rnn_num_layers
-    params["token_char_indices_path"] = FLAGS.token_char_indices_path
+    params["sc_char_features_path"] = os.path.join(FLAGS.data_dir,
+        "vocab%d.nl.char.decompose.npy" % FLAGS.sc_vocab_size)
 
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
@@ -425,8 +426,8 @@ class NNModel(object):
         return self.hyperparams["char_rnn_num_layers"]
 
     @property
-    def token_char_indices_path(self):
-        return self.hyperparams["token_char_indices_path"]
+    def sc_char_features_path(self):
+        return self.hyperparams["sc_char_features_path"]
 
     # -- optimization parameters -- #
 
