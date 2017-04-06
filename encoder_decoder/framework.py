@@ -48,16 +48,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.learning_rate_decay_op = self.learning_rate.assign(
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
+        # variable sharing
+        self.output_projection_vars = False
+
+        self.global_epoch = tf.Variable(0, trainable=False)
+        
         # Encoder.
         self.define_encoder()
 
         # Decoder.
         self.define_decoder(self.encoder.output_dim)
-        
-        # variable sharing
-        self.output_projection_vars = False
-
-        self.global_epoch = tf.Variable(0, trainable=False)
 
         self.define_graph(forward_only)
 
