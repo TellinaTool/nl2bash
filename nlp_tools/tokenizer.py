@@ -99,7 +99,7 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
             # if i == 0 and word[0].isupper() \
             #         and len(word) > 1 and word[1:].islower():
             #     word = word.lower()
-            if len(word) > 1 and constants.is_english_word(word) \
+            if len(word) > 1 and (constants.is_english_word(word) or word.isalnum()) \
                     and not constants.with_quotation(word):
                 word = word.lower()
 
