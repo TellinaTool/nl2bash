@@ -24,7 +24,7 @@ def is_simple(ast):
 def char_tokenizer(sentence, base_tokenizer=None):
     if base_tokenizer:
         # normalization is not needed for character model
-        tokens = base_tokenizer(sentence)
+        tokens = base_tokenizer(sentence, lemmatization=False)
     else:
         tokens = [sentence]
     chars = []
