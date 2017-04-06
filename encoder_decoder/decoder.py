@@ -13,9 +13,10 @@ from tensorflow.python.util import nest
 from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
-    def __init__(self, hyperparameters, output_projection=None):
+    def __init__(self, hyperparameters, dim, output_projection=None):
         super(Decoder, self).__init__(hyperparameters)
 
+        self.dim = dim
         self.output_projection = output_projection
 
         self.beam_decoder = beam_search.BeamDecoder(

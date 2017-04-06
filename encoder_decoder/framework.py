@@ -47,6 +47,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                          trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
+
+        # Encoder.
+        self.define_encoder()
+
+        # Decoder.
+        self.define_decoder(self.encoder.output_dim)
         
         # variable sharing
         self.output_projection_vars = False
@@ -102,12 +108,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.original_decoder_inputs.append(
                     tf.placeholder(tf.int32, shape=[None],
                                    name="original_decoder{0}".format(i)))
-
-        # Encoder.
-        self.define_encoder()
-
-        # Decoder.
-        self.define_decoder()
 
         # Compute training outputs and losses in the forward direction.
         if self.buckets:
@@ -184,7 +184,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs)
         if self.use_attention:
-            top_states = [tf.reshape(e, [-1, 1, self.dim])
+            top_states = [tf.reshape(e, [-1, 1, self.encoder.output_dim])
                           for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
         else:
@@ -236,9 +236,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         losses = encoder_decoder_loss + attention_loss
 
         # store encoder/decoder output states
-        self.encoder_outputs = tf.concat(1, [tf.reshape(e_o, [-1, 1, self.dim])
+        self.encoder_outputs = tf.concat(1, [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
                                              for e_o in encoder_outputs])
-        self.decoder_outputs = tf.concat(1, [tf.reshape(d_o, [-1, 1, self.dim])
+        self.decoder_outputs = tf.concat(1, [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                                              for d_o in outputs])
 
         return output_symbols, output_logits, losses, attn_alignment
@@ -249,7 +249,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.encoder = None
 
 
-    def define_decoder(self):
+    def define_decoder(self, dim):
         """Placeholder function."""
         self.decoder = None
 
@@ -257,7 +257,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def output_projection(self):
         with tf.variable_scope("output_projection",
                                reuse=self.output_projection_vars):
-            w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
+            w = tf.get_variable("proj_w", [self.decoder.dim, self.target_vocab_size])
             b = tf.get_variable("proj_b", [self.target_vocab_size])
             self.output_projection_vars = True
         return (w, b)

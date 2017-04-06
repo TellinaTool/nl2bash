@@ -27,7 +27,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         if not buckets else buckets[-1][1]
     params["max_source_token_size"] = FLAGS.max_sc_token_size
     params["max_target_token_size"] = FLAGS.max_tg_token_size
-    params["dim"] = FLAGS.dim
     params["rnn_cell"] = FLAGS.rnn_cell
     params["num_layers"] = FLAGS.num_layers
     params["max_gradient_norm"] = FLAGS.max_gradient_norm
@@ -38,7 +37,10 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["decoder_input_keep"] = FLAGS.decoder_input_keep
     params["decoder_output_keep"] = FLAGS.decoder_output_keep
 
-    params["char_channel_dim"] = FLAGS.char_channel_dim
+    params["sc_token"] = FLAGS.sc_token
+    params["sc_char"] = FLAGS.sc_char
+    params["sc_token_dim"] = FLAGS.sc_token_dim
+    params["sc_char_dim"] = FLAGS.sc_char_dim
     params["char_composition"] = FLAGS.char_composition
     params["char_rnn_cell"] = FLAGS.char_rnn_cell
     params["char_rnn_num_layers"] = FLAGS.char_rnn_num_layers
@@ -327,10 +329,6 @@ class NNModel(object):
         return self.hyperparams["decoder_topology"]
 
     @property
-    def dim(self):
-        return self.hyperparams["dim"]
-
-    @property
     def attention_input_keep(self):
         return self.hyperparams["attention_input_keep"]
 
@@ -391,8 +389,24 @@ class NNModel(object):
         return self.hyperparams["model_sig"]
 
     @property
-    def char_channel_dim(self):
-        return self.hyperparams["char_channel_dim"]
+    def sc_token(self):
+        return self.hyperparams["sc_token"]
+
+    @property
+    def sc_char(self):
+        return self.hyperparams["sc_char"]
+
+    @property
+    def sc_token_dim(self):
+        """
+        The layer dimension of each model depends on the model architecture and
+        the channels used.
+        """
+        return self.hyperparams["sc_token_dim"]
+
+    @property
+    def sc_char_dim(self):
+        return self.hyperparams["sc_char_dim"]
 
     @property
     def char_composition(self):
