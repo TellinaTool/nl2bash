@@ -62,11 +62,11 @@ _TOKEN_START_VOCAB = [_PAD, _EOS, _UNK, _ARG_UNK, _UTL_UNK, _FLAG_UNK,
                 normalizer._H_NO_EXPAND, normalizer._V_NO_EXPAND, _GO, _ROOT]
 
 # Special char symbols
-_CPAD = "__RS__CPAD"
-_CEOS = "__RS__CEOS"
-_CUNK = "__RS__CUNK"
-_CATOM = "__RS__CATOM"
-_CGO = "__RS__CGO"
+_CPAD = "__SP__CPAD"
+_CEOS = "__SP__CEOS"
+_CUNK = "__SP__CUNK"
+_CATOM = "__SP__CATOM"
+_CGO = "__SP__CGO"
 
 CPAD_ID = 0
 CEOS_ID = 1
