@@ -156,7 +156,7 @@ def define_input_flags():
     # channel network hyperparameters
     tf.app.flags.DEFINE_integer("char_channel_dim", 300, "Dimension of each character embeddings.")
     tf.app.flags.DEFINE_string("char_composition", 'rnn', "Specify the character to token composition function.")
-    tf.app.flags.DEFINE_integer("char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
+    tf.app.flags.DEFINE_string("char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
     tf.app.flags.DEFINE_integer("char_rnn_num_layers", 1, "Number of layers in the RNN cell used for the character model.")
     tf.app.flags.DEFINE_string("sc_token_char_indices_path", '',
                                "Path where the source token-char indices matrix is saved.")

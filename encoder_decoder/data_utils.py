@@ -137,6 +137,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
     else:
         print("Reading vocabulary %s from path" % vocab_path)
         vocab, _ = initialize_vocabulary(vocab_path)
+        print(vocab)
         if append_to_vocab:
             counter = 0
             for line in data:
@@ -168,7 +169,6 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
         if "char" in vocab_path else _TOKEN_START_VOCAB
     vocab = list(start_vocab)
     for v in sorted_vocab:
-        print(v, sorted_vocab[v])
         if not v in start_vocab:
             vocab.append(v)
 
