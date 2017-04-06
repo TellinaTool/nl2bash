@@ -7,6 +7,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import inspect
+
 from bashlex import bash, nast, normalizer
 from nlp_tools import constants
 
@@ -23,8 +25,12 @@ def is_simple(ast):
 
 def char_tokenizer(sentence, base_tokenizer=None):
     if base_tokenizer:
+        print(inspect.getargspec(base_tokenizer))
         # normalization is not needed for character model
-        tokens = base_tokenizer(sentence, lemmatization=False)
+        if 'lemmatization' in inspect.getargspec(base_tokenizer)[0]:
+            tokens = base_tokenizer(sentence, lemmatization=False)
+        else:
+            tokens = base_tokenizer(sentence)
     else:
         tokens = [sentence]
     chars = []
