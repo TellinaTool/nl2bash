@@ -23,8 +23,8 @@ from bashlex.nast import *
 from grammar.lookup import ManPageLookUp
 from nlp_tools import constants
 
-_H_NO_EXPAND = "<H_NO_EXPAND>"
-_V_NO_EXPAND = "<V_NO_EXPAND>"
+_H_NO_EXPAND = "__SP__H_NO_EXPAND"
+_V_NO_EXPAND = "__SP__V_NO_EXPAND"
 
 man_lookup = ManPageLookUp([os.path.join(
     os.path.dirname(__file__), "..", "grammar", "primitive_cmds_grammar.json")])

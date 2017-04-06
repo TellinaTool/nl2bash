@@ -1,6 +1,6 @@
 import re
 
-_SPACE = "_SPACE"
+_SPACE = "__SP__SPACE"
 
 _NUMBER = "_NUMBER"
 _SIZE = "_SIZE"
