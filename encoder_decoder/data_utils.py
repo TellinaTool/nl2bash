@@ -275,8 +275,11 @@ def token_to_char_ids(token, vocabulary):
         if c in vocabulary:
             char_ids.append(vocabulary[c])
         else:
-            # Unknown character
-            char_ids.append(CUNK_ID)
+            if c == ' ':
+                char_ids.append(vocabulary[constants._SPACE])
+            else:
+                # Unknown character
+                char_ids.append(CUNK_ID)
     return char_ids
 
 
@@ -579,9 +582,13 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
         for token, _ in sorted(nl_vocab.items(), key=lambda x:x[1]):
             if token.startswith("__SP__"):
                 # special tokens are non-decomposable
-                char_ids = [_CATOM]
+                char_ids = [CATOM_ID]
             else:
-                char_ids = token_to_char_ids(token, nl_char_vocab)
+                if token.startswith("__LF__"):
+                    # remove prefix for low-frequency words
+                    char_ids = token_to_char_ids(token[6:], nl_char_vocab)
+                else:
+                    char_ids = token_to_char_ids(token, nl_char_vocab)
             o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
 
 
