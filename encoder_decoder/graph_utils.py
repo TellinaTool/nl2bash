@@ -145,6 +145,10 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
     model_subdir += '-{}'.format(FLAGS.encoder_topology)
     model_subdir += '-{}'.format(FLAGS.rnn_cell)
     model_subdir += '-{}'.format(FLAGS.training_algorithm)
+    if FLAGS.sc_token:
+        model_subdir += '-{T}'
+    if FLAGS.sc_char:
+        model_subdir += '-{C}'
     if FLAGS.use_attention:
         model_subdir += '-attention'
         model_subdir += '-{}'.format(FLAGS.attention_input_keep)
