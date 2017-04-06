@@ -140,12 +140,13 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size,
             else:
                 # print("Infrequent token: %s"  % v)
                 sorted_vocab['__LF__' + v] = vocab[v]
+            if "char" in vocab_path:
+                print(v, vocab[v])
         sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
         start_vocab = _CHAR_START_VOCAB \
             if "char" in vocab_path else _TOKEN_START_VOCAB
         vocab = list(start_vocab)
         for v in sorted_vocab:
-            print(v, sorted_vocab[v])
             if not v in start_vocab:
                 vocab.append(v)
 
