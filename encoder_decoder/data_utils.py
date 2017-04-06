@@ -37,15 +37,15 @@ from bashlex import normalizer, data_tools
 from nlp_tools import constants, tokenizer, slot_filling
 
 # Special token symbols
-_PAD = "_PAD"
-_EOS = "_EOS"
-_UNK = "_UNK"
-_ARG_UNK = "ARGUMENT_UNK"
-_UTL_UNK = "HEADCOMMAND_UNK"
-_FLAG_UNK = "FLAG_UNK"
+_PAD = "__SP__PAD"
+_EOS = "__SP__EOS"
+_UNK = "__SP__UNK"
+_ARG_UNK = "__SP__ARGUMENT_UNK"
+_UTL_UNK = "__SP__HEADCOMMAND_UNK"
+_FLAG_UNK = "__SP__FLAG_UNK"
 
-_GO = "_GO"                    # seq2seq start symbol
-_ROOT = "ROOT_"                # seq2tree start symbol
+_GO = "__SP__GO"                    # seq2seq start symbol
+_ROOT = "__SP__ROOT"                # seq2tree start symbol
 
 PAD_ID = 0
 EOS_ID = 1
@@ -62,17 +62,19 @@ _TOKEN_START_VOCAB = [_PAD, _EOS, _UNK, _ARG_UNK, _UTL_UNK, _FLAG_UNK,
                 normalizer._H_NO_EXPAND, normalizer._V_NO_EXPAND, _GO, _ROOT]
 
 # Special char symbols
-_CPAD = "_CPAD"
-_CEOS = "_CEOS"
-_CUNK = "_CUNK"
-_CGO = "_CGO"
+_CPAD = "__RS__CPAD"
+_CEOS = "__RS__CEOS"
+_CUNK = "__RS__CUNK"
+_CATOM = "__RS__CATOM"
+_CGO = "__RS__CGO"
 
 CPAD_ID = 0
 CEOS_ID = 1
 CUNK_ID = 2
+CATOM_ID = 3
 CGO_ID = 4
 
-_CHAR_START_VOCAB = [_CPAD, _CEOS, _CUNK, _CGO]
+_CHAR_START_VOCAB = [_CPAD, _CEOS, _CUNK, _CATOM, _CGO]
 
 
 def clean_dir(dir):
@@ -574,8 +576,12 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     nl_decomposed_vocab_path = os.path.join(data_dir,
                                 "vocab%d.nl.char.decompose" % nl_vocab_size)
     with open(nl_decomposed_vocab_path, 'w') as o_f:
-        for token in nl_vocab:
-            char_ids = token_to_char_ids(token, nl_char_vocab)
+        for token, _ in sorted(nl_vocab.items(), key=lambda x:x[1]):
+            if token.startswith("__SP__"):
+                # special tokens are non-decomposable
+                char_ids = [_CATOM]
+            else:
+                char_ids = token_to_char_ids(token, nl_char_vocab)
             o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
 
 
