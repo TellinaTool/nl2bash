@@ -147,7 +147,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
     else:
         print("Reading vocabulary %s from path" % vocab_path)
         vocab, _ = initialize_vocabulary(vocab_path)
-        sorted_vocab = sorted(vocab.items, key=lambda x:x[1])
+        sorted_vocab = sorted(vocab.items(), key=lambda x:x[1])
         if append_to_vocab:
             counter = 0
             for line in data:
