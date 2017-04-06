@@ -371,8 +371,8 @@ def read_raw_data(data_dir):
 def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
     if isinstance(data.train[0], list):
         # save indexed token sequences
-        min_word_freq = 2 \
-            if ("bash" in data_dir and not ".cm" in vocab_path) else 0
+        min_word_freq = 2 if ("bash" in data_dir and not ".cm" in vocab_path
+                              and not ".char" in vocab_path) else 0
         create_vocabulary(vocab_path, data.train, vocab_size,
                           min_word_frequency=min_word_freq)
         for split in ['train', 'dev', 'test']:
@@ -581,6 +581,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
     nl_char_vocab, _ = initialize_vocabulary(nl_char_vocab_path)
     nl_decomposed_vocab_path = os.path.join(data_dir,
                                 "vocab%d.nl.char.decompose" % nl_vocab_size)
+    max_nl_token_size = 0
     with open(nl_decomposed_vocab_path, 'w') as o_f:
         for token, _ in sorted(nl_vocab.items(), key=lambda x:x[1]):
             if token.startswith("__SP__"):
@@ -592,7 +593,10 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                     char_ids = token_to_char_ids(token[6:], nl_char_vocab)
                 else:
                     char_ids = token_to_char_ids(token, nl_char_vocab)
+                if len(char_ids) > max_nl_token_size:
+                    max_nl_token_size = len(char_ids)
             o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
+    print("maximum token size in description = %d" % max_nl_token_size)
 
 
 def prepare_data(FLAGS):
