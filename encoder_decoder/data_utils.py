@@ -162,7 +162,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                 if not tokens:
                     continue
                 for word in tokens:
-                    if not word in vocab:
+                    if not word in vocab and not ('__LF__' + word) in vocab:
                         sorted_vocab.append('__LF__' + word)
 
     start_vocab = _CHAR_START_VOCAB \
@@ -616,7 +616,6 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
 
     # compute character representation of tokens
     nl_vocab, _ = initialize_vocabulary(nl_vocab_path)
-    print(len(nl_vocab))
     nl_char_vocab, _ = initialize_vocabulary(nl_char_vocab_path)
     nl_decomposed_vocab_path = os.path.join(data_dir,
                             "vocab%d.nl.char.decompose" % nl_vocab_size)
