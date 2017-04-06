@@ -24,10 +24,10 @@ class Encoder(graph_utils.NNModel):
         self.channels = []
         self.input_dim = 0
         if self.sc_token:
-            self.channels.append(['token'])
+            self.channels.append('token')
             self.input_dim += self.sc_token_dim
         if self.sc_char:
-            self.channels.append(['char'])
+            self.channels.append('char')
             self.input_dim += self.sc_char_dim
 
         assert(len(self.channels) > 0)
