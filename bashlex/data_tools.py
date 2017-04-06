@@ -30,7 +30,10 @@ def char_tokenizer(sentence, base_tokenizer=None):
     chars = []
     for token in tokens:
         for c in token:
-            chars.append(c)
+            if c == ' ':
+                chars.append(constants._SPACE)
+            else:
+                chars.append(c)
         chars.append(constants._SPACE)
     return chars[:-1]
 
