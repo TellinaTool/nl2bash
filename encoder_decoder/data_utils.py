@@ -126,6 +126,8 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size,
             if not tokens:
                 continue
             for word in tokens:
+                if "char" in vocab_path and word == ' ':
+                    word = constants._SPACE
                 if word in vocab:
                     vocab[word] += 1
                 else:
@@ -143,6 +145,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size,
             if "char" in vocab_path else _TOKEN_START_VOCAB
         vocab = list(start_vocab)
         for v in sorted_vocab:
+            print(v, vocab[v])
             if not v in start_vocab:
                 vocab.append(v)
 
