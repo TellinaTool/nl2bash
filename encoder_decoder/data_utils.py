@@ -134,10 +134,20 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                     vocab[word] += 1
                 else:
                     vocab[word] = 1
+        sorted_vocab = {}
+        for v in vocab:
+            if vocab[v] >= min_word_frequency:
+                sorted_vocab[v] = vocab[v]
+            else:
+                # print("Infrequent token: %s"  % v)
+                sorted_vocab['__LF__' + v] = vocab[v]
+        sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
+        start_vocab = _CHAR_START_VOCAB \
+            if "char" in vocab_path else _TOKEN_START_VOCAB
     else:
         print("Reading vocabulary %s from path" % vocab_path)
         vocab, _ = initialize_vocabulary(vocab_path)
-        print(vocab)
+        sorted_vocab = sorted(vocab.items, key=lambda x:x[1])
         if append_to_vocab:
             counter = 0
             for line in data:
@@ -155,18 +165,8 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                     continue
                 for word in tokens:
                     if not word in vocab:
-                        vocab['__LF__' + word] = 1
+                        sorted_vocab.append(('__LF__' + word, 1))
 
-    sorted_vocab = {}
-    for v in vocab:
-        if vocab[v] >= min_word_frequency:
-            sorted_vocab[v] = vocab[v]
-        else:
-            # print("Infrequent token: %s"  % v)
-            sorted_vocab['__LF__' + v] = vocab[v]
-    sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
-    start_vocab = _CHAR_START_VOCAB \
-        if "char" in vocab_path else _TOKEN_START_VOCAB
     vocab = list(start_vocab)
     for v in sorted_vocab:
         if not v in start_vocab:
