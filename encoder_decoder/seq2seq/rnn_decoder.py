@@ -5,8 +5,8 @@ import tensorflow as tf
 from encoder_decoder import decoder, graph_utils
 
 class RNNDecoder(decoder.Decoder):
-    def __init__(self, hyperparameters, output_projection=None):
-        super(RNNDecoder, self).__init__(hyperparameters, output_projection)
+    def __init__(self, hyperparameters, dim, output_projection=None):
+        super(RNNDecoder, self).__init__(hyperparameters, dim, output_projection)
 
 
     def define_graph(self, encoder_state, decoder_inputs,

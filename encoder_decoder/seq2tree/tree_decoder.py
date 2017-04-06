@@ -18,8 +18,8 @@ DEBUG = False
 
 class BasicTreeDecoder(decoder.Decoder):
 
-    def __init__(self, hyperparams, output_projection=None):
-        super(BasicTreeDecoder, self).__init__(hyperparams, output_projection)
+    def __init__(self, hyperparams, dim, output_projection=None):
+        super(BasicTreeDecoder, self).__init__(hyperparams, dim, output_projection)
 
         self.H_NO_EXPAND = tf.constant(data_utils.H_NO_EXPAND_ID, shape=[self.batch_size])
         self.V_NO_EXPAND = tf.constant(data_utils.V_NO_EXPAND_ID, shape=[self.batch_size])

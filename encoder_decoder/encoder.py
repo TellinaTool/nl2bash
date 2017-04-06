@@ -21,15 +21,44 @@ class Encoder(graph_utils.NNModel):
         self.char_embedding_vars = False
         self.token_embedding_vars = False
 
+        self.channels = []
+        self.input_dim = 0
+        if self.sc_token:
+            self.channels.append(['token'])
+            self.input_dim += self.sc_token_dim
+        if self.sc_char:
+            self.channels.append(['char'])
+            self.input_dim += self.sc_char_dim
+
+        assert(len(self.channels) > 0)
+
     def char_embeddings(self):
         with tf.variable_scope("encoder_char_embeddings",
                                reuse=self.char_embedding_vars):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding",
-                [self.source_vocab_size, self.dim], initializer=initializer)
+            embeddings = tf.get_variable("embedding", [self.source_vocab_size,
+                                                       self.sc_char_dim],
+                                         initializer=initializer)
             self.char_embedding_vars = True
             return embeddings
+
+    def token_representations(self):
+        """
+        Generate token representations based on multi-channel input.
+
+        :member-used channels: Specify feature channels used for token
+            representation.
+            'token' - use character embeddings
+            'char' - use character features
+        """
+        channel_representations = []
+        for channel in self.channels:
+            if channel == 'token':
+                channel_representations.append(self.token_embeddings())
+            if channel == 'char':
+                channel_representations.append(self.char_channel_embeddings())
+        return tf.concat(1, channel_representations)
 
     def token_embeddings(self):
         """
@@ -42,31 +71,17 @@ class Encoder(graph_utils.NNModel):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding",
-                [self.source_vocab_size, self.dim], initializer=initializer)
+                [self.source_vocab_size, self.sc_token_dim], initializer=initializer)
             self.token_embedding_vars = True
             return embeddings
 
-    def token_representations(self, channels=[]):
-        """
-        Generate token representations based on multi-channel input.
-
-        :param channels: Specify feature channels used for token representation.
-            'char' - use character features
-        """
-        embeddings = self.token_embeddings()
-        for channel in channels:
-            if channel == 'char':
-                embeddings_char = self.embeddings_char()
-                embeddings = tf.concat(1, [embeddings, embeddings_char])
-        return embeddings
-
-    def embeddings_char(self):
+    def char_channel_embeddings(self):
         """
         Generate token representations by character composition.
 
-        :member char_indices: List of character indices for source vocabular.
+        :member-used char_indices: List of character indices for source vocabular.
             [source_vocab_size, max_sc_token_size]
-        :member char_composition: Specify the function which composes the character
+        :member-used char_composition: Specify the function which composes the character
             embeddings into a token representation.
 
         :return: embeddings_char [source_vocab_size, char_channel_dim]
@@ -78,7 +93,7 @@ class Encoder(graph_utils.NNModel):
         if self.char_composition == 'rnn':
             with tf.variable_scope("encoder_char_rnn_cell") as scope:
                 cell = graph_utils.create_multilayer_cell(
-                    self.char_rnn_cell, scope, self.char_channel_dim,
+                    self.char_rnn_cell, scope, self.sc_char_dim,
                     self.char_rnn_num_layers)
             rnn_outputs, rnn_states = rnn.RNNModel(cell, input_embeddings,
                         num_cell_layers=self.char_rnn_num_layers, dtype=tf.float32)
@@ -95,6 +110,7 @@ class RNNEncoder(Encoder):
     def __init__(self, hyperparameters):
         super(RNNEncoder, self).__init__(hyperparameters)
         self.cell = self.encoder_cell()
+        self.output_dim = self.input_dim
 
     def define_graph(self, encoder_inputs):
         input_embeddings = [tf.nn.embedding_lookup(
@@ -111,7 +127,7 @@ class RNNEncoder(Encoder):
         """RNN cell for the encoder."""
         with tf.variable_scope("encoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(
-                self.rnn_cell, scope, self.dim, self.num_layers)
+                self.rnn_cell, scope, self.input_dim, self.num_layers)
         return cell
 
 
@@ -120,6 +136,7 @@ class BiRNNEncoder(Encoder):
         super(BiRNNEncoder, self).__init__(hyperparameters)
         self.fw_cell = self.forward_cell()
         self.bw_cell = self.backward_cell()
+        self.output_dim = 2 * self.input_dim
 
     def define_graph(self, encoder_inputs):
         # Each rnn in the bi-directional encoder have dimension which is half
@@ -150,16 +167,14 @@ class BiRNNEncoder(Encoder):
         """RNN cell for the forward RNN."""
         with tf.variable_scope("forward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
-                                                      int(self.dim/2), self.num_layers,
-                                                      self.encoder_input_keep,
-                                                      self.encoder_output_keep)
+                int(self.input_dim), self.num_layers, self.encoder_input_keep,
+                self.encoder_output_keep)
         return cell
 
     def backward_cell(self):
         """RNN cell for the backward RNN."""
         with tf.variable_scope("backward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
-                                                      int(self.dim/2), self.num_layers,
-                                                      self.encoder_input_keep,
-                                                      self.encoder_output_keep)
+                int(self.input_dim), self.num_layers, self.encoder_input_keep,
+                self.encoder_output_keep)
         return cell

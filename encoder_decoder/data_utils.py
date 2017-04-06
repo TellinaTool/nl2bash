@@ -639,8 +639,6 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
             o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
     print("maximum token size in description = %d" % max_nl_token_size)
 
-    nl_token_char_indices_path = os.path.join(data_dir,
-                            "vocab%d.nl.char.decompose.mat" % nl_vocab_size)
     nl_token_char_indices = np.zeros([len(nl_vocab), max_nl_token_size])
     for token_id in xrange(len(char_ids_list)):
         char_ids = char_ids_list[token_id]
@@ -649,8 +647,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
             + char_ids
         for j in xrange(len(padded_char_ids)):
             nl_token_char_indices[token_id][j] = c_id
-    np.save(nl_token_char_indices_path, nl_token_char_indices)
-    
+    np.save(nl_decomposed_vocab_path, nl_token_char_indices)
+
 
 def prepare_data(FLAGS):
     """Get data into data_dir, create vocabularies and tokenize data.

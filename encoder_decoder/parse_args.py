@@ -104,7 +104,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_float("decoder_output_keep", 1.0,
                                 "Proportion of output to keep if dropout is used.")
     tf.app.flags.DEFINE_integer("seed", -1, "Random seed for graph initialization.")
-    tf.app.flags.DEFINE_integer("dim", 300, "Dimension of each model layer.")
     tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
 
     tf.app.flags.DEFINE_string("training_algorithm", "standard", "training algorithm to use.")
@@ -148,13 +147,14 @@ def define_input_flags():
                                 "Set to True for raw evaluation of the slot-filling classifier.")
 
     # granularity control
-    tf.app.flags.DEFINE_boolean("hybrid", False, "Set to True to train the a character-token hybrid translation model, " +
-                                                 "otherwise train the model at token level.")
-    tf.app.flags.DEFINE_boolean("char", False, "Set to True to train pure a character model, " +
-                                               "otherwise train the model at token level.")
+    tf.app.flags.DEFINE_boolean("sc_token", True, "Set to True to turn on the token channel in the encoder. "
+                                                  + "On by default.")
+    tf.app.flags.DEFINE_boolean("sc_char", False, "Set to True to turn on the character channel in the encoder. "
+                                                  + "Off by default.")
 
     # channel network hyperparameters
-    tf.app.flags.DEFINE_integer("char_channel_dim", 300, "Dimension of each character embeddings.")
+    tf.app.flags.DEFINE_integer("sc_token_dim", 300, "Basic token embedding dimensions.")
+    tf.app.flags.DEFINE_integer("sc_char_dim", 300, "Dimension of each character embeddings.")
     tf.app.flags.DEFINE_string("char_composition", 'rnn', "Specify the character to token composition function.")
     tf.app.flags.DEFINE_string("char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
     tf.app.flags.DEFINE_integer("char_rnn_num_layers", 1, "Number of layers in the RNN cell used for the character model.")
