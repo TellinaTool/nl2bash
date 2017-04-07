@@ -73,8 +73,10 @@ CEOS_ID = 1
 CUNK_ID = 2
 CATOM_ID = 3
 CGO_ID = 4
+CLONG_ID = 5
 
-_CHAR_START_VOCAB = [_CPAD, _CEOS, _CUNK, _CATOM, _CGO]
+_CHAR_START_VOCAB = [_CPAD, _CEOS, _CUNK, _CATOM, _CGO,
+                     constants._LONG_TOKEN_IND]
 
 
 def clean_dir(dir):
