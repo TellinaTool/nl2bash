@@ -45,9 +45,9 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["char_rnn_cell"] = FLAGS.char_rnn_cell
     params["char_rnn_num_layers"] = FLAGS.char_rnn_num_layers
     params["sc_token_features_path"] = os.path.join(FLAGS.data_dir,
-        "vocab%d.nl.token.feature" % FLAGS.sc_vocab_size)
+        "vocab%d.nl.token.feature.npy" % FLAGS.sc_vocab_size)
     params["sc_char_features_path"] = os.path.join(FLAGS.data_dir,
-        "vocab%d.nl.char.feature" % FLAGS.sc_vocab_size)
+        "vocab%d.nl.char.feature.npy" % FLAGS.sc_vocab_size)
 
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
