@@ -345,13 +345,13 @@ def slot_filler_alignment_induction(nl, cm):
     M = collections.defaultdict(dict)               # alignment score matrix
     for i in nl_fillers:
         surface, filler_type = nl_fillers[i]
-        filler_value = extract_value(filler_type, surface)
+        filler_value = extract_value(filler_type, filler_type, surface)
         for j in cm_slots:
             slot_value, slot_type = cm_slots[j]
             if (filler_value and is_parameter(filler_value)) or \
                     slot_filler_type_match(slot_type, filler_type):
-                M[i][j] = \
-                    slot_filler_value_match(slot_value, filler_value, slot_type)
+                M[i][j] = slot_filler_value_match(
+                    slot_value, filler_value, slot_type)
             else:
                 M[i][j] = -np.inf
     mappings, remained_fillers = stable_marriage_alignment(M)
