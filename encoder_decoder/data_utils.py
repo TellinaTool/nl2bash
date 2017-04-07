@@ -274,7 +274,6 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     if type(sentence) is list:
         words = sentence
         entities = None
-        with_arg_type = True
     else:
         if base_tokenizer:
             words = tokenizer(sentence, base_tokenizer)
@@ -291,16 +290,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             if not use_unk and ('__LF__' + w) in vocabulary:
                 token_ids.append(vocabulary['__LF__' + w])
             else:
-                if with_arg_type:
-                    kind = w.split('_')[0].lower()
-                    if kind == "flag":
-                        token_ids.append(FLAG_ID)
-                    elif kind == "headcommand":
-                        token_ids.append(UTL_ID)
-                    else:
-                        token_ids.append(ARG_ID)
-                else:
-                    token_ids.append(UNK_ID)
+                token_ids.append(UNK_ID)
             if w.startswith("FLAG_"):
                 print(w, sentence)
 
@@ -619,11 +609,13 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
     # compute character representation of tokens
     nl_vocab, _ = initialize_vocabulary(nl_vocab_path)
     nl_char_vocab, _ = initialize_vocabulary(nl_char_vocab_path)
-    nl_decomposed_vocab_path = os.path.join(data_dir,
-                            "vocab%d.nl.char.decompose" % nl_vocab_size)
+    nl_vocab_token_feature_path = os.path.join(data_dir,
+                            "vocab%d.nl.token.feature" % nl_vocab_size)
+    nl_vocab_char_feature_path = os.path.join(data_dir,
+                            "vocab%d.nl.char.feature" % nl_vocab_size)
     max_nl_token_size = 0
     char_ids_list = []
-    with open(nl_decomposed_vocab_path, 'w') as o_f:
+    with open(nl_vocab_char_feature_path, 'w') as o_f:
         for token, _ in sorted(nl_vocab.items(), key=lambda x:x[1]):
             if token.startswith("__SP__"):
                 # special tokens are non-decomposable
@@ -640,15 +632,21 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
             o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
     print("maximum token size in description = %d" % max_nl_token_size)
 
-    nl_token_char_indices = np.zeros([len(nl_vocab), max_nl_token_size])
+    nl_vocab_token_features = np.zeros(len(nl_vocab))
+    for vocab, idx in nl_vocab:
+        nl_vocab_token_features[idx] = UNK_ID \
+            if vocab.startswith('__LF__') else idx
+    np.save(nl_vocab_token_feature_path, nl_vocab_token_features)
+
+    nl_vocab_char_features = np.zeros([len(nl_vocab), max_nl_token_size])
     for token_id in xrange(len(char_ids_list)):
         char_ids = char_ids_list[token_id]
         # padding character indices
         padded_char_ids = [CPAD_ID] * (max_nl_token_size - len(char_ids)) \
             + char_ids
         for j in xrange(len(padded_char_ids)):
-            nl_token_char_indices[token_id][j] = c_id
-    np.save(nl_decomposed_vocab_path, nl_token_char_indices)
+            nl_vocab_char_features[token_id][j] = c_id
+    np.save(nl_vocab_char_feature_path, nl_vocab_char_features)
 
 
 def prepare_data(FLAGS):
