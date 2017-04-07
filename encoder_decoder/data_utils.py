@@ -302,7 +302,12 @@ def token_to_char_ids(token, vocabulary):
     Convert a token to a list of integers representing character-ids.
     """
     char_ids = []
-    for c in token:
+    if len(token) <= 20:
+        characters = token
+    else:
+        characters = list([token[:14]]) + [constants._LONG_TOKEN_IND] \
+                     + list(token[-5:])
+    for c in characters:
         if c in vocabulary:
             char_ids.append(vocabulary[c])
         else:
