@@ -298,9 +298,9 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                         token_ids.append(UTL_ID)
                     else:
                         token_ids.append(ARG_ID)
+                    print(with_arg_type)
                 else:
                     token_ids.append(UNK_ID)
-                    print(UNK_ID)
             if w.startswith("FLAG_"):
                 print(w, sentence)
 
@@ -477,7 +477,7 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
     print("maximum num tokens in command = %d" % max_cm_token_len)
 
 
-def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
+def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
 
     def add_to_set(nl_data, cm_data, split):
         with_parent = True
@@ -521,7 +521,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size):
                     getattr(cm_canonical_token_list, split).append(cm_canonical_tokens)
                     getattr(cm_canonical_seq_list, split).append(cm_canonical_seq)
                 else:
-                    print("Rare command: " + cm)
+                    if verbose:
+                        print("Rare command: " + cm)
 
     # unfiltered data
     nl_data, cm_data = read_raw_data(data_dir)
