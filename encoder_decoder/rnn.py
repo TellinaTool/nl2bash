@@ -200,13 +200,13 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
   # Forward direction
   with tf.variable_scope(name + "_FW") as fw_scope:
     output_fw, output_states_fw = RNNModel(cell_fw, inputs, initial_state_fw, dtype,
-                       sequence_length, num_layers=num_layers, scope=fw_scope)
+                       sequence_length, num_layers=num_cell_layers, scope=fw_scope)
 
   # Backward direction
   with tf.variable_scope(name + "_BW") as bw_scope:
     tmp, tmp_states = RNNModel(cell_bw, _reverse_seq(inputs, sequence_length),
                          initial_state_bw, dtype, sequence_length,
-                         num_layers=num_layers, scope=bw_scope)
+                         num_layers=num_cell_layers, scope=bw_scope)
   output_bw = _reverse_seq(tmp, sequence_length)
   output_states_bw = _reverse_seq(tmp_states, sequence_length)
 
