@@ -24,10 +24,10 @@ class Encoder(graph_utils.NNModel):
         self.channels = []
         self.input_dim = 0
         if self.sc_token:
-            self.channels.append(['token'])
+            self.channels.append('token')
             self.input_dim += self.sc_token_dim
         if self.sc_char:
-            self.channels.append(['char'])
+            self.channels.append('char')
             self.input_dim += self.sc_char_dim
 
         assert(len(self.channels) > 0)
@@ -93,8 +93,8 @@ class Encoder(graph_utils.NNModel):
         """
         inputs = np.split(self.token_char_index_matrix(),
                          self.max_source_token_size, axis=1)
-        input_embeddings = [tf.nn.embedding_lookup(
-            self.char_embeddings(), input) for input in inputs]
+        input_embeddings = [tf.squeeze(tf.nn.embedding_lookup(
+            self.char_embeddings(), input)) for input in inputs]
         if self.char_composition == 'rnn':
             with tf.variable_scope("encoder_char_rnn_cell") as scope:
                 cell = graph_utils.create_multilayer_cell(
