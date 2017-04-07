@@ -175,7 +175,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.gradient_norms = norm
                 self.updates = opt.apply_gradients(zip(clipped_gradients, params))
 
-        self.saver = tf.train.Saver(tf.all_variables())
+        self.saver = tf.train.Saver(tf.global_variables())
 
 
     def encode_decode(self, encoder_inputs, encoder_attn_masks,
@@ -306,7 +306,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_size, decoder_size = \
                 self.max_source_length, self.max_target_length
 
-        batch_size = len(encoder_channel_inputs.items()[0][1])
+        batch_size = len(encoder_channel_inputs)
 
         padded_decoder_inputs = []
         for batch_idx in xrange(batch_size):
