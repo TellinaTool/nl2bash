@@ -640,7 +640,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
     print(nl_vocab_token_features)
     np.save(nl_vocab_token_feature_path, nl_vocab_token_features)
 
-    nl_vocab_char_features = np.zeros([len(nl_vocab), max_nl_token_size])
+    nl_vocab_char_features = np.zeros([len(nl_vocab), max_nl_token_size],
+                                      dtype=np.int64)
     for token_id in xrange(len(char_ids_list)):
         char_ids = char_ids_list[token_id]
         # padding character indices
