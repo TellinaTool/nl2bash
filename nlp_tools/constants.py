@@ -291,4 +291,4 @@ def is_english_word(word):
     # if word.isalpha() and any(x.isupper() for x in word):
     #     return False
     # return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
-    return bool(re.match('^[a-z]+\-*[a-z]+$', word, re.IGNORECASE))
+    return bool(re.match('^[a-z]+(-[a-z]+)?$', word, re.IGNORECASE))
