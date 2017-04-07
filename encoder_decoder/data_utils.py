@@ -632,12 +632,11 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
             o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
     print("maximum token size in description = %d" % max_nl_token_size)
 
-    nl_vocab_token_features = np.zeros(len(nl_vocab))
+    nl_vocab_token_features = np.zeros(len(nl_vocab), dtype=np.int64)
     for vocab in nl_vocab:
         idx = nl_vocab[vocab]
         nl_vocab_token_features[idx] = UNK_ID \
             if vocab.startswith('__LF__') else idx
-    print(nl_vocab_token_features)
     np.save(nl_vocab_token_feature_path, nl_vocab_token_features)
 
     nl_vocab_char_features = np.zeros([len(nl_vocab), max_nl_token_size],
@@ -648,6 +647,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
         padded_char_ids = [CPAD_ID] * (max_nl_token_size - len(char_ids)) \
             + char_ids
         for j in xrange(len(padded_char_ids)):
+            c_id = padded_char_ids[j] 
             nl_vocab_char_features[token_id][j] = c_id
     np.save(nl_vocab_char_feature_path, nl_vocab_char_features)
 
