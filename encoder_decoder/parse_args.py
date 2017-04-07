@@ -161,3 +161,4 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("char_rnn_num_layers", 1, "Number of layers in the RNN cell used for the character model.")
     tf.app.flags.DEFINE_string("sc_token_char_indices_path", '',
                                "Path where the source token-char indices matrix is saved.")
+    tf.app.flags.DEFINE_boolean("tg_char", False, "Set to True to turn on character RNN extention module in the decoder.")
