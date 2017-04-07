@@ -71,9 +71,13 @@ class Encoder(graph_utils.NNModel):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding",
-                [self.source_vocab_size, self.sc_token_dim], initializer=initializer)
+                [self.source_vocab_size, self.sc_token_dim],
+                initializer=initializer)
             self.token_embedding_vars = True
             return embeddings
+
+    def token_channel_embeddings(self):
+        input = self.
 
     def char_channel_embeddings(self):
         """
@@ -101,6 +105,12 @@ class Encoder(graph_utils.NNModel):
         else:
             raise NotImplementedError
         return output_embeddings
+
+    def token_unk_free_index(self):
+        """
+
+        :return:
+        """
 
     def token_char_index_matrix(self):
         return np.load(self.sc_char_features_path)

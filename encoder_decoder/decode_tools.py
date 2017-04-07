@@ -90,7 +90,7 @@ def translate_fun(sentence, sess, model, sc_vocab, rev_tg_vocab, FLAGS,
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [token_ids], [[data_utils.ROOT_ID]], bucket_id=bucket_id)
+        {'token': [token_ids]}, [[data_utils.ROOT_ID]], bucket_id=bucket_id)
 
     # Decode the ouptut for this 1-element batch.
     # Non-grammatical templates and templates that cannot hold all fillers are
