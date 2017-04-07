@@ -858,7 +858,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False):
         append_head_token = True
         append_end_token = True
     elif FLAGS.decoder_topology in ["rnn"]:
-        nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
+        nl_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size
         if FLAGS.canonical:
             cm_extension = ".ids%d.cm.norm.order" % FLAGS.sc_vocab_size
         elif FLAGS.normalized:
