@@ -398,7 +398,7 @@ def read_raw_data(data_dir):
 def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
     if isinstance(data.train[0], list):
         # save indexed token sequences
-        min_word_freq = 4 \
+        min_word_freq = 2 \
             if ("bash" in data_dir and not ".cm" in vocab_path) else 0
         create_vocabulary(vocab_path, data.train, vocab_size,
                           min_word_frequency=min_word_freq)
@@ -818,8 +818,12 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
 
 def load_vocab(FLAGS):
     if FLAGS.decoder_topology in ['rnn']:
-        nl_vocab_path = os.path.join(
-            FLAGS.data_dir, "vocab%d.nl" % FLAGS.sc_vocab_size)
+        if FLAGS.sc_char:
+            nl_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.nl" % FLAGS.sc_vocab_size)
+        else:
+            nl_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.nl.norm" % FLAGS.sc_vocab_size)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.sc_vocab_size)
