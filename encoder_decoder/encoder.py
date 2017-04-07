@@ -20,6 +20,7 @@ class Encoder(graph_utils.NNModel):
         super(Encoder, self).__init__(hyperparameters)
         self.char_embedding_vars = False
         self.token_embedding_vars = False
+        self.char_rnn_vars = False
 
         self.channels = []
         self.input_dim = 0
@@ -96,12 +97,14 @@ class Encoder(graph_utils.NNModel):
         input_embeddings = [tf.squeeze(tf.nn.embedding_lookup(
             self.char_embeddings(), input)) for input in inputs]
         if self.char_composition == 'rnn':
-            with tf.variable_scope("encoder_char_rnn_cell") as scope:
+            with tf.variable_scope("encoder_char_rnn",
+                                   reuse=self.char_rnn_vars) as scope:
                 cell = graph_utils.create_multilayer_cell(
                     self.char_rnn_cell, scope, self.sc_char_dim,
                     self.char_rnn_num_layers)
                 rnn_outputs, rnn_states = rnn.RNNModel(cell, input_embeddings,
                         num_cell_layers=self.char_rnn_num_layers, dtype=tf.float32)
+                self.char_rnn_vars = True
             output_embeddings = rnn_states[-1]
         else:
             raise NotImplementedError
