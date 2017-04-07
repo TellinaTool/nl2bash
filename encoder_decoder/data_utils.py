@@ -633,9 +633,11 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
     print("maximum token size in description = %d" % max_nl_token_size)
 
     nl_vocab_token_features = np.zeros(len(nl_vocab))
-    for vocab, idx in nl_vocab:
+    for vocab in nl_vocab:
+        idx = nl_vocab[vocab]
         nl_vocab_token_features[idx] = UNK_ID \
             if vocab.startswith('__LF__') else idx
+    print(nl_vocab_token_features)
     np.save(nl_vocab_token_feature_path, nl_vocab_token_features)
 
     nl_vocab_char_features = np.zeros([len(nl_vocab), max_nl_token_size])
