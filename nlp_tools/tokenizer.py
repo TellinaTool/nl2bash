@@ -86,7 +86,7 @@ def clean_sentence(sentence):
 
 
 def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
-                    remove_stop_words=True, correct_spell=True):
+                    remove_stop_words=True, correct_spell=True, verbose=False):
     """Very basic English tokenizer."""
     sentence = clean_sentence(sentence)
     words = re.findall(constants._WORD_SPLIT_RESPECT_QUOTES, sentence)
@@ -109,7 +109,8 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
                 old_w = word
                 word = spc.correction(word)
                 if word != old_w:
-                    print("spell correction: {} -> {}".format(old_w, word))
+                    if not verbose:
+                        print("spell correction: {} -> {}".format(old_w, word))
 
         # remove English stopwords
         if remove_stop_words:
