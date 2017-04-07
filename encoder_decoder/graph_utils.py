@@ -136,7 +136,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
             session.run(model.learning_rate.assign(tf.constant(FLAGS.learning_rate)))
         else:
             print("Created model with fresh parameters.")
-            session.run(tf.initialize_all_variables())
+            session.run(tf.global_variables_initializer())
 
     return model, global_epochs
 
