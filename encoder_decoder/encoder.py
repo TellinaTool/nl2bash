@@ -151,6 +151,8 @@ class BiRNNEncoder(Encoder):
         self.fw_cell = self.forward_cell()
         self.bw_cell = self.backward_cell()
         self.output_dim = 2 * self.input_dim
+        print("Encoder input dimension = {}".format(self.input_dim))
+        print("Encoder output dimension = {}".format(self.output_dim))
 
     def define_graph(self, encoder_inputs):
         # Each rnn in the bi-directional encoder have dimension which is half
