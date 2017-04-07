@@ -70,9 +70,9 @@ def train(train_set, dev_set, construct_model_dir=True):
         train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
         train_total_size = float(sum(train_bucket_sizes))
 
-        # A bucket scale is a list of increasing numbers from 0 to 1 that we'll use
-        # to select a bucket. Length of [scale[i], scale[i+1]] is proportional to
-        # the size if i-th training bucket, as used later.
+        # A bucket scale is a list of increasing numbers from 0 to 1 that we'll
+        # use to select a bucket. Length of [scale[i], scale[i+1]] is
+        # proportional to the size if i-th training bucket, as used later.
         train_buckets_scale = [sum(train_bucket_sizes[:i+1]) / train_total_size
                                for i in xrange(len(train_bucket_sizes))]
 
@@ -93,8 +93,8 @@ def train(train_set, dev_set, construct_model_dir=True):
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
                                  if train_buckets_scale[i] > random_number_01])
                 formatted_example = model.get_batch(train_set, bucket_id)
-                _, step_loss, _, _ = model.step(
-                    sess, formatted_example, bucket_id, forward_only=False)
+                _, step_loss, _, _ = model.step(sess, formatted_example,
+                                                bucket_id, forward_only=False)
                 loss += step_loss
                 current_step += 1
 
@@ -556,11 +556,10 @@ def main(_):
             dataset = test_set if FLAGS.test else dev_set
             manual_eval(dataset, 100)
         elif FLAGS.decode:
-            # dataset = test_set if FLAGS.test else dev_set
-            # model_sig = decode(dataset)
-            model_sig = decode(train_set)
+            dataset = test_set if FLAGS.test else dev_set
+            model_sig = decode(dataset)
             if not FLAGS.explain:
-                eval(train_set, model_sig=model_sig, verbose=False)
+                eval(dataset, model_sig=model_sig, verbose=False)
         elif FLAGS.grid_search:
             grid_search(train_set, dev_set)
         elif FLAGS.cross_valid:

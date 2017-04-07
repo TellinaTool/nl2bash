@@ -290,6 +290,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             if not use_unk and ('__LF__' + w) in vocabulary:
                 token_ids.append(vocabulary['__LF__' + w])
             else:
+                print(with_arg_type)
                 if with_arg_type:
                     kind = w.split('_')[0].lower()
                     if kind == "flag":

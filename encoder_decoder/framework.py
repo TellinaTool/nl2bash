@@ -264,21 +264,21 @@ class EncoderDecoderModel(graph_utils.NNModel):
         return (w, b)
 
 
-    def format_example(self, encoder_inputs, decoder_inputs, copy_data=None,
-                       bucket_id=-1):
+    def format_example(self, encoder_channel_inputs, decoder_inputs,
+                       copy_data=None, bucket_id=-1):
         """
         Prepare the data to be fed into the neural model.
 
-        :param encoder_inputs: batch of input sequence indices
-            [[...], [...], ...]
+        :param encoder_channel_inputs: dictionary of (batch of) sequence
+            indices for different encoder channels [[...], [...], ...]
         :param decoder_inputs: batch of output sequence indices
             [[...], [...], ...]
         :param copy_data: set to true if using a copying network
         :param bucket_id: bucket id of the current batch
 
         Returns:
-            batch_encoder_inputs: encoder input indices
-            (batched, padded and reversed)
+            batch_encoder_channel_inputs: list of input indices
+            (batched, padded and reversed) for different encoder channels
             batch_encoder_input_masks: encoder input masks
             (mask out padding symbols, batched)
             batch_decoder_inputs: decoder input indices
@@ -286,42 +286,47 @@ class EncoderDecoderModel(graph_utils.NNModel):
             batch_decoder_input_masks: decoder input masks
             (mask out padding symbols, batched)
         """
+        def load_encoder_channel(inputs, input_size):
+            # Encoder inputs are padded and then reversed
+            padded_inputs = []
+            batch_inputs = []
+            for batch_idx in xrange(batch_size):
+                input = inputs[batch_idx]
+                paddings = [data_utils.PAD_ID] * (input_size - len(input))
+                padded_inputs.append(list(reversed(input + paddings)))
+            for length_idx in xrange(input_size):
+                batch_inputs.append(
+                    np.array([padded_inputs[batch_idx][length_idx]
+                          for batch_idx in xrange(batch_size)], dtype=np.int32))
+            return batch_inputs
+
         if bucket_id >= 0:
             encoder_size, decoder_size = self.buckets[bucket_id]
         else:
             encoder_size, decoder_size = \
                 self.max_source_length, self.max_target_length
 
-        batch_size = len(encoder_inputs)
-        padded_encoder_inputs = []
+        batch_size = len(encoder_channel_inputs.items()[0][1])
+
         padded_decoder_inputs = []
         for batch_idx in xrange(batch_size):
-            encoder_input = encoder_inputs[batch_idx]
             decoder_input = decoder_inputs[batch_idx]
-            # Encoder inputs are padded and then reversed
-            encoder_pad = [data_utils.PAD_ID] * \
-                          (encoder_size - len(encoder_input))
-            padded_encoder_inputs.append(
-                list(reversed(encoder_input + encoder_pad)))
             decoder_pad = [data_utils.PAD_ID] * \
                           (decoder_size - len(decoder_input))
             padded_decoder_inputs.append(decoder_input + decoder_pad)
 
         # create batch-major vectors
-        batch_encoder_inputs = []
+        batch_encoder_channel_inputs = load_encoder_channel(
+            encoder_channel_inputs, encoder_size)
         batch_encoder_input_masks = []
         batch_decoder_inputs = []
         batch_decoder_input_masks = []
 
         # Batch encoder inputs are just re-indexed encoder_inputs.
         for length_idx in xrange(encoder_size):
-            batch_encoder_inputs.append(
-                np.array([padded_encoder_inputs[batch_idx][length_idx]
-                          for batch_idx in xrange(batch_size)], dtype=np.int32))
-
             batch_encoder_input_mask = np.ones(batch_size, dtype=np.float32)
             for batch_idx in xrange(batch_size):
-                source = padded_encoder_inputs[batch_idx][length_idx]
+                source = batch_encoder_channel_inputs[0][length_idx][batch_idx]
                 if source == data_utils.PAD_ID:
                     batch_encoder_input_mask[batch_idx] = 0.0
             batch_encoder_input_masks.append(batch_encoder_input_mask)
@@ -350,7 +355,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.use_copy:
             raise NotImplementedError
         else:
-            return batch_encoder_inputs, batch_encoder_input_masks,\
+            return batch_encoder_channel_inputs, batch_encoder_input_masks,\
                    batch_decoder_inputs, batch_decoder_input_masks
 
 
@@ -381,7 +386,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_inputs.append(encoder_input)
             decoder_inputs.append(decoder_input)
 
-        return self.format_example(encoder_inputs, decoder_inputs,
+        return self.format_example({'token': encoder_inputs}, decoder_inputs,
                                    copy_data=copy_data, bucket_id=bucket_id)
 
 
@@ -396,7 +401,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_inputs.append(encoder_input)
             decoder_inputs.append(decoder_input)
 
-        return self.format_example(encoder_inputs, decoder_inputs,
+        return self.format_example({'token': encoder_inputs}, decoder_inputs,
                                    copy_data=copy_data, bucket_id=bucket_id)
 
 
