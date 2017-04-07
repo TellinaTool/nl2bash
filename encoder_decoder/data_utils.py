@@ -239,8 +239,9 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
             counter += 1
             if counter % 1000 == 0:
                 print("  tokenizing line %d" % counter)
+            print(with_arg_types)
             token_ids, _ = sentence_to_token_ids(line, vocab, tokenizer,
-                base_tokenizer, with_arg_types, use_unk=use_unk)
+                base_tokenizer, with_arg_types=with_arg_types, use_unk=use_unk)
             if len(token_ids) > max_token_num:
                 max_token_num = len(token_ids)
             tokens_file.write(" ".join([str(tok) for tok in token_ids])
@@ -290,7 +291,6 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             if not use_unk and ('__LF__' + w) in vocabulary:
                 token_ids.append(vocabulary['__LF__' + w])
             else:
-                print(with_arg_type)
                 if with_arg_type:
                     kind = w.split('_')[0].lower()
                     if kind == "flag":
