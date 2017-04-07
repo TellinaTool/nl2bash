@@ -7,7 +7,7 @@ from encoder_decoder import decoder, graph_utils
 class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, dim, output_projection=None):
         super(RNNDecoder, self).__init__(hyperparameters, dim, output_projection)
-
+        print("Decoder dimension = {}".format(dim))
 
     def define_graph(self, encoder_state, decoder_inputs,
                      encoder_attn_masks=None, attention_states=None,
