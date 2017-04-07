@@ -227,7 +227,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
       tokenizer: a function to use to tokenize each sentence;
         if None, basic_tokenizer will be used.
       base_tokenizer: base tokenizer used for splitting strings into characters.
-      with_arg_types:
+      with_arg_types: If the vocabulary contains argument type (used for
+      deciding which type of UNK tokens to use).
     """
     max_token_num = 0
     if not tf.gfile.Exists(tg_id_path):
@@ -298,7 +299,6 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                         token_ids.append(UTL_ID)
                     else:
                         token_ids.append(ARG_ID)
-                    print(with_arg_type)
                 else:
                     token_ids.append(UNK_ID)
             if w.startswith("FLAG_"):
