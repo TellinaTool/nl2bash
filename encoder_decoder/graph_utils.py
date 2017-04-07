@@ -431,6 +431,10 @@ class NNModel(object):
         return self.hyperparams["char_rnn_num_layers"]
 
     @property
+    def sc_token_features_path(self):
+        return self.hyperparams["sc_token_features_path"]
+    
+    @property
     def sc_char_features_path(self):
         return self.hyperparams["sc_char_features_path"]
 
