@@ -100,7 +100,7 @@ class Encoder(graph_utils.NNModel):
                 cell = graph_utils.create_multilayer_cell(
                     self.char_rnn_cell, scope, self.sc_char_dim,
                     self.char_rnn_num_layers)
-            rnn_outputs, rnn_states = rnn.RNNModel(cell, input_embeddings,
+                rnn_outputs, rnn_states = rnn.RNNModel(cell, input_embeddings,
                         num_cell_layers=self.char_rnn_num_layers, dtype=tf.float32)
             output_embeddings = rnn_states[-1]
         else:
