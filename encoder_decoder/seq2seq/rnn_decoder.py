@@ -107,7 +107,7 @@ class RNNDecoder(decoder.Decoder):
                     # (speical case: beam_size = 1)
                     pass
                 else:
-                    outputs.append(output)
+                    outputs.append(state)
 
             if self.use_attention:
                 # Tensor list --> tenosr
