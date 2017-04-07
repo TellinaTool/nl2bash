@@ -77,7 +77,8 @@ class Encoder(graph_utils.NNModel):
             return embeddings
 
     def token_channel_embeddings(self):
-        input = self.
+        input = self.token_unk_free_index()
+        return tf.nn.embedding_lookup(self.token_embeddings(), input)
 
     def char_channel_embeddings(self):
         """
@@ -107,10 +108,7 @@ class Encoder(graph_utils.NNModel):
         return output_embeddings
 
     def token_unk_free_index(self):
-        """
-
-        :return:
-        """
+        return np.load(self.sc_token_features_path)
 
     def token_char_index_matrix(self):
         return np.load(self.sc_char_features_path)
