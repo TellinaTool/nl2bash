@@ -143,7 +143,8 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
             else:
                 # print("Infrequent token: %s"  % v)
                 sorted_vocab['__LF__' + v] = vocab[v]
-        sorted_vocab = sorted(sorted_vocab, key=vocab.get, reverse=True)
+        sorted_vocab = [x for (x, y) in \
+            sorted(sorted_vocab.items(), key=lambda x:x[1], reverse=True)]
     else:
         print("Reading vocabulary %s from path" % vocab_path)
         vocab, _ = initialize_vocabulary(vocab_path)
