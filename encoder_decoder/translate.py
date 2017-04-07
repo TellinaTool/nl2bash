@@ -503,7 +503,7 @@ def data_statistics():
 
 def main(_):
     # set GPU device
-    os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
+    # os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
     
     # set up data and model directories
     FLAGS.data_dir = os.path.join(
