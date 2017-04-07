@@ -59,7 +59,10 @@ class Encoder(graph_utils.NNModel):
                 channel_representations.append(self.token_channel_embeddings())
             if channel == 'char':
                 channel_representations.append(self.char_channel_embeddings())
-        return tf.concat(1, channel_representations)
+        if len(channel_representations) == 1:
+            return channel_representations
+        else:
+            return tf.concat(1, channel_representations)
 
     def token_embeddings(self):
         """

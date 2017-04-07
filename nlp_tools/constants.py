@@ -1,6 +1,7 @@
 import re
 
 _SPACE = "__SP__SPACE"
+_LONG_TOKEN_IND = "__SP__LONG_TOKEN"
 
 _NUMBER = "_NUMBER"
 _SIZE = "_SIZE"
