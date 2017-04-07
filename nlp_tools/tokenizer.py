@@ -109,7 +109,7 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
                 old_w = word
                 word = spc.correction(word)
                 if word != old_w:
-                    if not verbose:
+                    if verbose:
                         print("spell correction: {} -> {}".format(old_w, word))
 
         # remove English stopwords
