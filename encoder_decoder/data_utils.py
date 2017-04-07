@@ -307,7 +307,7 @@ def token_to_char_ids(token, vocabulary):
     if len(token) <= 20:
         characters = token
     else:
-        characters = list([token[:14]]) + [constants._LONG_TOKEN_IND] \
+        characters = list(token[:14]) + [constants._LONG_TOKEN_IND] \
                      + list(token[-5:])
     for c in characters:
         if c in vocabulary:
