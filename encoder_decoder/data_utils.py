@@ -409,8 +409,8 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
                     min_word_frequency=min_word_freq, append_to_vocab=True)
         for split in ['train', 'dev', 'test']:
             data_path = os.path.join(data_dir, split)
-            data_to_token_ids(getattr(data, split), data_path + suffix,
-                              vocab_path)
+            data_to_token_ids(getattr(data, split), 
+                              data_path + suffix, vocab_path)
             if suffix.endswith('.nl') or suffix.endswith('.cm'):
                 data_to_token_ids(getattr(data, split),
                                   data_path + suffix + '.full',
