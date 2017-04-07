@@ -402,7 +402,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
             if ("bash" in data_dir and not ".cm" in vocab_path) else 0
         create_vocabulary(vocab_path, data.train, vocab_size,
                           min_word_frequency=min_word_freq)
-        if suffix.endswith('.nl'):
+        if suffix.endswith('.nl') or suffix.endswith('.cm'):
             create_vocabulary(vocab_path, data.dev, vocab_size,
                     min_word_frequency=min_word_freq, append_to_vocab=True)
             create_vocabulary(vocab_path, data.test, vocab_size,
