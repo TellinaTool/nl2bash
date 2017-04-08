@@ -41,13 +41,14 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["sc_char"] = FLAGS.sc_char
     params["sc_token_dim"] = FLAGS.sc_token_dim
     params["sc_char_dim"] = FLAGS.sc_char_dim
-    params["char_composition"] = FLAGS.char_composition
-    params["char_rnn_cell"] = FLAGS.char_rnn_cell
-    params["char_rnn_num_layers"] = FLAGS.char_rnn_num_layers
+    params["sc_char_composition"] = FLAGS.char_composition
+    params["sc_char_rnn_cell"] = FLAGS.char_rnn_cell
+    params["sc_char_rnn_num_layers"] = FLAGS.char_rnn_num_layers
     params["sc_token_features_path"] = os.path.join(FLAGS.data_dir,
         "vocab%d.nl.token.feature.npy" % FLAGS.sc_vocab_size)
     params["sc_char_features_path"] = os.path.join(FLAGS.data_dir,
         "vocab%d.nl.char.feature.npy" % FLAGS.sc_vocab_size)
+    params["tg_char"] = FLAGS.tg_char
 
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
