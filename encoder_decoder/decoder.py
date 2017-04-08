@@ -41,6 +41,7 @@ class Decoder(graph_utils.NNModel):
         # variable sharing
         self.char_embedding_vars = False
         self.token_embedding_vars = False
+        self.output_projection_vars = False
 
     def char_embeddings(self):
         with tf.variable_scope(self.scope + "_char_embeddings",
