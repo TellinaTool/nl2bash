@@ -111,7 +111,7 @@ class RNNDecoder(decoder.Decoder):
                     pass
                 else:
                     outputs.append(output)
-                states.append(state)
+                    states.append(state)
 
             if self.use_attention:
                 # Tensor list --> tenosr
@@ -144,7 +144,8 @@ class RNNDecoder(decoder.Decoder):
                 outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:]
                            for s in tf.split(1, past_cell_states.get_shape()[1],
                                              past_cell_states)[1:]]
-                return top_k_outputs, top_k_logits, outputs, states, attn_alignments
+                return top_k_outputs, top_k_logits, outputs, \
+                    tf.split(1, len(outputs), past_cell_states), attn_alignments
             else:
                 # Greedy output
                 W, b = self.token_output_projection
