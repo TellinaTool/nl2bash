@@ -495,12 +495,13 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
                         pruned_ast, list=[], with_parent=with_parent)
                     nl_normalized_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_normalized_tokens = data_tools.ast2tokens(
-                        ast, loose_constraints=True, arg_type_only=True, with_parent=with_parent)
+                        ast, loose_constraints=True, arg_type_only=True,
+                        with_parent=with_parent)
                     cm_normalized_seq = data_tools.ast2list(
                         ast, arg_type_only=True, list=[], with_parent=with_parent)
                     cm_canonical_tokens = data_tools.ast2tokens(
-                        ast, loose_constraints=True, arg_type_only=True, ignore_flag_order=True,
-                        with_parent=with_parent)
+                        ast, loose_constraints=True, arg_type_only=True,
+                        ignore_flag_order=True, with_parent=with_parent)
                     cm_canonical_seq = data_tools.ast2list(
                         ast, arg_type_only=True, ignore_flag_order=True, list=[],
                         with_parent=with_parent)
@@ -615,49 +616,54 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
     print("maximum num pruned AST search steps = %d" % max_cm_seq_pruned_len)
 
     # compute character representation of tokens
-    nl_vocab, _ = initialize_vocabulary(nl_vocab_path)
-    nl_char_vocab, _ = initialize_vocabulary(nl_char_vocab_path)
-    nl_vocab_token_feature_path = os.path.join(data_dir,
-                            "vocab%d.nl.token.feature" % nl_vocab_size)
-    nl_vocab_char_feature_path = os.path.join(data_dir,
-                            "vocab%d.nl.char.feature" % nl_vocab_size)
-    max_nl_token_size = 0
-    char_ids_list = []
-    with open(nl_vocab_char_feature_path, 'w') as o_f:
-        for token, _ in sorted(nl_vocab.items(), key=lambda x:x[1]):
-            if token.startswith("__SP__"):
-                # special tokens are non-decomposable
-                char_ids = [CATOM_ID]
-            else:
-                if token.startswith("__LF__"):
-                    # remove prefix for low-frequency words
-                    char_ids = token_to_char_ids(token[6:], nl_char_vocab)
+    def compute_channel_representations(vocab_path, char_vocab_path):
+        vocab, _ = initialize_vocabulary(vocab_path)
+        char_vocab, _ = initialize_vocabulary(char_vocab_path)
+        vocab_token_feature_path = vocab_path + ".token.feature"
+        vocab_char_feature_path = vocab_path + ".char.feature"
+
+        # token channel
+        vocab_token_features = np.zeros(len(vocab), dtype=np.int64)
+        for v in vocab:
+            idx = vocab[v]
+            vocab_token_features[idx] = UNK_ID \
+                if v.startswith('__LF__') else idx
+        np.save(vocab_token_feature_path, vocab_token_features)
+
+        # character channel
+        max_token_size = 0
+        char_ids_list = []
+        with open(vocab_char_feature_path, 'w') as o_f:
+            for token, _ in sorted(vocab.items(), key=lambda x:x[1]):
+                if token.startswith("__SP__"):
+                    # special tokens are non-decomposable
+                    char_ids = [CATOM_ID]
                 else:
-                    char_ids = token_to_char_ids(token, nl_char_vocab)
-                if len(char_ids) > max_nl_token_size:
-                    max_nl_token_size = len(char_ids)
-            char_ids_list.append(char_ids)
-            o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
-    print("maximum token size in description = %d" % max_nl_token_size)
+                    if token.startswith("__LF__"):
+                        # remove prefix for low-frequency words
+                        char_ids = token_to_char_ids(token[6:], char_vocab)
+                    else:
+                        char_ids = token_to_char_ids(token, char_vocab)
+                    if len(char_ids) > max_token_size:
+                        max_token_size = len(char_ids)
+                char_ids_list.append(char_ids)
+                o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
+        print("maximum token size in {} = {}".format(vocab_path,
+                                                     max_token_size))
+        vocab_char_features = np.zeros([len(vocab), max_token_size],
+                                       dtype=np.int64)
+        for token_id in xrange(len(char_ids_list)):
+            char_ids = char_ids_list[token_id]
+            # padding character indices
+            padded_char_ids = \
+                [CPAD_ID] * (max_token_size - len(char_ids)) + char_ids
+            for j in xrange(len(padded_char_ids)):
+                c_id = padded_char_ids[j]
+                vocab_char_features[token_id][j] = c_id
+        np.save(vocab_char_feature_path, vocab_char_features)
 
-    nl_vocab_token_features = np.zeros(len(nl_vocab), dtype=np.int64)
-    for vocab in nl_vocab:
-        idx = nl_vocab[vocab]
-        nl_vocab_token_features[idx] = UNK_ID \
-            if vocab.startswith('__LF__') else idx
-    np.save(nl_vocab_token_feature_path, nl_vocab_token_features)
-
-    nl_vocab_char_features = np.zeros([len(nl_vocab), max_nl_token_size],
-                                      dtype=np.int64)
-    for token_id in xrange(len(char_ids_list)):
-        char_ids = char_ids_list[token_id]
-        # padding character indices
-        padded_char_ids = [CPAD_ID] * (max_nl_token_size - len(char_ids)) \
-            + char_ids
-        for j in xrange(len(padded_char_ids)):
-            c_id = padded_char_ids[j] 
-            nl_vocab_char_features[token_id][j] = c_id
-    np.save(nl_vocab_char_feature_path, nl_vocab_char_features)
+    compute_channel_representations(nl_vocab_path, nl_char_vocab_path)
+    compute_channel_representations(cm_vocab_path, cm_char_vocab_path)
 
 
 def prepare_data(FLAGS):
@@ -946,15 +952,13 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path,
               append_head_token=False, append_end_token=False,
               load_mappings=False):
     """Read preprocessed data from source and target files and put into buckets.
-    :param sc_path: path to the file containing the original source
-    strings.
-    :param tg_path: path to the file containing the original target
-    strings.
+    :param sc_path: path to the file containing the original source strings.
+    :param tg_path: path to the file containing the original target strings.
     :param sc_id_path: path to the file with token-ids for the source language.
     :param tg_id_path: path to the file with token-ids for the target language.
     :param buckets: bucket sizes for training.
     :param max_num_examples: maximum number of lines to read. Read complete
-           data files if this entry is 0 or None.
+        data files if this entry is 0 or None.
     :param load_mappings: load the slot-filler mappings
     """
     if buckets:
