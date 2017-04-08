@@ -159,12 +159,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("sc_char_composition", 'rnn', "Specify the character to token composition function.")
     tf.app.flags.DEFINE_string("sc_char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
     tf.app.flags.DEFINE_integer("sc_char_rnn_num_layers", 1, "Number of layers in the RNN cell used for the character model.")
-    tf.app.flags.DEFINE_string("sc_token_char_indices_path", '',
-                               "Path where the source token-char indices matrix is saved.")
     tf.app.flags.DEFINE_boolean("tg_char", False, "Set to True to turn on character RNN extention module in the decoder.")
     tf.app.flags.DEFINE_string("tg_char_composition", 'rnn',
                                "Specify the model configuration used for character generation in the target.")
     tf.app.flags.DEFINE_string("tg_char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
     tf.app.flags.DEFINE_integer("tg_char_rnn_num_layers", 1, "Number of layers in the RNN cell used for the character model.")
-    tf.app.flags.DEFINE_string("tg_token_char_indices_path", '',
-                               "Path where the source token-char indices matrix is saved.")

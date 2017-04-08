@@ -49,6 +49,9 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["sc_char_features_path"] = os.path.join(FLAGS.data_dir,
         "vocab%d.nl.char.feature.npy" % FLAGS.sc_vocab_size)
     params["tg_char"] = FLAGS.tg_char
+    params["tg_char_composition"] = FLAGS.tg_char_composition
+    params["tg_char_rnn_cell"] = FLAGS.tg_char_rnn_cell
+    params["tg_char_rnn_num_layers"] = FLAGS.tg_char_rnn_num_layers
 
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
@@ -420,16 +423,16 @@ class NNModel(object):
         return self.hyperparams["sc_char_dim"]
 
     @property
-    def char_composition(self):
-        return self.hyperparams["char_composition"]
+    def sc_char_composition(self):
+        return self.hyperparams["sc_char_composition"]
 
     @property
-    def char_rnn_cell(self):
-        return self.hyperparams["char_rnn_cell"]
+    def sc_char_rnn_cell(self):
+        return self.hyperparams["sc_char_rnn_cell"]
 
     @property
-    def char_rnn_num_layers(self):
-        return self.hyperparams["char_rnn_num_layers"]
+    def sc_char_rnn_num_layers(self):
+        return self.hyperparams["sc_char_rnn_num_layers"]
 
     @property
     def sc_token_features_path(self):
@@ -438,6 +441,22 @@ class NNModel(object):
     @property
     def sc_char_features_path(self):
         return self.hyperparams["sc_char_features_path"]
+
+    @property
+    def tg_char(self):
+        return self.hyperparams["tg_char"]
+
+    @property
+    def tg_char_composition(self):
+        return self.hyperparams["tg_char_composition"]
+
+    @property
+    def tg_char_rnn_cell(self):
+        return self.hyperparams["tg_char_rnn_cell"]
+
+    @property
+    def tg_char_rnn_num_layers(self):
+        return self.hyperparams["tg_char_rnn_num_layers"]
 
     # -- optimization parameters -- #
 
