@@ -216,10 +216,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
             _, _, char_outputs, _, _, _ = self.char_decoder.define_graph(
 
             )
-            encoder_decoder_char_loss = self.
+            encoder_decoder_char_loss = 0
         else:
             encoder_decoder_char_loss = 0
-
+       
         losses = encoder_decoder_token_loss + encoder_decoder_char_loss + \
                  self.beta * attention_reg
 
@@ -227,8 +227,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.encoder_hidden_states = tf.concat(
             1, [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
                 for e_o in encoder_outputs])
-        for d_o in states:
-            print(d_o)
         self.decoder_hidden_states = tf.concat(
             1, [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                 for d_o in states])
