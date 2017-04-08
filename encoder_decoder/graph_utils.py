@@ -265,30 +265,6 @@ def map_fn(fn, elems, batch_size):
     return _results
 
 
-def attention_reg(attn_alignments):
-    diff = tf.reduce_sum(attn_alignments, 1) - 1
-    return tf.reduce_mean(tf.square(diff))
-
-
-def sequence_loss(logits, targets, target_weights, loss_function):
-    targets = targets[:len(logits)]
-    weights = target_weights[:len(logits)]
-
-    with tf.variable_scope("sequence_loss"):
-        log_perp_list = []
-        for logit, target, weight in zip(logits, targets, weights):
-            crossent = loss_function(logit, target)
-            log_perp_list.append(crossent * weight)
-        log_perps = tf.add_n(log_perp_list)
-        total_size = tf.add_n(weights)
-        total_size += 1e-12  # Just to avoid division by 0 for all-0 weights.
-        log_perps /= total_size
-
-    avg_log_perps = tf.reduce_mean(log_perps)
-
-    return avg_log_perps
-
-
 def softmax_loss(output_projection, num_samples, target_vocab_size):
     if num_samples > 0:
         w, b = output_projection
