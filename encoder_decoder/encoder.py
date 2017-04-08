@@ -123,8 +123,9 @@ class Encoder(graph_utils.NNModel):
 
 
 class RNNEncoder(Encoder):
-    def __init__(self, hyperparameters):
-        super(RNNEncoder, self).__init__(hyperparameters)
+    def __init__(self, hyperparameters, input_keep, output_keep):
+        super(RNNEncoder, self).__init__(hyperparameters,
+                                         input_keep, output_keep)
         self.cell = self.encoder_cell()
         self.output_dim = self.dim
 
@@ -148,8 +149,9 @@ class RNNEncoder(Encoder):
 
 
 class BiRNNEncoder(Encoder):
-    def __init__(self, hyperparameters):
-        super(BiRNNEncoder, self).__init__(hyperparameters)
+    def __init__(self, hyperparameters, input_keep, output_keep):
+        super(BiRNNEncoder, self).__init__(hyperparameters,
+                                           input_keep, output_keep)
         self.fw_cell = self.forward_cell()
         self.bw_cell = self.backward_cell()
         self.output_dim = 2 * self.dim
