@@ -16,8 +16,8 @@ class RNNDecoder(decoder.Decoder):
         """
         :return output_symbols: batch of discrete output sequences
         :return output_logits: batch of output sequence scores
-        :return outputs: batch output states
-        :return state: batch final hidden states
+        :return outputs: batch output states for all steps
+        :return states: batch hidden states for all steps
         :return attn_alignments: batch attention masks
                                  (if attention mechanism is used)
         """
@@ -40,6 +40,7 @@ class RNNDecoder(decoder.Decoder):
                 state = beam_decoder.wrap_state(encoder_state,
                                                 self.token_output_projection)
             else:
+                state = encoder_state
                 past_output_symbols = \
                     tf.expand_dims(tf.cast(decoder_inputs[0], tf.int64), 1)
                 past_output_logits = tf.cast(decoder_inputs[0] * 0, tf.float32)
