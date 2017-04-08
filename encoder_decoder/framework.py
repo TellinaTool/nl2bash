@@ -208,7 +208,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_decoder_token_loss = self.sequence_loss(
                                        outputs, targets, target_weights,
                                        graph_utils.softmax_loss(
-                                           self.decoder.output_projection,
+                                           self.decoder.token_output_projection,
                                            self.num_samples,
                                            self.target_vocab_size
                                    ))

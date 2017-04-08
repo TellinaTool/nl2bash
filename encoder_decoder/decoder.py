@@ -28,7 +28,7 @@ class Decoder(graph_utils.NNModel):
         # variable sharing
         self.char_embedding_vars = False
         self.token_embedding_vars = False
-        self.output_projection_vars = False
+        self.token_output_projection_vars = False
 
         self.beam_decoder = beam_search.BeamDecoder(
             self.target_vocab_size,
@@ -41,7 +41,7 @@ class Decoder(graph_utils.NNModel):
                 self.training_algorithm != "bso"
         )) if self.decoding_algorithm == "beam_search" else None
 
-        self.output_projection = self.output_projection()
+        self.token_output_projection = self.token_output_projection()
 
     def char_embeddings(self):
         with tf.variable_scope(self.scope + "_char_embeddings",
@@ -63,12 +63,12 @@ class Decoder(graph_utils.NNModel):
             self.token_embedding_vars = True
             return embeddings
 
-    def output_projection(self):
-        with tf.variable_scope(self.scope + "_output_projection",
-                               reuse=self.output_projection_vars):
+    def token_output_projection(self):
+        with tf.variable_scope(self.scope + "_token_output_projection",
+                               reuse=self.token_output_projection_vars):
             w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
             b = tf.get_variable("proj_b", [self.target_vocab_size])
-            self.output_projection_vars = True
+            self.token_output_projection_vars = True
         return (w, b)
 
 
