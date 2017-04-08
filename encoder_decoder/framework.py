@@ -203,12 +203,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 attn_alignment = self.decoder.define_graph(
                     encoder_state, decoder_inputs, encoder_attn_masks,
                     attention_states, num_heads=1, forward_only=forward_only)
-
+        print(states)
         if forward_only or self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
                                        outputs, targets, target_weights,
                                        graph_utils.softmax_loss(
-                                           self.decoder.output_projection(),
+                                           self.decoder.output_projection,
                                            self.num_samples,
                                            self.target_vocab_size
                                    ))
