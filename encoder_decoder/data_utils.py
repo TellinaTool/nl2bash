@@ -29,9 +29,6 @@ import os, sys
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
-    import _pickle as pickle
-else:
-    import cPickle as pickle
 
 from bashlex import normalizer, data_tools
 from nlp_tools import constants, tokenizer, slot_filling
@@ -727,21 +724,17 @@ def slot_filling_mapping_induction(FLAGS):
                         o_f.write('{}-{} '.format(i, j))
                 o_f.write('\n')
 
-def load_slot_filling_data(data_dir):
-    with open(data_dir, 'rb') as f:
-        if sys.version_info > (3, 0):
-            train_X, train_Y = pickle.load(f, encoding='latin-1')
-        else:
-            train_X, train_Y = pickle.load(f)
-        train_X = np.concatenate(train_X, axis=0)
-        train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y],
-                                 axis=0)
-        # print(train_X[0][:40])
-        # normalize the rows of the feature matrices
-        train_X = train_X / norm(train_X, axis=1)[:, None]
-        # print(train_X[0][:40])
-        assert(len(train_X) == len(train_Y))
-        print('{} slot filling examples loaded'.format(len(train_X)))
+def load_slot_filling_data(input_path):
+    data = np.load(input_path)
+    train_X, train_Y = data['arr_0']
+    train_X = np.concatenate(train_X, axis=0)
+    train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y], axis=0)
+    # print(train_X[0][:40])
+    # normalize the rows of the feature matrices
+    train_X = train_X / norm(train_X, axis=1)[:, None]
+    # print(train_X[0][:40])
+    assert(len(train_X) == len(train_Y))
+    print('{} slot filling examples loaded'.format(len(train_X)))
     return train_X, train_Y
 
 # --- Load Datasets -- #

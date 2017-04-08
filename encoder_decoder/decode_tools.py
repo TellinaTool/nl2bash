@@ -27,7 +27,7 @@ def demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS):
     slot_filling_classifier = None
     if FLAGS.fill_argument_slots:
         # create slot filling classifier
-        model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
+        model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y.npz'
                                .format(FLAGS.sc_vocab_size))
         train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
         slot_filling_classifier = \
@@ -252,7 +252,7 @@ def decode_set(sess, model, dataset, vocabs, FLAGS, verbose=True):
     slot_filling_classifier = None
     if FLAGS.fill_argument_slots:
         # create slot filling classifier
-        model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
+        model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y.npz'
                                .format(FLAGS.sc_vocab_size))
         train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
         slot_filling_classifier = \
