@@ -18,8 +18,8 @@ DEBUG = False
 
 class BasicTreeDecoder(decoder.Decoder):
 
-    def __init__(self, hyperparams, dim, output_projection=None):
-        super(BasicTreeDecoder, self).__init__(hyperparams, dim, output_projection)
+    def __init__(self, hyperparams, dim, token_output_projection=None):
+        super(BasicTreeDecoder, self).__init__(hyperparams, dim, token_output_projection)
 
         self.H_NO_EXPAND = tf.constant(data_utils.H_NO_EXPAND_ID, shape=[self.batch_size])
         self.V_NO_EXPAND = tf.constant(data_utils.V_NO_EXPAND_ID, shape=[self.batch_size])
@@ -48,7 +48,7 @@ class BasicTreeDecoder(decoder.Decoder):
             If False, decoder_inputs are used as given (the standard decoder case).
         :param reuse_variables: reuse variables in scope.
         :return: Output states and the final hidden state of the decoder. Need
-            output_projection to obtain distribution over output vocabulary.
+            token_output_projection to obtain distribution over output vocabulary.
         """
         self.E = tf.constant(np.identity(len(decoder_inputs)), dtype=tf.int32)
 
@@ -150,7 +150,7 @@ class BasicTreeDecoder(decoder.Decoder):
                     # storing states
                     if feed_previous:
                         # Project decoder output for next state input.
-                        W, b = self.output_projection
+                        W, b = self.token_output_projection
                         batch_projected_output = tf.matmul(batch_output, W) + b
                         batch_output_symbol = tf.argmax(batch_projected_output, 1)
                         batch_output_symbol = tf.cast(batch_output_symbol, dtype=tf.int32)
@@ -334,7 +334,7 @@ class BasicTreeDecoder(decoder.Decoder):
 if __name__ == "__main__":
     decoder = BasicTreeDecoder(dim=100, batch_size=1, rnn_cell="gru", num_layers=1,
                                input_keep_prob=1, output_keep_prob=1,
-                               use_attention=False, use_copy=False, output_projection=None)
+                               use_attention=False, use_copy=False, token_output_projection=None)
     decoder_inputs = [tf.placeholder(dtype=tf.int32, shape=[None],
                                      name="decoder{0}".format(i)) for i in xrange(14)]
     encoder_state = tf.random_normal(shape=[1, 100])
