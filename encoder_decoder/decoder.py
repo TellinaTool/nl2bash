@@ -13,11 +13,17 @@ from tensorflow.python.util import nest
 from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
-    def __init__(self, hyperparameters, dim, output_projection=None):
+    def __init__(self, hyperparameters, dim, scope):
+        """
+        :param hyperparameters: Tellina model hyperparameters.
+        :param dim: Decoder embedding dimension.
+        :param scope: Scope of the decoder. (There might be multiple decoders
+            with the same construction in the neural architecture.)
+        """
         super(Decoder, self).__init__(hyperparameters)
 
         self.dim = dim
-        self.output_projection = output_projection
+        self.scope = scope
 
         self.beam_decoder = beam_search.BeamDecoder(
             self.target_vocab_size,
@@ -33,9 +39,10 @@ class Decoder(graph_utils.NNModel):
         # variable sharing
         self.char_embedding_vars = False
         self.token_embedding_vars = False
+        self.output_projection_vars = False
 
     def char_embeddings(self):
-        with tf.variable_scope("decoder_char_embeddings",
+        with tf.variable_scope(self.scope + "_char_embeddings",
                                reuse=self.char_embedding_vars):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
@@ -45,7 +52,7 @@ class Decoder(graph_utils.NNModel):
             return embeddings
 
     def token_embeddings(self):
-        with tf.variable_scope("decoder_token_embeddings",
+        with tf.variable_scope(self.scope + "_token_embeddings",
                                reuse=self.token_embedding_vars):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
@@ -53,6 +60,14 @@ class Decoder(graph_utils.NNModel):
                 [self.target_vocab_size, self.dim], initializer=initializer)
             self.token_embedding_vars = True
             return embeddings
+
+    def output_projection(self):
+        with tf.variable_scope(self.scope + "_output_projection",
+                               reuse=self.output_projection_vars):
+            w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
+            b = tf.get_variable("proj_b", [self.target_vocab_size])
+            self.output_projection_vars = True
+        return (w, b)
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
@@ -141,7 +156,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         with tf.variable_scope("AttnInputProjection"):
             _, state = self.cell(input_embedding, state, scope)
-            # If multi-layer RNN cell is used, apply attention to the last layer.
+            # If multi-layer RNN cell is used, apply attention to the top layer.
             if self.num_layers > 1:
                 if self.rnn_cell == 'gru':
                     top_state = tf.split(1, self.num_layers, state)[-1]
