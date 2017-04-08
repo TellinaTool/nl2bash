@@ -93,18 +93,11 @@ def define_input_flags():
                               "Clip gradients to this norm.")
     tf.app.flags.DEFINE_integer("batch_size", 128,
                                 "Batch size to use during training.")
+    tf.app.flags.DEFINE_integer("num_layers", 1,
+                                "Number of layers in the encoder-decoder.")
     tf.app.flags.DEFINE_integer("num_samples", 512,
                                 "Number of samples for sampled softmax.")
-    tf.app.flags.DEFINE_float("encoder_input_keep", 1.0,
-                                "Proportion of input to keep if dropout is used.")
-    tf.app.flags.DEFINE_float("encoder_output_keep", 1.0,
-                                "Proportion of output to keep if dropout is used.")
-    tf.app.flags.DEFINE_float("decoder_input_keep", 1.0,
-                                "Proportion of input to keep if dropout is used.")
-    tf.app.flags.DEFINE_float("decoder_output_keep", 1.0,
-                                "Proportion of output to keep if dropout is used.")
     tf.app.flags.DEFINE_integer("seed", -1, "Random seed for graph initialization.")
-    tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
 
     tf.app.flags.DEFINE_string("training_algorithm", "standard", "training algorithm to use.")
     tf.app.flags.DEFINE_string("pretrained_model_subdir", "", "signature of pretrained model.")
@@ -116,9 +109,9 @@ def define_input_flags():
 
     tf.app.flags.DEFINE_boolean("use_attention", False, "If set, use attention decoder.")
     tf.app.flags.DEFINE_float("beta", 0.5, "Attention regularization.")
-    tf.app.flags.DEFINE_float("attention_input_keep", 1.0,
+    tf.app.flags.DEFINE_float("attention_input_keep", .5,
                               "Proportion of attention input state to keep if dropout is used.")
-    tf.app.flags.DEFINE_float("attention_output_keep", 1.0,
+    tf.app.flags.DEFINE_float("attention_output_keep", .5,
                               "Proportion of attention hidden state to keep if dropout is used.")
 
     tf.app.flags.DEFINE_float("margin", 1.0, "margin for margin-based loss function")
@@ -152,15 +145,32 @@ def define_input_flags():
     # channel network hyperparameters
     tf.app.flags.DEFINE_boolean("sc_token", True, "Set to True to turn on the token channel in the encoder. "
                                                   + "On by default.")
+    tf.app.flags.DEFINE_integer("sc_token_dim", 300, "Basic token embedding dimensions.")
+    tf.app.flags.DEFINE_float("sc_input_keep", .5,
+                                "Proportion of source input to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("sc_output_keep", .5,
+                                "Proportion of source output to keep if dropout is used.")
     tf.app.flags.DEFINE_boolean("sc_char", False, "Set to True to turn on the character channel in the encoder. "
                                                   + "Off by default.")
-    tf.app.flags.DEFINE_integer("sc_token_dim", 300, "Basic token embedding dimensions.")
     tf.app.flags.DEFINE_integer("sc_char_dim", 300, "Dimension of each character embeddings.")
     tf.app.flags.DEFINE_string("sc_char_composition", 'rnn', "Specify the character to token composition function.")
     tf.app.flags.DEFINE_string("sc_char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
-    tf.app.flags.DEFINE_integer("sc_char_rnn_num_layers", 1, "Number of layers in the RNN cell used for the character model.")
-    tf.app.flags.DEFINE_boolean("tg_char", False, "Set to True to turn on character RNN extention module in the decoder.")
+    tf.app.flags.DEFINE_integer("sc_char_rnn_num_layers", 1,
+                                "Number of layers in the RNN cell used for the character model.")
+
+
+    tf.app.flags.DEFINE_float("tg_input_keep", .5,
+                              "Proportion of target input to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("tg_output_keep", .5,
+                              "Proportion of target output to keep if dropout is used.")
+    tf.app.flags.DEFINE_boolean("tg_char", False,
+                                "Set to True to turn on character RNN extention module in the decoder.")
     tf.app.flags.DEFINE_string("tg_char_composition", 'rnn',
                                "Specify the model configuration used for character generation in the target.")
     tf.app.flags.DEFINE_string("tg_char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
-    tf.app.flags.DEFINE_integer("tg_char_rnn_num_layers", 1, "Number of layers in the RNN cell used for the character model.")
+    tf.app.flags.DEFINE_integer("tg_char_rnn_num_layers", 1,
+                                "Number of layers in the RNN cell used for the character model.")
+    tf.app.flags.DEFINE_float("tg_char_input_keep", .5,
+                                "Proportion of character target input to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("tg_char_output_keep", .5,
+                                "Proportion of character target output to keep if dropout is used.")

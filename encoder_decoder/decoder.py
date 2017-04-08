@@ -13,7 +13,7 @@ from tensorflow.python.util import nest
 from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
-    def __init__(self, hyperparameters, dim, scope):
+    def __init__(self, hyperparameters, scope, dim, input_keep, output_keep):
         """
         :param hyperparameters: Tellina model hyperparameters.
         :param dim: Decoder embedding dimension.
@@ -22,8 +22,10 @@ class Decoder(graph_utils.NNModel):
         """
         super(Decoder, self).__init__(hyperparameters)
 
-        self.dim = dim
         self.scope = scope
+        self.dim = dim
+        self.input_keep = input_keep
+        self.output_keep = output_keep
 
         # variable sharing
         self.char_embedding_vars = False
