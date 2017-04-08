@@ -52,10 +52,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.global_epoch = tf.Variable(0, trainable=False)
 
         # Encoder.
-        self.define_encoder()
+        self.define_encoder(self.sc_input_keep, self.sc_output_keep)
 
         # Decoder.
-        self.define_decoder(self.encoder.output_dim)
+        self.define_decoder(self.encoder.output_dim, self.tg_input_keep,
+                            self.tg_output_keep)
 
         # Character Decoder.
         if self.tg_char:
@@ -68,12 +69,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Feeds for inputs.
         self.encoder_inputs = []        # encoder inputs.
         self.encoder_attn_masks = []    # mask out PAD symbols in the encoder
-        self.decoder_inputs = []        # decoder inputs (always start with "root").
+        self.decoder_inputs = []        # decoder inputs (always start with "_GO").
         self.target_weights = []        # weights at each position of the target sequence.
+        if self.tg_char:
+            # inputs for character generation
+            self.char_decoder_inputs = []   # decoder inputs (always start with "_CGO")
+                                            # [batch_size*max_target_token_size, dim]
+            self.char_target_weights = []   # weights at each position of the target sequence
         self.debug_vars = []
 
-        print('beam_size: {}'.format(self.beam_size))
-        print('batch_size: {}'.format(self.batch_size))
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(
                 tf.placeholder(tf.int32, shape=[None],
@@ -91,6 +95,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Our targets are decoder inputs shifted by one.
         self.targets = [self.decoder_inputs[i + 1]
                         for i in xrange(self.max_target_length)]
+        for i in xrange(self.max_target_token_size + 1):
+            self.char_decoder_inputs.append(
+                tf.placeholder(tf.int32, shape=[None],
+                               name="char_decoder{0}".format(i)))
+            self.char_target_weights.append(
+                tf.placeholder(tf.float32, shape=[None],
+                               name="char_target_weight{0}".format(i)))
+        self.char_targets = [self.char_decoder_inputs[i + 1]
+                             for i in xrange(self.max_target_token_size)]
 
         if self.use_copy:
             self.original_encoder_inputs = []   # original encoder inputs.
@@ -180,8 +193,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.saver = tf.train.Saver(tf.global_variables())
 
 
-    def encode_decode(self, encoder_inputs, encoder_attn_masks,
-                      decoder_inputs, targets, target_weights, forward_only):
+    def encode_decode(self, encoder_inputs, encoder_attn_masks, decoder_inputs,
+                      targets, target_weights, forward_only):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs)
@@ -212,11 +225,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.use_attention else 0
 
         if self.tg_char:
-            
+            char_decoder_init_state = tf.concat(
+                0, [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in states])
             _, _, char_outputs, _, _, _ = self.char_decoder.define_graph(
-
-            )
-            encoder_decoder_char_loss = 0
+                char_decoder_init_state, self.char_decoder_inputs,
+                forward_only=forward_only)
+            encoder_decoder_char_loss = self.sequence_loss(
+                char_outputs, self.char_targets, self.char_target_weights,
+                tf.nn.softmax_cross_entropy_with_logits)
         else:
             encoder_decoder_char_loss = 0
        
@@ -258,12 +274,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
         return tf.reduce_mean(tf.square(diff))
 
 
-    def define_encoder(self):
+    def define_encoder(self, input_keep, output_keep):
         """Placeholder function."""
         self.encoder = None
 
 
-    def define_decoder(self, dim):
+    def define_decoder(self, dim, input_keep, output_keep):
         """Placeholder function."""
         self.decoder = None
 

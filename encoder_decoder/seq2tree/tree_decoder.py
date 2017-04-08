@@ -316,8 +316,8 @@ class BasicTreeDecoder(decoder.Decoder):
         with tf.variable_scope("vertical_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                                                       self.dim, self.num_layers,
-                                                      self.decoder_input_keep,
-                                                      self.decoder_output_keep)
+                                                      self.tg_input_keep,
+                                                      self.tg_output_keep)
         return cell, scope
 
 
@@ -326,8 +326,8 @@ class BasicTreeDecoder(decoder.Decoder):
         with tf.variable_scope("horizontal_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                                                       self.dim, self.num_layers,
-                                                      self.decoder_input_keep,
-                                                      self.decoder_output_keep)
+                                                      self.tg_input_keep,
+                                                      self.tg_output_keep)
         return cell, scope
 
 

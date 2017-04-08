@@ -28,18 +28,16 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["max_source_token_size"] = FLAGS.max_sc_token_size
     params["max_target_token_size"] = FLAGS.max_tg_token_size
     params["rnn_cell"] = FLAGS.rnn_cell
-    params["num_layers"] = FLAGS.num_layers
-    params["max_gradient_norm"] = FLAGS.max_gradient_norm
     params["batch_size"] = FLAGS.batch_size
+    params["num_layers"] = FLAGS.num_layers
     params["num_samples"] = FLAGS.num_samples
-    params["encoder_input_keep"] = FLAGS.encoder_input_keep
-    params["encoder_output_keep"] = FLAGS.encoder_output_keep
-    params["decoder_input_keep"] = FLAGS.decoder_input_keep
-    params["decoder_output_keep"] = FLAGS.decoder_output_keep
+    params["max_gradient_norm"] = FLAGS.max_gradient_norm
 
+    params["sc_input_keep"] = FLAGS.sc_input_keep
+    params["sc_output_keep"] = FLAGS.sc_output_keep
     params["sc_token"] = FLAGS.sc_token
-    params["sc_char"] = FLAGS.sc_char
     params["sc_token_dim"] = FLAGS.sc_token_dim
+    params["sc_char"] = FLAGS.sc_char
     params["sc_char_dim"] = FLAGS.sc_char_dim
     params["sc_char_composition"] = FLAGS.sc_char_composition
     params["sc_char_rnn_cell"] = FLAGS.sc_char_rnn_cell
@@ -48,10 +46,15 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         "vocab%d.nl.token.feature.npy" % FLAGS.sc_vocab_size)
     params["sc_char_features_path"] = os.path.join(FLAGS.data_dir,
         "vocab%d.nl.char.feature.npy" % FLAGS.sc_vocab_size)
+
+    params["tg_input_keep"] = FLAGS.tg_input_keep
+    params["tg_output_keep"] = FLAGS.tg_output_keep
     params["tg_char"] = FLAGS.tg_char
     params["tg_char_composition"] = FLAGS.tg_char_composition
     params["tg_char_rnn_cell"] = FLAGS.tg_char_rnn_cell
     params["tg_char_rnn_num_layers"] = FLAGS.tg_char_rnn_num_layers
+    params["tg_char_input_keep"] = FLAGS.tg_char_input_keep
+    params["tg_char_output_keep"] = FLAGS.tg_char_output_keep
 
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
@@ -99,10 +102,10 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         params["batch_size"] = 1
         params["attention_input_keep"] = 1.0
         params["attention_output_keep"] = 1.0
-        params["encoder_input_keep"] = 1.0
-        params["encoder_output_keep"] = 1.0
-        params["decoder_input_keep"] = 1.0
-        params["decoder_output_keep"] = 1.0
+        params["sc_input_keep"] = 1.0
+        params["sc_output_keep"] = 1.0
+        params["tg_input_keep"] = 1.0
+        params["tg_output_keep"] = 1.0
 
     if FLAGS.gen_slot_filling_training_data:
         FLAGS.batch_size = 1
@@ -166,12 +169,12 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
         model_subdir += '-{}'.format(FLAGS.sc_token_dim)
     if FLAGS.sc_char:
         model_subdir += '-{}'.format(FLAGS.sc_char_dim)
-    model_subdir += '-{}'.format(FLAGS.num_layers)
+    model_subdir += '-{}'.format(FLAGS.sc_token_num_layers)
     model_subdir += '-{}'.format(FLAGS.learning_rate)
-    model_subdir += '-{}'.format(FLAGS.encoder_input_keep)
-    model_subdir += '-{}'.format(FLAGS.encoder_output_keep)
-    model_subdir += '-{}'.format(FLAGS.decoder_input_keep)
-    model_subdir += '-{}'.format(FLAGS.decoder_output_keep)
+    model_subdir += '-{}'.format(FLAGS.sc_input_keep)
+    model_subdir += '-{}'.format(FLAGS.sc_output_keep)
+    model_subdir += '-{}'.format(FLAGS.tg_input_keep)
+    model_subdir += '-{}'.format(FLAGS.tg_output_keep)
     if FLAGS.canonical:
         model_subdir += '.canonical'
     elif FLAGS.normalized:
@@ -319,6 +322,10 @@ class NNModel(object):
         return self.hyperparams["decoder_topology"]
 
     @property
+    def num_layers(self):
+        return self.hyperparams["num_layers"]
+
+    @property
     def attention_input_keep(self):
         return self.hyperparams["attention_input_keep"]
 
@@ -327,28 +334,8 @@ class NNModel(object):
         return self.hyperparams["attention_output_keep"]
 
     @property
-    def encoder_input_keep(self):
-        return self.hyperparams["encoder_input_keep"]
-
-    @property
-    def encoder_output_keep(self):
-        return self.hyperparams["encoder_output_keep"]
-
-    @property
-    def decoder_input_keep(self):
-        return self.hyperparams["decoder_input_keep"]
-
-    @property
-    def decoder_output_keep(self):
-        return self.hyperparams["decoder_output_keep"]
-
-    @property
     def rnn_cell(self):
         return self.hyperparams["rnn_cell"]
-
-    @property
-    def num_layers(self):
-        return self.hyperparams["num_layers"]
 
     @property
     def source_vocab_size(self):
@@ -383,16 +370,28 @@ class NNModel(object):
         return self.hyperparams["sc_token"]
 
     @property
-    def sc_char(self):
-        return self.hyperparams["sc_char"]
-
-    @property
     def sc_token_dim(self):
         """
         The layer dimension of each model depends on the model architecture and
         the channels used.
         """
         return self.hyperparams["sc_token_dim"]
+
+    @property
+    def sc_input_keep(self):
+        return self.hyperparams["sc_input_keep"]
+
+    @property
+    def sc_output_keep(self):
+        return self.hyperparams["sc_output_keep"]
+
+    @property
+    def sc_token_features_path(self):
+        return self.hyperparams["sc_token_features_path"]
+
+    @property
+    def sc_char(self):
+        return self.hyperparams["sc_char"]
 
     @property
     def sc_char_dim(self):
@@ -411,12 +410,16 @@ class NNModel(object):
         return self.hyperparams["sc_char_rnn_num_layers"]
 
     @property
-    def sc_token_features_path(self):
-        return self.hyperparams["sc_token_features_path"]
-
-    @property
     def sc_char_features_path(self):
         return self.hyperparams["sc_char_features_path"]
+
+    @property
+    def tg_input_keep(self):
+        return self.hyperparams["tg_input_keep"]
+
+    @property
+    def tg_output_keep(self):
+        return self.hyperparams["tg_output_keep"]
 
     @property
     def tg_char(self):
