@@ -66,17 +66,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def define_graph(self, forward_only):
+        self.debug_vars = []
+
         # Feeds for inputs.
         self.encoder_inputs = []        # encoder inputs.
         self.encoder_attn_masks = []    # mask out PAD symbols in the encoder
         self.decoder_inputs = []        # decoder inputs (always start with "_GO").
         self.target_weights = []        # weights at each position of the target sequence.
-        if self.tg_char:
-            # inputs for character generation
-            self.char_decoder_inputs = []   # decoder inputs (always start with "_CGO")
-                                            # [batch_size*max_target_token_size, dim]
-            self.char_target_weights = []   # weights at each position of the target sequence
-        self.debug_vars = []
 
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(
@@ -95,15 +91,20 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Our targets are decoder inputs shifted by one.
         self.targets = [self.decoder_inputs[i + 1]
                         for i in xrange(self.max_target_length)]
-        for i in xrange(self.max_target_token_size + 1):
-            self.char_decoder_inputs.append(
-                tf.placeholder(tf.int32, shape=[None],
-                               name="char_decoder{0}".format(i)))
-            self.char_target_weights.append(
-                tf.placeholder(tf.float32, shape=[None],
-                               name="char_target_weight{0}".format(i)))
-        self.char_targets = [self.char_decoder_inputs[i + 1]
-                             for i in xrange(self.max_target_token_size)]
+        if self.tg_char:
+            # inputs for character generation
+            self.char_decoder_inputs = []   # decoder inputs (always start with "_CGO")
+                                            # [batch_size*max_target_token_size, dim]
+            self.char_target_weights = []   # weights at each position of the target sequence
+            for i in xrange(self.max_target_token_size + 1):
+                self.char_decoder_inputs.append(
+                    tf.placeholder(tf.int32, shape=[None],
+                                   name="char_decoder{0}".format(i)))
+                self.char_target_weights.append(
+                    tf.placeholder(tf.float32, shape=[None],
+                                   name="char_target_weight{0}".format(i)))
+            self.char_targets = [self.char_decoder_inputs[i + 1]
+                                 for i in xrange(self.max_target_token_size)]
 
         if self.use_copy:
             self.original_encoder_inputs = []   # original encoder inputs.
