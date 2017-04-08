@@ -16,20 +16,25 @@ from encoder_decoder import graph_utils, rnn
 
 
 class Encoder(graph_utils.NNModel):
-    def __init__(self, hyperparameters):
+    def __init__(self, hyperparameters, input_keep, output_keep):
         super(Encoder, self).__init__(hyperparameters)
+
+        # variable reuse
         self.char_embedding_vars = False
         self.token_embedding_vars = False
         self.char_rnn_vars = False
 
+        self.input_keep = input_keep
+        self.output_keep = output_keep
+
         self.channels = []
-        self.input_dim = 0
+        self.dim = 0
         if self.sc_token:
             self.channels.append('token')
-            self.input_dim += self.sc_token_dim
+            self.dim += self.sc_token_dim
         if self.sc_char:
             self.channels.append('char')
-            self.input_dim += self.sc_char_dim
+            self.dim += self.sc_char_dim
 
         assert(len(self.channels) > 0)
 
@@ -121,7 +126,7 @@ class RNNEncoder(Encoder):
     def __init__(self, hyperparameters):
         super(RNNEncoder, self).__init__(hyperparameters)
         self.cell = self.encoder_cell()
-        self.output_dim = self.input_dim
+        self.output_dim = self.dim
 
     def define_graph(self, encoder_inputs):
         input_embeddings = [tf.nn.embedding_lookup(
@@ -137,8 +142,8 @@ class RNNEncoder(Encoder):
     def encoder_cell(self):
         """RNN cell for the encoder."""
         with tf.variable_scope("encoder_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(
-                self.rnn_cell, scope, self.input_dim, self.num_layers)
+            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
+                self.dim, self.num_layers, self.input_keep, self.output_keep)
         return cell
 
 
@@ -147,8 +152,8 @@ class BiRNNEncoder(Encoder):
         super(BiRNNEncoder, self).__init__(hyperparameters)
         self.fw_cell = self.forward_cell()
         self.bw_cell = self.backward_cell()
-        self.output_dim = 2 * self.input_dim
-        print("Encoder input dimension = {}".format(self.input_dim))
+        self.output_dim = 2 * self.dim
+        print("Encoder input dimension = {}".format(self.dim))
         print("Encoder output dimension = {}".format(self.output_dim))
 
     def define_graph(self, encoder_inputs):
@@ -180,14 +185,12 @@ class BiRNNEncoder(Encoder):
         """RNN cell for the forward RNN."""
         with tf.variable_scope("forward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
-                int(self.input_dim), self.num_layers, self.encoder_input_keep,
-                self.encoder_output_keep)
+                self.dim, self.num_layers, self.input_keep, self.output_keep)
         return cell
 
     def backward_cell(self):
         """RNN cell for the backward RNN."""
         with tf.variable_scope("backward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
-                int(self.input_dim), self.num_layers, self.encoder_input_keep,
-                self.encoder_output_keep)
+                self.dim, self.num_layers, self.input_keep, self.output_keep)
         return cell
