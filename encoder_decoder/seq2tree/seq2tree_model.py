@@ -35,7 +35,7 @@ class Seq2TreeModel(EncoderDecoderModel):
         """Construct tree decoders."""
         if self.decoder_topology == "basic_tree":
             self.decoder = tree_decoder.BasicTreeDecoder(
-                self.hyperparams, dim, self.output_projection())
+                self.hyperparams, dim, self.token_output_projection())
         else:
             raise ValueError("Unrecognized decoder topology: {}."
                              .format(self.decoder_topology))
