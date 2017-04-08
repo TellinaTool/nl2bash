@@ -145,7 +145,7 @@ class RNNDecoder(decoder.Decoder):
                            for s in tf.split(1, past_cell_states.get_shape()[1],
                                              past_cell_states)[1:]]
                 return top_k_outputs, top_k_logits, outputs, \
-                    tf.split(1, len(outputs), past_cell_states[1:]), attn_alignments
+                    tf.split(1, len(outputs), past_cell_states)[1:], attn_alignments
             else:
                 # Greedy output
                 W, b = self.token_output_projection
