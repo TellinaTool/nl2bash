@@ -193,35 +193,34 @@ class EncoderDecoderModel(graph_utils.NNModel):
             attention_states = None
         
         # Losses.
-        if self.training_algorithm == "bso":
-            output_symbols, output_logits, outputs, states, attn_alignment, \
-                bso_losses = self.decoder.define_bso_graph(
-                    encoder_state, decoder_inputs, encoder_attn_masks,
-                    attention_states, num_heads=1, forward_only=forward_only)
-        else:
-            output_symbols, output_logits, outputs, states, \
-                attn_alignment = self.decoder.define_graph(
-                    encoder_state, decoder_inputs, encoder_attn_masks,
-                    attention_states, num_heads=1, forward_only=forward_only)
-        print(states)
+        output_symbols, output_logits, outputs, states, attn_alignment = \
+            self.decoder.define_graph(
+                encoder_state, decoder_inputs, encoder_attn_masks,
+                attention_states, num_heads=1, forward_only=forward_only)
         if forward_only or self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
-                                       outputs, targets, target_weights,
-                                       graph_utils.softmax_loss(
-                                           self.decoder.token_output_projection,
-                                           self.num_samples,
-                                           self.target_vocab_size
-                                   ))
-        elif self.training_algorithm == "bso":
-            encoder_decoder_token_loss = tf.reduce_mean(
-                [tf.mul(x, y) for x, y in zip(bso_losses, target_weights)])
+                                   outputs, targets, target_weights,
+                                   graph_utils.softmax_loss(
+                                       self.decoder.token_output_projection,
+                                       self.num_samples,
+                                       self.target_vocab_size
+                               ))
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
         attention_reg = self.attention_regularization(attn_alignment) \
             if self.use_attention else 0
 
-        losses = encoder_decoder_token_loss + \
+        if self.tg_char:
+            
+            _, _, char_outputs, _, _, _ = self.char_decoder.define_graph(
+
+            )
+            encoder_decoder_char_loss = self.
+        else:
+            encoder_decoder_char_loss = 0
+
+        losses = encoder_decoder_token_loss + encoder_decoder_char_loss + \
                  self.beta * attention_reg
 
         # store encoder/decoder output states
