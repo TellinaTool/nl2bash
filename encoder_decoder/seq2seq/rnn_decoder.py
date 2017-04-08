@@ -37,7 +37,8 @@ class RNNDecoder(decoder.Decoder):
             # applying cell wrappers: ["attention", "beam"]
             if bs_decoding:
                 beam_decoder = self.beam_decoder
-                state = beam_decoder.wrap_state(encoder_state, self.output_projection)
+                state = beam_decoder.wrap_state(encoder_state,
+                                                self.output_projection())
             else:
                 past_output_symbols = \
                     tf.expand_dims(tf.cast(decoder_inputs[0], tf.int64), 1)
@@ -63,7 +64,7 @@ class RNNDecoder(decoder.Decoder):
 
             if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell,
-                                                      self.output_projection)
+                                                      self.output_projection())
 
             for i, input in enumerate(decoder_inputs):
                 if bs_decoding:
@@ -83,7 +84,7 @@ class RNNDecoder(decoder.Decoder):
                             ) = state
                             input = past_beam_symbols[:, -1]
                         elif self.decoding_algorithm == "greedy":
-                            W, b = self.output_projection
+                            W, b = self.output_projection()
                             projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                             output_symbol = tf.argmax(projected_output, 1)
                             past_output_symbols = tf.concat(1, [past_output_symbols,
@@ -145,7 +146,7 @@ class RNNDecoder(decoder.Decoder):
                 return top_k_outputs, top_k_logits, outputs, states, attn_alignments
             else:
                 # Greedy output
-                W, b = self.output_projection
+                W, b = self.output_projection()
                 projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                 output_symbol = tf.argmax(projected_output, 1)
                 past_output_symbols = tf.concat(1, [past_output_symbols,
