@@ -36,10 +36,11 @@ class Decoder(graph_utils.NNModel):
                 self.training_algorithm != "bso"
         )) if self.decoding_algorithm == "beam_search" else None
 
+        self.output_projection = self.output_projection()
+
         # variable sharing
         self.char_embedding_vars = False
         self.token_embedding_vars = False
-        self.output_projection_vars = False
 
     def char_embeddings(self):
         with tf.variable_scope(self.scope + "_char_embeddings",
