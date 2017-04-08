@@ -209,7 +209,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         else:
             cell_output, raw_cell_state = \
                 self.cell(cell_inputs, past_cell_state, scope)
-        W, b = self.output_projection
+        W, b = self.output_projection()
 
         # [batch_size*beam_size, num_classes]
         if self.locally_normalized:
