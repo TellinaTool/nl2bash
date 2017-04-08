@@ -5,9 +5,10 @@ import tensorflow as tf
 from encoder_decoder import decoder, graph_utils
 
 class RNNDecoder(decoder.Decoder):
-    def __init__(self, hyperparameters, dim, output_projection=None):
-        super(RNNDecoder, self).__init__(hyperparameters, dim, output_projection)
-        print("Decoder dimension = {}".format(dim))
+    def __init__(self, hyperparameters, dim, scope):
+        super(RNNDecoder, self).__init__(hyperparameters, dim, scope)
+        print("{} dimension = {}".format(scope, dim))
+
 
     def define_graph(self, encoder_state, decoder_inputs,
                      encoder_attn_masks=None, attention_states=None,
@@ -29,14 +30,14 @@ class RNNDecoder(decoder.Decoder):
 
         with tf.variable_scope("decoder_rnn") as scope:
             decoder_cell = self.decoder_cell()
-            state = encoder_state
             outputs = []
+            states = []
             attn_alignments = []
 
             # applying cell wrappers: ["attention", "beam"]
             if bs_decoding:
                 beam_decoder = self.beam_decoder
-                state = beam_decoder.wrap_state(state, self.output_projection)
+                state = beam_decoder.wrap_state(encoder_state, self.output_projection)
             else:
                 past_output_symbols = \
                     tf.expand_dims(tf.cast(decoder_inputs[0], tf.int64), 1)
@@ -107,7 +108,8 @@ class RNNDecoder(decoder.Decoder):
                     # (speical case: beam_size = 1)
                     pass
                 else:
-                    outputs.append(state)
+                    outputs.append(output)
+                    states.append(state)
 
             if self.use_attention:
                 # Tensor list --> tenosr
@@ -140,7 +142,7 @@ class RNNDecoder(decoder.Decoder):
                 outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:]
                            for s in tf.split(1, past_cell_states.get_shape()[1],
                                              past_cell_states)[1:]]
-                return top_k_outputs, top_k_logits, outputs, state, attn_alignments
+                return top_k_outputs, top_k_logits, outputs, states, attn_alignments
             else:
                 # Greedy output
                 W, b = self.output_projection
@@ -151,7 +153,7 @@ class RNNDecoder(decoder.Decoder):
                 output_symbols = past_output_symbols[:, 1:]
                 past_output_logits = tf.add(past_output_logits,
                                             tf.reduce_max(projected_output, 1))
-                return output_symbols, past_output_logits, outputs, state, attn_alignments
+                return output_symbols, past_output_logits, outputs, states, attn_alignments
 
 
     def decoder_cell(self):

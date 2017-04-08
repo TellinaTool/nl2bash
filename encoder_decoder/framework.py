@@ -14,6 +14,7 @@ import numpy as np
 import tensorflow as tf
 
 from encoder_decoder import data_utils, graph_utils
+from encoder_decoder.seq2seq import rnn_decoder
 
 
 class EncoderDecoderModel(graph_utils.NNModel):
@@ -48,9 +49,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.learning_rate_decay_op = self.learning_rate.assign(
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
-        # variable sharing
-        self.output_projection_vars = False
-
         self.global_epoch = tf.Variable(0, trainable=False)
 
         # Encoder.
@@ -58,6 +56,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Decoder.
         self.define_decoder(self.encoder.output_dim)
+
+        # Character Decoder.
+        if self.tg_char:
+            self.define_char_decoder(self.decoder.dim)
 
         self.define_graph(forward_only)
 
@@ -192,56 +194,69 @@ class EncoderDecoderModel(graph_utils.NNModel):
         
         # Losses.
         if self.training_algorithm == "bso":
-            output_symbols, output_logits, outputs, state, attn_alignment, \
+            output_symbols, output_logits, outputs, states, attn_alignment, \
                 bso_losses = self.decoder.define_bso_graph(
                     encoder_state, decoder_inputs, encoder_attn_masks,
                     attention_states, num_heads=1, forward_only=forward_only)
         else:
-            output_symbols, output_logits, outputs, state, \
+            output_symbols, output_logits, outputs, states, \
                 attn_alignment = self.decoder.define_graph(
                     encoder_state, decoder_inputs, encoder_attn_masks,
                     attention_states, num_heads=1, forward_only=forward_only)
 
-        if forward_only:
-            # if self.decoding_algorithm == 'beam_search':
-            #     outputs = [tf.gather(output, tf.range(0,
-            #         self.batch_size*self.beam_size, self.beam_size))
-            #         for output in outputs]
-            encoder_decoder_loss = graph_utils.sequence_loss(
+        if forward_only or self.training_algorithm == "standard":
+            encoder_decoder_token_loss = self.sequence_loss(
                                        outputs, targets, target_weights,
                                        graph_utils.softmax_loss(
-                                           self.output_projection(),
+                                           self.decoder.output_projection(),
                                            self.num_samples,
                                            self.target_vocab_size
                                    ))
+        elif self.training_algorithm == "bso":
+            encoder_decoder_token_loss = tf.reduce_mean(
+                [tf.mul(x, y) for x, y in zip(bso_losses, target_weights)])
         else:
-            if self.training_algorithm == "standard":
-                encoder_decoder_loss = graph_utils.sequence_loss(
-                                           outputs, targets, target_weights,
-                                           graph_utils.softmax_loss(
-                                               self.output_projection(),
-                                               self.num_samples,
-                                               self.target_vocab_size
-                                       ))
-            elif self.training_algorithm == "bso":
-                encoder_decoder_loss = tf.reduce_mean(
-                    [tf.mul(x, y) for x, y in zip(bso_losses, target_weights)]
-                )
-            else:
-                raise AttributeError("Unrecognized training algorithm.")
+            raise AttributeError("Unrecognized training algorithm.")
 
-        attention_loss = self.beta * graph_utils.attention_reg(attn_alignment) \
+        attention_reg = self.attention_regularization(attn_alignment) \
             if self.use_attention else 0
 
-        losses = encoder_decoder_loss + attention_loss
+        losses = encoder_decoder_token_loss + \
+                 self.beta * attention_reg
 
         # store encoder/decoder output states
-        self.encoder_outputs = tf.concat(1, [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
-                                             for e_o in encoder_outputs])
-        self.decoder_outputs = tf.concat(1, [tf.reshape(d_o, [-1, 1, self.decoder.dim])
-                                             for d_o in outputs])
+        self.encoder_hidden_states = tf.concat(
+            1, [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
+                for e_o in encoder_outputs])
+        self.decoder_hidden_states = tf.concat(
+            1, [tf.reshape(d_o, [-1, 1, self.decoder.dim])
+                for d_o in states])
 
         return output_symbols, output_logits, losses, attn_alignment
+
+
+    # Loss functions.
+    def sequence_loss(self, logits, targets, target_weights, loss_function):
+        targets = targets[:len(logits)]
+        weights = target_weights[:len(logits)]
+
+        with tf.variable_scope("sequence_loss"):
+            log_perp_list = []
+            for logit, target, weight in zip(logits, targets, weights):
+                crossent = loss_function(logit, target)
+                log_perp_list.append(crossent * weight)
+            log_perps = tf.add_n(log_perp_list)
+            total_size = tf.add_n(weights)
+            total_size += 1e-12  # Just to avoid division by 0 for all-0 weights.
+            log_perps /= total_size
+
+        avg_log_perps = tf.reduce_mean(log_perps)
+
+        return avg_log_perps
+
+    def attention_regularization(self, attn_alignments):
+        diff = tf.reduce_sum(attn_alignments, 1) - 1
+        return tf.reduce_mean(tf.square(diff))
 
 
     def define_encoder(self):
@@ -253,16 +268,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """Placeholder function."""
         self.decoder = None
 
-
-    def output_projection(self):
-        with tf.variable_scope("output_projection",
-                               reuse=self.output_projection_vars):
-            w = tf.get_variable("proj_w", [self.encoder.output_dim,
-                                           self.target_vocab_size])
-            b = tf.get_variable("proj_b", [self.target_vocab_size])
-            self.output_projection_vars = True
-        return (w, b)
-
+    def define_char_decoder(self, dim):
+        """
+        Define the decoder which does character-level generation of a token.
+        """
+        if self.tg_char_composition == 'rnn':
+            self.char_decoder = rnn_decoder.RNNDecoder(self.hyperparams, dim,
+                                                       "char_decoder")
+        else:
+            raise ValueError("Unrecognized target character composition: {}."
+                             .format(self.tg_char_composition))
 
     def format_example(self, encoder_channel_inputs, decoder_inputs,
                        copy_data=None, bucket_id=-1):
@@ -451,8 +466,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed.append(self.attn_alignments[bucket_id])
 
         if return_rnn_hidden_states:
-            output_feed.append(self.encoder_outputs)
-            output_feed.append(self.decoder_outputs)
+            output_feed.append(self.encoder_hidden_states)
+            output_feed.append(self.decoder_hidden_states)
 
         outputs = session.run(output_feed, input_feed)
 
