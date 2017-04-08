@@ -141,11 +141,9 @@ class RNNDecoder(decoder.Decoder):
                 if self.use_attention:
                     attn_alignments = tf.reshape(attn_alignments, [self.batch_size, self.beam_size,
                             len(decoder_inputs), attention_states.get_shape()[1].value])
-                outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:]
-                           for s in tf.split(1, past_cell_states.get_shape()[1],
-                                             past_cell_states)[1:]]
-                return top_k_outputs, top_k_logits, outputs, \
-                    tf.split(1, len(outputs), past_cell_states)[1:], attn_alignments
+                states = tf.split(1, past_cell_states.get_shape()[1], past_cell_states)[1:]
+                outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:] for s in states]
+                return top_k_outputs, top_k_logits, outputs, states, attn_alignments
             else:
                 # Greedy output
                 W, b = self.token_output_projection
