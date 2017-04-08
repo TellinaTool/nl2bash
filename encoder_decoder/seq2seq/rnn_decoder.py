@@ -5,8 +5,9 @@ import tensorflow as tf
 from encoder_decoder import decoder, graph_utils
 
 class RNNDecoder(decoder.Decoder):
-    def __init__(self, hyperparameters, dim, scope):
-        super(RNNDecoder, self).__init__(hyperparameters, dim, scope)
+    def __init__(self, hyperparameters, scope, dim, input_keep, output_keep):
+        super(RNNDecoder, self).__init__(hyperparameters, scope, dim,
+                                         input_keep, output_keep)
         print("{} dimension = {}".format(scope, dim))
 
 
@@ -161,6 +162,5 @@ class RNNDecoder(decoder.Decoder):
         with tf.variable_scope("decoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
-                self.decoder_input_keep, self.decoder_output_keep)
-            self.encoder_cell_vars = True
+                self.input_keep, self.output_keep)
         return cell
