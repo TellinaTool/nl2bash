@@ -169,7 +169,7 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
         model_subdir += '-{}'.format(FLAGS.sc_token_dim)
     if FLAGS.sc_char:
         model_subdir += '-{}'.format(FLAGS.sc_char_dim)
-    model_subdir += '-{}'.format(FLAGS.sc_token_num_layers)
+    model_subdir += '-{}'.format(FLAGS.num_layers)
     model_subdir += '-{}'.format(FLAGS.learning_rate)
     model_subdir += '-{}'.format(FLAGS.sc_input_keep)
     model_subdir += '-{}'.format(FLAGS.sc_output_keep)
