@@ -13,10 +13,7 @@ import os
 import sys
 
 if sys.version_info > (3, 0):
-    import _pickle as pickle
     from six.moves import xrange
-else:
-    import cPickle as pickle
     
 import itertools
 import math
@@ -341,7 +338,7 @@ def eval_slot_filling(dataset):
     """
     Evaluate accuracy of the global slot filling algorithm.
     """
-    model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y'
+    model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y.npz'
                            .format(FLAGS.sc_vocab_size))
     train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
     slot_filling_classifier = classifiers.KNearestNeighborModel(
@@ -459,8 +456,7 @@ def gen_slot_filling_training_data():
                     print('{} training examples gathered for training slot filling...'
                           .format(len(X)))
 
-        with open(output_file, 'w') as o_f:
-            pickle.dump([X, Y], o_f)
+        np.savez(output_file, [X, Y])
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
@@ -471,11 +467,11 @@ def gen_slot_filling_training_data():
             Seq2SeqModel, buckets=_buckets, forward_only=True)
 
         get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
-            FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
+            FLAGS.data_dir, 'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size)))
         get_slot_filling_training_data_fun(seq2seq_model, dev_set, os.path.join(
-            FLAGS.data_dir, 'dev.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
+            FLAGS.data_dir, 'dev.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size)))
         get_slot_filling_training_data_fun(seq2seq_model, test_set, os.path.join(
-            FLAGS.data_dir, 'test.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size)))
+            FLAGS.data_dir, 'test.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size)))
 
 
 def induce_slot_filling_mapping():
@@ -503,7 +499,7 @@ def data_statistics():
 
 def main(_):
     # set GPU device
-    # os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
+    os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.gpu
     
     # set up data and model directories
     FLAGS.data_dir = os.path.join(
@@ -536,9 +532,9 @@ def main(_):
         eval_slot_filling(dataset)
     elif FLAGS.eval_local_slot_filling:
         train_path = os.path.join(
-            FLAGS.data_dir, 'train.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size))
+            FLAGS.data_dir, 'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
         dev_path = os.path.join(
-            FLAGS.data_dir, 'dev.{}.mappings.X.Y'.format(FLAGS.sc_vocab_size))
+            FLAGS.data_dir, 'dev.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
         eval_local_slot_filling(train_path, dev_path)
 
     elif FLAGS.demo:
