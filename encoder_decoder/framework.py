@@ -203,7 +203,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 attn_alignment = self.decoder.define_graph(
                     encoder_state, decoder_inputs, encoder_attn_masks,
                     attention_states, num_heads=1, forward_only=forward_only)
-        print(states)
         if forward_only or self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
                                        outputs, targets, target_weights,
@@ -228,6 +227,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.encoder_hidden_states = tf.concat(
             1, [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
                 for e_o in encoder_outputs])
+        for d_o in states:
+            print(d_o)
         self.decoder_hidden_states = tf.concat(
             1, [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                 for d_o in states])
