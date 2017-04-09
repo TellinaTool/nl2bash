@@ -255,14 +255,20 @@ class EncoderDecoderModel(graph_utils.NNModel):
             char_decoder_inputs = [tf.squeeze(x, 1)
                             for x in tf.split(1, self.max_target_token_size + 1,
                             tf.concat(0, self.char_decoder_inputs))]
-            # print([x for x in tf.split(1, self.max_target_token_size,
-            #                          tf.concat(0, self.char_decoder_inputs))])
             char_targets = [tf.squeeze(x, 1) for x in
                             tf.split(1, self.max_target_token_size,
                                      tf.concat(0, self.char_targets))]
             char_target_weights = [tf.squeeze(x, 1) for x in
                             tf.split(1, self.max_target_token_size,
                                      tf.concat(0, self.char_target_weights))]
+            if self.token_decoding_algorithm == 'beam_search':
+                char_decoder_inputs = graph_utils.wrap_inputs(
+                    self.decoder.beam_decoder, char_decoder_inputs)
+                char_targets = graph_utils.wrap_inputs(
+                    self.decoder.beam_decoder, char_targets)
+                char_target_weights = graph_utils.wrap_inputs(
+                    self.decoder.beam_decoder, char_target_weights)
+
             # get initial state from decoder output
             char_decoder_init_state = tf.concat(
                 0, [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in states])
@@ -318,6 +324,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         avg_log_perps = tf.reduce_mean(log_perps)
 
         return avg_log_perps
+
 
     def attention_regularization(self, attn_alignments):
         diff = tf.reduce_sum(attn_alignments, 1) - 1

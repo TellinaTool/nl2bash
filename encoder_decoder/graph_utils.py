@@ -255,6 +255,10 @@ def softmax_loss(token_output_projection, num_samples, target_vocab_size):
     return loss_function
 
 
+def wrap_inputs(beam_decoder, inputs):
+    return [beam_decoder.wrap_input(input) for input in inputs]
+
+
 class NNModel(object):
     def __init__(self, hyperparams, buckets=None):
         self.hyperparams = hyperparams
