@@ -395,6 +395,14 @@ class NNModel(object):
     def tg_char_features_path(self):
         return self.hyperparams["tg_char_features_path"]
 
+    @property
+    def tg_char_rnn_input_keep(self):
+        return self.hyperparams["tg_char_rnn_input_keep"]
+
+    @property
+    def tg_char_rnn_output_keep(self):
+        return self.hyperparams["tg_char_rnn_output_keep"]
+
     # -- optimization parameters -- #
 
     @property
