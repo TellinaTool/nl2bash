@@ -14,7 +14,7 @@ from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
     def __init__(self, hyperparameters, scope, vocab_size, dim, use_attention,
-                 input_keep, output_keep):
+                 input_keep, output_keep, decoding_algorithm):
         """
         :param hyperparameters: Tellina model hyperparameters.
         :param scope: Scope of the decoder. (There might be multiple decoders
@@ -33,6 +33,7 @@ class Decoder(graph_utils.NNModel):
         self.use_attention = use_attention
         self.input_keep = input_keep
         self.output_keep = output_keep
+        self.decoding_algorithm = decoding_algorithm
 
         # variable sharing
         self.embedding_vars = False
