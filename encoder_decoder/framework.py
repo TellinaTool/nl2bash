@@ -228,22 +228,20 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         if self.tg_char:
             # re-arrange character inputs
-            char_decoder_inputs = [tf.squeeze(x) for x in
+            char_decoder_inputs = [tf.squeeze(x, 1) for x in
                             tf.split(1, self.max_target_token_size,
                                      tf.concat(0, self.char_decoder_inputs))]
-            print(char_decoder_inputs)
-            char_targets = [tf.squeeze(x) for x in
+            # print([x for x in tf.split(1, self.max_target_token_size,
+            #                          tf.concat(0, self.char_decoder_inputs))])
+            char_targets = [tf.squeeze(x, 1) for x in
                             tf.split(1, self.max_target_token_size,
                                      tf.concat(0, self.char_targets))]
-            print(char_targets)
-            char_target_weights = [tf.squeeze(x) for x in
+            char_target_weights = [tf.squeeze(x, 1) for x in
                             tf.split(1, self.max_target_token_size,
                                      tf.concat(0, self.char_target_weights))]
-            print(char_target_weights)
             # get initial state from decoder output
             char_decoder_init_state = tf.concat(
                 0, [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in states])
-            print(char_decoder_init_state)
             _, _, char_outputs, _, _, _ = self.char_decoder.define_graph(
                 char_decoder_init_state, char_decoder_inputs,
                 forward_only=forward_only)
