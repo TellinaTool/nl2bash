@@ -166,6 +166,7 @@ def define_input_flags():
                               "Proportion of target output to keep if dropout is used.")
     tf.app.flags.DEFINE_boolean("tg_char", False,
                                 "Set to True to turn on character RNN extention module in the decoder.")
+    tf.app.flags.DEFINE_integer("tg_char_vocab_size", 150, "Target character vocabulary size.")
     tf.app.flags.DEFINE_string("tg_char_composition", 'rnn',
                                "Specify the model configuration used for character generation in the target.")
     tf.app.flags.DEFINE_string("tg_char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
