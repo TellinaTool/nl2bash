@@ -13,17 +13,22 @@ from tensorflow.python.util import nest
 from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
-    def __init__(self, hyperparameters, scope, dim, input_keep, output_keep):
+    def __init__(self, hyperparameters, scope, dim, use_attention,
+                 input_keep, output_keep):
         """
         :param hyperparameters: Tellina model hyperparameters.
-        :param dim: Decoder embedding dimension.
         :param scope: Scope of the decoder. (There might be multiple decoders
             with the same construction in the neural architecture.)
+        :param dim: Decoder embedding dimension.
+        :param use_attention: Set to True to use attention for decoding.
+        :param input_keep: Dropout parameter for the input of the attention layer.
+        :param output_keep: Dropout parameter for the output of the attention layer.
         """
         super(Decoder, self).__init__(hyperparameters)
 
         self.scope = scope
         self.dim = dim
+        self.use_attention = use_attention
         self.input_keep = input_keep
         self.output_keep = output_keep
 

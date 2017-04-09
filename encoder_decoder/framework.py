@@ -55,8 +55,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.define_encoder(self.sc_input_keep, self.sc_output_keep)
 
         # Decoder.
-        self.define_decoder(self.encoder.output_dim, self.tg_input_keep,
-                            self.tg_output_keep)
+        self.define_decoder(self.encoder.output_dim, self.tg_token_use_attention,
+                            self.tg_input_keep, self.tg_output_keep)
 
         # Character Decoder.
         if self.tg_char:
@@ -200,7 +200,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_inputs)
-        if self.use_attention:
+        if self.tg_token_use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.encoder.output_dim])
                           for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
@@ -224,7 +224,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             raise AttributeError("Unrecognized training algorithm.")
 
         attention_reg = self.attention_regularization(attn_alignment) \
-            if self.use_attention else 0
+            if self.tg_token_use_attention else 0
 
         if self.tg_char:
             # re-arrange character inputs
@@ -291,7 +291,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.encoder = None
 
 
-    def define_decoder(self, dim, input_keep, output_keep):
+    def define_decoder(self, dim, use_attention, input_keep, output_keep):
         """Placeholder function."""
         self.decoder = None
 
@@ -528,7 +528,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed.append(self.output_logits[bucket_id])   # Batch output sequence
                 output_feed.append(self.losses[bucket_id])          # Batch output logits
 
-        if self.use_attention:
+        if self.tg_token_use_attention:
             if bucket_id == -1:
                 output_feed.append(self.attn_alignments)
             else:
@@ -552,7 +552,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             outputs_to_return.append(outputs[1])
             outputs_to_return.append(outputs[2])
         # [attention_masks]
-        if self.use_attention:
+        if self.tg_token_use_attention:
             outputs_to_return.append(outputs[3])
         else:
             outputs_to_return.append(None)

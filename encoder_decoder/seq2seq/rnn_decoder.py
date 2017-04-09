@@ -5,9 +5,10 @@ import tensorflow as tf
 from encoder_decoder import decoder, graph_utils
 
 class RNNDecoder(decoder.Decoder):
-    def __init__(self, hyperparameters, scope, dim, input_keep, output_keep):
+    def __init__(self, hyperparameters, scope, dim, use_attention, input_keep,
+                 output_keep):
         super(RNNDecoder, self).__init__(hyperparameters, scope, dim,
-                                         input_keep, output_keep)
+                                         use_attention, input_keep, output_keep)
         print("{} dimension = {}".format(scope, dim))
 
 
