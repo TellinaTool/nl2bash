@@ -170,7 +170,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("tg_char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
     tf.app.flags.DEFINE_integer("tg_char_rnn_num_layers", 1,
                                 "Number of layers in the RNN cell used for the character model.")
-    tf.app.flags.DEFINE_float("tg_char_input_keep", .5,
+    tf.app.flags.DEFINE_float("tg_char_rnn_input_keep", .5,
                                 "Proportion of character target input to keep if dropout is used.")
-    tf.app.flags.DEFINE_float("tg_char_output_keep", .5,
+    tf.app.flags.DEFINE_float("tg_char_rnn_output_keep", .5,
                                 "Proportion of character target output to keep if dropout is used.")

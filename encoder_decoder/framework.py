@@ -60,7 +60,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Character Decoder.
         if self.tg_char:
-            self.define_char_decoder(self.decoder.dim)
+            self.define_char_decoder(self.decoder.dim,
+                    self.tg_char_rnn_input_keep, self.tg_char_rnn_output_keep)
 
         self.define_graph(forward_only)
 
@@ -293,13 +294,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """Placeholder function."""
         self.decoder = None
 
-    def define_char_decoder(self, dim):
+    def define_char_decoder(self, dim, input_keep, output_keep):
         """
         Define the decoder which does character-level generation of a token.
         """
         if self.tg_char_composition == 'rnn':
-            self.char_decoder = rnn_decoder.RNNDecoder(self.hyperparams, dim,
-                                                       "char_decoder")
+            self.char_decoder = rnn_decoder.RNNDecoder(self.hyperparams,
+                "char_decoder", dim, input_keep, output_keep)
         else:
             raise ValueError("Unrecognized target character composition: {}."
                              .format(self.tg_char_composition))
@@ -407,6 +408,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 batch_char_target_weights.append(
                     np.array(batch_char_decoder_input == data_utils.CPAD_ID,
                              dtype=np.int64))
+            assert(len(batch_char_decoder_inputs) == decoder_size)
             assert(batch_char_decoder_input.shape[0] == self.batch_size)
             assert(batch_char_decoder_input.shape[1] == self.max_target_token_size)
             E.char_decoder_inputs = batch_char_decoder_inputs
@@ -474,6 +476,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
+        if self.tg_char:
+            for l in xrange(decoder_size):
+                input_feed[self.char_decoder_inputs[l].name] = E.char_decoder_inputs[l]
+                input_feed[self.char_target_weights[l].name] = E.char_target_weights[l]
 
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
