@@ -489,7 +489,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
             for l in xrange(decoder_size):
                 input_feed[self.char_decoder_inputs[l].name] = E.char_decoder_inputs[l]
                 input_feed[self.char_target_weights[l].name] = E.char_target_weights[l]
-            last_char_target = self.char_decoder_inputs[decoder_size]
+            last_char_target = self.char_decoder_inputs[decoder_size].name
+            input_feed[last_char_target] = np.zeros(E.char_decoder_inputs[0].shape,
+                                                    dtype=np.int32)
 
         return input_feed
 
