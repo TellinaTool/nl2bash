@@ -49,8 +49,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["tg_char_composition"] = FLAGS.tg_char_composition
     params["tg_char_rnn_cell"] = FLAGS.tg_char_rnn_cell
     params["tg_char_rnn_num_layers"] = FLAGS.tg_char_rnn_num_layers
-    params["tg_char_input_keep"] = FLAGS.tg_char_input_keep
-    params["tg_char_output_keep"] = FLAGS.tg_char_output_keep
+    params["tg_char_rnn_input_keep"] = FLAGS.tg_char_rnn_input_keep
+    params["tg_char_rnn_output_keep"] = FLAGS.tg_char_rnn_output_keep
     params["tg_char_features_path"] = os.path.join(FLAGS.data_dir,
         "vocab%d.cm.char.feature.npy" % FLAGS.tg_vocab_size)
 
