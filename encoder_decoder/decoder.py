@@ -39,7 +39,7 @@ class Decoder(graph_utils.NNModel):
         self.token_output_projection_vars = False
 
         self.beam_decoder = beam_search.BeamDecoder(
-            self.target_vocab_size,
+            self.vocab_size,
             data_utils.ROOT_ID, data_utils.EOS_ID,
             self.batch_size,
             self.beam_size,
@@ -64,8 +64,8 @@ class Decoder(graph_utils.NNModel):
     def token_output_projection(self):
         with tf.variable_scope(self.scope + "_token_output_projection",
                                reuse=self.token_output_projection_vars):
-            w = tf.get_variable("proj_w", [self.dim, self.target_vocab_size])
-            b = tf.get_variable("proj_b", [self.target_vocab_size])
+            w = tf.get_variable("proj_w", [self.dim, self.vocab_size])
+            b = tf.get_variable("proj_b", [self.vocab_size])
             self.token_output_projection_vars = True
         return (w, b)
 
