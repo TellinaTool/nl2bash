@@ -614,7 +614,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
     print("maximum num pruned AST search steps = %d" % max_cm_seq_pruned_len)
 
     # compute character representation of tokens
-    def compute_channel_representations(vocab_path, char_vocab_path):
+    def compute_channel_representations(vocab_path, char_vocab_path,
+                                        pad_start=False):
         vocab, _ = initialize_vocabulary(vocab_path)
         char_vocab, _ = initialize_vocabulary(char_vocab_path)
         vocab_token_feature_path = vocab_path + ".token.feature"
@@ -653,14 +654,18 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
         for token_id in xrange(len(char_ids_list)):
             char_ids = char_ids_list[token_id]
             # padding character indices
-            padded_char_ids = \
-                [CPAD_ID] * (max_token_size - len(char_ids)) + char_ids
+            if pad_start:
+                padded_char_ids = \
+                    [CPAD_ID] * (max_token_size - len(char_ids)) + char_ids
+            else:
+                padded_char_ids = \
+                    char_ids + [CPAD_ID] * (max_token_size - len(char_ids))
             for j in xrange(len(padded_char_ids)):
                 c_id = padded_char_ids[j]
                 vocab_char_features[token_id][j] = c_id
         np.save(vocab_char_feature_path, vocab_char_features)
 
-    compute_channel_representations(nl_vocab_path, nl_char_vocab_path)
+    compute_channel_representations(nl_vocab_path, nl_char_vocab_path, True)
     compute_channel_representations(cm_vocab_path, cm_char_vocab_path)
 
 
