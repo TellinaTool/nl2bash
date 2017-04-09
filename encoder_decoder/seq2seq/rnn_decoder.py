@@ -96,14 +96,14 @@ class RNNDecoder(decoder.Decoder):
                                                         tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
 
-                input_embedding = tf.nn.embedding_lookup(self.embeddings, input)
+                print(self.embeddings())
+                print(input)
+                input_embedding = tf.nn.embedding_lookup(self.embeddings(), input)
 
                 if self.use_attention:
                     output, state, attn_alignments = \
                         decoder_cell(input_embedding, state, attn_alignments)
                 else:
-                    print(input_embedding)
-                    print(state)
                     output, state = decoder_cell(input_embedding, state)
 
                 # record output state to compute the loss.
