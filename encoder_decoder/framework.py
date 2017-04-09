@@ -225,7 +225,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         attention_reg = self.attention_regularization(attn_alignment) \
             if self.tg_token_use_attention else 0
 
-        if self.tg_char:
+        if self.tg_char and not forward_only:
             # re-arrange character inputs
             char_decoder_inputs = [tf.squeeze(x, 1) for x in
                             tf.split(1, self.max_target_token_size + 1,
