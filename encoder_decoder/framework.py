@@ -481,14 +481,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
+        # Since our targets are decoder inputs shifted by one, we need one more.
+        last_target = self.decoder_inputs[decoder_size].name
+        input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
+
         if self.tg_char:
             for l in xrange(decoder_size):
                 input_feed[self.char_decoder_inputs[l].name] = E.char_decoder_inputs[l]
                 input_feed[self.char_target_weights[l].name] = E.char_target_weights[l]
-
-        # Since our targets are decoder inputs shifted by one, we need one more.
-        last_target = self.decoder_inputs[decoder_size].name
-        input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
+            last_char_target = self.char_decoder_inputs[decoder_size]
 
         return input_feed
 
