@@ -47,6 +47,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["tg_input_keep"] = FLAGS.tg_input_keep
     params["tg_output_keep"] = FLAGS.tg_output_keep
     params["tg_char"] = FLAGS.tg_char
+    params["tg_char_vocab_size"] = FLAGS.tg_char_vocab_size
     params["tg_char_composition"] = FLAGS.tg_char_composition
     params["tg_char_use_attention"] = FLAGS.tg_char_use_attention
     params["tg_char_rnn_cell"] = FLAGS.tg_char_rnn_cell
@@ -379,6 +380,10 @@ class NNModel(object):
     @property
     def tg_char(self):
         return self.hyperparams["tg_char"]
+
+    @property
+    def tg_char_vocab_size(self):
+        return self.hyperparams["tg_char_vocab_size"]
 
     @property
     def tg_char_composition(self):
