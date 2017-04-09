@@ -580,16 +580,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed = [self.output_symbols[bucket_id],  # Loss for this batch.
                                self.output_logits[bucket_id],   # Batch output sequence
                                self.losses[bucket_id]]          # Batch output logits
-
+        
         if self.tg_token_use_attention:
             if bucket_id == -1:
                 output_feed.append(self.attn_alignments)
             else:
                 output_feed.append(self.attn_alignments[bucket_id])
-
+        
         output_feed.append(self.encoder_hidden_states)
         output_feed.append(self.decoder_hidden_states)
-        print(len(output_feed))
+        
         if self.tg_char:
             output_feed.append(self.char_output_symbols)
             output_feed.append(self.char_output_logits)
@@ -612,11 +612,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
             outputs_to_return.append(outputs[3])
         else:
             outputs_to_return.append(None)
-        outputs_to_return.append(outputs[4])
-        outputs_to_return.append(outputs[5])
+        outputs_to_return.append(outputs[-4])
+        outputs_to_return.append(outputs[-3])
         if self.tg_char:
-            outputs_to_return.append(outputs[6])
-            outputs_to_return.append(outputs[7])
+            outputs_to_return.append(outputs[-2])
+            outputs_to_return.append(outputs[-1])
 
         return outputs_to_return
 

@@ -47,11 +47,11 @@ def demo(sess, model, FLAGS):
         batch_outputs, output_logits = translate_fun(sentence, sess, model,
             vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
 
-        if FLAGS.decoding_algorithm == "greedy":
+        if FLAGS.token_decoding_algorithm == "greedy":
             tree, pred_cmd, outputs = batch_outputs[0]
             score = output_logits[0]
             print("{} ({})".format(pred_cmd, score))
-        elif FLAGS.decoding_algorithm == "beam_search":
+        elif FLAGS.token_decoding_algorithm == "beam_search":
             if batch_outputs:
                 top_k_predictions = batch_outputs[0]
                 top_k_scores = output_logits[0]
@@ -107,8 +107,8 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     output_symbols, output_logits, losses, attn_alignments = \
         model_step_outputs[:4]
     if FLAGS.tg_char:
-        char_output_symbols, char_output_logits = model_step_outputs[6:]
-
+        char_output_symbols, char_output_logits = model_step_outputs[-2:]
+    print(char_output_symbols)
     nl_fillers, encoder_outputs, decoder_outputs = None, None, None
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
@@ -156,9 +156,9 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
 
     for i in xrange(len(output_symbols)):
         top_k_predictions = output_symbols[i]
-        assert((FLAGS.decoding_algorithm == "greedy") or 
+        assert((FLAGS.token_decoding_algorithm == "greedy") or 
                len(top_k_predictions) == FLAGS.beam_size)
-        if FLAGS.decoding_algorithm == "beam_search":
+        if FLAGS.token_decoding_algorithm == "beam_search":
             beam_outputs = []
         else:
             top_k_predictions = [top_k_predictions]
@@ -235,7 +235,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
                                 output_example = True
                                 tree = tree2
                     if output_example:
-                        if FLAGS.decoding_algorithm == "greedy":
+                        if FLAGS.token_decoding_algorithm == "greedy":
                             batch_outputs.append((tree, temp, outputs))
                         else:
                             beam_outputs.append((tree, temp, outputs))
@@ -246,7 +246,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
             if num_output_examples == 20:
                 break
 
-        if FLAGS.decoding_algorithm == "beam_search":
+        if FLAGS.token_decoding_algorithm == "beam_search":
             if beam_outputs:
                 batch_outputs.append(beam_outputs)
 
@@ -314,13 +314,13 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
             if FLAGS.tg_char:
                 batch_outputs, batch_char_outputs = batch_outputs
 
-            if FLAGS.decoding_algorithm == "greedy":
+            if FLAGS.token_decoding_algorithm == "greedy":
                 tree, pred_cmd, outputs = batch_outputs[0]
                 score = output_logits[0]
                 print("{} ({})".format(pred_cmd, score))
                 db.add_prediction(
                     model.model_sig, sc_temp, pred_cmd, float(score))
-            elif FLAGS.decoding_algorithm == "beam_search":
+            elif FLAGS.token_decoding_algorithm == "beam_search":
                 if batch_outputs:
                     top_k_predictions = batch_outputs[0]
                     if FLAGS.tg_char:
@@ -336,8 +336,7 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             print("Prediction {}: {} ({}) ".format(
                                 j+1, top_k_pred_cmd, top_k_scores[j]))
                             print("Character-based prediction {}: {}".format(
-                                j+1, top_k_char_predictions[j]
-                            ))
+                                j+1, top_k_char_predictions[j]))
                         except UnicodeEncodeError:
                             print("Prediction {}: {} ({}) ".format(
                                 j+1, 'COMMAND_DECODING_ERROR', top_k_scores[j]))
@@ -361,9 +360,9 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                     print("I'm very sorry, I can't translate this command at the moment.")
 
             # if attn_alignments is not None:
-            #     if FLAGS.decoding_algorithm == "greedy":
+            #     if FLAGS.token_decoding_algorithm == "greedy":
             #         M = attn_alignments[batch_id, :, :]
-            #     elif FLAGS.decoding_algorithm == "beam_search":
+            #     elif FLAGS.token_decoding_algorithm == "beam_search":
             #         M = attn_alignments[batch_id, 0, :, :]
             #     visualize_attn_alignments(M, sc, outputs, rev_sc_vocab, rev_tg_vocab,
             #         os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
