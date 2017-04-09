@@ -78,7 +78,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["encoder_topology"] = FLAGS.encoder_topology
     params["decoder_topology"] = FLAGS.decoder_topology
 
-    params["decoding_algorithm"] = FLAGS.decoding_algorithm
+    params["token_decoding_algorithm"] = FLAGS.token_decoding_algorithm
+    params["char_decoding_algorithm"] = FLAGS.char_decoding_algorithm
     params["beam_size"] = FLAGS.beam_size
     params["alpha"] = FLAGS.alpha
     params["top_k"] = FLAGS.top_k
@@ -440,8 +441,12 @@ class NNModel(object):
         return self.hyperparams["margin"]
 
     @property
-    def decoding_algorithm(self):
-        return self.hyperparams["decoding_algorithm"]
+    def token_decoding_algorithm(self):
+        return self.hyperparams["token_decoding_algorithm"]
+
+    @property
+    def char_decoding_algorithm(self):
+        return self.hyperparams["char_decoding_algorithm"]
 
     @property
     def optimizer(self):

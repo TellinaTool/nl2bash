@@ -154,9 +154,7 @@ def decode(data_set, construct_model_dir=True, verbose=True):
         model, _ = create_model(sess, forward_only=True,
                                 construct_model_dir=construct_model_dir)
 
-        vocabs = data_utils.load_vocab(FLAGS)
-
-        decode_tools.decode_set(sess, model, data_set, vocabs, FLAGS, verbose)
+        decode_tools.decode_set(sess, model, data_set, FLAGS, verbose)
 
         return model.model_sig
 
@@ -190,8 +188,7 @@ def demo():
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         model, _ = create_model(sess, forward_only=True)
-        sc_vocab, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
-        decode_tools.demo(sess, model, sc_vocab, rev_tg_vocab, FLAGS)
+        decode_tools.demo(sess, model, FLAGS)
 
 
 def train_and_eval(train_set, dev_set):
