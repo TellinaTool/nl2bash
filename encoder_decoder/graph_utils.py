@@ -43,10 +43,12 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["sc_char_features_path"] = os.path.join(FLAGS.data_dir,
         "vocab%d.nl.char.feature.npy" % FLAGS.sc_vocab_size)
 
+    params["tg_token_use_attention"] = FLAGS.tg_token_use_attention
     params["tg_input_keep"] = FLAGS.tg_input_keep
     params["tg_output_keep"] = FLAGS.tg_output_keep
     params["tg_char"] = FLAGS.tg_char
     params["tg_char_composition"] = FLAGS.tg_char_composition
+    params["tg_char_use_attention"] = FLAGS.tg_char_use_attention
     params["tg_char_rnn_cell"] = FLAGS.tg_char_rnn_cell
     params["tg_char_rnn_num_layers"] = FLAGS.tg_char_rnn_num_layers
     params["tg_char_rnn_input_keep"] = FLAGS.tg_char_rnn_input_keep
@@ -68,7 +70,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     params["use_copy"] = FLAGS.use_copy
 
-    params["use_attention"] = FLAGS.use_attention
     params["attention_input_keep"] = FLAGS.attention_input_keep
     params["attention_output_keep"] = FLAGS.attention_output_keep
     params["beta"] = FLAGS.beta
@@ -157,7 +158,7 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
         model_subdir += '-T'
     if FLAGS.sc_char:
         model_subdir += '-C'
-    if FLAGS.use_attention:
+    if FLAGS.tg_token_use_attention:
         model_subdir += '-attention'
         model_subdir += '-{}'.format(FLAGS.attention_input_keep)
         model_subdir += '-{}'.format(FLAGS.attention_output_keep)
@@ -260,10 +261,6 @@ class NNModel(object):
     # --- model architecture hyperparameters --- #
 
     @property
-    def use_attention(self):
-        return self.hyperparams["use_attention"]
-
-    @property
     def use_copy(self):
         return self.hyperparams["use_copy"]
 
@@ -278,6 +275,10 @@ class NNModel(object):
     @property
     def num_layers(self):
         return self.hyperparams["num_layers"]
+
+    @property
+    def tg_token_use_attention(self):
+        return self.hyperparams["tg_token_use_attention"]
 
     @property
     def attention_input_keep(self):
@@ -386,6 +387,10 @@ class NNModel(object):
     @property
     def tg_char_rnn_cell(self):
         return self.hyperparams["tg_char_rnn_cell"]
+
+    @property
+    def tg_char_use_attention(self):
+        return self.hyperparams["tg_char_use_attention"]
 
     @property
     def tg_char_rnn_num_layers(self):
