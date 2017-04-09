@@ -183,8 +183,8 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
     if construct_slot_filling:
         model_subdir += '.slot.filler'
 
-    model_sig = model_subdir + "-{}".format(FLAGS.decoding_algorithm)
-    if FLAGS.decoding_algorithm == 'beam_search': 
+    model_sig = model_subdir + "-{}".format(FLAGS.token_decoding_algorithm)
+    if FLAGS.token_decoding_algorithm == 'beam_search': 
         model_sig += "-{}".format(FLAGS.beam_size)
     model_sig += ("-test" if FLAGS.test else "-dev")
     return model_subdir, model_sig

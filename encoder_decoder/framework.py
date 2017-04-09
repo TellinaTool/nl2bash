@@ -157,7 +157,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.attn_alignments.append(batch_attn_alignments)
                 if self.tg_char:
                     bucket_char_output_symbols, bucket_char_output_logits = \
-                        encode_decode_outputs[5:]
+                        encode_decode_outputs[4:]
                     self.char_output_symbols.append(
                         tf.reshape(bucket_char_output_symbols,
                                    [self.batch_size, self.max_target_length,
@@ -178,7 +178,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.attn_alignments = encode_decode_outputs[:4]
             if self.tg_char:
                 self.char_output_symbols, self.char_output_logits = \
-                    encode_decode_outputs[5:]
+                    encode_decode_outputs[4:]
 
         # Gradients and SGD updates in the backward direction.
         if not forward_only:
@@ -241,7 +241,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         attention_reg = self.attention_regularization(attn_alignments) \
             if self.tg_token_use_attention else 0
 
-        if self.tg_char and not forward_only:
+        if self.tg_char:
             # re-arrange character inputs
             char_decoder_inputs = [tf.squeeze(x, 1)
                             for x in tf.split(1, self.max_target_token_size + 1,
