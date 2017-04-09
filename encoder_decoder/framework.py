@@ -249,8 +249,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             char_projected_outputs = [char_output * w + b for char_output in
                                       char_outputs]
             encoder_decoder_char_loss = self.sequence_loss(
-                char_projected_outputs, char_targets, char_target_weights,
-                tf.nn.softmax_cross_entropy_with_logits)
+                char_projected_outputs, tf.reshape(char_targets, [-1, 1]),
+                char_target_weights, tf.nn.softmax_cross_entropy)
         else:
             encoder_decoder_char_loss = 0
        
