@@ -128,16 +128,16 @@ class BasicTreeDecoder(decoder.Decoder):
                     switch_masks.append(mask)
                 switch_mask = tf.concat(0, switch_masks)
 
-                batch_output = graph_utils.switch_mask(switch_mask, [h_output, v_output])
+                batch_output = switch_mask(switch_mask, [h_output, v_output])
                 if self.rnn_cell == "gru":
-                    batch_state = graph_utils.switch_mask(switch_mask, [h_state, v_state])
+                    batch_state = switch_mask(switch_mask, [h_state, v_state])
                 elif self.rnn_cell == "lstm":
-                    batch_cell = graph_utils.switch_mask(switch_mask, [h_state[0], v_state[0]])
-                    batch_hs = graph_utils.switch_mask(switch_mask, [h_state[1], v_state[1]])
+                    batch_cell = switch_mask(switch_mask, [h_state[0], v_state[0]])
+                    batch_hs = switch_mask(switch_mask, [h_state[1], v_state[1]])
                     batch_state = tf.concat(1, [batch_cell, batch_hs])
 
                 if self.use_attention:
-                    batch_attns = graph_utils.switch_mask(switch_mask, [h_attns, v_attns])
+                    batch_attns = switch_mask(switch_mask, [h_attns, v_attns])
                     batch_state = tf.concat(1, [batch_state, batch_attns])
 
                     batch_attn_alignment = h_attn_alignment
@@ -158,7 +158,7 @@ class BasicTreeDecoder(decoder.Decoder):
                         batch_output_symbol = decoder_inputs[i+1]
                     search_left_to_right_next = self.is_no_expand(batch_output_symbol)
 
-                    back_pointer = graph_utils.map_fn(
+                    back_pointer = map_fn(
                         self.back_pointer, [search_left_to_right_next,
                                             search_left_to_right,
                                             self.grandparent(),
@@ -169,7 +169,7 @@ class BasicTreeDecoder(decoder.Decoder):
                     if DEBUG:
                         print("back_pointer.get_shape(): {}".format(back_pointer.get_shape()))
 
-                    next_input = graph_utils.map_fn(
+                    next_input = map_fn(
                         self.next_input, [search_left_to_right_next,
                                           search_left_to_right,
                                           self.parent_input(),
@@ -180,7 +180,7 @@ class BasicTreeDecoder(decoder.Decoder):
                     if DEBUG:
                         print("next_input.get_shape(): {}".format(next_input.get_shape()))
 
-                    next_state = graph_utils.map_fn(
+                    next_state = map_fn(
                         self.next_state, [search_left_to_right_next,
                                           search_left_to_right,
                                           self.parent_state(),
@@ -329,6 +329,34 @@ class BasicTreeDecoder(decoder.Decoder):
                                                       self.tg_input_keep,
                                                       self.tg_output_keep)
         return cell, scope
+
+
+def switch_mask(mask, candidates):
+    """
+    :param mask: A 2D binary matrix of size [batch_size, num_options].
+                 Each row of mask has exactly one non-zero entry.
+    :param candidates: A list of 2D matrices with length num_options.
+    :return: selections concatenated as a new batch.
+    """
+    assert(len(candidates) > 1)
+    threed_mask = tf.tile(tf.expand_dims(mask, 2),
+                          [1, 1, candidates[0].get_shape()[1].value])
+    threed_mask = tf.cast(threed_mask, candidates[0].dtype)
+    expanded_candidates = [tf.expand_dims(c, 1) for c in candidates]
+    candidate = tf.concat(1, expanded_candidates)
+    return tf.reduce_sum(tf.mul(threed_mask, candidate), 1)
+
+
+def map_fn(fn, elems, batch_size):
+    """Pesudo multi-ariti scan."""
+    results = []
+    elem_lists = [tf.split(0, batch_size, elem) for elem in elems]
+    for i in xrange(batch_size):
+        args = [tf.squeeze(elem_lists[0][i], squeeze_dims=[0])] + \
+               [elem_list[i] for elem_list in elem_lists[1:]]
+        results.append(fn(args))
+    _results = tf.concat(0, results)
+    return _results
 
 
 if __name__ == "__main__":
