@@ -226,13 +226,22 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.use_attention else 0
 
         if self.tg_char:
+            # re-arrange character inputs
+            char_decoder_inputs = tf.split(1, self.max_target_token_size,
+                                    tf.concat(0, self.char_decoder_inputs))
+            char_targets = tf.split(1, self.max_target_token_size,
+                                    tf.concat(0, self.char_targets))
+            char_target_weights = tf.split(1, self.max_target_token_size,
+                                    tf.concat(0, self.char_target_weights))
+            # get initial state from decoder output
             char_decoder_init_state = tf.concat(
                 0, [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in states])
+
             _, _, char_outputs, _, _, _ = self.char_decoder.define_graph(
-                char_decoder_init_state, self.char_decoder_inputs,
+                char_decoder_init_state, char_decoder_inputs,
                 forward_only=forward_only)
             encoder_decoder_char_loss = self.sequence_loss(
-                char_outputs, self.char_targets, self.char_target_weights,
+                char_outputs, char_targets, char_target_weights,
                 tf.nn.softmax_cross_entropy_with_logits)
         else:
             encoder_decoder_char_loss = 0
@@ -389,6 +398,17 @@ class EncoderDecoderModel(graph_utils.NNModel):
         E.target_weights = batch_decoder_input_masks
 
         if self.tg_char:
+            tg_char_features = np.load(self.tg_char_features_path)
+            batch_char_decoder_inputs = []
+            batch_char_target_weights = []
+            for input in batch_decoder_inputs:
+                batch_char_decoder_input = tg_char_features[input]
+                batch_char_decoder_inputs.append(batch_char_decoder_input)
+                batch_char_target_weights.append(
+                    np.array(batch_char_decoder_input == data_utils.CPAD_ID,
+                             dtype=np.int64))
+            assert(batch_char_decoder_input.shape[0] == self.batch_size)
+            assert(batch_char_decoder_input.shape[1] == self.max_target_token_size)
             E.char_decoder_inputs = batch_char_decoder_inputs
             E.char_target_weights = batch_char_target_weights
 
@@ -423,7 +443,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             decoder_inputs.append(decoder_input)
 
         return self.format_example(encoder_inputs, decoder_inputs,
-                                   copy_data=copy_data, bucket_id=bucket_id)
+                                   bucket_id=bucket_id)
 
 
     def get_bucket(self, data, bucket_id, copy_data=None):
@@ -438,7 +458,28 @@ class EncoderDecoderModel(graph_utils.NNModel):
             decoder_inputs.append(decoder_input)
 
         return self.format_example(encoder_inputs, decoder_inputs,
-                                   copy_data=copy_data, bucket_id=bucket_id)
+                                   bucket_id=bucket_id)
+
+
+    def feed_input(self, E):
+        """
+        Assign the data vectors to the corresponding neural network variables.
+        """
+        encoder_size, decoder_size = len(E.encoder_inputs), len(E.decoder_inputs)
+
+        input_feed = {}
+        for l in xrange(encoder_size):
+            input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
+            input_feed[self.encoder_attn_masks[l].name] = E.encoder_attn_masks[l]
+        for l in xrange(decoder_size):
+            input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
+            input_feed[self.target_weights[l].name] = E.target_weights[l]
+
+        # Since our targets are decoder inputs shifted by one, we need one more.
+        last_target = self.decoder_inputs[decoder_size].name
+        input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
+
+        return input_feed
 
 
     def step(self, session, formatted_example, bucket_id=-1, forward_only=False,
@@ -458,7 +499,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """
 
         # Input feed: encoder inputs, decoder inputs, target_weights, as provided.
-        input_feed = self.feed_input(formatted_example, bucket_id)
+        input_feed = self.feed_input(formatted_example)
 
         # Output feed: depends on whether we do a backward step or not.
         if not forward_only:
@@ -513,44 +554,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             outputs_to_return.append(outputs[5])
 
         return outputs_to_return
-
-
-    def feed_input(self, E, bucket_id):
-        """
-
-        :param E:
-        :param bucket_id:
-        :return:
-        """
-        if bucket_id == -1:
-            encoder_size, decoder_size = len(E.encoder_inputs), len(E.decoder_inputs)
-            assert(encoder_size == self.max_source_length)
-            assert(decoder_size == self.max_target_length)
-        else:
-            encoder_size, decoder_size = self.buckets[bucket_id]
-            if len(E.encoder_inputs) != encoder_size:
-                raise ValueError("Encoder length must be equal to the one in bucket,"
-                                 " %d != %d." % (len(E.encoder_inputs), encoder_size))
-            if len(E.decoder_inputs) != decoder_size:
-                raise ValueError("Decoder length must be equal to the one in bucket,"
-                                 " %d != %d." % (len(E.decoder_inputs), decoder_size))
-            if len(E.target_weights) != decoder_size:
-                raise ValueError("Weights length must be equal to the one in bucket,"
-                                 " %d != %d." % (len(E.target_weights), decoder_size))
-
-        input_feed = {}
-        for l in xrange(encoder_size):
-            input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
-            input_feed[self.encoder_attn_masks[l].name] = E.encoder_attn_masks[l]
-        for l in xrange(decoder_size):
-            input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
-            input_feed[self.target_weights[l].name] = E.target_weights[l]
-
-        # Since our targets are decoder inputs shifted by one, we need one more.
-        last_target = self.decoder_inputs[decoder_size].name
-        input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
-
-        return input_feed
 
 
 class Example(object):
