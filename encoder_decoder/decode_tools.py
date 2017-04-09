@@ -108,7 +108,6 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
         model_step_outputs[:4]
     if FLAGS.tg_char:
         char_output_symbols, char_output_logits = model_step_outputs[-2:]
-    print(char_output_symbols)
     nl_fillers, encoder_outputs, decoder_outputs = None, None, None
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
@@ -251,17 +250,19 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
                 batch_outputs.append(beam_outputs)
 
     if char_output_symbols is not None:
+        char_output_symbols = char_output_symbols[0]
+        sentence_length = char_output_symbols.shape[2]
         batch_char_outputs = []
-        batch_char_predictions = np.reshape(np.split(
-            char_output_symbols, FLAGS.batch_size, 0),
-            [FLAGS.beam_size, FLAGS.max_target_length, FLAGS.max_tg_token_size])
+        batch_char_predictions = [np.reshape(x, [FLAGS.beam_size, sentence_length, 
+                                                 FLAGS.max_tg_token_size]) 
+                                 for x in np.split(char_output_symbols, FLAGS.batch_size, 0)]
         for batch_id in xrange(len(batch_char_predictions)):
             beam_char_outputs = []
             top_k_char_predictions = batch_char_predictions[batch_id]
             for k in xrange(len(top_k_char_predictions)):
                 top_k_char_prediction = top_k_char_predictions[k]
                 sent = []
-                for i in xrange(FLAGS.max_target_length):
+                for i in xrange(sentence_length):
                     word = ''
                     for j in xrange(FLAGS.max_tg_token_size):
                          word += rev_tg_char_vocab[top_k_char_prediction[i, j]]
