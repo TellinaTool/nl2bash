@@ -5,11 +5,7 @@ from __future__ import division
 from __future__ import print_function
 
 import collections
-import functools
-import os, sys
-import warnings
-if sys.version_info > (3, 0):
-    from six.moves import xrange
+import os
 
 import tensorflow as tf
 
@@ -240,34 +236,6 @@ def get_buckets(FLAGS):
     return buckets
 
 
-def switch_mask(mask, candidates):
-    """
-    :param mask: A 2D binary matrix of size [batch_size, num_options].
-                 Each row of mask has exactly one non-zero entry.
-    :param candidates: A list of 2D matrices with length num_options.
-    :return: selections concatenated as a new batch.
-    """
-    assert(len(candidates) > 1)
-    threed_mask = tf.tile(tf.expand_dims(mask, 2),
-                          [1, 1, candidates[0].get_shape()[1].value])
-    threed_mask = tf.cast(threed_mask, candidates[0].dtype)
-    expanded_candidates = [tf.expand_dims(c, 1) for c in candidates]
-    candidate = tf.concat(1, expanded_candidates)
-    return tf.reduce_sum(tf.mul(threed_mask, candidate), 1)
-
-
-def map_fn(fn, elems, batch_size):
-    """Pesudo multi-ariti scan."""
-    results = []
-    elem_lists = [tf.split(0, batch_size, elem) for elem in elems]
-    for i in xrange(batch_size):
-        args = [tf.squeeze(elem_lists[0][i], squeeze_dims=[0])] + \
-               [elem_list[i] for elem_list in elem_lists[1:]]
-        results.append(fn(args))
-    _results = tf.concat(0, results)
-    return _results
-
-
 def softmax_loss(token_output_projection, num_samples, target_vocab_size):
     if num_samples > 0:
         w, b = token_output_projection
@@ -280,22 +248,6 @@ def softmax_loss(token_output_projection, num_samples, target_vocab_size):
     else:
         loss_function = tf.nn.softmax_cross_entropy_with_logits
     return loss_function
-
-
-def deprecated(func):
-    """This is a decorator which can be used to mark functions
-    as deprecated. It will result in a warning being emmitted
-    when the function is used."""
-
-    @functools.wraps(func)
-    def new_func(*args, **kwargs):
-        warnings.simplefilter('always', DeprecationWarning)     #turn off filter
-        warnings.warn("Call to deprecated function {}.".format(func.__name__),
-                      category=DeprecationWarning, stacklevel=2)
-        warnings.simplefilter('default', DeprecationWarning)    #reset filter
-        return func(*args, **kwargs)
-
-    return new_func
 
 
 class NNModel(object):

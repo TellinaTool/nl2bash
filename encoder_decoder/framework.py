@@ -296,7 +296,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                              .format(self.tg_char_composition))
 
     def format_example(self, encoder_channel_inputs, decoder_inputs,
-                       copy_data=None, bucket_id=-1):
+                       bucket_id=-1):
         """
         Prepare the data to be fed into the neural model.
 
@@ -304,7 +304,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             indices for different encoder channels [[...], [...], ...]
         :param decoder_inputs: batch of output sequence indices
             [[...], [...], ...]
-        :param copy_data: set to true if using a copying network
         :param bucket_id: bucket id of the current batch
 
         Returns:
@@ -382,12 +381,18 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 if length_idx == decoder_size - 1 or target == data_utils.PAD_ID:
                     batch_decoder_input_mask[batch_idx] = 0.0
             batch_decoder_input_masks.append(batch_decoder_input_mask)
-        
-        if self.use_copy:
-            raise NotImplementedError
-        else:
-            return batch_encoder_channel_inputs, batch_encoder_input_masks,\
-                   batch_decoder_inputs, batch_decoder_input_masks
+
+        E = Example()
+        E.encoder_inputs = batch_encoder_channel_inputs
+        E.encoder_attn_masks = batch_encoder_input_masks
+        E.decoder_inputs = batch_decoder_inputs
+        E.target_weights = batch_decoder_input_masks
+
+        if self.tg_char:
+            E.char_decoder_inputs = batch_char_decoder_inputs
+            E.char_target_weights = batch_char_target_weights
+
+        return E
 
 
     def get_batch(self, data, bucket_id, copy_data=None):
@@ -453,7 +458,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """
 
         # Input feed: encoder inputs, decoder inputs, target_weights, as provided.
-        input_feed = self.get_input_feed(formatted_example, bucket_id)
+        input_feed = self.feed_input(formatted_example, bucket_id)
 
         # Output feed: depends on whether we do a backward step or not.
         if not forward_only:
@@ -510,49 +515,53 @@ class EncoderDecoderModel(graph_utils.NNModel):
         return outputs_to_return
 
 
-    def get_input_feed(self, formatted_example, bucket_id):
-        # Unwarp data tensors
-        if self.use_copy:
-            encoder_inputs, attn_alignments, decoder_inputs, target_weights, \
-            original_encoder_inputs, original_decoder_inputs, copy_masks = formatted_example
-        else:
-            encoder_inputs, attn_alignments, decoder_inputs, target_weights = formatted_example
+    def feed_input(self, E, bucket_id):
+        """
 
-        # Check if the sizes match.
+        :param E:
+        :param bucket_id:
+        :return:
+        """
         if bucket_id == -1:
-            encoder_size, decoder_size = len(encoder_inputs), len(decoder_inputs)
+            encoder_size, decoder_size = len(E.encoder_inputs), len(E.decoder_inputs)
             assert(encoder_size == self.max_source_length)
             assert(decoder_size == self.max_target_length)
         else:
             encoder_size, decoder_size = self.buckets[bucket_id]
-            if len(encoder_inputs) != encoder_size:
+            if len(E.encoder_inputs) != encoder_size:
                 raise ValueError("Encoder length must be equal to the one in bucket,"
-                                 " %d != %d." % (len(encoder_inputs), encoder_size))
-            if len(decoder_inputs) != decoder_size:
+                                 " %d != %d." % (len(E.encoder_inputs), encoder_size))
+            if len(E.decoder_inputs) != decoder_size:
                 raise ValueError("Decoder length must be equal to the one in bucket,"
-                                 " %d != %d." % (len(decoder_inputs), decoder_size))
-            if len(target_weights) != decoder_size:
+                                 " %d != %d." % (len(E.decoder_inputs), decoder_size))
+            if len(E.target_weights) != decoder_size:
                 raise ValueError("Weights length must be equal to the one in bucket,"
-                                 " %d != %d." % (len(target_weights), decoder_size))
+                                 " %d != %d." % (len(E.target_weights), decoder_size))
 
         input_feed = {}
         for l in xrange(encoder_size):
-            input_feed[self.encoder_inputs[l].name] = encoder_inputs[l]
-            input_feed[self.encoder_attn_masks[l].name] = attn_alignments[l]
+            input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
+            input_feed[self.encoder_attn_masks[l].name] = E.encoder_attn_masks[l]
         for l in xrange(decoder_size):
-            input_feed[self.decoder_inputs[l].name] = decoder_inputs[l]
-            input_feed[self.target_weights[l].name] = target_weights[l]
-        if self.use_copy:
-            for l in xrange(encoder_size):
-                input_feed[self.original_encoder_inputs[l].name] = \
-                    original_encoder_inputs[l]
-                input_feed[self.copy_masks[l].name] = copy_masks[l]
-            for l in xrange(decoder_size):
-                input_feed[self.original_decoder_inputs[l].name] = \
-                    original_decoder_inputs[l]
+            input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
+            input_feed[self.target_weights[l].name] = E.target_weights[l]
 
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
-        input_feed[last_target] = np.zeros(decoder_inputs[0].shape, dtype=np.int32)
+        input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
 
         return input_feed
+
+
+class Example(object):
+    """
+    Input data to the neural network. The data are batched when mini-batch
+    training is used.
+    """
+    def __init__(self):
+        self.encoder_inputs = None
+        self.encoder_attn_masks = None
+        self.decoder_inputs = None
+        self.target_weights = None
+        self.char_decoder_inputs = None
+        self.cahr_target_weights = None
