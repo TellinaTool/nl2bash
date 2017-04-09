@@ -228,6 +228,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         if self.tg_char:
             # re-arrange character inputs
+            print(tf.concat(0, self.char_decoder_inputs))
             char_decoder_inputs = tf.split(1, self.max_target_token_size,
                                     tf.concat(0, self.char_decoder_inputs))
             char_targets = tf.split(1, self.max_target_token_size,
