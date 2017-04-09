@@ -99,10 +99,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.char_target_weights = []   # weights at each position of the target sequence
             for i in xrange(self.max_target_token_size + 1):
                 self.char_decoder_inputs.append(
-                    tf.placeholder(tf.int32, shape=[None],
+                    tf.placeholder(tf.int32, shape=[None, self.max_target_token_size],
                                    name="char_decoder{0}".format(i)))
                 self.char_target_weights.append(
-                    tf.placeholder(tf.float32, shape=[None],
+                    tf.placeholder(tf.float32, shape=[None, self.max_target_token_size],
                                    name="char_target_weight{0}".format(i)))
             self.char_targets = [self.char_decoder_inputs[i + 1]
                                  for i in xrange(self.max_target_token_size)]
@@ -228,6 +228,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         if self.tg_char:
             # re-arrange character inputs
+            print(tf.concat(0, self.char_decoder_inputs))
             char_decoder_inputs = tf.split(1, self.max_target_token_size,
                                     tf.concat(0, self.char_decoder_inputs))
             char_targets = tf.split(1, self.max_target_token_size,
