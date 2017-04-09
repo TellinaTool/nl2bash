@@ -242,7 +242,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             # get initial state from decoder output
             char_decoder_init_state = tf.concat(
                 0, [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in states])
-            _, _, char_outputs, _, _, _ = self.char_decoder.define_graph(
+            _, _, char_outputs, _, _ = self.char_decoder.define_graph(
                 char_decoder_init_state, char_decoder_inputs,
                 forward_only=forward_only)
             encoder_decoder_char_loss = self.sequence_loss(
