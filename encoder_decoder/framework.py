@@ -573,13 +573,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                self.losses[bucket_id]]          # Loss for this batch.
         else:
             if bucket_id == -1:
-                output_feed = [self.output_symbols]             # Loss for this batch.
-                output_feed.append(self.output_logits)          # Batch output sequence
-                output_feed.append(self.losses)                 # Batch output scores
+                output_feed = [self.output_symbols,             # Loss for this batch.
+                               self.output_logits,              # Batch output sequence
+                               self.losses]                     # Batch output scores
             else:
-                output_feed = [self.output_symbols[bucket_id]]      # Loss for this batch.
-                output_feed.append(self.output_logits[bucket_id])   # Batch output sequence
-                output_feed.append(self.losses[bucket_id])          # Batch output logits
+                output_feed = [self.output_symbols[bucket_id],  # Loss for this batch.
+                               self.output_logits[bucket_id],   # Batch output sequence
+                               self.losses[bucket_id]]          # Batch output logits
 
         if self.tg_token_use_attention:
             if bucket_id == -1:
