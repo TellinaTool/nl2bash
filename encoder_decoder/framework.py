@@ -60,7 +60,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Character Decoder.
         if self.tg_char:
-            self.define_char_decoder(self.decoder.dim,
+            self.define_char_decoder(self.decoder.dim, False,
                     self.tg_char_rnn_input_keep, self.tg_char_rnn_output_keep)
 
         self.define_graph(forward_only)
@@ -295,13 +295,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """Placeholder function."""
         self.decoder = None
 
-    def define_char_decoder(self, dim, input_keep, output_keep):
+    def define_char_decoder(self, dim, use_attention, input_keep, output_keep):
         """
         Define the decoder which does character-level generation of a token.
         """
         if self.tg_char_composition == 'rnn':
             self.char_decoder = rnn_decoder.RNNDecoder(self.hyperparams,
-                "char_decoder", dim, input_keep, output_keep)
+                "char_decoder", dim, use_attention, input_keep, output_keep)
         else:
             raise ValueError("Unrecognized target character composition: {}."
                              .format(self.tg_char_composition))
