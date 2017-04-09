@@ -261,7 +261,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             char_target_weights = [tf.squeeze(x, 1) for x in
                             tf.split(1, self.max_target_token_size,
                                      tf.concat(0, self.char_target_weights))]
-            if self.token_decoding_algorithm == 'beam_search':
+            if forward_only and self.token_decoding_algorithm == 'beam_search':
                 char_decoder_inputs = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, char_decoder_inputs)
                 char_targets = graph_utils.wrap_inputs(
@@ -276,11 +276,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.char_decoder.define_graph(char_decoder_init_state,
                                                char_decoder_inputs,
                                                forward_only=forward_only)
-            print(char_output_symbols)
-            print(char_output_logits)
-            # w, b = self.char_decoder.token_output_projection
-            # char_projected_outputs = [char_output * w + b for char_output in
-            #                           char_outputs]
             encoder_decoder_char_loss = self.sequence_loss(
                 char_outputs, char_targets, char_target_weights,
                 graph_utils.softmax_loss(
