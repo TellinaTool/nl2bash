@@ -99,7 +99,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.char_target_weights = []   # weights at each position of the target sequence
             for i in xrange(self.max_target_length):
                 self.char_decoder_inputs.append(
-                    tf.placeholder(tf.int32, shape=[None, self.max_target_token_size],
+                    tf.placeholder(tf.int32, shape=[None, self.max_target_token_size + 1],
                                    name="char_decoder{0}".format(i)))
                 self.char_target_weights.append(
                     tf.placeholder(tf.float32, shape=[None, self.max_target_token_size],
@@ -229,7 +229,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.tg_char:
             # re-arrange character inputs
             char_decoder_inputs = [tf.squeeze(x, 1) for x in
-                            tf.split(1, self.max_target_token_size,
+                            tf.split(1, self.max_target_token_size + 1,
                                      tf.concat(0, self.char_decoder_inputs))]
             # print([x for x in tf.split(1, self.max_target_token_size,
             #                          tf.concat(0, self.char_decoder_inputs))])
@@ -405,13 +405,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         if self.tg_char:
             tg_char_features = np.load(self.tg_char_features_path)
+            tg_char_features = np.concatenate([np.expand_dims(
+                np.array([data_utils.CGO_ID] * tg_char_features.shape[0]), 1),
+                tg_char_features])
             batch_char_decoder_inputs = []
             batch_char_target_weights = []
             for input in batch_decoder_inputs:
                 batch_char_decoder_input = tg_char_features[input]
                 batch_char_decoder_inputs.append(batch_char_decoder_input)
                 batch_char_target_weights.append(
-                    np.array(batch_char_decoder_input == data_utils.CPAD_ID,
+                    np.array(batch_char_decoder_input[:, 1:] == data_utils.CPAD_ID,
                              dtype=np.int64))
             assert(len(batch_char_decoder_inputs) == decoder_size)
             assert(batch_char_decoder_input.shape[0] == self.batch_size)
@@ -489,9 +492,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             for l in xrange(decoder_size):
                 input_feed[self.char_decoder_inputs[l].name] = E.char_decoder_inputs[l]
                 input_feed[self.char_target_weights[l].name] = E.char_target_weights[l]
-            # last_char_target = self.char_decoder_inputs[decoder_size].name
-            # input_feed[last_char_target] = np.zeros(E.char_decoder_inputs[0].shape,
-            #                                         dtype=np.int32)
+
         return input_feed
 
 
