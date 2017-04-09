@@ -218,8 +218,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                    graph_utils.softmax_loss(
                                        self.decoder.token_output_projection,
                                        self.num_samples,
-                                       self.target_vocab_size
-                               ))
+                                       self.target_vocab_size))
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
@@ -245,12 +244,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
             _, _, char_outputs, _, _ = self.char_decoder.define_graph(
                 char_decoder_init_state, char_decoder_inputs,
                 forward_only=forward_only)
-            w, b = self.char_decoder.token_output_projection
-            char_projected_outputs = [char_output * w + b for char_output in
-                                      char_outputs]
+            # w, b = self.char_decoder.token_output_projection
+            # char_projected_outputs = [char_output * w + b for char_output in
+            #                           char_outputs]
             encoder_decoder_char_loss = self.sequence_loss(
-                char_projected_outputs, tf.reshape(char_targets, [-1, 1]),
-                char_target_weights, tf.nn.softmax_cross_entropy)
+                char_outputs, char_targets, char_target_weights,
+                graph_utils.softmax_loss(
+                    self.char_decoder.token_output_projection,
+                    self.tg_char_vocab_size,
+                    self.tg_char_vocab_size))
         else:
             encoder_decoder_char_loss = 0
        
