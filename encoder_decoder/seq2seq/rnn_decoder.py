@@ -30,7 +30,7 @@ class RNNDecoder(decoder.Decoder):
 
         bs_decoding = forward_only and self.decoding_algorithm == "beam_search"
 
-        with tf.variable_scope("decoder_rnn") as scope:
+        with tf.variable_scope(self.scope + "_decoder_rnn") as scope:
             decoder_cell = self.decoder_cell()
             outputs = []
             states = []
@@ -161,7 +161,7 @@ class RNNDecoder(decoder.Decoder):
 
 
     def decoder_cell(self):
-        with tf.variable_scope("decoder_cell") as scope:
+        with tf.variable_scope(self.scope + "_decoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.input_keep, self.output_keep)
