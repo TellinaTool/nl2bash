@@ -585,9 +585,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
             else:
                 output_feed.append(self.attn_alignments[bucket_id])
 
-        if return_rnn_hidden_states:
-            output_feed.append(self.encoder_hidden_states)
-            output_feed.append(self.decoder_hidden_states)
+        output_feed.append(self.encoder_hidden_states)
+        output_feed.append(self.decoder_hidden_states)
+
+        if self.tg_char:
+            output_feed.append(self.char_output_symbols)
+            output_feed.append(self.char_output_logits)
 
         outputs = session.run(output_feed, input_feed)
 
@@ -607,9 +610,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
             outputs_to_return.append(outputs[3])
         else:
             outputs_to_return.append(None)
-        if return_rnn_hidden_states:
-            outputs_to_return.append(outputs[4])
-            outputs_to_return.append(outputs[5])
+        outputs_to_return.append(outputs[4])
+        outputs_to_return.append(outputs[5])
+        if self.tg_char:
+            outputs_to_return.append(outputs[6])
+            outputs_to_return.append(outputs[7])
 
         return outputs_to_return
 
