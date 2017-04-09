@@ -5,10 +5,10 @@ import tensorflow as tf
 from encoder_decoder import decoder, graph_utils
 
 class RNNDecoder(decoder.Decoder):
-    def __init__(self, hyperparameters, scope, dim, use_attention, input_keep,
-                 output_keep):
-        super(RNNDecoder, self).__init__(hyperparameters, scope, dim,
-                                         use_attention, input_keep, output_keep)
+    def __init__(self, hyperparameters, scope, vocab_size, dim, use_attention,
+                 input_keep, output_keep):
+        super(RNNDecoder, self).__init__(hyperparameters, scope, vocab_size,
+                            dim, use_attention, input_keep, output_keep)
         print("{} dimension = {}".format(scope, dim))
 
 
@@ -96,8 +96,7 @@ class RNNDecoder(decoder.Decoder):
                                                         tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
 
-                input_embedding = tf.nn.embedding_lookup(
-                    self.token_embeddings(), input)
+                input_embedding = tf.nn.embedding_lookup(self.embeddings, input)
 
                 if self.use_attention:
                     output, state, attn_alignments = \
