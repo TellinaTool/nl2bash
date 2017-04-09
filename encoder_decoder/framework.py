@@ -155,7 +155,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.output_logits.append(bucket_output_logits)
                 self.losses.append(bucket_losses)
                 self.attn_alignments.append(batch_attn_alignments)
-                if self.tg_char:
+                if forward_only and self.tg_char:
                     bucket_char_output_symbols, bucket_char_output_logits = \
                         encode_decode_outputs[4:]
                     self.char_output_symbols.append(
