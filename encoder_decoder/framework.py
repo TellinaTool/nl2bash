@@ -407,7 +407,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             tg_char_features = np.load(self.tg_char_features_path)
             tg_char_features = np.concatenate([np.expand_dims(
                 np.array([data_utils.CGO_ID] * tg_char_features.shape[0]), 1),
-                tg_char_features])
+                tg_char_features], 1)
             batch_char_decoder_inputs = []
             batch_char_target_weights = []
             for input in batch_decoder_inputs:
@@ -418,7 +418,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                              dtype=np.int64))
             assert(len(batch_char_decoder_inputs) == decoder_size)
             assert(batch_char_decoder_input.shape[0] == self.batch_size)
-            assert(batch_char_decoder_input.shape[1] == self.max_target_token_size)
+            assert(batch_char_decoder_input.shape[1] == self.max_target_token_size + 1)
+            assert(batch_char_target_weights[0].shape[1] == self.max_target_token_size)
             E.char_decoder_inputs = batch_char_decoder_inputs
             E.char_target_weights = batch_char_target_weights
 
