@@ -261,6 +261,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.char_decoder.define_graph(char_decoder_init_state,
                                                char_decoder_inputs,
                                                forward_only=forward_only)
+            print(char_output_symbols)
+            print(char_output_logits)
             # w, b = self.char_decoder.token_output_projection
             # char_projected_outputs = [char_output * w + b for char_output in
             #                           char_outputs]
