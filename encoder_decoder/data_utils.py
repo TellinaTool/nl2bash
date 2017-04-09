@@ -642,6 +642,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
                     if token.startswith("__LF__"):
                         # remove prefix for low-frequency words
                         char_ids = token_to_char_ids(token[6:], char_vocab)
+                    elif "@@" in token:
+                        char_ids = token_to_char_ids(token.split('@@')[1], char_vocab)
                     else:
                         char_ids = token_to_char_ids(token, char_vocab)
                     if len(char_ids) > max_token_size:
