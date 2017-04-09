@@ -44,7 +44,8 @@ class Seq2SeqModel(EncoderDecoderModel):
         """Construct sequence decoders."""
         if self.decoder_topology == "rnn":
             self.decoder = rnn_decoder.RNNDecoder(self.hyperparams,
-                "token_decoder", dim, use_attention, input_keep, output_keep)
+                "token_decoder", self.target_vocab_size, dim, use_attention,
+                input_keep, output_keep)
         else:
             raise ValueError("Unrecognized decoder topology: {}."
                              .format(self.decoder_topology))
