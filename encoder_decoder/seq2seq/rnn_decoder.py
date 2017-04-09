@@ -103,6 +103,8 @@ class RNNDecoder(decoder.Decoder):
                     output, state, attn_alignments = \
                         decoder_cell(input_embedding, state, attn_alignments)
                 else:
+                    print(input_embedding)
+                    print(state)
                     output, state = decoder_cell(input_embedding, state)
 
                 # record output state to compute the loss.
