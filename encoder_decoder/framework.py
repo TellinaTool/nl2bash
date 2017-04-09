@@ -303,7 +303,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """
         if self.tg_char_composition == 'rnn':
             self.char_decoder = rnn_decoder.RNNDecoder(self.hyperparams,
-                "char_decoder", dim, use_attention, input_keep, output_keep)
+                "char_decoder", self.max_target_token_size, dim,
+                use_attention, input_keep, output_keep)
         else:
             raise ValueError("Unrecognized target character composition: {}."
                              .format(self.tg_char_composition))
