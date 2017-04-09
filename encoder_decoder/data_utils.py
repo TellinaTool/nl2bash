@@ -208,6 +208,7 @@ def initialize_vocabulary(vocab_path):
             rev_vocab.extend(f.readlines())
         rev_vocab = [line.strip() for line in rev_vocab]
         vocab = dict([(x, y) for (y, x) in enumerate(rev_vocab)])
+        rev_vocab = dict([(y, x) for (y, x) in enumerate(rev_vocab)])
         return vocab, rev_vocab
     else:
         raise ValueError("Vocabulary file %s not found.", vocab_path)
