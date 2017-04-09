@@ -252,19 +252,23 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
 
     if char_output_symbols is not None:
         batch_char_outputs = []
-        top_k_char_predictions = np.reshape(np.split(
+        batch_char_predictions = np.reshape(np.split(
             char_output_symbols, FLAGS.batch_size, 0),
-            [FLAGS.max_target_length, FLAGS.max_tg_token_size])
-        for k in xrange(len(top_k_char_predictions)):
-            top_k_char_prediction = top_k_char_predictions[k]
-            sent = []
-            for i in xrange(FLAGS.max_target_length):
-                word = ''
-                for j in xrange(FLAGS.max_tg_token_size):
-                     word += rev_tg_char_vocab[top_k_char_prediction[i, j]]
-            sent.append(word)
-        batch_char_outputs.append(' '.join(sent))
-        return batch_outputs, [batch_char_outputs]
+            [FLAGS.beam_size, FLAGS.max_target_length, FLAGS.max_tg_token_size])
+        for batch_id in xrange(len(batch_char_predictions)):
+            beam_char_outputs = []
+            top_k_char_predictions = batch_char_predictions[batch_id]
+            for k in xrange(len(top_k_char_predictions)):
+                top_k_char_prediction = top_k_char_predictions[k]
+                sent = []
+                for i in xrange(FLAGS.max_target_length):
+                    word = ''
+                    for j in xrange(FLAGS.max_tg_token_size):
+                         word += rev_tg_char_vocab[top_k_char_prediction[i, j]]
+                sent.append(word)
+                beam_char_outputs.append(' '.join(sent))
+            batch_char_outputs.append(beam_char_outputs)
+        return batch_outputs, batch_char_outputs
     else:
         return batch_outputs
 

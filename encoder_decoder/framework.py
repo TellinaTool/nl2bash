@@ -160,11 +160,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         encode_decode_outputs[4:]
                     self.char_output_symbols.append(
                         tf.reshape(bucket_char_output_symbols,
-                                   [self.batch_size, self.max_target_length,
+                                   [self.batch_size, self.beam_size,
+                                    self.max_target_length,
                                     self.max_target_token_size]))
                     self.char_output_logits.append(
                         tf.reshape(bucket_char_output_logits,
-                                   [self.batch_size, self.max_target_length]))
+                                   [self.batch_size, self.beam_size,
+                                    self.max_target_length]))
         else:
             encode_decode_outputs = self.encode_decode(
                                         self.encoder_inputs,
@@ -177,8 +179,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.output_symbols, self.output_logits, self.losses, \
                 self.attn_alignments = encode_decode_outputs[:4]
             if self.tg_char:
-                self.char_output_symbols, self.char_output_logits = \
+                char_output_symbols, char_output_logits = \
                     encode_decode_outputs[4:]
+                self.char_output_symbols = tf.reshape(char_output_symbols,
+                                   [self.batch_size, self.beam_size,
+                                    self.max_target_length,
+                                    self.max_target_token_size])
+                self.char_output_logits = tf.reshape(char_output_logits,
+                                   [self.batch_size, self.beam_size,
+                                    self.max_target_length])
 
         # Gradients and SGD updates in the backward direction.
         if not forward_only:
@@ -257,7 +266,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             # get initial state from decoder output
             char_decoder_init_state = tf.concat(
                 0, [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in states])
-            print(char_decoder_init_state)
             char_output_symbols, char_output_logits, char_outputs, _, _ = \
                 self.char_decoder.define_graph(char_decoder_init_state,
                                                char_decoder_inputs,
