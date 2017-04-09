@@ -104,13 +104,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.char_target_weights.append(
                     tf.placeholder(tf.float32, shape=[None, self.max_target_token_size],
                                    name="char_target_weight{0}".format(i)))
-<<<<<<< HEAD
-            self.char_targets = [self.char_decoder_inputs[i + 1]
-                                 for i in xrange(self.max_target_length - 1)]
-=======
             self.char_targets = [self.char_decoder_inputs[i + 1][:, 1:]
                                  for i in xrange(self.max_target_length)]
->>>>>>> 2a9bb5f7a6d2be54dbf4964bb257c53a47662e42
 
         if self.use_copy:
             self.original_encoder_inputs = []   # original encoder inputs.
