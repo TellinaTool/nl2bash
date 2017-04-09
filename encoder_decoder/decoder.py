@@ -13,13 +13,14 @@ from tensorflow.python.util import nest
 from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
-    def __init__(self, hyperparameters, scope, dim, use_attention,
+    def __init__(self, hyperparameters, scope, vocab_size, dim, use_attention,
                  input_keep, output_keep):
         """
         :param hyperparameters: Tellina model hyperparameters.
         :param scope: Scope of the decoder. (There might be multiple decoders
             with the same construction in the neural architecture.)
-        :param dim: Decoder embedding dimension.
+        :param vocab_size: Output vocabulary size.
+        :param dim: Decoder Embedding dimension.
         :param use_attention: Set to True to use attention for decoding.
         :param input_keep: Dropout parameter for the input of the attention layer.
         :param output_keep: Dropout parameter for the output of the attention layer.
@@ -27,14 +28,14 @@ class Decoder(graph_utils.NNModel):
         super(Decoder, self).__init__(hyperparameters)
 
         self.scope = scope
+        self.vocab_size = vocab_size
         self.dim = dim
         self.use_attention = use_attention
         self.input_keep = input_keep
         self.output_keep = output_keep
 
         # variable sharing
-        self.char_embedding_vars = False
-        self.token_embedding_vars = False
+        self.embedding_vars = False
         self.token_output_projection_vars = False
 
         self.beam_decoder = beam_search.BeamDecoder(
@@ -50,24 +51,14 @@ class Decoder(graph_utils.NNModel):
 
         self.token_output_projection = self.token_output_projection()
 
-    def char_embeddings(self):
-        with tf.variable_scope(self.scope + "_char_embeddings",
-                               reuse=self.char_embedding_vars):
+    def embeddings(self):
+        with tf.variable_scope(self.scope + "_embeddings",
+                               reuse=self.embedding_vars):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding",
-                [self.target_vocab_size, self.dim], initializer=initializer)
-            self.char_embedding_vars = True
-            return embeddings
-
-    def token_embeddings(self):
-        with tf.variable_scope(self.scope + "_token_embeddings",
-                               reuse=self.token_embedding_vars):
-            sqrt3 = math.sqrt(3)
-            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding",
-                [self.target_vocab_size, self.dim], initializer=initializer)
-            self.token_embedding_vars = True
+                [self.vocab_size, self.dim], initializer=initializer)
+            self.embedding_vars = True
             return embeddings
 
     def token_output_projection(self):
