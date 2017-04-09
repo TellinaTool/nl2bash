@@ -107,7 +107,7 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     output_symbols, output_logits, losses, attn_alignments = \
         model_step_outputs[:4]
     if FLAGS.tg_char:
-        char_output_symbols, char_output_logits = model_step_outputs[4:]
+        char_output_symbols, char_output_logits = model_step_outputs[6:]
 
     nl_fillers, encoder_outputs, decoder_outputs = None, None, None
     if FLAGS.fill_argument_slots:
