@@ -589,7 +589,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         output_feed.append(self.encoder_hidden_states)
         output_feed.append(self.decoder_hidden_states)
-
+        print(len(output_feed))
         if self.tg_char:
             output_feed.append(self.char_output_symbols)
             output_feed.append(self.char_output_logits)
