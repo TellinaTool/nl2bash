@@ -71,7 +71,6 @@ class RNNDecoder(decoder.Decoder):
                                                       self.token_output_projection)
 
             for i, input in enumerate(decoder_inputs):
-                print(i)
                 if bs_decoding:
                     input = beam_decoder.wrap_input(input)
 

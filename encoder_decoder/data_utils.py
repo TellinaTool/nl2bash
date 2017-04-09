@@ -855,9 +855,9 @@ def load_vocab(FLAGS):
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
 
     if FLAGS.explain:
-        vocabs = cm_vocab, rev_cm_vocab, nl_vocab, rev_nl_vocab
+        vocabs = [cm_vocab, rev_cm_vocab, nl_vocab, rev_nl_vocab]
     else:
-        vocabs = nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab
+        vocabs = [nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab]
 
     if FLAGS.tg_char:
         nl_char_vocab_path = os.path.join(FLAGS.data_dir,
@@ -870,11 +870,11 @@ def load_vocab(FLAGS):
             initialize_vocabulary(cm_char_vocab_path)
 
     if FLAGS.explain:
-        vocabs.append(cm_char_vocab, rev_cm_char_vocab,
-                      nl_char_vocab, rev_nl_char_vocab)
+        vocabs.extend([cm_char_vocab, rev_cm_char_vocab,
+                      nl_char_vocab, rev_nl_char_vocab])
     else:
-        vocabs.append(nl_char_vocab, rev_nl_char_vocab,
-                      cm_char_vocab, rev_cm_char_vocab)
+        vocabs.extend([nl_char_vocab, rev_nl_char_vocab,
+                      cm_char_vocab, rev_cm_char_vocab])
 
     return vocabs
 
