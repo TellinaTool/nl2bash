@@ -113,8 +113,8 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
         nl_fillers = entities[0]
-        encoder_outputs = model_step_outputs[4]
-        decoder_outputs = model_step_outputs[5]
+        encoder_outputs = model_step_outputs[-4]
+        decoder_outputs = model_step_outputs[-3]
     batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS,
                            char_output_symbols=char_output_symbols,
                            rev_tg_char_vocab=rev_tg_char_vocab,
