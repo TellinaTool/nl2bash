@@ -824,12 +824,8 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
 
 def load_vocab(FLAGS):
     if FLAGS.decoder_topology in ['rnn']:
-        if FLAGS.sc_char:
-            nl_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.nl" % FLAGS.sc_vocab_size)
-        else:
-            nl_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.nl.norm" % FLAGS.sc_vocab_size)
+        nl_vocab_path = os.path.join(
+            FLAGS.data_dir, "vocab%d.nl.norm" % FLAGS.sc_vocab_size)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.sc_vocab_size)
@@ -859,9 +855,28 @@ def load_vocab(FLAGS):
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
 
     if FLAGS.explain:
-        return cm_vocab, rev_cm_vocab, nl_vocab, rev_nl_vocab
+        vocabs = cm_vocab, rev_cm_vocab, nl_vocab, rev_nl_vocab
     else:
-        return nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab
+        vocabs = nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab
+
+    if FLAGS.tg_char:
+        nl_char_vocab_path = os.path.join(FLAGS.data_dir,
+                                 "vocab%d.nl.char" % FLAGS.sc_vocab_size)
+        cm_char_vocab_path = os.path.join(FLAGS.data_dir,
+                                     "vocab%d.cm.char" % FLAGS.tg_vocab_size)
+        nl_char_vocab, rev_nl_char_vocab = \
+            initialize_vocabulary(nl_char_vocab_path)
+        cm_char_vocab, rev_cm_char_vocab = \
+            initialize_vocabulary(cm_char_vocab_path)
+
+    if FLAGS.explain:
+        vocabs.append(cm_char_vocab, rev_cm_char_vocab,
+                      nl_char_vocab, rev_nl_char_vocab)
+    else:
+        vocabs.append(nl_char_vocab, rev_nl_char_vocab,
+                      cm_char_vocab, rev_cm_char_vocab)
+
+    return vocabs
 
 
 def load_data(FLAGS, buckets=None, load_mappings=False):
