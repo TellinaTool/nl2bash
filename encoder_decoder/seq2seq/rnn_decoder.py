@@ -11,6 +11,7 @@ class RNNDecoder(decoder.Decoder):
                             dim, use_attention, input_keep, output_keep,
                             decoding_algorithm)
         print("{} dimension = {}".format(scope, dim))
+        print("{} decoding_algorithm = {}".format(scope, decoding_algorithm))
 
 
     def define_graph(self, encoder_state, decoder_inputs,
@@ -153,6 +154,7 @@ class RNNDecoder(decoder.Decoder):
                 output_symbol = tf.argmax(projected_output, 1)
                 past_output_symbols = tf.concat(1, [past_output_symbols,
                                                     tf.expand_dims(output_symbol, 1)])
+                print(past_output_symbols)
                 output_symbols = past_output_symbols[:, 1:]
                 past_output_logits = tf.add(past_output_logits,
                                             tf.reduce_max(projected_output, 1))
