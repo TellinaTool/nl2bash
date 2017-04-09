@@ -69,7 +69,6 @@ class RNNDecoder(decoder.Decoder):
             if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell,
                                                       self.token_output_projection)
-
             for i, input in enumerate(decoder_inputs):
                 if bs_decoding:
                     input = beam_decoder.wrap_input(input)
@@ -95,7 +94,6 @@ class RNNDecoder(decoder.Decoder):
                             past_output_logits = tf.add(past_output_logits,
                                                         tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
-
                 input_embedding = tf.nn.embedding_lookup(self.embeddings(), input)
 
                 if self.use_attention:
@@ -151,7 +149,8 @@ class RNNDecoder(decoder.Decoder):
                 projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                 output_symbol = tf.argmax(projected_output, 1)
                 past_output_symbols.append(tf.expand_dims(output_symbol, 1))
-                output_symbols = tf.concat(1, past_output_symbols[:-1])
+                output_symbols = tf.concat(1, past_output_symbols[:-1]) \
+                    if forward_only else None
                 past_output_logits = tf.add(past_output_logits,
                                             tf.reduce_max(projected_output, 1))
                 return output_symbols, past_output_logits, outputs, states, attn_alignments
