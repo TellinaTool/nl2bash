@@ -101,9 +101,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.char_decoder_inputs.append(
                     tf.placeholder(tf.int32, shape=[None, self.max_target_token_size],
                                    name="char_decoder{0}".format(i)))
-                self.char_target_weights.append(
-                    tf.placeholder(tf.float32, shape=[None, self.max_target_token_size],
-                                   name="char_target_weight{0}".format(i)))
+                if i < self.max_target_length:
+                    self.char_target_weights.append(
+                        tf.placeholder(tf.float32, shape=[None, self.max_target_token_size],
+                                       name="char_target_weight{0}".format(i)))
             self.char_targets = [self.char_decoder_inputs[i + 1]
                                  for i in xrange(self.max_target_length)]
 
@@ -492,7 +493,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             last_char_target = self.char_decoder_inputs[decoder_size].name
             input_feed[last_char_target] = np.zeros(E.char_decoder_inputs[0].shape,
                                                     dtype=np.int32)
-
         return input_feed
 
 
