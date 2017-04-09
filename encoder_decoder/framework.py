@@ -97,7 +97,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.char_decoder_inputs = []   # decoder inputs (always start with "_CGO")
                                             # [batch_size*max_target_token_size, dim]
             self.char_target_weights = []   # weights at each position of the target sequence
-            for i in xrange(self.max_target_token_size + 1):
+            for i in xrange(self.max_target_length + 1):
                 self.char_decoder_inputs.append(
                     tf.placeholder(tf.int32, shape=[None, self.max_target_token_size],
                                    name="char_decoder{0}".format(i)))
@@ -105,7 +105,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     tf.placeholder(tf.float32, shape=[None, self.max_target_token_size],
                                    name="char_target_weight{0}".format(i)))
             self.char_targets = [self.char_decoder_inputs[i + 1]
-                                 for i in xrange(self.max_target_token_size)]
+                                 for i in xrange(self.max_target_length)]
 
         if self.use_copy:
             self.original_encoder_inputs = []   # original encoder inputs.
