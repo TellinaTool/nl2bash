@@ -118,7 +118,10 @@ def define_input_flags():
     tf.app.flags.DEFINE_float("margin", 1.0, "margin for margin-based loss function")
 
     # decoding hyperparameters
-    tf.app.flags.DEFINE_string("decoding_algorithm", "greedy", "decoding algorithm to use.")
+    tf.app.flags.DEFINE_string("token_decoding_algorithm", "beam_search",
+                               "decoding algorithm used for token generation.")
+    tf.app.flags.DEFINE_string("char_decoding_algorithm", "greedy",
+                               "decoding algorithm used for character generation.")
     tf.app.flags.DEFINE_integer("beam_size", -1, "Size of beam for beam search.")
     tf.app.flags.DEFINE_integer("beam_order", -1, "Order for beam search.")
     tf.app.flags.DEFINE_float("alpha", 0.5, "Beam search length normalization parameter.")

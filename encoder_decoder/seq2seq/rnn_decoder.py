@@ -6,9 +6,10 @@ from encoder_decoder import decoder, graph_utils
 
 class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, scope, vocab_size, dim, use_attention,
-                 input_keep, output_keep):
+                 input_keep, output_keep, decoding_algorithm):
         super(RNNDecoder, self).__init__(hyperparameters, scope, vocab_size,
-                            dim, use_attention, input_keep, output_keep)
+                            dim, use_attention, input_keep, output_keep,
+                            decoding_algorithm)
         print("{} dimension = {}".format(scope, dim))
 
 

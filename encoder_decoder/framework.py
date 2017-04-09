@@ -132,6 +132,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.output_logits = []
             self.losses = []
             self.attn_alignments = []
+            if self.tg_char:
+                self.char_output_symbols = []
+                self.char_output_logits = []
             for bucket_id, bucket in enumerate(self.buckets):
                 print("creating bucket {} ({}, {})...".format(
                         bucket_id, bucket[0], bucket[1]))
@@ -147,11 +150,21 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         forward_only=forward_only
                     )
                 bucket_output_symbols, bucket_output_logits, bucket_losses, \
-                    batch_encoder_input_mask = encode_decode_outputs
+                    batch_attn_alignments = encode_decode_outputs[:4]
                 self.output_symbols.append(bucket_output_symbols)
                 self.output_logits.append(bucket_output_logits)
                 self.losses.append(bucket_losses)
-                self.attn_alignments.append(batch_encoder_input_mask)
+                self.attn_alignments.append(batch_attn_alignments)
+                if self.tg_char:
+                    bucket_char_output_symbols, bucket_char_output_logits = \
+                        encode_decode_outputs[5:]
+                    self.char_output_symbols.append(
+                        tf.reshape(bucket_char_output_symbols,
+                                   [self.batch_size, self.max_target_length,
+                                    self.max_target_token_size]))
+                    self.char_output_logits.append(
+                        tf.reshape(bucket_char_output_logits,
+                                   [self.batch_size, self.max_target_length]))
         else:
             encode_decode_outputs = self.encode_decode(
                                         self.encoder_inputs,
@@ -162,7 +175,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                         forward_only=forward_only
                                     )
             self.output_symbols, self.output_logits, self.losses, \
-                self.attn_alignment = encode_decode_outputs
+                self.attn_alignments = encode_decode_outputs[:4]
+            if self.tg_char:
+                self.char_output_symbols, self.char_output_logits = \
+                    encode_decode_outputs[5:]
 
         # Gradients and SGD updates in the backward direction.
         if not forward_only:
@@ -208,7 +224,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             attention_states = None
         
         # Losses.
-        output_symbols, output_logits, outputs, states, attn_alignment = \
+        output_symbols, output_logits, outputs, states, attn_alignments = \
             self.decoder.define_graph(
                 encoder_state, decoder_inputs, encoder_attn_masks,
                 attention_states, num_heads=1, forward_only=forward_only)
@@ -222,14 +238,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
-        attention_reg = self.attention_regularization(attn_alignment) \
+        attention_reg = self.attention_regularization(attn_alignments) \
             if self.tg_token_use_attention else 0
 
         if self.tg_char and not forward_only:
             # re-arrange character inputs
-            char_decoder_inputs = [tf.squeeze(x, 1) for x in
-                            tf.split(1, self.max_target_token_size + 1,
-                                     tf.concat(0, self.char_decoder_inputs))]
+            char_decoder_inputs = [tf.squeeze(x, 1)
+                            for x in tf.split(1, self.max_target_token_size + 1,
+                            tf.concat(0, self.char_decoder_inputs))]
             # print([x for x in tf.split(1, self.max_target_token_size,
             #                          tf.concat(0, self.char_decoder_inputs))])
             char_targets = [tf.squeeze(x, 1) for x in
@@ -241,9 +257,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
             # get initial state from decoder output
             char_decoder_init_state = tf.concat(
                 0, [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in states])
-            _, _, char_outputs, _, _ = self.char_decoder.define_graph(
-                char_decoder_init_state, char_decoder_inputs,
-                forward_only=forward_only)
+            char_output_symbols, char_output_logits, char_outputs, _, _ = \
+                self.char_decoder.define_graph(char_decoder_init_state,
+                                               char_decoder_inputs,
+                                               forward_only=forward_only)
             # w, b = self.char_decoder.token_output_projection
             # char_projected_outputs = [char_output * w + b for char_output in
             #                           char_outputs]
@@ -267,7 +284,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
             1, [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                 for d_o in states])
 
-        return output_symbols, output_logits, losses, attn_alignment
+        if self.tg_char:
+            return output_symbols, output_logits, losses, attn_alignments, \
+                char_output_symbols, char_output_logits
+        else:
+            return output_symbols, output_logits, losses, attn_alignments
 
 
     # Loss functions.
@@ -310,7 +331,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.tg_char_composition == 'rnn':
             self.char_decoder = rnn_decoder.RNNDecoder(self.hyperparams,
                 "char_decoder", self.tg_char_vocab_size, dim,
-                use_attention, input_keep, output_keep)
+                use_attention, input_keep, output_keep,
+                self.char_decoding_algorithm)
         else:
             raise ValueError("Unrecognized target character composition: {}."
                              .format(self.tg_char_composition))
