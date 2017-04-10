@@ -252,11 +252,11 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
 
     if char_output_symbols is not None:
         char_output_symbols = char_output_symbols[0]
-        sentence_length = char_output_symbols.shape[2]
+        sentence_length = char_output_symbols.shape[0]
         batch_char_outputs = []
-        batch_char_predictions = [np.reshape(x, [FLAGS.beam_size, sentence_length, 
-                                                 FLAGS.max_tg_token_size + 1], order='F') 
-                                 for x in np.split(char_output_symbols, FLAGS.batch_size, 0)]
+        batch_char_predictions = [np.transpose(np.reshape(x, [sentence_length, FLAGS.beam_size, 
+                                                 FLAGS.max_tg_token_size + 1]), (1, 0, 2))
+                                  for x in np.split(char_output_symbols, FLAGS.batch_size, 1)]
         for batch_id in xrange(len(batch_char_predictions)):
             beam_char_outputs = []
             top_k_char_predictions = batch_char_predictions[batch_id]
