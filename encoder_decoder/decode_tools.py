@@ -255,7 +255,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
         sentence_length = char_output_symbols.shape[2]
         batch_char_outputs = []
         batch_char_predictions = [np.reshape(x, [FLAGS.beam_size, sentence_length, 
-                                                 FLAGS.max_tg_token_size + 1]) 
+                                                 FLAGS.max_tg_token_size + 1], order='F') 
                                  for x in np.split(char_output_symbols, FLAGS.batch_size, 0)]
         for batch_id in xrange(len(batch_char_predictions)):
             beam_char_outputs = []
