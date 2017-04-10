@@ -936,15 +936,15 @@ def load_data(FLAGS, buckets=None, load_mappings=False):
     nl_train = train_path + nl_extension
     nl_train_full = train_path + nl_full_extension
     cm_train = train_path + cm_extension
-    cm_train_full = cm_train + cm_full_extension
+    cm_train_full = train_path + cm_full_extension
     nl_dev = dev_path + nl_extension
     nl_dev_full = dev_path + nl_full_extension
     cm_dev = dev_path + cm_extension
-    cm_dev_full = cm_dev + cm_full_extension
+    cm_dev_full = dev_path + cm_full_extension
     nl_test = test_path + nl_extension
-    nl_test_full = nl_test + nl_full_extension
+    nl_test_full = test_path + nl_full_extension
     cm_test = test_path + cm_extension
-    cm_test_full = cm_test + cm_full_extension
+    cm_test_full = test_path + cm_full_extension
 
     if FLAGS.explain:
         train_set = read_data(cm_txt_train, nl_txt_train, cm_train, nl_train,
