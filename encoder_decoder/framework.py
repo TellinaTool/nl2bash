@@ -285,7 +285,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             encoder_decoder_char_loss = 0
        
-        losses = encoder_decoder_token_loss + encoder_decoder_char_loss + \
+        losses = encoder_decoder_token_loss + 10 * encoder_decoder_char_loss + \
                  self.beta * attention_reg
 
         # store encoder/decoder output states
@@ -452,6 +452,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             batch_char_target_weights = []
             for input in batch_decoder_inputs:
                 batch_char_decoder_input = tg_char_features[input]
+                print(batch_char_decoder_input)
                 batch_char_decoder_inputs.append(batch_char_decoder_input)
                 batch_char_target_weights.append(np.array(
                     batch_char_decoder_input[:, 1:] != data_utils.CPAD_ID,

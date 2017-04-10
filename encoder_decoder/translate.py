@@ -91,7 +91,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                                  if train_buckets_scale[i] > random_number_01])
                 formatted_example = model.get_batch(train_set, bucket_id)
                 _, step_loss, _, _ = model.step(sess, formatted_example,
-                                                bucket_id, forward_only=False)
+                                                bucket_id, forward_only=False)[:4]
                 loss += step_loss
                 current_step += 1
 
@@ -127,7 +127,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                         continue
                     formatted_example = model.get_batch(dev_set, bucket_id)
                     _, output_logits, eval_loss, _ = \
-                        model.step(sess, formatted_example, bucket_id, forward_only=True)
+                        model.step(sess, formatted_example, bucket_id, forward_only=True)[:4]
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))

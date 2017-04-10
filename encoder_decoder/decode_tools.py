@@ -265,8 +265,14 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
                 for i in xrange(sentence_length):
                     word = ''
                     for j in xrange(FLAGS.max_tg_token_size):
-                         word += rev_tg_char_vocab[top_k_char_prediction[i, j]]
-                sent.append(word)
+                        char_prediction = top_k_char_prediction[i, j]
+                        if char_prediction in rev_tg_char_vocab:
+                            word += rev_tg_char_vocab[char_prediction]
+                        elif char_prediction == data_utils._CPAD:
+                            break
+                        else:
+                            word += data_utils._CUNK
+                    sent.append(word)
                 beam_char_outputs.append(' '.join(sent))
             batch_char_outputs.append(beam_char_outputs)
         return batch_outputs, batch_char_outputs
