@@ -38,17 +38,6 @@ class Encoder(graph_utils.NNModel):
 
         assert(len(self.channels) > 0)
 
-    def char_embeddings(self):
-        with tf.variable_scope("encoder_char_embeddings",
-                               reuse=self.char_embedding_vars):
-            sqrt3 = math.sqrt(3)
-            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding", [self.source_vocab_size,
-                                                       self.sc_char_dim],
-                                         initializer=initializer)
-            self.char_embedding_vars = True
-            return embeddings
-
     def token_representations(self):
         """
         Generate token representations based on multi-channel input.
@@ -80,6 +69,17 @@ class Encoder(graph_utils.NNModel):
                 [self.source_vocab_size, self.sc_token_dim],
                 initializer=initializer)
             self.token_embedding_vars = True
+            return embeddings
+
+    def char_embeddings(self):
+        with tf.variable_scope("encoder_char_embeddings",
+                               reuse=self.char_embedding_vars):
+            sqrt3 = math.sqrt(3)
+            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
+            embeddings = tf.get_variable("embedding", [self.source_vocab_size,
+                                                       self.sc_char_dim],
+                                         initializer=initializer)
+            self.char_embedding_vars = True
             return embeddings
 
     def token_channel_embeddings(self):
