@@ -254,9 +254,16 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
         char_output_symbols = char_output_symbols[0]
         sentence_length = char_output_symbols.shape[0]
         batch_char_outputs = []
+<<<<<<< HEAD
         batch_char_predictions = [np.transpose(np.reshape(x, [sentence_length, FLAGS.beam_size, 
                                                  FLAGS.max_tg_token_size + 1]), (1, 0, 2))
                                   for x in np.split(char_output_symbols, FLAGS.batch_size, 1)]
+=======
+        batch_char_predictions = [
+            np.reshape(x, [FLAGS.beam_size, sentence_length,
+                           FLAGS.max_tg_token_size + 1])
+            for x in np.split(char_output_symbols, FLAGS.batch_size, 0)]
+>>>>>>> 0f174f0357e1be79ba62670b4f450537ae1cf104
         for batch_id in xrange(len(batch_char_predictions)):
             beam_char_outputs = []
             top_k_char_predictions = batch_char_predictions[batch_id]
@@ -275,6 +282,8 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
                         else:
                             word += data_utils._CUNK
                     sent.append(word)
+                if data_utils._CATOM in sent:
+                    sent = sent[sent[1:].index(data_utils._CATOM):]
                 beam_char_outputs.append(' '.join(sent))
             batch_char_outputs.append(beam_char_outputs)
         return batch_outputs, batch_char_outputs
