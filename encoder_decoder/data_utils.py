@@ -701,15 +701,15 @@ def prepare_data(FLAGS):
     """
 
     if FLAGS.dataset.startswith("bash"):
-        prepare_bash(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
+        prepare_bash(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
     if FLAGS.dataset == "jobs":
-        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
+        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
     if FLAGS.dataset == "geo":
-        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
+        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
     if FLAGS.dataset == "atis":
-        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
+        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
     if FLAGS.dataset == "dummy":
-        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.sc_vocab_size)
+        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
 
 
 def slot_filling_mapping_induction(FLAGS):
