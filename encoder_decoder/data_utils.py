@@ -673,7 +673,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
 
     compute_channel_representations(nl_vocab_path, nl_char_vocab_path,
                                     pad_start=True)
-    compute_channel_representations(cm_norm_vocab_path, cm_char_vocab_path,
+    compute_channel_representations(cm_vocab_path, cm_char_vocab_path,
                                     add_eos=True)
 
 
