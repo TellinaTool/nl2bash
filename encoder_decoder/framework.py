@@ -455,7 +455,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             batch_char_decoder_inputs.append(
                 np.ones(batch_char_decoder_input.shape) * data_utils.CPAD_ID)
             batch_char_target_weights.append(
-                np.zeros(batch_char_decoder_input.shape))
+                np.zeros(batch_char_decoder_input[:, 1:].shape))
             assert(len(batch_char_decoder_inputs) == decoder_size)
             assert(batch_char_decoder_input.shape[0] == self.batch_size)
             assert(batch_char_decoder_input.shape[1] == self.max_target_token_size + 2)
