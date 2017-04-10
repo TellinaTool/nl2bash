@@ -362,8 +362,10 @@ def eval_slot_filling(dataset):
                     nl_fillers = entities[0]
                     encoder_inputs = [dataset[bucket_id][i][2]]
                     decoder_inputs = [dataset[bucket_id][i][3]]
+                    decoder_full_inputs = [dataset[bucket_id][i][4]]
                     formatted_example = model.format_example(
-                        encoder_inputs, decoder_inputs, bucket_id=bucket_id)
+                        encoder_inputs, [decoder_inputs, decoder_full_inputs],
+                        bucket_id=bucket_id)
                     _, _, _, _, encoder_outputs, decoder_outputs = model.step(
                         sess, formatted_example, bucket_id, forward_only=True,
                         return_rnn_hidden_states=True)

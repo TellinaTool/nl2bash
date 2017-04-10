@@ -616,7 +616,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
 
     # compute character representation of tokens
     def compute_channel_representations(vocab_path, char_vocab_path,
-                                        pad_start=False):
+                                        pad_start=False, add_eos=False):
         vocab, _ = initialize_vocabulary(vocab_path)
         char_vocab, _ = initialize_vocabulary(char_vocab_path)
         vocab_token_feature_path = vocab_path + ".token.feature"
@@ -643,19 +643,22 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
                         # remove prefix for low-frequency words
                         char_ids = token_to_char_ids(token[6:], char_vocab)
                     elif "@@" in token:
-                        char_ids = token_to_char_ids(token.split('@@')[1], char_vocab)
+                        char_ids = token_to_char_ids(token.split('@@')[1],
+                                                     char_vocab)
                     else:
                         char_ids = token_to_char_ids(token, char_vocab)
                     if len(char_ids) > max_token_size:
                         max_token_size = len(char_ids)
                 char_ids_list.append(char_ids)
                 o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
-        print("maximum token size in {} = {}".format(vocab_path,
-                                                     max_token_size))
+        print("maximum token size in {} = {}".format(
+            vocab_path, max_token_size))
         vocab_char_features = np.zeros([len(vocab), max_token_size],
                                        dtype=np.int64)
         for token_id in xrange(len(char_ids_list)):
             char_ids = char_ids_list[token_id]
+            if add_eos:
+                char_ids.append(CEOS_ID)
             # padding character indices
             if pad_start:
                 padded_char_ids = \
@@ -668,8 +671,10 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
                 vocab_char_features[token_id][j] = c_id
         np.save(vocab_char_feature_path, vocab_char_features)
 
-    compute_channel_representations(nl_vocab_path, nl_char_vocab_path, True)
-    compute_channel_representations(cm_vocab_path, cm_char_vocab_path)
+    compute_channel_representations(nl_vocab_path, nl_char_vocab_path,
+                                    pad_start=True)
+    compute_channel_representations(cm_norm_vocab_path, cm_char_vocab_path,
+                                    add_eos=True)
 
 
 def prepare_data(FLAGS):
@@ -913,7 +918,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False):
             cm_extension = ".seq%d.cm" % FLAGS.sc_vocab_size
         append_head_token = False
         append_end_token = False
-    
+
     train_path = os.path.join(data_dir, "train")
     dev_path = os.path.join(data_dir, "dev")
     test_path = os.path.join(data_dir, "test")
@@ -926,58 +931,74 @@ def load_data(FLAGS, buckets=None, load_mappings=False):
     cm_txt_test = test_path + ".%d.cm" % FLAGS.sc_vocab_size
 
     nl_train = train_path + nl_extension
+    nl_train_full = nl_train + ".full"
     cm_train = train_path + cm_extension
+    cm_train_full = cm_train + ".full"
     nl_dev = dev_path + nl_extension
+    nl_dev_full = nl_dev + ".full"
     cm_dev = dev_path + cm_extension
+    cm_dev_full = cm_dev + ".full"
     nl_test = test_path + nl_extension
+    nl_test_full = nl_test + ".full"
     cm_test = test_path + cm_extension
+    cm_test_full = cm_test + ".full"
 
     if FLAGS.explain:
         train_set = read_data(cm_txt_train, nl_txt_train, cm_train, nl_train,
-                            buckets, FLAGS.max_train_data_size,
+                            nl_train_full, buckets, FLAGS.max_train_data_size,
                             append_head_token=append_head_token,
                             append_end_token=append_end_token,
                             load_mappings=load_mappings)
-        dev_set = read_data(cm_txt_dev, nl_txt_dev, cm_dev, nl_dev, buckets,
-                            append_head_token=append_head_token,
+        dev_set = read_data(cm_txt_dev, nl_txt_dev, cm_dev, nl_dev, nl_dev_full,
+                            buckets, append_head_token=append_head_token,
                             append_end_token=append_end_token,
                             load_mappings=load_mappings)
-        test_set = read_data(cm_txt_test, nl_txt_test, cm_test, nl_test, buckets,
-                            append_head_token=append_head_token,
+        test_set = read_data(cm_txt_test, nl_txt_test, cm_test, nl_test, nl_test_full,
+                            buckets, append_head_token=append_head_token,
                             append_end_token=append_end_token,
                             load_mappings=load_mappings)
     else:
         train_set = read_data(nl_txt_train, cm_txt_train, nl_train, cm_train,
-                            buckets, FLAGS.max_train_data_size,
+                            cm_train_full, buckets, FLAGS.max_train_data_size,
                             append_head_token=append_head_token,
                             append_end_token=append_end_token,
                             load_mappings=load_mappings)
-        dev_set = read_data(nl_txt_dev, cm_txt_dev, nl_dev, cm_dev, buckets,
-                            append_head_token=append_head_token,
+        dev_set = read_data(nl_txt_dev, cm_txt_dev, nl_dev, cm_dev, cm_dev_full,
+                            buckets, append_head_token=append_head_token,
                             append_end_token=append_end_token,
                             load_mappings=load_mappings)
-        test_set = read_data(nl_txt_test, cm_txt_test, nl_test, cm_test, buckets,
-                            append_head_token=append_head_token,
+        test_set = read_data(nl_txt_test, cm_txt_test, nl_test, cm_test, cm_test_full,
+                            buckets, append_head_token=append_head_token,
                             append_end_token=append_end_token,
                             load_mappings=load_mappings)
-    
+
     return train_set, dev_set, test_set
 
 
-def read_data(sc_path, tg_path, sc_id_path, tg_id_path,
-              buckets=None, max_num_examples=None,
-              append_head_token=False, append_end_token=False,
-              load_mappings=False):
+def read_data(sc_path, tg_path, sc_id_path, tg_id_path, tg_full_id_path,
+              buckets=None, max_num_examples=None, append_head_token=False,
+              append_end_token=False, load_mappings=False):
     """Read preprocessed data from source and target files and put into buckets.
     :param sc_path: path to the file containing the original source strings.
     :param tg_path: path to the file containing the original target strings.
     :param sc_id_path: path to the file with token-ids for the source language.
     :param tg_id_path: path to the file with token-ids for the target language.
+    :param tg_id_full_path: path to the file with full-vocabulary token-ids for
+        the target language.
     :param buckets: bucket sizes for training.
     :param max_num_examples: maximum number of lines to read. Read complete
         data files if this entry is 0 or None.
     :param load_mappings: load the slot-filler mappings
     """
+
+    def get_target_ids(tg):
+        tg_ids = [int(x) for x in tg.split()]
+        if append_head_token:
+            tg_ids.insert(0, ROOT_ID)
+        if append_end_token:
+            tg_ids.append(EOS_ID)
+        return tg_ids
+
     if buckets:
         data_set = [[] for _ in buckets]
     else:
@@ -987,14 +1008,16 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path,
     tg_file = tf.gfile.GFile(tg_path, mode="r")
     sc_id_file = tf.gfile.GFile(sc_id_path, mode="r")
     tg_id_file = tf.gfile.GFile(tg_id_path, mode="r")
+    tg_full_id_file = tf.gfile.GFile(tg_full_id_path, mode="r")
     if load_mappings:
         mapping_path = '.'.join(sc_path.rsplit('.')[:-1]) + '.mappings'
         mapping_file = tf.gfile.GFile(mapping_path, mode="r")
-    
+
     counter = 0
     while True:
         sc_txt, tg_txt = sc_file.readline(), tg_file.readline()
         sc, tg = sc_id_file.readline(), tg_id_file.readline()
+        tg_full = tg_full_id_file.readline()
         if load_mappings:
             mapping = mapping_file.readline()
         if not sc or not tg:
@@ -1008,19 +1031,16 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path,
             sys.stdout.flush()
 
         sc_ids = [int(x) for x in sc.split()]
-        tg_ids = [int(x) for x in tg.split()]
-        if append_head_token:
-            tg_ids.insert(0, ROOT_ID)
-        if append_end_token:
-            tg_ids.append(EOS_ID)
+        tg_ids = get_target_ids(tg)
+        tg_full_ids = get_target_ids(tg_full)
+
+        data_point = [sc_txt, tg_txt, sc_ids, tg_ids, tg_full_ids]
         if load_mappings:
             mappings = []
             if mapping.strip():
                 for mp in mapping.strip().split():
                     mappings.append([int(x) for x in mp.split('-')])
-            data_point = [sc_txt, tg_txt, sc_ids, tg_ids, mappings]
-        else:
-            data_point = [sc_txt, tg_txt, sc_ids, tg_ids]
+            data_point.append(mappings)
 
         if buckets:
             for bucket_id, (sc_size, tg_size) in enumerate(buckets):
