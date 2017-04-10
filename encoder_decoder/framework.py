@@ -458,7 +458,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             assert(batch_char_target_weights[0].shape[1] == self.max_target_token_size)
             E.char_decoder_inputs = batch_char_decoder_inputs
             E.char_target_weights = batch_char_target_weights
-            print(char_decoder_inputs)
+            print(E.char_decoder_inputs)
+            print(E.char_target_weights)
         return E
 
 
