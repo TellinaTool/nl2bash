@@ -96,7 +96,8 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [token_ids], [[data_utils.ROOT_ID]], bucket_id=bucket_id)
+        [token_ids], [[[data_utils.ROOT_ID]], [[data_utils.ROOT_ID]]], 
+        bucket_id=bucket_id)
 
     # Decode the ouptut for this 1-element batch.
     # Non-grammatical templates and templates that cannot hold all fillers are
@@ -254,7 +255,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
         sentence_length = char_output_symbols.shape[2]
         batch_char_outputs = []
         batch_char_predictions = [np.reshape(x, [FLAGS.beam_size, sentence_length, 
-                                                 FLAGS.max_tg_token_size]) 
+                                                 FLAGS.max_tg_token_size + 1]) 
                                  for x in np.split(char_output_symbols, FLAGS.batch_size, 0)]
         for batch_id in xrange(len(batch_char_predictions)):
             beam_char_outputs = []
@@ -266,10 +267,11 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
                     word = ''
                     for j in xrange(FLAGS.max_tg_token_size):
                         char_prediction = top_k_char_prediction[i, j]
-                        if char_prediction in rev_tg_char_vocab:
-                            word += rev_tg_char_vocab[char_prediction]
-                        elif char_prediction == data_utils._CPAD:
+                        if char_prediction == data_utils.CEOS_ID or \
+                            char_prediction == data_utils.CPAD_ID:
                             break
+                        elif char_prediction in rev_tg_char_vocab:
+                            word += rev_tg_char_vocab[char_prediction]
                         else:
                             word += data_utils._CUNK
                     sent.append(word)
@@ -304,10 +306,11 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
         example_id = 0
         for sc_temp in sorted_sc_temps:
             example_id += 1
-            sc_strs, tg_strs, scs, tgs = grouped_dataset[sc_temp]
+            sc_strs, tg_strs, scs, tgs, tg_fulls = grouped_dataset[sc_temp]
             assert(len(sc_strs) == len(tg_strs))
             assert(len(sc_strs) == len(scs))
             assert(len(sc_strs) == len(tgs))
+            assert(len(tgs) == len(tg_fulls))
             sc_normalized_temp = ' '.join([rev_sc_vocab[i] for i in scs[0]])
             if verbose:
                 print("Example {}:".format(example_id))

@@ -99,10 +99,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.char_target_weights = []   # weights at each position of the target sequence
             for i in xrange(self.max_target_length):
                 self.char_decoder_inputs.append(
-                    tf.placeholder(tf.int32, shape=[None, self.max_target_token_size + 1],
+                    tf.placeholder(tf.int32, shape=[None, self.max_target_token_size + 2],
                                    name="char_decoder{0}".format(i)))
                 self.char_target_weights.append(
-                    tf.placeholder(tf.float32, shape=[None, self.max_target_token_size],
+                    tf.placeholder(tf.float32, shape=[None, self.max_target_token_size + 1],
                                    name="char_target_weight{0}".format(i)))
             self.char_targets = [self.char_decoder_inputs[i][:, 1:]
                                  for i in xrange(self.max_target_length)]
@@ -162,7 +162,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         tf.reshape(bucket_char_output_symbols,
                                    [self.batch_size, self.beam_size,
                                     self.max_target_length,
-                                    self.max_target_token_size]))
+                                    self.max_target_token_size + 1]))
                     self.char_output_logits.append(
                         tf.reshape(bucket_char_output_logits,
                                    [self.batch_size, self.beam_size,
@@ -253,13 +253,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.tg_char:
             # re-arrange character inputs
             char_decoder_inputs = [tf.squeeze(x, 1)
-                            for x in tf.split(1, self.max_target_token_size + 1,
+                            for x in tf.split(1, self.max_target_token_size + 2,
                             tf.concat(0, self.char_decoder_inputs))]
             char_targets = [tf.squeeze(x, 1) for x in
-                            tf.split(1, self.max_target_token_size,
+                            tf.split(1, self.max_target_token_size + 1,
                                      tf.concat(0, self.char_targets))]
             char_target_weights = [tf.squeeze(x, 1) for x in
-                            tf.split(1, self.max_target_token_size,
+                            tf.split(1, self.max_target_token_size + 1,
                                      tf.concat(0, self.char_target_weights))]
             if forward_only and self.token_decoding_algorithm == 'beam_search':
                 char_decoder_inputs = graph_utils.wrap_inputs(
@@ -447,19 +447,18 @@ class EncoderDecoderModel(graph_utils.NNModel):
             batch_char_target_weights = []
             for input in batch_decoder_full_inputs:
                 batch_char_decoder_input = tg_char_features[input]
-                print(batch_char_decoder_input)
                 batch_char_decoder_inputs.append(batch_char_decoder_input)
                 batch_char_target_weights.append(np.array(
                     batch_char_decoder_input[:, 1:] != data_utils.CPAD_ID,
                     dtype=np.int64))
             assert(len(batch_char_decoder_inputs) == decoder_size)
             assert(batch_char_decoder_input.shape[0] == self.batch_size)
-            assert(batch_char_decoder_input.shape[1] == self.max_target_token_size + 1)
-            assert(batch_char_target_weights[0].shape[1] == self.max_target_token_size)
+            assert(batch_char_decoder_input.shape[1] == self.max_target_token_size + 2)
+            assert(batch_char_target_weights[0].shape[1] == self.max_target_token_size + 1)
             E.char_decoder_inputs = batch_char_decoder_inputs
             E.char_target_weights = batch_char_target_weights
-            print(E.char_decoder_inputs)
-            print(E.char_target_weights)
+            # print(E.char_decoder_inputs)
+            # print(E.char_target_weights)
 
         return E
 

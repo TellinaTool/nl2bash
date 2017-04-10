@@ -792,7 +792,7 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
 
     grouped_dataset = {}
     for i in xrange(len(dataset)):
-        nl_str, cm_str, nl, cm = dataset[i]
+        nl_str, cm_str, nl, cm, cm_full = dataset[i]
         if use_temp:
             words, _ = tokenizer.ner_tokenizer(nl_str)
             nl_template = " ".join(words)
@@ -803,8 +803,9 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
             grouped_dataset[nl_template][1].append(cm_str)
             grouped_dataset[nl_template][2].append(nl)
             grouped_dataset[nl_template][3].append(cm)
+            grouped_dataset[nl_template][4].append(cm_full)
         else:
-            grouped_dataset[nl_template] = [[nl_str], [cm_str], [nl], [cm]]
+            grouped_dataset[nl_template] = [[nl_str], [cm_str], [nl], [cm], [cm_full]]
 
     return grouped_dataset
 
@@ -836,25 +837,25 @@ def load_vocab(FLAGS):
             FLAGS.data_dir, "vocab%d.nl.norm" % FLAGS.sc_vocab_size)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.sc_vocab_size)
+                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
         elif FLAGS.normalized:
             cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.sc_vocab_size)
+                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
         else:
             cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm" % FLAGS.sc_vocab_size)
+                FLAGS.data_dir, "vocab%d.cm" % FLAGS.tg_vocab_size)
     elif FLAGS.decoder_topology in ['basic_tree']:
         nl_vocab_path = os.path.join(
             FLAGS.data_dir, "vocab%d.nl" % FLAGS.sc_vocab_size)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.ast.norm" % FLAGS.sc_vocab_size)
+                FLAGS.data_dir, "vocab%d.cm.ast.norm" % FLAGS.tg_vocab_size)
         elif FLAGS.normalized:
             cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.ast.norm" % FLAGS.sc_vocab_size)
+                FLAGS.data_dir, "vocab%d.cm.ast.norm" % FLAGS.tg_vocab_size)
         else:
             cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.ast" % FLAGS.sc_vocab_size)
+                FLAGS.data_dir, "vocab%d.cm.ast" % FLAGS.tg_vocab_size)
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
