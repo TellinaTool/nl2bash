@@ -160,13 +160,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         encode_decode_outputs[4:]
                     self.char_output_symbols.append(
                         tf.reshape(bucket_char_output_symbols,
-                                   [self.batch_size, self.beam_size,
-                                    self.max_target_length,
+                                   [self.max_target_length,
+                                    self.batch_size, self.beam_size,
                                     self.max_target_token_size + 1]))
                     self.char_output_logits.append(
                         tf.reshape(bucket_char_output_logits,
-                                   [self.batch_size, self.beam_size,
-                                    self.max_target_length]))
+                                   [self.max_target_length,
+                                    self.batch_size, self.beam_size]))
         else:
             encode_decode_outputs = self.encode_decode(
                                         self.encoder_inputs,
