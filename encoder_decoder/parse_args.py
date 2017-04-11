@@ -179,3 +179,4 @@ def define_input_flags():
                                 "Proportion of character target input to keep if dropout is used.")
     tf.app.flags.DEFINE_float("tg_char_rnn_output_keep", .5,
                                 "Proportion of character target output to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("gamma", 5, "Define the weight of the character channel loss.")
