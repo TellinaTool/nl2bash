@@ -837,8 +837,10 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
 
 def load_vocab(FLAGS):
     if FLAGS.decoder_topology in ['rnn']:
+        nl_extension = "vocab%d.nl" % FLAGS.sc_vocab_size \
+            if FLAGS.sc_char else "vocab%d.nl.norm"
         nl_vocab_path = os.path.join(
-            FLAGS.data_dir, "vocab%d.nl.norm" % FLAGS.sc_vocab_size)
+            FLAGS.data_dir, nl_extension)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
