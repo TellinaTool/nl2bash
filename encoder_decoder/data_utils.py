@@ -888,7 +888,6 @@ def load_vocab(FLAGS):
         else:
             vocabs.extend([nl_char_vocab, rev_nl_char_vocab,
                            cm_char_vocab, rev_cm_char_vocab])
-    
     return vocabs
 
 
