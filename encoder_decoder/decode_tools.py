@@ -75,8 +75,7 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     sc_vocab, _, _, rev_tg_vocab = vocabs[:4]
-    if FLAGS.tg_char:
-        _, _, _, rev_tg_char_vocab = vocabs[-4:]
+    rev_tg_char_vocab = vocabs[3] if FLAGS.tg_char else None
 
     if FLAGS.explain:
         tokens = data_tools.bash_tokenizer(sentence, arg_type_only=FLAGS.normalized)
@@ -107,8 +106,8 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
         forward_only=True, return_rnn_hidden_states=FLAGS.fill_argument_slots)
     output_symbols, output_logits, losses, attn_alignments = \
         model_step_outputs[:4]
-    if FLAGS.tg_char:
-        char_output_symbols, char_output_logits = model_step_outputs[-2:]
+    char_output_symbols = model_step_outputs[-2] if FLAGS.tg_char else None
+    char_output_logits = model_step_outputs[-1] if FLAGS.tg_char else None
     nl_fillers, encoder_outputs, decoder_outputs = None, None, None
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
@@ -344,14 +343,11 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             break
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                             top_k_predictions[j]
-                        try:    
-                            print("Prediction {}: {} ({}) ".format(
-                                j+1, top_k_pred_cmd, top_k_scores[j]))
+                        print("Prediction {}: {} ({}) ".format(
+                            j+1, top_k_pred_cmd, top_k_scores[j]))
+                        if FLAGS.tg_char:       
                             print("Character-based prediction {}: {}".format(
                                 j+1, top_k_char_predictions[j]))
-                        except UnicodeEncodeError:
-                            print("Prediction {}: {} ({}) ".format(
-                                j+1, 'COMMAND_DECODING_ERROR', top_k_scores[j]))
                         try:
                             db.add_prediction(model.model_sig, sc_temp,
                                 top_k_pred_cmd, float(top_k_scores[j]),
