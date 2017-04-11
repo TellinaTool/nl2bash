@@ -285,7 +285,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             encoder_decoder_char_loss = 0
        
-        losses = encoder_decoder_token_loss + 10 * encoder_decoder_char_loss + \
+        losses = encoder_decoder_token_loss + \
+                 self.gamma * encoder_decoder_char_loss + \
                  self.beta * attention_reg
 
         # store encoder/decoder output states

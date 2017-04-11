@@ -57,6 +57,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["tg_char_features_path"] = os.path.join(FLAGS.data_dir,
         "vocab%d.cm.char.feature.npy" % FLAGS.tg_vocab_size)
 
+    params["gamma"] = FLAGS.gamma
+
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
     params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
@@ -419,6 +421,10 @@ class NNModel(object):
     @property
     def tg_char_rnn_output_keep(self):
         return self.hyperparams["tg_char_rnn_output_keep"]
+
+    @property
+    def gamma(self):
+        return self.hyperparams["gamma"]
 
     # -- optimization parameters -- #
 
