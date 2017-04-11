@@ -164,6 +164,7 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
         model_subdir += '-C'
     if FLAGS.tg_char:
         model_subdir += '-TC'
+        model_subdir += '-{}'.format(FLAGS.gamma)
     if FLAGS.tg_token_use_attention:
         model_subdir += '-attention'
         model_subdir += '-{}'.format(FLAGS.attention_input_keep)
