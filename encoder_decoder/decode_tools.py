@@ -274,7 +274,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
                             word += data_utils._CUNK
                     sent.append(word)
                 if data_utils._CATOM in sent:
-                    sent = sent[:sent[1:].index(data_utils._CATOM)]
+                    sent = sent[:sent[:].index(data_utils._CATOM)]
                 beam_char_outputs.append(' '.join(sent))
             batch_char_outputs.append(beam_char_outputs)
         return batch_outputs, batch_char_outputs
