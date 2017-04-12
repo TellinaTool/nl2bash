@@ -246,8 +246,7 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 base_tokenizer, with_arg_type=with_arg_type, use_unk=use_unk)
             if len(token_ids) > max_token_num:
                 max_token_num = len(token_ids)
-            tokens_file.write(" ".join([str(tok) for tok in token_ids])
-                              + "\n")
+            tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
         tokens_file.close()
     return max_token_num
 
