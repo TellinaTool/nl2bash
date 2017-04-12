@@ -311,7 +311,7 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
             assert(len(sc_strs) == len(scs))
             assert(len(sc_strs) == len(tgs))
             assert(len(tgs) == len(tg_fulls))
-            print(rev_sc_vocab)
+            # print(rev_sc_vocab)
             sc_normalized_temp = ' '.join([rev_sc_vocab[i] for i in scs[0]])
             if verbose:
                 print("Example {}:".format(example_id))
