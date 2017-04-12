@@ -102,8 +102,10 @@ class Encoder(graph_utils.NNModel):
                 [[batch, token_size], [batch, token_size], ...]
         :return: embeddings_char [source_vocab_size, char_channel_dim]
         """
-        inputs = tf.split(1, self.max_source_token_size,
-                          tf.concat(0, channel_inputs))
+        inputs = [tf.squeeze(x, 1) for x in tf.split(1, self.max_source_token_size,
+                  tf.concat(0, channel_inputs))]
+        print(inputs[0])
+        print(self.char_embeddings()[inputs[0]])
         input_embeddings = [self.char_embeddings()[input] for input in inputs]
         if self.sc_char_composition == 'rnn':
             with tf.variable_scope("encoder_char_rnn",
