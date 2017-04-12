@@ -85,9 +85,13 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
         if FLAGS.char:
             token_ids, entities = data_utils.sentence_to_token_ids(sentence,
                 sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+            token_full_ids = []
         else:
             token_ids, entities = data_utils.sentence_to_token_ids(
                 sentence, sc_vocab, tokenizer.ner_tokenizer, None)
+            token_full_ids, _ = data_utils.sentence_to_token_ids(
+                sentence, sc_vocab, tokenizer.basic_tokenizer, None,
+                use_unk=False)
     
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
@@ -95,7 +99,7 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [token_ids], [[[data_utils.ROOT_ID]], [[data_utils.ROOT_ID]]], 
+        [[token_ids], [token_full_ids]], [[[data_utils.ROOT_ID]], [[data_utils.ROOT_ID]]],
         bucket_id=bucket_id)
 
     # Decode the ouptut for this 1-element batch.
