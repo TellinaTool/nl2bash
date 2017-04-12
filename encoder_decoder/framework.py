@@ -87,7 +87,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.char_encoder_inputs = []
             for i in xrange(self.max_source_length):
                 self.char_encoder_inputs.append(
-                    tf.placeholder(tf.float32,
+                    tf.placeholder(tf.int32,
                                    shape=[None, self.max_target_token_size],
                                    name="char_encoder{0}".format(i)))
             self.encoder_channel_inputs.append(self.char_encoder_inputs)
