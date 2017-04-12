@@ -49,7 +49,7 @@ class Encoder(graph_utils.NNModel):
         channel_embeddings = []
         if self.sc_token:
             token_channel_embeddings = [tf.nn.embedding_lookup(
-                                        self.token_embeddings(), encoder_input[0])
+                                        self.token_embeddings(), encoder_input)
                                         for encoder_input in channel_inputs[0]]
             channel_embeddings.append(token_channel_embeddings)
         if self.sc_char:
@@ -59,8 +59,9 @@ class Encoder(graph_utils.NNModel):
         if len(channel_embeddings) == 1:
             input_embeddings = channel_embeddings[0]
         else:
-            input_embeddings = [tf.concat(0, [x, y])
-                                for x, y in zip(channel_embeddings)]
+            input_embeddings = [tf.concat(1, [x, y]) for (x, y) in
+                                map(lambda x,y:(x,y), channel_embeddings[0], 
+                                    channel_embeddings[1])]
         return input_embeddings
 
     def token_embeddings(self):
@@ -102,12 +103,10 @@ class Encoder(graph_utils.NNModel):
                 [[batch, token_size], [batch, token_size], ...]
         :return: embeddings_char [source_vocab_size, char_channel_dim]
         """
-        inputs = tf.split(1, self.max_source_token_size,
-                          tf.concat(0, channel_inputs))
-        embeddings = self.char_embeddings()
-        print(inputs[0])
-        print(self.char_embeddings()[inputs[0]])
-        input_embeddings = [embeddings[input] for input in inputs]
+        inputs = [tf.squeeze(x, 1) for x in tf.split(1, self.max_source_token_size,
+                  tf.concat(0, channel_inputs))]
+        input_embeddings = [tf.nn.embedding_lookup(self.char_embeddings(), input) 
+                            for input in inputs]
         if self.sc_char_composition == 'rnn':
             with tf.variable_scope("encoder_char_rnn",
                                    reuse=self.char_rnn_vars) as scope:
@@ -119,7 +118,10 @@ class Encoder(graph_utils.NNModel):
                 self.char_rnn_vars = True
         else:
             raise NotImplementedError
-        return rnn_states[-1]
+        return [tf.squeeze(x, 0) for x in tf.split(0, len(channel_inputs), 
+                                                   tf.reshape(rnn_states[-1], 
+                                                   [len(channel_inputs), -1, 
+                                                    self.sc_char_dim]))]
 
     def token_unk_free_index(self):
         return np.load(self.sc_token_features_path)
