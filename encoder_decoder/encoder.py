@@ -57,7 +57,7 @@ class Encoder(graph_utils.NNModel):
                 self.char_channel_embeddings(channel_inputs[1])
             channel_embeddings.append(char_channel_embeddings)
         if len(channel_embeddings) == 1:
-            input_embeddings = char_channel_embeddings[0]
+            input_embeddings = channel_embeddings[0]
         else:
             input_embeddings = [tf.concat(0, [x, y])
                                 for x, y in zip(channel_embeddings)]
@@ -104,7 +104,8 @@ class Encoder(graph_utils.NNModel):
         """
         inputs = tf.split(1, self.max_source_token_size,
                           tf.concat(0, channel_inputs))
-        input_embeddings = [self.char_embeddings()[input] for input in inputs]
+        embeddings = self.char_embeddings()
+        input_embeddings = [embeddings[input] for input in inputs]
         if self.sc_char_composition == 'rnn':
             with tf.variable_scope("encoder_char_rnn",
                                    reuse=self.char_rnn_vars) as scope:
