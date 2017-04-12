@@ -508,8 +508,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for _ in xrange(self.batch_size):
             random_example = random.choice(data[bucket_id])
             encoder_inputs.append(random_example[2])
-            encoder_full_inputs.append(random_example[3])
-            decoder_inputs.append(random_example[4])
+            encoder_full_inputs.append(random_example[4])
+            decoder_inputs.append(random_example[3])
             decoder_full_inputs.append(random_example[5])
 
         return self.format_example([encoder_inputs, encoder_full_inputs],
@@ -525,8 +525,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         for i in xrange(len(data[bucket_id])):
             encoder_inputs.append(data[bucket_id][i][2])
-            encoder_full_inputs.append(data[bucket_id][i][3])
-            decoder_inputs.append(data[bucket_id][i][4])
+            encoder_full_inputs.append(data[bucket_id][i][4])
+            decoder_inputs.append(data[bucket_id][i][3])
             decoder_full_inputs.append(data[bucket_id][i][5])
 
         return self.format_example([encoder_inputs, encoder_full_inputs],
