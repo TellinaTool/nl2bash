@@ -484,15 +484,17 @@ class EncoderDecoderModel(graph_utils.NNModel):
           The triple (encoder_inputs, decoder_inputs, target_weights) for
           the constructed batch that has the proper format to call step(...) later.
         """
-        encoder_inputs, decoder_inputs, decoder_full_inputs = [], [], []
+        encoder_inputs, decoder_inputs, encoder_full_inputs, \
+            decoder_full_inputs = [], [], [], []
 
         # Get a random batch of encoder and decoder inputs from data,
         # pad them if needed, reverse encoder inputs and add GO to decoder.
         for _ in xrange(self.batch_size):
             random_example = random.choice(data[bucket_id])
             encoder_inputs.append(random_example[2])
-            decoder_inputs.append(random_example[3])
-            decoder_full_inputs.append(random_example[4])
+            encoder_full_inputs.append(random_example[3])
+            decoder_inputs.append(random_example[4])
+            decoder_full_inputs.append(random_example[5])
         return self.format_example(encoder_inputs,
                                    [decoder_inputs, decoder_full_inputs],
                                    bucket_id=bucket_id)
@@ -501,12 +503,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def get_bucket(self, data, bucket_id, copy_data=None):
         """Get all data points from the specified bucket, prepare for step.
         """
-        encoder_inputs, decoder_inputs, decoder_full_inputs = [], [], []
+        encoder_inputs, decoder_inputs, encoder_full_inputs, \
+            decoder_full_inputs = [], [], [], []
 
         for i in xrange(len(data[bucket_id])):
             encoder_inputs.append(data[bucket_id][i][2])
-            decoder_inputs.append(data[bucket_id][i][3])
-            decoder_full_inputs.append(data[bucket_id][i][4])
+            encoder_full_inputs.append(data[bucket_id][i][3])
+            decoder_inputs.append(data[bucket_id][i][4])
+            decoder_full_inputs.append(data[bucket_id][i][5])
         return self.format_example(encoder_inputs,
                                    [decoder_inputs, decoder_full_inputs],
                                    bucket_id=bucket_id)
