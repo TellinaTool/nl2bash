@@ -480,7 +480,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             assert(batch_char_target_weights[0].shape[1] == self.max_target_token_size + 1)
             E.char_decoder_inputs = batch_char_decoder_inputs
             E.char_target_weights = batch_char_target_weights
-        print("E.decoder_inputs: {}".format(E.decoder_inputs[1]))
+        # print("E.decoder_inputs: {}".format(E.decoder_inputs[1]))
         return E
 
 
@@ -547,7 +547,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.sc_char:
                 input_feed[self.char_encoder_inputs[l].name] = E.char_encoder_inputs[l]
             input_feed[self.encoder_attn_masks[l].name] = E.encoder_attn_masks[l]
-        print("Second E.decoder_inputs: {}".format(E.decoder_inputs[1]))
+        # print("Second E.decoder_inputs: {}".format(E.decoder_inputs[1]))
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
