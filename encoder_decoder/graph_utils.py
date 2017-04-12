@@ -435,7 +435,8 @@ class NNModel(object):
 
     @property
     def use_sampled_softmax(self):
-        return self.num_samples > 0 and self.num_samples < self.target_vocab_size
+        return self.num_samples > 0 and \
+               self.num_samples < self.target_vocab_size
 
     @property
     def num_samples(self):
