@@ -82,6 +82,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.encoder_attn_masks.append(
                 tf.placeholder(tf.float32, shape=[None],
                                name="attn_alignment{0}".format(i)))
+        self.encoder_channel_inputs = [self.encoder_inputs]
+        if self.sc_char:
+            self.char_encoder_inputs = []
+            for i in xrange(self.max_source_length):
+                self.char_encoder_inputs.append(
+                    tf.placeholder(tf.int32,
+                                   shape=[None, self.max_target_token_size],
+                                   name="char_encoder{0}".format(i)))
+            self.encoder_channel_inputs.append(self.char_encoder_inputs)
         for i in xrange(self.max_target_length + 1):
             self.decoder_inputs.append(
                 tf.placeholder(tf.int32, shape=[None],
@@ -142,7 +151,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     tf.get_variable_scope().reuse_variables()
                 encode_decode_outputs = \
                     self.encode_decode(
-                        self.encoder_inputs[:bucket[0]],
+                        [channel_input[:bucket[0]] \
+                         for channel_input in self.encoder_channel_inputs],
                         self.encoder_attn_masks[:bucket[0]],
                         self.decoder_inputs[:bucket[1]],
                         self.targets[:bucket[1]],
@@ -169,7 +179,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                     self.batch_size, self.beam_size]))
         else:
             encode_decode_outputs = self.encode_decode(
-                                        self.encoder_inputs,
+                                        self.encoder_channel_inputs,
                                         self.encoder_attn_masks,
                                         self.decoder_inputs,
                                         self.targets,
@@ -220,11 +230,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.saver = tf.train.Saver(tf.global_variables())
 
 
-    def encode_decode(self, encoder_inputs, encoder_attn_masks, decoder_inputs,
-                      targets, target_weights, forward_only):
+    def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
+                      decoder_inputs, targets, target_weights, forward_only):
 
         encoder_outputs, encoder_state = \
-            self.encoder.define_graph(encoder_inputs)
+            self.encoder.define_graph(encoder_channel_inputs)
         if self.tg_token_use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.encoder.output_dim])
                           for e in encoder_outputs]
@@ -285,7 +295,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             encoder_decoder_char_loss = 0
        
-        losses = encoder_decoder_token_loss + 10 * encoder_decoder_char_loss + \
+        losses = encoder_decoder_token_loss + \
+                 self.gamma * encoder_decoder_char_loss + \
                  self.beta * attention_reg
 
         # store encoder/decoder output states
@@ -355,10 +366,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """
         Prepare the data to be fed into the neural model.
 
-        :param encoder_channel_inputs: dictionary of (batch of) sequence
+        :param encoder_channel_inputs: list of (batch of) sequence
             indices for different encoder channels [[...], [...], ...]
-        :param decoder_channel_inputs: dictionary of (batch of) output
-            sequence indices [[...], [...], ...]
+        :param decoder_channel_inputs: list of (batch of) sequence
+            indices for different decoder channels [[...], [...], ...]
         :param bucket_id: bucket id of the current batch
 
         Returns:
@@ -395,19 +406,21 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_size, decoder_size = \
                 self.max_source_length, self.max_target_length
 
-        batch_size = len(encoder_channel_inputs)
-
+        batch_size = len(encoder_channel_inputs[0])
         # create batch-major vectors
         batch_encoder_inputs = load_channel(
-            encoder_channel_inputs, encoder_size, encoder_channel=True)
-        batch_encoder_input_masks = []
+            encoder_channel_inputs[0], encoder_size, encoder_channel=True)
+        if len(encoder_channel_inputs) > 1:
+            batch_encoder_full_inputs = load_channel(
+                encoder_channel_inputs[1], encoder_size, encoder_channel=True)
         batch_decoder_inputs = load_channel(
             decoder_channel_inputs[0], decoder_size, encoder_channel=False)
         if len(decoder_channel_inputs) > 1:
             batch_decoder_full_inputs = load_channel(
                 decoder_channel_inputs[1], decoder_size, encoder_channel=False)
+        
+        batch_encoder_input_masks = []
         batch_decoder_input_masks = []
-
         # Batch encoder inputs are just re-indexed encoder_inputs.
         for length_idx in xrange(encoder_size):
             batch_encoder_input_mask = np.ones(batch_size, dtype=np.float32)
@@ -416,7 +429,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 if source == data_utils.PAD_ID:
                     batch_encoder_input_mask[batch_idx] = 0.0
             batch_encoder_input_masks.append(batch_encoder_input_mask)
-
         # Batch decoder inputs are re-indexed decoder_inputs.
         for length_idx in xrange(decoder_size):
             # Create target_weights to be 0 for targets that are padding.
@@ -434,10 +446,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
         E.encoder_inputs = batch_encoder_inputs
         E.encoder_attn_masks = batch_encoder_input_masks
         E.decoder_inputs = batch_decoder_inputs
-        # if len(decoder_channel_inputs) > 1:
-        #     E.decoder_full_inputs = batch_decoder_full_inputs
         E.target_weights = batch_decoder_input_masks
 
+        if self.sc_char:
+            sc_char_features = np.load(self.sc_char_features_path)
+            batch_char_encoder_inputs = []
+            for input in batch_encoder_full_inputs:
+                batch_char_encoder_input = sc_char_features[input]
+                batch_char_encoder_inputs.append(batch_char_encoder_input)
+            E.char_encoder_inputs = batch_char_encoder_inputs
         if self.tg_char:
             tg_char_features = np.load(self.tg_char_features_path)
             tg_char_features = np.concatenate([np.expand_dims(
@@ -459,12 +476,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
             assert(len(batch_char_decoder_inputs) == decoder_size)
             assert(batch_char_decoder_input.shape[0] == self.batch_size)
             assert(batch_char_decoder_input.shape[1] == self.max_target_token_size + 2)
+            assert(batch_char_target_weights[0].shape[0] == self.batch_size)
             assert(batch_char_target_weights[0].shape[1] == self.max_target_token_size + 1)
             E.char_decoder_inputs = batch_char_decoder_inputs
             E.char_target_weights = batch_char_target_weights
-            # print(E.char_decoder_inputs)
-            # print(E.char_target_weights)
-
+        print("E.decoder_inputs: {}".format(E.decoder_inputs[1]))
         return E
 
 
@@ -484,7 +500,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
           The triple (encoder_inputs, decoder_inputs, target_weights) for
           the constructed batch that has the proper format to call step(...) later.
         """
-        encoder_inputs, decoder_inputs, encoder_full_inputs, \
+        encoder_inputs, encoder_full_inputs, decoder_inputs, \
             decoder_full_inputs = [], [], [], []
 
         # Get a random batch of encoder and decoder inputs from data,
@@ -495,7 +511,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_full_inputs.append(random_example[3])
             decoder_inputs.append(random_example[4])
             decoder_full_inputs.append(random_example[5])
-        return self.format_example(encoder_inputs,
+
+        return self.format_example([encoder_inputs, encoder_full_inputs],
                                    [decoder_inputs, decoder_full_inputs],
                                    bucket_id=bucket_id)
 
@@ -503,7 +520,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def get_bucket(self, data, bucket_id, copy_data=None):
         """Get all data points from the specified bucket, prepare for step.
         """
-        encoder_inputs, decoder_inputs, encoder_full_inputs, \
+        encoder_inputs, encoder_full_inputs, decoder_inputs, \
             decoder_full_inputs = [], [], [], []
 
         for i in xrange(len(data[bucket_id])):
@@ -511,7 +528,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_full_inputs.append(data[bucket_id][i][3])
             decoder_inputs.append(data[bucket_id][i][4])
             decoder_full_inputs.append(data[bucket_id][i][5])
-        return self.format_example(encoder_inputs,
+
+        return self.format_example([encoder_inputs, encoder_full_inputs],
                                    [decoder_inputs, decoder_full_inputs],
                                    bucket_id=bucket_id)
 
@@ -520,12 +538,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """
         Assign the data vectors to the corresponding neural network variables.
         """
-        encoder_size, decoder_size = len(E.encoder_inputs), len(E.decoder_inputs)
+        encoder_size, decoder_size = len(E.encoder_inputs), \
+                                     len(E.decoder_inputs)
 
         input_feed = {}
         for l in xrange(encoder_size):
             input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
+            if self.sc_char:
+                input_feed[self.char_encoder_inputs[l].name] = E.char_encoder_inputs[l]
             input_feed[self.encoder_attn_masks[l].name] = E.encoder_attn_masks[l]
+        print("Second E.decoder_inputs: {}".format(E.decoder_inputs[1]))
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
@@ -535,8 +557,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         if self.tg_char:
             for l in xrange(decoder_size):
-                input_feed[self.char_decoder_inputs[l].name] = E.char_decoder_inputs[l]
-                input_feed[self.char_target_weights[l].name] = E.char_target_weights[l]
+                input_feed[self.char_decoder_inputs[l].name] = \
+                    E.char_decoder_inputs[l]
+                input_feed[self.char_target_weights[l].name] = \
+                    E.char_target_weights[l]
 
         return input_feed
 

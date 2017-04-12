@@ -75,8 +75,7 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     sc_vocab, _, _, rev_tg_vocab = vocabs[:4]
-    if FLAGS.tg_char:
-        _, _, _, rev_tg_char_vocab = vocabs[-4:]
+    rev_tg_char_vocab = vocabs[-1] if FLAGS.tg_char else None
 
     if FLAGS.explain:
         tokens = data_tools.bash_tokenizer(sentence, arg_type_only=FLAGS.normalized)
@@ -86,9 +85,13 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
         if FLAGS.char:
             token_ids, entities = data_utils.sentence_to_token_ids(sentence,
                 sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+            token_full_ids = []
         else:
             token_ids, entities = data_utils.sentence_to_token_ids(
                 sentence, sc_vocab, tokenizer.ner_tokenizer, None)
+            token_full_ids, _ = data_utils.sentence_to_token_ids(
+                sentence, sc_vocab, tokenizer.basic_tokenizer, None,
+                use_unk=False)
     
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
@@ -96,7 +99,7 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [token_ids], [[[data_utils.ROOT_ID]], [[data_utils.ROOT_ID]]], 
+        [[token_ids], [token_full_ids]], [[[data_utils.ROOT_ID]], [[data_utils.ROOT_ID]]],
         bucket_id=bucket_id)
 
     # Decode the ouptut for this 1-element batch.
@@ -107,8 +110,7 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
         forward_only=True, return_rnn_hidden_states=FLAGS.fill_argument_slots)
     output_symbols, output_logits, losses, attn_alignments = \
         model_step_outputs[:4]
-    if FLAGS.tg_char:
-        char_output_symbols, char_output_logits = model_step_outputs[-2:]
+    char_output_symbols = model_step_outputs[-2] if FLAGS.tg_char else None
     nl_fillers, encoder_outputs, decoder_outputs = None, None, None
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
@@ -167,7 +169,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
             # Step 1: transform the neural network output into readable strings
             prediction = top_k_predictions[j]
             outputs = [int(pred) for pred in prediction]
-            
+            print(outputs) 
             # If there is an EOS symbol in outputs, cut them at that point.
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
@@ -276,7 +278,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
                             word += data_utils._CUNK
                     sent.append(word)
                 if data_utils._CATOM in sent:
-                    sent = sent[sent[1:].index(data_utils._CATOM):]
+                    sent = sent[:sent[:].index(data_utils._CATOM)]
                 beam_char_outputs.append(' '.join(sent))
             batch_char_outputs.append(beam_char_outputs)
         return batch_outputs, batch_char_outputs
@@ -308,11 +310,14 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
         example_id = 0
         for sc_temp in sorted_sc_temps:
             example_id += 1
-            sc_strs, tg_strs, scs, tgs, tg_fulls = grouped_dataset[sc_temp]
+            sc_strs, tg_strs, scs, tgs, cm_fulls, tg_fulls = \
+                grouped_dataset[sc_temp]
             assert(len(sc_strs) == len(tg_strs))
             assert(len(sc_strs) == len(scs))
             assert(len(sc_strs) == len(tgs))
+            assert(len(sc_strs) == len(cm_fulls))
             assert(len(tgs) == len(tg_fulls))
+            # print(rev_sc_vocab)
             sc_normalized_temp = ' '.join([rev_sc_vocab[i] for i in scs[0]])
             if verbose:
                 print("Example {}:".format(example_id))
@@ -344,14 +349,11 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             break
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                             top_k_predictions[j]
-                        try:    
-                            print("Prediction {}: {} ({}) ".format(
-                                j+1, top_k_pred_cmd, top_k_scores[j]))
+                        print("Prediction {}: {} ({}) ".format(
+                            j+1, top_k_pred_cmd, top_k_scores[j]))
+                        if FLAGS.tg_char:       
                             print("Character-based prediction {}: {}".format(
                                 j+1, top_k_char_predictions[j]))
-                        except UnicodeEncodeError:
-                            print("Prediction {}: {} ({}) ".format(
-                                j+1, 'COMMAND_DECODING_ERROR', top_k_scores[j]))
                         try:
                             db.add_prediction(model.model_sig, sc_temp,
                                 top_k_pred_cmd, float(top_k_scores[j]),
