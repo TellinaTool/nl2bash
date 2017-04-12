@@ -38,22 +38,30 @@ class Encoder(graph_utils.NNModel):
 
         assert(len(self.channels) > 0)
 
-    def token_representations(self):
+    def token_representations(self, channel_inputs):
         """
         Generate token representations based on multi-channel input.
 
-        :member-used channels: Specify feature channels used for token
-            representation.
-            'token' - use character embeddings
-            'char' - use character features
+        :param channel_inputs: an array of channel input indices
+            1. batch token indices
+            2. batch char indices
         """
-        channel_representations = []
-        for channel in self.channels:
-            if channel == 'token':
-                channel_representations.append(self.token_channel_embeddings())
-            if channel == 'char':
-                channel_representations.append(self.char_channel_embeddings())
-        return tf.concat(1, channel_representations)
+        channel_embeddings = []
+        if self.sc_token:
+            token_channel_embeddings = [tf.nn.embedding_lookup(
+                                        self.token_embeddings(), encoder_input[0])
+                                        for encoder_input in channel_inputs[0]]
+            channel_embeddings.append(token_channel_embeddings)
+        if self.sc_char:
+            char_channel_embeddings = \
+                self.char_channel_embeddings(channel_inputs[1])
+            channel_embeddings.append(char_channel_embeddings)
+        if len(channel_embeddings) == 1:
+            input_embeddings = char_channel_embeddings[0]
+        else:
+            input_embeddings = [tf.concat(0, [x, y])
+                                for x, y in zip(channel_embeddings)]
+        return input_embeddings
 
     def token_embeddings(self):
         """
@@ -86,23 +94,17 @@ class Encoder(graph_utils.NNModel):
         input = self.token_unk_free_index()
         return tf.nn.embedding_lookup(self.token_embeddings(), input)
 
-    def char_channel_embeddings(self):
+    def char_channel_embeddings(self, channel_inputs):
         """
         Generate token representations by character composition.
 
-        :member-used char_indices: List of character indices for source vocabular.
-            [source_vocab_size, max_sc_token_size]
-        :member-used char_composition: Specify the function which composes the character
-            embeddings into a token representation.
-
+        :param channel_inputs: batch input char indices
+                [[batch, token_size], [batch, token_size], ...]
         :return: embeddings_char [source_vocab_size, char_channel_dim]
         """
-        # print(self.token_char_index_matrix().shape)
-        # print(self.max_source_token_size)
-        inputs = np.split(self.token_char_index_matrix(),
-                          self.max_source_token_size, axis=1)
-        input_embeddings = [tf.squeeze(tf.nn.embedding_lookup(
-            self.char_embeddings(), input)) for input in inputs]
+        inputs = tf.split(1, self.max_source_token_size,
+                          tf.concat(0, channel_inputs))
+        input_embeddings = [self.char_embeddings()[input] for input in inputs]
         if self.sc_char_composition == 'rnn':
             with tf.variable_scope("encoder_char_rnn",
                                    reuse=self.char_rnn_vars) as scope:
@@ -110,12 +112,11 @@ class Encoder(graph_utils.NNModel):
                     self.sc_char_rnn_cell, scope, self.sc_char_dim,
                     self.sc_char_rnn_num_layers)
                 rnn_outputs, rnn_states = rnn.RNNModel(cell, input_embeddings,
-                        num_cell_layers=self.sc_char_rnn_num_layers, dtype=tf.float32)
+                    num_cell_layers=self.sc_char_rnn_num_layers, dtype=tf.float32)
                 self.char_rnn_vars = True
-            output_embeddings = rnn_states[-1]
         else:
             raise NotImplementedError
-        return output_embeddings
+        return rnn_states[-1]
 
     def token_unk_free_index(self):
         return np.load(self.sc_token_features_path)
@@ -132,9 +133,8 @@ class RNNEncoder(Encoder):
         self.output_dim = self.dim
 
     def define_graph(self, encoder_inputs):
-        input_embeddings = [tf.nn.embedding_lookup(
-                                self.token_representations(), encoder_input)
-                            for encoder_input in encoder_inputs]
+        # Compute the continuous input representations
+        input_embeddings = self.token_representations(encoder_inputs)
         with tf.variable_scope("encoder_rnn"):
             encoder_outputs, encoder_states = \
                 rnn.RNNModel(self.cell, input_embeddings,
@@ -165,9 +165,9 @@ class BiRNNEncoder(Encoder):
         # of that of the decoder.
         # The hidden states of the two rnns are concatenated as the hidden
         # states of the bi-directional encoder.
-        input_embeddings = [tf.nn.embedding_lookup(
-                                self.token_representations(), encoder_input)
-                            for encoder_input in encoder_inputs]
+
+        # Compute the continuous input representations
+        input_embeddings = self.token_representations(encoder_inputs)
         outputs, states_fw, states_bw = rnn.BiRNNModel(
             self.fw_cell, self.bw_cell, input_embeddings,
             num_cell_layers=self.num_layers, dtype=tf.float32)

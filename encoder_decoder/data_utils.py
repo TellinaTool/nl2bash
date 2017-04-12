@@ -809,7 +809,8 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
             grouped_dataset[nl_template][3].append(cm)
             grouped_dataset[nl_template][4].append(cm_full)
         else:
-            grouped_dataset[nl_template] = [[nl_str], [cm_str], [nl], [cm], [cm_full]]
+            grouped_dataset[nl_template] = \
+                [[nl_str], [cm_str], [nl], [cm], [cm_full]]
 
     return grouped_dataset
 
