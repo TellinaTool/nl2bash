@@ -361,8 +361,8 @@ def eval_slot_filling(dataset):
                     _, entities = tokenizer.ner_tokenizer(sc)
                     nl_fillers = entities[0]
                     encoder_inputs = [dataset[bucket_id][i][2]]
-                    encoder_full_inputs = [dataset[bucket_id][i][3]]
-                    decoder_inputs = [dataset[bucket_id][i][4]]
+                    encoder_full_inputs = [dataset[bucket_id][i][4]]
+                    decoder_inputs = [dataset[bucket_id][i][3]]
                     decoder_full_inputs = [dataset[bucket_id][i][5]]
                     formatted_example = model.format_example(
                         [encoder_inputs, encoder_full_inputs],
@@ -421,8 +421,8 @@ def gen_slot_filling_training_data():
                 mappings = [tuple(m) for m in gt_mappings]
                 if gt_mappings:
                     encoder_inputs = [dataset[bucket_id][i][2]]
-                    encoder_full_inputs = [dataset[bucket_id][i][3]]
-                    decoder_inputs = [dataset[bucket_id][i][4]]
+                    encoder_full_inputs = [dataset[bucket_id][i][4]]
+                    decoder_inputs = [dataset[bucket_id][i][3]]
                     decoder_full_inputs = [dataset[bucket_id][i][5]]
                     formatted_example = model.format_example(
                         [encoder_inputs, encoder_full_inputs],
