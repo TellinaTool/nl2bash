@@ -57,6 +57,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["tg_char_features_path"] = os.path.join(FLAGS.data_dir,
         "vocab%d.cm.char.feature.npy" % FLAGS.tg_vocab_size)
 
+    params["gamma"] = FLAGS.gamma
+
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
     params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
@@ -162,6 +164,7 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
         model_subdir += '-C'
     if FLAGS.tg_char:
         model_subdir += '-TC'
+        model_subdir += '-{}'.format(FLAGS.gamma)
     if FLAGS.tg_token_use_attention:
         model_subdir += '-attention'
         model_subdir += '-{}'.format(FLAGS.attention_input_keep)
@@ -420,6 +423,10 @@ class NNModel(object):
     def tg_char_rnn_output_keep(self):
         return self.hyperparams["tg_char_rnn_output_keep"]
 
+    @property
+    def gamma(self):
+        return self.hyperparams["gamma"]
+
     # -- optimization parameters -- #
 
     @property
@@ -428,7 +435,8 @@ class NNModel(object):
 
     @property
     def use_sampled_softmax(self):
-        return self.num_samples > 0 and self.num_samples < self.target_vocab_size
+        return self.num_samples > 0 and \
+               self.num_samples < self.target_vocab_size
 
     @property
     def num_samples(self):
