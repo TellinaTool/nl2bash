@@ -169,7 +169,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
             # Step 1: transform the neural network output into readable strings
             prediction = top_k_predictions[j]
             outputs = [int(pred) for pred in prediction]
-            
+            print(outputs) 
             # If there is an EOS symbol in outputs, cut them at that point.
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
@@ -310,10 +310,12 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
         example_id = 0
         for sc_temp in sorted_sc_temps:
             example_id += 1
-            sc_strs, tg_strs, scs, tgs, tg_fulls = grouped_dataset[sc_temp]
+            sc_strs, tg_strs, scs, tgs, cm_fulls, tg_fulls = \
+                grouped_dataset[sc_temp]
             assert(len(sc_strs) == len(tg_strs))
             assert(len(sc_strs) == len(scs))
             assert(len(sc_strs) == len(tgs))
+            assert(len(sc_strs) == len(cm_fulls))
             assert(len(tgs) == len(tg_fulls))
             # print(rev_sc_vocab)
             sc_normalized_temp = ' '.join([rev_sc_vocab[i] for i in scs[0]])
