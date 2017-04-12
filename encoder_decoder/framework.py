@@ -82,6 +82,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.encoder_attn_masks.append(
                 tf.placeholder(tf.float32, shape=[None],
                                name="attn_alignment{0}".format(i)))
+        self.encoder_channel_inputs = [self.encoder_inputs]
+        if self.sc_char:
+            self.char_encoder_inputs = []
+            for i in xrange(self.max_source_length):
+                self.char_encoder_inputs.append(
+                    tf.placeholder(tf.float32, shape=[None],
+                                   name="char_encoder{0}".format(i)))
+            self.encoder_channel_inputs.append(self.char_encoder_inputs)
         for i in xrange(self.max_target_length + 1):
             self.decoder_inputs.append(
                 tf.placeholder(tf.int32, shape=[None],
@@ -142,7 +150,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     tf.get_variable_scope().reuse_variables()
                 encode_decode_outputs = \
                     self.encode_decode(
-                        self.encoder_inputs[:bucket[0]],
+                        [channel_input[:bucket[0]] \
+                         for channel_input in self.encoder_channel_inputs],
                         self.encoder_attn_masks[:bucket[0]],
                         self.decoder_inputs[:bucket[1]],
                         self.targets[:bucket[1]],
@@ -169,7 +178,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                     self.batch_size, self.beam_size]))
         else:
             encode_decode_outputs = self.encode_decode(
-                                        self.encoder_inputs,
+                                        self.encoder_channel_inputs,
                                         self.encoder_attn_masks,
                                         self.decoder_inputs,
                                         self.targets,
@@ -220,11 +229,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.saver = tf.train.Saver(tf.global_variables())
 
 
-    def encode_decode(self, encoder_inputs, encoder_attn_masks, decoder_inputs,
-                      targets, target_weights, forward_only):
+    def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
+                      decoder_inputs, targets, target_weights, forward_only):
 
         encoder_outputs, encoder_state = \
-            self.encoder.define_graph(encoder_inputs)
+            self.encoder.define_graph(encoder_channel_inputs)
         if self.tg_token_use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.encoder.output_dim])
                           for e in encoder_outputs]
