@@ -406,22 +406,21 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_size, decoder_size = \
                 self.max_source_length, self.max_target_length
 
-        batch_size = len(encoder_channel_inputs)
-
+        batch_size = len(encoder_channel_inputs[0])
         # create batch-major vectors
         batch_encoder_inputs = load_channel(
             encoder_channel_inputs[0], encoder_size, encoder_channel=True)
         if len(encoder_channel_inputs) > 1:
             batch_encoder_full_inputs = load_channel(
                 encoder_channel_inputs[1], encoder_size, encoder_channel=True)
-        batch_encoder_input_masks = []
         batch_decoder_inputs = load_channel(
             decoder_channel_inputs[0], decoder_size, encoder_channel=False)
         if len(decoder_channel_inputs) > 1:
             batch_decoder_full_inputs = load_channel(
                 decoder_channel_inputs[1], decoder_size, encoder_channel=False)
+        
+        batch_encoder_input_masks = []
         batch_decoder_input_masks = []
-
         # Batch encoder inputs are just re-indexed encoder_inputs.
         for length_idx in xrange(encoder_size):
             batch_encoder_input_mask = np.ones(batch_size, dtype=np.float32)
@@ -430,7 +429,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 if source == data_utils.PAD_ID:
                     batch_encoder_input_mask[batch_idx] = 0.0
             batch_encoder_input_masks.append(batch_encoder_input_mask)
-
         # Batch decoder inputs are re-indexed decoder_inputs.
         for length_idx in xrange(decoder_size):
             # Create target_weights to be 0 for targets that are padding.
@@ -478,6 +476,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             assert(len(batch_char_decoder_inputs) == decoder_size)
             assert(batch_char_decoder_input.shape[0] == self.batch_size)
             assert(batch_char_decoder_input.shape[1] == self.max_target_token_size + 2)
+            assert(batch_char_target_weights[0].shape[0] == self.batch_size)
             assert(batch_char_target_weights[0].shape[1] == self.max_target_token_size + 1)
             E.char_decoder_inputs = batch_char_decoder_inputs
             E.char_target_weights = batch_char_target_weights
@@ -501,16 +500,18 @@ class EncoderDecoderModel(graph_utils.NNModel):
           The triple (encoder_inputs, decoder_inputs, target_weights) for
           the constructed batch that has the proper format to call step(...) later.
         """
-        encoder_inputs, decoder_inputs, decoder_full_inputs = [], [], []
+        encoder_inputs, encoder_full_inputs, decoder_inputs, \
+            decoder_full_inputs = [], [], [], []
 
         # Get a random batch of encoder and decoder inputs from data,
         # pad them if needed, reverse encoder inputs and add GO to decoder.
         for _ in xrange(self.batch_size):
             random_example = random.choice(data[bucket_id])
             encoder_inputs.append(random_example[2])
-            decoder_inputs.append(random_example[3])
-            decoder_full_inputs.append(random_example[4])
-        return self.format_example(encoder_inputs,
+            encoder_full_inputs.append(random_example[3])
+            decoder_inputs.append(random_example[4])
+            decoder_full_inputs.append(random_example[5])
+        return self.format_example([encoder_inputs, encoder_full_inputs],
                                    [decoder_inputs, decoder_full_inputs],
                                    bucket_id=bucket_id)
 
@@ -518,13 +519,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def get_bucket(self, data, bucket_id, copy_data=None):
         """Get all data points from the specified bucket, prepare for step.
         """
-        encoder_inputs, decoder_inputs, decoder_full_inputs = [], [], []
+        encoder_inputs, encoder_full_inputs, decoder_inputs, \
+            decoder_full_inputs = [], [], [], []
 
         for i in xrange(len(data[bucket_id])):
             encoder_inputs.append(data[bucket_id][i][2])
-            decoder_inputs.append(data[bucket_id][i][3])
-            decoder_full_inputs.append(data[bucket_id][i][4])
-        return self.format_example(encoder_inputs,
+            encoder_full_inputs.append(data[bucket_id][i][3])
+            decoder_inputs.append(data[bucket_id][i][4])
+            decoder_full_inputs.append(data[bucket_id][i][5])
+        return self.format_example([encoder_inputs, encoder_full_inputs],
                                    [decoder_inputs, decoder_full_inputs],
                                    bucket_id=bucket_id)
 
