@@ -55,7 +55,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.define_encoder(self.sc_input_keep, self.sc_output_keep)
 
         # Decoder.
-        self.define_decoder(self.encoder.output_dim, self.tg_token_use_attention,
+        self.define_decoder(self.encoder.output_dim, self.use_attention,
                             self.tg_input_keep, self.tg_output_keep)
 
         # Character Decoder.
@@ -235,7 +235,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_channel_inputs)
-        if self.tg_token_use_attention:
+        if self.use_attention:
             top_states = [tf.reshape(e, [-1, 1, self.encoder.output_dim])
                           for e in encoder_outputs]
             attention_states = tf.concat(1, top_states)
@@ -258,7 +258,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             raise AttributeError("Unrecognized training algorithm.")
 
         attention_reg = self.attention_regularization(attn_alignments) \
-            if self.tg_token_use_attention else 0
+            if self.use_attention else 0
 
         if self.tg_char:
             # re-arrange character inputs
@@ -604,7 +604,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                self.output_logits[bucket_id],   # Batch output sequence
                                self.losses[bucket_id]]          # Batch output logits
         
-        if self.tg_token_use_attention:
+        if self.use_attention:
             if bucket_id == -1:
                 output_feed.append(self.attn_alignments)
             else:
@@ -631,7 +631,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             outputs_to_return.append(outputs[1])
             outputs_to_return.append(outputs[2])
         # [attention_masks]
-        if self.tg_token_use_attention:
+        if self.use_attention:
             outputs_to_return.append(outputs[3])
         else:
             outputs_to_return.append(None)
