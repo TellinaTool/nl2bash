@@ -43,7 +43,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["sc_char_features_path"] = os.path.join(FLAGS.data_dir,
         "vocab%d.nl.char.feature.npy" % FLAGS.sc_vocab_size)
 
-    params["use_attention"] = FLAGS.use_attention
+    params["tg_token_use_attention"] = FLAGS.tg_token_use_attention
     params["tg_input_keep"] = FLAGS.tg_input_keep
     params["tg_output_keep"] = FLAGS.tg_output_keep
     params["tg_char"] = FLAGS.tg_char
@@ -165,7 +165,7 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
     if FLAGS.tg_char:
         model_subdir += '-TC'
         model_subdir += '-{}'.format(FLAGS.gamma)
-    if FLAGS.use_attention:
+    if FLAGS.tg_token_use_attention:
         model_subdir += '-attention'
         model_subdir += '-{}'.format(FLAGS.attention_input_keep)
         model_subdir += '-{}'.format(FLAGS.attention_output_keep)
@@ -288,8 +288,8 @@ class NNModel(object):
         return self.hyperparams["num_layers"]
 
     @property
-    def use_attention(self):
-        return self.hyperparams["use_attention"]
+    def tg_token_use_attention(self):
+        return self.hyperparams["tg_token_use_attention"]
 
     @property
     def attention_input_keep(self):

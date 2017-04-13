@@ -160,7 +160,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             # If multi-layer RNN cell is used, apply attention to the top layer.
             if self.num_layers > 1:
                 if self.rnn_cell == 'gru':
-                    top_state =  (1, self.num_layers, state)[-1]
+                    top_state = tf.split(1, self.num_layers, state)[-1]
                 elif self.rnn_cell == 'lstm':
                     raise NotImplementedError
                 else:
