@@ -1024,6 +1024,12 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
     else:
         data_set = []
 
+    print("source file: {}".format(sc_path))
+    print("target file: {}".format(tg_path))
+    print("source token indices file: {}".format(sc_id_path))
+    print("target token indices file: {}".format(tg_id_path))
+    print("source full token indices file: {}".format(sc_full_id_path))
+    print("target full token indices file: {}".format(tg_full_id_path))
     sc_file = tf.gfile.GFile(sc_path, mode="r")
     tg_file = tf.gfile.GFile(tg_path, mode="r")
     sc_id_file = tf.gfile.GFile(sc_id_path, mode="r")
