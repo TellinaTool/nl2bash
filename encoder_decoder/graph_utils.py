@@ -73,7 +73,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     params["use_copy"] = FLAGS.use_copy
 
-    params["tg_attention_function"] = FLAGS.tg_attention_function
+    params["tg_token_attn_fun"] = FLAGS.tg_token_attn_fun
     params["attention_input_keep"] = FLAGS.attention_input_keep
     params["attention_output_keep"] = FLAGS.attention_output_keep
     params["beta"] = FLAGS.beta
@@ -293,8 +293,8 @@ class NNModel(object):
         return self.hyperparams["tg_token_use_attention"]
 
     @property
-    def tg_attention_function(self):
-        return self.hyperparams["tg_attention_function"]
+    def tg_token_attn_fun(self):
+        return self.hyperparams["tg_token_attn_fun"]
 
     @property
     def attention_input_keep(self):

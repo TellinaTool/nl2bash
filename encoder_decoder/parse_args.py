@@ -109,8 +109,10 @@ def define_input_flags():
 
     tf.app.flags.DEFINE_boolean("tg_token_use_attention", False, "If set, use attention for token decoder.")
     tf.app.flags.DEFINE_boolean("tg_char_use_attention", False, "If set, use attention for char decoder.")
-    tf.app.flags.DEFINE_boolean("tg_attention_function", "inner_product",
-                                "Construct of the token-level attention module.")
+    tf.app.flags.DEFINE_string("tg_token_attn_fun", "inner_product",
+                                "Function used for token-level attention module.")
+    tf.app.flags.DEFINE_string("tg_char_attn_fun", "inner_product",
+                               "Function used for char-level attention module.")
     tf.app.flags.DEFINE_float("beta", 0.5, "Attention regularization.")
     tf.app.flags.DEFINE_float("attention_input_keep", .5,
                               "Proportion of attention input state to keep if dropout is used.")
