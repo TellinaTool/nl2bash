@@ -14,7 +14,7 @@ from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
     def __init__(self, hyperparameters, scope, vocab_size, dim, use_attention,
-                 input_keep, output_keep, decoding_algorithm):
+                 attention_function, input_keep, output_keep, decoding_algorithm):
         """
         :param hyperparameters: Tellina model hyperparameters.
         :param scope: Scope of the decoder. (There might be multiple decoders
@@ -22,8 +22,10 @@ class Decoder(graph_utils.NNModel):
         :param vocab_size: Output vocabulary size.
         :param dim: Decoder Embedding dimension.
         :param use_attention: Set to True to use attention for decoding.
+        :param attention_function: The attention function used.
         :param input_keep: Dropout parameter for the input of the attention layer.
         :param output_keep: Dropout parameter for the output of the attention layer.
+        :param decoding_algorithm
         """
         super(Decoder, self).__init__(hyperparameters)
 
@@ -31,6 +33,7 @@ class Decoder(graph_utils.NNModel):
         self.vocab_size = vocab_size
         self.dim = dim
         self.use_attention = use_attention
+        self.attention_function = attention_function
         self.input_keep = input_keep
         self.output_keep = output_keep
         self.decoding_algorithm = decoding_algorithm
@@ -73,12 +76,13 @@ class Decoder(graph_utils.NNModel):
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
-    def __init__(self, cell, attention_states, encoder_attn_masks,
-                 attention_input_keep, attention_output_keep, num_heads,
-                 rnn_cell, num_layers):
+    def __init__(self, scope, cell, attention_states, encoder_attn_masks,
+                 attention_function, attention_input_keep,
+                 attention_output_keep, num_heads, rnn_cell, num_layers):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
+        :param encoder_attn_masks:
         :param attention_input_keep: attention input state dropout
         :param attention_output_keep: attention hidden state dropout
         :param num_heads: Number of attention heads that read from from attention_states.
@@ -91,16 +95,12 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         attn_vec_dim = attention_states.get_shape()[2].value
         attn_dim = attn_vec_dim 
 
-        # To calculate W1 * h_t we use a 1-by-1 convolution
-        hidden = tf.reshape(attention_states, [-1, attn_length, 1, attn_vec_dim])
+        hidden = attention_states
         hidden_features = []
         v = []
         with tf.variable_scope("attention_cell_wrapper"):
             for a in xrange(num_heads):
-                # k = tf.get_variable("AttnW_%d" % a, [1, 1, attn_vec_dim, attn_dim])
-                # hidden_features.append(tf.nn.conv2d(hidden, k, [1,1,1,1], "SAME"))
                 hidden_features.append(hidden)
-                v.append(tf.get_variable("AttnV_%d" % a, [attn_vec_dim]))
 
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
@@ -120,23 +120,33 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         """Put attention masks on hidden using hidden_features and query."""
         ds = []  # Results of attention reads will be stored here.
         if nest.is_sequence(state):  # If the query is a tuple, flatten it.
-            # query_list = nest.flatten(state)
-            # for q in query_list:  # Check that ndims == 2 if specified.
-            #   ndims = q.get_shape().ndims
-            #   if ndims:
-            #     assert ndims == 2
-            # state = tf.concat(1, query_list)
-            state = state[1]
+            # TODO: implement attention with LSTM cells
+            query_list = nest.flatten(state)
+            for q in query_list:  # Check that ndims == 2 if specified.
+                ndims = q.get_shape().ndims
+                if ndims:
+                    assert ndims == 2
+            state = tf.concat(1, query_list)
         for a in xrange(self.num_heads):
             with tf.variable_scope("Attention_%d" % a):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
-                # s = tf.reduce_sum(
-                #     v[a] * tf.tanh(hidden_features[a] + y), [2, 3])
-                # s = tf.reduce_sum(
-                #     self.v[a] * tf.mul(self.hidden_features[a], y), [2, 3])
-                s = tf.reduce_sum(tf.mul(self.hidden_features[a], y), [2, 3])
-                # s = s - (1 - self.encoder_attn_masks) * 1e12
+                if self.attention_function == 'non-linear':
+                    k = tf.get_variable(
+                        "AttnW_%d" % a, [1, 1, 2*self.attn_vec_dim, self.attn_vec_dim])
+                    l = tf.get_variable(
+                        "Attnl_%d" % a,
+                    )
+                    z = tf.reshape(self.hidden_features[a],
+                                   [-1, self.attn_length, 1, self.attn_vec_dim])
+                    v = tf.concat(3, [z, y])
+                    s = tf.reduce_sum(tf.tanh(tf.nn.conv2d(v, k, [1,1,1,1], "SAME"), [2, 3]))
+                elif self.attention_function == 'inner_product':
+                    s = tf.reduce_sum(tf.mul(self.hidden_features[a], y), [2])
+                else:
+                    raise NotImplementedError
+                # Apply attention masks
+                s = s - (1 - self.encoder_attn_masks) * 1e12
                 attn_alignment = tf.nn.softmax(s)
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(tf.reshape(attn_alignment, [-1, self.attn_length, 1, 1])
