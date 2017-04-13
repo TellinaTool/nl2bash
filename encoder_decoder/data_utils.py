@@ -956,7 +956,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False):
 
     if FLAGS.explain:
         train_set = read_data(cm_txt_train, nl_txt_train, cm_train, nl_train,
-                            cm_train_full, nl_train_full, buckets, FLAGS.max_train_data_size,
+                            cm_train_full, nl_train_full, buckets,
+                            FLAGS.max_train_data_size,
                             append_head_token=append_head_token,
                             append_end_token=append_end_token,
                             load_mappings=load_mappings)
