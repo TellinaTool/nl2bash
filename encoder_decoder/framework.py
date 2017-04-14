@@ -336,8 +336,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def attention_regularization(self, attn_alignments):
-        diff = tf.reduce_sum(attn_alignments, 1) - 1
-        return tf.reduce_mean(tf.square(diff))
+        # diff = tf.reduce_sum(attn_alignments, 1) - 1
+        # return tf.reduce_mean(tf.square(diff))
+        # Entropy regularization term.
+        P = attn_alignments
+        P_exp = tf.exp(P)
+        Z = tf.reduce_sum(P_exp, 1)
+        return (P_exp * P) / (Z * tf.log(Z))
+
 
 
     def define_encoder(self, input_keep, output_keep):
