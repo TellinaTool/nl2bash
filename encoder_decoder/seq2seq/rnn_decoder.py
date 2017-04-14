@@ -6,10 +6,10 @@ from encoder_decoder import decoder, graph_utils
 
 class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, scope, vocab_size, dim, use_attention,
-                 input_keep, output_keep, decoding_algorithm):
+                 attention_function, input_keep, output_keep, decoding_algorithm):
         super(RNNDecoder, self).__init__(hyperparameters, scope, vocab_size,
-                            dim, use_attention, input_keep, output_keep,
-                            decoding_algorithm)
+                            dim, use_attention, attention_function, input_keep,
+                            output_keep, decoding_algorithm)
         print("{} dimension = {}".format(scope, dim))
         print("{} decoding_algorithm = {}".format(scope, decoding_algorithm))
 
@@ -60,6 +60,7 @@ class RNNDecoder(decoder.Decoder):
                                                 decoder_cell,
                                                 attention_states,
                                                 encoder_attn_masks,
+                                                self.attention_function,
                                                 self.attention_input_keep,
                                                 self.attention_output_keep,
                                                 num_heads,
@@ -68,7 +69,7 @@ class RNNDecoder(decoder.Decoder):
 
             if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell,
-                                                      self.token_output_projection)
+                                            self.token_output_projection)
             for i, input in enumerate(decoder_inputs):
                 if bs_decoding:
                     input = beam_decoder.wrap_input(input)
