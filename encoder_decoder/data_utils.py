@@ -13,7 +13,9 @@
 # limitations under the License.
 # =============================================================================
 
-"""Utilities for tokenizing & generating vocabularies."""
+"""
+Utilities for tokenizing & generating vocabularies.
+"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -22,10 +24,11 @@ from __future__ import print_function
 import tensorflow as tf
 
 import functools
-from numpy.linalg import norm
 import numpy as np
 import random
 import os, sys
+
+from numpy.linalg import norm
 
 if sys.version_info > (3, 0):
     from six.moves import xrange
