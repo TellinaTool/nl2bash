@@ -733,7 +733,7 @@ def slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix):
         slot_filling_mapping_file = os.path.join(
             data_dir, '{}.{}.mappings'.format(dataset, nl_vocab_size))
         print("Saving slot-filling mapping to {}".format(data_dir))
-        
+
         with open(slot_filling_mapping_file, 'w') as o_f:
             for nl, cm in zip(nl_list, cm_list):
                 mappings = \
