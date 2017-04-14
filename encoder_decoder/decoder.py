@@ -138,7 +138,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     l = tf.get_variable("Attnl_%d" % a, [self.attn_vec_dim])
                     z = tf.reshape(self.hidden_features[a],
                                    [-1, self.attn_length, 1, self.attn_vec_dim])
-                    v = tf.concat(3, [z, y])
+                    v = tf.concat(3, [z, tf.tile(y, [1, self.attn_length, 1, 1])])
                     s = tf.reduce_sum(
                         l * tf.tanh(tf.nn.conv2d(v, k, [1,1,1,1], "SAME"), [2, 3]))
                 elif self.attention_function == 'inner_product':
