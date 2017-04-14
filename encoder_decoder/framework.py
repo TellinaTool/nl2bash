@@ -342,7 +342,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         P = tf.reduce_sum(attn_alignments, 2)
         P_exp = tf.exp(P)
         Z = tf.reduce_sum(P_exp, 1, keep_dims=True)
-        return tf.reduce_mean(tf.reduce_sum((P_exp * P) / (Z * tf.log(Z)), 1))
+        return tf.reduce_mean(tf.reduce_sum((P_exp / Z * (P - tf.log(Z)), 1))
 
 
 
