@@ -317,9 +317,6 @@ def grid_search(train_set, dev_set):
     print("Best template match score = {}".format(best_cms))
     print("*****************************")
 
-def induce_slot_filling_mapping():
-    print("Preparing slot-filling data in %s" % FLAGS.data_dir)
-    data_utils.slot_filling_mapping_induction(FLAGS)
 
 # --- Run/train slot-filling classifier --- #
 
