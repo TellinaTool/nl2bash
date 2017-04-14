@@ -169,7 +169,6 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
             # Step 1: transform the neural network output into readable strings
             prediction = top_k_predictions[j]
             outputs = [int(pred) for pred in prediction]
-            print(outputs) 
             # If there is an EOS symbol in outputs, cut them at that point.
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
