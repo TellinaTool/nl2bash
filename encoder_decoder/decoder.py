@@ -76,7 +76,7 @@ class Decoder(graph_utils.NNModel):
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
-    def __init__(self, scope, cell, attention_states, encoder_attn_masks,
+    def __init__(self, cell, attention_states, encoder_attn_masks,
                  attention_function, attention_input_keep,
                  attention_output_keep, num_heads, rnn_cell, num_layers):
         """
@@ -110,6 +110,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attn_vec_dim = attn_vec_dim
         self.attn_length = attn_length
         self.attn_dim = attn_dim
+        self.attention_function = attention_function
         self.attention_input_keep = attention_input_keep
         self.attention_output_keep = attention_output_keep
         self.hidden = hidden
@@ -132,15 +133,14 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_vec_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
                 if self.attention_function == 'non-linear':
-                    k = tf.get_variable(
-                        "AttnW_%d" % a, [1, 1, 2*self.attn_vec_dim, self.attn_vec_dim])
-                    l = tf.get_variable(
-                        "Attnl_%d" % a,
-                    )
+                    k = tf.get_variable("AttnW_%d" % a,
+                            [1, 1, 2*self.attn_vec_dim, self.attn_vec_dim])
+                    l = tf.get_variable("Attnl_%d" % a, [self.attn_vec_dim])
                     z = tf.reshape(self.hidden_features[a],
                                    [-1, self.attn_length, 1, self.attn_vec_dim])
                     v = tf.concat(3, [z, y])
-                    s = tf.reduce_sum(tf.tanh(tf.nn.conv2d(v, k, [1,1,1,1], "SAME"), [2, 3]))
+                    s = tf.reduce_sum(
+                        l * tf.tanh(tf.nn.conv2d(v, k, [1,1,1,1], "SAME"), [2, 3]))
                 elif self.attention_function == 'inner_product':
                     s = tf.reduce_sum(tf.mul(self.hidden_features[a], y), [2])
                 else:
