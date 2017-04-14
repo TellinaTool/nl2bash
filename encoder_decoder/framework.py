@@ -642,8 +642,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             outputs_to_return.append(outputs[3])
         else:
             outputs_to_return.append(None)
-        outputs_to_return.append(outputs[-4])
-        outputs_to_return.append(outputs[-3])
+        outputs_to_return.append(outputs[4])
+        outputs_to_return.append(outputs[5])
         if self.tg_char:
             outputs_to_return.append(outputs[-2])
             outputs_to_return.append(outputs[-1])

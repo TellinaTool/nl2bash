@@ -431,9 +431,10 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     [encoder_inputs, encoder_full_inputs],
                     [decoder_inputs, decoder_full_inputs],
                     bucket_id=bucket_id)
-                _, _, _, _, encoder_outputs, decoder_outputs = model.step(
-                    sess, formatted_example, bucket_id, forward_only=True,
-                    return_rnn_hidden_states=True)
+                model_outputs = model.step(sess, formatted_example, bucket_id,
+                    forward_only=True, return_rnn_hidden_states=True)
+                encoder_outputs = model_outputs[4]
+                decoder_outputs = model_outputs[5]
 
                 # add positive examples
                 for f, s in mappings:
