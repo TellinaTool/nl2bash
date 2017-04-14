@@ -135,7 +135,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 if self.attention_function == 'non-linear':
                     k = tf.get_variable("AttnW_%d" % a,
                             [1, 1, 2*self.attn_vec_dim, self.attn_vec_dim])
-                    l = tf.get_variable("Attnl_%d" % a, [self.attn_vec_dim])
+                    l = tf.get_variable("Attnl_%d" % a,
+                                        [1, 1, 1, self.attn_vec_dim])
                     z = tf.reshape(self.hidden_features[a],
                                    [-1, self.attn_length, 1, self.attn_vec_dim])
                     v = tf.concat(3, [z, tf.tile(y, [1, self.attn_length, 1, 1])])
