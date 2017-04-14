@@ -487,10 +487,6 @@ def gen_slot_filling_training_data():
                 sess, seq2seq_model, train_set, mapping_path)
 
 
-def induce_slot_filling_mapping():
-    print("Preparing slot-filling data in %s" % FLAGS.data_dir)
-    data_utils.slot_filling_mapping_induction(FLAGS)
-
 # --- Pre-processing --- #
 
 def load_data(use_buckets=True, load_mappings=False):
@@ -535,8 +531,6 @@ def main(_):
     elif FLAGS.process_data:
         process_data()
 
-    elif FLAGS.induce_slot_filling_mapping:
-        induce_slot_filling_mapping()
     elif FLAGS.gen_slot_filling_training_data:
         gen_slot_filling_training_data()
     elif FLAGS.eval_slot_filling:
