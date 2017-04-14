@@ -339,10 +339,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # diff = tf.reduce_sum(attn_alignments, 1) - 1
         # return tf.reduce_mean(tf.square(diff))
         # Entropy regularization term.
-        P = attn_alignments
+        P = tf.reduce_sum(attn_alignments, 2)
         P_exp = tf.exp(P)
         Z = tf.reduce_sum(P_exp, 1)
-        return (P_exp * P) / (Z * tf.log(Z))
+        return tf.reduce_mean(tf.reduce_sum((P_exp * P) / (Z * tf.log(Z)), 1))
 
 
 
