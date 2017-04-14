@@ -56,7 +56,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Decoder.
         self.define_decoder(self.encoder.output_dim, self.tg_token_use_attention,
-                            self.tg_input_keep, self.tg_output_keep)
+                            self.tg_token_attn_fun, self.tg_input_keep,
+                            self.tg_output_keep)
 
         # Character Decoder.
         if self.tg_char:
@@ -344,7 +345,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.encoder = None
 
 
-    def define_decoder(self, dim, use_attention, input_keep, output_keep):
+    def define_decoder(self, dim, use_attention, attention_function,
+                       input_keep, output_keep):
         """Placeholder function."""
         self.decoder = None
 

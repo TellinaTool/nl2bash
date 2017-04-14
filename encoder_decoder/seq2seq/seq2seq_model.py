@@ -40,12 +40,14 @@ class Seq2SeqModel(EncoderDecoderModel):
             raise ValueError("Unrecognized encoder type.")
 
 
-    def define_decoder(self, dim, use_attention, input_keep, output_keep):
+    def define_decoder(self, dim, use_attention, attention_function,
+                       input_keep, output_keep):
         """Construct sequence decoders."""
         if self.decoder_topology == "rnn":
             self.decoder = rnn_decoder.RNNDecoder(self.hyperparams,
                 "token_decoder", self.target_vocab_size, dim, use_attention,
-                input_keep, output_keep, self.token_decoding_algorithm)
+                attention_function, input_keep, output_keep,
+                self.token_decoding_algorithm)
         else:
             raise ValueError("Unrecognized decoder topology: {}."
                              .format(self.decoder_topology))
