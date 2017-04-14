@@ -489,7 +489,7 @@ def gen_slot_filling_training_data():
 
 # --- Pre-processing --- #
 
-def load_data(use_buckets=True, load_mappings=False):
+def load_data(use_buckets=True, load_mappings=True):
     if use_buckets:
         return data_utils.load_data(FLAGS, _buckets, load_mappings=load_mappings)
     else:
