@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Translation model that generates bash commands given natural language descriptions.
+Translation model that generates bash commands given natural language
+descriptions.
 """
 
 from __future__ import absolute_import
@@ -144,6 +145,14 @@ def train(train_set, dev_set, construct_model_dir=True):
                 previous_dev_losses.append(dev_loss)
 
                 sys.stdout.flush()
+
+
+            # Save slot filling embeddings.
+            tf.reset_default_graph()
+            mapping_path = os.path.join(FLAGS.data_dir,
+                'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
+            get_slot_filling_training_data_fun(
+                sess, model, train_set, mapping_path)
     return True
 
 
@@ -335,8 +344,8 @@ def eval_slot_filling(dataset):
     """
     Evaluate accuracy of the global slot filling algorithm.
     """
-    model_param_dir = os.path.join(FLAGS.data_dir, 'train.{}.mappings.X.Y.npz'
-                           .format(FLAGS.sc_vocab_size))
+    model_param_dir = os.path.join(FLAGS.data_dir,
+        'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
     train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
     slot_filling_classifier = classifiers.KNearestNeighborModel(
         FLAGS.num_nn_slot_filling, train_X, train_Y)
@@ -395,8 +404,8 @@ def eval_slot_filling(dataset):
                                 output_tokens, nl_fillers, cm_slots,
                                 encoder_outputs[0], decoder_outputs[0],
                                 slot_filling_classifier)
-                    print(mappings)
-                    print(gt_mappings)
+                    # print(mappings)
+                    # print(gt_mappings)
                     for mapping in mappings:
                         if mapping in gt_mappings:
                             num_correct += 1
@@ -410,73 +419,72 @@ def eval_slot_filling(dataset):
         print("F1: {}".format(2 * precision * recall / (precision + recall)))
 
 
+def get_slot_filling_training_data_fun(sess, model, dataset, output_file):
+    X, Y = [], []
+    for bucket_id in xrange(len(_buckets)):
+        for i in xrange(len(dataset[bucket_id])):
+            sc, tg, sc_ids, tg_ids, gt_mappings = dataset[bucket_id][i]
+            mappings = [tuple(m) for m in gt_mappings]
+            if gt_mappings:
+                encoder_inputs = [dataset[bucket_id][i][2]]
+                encoder_full_inputs = [dataset[bucket_id][i][4]]
+                decoder_inputs = [dataset[bucket_id][i][3]]
+                decoder_full_inputs = [dataset[bucket_id][i][5]]
+                formatted_example = model.format_example(
+                    [encoder_inputs, encoder_full_inputs],
+                    [decoder_inputs, decoder_full_inputs],
+                    bucket_id=bucket_id)
+                _, _, _, _, encoder_outputs, decoder_outputs = model.step(
+                    sess, formatted_example, bucket_id, forward_only=True,
+                    return_rnn_hidden_states=True)
+
+                # add positive examples
+                for f, s in mappings:
+                    # use reversed index for the encoder embedding matrix
+                    ff = _buckets[bucket_id][0] - f - 1
+                    assert(f <= encoder_outputs.shape[1])
+                    assert(s <= decoder_outputs.shape[1])
+                    X.append(np.concatenate([encoder_outputs[:, ff, :],
+                                             decoder_outputs[:, s, :]],
+                                            axis=1))
+                    Y.append(np.array([1, 0]))
+                    # add negative examples
+                    # sample unmatched filler-slot pairs as negative examples
+                    if len(mappings) > 1:
+                        for n_s in [ss for _, ss in mappings if ss != s]:
+                            X.append(np.concatenate(
+                                [encoder_outputs[:, ff, :],
+                                 decoder_outputs[:, n_s, :]], axis=1))
+                            Y.append(np.array([0, 1]))
+                    # Debugging
+                    # if i == 0:
+                    #     print(ff)
+                    #     print(encoder_outputs[:, ff, :].shape)
+                    #     print(X[0].shape)
+                    #     print(encoder_outputs[:, ff, :][0, :40])
+                    #     print(X[0][0, :40])
+            if i > 0 and i % 1000 == 0:
+                print('{} training examples gathered for training slot filling...'
+                      .format(len(X)))
+
+    np.savez(output_file, [X, Y])
+
+
 def gen_slot_filling_training_data():
     _, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
-
-    def get_slot_filling_training_data_fun(model, dataset, output_file):
-        X, Y = [], []
-        for bucket_id in xrange(len(_buckets)):
-            for i in xrange(len(dataset[bucket_id])):
-                sc, tg, sc_ids, tg_ids, gt_mappings = dataset[bucket_id][i]
-                mappings = [tuple(m) for m in gt_mappings]
-                if gt_mappings:
-                    encoder_inputs = [dataset[bucket_id][i][2]]
-                    encoder_full_inputs = [dataset[bucket_id][i][4]]
-                    decoder_inputs = [dataset[bucket_id][i][3]]
-                    decoder_full_inputs = [dataset[bucket_id][i][5]]
-                    formatted_example = model.format_example(
-                        [encoder_inputs, encoder_full_inputs],
-                        [decoder_inputs, decoder_full_inputs],
-                        bucket_id=bucket_id)
-                    _, _, _, _, encoder_outputs, decoder_outputs = model\
-                        .step(sess, formatted_example, bucket_id,
-                              forward_only=True, return_rnn_hidden_states=True)
-
-                    # add positive examples
-                    for f, s in mappings:
-                        # use reversed index for the encoder embedding matrix
-                        ff = _buckets[bucket_id][0] - f - 1
-                        assert(f <= encoder_outputs.shape[1])
-                        assert(s <= decoder_outputs.shape[1])
-                        X.append(np.concatenate([encoder_outputs[:, ff, :],
-                                                 decoder_outputs[:, s, :]],
-                                                axis=1))
-                        Y.append(np.array([1, 0]))
-                        # add negative examples
-                        # sample unmatched filler-slot pairs as negative examples
-                        if len(mappings) > 1:
-                            for n_s in [ss for _, ss in mappings if ss != s]:
-                                X.append(np.concatenate(
-                                    [encoder_outputs[:, ff, :],
-                                     decoder_outputs[:, n_s, :]], axis=1))
-                                Y.append(np.array([0, 1]))
-                        # Debugging
-                        # if i == 0:
-                        #     print(ff)
-                        #     print(encoder_outputs[:, ff, :].shape)
-                        #     print(X[0].shape)
-                        #     print(encoder_outputs[:, ff, :][0, :40])
-                        #     print(X[0][0, :40])
-                if i > 0 and i % 1000 == 0:
-                    print('{} training examples gathered for training slot filling...'
-                          .format(len(X)))
-
-        np.savez(output_file, [X, Y])
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         train_set, dev_set, test_set = load_data(load_mappings=True)
 
-        # Create model.
         seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
             Seq2SeqModel, buckets=_buckets, forward_only=True)
 
-        get_slot_filling_training_data_fun(seq2seq_model, train_set, os.path.join(
-            FLAGS.data_dir, 'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size)))
-        get_slot_filling_training_data_fun(seq2seq_model, dev_set, os.path.join(
-            FLAGS.data_dir, 'dev.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size)))
-        get_slot_filling_training_data_fun(seq2seq_model, test_set, os.path.join(
-            FLAGS.data_dir, 'test.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size)))
+        for split in ['train', 'dev', 'test']:
+            mapping_path = os.path.join(FLAGS.data_dir,
+                '{}.{}.mappings.X.Y.npz'.format(split, FLAGS.sc_vocab_size))
+            get_slot_filling_training_data_fun(
+                sess, seq2seq_model, train_set, mapping_path)
 
 
 def induce_slot_filling_mapping():
@@ -566,9 +574,14 @@ def main(_):
         elif FLAGS.cross_valid:
             cross_validation(train_set)
         else:
+            # Train the model.
             train(train_set, dev_set)
+
+            # Decode the new model on the development set.
             tf.reset_default_graph()
             model_sig = decode(dev_set, construct_model_dir=False)
+
+            # Run automatic evaluation on the development set.
             if not FLAGS.explain:
                 eval(dev_set, model_sig, verbose=False)
 
