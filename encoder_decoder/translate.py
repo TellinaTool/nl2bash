@@ -149,7 +149,7 @@ def train(train_set, dev_set, construct_model_dir=True):
 
         # Save slot filling embeddings.
         tf.reset_default_graph()
-        mapping_path = os.path.join(FLAGS.data_dir,
+        mapping_path = os.path.join(FLAGS.model_dir,
             'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
         gen_slot_filling_training_data_fun(sess, model, train_set,
                                            mapping_path)
@@ -341,7 +341,7 @@ def eval_slot_filling(dataset):
     """
     Evaluate accuracy of the global slot filling algorithm.
     """
-    model_param_dir = os.path.join(FLAGS.data_dir,
+    model_param_dir = os.path.join(FLAGS.model_dir,
         'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
     train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
     slot_filling_classifier = classifiers.KNearestNeighborModel(
@@ -478,7 +478,7 @@ def gen_slot_filling_training_data():
             Seq2SeqModel, buckets=_buckets, forward_only=True)
 
         for split in ['train', 'dev', 'test']:
-            mapping_path = os.path.join(FLAGS.data_dir,
+            mapping_path = os.path.join(FLAGS.model_dir,
                 '{}.{}.mappings.X.Y.npz'.format(split, FLAGS.sc_vocab_size))
             gen_slot_filling_training_data_fun(
                 sess, seq2seq_model, train_set, mapping_path)
@@ -536,9 +536,9 @@ def main(_):
         eval_slot_filling(dataset)
     elif FLAGS.eval_local_slot_filling:
         train_path = os.path.join(
-            FLAGS.data_dir, 'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
+            FLAGS.model_dir, 'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
         dev_path = os.path.join(
-            FLAGS.data_dir, 'dev.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
+            FLAGS.model_dir, 'dev.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
         eval_local_slot_filling(train_path, dev_path)
 
     elif FLAGS.demo:
