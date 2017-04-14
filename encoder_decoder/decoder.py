@@ -152,7 +152,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(tf.reshape(attn_alignment,
                                              [-1, self.attn_length, 1])
-                                  * self.hidden_features[a], [1, 2])
+                                  * self.hidden_features[a], [1])
                 ds.append(tf.reshape(d, [-1, self.attn_dim]))
         attns = tf.concat(1, ds)
         attns.set_shape([None, self.num_heads * self.attn_dim])
