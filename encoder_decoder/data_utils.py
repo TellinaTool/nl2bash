@@ -681,6 +681,9 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
     compute_channel_representations(cm_vocab_path, cm_char_vocab_path,
                                     add_eos=True)
 
+    slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix,
+                                   nl_vocab_size, cm_vocab_size)
+
 
 def prepare_data(FLAGS):
     """Get data into data_dir, create vocabularies and tokenize data.
@@ -717,24 +720,24 @@ def prepare_data(FLAGS):
         prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
 
 
-def slot_filling_mapping_induction(FLAGS):
+def slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix,
+                                   nl_vocab_size, cm_vocab_size):
     """Induce the filler-slot alignments on train/dev/test dataset."""
-    data_dir = FLAGS.data_dir
-    nl_vocab_size = FLAGS.sc_vocab_size
-    cm_vocab_size = FLAGS.tg_vocab_size
-
     for dataset in ['train', 'dev', 'test']:
-        nl_path = os.path.join(data_dir, '{}.{}.nl'
-                               .format(dataset, nl_vocab_size))
-        cm_path = os.path.join(data_dir, '{}.{}.cm'
-                               .format(dataset, cm_vocab_size))
+        nl_path = os.path.join(data_dir, '{}.{}{}'
+                               .format(dataset, nl_vocab_size, nl_suffix))
+        cm_path = os.path.join(data_dir, '{}.{}{}'
+                               .format(dataset, cm_vocab_size, cm_suffix))
         nl_list = [nl.strip() for nl in open(nl_path, 'r').readlines()]
         cm_list = [cm.strip() for cm in open(cm_path, 'r').readlines()]
 
         assert(len(nl_list) == len(cm_list))
 
-        with open(os.path.join(data_dir,
-                '{}.{}.mappings'.format(dataset, nl_vocab_size)), 'w') as o_f:
+        slot_filling_mapping_file = os.path.join(
+            data_dir, '{}.{}.mappings'.format(dataset, nl_vocab_size))
+        print("Saving slot-filling mapping to {}".format(data_dir))
+        
+        with open(slot_filling_mapping_file, 'w') as o_f:
             for nl, cm in zip(nl_list, cm_list):
                 mappings = \
                     slot_filling.slot_filler_alignment_induction(nl, cm)
@@ -742,6 +745,7 @@ def slot_filling_mapping_induction(FLAGS):
                     for i, j in sorted(mappings, key=lambda x:x[0]):
                         o_f.write('{}-{} '.format(i, j))
                 o_f.write('\n')
+
 
 def load_slot_filling_data(input_path):
     data = np.load(input_path)
