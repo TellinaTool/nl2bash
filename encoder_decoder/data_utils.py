@@ -485,7 +485,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
                 if data_tools.is_simple(ast):
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
-                    nl_tokens = tokenizer.basic_tokenizer(nl, lemmatization=False)
+                    nl_tokens, _ = tokenizer.basic_tokenizer(nl, lemmatization=False)
                     cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
@@ -720,14 +720,11 @@ def prepare_data(FLAGS):
         prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
 
 
-def slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix,
-                                   nl_vocab_size, cm_vocab_size):
+def slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix):
     """Induce the filler-slot alignments on train/dev/test dataset."""
     for dataset in ['train', 'dev', 'test']:
-        nl_path = os.path.join(data_dir, '{}.{}{}'
-                               .format(dataset, nl_vocab_size, nl_suffix))
-        cm_path = os.path.join(data_dir, '{}.{}{}'
-                               .format(dataset, cm_vocab_size, cm_suffix))
+        nl_path = os.path.join(data_dir, '{}.{}'.format(dataset, nl_suffix))
+        cm_path = os.path.join(data_dir, '{}.{}'.format(dataset, cm_suffix))
         nl_list = [nl.strip() for nl in open(nl_path, 'r').readlines()]
         cm_list = [cm.strip() for cm in open(cm_path, 'r').readlines()]
 
