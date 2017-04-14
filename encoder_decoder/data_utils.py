@@ -681,8 +681,8 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
     compute_channel_representations(cm_vocab_path, cm_char_vocab_path,
                                     add_eos=True)
 
-    slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix,
-                                   nl_vocab_size, cm_vocab_size)
+    slot_filling_mapping_induction(
+        data_dir, nl_suffix, cm_suffix, nl_vocab_size)
 
 
 def prepare_data(FLAGS):
@@ -720,7 +720,8 @@ def prepare_data(FLAGS):
         prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
 
 
-def slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix):
+def slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix,
+                                   nl_vocab_size):
     """Induce the filler-slot alignments on train/dev/test dataset."""
     for dataset in ['train', 'dev', 'test']:
         nl_path = os.path.join(data_dir, '{}.{}'.format(dataset, nl_suffix))

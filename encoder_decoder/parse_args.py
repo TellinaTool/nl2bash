@@ -56,7 +56,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("self_test", False,
                                 "Run a self-test if this is set to True.")
 
-
     # device
     tf.app.flags.DEFINE_string("gpu", '0', "GPU device where the computation is going to be placed.")
     tf.app.flags.DEFINE_boolean("log_device_placement", False,
@@ -101,8 +100,6 @@ def define_input_flags():
 
     tf.app.flags.DEFINE_string("training_algorithm", "standard", "training algorithm to use.")
     tf.app.flags.DEFINE_string("pretrained_model_subdir", "", "signature of pretrained model.")
-
-    tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
 
     tf.app.flags.DEFINE_string("encoder_topology", "rnn", "structure of the encoder.")
     tf.app.flags.DEFINE_string("decoder_topology", "rnn", "structure of the decoder.")
@@ -166,7 +163,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("sc_char_rnn_num_layers", 1,
                                 "Number of layers in the RNN cell used for the character model.")
 
-
     tf.app.flags.DEFINE_float("tg_input_keep", .5,
                               "Proportion of target input to keep if dropout is used.")
     tf.app.flags.DEFINE_float("tg_output_keep", .5,
@@ -184,3 +180,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_float("tg_char_rnn_output_keep", .5,
                                 "Proportion of character target output to keep if dropout is used.")
     tf.app.flags.DEFINE_float("gamma", 5, "Define the weight of the character channel loss.")
+
+    # copying mechanism
+    tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
