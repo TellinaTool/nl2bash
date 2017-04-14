@@ -119,6 +119,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         FLAGS.learning_rate = 0
         params["learning_rate"] = 0
         params["force_reading_input"] = True
+        params["create_fresh_params"] = False
 
     if FLAGS.explain:
         FLAGS.grammatical_only = False
