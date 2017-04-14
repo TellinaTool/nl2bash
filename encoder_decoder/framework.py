@@ -327,7 +327,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 log_perp_list.append(crossent * weight)
             log_perps = tf.add_n(log_perp_list)
             total_size = tf.add_n(weights)
-            total_size += 1e-12  # Just to avoid division by 0 for all-0 weights.
+            total_size += 1e-12     # Just to avoid division by 0 for all-0 weights.
             log_perps /= total_size
 
         avg_log_perps = tf.reduce_mean(log_perps)
@@ -342,8 +342,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         P = tf.reduce_sum(attn_alignments, 2)
         P_exp = tf.exp(P)
         Z = tf.reduce_sum(P_exp, 1, keep_dims=True)
-        return tf.reduce_mean(tf.reduce_sum((P_exp / Z * (P - tf.log(Z)), 1))
-
+        return tf.reduce_mean(tf.reduce_sum(P_exp / Z * (P - tf.log(Z)), 1))
 
 
     def define_encoder(self, input_keep, output_keep):

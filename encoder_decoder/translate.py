@@ -147,12 +147,12 @@ def train(train_set, dev_set, construct_model_dir=True):
                 sys.stdout.flush()
 
 
-            # Save slot filling embeddings.
-            tf.reset_default_graph()
-            mapping_path = os.path.join(FLAGS.data_dir,
-                'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
-            get_slot_filling_training_data_fun(
-                sess, model, train_set, mapping_path)
+        # Save slot filling embeddings.
+        tf.reset_default_graph()
+        mapping_path = os.path.join(FLAGS.data_dir,
+            'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
+        gen_slot_filling_training_data_fun(sess, model, train_set,
+                                           mapping_path)
     return True
 
 
@@ -419,11 +419,11 @@ def eval_slot_filling(dataset):
         print("F1: {}".format(2 * precision * recall / (precision + recall)))
 
 
-def get_slot_filling_training_data_fun(sess, model, dataset, output_file):
+def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
     X, Y = [], []
     for bucket_id in xrange(len(_buckets)):
         for i in xrange(len(dataset[bucket_id])):
-            sc, tg, sc_ids, tg_ids, gt_mappings = dataset[bucket_id][i]
+            sc, tg, sc_ids, tg_ids, _, _, gt_mappings = dataset[bucket_id][i]
             mappings = [tuple(m) for m in gt_mappings]
             if gt_mappings:
                 encoder_inputs = [dataset[bucket_id][i][2]]
@@ -483,7 +483,7 @@ def gen_slot_filling_training_data():
         for split in ['train', 'dev', 'test']:
             mapping_path = os.path.join(FLAGS.data_dir,
                 '{}.{}.mappings.X.Y.npz'.format(split, FLAGS.sc_vocab_size))
-            get_slot_filling_training_data_fun(
+            gen_slot_filling_training_data_fun(
                 sess, seq2seq_model, train_set, mapping_path)
 
 
