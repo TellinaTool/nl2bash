@@ -91,9 +91,9 @@ def train(train_set, dev_set, construct_model_dir=True):
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
                                  if train_buckets_scale[i] > random_number_01])
                 formatted_example = model.get_batch(train_set, bucket_id)
-                _, step_loss, _, _ = model.step(sess, formatted_example,
-                                                bucket_id, forward_only=False)[:4]
-                loss += step_loss
+                model_outputs = model.step(sess, formatted_example,
+                                           bucket_id, forward_only=False)
+                loss += model_outputs.losses
                 current_step += 1
 
             epoch_time = time.time() - start_time
@@ -127,8 +127,9 @@ def train(train_set, dev_set, construct_model_dir=True):
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
                     formatted_example = model.get_batch(dev_set, bucket_id)
-                    _, output_logits, eval_loss, _ = \
-                        model.step(sess, formatted_example, bucket_id, forward_only=True)[:4]
+                    model_outputs = model.step(sess, formatted_example,
+                                               bucket_id, forward_only=True)
+                    eval_loss = model_outputs.losses
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
                     print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
@@ -374,9 +375,11 @@ def eval_slot_filling(dataset):
                         [encoder_inputs, encoder_full_inputs],
                         [decoder_inputs, decoder_full_inputs],
                         bucket_id=bucket_id)
-                    _, _, _, _, encoder_outputs, decoder_outputs = model.step(
-                        sess, formatted_example, bucket_id, forward_only=True,
-                        return_rnn_hidden_states=True)
+                    model_outputs = model.step(sess, formatted_example,
+                                               bucket_id, forward_only=True,
+                                               return_rnn_hidden_states=True)
+                    encoder_outputs = model_outputs.encoder_hidden_states
+                    decoder_outputs = model_outputs.decoder_hidden_states
                     cm_slots = {}
                     output_tokens = []
                     outputs = tg_ids[1:-1]
@@ -433,8 +436,8 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     bucket_id=bucket_id)
                 model_outputs = model.step(sess, formatted_example, bucket_id,
                     forward_only=True, return_rnn_hidden_states=True)
-                encoder_outputs = model_outputs[4]
-                decoder_outputs = model_outputs[5]
+                encoder_outputs = model_outputs.encoder_hidden_states
+                decoder_outputs = model_outputs.decoder_hidden_states
 
                 # add positive examples
                 for f, s in mappings:
@@ -443,8 +446,7 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     assert(f <= encoder_outputs.shape[1])
                     assert(s <= decoder_outputs.shape[1])
                     X.append(np.concatenate([encoder_outputs[:, ff, :],
-                                             decoder_outputs[:, s, :]],
-                                            axis=1))
+                                             decoder_outputs[:, s, :]], axis=1))
                     Y.append(np.array([1, 0]))
                     # add negative examples
                     # sample unmatched filler-slot pairs as negative examples
