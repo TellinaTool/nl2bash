@@ -799,7 +799,6 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
 
     grouped_dataset = {}
     for i in xrange(len(dataset)):
-        print(dataset[i])
         nl_str, cm_str, nl, cm, nl_full, cm_full, _ = dataset[i]
         if use_temp:
             words, _ = tokenizer.ner_tokenizer(nl_str)
