@@ -342,7 +342,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         P_unnorm = tf.reduce_sum(attn_alignments, 2)
         Z = tf.reduce_sum(P_unnorm, 1, keep_dims=True)
         P = P_unnorm / Z
-        return tf.reduce_mean(tf.reduce_sum(P * tf.log(P)), 1)
+        return tf.reduce_mean(tf.reduce_sum(P * tf.log(P), 1))
 
 
     def define_encoder(self, input_keep, output_keep):
