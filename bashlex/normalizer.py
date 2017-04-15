@@ -1070,7 +1070,7 @@ def to_command(node, loose_constraints=False, ignore_flag_order=False):
                     str += to_command_fun(child) 
             else:
                 str += "\\( "
-                for i in xrange(len(node.children)-1):
+                for i in xrange(len(node.children)):
                     str += to_command_fun(node.children[i]) + ' '
                 str += "\\)"
         elif node.is_argument():
