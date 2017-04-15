@@ -339,10 +339,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # diff = tf.reduce_sum(attn_alignments, 1) - 1
         # return tf.reduce_mean(tf.square(diff))
         # Entropy regularization term.
-        P = tf.reduce_sum(attn_alignments, 2)
-        P_exp = tf.exp(P)
-        Z = tf.reduce_sum(P_exp, 1, keep_dims=True)
-        return tf.reduce_mean(tf.reduce_sum(P_exp / Z * (P - tf.log(Z)), 1))
+        P_unnorm = tf.reduce_sum(attn_alignments, 2)
+        Z = tf.reduce_sum(P_unnorm, 1, keep_dims=True)
+        P = P_unnorm / Z
+        return tf.reduce_mean(tf.reduce_sum(P * tf.log(P)), 1)
 
 
     def define_encoder(self, input_keep, output_keep):
