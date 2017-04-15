@@ -724,8 +724,8 @@ def slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix,
                                    nl_vocab_size):
     """Induce the filler-slot alignments on train/dev/test dataset."""
     for dataset in ['train', 'dev', 'test']:
-        nl_path = os.path.join(data_dir, '{}.{}'.format(dataset, nl_suffix))
-        cm_path = os.path.join(data_dir, '{}.{}'.format(dataset, cm_suffix))
+        nl_path = os.path.join(data_dir, '{}{}'.format(dataset, nl_suffix))
+        cm_path = os.path.join(data_dir, '{}{}'.format(dataset, cm_suffix))
         nl_list = [nl.strip() for nl in open(nl_path, 'r').readlines()]
         cm_list = [cm.strip() for cm in open(cm_path, 'r').readlines()]
 
@@ -799,7 +799,8 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
 
     grouped_dataset = {}
     for i in xrange(len(dataset)):
-        nl_str, cm_str, nl, cm, nl_full, cm_full = dataset[i]
+        print(dataset[i])
+        nl_str, cm_str, nl, cm, nl_full, cm_full, _ = dataset[i]
         if use_temp:
             words, _ = tokenizer.ner_tokenizer(nl_str)
             nl_template = " ".join(words)
