@@ -106,17 +106,21 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     # Non-grammatical templates and templates that cannot hold all fillers are
     # filtered out.
     # TODO: align output commands and their scores correctly
-    model_step_outputs = model.step(sess, formatted_example, bucket_id,
+    model_outputs = model.step(sess, formatted_example, bucket_id,
         forward_only=True, return_rnn_hidden_states=FLAGS.fill_argument_slots)
-    output_symbols, output_logits, losses, attn_alignments = \
-        model_step_outputs[:4]
-    char_output_symbols = model_step_outputs[-2] if FLAGS.tg_char else None
+    output_symbols = model_outputs.output_symbols
+    output_logits = model_outputs.output_logits
+    losses = model_outputs.losses
+    attn_alignments = model_outputs.attn_alignments
+
+    char_output_symbols = model_outputs.char_output_symbols if FLAGS.tg_char \
+        else None
     nl_fillers, encoder_outputs, decoder_outputs = None, None, None
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
         nl_fillers = entities[0]
-        encoder_outputs = model_step_outputs[-4]
-        decoder_outputs = model_step_outputs[-3]
+        encoder_outputs = model_outputs.encoder_hidden_states
+        decoder_outputs = model_outputs.decoder_hidden_states
     batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS,
                            char_output_symbols=char_output_symbols,
                            rev_tg_char_vocab=rev_tg_char_vocab,
