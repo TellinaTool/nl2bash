@@ -663,6 +663,7 @@ class Example(object):
         self.char_decoder_inputs = None
         self.cahr_target_weights = None
 
+
 class Output(object):
     """
     Data output from the neural network (batched when mini-batch training is

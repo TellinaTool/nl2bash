@@ -464,7 +464,7 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     #     print(encoder_outputs[:, ff, :][0, :40])
                     #     print(X[0][0, :40])
             if i > 0 and i % 1000 == 0:
-                print('{} training examples gathered for training slot filling...'
+                print('{} examples gathered for generating slot filling features...'
                       .format(len(X)))
 
     np.savez(output_file, [X, Y])
@@ -475,16 +475,18 @@ def gen_slot_filling_training_data():
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
-        train_set, dev_set, test_set = load_data(load_mappings=True)
+        datasets = load_data(load_mappings=True)
 
         seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
             Seq2SeqModel, buckets=_buckets, forward_only=True)
 
-        for split in ['train', 'dev', 'test']:
+        data_splits = ['train', 'dev', 'test']
+        for i in xrange(len(data_splits)):
+            split = data_splits[i]
             mapping_path = os.path.join(FLAGS.model_dir,
                 '{}.{}.mappings.X.Y.npz'.format(split, FLAGS.sc_vocab_size))
             gen_slot_filling_training_data_fun(
-                sess, seq2seq_model, train_set, mapping_path)
+                sess, seq2seq_model, datasets[i], mapping_path)
 
 
 # --- Pre-processing --- #
