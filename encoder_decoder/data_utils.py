@@ -724,8 +724,8 @@ def slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix,
                                    nl_vocab_size):
     """Induce the filler-slot alignments on train/dev/test dataset."""
     for dataset in ['train', 'dev', 'test']:
-        nl_path = os.path.join(data_dir, '{}.{}'.format(dataset, nl_suffix))
-        cm_path = os.path.join(data_dir, '{}.{}'.format(dataset, cm_suffix))
+        nl_path = os.path.join(data_dir, '{}{}'.format(dataset, nl_suffix))
+        cm_path = os.path.join(data_dir, '{}{}'.format(dataset, cm_suffix))
         nl_list = [nl.strip() for nl in open(nl_path, 'r').readlines()]
         cm_list = [cm.strip() for cm in open(cm_path, 'r').readlines()]
 
