@@ -626,35 +626,34 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         outputs = session.run(output_feed, input_feed)
 
-        outputs_to_return = []
+        O = Output()
         if not forward_only:
             # Gradient norm, loss, no outputs
-            outputs_to_return.append(outputs[1])
-            outputs_to_return.append(outputs[2])
-            outputs_to_return.append(None)
+            O.gradient_norms = outputs[1]
+            O.losses = outputs[2]
         else:
             # No gradient loss, output_symbols, output_logits
-            outputs_to_return.append(outputs[0])
-            outputs_to_return.append(outputs[1])
-            outputs_to_return.append(outputs[2])
+            O.output_symbols = outputs[0]
+            O.output_logits = outputs[1]
+            O.losses = outputs[2]
         # [attention_masks]
         if self.tg_token_use_attention:
-            outputs_to_return.append(outputs[3])
-        else:
-            outputs_to_return.append(None)
-        outputs_to_return.append(outputs[4])
-        outputs_to_return.append(outputs[5])
-        if self.tg_char:
-            outputs_to_return.append(outputs[-2])
-            outputs_to_return.append(outputs[-1])
+            O.attn_alignments = outputs[3]
 
-        return outputs_to_return
+        if self.tg_char:
+            O.encoder_hidden_states = outputs[-4]
+            O.decoder_hidden_states = outputs[-3]
+            O.char_output_symbols = outputs[-2]
+            O.char_output_logits = outputs[-1]
+        else:
+            O.encoder_hidden_states = outputs[-2]
+            O.decoder_hidden_states = outputs[-1]
+        return O
 
 
 class Example(object):
     """
-    Input data to the neural network. The data are batched when mini-batch
-    training is used.
+    Input data to the neural network (batched when mini-batch training is used).
     """
     def __init__(self):
         self.encoder_inputs = None
@@ -663,3 +662,20 @@ class Example(object):
         self.target_weights = None
         self.char_decoder_inputs = None
         self.cahr_target_weights = None
+
+class Output(object):
+    """
+    Data output from the neural network (batched when mini-batch training is
+    used).
+    """
+    def __init__(self):
+        self.updates = None
+        self.gradient_norms = None
+        self.losses = None
+        self.output_symbols = None
+        self.output_logits = None
+        self.attn_alignments = None
+        self.encoder_hidden_states = None
+        self.decoder_hidden_states = None
+        self.char_output_symbols = None
+        self.char_output_logits = None
