@@ -245,10 +245,10 @@ def slot_filler_alignment_induction(nl, cm, verbose=False):
         print('cm: {}'.format(cm))
         print(nl_fillers)
         print(cm_slots)
-        # for (i, j) in mappings:
-        #     print('[{}] {} <-> [{}] {}'.format(
-        #         i, nl_fillers[i][0].decode('utf-8'),
-        #         j, cm_slots[j][0].decode('utf-8')))
+        for (i, j) in mappings:
+            print('[{}] {} <-> [{}] {}'.format(
+                i, nl_fillers[i][0].decode('utf-8'),
+                j, cm_slots[j][0].decode('utf-8')))
         for i in remained_fillers:
             print('filler {} is not matched to any slot\n'
                     .format(nl_fillers[i][0].encode('utf-8')))
@@ -646,6 +646,6 @@ def is_min_flag(token):
     return False
 
 if __name__ == '__main__':
-    nl = 'Find all btree*.c files under current directory'
-    cm = 'find . -type f -name \'btree*.c\''
+    nl = 'find all js files under the build direcotry except build/external and build/log directory.'
+    cm = 'find build -not \( -path build/external -prune \) -not \( -path build/blog -prune \) -name \*.js'
     slot_filler_alignment_induction(nl, cm)
