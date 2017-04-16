@@ -59,7 +59,7 @@ def eval_set(model, dataset, FLAGS, verbose=True):
 
     with DBConnection() as db:
         for nl_temp in grouped_dataset:
-            nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_temp]
+            nl_strs, cm_strs, _, _, _, _ = grouped_dataset[nl_temp]
             nl_str = bytes(nl_strs[0], 'utf-8')
 
             gt_trees = [cmd_parser(cmd) for cmd in cm_strs]
