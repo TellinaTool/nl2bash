@@ -204,8 +204,8 @@ def demo():
 def train_and_eval(train_set, dev_set):
     train(train_set, dev_set, construct_model_dir=True)
     tf.reset_default_graph()
-    decode(dev_set, construct_model_dir=False, verbose=False)
-    tms, cms = eval(dev_set, verbose=False)
+    model_sig = decode(dev_set, construct_model_dir=False, verbose=False)
+    tms, cms = eval(dev_set, model_sig, verbose=False)
     tf.reset_default_graph()
     return tms, cms
 
