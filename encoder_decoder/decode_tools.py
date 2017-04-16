@@ -352,11 +352,12 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             break
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                             top_k_predictions[j]
-                        print("Prediction {}: {} ({}) ".format(
-                            j+1, top_k_pred_cmd, top_k_scores[j]))
-                        if FLAGS.tg_char:       
-                            print("Character-based prediction {}: {}".format(
-                                j+1, top_k_char_predictions[j]))
+                        if verbose:
+                            print("Prediction {}: {} ({}) ".format(
+                                j+1, top_k_pred_cmd, top_k_scores[j]))
+                            if FLAGS.tg_char:
+                                print("Character-based prediction {}: {}".format(
+                                    j+1, top_k_char_predictions[j]))
                         try:
                             db.add_prediction(model.model_sig, sc_temp,
                                 top_k_pred_cmd, float(top_k_scores[j]),
