@@ -549,7 +549,7 @@ def main(_):
             gen_eval_sheet(dataset)
         elif FLAGS.eval:
             dataset = test_set if FLAGS.test else dev_set
-            eval(dataset)
+            eval(dataset, verbose=False)
         elif FLAGS.manual_eval:
             dataset = test_set if FLAGS.test else dev_set
             manual_eval(dataset, 100)
