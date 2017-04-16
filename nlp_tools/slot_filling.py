@@ -17,31 +17,6 @@ from bashlex import data_tools
 
 # --- Slot filling functions --- #
 
-def get_fill_in_value(cm_slot, nl_filler):
-    """
-    Compute an argument slot value in the command after it has been filled,
-    mostly deal with file name formatting, adding signs to quantities, etc.
-    :param cm_slot: (slot_value, slot_type)
-    :param nl_filler: (filler_value, filler_type)
-
-    """
-    slot_value, slot_type = cm_slot
-    surface, filler_type = nl_filler
-    filler_value = extract_value(filler_type, slot_type, surface)
-
-    # In most cases the filler can be directly copied into the slot
-    slot_filler_value = filler_value
-
-    if slot_type in constants._QUANTITIES:
-        if slot_value.startswith('+'):
-            slot_filler_value = filler_value if filler_value.startswith('+') \
-                else '+{}'.format(filler_value)
-        elif slot_value.startswith('-'):
-            slot_filler_value = filler_value if filler_value.startswith('-') \
-                else '-{}'.format(filler_value)
-
-    return slot_filler_value
-
 def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
                     decoder_outputs, slot_filling_classifier, verbose=False):
     """
@@ -184,7 +159,101 @@ def heuristic_slot_filling(node, ner_by_category):
 
     return True
 
-# --- Slot-filler Alignment Induction --- #
+def stable_marriage_alignment(M):
+    """
+    Return the stable marriage alignment between two sets of entities (fillers
+    and slots).
+
+    :param M: stores the raw match score between the two sets of entities
+        represented by the rows and columns of M.
+
+        M(i, j) = -inf implies that i and j are incompatible.
+
+    """
+    preferred_list_by_row = {}
+    for i in M:
+        preferred_list_by_row[i] = sorted(
+            [(j, M[i][j]) for j in M[i] if M[i][j] > -np.inf],
+            key=lambda x:x[1], reverse=True)
+
+    remained_rows = list(M.keys())
+    matched_cols = {}
+
+    while (remained_rows):
+        # In our application, it is possible to have both unmatched rows and
+        # unmatched columns in the end, therefore need to detect this situation.
+        preferred_list_changed = False
+        for i in remained_rows:
+            if len(preferred_list_by_row[i]) > 0:
+                j, match_score = preferred_list_by_row[i].pop(0)
+                preferred_list_changed = True
+                if not j in matched_cols:
+                    matched_cols[j] = (i, match_score)
+                    remained_rows.remove(i)
+                else:
+                    if match_score > matched_cols[j][1]:
+                        k, _ = matched_cols[j]
+                        matched_cols[j] = (i, match_score)
+                        remained_rows.remove(i)
+                        remained_rows.append(k)
+        if not preferred_list_changed:
+            break
+
+    return [(y, x) for (x, (y, score)) in sorted(matched_cols.items(),
+            key=lambda x:x[1][1], reverse=True)], remained_rows
+
+# --- Heuristically induce slot-filling alignments from oracle translation pairs.
+
+def slot_filler_alignment_induction(nl, cm, verbose=False):
+    """Give an oracle translation pair of (nl, cm), align the slot fillers
+       extracted from the natural language with the slots in the command.
+    """
+
+    # Step 1: extract the token ids of the constants in the English sentence
+    # and the slots in the command
+    tokens, entities = tokenizer.ner_tokenizer(nl)
+    nl_fillers, _, _ = entities
+    cm_tokens = data_tools.bash_tokenizer(cm)
+    cm_tokens_with_types = data_tools.bash_tokenizer(cm, arg_type_only=True)
+    assert(len(cm_tokens) == len(cm_tokens_with_types))
+    cm_slots = {}
+    for i in xrange(len(cm_tokens_with_types)):
+        if cm_tokens_with_types[i] in constants._ENTITIES:
+            if i > 0 and is_min_flag(cm_tokens_with_types[i-1]):
+                cm_token_type = 'Timespan'
+            else:
+                cm_token_type = cm_tokens_with_types[i]
+            cm_slots[i] = (cm_tokens[i], cm_token_type)
+    
+    # Step 2: construct one-to-one mappings for the token ids from both sides
+    M = collections.defaultdict(dict)               # alignment score matrix
+    for i in nl_fillers:
+        surface, filler_type = nl_fillers[i]
+        filler_value = extract_value(filler_type, filler_type, surface)
+        for j in cm_slots:
+            slot_value, slot_type = cm_slots[j]
+            if (filler_value and is_parameter(filler_value)) or \
+                    slot_filler_type_match(slot_type, filler_type):
+                M[i][j] = slot_filler_value_match(
+                    slot_value, filler_value, slot_type)
+            else:
+                M[i][j] = -np.inf
+    mappings, remained_fillers = stable_marriage_alignment(M)
+
+    if verbose:
+        print('nl: {}'.format(nl))
+        print('cm: {}'.format(cm))
+        print(nl_fillers)
+        print(cm_slots)
+        # for (i, j) in mappings:
+        #     print('[{}] {} <-> [{}] {}'.format(
+        #         i, nl_fillers[i][0].decode('utf-8'),
+        #         j, cm_slots[j][0].decode('utf-8')))
+        for i in remained_fillers:
+            print('filler {} is not matched to any slot\n'
+                    .format(nl_fillers[i][0].encode('utf-8')))
+    
+    return mappings
 
 def slot_filler_value_match(slot_value, filler_value, slot_type):
     """(Fuzzily) compute the matching score between a slot filler extracted
@@ -196,11 +265,6 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
        :param slot_type: category of the slot in the command
 
     """
-    def strip_sign(pattern):
-        if pattern[0] in ['-', '+']:
-            pattern = pattern[1:]
-        return pattern
-
     if slot_type in constants._PATTERNS or \
             (filler_value and is_parameter(filler_value)):
         if slot_value.lower() == filler_value:
@@ -276,106 +340,65 @@ def slot_filler_type_match(slot_type, filler_type):
 
     return '{}:::{}'.format(filler_type, slot_type) in category_matches
 
-def stable_marriage_alignment(M):
-    """
-    Return the stable marriage alignment between two sets of entities (fillers
-    and slots).
+def strip(pattern):
+    # special_start_1c_re = re.compile(r'^[\"\'\*\\\/\.-]]')
+    # special_start_2c_re = re.compile(r'^\{\}')
+    # special_end_1c_re = re.compile(r'[\"\'\\\/\$\*\.-]$')
+    # special_end_2c_re = re.compile(r'(\\n|\{\})$')
+    while len(pattern) > 1 and \
+            pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-', '{', '}']:
+        pattern = pattern[1:]
+    while len(pattern) > 1 and \
+            pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-',
+                            '{', '}']:
+        pattern = pattern[:-1]
+    special_start_re = re.compile(r'^\{\}')
+    special_end_re = re.compile(r'(\\n|\{\})$')
+    while len(pattern) > 2 and re.search(special_end_re, pattern):
+        pattern = pattern[:-2]
+    while len(pattern) > 1 and \
+            pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-']:
+        pattern = pattern[1:]
+    while len(pattern) > 1 and \
+            pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-']:
+        pattern = pattern[:-1]
+    return pattern
 
-    :param M: stores the raw match score between the two sets of entities
-        represented by the rows and columns of M.
-
-        M(i, j) = -inf implies that i and j are incompatible.
-
-    """
-    preferred_list_by_row = {}
-    for i in M:
-        preferred_list_by_row[i] = sorted(
-            [(j, M[i][j]) for j in M[i] if M[i][j] > -np.inf],
-            key=lambda x:x[1], reverse=True)
-
-    remained_rows = list(M.keys())
-    matched_cols = {}
-
-    while (remained_rows):
-        # In our application, it is possible to have both unmatched rows and
-        # unmatched columns in the end, therefore need to detect this situation.
-        preferred_list_changed = False
-        for i in remained_rows:
-            if len(preferred_list_by_row[i]) > 0:
-                j, match_score = preferred_list_by_row[i].pop(0)
-                preferred_list_changed = True
-                if not j in matched_cols:
-                    matched_cols[j] = (i, match_score)
-                    remained_rows.remove(i)
-                else:
-                    if match_score > matched_cols[j][1]:
-                        k, _ = matched_cols[j]
-                        matched_cols[j] = (i, match_score)
-                        remained_rows.remove(i)
-                        remained_rows.append(k)
-        if not preferred_list_changed:
-            break
-
-    return [(y, x) for (x, (y, score)) in sorted(matched_cols.items(),
-            key=lambda x:x[1][1], reverse=True)], remained_rows
-
-def slot_filler_alignment_induction(nl, cm):
-    """Give a pair of (nl, cm) that is known to be the translation of each
-       other, align the slot fillers extracted from the natural language with
-       the slots in the command.
-    """
-
-    # Step 1: extract the token ids of the constants in the English sentence
-    # and the slots in the command
-    tokens, entities = tokenizer.ner_tokenizer(nl)
-    nl_fillers, _, _ = entities
-    cm_tokens = data_tools.bash_tokenizer(cm)
-    cm_tokens_with_types = data_tools.bash_tokenizer(cm, arg_type_only=True)
-    assert(len(cm_tokens) == len(cm_tokens_with_types))
-    cm_slots = {}
-    for i in xrange(len(cm_tokens_with_types)):
-        if cm_tokens_with_types[i] in constants._ENTITIES:
-            if i > 0 and is_min_flag(cm_tokens_with_types[i-1]):
-                cm_token_type = 'Timespan'
-            else:
-                cm_token_type = cm_tokens_with_types[i]
-            cm_slots[i] = (cm_tokens[i], cm_token_type)
-    
-    # Step 2: construct one-to-one mappings for the token ids from both sides
-    M = collections.defaultdict(dict)               # alignment score matrix
-    for i in nl_fillers:
-        surface, filler_type = nl_fillers[i]
-        filler_value = extract_value(filler_type, filler_type, surface)
-        for j in cm_slots:
-            slot_value, slot_type = cm_slots[j]
-            if (filler_value and is_parameter(filler_value)) or \
-                    slot_filler_type_match(slot_type, filler_type):
-                M[i][j] = slot_filler_value_match(
-                    slot_value, filler_value, slot_type)
-            else:
-                M[i][j] = -np.inf
-    mappings, remained_fillers = stable_marriage_alignment(M)
-
-    print('nl: {}'.format(nl))
-    print('cm: {}'.format(cm))
-    print(nl_fillers)
-    print(cm_slots)
-    print
-    for (i, j) in mappings:
-        print(i, j)
-        # print('{} <-> {}'.format(nl_fillers[i][0].decode('utf-8'),
-        # cm_slots[j][0].decode('utf-8')))
-    print
-    for i in remained_fillers:
-        print('filler {} is not matched to any slot\n'
-                .format(nl_fillers[i][0].encode('utf-8')))
-    
-    return mappings    
+def strip_sign(pattern):
+    if pattern[0] in ['-', '+']:
+        pattern = pattern[1:]
+    return pattern
 
 def is_parameter(value):
     return constants.remove_quotation(value).startswith('$')
 
 # --- Filler value extractors --- #
+
+def get_fill_in_value(cm_slot, nl_filler):
+    """
+    Compute a command argument given the argument slot specification and the
+    entity being aligned to it (mostly dealing with file name formatting,
+    adding signs to quantities, etc.).
+    :param cm_slot: (slot_value, slot_type)
+    :param nl_filler: (filler_value, filler_type)
+
+    """
+    slot_value, slot_type = cm_slot
+    surface, filler_type = nl_filler
+    filler_value = extract_value(filler_type, slot_type, surface)
+
+    # In most cases the filler can be directly copied into the slot
+    slot_filler_value = filler_value
+
+    if slot_type in constants._QUANTITIES:
+        if slot_value.startswith('+'):
+            slot_filler_value = filler_value if filler_value.startswith('+') \
+                else '+{}'.format(filler_value)
+        elif slot_value.startswith('-'):
+            slot_filler_value = filler_value if filler_value.startswith('-') \
+                else '-{}'.format(filler_value)
+
+    return slot_filler_value
 
 def extract_value(filler_type, slot_type, surface):
     """Extract slot filling values from the natural language."""
@@ -616,30 +639,6 @@ def extract_size(value):
         return sign + '{}{}'.format(number, unit)
     else:
         raise AttributeError('Unrecognized size unit: {}'.format(size_unit))
-
-def strip(pattern):
-    # special_start_1c_re = re.compile(r'^[\"\'\*\\\/\.-]]')
-    # special_start_2c_re = re.compile(r'^\{\}')
-    # special_end_1c_re = re.compile(r'[\"\'\\\/\$\*\.-]$')
-    # special_end_2c_re = re.compile(r'(\\n|\{\})$')
-    while len(pattern) > 1 and \
-            pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-', '{', '}']:
-        pattern = pattern[1:]
-    while len(pattern) > 1 and \
-            pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-',
-                            '{', '}']:
-        pattern = pattern[:-1]
-    special_start_re = re.compile(r'^\{\}')
-    special_end_re = re.compile(r'(\\n|\{\})$')
-    while len(pattern) > 2 and re.search(special_end_re, pattern):
-        pattern = pattern[:-2]
-    while len(pattern) > 1 and \
-            pattern[0] in ['"', '\'', '*', '\\', '/', '.', '-']:
-        pattern = pattern[1:]
-    while len(pattern) > 1 and \
-            pattern[-1] in ['"', '\'', '\\', '/', '$', '*', '.', '-']:
-        pattern = pattern[:-1]
-    return pattern
 
 def is_min_flag(token):
     if len(token) == 5 and token.endswith('min') and token.startswith('-'):

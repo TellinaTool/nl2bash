@@ -28,12 +28,11 @@ def demo(sess, model, FLAGS):
     slot_filling_classifier = None
     if FLAGS.fill_argument_slots:
         # create slot filling classifier
-        mapping_param_dir = os.path.join(FLAGS.model_dir,
-            'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
+        mapping_param_dir = os.path.join(
+            FLAGS.model_dir, 'train.mappings.X.Y.npz')
         train_X, train_Y = data_utils.load_slot_filling_data(mapping_param_dir)
-        slot_filling_classifier = \
-                classifiers.KNearestNeighborModel(FLAGS.num_nn_slot_filling,
-                                                  train_X, train_Y)
+        slot_filling_classifier = classifiers.KNearestNeighborModel(
+            FLAGS.num_nn_slot_filling, train_X, train_Y)
         print('Slot filling classifier parameters loaded.')
 
     # Decode from standard input.
@@ -298,8 +297,8 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
     slot_filling_classifier = None
     if FLAGS.fill_argument_slots:
         # create slot filling classifier
-        mapping_param_dir = os.path.join(FLAGS.model_dir,
-                    'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
+        mapping_param_dir = os.path.join(
+            FLAGS.model_dir, 'train.mappings.X.Y.npz')
         train_X, train_Y = data_utils.load_slot_filling_data(mapping_param_dir)
         slot_filling_classifier = classifiers.KNearestNeighborModel(
             FLAGS.num_nn_slot_filling, train_X, train_Y)
