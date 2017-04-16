@@ -1,0 +1,2 @@
+model_checkpoint_path: "translate.ckpt-9"
+all_model_checkpoint_paths: "translate.ckpt-9"
