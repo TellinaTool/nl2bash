@@ -402,10 +402,10 @@ def visualize_attn_alignments(M, source, target, rev_sc_vocab, rev_tg_vocab, out
 
     pad_size = source_length - len(nl)
     plt.xticks(xrange(source_length),
-               [x.replace("$$", "") for x in reversed(nl + [data_utils._PAD] * pad_size)],
+               [x.replace("$$", "") for x in reversed(
+                   nl + [data_utils._PAD] * pad_size)],
                rotation='vertical')
-    plt.yticks(xrange(len(cm)),
-               [x.replace("$$", "") for x in cm],
+    plt.yticks(xrange(len(cm)), [x.replace("$$", "") for x in cm],
                rotation='horizontal')
 
     plt.colorbar()
