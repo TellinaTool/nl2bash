@@ -63,7 +63,7 @@ def train(train_set, dev_set, construct_model_dir=True):
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
         model, global_epochs = create_model(sess, forward_only=False,
-                                            construct_model_dir=construct_model_dir)
+                                    construct_model_dir=construct_model_dir)
 
         train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
         train_total_size = float(sum(train_bucket_sizes))
@@ -115,8 +115,7 @@ def train(train_set, dev_set, construct_model_dir=True):
                 checkpoint_path = os.path.join(FLAGS.model_dir, "translate.ckpt")
                 # Save checkpoint and zero timer and loss.
                 model.saver.save(sess, checkpoint_path,
-                                 global_step=global_epochs+t+1,
-                                 write_meta_graph=False)
+                    global_step=global_epochs+t+1, write_meta_graph=False)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
@@ -150,8 +149,7 @@ def train(train_set, dev_set, construct_model_dir=True):
 
         # Save slot filling embeddings.
         tf.reset_default_graph()
-        mapping_path = os.path.join(FLAGS.model_dir,
-            'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
+        mapping_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
         gen_slot_filling_training_data_fun(sess, model, train_set,
                                            mapping_path)
     return True
@@ -318,7 +316,7 @@ def grid_search(train_set, dev_set):
     print("*****************************")
 
 
-# --- Run/train slot-filling classifier --- #
+# --- Train/Test slot-filling classifier --- #
 
 def eval_local_slot_filling(train_path, test_path):
     """
@@ -339,10 +337,9 @@ def eval_local_slot_filling(train_path, test_path):
 
 def eval_slot_filling(dataset):
     """
-    Evaluate accuracy of the global slot filling algorithm.
+    Evaluate global slot filling algorithm accuracy using ground truth templates.
     """
-    model_param_dir = os.path.join(FLAGS.model_dir,
-        'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
+    model_param_dir = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
     train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
     slot_filling_classifier = classifiers.KNearestNeighborModel(
         FLAGS.num_nn_slot_filling, train_X, train_Y)
@@ -482,11 +479,10 @@ def gen_slot_filling_training_data():
         data_splits = ['train', 'dev', 'test']
         for i in xrange(len(data_splits)):
             split = data_splits[i]
-            mapping_path = os.path.join(FLAGS.model_dir,
-                '{}.{}.mappings.X.Y.npz'.format(split, FLAGS.sc_vocab_size))
+            mapping_path = os.path.join(
+                FLAGS.model_dir, '{}.mappings.X.Y.npz'.format(split))
             gen_slot_filling_training_data_fun(
                 sess, seq2seq_model, datasets[i], mapping_path)
-
 
 # --- Pre-processing --- #
 
@@ -539,10 +535,8 @@ def main(_):
         dataset = test_set if FLAGS.test else dev_set
         eval_slot_filling(dataset)
     elif FLAGS.eval_local_slot_filling:
-        train_path = os.path.join(
-            FLAGS.model_dir, 'train.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
-        dev_path = os.path.join(
-            FLAGS.model_dir, 'dev.{}.mappings.X.Y.npz'.format(FLAGS.sc_vocab_size))
+        train_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
+        dev_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
         eval_local_slot_filling(train_path, dev_path)
 
     elif FLAGS.demo:

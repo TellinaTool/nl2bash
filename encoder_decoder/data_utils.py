@@ -59,7 +59,7 @@ GO_ID = 8
 ROOT_ID = 9
 
 _TOKEN_START_VOCAB = [_PAD, _EOS, _UNK, _ARG_UNK, _UTL_UNK, _FLAG_UNK,
-                normalizer._H_NO_EXPAND, normalizer._V_NO_EXPAND, _GO, _ROOT]
+    normalizer._H_NO_EXPAND, normalizer._V_NO_EXPAND, _GO, _ROOT]
 
 # Special char symbols
 _CPAD = "__SP__CPAD"
@@ -681,8 +681,7 @@ def prepare_bash(data_dir, nl_vocab_size, cm_vocab_size, verbose=False):
     compute_channel_representations(cm_vocab_path, cm_char_vocab_path,
                                     add_eos=True)
 
-    slot_filling_mapping_induction(
-        data_dir, nl_suffix, cm_suffix, nl_vocab_size)
+    slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix)
 
 
 def prepare_data(FLAGS):
@@ -720,8 +719,7 @@ def prepare_data(FLAGS):
         prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
 
 
-def slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix,
-                                   nl_vocab_size):
+def slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix):
     """Induce the filler-slot alignments on train/dev/test dataset."""
     for dataset in ['train', 'dev', 'test']:
         nl_path = os.path.join(data_dir, '{}{}'.format(dataset, nl_suffix))
@@ -731,8 +729,8 @@ def slot_filling_mapping_induction(data_dir, nl_suffix, cm_suffix,
 
         assert(len(nl_list) == len(cm_list))
 
-        slot_filling_mapping_file = os.path.join(
-            data_dir, '{}.{}.mappings'.format(dataset, nl_vocab_size))
+        slot_filling_mapping_file = os.path.join(data_dir,
+                                                 '{}.mappings'.format(dataset))
         print("Saving slot-filling mapping to {}".format(data_dir))
 
         with open(slot_filling_mapping_file, 'w') as o_f:
@@ -1042,7 +1040,7 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
     sc_full_id_file = tf.gfile.GFile(sc_full_id_path, mode="r")
     tg_full_id_file = tf.gfile.GFile(tg_full_id_path, mode="r")
     if load_mappings:
-        mapping_path = '.'.join(sc_path.rsplit('.')[:-1]) + '.mappings'
+        mapping_path = sc_path.rsplit('.')[0] + '.mappings'
         mapping_file = tf.gfile.GFile(mapping_path, mode="r")
 
     counter = 0
