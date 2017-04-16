@@ -183,3 +183,5 @@ def define_input_flags():
 
     # copying mechanism
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
+    tf.app.flags.DEFINE_boolean("copy_parameterization", 'flat',
+                                "Specify the probability parameterization for token copying and generation.")
