@@ -204,7 +204,7 @@ def stable_marriage_alignment(M):
 
 # --- Heuristically induce slot-filling alignments from oracle translation pairs.
 
-def slot_filler_alignment_induction(nl, cm, verbose=False):
+def slot_filler_alignment_induction(nl, cm, verbose=True):
     """Give an oracle translation pair of (nl, cm), align the slot fillers
        extracted from the natural language with the slots in the command.
     """
