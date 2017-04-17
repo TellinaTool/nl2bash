@@ -238,6 +238,7 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
                     slot_value, filler_value, slot_type)
             else:
                 M[i][j] = -np.inf
+            print(M)
     mappings, remained_fillers = stable_marriage_alignment(M)
 
     if verbose:
@@ -247,8 +248,7 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
         print(cm_slots)
         for (i, j) in mappings:
             print('[{}] {} <-> [{}] {}'.format(
-                i, nl_fillers[i][0].decode('utf-8'),
-                j, cm_slots[j][0].decode('utf-8')))
+                i, nl_fillers[i][0], j, cm_slots[j][0]))
         for i in remained_fillers:
             print('filler {} is not matched to any slot\n'
                     .format(nl_fillers[i][0].encode('utf-8')))
