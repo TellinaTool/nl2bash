@@ -279,7 +279,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
         else:
             if strip(slot_value).lower() == strip(filler_value).lower():
                 return 1
-        return -np.inf
+        return 0
     else:
         if filler_value is None:
             if slot_type == 'Permission':
