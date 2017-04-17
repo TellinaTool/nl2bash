@@ -87,10 +87,8 @@ def annotate(tokens):
                     '(' + constants._NUMERICAL_PERMISSION_RE + '|' +
                     constants._PATTERN_PERMISSION_RE + '|' +
                     permission_bit + '|' + permission_bit_set + ')')))
-    print(sentence)
     sentence = annotate_ner(
         _PERMISSION_RE, constants._PERMISSION, sentence, entities)
-    print(sentence)
 
     # -- Number
     _NUMBER_RE = re.compile(decorate_boundaries(
@@ -147,7 +145,6 @@ def annotate_ner(pattern, category, sentence, entities):
     ner_by_char_pos, ner_by_category = entities
     for m in re.finditer(pattern, sentence):
         surface = sentence[m.start(0):m.end(0)].strip()
-        print(category, surface)
         if category == constants._DATETIME:
             # TODO: rule-based system is not good at differentiating between
             # "May" the month and "may" the modal verb
