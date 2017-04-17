@@ -124,9 +124,10 @@ def annotate(tokens):
         re.compile(constants._WORD_SPLIT_RESPECT_QUOTES), sentence):
         w = m.group(0)
         if set(w) == {'-'}:
-            surface, category = ner_by_char_pos[(m.start(0), m.end(0))]
-            normalized_words.append(category)
-            ner_by_token_id[i] = (surface, category)
+            if (m.start(0), m.end(0)) in ner_by_char_pos:
+                surface, category = ner_by_char_pos[(m.start(0), m.end(0))]
+                normalized_words.append(category)
+                ner_by_token_id[i] = (surface, category)
         else:
             if not constants.is_english_word(w):
                 # catch missed patterns in the final pass
