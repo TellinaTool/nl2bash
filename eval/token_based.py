@@ -23,21 +23,24 @@ blacklist = [
 
 
 def get_content_tokens(ast):
-    content_tokens = set()
+    content_tokens = list()
     for token in data_tools.ast2tokens(
             ast, loose_constraints=True, arg_type_only=True):
         if ((token.isalnum() and token.islower()) or (token.startswith('-')
            or token.startswith('+') and len(token) > 1)) or token in whitelist\
            and not token in blacklist:
-            content_tokens.add(token)
+            content_tokens.append(token)
     return content_tokens
 
 
 def CMS(ast1, ast2):
-    token_set1 = get_content_tokens(ast1)
-    token_set2 = get_content_tokens(ast2)
-    return float(len(token_set1 & token_set2)) /\
-           (len(token_set1 | token_set2))
+    token_list1 = get_content_tokens(ast1)
+    token_list2 = get_content_tokens(ast2)
+    num_overlap = 0.0
+    for t in token_list2:
+        if t in token_list1:
+            num_overlap += 1
+    return num_overlap / (len(token_list1) + len(token_list2) - num_overlap)
 
 
 def command_match_score(gts, ast):
