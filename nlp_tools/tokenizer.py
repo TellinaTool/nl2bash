@@ -151,8 +151,10 @@ def ner_tokenizer(sentence, lower_case=True, lemmatization=True,
 def test_nl_tokenizer():
     while True:
         nl = input("> ")
+        tokens, ners = basic_tokenizer(nl)
+        print(tokens, ners)
         tokens, ners = ner_tokenizer(nl)
-        print(tokens, ners[0])
+        print(tokens, ners)        
 
 
 if __name__ == '__main__':

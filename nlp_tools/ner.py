@@ -79,7 +79,7 @@ def annotate(tokens):
                     '(' + constants._REL_DAY_RE + '|' + standard_time + '|' +
                     standard_datetime + '|' + textual_datetime + ')')))
     sentence = annotate_ner(_DATETIME_RE, constants._DATETIME, sentence, entities)
-
+    
     # -- Permission
     permission_bit = r'(suid|sgid|sticky|sticki)(\sbit)?'
     permission_bit_set = r'(set)?(uid|gid|sticky|sticki)(=\d+)*'
