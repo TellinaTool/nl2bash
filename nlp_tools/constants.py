@@ -34,7 +34,7 @@ type_conversion = {
 }
 
 _QUOTED_RE = r'[\'"][^\'"]*[\'"]'
-_SPECIAL_SYMBOL_RE = r'[^ ]*[\.\*|\\|\/|\~|\@|\%|\#|\?|\+|\$|\{|\}]+[^ ]*'
+_SPECIAL_SYMBOL_RE = r'[^ ]*[_\.\*|\\|\/|\~|\@|\%|\#|\?|\+|\$|\{|\}]+[^ ]*'
 _FILE_EXTENSION_RE = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|' \
         r'rar|rpm|gz|bin|dmg|iso|vcd|vcr|dvd|csv|dat|db|log|mdb|sav|sql|' \
         r'xml|apk|bat|bin|cgi|pl|com|html|css|js|exe|gadget|jar|py|wsf|fnt|' \
@@ -48,7 +48,7 @@ _PATH_RE = r'([^ ]*\/)+[^ ]*'
 _DIGIT_RE = r'\d*\.?\d+'
 
 _NUMERICAL_PERMISSION_RE = r'[0-7]{3,4}'
-_PATTERN_PERMISSION_RE = r'([u|g|o]+[+|-|=][r|w|x|s|u|t]+)+'
+_PATTERN_PERMISSION_RE = r'(([u|g|o]+[\+|-|=][r|w|x|s|u|t]+\,)*[u|g|o]+[\+|-|=][r|w|x|s|u|t]+)'
 
 # Credit: time expressions adapted from
 # https://github.com/nltk/nltk_contrib/blob/master/nltk_contrib/timex.py
@@ -76,12 +76,13 @@ digitize_month = {
 _SIZE_UNIT = r'(kilobyte|kilobyt|kilo byte|megabyte|megabyt|mega byte|gigabyte|' \
              r'gigabyt|terabyte|terabyt|block|byte|byt|kb|mb|gb|tb|c|b|k|m|g|t)'
 
-_DURATION_UNIT = r'(second|sec|minute|minut|min|hour|hr|day|week|' \
-             r'month|mon|year|yr|s|m|h|d|w|y)'
+_DURATION_UNIT = r'(second|sec|minute|minut|min|hour|hr|day|week|month|mon|year' \
+                 r'|yr|s|m|h|d|w|y)'
 
 # Regular expressions used to tokenize an English sentence.
 _WORD_SPLIT = "^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$"
-_WORD_SPLIT_RESPECT_QUOTES = '(?:[^\s,"]|"(?:\\.|[^"])*")+'
+_WORD_SPLIT_RESPECT_QUOTES = \
+    '({}|(?:[^\s,"]|"(?:\\.|[^"])*")+)'.format(_PATTERN_PERMISSION_RE)
 
 ENGLISH_STOPWORDS = {
     # "a",
