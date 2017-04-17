@@ -89,10 +89,14 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
                     remove_stop_words=True, correct_spell=True, verbose=False):
     """Very basic English tokenizer."""
     sentence = clean_sentence(sentence)
-    words = re.findall(constants._WORD_SPLIT_RESPECT_QUOTES, sentence)
+    print(sentence)
+    words = max(re.findall(constants._WORD_SPLIT_RESPECT_QUOTES, sentence),
+                key=len)
+    print(words)
 
     normalized_words = []
     for i in xrange(len(words)):
+        print(words[i])
         word = words[i].strip()
         # remove unnecessary upper cases
         if lower_case:
