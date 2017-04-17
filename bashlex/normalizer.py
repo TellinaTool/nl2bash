@@ -156,7 +156,8 @@ def special_command_normalization(cmd):
     cmd = cmd.replace(" xargs -iname ", " xargs ")
     cmd = cmd.replace(" -chour +1 ", " -cmin 60 ")
     cmd = cmd.replace(" -target-directory ", " --target-directory=")
-    cmd = cmd.replace(" perm", "-perm")
+    cmd = cmd.replace("- perm", "-perm")
+    cmd = cmd.replace(" perm", " -perm")
     cmd = cmd.replace("'-rd\\n' ", '')
 
     ## remove shell character
