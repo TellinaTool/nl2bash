@@ -123,7 +123,7 @@ def annotate(tokens):
     for m in re.finditer(
         re.compile(constants._WORD_SPLIT_RESPECT_QUOTES), sentence):
         w = m.group(0)
-        if set(w) == {'_'}:
+        if set(w) == {'e'}:
             surface, category = ner_by_char_pos[(m.start(0), m.end(0))]
             normalized_words.append(category)
             ner_by_token_id[i] = (surface, category)
@@ -161,7 +161,7 @@ def annotate_ner(pattern, category, sentence, entities):
             else m.start(0)
         rep_end = m.end(0) - 1 if re.match(r'\s', sentence[m.end(0)-1]) \
             else m.end(0)
-        sentence = sentence[:rep_start] + '_' * (rep_end - rep_start) + \
+        sentence = sentence[:rep_start] + 'e' * (rep_end - rep_start) + \
                    sentence[rep_end:]
         ner_by_char_pos[(rep_start, rep_end)] = (surface, category)
         ner_by_category[category].append((surface, rep_start, rep_end))
