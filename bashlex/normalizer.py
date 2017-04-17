@@ -156,7 +156,7 @@ def special_command_normalization(cmd):
     cmd = cmd.replace(" xargs -iname ", " xargs ")
     cmd = cmd.replace(" -chour +1 ", " -cmin 60 ")
     cmd = cmd.replace(" -target-directory ", " --target-directory=")
-    cmd = cmd.replace("- perm", "-perm")
+    cmd = cmd.replace(" perm", "-perm")
     cmd = cmd.replace("'-rd\\n' ", '')
 
     ## remove shell character
@@ -1056,8 +1056,8 @@ def to_command(node, loose_constraints=False, ignore_flag_order=False):
             assert(loose_constraints or node.get_num_of_children() == 0)
             if lc and node.get_num_of_children() > 0:
                 if node.associate == UnaryLogicOpNode.RIGHT:
-                    str += '{} {}'.format(node.value,
-                                to_command_fun(node.get_left_child()))
+                    str += '{} {}'.format(
+                        node.value, to_command_fun(node.get_left_child()))
                 else:
                     str += '{} {}'.format(
                         to_command_fun(node.get_left_child()), node.value)
