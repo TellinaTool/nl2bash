@@ -90,8 +90,7 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
     """Very basic English tokenizer."""
     sentence = clean_sentence(sentence)
     print(sentence)
-    words = max(re.findall(constants._WORD_SPLIT_RESPECT_QUOTES, sentence),
-                key=len)
+    words = [x[0] for x in re.findall(constants._WORD_SPLIT_RESPECT_QUOTES, sentence)]
     print(words)
 
     normalized_words = []
