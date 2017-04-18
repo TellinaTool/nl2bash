@@ -72,7 +72,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
                     print('alignment ({}, {}): {}\t{}\t{}'.format(
                         f, s, nl_fillers[f], cm_slots[s], raw_scores[ii][0]))
 
-    mappings, remained_fillers = stable_marriage_alignment(M)
+    mappings, remained_fillers = stable_marriage_alignment_with_partial(M)
     if not remained_fillers:
         for f, s in mappings:
             template_tokens[s] = get_fill_in_value(cm_slots[s], nl_fillers[f])
@@ -159,7 +159,7 @@ def heuristic_slot_filling(node, ner_by_category):
 
     return True
 
-def stable_marriage_alignment(M):
+def stable_marriage_alignment_with_partial(M, include_partial_mappings=False):
     """
     Return the stable marriage alignment between two sets of entities (fillers
     and slots).
@@ -168,6 +168,8 @@ def stable_marriage_alignment(M):
         represented by the rows and columns of M.
 
         M(i, j) = -inf implies that i and j are incompatible.
+    :param include_partial_mappings: if set to True, consider partial word
+        mapping between the source and target.
 
     """
     preferred_list_by_row = {}
@@ -238,7 +240,7 @@ def slot_filler_alignment_induction(nl, cm, verbose=False):
                     slot_value, filler_value, slot_type)
             else:
                 M[i][j] = -np.inf
-    mappings, remained_fillers = stable_marriage_alignment(M)
+    mappings, remained_fillers = stable_marriage_alignment_with_partial(M)
 
     if verbose:
         print('nl: {}'.format(nl))
@@ -277,8 +279,13 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
                 strip(filler_value).lower():
                 return 1
         else:
-            if strip(slot_value).lower() == strip(filler_value).lower():
+            sv = strip(slot_value).lower()
+            fv = strip(filler_value).lower()
+            if sv == fv:
                 return 1
+            elif fv in sv:
+                # include partial match
+                return 0.5
         return -np.inf
     else:
         if filler_value is None:
