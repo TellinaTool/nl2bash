@@ -115,8 +115,8 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
         nl_fillers = entities[0]
-    decoded_outputs = decode(token_ids, model_outputs, FLAGS, vocabs, nl_fillers,
-                             slot_filling_classifier)
+    decoded_outputs = decode(formatted_example.encoder_inputs, model_outputs,
+                             FLAGS, vocabs, nl_fillers, slot_filling_classifier)
 
     return decoded_outputs, output_logits
 
@@ -197,7 +197,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                 copy_idx = \
                                     batch_copy_indices[batch_id, beam_id, ii]
                                 pred_token = \
-                                    rev_sc_vocab[encoder_inputs[copy_idx]]
+                                    rev_sc_vocab[encoder_inputs[copy_idx][batch_id]]
                             if nl_fillers is not None:
                                 if ii > 0 and slot_filling.is_min_flag(
                                         rev_tg_vocab[outputs[ii-1]]):
