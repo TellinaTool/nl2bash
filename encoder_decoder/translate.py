@@ -486,11 +486,15 @@ def gen_slot_filling_training_data():
 
 # --- Pre-processing --- #
 
-def load_data(use_buckets=True, load_mappings=True):
+def load_data(use_buckets=True, load_mappings=True, load_pointers=True):
     if use_buckets:
-        return data_utils.load_data(FLAGS, _buckets, load_mappings=load_mappings)
+        return data_utils.load_data(FLAGS, _buckets,
+                                    load_mappings=load_mappings,
+                                    load_pointers=load_pointers)
     else:
-        return data_utils.load_data(FLAGS, None, load_mappings=load_mappings)
+        return data_utils.load_data(FLAGS, None,
+                                    load_mappings=load_mappings,
+                                    load_pointers=load_pointers)
 
 
 def process_data():
@@ -531,7 +535,7 @@ def main(_):
     elif FLAGS.gen_slot_filling_training_data:
         gen_slot_filling_training_data()
     elif FLAGS.eval_slot_filling:
-        _, dev_set, test_set = load_data(load_mappings=True)
+        _, dev_set, test_set = load_data()
         dataset = test_set if FLAGS.test else dev_set
         eval_slot_filling(dataset)
     elif FLAGS.eval_local_slot_filling:
