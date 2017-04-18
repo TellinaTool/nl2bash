@@ -75,6 +75,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.encoder_attn_masks = []    # mask out PAD symbols in the encoder
         self.decoder_inputs = []        # decoder inputs (always start with "_GO").
         self.target_weights = []        # weights at each position of the target sequence.
+        self.pointer_targets = None
 
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(
@@ -118,23 +119,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                  for i in xrange(self.max_target_length)]
 
         if self.use_copy:
-            self.original_encoder_inputs = []   # original encoder inputs.
-                                                # used for accurate detection of copy action.
-            self.original_decoder_inputs = []   # original decoder inputs.
-                                                # used for accurate detection of copy action.
-            self.copy_masks = []                # copy masks.
-                                                # mark position in the inputs that are copyable.
-            for i in xrange(self.max_source_length):
-                self.original_encoder_inputs.append(
-                    tf.placeholder(tf.int32, shape=[None],
-                                   name="original_encoder{0}".format(i)))
-                self.copy_masks.append(
-                    tf.placeholder(tf.int32, shape=[None],
-                                   name="copy_mask{0}".format(i)))
             for i in xrange(self.max_target_length):
-                self.original_decoder_inputs.append(
-                    tf.placeholder(tf.int32, shape=[None],
-                                   name="original_decoder{0}".format(i)))
+                self.pointer_targets = \
+                    tf.placeholder(tf.int32, shape=[None, None, None],
+                                   name="pointer_targets")
 
         # Compute training outputs and losses in the forward direction.
         if self.buckets:
@@ -261,7 +249,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         attention_reg = self.attention_regularization(attn_alignments) \
             if self.tg_token_use_attention else 0
-        copy_loss = self.copy_loss(pointers) if self.use_copy else 0
+        copy_loss = self.copy_loss(pointers) \
+            if self.use_copy else 0
 
         if self.tg_char:
             # re-arrange character inputs
@@ -339,7 +328,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def copy_loss(self, pointers):
-        return 0
+        return tf.reduce_mean(tf.pow(pointers - pointer_targets, 2))
 
 
     def attention_regularization(self, attn_alignments):
@@ -347,8 +336,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         :param attn_alignments: [batch_size, decoder_size, encoder_size]
         """
-
-        # P_unnorm = tf.reduce_sum(attn_alignments, 2)
+        # P_unnorm = tf.reduce_sum(attn_alignments, 1)
         # Z = tf.reduce_sum(P_unnorm, 1, keep_dims=True)
         # P = P_unnorm / Z
         # return tf.reduce_mean(tf.reduce_sum(P * tf.log(P), 1))
@@ -383,7 +371,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                              .format(self.tg_char_composition))
 
     def format_example(self, encoder_channel_inputs, decoder_channel_inputs,
-                       bucket_id=-1):
+                       pointer_targets=None, bucket_id=-1):
         """
         Prepare the data to be fed into the neural model.
 
@@ -391,6 +379,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             indices for different encoder channels [[...], [...], ...]
         :param decoder_channel_inputs: list of (batch of) sequence
             indices for different decoder channels [[...], [...], ...]
+        :param pointer_targets: batch of copying index matrices
+            [[...], [...] ...] if use_copy is true.
         :param bucket_id: bucket id of the current batch
 
         Returns:
@@ -424,8 +414,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if bucket_id >= 0:
             encoder_size, decoder_size = self.buckets[bucket_id]
         else:
-            encoder_size, decoder_size = \
-                self.max_source_length, self.max_target_length
+            encoder_size, decoder_size = self.max_source_length, \
+                                         self.max_target_length
 
         batch_size = len(encoder_channel_inputs[0])
         # create batch-major vectors
@@ -501,11 +491,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
             assert(batch_char_target_weights[0].shape[1] == self.max_target_token_size + 1)
             E.char_decoder_inputs = batch_char_decoder_inputs
             E.char_target_weights = batch_char_target_weights
-        # print("E.decoder_inputs: {}".format(E.decoder_inputs[1]))
+        if self.use_copy:
+            E.pointer_targets = np.concatenate(pointer_targets, 0)[:,
+                                :decoder_size, :encoder_size]
+
         return E
 
 
-    def get_batch(self, data, bucket_id, copy_data=None):
+    def get_batch(self, data, bucket_id):
         """Get a random batch of data from the specified bucket, prepare for step.
 
         To feed data in step(..) it must be a list of batch-major vectors, while
@@ -523,6 +516,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """
         encoder_inputs, encoder_full_inputs, decoder_inputs, \
             decoder_full_inputs = [], [], [], []
+        pointer_targets = []
 
         # Get a random batch of encoder and decoder inputs from data,
         # pad them if needed, reverse encoder inputs and add GO to decoder.
@@ -533,25 +527,33 @@ class EncoderDecoderModel(graph_utils.NNModel):
             decoder_inputs.append(random_example[3])
             decoder_full_inputs.append(random_example[5])
 
+            if self.use_copy:
+                pointer_targets.append(random_example[-1])
+
         return self.format_example([encoder_inputs, encoder_full_inputs],
                                    [decoder_inputs, decoder_full_inputs],
+                                   pointer_targets=pointer_targets,
                                    bucket_id=bucket_id)
 
 
-    def get_bucket(self, data, bucket_id, copy_data=None):
+    def get_bucket(self, data, bucket_id):
         """Get all data points from the specified bucket, prepare for step.
         """
         encoder_inputs, encoder_full_inputs, decoder_inputs, \
             decoder_full_inputs = [], [], [], []
+        pointer_targets = []
 
         for i in xrange(len(data[bucket_id])):
             encoder_inputs.append(data[bucket_id][i][2])
             encoder_full_inputs.append(data[bucket_id][i][4])
             decoder_inputs.append(data[bucket_id][i][3])
             decoder_full_inputs.append(data[bucket_id][i][5])
+            if self.use_copy:
+                pointer_targets.append(data[bucket_id][i][-1])
 
         return self.format_example([encoder_inputs, encoder_full_inputs],
                                    [decoder_inputs, decoder_full_inputs],
+                                   pointer_targets=pointer_targets,
                                    bucket_id=bucket_id)
 
 
@@ -582,6 +584,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     E.char_decoder_inputs[l]
                 input_feed[self.char_target_weights[l].name] = \
                     E.char_target_weights[l]
+
+        if self.use_copy:
+            input_feed[self.pointer_targets.name] = E.pointer_targets
 
         return input_feed
 
@@ -675,7 +680,8 @@ class Example(object):
         self.decoder_inputs = None
         self.target_weights = None
         self.char_decoder_inputs = None
-        self.cahr_target_weights = None
+        self.char_target_weights = None
+        self.pointer_targets = None
 
 
 class Output(object):
