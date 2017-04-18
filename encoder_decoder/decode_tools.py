@@ -197,7 +197,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                 copy_idx = \
                                     batch_copy_indices[batch_id, beam_id, ii]
                                 pred_token = \
-                                    rev_sc_vocab[encoder_inputs[copy_idx]]
+                                    rev_sc_vocab[encoder_inputs[copy_idx][batch_id]]
                             if nl_fillers is not None:
                                 if ii > 0 and slot_filling.is_min_flag(
                                         rev_tg_vocab[outputs[ii-1]]):
