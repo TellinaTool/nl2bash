@@ -72,6 +72,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["margin"] = FLAGS.margin
 
     params["use_copy"] = FLAGS.use_copy
+    params["copy_fun"] = FLAGS.copy_fun
+    params["chi"] = FLAGS.chi
 
     params["tg_token_attn_fun"] = FLAGS.tg_token_attn_fun
     params["attention_input_keep"] = FLAGS.attention_input_keep
@@ -274,10 +276,6 @@ class NNModel(object):
     # --- model architecture hyperparameters --- #
 
     @property
-    def use_copy(self):
-        return self.hyperparams["use_copy"]
-
-    @property
     def encoder_topology(self):
         return self.hyperparams["encoder_topology"]
 
@@ -432,6 +430,19 @@ class NNModel(object):
     @property
     def gamma(self):
         return self.hyperparams["gamma"]
+
+    # -- copy mechanism -- #
+    @property
+    def use_copy(self):
+        return self.hyperparams["use_copy"]
+
+    @property
+    def copy_fun(self):
+        return self.hyperparams["copy_fun"]
+
+    @property
+    def chi(self):
+        return self.hyperparams["chi"]
 
     # -- optimization parameters -- #
 
