@@ -142,6 +142,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.output_logits = []
             self.losses = []
             self.attn_alignments = []
+            self.pointers = []
             if self.tg_char:
                 self.char_output_symbols = []
                 self.char_output_logits = []
@@ -244,10 +245,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
             attention_states = None
         
         # Losses.
-        output_symbols, output_logits, outputs, states, attn_alignments = \
-            self.decoder.define_graph(
-                encoder_state, decoder_inputs, encoder_attn_masks,
-                attention_states, num_heads=1, forward_only=forward_only)
+        output_symbols, output_logits, outputs, states, attn_alignments, \
+            pointers = self.decoder.define_graph(
+                        encoder_state, decoder_inputs, encoder_attn_masks,
+                        attention_states, num_heads=1, forward_only=forward_only)
         if forward_only or self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
                                    outputs, targets, target_weights,
@@ -260,6 +261,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         attention_reg = self.attention_regularization(attn_alignments) \
             if self.tg_token_use_attention else 0
+        copy_loss = self.copy_loss(pointers) if self.use_copy else 0
 
         if self.tg_char:
             # re-arrange character inputs
@@ -298,6 +300,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
        
         losses = encoder_decoder_token_loss + \
                  self.gamma * encoder_decoder_char_loss + \
+                 self.chi * copy_loss + \
                  self.beta * attention_reg
 
         # store encoder/decoder output states
@@ -335,15 +338,22 @@ class EncoderDecoderModel(graph_utils.NNModel):
         return avg_log_perps
 
 
+    def copy_loss(self, pointers):
+        return 0
+
+
     def attention_regularization(self, attn_alignments):
-        """Entropy regularization term."""
+        """Entropy regularization term.
+
+        :param attn_alignments: [batch_size, decoder_size, encoder_size]
+        """
 
         # P_unnorm = tf.reduce_sum(attn_alignments, 2)
         # Z = tf.reduce_sum(P_unnorm, 1, keep_dims=True)
         # P = P_unnorm / Z
         # return tf.reduce_mean(tf.reduce_sum(P * tf.log(P), 1))
 
-        P = tf.reduce_sum(attn_alignments, 2)
+        P = tf.reduce_sum(attn_alignments, 1)
         P_exp = tf.exp(P)
         Z = tf.reduce_sum(P_exp, 1, keep_dims=True)
         return tf.reduce_mean(tf.reduce_sum(P_exp / Z * (P - tf.log(Z)), 1))
