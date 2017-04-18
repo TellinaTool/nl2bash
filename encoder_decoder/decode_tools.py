@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
-from encoder_decoder import classifiers, data_utils, graph_utils
+from encoder_decoder import classifiers, data_utils
 from bashlex import data_tools
 from nlp_tools import constants, slot_filling, tokenizer
 from eval.eval_archive import DBConnection
@@ -30,7 +30,8 @@ def demo(sess, model, FLAGS):
         # create slot filling classifier
         mapping_param_dir = os.path.join(
             FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        train_X, train_Y = data_utils.load_slot_filling_data(mapping_param_dir)
+        train_X, train_Y = \
+            data_utils.load_slot_filling_data(mapping_param_dir)
         slot_filling_classifier = classifiers.KNearestNeighborModel(
             FLAGS.num_nn_slot_filling, train_X, train_Y)
         print('Slot filling classifier parameters loaded.')
@@ -114,13 +115,13 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
         nl_fillers = entities[0]
-    decoded_outputs = decode(model_outputs, FLAGS, vocabs, nl_fillers,
+    decoded_outputs = decode(token_ids, model_outputs, FLAGS, vocabs, nl_fillers,
                              slot_filling_classifier)
 
     return decoded_outputs, output_logits
 
 
-def decode(model_outputs, FLAGS, vocabs, nl_fillers=None,
+def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
            slot_filling_classifier=None):
     """
     Transform the neural network output into readable strings and apply the
@@ -152,18 +153,25 @@ def decode(model_outputs, FLAGS, vocabs, nl_fillers=None,
     batch_outputs = []
     num_output_examples = 0
 
-    for i in xrange(len(output_symbols)):
-        top_k_predictions = output_symbols[i]
+    # prepare copied indices
+    if FLAGS.use_copy:
+        pointers = model_outputs.pointers
+        sentence_length = pointers.shape[1]
+        batch_copy_indices = np.reshape(np.argmax(pointers, 2),
+                [FLAGS.batch_size, FLAGS.beam_size, sentence_length])
+
+    for batch_id in xrange(len(output_symbols)):
+        top_k_predictions = output_symbols[batch_id]
         assert((FLAGS.token_decoding_algorithm == "greedy") or 
                len(top_k_predictions) == FLAGS.beam_size)
         if FLAGS.token_decoding_algorithm == "beam_search":
             beam_outputs = []
         else:
             top_k_predictions = [top_k_predictions]
-        for j in xrange(len(top_k_predictions)):
+        for beam_id in xrange(len(top_k_predictions)):
 
             # Step 1: transform the neural network output into readable strings
-            prediction = top_k_predictions[j]
+            prediction = top_k_predictions[beam_id]
             outputs = [int(pred) for pred in prediction]
             # If there is an EOS symbol in outputs, cut them at that point.
             if data_utils.EOS_ID in outputs:
@@ -183,15 +191,21 @@ def decode(model_outputs, FLAGS, vocabs, nl_fillers=None,
                         pred_token = rev_tg_vocab[output]
                         if "@@" in pred_token:
                             pred_token = pred_token.split("@@")[-1]
+                        # process argument slots
+                        if pred_token in constants._ENTITIES:
+                            if FLAGS.use_copy:
+                                copy_idx = \
+                                    batch_copy_indices[batch_id, beam_id, ii]
+                                pred_token = \
+                                    rev_sc_vocab[encoder_inputs[copy_idx]]
+                            if nl_fillers is not None:
+                                if ii > 0 and slot_filling.is_min_flag(
+                                        rev_tg_vocab[outputs[ii-1]]):
+                                    pred_token_type = 'Timespan'
+                                else:
+                                    pred_token_type = pred_token
+                                cm_slots[ii] = (pred_token, pred_token_type)
                         output_tokens.append(pred_token)
-                        if nl_fillers is not None and \
-                                pred_token in constants._ENTITIES:
-                            if ii > 0 and slot_filling.is_min_flag(
-                                    rev_tg_vocab[outputs[ii-1]]):
-                                pred_token_type = 'Timespan'
-                            else:
-                                pred_token_type = pred_token
-                            cm_slots[ii] = (pred_token, pred_token_type)
                     else:
                         output_tokens.append(data_utils._UNK)
                 tg = " ".join(output_tokens)
@@ -223,11 +237,9 @@ def decode(model_outputs, FLAGS, vocabs, nl_fillers=None,
                             # Step 3: match the fillers to the argument slots
                             tree2, temp, _ = slot_filling.stable_slot_filling(
                                 output_tokens, nl_fillers, cm_slots,
-                                encoder_outputs[i],
-                                decoder_outputs[i*FLAGS.beam_size+j],
-                                slot_filling_classifier,
-                                verbose=False
-                            )
+                                encoder_outputs[batch_id],
+                                decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
+                                slot_filling_classifier, verbose=False)
                             if temp is not None:
                                 output_example = True
                                 tree = tree2
@@ -279,26 +291,14 @@ def decode(model_outputs, FLAGS, vocabs, nl_fillers=None,
                 beam_char_outputs.append(' '.join(sent))
             batch_char_outputs.append(beam_char_outputs)
         return batch_outputs, batch_char_outputs
-    elif FLAGS.use_copy:
-        pointers = model_outputs.pointers
-        sentence_length = pointers.shape[1]
-        batch_copy_indices = np.reshape(np.argmax(pointers, 2),
-                [FLAGS.batch_size, FLAGS.beam_size, sentence_length])
-        batch_copy_outputs = []
-        for batch_id in xrange(FLAGS.batch_size):
-            beam_copy_outputs = []
-            for k in xrange(FLAGS.beam_size):
-                sent = []
-                for j in xrange(sentence_length):
-                    sent.append(batch_copy_indices[batch_id, k, j])
-                beam_copy_outputs.append(' '.join(sent))
-            batch_copy_outputs.append(beam_copy_outputs)
-        return batch_outputs, batch_copy_outputs
     else:
         return batch_outputs
 
 
 def decode_set(sess, model, dataset, FLAGS, verbose=True):
+    APOLOGY_MSG = \
+        "I'm very sorry, I can't translate this command at the moment."
+
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
                                                   use_temp=False)
     vocabs = data_utils.load_vocab(FLAGS)
@@ -329,7 +329,7 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
             assert(len(sc_strs) == len(tgs))
             assert(len(sc_strs) == len(cm_fulls))
             assert(len(tgs) == len(tg_fulls))
-            # print(rev_sc_vocab)
+
             sc_normalized_temp = ' '.join([rev_sc_vocab[i] for i in scs[0]])
             if verbose:
                 print("Example {}:".format(example_id))
@@ -383,15 +383,13 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                                 db.add_prediction(model.model_sig, 
                                     sc_temp.encode('utf-8'),
                                     top_k_pred_cmd.encode('utf-8'), 
-                                    float(top_k_scores[j]),
-                                    update_mode=False)
+                                    float(top_k_scores[j]), update_mode=False)
                             except UnicodeDecodeError:
                                 db.add_prediction(model.model_sig, '', '',
-                                    float(top_k_scores[j]),
-                                    update_mode=False)
+                                    float(top_k_scores[j]), update_mode=False)
                     print()
                 else:
-                    print("I'm very sorry, I can't translate this command at the moment.")
+                    print(APOLOGY_MSG)
 
             # if attn_alignments is not None:
             #     if FLAGS.token_decoding_algorithm == "greedy":
