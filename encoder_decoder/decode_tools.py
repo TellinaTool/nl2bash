@@ -290,8 +290,7 @@ def decode(model_outputs, FLAGS, vocabs, nl_fillers=None,
             for k in xrange(FLAGS.beam_size):
                 sent = []
                 for j in xrange(sentence_length):
-                    sent.append(
-                        rev_sc_vocab[batch_copy_indices[batch_id, k, j]])
+                    sent.append(batch_copy_indices[batch_id, k, j])
                 beam_copy_outputs.append(' '.join(sent))
             batch_copy_outputs.append(beam_copy_outputs)
         return batch_outputs, batch_copy_outputs
