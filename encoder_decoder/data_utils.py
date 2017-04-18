@@ -742,7 +742,7 @@ def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
         print("Saving slot-filling mapping to {}".format(data_dir))
 
         pointer_targets = np.zeros(
-            [data_size, FLAGS.max_tg_length, FLAGS.max_sc_size],
+            [data_size, FLAGS.max_tg_length, FLAGS.max_sc_length],
             dtype=np.int32)
         with open(slot_filling_mapping_file, 'w') as o_f:
             pair_list = zip(nl_list, cm_list)
