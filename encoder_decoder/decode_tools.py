@@ -127,7 +127,7 @@ def decode(model_outputs, FLAGS, vocabs, nl_fillers=None,
     relevant filters.
     """
 
-    _, _, _, rev_tg_vocab = vocabs[:4]
+    _, rev_sc_vocab, _, rev_tg_vocab = vocabs[:4]
     rev_tg_char_vocab = vocabs[-1] if FLAGS.tg_char else None
 
     encoder_outputs = model_outputs.encoder_hidden_states
@@ -281,7 +281,20 @@ def decode(model_outputs, FLAGS, vocabs, nl_fillers=None,
         return batch_outputs, batch_char_outputs
     elif FLAGS.use_copy:
         pointers = model_outputs.pointers
-        
+        sentence_length = pointers.shape[1]
+        batch_copy_indices = np.reshape(np.argmax(pointers, -1),
+                [FLAGS.batch_size, FLAGS.beam_size, sentence_length])
+        batch_copy_outputs = []
+        for batch_id in xrange(FLAGS.batch_size):
+            beam_copy_outputs = []
+            for k in xrange(FLAGS.beam_size):
+                sent = []
+                for j in xrange(sentence_length):
+                    sent.append(
+                        rev_sc_vocab[batch_copy_indices[batch_id, k, j]])
+                beam_copy_outputs.append(' '.join(sent))
+            batch_copy_outputs.append(beam_copy_outputs)
+        return batch_outputs, batch_copy_outputs
     else:
         return batch_outputs
 
@@ -330,6 +343,8 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                 vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
             if FLAGS.tg_char:
                 batch_outputs, batch_char_outputs = batch_outputs
+            elif FLAGS.use_copy:
+                batch_outputs, batch_copy_outputs = batch_outputs
 
             if FLAGS.token_decoding_algorithm == "greedy":
                 tree, pred_cmd, outputs = batch_outputs[0]
@@ -342,6 +357,8 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                     top_k_predictions = batch_outputs[0]
                     if FLAGS.tg_char:
                         top_k_char_predictions = batch_char_outputs[0]
+                    if FLAGS.use_copy:
+                        top_k_copy_predictions = batch_copy_outputs[0]
                     top_k_scores = output_logits[0]
                     for j in xrange(min(FLAGS.beam_size, 10,
                                         len(batch_outputs[0]))):
@@ -355,6 +372,9 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             if FLAGS.tg_char:
                                 print("Character-based prediction {}: {}".format(
                                     j+1, top_k_char_predictions[j]))
+                            if FLAGS.use_copy:
+                                print("Copy content prediction {}: {}".format(
+                                    j+1, top_k_copy_predictions[j]))
                         try:
                             db.add_prediction(model.model_sig, sc_temp,
                                 top_k_pred_cmd, float(top_k_scores[j]),
