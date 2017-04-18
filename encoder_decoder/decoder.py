@@ -48,6 +48,7 @@ class Decoder(graph_utils.NNModel):
             self.batch_size,
             self.beam_size,
             self.use_attention,
+            self.use_copy,
             self.alpha,
             locally_normalized=(
                 self.training_algorithm != "bso"

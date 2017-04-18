@@ -745,7 +745,7 @@ def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
             [data_size, FLAGS.max_tg_length, FLAGS.max_sc_length],
             dtype=np.int32)
         with open(slot_filling_mapping_file, 'w') as o_f:
-            pair_list = zip(nl_list, cm_list)
+            pair_list = list(zip(nl_list, cm_list))
             for idx in xrange(len(pair_list)):
                 nl, cm = pair_list[idx]
                 mappings = \
@@ -814,7 +814,7 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
 
     grouped_dataset = {}
     for i in xrange(len(dataset)):
-        nl_str, cm_str, nl, cm, nl_full, cm_full, _ = dataset[i]
+        nl_str, cm_str, nl, cm, nl_full, cm_full, _, _ = dataset[i]
         if use_temp:
             words, _ = tokenizer.ner_tokenizer(nl_str)
             nl_template = " ".join(words)
@@ -1025,10 +1025,12 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
     sc_full_id_file = tf.gfile.GFile(sc_full_id_path, mode="r")
     tg_full_id_file = tf.gfile.GFile(tg_full_id_path, mode="r")
     if load_mappings:
-        mapping_path = sc_path.rsplit('.')[0] + '.mappings'
+        data_dir, file_name = os.path.split(sc_path)
+        mapping_path = os.path.join(data_dir, 
+                                    file_name.split('.')[0] + '.mappings')
         mapping_file = tf.gfile.GFile(mapping_path, mode="r")
     if load_pointers:
-        pointer_targets = np.load(mapping_path)
+        pointer_targets = np.load(mapping_path + ".npy")
 
     data_idx = 0
     while True:
@@ -1043,7 +1045,6 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
         if max_num_examples and data_idx < max_num_examples:
             break
 
-        data_idx += 1
         if data_idx % 1000 == 0:
             print("  reading data line %d" % data_idx)
             sys.stdout.flush()
@@ -1062,7 +1063,8 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
             data_point.append(mappings)
         if load_pointers:
             data_point.append(pointer_targets[data_idx])
-
+        data_idx += 1
+        
         if buckets:
             for bucket_id, (sc_size, tg_size) in enumerate(buckets):
                 if len(sc_ids) < sc_size and len(tg_ids) < tg_size:
