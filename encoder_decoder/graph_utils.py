@@ -174,6 +174,8 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
         model_subdir += '-{}'.format(FLAGS.attention_input_keep)
         model_subdir += '-{}'.format(FLAGS.attention_output_keep)
         model_subdir += '-{}'.format(FLAGS.beta)
+    if FLAGS.use_copy:
+        model_subdir += '-copy'
     model_subdir += '-{}'.format(FLAGS.batch_size)
     if FLAGS.sc_token:
         model_subdir += '-{}'.format(FLAGS.sc_token_dim)
