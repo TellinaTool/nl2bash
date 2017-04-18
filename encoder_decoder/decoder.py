@@ -78,7 +78,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def __init__(self, cell, attention_states, encoder_attn_masks,
                  attention_function, attention_input_keep,
-                 attention_output_keep, num_heads, rnn_cell, num_layers):
+                 attention_output_keep, num_heads, rnn_cell, num_layers,
+                 use_copy, copy_fun="hierachical"):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
@@ -89,6 +90,9 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                           Dummy field if attention_states is None.
         :param rnn_cell: Type of rnn cells used.
         :param num_layers: Number of layers in the RNN cells.
+
+        :param use_copy: Copy source tokens to the target.
+        :param copy_fun: Parameterization of the copying function.
         """
         attention_states = tf.nn.dropout(attention_states, attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
@@ -116,6 +120,9 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.hidden = hidden
         self.hidden_features = hidden_features
         self.v = v
+
+        self.use_copy = use_copy
+        self.copy_fun = copy_fun
 
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
@@ -159,7 +166,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attention_vars = True
         return attns, attn_alignment
 
-    def __call__(self, input_embedding, state, attn_alignments, scope=None):
+    def __call__(self, input_embedding, state, attn_alignments, pointers=None,
+                 scope=None):
         if nest.is_sequence(state):
             dim = state[1].get_shape()[1].value
         else:
@@ -190,6 +198,16 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             output = tf.nn.rnn_cell._linear(
               tf.nn.dropout(attn_state, self.attention_output_keep), dim, True)
 
+        if self.use_copy:
+            with tf.variable_scope("CopyProbability"):
+                cp = tf.nn.sigmoid(tf.nn.rnn_cell._linear(
+                    [top_state, attns], 1, True))
+                pointers.append(tf.expand_dims(attn_alignment * cp, 1))
+
         self.attention_cell_vars = True
         attn_alignments.append(tf.expand_dims(attn_alignment, 1))
-        return output, state, attn_alignments
+
+        if self.use_copy:
+            return output, state, attn_alignments, pointers
+        else:
+            return output, state, attn_alignments
