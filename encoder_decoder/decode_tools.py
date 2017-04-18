@@ -282,7 +282,7 @@ def decode(model_outputs, FLAGS, vocabs, nl_fillers=None,
     elif FLAGS.use_copy:
         pointers = model_outputs.pointers
         sentence_length = pointers.shape[1]
-        batch_copy_indices = np.reshape(np.argmax(pointers, -1),
+        batch_copy_indices = np.reshape(np.argmax(pointers, 2),
                 [FLAGS.batch_size, FLAGS.beam_size, sentence_length])
         batch_copy_outputs = []
         for batch_id in xrange(FLAGS.batch_size):
