@@ -477,8 +477,10 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
 
 def prepare_bash(FLAGS, verbose=False):
     data_dir = FLAGS.data_dir
-    nl_vocab_size = FLAGS.nl_vocab_size
-    cm_vocab_size = FLAGS.cm_vocab_size
+    nl_vocab_size = FLAGS.tg_vocab_size \
+        if FLAGS.explain else FLAGS.sc_vocab_size
+    cm_vocab_size = FLAGS.sc_vocab_size \
+        if FLAGS.explain else FLAGS.tg_vocab_size
 
     def add_to_set(nl_data, cm_data, split):
         with_parent = True
