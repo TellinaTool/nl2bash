@@ -1040,7 +1040,9 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
     sc_full_id_file = tf.gfile.GFile(sc_full_id_path, mode="r")
     tg_full_id_file = tf.gfile.GFile(tg_full_id_path, mode="r")
     if load_mappings:
-        mapping_path = sc_path.rsplit('.')[0] + '.mappings'
+        data_dir, file_name = os.path.split(sc_path)
+        mapping_path = os.path.join(data_dir, 
+                                    file_name.split('.')[0] + '.mappings')
         mapping_file = tf.gfile.GFile(mapping_path, mode="r")
 
     counter = 0
