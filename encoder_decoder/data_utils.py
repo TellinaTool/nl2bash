@@ -748,12 +748,11 @@ def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
             pair_list = list(zip(nl_list, cm_list))
             for idx in xrange(len(pair_list)):
                 nl, cm = pair_list[idx]
-                mappings = \
-                    slot_filling.slot_filler_alignment_induction(nl, cm)
+                mappings = slot_filling.slot_filler_alignment_induction(nl, cm)
                 if mappings:
                     for i, j in sorted(mappings, key=lambda x:x[0]):
                         o_f.write('{}-{} '.format(i, j))
-                        pointer_targets[idx, j, i] = 1
+                        pointer_targets[idx, j, -(i+1)] = 1
                 o_f.write('\n')
 
         np.save(slot_filling_mapping_file,
