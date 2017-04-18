@@ -74,12 +74,12 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     sc_vocab, _, _, rev_tg_vocab = vocabs[:4]
-    rev_tg_char_vocab = vocabs[-1] if FLAGS.tg_char else None
 
     if FLAGS.explain:
-        tokens = data_tools.bash_tokenizer(sentence, arg_type_only=FLAGS.normalized)
-        token_ids, _ = data_utils.sentence_to_token_ids(tokens, sc_vocab,
-                data_tools.bash_tokenizer, None)
+        tokens = data_tools.bash_tokenizer(
+            sentence, arg_type_only=FLAGS.normalized)
+        token_ids, _ = data_utils.sentence_to_token_ids(
+            tokens, sc_vocab, data_tools.bash_tokenizer, None)
     else:
         if FLAGS.char:
             token_ids, entities = data_utils.sentence_to_token_ids(sentence,
@@ -88,9 +88,8 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
         else:
             token_ids, entities = data_utils.sentence_to_token_ids(
                 sentence, sc_vocab, tokenizer.ner_tokenizer, None)
-            token_full_ids, _ = data_utils.sentence_to_token_ids(
-                sentence, sc_vocab, tokenizer.basic_tokenizer, None,
-                use_unk=False)
+            token_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
+                sc_vocab, tokenizer.basic_tokenizer, None, use_unk=False)
     
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
@@ -98,7 +97,8 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [[token_ids], [token_full_ids]], [[[data_utils.ROOT_ID]], [[data_utils.ROOT_ID]]],
+        [[token_ids], [token_full_ids]],
+        [[[data_utils.ROOT_ID]], [[data_utils.ROOT_ID]]],
         pointer_targets=[np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])],
         bucket_id=bucket_id)
 
@@ -108,40 +108,31 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     # TODO: align output commands and their scores correctly
     model_outputs = model.step(sess, formatted_example, bucket_id,
         forward_only=True, return_rnn_hidden_states=FLAGS.fill_argument_slots)
-    output_symbols = model_outputs.output_symbols
     output_logits = model_outputs.output_logits
-    losses = model_outputs.losses
-    attn_alignments = model_outputs.attn_alignments
 
-    char_output_symbols = model_outputs.char_output_symbols if FLAGS.tg_char \
-        else None
-    nl_fillers, encoder_outputs, decoder_outputs = None, None, None
+    nl_fillers = None
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
         nl_fillers = entities[0]
-        encoder_outputs = model_outputs.encoder_hidden_states
-        decoder_outputs = model_outputs.decoder_hidden_states
-    batch_outputs = decode(output_symbols, rev_tg_vocab, FLAGS,
-                           char_output_symbols=char_output_symbols,
-                           rev_tg_char_vocab=rev_tg_char_vocab,
-                           grammatical_only=FLAGS.grammatical_only,
-                           nl_fillers=nl_fillers,
-                           slot_filling_classifier=slot_filling_classifier,
-                           encoder_outputs=encoder_outputs,
-                           decoder_outputs=decoder_outputs)
+    decoded_outputs = decode(model_outputs, FLAGS, vocabs, nl_fillers,
+                             slot_filling_classifier)
 
-    return batch_outputs, output_logits
+    return decoded_outputs, output_logits
 
 
-def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
-           rev_tg_char_vocab=None, grammatical_only=True, nl_fillers=None,
-           slot_filling_classifier=None, encoder_outputs=None,
-           decoder_outputs=None):
+def decode(model_outputs, FLAGS, vocabs, nl_fillers=None,
+           slot_filling_classifier=None):
     """
     Transform the neural network output into readable strings and apply the
     relevant filters.
     """
-    if nl_fillers is None:
+
+    _, _, _, rev_tg_vocab = vocabs[:4]
+    rev_tg_char_vocab = vocabs[-1] if FLAGS.tg_char else None
+
+    encoder_outputs = model_outputs.encoder_outputs
+    decoder_outputs = model_outputs.decoder_outputs
+    if nl_fillers is not None:
         assert(slot_filling_classifier is None)
         assert(encoder_outputs is None)
         assert(decoder_outputs is None)
@@ -157,6 +148,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
     #     cmd = data_tools.ast2command(tree, loose_constraints=True)
     #     return tree, cmd, search_history
 
+    output_symbols = model_outputs.output_symbols
     batch_outputs = []
     num_output_examples = 0
 
@@ -217,7 +209,7 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
                         tree = data_tools.paren_parser(tg)
 
                 # filter out non-grammatical output
-                if tree is not None or not grammatical_only:
+                if tree is not None or not FLAGS.grammatical_only:
                     output_example = False
                     if FLAGS.explain or not FLAGS.dataset.startswith("bash"):
                         temp = tg
@@ -255,13 +247,15 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
             if beam_outputs:
                 batch_outputs.append(beam_outputs)
 
-    if char_output_symbols is not None:
-        char_output_symbols = char_output_symbols[0]
+    if FLAGS.tg_char:
+        char_output_symbols = model_outputs.char_output_symbols
         sentence_length = char_output_symbols.shape[0]
         batch_char_outputs = []
-        batch_char_predictions = [np.transpose(np.reshape(x, [sentence_length, FLAGS.beam_size, 
-                                                 FLAGS.max_tg_token_size + 1]), (1, 0, 2))
-                                  for x in np.split(char_output_symbols, FLAGS.batch_size, 1)]
+        batch_char_predictions = \
+            [np.transpose(np.reshape(x, [sentence_length, FLAGS.beam_size,
+                                         FLAGS.max_tg_token_size + 1]),
+                          (1, 0, 2))
+             for x in np.split(char_output_symbols, FLAGS.batch_size, 1)]
         for batch_id in xrange(len(batch_char_predictions)):
             beam_char_outputs = []
             top_k_char_predictions = batch_char_predictions[batch_id]
@@ -285,6 +279,9 @@ def decode(output_symbols, rev_tg_vocab, FLAGS, char_output_symbols=None,
                 beam_char_outputs.append(' '.join(sent))
             batch_char_outputs.append(beam_char_outputs)
         return batch_outputs, batch_char_outputs
+    elif FLAGS.use_copy:
+        pointers = model_outputs.pointers
+        
     else:
         return batch_outputs
 
