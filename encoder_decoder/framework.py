@@ -167,7 +167,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         tf.reshape(bucket_char_output_logits,
                                    [self.max_target_length,
                                     self.batch_size, self.beam_size]))
-                if forward_only and self.use_copy:
+                if self.use_copy:
                     self.pointers.append(encode_decode_outputs[-1])
         else:
             encode_decode_outputs = self.encode_decode(
@@ -180,7 +180,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                     )
             self.output_symbols, self.output_logits, self.losses, \
                 self.attn_alignments = encode_decode_outputs[:4]
-            if forward_only and self.tg_char:
+            if self.tg_char:
                 char_output_symbols, char_output_logits = \
                     encode_decode_outputs[4:6]
                 self.char_output_symbols = tf.reshape(char_output_symbols,
@@ -653,7 +653,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         output_feed['encoder_hidden_states'] = self.encoder_hidden_states
         output_feed['decoder_hidden_states'] = self.decoder_hidden_states
         
-        if self.tg_char:
+        if forward_only and self.tg_char:
             if bucket_id == -1:
                 output_feed['char_output_symbols'] = self.char_output_symbols
                 output_feed['char_output_logits'] = self.char_output_logits
