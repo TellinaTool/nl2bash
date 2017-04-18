@@ -206,7 +206,7 @@ def stable_marriage_alignment_with_partial(M, include_partial_mappings=False):
 
 # --- Heuristically induce slot-filling alignments from oracle translation pairs.
 
-def slot_filler_alignment_induction(nl, cm, verbose=False):
+def slot_filler_alignment_induction(nl, cm, verbose=True):
     """Give an oracle translation pair of (nl, cm), align the slot fillers
        extracted from the natural language with the slots in the command.
     """
@@ -240,6 +240,7 @@ def slot_filler_alignment_induction(nl, cm, verbose=False):
                     slot_value, filler_value, slot_type)
             else:
                 M[i][j] = -np.inf
+
     mappings, remained_fillers = stable_marriage_alignment_with_partial(M)
 
     if verbose:
@@ -249,8 +250,7 @@ def slot_filler_alignment_induction(nl, cm, verbose=False):
         print(cm_slots)
         for (i, j) in mappings:
             print('[{}] {} <-> [{}] {}'.format(
-                i, nl_fillers[i][0].decode('utf-8'),
-                j, cm_slots[j][0].decode('utf-8')))
+                i, nl_fillers[i][0], j, cm_slots[j][0]))
         for i in remained_fillers:
             print('filler {} is not matched to any slot\n'
                     .format(nl_fillers[i][0].encode('utf-8')))

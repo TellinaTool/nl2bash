@@ -135,12 +135,12 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
 
         normalized_words.append(word)
 
-    return normalized_words
+    return normalized_words, None
 
 
 def ner_tokenizer(sentence, lower_case=True, lemmatization=True,
                   remove_stop_words=True, correct_spell=True):
-    words = basic_tokenizer(sentence, lower_case=lower_case,
+    words, _ = basic_tokenizer(sentence, lower_case=lower_case,
                             lemmatization=lemmatization,
                             remove_stop_words=remove_stop_words,
                             correct_spell=correct_spell)
@@ -150,9 +150,11 @@ def ner_tokenizer(sentence, lower_case=True, lemmatization=True,
 
 def test_nl_tokenizer():
     while True:
-        nl = raw_input("> ")
+        nl = input("> ")
+        tokens, ners = basic_tokenizer(nl)
+        print(tokens, ners)
         tokens, ners = ner_tokenizer(nl)
-        print(tokens, ners[0])
+        print(tokens, ners)        
 
 
 if __name__ == '__main__':

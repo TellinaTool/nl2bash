@@ -79,7 +79,7 @@ def annotate(tokens):
                     '(' + constants._REL_DAY_RE + '|' + standard_time + '|' +
                     standard_datetime + '|' + textual_datetime + ')')))
     sentence = annotate_ner(_DATETIME_RE, constants._DATETIME, sentence, entities)
-
+    
     # -- Permission
     permission_bit = r'(suid|sgid|sticky|sticki)(\sbit)?'
     permission_bit_set = r'(set)?(uid|gid|sticky|sticki)(=\d+)*'
@@ -120,9 +120,11 @@ def annotate(tokens):
     normalized_words = []
     ner_by_char_pos, ner_by_category = entities
     i = 0
+    print(sentence)
     for m in re.finditer(
         re.compile(constants._WORD_SPLIT_RESPECT_QUOTES), sentence):
         w = m.group(0)
+        print(w)
         if set(w) == {'-'}:
             if (m.start(0), m.end(0)) in ner_by_char_pos:
                 surface, category = ner_by_char_pos[(m.start(0), m.end(0))]

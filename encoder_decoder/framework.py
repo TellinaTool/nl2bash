@@ -157,7 +157,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.attn_alignments.append(batch_attn_alignments)
                 if forward_only and self.tg_char:
                     bucket_char_output_symbols, bucket_char_output_logits = \
-                        encode_decode_outputs[4:]
+                        encode_decode_outputs[4:6]
                     self.char_output_symbols.append(
                         tf.reshape(bucket_char_output_symbols,
                                    [self.max_target_length,
@@ -167,6 +167,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         tf.reshape(bucket_char_output_logits,
                                    [self.max_target_length,
                                     self.batch_size, self.beam_size]))
+                if forward_only and self.use_copy:
+                    self.pointers.append(encode_decode_outputs[-1])
         else:
             encode_decode_outputs = self.encode_decode(
                                         self.encoder_channel_inputs,
@@ -178,9 +180,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                     )
             self.output_symbols, self.output_logits, self.losses, \
                 self.attn_alignments = encode_decode_outputs[:4]
-            if self.tg_char:
+            if forward_only and self.tg_char:
                 char_output_symbols, char_output_logits = \
-                    encode_decode_outputs[4:]
+                    encode_decode_outputs[4:6]
                 self.char_output_symbols = tf.reshape(char_output_symbols,
                                    [self.batch_size, self.beam_size,
                                     self.max_target_length,
@@ -188,6 +190,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.char_output_logits = tf.reshape(char_output_logits,
                                    [self.batch_size, self.beam_size,
                                     self.max_target_length])
+            if forward_only and self.use_copy:
+                self.pointers = encode_decode_outputs[-1]
+
 
         # Gradients and SGD updates in the backward direction.
         if not forward_only:
@@ -249,8 +254,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         attention_reg = self.attention_regularization(attn_alignments) \
             if self.tg_token_use_attention else 0
-        copy_loss = self.copy_loss(pointers) \
-            if self.use_copy else 0
+        copy_loss = self.copy_loss(pointers) if self.use_copy else 0
 
         if self.tg_char:
             # re-arrange character inputs
@@ -300,11 +304,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
             1, [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                 for d_o in states])
 
+        O = [output_symbols, output_logits, losses, attn_alignments]
         if self.tg_char:
-            return output_symbols, output_logits, losses, attn_alignments, \
-                char_output_symbols, char_output_logits
-        else:
-            return output_symbols, output_logits, losses, attn_alignments
+            O.append(char_output_symbols)
+            O.append(char_output_logits)
+        if self.use_copy:
+            O.append(pointers)
+        return O
 
 
     # Loss functions.
@@ -328,7 +334,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def copy_loss(self, pointers):
-        return tf.reduce_mean(tf.pow(pointers - pointer_targets, 2))
+        return tf.reduce_mean(tf.pow(pointers - \
+                        tf.cast(self.pointer_targets, tf.float32), 2))
 
 
     def attention_regularization(self, attn_alignments):
@@ -492,8 +499,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
             E.char_decoder_inputs = batch_char_decoder_inputs
             E.char_target_weights = batch_char_target_weights
         if self.use_copy:
-            E.pointer_targets = np.concatenate(pointer_targets, 0)[:,
-                                :decoder_size, :encoder_size]
+            # if len(pointer_targets) == 1:
+            #     E.pointer_targets = pointer_targets[:, :decoder_size, :encoder_size]
+            # else:
+            E.pointer_targets = np.concatenate(pointer_targets, 0)[:, 
+                :decoder_size, :encoder_size]
 
         return E
 
@@ -613,60 +623,78 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Output feed: depends on whether we do a backward step or not.
         if not forward_only:
             if bucket_id == -1:
-                output_feed = [self.updates,                    # Update Op that does SGD.
-                               self.gradient_norms,             # Gradient norm.
-                               self.losses]                     # Loss for this batch.
+                output_feed = {
+                    'updates': self.updates,                    # Update Op that does SGD.
+                    'gradient_norms': self.gradient_norms,      # Gradient norm.
+                    'losses': self.losses}                      # Loss for this batch.
             else:
-                output_feed = [self.updates[bucket_id],         # Update Op that does SGD.
-                               self.gradient_norms[bucket_id],  # Gradient norm.
-                               self.losses[bucket_id]]          # Loss for this batch.
+                output_feed = {
+                    'updates': self.updates[bucket_id],         # Update Op that does SGD.
+                    'gradient_norms': self.gradient_norms[bucket_id],  # Gradient norm.
+                    'losses': self.losses[bucket_id]}           # Loss for this batch.
         else:
             if bucket_id == -1:
-                output_feed = [self.output_symbols,             # Loss for this batch.
-                               self.output_logits,              # Batch output sequence
-                               self.losses]                     # Batch output scores
+                output_feed = {
+                    'output_symbols': self.output_symbols,      # Loss for this batch.
+                    'output_logits': self.output_logits,        # Batch output sequence
+                    'losses': self.losses}                      # Batch output scores
             else:
-                output_feed = [self.output_symbols[bucket_id],  # Loss for this batch.
-                               self.output_logits[bucket_id],   # Batch output sequence
-                               self.losses[bucket_id]]          # Batch output logits
+                output_feed = {
+                    'output_symbols': self.output_symbols[bucket_id], # Loss for this batch.
+                    'output_logits': self.output_logits[bucket_id],   # Batch output sequence
+                    'losses': self.losses[bucket_id]}           # Batch output logits
         
         if self.tg_token_use_attention:
             if bucket_id == -1:
-                output_feed.append(self.attn_alignments)
+                output_feed['attn_alignments'] = self.attn_alignments
             else:
-                output_feed.append(self.attn_alignments[bucket_id])
-        
-        output_feed.append(self.encoder_hidden_states)
-        output_feed.append(self.decoder_hidden_states)
+                output_feed['attn_alignments'] = self.attn_alignments[bucket_id]
+
+        output_feed['encoder_hidden_states'] = self.encoder_hidden_states
+        output_feed['decoder_hidden_states'] = self.decoder_hidden_states
         
         if self.tg_char:
-            output_feed.append(self.char_output_symbols)
-            output_feed.append(self.char_output_logits)
+            if bucket_id == -1:
+                output_feed['char_output_symbols'] = self.char_output_symbols
+                output_feed['char_output_logits'] = self.char_output_logits
+            else:
+                output_feed['char_output_symbols'] = \
+                    self.char_output_symbols[bucket_id]
+                output_feed['char_output_logits'] = \
+                    self.char_output_logits[bucket_id]
+
+        if self.use_copy:
+            if bucket_id == -1:
+                output_feed['pointers'] = self.pointers
+            else:
+                output_feed['pointers'] = self.pointers[bucket_id]
 
         outputs = session.run(output_feed, input_feed)
 
         O = Output()
         if not forward_only:
             # Gradient norm, loss, no outputs
-            O.gradient_norms = outputs[1]
-            O.losses = outputs[2]
+            O.gradient_norms = outputs['gradient_norms']
+            O.losses = outputs['losses']
         else:
             # No gradient loss, output_symbols, output_logits
-            O.output_symbols = outputs[0]
-            O.output_logits = outputs[1]
-            O.losses = outputs[2]
+            O.output_symbols = outputs['output_symbols']
+            O.output_logits = outputs['output_logits']
+            O.losses = outputs['losses']
         # [attention_masks]
         if self.tg_token_use_attention:
-            O.attn_alignments = outputs[3]
+            O.attn_alignments = outputs['attn_alignments']
+
+        O.encoder_hidden_states = outputs['encoder_hidden_states']
+        O.decoder_hidden_states = outputs['decoder_hidden_states']
 
         if self.tg_char:
-            O.encoder_hidden_states = outputs[-4]
-            O.decoder_hidden_states = outputs[-3]
-            O.char_output_symbols = outputs[-2]
-            O.char_output_logits = outputs[-1]
-        else:
-            O.encoder_hidden_states = outputs[-2]
-            O.decoder_hidden_states = outputs[-1]
+            O.char_output_symbols = outputs['char_output_symbols']
+            O.char_output_logits = outputs['char_output_logits']
+
+        if self.use_copy:
+            O.pointers = outputs['pointers']
+
         return O
 
 
