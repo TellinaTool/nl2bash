@@ -99,6 +99,7 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
         [[token_ids], [token_full_ids]], [[[data_utils.ROOT_ID]], [[data_utils.ROOT_ID]]],
+        pointer_targets=[np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])],
         bucket_id=bucket_id)
 
     # Decode the ouptut for this 1-element batch.

@@ -328,7 +328,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def copy_loss(self, pointers):
-        return tf.reduce_mean(tf.pow(pointers - pointer_targets, 2))
+        return tf.reduce_mean(tf.pow(pointers - \
+                        tf.cast(self.pointer_targets, tf.float32), 2))
 
 
     def attention_regularization(self, attn_alignments):
@@ -492,8 +493,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
             E.char_decoder_inputs = batch_char_decoder_inputs
             E.char_target_weights = batch_char_target_weights
         if self.use_copy:
-            E.pointer_targets = np.concatenate(pointer_targets, 0)[:,
-                                :decoder_size, :encoder_size]
+            # if len(pointer_targets) == 1:
+            #     E.pointer_targets = pointer_targets[:, :decoder_size, :encoder_size]
+            # else:
+            E.pointer_targets = np.concatenate(pointer_targets, 0)[:, 
+                :decoder_size, :encoder_size]
 
         return E
 

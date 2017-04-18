@@ -20,13 +20,14 @@ def nest_map(func, nested):
 class BeamDecoder(object):
     def __init__(self, num_classes, start_token=-1, stop_token=-1,
                  batch_size=1, beam_size=7, use_attention=False,
-                 alpha=1.0, locally_normalized=True):
+                 use_copy=False, alpha=1.0, locally_normalized=True):
         """
         :param num_classes: int. Number of output classes used
         :param start_token: int.
         :param stop_token: int.
         :param beam_size: int.
         :param use_attention: if attention is to be used.
+        :param use_copy: if copy mechnism is to be used.
         :param alpha: parameter used for length normalization.
         :param locally_normalized: set to true if local normalization is to be
             performed at each search step.
@@ -37,6 +38,7 @@ class BeamDecoder(object):
         self.batch_size = batch_size
         self.beam_size = beam_size
         self.use_attention = use_attention
+        self.use_copy = use_copy
         self.alpha = alpha
         self.locally_normalized = locally_normalized
         print("creating beam search decoder: alpha = {}".format(self.alpha))
@@ -76,6 +78,7 @@ class BeamDecoder(object):
                                       self.num_classes, self.start_token,
                                       self.stop_token, self.batch_size,
                                       self.beam_size, self.use_attention,
+                                      self.use_copy,
                                       self.alpha, self.locally_normalized)
 
     def wrap_state(self, state, token_output_projection):
@@ -83,6 +86,7 @@ class BeamDecoder(object):
                                        self.num_classes, self.start_token,
                                        self.stop_token, self.batch_size,
                                        self.beam_size, self.use_attention,
+                                       self.use_copy,
                                        self.alpha, self.locally_normalized)
         if nest.is_sequence(state):
             dtype = nest.flatten(state)[0].dtype
@@ -135,7 +139,7 @@ class BeamDecoder(object):
 class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, token_output_projection, num_classes, start_token=-1,
                  stop_token=-1, batch_size=1, beam_size=7, use_attention=False,
-                 alpha=1.0, locally_normalized=True):
+                 use_copy=False, alpha=1.0, locally_normalized=True):
         self.cell = cell
         self.token_output_projection = token_output_projection
         self.num_classes = num_classes
@@ -144,6 +148,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.batch_size = batch_size
         self.beam_size = beam_size
         self.use_attention = use_attention
+        self.use_copy = use_copy
         self.alpha = alpha
         self.locally_normalized = locally_normalized
 
@@ -178,13 +183,14 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self._done_mask = tf.tile(self._done_mask, [full_size, 1])
 
 
-    def __call__(self, inputs, state, attn_alignments=None, scope=None):
+    def __call__(self, inputs, state, attn_alignments=None, pointers=None,
+                 scope=None):
         (
-            past_cand_symbols,  # [batch_size, :]
-            past_cand_logprobs, # [batch_size]
-            past_beam_symbols,  # [batch_size*self.beam_size, :], right-aligned!!!
-            past_beam_logprobs, # [batch_size*self.beam_size]
-            past_cell_states,    # [batch_size*self.beam_size, :, dim]
+            past_cand_symbols,      # [batch_size, :]
+            past_cand_logprobs,     # [batch_size]
+            past_beam_symbols,      # [batch_size*self.beam_size, :], right-aligned!!!
+            past_beam_logprobs,     # [batch_size*self.beam_size]
+            past_cell_states,       # [batch_size*self.beam_size, :, dim]
         ) = state
         batch_size = past_cand_symbols.get_shape()[0].value
         full_size = batch_size * self.beam_size
@@ -203,7 +209,11 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         cell_inputs = inputs
 
         past_cell_state = self.get_past_cell_state(past_cell_states)
-        if self.use_attention:
+        if self.use_copy:
+            cell_output, raw_cell_state, attn_alignments, pointers = \
+                self.cell(cell_inputs, past_cell_state, attn_alignments, pointers, 
+                          scope)
+        elif self.use_attention:
             cell_output, raw_cell_state, attn_alignments = \
                 self.cell(cell_inputs, past_cell_state, attn_alignments, scope)
         else:
@@ -303,22 +313,19 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                 done_symbols, past_cand_symbols)
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
 
-        if self.use_attention:
-            return cell_output, (
-                cand_symbols,
-                cand_logprobs,
-                beam_symbols,
-                beam_logprobs,
-                cell_states,
-            ), attn_alignments
+        cell_state = (
+                    cand_symbols,
+                    cand_logprobs,
+                    beam_symbols,
+                    beam_logprobs,
+                    cell_states,
+                )
+        if self.use_copy:
+            return cell_output, cell_state, attn_alignments, pointers
+        elif self.use_attention:
+            return cell_output, cell_state, attn_alignments
         else:
-            return cell_output, (
-                cand_symbols,
-                cand_logprobs,
-                beam_symbols,
-                beam_logprobs,
-                cell_states,
-            )
+            return cell_output, cell_state
 
     @property
     def output_size(self):
