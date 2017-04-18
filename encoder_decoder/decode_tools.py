@@ -130,8 +130,8 @@ def decode(model_outputs, FLAGS, vocabs, nl_fillers=None,
     _, _, _, rev_tg_vocab = vocabs[:4]
     rev_tg_char_vocab = vocabs[-1] if FLAGS.tg_char else None
 
-    encoder_outputs = model_outputs.encoder_outputs
-    decoder_outputs = model_outputs.decoder_outputs
+    encoder_outputs = model_outputs.encoder_hidden_states
+    decoder_outputs = model_outputs.decoder_hidden_states
     if nl_fillers is not None:
         assert(slot_filling_classifier is None)
         assert(encoder_outputs is None)
