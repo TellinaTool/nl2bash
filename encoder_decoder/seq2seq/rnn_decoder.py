@@ -58,20 +58,14 @@ class RNNDecoder(decoder.Decoder):
                     for encoder_attn_mask in encoder_attn_masks]
                 encoder_attn_masks = tf.concat(1, encoder_attn_masks)
                 decoder_cell = decoder.AttentionCellWrapper(
-                                                decoder_cell,
-                                                attention_states,
-                                                encoder_attn_masks,
-                                                self.attention_function,
-                                                self.attention_input_keep,
-                                                self.attention_output_keep,
-                                                num_heads,
-                                                self.rnn_cell,
-                                                self.num_layers,
-                                                self.use_copy)
+                    decoder_cell, attention_states, encoder_attn_masks,
+                    self.attention_function, self.attention_input_keep,
+                    self.attention_output_keep, num_heads, self.rnn_cell,
+                    self.num_layers, self.use_copy)
 
             if bs_decoding:
-                decoder_cell = beam_decoder.wrap_cell(decoder_cell,
-                                            self.token_output_projection)
+                decoder_cell = beam_decoder.wrap_cell(
+                    decoder_cell, self.token_output_projection)
             for i, input in enumerate(decoder_inputs):
                 if bs_decoding:
                     input = beam_decoder.wrap_input(input)
