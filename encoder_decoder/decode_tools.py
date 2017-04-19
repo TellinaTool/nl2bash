@@ -158,7 +158,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
         pointers = model_outputs.pointers
         sentence_length = pointers.shape[1]
         batch_copy_indices = np.reshape(np.argmax(pointers, 2),
-                [FLAGS.batch_size, FLAGS.beam_size, sentence_length])
+                [FLAGS.batchze, FLAGS.beam_size, sentence_length])
 
     for batch_id in xrange(len(output_symbols)):
         top_k_predictions = output_symbols[batch_id]
