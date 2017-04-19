@@ -127,7 +127,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
-        ds = []  # Results of attention reads will be stored here.
+        ds = []         # Results of attention reads will be stored here.
+        alignments = [] # Alignment values for each attention head.
         if nest.is_sequence(state):  # If the query is a tuple, flatten it.
             # TODO: implement attention with LSTM cells
             query_list = nest.flatten(state)
@@ -156,16 +157,18 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     raise NotImplementedError
                 # Apply attention masks
                 s = s - (1 - self.encoder_attn_masks) * 1e12
-                attn_alignment = tf.nn.softmax(s)
+                alignment = tf.nn.softmax(s)
+                alignments.append(alignment)
                 # Now calculate the attention-weighted vector d.
-                d = tf.reduce_sum(tf.reshape(attn_alignment,
-                                             [-1, self.attn_length, 1])
-                                  * self.hidden_features[a], [1])
-                ds.append(tf.reshape(d, [-1, self.attn_dim]))
-        attns = tf.concat(1, ds)
-        attns.set_shape([None, self.num_heads * self.attn_dim])
+                d = tf.reduce_sum(
+                    tf.reshape(alignment, [-1, self.attn_length, 1])
+                    * self.hidden_features[a], [1])
+                context = tf.reshape(d, [-1, self.attn_dim])
+                ds.append(context)
+        # attns = tf.concat(1, ds)
         self.attention_vars = True
-        return attns, attn_alignment
+        return ds, alignments
+
 
     def __call__(self, input_embedding, state, attn_alignments,
                  pointers=None, scope=None):
@@ -188,25 +191,19 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     raise AttributeError("Unrecognized RNN cell type.")
             else:
                 top_state = state
-            attns, attn_alignment = self.attention(top_state)
+            attns, alignments = self.attention(top_state)
 
         with tf.variable_scope("AttnStateProjection"):
             attn_state = tf.tanh(tf.nn.rnn_cell._linear(
-                [top_state, attns], dim, True))
+                [top_state, attns[0]], dim, True))
 
         with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear(
               tf.nn.dropout(attn_state, self.attention_output_keep), dim, True)
 
-        if self.use_copy:
-            with tf.variable_scope("CopyProbability"):
-                cp = tf.nn.sigmoid(tf.nn.rnn_cell._linear(
-                    [top_state, attns], 1, True))
-                pointers.append(tf.expand_dims(attn_alignment * cp, 1))
-
         self.attention_cell_vars = True
-        attn_alignments.append(tf.expand_dims(attn_alignment, 1))
+        attn_alignments.append(alignments)
 
         if self.use_copy:
             return output, state, attn_alignments, pointers
