@@ -238,17 +238,21 @@ class EncoderDecoderModel(graph_utils.NNModel):
             attention_states = None
         
         # Losses.
+        num_heads = 2 if (self.tg_token_use_attention and self.use_copy) else 1
+
         output_symbols, output_logits, outputs, states, attn_alignments, \
             pointers = self.decoder.define_graph(
                         encoder_state, decoder_inputs, encoder_attn_masks,
-                        attention_states, num_heads=1, forward_only=forward_only)
+                        attention_states, num_heads=num_heads,
+                        forward_only=forward_only)
+
         if forward_only or self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
-                                   outputs, targets, target_weights,
-                                   graph_utils.softmax_loss(
-                                       self.decoder.token_output_projection,
-                                       self.num_samples,
-                                       self.target_vocab_size))
+                       outputs, targets, target_weights,
+                       graph_utils.softmax_loss(
+                           self.decoder.token_output_projection,
+                           self.num_samples,
+                           self.target_vocab_size))
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
@@ -334,8 +338,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def copy_loss(self, pointers):
-        return tf.reduce_mean(tf.pow(pointers - \
-                        tf.cast(self.pointer_targets, tf.float32), 2))
+        copy_positions = tf.reduce_sum(self.pointer_targets, 2)
+        print(tf.nn.softmax_cross_entropy_with_logits(
+                    pointers, self.pointer_targets).shape)
+        return tf.reduce_mean(
+            tf.mul(
+                tf.nn.softmax_cross_entropy_with_logits(
+                    pointers, self.pointer_targets),
+                copy_positions))
 
 
     def attention_regularization(self, attn_alignments):

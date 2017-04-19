@@ -113,9 +113,11 @@ class RNNDecoder(decoder.Decoder):
 
             if self.use_attention:
                 # Tensor list --> tenosr
-                attn_alignments = tf.concat(1, attn_alignments)
+                attn_alignments = tf.concat(1,
+                    [tf.expand_dims(x[0], 1) for x in attn_alignments])
             if self.use_copy:
-                pointers = tf.concat(1, pointers)
+                pointers = tf.concat(1,
+                    [tf.expand_dims(x[1], 1) for x in attn_alignments])
 
             if bs_decoding:
                 # Beam-search output
