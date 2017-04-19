@@ -70,10 +70,17 @@ def demo(sess, model, FLAGS):
         sentence = sys.stdin.readline()
 
 
-def translate_fun(sentence, sess, model, vocabs, FLAGS,
+def translate_fun(input, sess, model, vocabs, FLAGS,
                   slot_filling_classifier=None):
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
+    if type(input) is list:
+        sentence = input[0]
+        pointer_targets = input[-1]
+    else:
+        sentence = input
+        pointer_targets = \
+            np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
     sc_vocab, _, _, rev_tg_vocab = vocabs[:4]
 
     if FLAGS.explain:
@@ -100,7 +107,7 @@ def translate_fun(sentence, sess, model, vocabs, FLAGS,
     formatted_example = model.format_example(
         [[token_ids], [token_full_ids]],
         [[[data_utils.ROOT_ID]], [[data_utils.ROOT_ID]]],
-        pointer_targets=[np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])],
+        pointer_targets=[pointer_targets],
         bucket_id=bucket_id)
 
     # Decode the ouptut for this 1-element batch.
@@ -322,23 +329,19 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
         example_id = 0
         for sc_temp in sorted_sc_temps:
             example_id += 1
-            sc_strs, tg_strs, scs, tgs, cm_fulls, tg_fulls = \
-                grouped_dataset[sc_temp]
-            assert(len(sc_strs) == len(tg_strs))
-            assert(len(sc_strs) == len(scs))
-            assert(len(sc_strs) == len(tgs))
-            assert(len(sc_strs) == len(cm_fulls))
-            assert(len(tgs) == len(tg_fulls))
+            data_group = grouped_dataset[sc_temp]
 
-            sc_normalized_temp = ' '.join([rev_sc_vocab[i] for i in scs[0]])
+            sc_normalized_temp = ' '.join([rev_sc_vocab[i]
+                                           for i in data_group[0][2]])
             if verbose:
                 print("Example {}:".format(example_id))
                 print("(Orig) Source: " + sc_temp.strip())
                 print("Source: " + sc_normalized_temp)
-                for j in xrange(len(tg_strs)):
-                    print("GT Target {}: {}".format(j+1, tg_strs[j].strip()))
+                for j in xrange(len(data_group)):
+                    print("GT Target {}: {}".format(
+                        j+1, data_group[j][1].strip()))
 
-            batch_outputs, output_logits = translate_fun(sc_temp, sess, model,
+            batch_outputs, output_logits = translate_fun(data_group, sess, model,
                 vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
             if FLAGS.tg_char:
                 batch_outputs, batch_char_outputs = batch_outputs
