@@ -277,6 +277,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     self.decoder.beam_decoder, char_targets)
                 char_target_weights = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, char_target_weights)
+                self.decoder.beam_decoder.wrap_input(self.pointer_targets)
 
             # get initial state from decoder output
             char_decoder_init_state = tf.concat(
