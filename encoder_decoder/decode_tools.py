@@ -159,7 +159,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
         sentence_length = pointers.shape[1]
         batch_copy_indices = np.reshape(np.argmax(pointers, 2),
                 [FLAGS.batch_size, FLAGS.beam_size, sentence_length])
-
+        print(batch_copy_indices.shape)
     for batch_id in xrange(len(output_symbols)):
         top_k_predictions = output_symbols[batch_id]
         assert((FLAGS.token_decoding_algorithm == "greedy") or 
@@ -193,11 +193,6 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                             pred_token = pred_token.split("@@")[-1]
                         # process argument slots
                         if pred_token in constants._ENTITIES:
-                            if FLAGS.use_copy:
-                                copy_idx = \
-                                    batch_copy_indices[batch_id, beam_id, ii]
-                                pred_token = \
-                                    rev_sc_vocab[encoder_inputs[copy_idx][batch_id]]
                             if nl_fillers is not None:
                                 if ii > 0 and slot_filling.is_min_flag(
                                         rev_tg_vocab[outputs[ii-1]]):
@@ -205,11 +200,16 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                 else:
                                     pred_token_type = pred_token
                                 cm_slots[ii] = (pred_token, pred_token_type)
+                            if FLAGS.use_copy:
+                                copy_idx = \
+                                    batch_copy_indices[batch_id, beam_id, ii]
+                                pred_token = \
+                                    rev_sc_vocab[encoder_inputs[copy_idx][batch_id]]
                         output_tokens.append(pred_token)
                     else:
                         output_tokens.append(data_utils._UNK)
                 tg = " ".join(output_tokens)
-            
+                print(tg) 
             # check if the predicted command templates have enough slots to
             # hold the fillers (to rule out templates that are trivially
             # unqualified)
@@ -342,8 +342,6 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                 vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
             if FLAGS.tg_char:
                 batch_outputs, batch_char_outputs = batch_outputs
-            elif FLAGS.use_copy:
-                batch_outputs, batch_copy_outputs = batch_outputs
 
             if FLAGS.token_decoding_algorithm == "greedy":
                 tree, pred_cmd, outputs = batch_outputs[0]
@@ -356,8 +354,6 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                     top_k_predictions = batch_outputs[0]
                     if FLAGS.tg_char:
                         top_k_char_predictions = batch_char_outputs[0]
-                    if FLAGS.use_copy:
-                        top_k_copy_predictions = batch_copy_outputs[0]
                     top_k_scores = output_logits[0]
                     for j in xrange(min(FLAGS.beam_size, 10,
                                         len(batch_outputs[0]))):
@@ -371,9 +367,9 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             if FLAGS.tg_char:
                                 print("Character-based prediction {}: {}".format(
                                     j+1, top_k_char_predictions[j]))
-                            if FLAGS.use_copy:
-                                print("Copy content prediction {}: {}".format(
-                                    j+1, top_k_copy_predictions[j]))
+                            # if FLAGS.use_copy:
+                            #     print("Copy content prediction {}: {}".format(
+                            #         j+1, top_k_copy_predictions[j]))
                         try:
                             db.add_prediction(model.model_sig, sc_temp,
                                 top_k_pred_cmd, float(top_k_scores[j]),
