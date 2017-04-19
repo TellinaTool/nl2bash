@@ -295,6 +295,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
                  self.gamma * encoder_decoder_char_loss + \
                  self.chi * copy_loss + \
                  self.beta * attention_reg
+        # losses = self.beta * attention_reg
+        # losses = encoder_decoder_token_loss
+        # losses = self.chi * copy_loss
 
         # store encoder/decoder output states
         self.encoder_hidden_states = tf.concat(
