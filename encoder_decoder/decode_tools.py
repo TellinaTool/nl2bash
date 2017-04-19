@@ -75,10 +75,14 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     if type(input) is list:
-        sentence = input[0]
-        pointer_targets = input[-1]
+        sentence = input[0][0]
+        tg_ids = input[0][3]
+        tg_full_ids = input[0][5]
+        pointer_targets = input[0][-1]
     else:
         sentence = input
+        tg_ids = [data_utils.ROOT_ID]
+        tg_full_ids = [data_utils.ROOT_ID]
         pointer_targets = \
             np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
     sc_vocab, _, _, rev_tg_vocab = vocabs[:4]
@@ -106,7 +110,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
         [[token_ids], [token_full_ids]],
-        [[[data_utils.ROOT_ID]], [[data_utils.ROOT_ID]]],
+        [[tg_ids], [tg_full_ids]],
         pointer_targets=[pointer_targets],
         bucket_id=bucket_id)
 

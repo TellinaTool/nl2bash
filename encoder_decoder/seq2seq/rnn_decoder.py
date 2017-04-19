@@ -31,6 +31,8 @@ class RNNDecoder(decoder.Decoder):
                              "known %s" % attention_states.get_shape())
 
         bs_decoding = forward_only and self.decoding_algorithm == "beam_search"
+        if self.force_reading_input:
+            print("Warning: reading ground truth decoder inputs at decoding time.")
 
         with tf.variable_scope(self.scope + "_decoder_rnn") as scope:
             decoder_cell = self.decoder_cell()
