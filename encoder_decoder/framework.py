@@ -257,7 +257,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         attention_reg = self.attention_regularization(attn_alignments) \
             if self.tg_token_use_attention else 0
-        copy_loss = self.copy_loss(pointers) if self.use_copy else 0
+        if forward_only and self.token_decoding_algorithm == 'beam_search':
+            pointer_targets = self.decoder.beam_decoder.wrap_input(
+                                self.pointer_targets)
+        else:
+            pointer_targets = self.pointer_targets
+        copy_loss = self.copy_loss(pointers, pointer_targets) if self.use_copy else 0
 
         if self.tg_char:
             # re-arrange character inputs
@@ -277,8 +282,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     self.decoder.beam_decoder, char_targets)
                 char_target_weights = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, char_target_weights)
-                self.decoder.beam_decoder.wrap_input(self.pointer_targets)
-
             # get initial state from decoder output
             char_decoder_init_state = tf.concat(
                 0, [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in states])
@@ -340,13 +343,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
         return avg_log_perps
 
 
-    def copy_loss(self, pointers):
+    def copy_loss(self, pointers, pointer_targets):
         raw_loss = tf.reshape(
                 tf.nn.softmax_cross_entropy_with_logits(
                      tf.reshape(pointers, [-1, self.max_source_length]), 
-                     tf.reshape(self.pointer_targets, [-1, self.max_source_length])),
+                     tf.reshape(pointer_targets, [-1, self.max_source_length])),
                 [-1, self.max_target_length])
-        copy_positions = tf.reduce_sum(self.pointer_targets, 2)
+        copy_positions = tf.reduce_sum(pointer_targets, 2)
         return tf.reduce_mean(tf.reduce_sum(
                     tf.mul(tf.cast(copy_positions, tf.float32), raw_loss), 1))
 
