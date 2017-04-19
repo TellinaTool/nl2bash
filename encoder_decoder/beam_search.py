@@ -8,6 +8,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
+
 import tensorflow as tf
 from tensorflow.python.util import nest
 
@@ -275,9 +279,15 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         symbols_history = tf.gather(past_beam_symbols, parent_refs)
         if alignments is not None:
             num_alignments = len(alignments)
-            alignments = [tf.split(1, num_alignments,
-                                   tf.gather(tf.concat(1, X), parent_refs))
-                          for X in alignments]
+            alignments = nest.flatten(alignments)
+            alignments = tf.split(1, num_alignments * 2,
+                                  tf.gather(tf.concat(1, alignments), 
+                                            parent_refs))
+            new_alignments = []
+            for i in xrange(num_alignments):
+                new_alignments.append([alignments[2*i], alignments[2*i+1]])
+            alignments = new_alignments
+
         beam_symbols = tf.concat(1, [symbols_history,
                                      tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
