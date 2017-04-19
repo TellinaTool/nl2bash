@@ -813,22 +813,16 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
 
     grouped_dataset = {}
     for i in xrange(len(dataset)):
-        nl_str, cm_str, nl, cm, nl_full, cm_full, _, _ = dataset[i]
+        nl_str = dataset[i][0]
         if use_temp:
             words, _ = tokenizer.ner_tokenizer(nl_str)
             nl_template = " ".join(words)
         else:
             nl_template = nl_str
         if nl_template in grouped_dataset:
-            grouped_dataset[nl_template][0].append(nl_str)
-            grouped_dataset[nl_template][1].append(cm_str)
-            grouped_dataset[nl_template][2].append(nl)
-            grouped_dataset[nl_template][3].append(cm)
-            grouped_dataset[nl_template][4].append(nl_full)
-            grouped_dataset[nl_template][5].append(cm_full)
+            grouped_dataset[nl_template].append(dataset[i])
         else:
-            grouped_dataset[nl_template] = \
-                [[nl_str], [cm_str], [nl], [cm], [nl_full], [cm_full]]
+            grouped_dataset[nl_template] = [dataset[i]]
 
     return grouped_dataset
 

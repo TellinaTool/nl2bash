@@ -59,12 +59,13 @@ def eval_set(model, dataset, FLAGS, verbose=True):
 
     with DBConnection() as db:
         for nl_temp in grouped_dataset:
-            nl_strs, cm_strs, _, _, _, _ = grouped_dataset[nl_temp]
-            nl_str = bytes(nl_strs[0], 'utf-8')
-
-            gt_trees = [cmd_parser(cmd) for cmd in cm_strs]
+            data_group = grouped_dataset[nl_temp]
+            nl_str = bytes(data_group[0][0], 'utf-8')
+            cm_strs = [data[1] for data in data_group]
+            gt_trees = [cmd_parser(cm_str) for cm_str in cm_strs]
             num_gts = len(gt_trees)
-            gt_trees = gt_trees + [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_str)]
+            gt_trees = gt_trees + [cmd_parser(cmd)
+                                   for cmd in db.get_correct_temps(nl_str)]
 
             predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
@@ -201,8 +202,8 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
     num_top10_correct = 0.0
     num_evaled = 0
 
-    grouped_dataset = data_utils.group_data_by_nl(
-        dataset, use_bucket=False).values()
+    grouped_dataset = data_utils.group_data_by_nl(dataset,
+                                                  use_bucket=False).values()
     random.shuffle(grouped_dataset, lambda: 0.5208484091114275)
 
     if num_eval is None:
