@@ -245,7 +245,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         encoder_state, decoder_inputs, encoder_attn_masks,
                         attention_states, num_heads=num_heads,
                         forward_only=forward_only)
-
         if forward_only or self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
                        outputs, targets, target_weights,
@@ -341,14 +340,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def copy_loss(self, pointers):
-        copy_positions = tf.reduce_sum(self.pointer_targets, 2)
-        print(tf.nn.softmax_cross_entropy_with_logits(
-                    pointers, self.pointer_targets).shape)
-        return tf.reduce_mean(
-            tf.mul(
+        raw_loss = tf.reshape(
                 tf.nn.softmax_cross_entropy_with_logits(
-                    pointers, self.pointer_targets),
-                copy_positions))
+                     tf.reshape(pointers, [-1, self.max_source_length]), 
+                     tf.reshape(self.pointer_targets, [-1, self.max_source_length])),
+                [-1, self.max_target_length])
+        copy_positions = tf.reduce_sum(self.pointer_targets, 2)
+        return tf.reduce_mean(tf.reduce_sum(
+                    tf.mul(tf.cast(copy_positions, tf.float32), raw_loss), 1))
 
 
     def attention_regularization(self, attn_alignments):
