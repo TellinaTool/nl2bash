@@ -249,6 +249,8 @@ def get_buckets(FLAGS):
     elif FLAGS.dataset == "atis":
         buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explain else \
             [(95, 20), (95, 30), (95, 40)]
+    else:
+        raise AttributeError("Unrecognized dataset: {}".format(FLAGS.dataset))
     return buckets
 
 
