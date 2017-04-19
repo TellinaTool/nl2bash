@@ -186,3 +186,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("copy_fun", 'flat',
                                 "Specify the probability parameterization for token copying and generation.")
     tf.app.flags.DEFINE_float("chi", 1, "Copy loss weight.")
+
+    # debugging options
+    tf.app.flags.DEFINE_boolean("force_reading_input", False, "If set, read ground truth decoder inputs for decoding.")
