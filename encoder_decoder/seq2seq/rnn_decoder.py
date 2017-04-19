@@ -93,7 +93,7 @@ class RNNDecoder(decoder.Decoder):
                             input = tf.cast(output_symbol, dtype=tf.int32)
                 input_embedding = tf.nn.embedding_lookup(self.embeddings(), input)
                 if self.use_copy:
-                    output, state, attn_alignments, pointers = \
+                    output, state, attn_alignments, _ = \
                         decoder_cell(input_embedding, state, attn_alignments, pointers)
                 elif self.use_attention:
                     output, state, attn_alignments = \
