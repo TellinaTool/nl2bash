@@ -319,7 +319,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             O.append(char_output_symbols)
             O.append(char_output_logits)
         if self.use_copy:
-            O.append(pointers_targets)
+            O.append(pointer_targets)
         return O
 
 
