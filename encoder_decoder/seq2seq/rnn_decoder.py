@@ -96,11 +96,11 @@ class RNNDecoder(decoder.Decoder):
                     output, state, attn_alignments, _ = \
                         decoder_cell(input_embedding, state, attn_alignments, pointers)
                 elif self.use_attention:
-                    output, state, attn_alignments = \
+                    output, state, alignments = \
                         decoder_cell(input_embedding, state, attn_alignments)
                 else:
                     output, state = decoder_cell(input_embedding, state)
-
+               
                 # record output state to compute the loss.
                 if bs_decoding:
                     # when doing beam search decoding, the output state of each
@@ -114,10 +114,10 @@ class RNNDecoder(decoder.Decoder):
             if self.use_attention:
                 # Tensor list --> tenosr
                 attn_alignments = tf.concat(1,
-                    [tf.expand_dims(x[0], 1) for x in attn_alignments])
+                    [tf.expand_dims(x[0], 1) for x in alignments])
             if self.use_copy:
                 pointers = tf.concat(1,
-                    [tf.expand_dims(x[1], 1) for x in attn_alignments])
+                    [tf.expand_dims(x[1], 1) for x in alignments])
 
             if bs_decoding:
                 # Beam-search output

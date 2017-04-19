@@ -167,7 +167,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         tf.reshape(bucket_char_output_logits,
                                    [self.max_target_length,
                                     self.batch_size, self.beam_size]))
-                if forward_only and self.use_copy:
+                if self.use_copy:
                     self.pointers.append(encode_decode_outputs[-1])
         else:
             encode_decode_outputs = self.encode_decode(
@@ -180,7 +180,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                     )
             self.output_symbols, self.output_logits, self.losses, \
                 self.attn_alignments = encode_decode_outputs[:4]
-            if forward_only and self.tg_char:
+            if self.tg_char:
                 char_output_symbols, char_output_logits = \
                     encode_decode_outputs[4:6]
                 self.char_output_symbols = tf.reshape(char_output_symbols,
@@ -245,7 +245,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         encoder_state, decoder_inputs, encoder_attn_masks,
                         attention_states, num_heads=num_heads,
                         forward_only=forward_only)
-
         if forward_only or self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
                        outputs, targets, target_weights,
@@ -299,6 +298,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
                  self.gamma * encoder_decoder_char_loss + \
                  self.chi * copy_loss + \
                  self.beta * attention_reg
+        # losses = self.beta * attention_reg
+        # losses = encoder_decoder_token_loss
+        # losses = self.chi * copy_loss
 
         # store encoder/decoder output states
         self.encoder_hidden_states = tf.concat(
@@ -338,14 +340,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def copy_loss(self, pointers):
-        copy_positions = tf.reduce_sum(self.pointer_targets, 2)
-        print(tf.nn.softmax_cross_entropy_with_logits(
-                    pointers, self.pointer_targets).shape)
-        return tf.reduce_mean(
-            tf.mul(
+        raw_loss = tf.reshape(
                 tf.nn.softmax_cross_entropy_with_logits(
-                    pointers, self.pointer_targets),
-                copy_positions))
+                     tf.reshape(pointers, [-1, self.max_source_length]), 
+                     tf.reshape(self.pointer_targets, [-1, self.max_source_length])),
+                [-1, self.max_target_length])
+        copy_positions = tf.reduce_sum(self.pointer_targets, 2)
+        return tf.reduce_mean(tf.reduce_sum(
+                    tf.mul(tf.cast(copy_positions, tf.float32), raw_loss), 1))
 
 
     def attention_regularization(self, attn_alignments):
@@ -663,7 +665,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         output_feed['encoder_hidden_states'] = self.encoder_hidden_states
         output_feed['decoder_hidden_states'] = self.decoder_hidden_states
         
-        if self.tg_char:
+        if forward_only and self.tg_char:
             if bucket_id == -1:
                 output_feed['char_output_symbols'] = self.char_output_symbols
                 output_feed['char_output_logits'] = self.char_output_logits
