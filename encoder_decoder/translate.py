@@ -403,13 +403,17 @@ def eval_slot_filling(dataset):
                         else:
                             output_tokens.append(data_utils._UNK)
                     if FLAGS.use_copy:
-                        pointers = model_outputs.pointers[0]
+                        pointers = np.mul(np.cast(pointer_targets[0][0] > 0, np.float32),
+                                          model_outputs.pointers[0])
                         M = {}
                         for i in xrange(pointers.shape[0]):
                             for j in xrange(pointers.shape[1]):
                                 if not i in M:
                                     M[i] = {}
-                                M[i][j] = pointers[i, j]
+                                if pointers[i, j] == 0:
+                                    M[i][j] = -np.inf
+                                else:
+                                    M[i][j] = pointers[i, j]
                         mappings, _ = slot_filling.\
                             stable_marriage_alignment_with_partial(M)
                     else:
