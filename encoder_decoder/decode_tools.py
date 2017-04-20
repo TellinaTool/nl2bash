@@ -79,7 +79,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
         tg_ids = input[0][3]
         tg_full_ids = input[0][5]
         pointer_targets = input[0][-1]
-        ptint(pointer_targets)
+        print(pointer_targets)
     else:
         sentence = input
         tg_ids = [data_utils.ROOT_ID]
