@@ -403,7 +403,7 @@ def eval_slot_filling(dataset):
                         else:
                             output_tokens.append(data_utils._UNK)
                     if FLAGS.use_copy:
-                        pointers = model_outputs.pointers
+                        pointers = model_outputs.pointers[0]
                         M = {}
                         for i in xrange(pointers.shape[0]):
                             for j in xrange(pointers.shape[1]):
@@ -417,7 +417,8 @@ def eval_slot_filling(dataset):
                                     output_tokens, nl_fillers, cm_slots,
                                     encoder_outputs[0], decoder_outputs[0],
                                     slot_filling_classifier)
-
+                    print(mappings)
+                    print(gt_mappings)
                     for mapping in mappings:
                         if mapping in gt_mappings:
                             num_correct += 1
