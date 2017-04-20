@@ -195,6 +195,9 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                 tg = "".join([tf.compat.as_str(rev_tg_vocab[output])
                     for output in outputs]).replace(data_utils._UNK, ' ')
             else:
+                if FLAGS.use_copy:
+                    print("{}-{}: {}".format(
+                        batch_id, beam_id, batch_copy_indices[batch_id, beam_id]))
                 for ii in xrange(len(outputs)):
                     output = outputs[ii]
                     if output < len(rev_tg_vocab):
@@ -210,9 +213,6 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                 else:
                                     pred_token_type = pred_token
                                 cm_slots[ii] = (pred_token, pred_token_type)
-                            if FLAGS.use_copy:
-                                print("{}-{}: {}".format(
-                                    batch_id, beam_id, batch_copy_indices[batch_id, beam_id]))
                                 copy_idx = \
                                     batch_copy_indices[batch_id, beam_id, ii]
                                 pred_token = \
