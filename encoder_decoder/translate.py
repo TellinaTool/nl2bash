@@ -366,12 +366,12 @@ def eval_slot_filling(dataset):
                 if gt_mappings:
                     _, entities = tokenizer.ner_tokenizer(sc)
                     nl_fillers = entities[0]
-                    encoder_inputs = [dataset[bucket_id][i][2]]
-                    encoder_full_inputs = [dataset[bucket_id][i][4]]
-                    decoder_inputs = [dataset[bucket_id][i][3]]
-                    decoder_full_inputs = [dataset[bucket_id][i][5]]
+                    encoder_inputs = [dataset[bucket_id][data_id][2]]
+                    encoder_full_inputs = [dataset[bucket_id][data_id][4]]
+                    decoder_inputs = [dataset[bucket_id][data_id][3]]
+                    decoder_full_inputs = [dataset[bucket_id][data_id][5]]
                     if FLAGS.use_copy:
-                        pointer_targets = [dataset[bucket_id][i][-1]]
+                        pointer_targets = [dataset[bucket_id][data_id][-1]]
                     formatted_example = model.format_example(
                         [encoder_inputs, encoder_full_inputs],
                         [decoder_inputs, decoder_full_inputs],
