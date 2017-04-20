@@ -359,8 +359,9 @@ def eval_slot_filling(dataset):
         num_predict = 0.0
         num_gt = 0.0
         for bucket_id in xrange(len(_buckets)):
-            for i in xrange(len(dataset[bucket_id])):
-                sc, tg, sc_ids, tg_ids, _, _, gt_mappings, _ = dataset[bucket_id][i]
+            for data_id in xrange(len(dataset[bucket_id])):
+                sc, tg, sc_ids, tg_ids, _, _, gt_mappings, _ = \
+                    dataset[bucket_id][data_id]
                 gt_mappings = [tuple(m) for m in gt_mappings]
                 if gt_mappings:
                     _, entities = tokenizer.ner_tokenizer(sc)
@@ -403,7 +404,14 @@ def eval_slot_filling(dataset):
                             output_tokens.append(data_utils._UNK)
                     if FLAGS.use_copy:
                         pointers = model_outputs.pointers
-                        mappings, _ = slot_filling.stable_marriage_alignment_with_partial(pointers)
+                        M = {}
+                        for i in xrange(pointers.shape[0]):
+                            for j in xrange(pointers.shape[1]):
+                                if not i in M:
+                                    M[i] = {}
+                                M[i][j] = pointers[i, j]
+                        mappings, _ = slot_filling.\
+                            stable_marriage_alignment_with_partial(M)
                     else:
                         _, _, mappings = slot_filling.stable_slot_filling(
                                     output_tokens, nl_fillers, cm_slots,
