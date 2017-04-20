@@ -79,6 +79,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
         tg_ids = input[0][3]
         tg_full_ids = input[0][5]
         pointer_targets = input[0][-1]
+        ptint(pointer_targets)
     else:
         sentence = input
         tg_ids = [data_utils.ROOT_ID]
@@ -109,10 +110,8 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [[token_ids], [token_full_ids]],
-        [[tg_ids], [tg_full_ids]],
-        pointer_targets=[pointer_targets],
-        bucket_id=bucket_id)
+        [[token_ids], [token_full_ids]], [[tg_ids], [tg_full_ids]],
+        pointer_targets=[pointer_targets], bucket_id=bucket_id)
 
     # Decode the ouptut for this 1-element batch.
     # Non-grammatical templates and templates that cannot hold all fillers are
@@ -212,6 +211,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                     pred_token_type = pred_token
                                 cm_slots[ii] = (pred_token, pred_token_type)
                             if FLAGS.use_copy:
+                                print("pointers 2: {}".format(batch_copy_indices[batch_id, beam_id]))
                                 copy_idx = \
                                     batch_copy_indices[batch_id, beam_id, ii]
                                 pred_token = \
