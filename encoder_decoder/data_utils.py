@@ -1072,6 +1072,6 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
                     break
         else:
             data_set.append(data_point)
-
+        print(data_point)
     print("  %d data points read." % data_idx)
     return data_set
