@@ -352,7 +352,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         copy_positions = tf.cast(tf.reduce_sum(pointer_targets, 2), tf.float32)
         return tf.reduce_mean(
                 tf.reduce_sum(tf.mul(copy_positions, raw_loss), 1) /
-                tf.reduce_sum(copy_positions, 1))
+                (tf.reduce_sum(copy_positions, 1) + 1e-12))
 
 
     def attention_regularization(self, attn_alignments):
