@@ -341,12 +341,6 @@ def eval_slot_filling(dataset):
     """
     Evaluate global slot filling algorithm accuracy using ground truth templates.
     """
-    model_param_dir = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
-    train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
-    slot_filling_classifier = classifiers.KNearestNeighborModel(
-        FLAGS.num_nn_slot_filling, train_X, train_Y)
-    print('Slot filling classifier parameters loaded.')
-
     _, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
@@ -354,6 +348,12 @@ def eval_slot_filling(dataset):
         # Create model.
         model, global_epochs = graph_utils.create_model(sess, FLAGS,
             Seq2SeqModel, buckets=_buckets, forward_only=True)
+
+        model_param_dir = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
+        train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
+        slot_filling_classifier = classifiers.KNearestNeighborModel(
+            FLAGS.num_nn_slot_filling, train_X, train_Y)
+        print('Slot filling classifier parameters loaded.')
 
         num_correct = 0.0
         num_predict = 0.0
@@ -398,12 +398,15 @@ def eval_slot_filling(dataset):
                                 cm_slots[ii] = (pred_token, pred_token_type)
                         else:
                             output_tokens.append(data_utils._UNK)
-                    tree2, temp, mappings = slot_filling.stable_slot_filling(
-                                output_tokens, nl_fillers, cm_slots,
-                                encoder_outputs[0], decoder_outputs[0],
-                                slot_filling_classifier)
-                    # print(mappings)
-                    # print(gt_mappings)
+                    if FLAGS.use_copy:
+                        pointers = model_outputs.pointers
+                        mappings, _ = slot_filling.stable_marriage_alignment_with_partial(pointers)
+                    else:
+                        _, _, mappings = slot_filling.stable_slot_filling(
+                                    output_tokens, nl_fillers, cm_slots,
+                                    encoder_outputs[0], decoder_outputs[0],
+                                    slot_filling_classifier)
+
                     for mapping in mappings:
                         if mapping in gt_mappings:
                             num_correct += 1
