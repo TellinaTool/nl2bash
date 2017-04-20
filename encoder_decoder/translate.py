@@ -428,9 +428,12 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                 encoder_full_inputs = [dataset[bucket_id][i][4]]
                 decoder_inputs = [dataset[bucket_id][i][3]]
                 decoder_full_inputs = [dataset[bucket_id][i][5]]
+                if FLAGS.use_copy:
+                    pointer_targets = [dataset[bucket_id][i][-1]]
                 formatted_example = model.format_example(
                     [encoder_inputs, encoder_full_inputs],
                     [decoder_inputs, decoder_full_inputs],
+                    pointer_targets=pointer_targets,
                     bucket_id=bucket_id)
                 model_outputs = model.step(sess, formatted_example, bucket_id,
                     forward_only=True, return_rnn_hidden_states=True)
