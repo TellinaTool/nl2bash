@@ -79,7 +79,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
         tg_ids = input[0][3]
         tg_full_ids = input[0][5]
         pointer_targets = input[0][-1]
-        ptint(pointer_targets)
+        print(np.argmax(pointer_targets, 2))
     else:
         sentence = input
         tg_ids = [data_utils.ROOT_ID]
@@ -211,7 +211,8 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                     pred_token_type = pred_token
                                 cm_slots[ii] = (pred_token, pred_token_type)
                             if FLAGS.use_copy:
-                                print("pointers 2: {}".format(batch_copy_indices[batch_id, beam_id]))
+                                print("{}-{}: {}".format(
+                                    batch_id, beam_id, batch_copy_indices[batch_id, beam_id]))
                                 copy_idx = \
                                     batch_copy_indices[batch_id, beam_id, ii]
                                 pred_token = \
