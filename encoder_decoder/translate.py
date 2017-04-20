@@ -151,8 +151,9 @@ def train(train_set, dev_set, construct_model_dir=True):
         # Save slot filling embeddings.
         tf.reset_default_graph()
         mapping_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        gen_slot_filling_training_data_fun(sess, model, train_set,
-                                           mapping_path)
+        gen_slot_filling_training_data_fun(sess, model, train_set, mapping_path)
+        mapping_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
+        gen_slot_filling_training_data_fun(sess, model, dev_set, mapping_path)
     return True
 
 
@@ -359,7 +360,7 @@ def eval_slot_filling(dataset):
         num_gt = 0.0
         for bucket_id in xrange(len(_buckets)):
             for i in xrange(len(dataset[bucket_id])):
-                sc, tg, sc_ids, tg_ids, gt_mappings = dataset[bucket_id][i]
+                sc, tg, sc_ids, tg_ids, _, _, gt_mappings, _ = dataset[bucket_id][i]
                 gt_mappings = [tuple(m) for m in gt_mappings]
                 if gt_mappings:
                     _, entities = tokenizer.ner_tokenizer(sc)
