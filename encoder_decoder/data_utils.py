@@ -1061,7 +1061,7 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
             if mapping.strip():
                 for mp in mapping.strip().split():
                     i, j = [int(x) for x in mp.split('-')]
-                    tg_pointers[j, -i] = 1
+                    tg_pointers[0, j, -i] = 1
             data_point.append(tg_pointers)
 
         data_idx += 1
