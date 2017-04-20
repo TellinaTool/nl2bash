@@ -519,7 +519,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             #     E.pointer_targets = pointer_targets[:, :decoder_size, :encoder_size]
             # else:
             E.pointer_targets = np.concatenate(pointer_targets, 0)[:, 
-                :decoder_size, :encoder_size]
+                :decoder_size, -encoder_size:]
 
         return E
 

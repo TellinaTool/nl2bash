@@ -741,9 +741,9 @@ def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
             data_dir, '{}.mappings'.format(dataset))
         print("Saving slot-filling mapping to {}".format(data_dir))
 
-        pointer_targets = np.zeros(
-            [data_size, FLAGS.max_tg_length, FLAGS.max_sc_length],
-            dtype=np.int32)
+        # pointer_targets = np.zeros(
+        #     [data_size, FLAGS.max_tg_length, FLAGS.max_sc_length],
+        #     dtype=np.int32)
         with open(slot_filling_mapping_file, 'w') as o_f:
             pair_list = list(zip(nl_list, cm_list))
             for idx in xrange(len(pair_list)):
@@ -752,11 +752,11 @@ def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
                 if mappings:
                     for i, j in sorted(mappings, key=lambda x:x[0]):
                         o_f.write('{}-{} '.format(i, j))
-                        pointer_targets[idx, j, -(i+1)] = 1
+                        # pointer_targets[idx, j, -(i+1)] = 1
                 o_f.write('\n')
 
-        np.save(slot_filling_mapping_file,
-                np.split(pointer_targets, data_size))
+        # np.save(slot_filling_mapping_file,
+        #         np.split(pointer_targets, data_size))
 
 
 def load_slot_filling_data(input_path):
@@ -955,14 +955,14 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         cm_full = data_path + cm_full_extension
         if FLAGS.explain:
             dataset = read_data(cm_txt, nl_txt, cm, nl, cm_full, nl_full,
-                                buckets, FLAGS.max_train_data_size,
+                                FLAGS, buckets,
                                 append_head_token=append_head_token,
                                 append_end_token=append_end_token,
                                 load_mappings=load_mappings,
                                 load_pointers=load_pointers)
         else:
             dataset = read_data(nl_txt, cm_txt, nl, cm, nl_full, cm_full,
-                                buckets, FLAGS.max_train_data_size,
+                                FLAGS, buckets,
                                 append_head_token=append_head_token,
                                 append_end_token=append_end_token,
                                 load_mappings=load_mappings,
@@ -973,8 +973,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
 
 
 def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
-              tg_full_id_path, buckets=None, max_num_examples=None, 
-              append_head_token=False, append_end_token=False, 
+              tg_full_id_path, FLAGS, buckets=None,
+              append_head_token=False, append_end_token=False,
               load_mappings=False, load_pointers=False):
     """Read preprocessed data from source and target files and put into buckets.
     :param sc_path: path to the file containing the original source strings.
@@ -991,6 +991,8 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
     :param load_mappings: load the slot-filler mappings.
     :param load_pointers: load copying indices.
     """
+
+    max_num_examples = FLAGS.max_train_data_size
 
     def get_target_ids(tg):
         tg_ids = [int(x) for x in tg.split()]
@@ -1017,13 +1019,13 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
     tg_id_file = tf.gfile.GFile(tg_id_path, mode="r")
     sc_full_id_file = tf.gfile.GFile(sc_full_id_path, mode="r")
     tg_full_id_file = tf.gfile.GFile(tg_full_id_path, mode="r")
-    if load_mappings:
+    if load_mappings or load_pointers:
         data_dir, file_name = os.path.split(sc_path)
-        mapping_path = os.path.join(data_dir, 
-                                    file_name.split('.')[0] + '.mappings')
+        mapping_path = os.path.join(
+            data_dir, file_name.split('.')[0] + '.mappings')
         mapping_file = tf.gfile.GFile(mapping_path, mode="r")
-    if load_pointers:
-        pointer_targets = np.load(mapping_path + ".npy")
+    # if load_pointers:
+    #     pointer_targets = np.load(mapping_path + ".npy")
 
     data_idx = 0
     while True:
@@ -1031,7 +1033,7 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
         sc, tg = sc_id_file.readline(), tg_id_file.readline()
         sc_full = sc_full_id_file.readline()
         tg_full = tg_full_id_file.readline()
-        if load_mappings:
+        if load_mappings or load_pointers:
             mapping = mapping_file.readline()
         if not sc or not tg:
             break
@@ -1055,7 +1057,13 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
                     mappings.append([int(x) for x in mp.split('-')])
             data_point.append(mappings)
         if load_pointers:
-            data_point.append(pointer_targets[data_idx])
+            tg_pointers = np.zeros([FLAGS.max_tg_length, FLAGS.max_sc_length])
+            if mapping.strip():
+                for mp in mapping.strip().split():
+                    i, j = [int(x) for x in mp.split('-')]
+                    tg_pointers[j, -i] = 1
+            data_point.append(tg_pointers)
+
         data_idx += 1
         
         if buckets:
