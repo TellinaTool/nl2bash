@@ -213,10 +213,10 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                 else:
                                     pred_token_type = pred_token
                                 cm_slots[ii] = (pred_token, pred_token_type)
-                                copy_idx = \
-                                    batch_copy_indices[batch_id, beam_id, ii]
-                                pred_token = \
-                                    rev_sc_vocab[encoder_inputs[copy_idx][batch_id]]
+                            copy_idx = \
+                                batch_copy_indices[batch_id, beam_id, ii]
+                            pred_token = \
+                                rev_sc_vocab[encoder_inputs[copy_idx][batch_id]]
                         output_tokens.append(pred_token)
                     else:
                         output_tokens.append(data_utils._UNK)

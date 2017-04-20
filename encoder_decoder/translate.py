@@ -420,7 +420,7 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
     X, Y = [], []
     for bucket_id in xrange(len(_buckets)):
         for i in xrange(len(dataset[bucket_id])):
-            sc, tg, sc_ids, tg_ids, _, _, gt_mappings = dataset[bucket_id][i]
+            sc, tg, sc_ids, tg_ids, _, _, gt_mappings, _ = dataset[bucket_id][i]
             mappings = [tuple(m) for m in gt_mappings]
             if gt_mappings:
                 encoder_inputs = [dataset[bucket_id][i][2]]
