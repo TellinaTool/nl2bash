@@ -1055,13 +1055,12 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
             if mapping.strip():
                 for mp in mapping.strip().split():
                     mappings.append([int(x) for x in mp.split('-')])
-            data_point.append(mappings)
         if load_pointers:
             tg_pointers = np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
             if mapping.strip():
                 for mp in mapping.strip().split():
                     i, j = [int(x) for x in mp.split('-')]
-                    tg_pointers[0, j, -i] = 1
+                    tg_pointers[0, j, -(i+1)] = 1
             data_point.append(tg_pointers)
 
         data_idx += 1
