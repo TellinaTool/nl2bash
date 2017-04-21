@@ -245,8 +245,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # --- Run encode-decode steps --- #
         output_symbols, output_logits, outputs, states, attn_alignments, \
             pointers = self.decoder.define_graph(
-                        encoder_state, decoder_inputs, encoder_attn_masks,
-                        attention_states, num_heads=num_heads,
+                        encoder_state, decoder_inputs,
+                        encoder_attn_masks=encoder_attn_masks,
+                        attention_states=attention_states,
+                        num_heads=num_heads,
                         forward_only=forward_only)
 
         # --- Compute Losses --- #
