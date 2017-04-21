@@ -148,7 +148,8 @@ class RNNDecoder(decoder.Decoder):
                             len(decoder_inputs), attention_states.get_shape()[1].value])
                 states = tf.split(1, past_cell_states.get_shape()[1], past_cell_states)[1:]
                 outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:] for s in states]
-                return top_k_outputs, top_k_logits, outputs, states, attn_alignments
+                return top_k_outputs, top_k_logits, outputs, states, \
+                       attn_alignments, pointers
             else:
                 # Greedy output
                 W, b = self.output_project
