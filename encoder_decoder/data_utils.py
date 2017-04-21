@@ -711,13 +711,13 @@ def prepare_bash(FLAGS, verbose=False):
             with open(nl_path) as f:
                 for line in f:
                     ids = [int(x) for x in line.strip().split()]
-                    new_ids = [cp_vocab[rev_nl_vocab[id]] for id in ids]
+                    new_ids = [str(cp_vocab[rev_nl_vocab[id]]) for id in ids]
                     o_f.write(' '.join(new_ids) + '\n')
         with open(cm_copy_path, 'w') as o_f:
             with open(cm_path) as f:
                 for line in f:
                     ids = [int(x) for x in line.strip().split()]
-                    new_ids = [cp_vocab[rev_cm_vocab[id]] for id in ids]
+                    new_ids = [str(cp_vocab[rev_cm_vocab[id]]) for id in ids]
                     o_f.write(' '.join(new_ids) + '\n')
 
 
