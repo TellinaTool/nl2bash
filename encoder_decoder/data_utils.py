@@ -389,10 +389,12 @@ def read_raw_data(data_dir):
         data_path = os.path.join(data_dir, split)
         if os.path.exists(data_path + ".nl"):
             with open(data_path + '.nl') as f:
-                setattr(nl_list, split, [line.strip() for line in f.readlines()])
+                setattr(nl_list, split,
+                        [line.strip() for line in f.readlines()])
         if os.path.exists(data_path + ".cm"):
             with open(data_path + ".cm") as f:
-                setattr(cm_list, split, [line.strip() for line in f.readlines()])
+                setattr(cm_list, split,
+                        [line.strip() for line in f.readlines()])
     return nl_list, cm_list
 
 
@@ -692,12 +694,12 @@ def prepare_bash(FLAGS, verbose=False):
 
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
-    vocabs = load_vocab(FLAGS)
-    if FLAGS.explain:
-        cm_vocab, rev_cm_vocab, nl_vocab, rev_nl_vocab = vocabs[:4]
-    else:
-        nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab = vocabs[:4]
-    cp_vocab, rev_cp_vocab = vocabs[-2:]
+    nl_vocab, rev_nl_vocab = initialize_vocabulary(os.path.join(
+        data_dir, "vocab%d.nl" % nl_vocab_size))
+    cm_vocab, rev_cm_vocab = initialize_vocabulary(os.path.join(
+        data_dir, "vocab%d.cm" % cm_vocab_size))
+    cp_vocab, rev_cp_vocab = initialize_vocabulary(os.path.join(
+        data_dir, "vocab.copy"))
 
     for split in ['train', 'dev', 'test']:
         nl_path = os.path.join(data_dir, split, nl_token_suffix)
@@ -875,8 +877,8 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
             grouped_dataset[cm_template][4].append(nl_full)
             grouped_dataset[cm_template][5].append(cm_full)
         else:
-            grouped_dataset[cm_template] = [[nl_str], [cm_str], [cm], [nl],
-                                            [nl_full], [cm_full]]
+            grouped_dataset[cm_template] = \
+                [[nl_str], [cm_str], [cm], [nl], [nl_full], [cm_full]]
 
     return grouped_dataset
 
@@ -891,15 +893,14 @@ def merge_vocab_for_copy(nl_vocab_path, cm_vocab_path, output_path):
             nl_vocab.append(v)
     with open(output_path, 'w') as o_f:
         for v in nl_vocab:
-            o_f.write(v + '\n')
+            o_f.write(v)
 
 
 def load_vocab(FLAGS):
     if FLAGS.decoder_topology in ['rnn']:
         nl_extension = "vocab%d.nl" % FLAGS.sc_vocab_size \
             if FLAGS.sc_char else "vocab%d.nl.norm" % FLAGS.sc_vocab_size
-        nl_vocab_path = os.path.join(
-            FLAGS.data_dir, nl_extension)
+        nl_vocab_path = os.path.join(FLAGS.data_dir, nl_extension)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
