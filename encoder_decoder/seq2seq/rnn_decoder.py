@@ -121,6 +121,8 @@ class RNNDecoder(decoder.Decoder):
             if self.use_copy and self.copy_fun == 'explicit':
                 pointers = tf.concat(1,
                     [tf.expand_dims(x[1], 1) for x in alignments])
+            else:
+                pointers = None
 
             if bs_decoding:
                 # Beam-search output
