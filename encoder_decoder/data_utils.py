@@ -399,8 +399,7 @@ def read_raw_data(data_dir):
 def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
     if isinstance(data.train[0], list):
         # save indexed token sequences
-        min_word_freq = 2 \
-            if ("bash" in data_dir and not ".cm" in vocab_path) else 0
+        min_word_freq = 2 if ("bash" in data_dir) else 0
         create_vocabulary(vocab_path, data.train, vocab_size,
                           min_word_frequency=min_word_freq)
         if suffix.endswith('.nl') or suffix.endswith('.cm'):
@@ -410,12 +409,12 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
                     min_word_frequency=min_word_freq, append_to_vocab=True)
         for split in ['train', 'dev', 'test']:
             data_path = os.path.join(data_dir, split)
-            data_to_token_ids(getattr(data, split), 
-                              data_path + suffix, vocab_path)
+            data_to_token_ids(
+                getattr(data, split), data_path + suffix, vocab_path)
             if suffix.endswith('.nl') or suffix.endswith('.cm'):
-                data_to_token_ids(getattr(data, split),
-                                  data_path + suffix + '.full',
-                                  vocab_path, use_unk=False)
+                data_to_token_ids(
+                    getattr(data, split), data_path + suffix + '.full',
+                    vocab_path, use_unk=False)
     else:
         # save string data
         for split in ['train', 'dev', 'test']:
@@ -621,8 +620,8 @@ def prepare_bash(FLAGS, verbose=False):
     print("maximum num pruned AST search steps = %d" % max_cm_seq_pruned_len)
 
     # compute character representation of tokens
-    def compute_channel_representations(vocab_path, char_vocab_path,
-                                        pad_start=False, add_eos=False):
+    def compute_channel_representations(
+            vocab_path, char_vocab_path, pad_start=False, add_eos=False):
         vocab, _ = initialize_vocabulary(vocab_path)
         char_vocab, _ = initialize_vocabulary(char_vocab_path)
         vocab_token_feature_path = vocab_path + ".token.feature"
@@ -657,8 +656,8 @@ def prepare_bash(FLAGS, verbose=False):
                         max_token_size = len(char_ids)
                 char_ids_list.append(char_ids)
                 o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
-        print("maximum token size in {} = {}".format(vocab_path,
-                                                     max_token_size))
+        print("maximum token size in {} = {}".format(
+                vocab_path, max_token_size))
         if add_eos:
             vocab_char_features = np.zeros(
                 [len(vocab), max_token_size+1], dtype=np.int64)
@@ -681,12 +680,43 @@ def prepare_bash(FLAGS, verbose=False):
                 vocab_char_features[token_id][j] = c_id
         np.save(vocab_char_feature_path, vocab_char_features)
 
-    compute_channel_representations(nl_vocab_path, nl_char_vocab_path,
-                                    pad_start=True)
-    compute_channel_representations(cm_vocab_path, cm_char_vocab_path,
-                                    add_eos=True)
+    compute_channel_representations(
+        nl_vocab_path, nl_char_vocab_path, pad_start=True)
+    compute_channel_representations(
+        cm_vocab_path, cm_char_vocab_path, add_eos=True)
 
     slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix)
+
+    merge_vocab_for_copy(nl_vocab_path, cm_vocab_path,
+                         os.path.join(data_dir, "vocab.copy"))
+
+    nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
+    cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
+    vocabs = load_vocab(FLAGS)
+    if FLAGS.explain:
+        cm_vocab, rev_cm_vocab, nl_vocab, rev_nl_vocab = vocabs[:4]
+    else:
+        nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab = vocabs[:4]
+    cp_vocab, rev_cp_vocab = vocabs[-2:]
+
+    for split in ['train', 'dev', 'test']:
+        nl_path = os.path.join(data_dir, split, nl_token_suffix)
+        cm_path = os.path.join(data_dir, split, cm_token_suffix)
+        nl_copy_path = os.path.join(data_dir, split, nl_token_copy_suffix)
+        cm_copy_path = os.path.join(data_dir, split, cm_token_copy_suffix)
+
+        with open(nl_copy_path, 'w') as o_f:
+            with open(nl_path) as f:
+                for line in f:
+                    ids = [int(x) for x in line.strip().split()]
+                    new_ids = [cp_vocab[rev_nl_vocab[id]] for id in ids]
+                    o_f.write(' '.join(new_ids) + '\n')
+        with open(cm_copy_path, 'w') as o_f:
+            with open(cm_path) as f:
+                for line in f:
+                    ids = [int(x) for x in line.strip().split()]
+                    new_ids = [cp_vocab[rev_cm_vocab[id]] for id in ids]
+                    o_f.write(' '.join(new_ids) + '\n')
 
 
 def prepare_data(FLAGS):
@@ -735,7 +765,7 @@ def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
         cm_list = [cm.strip() for cm in open(cm_path, 'r').readlines()]
 
         assert(len(nl_list) == len(cm_list))
-        data_size = len(nl_list)
+        # data_size = len(nl_list)
 
         slot_filling_mapping_file = os.path.join(
             data_dir, '{}.mappings'.format(dataset))
@@ -851,6 +881,19 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
     return grouped_dataset
 
 
+def merge_vocab_for_copy(nl_vocab_path, cm_vocab_path, output_path):
+    with open(nl_vocab_path) as f:
+        nl_vocab = f.readlines()
+    with open(cm_vocab_path) as f:
+        cm_vocab = f.readlines()
+    for v in cm_vocab:
+        if not v in nl_vocab:
+            nl_vocab.append(v)
+    with open(output_path, 'w') as o_f:
+        for v in nl_vocab:
+            o_f.write(v + '\n')
+
+
 def load_vocab(FLAGS):
     if FLAGS.decoder_topology in ['rnn']:
         nl_extension = "vocab%d.nl" % FLAGS.sc_vocab_size \
@@ -885,16 +928,20 @@ def load_vocab(FLAGS):
     nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
 
+    if FLAGS.use_copy:
+        cp_vocab_path = os.path.join(FLAGS.data_dir, "vocab.copy")
+        cp_vocab, rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
+
     if FLAGS.explain:
         vocabs = [cm_vocab, rev_cm_vocab, nl_vocab, rev_nl_vocab]
     else:
         vocabs = [nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab]
 
     if FLAGS.sc_char or FLAGS.tg_char:
-        nl_char_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.nl.char" % FLAGS.sc_vocab_size)
-        cm_char_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.cm.char" % FLAGS.tg_vocab_size)
+        nl_char_vocab_path = os.path.join(
+            FLAGS.data_dir, "vocab%d.nl.char" % FLAGS.sc_vocab_size)
+        cm_char_vocab_path = os.path.join(
+            FLAGS.data_dir, "vocab%d.cm.char" % FLAGS.tg_vocab_size)
         nl_char_vocab, rev_nl_char_vocab = \
             initialize_vocabulary(nl_char_vocab_path)
         cm_char_vocab, rev_cm_char_vocab = \
@@ -906,6 +953,10 @@ def load_vocab(FLAGS):
         else:
             vocabs.extend([nl_char_vocab, rev_nl_char_vocab,
                            cm_char_vocab, rev_cm_char_vocab])
+
+    if FLAGS.use_copy:
+        vocabs.extend([cp_vocab, rev_cp_vocab])
+
     return vocabs
 
 

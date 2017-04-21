@@ -39,7 +39,6 @@ class RNNDecoder(decoder.Decoder):
             outputs = []
             states = []
             attn_alignments = []
-            pointers = []
 
             # applying cell wrappers: ["attention", "beam"]
             if bs_decoding:
@@ -94,10 +93,7 @@ class RNNDecoder(decoder.Decoder):
                                                         tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
                 input_embedding = tf.nn.embedding_lookup(self.embeddings(), input)
-                if self.use_copy:
-                    output, state, alignments, _ = \
-                        decoder_cell(input_embedding, state, attn_alignments, pointers)
-                elif self.use_attention:
+                if self.use_attention:
                     output, state, alignments = \
                         decoder_cell(input_embedding, state, attn_alignments)
                 else:
@@ -117,7 +113,7 @@ class RNNDecoder(decoder.Decoder):
                 # Tensor list --> tenosr
                 attn_alignments = tf.concat(1,
                     [tf.expand_dims(x[0], 1) for x in alignments])
-            if self.use_copy:
+            if self.use_copy and self.copy_fun == 'explicit':
                 pointers = tf.concat(1,
                     [tf.expand_dims(x[1], 1) for x in alignments])
 
@@ -147,8 +143,7 @@ class RNNDecoder(decoder.Decoder):
                             len(decoder_inputs), attention_states.get_shape()[1].value])
                 states = tf.split(1, past_cell_states.get_shape()[1], past_cell_states)[1:]
                 outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:] for s in states]
-                return top_k_outputs, top_k_logits, outputs, states, \
-                       attn_alignments, pointers
+                return top_k_outputs, top_k_logits, outputs, states, attn_alignments
             else:
                 # Greedy output
                 W, b = self.token_output_projection
@@ -160,7 +155,7 @@ class RNNDecoder(decoder.Decoder):
                 past_output_logits = tf.add(
                     past_output_logits, tf.reduce_max(projected_output, 1))
                 return output_symbols, past_output_logits, outputs, states, \
-                       attn_alignments, pointers
+                       attn_alignments
 
 
     def decoder_cell(self):
