@@ -148,25 +148,23 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("char", False, "Set to True to train a pure char RNN model.")
 
     # channel network hyperparameters
-    tf.app.flags.DEFINE_boolean("sc_token", True, "Set to True to turn on the token channel in the encoder. "
-                                                  + "On by default.")
+    tf.app.flags.DEFINE_boolean("sc_token", True,
+                                "Set to True to turn on the token channel in the encoder. On by default.")
     tf.app.flags.DEFINE_integer("sc_token_dim", 300, "Basic token embedding dimensions.")
     tf.app.flags.DEFINE_float("sc_input_keep", .5,
                                 "Proportion of source input to keep if dropout is used.")
     tf.app.flags.DEFINE_float("sc_output_keep", .5,
                                 "Proportion of source output to keep if dropout is used.")
-    tf.app.flags.DEFINE_boolean("sc_char", False, "Set to True to turn on the character channel in the encoder. "
-                                                  + "Off by default.")
+    tf.app.flags.DEFINE_boolean("sc_char", False,
+                                "Set to True to turn on the character channel in the encoder. Off by default.")
     tf.app.flags.DEFINE_integer("sc_char_dim", 300, "Dimension of each character embeddings.")
     tf.app.flags.DEFINE_string("sc_char_composition", 'rnn', "Specify the character to token composition function.")
     tf.app.flags.DEFINE_string("sc_char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
     tf.app.flags.DEFINE_integer("sc_char_rnn_num_layers", 1,
                                 "Number of layers in the RNN cell used for the character model.")
 
-    tf.app.flags.DEFINE_float("tg_input_keep", .5,
-                              "Proportion of target input to keep if dropout is used.")
-    tf.app.flags.DEFINE_float("tg_output_keep", .5,
-                              "Proportion of target output to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("tg_input_keep", .5, "Proportion of target input to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("tg_output_keep", .5, "Proportion of target output to keep if dropout is used.")
     tf.app.flags.DEFINE_boolean("tg_char", False,
                                 "Set to True to turn on character RNN extention module in the decoder.")
     tf.app.flags.DEFINE_integer("tg_char_vocab_size", 150, "Target character vocabulary size.")
@@ -183,8 +181,8 @@ def define_input_flags():
 
     # copying mechanism
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
-    tf.app.flags.DEFINE_boolean("copy_fun", 'flat',
-                                "Specify the probability parameterization for token copying and generation.")
+    tf.app.flags.DEFINE_boolean("copy_fun", 'implicit',
+                                "Specifying the type of copying functions to use.")
     tf.app.flags.DEFINE_float("chi", 1, "Copy loss weight.")
 
     # debugging options

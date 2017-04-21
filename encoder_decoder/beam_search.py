@@ -167,8 +167,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                     tf.float32) * -1e18,
             [1, 1, self.num_classes]
         )
-        self._nondone_mask = tf.reshape(tf.tile(self._nondone_mask,
-                                                [1, self.beam_size, 1]),
+        self._nondone_mask = tf.reshape(tf.tile(
+            self._nondone_mask, [1, self.beam_size, 1]),
             [-1, self.beam_size*self.num_classes])
 
         full_size = self.batch_size * self.beam_size
@@ -187,8 +187,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self._done_mask = tf.tile(self._done_mask, [full_size, 1])
 
 
-    def __call__(self, inputs, state, alignments=None, pointers=None,
-                 scope=None):
+    def __call__(self, inputs, state, alignments=None, scope=None):
         (
             past_cand_symbols,      # [batch_size, :]
             past_cand_logprobs,     # [batch_size]
@@ -214,11 +213,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         cell_inputs = inputs
 
         past_cell_state = self.get_past_cell_state(past_cell_states)
-        if self.use_copy:
-            cell_output, raw_cell_state, alignments, pointers = \
-                self.cell(cell_inputs, past_cell_state, alignments,
-                          pointers, scope)
-        elif self.use_attention:
+        if self.use_attention:
             cell_output, raw_cell_state, alignments = \
                 self.cell(cell_inputs, past_cell_state, alignments, scope)
         else:
@@ -246,8 +241,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         # [1 1 1 1 1 1]
         # [1 1 1 1 1 1]
         zero_done_mask = tf.ones([full_size, self.num_classes]) - \
-                         tf.mul(stop_mask_2d,
-                                tf.cast(tf.equal(self._done_mask, 0), tf.float32))
+            tf.mul(stop_mask_2d, tf.cast(tf.equal(self._done_mask, 0), tf.float32))
         logprobs = tf.add(logprobs, done_only_mask)
         logprobs = tf.mul(logprobs, zero_done_mask)
 
@@ -279,13 +273,16 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         symbols_history = tf.gather(past_beam_symbols, parent_refs)
         if alignments is not None:
             num_alignments = len(alignments)
+            num_heads = len(alignments[0])
             alignments = nest.flatten(alignments)
-            alignments = tf.split(1, num_alignments * 2,
-                                  tf.gather(tf.concat(1, alignments), 
-                                            parent_refs))
+            alignments = tf.split(1, num_alignments * num_heads,
+                tf.gather(tf.concat(1, alignments), parent_refs))
             new_alignments = []
             for i in xrange(num_alignments):
-                new_alignments.append([alignments[2*i], alignments[2*i+1]])
+                alignment = []
+                for j in xrange(num_heads):
+                    alignment.append(alignments[i*num_heads+j])
+                new_alignments.append(alignment)
             alignments = new_alignments
 
         beam_symbols = tf.concat(1, [symbols_history,
@@ -329,9 +326,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                     beam_logprobs,
                     cell_states,
                 )
-        if self.use_copy:
-            return cell_output, cell_state, alignments, pointers
-        elif self.use_attention:
+        if self.use_attention:
             return cell_output, cell_state, alignments
         else:
             return cell_output, cell_state

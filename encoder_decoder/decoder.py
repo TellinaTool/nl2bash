@@ -50,9 +50,8 @@ class Decoder(graph_utils.NNModel):
             self.use_attention,
             self.use_copy,
             self.alpha,
-            locally_normalized=(
-                self.training_algorithm != "bso"
-        )) if self.decoding_algorithm == "beam_search" else None
+            locally_normalized=(self.training_algorithm != "bso")
+        ) if self.decoding_algorithm == "beam_search" else None
 
         self.token_output_projection = self.token_output_projection()
 
@@ -169,9 +168,10 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attention_vars = True
         return ds, alignments
 
+    def copy(self, state):
 
-    def __call__(self, input_embedding, state, attn_alignments,
-                 pointers=None, scope=None):
+
+    def __call__(self, input_embedding, state, attn_alignments, scope=None):
         if nest.is_sequence(state):
             dim = state[1].get_shape()[1].value
         else:
@@ -205,7 +205,4 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attention_cell_vars = True
         attn_alignments.append(alignments)
 
-        if self.use_copy:
-            return output, state, attn_alignments, pointers
-        else:
-            return output, state, attn_alignments
+        return output, state, attn_alignments

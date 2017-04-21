@@ -120,9 +120,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         if self.use_copy:
             for i in xrange(self.max_target_length):
-                self.pointer_targets = \
-                    tf.placeholder(tf.int32, shape=[None, None, None],
-                                   name="pointer_targets")
+                self.pointer_targets = tf.placeholder(
+                    tf.int32, shape=[None, None, None], name="pointer_targets")
 
         # Compute training outputs and losses in the forward direction.
         if self.buckets:
@@ -200,8 +199,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.optimizer == "sgd":
                 opt = tf.train.GradientDescentOptimizer(self.learning_rate)
             elif self.optimizer == "adam":
-                opt = tf.train.AdamOptimizer(self.learning_rate, beta1=0.9,
-                                             beta2=0.999, epsilon=1e-08)
+                opt = tf.train.AdamOptimizer(
+                    self.learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08)
             else:
                 raise ValueError("Unrecognized optimizer type.")
 
@@ -238,7 +237,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             attention_states = None
         
         # Losses.
-        num_heads = 2 if (self.tg_token_use_attention and self.use_copy) else 1
+        num_heads = 2 if (self.tg_token_use_attention and
+                          (self.use_copy and self.copy_fun == 'explicit')) else 1
 
         output_symbols, output_logits, outputs, states, attn_alignments, \
             pointers = self.decoder.define_graph(
@@ -351,7 +351,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 [-1, self.max_target_length])
         copy_positions = tf.cast(tf.reduce_sum(pointer_targets, 2), tf.float32)
         return tf.reduce_mean(
-                tf.reduce_sum(tf.mul(copy_positions, raw_loss), 1) /
+                tf.reduce_sum(tf.mul(raw_loss, copy_positions), 1) /
                 (tf.reduce_sum(copy_positions, 1) + 1e-12))
 
 

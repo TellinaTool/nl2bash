@@ -31,11 +31,11 @@ class Seq2SeqModel(EncoderDecoderModel):
     def define_encoder(self, input_keep, output_keep):
         """Construct sequence encoders."""
         if self.encoder_topology == "rnn":
-            self.encoder = encoder.RNNEncoder(self.hyperparams, input_keep,
-                                              output_keep)
+            self.encoder = encoder.RNNEncoder(
+                self.hyperparams, input_keep, output_keep)
         elif self.encoder_topology == "birnn":
-            self.encoder = encoder.BiRNNEncoder(self.hyperparams, input_keep,
-                                                output_keep)
+            self.encoder = encoder.BiRNNEncoder(
+                self.hyperparams, input_keep, output_keep)
         else:
             raise ValueError("Unrecognized encoder type.")
 
@@ -49,5 +49,5 @@ class Seq2SeqModel(EncoderDecoderModel):
                 attention_function, input_keep, output_keep,
                 self.token_decoding_algorithm)
         else:
-            raise ValueError("Unrecognized decoder topology: {}."
-                             .format(self.decoder_topology))
+            raise ValueError(
+                "Unrecognized decoder topology: {}." .format(self.decoder_topology))
