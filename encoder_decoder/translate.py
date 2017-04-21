@@ -151,8 +151,9 @@ def train(train_set, dev_set, construct_model_dir=True):
         # Save slot filling embeddings.
         tf.reset_default_graph()
         mapping_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        gen_slot_filling_training_data_fun(sess, model, train_set,
-                                           mapping_path)
+        gen_slot_filling_training_data_fun(sess, model, train_set, mapping_path)
+        mapping_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
+        gen_slot_filling_training_data_fun(sess, model, dev_set, mapping_path)
     return True
 
 
@@ -340,12 +341,6 @@ def eval_slot_filling(dataset):
     """
     Evaluate global slot filling algorithm accuracy using ground truth templates.
     """
-    model_param_dir = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
-    train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
-    slot_filling_classifier = classifiers.KNearestNeighborModel(
-        FLAGS.num_nn_slot_filling, train_X, train_Y)
-    print('Slot filling classifier parameters loaded.')
-
     _, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
@@ -354,23 +349,33 @@ def eval_slot_filling(dataset):
         model, global_epochs = graph_utils.create_model(sess, FLAGS,
             Seq2SeqModel, buckets=_buckets, forward_only=True)
 
+        model_param_dir = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
+        train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
+        slot_filling_classifier = classifiers.KNearestNeighborModel(
+            FLAGS.num_nn_slot_filling, train_X, train_Y)
+        print('Slot filling classifier parameters loaded.')
+
         num_correct = 0.0
         num_predict = 0.0
         num_gt = 0.0
         for bucket_id in xrange(len(_buckets)):
-            for i in xrange(len(dataset[bucket_id])):
-                sc, tg, sc_ids, tg_ids, gt_mappings = dataset[bucket_id][i]
+            for data_id in xrange(len(dataset[bucket_id])):
+                sc, tg, sc_ids, tg_ids, _, _, gt_mappings, _ = \
+                    dataset[bucket_id][data_id]
                 gt_mappings = [tuple(m) for m in gt_mappings]
                 if gt_mappings:
                     _, entities = tokenizer.ner_tokenizer(sc)
                     nl_fillers = entities[0]
-                    encoder_inputs = [dataset[bucket_id][i][2]]
-                    encoder_full_inputs = [dataset[bucket_id][i][4]]
-                    decoder_inputs = [dataset[bucket_id][i][3]]
-                    decoder_full_inputs = [dataset[bucket_id][i][5]]
+                    encoder_inputs = [dataset[bucket_id][data_id][2]]
+                    encoder_full_inputs = [dataset[bucket_id][data_id][4]]
+                    decoder_inputs = [dataset[bucket_id][data_id][3]]
+                    decoder_full_inputs = [dataset[bucket_id][data_id][5]]
+                    if FLAGS.use_copy:
+                        pointer_targets = [dataset[bucket_id][data_id][-1]]
                     formatted_example = model.format_example(
                         [encoder_inputs, encoder_full_inputs],
                         [decoder_inputs, decoder_full_inputs],
+                        pointer_targets=pointer_targets,
                         bucket_id=bucket_id)
                     model_outputs = model.step(sess, formatted_example,
                                                bucket_id, forward_only=True,
@@ -397,12 +402,26 @@ def eval_slot_filling(dataset):
                                 cm_slots[ii] = (pred_token, pred_token_type)
                         else:
                             output_tokens.append(data_utils._UNK)
-                    tree2, temp, mappings = slot_filling.stable_slot_filling(
-                                output_tokens, nl_fillers, cm_slots,
-                                encoder_outputs[0], decoder_outputs[0],
-                                slot_filling_classifier)
-                    # print(mappings)
-                    # print(gt_mappings)
+                    if FLAGS.use_copy:
+                        pointers = np.mul(np.cast(pointer_targets[0][0] > 0, np.float32),
+                                          model_outputs.pointers[0])
+                        M = {}
+                        for i in xrange(pointers.shape[0]):
+                            for j in xrange(pointers.shape[1]):
+                                if not i in M:
+                                    M[i] = {}
+                                if pointers[i, j] == 0:
+                                    M[i][j] = -np.inf
+                                else:
+                                    M[i][j] = pointers[i, j]
+                        mappings, _ = slot_filling.\
+                            stable_marriage_alignment_with_partial(M)
+                    else:
+                        _, _, mappings = slot_filling.stable_slot_filling(
+                                    output_tokens, nl_fillers, cm_slots,
+                                    encoder_outputs[0], decoder_outputs[0],
+                                    slot_filling_classifier)
+
                     for mapping in mappings:
                         if mapping in gt_mappings:
                             num_correct += 1
@@ -420,16 +439,19 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
     X, Y = [], []
     for bucket_id in xrange(len(_buckets)):
         for i in xrange(len(dataset[bucket_id])):
-            sc, tg, sc_ids, tg_ids, _, _, gt_mappings = dataset[bucket_id][i]
+            sc, tg, sc_ids, tg_ids, _, _, gt_mappings, _ = dataset[bucket_id][i]
             mappings = [tuple(m) for m in gt_mappings]
             if gt_mappings:
                 encoder_inputs = [dataset[bucket_id][i][2]]
                 encoder_full_inputs = [dataset[bucket_id][i][4]]
                 decoder_inputs = [dataset[bucket_id][i][3]]
                 decoder_full_inputs = [dataset[bucket_id][i][5]]
+                if FLAGS.use_copy:
+                    pointer_targets = [dataset[bucket_id][i][-1]]
                 formatted_example = model.format_example(
                     [encoder_inputs, encoder_full_inputs],
                     [decoder_inputs, decoder_full_inputs],
+                    pointer_targets=pointer_targets,
                     bucket_id=bucket_id)
                 model_outputs = model.step(sess, formatted_example, bucket_id,
                     forward_only=True, return_rnn_hidden_states=True)

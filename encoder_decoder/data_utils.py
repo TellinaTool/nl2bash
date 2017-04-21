@@ -1106,6 +1106,7 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
             if mapping.strip():
                 for mp in mapping.strip().split():
                     mappings.append([int(x) for x in mp.split('-')])
+            data_point.append(mappings)
         if load_pointers:
             tg_pointers = np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
             if mapping.strip():
@@ -1123,6 +1124,5 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
                     break
         else:
             data_set.append(data_point)
-
     print("  %d data points read." % data_idx)
     return data_set
