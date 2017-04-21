@@ -73,6 +73,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     params["use_copy"] = FLAGS.use_copy
     params["copy_fun"] = FLAGS.copy_fun
+    params["copy_vocab_size"] = FLAGS.copy_vocab_size
     params["chi"] = FLAGS.chi
 
     params["tg_token_attn_fun"] = FLAGS.tg_token_attn_fun
@@ -255,14 +256,14 @@ def get_buckets(FLAGS):
     return buckets
 
 
-def softmax_loss(token_output_projection, num_samples, target_vocab_size):
+def softmax_loss(output_project, num_samples, target_vocab_size):
     if num_samples > 0:
-        w, b = token_output_projection
+        w, b = output_project
         w_t = tf.transpose(w)
         def sampled_loss(inputs, labels):
             labels = tf.reshape(labels, [-1, 1])
-            return tf.nn.sampled_softmax_loss(w_t, b, inputs, labels,
-                                              num_samples, target_vocab_size)
+            return tf.nn.sampled_softmax_loss(
+                w_t, b, inputs, labels, num_samples, target_vocab_size)
         loss_function = sampled_loss
     else:
         loss_function = tf.nn.softmax_cross_entropy_with_logits
@@ -437,6 +438,7 @@ class NNModel(object):
         return self.hyperparams["gamma"]
 
     # -- copy mechanism -- #
+
     @property
     def use_copy(self):
         return self.hyperparams["use_copy"]
@@ -444,6 +446,10 @@ class NNModel(object):
     @property
     def copy_fun(self):
         return self.hyperparams["copy_fun"]
+
+    @property
+    def copy_vocab_size(self):
+        return self.hyperparams["copy_vocab_size"]
 
     @property
     def chi(self):

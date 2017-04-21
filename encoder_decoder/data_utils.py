@@ -691,7 +691,6 @@ def prepare_bash(FLAGS, verbose=False):
 
     merge_vocab_for_copy(nl_vocab_path, cm_vocab_path,
                          os.path.join(data_dir, "vocab.copy"))
-
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
     nl_vocab, rev_nl_vocab = initialize_vocabulary(os.path.join(
@@ -719,6 +718,13 @@ def prepare_bash(FLAGS, verbose=False):
                     ids = [int(x) for x in line.strip().split()]
                     new_ids = [str(cp_vocab[rev_cm_vocab[id]]) for id in ids]
                     o_f.write(' '.join(new_ids) + '\n')
+
+    # prepare generation mask
+    generation_mask = np.ones([len(cp_vocab)], dtype=np.float32)
+    for v_id in rev_cm_vocab:
+        generation_mask[v_id] = 0
+    generation_mask *= -1e18
+    np.save(os.path.join(data_dir, "generation_mask"), generation_mask)
 
 
 def prepare_data(FLAGS):
@@ -966,7 +972,10 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
 
     data_dir = FLAGS.data_dir
 
-    if FLAGS.char:
+    if FLAGS.use_copy:
+        nl_extension = ".ids%d.nl.copy" % FLAGS.sc_vocab_size
+        cm_extension = ".ids%d.cm.copy" % FLAGS.tg_vocab_size
+    elif FLAGS.char:
         nl_extension = ".ids%d.nl.char" % FLAGS.sc_vocab_size
         cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
         append_head_token = True

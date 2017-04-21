@@ -15,8 +15,8 @@ class RNNDecoder(decoder.Decoder):
 
 
     def define_graph(self, encoder_state, decoder_inputs,
-                     encoder_attn_masks=None, attention_states=None,
-                     num_heads=1, forward_only=False):
+                     input_embeddings=None, encoder_attn_masks=None,
+                     attention_states=None, num_heads=1, forward_only=False):
         """
         :return output_symbols: batch of discrete output sequences
         :return output_logits: batch of output sequence scores
@@ -25,12 +25,17 @@ class RNNDecoder(decoder.Decoder):
         :return attn_alignments: batch attention masks
                                  (if attention mechanism is used)
         """
+
+        if input_embeddings is None:
+            input_embeddings = self.embeddings()
+
         if self.use_attention and \
                 not attention_states.get_shape()[1:2].is_fully_defined():
             raise ValueError("Shape[1] and [2] of attention_states must be "
                              "known %s" % attention_states.get_shape())
 
         bs_decoding = forward_only and self.decoding_algorithm == "beam_search"
+
         if self.force_reading_input:
             print("Warning: reading ground truth decoder inputs at decoding time.")
 
@@ -43,8 +48,8 @@ class RNNDecoder(decoder.Decoder):
             # applying cell wrappers: ["attention", "beam"]
             if bs_decoding:
                 beam_decoder = self.beam_decoder
-                state = beam_decoder.wrap_state(encoder_state,
-                                                self.token_output_projection)
+                state = beam_decoder.wrap_state(
+                    encoder_state, self.output_project)
             else:
                 state = encoder_state
                 past_output_symbols = []
@@ -66,7 +71,7 @@ class RNNDecoder(decoder.Decoder):
 
             if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(
-                    decoder_cell, self.token_output_projection)
+                    decoder_cell, self.output_project)
             for i, input in enumerate(decoder_inputs):
                 if bs_decoding:
                     input = beam_decoder.wrap_input(input)
@@ -85,14 +90,14 @@ class RNNDecoder(decoder.Decoder):
                             ) = state
                             input = past_beam_symbols[:, -1]
                         elif self.decoding_algorithm == "greedy":
-                            W, b = self.token_output_projection
+                            W, b = self.output_project
                             projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                             output_symbol = tf.argmax(projected_output, 1)
                             past_output_symbols.append(tf.expand_dims(output_symbol, 1))
                             past_output_logits = tf.add(past_output_logits,
                                                         tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
-                input_embedding = tf.nn.embedding_lookup(self.embeddings(), input)
+                input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
                 if self.use_attention:
                     output, state, alignments = \
                         decoder_cell(input_embedding, state, attn_alignments)
@@ -146,16 +151,16 @@ class RNNDecoder(decoder.Decoder):
                 return top_k_outputs, top_k_logits, outputs, states, attn_alignments
             else:
                 # Greedy output
-                W, b = self.token_output_projection
+                W, b = self.output_project
                 projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                 output_symbol = tf.argmax(projected_output, 1)
                 past_output_symbols.append(tf.expand_dims(output_symbol, 1))
                 output_symbols = tf.concat(1, past_output_symbols[:-1]) \
                     if forward_only else tf.cast(input, tf.float32)
-                past_output_logits = tf.add(
-                    past_output_logits, tf.reduce_max(projected_output, 1))
+                past_output_logits = tf.add(past_output_logits,
+                                            tf.reduce_max(projected_output, 1))
                 return output_symbols, past_output_logits, outputs, states, \
-                       attn_alignments
+                       attn_alignments, pointers
 
 
     def decoder_cell(self):
