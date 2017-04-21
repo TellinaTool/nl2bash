@@ -8,8 +8,9 @@ import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-import random
+import math
 import numpy as np
+import random
 
 import tensorflow as tf
 
@@ -44,8 +45,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
           use_attention: if set, use attention model.
         """
         super(EncoderDecoderModel, self).__init__(hyperparams, buckets)
-        self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]),
-                                         trainable=False)
+        self.learning_rate = tf.Variable(
+            float(hyperparams["learning_rate"]), trainable=False)
         self.learning_rate_decay_op = self.learning_rate.assign(
             self.learning_rate * hyperparams["learning_rate_decay_factor"])
 
@@ -55,8 +56,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.define_encoder(self.sc_input_keep, self.sc_output_keep)
 
         # Decoder.
-        self.define_decoder(self.encoder.output_dim, self.tg_token_use_attention,
-                            self.tg_token_attn_fun, self.tg_input_keep,
+        self.define_decoder(self.encoder.output_dim,
+                            self.tg_token_use_attention,
+                            self.tg_token_attn_fun,
+                            self.tg_input_keep,
                             self.tg_output_keep)
 
         # Character Decoder.
@@ -140,8 +143,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     tf.get_variable_scope().reuse_variables()
                 encode_decode_outputs = \
                     self.encode_decode(
-                        [channel_input[:bucket[0]] \
-                         for channel_input in self.encoder_channel_inputs],
+                        [channel_input[:bucket[0]] for channel_input in
+                         self.encoder_channel_inputs],
                         self.encoder_attn_masks[:bucket[0]],
                         self.decoder_inputs[:bucket[1]],
                         self.targets[:bucket[1]],
@@ -235,35 +238,44 @@ class EncoderDecoderModel(graph_utils.NNModel):
             attention_states = tf.concat(1, top_states)
         else:
             attention_states = None
-        
-        # Losses.
-        num_heads = 2 if (self.tg_token_use_attention and
-                          (self.use_copy and self.copy_fun == 'explicit')) else 1
 
+        num_heads = 2 if (self.tg_token_use_attention and
+            (self.use_copy and self.copy_fun == 'explicit')) else 1
+
+        # --- Run encode-decode steps --- #
         output_symbols, output_logits, outputs, states, attn_alignments, \
             pointers = self.decoder.define_graph(
                         encoder_state, decoder_inputs, encoder_attn_masks,
                         attention_states, num_heads=num_heads,
                         forward_only=forward_only)
+
+        # --- Compute Losses --- #
+
+        # A. Sequence Loss
         if forward_only or self.training_algorithm == "standard":
             encoder_decoder_token_loss = self.sequence_loss(
                        outputs, targets, target_weights,
                        graph_utils.softmax_loss(
-                           self.decoder.token_output_projection,
+                           self.decoder.output_project,
                            self.num_samples,
                            self.target_vocab_size))
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
+        # B. Attention Regularization
         attention_reg = self.attention_regularization(attn_alignments) \
             if self.tg_token_use_attention else 0
+
+        # C. Supervised Copying Loss (if any)
         if forward_only and self.token_decoding_algorithm == 'beam_search':
-            pointer_targets = self.decoder.beam_decoder.wrap_input(
-                                self.pointer_targets)
+            pointer_targets = \
+                self.decoder.beam_decoder.wrap_input(self.pointer_targets)
         else:
             pointer_targets = self.pointer_targets
-        copy_loss = self.copy_loss(pointers, pointer_targets) if self.use_copy else 0
+        copy_loss = self.copy_loss(pointers, pointer_targets) \
+            if (self.use_copy and self.copy_fun == 'supervised') else 0
 
+        # D. Character Sequence Loss
         if self.tg_char:
             # re-arrange character inputs
             char_decoder_inputs = [tf.squeeze(x, 1)
@@ -283,16 +295,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 char_target_weights = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, char_target_weights)
             # get initial state from decoder output
-            char_decoder_init_state = tf.concat(
-                0, [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in states])
+            char_decoder_init_state = tf.concat(0,
+                [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in states])
             char_output_symbols, char_output_logits, char_outputs, _, _ = \
-                self.char_decoder.define_graph(char_decoder_init_state,
-                                               char_decoder_inputs,
-                                               forward_only=forward_only)
+                self.char_decoder.define_graph(
+                    char_decoder_init_state, char_decoder_inputs,
+                    forward_only=forward_only)
             encoder_decoder_char_loss = self.sequence_loss(
                 char_outputs, char_targets, char_target_weights,
                 graph_utils.softmax_loss(
-                    self.char_decoder.token_output_projection,
+                    self.char_decoder.output_project,
                     self.tg_char_vocab_size,
                     self.tg_char_vocab_size))
         else:
@@ -302,16 +314,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                  self.gamma * encoder_decoder_char_loss + \
                  self.chi * copy_loss + \
                  self.beta * attention_reg
-        # losses = self.beta * attention_reg
-        # losses = encoder_decoder_token_loss
-        # losses = self.chi * copy_loss
 
         # store encoder/decoder output states
-        self.encoder_hidden_states = tf.concat(
-            1, [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
+        self.encoder_hidden_states = tf.concat(1,
+                [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
                 for e_o in encoder_outputs])
-        self.decoder_hidden_states = tf.concat(
-            1, [tf.reshape(d_o, [-1, 1, self.decoder.dim])
+        self.decoder_hidden_states = tf.concat(1,
+                [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                 for d_o in states])
 
         O = [output_symbols, output_logits, losses, attn_alignments]
@@ -381,6 +390,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """Placeholder function."""
         self.decoder = None
 
+
     def define_char_decoder(self, dim, use_attention, input_keep, output_keep):
         """
         Define the decoder which does character-level generation of a token.
@@ -393,6 +403,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             raise ValueError("Unrecognized target character composition: {}."
                              .format(self.tg_char_composition))
+
+    def shared_embeddings(self):
+        with tf.variable_scope("shared_embeddings", reuse=self.embedding_vars):
+            sqrt3 = math.sqrt(3)
+            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
+            embeddings = tf.get_variable("embedding",
+                [self.copy_vocab_size, self.sc_token_dim], initializer=initializer)
+            self.embedding_vars = True
+            return embeddings
+
 
     def format_example(self, encoder_channel_inputs, decoder_channel_inputs,
                        pointer_targets=None, bucket_id=-1):

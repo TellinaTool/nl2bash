@@ -48,9 +48,9 @@ class Encoder(graph_utils.NNModel):
         """
         channel_embeddings = []
         if self.sc_token:
-            token_channel_embeddings = [tf.nn.embedding_lookup(
-                                        self.token_embeddings(), encoder_input)
-                                        for encoder_input in channel_inputs[0]]
+            token_channel_embeddings = \
+                [tf.nn.embedding_lookup(self.token_embeddings(), encoder_input)
+                 for encoder_input in channel_inputs[0]]
             channel_embeddings.append(token_channel_embeddings)
         if self.sc_char:
             char_channel_embeddings = \
@@ -59,9 +59,10 @@ class Encoder(graph_utils.NNModel):
         if len(channel_embeddings) == 1:
             input_embeddings = channel_embeddings[0]
         else:
-            input_embeddings = [tf.concat(1, [x, y]) for (x, y) in
-                                map(lambda x,y:(x,y), channel_embeddings[0], 
-                                    channel_embeddings[1])]
+            input_embeddings = \
+                [tf.concat(1, [x, y]) for (x, y) in
+                    map(lambda x,y:(x,y), channel_embeddings[0],
+                        channel_embeddings[1])]
         return input_embeddings
 
     def token_embeddings(self):
@@ -72,11 +73,13 @@ class Encoder(graph_utils.NNModel):
         """
         with tf.variable_scope("encoder_token_embeddings",
                                reuse=self.token_embedding_vars):
+            vocab_size = self.copy_vocab_size \
+                if self.use_copy else self.source_vocab_size
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding",
-                [self.source_vocab_size, self.sc_token_dim],
-                initializer=initializer)
+            embeddings = tf.get_variable("embedding", [vocab_size,
+                                                       self.sc_token_dim],
+                                         initializer=initializer)
             self.token_embedding_vars = True
             return embeddings
 
@@ -118,10 +121,11 @@ class Encoder(graph_utils.NNModel):
                 self.char_rnn_vars = True
         else:
             raise NotImplementedError
-        return [tf.squeeze(x, 0) for x in tf.split(0, len(channel_inputs), 
-                                                   tf.reshape(rnn_states[-1], 
-                                                   [len(channel_inputs), -1, 
-                                                    self.sc_char_dim]))]
+
+        return [tf.squeeze(x, 0) for x in
+                tf.split(0, len(channel_inputs),
+                    tf.reshape(rnn_states[-1],
+                        [len(channel_inputs), -1, self.sc_char_dim]))]
 
     def token_unk_free_index(self):
         return np.load(self.sc_token_features_path)
@@ -132,18 +136,19 @@ class Encoder(graph_utils.NNModel):
 
 class RNNEncoder(Encoder):
     def __init__(self, hyperparameters, input_keep, output_keep):
-        super(RNNEncoder, self).__init__(hyperparameters,
-                                         input_keep, output_keep)
+        super(RNNEncoder, self).__init__(
+            hyperparameters, input_keep, output_keep)
         self.cell = self.encoder_cell()
         self.output_dim = self.dim
 
-    def define_graph(self, encoder_inputs):
+    def define_graph(self, encoder_inputs, input_embeddings=None):
         # Compute the continuous input representations
-        input_embeddings = self.token_representations(encoder_inputs)
+        if input_embeddings is None:
+            input_embeddings = self.token_representations(encoder_inputs)
         with tf.variable_scope("encoder_rnn"):
-            encoder_outputs, encoder_states = \
-                rnn.RNNModel(self.cell, input_embeddings,
-                             num_cell_layers=self.num_layers, dtype=tf.float32)
+            encoder_outputs, encoder_states = rnn.RNNModel(
+                self.cell, input_embeddings,
+                num_cell_layers=self.num_layers, dtype=tf.float32)
         encoder_state = encoder_states[-1]
         return encoder_outputs, encoder_state
 
@@ -157,22 +162,23 @@ class RNNEncoder(Encoder):
 
 class BiRNNEncoder(Encoder):
     def __init__(self, hyperparameters, input_keep, output_keep):
-        super(BiRNNEncoder, self).__init__(hyperparameters,
-                                           input_keep, output_keep)
+        super(BiRNNEncoder, self).__init__(
+            hyperparameters, input_keep, output_keep)
         self.fw_cell = self.forward_cell()
         self.bw_cell = self.backward_cell()
         self.output_dim = 2 * self.dim
         print("encoder input dimension = {}".format(self.dim))
         print("encoder output dimension = {}".format(self.output_dim))
 
-    def define_graph(self, encoder_inputs):
+    def define_graph(self, encoder_inputs, input_embeddings=None):
         # Each rnn in the bi-directional encoder have dimension which is half
         # of that of the decoder.
         # The hidden states of the two rnns are concatenated as the hidden
         # states of the bi-directional encoder.
 
         # Compute the continuous input representations
-        input_embeddings = self.token_representations(encoder_inputs)
+        if input_embeddings is None:
+            input_embeddings = self.token_representations(encoder_inputs)
         outputs, states_fw, states_bw = rnn.BiRNNModel(
             self.fw_cell, self.bw_cell, input_embeddings,
             num_cell_layers=self.num_layers, dtype=tf.float32)
@@ -180,7 +186,8 @@ class BiRNNEncoder(Encoder):
             if self.num_layers > 1:
                 states = []
                 for i in xrange(self.num_layers):
-                    states.append(tf.concat(1, [states_fw[-1][i], states_bw[0][i]]))
+                    states.append(tf.concat(1, [states_fw[-1][i],
+                                                states_bw[0][i]]))
                 state = tf.concat(1, states)
             else:
                 state = tf.concat(1, [states_fw[-1], states_bw[0]])

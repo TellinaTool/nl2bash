@@ -74,19 +74,19 @@ class BeamDecoder(object):
         res.set_shape([new_first_dim] + list(tensor_shape[1:]))
         return res
 
-    def wrap_cell(self, cell, token_output_projection):
+    def wrap_cell(self, cell, output_project):
         """
         Wraps a cell for use with the beam decoder
         """
-        return BeamDecoderCellWrapper(cell, token_output_projection,
+        return BeamDecoderCellWrapper(cell, output_project,
                                       self.num_classes, self.start_token,
                                       self.stop_token, self.batch_size,
                                       self.beam_size, self.use_attention,
                                       self.use_copy,
                                       self.alpha, self.locally_normalized)
 
-    def wrap_state(self, state, token_output_projection):
-        dummy = BeamDecoderCellWrapper(None, token_output_projection,
+    def wrap_state(self, state, output_project):
+        dummy = BeamDecoderCellWrapper(None, output_project,
                                        self.num_classes, self.start_token,
                                        self.stop_token, self.batch_size,
                                        self.beam_size, self.use_attention,
@@ -141,11 +141,11 @@ class BeamDecoder(object):
         return final_state[1]
 
 class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
-    def __init__(self, cell, token_output_projection, num_classes, start_token=-1,
+    def __init__(self, cell, output_project, num_classes, start_token=-1,
                  stop_token=-1, batch_size=1, beam_size=7, use_attention=False,
                  use_copy=False, alpha=1.0, locally_normalized=True):
         self.cell = cell
-        self.token_output_projection = token_output_projection
+        self.output_project = output_project
         self.num_classes = num_classes
         self.start_token = start_token
         self.stop_token = stop_token
@@ -219,7 +219,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         else:
             cell_output, raw_cell_state = \
                 self.cell(cell_inputs, past_cell_state, scope)
-        W, b = self.token_output_projection
+        W, b = self.output_project
 
         # [batch_size*beam_size, num_classes]
         if self.locally_normalized:

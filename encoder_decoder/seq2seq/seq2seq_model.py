@@ -49,5 +49,5 @@ class Seq2SeqModel(EncoderDecoderModel):
                 attention_function, input_keep, output_keep,
                 self.token_decoding_algorithm)
         else:
-            raise ValueError(
-                "Unrecognized decoder topology: {}." .format(self.decoder_topology))
+            raise ValueError("Unrecognized decoder topology: {}.".format(
+                self.decoder_topology))
