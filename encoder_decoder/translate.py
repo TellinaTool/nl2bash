@@ -359,6 +359,7 @@ def eval_slot_filling(dataset):
         num_predict = 0.0
         num_gt = 0.0
         for bucket_id in xrange(len(_buckets)):
+            print(len(dataset[bucket_id]))
             for data_id in xrange(len(dataset[bucket_id])):
                 sc, tg, sc_ids, tg_ids, _, _, gt_mappings, _ = \
                     dataset[bucket_id][data_id]
@@ -403,17 +404,20 @@ def eval_slot_filling(dataset):
                         else:
                             output_tokens.append(data_utils._UNK)
                     if FLAGS.use_copy:
-                        pointers = np.mul(np.cast(pointer_targets[0][0] > 0, np.float32),
-                                          model_outputs.pointers[0])
+                        P = pointer_targets[0][0] > 0
+                        pointers = model_outputs.pointers[0]
+                        pointers = np.multiply(np.sum(P.astype(float)[:pointers.shape[0],
+                            -pointers.shape[1]:], 1, keepdims=True), pointers)
                         M = {}
-                        for i in xrange(pointers.shape[0]):
-                            for j in xrange(pointers.shape[1]):
-                                if not i in M:
-                                    M[i] = {}
-                                if pointers[i, j] == 0:
-                                    M[i][j] = -np.inf
+                        for j in xrange(pointers.shape[0]):
+                            for i in xrange(pointers.shape[1]):
+                                ci = pointers.shape[1] - i - 1
+                                if not ci in M:
+                                    M[ci] = {}
+                                if pointers[j, i] == 0:
+                                    M[ci][j] = -np.inf
                                 else:
-                                    M[i][j] = pointers[i, j]
+                                    M[ci][j] = pointers[j, i]
                         mappings, _ = slot_filling.\
                             stable_marriage_alignment_with_partial(M)
                     else:
