@@ -14,7 +14,7 @@ from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
     def __init__(self, hyperparameters, scope, vocab_size, dim, use_attention,
-                 attention_function, input_keep, output_keep, decoding_algorithm):
+        attention_function, input_keep, output_keep, decoding_algorithm):
         """
         :param hyperparameters: Tellina model hyperparameters.
         :param scope: Scope of the decoder. (There might be multiple decoders
@@ -40,7 +40,7 @@ class Decoder(graph_utils.NNModel):
 
         # variable sharing
         self.embedding_vars = False
-        self.token_output_projection_vars = False
+        self.output_project_vars = False
 
         self.beam_decoder = beam_search.BeamDecoder(
             self.vocab_size,
@@ -53,24 +53,26 @@ class Decoder(graph_utils.NNModel):
             locally_normalized=(self.training_algorithm != "bso")
         ) if self.decoding_algorithm == "beam_search" else None
 
-        self.token_output_projection = self.token_output_projection()
+        self.output_project = self.output_project()
 
     def embeddings(self):
         with tf.variable_scope(self.scope + "_embeddings",
                                reuse=self.embedding_vars):
+            vocab_size = self.copy_vocab_size \
+                if self.use_copy else self.vocab_size
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding",
-                [self.vocab_size, self.dim], initializer=initializer)
+                [vocab_size, self.dim], initializer=initializer)
             self.embedding_vars = True
             return embeddings
 
-    def token_output_projection(self):
-        with tf.variable_scope(self.scope + "_token_output_projection",
-                               reuse=self.token_output_projection_vars):
+    def output_project(self):
+        with tf.variable_scope(self.scope + "_output_project",
+                               reuse=self.output_project_vars):
             w = tf.get_variable("proj_w", [self.dim, self.vocab_size])
             b = tf.get_variable("proj_b", [self.vocab_size])
-            self.token_output_projection_vars = True
+            self.output_project_vars = True
         return (w, b)
 
 
@@ -86,8 +88,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param encoder_attn_masks:
         :param attention_input_keep: attention input state dropout
         :param attention_output_keep: attention hidden state dropout
-        :param num_heads: Number of attention heads that read from from attention_states.
-                          Dummy field if attention_states is None.
+        :param num_heads: Number of attention heads that read from from
+            attention_states. Dummy field if attention_states is None.
         :param rnn_cell: Type of rnn cells used.
         :param num_layers: Number of layers in the RNN cells.
 
@@ -167,8 +169,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         # attns = tf.concat(1, ds)
         self.attention_vars = True
         return ds, alignments
-
-    def copy(self, state):
 
 
     def __call__(self, input_embedding, state, attn_alignments, scope=None):

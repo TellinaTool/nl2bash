@@ -18,8 +18,8 @@ DEBUG = False
 
 class BasicTreeDecoder(decoder.Decoder):
 
-    def __init__(self, hyperparams, dim, token_output_projection=None):
-        super(BasicTreeDecoder, self).__init__(hyperparams, dim, token_output_projection)
+    def __init__(self, hyperparams, dim, output_project=None):
+        super(BasicTreeDecoder, self).__init__(hyperparams, dim, output_project)
 
         self.H_NO_EXPAND = tf.constant(data_utils.H_NO_EXPAND_ID, shape=[self.batch_size])
         self.V_NO_EXPAND = tf.constant(data_utils.V_NO_EXPAND_ID, shape=[self.batch_size])
@@ -48,11 +48,12 @@ class BasicTreeDecoder(decoder.Decoder):
             If False, decoder_inputs are used as given (the standard decoder case).
         :param reuse_variables: reuse variables in scope.
         :return: Output states and the final hidden state of the decoder. Need
-            token_output_projection to obtain distribution over output vocabulary.
+            output_project to obtain distribution over output vocabulary.
         """
         self.E = tf.constant(np.identity(len(decoder_inputs)), dtype=tf.int32)
 
-        if self.use_attention and not attention_states.get_shape()[1:2].is_fully_defined():
+        if self.use_attention and \
+                not attention_states.get_shape()[1:2].is_fully_defined():
             raise ValueError("Shape[1] and [2] of attention_states must be known %s"
                              % attention_states.get_shape())
 
@@ -63,9 +64,11 @@ class BasicTreeDecoder(decoder.Decoder):
             attn_alignments = []
 
             # search control
-            self.back_pointers = tf.constant(0, shape=[self.batch_size, 1, 1], dtype=tf.int32)
+            self.back_pointers = tf.constant(0, shape=[self.batch_size, 1, 1],
+                                             dtype=tf.int32)
 
-            # continuous stack used for storing LSTM states, synced with self.back_pointers
+            # continuous stack used for storing LSTM states, synced with
+            # self.back_pointers
             if self.rnn_cell == "gru":
                 init_state = encoder_state
             else:
@@ -82,7 +85,8 @@ class BasicTreeDecoder(decoder.Decoder):
                          for _ in xrange(num_heads)])
                 if initial_state_attention:
                     attns, attn_alignment = \
-                        self.attention(v, encoder_state, hidden_features, num_heads, hidden)
+                        self.attention(v, encoder_state, hidden_features,
+                                       num_heads, hidden)
                     attn_alignments.append(attn_alignment)
                 init_state = tf.concat(1, [init_state] + [attns])
             self.state = tf.expand_dims(init_state, 1)
@@ -150,7 +154,7 @@ class BasicTreeDecoder(decoder.Decoder):
                     # storing states
                     if feed_previous:
                         # Project decoder output for next state input.
-                        W, b = self.token_output_projection
+                        W, b = self.output_project
                         batch_projected_output = tf.matmul(batch_output, W) + b
                         batch_output_symbol = tf.argmax(batch_projected_output, 1)
                         batch_output_symbol = tf.cast(batch_output_symbol, dtype=tf.int32)
@@ -362,7 +366,7 @@ def map_fn(fn, elems, batch_size):
 if __name__ == "__main__":
     decoder = BasicTreeDecoder(dim=100, batch_size=1, rnn_cell="gru", num_layers=1,
                                input_keep_prob=1, output_keep_prob=1,
-                               use_attention=False, use_copy=False, token_output_projection=None)
+                               use_attention=False, use_copy=False, output_project=None)
     decoder_inputs = [tf.placeholder(dtype=tf.int32, shape=[None],
                                      name="decoder{0}".format(i)) for i in xrange(14)]
     encoder_state = tf.random_normal(shape=[1, 100])
