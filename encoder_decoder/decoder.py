@@ -53,7 +53,7 @@ class Decoder(graph_utils.NNModel):
             locally_normalized=(self.training_algorithm != "bso")
         ) if self.decoding_algorithm == "beam_search" else None
 
-        self.output_project = self.output_project()
+        self.token_decoder_output_project = self.output_project()
 
     def embeddings(self):
         with tf.variable_scope(self.scope + "_embeddings",
