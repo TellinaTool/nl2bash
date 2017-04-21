@@ -700,10 +700,10 @@ def prepare_bash(FLAGS, verbose=False):
     cp_vocab, rev_cp_vocab = vocabs[-2:]
 
     for split in ['train', 'dev', 'test']:
-        nl_path = os.path.join(data_dir, split, nl_token_suffix)
-        cm_path = os.path.join(data_dir, split, cm_token_suffix)
-        nl_copy_path = os.path.join(data_dir, split, nl_token_copy_suffix)
-        cm_copy_path = os.path.join(data_dir, split, cm_token_copy_suffix)
+        nl_path = os.path.join(data_dir, split + nl_token_suffix)
+        cm_path = os.path.join(data_dir, split + cm_token_suffix)
+        nl_copy_path = os.path.join(data_dir, split + nl_token_copy_suffix)
+        cm_copy_path = os.path.join(data_dir, split + cm_token_copy_suffix)
 
         with open(nl_copy_path, 'w') as o_f:
             with open(nl_path) as f:

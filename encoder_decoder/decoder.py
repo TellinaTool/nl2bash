@@ -169,7 +169,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         return ds, alignments
 
     def copy(self, state):
-
+        pass
 
     def __call__(self, input_embedding, state, attn_alignments, scope=None):
         if nest.is_sequence(state):
