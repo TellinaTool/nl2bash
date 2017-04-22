@@ -115,13 +115,12 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         pointers = attn_alignments[-1][1]
         copy_logit = tf.exp(tf.squeeze(tf.matmul(tf.expand_dims(pointers, 1),
                                        self.encoder_inputs_3d)) -
-                            (1 - tf.reduce_sum(self.encoder_inputs_3d, 1,
-                                                keep_dims=True)) * 1e18)
+            (1 - tf.cast(tf.reduce_sum(self.encoder_inputs_3d, 1) > 0, tf.float32)) * 1e18)
         
         P = gen_logit + copy_logit
         logit = P / tf.reduce_sum(P, 1)
         
-        return logit, state, attn_alignments
+        return copy_logit, state, attn_alignments
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
