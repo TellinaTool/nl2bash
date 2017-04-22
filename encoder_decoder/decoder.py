@@ -7,6 +7,7 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 import math
+import numpy as np
 import tensorflow as tf
 from tensorflow.python.util import nest
 
@@ -44,7 +45,8 @@ class Decoder(graph_utils.NNModel):
 
         self.beam_decoder = beam_search.BeamDecoder(
             self.vocab_size,
-            data_utils.ROOT_ID, data_utils.EOS_ID,
+            data_utils.ROOT_ID,
+            data_utils.EOS_ID,
             self.batch_size,
             self.beam_size,
             self.use_attention,
@@ -53,7 +55,7 @@ class Decoder(graph_utils.NNModel):
             locally_normalized=(self.training_algorithm != "bso")
         ) if self.decoding_algorithm == "beam_search" else None
 
-        self.token_decoder_output_project = self.output_project()
+        self.output_project = self.output_project()
 
     def embeddings(self):
         with tf.variable_scope(self.scope + "_embeddings",
@@ -70,8 +72,10 @@ class Decoder(graph_utils.NNModel):
     def output_project(self):
         with tf.variable_scope(self.scope + "_output_project",
                                reuse=self.output_project_vars):
-            w = tf.get_variable("proj_w", [self.dim, self.vocab_size])
-            b = tf.get_variable("proj_b", [self.vocab_size])
+            vocab_size = self.copy_vocab_size \
+                if self.use_copy else self.vocab_size
+            w = tf.get_variable("proj_w", [self.dim, vocab_size])
+            b = tf.get_variable("proj_b", [vocab_size])
             self.output_project_vars = True
         return (w, b)
 
