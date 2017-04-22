@@ -67,11 +67,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.define_char_decoder(self.decoder.dim, False,
                     self.tg_char_rnn_input_keep, self.tg_char_rnn_output_keep)
 
-        # Mask out words not in the target vocab when computing generation
-        # probabilities
-        if self.use_copy and self.copy_fun != 'supervised':
-            self.generation_mask = np.load(self.generation_mask_path)
-
         self.define_graph(forward_only)
 
 
@@ -260,34 +255,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # A. Sequence Loss
         if forward_only or self.training_algorithm == "standard":
-            # E. Compute generation/copying mixture
-            if self.use_copy and self.copy_fun == 'explicit':
-                # TODO: compute the same loss function for LSTMs
-                w, b = self.decoder.output_project
-                vocab_indices = tf.diag(tf.ones(self.copy_vocab_size))
-
-                # generation probability
-                gen_logits = []
-                for output in outputs:
-                    gen_logit = tf.exp(tf.matmul(output, w) + b
-                                       - self.generation_mask)
-                    gen_logits.append(gen_logit)
-                gen_logits = tf.reshape(gen_logits,
-                    [-1, self.max_target_length, self.copy_vocab_size])
-                # copying probability
-                encoder_inputs = tf.reshape(encoder_channel_inputs[0],
-                                        [-1, self.max_source_length])
-                encoder_inputs_3d = tf.nn.embedding_lookup(vocab_indices,
-                                                           encoder_inputs)
-                copy_logits = tf.exp(tf.matmul(pointers, encoder_inputs_3d) -
-                    (1 - tf.reduce_sum(encoder_inputs_3d, 1, keep_dims=True)) * 1e18)
-                logits = tf.split(1, self.max_target_length,
-                                  tf.nn.softmax(gen_logits + copy_logits))
-                targets = tf.split(1, self.max_target_length,
-                    tf.nn.embedding_lookup(vocab_indices,
-                        tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))
+            if self.use_copy and self.copy_fun != 'supervised':
                 encoder_decoder_token_loss = self.sequence_loss(
-                    logits, targets, target_weights,
+                    outputs, targets, target_weights,
                     tf.nn.softmax_cross_entropy_with_logits)
             else:
                 encoder_decoder_token_loss = self.sequence_loss(
