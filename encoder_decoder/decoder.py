@@ -113,19 +113,11 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # copying probability
         pointers = attn_alignments[-1][1]
-<<<<<<< HEAD
         copy_logit = tf.exp(tf.squeeze(tf.matmul(tf.expand_dims(pointers, 1),
                                        self.encoder_inputs_3d)) -
                             (1 - tf.reduce_sum(self.encoder_inputs_3d, 1,
                                                 keep_dims=True)) * 1e18)
-        tf.reshape(gen_logit, [32, 5402])
-        tf.reshape(copy_logit, [32, 5402])
-=======
-        copy_logit = tf.exp(tf.matmul(tf.expand_dims(pointers, 1),
-                                      self.encoder_inputs_3d) -
-                            (1 - tf.reduce_sum(self.encoder_inputs_3d, 1,
-                                               keep_dims=True)) * 1e18)
->>>>>>> 1541e84e0912c4dcc34231ad7a91fe0d41a1d764
+        
         P = gen_logit + copy_logit
         logit = P / tf.reduce_sum(P, 1)
         
