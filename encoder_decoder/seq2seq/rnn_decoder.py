@@ -164,8 +164,11 @@ class RNNDecoder(decoder.Decoder):
                        attn_alignments, pointers
             else:
                 # Greedy output
-                W, b = self.output_project
-                projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
+                if self.use_copy and self.copy_fun != 'supervised':
+                    W, b = self.output_project
+                    projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
+                else:
+                    projected_output = output
                 output_symbol = tf.argmax(projected_output, 1)
                 past_output_symbols.append(tf.expand_dims(output_symbol, 1))
                 output_symbols = tf.concat(1, past_output_symbols[:-1]) \
