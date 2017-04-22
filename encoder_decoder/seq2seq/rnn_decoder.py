@@ -49,7 +49,7 @@ class RNNDecoder(decoder.Decoder):
             if bs_decoding:
                 beam_decoder = self.beam_decoder
                 state = beam_decoder.wrap_state(
-                    encoder_state, self.token_decoder_output_project)
+                    encoder_state, self.output_project)
             else:
                 state = encoder_state
                 past_output_symbols = []
@@ -71,7 +71,7 @@ class RNNDecoder(decoder.Decoder):
 
             if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(
-                    decoder_cell, self.token_decoder_output_project)
+                    decoder_cell, self.output_project)
             for i, input in enumerate(decoder_inputs):
                 if bs_decoding:
                     input = beam_decoder.wrap_input(input)
@@ -90,7 +90,7 @@ class RNNDecoder(decoder.Decoder):
                             ) = state
                             input = past_beam_symbols[:, -1]
                         elif self.decoding_algorithm == "greedy":
-                            W, b = self.token_decoder_output_project
+                            W, b = self.output_project
                             projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                             output_symbol = tf.argmax(projected_output, 1)
                             past_output_symbols.append(tf.expand_dims(output_symbol, 1))
@@ -154,7 +154,7 @@ class RNNDecoder(decoder.Decoder):
                        attn_alignments, pointers
             else:
                 # Greedy output
-                W, b = self.token_decoder_output_project
+                W, b = self.output_project
                 projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                 output_symbol = tf.argmax(projected_output, 1)
                 past_output_symbols.append(tf.expand_dims(output_symbol, 1))
