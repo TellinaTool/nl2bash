@@ -118,7 +118,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
             (1 - tf.cast(tf.reduce_sum(self.encoder_inputs_3d, 1) > 0, tf.float32)) * 1e18)
         
         P = gen_logit + copy_logit
-        logit = P / tf.reduce_sum(P, 1)
+        logit = P / tf.reduce_sum(P, 1, keep_dims=True)
         
         return copy_logit, state, attn_alignments
 
