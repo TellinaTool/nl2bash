@@ -31,7 +31,8 @@ class Decoder(graph_utils.NNModel):
         super(Decoder, self).__init__(hyperparameters)
 
         self.scope = scope
-        self.vocab_size = vocab_size
+        self.vocab_size = self.copy_vocab_size \
+            if self.use_copy and not self.copy_fun == 'supervised' else vocab_size
         self.dim = dim
         self.use_attention = use_attention
         self.attention_function = attention_function
@@ -115,7 +116,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         pointers = attn_alignments[-1][1]
         copy_logit = tf.exp(tf.squeeze(tf.matmul(tf.expand_dims(pointers, 1),
                                        self.encoder_inputs_3d)) -
-            (1 - tf.cast(tf.reduce_sum(self.encoder_inputs_3d, 1) > 0, tf.float32)) * 1e18)
+                            (1 - tf.cast(tf.reduce_sum(self.encoder_inputs_3d, 1) > 0, tf.float32)) * 1e18)
         
         P = gen_logit + copy_logit
         logit = P / tf.reduce_sum(P, 1)
