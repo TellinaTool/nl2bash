@@ -48,8 +48,9 @@ class Encoder(graph_utils.NNModel):
         """
         channel_embeddings = []
         if self.sc_token:
+            token_embeddings = self.token_embeddings()
             token_channel_embeddings = \
-                [tf.nn.embedding_lookup(self.token_embeddings(), encoder_input)
+                [tf.nn.embedding_lookup(token_embeddings, encoder_input)
                  for encoder_input in channel_inputs[0]]
             channel_embeddings.append(token_channel_embeddings)
         if self.sc_char:
@@ -75,7 +76,6 @@ class Encoder(graph_utils.NNModel):
                                reuse=self.token_embedding_vars):
             vocab_size = self.copy_vocab_size \
                 if self.use_copy else self.source_vocab_size
-            print("source vocabulary size = {}".format(vocab_size))
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding", [vocab_size,
