@@ -249,6 +249,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         encoder_attn_masks=encoder_attn_masks,
                         attention_states=attention_states,
                         num_heads=num_heads,
+                        encoder_inputs=encoder_channel_inputs[0],
                         forward_only=forward_only)
 
         # --- Compute Losses --- #
