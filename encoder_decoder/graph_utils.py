@@ -75,6 +75,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["copy_fun"] = FLAGS.copy_fun
     params["copy_vocab_size"] = FLAGS.copy_vocab_size
     params["chi"] = FLAGS.chi
+    params["generation_mask_path"] = os.path.join(
+        FLAGS.data_dir, "generation_mask.npy")
 
     params["tg_token_attn_fun"] = FLAGS.tg_token_attn_fun
     params["attention_input_keep"] = FLAGS.attention_input_keep
@@ -454,6 +456,10 @@ class NNModel(object):
     @property
     def chi(self):
         return self.hyperparams["chi"]
+
+    @property
+    def generation_mask_path(self):
+        return self.hyperparams["generation_mask_path"]
 
     # -- optimization parameters -- #
 
