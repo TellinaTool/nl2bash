@@ -87,13 +87,13 @@ class Decoder(graph_utils.NNModel):
 
 
 class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
-
-    def __init__(self, cell, output_project, encoder_inputs, copy_vocab_size,
-                 generation_mask):
+    def __init__(self, cell, output_project, num_layers, encoder_inputs, 
+                 copy_vocab_size, generation_mask):
         self.cell = cell
         self.output_project = output_project
         self.vocab_indices = tf.diag(tf.ones(copy_vocab_size))
         self.encoder_size = len(encoder_inputs)
+        self.num_layers = num_layers
         encoder_inputs = tf.reshape(encoder_inputs, [-1, self.encoder_size])
         self.encoder_inputs_3d = tf.nn.embedding_lookup(
             self.vocab_indices, encoder_inputs)
@@ -113,14 +113,14 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # copying probability
         pointers = attn_alignments[-1][1]
-        copy_logit = tf.exp(tf.matmul(tf.expand_dims(pointers, 1),
-                                      self.encoder_inputs_3d) -
-                            (1 - tf.reduce_sum(self.encoder_inputs_3d, 1,
-                                               keep_dims=True)) * 1e18)
+        copy_logit = tf.exp(tf.squeeze(tf.matmul(tf.expand_dims(pointers, 1),
+                                       self.encoder_inputs_3d)) -
+            (1 - tf.cast(tf.reduce_sum(self.encoder_inputs_3d, 1) > 0, tf.float32)) * 1e18)
+        
         P = gen_logit + copy_logit
         logit = P / tf.reduce_sum(P, 1)
-
-        return logit, state, attn_alignments
+        
+        return copy_logit, state, attn_alignments
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):

@@ -72,8 +72,9 @@ class RNNDecoder(decoder.Decoder):
 
             if self.use_copy and self.copy_fun != 'supervised':
                 decoder_cell = decoder.CopyCellWrapper(
-                    decoder_cell, self.output_project, encoder_inputs,
-                    self.copy_vocab_size, self.generation_mask)
+                    decoder_cell, self.output_project, self.num_layers,
+                    encoder_inputs, self.copy_vocab_size, 
+                    self.generation_mask)
 
             if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(decoder_cell,
@@ -165,10 +166,10 @@ class RNNDecoder(decoder.Decoder):
             else:
                 # Greedy output
                 if self.use_copy and self.copy_fun != 'supervised':
+                    projected_output = output
+                else:
                     W, b = self.output_project
                     projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
-                else:
-                    projected_output = output
                 output_symbol = tf.argmax(projected_output, 1)
                 past_output_symbols.append(tf.expand_dims(output_symbol, 1))
                 output_symbols = tf.concat(1, past_output_symbols[:-1]) \
