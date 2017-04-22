@@ -75,6 +75,7 @@ class Encoder(graph_utils.NNModel):
                                reuse=self.token_embedding_vars):
             vocab_size = self.copy_vocab_size \
                 if self.use_copy else self.source_vocab_size
+            print("source vocabulary size = {}".format(vocab_size))
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding", [vocab_size,
