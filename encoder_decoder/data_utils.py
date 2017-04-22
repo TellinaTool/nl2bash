@@ -1085,8 +1085,6 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
         mapping_path = os.path.join(
             data_dir, file_name.split('.')[0] + '.mappings')
         mapping_file = tf.gfile.GFile(mapping_path, mode="r")
-    # if load_pointers:
-    #     pointer_targets = np.load(mapping_path + ".npy")
 
     data_idx = 0
     while True:
@@ -1136,3 +1134,15 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
             data_set.append(data_point)
     print("  %d data points read." % data_idx)
     return data_set
+
+
+class DataPoint(object):
+    def __init__(self):
+        self.sc_txt = None
+        self.tg_txt = None
+        self.sc_ids = None
+        self.tg_ids = None
+        self.sc_full_ids = None
+        self.tg_full_ids = None
+        self.mappings = None
+        self.pointer_targets = None

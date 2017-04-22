@@ -67,6 +67,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.define_char_decoder(self.decoder.dim, False,
                     self.tg_char_rnn_input_keep, self.tg_char_rnn_output_keep)
 
+        # Mask out words not in the target vocab when computing generation
+        # probabilities
+        if self.use_copy and self.copy_fun != 'supervised':
+            self.generation_mask = np.load(self.generation_mask_path)
+
         self.define_graph(forward_only)
 
 
@@ -121,7 +126,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.char_targets = [self.char_decoder_inputs[i][:, 1:]
                                  for i in xrange(self.max_target_length)]
 
-        if self.use_copy:
+        if self.use_copy and self.copy_fun == 'supervised':
             for i in xrange(self.max_target_length):
                 self.pointer_targets = tf.placeholder(
                     tf.int32, shape=[None, None, None], name="pointer_targets")
@@ -245,15 +250,41 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # --- Run encode-decode steps --- #
         output_symbols, output_logits, outputs, states, attn_alignments, \
             pointers = self.decoder.define_graph(
-                        encoder_state, decoder_inputs, encoder_attn_masks,
-                        attention_states, num_heads=num_heads,
+                        encoder_state, decoder_inputs,
+                        encoder_attn_masks=encoder_attn_masks,
+                        attention_states=attention_states,
+                        num_heads=num_heads,
                         forward_only=forward_only)
 
         # --- Compute Losses --- #
 
         # A. Sequence Loss
         if forward_only or self.training_algorithm == "standard":
-            encoder_decoder_token_loss = self.sequence_loss(
+            # E. Compute generation/copying mixture
+            if self.use_copy and self.copy_fun == 'explicit':
+                # TODO: compute the same loss function for LSTMs
+                w, b = self.decoder.output_project
+                # generation probability
+                gen_logits = []
+                for output in outputs:
+                    gen_logit = tf.exp(output * w + b - self.generation_mask)
+                    gen_logits.append(gen_logit)
+                gen_logits = tf.reshape(gen_logits,
+                    [-1, self.max_target_length, self.copy_vocab_size])
+                # copying probability
+                encoder_inputs = tf.reshape(encoder_channel_inputs[0],
+                                        [-1, self.max_source_length])
+                encoder_inputs_3d = tf.nn.embedding_lookup(
+                    tf.diag(tf.ones(self.copy_vocab_size)), encoder_inputs)
+                copy_logits = tf.exp(tf.matmul(pointers, encoder_inputs_3d) -
+                    (1 - tf.reduce_sum(encoder_inputs_3d, 1, keep_dims=True)) * 1e18)
+                logits = tf.nn.split(1, self.max_target_length,
+                                     tf.nn.softmax(gen_logits + copy_logits))
+                encoder_decoder_token_loss = self.sequence_loss(
+                    logits, targets, target_weights,
+                    tf.nn.softmax_cross_entropy_with_logits)
+            else:
+                encoder_decoder_token_loss = self.sequence_loss(
                        outputs, targets, target_weights,
                        graph_utils.softmax_loss(
                            self.decoder.output_project,
@@ -267,13 +298,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.tg_token_use_attention else 0
 
         # C. Supervised Copying Loss (if any)
-        if forward_only and self.token_decoding_algorithm == 'beam_search':
-            pointer_targets = \
-                self.decoder.beam_decoder.wrap_input(self.pointer_targets)
+        if self.use_copy and self.copy_fun == 'supervised':
+            if forward_only and self.token_decoding_algorithm == 'beam_search':
+                pointer_targets = self.decoder.beam_decoder.wrap_input(
+                    self.pointer_targets)
+            else:
+                pointer_targets = self.pointer_targets
+            copy_loss = self.copy_loss(pointers, pointer_targets)
         else:
-            pointer_targets = self.pointer_targets
-        copy_loss = self.copy_loss(pointers, pointer_targets) \
-            if (self.use_copy and self.copy_fun == 'supervised') else 0
+            copy_loss = 0
 
         # D. Character Sequence Loss
         if self.tg_char:
@@ -510,6 +543,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 batch_char_encoder_input = sc_char_features[input]
                 batch_char_encoder_inputs.append(batch_char_encoder_input)
             E.char_encoder_inputs = batch_char_encoder_inputs
+
         if self.tg_char:
             tg_char_features = np.load(self.tg_char_features_path)
             tg_char_features = np.concatenate([np.expand_dims(
@@ -535,12 +569,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
             assert(batch_char_target_weights[0].shape[1] == self.max_target_token_size + 1)
             E.char_decoder_inputs = batch_char_decoder_inputs
             E.char_target_weights = batch_char_target_weights
-        if self.use_copy:
+
+        if self.use_copy and self.copy_fun == 'supervised':
             # if len(pointer_targets) == 1:
             #     E.pointer_targets = pointer_targets[:, :decoder_size, :encoder_size]
             # else:
-            E.pointer_targets = np.concatenate(pointer_targets, 0)[:, 
-                :decoder_size, -encoder_size:]
+            E.pointer_targets = np.concatenate(pointer_targets, 0)\
+                [:, :decoder_size, -encoder_size:]
 
         return E
 
@@ -573,8 +608,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_full_inputs.append(random_example[4])
             decoder_inputs.append(random_example[3])
             decoder_full_inputs.append(random_example[5])
-
-            if self.use_copy:
+            if self.use_copy and self.copy_fun == 'supervised':
                 pointer_targets.append(random_example[-1])
 
         return self.format_example([encoder_inputs, encoder_full_inputs],
@@ -595,7 +629,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_full_inputs.append(data[bucket_id][i][4])
             decoder_inputs.append(data[bucket_id][i][3])
             decoder_full_inputs.append(data[bucket_id][i][5])
-            if self.use_copy:
+            if self.use_copy and self.copy_fun == 'supervised':
                 pointer_targets.append(data[bucket_id][i][-1])
 
         return self.format_example([encoder_inputs, encoder_full_inputs],
@@ -632,7 +666,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 input_feed[self.char_target_weights[l].name] = \
                     E.char_target_weights[l]
 
-        if self.use_copy:
+        if self.use_copy and self.copy_fun == 'supervised':
             input_feed[self.pointer_targets.name] = E.pointer_targets
 
         return input_feed
