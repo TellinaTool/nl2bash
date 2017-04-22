@@ -79,7 +79,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
         tg_ids = input[0][3]
         tg_full_ids = input[0][5]
         pointer_targets = input[0][-1]
-        print(np.argmax(pointer_targets, 2))
+        # print(np.argmax(pointer_targets, 2))
     else:
         sentence = input
         tg_ids = [data_utils.ROOT_ID]
@@ -221,7 +221,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                     else:
                         output_tokens.append(data_utils._UNK)
                 tg = " ".join(output_tokens)
-                print(tg) 
+
             # check if the predicted command templates have enough slots to
             # hold the fillers (to rule out templates that are trivially
             # unqualified)
@@ -370,14 +370,12 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                             top_k_predictions[j]
                         if verbose:
-                            print("Prediction {}: {} ({}) ".format(
-                                j+1, top_k_pred_cmd, top_k_scores[j]))
+                            print("Prediction {}: {} ({})".format(
+                                j+1, data_tools.ast2command(top_k_pred_tree),
+                                top_k_scores[j]))
                             if FLAGS.tg_char:
                                 print("Character-based prediction {}: {}".format(
                                     j+1, top_k_char_predictions[j]))
-                            # if FLAGS.use_copy:
-                            #     print("Copy content prediction {}: {}".format(
-                            #         j+1, top_k_copy_predictions[j]))
                         try:
                             db.add_prediction(model.model_sig, sc_temp,
                                 top_k_pred_cmd, float(top_k_scores[j]),

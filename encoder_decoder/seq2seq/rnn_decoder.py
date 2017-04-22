@@ -16,7 +16,8 @@ class RNNDecoder(decoder.Decoder):
 
     def define_graph(self, encoder_state, decoder_inputs,
                      input_embeddings=None, encoder_attn_masks=None,
-                     attention_states=None, num_heads=1, forward_only=False):
+                     attention_states=None, num_heads=1,
+                     encoder_inputs=None, forward_only=False):
         """
         :return output_symbols: batch of discrete output sequences
         :return output_logits: batch of output sequence scores
@@ -66,19 +67,23 @@ class RNNDecoder(decoder.Decoder):
                 decoder_cell = decoder.AttentionCellWrapper(
                     decoder_cell, attention_states, encoder_attn_masks,
                     self.attention_function, self.attention_input_keep,
-                    self.attention_output_keep, num_heads, self.rnn_cell,
-                    self.num_layers, self.use_copy)
+                    self.attention_output_keep, num_heads, self.num_layers,
+                    self.use_copy)
+
+            if self.use_copy and self.copy_fun != 'supervised':
+                decoder_cell = decoder.CopyCellWrapper(
+                    decoder_cell, self.output_project, encoder_inputs,
+                    self.copy_vocab_size, self.generation_mask)
 
             if bs_decoding:
-                decoder_cell = beam_decoder.wrap_cell(
-                    decoder_cell, self.output_project)
+                decoder_cell = beam_decoder.wrap_cell(decoder_cell,
+                                                      self.output_project)
             for i, input in enumerate(decoder_inputs):
                 if bs_decoding:
                     input = beam_decoder.wrap_input(input)
 
                 if i > 0:
                     scope.reuse_variables()
-
                     if forward_only and not self.force_reading_input:
                         if self.decoding_algorithm == "beam_search":
                             (
@@ -90,13 +95,18 @@ class RNNDecoder(decoder.Decoder):
                             ) = state
                             input = past_beam_symbols[:, -1]
                         elif self.decoding_algorithm == "greedy":
-                            W, b = self.output_project
-                            projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
+                            if self.use_copy and self.copy_fun != 'supervised':
+                                projected_output = output
+                            else:
+                                W, b = self.output_project
+                                projected_output = tf.nn.log_softmax(
+                                    tf.matmul(output, W) + b)
                             output_symbol = tf.argmax(projected_output, 1)
                             past_output_symbols.append(tf.expand_dims(output_symbol, 1))
                             past_output_logits = tf.add(past_output_logits,
                                                         tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
+
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
                 if self.use_attention:
                     output, state, alignments = \
@@ -160,8 +170,8 @@ class RNNDecoder(decoder.Decoder):
                 past_output_symbols.append(tf.expand_dims(output_symbol, 1))
                 output_symbols = tf.concat(1, past_output_symbols[:-1]) \
                     if forward_only else tf.cast(input, tf.float32)
-                past_output_logits = tf.add(past_output_logits,
-                                            tf.reduce_max(projected_output, 1))
+                past_output_logits = tf.add(
+                    past_output_logits, tf.reduce_max(projected_output, 1))
                 return output_symbols, past_output_logits, outputs, states, \
                        attn_alignments, pointers
 
