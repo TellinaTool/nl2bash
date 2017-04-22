@@ -7,6 +7,7 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 import math
+import numpy as np
 import tensorflow as tf
 from tensorflow.python.util import nest
 
@@ -50,9 +51,15 @@ class Decoder(graph_utils.NNModel):
             self.beam_size,
             self.use_attention,
             self.use_copy,
+            self.copy_fun,
             self.alpha,
             locally_normalized=(self.training_algorithm != "bso")
         ) if self.decoding_algorithm == "beam_search" else None
+
+        # Mask out words not in the target vocab when computing generation
+        # probabilities
+        if self.use_copy and self.copy_fun != 'supervised':
+            self.generation_mask = np.load(self.generation_mask_path)
 
         self.output_project = self.output_project()
 
@@ -79,12 +86,54 @@ class Decoder(graph_utils.NNModel):
         return (w, b)
 
 
+class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
+    def __init__(self, cell, output_project, encoder_inputs, copy_vocab_size,
+                 generation_mask):
+        self.cell = cell
+        self.output_project = output_project
+        self.vocab_indices = tf.diag(tf.ones(copy_vocab_size))
+        self.encoder_size = len(encoder_inputs)
+        encoder_inputs = tf.reshape(encoder_inputs, [-1, self.encoder_size])
+        self.encoder_inputs_3d = tf.nn.embedding_lookup(self.vocab_indices,
+                                                   encoder_inputs)
+        self.generation_mask = generation_mask
+
+    def __call__(self, input_embedding, state, attn_alignments=None, scope=None):
+        assert(attn_alignments is not None)
+
+        if nest.is_sequence(state):
+            dim = state[1].get_shape()[1].value
+        else:
+            dim = state.get_shape()[1].value
+        if self.num_layers > 1:
+            dim /= self.num_layers
+
+        output, state, _ = self.cell(
+            input_embedding, state, attn_alignments, scope)
+
+        # Compute generation/copying mixture
+        # TODO: compute the same loss function for LSTMs
+        # generation probability
+        W, b = self.output_project
+        gen_logit = tf.exp(tf.matmul(output, W) + b - self.generation_mask)
+
+        # copying probability
+        pointers = attn_alignments[-1][1]
+        copy_logit = tf.exp(tf.matmul(tf.expand_dims(pointers, 1),
+                                       self.encoder_inputs_3d) -
+                            (1 - tf.reduce_sum(self.encoder_inputs_3d, 1,
+                                                keep_dims=True)) * 1e18)
+        P = gen_logit + copy_logit
+        logit = P / tf.reduce_sum(P, 1)
+
+        return logit, state, attn_alignments
+
+
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def __init__(self, cell, attention_states, encoder_attn_masks,
                  attention_function, attention_input_keep,
-                 attention_output_keep, num_heads, rnn_cell, num_layers,
-                 use_copy, copy_fun="hierachical"):
+                 attention_output_keep, num_heads, num_layers, use_copy):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
@@ -113,7 +162,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
-        self.rnn_cell = rnn_cell
         self.num_heads = num_heads
         self.num_layers = num_layers
         self.attn_vec_dim = attn_vec_dim
@@ -127,7 +175,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.v = v
 
         self.use_copy = use_copy
-        self.copy_fun = copy_fun
 
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
@@ -173,9 +220,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attention_vars = True
         return ds, alignments
 
-    def copy(self, state):
-        pass
-
     def __call__(self, input_embedding, state, attn_alignments, scope=None):
         if nest.is_sequence(state):
             dim = state[1].get_shape()[1].value
@@ -188,12 +232,10 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             _, state = self.cell(input_embedding, state, scope)
             # If multi-layer RNN cell is used, apply attention to the top layer.
             if self.num_layers > 1:
-                if self.rnn_cell == 'gru':
-                    top_state = tf.split(1, self.num_layers, state)[-1]
-                elif self.rnn_cell == 'lstm':
+                if nest.is_sequence(state):
                     raise NotImplementedError
                 else:
-                    raise AttributeError("Unrecognized RNN cell type.")
+                    top_state = tf.split(1, self.num_layers, state)[-1]
             else:
                 top_state = state
             attns, alignments = self.attention(top_state)
