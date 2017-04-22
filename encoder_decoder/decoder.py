@@ -87,6 +87,7 @@ class Decoder(graph_utils.NNModel):
 
 
 class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
+
     def __init__(self, cell, output_project, encoder_inputs, copy_vocab_size,
                  generation_mask):
         self.cell = cell
@@ -94,19 +95,12 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.vocab_indices = tf.diag(tf.ones(copy_vocab_size))
         self.encoder_size = len(encoder_inputs)
         encoder_inputs = tf.reshape(encoder_inputs, [-1, self.encoder_size])
-        self.encoder_inputs_3d = tf.nn.embedding_lookup(self.vocab_indices,
-                                                   encoder_inputs)
+        self.encoder_inputs_3d = tf.nn.embedding_lookup(
+            self.vocab_indices, encoder_inputs)
         self.generation_mask = generation_mask
 
     def __call__(self, input_embedding, state, attn_alignments=None, scope=None):
         assert(attn_alignments is not None)
-
-        if nest.is_sequence(state):
-            dim = state[1].get_shape()[1].value
-        else:
-            dim = state.get_shape()[1].value
-        if self.num_layers > 1:
-            dim /= self.num_layers
 
         output, state, _ = self.cell(
             input_embedding, state, attn_alignments, scope)
@@ -120,9 +114,9 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         # copying probability
         pointers = attn_alignments[-1][1]
         copy_logit = tf.exp(tf.matmul(tf.expand_dims(pointers, 1),
-                                       self.encoder_inputs_3d) -
+                                      self.encoder_inputs_3d) -
                             (1 - tf.reduce_sum(self.encoder_inputs_3d, 1,
-                                                keep_dims=True)) * 1e18)
+                                               keep_dims=True)) * 1e18)
         P = gen_logit + copy_logit
         logit = P / tf.reduce_sum(P, 1)
 
@@ -148,7 +142,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param use_copy: Copy source tokens to the target.
         :param copy_fun: Parameterization of the copying function.
         """
-        attention_states = tf.nn.dropout(attention_states, attention_input_keep)
+        attention_states = tf.nn.dropout(attention_states,
+                                         attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
         attn_vec_dim = attention_states.get_shape()[2].value
         attn_dim = attn_vec_dim 

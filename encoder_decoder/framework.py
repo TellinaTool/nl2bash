@@ -257,6 +257,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # A. Sequence Loss
         if forward_only or self.training_algorithm == "standard":
             if self.use_copy and self.copy_fun != 'supervised':
+                vocab_indices = tf.diag(tf.ones(self.copy_vocab_size))
+                targets = tf.split(1, self.max_target_length,
+                    tf.nn.embedding_lookup(vocab_indices,
+                        tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))
                 encoder_decoder_token_loss = self.sequence_loss(
                     outputs, targets, target_weights,
                     tf.nn.softmax_cross_entropy_with_logits)
