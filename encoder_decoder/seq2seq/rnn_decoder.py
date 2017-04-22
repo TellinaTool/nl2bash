@@ -71,14 +71,13 @@ class RNNDecoder(decoder.Decoder):
                     self.use_copy)
 
             if self.use_copy and self.copy_fun != 'supervised':
-                decoder_cell = decoder.CopyCellWrapper(
-                    decoder_cell, self.output_project, self.num_layers,
-                    encoder_inputs, self.copy_vocab_size, 
-                    self.generation_mask)
+                decoder_cell = decoder.CopyCellWrapper(decoder_cell,
+                    self.output_project, self.num_layers, encoder_inputs,
+                    self.copy_vocab_size, self.generation_mask)
 
             if bs_decoding:
-                decoder_cell = beam_decoder.wrap_cell(decoder_cell,
-                                                      self.output_project)
+                decoder_cell = beam_decoder.wrap_cell(
+                    decoder_cell, self.output_project)
             for i, input in enumerate(decoder_inputs):
                 if bs_decoding:
                     input = beam_decoder.wrap_input(input)

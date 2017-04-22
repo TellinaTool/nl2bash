@@ -65,7 +65,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Character Decoder.
         if self.tg_char:
             self.define_char_decoder(self.decoder.dim, False,
-                    self.tg_char_rnn_input_keep, self.tg_char_rnn_output_keep)
+                self.tg_char_rnn_input_keep, self.tg_char_rnn_output_keep)
 
         self.define_graph(forward_only)
 
@@ -266,11 +266,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     tf.nn.softmax_cross_entropy_with_logits)
             else:
                 encoder_decoder_token_loss = self.sequence_loss(
-                       outputs, targets, target_weights,
-                       graph_utils.softmax_loss(
-                           self.decoder.output_project,
-                           self.num_samples,
-                           self.target_vocab_size))
+                    outputs, targets, target_weights,
+                    graph_utils.softmax_loss(
+                        self.decoder.output_project,
+                        self.num_samples,
+                        self.target_vocab_size))
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
@@ -298,9 +298,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
             char_targets = [tf.squeeze(x, 1) for x in
                             tf.split(1, self.max_target_token_size + 1,
                                      tf.concat(0, self.char_targets))]
-            char_target_weights = [tf.squeeze(x, 1) for x in
-                            tf.split(1, self.max_target_token_size + 1,
-                                     tf.concat(0, self.char_target_weights))]
+            char_target_weights = \
+                [tf.squeeze(x, 1)
+                    for x in tf.split(1, self.max_target_token_size + 1,
+                        tf.concat(0, self.char_target_weights))]
             if forward_only and self.token_decoding_algorithm == 'beam_search':
                 char_decoder_inputs = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, char_decoder_inputs)
@@ -319,7 +320,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 char_outputs, char_targets, char_target_weights,
                 graph_utils.softmax_loss(
                     self.char_decoder.output_project,
-                    self.tg_char_vocab_size,
+                    self.tg_char_vocab_size / 2,
                     self.tg_char_vocab_size))
         else:
             encoder_decoder_char_loss = 0
@@ -412,9 +413,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """
         if self.tg_char_composition == 'rnn':
             self.char_decoder = rnn_decoder.RNNDecoder(self.hyperparams,
-                "char_decoder", self.tg_char_vocab_size, dim,
-                use_attention, input_keep, output_keep,
-                self.char_decoding_algorithm)
+                "char_decoder", self.tg_char_vocab_size, dim, use_attention,
+                input_keep, output_keep, self.char_decoding_algorithm)
         else:
             raise ValueError("Unrecognized target character composition: {}."
                              .format(self.tg_char_composition))
