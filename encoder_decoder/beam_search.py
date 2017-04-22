@@ -24,7 +24,8 @@ def nest_map(func, nested):
 class BeamDecoder(object):
     def __init__(self, num_classes, start_token=-1, stop_token=-1,
                  batch_size=1, beam_size=7, use_attention=False,
-                 use_copy=False, alpha=1.0, locally_normalized=True):
+                 use_copy=False, copy_fun='explicit', alpha=1.0,
+                 locally_normalized=True):
         """
         :param num_classes: int. Number of output classes used
         :param start_token: int.
@@ -43,6 +44,7 @@ class BeamDecoder(object):
         self.beam_size = beam_size
         self.use_attention = use_attention
         self.use_copy = use_copy
+        self.copy_fun = copy_fun
         self.alpha = alpha
         self.locally_normalized = locally_normalized
         print("creating beam search decoder: alpha = {}".format(self.alpha))
@@ -82,7 +84,7 @@ class BeamDecoder(object):
                                       self.num_classes, self.start_token,
                                       self.stop_token, self.batch_size,
                                       self.beam_size, self.use_attention,
-                                      self.use_copy,
+                                      self.use_copy, self.copy_fun,
                                       self.alpha, self.locally_normalized)
 
     def wrap_state(self, state, output_project):
@@ -90,7 +92,7 @@ class BeamDecoder(object):
                                        self.num_classes, self.start_token,
                                        self.stop_token, self.batch_size,
                                        self.beam_size, self.use_attention,
-                                       self.use_copy,
+                                       self.use_copy, self.copy_fun,
                                        self.alpha, self.locally_normalized)
         if nest.is_sequence(state):
             dtype = nest.flatten(state)[0].dtype
@@ -143,7 +145,8 @@ class BeamDecoder(object):
 class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, output_project, num_classes, start_token=-1,
                  stop_token=-1, batch_size=1, beam_size=7, use_attention=False,
-                 use_copy=False, alpha=1.0, locally_normalized=True):
+                 use_copy=False, copy_fun='explicit', alpha=1.0,
+                 locally_normalized=True):
         self.cell = cell
         self.output_project = output_project
         self.num_classes = num_classes
@@ -153,6 +156,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.beam_size = beam_size
         self.use_attention = use_attention
         self.use_copy = use_copy
+        self.copy_fun = copy_fun
         self.alpha = alpha
         self.locally_normalized = locally_normalized
 
@@ -213,19 +217,26 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         cell_inputs = inputs
 
         past_cell_state = self.get_past_cell_state(past_cell_states)
-        if self.use_attention:
+        if self.use_copy and self.copy_fun != 'supervised':
+            cell_output, raw_cell_state, alignments = \
+                self.cell(cell_inputs, past_cell_state, alignments, scope)
+        elif self.use_attention:
             cell_output, raw_cell_state, alignments = \
                 self.cell(cell_inputs, past_cell_state, alignments, scope)
         else:
             cell_output, raw_cell_state = \
                 self.cell(cell_inputs, past_cell_state, scope)
-        W, b = self.output_project
 
         # [batch_size*beam_size, num_classes]
-        if self.locally_normalized:
-            logprobs = tf.nn.log_softmax(tf.matmul(cell_output, W) + b)
+        if self.use_copy and self.copy_fun != 'supervised':
+            logprobs = cell_output
         else:
-            logprobs = tf.matmul(cell_output, W) + b
+            W, b = self.output_project
+            if self.locally_normalized:
+                logprobs = tf.nn.log_softmax(tf.matmul(cell_output, W) + b)
+            else:
+                logprobs = tf.matmul(cell_output, W) + b
+                
         # set the probabilities of all other symbols following the stop symbol
         # to a very small number
         stop_mask_2d = tf.expand_dims(stop_mask, 1)
@@ -289,8 +300,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                      tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]),
-                                            self.stop_token),
-                               tf.float32)
+                                            self.stop_token), tf.float32)
         # if nest.is_sequence(raw_cell_state):
         #     raw_cell_states = (
         #         tf.concat(1, [past_cell_states[0], tf.expand_dims(raw_cell_state[0], 1)]),
@@ -320,12 +330,12 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
 
         cell_state = (
-                    cand_symbols,
-                    cand_logprobs,
-                    beam_symbols,
-                    beam_logprobs,
-                    cell_states,
-                )
+            cand_symbols,
+            cand_logprobs,
+            beam_symbols,
+            beam_logprobs,
+            cell_states
+        )
         if self.use_attention:
             return cell_output, cell_state, alignments
         else:
