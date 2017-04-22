@@ -716,7 +716,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed['pointers'] = self.pointers
             else:
                 output_feed['pointers'] = self.pointers[bucket_id]
-        print(output_feed)
         outputs = session.run(output_feed, input_feed)
 
         O = Output()
