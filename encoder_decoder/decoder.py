@@ -62,6 +62,7 @@ class Decoder(graph_utils.NNModel):
                                reuse=self.embedding_vars):
             vocab_size = self.copy_vocab_size \
                 if self.use_copy else self.vocab_size
+            print("target vocabulary size = {}".format(vocab_size))
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding",
