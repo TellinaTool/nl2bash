@@ -285,7 +285,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                   tf.nn.softmax(gen_logits + copy_logits))
                 targets = tf.split(1, self.max_target_length,
                     tf.nn.embedding_lookup(vocab_indices,
-                        tf.transpose(tf.concat(0, targets))))
+                        tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))
                 encoder_decoder_token_loss = self.sequence_loss(
                     logits, targets, target_weights,
                     tf.nn.softmax_cross_entropy_with_logits)
