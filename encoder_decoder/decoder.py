@@ -7,7 +7,6 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 import math
-import numpy as np
 import tensorflow as tf
 from tensorflow.python.util import nest
 
@@ -62,7 +61,6 @@ class Decoder(graph_utils.NNModel):
                                reuse=self.embedding_vars):
             vocab_size = self.copy_vocab_size \
                 if self.use_copy else self.vocab_size
-            print("target vocabulary size = {}".format(vocab_size))
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding",
@@ -133,8 +131,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
-        ds = []         # Results of attention reads will be stored here.
-        alignments = [] # Alignment values for each attention head.
+        ds = []             # Results of attention reads will be stored here.
+        alignments = []     # Alignment values for each attention head.
         if nest.is_sequence(state):  # If the query is a tuple, flatten it.
             # TODO: implement attention with LSTM cells
             query_list = nest.flatten(state)
