@@ -972,14 +972,15 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
 
     data_dir = FLAGS.data_dir
 
+    append_head_token = True
+    append_end_token = True
+    
     if FLAGS.use_copy:
         nl_extension = ".ids%d.nl.copy" % FLAGS.sc_vocab_size
         cm_extension = ".ids%d.cm.copy" % FLAGS.tg_vocab_size
     elif FLAGS.char:
         nl_extension = ".ids%d.nl.char" % FLAGS.sc_vocab_size
         cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
-        append_head_token = True
-        append_end_token = True
     elif FLAGS.decoder_topology in ["rnn"]:
         nl_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size \
             if FLAGS.sc_char else ".ids%d.nl.norm" % FLAGS.sc_vocab_size
@@ -989,8 +990,6 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
             cm_extension = ".ids%d.cm.norm" % FLAGS.tg_vocab_size
         else:
             cm_extension = ".ids%d.cm" % FLAGS.tg_vocab_size
-        append_head_token = True
-        append_end_token = True
     elif FLAGS.decoder_topology in ["basic_tree"]:
         nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
         if FLAGS.canonical:

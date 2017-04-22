@@ -267,7 +267,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 # generation probability
                 gen_logits = []
                 for output in outputs:
-                    gen_logit = tf.exp(output * w + b - self.generation_mask)
+                    gen_logit = tf.exp(tf.matmul(output, w) + b - self.generation_mask)
                     gen_logits.append(gen_logit)
                 gen_logits = tf.reshape(gen_logits,
                     [-1, self.max_target_length, self.copy_vocab_size])
@@ -278,7 +278,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     tf.diag(tf.ones(self.copy_vocab_size)), encoder_inputs)
                 copy_logits = tf.exp(tf.matmul(pointers, encoder_inputs_3d) -
                     (1 - tf.reduce_sum(encoder_inputs_3d, 1, keep_dims=True)) * 1e18)
-                logits = tf.nn.split(1, self.max_target_length,
+                logits = tf.split(1, self.max_target_length,
                                      tf.nn.softmax(gen_logits + copy_logits))
                 encoder_decoder_token_loss = self.sequence_loss(
                     logits, targets, target_weights,
@@ -739,7 +739,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed['pointers'] = self.pointers
             else:
                 output_feed['pointers'] = self.pointers[bucket_id]
-
+        print(output_feed)
         outputs = session.run(output_feed, input_feed)
 
         O = Output()
