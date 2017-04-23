@@ -720,10 +720,9 @@ def prepare_bash(FLAGS, verbose=False):
                     o_f.write(' '.join(new_ids) + '\n')
 
     # prepare generation mask
-    generation_mask = np.ones([len(cp_vocab)], dtype=np.float32)
+    generation_mask = np.zeros([len(cp_vocab)], dtype=np.float32)
     for v_id in rev_cm_vocab:
-        generation_mask[v_id] = 0
-    generation_mask *= -1e18
+        generation_mask[v_id] = 1
     np.save(os.path.join(data_dir, "generation_mask"), generation_mask)
 
 
