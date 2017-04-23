@@ -260,7 +260,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 vocab_indices = tf.diag(tf.ones(self.copy_vocab_size))
                 targets = tf.split(1, self.max_target_length,
                     tf.nn.embedding_lookup(vocab_indices,
-                    tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))
+                    tf.reshape(targets, [-1, self.max_target_length])))
                 encoder_decoder_token_loss = self.sequence_loss(
                     outputs, targets, target_weights,
                     tf.nn.softmax_cross_entropy_with_logits)
@@ -325,11 +325,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             encoder_decoder_char_loss = 0
        
-        losses = encoder_decoder_token_loss + \
-                 self.gamma * encoder_decoder_char_loss + \
-                 self.chi * copy_loss + \
-                 self.beta * attention_reg
-        # losses = encoder_decoder_token_loss
+        # losses = encoder_decoder_token_loss + \
+        #          self.gamma * encoder_decoder_char_loss + \
+        #          self.chi * copy_loss + \
+        #          self.beta * attention_reg
+        losses = encoder_decoder_token_loss
 
         # store encoder/decoder output states
         self.encoder_hidden_states = tf.concat(1,
