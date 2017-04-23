@@ -721,8 +721,8 @@ def prepare_bash(FLAGS, verbose=False):
 
     # prepare generation mask
     generation_mask = np.zeros([len(cp_vocab)], dtype=np.float32)
-    for v_id in rev_cm_vocab:
-        generation_mask[v_id] = 1
+    for v in cm_vocab:
+        generation_mask[cp_vocab[v]] = 1
     np.save(os.path.join(data_dir, "generation_mask"), generation_mask)
 
 
