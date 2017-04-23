@@ -261,6 +261,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 targets = tf.split(1, self.max_target_length,
                     tf.nn.embedding_lookup(vocab_indices,
                     tf.reshape(targets, [-1, self.max_target_length])))
+                if forward_only and self.token_decoding_algorithm == 'beam_search':
+                    targets = graph_utils.wrap_inputs(
+                        self.decoder.beam_decoder, targets)
                 encoder_decoder_token_loss = self.sequence_loss(
                     outputs, targets, target_weights,
                     tf.nn.softmax_cross_entropy_with_logits)
