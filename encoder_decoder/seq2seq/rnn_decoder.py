@@ -161,7 +161,10 @@ class RNNDecoder(decoder.Decoder):
                     attn_alignments = tf.reshape(attn_alignments, [self.batch_size, self.beam_size,
                             len(decoder_inputs), attention_states.get_shape()[1].value])
                 states = tf.split(1, past_cell_states.get_shape()[1], past_cell_states)[1:]
-                outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:] for s in states]
+                if self.use_copy and self.copy_fun != 'supervised':
+                    outputs = [tf.squeeze(s, squeeze_dims=[1]) for s in states]
+                else:
+                    outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:] for s in states]
                 return top_k_outputs, top_k_logits, outputs, states, \
                        attn_alignments, pointers
             else:
