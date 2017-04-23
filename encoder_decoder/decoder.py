@@ -110,16 +110,17 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         # TODO: compute the same loss function for LSTMs
         # generation probability
         W, b = self.output_project
-        gen_logit = tf.exp(tf.matmul(output, W) + b + self.generation_mask)
+        gen_logit = tf.matmul(output, W) + b
 
         # copying probability
         pointers = attn_alignments[-1][1]
-        copy_logit = tf.exp(tf.squeeze(tf.matmul(tf.expand_dims(pointers, 1),
-                                       self.encoder_inputs_3d)) -
-                            (1 - tf.cast(tf.reduce_sum(self.encoder_inputs_3d, 1) > 0, tf.float32)) * 1e18)
+        copy_mask = tf.cast(tf.reduce_sum(self.encoder_inputs_3d, 1) > 0,
+                            tf.float32)
+        copy_logit = tf.squeeze(tf.matmul(tf.expand_dims(pointers, 1),
+                                          self.encoder_inputs_3d))
         
-        P = gen_logit + copy_logit
-        logit = P / tf.reduce_sum(P, 1)
+        logit = gen_logit + copy_logit
+        logit = logit - (1 - (self.generation_mask + copy_mask)) * 1e18
         
         return logit, state, attn_alignments
 
