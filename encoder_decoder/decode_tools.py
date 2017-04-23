@@ -139,6 +139,8 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
     """
 
     _, rev_sc_vocab, _, rev_tg_vocab = vocabs[:4]
+    if FLAGS.use_copy and not FLAGS.copy_fun == 'supervised':
+        rev_sc_vocab = vocabs[-1]
     rev_tg_char_vocab = vocabs[-1] if FLAGS.tg_char else None
 
     encoder_outputs = model_outputs.encoder_hidden_states
