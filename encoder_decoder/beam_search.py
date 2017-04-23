@@ -336,6 +336,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             beam_logprobs,
             cell_states
         )
+        cell_output = tf.gather(cell_output, parent_refs)
 
         if self.use_attention:
             return cell_output, cell_state, alignments

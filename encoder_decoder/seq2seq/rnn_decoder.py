@@ -80,6 +80,7 @@ class RNNDecoder(decoder.Decoder):
             if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(
                     decoder_cell, self.output_project)
+
             for i, input in enumerate(decoder_inputs):
                 if bs_decoding:
                     input = beam_decoder.wrap_input(input)
@@ -162,7 +163,8 @@ class RNNDecoder(decoder.Decoder):
                             len(decoder_inputs), attention_states.get_shape()[1].value])
                 states = tf.split(1, past_cell_states.get_shape()[1], past_cell_states)[1:]
                 if self.use_copy and self.copy_fun != 'supervised':
-                    outputs = [tf.squeeze(s, squeeze_dims=[1]) for s in states]
+                    outputs = [tf.zeros([self.batch_size * self.beam_size, self.copy_vocab_size])
+                               for s in states]
                 else:
                     outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:] for s in states]
                 return top_k_outputs, top_k_logits, outputs, states, \
