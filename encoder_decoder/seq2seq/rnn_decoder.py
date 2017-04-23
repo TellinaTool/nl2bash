@@ -51,6 +51,8 @@ class RNNDecoder(decoder.Decoder):
                 beam_decoder = self.beam_decoder
                 state = beam_decoder.wrap_state(
                     encoder_state, self.output_project)
+                encoder_inputs = graph_utils.wrap_inputs(
+                    beam_decoder, encoder_inputs)
             else:
                 state = encoder_state
                 past_output_symbols = []
