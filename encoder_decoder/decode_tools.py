@@ -141,6 +141,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
     _, rev_sc_vocab, _, rev_tg_vocab = vocabs[:4]
     if FLAGS.use_copy and not FLAGS.copy_fun == 'supervised':
         rev_sc_vocab = vocabs[-1]
+        rev_tg_vocab = vocabs[-1]
     rev_tg_char_vocab = vocabs[-1] if FLAGS.tg_char else None
 
     encoder_outputs = model_outputs.encoder_hidden_states
@@ -181,10 +182,10 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
         else:
             top_k_predictions = [top_k_predictions]
         for beam_id in xrange(len(top_k_predictions)):
-
             # Step 1: transform the neural network output into readable strings
             prediction = top_k_predictions[beam_id]
             outputs = [int(pred) for pred in prediction]
+            
             # If there is an EOS symbol in outputs, cut them at that point.
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]

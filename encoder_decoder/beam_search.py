@@ -229,7 +229,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # [batch_size*beam_size, num_classes]
         if self.use_copy and self.copy_fun != 'supervised':
-            logprobs = cell_output
+            if self.locally_normalized:
+                logprobs = tf.nn.log_softmax(cell_output)
+            else:
+                logprobs = cell_output
         else:
             W, b = self.output_project
             if self.locally_normalized:
