@@ -157,6 +157,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
         self.encoder_size = len(encoder_inputs)
+        self.vocab_indices = tf.diag(tf.ones(copy_vocab_size))
         encoder_inputs = tf.reshape(encoder_inputs, [-1, self.encoder_size])
         self.encoder_inputs_3d = tf.nn.embedding_lookup(
             self.vocab_indices, encoder_inputs)
