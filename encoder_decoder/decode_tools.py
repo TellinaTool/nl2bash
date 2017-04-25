@@ -113,7 +113,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
         [[token_ids], [token_full_ids]], [[tg_ids], [tg_full_ids]],
         pointer_targets=[pointer_targets], bucket_id=bucket_id)
 
-    # Decode the ouptut for this 1-element batch.
+    # Decode the output for this 1-element batch.
     # Non-grammatical templates and templates that cannot hold all fillers are
     # filtered out.
     # TODO: align output commands and their scores correctly
@@ -265,8 +265,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                             beam_outputs.append((tree, temp, outputs))
                         num_output_examples += 1
 
-            # TODO: the threshold 20 is used since the slot-filling step
-            # can be slow
+            # TODO: the threshold is used to increase decoding speed
             if num_output_examples == 20:
                 break
 
