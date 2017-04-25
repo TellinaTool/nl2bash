@@ -263,7 +263,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     return xent
 
                 vocab_indices = tf.diag(tf.ones(self.copy_vocab_size))
-                binary_targets = [x for x in 
+                binary_targets = [tf.squeeze(x) for x in 
                             tf.split(1, self.max_target_length,
                                 tf.nn.embedding_lookup(vocab_indices,
                                     tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))]
