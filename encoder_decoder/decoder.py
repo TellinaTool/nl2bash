@@ -32,7 +32,7 @@ class Decoder(graph_utils.NNModel):
 
         self.scope = scope
         self.vocab_size = self.copy_vocab_size \
-            if self.use_copy and not self.copy_fun == 'supervised' else vocab_size
+            if self.use_copy and self.copy_fun != 'supervised' else vocab_size
         self.dim = dim
         self.use_attention = use_attention
         self.attention_function = attention_function
@@ -119,7 +119,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         copy_logit = tf.squeeze(tf.matmul(tf.expand_dims(pointers, 1),
                                           self.encoder_inputs_3d), 1)
         
-        logit = gen_logit + copy_logit
+        logit = gen_logit # + copy_logit
         logit = logit - (1 - tf.cast((self.generation_mask + copy_mask) > 0,
                                      tf.float32)) * 1e18
         
@@ -245,7 +245,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear(
-              tf.nn.dropout(attn_state, self.attention_output_keep), dim, True)
+                tf.nn.dropout(attn_state, self.attention_output_keep), 
+                              dim, True)
 
         self.attention_cell_vars = True
         attn_alignments.append(alignments)
