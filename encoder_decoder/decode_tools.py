@@ -317,7 +317,10 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
                                                   use_temp=False)
     vocabs = data_utils.load_vocab(FLAGS)
-    rev_sc_vocab = vocabs[1]
+    if FLAGS.use_copy and FLAGS.copy_fun != 'supervised':
+        rev_sc_vocab = vocabs[-1]
+    else:
+        rev_sc_vocab = vocabs[1]
 
     slot_filling_classifier = None
     if FLAGS.fill_argument_slots:
@@ -339,8 +342,8 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
             example_id += 1
             data_group = grouped_dataset[sc_temp]
 
-            sc_normalized_temp = ' '.join([rev_sc_vocab[i]
-                                           for i in data_group[0][2]])
+            sc_normalized_temp = ' '.join(
+                [rev_sc_vocab[i] for i in data_group[0][2]])
             if verbose:
                 print("Example {}:".format(example_id))
                 print("(Orig) Source: " + sc_temp.strip())
@@ -355,11 +358,14 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                 batch_outputs, batch_char_outputs = batch_outputs
 
             if FLAGS.token_decoding_algorithm == "greedy":
-                tree, pred_cmd, outputs = batch_outputs[0]
-                score = output_logits[0]
-                print("{} ({})".format(pred_cmd, score))
-                db.add_prediction(
-                    model.model_sig, sc_temp, pred_cmd, float(score))
+                if batch_outputs:
+                    tree, pred_cmd, outputs = batch_outputs[0]
+                    score = output_logits[0]
+                    print("{} ({})".format(pred_cmd, score))
+                    db.add_prediction(
+                        model.model_sig, sc_temp, pred_cmd, float(score))
+                else:
+                    print(APOLOGY_MSG)
             elif FLAGS.token_decoding_algorithm == "beam_search":
                 if batch_outputs:
                     top_k_predictions = batch_outputs[0]
