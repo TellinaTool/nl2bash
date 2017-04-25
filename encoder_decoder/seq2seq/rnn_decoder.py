@@ -68,9 +68,9 @@ class RNNDecoder(decoder.Decoder):
                 encoder_attn_masks = tf.concat(1, encoder_attn_masks)
                 decoder_cell = decoder.AttentionCellWrapper(
                     decoder_cell, attention_states, encoder_attn_masks,
-                    self.attention_function, self.attention_input_keep,
-                    self.attention_output_keep, num_heads, self.num_layers,
-                    self.use_copy)
+                    encoder_inputs, self.attention_function,
+                    self.attention_input_keep, self.attention_output_keep,
+                    num_heads, self.num_layers, self.use_copy)
 
             if self.use_copy and self.copy_fun != 'supervised':
                 decoder_cell = decoder.CopyCellWrapper(decoder_cell,
