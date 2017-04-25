@@ -88,16 +88,17 @@ class Decoder(graph_utils.NNModel):
 
 
 class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
-    def __init__(self, cell, output_project, num_layers, encoder_inputs, 
+    def __init__(self, cell, output_project, num_layers, encoder_inputs,
                  copy_vocab_size, generation_mask):
         self.cell = cell
         self.output_project = output_project
+        self.num_layers = num_layers
+
         self.vocab_indices = tf.diag(tf.ones(copy_vocab_size))
         self.encoder_size = len(encoder_inputs)
-        self.num_layers = num_layers
         encoder_inputs = tf.reshape(encoder_inputs, [-1, self.encoder_size])
-        self.encoder_inputs_3d = tf.nn.embedding_lookup(
-            self.vocab_indices, encoder_inputs)
+        self.encoder_inputs_3d = tf.nn.embedding_lookup(self.vocab_indices,
+                                                        encoder_inputs)
         self.generation_mask = generation_mask
 
     def __call__(self, input_embedding, state, attn_alignments=None, scope=None):
@@ -114,10 +115,10 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         
         # copying probability
         pointers = attn_alignments[-1][1]
-        copy_mask = tf.cast(tf.reduce_sum(self.encoder_inputs_3d, 1) > 0,
-                            tf.float32)
-        copy_logit = tf.squeeze(tf.matmul(tf.expand_dims(pointers, 1),
-                                          self.encoder_inputs_3d), 1)
+        copy_mask = tf.cast(
+            tf.reduce_sum(self.encoder_inputs_3d, 1) > 0, tf.float32)
+        copy_logit = tf.log(tf.squeeze(tf.matmul(
+            tf.expand_dims(tf.exp(pointers), 1), self.encoder_inputs_3d), 1))
         
         logit = gen_logit + copy_logit
         logit = logit - (1 - tf.cast((self.generation_mask + copy_mask) > 0,
@@ -127,14 +128,16 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
-
     def __init__(self, cell, attention_states, encoder_attn_masks,
-                 attention_function, attention_input_keep,
+                 encoder_inputs, attention_function, attention_input_keep,
                  attention_output_keep, num_heads, num_layers, use_copy):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
-        :param encoder_attn_masks:
+        :param encoder_attn_masks: encoder input masks, used for masking out
+            padded contents in the encoder inputs
+        :param encoder_inputs: encoder input indices, used for generating masks
+            for copying probabilities
         :param attention_input_keep: attention input state dropout
         :param attention_output_keep: attention hidden state dropout
         :param num_heads: Number of attention heads that read from from
@@ -149,17 +152,14 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                                          attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
         attn_vec_dim = attention_states.get_shape()[2].value
-        attn_dim = attn_vec_dim 
-
-        hidden = attention_states
-        hidden_features = []
-        v = []
-        with tf.variable_scope("attention_cell_wrapper"):
-            for a in xrange(num_heads):
-                hidden_features.append(hidden)
+        attn_dim = attn_vec_dim
 
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
+        self.encoder_size = len(encoder_inputs)
+        encoder_inputs = tf.reshape(encoder_inputs, [-1, self.encoder_size])
+        self.encoder_inputs_3d = tf.nn.embedding_lookup(
+            self.vocab_indices, encoder_inputs)
         self.num_heads = num_heads
         self.num_layers = num_layers
         self.attn_vec_dim = attn_vec_dim
@@ -168,6 +168,13 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.attention_function = attention_function
         self.attention_input_keep = attention_input_keep
         self.attention_output_keep = attention_output_keep
+
+        hidden = attention_states
+        hidden_features = []
+        v = []
+        with tf.variable_scope("attention_cell_wrapper"):
+            for a in xrange(num_heads):
+                hidden_features.append(hidden)
         self.hidden = hidden
         self.hidden_features = hidden_features
         self.v = v
@@ -186,6 +193,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 if ndims:
                     assert ndims == 2
             state = tf.concat(1, query_list)
+
         for a in xrange(self.num_heads):
             with tf.variable_scope("Attention_%d" % a):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_vec_dim])
@@ -204,21 +212,32 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     s = tf.reduce_sum(tf.mul(self.hidden_features[a], y), [2])
                 else:
                     raise NotImplementedError
+
                 # Apply attention masks
-                s = s - (1 - self.encoder_attn_masks) * 1e12
+                if a == 0:
+                    s = s - (1 - self.encoder_attn_masks) * 1e18
+                else:
+                    copy_mask = tf.cast(
+                        tf.reduce_sum(self.encoder_inputs_3d, 1) > 0, tf.float32)
+                    s = s - (1 - copy_mask) * 1e18
                 alignment = tf.nn.softmax(s)
-                alignments.append(alignment)
+                if a == 0:
+                    alignments.append(alignment)
+                else:
+                    alignments.append(s)
+
                 # Now calculate the attention-weighted vector d.
                 d = tf.reduce_sum(
-                    tf.reshape(alignment, [-1, self.attn_length, 1])
-                    * self.hidden_features[a], [1])
+                        tf.reshape(alignment, [-1, self.attn_length, 1])
+                            * self.hidden_features[a], [1])
                 context = tf.reshape(d, [-1, self.attn_dim])
                 ds.append(context)
         # attns = tf.concat(1, ds)
+
         self.attention_vars = True
         return ds, alignments
 
-    def __call__(self, input_embedding, state, attn_alignments, scope=None):
+    def __call__(self, input_embedding, state, attn_alignments=None, scope=None):
         if nest.is_sequence(state):
             dim = state[1].get_shape()[1].value
         else:
