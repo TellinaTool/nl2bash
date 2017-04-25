@@ -251,22 +251,22 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         num_heads=num_heads,
                         encoder_inputs=encoder_channel_inputs[0],
                         forward_only=forward_only)
-
+        
         # --- Compute Losses --- #
 
         # A. Sequence Loss
         if forward_only or self.training_algorithm == "standard":
             if self.use_copy and self.copy_fun != 'supervised':
                 vocab_indices = tf.diag(tf.ones(self.copy_vocab_size))
-                targets = [tf.squeeze(x)
-                           for x in tf.split(1, self.max_target_length,
+                binary_targets = [x for x in 
+                            tf.split(1, self.max_target_length,
                                 tf.nn.embedding_lookup(vocab_indices,
-                                    tf.reshape(targets, [-1, self.max_target_length])))]
+                                    tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))]
                 if forward_only and self.token_decoding_algorithm == 'beam_search':
-                    targets = graph_utils.wrap_inputs(
-                        self.decoder.beam_decoder, targets)
+                    binary_targets = graph_utils.wrap_inputs(
+                        self.decoder.beam_decoder, binary_targets)
                 encoder_decoder_token_loss = self.sequence_loss(
-                    outputs, targets, target_weights,
+                    outputs, binary_targets, target_weights,
                     tf.nn.softmax_cross_entropy_with_logits)
             else:
                 encoder_decoder_token_loss = self.sequence_loss(
@@ -343,8 +343,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                 for d_o in states])
 
-        output_symbols = tf.reshape(targets, [-1, self.max_target_length,
-                                              self.copy_vocab_size])
+        # C = tf.argmax(tf.concat(1, binary_targets), 2)
+        # output_symbols = []
+        # for i in xrange(self.batch_size):
+        #     beam_output_symbols = []
+        #     for j in xrange(self.beam_size):
+        #         beam_output_symbols.append(C[i*self.beam_size + j])
+        #     output_symbols.append(beam_output_symbols)
         O = [output_symbols, output_logits, losses, attn_alignments]
         if self.tg_char:
             O.append(char_output_symbols)

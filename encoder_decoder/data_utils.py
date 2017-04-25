@@ -905,14 +905,14 @@ def merge_vocab_for_copy(nl_vocab_path, cm_vocab_path, output_path):
 def load_vocab(FLAGS):
     if FLAGS.decoder_topology in ['rnn']:
         nl_extension = "vocab%d.nl" % FLAGS.sc_vocab_size \
-            if FLAGS.sc_char else "vocab%d.nl.norm" % FLAGS.sc_vocab_size
+            if FLAGS.sc_char else "vocab%d.nl" % FLAGS.sc_vocab_size
         nl_vocab_path = os.path.join(FLAGS.data_dir, nl_extension)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
         elif FLAGS.normalized:
             cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
+                FLAGS.data_dir, "vocab%d.cm" % FLAGS.tg_vocab_size)
         else:
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm" % FLAGS.tg_vocab_size)
@@ -983,11 +983,11 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
     elif FLAGS.decoder_topology in ["rnn"]:
         nl_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size \
-            if FLAGS.sc_char else ".ids%d.nl.norm" % FLAGS.sc_vocab_size
+            if FLAGS.sc_char else ".ids%d.nl" % FLAGS.sc_vocab_size
         if FLAGS.canonical:
             cm_extension = ".ids%d.cm.norm.order" % FLAGS.tg_vocab_size
         elif FLAGS.normalized:
-            cm_extension = ".ids%d.cm.norm" % FLAGS.tg_vocab_size
+            cm_extension = ".ids%d.cm" % FLAGS.tg_vocab_size
         else:
             cm_extension = ".ids%d.cm" % FLAGS.tg_vocab_size
     elif FLAGS.decoder_topology in ["basic_tree"]:
