@@ -130,7 +130,8 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, attention_states, encoder_attn_masks,
                  encoder_inputs, attention_function, attention_input_keep,
-                 attention_output_keep, num_heads, num_layers, use_copy):
+                 attention_output_keep, num_heads, num_layers, use_copy,
+                 copy_vocab_size=-1):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].

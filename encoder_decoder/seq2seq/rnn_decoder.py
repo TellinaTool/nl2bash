@@ -70,7 +70,8 @@ class RNNDecoder(decoder.Decoder):
                     decoder_cell, attention_states, encoder_attn_masks,
                     encoder_inputs, self.attention_function,
                     self.attention_input_keep, self.attention_output_keep,
-                    num_heads, self.num_layers, self.use_copy)
+                    num_heads, self.num_layers, self.use_copy,
+                    self.copy_vocab_size)
 
             if self.use_copy and self.copy_fun != 'supervised':
                 decoder_cell = decoder.CopyCellWrapper(decoder_cell,
