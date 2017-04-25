@@ -1,6 +1,6 @@
 # Tellina Learning Module
 
-This repository consists of four main components:
+This repository consists of the following components:
 
 1. A Tensorflow implementation of a sequence-to-sequence model which we augmented with argument filling and other enhancements.
 2. An improved version of the [bashlex](https://github.com/idank/bashlex) parser which we augmented with in-command structures between utilities, flags and arguments.
