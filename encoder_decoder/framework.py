@@ -258,9 +258,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if forward_only or self.training_algorithm == "standard":
             if self.use_copy and self.copy_fun != 'supervised':
                 vocab_indices = tf.diag(tf.ones(self.copy_vocab_size))
-                targets = tf.split(1, self.max_target_length,
-                    tf.nn.embedding_lookup(vocab_indices,
-                    tf.reshape(targets, [-1, self.max_target_length])))
+                targets = [tf.squeeze(x)
+                           for x in tf.split(1, self.max_target_length,
+                                tf.nn.embedding_lookup(vocab_indices,
+                                    tf.reshape(targets, [-1, self.max_target_length])))]
                 if forward_only and self.token_decoding_algorithm == 'beam_search':
                     targets = graph_utils.wrap_inputs(
                         self.decoder.beam_decoder, targets)
@@ -342,6 +343,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                 for d_o in states])
 
+        output_symbols = tf.reshape(targets, [-1, self.max_target_length,
+                                              self.copy_vocab_size])
         O = [output_symbols, output_logits, losses, attn_alignments]
         if self.tg_char:
             O.append(char_output_symbols)
