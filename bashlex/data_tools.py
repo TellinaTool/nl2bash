@@ -70,10 +70,12 @@ def pretty_print(node, depth=0):
 
 
 def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
-               arg_type_only=False, with_parent=False):
+               arg_type_only=False, with_parent=False, arg_unk=False,
+               unk_token=None):
     """Convert a bash ast into a list of tokens."""
     return normalizer.to_tokens(node, loose_constraints, ignore_flag_order,
-                                arg_type_only, with_parent=with_parent)
+                                arg_type_only, with_parent=with_parent,
+                                arg_unk=arg_unk, unk_token=unk_token)
 
 
 def ast2command(node, loose_constraints=False, ignore_flag_order=False):
