@@ -122,8 +122,8 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
                             tf.float32)
         copy_logit = copy_logit * copy_mask
         
-        # logit = gen_logit + copy_logit
-        logit = gen_logit
+        logit = gen_logit + copy_logit
+        # logit = gen_logit
 
         return logit, state, attn_alignments
 
