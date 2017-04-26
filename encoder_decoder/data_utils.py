@@ -167,9 +167,9 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                         tokens = tokenizer(line)
                 if not tokens:
                     continue
-                for word in tokens:
-                    if not word in vocab and not ('__LF__' + word) in vocab:
-                        vocab[('__LF__' + word)] = 1e12
+                for v in tokens:
+                    if not v in vocab and not ('__LF__' + v) in vocab:
+                        vocab[('__LF__' + v)] = 1e12
         sorted_vocab = sorted(vocab, key=vocab.get)
 
     start_vocab = _CHAR_START_VOCAB \
@@ -496,8 +496,8 @@ def prepare_bash(FLAGS, verbose=False):
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl, lemmatization=False)
-                    cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent,
-                                                      arg_unk=True, unk_token=_UNK)
+                    cm_tokens = data_tools.ast2tokens(
+                        ast, with_parent=with_parent, arg_unk=True, unk_token=_UNK)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
