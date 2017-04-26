@@ -32,6 +32,9 @@ def char_tokenizer(sentence, base_tokenizer=None):
             tokens = base_tokenizer(sentence)
     else:
         tokens = [sentence]
+    if type(tokens[0]) is list:
+        tokens = tokens[0]
+
     chars = []
     for token in tokens:
         for c in token:
