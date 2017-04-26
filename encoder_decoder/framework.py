@@ -259,8 +259,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if self.use_copy and self.copy_fun != 'supervised':
                 
                 def cross_entropy_with_logits(logits, targets):
-                    P = logits / tf.reduce_sum(logits, 1, keep_dims=True)
-                    xent = - tf.reduce_sum(targets * tf.log(P + 1e-12), 1)
+                    P = graph_utils.normalize(logits)
+                    xent = -tf.reduce_sum(targets * tf.log(P + 1e-12), 1)
                     return xent
 
                 vocab_indices = tf.diag(tf.ones(self.copy_vocab_size))
@@ -373,7 +373,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
             for logit, target, weight in zip(logits, targets, weights):
-                crossent = loss_function(logit, tf.reshape(target, tf.shape(logit)))
+                crossent = loss_function(logit,
+                                         tf.reshape(target, tf.shape(logit)))
                 log_perp_list.append(crossent * weight)
             log_perps = tf.add_n(log_perp_list)
             total_size = tf.add_n(weights)
