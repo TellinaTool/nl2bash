@@ -915,7 +915,7 @@ def load_vocab(FLAGS):
                 FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
         elif FLAGS.normalized:
             cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm" % FLAGS.tg_vocab_size)
+                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
         else:
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm" % FLAGS.tg_vocab_size)
@@ -990,7 +990,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         if FLAGS.canonical:
             cm_extension = ".ids%d.cm.norm.order" % FLAGS.tg_vocab_size
         elif FLAGS.normalized:
-            cm_extension = ".ids%d.cm" % FLAGS.tg_vocab_size
+            cm_extension = ".ids%d.cm.norm" % FLAGS.tg_vocab_size
         else:
             cm_extension = ".ids%d.cm" % FLAGS.tg_vocab_size
     elif FLAGS.decoder_topology in ["basic_tree"]:

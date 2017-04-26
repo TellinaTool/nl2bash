@@ -258,7 +258,8 @@ def grid_search(train_set, dev_set):
     print("======== Grid Search ========")
     print("%d hyperparameters: " % num_hps)
     for i in xrange(num_hps):
-        print("{}: {}".format(hyperparameters[i], hp_range[hyperparameters[i]]))
+        print("{}: {}".format(hyperparameters[i],
+                              hp_range[hyperparameters[i]]))
     print()
 
     grid = [v for v in hp_range[hyperparameters[0]]]
@@ -349,7 +350,8 @@ def eval_slot_filling(dataset):
         model, global_epochs = graph_utils.create_model(sess, FLAGS,
             Seq2SeqModel, buckets=_buckets, forward_only=True)
 
-        model_param_dir = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
+        model_param_dir = os.path.join(
+            FLAGS.model_dir, 'train.mappings.X.Y.npz')
         train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
         slot_filling_classifier = classifiers.KNearestNeighborModel(
             FLAGS.num_nn_slot_filling, train_X, train_Y)
