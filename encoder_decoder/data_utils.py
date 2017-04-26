@@ -692,7 +692,7 @@ def prepare_bash(FLAGS, verbose=False):
 
     slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix)
 
-    merge_vocab_for_copy(nl_vocab_path, cm_vocab_path,
+    merge_vocab_for_copy(nl_vocab_path, cm_norm_vocab_path,
                          os.path.join(data_dir, "vocab.copy"))
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
@@ -980,7 +980,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     
     if FLAGS.use_copy:
         nl_extension = ".ids%d.nl.copy" % FLAGS.sc_vocab_size
-        cm_extension = ".ids%d.cm.copy" % FLAGS.tg_vocab_size
+        cm_extension = ".ids%d.cm.norm" % FLAGS.tg_vocab_size
     elif FLAGS.char:
         nl_extension = ".ids%d.nl.char" % FLAGS.sc_vocab_size
         cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
