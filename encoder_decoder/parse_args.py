@@ -183,7 +183,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
     tf.app.flags.DEFINE_string("copy_fun", 'implicit',
                                 "Specifying the type of copying functions to use.")
-    tf.app.flags.DEFINE_integer("copy_vocab_size", 5402, "shared vocab size for copying mechanism.")
+    tf.app.flags.DEFINE_integer("copy_vocab_size", 5238, "shared vocab size for copying mechanism.")
     tf.app.flags.DEFINE_float("chi", 1, "Copy loss weight.")
 
     # debugging options
