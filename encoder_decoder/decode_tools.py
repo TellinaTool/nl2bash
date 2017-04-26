@@ -225,7 +225,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                     else:
                         output_tokens.append(data_utils._UNK)
                 tg = " ".join(output_tokens)
-
+            
             # check if the predicted command templates have enough slots to
             # hold the fillers (to rule out templates that are trivially
             # unqualified)
