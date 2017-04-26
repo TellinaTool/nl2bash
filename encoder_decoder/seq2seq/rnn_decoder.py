@@ -100,15 +100,15 @@ class RNNDecoder(decoder.Decoder):
                             input = past_beam_symbols[:, -1]
                         elif self.decoding_algorithm == "greedy":
                             if self.use_copy and self.copy_fun != 'supervised':
-                                projected_output = output
+                                projected_output = graph_utils.normalize(output)
                             else:
                                 W, b = self.output_project
-                                projected_output = tf.nn.log_softmax(
-                                    tf.matmul(output, W) + b)
+                                projected_output = \
+                                    tf.nn.log_softmax(tf.matmul(output, W) + b)
                             output_symbol = tf.argmax(projected_output, 1)
                             past_output_symbols.append(tf.expand_dims(output_symbol, 1))
-                            past_output_logits = tf.add(past_output_logits,
-                                                        tf.reduce_max(projected_output, 1))
+                            past_output_logits = \
+                                tf.add(past_output_logits, tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
