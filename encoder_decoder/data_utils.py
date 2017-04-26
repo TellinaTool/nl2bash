@@ -699,13 +699,13 @@ def prepare_bash(FLAGS, verbose=False):
     nl_vocab, rev_nl_vocab = initialize_vocabulary(os.path.join(
         data_dir, "vocab%d.nl" % nl_vocab_size))
     cm_vocab, rev_cm_vocab = initialize_vocabulary(os.path.join(
-        data_dir, "vocab%d.cm" % cm_vocab_size))
+        data_dir, "vocab%d.cm.norm" % cm_vocab_size))
     cp_vocab, rev_cp_vocab = initialize_vocabulary(os.path.join(
         data_dir, "vocab.copy"))
 
     for split in ['train', 'dev', 'test']:
         nl_path = os.path.join(data_dir, split + nl_token_suffix)
-        cm_path = os.path.join(data_dir, split + cm_token_suffix)
+        cm_path = os.path.join(data_dir, split + cm_token_norm_suffix)
         nl_copy_path = os.path.join(data_dir, split + nl_token_copy_suffix)
         cm_copy_path = os.path.join(data_dir, split + cm_token_copy_suffix)
 
