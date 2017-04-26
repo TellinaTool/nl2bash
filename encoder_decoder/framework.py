@@ -343,14 +343,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                 for d_o in states])
 
-        """C = tf.argmax(tf.concat(1, binary_targets), 2)
+        C = tf.argmax(tf.concat(1, binary_targets), 2)
         output_symbols = []
         for i in xrange(self.batch_size):
             beam_output_symbols = []
             for j in xrange(self.beam_size):
                 beam_output_symbols.append(C[i*self.beam_size + j])
             output_symbols.append(beam_output_symbols)
-        """
+        
         O = [output_symbols, output_logits, losses, attn_alignments]
         if self.tg_char:
             O.append(char_output_symbols)
