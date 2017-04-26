@@ -276,6 +276,10 @@ def wrap_inputs(beam_decoder, inputs):
     return [beam_decoder.wrap_input(input) for input in inputs]
 
 
+def normalize(logits):
+    return logits / tf.reduce_sum(logits, 1, keep_dims=True)
+
+
 class NNModel(object):
     def __init__(self, hyperparams, buckets=None):
         self.hyperparams = hyperparams
