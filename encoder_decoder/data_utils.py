@@ -495,7 +495,8 @@ def prepare_bash(FLAGS, verbose=False):
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl, lemmatization=False)
-                    cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
+                    cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent,
+                                                      arg_unk=True, unk_token=_UNK)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
@@ -692,20 +693,21 @@ def prepare_bash(FLAGS, verbose=False):
 
     slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix)
 
-    merge_vocab_for_copy(nl_vocab_path, cm_norm_vocab_path,
+    # copy data preparation
+    merge_vocab_for_copy(nl_vocab_path, cm_vocab_path,
                          os.path.join(data_dir, "vocab.copy"))
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
     nl_vocab, rev_nl_vocab = initialize_vocabulary(os.path.join(
         data_dir, "vocab%d.nl" % nl_vocab_size))
     cm_vocab, rev_cm_vocab = initialize_vocabulary(os.path.join(
-        data_dir, "vocab%d.cm.norm" % cm_vocab_size))
+        data_dir, "vocab%d.cm" % cm_vocab_size))
     cp_vocab, rev_cp_vocab = initialize_vocabulary(os.path.join(
         data_dir, "vocab.copy"))
 
     for split in ['train', 'dev', 'test']:
         nl_path = os.path.join(data_dir, split + nl_token_suffix)
-        cm_path = os.path.join(data_dir, split + cm_token_norm_suffix)
+        cm_path = os.path.join(data_dir, split + cm_token_suffix)
         nl_copy_path = os.path.join(data_dir, split + nl_token_copy_suffix)
         cm_copy_path = os.path.join(data_dir, split + cm_token_copy_suffix)
 
