@@ -257,23 +257,17 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # A. Sequence Loss
         if forward_only or self.training_algorithm == "standard":
             if self.use_copy and self.copy_fun != 'supervised':
-                
-                def cross_entropy_with_logits(logits, targets):
-                    P = graph_utils.normalize(logits)
-                    xent = -tf.reduce_sum(targets * tf.log(P + 1e-12), 1)
-                    return xent
-
                 vocab_indices = tf.diag(tf.ones(self.copy_vocab_size))
                 binary_targets = \
-                    [x for x in tf.split(1, self.max_target_length, 
+                    tf.split(1, self.max_target_length,
                         tf.nn.embedding_lookup(vocab_indices,
-                            tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))]
+                            tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))
                 if forward_only and self.token_decoding_algorithm == 'beam_search':
                     binary_targets = graph_utils.wrap_inputs(
                         self.decoder.beam_decoder, binary_targets)
                 encoder_decoder_token_loss = self.sequence_loss(
                     outputs, binary_targets, target_weights,
-                    cross_entropy_with_logits)
+                    graph_utils.cross_entropy_with_logits)
             else:
                 encoder_decoder_token_loss = self.sequence_loss(
                     outputs, targets, target_weights,
@@ -373,8 +367,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
             for logit, target, weight in zip(logits, targets, weights):
-                crossent = loss_function(logit,
-                                         tf.reshape(target, tf.shape(logit)))
+                crossent = loss_function(
+                    logit, tf.reshape(target, tf.shape(logit)))
                 log_perp_list.append(crossent * weight)
             log_perps = tf.add_n(log_perp_list)
             total_size = tf.add_n(weights)
