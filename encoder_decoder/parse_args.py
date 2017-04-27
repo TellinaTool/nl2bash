@@ -94,7 +94,7 @@ def define_input_flags():
                                 "Batch size to use during training.")
     tf.app.flags.DEFINE_integer("num_layers", 1,
                                 "Number of layers in the encoder-decoder.")
-    tf.app.flags.DEFINE_integer("num_samples", 512,
+    tf.app.flags.DEFINE_integer("num_samples", 256,
                                 "Number of samples for sampled softmax.")
     tf.app.flags.DEFINE_integer("seed", -1, "Random seed for graph initialization.")
 
@@ -183,7 +183,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
     tf.app.flags.DEFINE_string("copy_fun", 'implicit',
                                 "Specifying the type of copying functions to use.")
-    tf.app.flags.DEFINE_integer("copy_vocab_size", 3340, "shared vocab size for copying mechanism.")
+    tf.app.flags.DEFINE_integer("copy_vocab_size", 3341, "shared vocab size for copying mechanism.")
     tf.app.flags.DEFINE_float("chi", 1, "Copy loss weight.")
 
     # debugging options
