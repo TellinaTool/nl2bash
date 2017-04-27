@@ -269,8 +269,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     outputs, binary_targets, target_weights,
                     graph_utils.cross_entropy_with_logits)
             else:
-                print(self.num_samples)
-                print(self.target_vocab_size)
                 encoder_decoder_token_loss = self.sequence_loss(
                     outputs, targets, target_weights,
                     graph_utils.softmax_loss(
