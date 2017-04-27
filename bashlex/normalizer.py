@@ -1210,10 +1210,10 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                         token = node.arg_type
                 else:
                     token = node.arg_type
-                if au:
-                    token = unk_token
             else:
                 token = node.value
+            if au and node.is_open_vocab():
+                token = unk_token
             if wat:
                 token = token + "_" + node.arg_type
             if ia and node.to_index():
