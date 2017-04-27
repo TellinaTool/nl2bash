@@ -1086,7 +1086,7 @@ def to_command(node, loose_constraints=False, ignore_flag_order=False):
 
 def to_tokens(node, loose_constraints=False, ignore_flag_order=False, 
               arg_type_only=False, with_arg_type=False, with_parent=False, 
-              index_arg = False):
+              index_arg = False, arg_unk=False, unk_token=None):
     if not node:
         return []
 
@@ -1096,6 +1096,7 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
     wat = with_arg_type
     wp = with_parent
     ia = index_arg
+    au = arg_unk
 
     def to_tokens_fun(node):
         tokens = []
@@ -1215,6 +1216,8 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                 token = token + "_" + node.arg_type
             if ia and node.to_index():
                 token = token + "-{:02d}".format(node.index)
+            if au:
+                token = unk_token
             tokens.append(token)
             if lc:
                 for child in node.children:
