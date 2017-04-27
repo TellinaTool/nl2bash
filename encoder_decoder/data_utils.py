@@ -716,7 +716,7 @@ def prepare_bash(FLAGS, verbose=False):
         cm_path = os.path.join(data_dir, split + cm_token_suffix)
         nl_copy_path = os.path.join(data_dir, split + nl_token_copy_suffix)
         cm_copy_path = os.path.join(data_dir, split + cm_token_copy_suffix)
-        cm_copy_full_path = os.path.join(data_dir, split + cm_token_copy_suffix)
+        cm_copy_full_path = os.path.join(data_dir, split + cm_token_copy_full_suffix)
 
         with open(nl_copy_path, 'w') as o_f:
             with open(nl_path) as f:
