@@ -141,7 +141,7 @@ def train(train_set, dev_set, construct_model_dir=True):
 
                 # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
                 if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]):
-                    return False
+                    break
            
                 previous_dev_losses.append(dev_loss)
 
@@ -443,6 +443,8 @@ def eval_slot_filling(dataset):
 
 
 def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
+    print("saving slot filling mappings to {}".format(output_file))
+
     X, Y = [], []
     for bucket_id in xrange(len(_buckets)):
         for i in xrange(len(dataset[bucket_id])):
@@ -491,7 +493,8 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     #     print(X[0].shape)
                     #     print(encoder_outputs[:, ff, :][0, :40])
                     #     print(X[0][0, :40])
-            if i > 0 and i % 1000 == 0:
+
+            if len(X) > 0 and len(X) % 1000 == 0:
                 print('{} examples gathered for generating slot filling features...'
                       .format(len(X)))
 
