@@ -705,6 +705,7 @@ def prepare_bash(FLAGS, verbose=False):
     merge_vocab_for_copy(nl_vocab_path, cm_vocab_path,
                          os.path.join(data_dir, "vocab.copy"))
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
+    nl_token_copy_full_suffix = ".ids%d.nl.copy.full" % nl_vocab_size
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
     cm_token_copy_full_suffix = ".ids%d.cm.copy.full" % cm_vocab_size
     nl_vocab, rev_nl_vocab = initialize_vocabulary(os.path.join(
@@ -714,31 +715,26 @@ def prepare_bash(FLAGS, verbose=False):
     cp_vocab, rev_cp_vocab = initialize_vocabulary(os.path.join(
         data_dir, "vocab.copy"))
 
+    def to_copy_index(orig_path, cp_path, rev_orig_vocab, cp_vocab):
+        with open(cp_path, 'w') as o_f:
+            with open(orig_path) as f:
+                for line in f:
+                    ids = [int(x) for x in line.strip().split()]
+                    new_ids = [str(cp_vocab[rev_orig_vocab[id]]) for id in ids]
+                    o_f.write(' '.join(new_ids) + '\n')
+
     for split in ['train', 'dev', 'test']:
         nl_path = os.path.join(data_dir, split + nl_token_suffix)
         cm_path = os.path.join(data_dir, split + cm_token_suffix)
         nl_copy_path = os.path.join(data_dir, split + nl_token_copy_suffix)
+        nl_copy_full_path = os.path.join(data_dir, split + nl_token_copy_full_suffix)
         cm_copy_path = os.path.join(data_dir, split + cm_token_copy_suffix)
         cm_copy_full_path = os.path.join(data_dir, split + cm_token_copy_full_suffix)
 
-        with open(nl_copy_path, 'w') as o_f:
-            with open(nl_path) as f:
-                for line in f:
-                    ids = [int(x) for x in line.strip().split()]
-                    new_ids = [str(cp_vocab[rev_nl_vocab[id]]) for id in ids]
-                    o_f.write(' '.join(new_ids) + '\n')
-        with open(cm_copy_path, 'w') as o_f:
-            with open(cm_path) as f:
-                for line in f:
-                    ids = [int(x) for x in line.strip().split()]
-                    new_ids = [str(cp_vocab[rev_cm_vocab[id]]) for id in ids]
-                    o_f.write(' '.join(new_ids) + '\n')
-        with open(cm_copy_full_path, 'w') as o_f:
-            with open(cm_path + '.full') as f:
-                for line in f:
-                    ids = [int(x) for x in line.strip().split()]
-                    new_ids = [str(cp_vocab[rev_cm_vocab[id]]) for id in ids]
-                    o_f.write(' '.join(new_ids) + '\n')
+        to_copy_index(nl_path, nl_copy_path, rev_nl_vocab, cp_vocab)
+        to_copy_index(nl_path + '.full', nl_copy_full_path, rev_nl_vocab, cp_vocab)
+        to_copy_index(cm_path, cm_copy_path, rev_cm_vocab, cp_vocab)
+        to_copy_index(cm_path + '.full', cm_copy_full_path, rev_cm_vocab, cp_vocab)
 
     # prepare generation mask
     generation_mask = np.zeros([len(cp_vocab)], dtype=np.float32)
@@ -997,8 +993,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     append_end_token = True
     
     if FLAGS.use_copy:
-        nl_extension = ".ids%d.nl.copy" % FLAGS.sc_vocab_size
-        cm_extension = ".ids%d.cm.copy" % FLAGS.tg_vocab_size
+        nl_extension = ".ids%d.nl.copy.full" % FLAGS.sc_vocab_size
+        cm_extension = ".ids%d.cm.copy.full" % FLAGS.tg_vocab_size
     elif FLAGS.char:
         nl_extension = ".ids%d.nl.char" % FLAGS.sc_vocab_size
         cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
