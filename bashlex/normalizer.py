@@ -719,7 +719,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         sub_command.children.append(repl_str_node2)
                         break
 
-    def normalize(node, current, node_kind="", arg_type=""):
+    def normalize(node, current, arg_type=""):
         # recursively normalize each subtree
         if not type(node) is bast.node:
             raise ValueError('type(node) is not ast.node')
