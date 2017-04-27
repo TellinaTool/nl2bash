@@ -703,6 +703,7 @@ def prepare_bash(FLAGS, verbose=False):
                          os.path.join(data_dir, "vocab.copy"))
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
+    cm_token_copy_full_suffix = ".ids%d.cm.copy.full" % cm_vocab_size
     nl_vocab, rev_nl_vocab = initialize_vocabulary(os.path.join(
         data_dir, "vocab%d.nl" % nl_vocab_size))
     cm_vocab, rev_cm_vocab = initialize_vocabulary(os.path.join(
@@ -715,6 +716,7 @@ def prepare_bash(FLAGS, verbose=False):
         cm_path = os.path.join(data_dir, split + cm_token_suffix)
         nl_copy_path = os.path.join(data_dir, split + nl_token_copy_suffix)
         cm_copy_path = os.path.join(data_dir, split + cm_token_copy_suffix)
+        cm_copy_full_path = os.path.join(data_dir, split + cm_token_copy_suffix)
 
         with open(nl_copy_path, 'w') as o_f:
             with open(nl_path) as f:
@@ -724,6 +726,12 @@ def prepare_bash(FLAGS, verbose=False):
                     o_f.write(' '.join(new_ids) + '\n')
         with open(cm_copy_path, 'w') as o_f:
             with open(cm_path) as f:
+                for line in f:
+                    ids = [int(x) for x in line.strip().split()]
+                    new_ids = [str(cp_vocab[rev_cm_vocab[id]]) for id in ids]
+                    o_f.write(' '.join(new_ids) + '\n')
+        with open(cm_copy_full_path, 'w') as o_f:
+            with open(cm_path + '.full') as f:
                 for line in f:
                     ids = [int(x) for x in line.strip().split()]
                     new_ids = [str(cp_vocab[rev_cm_vocab[id]]) for id in ids]
