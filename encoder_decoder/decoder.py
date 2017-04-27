@@ -101,6 +101,8 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
                                                         encoder_inputs)
         self.generation_mask = generation_mask
 
+        print("CopyCellWrapper added!")
+
     def __call__(self, input_embedding, state, attn_alignments=None, scope=None):
         assert(attn_alignments is not None)
 
@@ -182,6 +184,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.v = v
 
         self.use_copy = use_copy
+
+        print("AttentionCellWrapper added!")
 
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
