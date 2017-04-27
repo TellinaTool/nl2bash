@@ -270,8 +270,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear(
-                tf.nn.dropout(attn_state, self.attention_output_keep), 
-                              dim, True)
+                tf.nn.dropout(attn_state, self.attention_output_keep),
+                dim, True)
 
         self.attention_cell_vars = True
         attn_alignments.append(alignments)
