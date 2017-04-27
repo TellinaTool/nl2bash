@@ -139,14 +139,15 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                     vocab[word] = 1
         sorted_vocab = {}
         for v in vocab:
-            if '.cm' in vocab_path or \
+            if v.startswith('__LF__'):
+                sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
+            elif '.cm' in vocab_path or \
                     ((constants.is_english_word(v) or 'char' in vocab_path)
                      and vocab[v] >= min_word_frequency):
                 sorted_vocab[v] = vocab[v]
             else:
                 # print("Infrequent token: %s"  % v)
-                sorted_vocab['__LF__' + v] = \
-                    min(vocab[v], min_word_frequency-1)
+                sorted_vocab['__LF__' + v] = min(vocab[v], min_word_frequency-1)
         sorted_vocab = [x for (x, y) in \
             sorted(sorted_vocab.items(), key=lambda x:x[1], reverse=True)]
     else:

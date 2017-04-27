@@ -167,7 +167,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
     num_output_examples = 0
 
     # prepare copied indices
-    if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
+    if FLAGS.use_copy:
         pointers = model_outputs.pointers
         sentence_length = pointers.shape[1]
         batch_copy_indices = np.reshape(np.argmax(pointers, 2),
@@ -198,7 +198,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                 tg = "".join([tf.compat.as_str(rev_tg_vocab[output])
                               for output in outputs]).replace(data_utils._UNK, ' ')
             else:
-                if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
+                if FLAGS.use_copy:
                     print("{}-{}: {}".format(
                         batch_id, beam_id, batch_copy_indices[batch_id, beam_id]))
                 for ii in xrange(len(outputs)):
@@ -215,7 +215,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                 else:
                                     pred_token_type = pred_token
                                 cm_slots[ii] = (pred_token, pred_token_type)
-                                if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
+                                if FLAGS.use_copy:
                                     copy_idx = \
                                         batch_copy_indices[batch_id, beam_id, ii]
                                     pred_token = \
