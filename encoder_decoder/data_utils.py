@@ -141,7 +141,8 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
         for v in vocab:
             if v.startswith('__LF__'):
                 sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
-            elif ((constants.is_english_word(v) or 'char' in vocab_path)
+            elif ((constants.is_english_word(v) or 'char' in vocab_path
+                   or 'cm' in vocab_path)
                   and vocab[v] >= min_word_frequency):
                 sorted_vocab[v] = vocab[v]
             else:
