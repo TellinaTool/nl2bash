@@ -302,10 +302,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
             char_targets = [tf.squeeze(x, 1) for x in
                             tf.split(1, self.max_target_token_size + 1,
                                      tf.concat(0, self.char_targets))]
-            char_target_weights = \
-                [tf.squeeze(x, 1)
-                    for x in tf.split(1, self.max_target_token_size + 1,
-                        tf.concat(0, self.char_target_weights))]
+            char_target_weights = [tf.squeeze(x, 1)
+                            for x in tf.split(1, self.max_target_token_size + 1,
+                            tf.concat(0, self.char_target_weights))]
             if forward_only and self.token_decoding_algorithm == 'beam_search':
                 char_decoder_inputs = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, char_decoder_inputs)
@@ -367,8 +366,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
             for logit, target, weight in zip(logits, targets, weights):
-                crossent = loss_function(
-                    logit, tf.reshape(target, tf.shape(logit)))
+                crossent = loss_function(logit, target)
                 log_perp_list.append(crossent * weight)
             log_perps = tf.add_n(log_perp_list)
             total_size = tf.add_n(weights)
