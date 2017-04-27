@@ -302,10 +302,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
             char_targets = [tf.squeeze(x, 1) for x in
                             tf.split(1, self.max_target_token_size + 1,
                                      tf.concat(0, self.char_targets))]
-            char_target_weights = \
-                [tf.squeeze(x, 1)
-                    for x in tf.split(1, self.max_target_token_size + 1,
-                        tf.concat(0, self.char_target_weights))]
+            char_target_weights = [tf.squeeze(x, 1)
+                            for x in tf.split(1, self.max_target_token_size + 1,
+                            tf.concat(0, self.char_target_weights))]
             if forward_only and self.token_decoding_algorithm == 'beam_search':
                 char_decoder_inputs = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, char_decoder_inputs)
@@ -329,11 +328,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
         else:
             encoder_decoder_char_loss = 0
        
-        # losses = encoder_decoder_token_loss + \
-        #          self.gamma * encoder_decoder_char_loss + \
-        #          self.chi * copy_loss + \
-        #          self.beta * attention_reg
-        losses = encoder_decoder_token_loss
+        losses = encoder_decoder_token_loss + \
+                 self.gamma * encoder_decoder_char_loss + \
+                 self.chi * copy_loss + \
+                 self.beta * attention_reg
 
         # store encoder/decoder output states
         self.encoder_hidden_states = tf.concat(1,
@@ -343,14 +341,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                 for d_o in states])
 
-        C = tf.argmax(tf.concat(1, binary_targets), 2)
+        """C = tf.argmax(tf.concat(1, binary_targets), 2)
         output_symbols = []
         for i in xrange(self.batch_size):
             beam_output_symbols = []
             for j in xrange(self.beam_size):
                 beam_output_symbols.append(C[i*self.beam_size + j])
             output_symbols.append(beam_output_symbols)
-        
+        """
         O = [output_symbols, output_logits, losses, attn_alignments]
         if self.tg_char:
             O.append(char_output_symbols)
@@ -368,8 +366,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         with tf.variable_scope("sequence_loss"):
             log_perp_list = []
             for logit, target, weight in zip(logits, targets, weights):
-                crossent = loss_function(
-                    logit, tf.reshape(target, tf.shape(logit)))
+                crossent = loss_function(logit, target)
                 log_perp_list.append(crossent * weight)
             log_perps = tf.add_n(log_perp_list)
             total_size = tf.add_n(weights)

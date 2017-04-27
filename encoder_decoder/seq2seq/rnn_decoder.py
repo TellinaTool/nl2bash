@@ -164,7 +164,7 @@ class RNNDecoder(decoder.Decoder):
                             len(decoder_inputs), attention_states.get_shape()[1].value])
                 states = tf.split(1, past_cell_states.get_shape()[1], past_cell_states)[1:]
                 if self.use_copy and self.copy_fun != 'supervised':
-                    # TODO: make beam search output logits computation right
+                    # TODO: make beam search output logits computation in copy mode is right
                     # so far dummy zero vectors are used
                     outputs = [tf.zeros([self.batch_size * self.beam_size, self.copy_vocab_size])
                                for s in states]

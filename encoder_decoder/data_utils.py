@@ -139,13 +139,15 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                     vocab[word] = 1
         sorted_vocab = {}
         for v in vocab:
-            if (constants.is_english_word(v) or 'char' in vocab_path
-                or 'cm' in vocab_path) and vocab[v] >= min_word_frequency:
+            if v.startswith('__LF__'):
+                sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
+            elif '.cm' in vocab_path or \
+                    ((constants.is_english_word(v) or 'char' in vocab_path)
+                     and vocab[v] >= min_word_frequency):
                 sorted_vocab[v] = vocab[v]
             else:
                 # print("Infrequent token: %s"  % v)
-                sorted_vocab['__LF__' + v] = \
-                    min(vocab[v], min_word_frequency-1)
+                sorted_vocab['__LF__' + v] = min(vocab[v], min_word_frequency-1)
         sorted_vocab = [x for (x, y) in \
             sorted(sorted_vocab.items(), key=lambda x:x[1], reverse=True)]
     else:
@@ -166,9 +168,9 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                         tokens = tokenizer(line)
                 if not tokens:
                     continue
-                for word in tokens:
-                    if not word in vocab and not ('__LF__' + word) in vocab:
-                        vocab[('__LF__' + word)] = 1e12
+                for v in tokens:
+                    if not v in vocab and not ('__LF__' + v) in vocab:
+                        vocab[('__LF__' + v)] = 1e12
         sorted_vocab = sorted(vocab, key=vocab.get)
 
     start_vocab = _CHAR_START_VOCAB \
@@ -289,7 +291,10 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     token_ids = []
     for w in words:
         if w in vocabulary:
-            token_ids.append(vocabulary[w])
+            if use_unk and w.startswith('__LF__'):
+                token_ids.append(UNK_ID)
+            else:
+                token_ids.append(vocabulary[w])
         else:
             # Unknown token
             if not use_unk and ('__LF__' + w) in vocabulary:
@@ -494,9 +499,9 @@ def prepare_bash(FLAGS, verbose=False):
                 if data_tools.is_simple(ast):
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
-                    nl_tokens, _ = tokenizer.basic_tokenizer(nl, lemmatization=False)
-                    cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent,
-                                                      arg_unk=True, unk_token=_UNK)
+                    nl_tokens, _ = tokenizer.basic_tokenizer(nl, lemmatization=True)
+                    cm_tokens = data_tools.ast2tokens(
+                        ast, with_parent=with_parent, arg_unk=True, unk_token=_UNK)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
@@ -697,7 +702,9 @@ def prepare_bash(FLAGS, verbose=False):
     merge_vocab_for_copy(nl_vocab_path, cm_vocab_path,
                          os.path.join(data_dir, "vocab.copy"))
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
+    nl_token_copy_full_suffix = ".ids%d.nl.copy.full" % nl_vocab_size
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
+    cm_token_copy_full_suffix = ".ids%d.cm.copy.full" % cm_vocab_size
     nl_vocab, rev_nl_vocab = initialize_vocabulary(os.path.join(
         data_dir, "vocab%d.nl" % nl_vocab_size))
     cm_vocab, rev_cm_vocab = initialize_vocabulary(os.path.join(
@@ -705,24 +712,26 @@ def prepare_bash(FLAGS, verbose=False):
     cp_vocab, rev_cp_vocab = initialize_vocabulary(os.path.join(
         data_dir, "vocab.copy"))
 
+    def to_copy_index(orig_path, cp_path, rev_orig_vocab, cp_vocab):
+        with open(cp_path, 'w') as o_f:
+            with open(orig_path) as f:
+                for line in f:
+                    ids = [int(x) for x in line.strip().split()]
+                    new_ids = [str(cp_vocab[rev_orig_vocab[id]]) for id in ids]
+                    o_f.write(' '.join(new_ids) + '\n')
+
     for split in ['train', 'dev', 'test']:
         nl_path = os.path.join(data_dir, split + nl_token_suffix)
         cm_path = os.path.join(data_dir, split + cm_token_suffix)
         nl_copy_path = os.path.join(data_dir, split + nl_token_copy_suffix)
+        nl_copy_full_path = os.path.join(data_dir, split + nl_token_copy_full_suffix)
         cm_copy_path = os.path.join(data_dir, split + cm_token_copy_suffix)
+        cm_copy_full_path = os.path.join(data_dir, split + cm_token_copy_full_suffix)
 
-        with open(nl_copy_path, 'w') as o_f:
-            with open(nl_path) as f:
-                for line in f:
-                    ids = [int(x) for x in line.strip().split()]
-                    new_ids = [str(cp_vocab[rev_nl_vocab[id]]) for id in ids]
-                    o_f.write(' '.join(new_ids) + '\n')
-        with open(cm_copy_path, 'w') as o_f:
-            with open(cm_path) as f:
-                for line in f:
-                    ids = [int(x) for x in line.strip().split()]
-                    new_ids = [str(cp_vocab[rev_cm_vocab[id]]) for id in ids]
-                    o_f.write(' '.join(new_ids) + '\n')
+        to_copy_index(nl_path, nl_copy_path, rev_nl_vocab, cp_vocab)
+        to_copy_index(nl_path + '.full', nl_copy_full_path, rev_nl_vocab, cp_vocab)
+        to_copy_index(cm_path, cm_copy_path, rev_cm_vocab, cp_vocab)
+        to_copy_index(cm_path + '.full', cm_copy_full_path, rev_cm_vocab, cp_vocab)
 
     # prepare generation mask
     generation_mask = np.zeros([len(cp_vocab)], dtype=np.float32)
@@ -981,8 +990,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     append_end_token = True
     
     if FLAGS.use_copy:
-        nl_extension = ".ids%d.nl.copy" % FLAGS.sc_vocab_size
-        cm_extension = ".ids%d.cm.copy" % FLAGS.tg_vocab_size
+        nl_extension = ".ids%d.nl.copy.full" % FLAGS.sc_vocab_size
+        cm_extension = ".ids%d.cm.copy.full" % FLAGS.tg_vocab_size
     elif FLAGS.char:
         nl_extension = ".ids%d.nl.char" % FLAGS.sc_vocab_size
         cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
