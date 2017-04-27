@@ -168,7 +168,10 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                     continue
                 for v in tokens:
                     if not v in vocab and not ('__LF__' + v) in vocab:
-                        vocab[('__LF__' + v)] = 1e12
+                        if v.startswith('__LF__'):
+                            vocab[v] = 1e12
+                        else:
+                            vocab[('__LF__' + v)] = 1e12
         sorted_vocab = sorted(vocab, key=vocab.get)
 
     start_vocab = _CHAR_START_VOCAB \
@@ -994,7 +997,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
     elif FLAGS.decoder_topology in ["rnn"]:
         nl_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size \
-            if FLAGS.sc_char else ".ids%d.nl" % FLAGS.sc_vocab_size
+            if FLAGS.sc_char else ".ids%d.nl.norm" % FLAGS.sc_vocab_size
         if FLAGS.canonical:
             cm_extension = ".ids%d.cm.norm.order" % FLAGS.tg_vocab_size
         elif FLAGS.normalized:
