@@ -455,6 +455,8 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                 decoder_full_inputs = [dataset[bucket_id][i][5]]
                 if FLAGS.use_copy:
                     pointer_targets = [dataset[bucket_id][i][-1]]
+                else:
+                    pointer_targets = None
                 formatted_example = model.format_example(
                     [encoder_inputs, encoder_full_inputs],
                     [decoder_inputs, decoder_full_inputs],
