@@ -170,7 +170,10 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                     continue
                 for v in tokens:
                     if not v in vocab and not ('__LF__' + v) in vocab:
-                        vocab[('__LF__' + v)] = 1e12
+                        if v.startswith('__LF__'):
+                            vocab[v] = 1e12
+                        else:
+                            vocab[('__LF__' + v)] = 1e12
         sorted_vocab = sorted(vocab, key=vocab.get)
 
     start_vocab = _CHAR_START_VOCAB \
