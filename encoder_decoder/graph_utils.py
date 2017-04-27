@@ -278,7 +278,8 @@ def wrap_inputs(beam_decoder, inputs):
 
 def cross_entropy_with_logits(logits, targets):
     P = normalize(logits)
-    xent = -tf.reduce_sum(targets * tf.log(P + 1e-12), 1)
+    xent = -tf.reduce_sum(
+        tf.reshape(targets, tf.shape(logits)) * tf.log(P + 1e-12), 1)
     return xent
 
 
