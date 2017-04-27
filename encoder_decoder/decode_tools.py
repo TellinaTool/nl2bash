@@ -147,9 +147,9 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
     encoder_outputs = model_outputs.encoder_hidden_states
     decoder_outputs = model_outputs.decoder_hidden_states
     if nl_fillers is not None:
-        assert(slot_filling_classifier is None)
-        assert(encoder_outputs is None)
-        assert(decoder_outputs is None)
+        assert(slot_filling_classifier is not None)
+        assert(encoder_outputs is not None)
+        assert(decoder_outputs is not None)
 
     # def to_readable(outputs, rev_tg_vocab):
     #     search_history = [data_utils._ROOT]
