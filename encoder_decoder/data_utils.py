@@ -294,7 +294,10 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     token_ids = []
     for w in words:
         if w in vocabulary:
-            token_ids.append(vocabulary[w])
+            if use_unk and w.startswith('__LF__'):
+                token_ids.append(UNK_ID)
+            else:
+                token_ids.append(vocabulary[w])
         else:
             # Unknown token
             if not use_unk and ('__LF__' + w) in vocabulary:
