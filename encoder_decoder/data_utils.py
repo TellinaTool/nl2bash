@@ -141,9 +141,8 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
         for v in vocab:
             if v.startswith('__LF__'):
                 sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
-            elif '.cm' in vocab_path or \
-                    ((constants.is_english_word(v) or 'char' in vocab_path)
-                     and vocab[v] >= min_word_frequency):
+            elif ((constants.is_english_word(v) or 'char' in vocab_path)
+                  and vocab[v] >= min_word_frequency):
                 sorted_vocab[v] = vocab[v]
             else:
                 # print("Infrequent token: %s"  % v)
@@ -503,8 +502,7 @@ def prepare_bash(FLAGS, verbose=False):
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl, lemmatization=True)
-                    cm_tokens = data_tools.ast2tokens(
-                        ast, with_parent=with_parent, arg_unk=True, unk_token=_UNK)
+                    cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
