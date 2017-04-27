@@ -32,6 +32,9 @@ def char_tokenizer(sentence, base_tokenizer=None):
             tokens = base_tokenizer(sentence)
     else:
         tokens = [sentence]
+    if type(tokens[0]) is list:
+        tokens = tokens[0]
+
     chars = []
     for token in tokens:
         for c in token:
@@ -70,7 +73,7 @@ def pretty_print(node, depth=0):
 
 
 def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
-               arg_type_only=False, with_parent=False, arg_unk=True,
+               arg_type_only=False, with_parent=False, arg_unk=False,
                unk_token=None):
     """Convert a bash ast into a list of tokens."""
     return normalizer.to_tokens(node, loose_constraints, ignore_flag_order,

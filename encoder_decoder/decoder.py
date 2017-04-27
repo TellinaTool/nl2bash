@@ -101,6 +101,8 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
                                                         encoder_inputs)
         self.generation_mask = generation_mask
 
+        print("CopyCellWrapper added!")
+
     def __call__(self, input_embedding, state, attn_alignments=None, scope=None):
         assert(attn_alignments is not None)
 
@@ -112,18 +114,14 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         # generation probability
         W, b = self.output_project
         gen_logit = tf.matmul(output, W) + b
-        gen_logit = tf.exp(gen_logit - (1 - self.generation_mask) * 1e18)
+        gen_logit = tf.exp(gen_logit) * self.generation_mask
         
         # copying probability
         pointers = attn_alignments[-1][1]
         copy_logit = tf.squeeze(tf.matmul(tf.expand_dims(tf.exp(pointers), 1),
                                           self.encoder_inputs_3d), 1)
-        copy_mask = tf.cast(tf.reduce_sum(self.encoder_inputs_3d, 1) > 0, 
-                            tf.float32)
-        copy_logit = copy_logit * copy_mask
         
         logit = gen_logit + copy_logit
-        # logit = gen_logit
 
         return logit, state, attn_alignments
 
@@ -183,6 +181,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.v = v
 
         self.use_copy = use_copy
+
+        print("AttentionCellWrapper added!")
 
     def attention(self, state):
         """Put attention masks on hidden using hidden_features and query."""
@@ -267,8 +267,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
             output = tf.nn.rnn_cell._linear(
-                tf.nn.dropout(attn_state, self.attention_output_keep), 
-                              dim, True)
+                tf.nn.dropout(attn_state, self.attention_output_keep),
+                dim, True)
 
         self.attention_cell_vars = True
         attn_alignments.append(alignments)

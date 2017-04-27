@@ -719,7 +719,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         sub_command.children.append(repl_str_node2)
                         break
 
-    def normalize(node, current, node_kind="", arg_type=""):
+    def normalize(node, current, arg_type=""):
         # recursively normalize each subtree
         if not type(node) is bast.node:
             raise ValueError('type(node) is not ast.node')
@@ -1212,6 +1212,8 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                     token = node.arg_type
             else:
                 token = node.value
+            if au and node.is_open_vocab():
+                token = '__LF__' + unk_token
             if wat:
                 token = token + "_" + node.arg_type
             if ia and node.to_index():
