@@ -420,8 +420,8 @@ def eval_slot_filling(dataset):
                                     M[ci][j] = -np.inf
                                 else:
                                     M[ci][j] = pointers[j, i]
-                        mappings, _ = slot_filling.\
-                            stable_marriage_alignment_with_partial(M)
+                        mappings, _ = \
+                            slot_filling.stable_marriage_alignment_with_partial(M)
                     else:
                         _, _, mappings = slot_filling.stable_slot_filling(
                                     output_tokens, nl_fillers, cm_slots,
