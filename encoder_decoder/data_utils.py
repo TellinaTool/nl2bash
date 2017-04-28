@@ -417,7 +417,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
             data_path = os.path.join(data_dir, split)
             data_to_token_ids(
                 getattr(data, split), data_path + suffix, vocab_path)
-            if suffix.endswith('.nl') or suffix.endswith('.cm'):
+            if '.nl' in suffix or '.cm' in suffix:
                 data_to_token_ids(
                     getattr(data, split), data_path + suffix + '.full',
                     vocab_path, use_unk=False)
