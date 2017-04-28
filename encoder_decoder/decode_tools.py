@@ -92,7 +92,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
             sentence, arg_type_only=FLAGS.normalized)
         token_ids, _ = data_utils.sentence_to_token_ids(
             tokens, sc_vocab, data_tools.bash_tokenizer, None)
-        token_ids, _ = data_utils.sentence_to_token_ids(
+        token_full_ids, _ = data_utils.sentence_to_token_ids(
             tokens, sc_vocab, data_tools.bash_tokenizer, None, use_unk=False)
     else:
         if FLAGS.char:
@@ -212,7 +212,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                         if pred_token in constants._ENTITIES:
                             if nl_fillers is not None:
                                 if ii > 0 and slot_filling.is_min_flag(
-                                                rev_tg_vocab[outputs[ii-1]]):
+                                        rev_tg_vocab[outputs[ii-1]]):
                                     pred_token_type = 'Timespan'
                                 else:
                                     pred_token_type = pred_token
@@ -380,10 +380,13 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                             top_k_predictions[j]
                         if verbose:
-                            print("Prediction {}: {} ({})".format(
-                                j+1, data_tools.ast2command(top_k_pred_tree, 
-                                                            loose_constraints=True),
-                                top_k_scores[j]))
+                            if FLAGS.explain:
+                                pred_cmd = top_k_pred_cmd
+                            else:
+                                pred_cmd = data_tools.ast2command(
+                                    top_k_pred_tree, loose_constraints=True)
+                            print("Prediction {}: {} ({})".format(j+1,
+                                pred_cmd, top_k_scores[j]))
                             if FLAGS.tg_char:
                                 print("Character-based prediction {}: {}".format(
                                     j+1, top_k_char_predictions[j]))
