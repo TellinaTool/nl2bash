@@ -402,16 +402,18 @@ def read_raw_data(data_dir):
     return nl_list, cm_list
 
 
-def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
+def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
+                    create_vocab=True):
     if isinstance(data.train[0], list):
         # save indexed token sequences
         min_word_freq = 2 if ("bash" in data_dir) else 0
-        create_vocabulary(vocab_path, data.train, vocab_size,
-                          min_word_frequency=min_word_freq)
-        if suffix.endswith('.nl') or suffix.endswith('.cm'):
-            create_vocabulary(vocab_path, data.dev, vocab_size,
+        if create_vocab:
+            create_vocabulary(vocab_path, data.train, vocab_size,
+                              min_word_frequency=min_word_freq)
+            if suffix.endswith('.nl') or suffix.endswith('.cm'):
+                create_vocabulary(vocab_path, data.dev, vocab_size,
                     min_word_frequency=min_word_freq, append_to_vocab=True)
-            create_vocabulary(vocab_path, data.test, vocab_size,
+                create_vocabulary(vocab_path, data.test, vocab_size,
                     min_word_frequency=min_word_freq, append_to_vocab=True)
         for split in ['train', 'dev', 'test']:
             data_path = os.path.join(data_dir, split)
@@ -701,9 +703,9 @@ def prepare_bash(FLAGS, verbose=False):
     cp_vocab_path = os.path.join(data_dir, "vocab.copy")
 
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
-                    nl_vocab_size, cp_vocab_path)
+                    nl_vocab_size, cp_vocab_path, create_vocab=False)
     prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
-                    cm_vocab_size, cp_vocab_path)
+                    cm_vocab_size, cp_vocab_path, create_vocab=False)
 
     # prepare generation mask
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
