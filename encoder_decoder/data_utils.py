@@ -292,18 +292,13 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     token_ids = []
     for w in words:
         if w in vocabulary:
-            if use_unk and w.startswith('__LF__'):
-                token_ids.append(UNK_ID)
-            else:
-                token_ids.append(vocabulary[w])
+            token_ids.append(vocabulary[w])
         else:
             # Unknown token
             if not use_unk and ('__LF__' + w) in vocabulary:
                 token_ids.append(vocabulary['__LF__' + w])
             else:
                 token_ids.append(UNK_ID)
-            if w.startswith("FLAG_"):
-                print(w, sentence)
 
     return token_ids, entities
 
@@ -591,9 +586,9 @@ def prepare_bash(FLAGS, verbose=False):
         nl_vocab_size, nl_char_vocab_path)
     max_cm_char_len = prepare_dataset(cm_char_list, data_dir, cm_char_suffix, 
         cm_vocab_size, cm_char_vocab_path)
-    max_nl_token_len = prepare_dataset(nl_token_list, data_dir, nl_token_suffix, 
+    max_nl_token_len = prepare_dataset(nl_token_list, data_dir, nl_token_suffix,
         nl_vocab_size, nl_vocab_path)
-    max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix, 
+    max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix,
         cm_vocab_size, cm_vocab_path)
     max_nl_token_norm_len = prepare_dataset(nl_normalized_token_list, data_dir,
         nl_token_norm_suffix, nl_vocab_size, nl_norm_vocab_path)
@@ -702,43 +697,40 @@ def prepare_bash(FLAGS, verbose=False):
     merge_vocab_for_copy(nl_vocab_path, cm_vocab_path,
                          os.path.join(data_dir, "vocab.copy"))
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
-    nl_token_copy_full_suffix = ".ids%d.nl.copy.full" % nl_vocab_size
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
-    cm_token_copy_full_suffix = ".ids%d.cm.copy.full" % cm_vocab_size
-    nl_vocab, rev_nl_vocab = initialize_vocabulary(os.path.join(
-        data_dir, "vocab%d.nl" % nl_vocab_size))
-    cm_vocab, rev_cm_vocab = initialize_vocabulary(os.path.join(
-        data_dir, "vocab%d.cm" % cm_vocab_size))
-    cp_vocab, rev_cp_vocab = initialize_vocabulary(os.path.join(
-        data_dir, "vocab.copy"))
+    cp_vocab_path = os.path.join(data_dir, "vocab.copy")
 
-    def to_copy_index(orig_path, cp_path, rev_orig_vocab, cp_vocab):
-        with open(cp_path, 'w') as o_f:
-            with open(orig_path) as f:
-                for line in f:
-                    ids = [int(x) for x in line.strip().split()]
-                    new_ids = [str(cp_vocab[rev_orig_vocab[id]]) for id in ids]
-                    o_f.write(' '.join(new_ids) + '\n')
-
-    for split in ['train', 'dev', 'test']:
-        nl_path = os.path.join(data_dir, split + nl_token_suffix)
-        cm_path = os.path.join(data_dir, split + cm_token_suffix)
-        nl_copy_path = os.path.join(data_dir, split + nl_token_copy_suffix)
-        nl_copy_full_path = os.path.join(data_dir, split + nl_token_copy_full_suffix)
-        cm_copy_path = os.path.join(data_dir, split + cm_token_copy_suffix)
-        cm_copy_full_path = os.path.join(data_dir, split + cm_token_copy_full_suffix)
-
-        to_copy_index(nl_path, nl_copy_path, rev_nl_vocab, cp_vocab)
-        to_copy_index(nl_path + '.full', nl_copy_full_path, rev_nl_vocab, cp_vocab)
-        to_copy_index(cm_path, cm_copy_path, rev_cm_vocab, cp_vocab)
-        to_copy_index(cm_path + '.full', cm_copy_full_path, rev_cm_vocab, cp_vocab)
+    prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
+                    nl_vocab_size, cp_vocab_path)
+    prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
+                    cm_vocab_size, cp_vocab_path)
 
     # prepare generation mask
+    cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
+    cp_vocab, rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
     generation_mask = np.zeros([len(cp_vocab)], dtype=np.float32)
     for v in cm_vocab:
         if not v.startswith("__LF__"):
             generation_mask[cp_vocab[v]] = 1
     np.save(os.path.join(data_dir, "generation_mask"), generation_mask)
+
+
+def merge_vocab_for_copy(nl_vocab_path, cm_vocab_path, output_path):
+    with open(nl_vocab_path) as f:
+        nl_vocab = f.readlines()
+    with open(cm_vocab_path) as f:
+        cm_vocab = f.readlines()
+    for v in cm_vocab:
+        if v in nl_vocab:
+            continue
+        if '__LF__' + v in nl_vocab:
+            continue
+        if v.startswith('__LF__') and v[len('__LF__'):] in nl_vocab:
+            continue
+        nl_vocab.append(v)
+    with open(output_path, 'w') as o_f:
+        for v in nl_vocab:
+            o_f.write(v)
 
 
 def prepare_data(FLAGS):
@@ -901,19 +893,6 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
                 [[nl_str], [cm_str], [cm], [nl], [nl_full], [cm_full]]
 
     return grouped_dataset
-
-
-def merge_vocab_for_copy(nl_vocab_path, cm_vocab_path, output_path):
-    with open(nl_vocab_path) as f:
-        nl_vocab = f.readlines()
-    with open(cm_vocab_path) as f:
-        cm_vocab = f.readlines()
-    for v in cm_vocab:
-        if not v in nl_vocab:
-            nl_vocab.append(v)
-    with open(output_path, 'w') as o_f:
-        for v in nl_vocab:
-            o_f.write(v)
 
 
 def load_vocab(FLAGS):
