@@ -972,8 +972,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     append_end_token = True
     
     if FLAGS.use_copy:
-        nl_extension = ".ids%d.nl.copy.full" % FLAGS.sc_vocab_size
-        cm_extension = ".ids%d.cm.copy.full" % FLAGS.tg_vocab_size
+        nl_extension = ".ids%d.nl.copy" % FLAGS.sc_vocab_size
+        cm_extension = ".ids%d.cm.copy" % FLAGS.tg_vocab_size
     elif FLAGS.char:
         nl_extension = ".ids%d.nl.char" % FLAGS.sc_vocab_size
         cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
