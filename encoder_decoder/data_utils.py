@@ -417,7 +417,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path):
             data_path = os.path.join(data_dir, split)
             data_to_token_ids(
                 getattr(data, split), data_path + suffix, vocab_path)
-            if suffix.endswith('.nl') or suffix.endswith('.cm'):
+            if '.nl' in suffix or '.cm' in suffix:
                 data_to_token_ids(
                     getattr(data, split), data_path + suffix + '.full',
                     vocab_path, use_unk=False)
@@ -790,9 +790,6 @@ def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
             data_dir, '{}.mappings'.format(dataset))
         print("Saving slot-filling mapping to {}".format(data_dir))
 
-        # pointer_targets = np.zeros(
-        #     [data_size, FLAGS.max_tg_length, FLAGS.max_sc_length],
-        #     dtype=np.int32)
         with open(slot_filling_mapping_file, 'w') as o_f:
             pair_list = list(zip(nl_list, cm_list))
             for idx in xrange(len(pair_list)):
@@ -801,11 +798,7 @@ def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
                 if mappings:
                     for i, j in sorted(mappings, key=lambda x:x[0]):
                         o_f.write('{}-{} '.format(i, j))
-                        # pointer_targets[idx, j, -(i+1)] = 1
                 o_f.write('\n')
-
-        # np.save(slot_filling_mapping_file,
-        #         np.split(pointer_targets, data_size))
 
 
 def load_slot_filling_data(input_path):

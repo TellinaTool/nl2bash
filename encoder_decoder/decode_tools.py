@@ -378,7 +378,8 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             top_k_predictions[j]
                         if verbose:
                             print("Prediction {}: {} ({})".format(
-                                j+1, data_tools.ast2command(top_k_pred_tree),
+                                j+1, data_tools.ast2command(top_k_pred_tree, 
+                                                            loose_constraints=True),
                                 top_k_scores[j]))
                             if FLAGS.tg_char:
                                 print("Character-based prediction {}: {}".format(
