@@ -712,7 +712,7 @@ def prepare_bash(FLAGS, verbose=False):
     cp_vocab, rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
     generation_mask = np.zeros([len(cp_vocab)], dtype=np.float32)
     for v in cm_vocab:
-        if not v.startswith("__LF__"):
+        if not v.startswith("__LF__") and v in cp_vocab:
             generation_mask[cp_vocab[v]] = 1
         # else:
         #     if v[len('__LF__'):] in cp_vocab:
