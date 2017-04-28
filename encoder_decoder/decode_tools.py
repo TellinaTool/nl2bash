@@ -92,6 +92,8 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
             sentence, arg_type_only=FLAGS.normalized)
         token_ids, _ = data_utils.sentence_to_token_ids(
             tokens, sc_vocab, data_tools.bash_tokenizer, None)
+        token_ids, _ = data_utils.sentence_to_token_ids(
+            tokens, sc_vocab, data_tools.bash_tokenizer, None, use_unk=False)
     else:
         if FLAGS.char:
             token_ids, entities = data_utils.sentence_to_token_ids(sentence,
@@ -209,7 +211,8 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                         # process argument slots
                         if pred_token in constants._ENTITIES:
                             if nl_fillers is not None:
-                                if ii > 0 and slot_filling.is_min_flag(rev_tg_vocab[outputs[ii-1]]):
+                                if ii > 0 and slot_filling.is_min_flag(
+                                                rev_tg_vocab[outputs[ii-1]]):
                                     pred_token_type = 'Timespan'
                                 else:
                                     pred_token_type = pred_token
