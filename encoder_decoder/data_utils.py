@@ -712,6 +712,9 @@ def prepare_bash(FLAGS, verbose=False):
     for v in cm_vocab:
         if not v.startswith("__LF__"):
             generation_mask[cp_vocab[v]] = 1
+        else:
+            if v[len('__LF__'):] in cp_vocab:
+                generation_mask[cp_vocab[v[len('__LF__'):]]] = 1
     np.save(os.path.join(data_dir, "generation_mask"), generation_mask)
 
 
