@@ -723,6 +723,7 @@ def merge_vocab_for_copy(nl_vocab_path, cm_vocab_path, output_path):
         nl_vocab = f.readlines()
     with open(cm_vocab_path) as f:
         cm_vocab = f.readlines()
+
     for v in cm_vocab:
         if v in nl_vocab:
             continue
@@ -731,6 +732,7 @@ def merge_vocab_for_copy(nl_vocab_path, cm_vocab_path, output_path):
         if v.startswith('__LF__') and v[len('__LF__'):] in nl_vocab:
             continue
         nl_vocab.append(v)
+
     with open(output_path, 'w') as o_f:
         for v in nl_vocab:
             o_f.write(v)
