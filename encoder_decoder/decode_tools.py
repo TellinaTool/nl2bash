@@ -92,7 +92,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
             sentence, arg_type_only=FLAGS.normalized)
         token_ids, _ = data_utils.sentence_to_token_ids(
             tokens, sc_vocab, data_tools.bash_tokenizer, None)
-        token_ids, _ = data_utils.sentence_to_token_ids(
+        token_full_ids, _ = data_utils.sentence_to_token_ids(
             tokens, sc_vocab, data_tools.bash_tokenizer, None, use_unk=False)
     else:
         if FLAGS.char:
