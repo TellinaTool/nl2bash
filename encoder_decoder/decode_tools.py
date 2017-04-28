@@ -24,7 +24,6 @@ def demo(sess, model, FLAGS):
     """
     Simple command line decoding interface.
     """
-
     slot_filling_classifier = None
     if FLAGS.fill_argument_slots:
         # create slot filling classifier
@@ -410,7 +409,8 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
             #         os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
 
 
-def visualize_attn_alignments(M, source, target, rev_sc_vocab, rev_tg_vocab, output_path):
+def visualize_attn_alignments(M, source, target, rev_sc_vocab,
+                              rev_tg_vocab, output_path):
     target_length, source_length = M.shape
 
     nl = [rev_sc_vocab[x] for x in source]
