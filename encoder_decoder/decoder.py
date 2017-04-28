@@ -113,8 +113,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         # TODO: compute the same loss function for LSTMs
         # generation probability
         W, b = self.output_project
-        gen_logit = tf.matmul(output, W) + b
-        gen_logit = tf.exp(gen_logit) * self.generation_mask
+        gen_logit = tf.exp(tf.matmul(output, W) + b) * self.generation_mask
         
         # copying probability
         pointers = attn_alignments[-1][1]
@@ -203,7 +202,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 # Attention mask is a softmax of v^T * tanh(...).
                 if self.attention_function == 'non-linear':
                     k = tf.get_variable("AttnW_%d" % a,
-                            [1, 1, 2*self.attn_vec_dim, self.attn_vec_dim])
+                                        [1, 1, 2*self.attn_vec_dim, self.attn_vec_dim])
                     l = tf.get_variable("Attnl_%d" % a,
                                         [1, 1, 1, self.attn_vec_dim])
                     z = tf.reshape(self.hidden_features[a],
