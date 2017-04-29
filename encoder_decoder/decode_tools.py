@@ -204,6 +204,8 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                         pred_token = rev_tg_vocab[output]
                         if "@@" in pred_token:
                             pred_token = pred_token.split("@@")[-1]
+                        if pred_token.starts_with('__LF__'):
+                            pred_token = pred_token[len('__LF__'):]
                         # process argument slots
                         if pred_token in constants._ENTITIES:
                             if nl_fillers is not None:
