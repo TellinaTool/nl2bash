@@ -147,10 +147,8 @@ def train(train_set, dev_set, construct_model_dir=True):
 
                 sys.stdout.flush()
 
-
         # Save slot filling embeddings.
         if not FLAGS.explain:
-            tf.reset_default_graph()
             mapping_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
             gen_slot_filling_training_data_fun(sess, model, train_set, mapping_path)
             mapping_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
