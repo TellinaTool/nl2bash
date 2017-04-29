@@ -18,6 +18,8 @@ from encoder_decoder import data_utils, graph_utils
 from encoder_decoder.seq2seq import rnn_decoder
 
 
+DEBUG = False
+
 class EncoderDecoderModel(graph_utils.NNModel):
 
     def __init__(self, hyperparams, buckets=None, forward_only=False):
@@ -75,19 +77,25 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # Feeds for inputs.
         self.encoder_inputs = []        # encoder inputs.
+        self.encoder_full_inputs = []   # encoder inputs without unknown tokens.
         self.encoder_attn_masks = []    # mask out PAD symbols in the encoder
         self.decoder_inputs = []        # decoder inputs (always start with "_GO").
+        self.decoder_full_inputs = []   # decoder inputs without unknown tokens.
         self.target_weights = []        # weights at each position of the target sequence.
         self.pointer_targets = None
 
         for i in xrange(self.max_source_length):
             self.encoder_inputs.append(
-                tf.placeholder(tf.int32, shape=[None],
-                               name="encoder{0}".format(i)))
+                tf.placeholder(
+                    tf.int32, shape=[None], name="encoder{0}".format(i)))
+            self.encoder_full_inputs.append(
+                tf.placeholder(
+                    tf.int32, shape=[None], name="encoder_full{0}".format(i)))
             self.encoder_attn_masks.append(
-                tf.placeholder(tf.float32, shape=[None],
-                               name="attn_alignment{0}".format(i)))
-        self.encoder_channel_inputs = [self.encoder_inputs]
+                tf.placeholder(
+                    tf.float32, shape=[None], name="attn_alignment{0}".format(i)))
+        self.encoder_channel_inputs = \
+            [self.encoder_inputs, self.encoder_full_inputs]
         if self.sc_char:
             self.char_encoder_inputs = []
             for i in xrange(self.max_source_length):
@@ -96,16 +104,27 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                    shape=[None, self.max_target_token_size],
                                    name="char_encoder{0}".format(i)))
             self.encoder_channel_inputs.append(self.char_encoder_inputs)
+
         for i in xrange(self.max_target_length + 1):
             self.decoder_inputs.append(
-                tf.placeholder(tf.int32, shape=[None],
-                               name="decoder{0}".format(i)))
+                tf.placeholder(
+                    tf.int32, shape=[None], name="decoder{0}".format(i)))
+            self.decoder_full_inputs.append(
+                tf.placeholder(
+                    tf.int32, shape=[None], name="decoder_full{0}".format(i)))
             self.target_weights.append(
-                tf.placeholder(tf.float32, shape=[None],
-                               name="weight{0}".format(i)))
+                tf.placeholder(
+                    tf.float32, shape=[None], name="weight{0}".format(i)))
+        self.decoder_channel_inputs = \
+            [self.decoder_inputs, self.decoder_full_inputs]
         # Our targets are decoder inputs shifted by one.
-        self.targets = [self.decoder_inputs[i + 1]
-                        for i in xrange(self.max_target_length)]
+        if self.use_copy and self.copy_fun != 'supervised':
+            self.targets = [self.decoder_full_inputs[i + 1]
+                            for i in xrange(self.max_target_length)]
+        else:
+            self.targets = [self.decoder_inputs[i + 1]
+                            for i in xrange(self.max_target_length)]
+
         if self.tg_char:
             # inputs for character generation
             self.char_decoder_inputs = []   # decoder inputs (always start with "_CGO")
@@ -146,7 +165,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         [channel_input[:bucket[0]] for channel_input in
                          self.encoder_channel_inputs],
                         self.encoder_attn_masks[:bucket[0]],
-                        self.decoder_inputs[:bucket[1]],
+                        [channel_input[:bucket[1]] for channel_input in
+                         self.decoder_channel_inputs],
                         self.targets[:bucket[1]],
                         self.target_weights[:bucket[1]],
                         forward_only=forward_only
@@ -175,7 +195,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encode_decode_outputs = self.encode_decode(
                                         self.encoder_channel_inputs,
                                         self.encoder_attn_masks,
-                                        self.decoder_inputs,
+                                        self.decoder_channel_inputs,
                                         self.targets,
                                         self.target_weights,
                                         forward_only=forward_only
@@ -228,7 +248,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
-                      decoder_inputs, targets, target_weights, forward_only):
+                      decoder_channel_inputs, targets, target_weights,
+                      forward_only):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_channel_inputs)
@@ -245,11 +266,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # --- Run encode-decode steps --- #
         output_symbols, output_logits, outputs, states, attn_alignments, \
             pointers = self.decoder.define_graph(
-                        encoder_state, decoder_inputs,
+                        encoder_state, decoder_channel_inputs[0],
                         encoder_attn_masks=encoder_attn_masks,
                         attention_states=attention_states,
                         num_heads=num_heads,
-                        encoder_inputs=encoder_channel_inputs[0],
+                        encoder_inputs=encoder_channel_inputs[1],
                         forward_only=forward_only)
         
         # --- Compute Losses --- #
@@ -341,14 +362,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                 for d_o in states])
 
-        """C = tf.argmax(tf.concat(1, binary_targets), 2)
-        output_symbols = []
-        for i in xrange(self.batch_size):
-            beam_output_symbols = []
-            for j in xrange(self.beam_size):
-                beam_output_symbols.append(C[i*self.beam_size + j])
-            output_symbols.append(beam_output_symbols)
-        """
+        if DEBUG:
+            C = tf.argmax(tf.concat(1, binary_targets), 2)
+            output_symbols = []
+            for i in xrange(self.batch_size):
+                beam_output_symbols = []
+                for j in xrange(self.beam_size):
+                    beam_output_symbols.append(C[i*self.beam_size + j])
+                output_symbols.append(beam_output_symbols)
         O = [output_symbols, output_logits, losses, attn_alignments]
         if self.tg_char:
             O.append(char_output_symbols)
@@ -462,42 +483,46 @@ class EncoderDecoderModel(graph_utils.NNModel):
             batch_decoder_input_masks: decoder input masks
             (mask out padding symbols, batched)
         """
-        def load_channel(inputs, input_size, encoder_channel=True):
-            # Encoder inputs are padded and then reversed
-            # Decoder inputs are padded but not reversed
+        def load_channel(inputs, output_length, reversed=True):
+            """
+            :param inputs: a list of vectorized example sequence
+            :param padded_size: length of the output sequence
+            :param reversed: if set, reverse the padded inputs
+            :return: batched input sequence
+            """
             padded_inputs = []
             batch_inputs = []
             for batch_idx in xrange(batch_size):
                 input = inputs[batch_idx]
-                paddings = [data_utils.PAD_ID] * (input_size - len(input))
-                if encoder_channel:
+                paddings = [data_utils.PAD_ID] * (output_length - len(input))
+                if reversed:
                     padded_inputs.append(list(reversed(input + paddings)))
                 else:
                     padded_inputs.append(input + paddings)
-            for length_idx in xrange(input_size):
+            for length_idx in xrange(output_length):
                 batch_inputs.append(
                     np.array([padded_inputs[batch_idx][length_idx]
-                          for batch_idx in xrange(batch_size)], dtype=np.int32))
+                        for batch_idx in xrange(batch_size)], dtype=np.int32))
             return batch_inputs
 
         if bucket_id >= 0:
             encoder_size, decoder_size = self.buckets[bucket_id]
         else:
-            encoder_size, decoder_size = self.max_source_length, \
-                                         self.max_target_length
+            encoder_size, decoder_size = \
+                self.max_source_length, self.max_target_length
 
         batch_size = len(encoder_channel_inputs[0])
         # create batch-major vectors
         batch_encoder_inputs = load_channel(
-            encoder_channel_inputs[0], encoder_size, encoder_channel=True)
+            encoder_channel_inputs[0], encoder_size, reversed=True)
         if len(encoder_channel_inputs) > 1:
             batch_encoder_full_inputs = load_channel(
-                encoder_channel_inputs[1], encoder_size, encoder_channel=True)
+                encoder_channel_inputs[1], encoder_size, reversed=True)
         batch_decoder_inputs = load_channel(
-            decoder_channel_inputs[0], decoder_size, encoder_channel=False)
+            decoder_channel_inputs[0], decoder_size, reversed=False)
         if len(decoder_channel_inputs) > 1:
             batch_decoder_full_inputs = load_channel(
-                decoder_channel_inputs[1], decoder_size, encoder_channel=False)
+                decoder_channel_inputs[1], decoder_size, reversed=False)
         
         batch_encoder_input_masks = []
         batch_decoder_input_masks = []
@@ -524,8 +549,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         E = Example()
         E.encoder_inputs = batch_encoder_inputs
+        E.encoder_full_inputs = batch_encoder_full_inputs
         E.encoder_attn_masks = batch_encoder_input_masks
         E.decoder_inputs = batch_decoder_inputs
+        E.decoder_full_inputs = batch_decoder_full_inputs
         E.target_weights = batch_decoder_input_masks
 
         if self.sc_char:
@@ -640,12 +667,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
         input_feed = {}
         for l in xrange(encoder_size):
             input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
+            input_feed[self.encoder_full_inputs[l].name] = E.encoder_full_inputs[l]
             if self.sc_char:
                 input_feed[self.char_encoder_inputs[l].name] = E.char_encoder_inputs[l]
             input_feed[self.encoder_attn_masks[l].name] = E.encoder_attn_masks[l]
-        # print("Second E.decoder_inputs: {}".format(E.decoder_inputs[1]))
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
+            input_feed[self.decoder_full_inputs[l].name] = E.decoder_full_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
@@ -766,8 +794,10 @@ class Example(object):
     """
     def __init__(self):
         self.encoder_inputs = None
+        self.encoder_full_inputs = None
         self.encoder_attn_masks = None
         self.decoder_inputs = None
+        self.decoder_full_inputs = None
         self.target_weights = None
         self.char_decoder_inputs = None
         self.char_target_weights = None
@@ -776,8 +806,7 @@ class Example(object):
 
 class Output(object):
     """
-    Data output from the neural network (batched when mini-batch training is
-    used).
+    Data output from the neural network (batched when mini-batch training is used).
     """
     def __init__(self):
         self.updates = None
