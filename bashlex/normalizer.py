@@ -1218,8 +1218,6 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
                 token = token + "_" + node.arg_type
             if ia and node.to_index():
                 token = token + "-{:02d}".format(node.index)
-            if au:
-                token = unk_token
             tokens.append(token)
             if lc:
                 for child in node.children:
