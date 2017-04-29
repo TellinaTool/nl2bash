@@ -18,7 +18,7 @@ from encoder_decoder import data_utils, graph_utils
 from encoder_decoder.seq2seq import rnn_decoder
 
 
-DEBUG = False
+DEBUG = True
 
 class EncoderDecoderModel(graph_utils.NNModel):
 
