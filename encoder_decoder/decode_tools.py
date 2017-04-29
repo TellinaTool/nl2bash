@@ -83,7 +83,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
         tg_ids = [data_utils.ROOT_ID]
         tg_full_ids = [data_utils.ROOT_ID]
         pointer_targets = np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
-    sc_vocab, _, _, rev_tg_vocab = vocabs[:4]
+    sc_vocab = vocabs.sc_vocab
 
     if FLAGS.explain:
         sc_tokens = data_tools.bash_tokenizer(
@@ -137,11 +137,9 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
     relevant filters.
     """
 
-    _, rev_sc_vocab, _, rev_tg_vocab = vocabs[:4]
-    if FLAGS.use_copy and not FLAGS.copy_fun == 'supervised':
-        rev_sc_vocab = vocabs[-1]
-        rev_tg_vocab = vocabs[-1]
-    rev_tg_char_vocab = vocabs[-1] if FLAGS.tg_char else None
+    rev_sc_vocab = vocabs.rev_sc_vocab
+    rev_tg_vocab = vocabs.rev_tg_vocab
+    rev_tg_char_vocab = vocabs.rev_tg_char_vocab
 
     encoder_outputs = model_outputs.encoder_hidden_states
     decoder_outputs = model_outputs.decoder_hidden_states
@@ -316,10 +314,7 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
     grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
                                                   use_temp=False)
     vocabs = data_utils.load_vocab(FLAGS)
-    if FLAGS.use_copy and FLAGS.copy_fun != 'supervised':
-        rev_sc_vocab = vocabs[-1]
-    else:
-        rev_sc_vocab = vocabs[1]
+    rev_sc_vocab = vocabs.rev_sc_vocab
 
     slot_filling_classifier = None
     if FLAGS.fill_argument_slots:
