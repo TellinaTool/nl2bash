@@ -74,13 +74,11 @@ class Encoder(graph_utils.NNModel):
         """
         with tf.variable_scope("encoder_token_embeddings",
                                reuse=self.token_embedding_vars):
-            vocab_size = self.copy_vocab_size \
-                if self.use_copy else self.source_vocab_size
+            vocab_size = self.source_vocab_size
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding", [vocab_size,
-                                                       self.sc_token_dim],
-                                         initializer=initializer)
+            embeddings = tf.get_variable("embedding",
+                [vocab_size, self.sc_token_dim], initializer=initializer)
             self.token_embedding_vars = True
             return embeddings
 

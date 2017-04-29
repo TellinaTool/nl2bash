@@ -31,8 +31,7 @@ class Decoder(graph_utils.NNModel):
         super(Decoder, self).__init__(hyperparameters)
 
         self.scope = scope
-        self.vocab_size = self.copy_vocab_size \
-            if self.use_copy and self.copy_fun != 'supervised' else vocab_size
+        self.vocab_size = vocab_size
         self.dim = dim
         self.use_attention = use_attention
         self.attention_function = attention_function
@@ -67,38 +66,34 @@ class Decoder(graph_utils.NNModel):
     def embeddings(self):
         with tf.variable_scope(self.scope + "_embeddings",
                                reuse=self.embedding_vars):
-            vocab_size = self.copy_vocab_size \
-                if self.use_copy else self.vocab_size
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding",
-                [vocab_size, self.dim], initializer=initializer)
+                [self.vocab_size, self.dim], initializer=initializer)
             self.embedding_vars = True
             return embeddings
 
     def output_project(self):
         with tf.variable_scope(self.scope + "_output_project",
                                reuse=self.output_project_vars):
-            vocab_size = self.copy_vocab_size \
-                if self.use_copy else self.vocab_size
-            w = tf.get_variable("proj_w", [self.dim, vocab_size])
-            b = tf.get_variable("proj_b", [vocab_size])
+            w = tf.get_variable("proj_w", [self.dim, self.vocab_size])
+            b = tf.get_variable("proj_b", [self.vocab_size])
             self.output_project_vars = True
         return (w, b)
 
 
 class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, output_project, num_layers, encoder_inputs,
-                 copy_vocab_size, generation_mask):
+                 tg_vocab_size, generation_mask):
         self.cell = cell
         self.output_project = output_project
         self.num_layers = num_layers
 
-        self.vocab_indices = tf.diag(tf.ones(copy_vocab_size))
+        self.vocab_indices = tf.diag(tf.ones(tg_vocab_size))
         self.encoder_size = len(encoder_inputs)
         encoder_inputs = tf.reshape(encoder_inputs, [-1, self.encoder_size])
-        self.encoder_inputs_3d = tf.nn.embedding_lookup(self.vocab_indices,
-                                                        encoder_inputs)
+        self.encoder_inputs_3d = tf.nn.embedding_lookup(
+            self.vocab_indices, encoder_inputs)
         self.generation_mask = generation_mask
 
         print("CopyCellWrapper added!")
@@ -113,7 +108,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         # TODO: compute the same loss function for LSTMs
         # generation probability
         W, b = self.output_project
-        gen_logit = tf.exp(tf.matmul(output, W) + b) * self.generation_mask
+        gen_logit = tf.exp(tf.matmul(output, W) + b) # * self.generation_mask
         
         # copying probability
         pointers = attn_alignments[-1][1]
@@ -129,7 +124,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, attention_states, encoder_attn_masks,
                  encoder_inputs, attention_function, attention_input_keep,
                  attention_output_keep, num_heads, num_layers, use_copy,
-                 copy_vocab_size=-1):
+                 tg_vocab_size=-1):
         """
         Hidden layer above attention states.
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
@@ -147,8 +142,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param use_copy: Copy source tokens to the target.
         :param copy_fun: Parameterization of the copying function.
         """
-        attention_states = tf.nn.dropout(attention_states,
-                                         attention_input_keep)
+        attention_states = tf.nn.dropout(attention_states, attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
         attn_vec_dim = attention_states.get_shape()[2].value
         attn_dim = attn_vec_dim
@@ -156,7 +150,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
         self.encoder_size = len(encoder_inputs)
-        self.vocab_indices = tf.diag(tf.ones(copy_vocab_size))
+        self.vocab_indices = tf.diag(tf.ones(tg_vocab_size))
         encoder_inputs = tf.reshape(encoder_inputs, [-1, self.encoder_size])
         self.encoder_inputs_3d = tf.nn.embedding_lookup(
             self.vocab_indices, encoder_inputs)
