@@ -109,9 +109,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.decoder_inputs.append(
                 tf.placeholder(
                     tf.int32, shape=[None], name="decoder{0}".format(i)))
-            # self.decoder_full_inputs.append(
-            #     tf.placeholder(
-            #         tf.int32, shape=[None], name="decoder_full{0}".format(i)))
+            self.decoder_full_inputs.append(
+                tf.placeholder(
+                    tf.int32, shape=[None], name="decoder_full{0}".format(i)))
             self.target_weights.append(
                 tf.placeholder(
                     tf.float32, shape=[None], name="weight{0}".format(i)))
@@ -676,6 +676,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Since our targets are decoder inputs shifted by one, we need one more.
         last_target = self.decoder_inputs[decoder_size].name
         input_feed[last_target] = np.zeros(E.decoder_inputs[0].shape, dtype=np.int32)
+        last_full_target = self.decoder_full_inputs[decoder_size].name
+        input_feed[last_full_target] = np.zeros(
+            E.decoder_full_inputs[0].shape, dtype=np.int32)
 
         if self.tg_char:
             for l in xrange(decoder_size):
