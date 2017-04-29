@@ -64,8 +64,8 @@ class Decoder(graph_utils.NNModel):
         self.output_project = self.output_project()
 
     def embeddings(self):
-        with tf.variable_scope(self.scope + "_embeddings",
-                               reuse=self.embedding_vars):
+        with tf.variable_scope(self.scope + "_embeddings", reuse=self.embedding_vars):
+            print("target token vocabulary size = {}".format(self.vocab_size))
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding",
