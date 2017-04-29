@@ -931,14 +931,17 @@ def load_vocab(FLAGS):
     nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
 
+    V = Vocab()
+    if FLAGS.explain:
+        V.sc_vocab, V.rev_sc_vocab = cm_vocab, rev_cm_vocab
+        V.tg_vocab, V.rev_tg_vocab = nl_vocab, rev_nl_vocab
+    else:
+        V.sc_vocab, V.rev_sc_vocab = nl_vocab, rev_nl_vocab
+        V.tg_vocab, V.rev_tg_vocab = cm_vocab, rev_cm_vocab
+
     if FLAGS.use_copy:
         cp_vocab_path = os.path.join(FLAGS.data_dir, "vocab.copy")
-        cp_vocab, rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
-
-    if FLAGS.explain:
-        vocabs = [cm_vocab, rev_cm_vocab, nl_vocab, rev_nl_vocab]
-    else:
-        vocabs = [nl_vocab, rev_nl_vocab, cm_vocab, rev_cm_vocab]
+        V.cp_vocab, V.rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
 
     if FLAGS.sc_char or FLAGS.tg_char:
         nl_char_vocab_path = os.path.join(
@@ -951,16 +954,13 @@ def load_vocab(FLAGS):
             initialize_vocabulary(cm_char_vocab_path)
 
         if FLAGS.explain:
-            vocabs.extend([cm_char_vocab, rev_cm_char_vocab,
-                           nl_char_vocab, rev_nl_char_vocab])
+            V.sc_char_vocab, V.rev_sc_char_vocab = cm_char_vocab, rev_cm_char_vocab
+            V.tg_char_vocab, V.rev_tg_char_vocab = nl_char_vocab, rev_nl_char_vocab
         else:
-            vocabs.extend([nl_char_vocab, rev_nl_char_vocab,
-                           cm_char_vocab, rev_cm_char_vocab])
+            V.sc_char_vocab, V.rev_sc_char_vocab = nl_char_vocab, rev_nl_char_vocab
+            V.tg_char_vocab, V.rev_tg_char_vocab = cm_char_vocab, rev_cm_char_vocab
 
-    if FLAGS.use_copy:
-        vocabs.extend([cp_vocab, rev_cp_vocab])
-
-    return vocabs
+    return V
 
 
 def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
@@ -1138,3 +1138,17 @@ class DataPoint(object):
         self.tg_full_ids = None
         self.mappings = None
         self.pointer_targets = None
+
+
+class Vocab(object):
+    def __init__(self):
+        self.sc_vocab = None
+        self.tg_vocab = None
+        self.sc_char_vocab = None
+        self.tg_char_vocab = None
+        self.cp_vocab = None
+        self.rev_sc_vocab = None
+        self.rev_tg_vocab = None
+        self.rev_sc_char_vocab = None
+        self.rev_tg_char_vocab = None
+        self.rev_cp_vocab = None
