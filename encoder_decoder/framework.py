@@ -109,14 +109,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.decoder_inputs.append(
                 tf.placeholder(
                     tf.int32, shape=[None], name="decoder{0}".format(i)))
-            self.decoder_full_inputs.append(
-                tf.placeholder(
-                    tf.int32, shape=[None], name="decoder_full{0}".format(i)))
+            # self.decoder_full_inputs.append(
+            #     tf.placeholder(
+            #         tf.int32, shape=[None], name="decoder_full{0}".format(i)))
             self.target_weights.append(
                 tf.placeholder(
                     tf.float32, shape=[None], name="weight{0}".format(i)))
-        self.decoder_channel_inputs = \
-            [self.decoder_inputs, self.decoder_full_inputs]
+        # self.decoder_channel_inputs = \
+        #     [self.decoder_inputs, self.decoder_full_inputs]
         # Our targets are decoder inputs shifted by one.
         if self.use_copy and self.copy_fun != 'supervised':
             self.targets = [self.decoder_full_inputs[i + 1]
@@ -165,8 +165,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         [channel_input[:bucket[0]] for channel_input in
                          self.encoder_channel_inputs],
                         self.encoder_attn_masks[:bucket[0]],
-                        [channel_input[:bucket[1]] for channel_input in
-                         self.decoder_channel_inputs],
+                        self.decoder_inputs,
                         self.targets[:bucket[1]],
                         self.target_weights[:bucket[1]],
                         forward_only=forward_only
@@ -195,7 +194,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encode_decode_outputs = self.encode_decode(
                                         self.encoder_channel_inputs,
                                         self.encoder_attn_masks,
-                                        self.decoder_channel_inputs,
+                                        self.decoder_inputs,
                                         self.targets,
                                         self.target_weights,
                                         forward_only=forward_only
@@ -248,8 +247,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
-                      decoder_channel_inputs, targets, target_weights,
-                      forward_only):
+                      decoder_inputs, targets, target_weights, forward_only):
 
         encoder_outputs, encoder_state = \
             self.encoder.define_graph(encoder_channel_inputs)
@@ -266,7 +264,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # --- Run encode-decode steps --- #
         output_symbols, output_logits, outputs, states, attn_alignments, \
             pointers = self.decoder.define_graph(
-                        encoder_state, decoder_channel_inputs[0],
+                        encoder_state, decoder_inputs,
                         encoder_attn_masks=encoder_attn_masks,
                         attention_states=attention_states,
                         num_heads=num_heads,
