@@ -342,7 +342,8 @@ def eval_slot_filling(dataset):
     """
     Evaluate global slot filling algorithm accuracy using ground truth templates.
     """
-    _, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
+    vocabs = data_utils.load_vocab(FLAGS)
+    rev_tg_vocab = vocabs.rev_tg_vocab
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
@@ -502,8 +503,6 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
 
 
 def gen_slot_filling_training_data():
-    _, _, _, rev_tg_vocab = data_utils.load_vocab(FLAGS)
-
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         datasets = load_data(load_mappings=True)
