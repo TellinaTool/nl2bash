@@ -483,11 +483,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
             batch_decoder_input_masks: decoder input masks
             (mask out padding symbols, batched)
         """
-        def load_channel(inputs, output_length, reversed=True):
+        def load_channel(inputs, output_length, reversed_output=True):
             """
             :param inputs: a list of vectorized example sequence
             :param padded_size: length of the output sequence
-            :param reversed: if set, reverse the padded inputs
+            :param reversed_output: if set, reverse the padded inputs
             :return: batched input sequence
             """
             padded_inputs = []
@@ -495,7 +495,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             for batch_idx in xrange(batch_size):
                 input = inputs[batch_idx]
                 paddings = [data_utils.PAD_ID] * (output_length - len(input))
-                if reversed:
+                if reversed_output:
                     padded_inputs.append(list(reversed(input + paddings)))
                 else:
                     padded_inputs.append(input + paddings)
@@ -514,15 +514,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
         batch_size = len(encoder_channel_inputs[0])
         # create batch-major vectors
         batch_encoder_inputs = load_channel(
-            encoder_channel_inputs[0], encoder_size, reversed=True)
+            encoder_channel_inputs[0], encoder_size, reversed_output=True)
         if len(encoder_channel_inputs) > 1:
             batch_encoder_full_inputs = load_channel(
-                encoder_channel_inputs[1], encoder_size, reversed=True)
+                encoder_channel_inputs[1], encoder_size, reversed_output=True)
         batch_decoder_inputs = load_channel(
-            decoder_channel_inputs[0], decoder_size, reversed=False)
+            decoder_channel_inputs[0], decoder_size, reversed_output=False)
         if len(decoder_channel_inputs) > 1:
             batch_decoder_full_inputs = load_channel(
-                decoder_channel_inputs[1], decoder_size, reversed=False)
+                decoder_channel_inputs[1], decoder_size, reversed_output=False)
         
         batch_encoder_input_masks = []
         batch_decoder_input_masks = []
