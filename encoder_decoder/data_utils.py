@@ -143,10 +143,10 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                 sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
             elif vocab[v] >= min_word_frequency:
                 sorted_vocab[v] = vocab[v]
-            else:
+            elif '.nl' in vocab_path and not constants.is_english_word(v):
                 # print("Infrequent token: %s"  % v)
                 sorted_vocab['__LF__' + v] = min(vocab[v], min_word_frequency-1)
-        sorted_vocab = [x for (x, y) in \
+        sorted_vocab = [x for (x, y) in
             sorted(sorted_vocab.items(), key=lambda x:x[1], reverse=True)]
     else:
         print("Reading vocabulary %s from path" % vocab_path)
@@ -498,7 +498,8 @@ def prepare_bash(FLAGS, verbose=False):
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl, lemmatization=True)
-                    cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent)
+                    cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent,
+                                                      arg_unk=True, unk_token=_UNK)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
@@ -968,10 +969,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     append_head_token = True
     append_end_token = True
     
-    if FLAGS.use_copy:
-        nl_extension = ".ids%d.nl.copy" % FLAGS.sc_vocab_size
-        cm_extension = ".ids%d.cm.copy" % FLAGS.tg_vocab_size
-    elif FLAGS.char:
+    if FLAGS.char:
         nl_extension = ".ids%d.nl.char" % FLAGS.sc_vocab_size
         cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
     elif FLAGS.decoder_topology in ["rnn"]:
