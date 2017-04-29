@@ -975,14 +975,16 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         nl_extension = ".ids%d.nl.char" % FLAGS.sc_vocab_size
         cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
     elif FLAGS.decoder_topology in ["rnn"]:
-        nl_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size \
-            if FLAGS.sc_char else ".ids%d.nl.norm" % FLAGS.sc_vocab_size
+        nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
+        cm_extension = ".ids%d.cm" % FLAGS.tg_vocab_size
         if FLAGS.canonical:
+            nl_extension = ".ids%d.nl.norm" % FLAGS.sc_vocab_size
             cm_extension = ".ids%d.cm.norm.order" % FLAGS.tg_vocab_size
         elif FLAGS.normalized:
+            nl_extension = ".ids%d.nl.norm" % FLAGS.sc_vocab_size
             cm_extension = ".ids%d.cm.norm" % FLAGS.tg_vocab_size
-        else:
-            cm_extension = ".ids%d.cm" % FLAGS.tg_vocab_size
+        nl_full_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size
+        cm_full_extension = ".ids%d.cm.full" % FLAGS.tg_vocab_size
     elif FLAGS.decoder_topology in ["basic_tree"]:
         nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
         if FLAGS.canonical:
@@ -993,8 +995,6 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
             cm_extension = ".seq%d.cm" % FLAGS.tg_vocab_size
         append_head_token = False
         append_end_token = False
-    nl_full_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size
-    cm_full_extension = ".ids%d.cm.full" % FLAGS.tg_vocab_size
 
     datasets = []
 

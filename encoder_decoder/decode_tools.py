@@ -69,8 +69,7 @@ def demo(sess, model, FLAGS):
         sentence = sys.stdin.readline()
 
 
-def translate_fun(input, sess, model, vocabs, FLAGS,
-                  slot_filling_classifier=None):
+def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=None):
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     if type(input) is list:
@@ -83,35 +82,34 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
         sentence = input
         tg_ids = [data_utils.ROOT_ID]
         tg_full_ids = [data_utils.ROOT_ID]
-        pointer_targets = \
-            np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
+        pointer_targets = np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
     sc_vocab, _, _, rev_tg_vocab = vocabs[:4]
 
     if FLAGS.explain:
-        tokens = data_tools.bash_tokenizer(
+        sc_tokens = data_tools.bash_tokenizer(
             sentence, arg_type_only=FLAGS.normalized)
-        token_ids, _ = data_utils.sentence_to_token_ids(
-            tokens, sc_vocab, data_tools.bash_tokenizer, None)
-        token_full_ids, _ = data_utils.sentence_to_token_ids(
-            tokens, sc_vocab, data_tools.bash_tokenizer, None, use_unk=False)
+        sc_ids, _ = data_utils.sentence_to_token_ids(
+            sc_tokens, sc_vocab, data_tools.bash_tokenizer, None)
+        sc_full_ids, _ = data_utils.sentence_to_token_ids(
+            sc_tokens, sc_vocab, data_tools.bash_tokenizer, None, use_unk=False)
     else:
         if FLAGS.char:
-            token_ids, entities = data_utils.sentence_to_token_ids(sentence,
+            sc_ids, entities = data_utils.sentence_to_token_ids(sentence,
                 sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
-            token_full_ids = []
+            sc_full_ids = []
         else:
-            token_ids, entities = data_utils.sentence_to_token_ids(
+            sc_ids, entities = data_utils.sentence_to_token_ids(
                 sentence, sc_vocab, tokenizer.ner_tokenizer, None)
-            token_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
+            sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
                 sc_vocab, tokenizer.basic_tokenizer, None, use_unk=False)
     
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
-                    if model.buckets[b][0] > len(token_ids)])
+                    if model.buckets[b][0] > len(sc_ids)])
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [[token_ids], [token_full_ids]], [[tg_ids], [tg_full_ids]],
+        [[sc_ids], [sc_full_ids]], [[tg_ids], [tg_full_ids]],
         pointer_targets=[pointer_targets], bucket_id=bucket_id)
 
     # Decode the output for this 1-element batch.
