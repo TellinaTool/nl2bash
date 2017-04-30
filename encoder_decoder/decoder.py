@@ -122,7 +122,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         gen_logit = tf.exp(tf.matmul(output, W) + b) * self.generation_mask
         
         # copying probability
-        pointers = attn_alignments[-1][0]
+        pointers = attn_alignments[-1][1]
         copy_logit = tf.squeeze(tf.matmul(tf.expand_dims(tf.exp(pointers), 1),
                                           self.encoder_inputs_3d), 1)
         unk_mask = np.ones([1, self.tg_vocab_size])
@@ -225,7 +225,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     raise NotImplementedError
 
                 # Apply attention masks
-                s = s - (1 - self.encoder_attn_masks) * 1e18
+                s = s - (1 - self.encoder_attn_masks) * 1e9
                 alignment = tf.nn.softmax(s)
                 if a == 0:
                     alignments.append(alignment)
