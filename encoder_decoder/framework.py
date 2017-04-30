@@ -18,7 +18,7 @@ from encoder_decoder import data_utils, graph_utils
 from encoder_decoder.seq2seq import rnn_decoder
 
 
-DEBUG = True
+DEBUG = False
 
 class EncoderDecoderModel(graph_utils.NNModel):
 
@@ -277,6 +277,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if forward_only or self.training_algorithm == "standard":
             if self.use_copy and self.copy_fun != 'supervised':
                 vocab_indices = tf.diag(tf.ones(self.target_vocab_size))
+                print("self.target_vocab_size = {}".format(self.target_vocab_size))
                 binary_targets = \
                     tf.split(1, self.max_target_length,
                         tf.nn.embedding_lookup(vocab_indices,
@@ -364,10 +365,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
             C = tf.argmax(tf.concat(1, binary_targets), 2)
             output_symbols = []
             for i in xrange(self.batch_size):
-                beam_output_symbols = []
-                for j in xrange(self.beam_size):
-                    beam_output_symbols.append(C[i*self.beam_size + j])
-                output_symbols.append(beam_output_symbols)
+                if forward_only and self.token_decoding_algorithm == 'beam_search':
+                    beam_output_symbols = []
+                    for j in xrange(self.beam_size):
+                        beam_output_symbols.append(C[i*self.beam_size + j])
+                    output_symbols.append(beam_output_symbols)
+                else:
+                    output_symbols.append(C[i])
         O = [output_symbols, output_logits, losses, attn_alignments]
         if self.tg_char:
             O.append(char_output_symbols)
