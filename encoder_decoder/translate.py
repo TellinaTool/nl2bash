@@ -364,18 +364,17 @@ def eval_slot_filling(dataset):
         for bucket_id in xrange(len(_buckets)):
             print(len(dataset[bucket_id]))
             for data_id in xrange(len(dataset[bucket_id])):
-                sc, tg, sc_ids, tg_ids, _, _, gt_mappings, _ = \
-                    dataset[bucket_id][data_id]
-                gt_mappings = [tuple(m) for m in gt_mappings]
+                dp = dataset[bucket_id][data_id]
+                gt_mappings = [tuple(m) for m in dp.mappings]
                 if gt_mappings:
-                    _, entities = tokenizer.ner_tokenizer(sc)
+                    _, entities = tokenizer.ner_tokenizer(dp.sc_txt)
                     nl_fillers = entities[0]
-                    encoder_inputs = [dataset[bucket_id][data_id][2]]
-                    encoder_full_inputs = [dataset[bucket_id][data_id][4]]
-                    decoder_inputs = [dataset[bucket_id][data_id][3]]
-                    decoder_full_inputs = [dataset[bucket_id][data_id][5]]
+                    encoder_inputs = [dp.sc_ids]
+                    encoder_full_inputs = [dp.sc_copy_full_ids]
+                    decoder_inputs = [dp.tg_ids]
+                    decoder_full_inputs = [dp.tg_full_ids]
                     if FLAGS.use_copy:
-                        pointer_targets = [dataset[bucket_id][data_id][-1]]
+                        pointer_targets = [dp.pointer_targets]
                     formatted_example = model.format_example(
                         [encoder_inputs, encoder_full_inputs],
                         [decoder_inputs, decoder_full_inputs],
@@ -388,7 +387,7 @@ def eval_slot_filling(dataset):
                     decoder_outputs = model_outputs.decoder_hidden_states
                     cm_slots = {}
                     output_tokens = []
-                    outputs = tg_ids[1:-1]
+                    outputs = dp.tg_ids[1:-1]
                     for ii in xrange(len(outputs)):
                         output = outputs[ii]
                         if output < len(rev_tg_vocab):
@@ -449,15 +448,15 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
     X, Y = [], []
     for bucket_id in xrange(len(_buckets)):
         for i in xrange(len(dataset[bucket_id])):
-            sc, tg, sc_ids, tg_ids, _, _, gt_mappings, _ = dataset[bucket_id][i]
-            mappings = [tuple(m) for m in gt_mappings]
-            if gt_mappings:
-                encoder_inputs = [dataset[bucket_id][i][2]]
-                encoder_full_inputs = [dataset[bucket_id][i][4]]
-                decoder_inputs = [dataset[bucket_id][i][3]]
-                decoder_full_inputs = [dataset[bucket_id][i][5]]
+            dp = dataset[bucket_id][i]
+            if dp.mappings:
+                mappings = [tuple(m) for m in dp.mappings]
+                encoder_inputs = [dp.sc_ids]
+                encoder_full_inputs = [dp.sc_copy_full_ids]
+                decoder_inputs = [dp.tg_ids]
+                decoder_full_inputs = [dp.tg_full_ids]
                 if FLAGS.use_copy:
-                    pointer_targets = [dataset[bucket_id][i][-1]]
+                    pointer_targets = [dp.pointer_targets]
                 else:
                     pointer_targets = None
                 formatted_example = model.format_example(
