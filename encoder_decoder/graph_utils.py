@@ -34,6 +34,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["sc_token"] = FLAGS.sc_token
     params["sc_token_dim"] = FLAGS.sc_token_dim
     params["sc_char"] = FLAGS.sc_char
+    params["sc_char_vocab_size"] = FLAGS.sc_char_vocab_size
     params["sc_char_dim"] = FLAGS.sc_char_dim
     params["sc_char_composition"] = FLAGS.sc_char_composition
     params["sc_char_rnn_cell"] = FLAGS.sc_char_rnn_cell
@@ -381,6 +382,10 @@ class NNModel(object):
     @property
     def sc_char(self):
         return self.hyperparams["sc_char"]
+
+    @property
+    def sc_char_vocab_size(self):
+        return self.hyperparams["sc_char_vocab_size"]
 
     @property
     def sc_char_dim(self):
