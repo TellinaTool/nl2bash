@@ -91,7 +91,8 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         self.vocab_indices = tf.diag(tf.ones(tg_vocab_size))
         self.encoder_size = len(encoder_inputs)
-        encoder_inputs = tf.reshape(encoder_inputs, [-1, self.encoder_size])
+        encoder_inputs = tf.concat(1, [tf.expand_dims(x, 1)
+                                       for x in encoder_inputs])
         self.encoder_inputs_3d = tf.nn.embedding_lookup(
             self.vocab_indices, encoder_inputs)
         self.generation_mask = generation_mask
