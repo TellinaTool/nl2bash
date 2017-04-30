@@ -449,10 +449,13 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
             data_to_token_ids(
                 getattr(data, split), data_path + suffix, vocab_path)
             if '.nl' in suffix or '.cm' in suffix:
+                if parallel_token_list is None:
+                    parallel_data = None
+                else:
+                    parallel_data = getattr(parallel_token_list, split)
                 data_to_token_ids(
                     getattr(data, split), data_path + suffix + '.full',
-                    vocab_path, use_unk=False,
-                    parallel_data=getattr(parallel_token_list, split))
+                    vocab_path, use_unk=False, parallel_data=parallel_data)
     else:
         # save string data
         for split in ['train', 'dev', 'test']:
