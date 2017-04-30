@@ -96,9 +96,9 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.cell = cell
         self.output_project = output_project
         self.num_layers = num_layers
+        self.tg_vocab_size = tg_vocab_size
 
         vocab_indices = np.eye(tg_vocab_size, dtype=np.float32)
-        vocab_indices[data_utils.UNK_ID] = 0
         self.vocab_indices = tf.Variable(vocab_indices)
         self.encoder_size = len(encoder_inputs)
         encoder_inputs = tf.concat(1, [tf.expand_dims(x, 1)
@@ -125,9 +125,12 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         pointers = attn_alignments[-1][1]
         copy_logit = tf.squeeze(tf.matmul(tf.expand_dims(tf.exp(pointers), 1),
                                           self.encoder_inputs_3d), 1)
-        
-        # logit = gen_logit + copy_logit
-        logit = gen_logit
+        unk_mask = np.ones([1, self.tg_vocab_size])
+        unk_mask[1, data_utils.UNK_ID] = 0
+        copy_logit = copy_logit * unk_mask
+
+        logit = gen_logit + copy_logit
+
         return logit, state, attn_alignments
 
 
