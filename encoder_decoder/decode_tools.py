@@ -221,7 +221,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                             copy_idx = \
                                 batch_copy_indices[batch_id, beam_id, ii]
                             pred_token = \
-                                rev_sc_vocab[encoder_inputs[copy_idx][batch_id]]
+                                rev_tg_vocab[encoder_inputs[copy_idx][batch_id]]
                         output_tokens.append(pred_token)
                     else:
                         output_tokens.append(data_utils._UNK)

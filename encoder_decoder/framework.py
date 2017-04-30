@@ -279,10 +279,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if forward_only or self.training_algorithm == "standard":
             if self.use_copy and self.copy_fun != 'supervised':
                 vocab_indices = tf.diag(tf.ones(self.target_vocab_size))
-                binary_targets = \
-                    tf.split(1, self.max_target_length,
-                        tf.nn.embedding_lookup(vocab_indices,
-                            tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))
+                binary_targets = tf.split(1, self.max_target_length,
+                    tf.nn.embedding_lookup(vocab_indices,
+                        tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))
                 if forward_only and self.token_decoding_algorithm == 'beam_search':
                     binary_targets = graph_utils.wrap_inputs(
                         self.decoder.beam_decoder, binary_targets)
@@ -408,7 +407,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                      tf.reshape(pointers, [-1, self.max_source_length]), 
                      tf.reshape(pointer_targets, [-1, self.max_source_length])),
                 [-1, self.max_target_length])
-        copy_positions = tf.cast(tf.reduce_sum(pointer_targets, 2), tf.float32)
+        copy_positions = tf.cast(tf.reduce_sum(pointer_targets, 2), tf.floatf2)
         return tf.reduce_mean(
                 tf.reduce_sum(tf.mul(raw_loss, copy_positions), 1) /
                 (tf.reduce_sum(copy_positions, 1) + 1e-12))
