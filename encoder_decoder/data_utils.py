@@ -873,7 +873,7 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
 
     grouped_dataset = {}
     for i in xrange(len(dataset)):
-        nl_str = dataset[i][0]
+        nl_str = dataset[i].sc_txt
         if use_temp:
             words, _ = tokenizer.ner_tokenizer(nl_str)
             nl_template = " ".join(words)
@@ -892,21 +892,15 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
         dataset = functools.reduce(lambda x,y: x + y, dataset)
     grouped_dataset = {}
     for i in xrange(len(dataset)):
-        nl_str, cm_str, nl, cm, nl_full, cm_full = dataset[i]
+        cm_str = dataset[i].tg_str
         if use_temp:
             cm_template = data_tools.cmd2template(cm_str)
         else:
             cm_template = cm_str
         if cm_template in grouped_dataset:
-            grouped_dataset[cm_template][0].append(nl_str)
-            grouped_dataset[cm_template][1].append(cm_str)
-            grouped_dataset[cm_template][2].append(nl)
-            grouped_dataset[cm_template][3].append(cm)
-            grouped_dataset[cm_template][4].append(nl_full)
-            grouped_dataset[cm_template][5].append(cm_full)
+            grouped_dataset[cm_template].append(dataset[i])
         else:
-            grouped_dataset[cm_template] = \
-                [[nl_str], [cm_str], [cm], [nl], [nl_full], [cm_full]]
+            grouped_dataset[cm_template] = [dataset[i]]
 
     return grouped_dataset
 
