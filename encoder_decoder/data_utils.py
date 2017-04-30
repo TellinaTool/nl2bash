@@ -254,7 +254,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
     """
     max_token_num = 0
     if not tf.gfile.Exists(tg_id_path):
-        assert(len(data) == len(parallel_data))
+        if parallel_data is not None:
+            assert(len(data) == len(parallel_data))
         print("Tokenizing data {} ({})".format(tg_id_path, len(data)))
         vocab, _ = initialize_vocabulary(vocab_path)
         tokens_file = tf.gfile.GFile(tg_id_path, mode="w")
