@@ -415,16 +415,9 @@ def fold_split(data_set, num_folds):
     return data_folds
 
 
-class Dataset(object):
-    def __init__(self):
-        self.train = []
-        self.dev = []
-        self.test = []
-
-
 def read_raw_data(data_dir):
-    nl_list = Dataset()
-    cm_list = Dataset()
+    nl_list = DataSet()
+    cm_list = DataSet()
     for split in ['train', 'dev', 'test']:
         data_path = os.path.join(data_dir, split)
         if os.path.exists(data_path + ".nl"):
@@ -459,7 +452,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                 data_to_token_ids(
                     getattr(data, split), data_path + suffix + '.full',
                     vocab_path, use_unk=False,
-                    parallel_data=parallel_token_list)
+                    parallel_data=getattr(parallel_token_list, split))
     else:
         # save string data
         for split in ['train', 'dev', 'test']:
@@ -489,10 +482,10 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
     # unfiltered data
     nl_data, cm_data = read_raw_data(data_dir)
 
-    nl_list = Dataset()
-    cm_list = Dataset()
-    nl_token_list = Dataset()
-    cm_token_list = Dataset()
+    nl_list = DataSet()
+    cm_list = DataSet()
+    nl_token_list = DataSet()
+    cm_token_list = DataSet()
 
     add_to_set(nl_data, cm_data, "train")
     add_to_set(nl_data, cm_data, "dev")
@@ -576,20 +569,20 @@ def prepare_bash(FLAGS, verbose=False):
     # unfiltered data
     nl_data, cm_data = read_raw_data(data_dir)
 
-    nl_list = Dataset()
-    cm_list = Dataset()
-    nl_char_list = Dataset()
-    cm_char_list = Dataset()
-    nl_token_list = Dataset()
-    cm_token_list = Dataset()
-    cm_seq_list = Dataset()
-    cm_pruned_token_list = Dataset()
-    cm_pruned_seq_list = Dataset()
-    nl_normalized_token_list = Dataset()
-    cm_normalized_token_list = Dataset()
-    cm_normalized_seq_list = Dataset()
-    cm_canonical_token_list = Dataset()
-    cm_canonical_seq_list = Dataset()
+    nl_list = DataSet()
+    cm_list = DataSet()
+    nl_char_list = DataSet()
+    cm_char_list = DataSet()
+    nl_token_list = DataSet()
+    cm_token_list = DataSet()
+    cm_seq_list = DataSet()
+    cm_pruned_token_list = DataSet()
+    cm_pruned_seq_list = DataSet()
+    nl_normalized_token_list = DataSet()
+    cm_normalized_token_list = DataSet()
+    cm_normalized_seq_list = DataSet()
+    cm_canonical_token_list = DataSet()
+    cm_canonical_seq_list = DataSet()
 
     add_to_set(nl_data, cm_data, "train")
     add_to_set(nl_data, cm_data, "dev")
@@ -1177,6 +1170,13 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
             data_set.append(dp)
     print("  %d data points read." % data_idx)
     return data_set
+
+
+class DataSet(object):
+    def __init__(self):
+        self.train = []
+        self.dev = []
+        self.test = []
 
 
 class DataPoint(object):
