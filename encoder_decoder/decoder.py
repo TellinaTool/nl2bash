@@ -125,18 +125,12 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         pointers = attn_alignments[-1][1]
         copy_logit = tf.squeeze(tf.matmul(tf.expand_dims(tf.exp(pointers), 1),
                                           self.encoder_inputs_3d), 1)
-<<<<<<< HEAD
-        
-        logit = gen_logit + copy_logit
-        
-=======
         unk_mask = np.ones([1, self.tg_vocab_size])
         unk_mask[1, data_utils.UNK_ID] = 0
         copy_logit = copy_logit * unk_mask
 
         logit = gen_logit + copy_logit
 
->>>>>>> 1552cd67b5663c0807b1db3c9f738e8d44db166a
         return logit, state, attn_alignments
 
 
