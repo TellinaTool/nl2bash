@@ -320,7 +320,8 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                 if use_unk:
                     token_ids.append(UNK_ID)
                 elif parallel_sentence is not None:
-                    if not w in parallel_sentence:
+                    if not (w in parallel_sentence
+                            or w[len('__LF__'):] in parallel_sentence):
                         token_ids.append(UNK_ID)
                     else:
                         token_ids.append(vocabulary[w])
