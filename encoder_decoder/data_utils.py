@@ -112,6 +112,9 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
       append_to_vocab: set to true to append new words as unseen to the vocab
       (used for simplifying testing sentences with unseen tokens).
     """
+
+    MIN_ARG_FREQ = 5
+
     if not tf.gfile.Exists(vocab_path):
         print("Creating vocabulary %s from data (%d)" %
               (vocab_path, len(data)))
@@ -140,7 +143,10 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
         sorted_vocab = {}
         for v in vocab:
             if v.startswith('__LF__'):
-                sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
+                if vocab[v] >= MIN_ARG_FREQ:
+                    sorted_vocab[v[len('__LF__'):]] = vocab[v]
+                else:
+                    sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
             elif '.nl' in vocab_path and not constants.is_english_word(v):
                 # print("Infrequent token: %s"  % v)
                 sorted_vocab['__LF__' + v] = min(vocab[v], min_word_frequency-1)
@@ -225,7 +231,8 @@ def initialize_vocabulary(vocab_path):
 
 
 def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
-                      base_tokenizer=None, with_arg_type=False, use_unk=True):
+                      base_tokenizer=None, with_arg_type=False, use_unk=True,
+                      parallel_data=None):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
@@ -239,21 +246,30 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
       tokenizer: a function to use to tokenize each sentence;
         if None, basic_tokenizer will be used.
       base_tokenizer: base tokenizer used for splitting strings into characters.
-      with_arg_types: If the vocabulary contains argument type (used for
+      with_arg_types: if the vocabulary contains argument type (used for
       deciding which type of UNK tokens to use).
+      use_unk: if set, set low-frequency tokens to UNK.
+      parallel_data: used in cases where token indexing depends on the
+        content of the parallel data.
     """
     max_token_num = 0
     if not tf.gfile.Exists(tg_id_path):
-        print("Tokenizing data (%d)" % len(data))
+        assert(len(data) == len(parallel_data))
+        print("Tokenizing data {} ({})".format(tg_id_path, len(data)))
         vocab, _ = initialize_vocabulary(vocab_path)
         tokens_file = tf.gfile.GFile(tg_id_path, mode="w")
         counter = 0
-        for line in data:
+        for i in xrange(len(data)):
             counter += 1
             if counter % 1000 == 0:
                 print("  tokenizing line %d" % counter)
-            token_ids, _ = sentence_to_token_ids(line, vocab, tokenizer,
-                base_tokenizer, with_arg_type=with_arg_type, use_unk=use_unk)
+            if parallel_data is None:
+                parallel_line = None
+            else:
+                parallel_line = parallel_data[i]
+            token_ids, _ = sentence_to_token_ids(data[i], vocab, tokenizer,
+                base_tokenizer, with_arg_type=with_arg_type, use_unk=use_unk,
+                parallel_sentence=parallel_line)
             if len(token_ids) > max_token_num:
                 max_token_num = len(token_ids)
             tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
@@ -262,7 +278,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
 
 
 def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
-                          with_arg_type=False, use_unk=True):
+                          with_arg_type=False, use_unk=True,
+                          parallel_sentence=None):
     """Convert a string to a list of integers representing token-ids.
 
     For example, a sentence "I have a dog" may become tokenized into
@@ -270,17 +287,21 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     "a": 4, "dog": 7"} this function will return [1, 2, 4, 7].
 
     Args:
-      sentence: The sentence in bytes format to convert to token-ids.
-      vocabulary: A dictionary mapping tokens to integers.
-      tokenizer: A function to use to tokenize each sentence;
-        if None, basic_tokenizer will be used.
+        sentence: The sentence in bytes format to convert to token-ids.
+        vocabulary: A dictionary mapping tokens to integers.
+        tokenizer: A function to use to tokenize each sentence;
+            if None, basic_tokenizer will be used.
+        base_tokenizer: Used to tokenize a sentence prior to character feature
+            extraction.
 
-      with_arg_type: If the vocabulary contains argument type (used for
-      deciding which type of UNK tokens to use).
-      use_unk: Set to true to replace the low-frequency tokens with UNK.
+        with_arg_type: If the vocabulary contains argument type (used for
+        deciding which type of UNK tokens to use).
+        use_unk: Set to true to replace the low-frequency tokens with UNK.
+        parallel_sentence: Used in cases where token indexing depends on the
+            content of the parallel data.
 
     Returns:
-      a list of integers, the token-ids for the sentence.
+        a list of integers, the token-ids for the sentence.
     """
     if type(sentence) is list:
         words = sentence
@@ -294,13 +315,23 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     token_ids = []
     for w in words:
         if w in vocabulary:
-            if use_unk and w.startswith('__LF__'):
-                token_ids.append(UNK_ID)
+            if w.startswith('__LF__'):
+                if use_unk:
+                    token_ids.append(UNK_ID)
+                elif parallel_sentence is not None:
+                    if not w in parallel_sentence:
+                        token_ids.append(UNK_ID)
+                    else:
+                        token_ids.append(vocabulary[w])
+                else:
+                    token_ids.append(vocabulary[w])
             else:
                 token_ids.append(vocabulary[w])
         else:
             # Unknown token
-            if not use_unk and ('__LF__' + w) in vocabulary:
+            if w[len('__LF__'):] in vocabulary:
+                token_ids.append(vocabulary[w[len('__LF__'):]])
+            elif not use_unk and ('__LF__' + w) in vocabulary:
                 token_ids.append(vocabulary['__LF__' + w])
             else:
                 token_ids.append(UNK_ID)
@@ -408,18 +439,18 @@ def read_raw_data(data_dir):
 
 
 def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
-                    create_vocab=True):
+                    create_vocab=True, parallel_token_list=None):
     if isinstance(data.train[0], list):
         # save indexed token sequences
-        min_word_freq = 2 if ("bash" in data_dir) else 0
+        MIN_WORD_FREQ = 2 if ("bash" in data_dir) else 0
         if create_vocab:
             create_vocabulary(vocab_path, data.train, vocab_size,
-                              min_word_frequency=min_word_freq)
+                              min_word_frequency=MIN_WORD_FREQ)
             if suffix.endswith('.nl') or suffix.endswith('.cm'):
                 create_vocabulary(vocab_path, data.dev, vocab_size,
-                    min_word_frequency=min_word_freq, append_to_vocab=True)
+                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
                 create_vocabulary(vocab_path, data.test, vocab_size,
-                    min_word_frequency=min_word_freq, append_to_vocab=True)
+                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
         for split in ['train', 'dev', 'test']:
             data_path = os.path.join(data_dir, split)
             data_to_token_ids(
@@ -427,7 +458,8 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
             if '.nl' in suffix or '.cm' in suffix:
                 data_to_token_ids(
                     getattr(data, split), data_path + suffix + '.full',
-                    vocab_path, use_unk=False)
+                    vocab_path, use_unk=False,
+                    parallel_data=parallel_token_list)
     else:
         # save string data
         for split in ['train', 'dev', 'test']:
@@ -597,7 +629,7 @@ def prepare_bash(FLAGS, verbose=False):
     max_nl_token_len = prepare_dataset(nl_token_list, data_dir, nl_token_suffix,
         nl_vocab_size, nl_vocab_path)
     max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix,
-        cm_vocab_size, cm_vocab_path)
+        cm_vocab_size, cm_vocab_path, parallel_token_list=nl_token_list)
     max_nl_token_norm_len = prepare_dataset(nl_normalized_token_list, data_dir,
         nl_token_norm_suffix, nl_vocab_size, nl_norm_vocab_path)
     max_cm_token_norm_len = prepare_dataset(cm_normalized_token_list, data_dir,
