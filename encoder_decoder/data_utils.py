@@ -145,6 +145,8 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
             if v.startswith('__LF__'):
                 if vocab[v] >= MIN_ARG_FREQ:
                     sorted_vocab[v[len('__LF__'):]] = vocab[v]
+                elif v[len('__LF__'):] in sorted_vocab:
+                    continue
                 else:
                     sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
             elif '.nl' in vocab_path and not constants.is_english_word(v):
