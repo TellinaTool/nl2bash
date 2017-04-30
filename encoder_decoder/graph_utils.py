@@ -55,6 +55,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["tg_char_rnn_num_layers"] = FLAGS.tg_char_rnn_num_layers
     params["tg_char_rnn_input_keep"] = FLAGS.tg_char_rnn_input_keep
     params["tg_char_rnn_output_keep"] = FLAGS.tg_char_rnn_output_keep
+    params["tg_token_features_path"] = os.path.join(FLAGS.data_dir,
+        "vocab%d.cm.token.feature.npy" % FLAGS.tg_vocab_size)
     params["tg_char_features_path"] = os.path.join(FLAGS.data_dir,
         "vocab%d.cm.char.feature.npy" % FLAGS.tg_vocab_size)
 
@@ -206,8 +208,8 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
     return model_subdir, model_sig
 
 
-def create_multilayer_cell(type, scope, dim, num_layers, input_keep_prob=1,
-                           output_keep_prob=1):
+def create_multilayer_cell(type, scope, dim, num_layers,
+                           input_keep_prob=1, output_keep_prob=1):
     """
     Create the multi-layer RNN cell.
     :param type: Type of RNN cell.
@@ -414,6 +416,10 @@ class NNModel(object):
     @property
     def tg_output_keep(self):
         return self.hyperparams["tg_output_keep"]
+
+    @property
+    def tg_token_features_path(self):
+        return self.hyperparams["tg_token_features_path"]
 
     @property
     def tg_char(self):

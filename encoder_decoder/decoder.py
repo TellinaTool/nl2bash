@@ -15,7 +15,8 @@ from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
     def __init__(self, hyperparameters, scope, vocab_size, dim, use_attention,
-        attention_function, input_keep, output_keep, decoding_algorithm):
+        attention_function, input_keep, output_keep, decoding_algorithm,
+        use_token_features=False):
         """
         :param hyperparameters: Tellina model hyperparameters.
         :param scope: Scope of the decoder. (There might be multiple decoders
@@ -38,6 +39,7 @@ class Decoder(graph_utils.NNModel):
         self.input_keep = input_keep
         self.output_keep = output_keep
         self.decoding_algorithm = decoding_algorithm
+        self.use_token_features = use_token_features
 
         # variable sharing
         self.embedding_vars = False
@@ -71,7 +73,13 @@ class Decoder(graph_utils.NNModel):
             embeddings = tf.get_variable("embedding",
                 [self.vocab_size, self.dim], initializer=initializer)
             self.embedding_vars = True
-            return embeddings
+            if self.use_token_features:
+                return tf.nn.embedding_lookup(embeddings, self.token_features())
+            else:
+                return embeddings
+
+    def token_features(self):
+        return np.load(self.tg_token_features_path)
 
     def output_project(self):
         with tf.variable_scope(self.scope + "_output_project",

@@ -77,7 +77,6 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
         tg_ids = input[0].tg_ids
         tg_full_ids = input[0].tg_full_ids
         pointer_targets = input[0].pointer_targets
-        # print(np.argmax(pointer_targets, 2))
     else:
         sentence = input
         tg_ids = [data_utils.ROOT_ID]
