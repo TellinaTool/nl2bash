@@ -118,8 +118,8 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         copy_logit = tf.squeeze(tf.matmul(tf.expand_dims(tf.exp(pointers), 1),
                                           self.encoder_inputs_3d), 1)
         
-        logit = gen_logit + copy_logit
-
+        # logit = gen_logit + copy_logit
+        logit = gen_logit
         return logit, state, attn_alignments
 
 

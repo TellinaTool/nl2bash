@@ -119,7 +119,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         #     [self.decoder_inputs, self.decoder_full_inputs]
         # Our targets are decoder inputs shifted by one.
         if self.use_copy and self.copy_fun != 'supervised':
-            self.targets = [self.decoder_full_inputs[i + 1]
+            self.targets = [self.decoder_inputs[i + 1]
                             for i in xrange(self.max_target_length)]
         else:
             self.targets = [self.decoder_inputs[i + 1]
@@ -627,7 +627,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for _ in xrange(self.batch_size):
             random_dp = random.choice(data[bucket_id])
             encoder_inputs.append(random_dp.sc_ids)
+            print("IDs: {}".format(random_dp.tg_ids))
             encoder_full_inputs.append(random_dp.sc_copy_full_ids)
+            print("Full IDs: {}".format(random_dp.tg_full_ids))
             decoder_inputs.append(random_dp.tg_ids)
             decoder_full_inputs.append(random_dp.tg_full_ids)
             if self.use_copy and self.copy_fun == 'supervised':
@@ -667,7 +669,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         """
         encoder_size, decoder_size = len(E.encoder_inputs), \
                                      len(E.decoder_inputs)
-
         input_feed = {}
         for l in xrange(encoder_size):
             input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
