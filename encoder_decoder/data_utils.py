@@ -998,8 +998,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
             cm_extension = ".ids%d.cm.norm" % FLAGS.tg_vocab_size
         nl_full_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size
         cm_full_extension = ".ids%d.cm.full" % FLAGS.tg_vocab_size
-        nl_copy_full_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size
-        cm_copy_full_extension = ".ids%d.cm.full" % FLAGS.tg_vocab_size
+        nl_copy_full_extension = ".ids%d.nl.copy.full" % FLAGS.sc_vocab_size
+        cm_copy_full_extension = ".ids%d.cm.copy.full" % FLAGS.tg_vocab_size
     elif FLAGS.decoder_topology in ["basic_tree"]:
         nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
         if FLAGS.canonical:
