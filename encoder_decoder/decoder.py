@@ -89,7 +89,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.output_project = output_project
         self.num_layers = num_layers
 
-        vocab_indices = np.eye(tg_vocab_size)
+        vocab_indices = np.eye(tg_vocab_size, dtype=np.float32)
         vocab_indices[data_utils.UNK_ID] = 0
         self.vocab_indices = tf.Variable(vocab_indices)
         self.encoder_size = len(encoder_inputs)
