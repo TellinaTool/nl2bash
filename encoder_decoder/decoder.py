@@ -126,7 +126,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         copy_logit = tf.squeeze(tf.matmul(tf.expand_dims(tf.exp(pointers), 1),
                                           self.encoder_inputs_3d), 1)
         unk_mask = np.ones([1, self.tg_vocab_size])
-        unk_mask[1, data_utils.UNK_ID] = 0
+        unk_mask[0, data_utils.UNK_ID] = 0
         copy_logit = copy_logit * unk_mask
 
         logit = gen_logit + copy_logit
