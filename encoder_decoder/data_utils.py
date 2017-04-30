@@ -701,24 +701,29 @@ def prepare_bash(FLAGS, verbose=False):
 
     slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix)
 
-    # copy data preparation
-    merge_vocab_for_copy(nl_vocab_path, cm_vocab_path,
-                         os.path.join(data_dir, "vocab.copy"))
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
-    cp_vocab_path = os.path.join(data_dir, "vocab.copy")
+
+    # copy data preparation
+    # merge_vocab_for_copy(nl_vocab_path, cm_vocab_path,
+    #                      os.path.join(data_dir, "vocab.copy"))
+    # cp_vocab_path = os.path.join(data_dir, "vocab.copy")
+    # prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
+    #                 nl_vocab_size, cp_vocab_path, create_vocab=False)
+    # prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
+    #                 cm_vocab_size, cp_vocab_path, create_vocab=False)
+    # cp_vocab, rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
 
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
-                    nl_vocab_size, cp_vocab_path, create_vocab=False)
+                    nl_vocab_size, cm_vocab_path, create_vocab=False)
     prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
-                    cm_vocab_size, cp_vocab_path, create_vocab=False)
+                    cm_vocab_size, cm_vocab_path, create_vocab=False)
 
     # prepare generation mask
     nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
 
     target_vocab_size = len(nl_vocab) if FLAGS.explain else len(cm_vocab)
-    cp_vocab, rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
     generation_mask = np.zeros([target_vocab_size], dtype=np.float32)
     if FLAGS.explain:
         for v in nl_vocab:
@@ -1034,10 +1039,10 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
 
 
 def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
-              tg_full_id_path, FLAGS, buckets=None,
-              append_head_token=False, append_end_token=False,
-              load_mappings=False, load_pointers=False):
-    """Read preprocessed data from source and target files and put into buckets.
+              tg_full_id_path, FLAGS, buckets=None, append_head_token=False,
+              append_end_token=False, load_mappings=False, load_pointers=False):
+    """
+    Read preprocessed data from source and target files and put into buckets.
     :param sc_path: path to the file containing the original source strings.
     :param tg_path: path to the file containing the original target strings.
     :param sc_id_path: path to the file with token-ids for the source language.
@@ -1103,35 +1108,38 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
             print("  reading data line %d" % data_idx)
             sys.stdout.flush()
 
-        sc_ids = [int(x) for x in sc.split()]
-        tg_ids = get_target_ids(tg)
-        sc_full_ids = get_target_ids(sc_full)
-        tg_full_ids = get_target_ids(tg_full)
+        dp = DataPoint()
+        dp.sc_txt = sc_txt
+        dp.tg_txt = tg_txt
+        dp.sc_ids = [int(x) for x in sc.split()]
+        dp.tg_ids = get_target_ids(tg)
+        dp.sc_full_ids = [int(x) for x in sc_full.split()]
+        dp.tg_full_ids = get_target_ids(tg_full)
 
-        data_point = [sc_txt, tg_txt, sc_ids, tg_ids, sc_full_ids, tg_full_ids]
         if load_mappings:
             mappings = []
             if mapping.strip():
                 for mp in mapping.strip().split():
                     mappings.append([int(x) for x in mp.split('-')])
-            data_point.append(mappings)
+            dp.mappings = mappings
         if load_pointers:
-            tg_pointers = np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
+            tg_pointers = np.zeros(
+                [1, FLAGS.max_tg_length, FLAGS.max_sc_length])
             if mapping.strip():
                 for mp in mapping.strip().split():
                     i, j = [int(x) for x in mp.split('-')]
                     tg_pointers[0, j, -(i+1)] = 1
-            data_point.append(tg_pointers)
+            dp.pointer_targets = tg_pointers
 
         data_idx += 1
         
         if buckets:
             for bucket_id, (sc_size, tg_size) in enumerate(buckets):
-                if len(sc_ids) < sc_size and len(tg_ids) < tg_size:
-                    data_set[bucket_id].append(data_point)
+                if len(dp.sc_ids) < sc_size and len(dp.tg_ids) < tg_size:
+                    data_set[bucket_id].append(dp)
                     break
         else:
-            data_set.append(data_point)
+            data_set.append(dp)
     print("  %d data points read." % data_idx)
     return data_set
 
