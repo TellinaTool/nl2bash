@@ -723,8 +723,7 @@ def prepare_bash(FLAGS, verbose=False):
     nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
 
-    target_vocab_size = len(nl_vocab) if FLAGS.explain else len(cm_vocab)
-    generation_mask = np.zeros([target_vocab_size], dtype=np.float32)
+    generation_mask = np.zeros([FLAGS.target_vocab_size], dtype=np.float32)
     if FLAGS.explain:
         for v in nl_vocab:
             if not v.startswith("__LF__"):
