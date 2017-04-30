@@ -315,6 +315,10 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             words, entities = tokenizer(sentence)
     token_ids = []
     for w in words:
+        print(w)
+        print(vocabulary)
+        if w == '__LF__.':
+            break
         if w in vocabulary:
             if w.startswith('__LF__'):
                 if use_unk:
