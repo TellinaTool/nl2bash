@@ -629,7 +629,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
             encoder_inputs.append(random_example[2])
             encoder_full_inputs.append(random_example[4])
             decoder_inputs.append(random_example[3])
+            print(random_example[3])
             decoder_full_inputs.append(random_example[5])
+            print(random_example[5])
             if self.use_copy and self.copy_fun == 'supervised':
                 pointer_targets.append(random_example[-1])
 
