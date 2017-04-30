@@ -225,12 +225,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     raise NotImplementedError
 
                 # Apply attention masks
-                if a == 0:
-                    s = s - (1 - self.encoder_attn_masks) * 1e18
-                else:
-                    copy_mask = tf.cast(
-                        tf.reduce_sum(self.encoder_inputs_3d, 2) > 0, tf.float32)
-                    s = s - (1 - copy_mask) * 1e18
+                s = s - (1 - self.encoder_attn_masks) * 1e18
                 alignment = tf.nn.softmax(s)
                 if a == 0:
                     alignments.append(alignment)
