@@ -63,8 +63,6 @@ def define_input_flags():
 
     # data hyperparameters
     tf.app.flags.DEFINE_string("dataset", "bash", "select dataset to use.")
-    tf.app.flags.DEFINE_integer("sc_vocab_size", 1000, "source vocabulary size.")
-    tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size.")
     tf.app.flags.DEFINE_integer("max_sc_length", 100, "maximum length of the source token sequence.")
     tf.app.flags.DEFINE_integer("max_tg_length", 100, "maximum length of the target token sequence.")
     tf.app.flags.DEFINE_integer("max_sc_token_size", 60, "maximum number of characters in a source token.")
@@ -150,6 +148,7 @@ def define_input_flags():
     # channel network hyperparameters
     tf.app.flags.DEFINE_boolean("sc_token", True,
                                 "Set to True to turn on the token channel in the encoder. On by default.")
+    tf.app.flags.DEFINE_integer("sc_vocab_size", 1000, "source vocabulary size.")
     tf.app.flags.DEFINE_integer("sc_token_dim", 300, "Basic token embedding dimensions.")
     tf.app.flags.DEFINE_float("sc_input_keep", .5,
                                 "Proportion of source input to keep if dropout is used.")
@@ -157,12 +156,14 @@ def define_input_flags():
                                 "Proportion of source output to keep if dropout is used.")
     tf.app.flags.DEFINE_boolean("sc_char", False,
                                 "Set to True to turn on the character channel in the encoder. Off by default.")
+    tf.app.flags.DEFINE_integer("sc_char_vocab_size", 1000, "source character vocabulary size.")
     tf.app.flags.DEFINE_integer("sc_char_dim", 300, "Dimension of each character embeddings.")
     tf.app.flags.DEFINE_string("sc_char_composition", 'rnn', "Specify the character to token composition function.")
     tf.app.flags.DEFINE_string("sc_char_rnn_cell", 'gru', "Type of RNN cell to use for the character model.")
     tf.app.flags.DEFINE_integer("sc_char_rnn_num_layers", 1,
                                 "Number of layers in the RNN cell used for the character model.")
 
+    tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size.")
     tf.app.flags.DEFINE_float("tg_input_keep", .5, "Proportion of target input to keep if dropout is used.")
     tf.app.flags.DEFINE_float("tg_output_keep", .5, "Proportion of target output to keep if dropout is used.")
     tf.app.flags.DEFINE_boolean("tg_char", False,

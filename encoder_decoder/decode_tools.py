@@ -124,7 +124,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
         nl_fillers = entities[0]
-    decoded_outputs = decode(formatted_example.encoder_inputs, model_outputs,
+    decoded_outputs = decode(formatted_example.encoder_full_inputs, model_outputs,
                              FLAGS, vocabs, nl_fillers, slot_filling_classifier)
 
     return decoded_outputs, output_logits
