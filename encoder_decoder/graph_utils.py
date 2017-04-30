@@ -287,6 +287,7 @@ def cross_entropy_with_logits(logits, targets):
 
 
 def normalize(logits):
+    # return logits
     return logits / tf.reduce_sum(logits, -1, keep_dims=True)
 
 
