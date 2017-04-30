@@ -714,13 +714,20 @@ def prepare_bash(FLAGS, verbose=False):
                     cm_vocab_size, cp_vocab_path, create_vocab=False)
 
     # prepare generation mask
+    nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
-    cp_vocab, rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
 
-    generation_mask = np.zeros([len(cp_vocab)], dtype=np.float32)
-    for v in cm_vocab:
-        if not v.startswith("__LF__") and v in cp_vocab:
-            generation_mask[cp_vocab[v]] = 1
+    target_vocab_size = len(nl_vocab) if FLAGS.explain else len(cm_vocab)
+    cp_vocab, rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
+    generation_mask = np.zeros([target_vocab_size], dtype=np.float32)
+    if FLAGS.explain:
+        for v in nl_vocab:
+            if not v.startswith("__LF__"):
+                generation_mask[nl_vocab[v]] = 1
+    else:
+        for v in cm_vocab:
+            if not v.startswith("__LF__"):
+                generation_mask[cm_vocab[v]] = 1
     np.save(os.path.join(data_dir, "generation_mask"), generation_mask)
 
 
