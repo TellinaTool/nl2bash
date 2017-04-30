@@ -998,6 +998,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
             cm_extension = ".ids%d.cm.norm" % FLAGS.tg_vocab_size
         nl_full_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size
         cm_full_extension = ".ids%d.cm.full" % FLAGS.tg_vocab_size
+        nl_copy_full_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size
+        cm_copy_full_extension = ".ids%d.cm.full" % FLAGS.tg_vocab_size
     elif FLAGS.decoder_topology in ["basic_tree"]:
         nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
         if FLAGS.canonical:
@@ -1017,18 +1019,20 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         cm_txt = data_path + ".%d.cm" % FLAGS.tg_vocab_size
         nl = data_path + nl_extension
         nl_full = data_path + nl_full_extension
+        nl_copy_full = data_path + nl_copy_full_extension
         cm = data_path + cm_extension
         cm_full = data_path + cm_full_extension
+        cm_copy_full = data_path + cm_copy_full_extension
         if FLAGS.explain:
             dataset = read_data(cm_txt, nl_txt, cm, nl, cm_full, nl_full,
-                                FLAGS, buckets,
+                                cm_copy_full, nl_copy_full, FLAGS, buckets,
                                 append_head_token=append_head_token,
                                 append_end_token=append_end_token,
                                 load_mappings=load_mappings,
                                 load_pointers=load_pointers)
         else:
             dataset = read_data(nl_txt, cm_txt, nl, cm, nl_full, cm_full,
-                                FLAGS, buckets,
+                                nl_copy_full, cm_copy_full, FLAGS, buckets,
                                 append_head_token=append_head_token,
                                 append_end_token=append_end_token,
                                 load_mappings=load_mappings,
@@ -1039,7 +1043,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
 
 
 def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
-              tg_full_id_path, FLAGS, buckets=None, append_head_token=False,
+              tg_full_id_path, sc_copy_full_id_path, tg_copy_full_id_path,
+              FLAGS, buckets=None, append_head_token=False,
               append_end_token=False, load_mappings=False, load_pointers=False):
     """
     Read preprocessed data from source and target files and put into buckets.
@@ -1051,6 +1056,8 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
         the source language.
     :param tg_id_full_path: path to the file with full-vocabulary token-ids for
         the target language.
+    :param sc_copy_full_id_path: path to the file with full-vocabulary token_ids
+        of tokens in the source language that can be mapped to the target.
     :param buckets: bucket sizes for training.
     :param max_num_examples: maximum number of lines to read. Read complete
         data files if this entry is 0 or None.
@@ -1085,6 +1092,7 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
     tg_id_file = tf.gfile.GFile(tg_id_path, mode="r")
     sc_full_id_file = tf.gfile.GFile(sc_full_id_path, mode="r")
     tg_full_id_file = tf.gfile.GFile(tg_full_id_path, mode="r")
+    sc_copy_full_id_file = tf.gfile.GFile(sc_copy_full_id_path, mode="r")
     if load_mappings or load_pointers:
         data_dir, file_name = os.path.split(sc_path)
         mapping_path = os.path.join(
@@ -1097,6 +1105,7 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
         sc, tg = sc_id_file.readline(), tg_id_file.readline()
         sc_full = sc_full_id_file.readline()
         tg_full = tg_full_id_file.readline()
+        sc_copy_full = sc_copy_full_id_file.readline()
         if load_mappings or load_pointers:
             mapping = mapping_file.readline()
         if not sc or not tg:
@@ -1115,6 +1124,7 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
         dp.tg_ids = get_target_ids(tg)
         dp.sc_full_ids = [int(x) for x in sc_full.split()]
         dp.tg_full_ids = get_target_ids(tg_full)
+        dp.sc_copy_full_ids = [int(x) for x in sc_copy_full.split()]
 
         if load_mappings:
             mappings = []
@@ -1152,6 +1162,7 @@ class DataPoint(object):
         self.tg_ids = None
         self.sc_full_ids = None
         self.tg_full_ids = None
+        self.sc_copy_full_ids = None
         self.mappings = None
         self.pointer_targets = None
 

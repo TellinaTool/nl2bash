@@ -625,13 +625,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # Get a random batch of encoder and decoder inputs from data,
         # pad them if needed, reverse encoder inputs and add GO to decoder.
         for _ in xrange(self.batch_size):
-            random_example = random.choice(data[bucket_id])
-            encoder_inputs.append(random_example[2])
-            encoder_full_inputs.append(random_example[4])
-            decoder_inputs.append(random_example[3])
-            decoder_full_inputs.append(random_example[5])
+            random_dp = random.choice(data[bucket_id])
+            encoder_inputs.append(random_dp.sc_ids)
+            encoder_full_inputs.append(random_dp.sc_copy_full_ids)
+            decoder_inputs.append(random_dp.tg_ids)
+            decoder_full_inputs.append(random_dp.tg_full_ids)
             if self.use_copy and self.copy_fun == 'supervised':
-                pointer_targets.append(random_example[-1])
+                pointer_targets.append(random_dp.pointer_targets)
 
         return self.format_example([encoder_inputs, encoder_full_inputs],
                                    [decoder_inputs, decoder_full_inputs],
@@ -647,12 +647,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
         pointer_targets = []
 
         for i in xrange(len(data[bucket_id])):
-            encoder_inputs.append(data[bucket_id][i][2])
-            encoder_full_inputs.append(data[bucket_id][i][4])
-            decoder_inputs.append(data[bucket_id][i][3])
-            decoder_full_inputs.append(data[bucket_id][i][5])
+            dp = data[bucket_id][i]
+            encoder_inputs.append(dp.sc_ids)
+            encoder_full_inputs.append(dp.sc_copy_full_ids)
+            decoder_inputs.append(dp.tg_ids)
+            decoder_full_inputs.append(dp.tg_full_ids)
             if self.use_copy and self.copy_fun == 'supervised':
-                pointer_targets.append(data[bucket_id][i][-1])
+                pointer_targets.append(dp.pointer_targets)
 
         return self.format_example([encoder_inputs, encoder_full_inputs],
                                    [decoder_inputs, decoder_full_inputs],
