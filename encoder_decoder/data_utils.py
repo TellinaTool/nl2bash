@@ -115,10 +115,17 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
 
     MIN_ARG_FREQ = 5
 
+    vocab = {}
+
     if not tf.gfile.Exists(vocab_path):
         print("Creating vocabulary %s from data (%d)" %
               (vocab_path, len(data)))
-        vocab = {}
+        sorted_vocab = {}
+    else:
+        print("Reading vocabulary %s from path" % vocab_path)
+        sorted_vocab, _ = initialize_vocabulary(vocab_path)
+
+    if not tf.gfile.Exists(vocab_path) or append_to_vocab:
         counter = 0
         for line in data:
             counter += 1
@@ -140,49 +147,31 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                     vocab[word] += 1
                 else:
                     vocab[word] = 1
-        sorted_vocab = {}
-        for v in vocab:
-            if v.startswith('__LF__'):
-                if vocab[v] >= MIN_ARG_FREQ:
-                    sorted_vocab[v[len('__LF__'):]] = vocab[v]
-                elif v[len('__LF__'):] in sorted_vocab:
-                    continue
-                else:
-                    sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
-            elif '.nl' in vocab_path and not constants.is_english_word(v):
-                # print("Infrequent token: %s"  % v)
-                sorted_vocab['__LF__' + v] = min(vocab[v], min_word_frequency-1)
-            elif vocab[v] >= min_word_frequency:
-                sorted_vocab[v] = vocab[v]
-            else:
-                sorted_vocab['__LF__' + v] = vocab[v]
-        sorted_vocab = [x for (x, y) in
-            sorted(sorted_vocab.items(), key=lambda x:x[1], reverse=True)]
-    else:
-        print("Reading vocabulary %s from path" % vocab_path)
-        vocab, _ = initialize_vocabulary(vocab_path)
         if append_to_vocab:
-            counter = 0
-            for line in data:
-                counter += 1
-                if counter % 1000 == 0:
-                    print("  processing line %d" % counter)
-                if type(line) is list:
-                    tokens = line
-                else:
-                    if base_tokenizer:
-                        tokens = tokenizer(line, base_tokenizer)
+            for v in vocab:
+                if not v in sorted_vocab and not ('__LF__' + v) in sorted_vocab \
+                        and not v[len('__LF__'):] in sorted_vocab:
+                    if v.startswith('__LF__'):
+                        sorted_vocab[v] = 1e12
                     else:
-                        tokens = tokenizer(line)
-                if not tokens:
-                    continue
-                for v in tokens:
-                    if not v in vocab and not ('__LF__' + v) in vocab:
-                        if v.startswith('__LF__'):
-                            vocab[v] = 1e12
-                        else:
-                            vocab[('__LF__' + v)] = 1e12
-        sorted_vocab = sorted(vocab, key=vocab.get)
+                        sorted_vocab['__LF__' + v] = 1e12
+            sorted_vocab = sorted(vocab, key=vocab.get)
+        else:
+            for v in vocab:
+                if v.startswith('__LF__'):
+                    if vocab[v] >= MIN_ARG_FREQ:
+                        sorted_vocab[v[len('__LF__'):]] = vocab[v]
+                    else:
+                        sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
+                elif '.nl' in vocab_path and not constants.is_english_word(v):
+                    # print("Infrequent token: %s"  % v)
+                    sorted_vocab['__LF__' + v] = min(vocab[v], min_word_frequency-1)
+                elif vocab[v] >= min_word_frequency:
+                    sorted_vocab[v] = vocab[v]
+                else:
+                    sorted_vocab['__LF__' + v] = vocab[v]
+            sorted_vocab = [x for (x, y) in
+                sorted(sorted_vocab.items(), key=lambda x:x[1], reverse=True)]
 
     start_vocab = _CHAR_START_VOCAB \
         if "char" in vocab_path else _TOKEN_START_VOCAB
