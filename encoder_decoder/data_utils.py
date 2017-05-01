@@ -155,7 +155,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                         sorted_vocab[v] = 1e12
                     else:
                         sorted_vocab['__LF__' + v] = 1e12
-            sorted_vocab = sorted(sorted_vocab, key=vocab.get)
+            sorted_vocab = sorted(sorted_vocab, key=sorted_vocab.get)
         else:
             for v in vocab:
                 if v.startswith('__LF__'):
