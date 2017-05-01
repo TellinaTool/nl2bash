@@ -63,6 +63,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             self.tg_token_attn_fun,
                             self.tg_input_keep,
                             self.tg_output_keep,
+                            forward_only,
                             forward_only and self.use_copy)
 
         # Character Decoder.
@@ -436,7 +437,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def define_decoder(self, dim, use_attention, attention_function,
-                       input_keep, output_keep, use_token_features):
+                       input_keep, output_keep, forward_only,
+                       use_token_features):
         """Placeholder function."""
         self.decoder = None
 

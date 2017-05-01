@@ -227,7 +227,8 @@ def initialize_vocabulary(vocab_path):
 
 def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                       base_tokenizer=None, with_arg_type=False, use_unk=True,
-                      parallel_data=None):
+                      parallel_data=None, use_dummy_indices=False,
+                      vocab_size=None):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
@@ -264,7 +265,9 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 parallel_line = parallel_data[i]
             token_ids, _ = sentence_to_token_ids(data[i], vocab, tokenizer,
                 base_tokenizer, with_arg_type=with_arg_type, use_unk=use_unk,
-                parallel_sentence=parallel_line)
+                parallel_sentence=parallel_line,
+                use_dummy_indices=use_dummy_indices,
+                vocab_size=vocab_size)
             if len(token_ids) > max_token_num:
                 max_token_num = len(token_ids)
             tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
@@ -274,7 +277,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
 
 def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                           with_arg_type=False, use_unk=True,
-                          parallel_sentence=None):
+                          parallel_sentence=None, use_dummy_indices=False,
+                          vocab_size=None):
     """Convert a string to a list of integers representing token-ids.
 
     For example, a sentence "I have a dog" may become tokenized into
@@ -308,29 +312,32 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         else:
             words, entities = tokenizer(sentence)
     token_ids = []
-    for w in words:
-        if w in vocabulary:
-            if w.startswith('__LF__'):
-                if use_unk:
-                    token_ids.append(UNK_ID)
-                elif parallel_sentence is not None:
-                    if not (w in parallel_sentence
-                            or w[len('__LF__'):] in parallel_sentence):
+    for (i, w) in enumerate(words):
+        if use_dummy_indices:
+            token_ids.append(vocab_size + i)
+        else:
+            if w in vocabulary:
+                if w.startswith('__LF__'):
+                    if use_unk:
                         token_ids.append(UNK_ID)
+                    elif parallel_sentence is not None:
+                        if not (w in parallel_sentence
+                                or w[len('__LF__'):] in parallel_sentence):
+                            token_ids.append(UNK_ID)
+                        else:
+                            token_ids.append(vocabulary[w])
                     else:
                         token_ids.append(vocabulary[w])
                 else:
                     token_ids.append(vocabulary[w])
             else:
-                token_ids.append(vocabulary[w])
-        else:
-            # Unknown token
-            if w[len('__LF__'):] in vocabulary:
-                token_ids.append(vocabulary[w[len('__LF__'):]])
-            elif not use_unk and ('__LF__' + w) in vocabulary:
-                token_ids.append(vocabulary['__LF__' + w])
-            else:
-                token_ids.append(UNK_ID)
+                # Unknown token
+                if w[len('__LF__'):] in vocabulary:
+                    token_ids.append(vocabulary[w[len('__LF__'):]])
+                elif not use_unk and ('__LF__' + w) in vocabulary:
+                    token_ids.append(vocabulary['__LF__' + w])
+                else:
+                    token_ids.append(UNK_ID)
 
     return token_ids, entities
 
@@ -431,7 +438,9 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     create_vocab=True, parallel_token_list=None):
     if isinstance(data.train[0], list):
         # save indexed token sequences
+
         MIN_WORD_FREQ = 2 if ("bash" in data_dir) else 0
+
         if create_vocab:
             create_vocabulary(vocab_path, data.train, vocab_size,
                               min_word_frequency=MIN_WORD_FREQ)
@@ -451,7 +460,10 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     parallel_data = getattr(parallel_token_list, split)
                 data_to_token_ids(
                     getattr(data, split), data_path + suffix + '.full',
-                    vocab_path, use_unk=False, parallel_data=parallel_data)
+                    vocab_path, use_unk=False, parallel_data=parallel_data,
+                    use_dummy_indices=('nl.copy' in suffix \
+                                       and split in ['dev', 'test']),
+                    vocab_size=vocab_size)
     else:
         # save string data
         for split in ['train', 'dev', 'test']:
