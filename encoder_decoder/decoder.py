@@ -32,7 +32,6 @@ class Decoder(graph_utils.NNModel):
         super(Decoder, self).__init__(hyperparameters)
 
         self.scope = scope
-        self.vocab_size = vocab_size
         self.dim = dim
         self.use_attention = use_attention
         self.attention_function = attention_function
@@ -41,6 +40,12 @@ class Decoder(graph_utils.NNModel):
         self.decoding_algorithm = decoding_algorithm
         self.forward_only = forward_only
         self.use_token_features = use_token_features
+
+        if self.forward_only and self.use_copy \
+                and self.copy_fun != 'supervised':
+            self.vocab_size = vocab_size + self.max_source_length
+        else:
+            self.vocab_size = vocab_size
 
         # variable sharing
         self.embedding_vars = False
@@ -69,11 +74,6 @@ class Decoder(graph_utils.NNModel):
     def embeddings(self):
         with tf.variable_scope(self.scope + "_embeddings",
                                reuse=self.embedding_vars):
-            # if self.forward_only and self.use_copy \
-            #         and self.copy_fun != 'supervised':
-            #     vocab_size = self.vocab_size + self.max_source_length
-            # else:
-            #     vocab_size = self.vocab_size
             print("target token vocabulary size = {}".format(self.vocab_size))
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
