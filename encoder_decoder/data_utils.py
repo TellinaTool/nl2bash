@@ -171,6 +171,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                     sorted_vocab[v] = vocab[v]
                 else:
                     sorted_vocab['__LF__' + v] = vocab[v]
+            print(sorted_vocab)
             sorted_vocab = [x for (x, y) in
                 sorted(sorted_vocab.items(), key=lambda x:x[1], reverse=True)]
 
@@ -184,6 +185,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
     if len(vocab) > max_vocabulary_size:
         vocab = vocab[:max_vocabulary_size]
     with tf.gfile.GFile(vocab_path, mode="wb") as vocab_file:
+        print(vocab)
         for w in vocab:
             try:
                 vocab_file.write(w + b"\n")
@@ -435,9 +437,9 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                               min_word_frequency=MIN_WORD_FREQ)
             if suffix.endswith('.nl') or suffix.endswith('.cm'):
                 create_vocabulary(vocab_path, data.dev, vocab_size,
-                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
+                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=False)
                 create_vocabulary(vocab_path, data.test, vocab_size,
-                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
+                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=False)
         for split in ['train', 'dev', 'test']:
             data_path = os.path.join(data_dir, split)
             data_to_token_ids(
