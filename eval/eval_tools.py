@@ -448,11 +448,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                     if str_match:
                         output_str += 'y'
 
-<<<<<<< HEAD
-                o_f.write(output_str + '\n')
-=======
                     o_f.write(output_str + '\n')
->>>>>>> a3eb40b010696a1689921f0ed56c9c6a1481b81c
 
 
 def test_ted():
