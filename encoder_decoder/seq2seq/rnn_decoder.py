@@ -2,15 +2,15 @@
 
 import tensorflow as tf
 
-from encoder_decoder import decoder, graph_utils
+from encoder_decoder import decoder, data_utils, graph_utils
 
 class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, scope, vocab_size, dim, use_attention,
                  attention_function, input_keep, output_keep, decoding_algorithm,
-                 use_token_features=False):
+                 forward_only, use_token_features=False):
         super(RNNDecoder, self).__init__(hyperparameters, scope, vocab_size,
-                            dim, use_attention, attention_function, input_keep,
-                            output_keep, decoding_algorithm, use_token_features)
+            dim, use_attention, attention_function, input_keep, output_keep,
+            decoding_algorithm, forward_only, use_token_features)
         print("{} dimension = {}".format(scope, dim))
         print("{} decoding_algorithm = {}".format(scope, decoding_algorithm))
 
@@ -111,6 +111,8 @@ class RNNDecoder(decoder.Decoder):
                             past_output_logits = \
                                 tf.add(past_output_logits, tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
+                        input = tf.select(input >= self.target_vocab_size,
+                            tf.ones(tf.shape(input)) * data_utils.UNK_ID, input)
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
                 if self.use_attention:
