@@ -41,8 +41,7 @@ class Decoder(graph_utils.NNModel):
         self.forward_only = forward_only
         self.use_token_features = use_token_features
 
-        if self.forward_only and self.use_copy \
-                and self.copy_fun != 'supervised':
+        if self.use_copy and self.copy_fun != 'supervised':
             self.vocab_size = vocab_size + self.max_source_length
         else:
             self.vocab_size = vocab_size
