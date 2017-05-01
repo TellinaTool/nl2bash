@@ -280,7 +280,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # A. Sequence Loss
         if forward_only or self.training_algorithm == "standard":
             if self.use_copy and self.copy_fun != 'supervised':
-                vocab_indices = tf.diag(tf.ones(self.target_vocab_size))
+                vocab_indices = tf.diag(tf.ones(self.decoder.vocab_size))
+                print(self.decoder.vocab_size)
                 binary_targets = tf.split(1, self.max_target_length,
                     tf.nn.embedding_lookup(vocab_indices,
                         tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))
