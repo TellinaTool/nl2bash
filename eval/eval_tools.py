@@ -429,7 +429,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                 example_id += 1
                 output_str = '{},{},'.format(example_id, nl_temp.strip())
 
-                for i in xrange(min(1, len(predictions))):
+                for i in xrange(min(3, len(predictions))):
                     pred_cmd, score = predictions[i]
                     tree = cmd_parser(pred_cmd)
                     # evaluation ignoring flag orders
