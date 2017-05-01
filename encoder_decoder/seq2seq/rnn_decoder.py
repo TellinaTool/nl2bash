@@ -112,7 +112,7 @@ class RNNDecoder(decoder.Decoder):
                                 tf.add(past_output_logits, tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
                         input = tf.select(input >= self.target_vocab_size,
-                            tf.ones(tf.shape(input)) * data_utils.UNK_ID, input)
+                            tf.ones(tf.shape(input), dtype=tf.int32) * data_utils.UNK_ID, input)
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
                 if self.use_attention:
