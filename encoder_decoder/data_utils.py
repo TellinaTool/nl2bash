@@ -436,9 +436,9 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                               min_word_frequency=MIN_WORD_FREQ)
             if suffix.endswith('.nl') or suffix.endswith('.cm'):
                 create_vocabulary(vocab_path, data.dev, vocab_size,
-                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=False)
+                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
                 create_vocabulary(vocab_path, data.test, vocab_size,
-                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=False)
+                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
         for split in ['train', 'dev', 'test']:
             data_path = os.path.join(data_dir, split)
             data_to_token_ids(
