@@ -164,33 +164,32 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                         sorted_vocab[v[len('__LF__'):]] = vocab[v]
                     else:
                         sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
-                elif '.nl' in vocab_path and not constants.is_english_word(v):
-                    # print("Infrequent token: %s"  % v)
-                    sorted_vocab['__LF__' + v] = min(vocab[v], min_word_frequency-1)
-                elif vocab[v] >= min_word_frequency:
-                    sorted_vocab[v] = vocab[v]
                 else:
-                    sorted_vocab['__LF__' + v] = vocab[v]
-            print(sorted_vocab)
+                    if '.nl' in vocab_path and not constants.is_english_word(v):
+                        # print("Infrequent token: %s"  % v)
+                        sorted_vocab['__LF__' + v] = min(vocab[v], min_word_frequency-1)
+                    elif vocab[v] >= min_word_frequency:
+                        sorted_vocab[v] = vocab[v]
+                    else:
+                        sorted_vocab['__LF__' + v] = vocab[v]
             sorted_vocab = [x for (x, y) in
                 sorted(sorted_vocab.items(), key=lambda x:x[1], reverse=True)]
 
-    start_vocab = _CHAR_START_VOCAB \
-        if "char" in vocab_path else _TOKEN_START_VOCAB
-    vocab = list(start_vocab)
-    for v in sorted_vocab:
-        if not v in start_vocab:
-            vocab.append(v)
+        start_vocab = _CHAR_START_VOCAB \
+            if "char" in vocab_path else _TOKEN_START_VOCAB
+        vocab = list(start_vocab)
+        for v in sorted_vocab:
+            if not v in start_vocab:
+                vocab.append(v)
 
-    if len(vocab) > max_vocabulary_size:
-        vocab = vocab[:max_vocabulary_size]
-    with tf.gfile.GFile(vocab_path, mode="wb") as vocab_file:
-        print(vocab)
-        for w in vocab:
-            try:
-                vocab_file.write(w + b"\n")
-            except Exception:
-                vocab_file.write(w.encode('utf-8') + b"\n")
+        if len(vocab) > max_vocabulary_size:
+            vocab = vocab[:max_vocabulary_size]
+        with tf.gfile.GFile(vocab_path, mode="wb") as vocab_file:
+            for w in vocab:
+                try:
+                    vocab_file.write(w + b"\n")
+                except Exception:
+                    vocab_file.write(w.encode('utf-8') + b"\n")
 
 
 def initialize_vocabulary(vocab_path):
