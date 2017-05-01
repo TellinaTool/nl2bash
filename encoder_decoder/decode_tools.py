@@ -194,7 +194,15 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
 
             tree, output_tokens = None, []
             if FLAGS.char:
-                tg = "".join([tf.compat.as_str(rev_tg_vocab[output])
+                def as_str(output):
+                    if output < FLAGS.target_vocab_size:
+                        token = rev_tg_vocab[output]
+                    else:
+                        token = rev_sc_vocab[
+                            encoder_inputs[batch_id][output - FLAGS.target_vocab_size]]
+                    return token
+
+                tg = "".join([as_str(output)
                               for output in outputs]).replace(data_utils._UNK, ' ')
             else:
                 if FLAGS.use_copy:
