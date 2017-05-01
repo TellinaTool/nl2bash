@@ -69,16 +69,16 @@ class Decoder(graph_utils.NNModel):
     def embeddings(self):
         with tf.variable_scope(self.scope + "_embeddings",
                                reuse=self.embedding_vars):
-            if self.forward_only and self.use_copy \
-                    and self.copy_fun != 'supervised':
-                vocab_size = self.vocab_size + self.max_source_length
-            else:
-                vocab_size = self.vocab_size
-            print("target token vocabulary size = {}".format(vocab_size))
+            # if self.forward_only and self.use_copy \
+            #         and self.copy_fun != 'supervised':
+            #     vocab_size = self.vocab_size + self.max_source_length
+            # else:
+            #     vocab_size = self.vocab_size
+            print("target token vocabulary size = {}".format(self.vocab_size))
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding",
-                [vocab_size, self.dim], initializer=initializer)
+                [self.vocab_size, self.dim], initializer=initializer)
             self.embedding_vars = True
             if self.use_token_features:
                 return tf.nn.embedding_lookup(embeddings, self.token_features())
