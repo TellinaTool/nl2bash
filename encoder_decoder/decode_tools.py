@@ -231,8 +231,12 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                             pred_token = \
                                 rev_tg_vocab[encoder_inputs[copy_idx][batch_id]]
                     else:
-                        pred_token = rev_sc_vocab[
-                            encoder_inputs[batch_id][output - FLAGS.target_vocab_size]]
+                        if FLAGS.use_copy:
+                            pred_token = rev_sc_vocab[
+                                encoder_inputs[batch_id][output - FLAGS.target_vocab_size]]
+                            print(pred_token)
+                        else:
+                            pred_token = data_utils._UNK
                     output_tokens.append(pred_token)
                 tg = " ".join(output_tokens)
             
