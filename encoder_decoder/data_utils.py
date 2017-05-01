@@ -1172,7 +1172,8 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
             if mapping.strip():
                 for mp in mapping.strip().split():
                     i, j = [int(x) for x in mp.split('-')]
-                    tg_pointers[0, j, -(i+1)] = 1
+                    if j < FLAGS.max_tg_length and i < FLAGS.max_sc_length:
+                        tg_pointers[0, j, -(i+1)] = 1
             dp.pointer_targets = tg_pointers
 
         data_idx += 1
