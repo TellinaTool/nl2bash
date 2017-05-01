@@ -149,8 +149,8 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                     vocab[word] = 1
         if append_to_vocab:
             for v in vocab:
-                if not v in sorted_vocab and not ('__LF__' + v) in sorted_vocab \
-                        and not v[len('__LF__'):] in sorted_vocab:
+                if not v in sorted_vocab and (not ('__LF__' + v) in sorted_vocab) \
+                        and (not v[len('__LF__'):] in sorted_vocab):
                     if v.startswith('__LF__'):
                         sorted_vocab[v] = 1e12
                     else:
