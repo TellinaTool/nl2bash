@@ -92,7 +92,8 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
         sc_ids, _ = data_utils.sentence_to_token_ids(
             sc_tokens, sc_vocab, data_tools.bash_tokenizer, None)
         sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(
-            sc_tokens, tg_vocab, data_tools.bash_tokenizer, None, use_unk=False)
+            sc_tokens, tg_vocab, data_tools.bash_tokenizer, None, use_unk=False,
+            use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
     else:
         if FLAGS.char:
             sc_ids, entities = data_utils.sentence_to_token_ids(sentence,
