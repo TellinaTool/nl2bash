@@ -160,6 +160,14 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
     #     cmd = data_tools.ast2command(tree, loose_constraints=True)
     #     return tree, cmd, search_history
 
+    def as_str(output):
+        if output < FLAGS.target_vocab_size:
+            token = rev_tg_vocab[output]
+        else:
+            token = rev_sc_vocab[
+                encoder_inputs[batch_id][output - FLAGS.target_vocab_size]]
+        return token
+
     output_symbols = model_outputs.output_symbols
     batch_outputs = []
     num_output_examples = 0
@@ -197,21 +205,9 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
 
             tree, output_tokens = None, []
             if FLAGS.char:
-                def as_str(output):
-                    if output < FLAGS.target_vocab_size:
-                        token = rev_tg_vocab[output]
-                    else:
-                        token = rev_sc_vocab[
-                            encoder_inputs[batch_id][output - FLAGS.target_vocab_size]]
-                    return token
-
-                tg = "".join([as_str(output)
-                              for output in outputs]).replace(data_utils._UNK, ' ')
+                tg = "".join([as_str(output) for output in outputs])\
+                    .replace(data_utils._UNK, ' ')
             else:
-                if FLAGS.use_copy:
-                    # print("{}-{}: {}".format(
-                    #     batch_id, beam_id, batch_copy_indices[batch_id, beam_id]))
-                    pass
                 for ii in xrange(len(outputs)):
                     output = outputs[ii]
                     if output < len(rev_tg_vocab):
@@ -234,9 +230,10 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                 batch_copy_indices[batch_id, beam_id, ii]
                             pred_token = \
                                 rev_tg_vocab[encoder_inputs[copy_idx][batch_id]]
-                        output_tokens.append(pred_token)
                     else:
-                        output_tokens.append(data_utils._UNK)
+                        pred_token = rev_sc_vocab[
+                            encoder_inputs[batch_id][output - FLAGS.target_vocab_size]]
+                    output_tokens.append(pred_token)
                 tg = " ".join(output_tokens)
             
             # check if the predicted command templates have enough slots to
