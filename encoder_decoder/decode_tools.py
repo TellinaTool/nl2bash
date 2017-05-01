@@ -401,19 +401,9 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             if FLAGS.tg_char:
                                 print("Character-based prediction {}: {}".format(
                                     j+1, top_k_char_predictions[j]))
-                        try:
-                            db.add_prediction(model.model_sig, sc_temp,
-                                top_k_pred_cmd, float(top_k_scores[j]),
-                                update_mode=False)
-                        except UnicodeEncodeError:
-                            try:
-                                db.add_prediction(model.model_sig, 
-                                    sc_temp.encode('utf-8'),
-                                    top_k_pred_cmd.encode('utf-8'), 
-                                    float(top_k_scores[j]), update_mode=False)
-                            except UnicodeDecodeError:
-                                db.add_prediction(model.model_sig, '', '',
-                                    float(top_k_scores[j]), update_mode=False)
+                        db.add_prediction(model.model_sig, sc_temp,
+                            pred_cmd, float(top_k_scores[j]),
+                            update_mode=False)
                     print()
                 else:
                     print(APOLOGY_MSG)
