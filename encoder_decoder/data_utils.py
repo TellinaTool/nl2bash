@@ -228,7 +228,7 @@ def initialize_vocabulary(vocab_path):
 def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                       base_tokenizer=None, with_arg_type=False, use_unk=True,
                       parallel_data=None, use_dummy_indices=False,
-                      vocab_size=None):
+                      parallel_vocab_size=None):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
@@ -267,7 +267,7 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 base_tokenizer, with_arg_type=with_arg_type, use_unk=use_unk,
                 parallel_sentence=parallel_line,
                 use_dummy_indices=use_dummy_indices,
-                vocab_size=vocab_size)
+                parallel_vocab_size=parallel_vocab_size)
             if len(token_ids) > max_token_num:
                 max_token_num = len(token_ids)
             tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
@@ -278,7 +278,7 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
 def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                           with_arg_type=False, use_unk=True,
                           parallel_sentence=None, use_dummy_indices=False,
-                          vocab_size=None):
+                          parallel_vocab_size=None):
     """Convert a string to a list of integers representing token-ids.
 
     For example, a sentence "I have a dog" may become tokenized into
@@ -314,7 +314,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     token_ids = []
     for (i, w) in enumerate(words):
         if use_dummy_indices:
-            token_ids.append(vocab_size + i)
+            token_ids.append(parallel_vocab_size + i)
         else:
             if w in vocabulary:
                 if w.startswith('__LF__'):
@@ -435,7 +435,8 @@ def read_raw_data(data_dir):
 
 
 def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
-                    create_vocab=True, parallel_token_list=None):
+                    create_vocab=True, parallel_token_list=None,
+                    parallel_vocab_size=None):
     if isinstance(data.train[0], list):
         # save indexed token sequences
 
@@ -463,7 +464,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     vocab_path, use_unk=False, parallel_data=parallel_data,
                     use_dummy_indices=('nl.copy' in suffix \
                                        and split in ['dev', 'test']),
-                    vocab_size=vocab_size)
+                    parallel_vocab_size=parallel_vocab_size)
     else:
         # save string data
         for split in ['train', 'dev', 'test']:
@@ -751,7 +752,8 @@ def prepare_bash(FLAGS, verbose=False):
     # cp_vocab, rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
 
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
-                    nl_vocab_size, cm_vocab_path, create_vocab=False)
+                    nl_vocab_size, cm_vocab_path, create_vocab=False,
+                    parallel_vocab_size=cm_vocab_size)
     prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
                     cm_vocab_size, cm_vocab_path, create_vocab=False)
 
