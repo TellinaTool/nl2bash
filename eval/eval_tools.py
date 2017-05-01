@@ -425,9 +425,12 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                 predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
                 example_id += 1
-                output_str = '{},{},'.format(example_id, nl_temp.strip())
 
                 for i in xrange(min(1, len(predictions))):
+                    if i == 0:
+                        output_str = '{},{},'.format(example_id, nl_temp.strip())
+                    else:
+                        output_str = ',,'
                     pred_cmd, score = predictions[i]
                     tree = cmd_parser(pred_cmd)
                     # evaluation ignoring flag orders
@@ -443,7 +446,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                     if str_match:
                         output_str += 'y'
 
-        o_f.write(output_str + '\n')
+                    o_f.write(output_str + '\n')
 
 
 def test_ted():
