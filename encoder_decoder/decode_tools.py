@@ -139,7 +139,6 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
     """
 
     rev_sc_vocab = vocabs.rev_sc_vocab
-    print(rev_sc_vocab)
     rev_tg_vocab = vocabs.rev_tg_vocab
     rev_tg_char_vocab = vocabs.rev_tg_char_vocab
 
@@ -169,7 +168,11 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
     if FLAGS.use_copy:
         pointers = model_outputs.pointers
         sentence_length = pointers.shape[1]
-        batch_copy_indices = np.reshape(np.argmax(pointers, 2),
+        if FLAGS.token_decoding_algorithm == 'greedy':
+            batch_copy_indices = np.reshape(np.argmax(pointers, 2),
+                [FLAGS.batch_size, 1, sentence_length])
+        else:
+            batch_copy_indices = np.reshape(np.argmax(pointers, 2),
                 [FLAGS.batch_size, FLAGS.beam_size, sentence_length])
 
     for batch_id in xrange(len(output_symbols)):
@@ -198,8 +201,9 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                               for output in outputs]).replace(data_utils._UNK, ' ')
             else:
                 if FLAGS.use_copy:
-                    print("{}-{}: {}".format(
-                        batch_id, beam_id, batch_copy_indices[batch_id, beam_id]))
+                    # print("{}-{}: {}".format(
+                    #     batch_id, beam_id, batch_copy_indices[batch_id, beam_id]))
+                    pass
                 for ii in xrange(len(outputs)):
                     output = outputs[ii]
                     if output < len(rev_tg_vocab):
@@ -348,7 +352,7 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                 print("Source: " + sc_normalized_temp)
                 for j in xrange(len(data_group)):
                     print("GT Target {}: {}".format(
-                        j+1, data_group[j].tg_txt))
+                        j+1, data_group[j].tg_txt.strip()))
 
             batch_outputs, output_logits = translate_fun(data_group, sess, model,
                 vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
@@ -358,6 +362,8 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
             if FLAGS.token_decoding_algorithm == "greedy":
                 if batch_outputs:
                     tree, pred_cmd, outputs = batch_outputs[0]
+                    pred_cmd = data_tools.ast2command(
+                        tree, loose_constraints=True)
                     score = output_logits[0]
                     print("{} ({})".format(pred_cmd, score))
                     db.add_prediction(
