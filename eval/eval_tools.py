@@ -427,7 +427,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                 predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
                 example_id += 1
-                output_str = '{},{},'.format(example_id, nl_temp)
+                output_str = '{},{},'.format(example_id, nl_temp.strip())
 
                 for i in xrange(min(1, len(predictions))):
                     pred_cmd, score = predictions[i]
@@ -436,7 +436,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                     temp_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=True)
                     str_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=False)
                     if i < len(cm_strs):
-                        output_str += '{},'.format(cm_strs[i])
+                        output_str += '{},'.format(cm_strs[i].strip())
                     else:
                         output_str += ','
                     output_str += '{},'.format(pred_cmd)
