@@ -60,8 +60,8 @@ def eval_set(model, dataset, FLAGS, verbose=True):
     with DBConnection() as db:
         for nl_temp in grouped_dataset:
             data_group = grouped_dataset[nl_temp]
-            nl_str = bytes(data_group[0][0], 'utf-8')
-            cm_strs = [data[1] for data in data_group]
+            nl_str = bytes(data_group[0].sc_txt, 'utf-8')
+            cm_strs = [dp.tg_txt for dp in data_group]
             gt_trees = [cmd_parser(cm_str) for cm_str in cm_strs]
             num_gts = len(gt_trees)
             gt_trees = gt_trees + [cmd_parser(cmd)
@@ -412,14 +412,16 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
         eval_bash = FLAGS.dataset.startswith("bash")
         cmd_parser = data_tools.bash_parser if eval_bash \
             else data_tools.paren_parser
-        grouped_dataset = data_utils.group_data_by_nl(dataset, use_temp=False)
+        grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True, 
+                                                      use_temp=False)
 
         with DBConnection() as db:
             for nl_temp in grouped_dataset:
-                nl_strs, cm_strs, nls, search_historys = grouped_dataset[nl_temp]
-                nl_str = nl_strs[0].decode('utf-8')
+                data_group = grouped_dataset[nl_temp]
+                nl_str = data_group[0].sc_txt
 
-                gt_trees = [cmd_parser(cmd) for cmd in cm_strs]
+                cm_strs = [dp.tg_txt for dp in data_group]
+                gt_trees = [cmd_parser(cm_str) for cm_str in cm_strs]
                 gt_trees = gt_trees + [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_str)]
 
                 predictions = db.get_top_k_predictions(model, nl_str, k=10)
@@ -443,7 +445,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                     if str_match:
                         output_str += 'y'
 
-        o_f.write(output_str + '\n')
+                o_f.write(output_str + '\n')
 
 
 def test_ted():

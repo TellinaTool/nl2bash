@@ -259,7 +259,7 @@ class DBConnection(object):
         return self.get_top_k_predictions(model, nl, 1)[0]
 
     def get_top_k_predictions(self, model, nl, k):
-        nl = str(nl, 'utf-8')
+        nl = str(nl, 'utf-8') if not isinstance(nl, str) else nl
         c = self.cursor
         predictions = []
         for score, pred_cmd in \
@@ -369,7 +369,7 @@ class DBConnection(object):
         return correct_cmds
 
     def get_correct_temps(self, nl):
-        nl = str(nl, 'utf-8')
+        nl = str(nl, 'utf-8') if not isinstance(nl, str) else nl
         c = self.cursor
         correct_temps = []
         for pred_temp, in c.execute("SELECT Temp.temp FROM TempJudge "
