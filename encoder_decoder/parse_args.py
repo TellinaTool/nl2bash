@@ -63,8 +63,8 @@ def define_input_flags():
 
     # data hyperparameters
     tf.app.flags.DEFINE_string("dataset", "bash", "select dataset to use.")
-    tf.app.flags.DEFINE_integer("max_sc_length", 100, "maximum length of the source token sequence.")
-    tf.app.flags.DEFINE_integer("max_tg_length", 100, "maximum length of the target token sequence.")
+    tf.app.flags.DEFINE_integer("max_sc_length", 30, "maximum length of the source token sequence.")
+    tf.app.flags.DEFINE_integer("max_tg_length", 40, "maximum length of the target token sequence.")
     tf.app.flags.DEFINE_integer("max_sc_token_size", 60, "maximum number of characters in a source token.")
     tf.app.flags.DEFINE_integer("max_tg_token_size", 60, "maximum number of characters in a target token.")
     tf.app.flags.DEFINE_string("data_dir", os.path.join(os.path.dirname(__file__), "data"), "Data directory")
