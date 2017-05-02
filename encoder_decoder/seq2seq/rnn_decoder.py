@@ -72,12 +72,12 @@ class RNNDecoder(decoder.Decoder):
                     encoder_inputs, self.attention_function,
                     self.attention_input_keep, self.attention_output_keep,
                     num_heads, self.num_layers, self.use_copy,
-                    self.target_vocab_size)
+                    self.vocab_size)
 
             if self.use_copy and self.copy_fun != 'supervised':
                 decoder_cell = decoder.CopyCellWrapper(decoder_cell,
                     self.output_project, self.num_layers, encoder_inputs,
-                    self.target_vocab_size, self.generation_mask)
+                    self.vocab_size, self.generation_mask)
 
             if bs_decoding:
                 decoder_cell = beam_decoder.wrap_cell(
@@ -112,7 +112,7 @@ class RNNDecoder(decoder.Decoder):
                                 tf.add(past_output_logits, tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
                         input = tf.select(input >= self.target_vocab_size,
-                            tf.ones(tf.shape(input)) * data_utils.UNK_ID, input)
+                            tf.ones(tf.shape(input), dtype=tf.int32) * data_utils.UNK_ID, input)
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
                 if self.use_attention:

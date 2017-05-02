@@ -250,7 +250,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
     """
     max_token_num = 0
     if not tf.gfile.Exists(tg_id_path):
-        assert(len(data) == len(parallel_data))
+        if parallel_data is not None:
+            assert(len(data) == len(parallel_data))
         print("Tokenizing data {} ({})".format(tg_id_path, len(data)))
         vocab, _ = initialize_vocabulary(vocab_path)
         tokens_file = tf.gfile.GFile(tg_id_path, mode="w")
@@ -945,13 +946,14 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
 
 def load_vocab(FLAGS):
     if FLAGS.decoder_topology in ['rnn']:
-        nl_extension = "vocab%d.nl" % FLAGS.sc_vocab_size \
-            if FLAGS.sc_char else "vocab%d.nl.norm" % FLAGS.sc_vocab_size
+        nl_extension = "vocab%d.nl" % FLAGS.sc_vocab_size 
         nl_vocab_path = os.path.join(FLAGS.data_dir, nl_extension)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
         elif FLAGS.normalized:
+            nl_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.nl.norm" % FLAGS.sc_vocab_size)
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
         else:
@@ -1170,7 +1172,8 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
             if mapping.strip():
                 for mp in mapping.strip().split():
                     i, j = [int(x) for x in mp.split('-')]
-                    tg_pointers[0, j, -(i+1)] = 1
+                    if j < FLAGS.max_tg_length and i < FLAGS.max_sc_length:
+                        tg_pointers[0, j, -(i+1)] = 1
             dp.pointer_targets = tg_pointers
 
         data_idx += 1

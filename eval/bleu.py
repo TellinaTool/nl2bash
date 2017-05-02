@@ -112,7 +112,6 @@ class BLEU(object):
     def modified_precision(candidate, references, n):
 
         candidate_ngrams = list(ngrams(candidate, n))
-
         if len(candidate_ngrams) == 0:
             return 0
 
