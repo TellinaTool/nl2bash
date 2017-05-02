@@ -169,7 +169,7 @@ class RNNDecoder(decoder.Decoder):
                 if self.use_copy and self.copy_fun != 'supervised':
                     # TODO: make beam search output logits computation in copy mode is right
                     # so far dummy zero vectors are used
-                    outputs = [tf.zeros([self.batch_size * self.beam_size, self.target_vocab_size])
+                    outputs = [tf.zeros([self.batch_size * self.beam_size, self.vocab_size])
                                for s in states]
                 else:
                     outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:] for s in states]
