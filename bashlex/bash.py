@@ -19,7 +19,23 @@ head_commands = [
     "sort",
     "head",
     "tail",
-    "tar"
+    "tar",
+    "du",
+    "file",
+    "cat",
+    "basename",
+    "cut",
+    "uniq",
+    "pwd",
+    "cpio",
+    "dirname",
+    "tee",
+    "rename",
+    "rmdir",
+    "mkdir",
+    "less",
+    "md5sum",
+    "compress"
 ]
 
 float_arguments = {
