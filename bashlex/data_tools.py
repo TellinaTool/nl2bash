@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 
 import inspect
+import sys
 
 from bashlex import bash, nast, normalizer
 from nlp_tools import constants
@@ -213,7 +214,7 @@ def fill_default_value(node):
 def test_bash_parser():
     while True:
         try:
-            cmd = raw_input("> ")
+            cmd = input("> ")
             norm_tree = bash_parser(cmd)
             # pruned_tree = normalizer.prune_ast(norm_tree)
             print()
@@ -233,6 +234,19 @@ def test_bash_parser():
             print()
         except EOFError as ex:
             break
+
+
+def test_tokenization():
+    i_f = open(sys.argv[1])
+    o_f = open(sys.argv[2], 'w')
+
+    for cmd in i_f.readlines():
+        cmd = cmd.strip()
+        cmd = ' '.join(bash_tokenizer(cmd))
+        # str = ''
+        # for token in tokenizer.split(cmd):
+        #     str += cmd + ' '
+        o_f.write(cmd.strip() + '\n')
 
 
 if __name__ == "__main__":
