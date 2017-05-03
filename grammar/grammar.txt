@@ -1,5 +1,5 @@
 type
-		File        (file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, reference)
+		File        (file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, reference, F)
 		Directory   (directory, exdir, dir)
 		Path        (path, source_file, target_file)
 		Permission  (permmode)
@@ -100,7 +100,7 @@ PrimitiveCmd ::=
 
 		unzip [-Z] [-cflptTuvzabjnoqsCKLMVWX] file [file ...]  [-x xfile ...] [-d exdir]
 
-		du [-H | -L | -P] [-a | -s | [-d depth] ] [-c] [-h | -k | -m | -g] [-x] [-I mask] [file ...]
+		du [-H | -L | -P] [-a | -s | [-d depth] ] [-c] [-h | -k | -m | -g] [-x] [-I mask] [--files0-from[=F]] [file ...]
 
 		echo [-n] [string ...]
 
@@ -150,8 +150,5 @@ PrimitiveCmd ::=
 
 		less [-S]
 
-		parallel [-j num] [-l num] [-i] [-n] [:command:] DASHDASH [string ...]
-		
 		rename [-svnVh] regex regex file ...
-		
 		
