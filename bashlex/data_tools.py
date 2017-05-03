@@ -25,13 +25,13 @@ def is_simple(ast):
 
 def is_low_frequency(ast):
     # Check if tree contains a low-frequency utilities
-    if ast.kind == "headcommand" and not ast.value in \
+    if ast.kind == "headcommand" and ast.value in \
             (bash.utilities_20_to_15 + bash.utilities_15_to_10):
-        return False
+        return True
     for child in ast.children:
-        if not is_simple(child):
-            return False
-    return True
+        if is_low_frequency(child):
+            return True
+    return False
 
 def char_tokenizer(sentence, base_tokenizer=None):
     if base_tokenizer:
