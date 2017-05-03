@@ -524,6 +524,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if len(encoder_channel_inputs) > 1:
             batch_encoder_full_inputs = load_channel(
                 encoder_channel_inputs[1], encoder_size, reversed_output=True)
+        if len(encoder_channel_inputs) > 2:
+            batch_encoder_copy_full_inputs = load_channel(
+                encoder_channel_inputs[2], encoder_size, reversed_output=True)
         batch_decoder_inputs = load_channel(
             decoder_channel_inputs[0], decoder_size, reversed_output=False)
         if len(decoder_channel_inputs) > 1:
@@ -806,6 +809,7 @@ class Example(object):
     def __init__(self):
         self.encoder_inputs = None
         self.encoder_full_inputs = None
+        self.encoder_copy_full_inputs = None
         self.encoder_attn_masks = None
         self.decoder_inputs = None
         self.decoder_full_inputs = None

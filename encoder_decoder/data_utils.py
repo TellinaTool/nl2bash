@@ -167,7 +167,9 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                 elif v.startswith('__SP__'):
                     sorted_vocab[v] = vocab[v]
                 else:
-                    if '.nl' in vocab_path and not constants.is_english_word(v):
+                    if '.nl' in vocab_path and (
+                            not constants.is_english_word(v)
+                            and not v in constants.type_conversion):
                         # print("Infrequent token: %s"  % v)
                         sorted_vocab['__LF__' + v] = min(vocab[v], min_word_frequency-1)
                     elif vocab[v] >= min_word_frequency:
