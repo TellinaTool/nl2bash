@@ -423,7 +423,9 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
 
                 cm_strs = [dp.tg_txt for dp in data_group]
                 gt_trees = [cmd_parser(cm_str) for cm_str in cm_strs]
-                if not any(data_tools.is_low_frequency(t) for t in gt_trees):
+                if any(data_tools.is_low_frequency(t) for t in gt_trees):
+                    continue
+                if random.uniform(0, 1) >= 0.2:
                     continue
                 gt_trees = gt_trees + [cmd_parser(cmd)
                                        for cmd in db.get_correct_temps(nl_str)]
