@@ -154,4 +154,10 @@ PrimitiveCmd ::=
 		
 		rename [-svnVh] regex regex file ...
 		
+		cpio -i [-0acvABLV] [-C bytes] [-H format] [-M message] [-O string] [-F string] [--file=string] [--format=format] [--message=message] [--null] [--reset-access-time] [--verbose] [--dot] [--append] [--block-size=blocks] [--dereference] [--io-size=bytes] [--rsh-command=command] [--help] [--version] LE name ... [GE archive]
+
+		cpio -p [-0adlmuvLV] [-R string] [--null] [--reset-access-time] [--make-directories] [--link] [--quiet] [--preserve-modification-time] [--unconditional] [--verbose] [--dot] [--dereference] [--owner=string] [--no-preserve-owner] [--sparse] [--help] [--version] dir LE name ...
+
+		cpio -o [-bcdfmnrtsuvBSV] [-C bytes] [-E file] [-H format] [-M message] [-R string] [-I string] [-F string] [--file=string] [--make-directories] [--nonmatching] [--preserve-modification-time] [--numeric-uid-gid] [--rename] [-t | --list] [--swap-bytes] [--swap] [--dot] [--unconditional] [--verbose] [--block-size=blocks] [--swap-halfwords] [--io-size=bytes] [--pattern-file=file] [--format=format] [--owner=string] [--no-preserve-owner] [--message=message] [--force-local] [--no-absolute-filenames] [--absolute-filenames] [--sparse] [--only-verify-crc] [--to-stdout] [--quiet] [--rsh-command=command] [--help] [--version] [pattern...] LE name ... [GE string]
+		
 		
