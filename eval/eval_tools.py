@@ -401,6 +401,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
     :param dataset:
     :param FLAGS:
     :param output_path:
+
     :return:
     """
     with open(output_path, 'w') as o_f:
@@ -412,8 +413,8 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
         eval_bash = FLAGS.dataset.startswith("bash")
         cmd_parser = data_tools.bash_parser if eval_bash \
             else data_tools.paren_parser
-        grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True, 
-                                                      use_temp=False)
+        grouped_dataset = data_utils.group_data_by_nl(
+            dataset, use_bucket=True, use_temp=False)
 
         with DBConnection() as db:
             for nl_temp in grouped_dataset:
@@ -422,7 +423,10 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
 
                 cm_strs = [dp.tg_txt for dp in data_group]
                 gt_trees = [cmd_parser(cm_str) for cm_str in cm_strs]
-                gt_trees = gt_trees + [cmd_parser(cmd) for cmd in db.get_correct_temps(nl_str)]
+                if not any(data_tools.is_low_frequency(t) for t in gt_trees):
+                    continue
+                gt_trees = gt_trees + [cmd_parser(cmd)
+                                       for cmd in db.get_correct_temps(nl_str)]
 
                 predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
@@ -435,6 +439,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                         output_str = ',,'
                     pred_cmd, score = predictions[i]
                     tree = cmd_parser(pred_cmd)
+
                     # evaluation ignoring flag orders
                     temp_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=True)
                     str_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=False)

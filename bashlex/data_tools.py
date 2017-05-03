@@ -15,14 +15,23 @@ from nlp_tools import constants
 
 
 def is_simple(ast):
-    # Check if tree contains only high-frequency commands
-    if ast.kind == "headcommand" and not ast.value in bash.head_commands:
+    # Check if tree contains only high-frequency utilities
+    if ast.kind == "headcommand" and not ast.value in bash.utilities:
         return False
     for child in ast.children:
         if not is_simple(child):
             return False
     return True
 
+def is_low_frequency(ast):
+    # Check if tree contains a low-frequency utilities
+    if ast.kind == "headcommand" and not ast.value in \
+            (bash.utilities_20_to_15 + bash.utilities_15_to_10):
+        return False
+    for child in ast.children:
+        if not is_simple(child):
+            return False
+    return True
 
 def char_tokenizer(sentence, base_tokenizer=None):
     if base_tokenizer:
