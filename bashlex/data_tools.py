@@ -213,7 +213,7 @@ def fill_default_value(node):
 def test_bash_parser():
     while True:
         try:
-            cmd = raw_input("> ")
+            cmd = input("> ")
             norm_tree = bash_parser(cmd)
             # pruned_tree = normalizer.prune_ast(norm_tree)
             print()
