@@ -6,7 +6,9 @@
 """
 The simplest TF-IDF library imaginable.
 
-Add your documents as two-element lists `[docname, [list_of_words_in_the_document]]` with `addDocument(docname, list_of_words)`. Get a list of all the `[docname, similarity_score]` pairs relative to a document by calling `similarities([list_of_words])`.
+Add your documents as two-element lists `[docname, [list_of_words_in_the_document]]` with `addDocument(docname, list_of_words)`. 
+
+Get a list of all the `[docname, similarity_score]` pairs relative to a document by calling `similarities([list_of_words])`.
 
 See the README for a usage example.
 """
