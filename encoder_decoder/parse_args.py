@@ -180,7 +180,7 @@ def define_input_flags():
                                 "Proportion of character target output to keep if dropout is used.")
     tf.app.flags.DEFINE_float("gamma", 5, "Define the weight of the character channel loss.")
 
-    # copying mechanism
+    # hyperparameters for copying UNKs
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
     tf.app.flags.DEFINE_string("copy_fun", 'implicit',
                                 "Specifying the type of copying functions to use.")
