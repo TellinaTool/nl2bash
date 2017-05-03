@@ -46,7 +46,7 @@ PrimitiveCmd ::=
 
 		cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] source_file ... directory [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
 
-        cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] directory source_file ... [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
+        	cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] directory source_file ... [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
 
 		ls [-ABCFGHLOPRSTUW@abcdefghiklmnopqrstuwx1] [file ...]
 
@@ -109,3 +109,49 @@ PrimitiveCmd ::=
 		comm [-ONE] [-TWO] [-THREE] [-i] file1 file2
 
 		sh [option ...] [file ...]
+
+		file [-bcdDhiIkLnNprsvz] [--extension] [--mime-encoding] [--mime-type] [-f file] [-m file] [-P string] [-M file] file
+
+		file -C [-m file]
+
+		file [--help]
+		
+		basename string [suffix]
+
+		basename [-a] [-s suffix] string ...
+		
+		dirname string
+	
+		cut -b list [-n] [file ...]
+
+		cut -c list [file ...]
+
+		cut -f list [-d delimiter] [-s] [file ...]
+		
+		uniq [-c | -d | -u] [-i] [-f num] [-s string] [input_file [output_file]]
+
+		pwd [-L | -P]
+
+		tee [-ai] [file ...]
+
+		rmdir [-p] directory ...
+		
+		mkdir [-pv] [-m mode] directory ...
+
+		md5sum [-bctw] [--quiet] [--status] [--warn] [file ...]
+		
+		compress [-fv] [-b bits] [file ...]
+
+		compress -c [-b bits] [file]
+
+		uncompress [-fv] [file ...]
+
+		uncompress -c [file]
+
+		less [-S]
+
+		parallel [-j num] [-l num] [-i] [-n] [:command:] DASHDASH [string ...]
+		
+		rename [-svnVh] regex regex file ...
+		
+		
