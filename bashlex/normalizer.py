@@ -1225,20 +1225,3 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
         return tokens
 
     return to_tokens_fun(node)
-
-
-def test_tokenization():
-    i_f = open(sys.argv[1])
-    o_f = open(sys.argv[2], 'w')
-
-    for cmd in i_f.readlines():
-        cmd = cmd.strip()
-        cmd = ' '.join(to_tokens(normalize_ast(cmd)))
-        # str = ''
-        # for token in tokenizer.split(cmd):
-        #     str += cmd + ' '
-        o_f.write(cmd.strip() + '\n')
-
-
-if __name__ == "__main__":
-    test_tokenization()
