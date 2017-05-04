@@ -49,8 +49,7 @@ class ManPageLookUp(object):
             return {"optional": [["Unknown", False, False]],
                     "non-optional": [["Unknown", False, False]]}
 
-    def get_flag_arg_type(self, cmd, flag, verbose=False):
-        print(flag)
+    def get_flag_arg_type(self, cmd, flag, verbose=False, default_type=None):
         try:
             arg_type = self.table[cmd]["flags"][flag]
         except KeyError:
@@ -61,11 +60,11 @@ class ManPageLookUp(object):
             return None
         if arg_type:
             return list(arg_type)[0]
+
+        if default_type is not None:
+            return default_type
         else:
-            if flag.startswith('--'):
-                return 'Unknown'
-            else:
-                return None
+            return None
 
 # classes to build tree from json file
 def load_syntax(json_files, verbose=True):
