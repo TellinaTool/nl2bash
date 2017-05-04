@@ -50,6 +50,7 @@ class ManPageLookUp(object):
                     "non-optional": [["Unknown", False, False]]}
 
     def get_flag_arg_type(self, cmd, flag, verbose=False):
+        print(flag)
         try:
             arg_type = self.table[cmd]["flags"][flag]
         except KeyError:
@@ -57,11 +58,14 @@ class ManPageLookUp(object):
             # flags in the grammar file.
             if verbose:
                 print("Error: {} is not a flag of {}".format(flag, cmd))
-            return 'Unknown'
+            return None
         if arg_type:
             return list(arg_type)[0]
         else:
-            return 'Unknown'
+            if flag.startswith('--'):
+                return 'Unknown'
+            else:
+                return None
 
 # classes to build tree from json file
 def load_syntax(json_files, verbose=True):
