@@ -853,6 +853,9 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
         print("Cannot parse: %s - AssertionError" % cmd2)
         # not a bash command
         return None
+    except TypeError:
+        print("Cannot parse: %s - AssertionError" % cmd2)
+        return None
 
     if len(tree) > 1:
         print("Doesn't support command with multiple root nodes: %s" % cmd2)
