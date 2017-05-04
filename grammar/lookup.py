@@ -57,11 +57,11 @@ class ManPageLookUp(object):
             # flags in the grammar file.
             if verbose:
                 print("Error: {} is not a flag of {}".format(flag, cmd))
-            return None
+            return 'Unknown'
         if arg_type:
             return list(arg_type)[0]
         else:
-            return None
+            return 'Unknown'
 
 # classes to build tree from json file
 def load_syntax(json_files, verbose=True):
