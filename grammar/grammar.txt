@@ -7,7 +7,7 @@ type
 		Prog        (command, prog, program, utility, varEQvalue)
 		Type        (t, type)
 		Option      (option, options, MINUSflags, PLUSflags, flags)
-		Regex       (name, gname, uname, eofstr, fs, replstr, string, extension, format, owner, group, first, last, suffix, suffixes, pattern, mask)
+		Regex       (name, gname, uname, eofstr, fs, replstr, string, extension, format, owner, group, first, last, suffix, suffixes, pattern, mask, regex, expression, replacement)
 		Number      (n, num, number, replacements, maxargs, maxchars, maxlines, maxprocs, incr, count, depth)
 		Timespan    (time)
 		Size        (size, bytes, blocksize)
@@ -150,7 +150,7 @@ PrimitiveCmd ::=
 
 		less [-S]
 
-		rename [-svnVh] regex regex file ...
+		rename [-svnVh] expression replacement file ...
 		
 		cpio -i [-0acvABLV] [-C bytes] [-H format] [-M message] [-O string] [-F string] [--file=string] [--format=format] [--message=message] [--null] [--reset-access-time] [--verbose] [--dot] [--append] [--block-size=blocks] [--dereference] [--io-size=bytes] [--rsh-command=command] [--help] [--version] LE name ... [GE archive]
 
