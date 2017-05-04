@@ -96,11 +96,12 @@ def ast2command(node, loose_constraints=False, ignore_flag_order=False):
 
 
 def ast2template(node, loose_constraints=False, ignore_flag_order=True,
-                 arg_type_only=True):
+                 arg_type_only=True, index_arg=False):
     # convert a bash AST to a template that contains only reserved words and
     # argument types flags are alphabetically ordered
     tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order,
-                                  arg_type_only=arg_type_only, index_arg=True)
+                                  arg_type_only=arg_type_only,
+                                  index_arg=index_arg)
     return ' '.join(tokens) 
 
 
