@@ -34,6 +34,8 @@ import os
 class ManPageLookUp(object):
     def __init__(self, path):
         self.table = load_syntax(path, verbose=False)
+        # for cmd in self.table:
+        #     print("{} ({})".format(cmd, len(self.table[cmd]["flags"])))
 
     def get_arg_types(self, cmd, verbose=False):
         # format of an argument entry
@@ -96,7 +98,6 @@ def make_grammar_from_json_syntax(cmd, manual_table):
 def make_grammar_from_options(x, command_table, optional=False, ):
     flag_table = command_table["flags"]
     arg_table = command_table["arguments"]
-
     if x["type"] == "compound_options":
         if x["commands"][0]["type"] in ["flag_option", "long_flag_option"] and \
           (len(x) == 2 and (x["commands"][1]["type"] == "argument_option" or
@@ -143,7 +144,6 @@ def make_grammar_from_options(x, command_table, optional=False, ):
 if __name__ == "__main__":
     man_lookup = ManPageLookUp([os.path.join(os.path.dirname(__file__),
                                              "primitive_cmds_grammar.json")])
-    print(man_lookup.get_arg_types("find"))
     while True:
         try:
             cmd = raw_input("> Command:")
