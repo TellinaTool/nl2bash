@@ -239,7 +239,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             value, arg_value = node.word.rsplit('=', 1)
             norm_node = FlagNode(value=value)
             arg_node = ArgumentNode(value=arg_value,
-                arg_type=man_lookup.get_flag_arg_type(current.value, value))
+                arg_type=man_lookup.get_flag_arg_type(current.value, value,
+                                                      default_type='Unknown'))
             attach_to_tree(norm_node, current)
             attach_to_tree(arg_node, norm_node)
         else:
