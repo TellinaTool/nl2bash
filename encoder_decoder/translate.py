@@ -373,7 +373,6 @@ def eval_slot_filling(dataset):
         num_predict_align = 0.0
         num_gt_align = 0.0
         for bucket_id in xrange(len(_buckets)):
-            print(len(dataset[bucket_id]))
             for data_id in xrange(len(dataset[bucket_id])):
                 dp = dataset[bucket_id][data_id]
                 gt_mappings = [tuple(m) for m in dp.mappings]
