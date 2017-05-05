@@ -628,7 +628,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
           the constructed batch that has the proper format to call step(...) later.
         """
         encoder_inputs, encoder_full_inputs, encoder_copy_full_inputs, \
-            decoder_inputs, decoder_full_inputs = [], [], [], [], [], []
+            decoder_inputs, decoder_full_inputs = [], [], [], [], []
         pointer_targets = []
 
         # Get a random batch of encoder and decoder inputs from data,
