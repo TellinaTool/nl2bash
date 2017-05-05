@@ -46,6 +46,7 @@ def clean_sentence(sentence):
             .replace("''", '"') \
             .replace(' \'', ' "') \
             .replace('\' ', '" ') \
+            .replace('\',', '",') \
             .replace('`', '"') \
             .replace('(', ' ( ') \
             .replace(')', ' ) ')
@@ -90,10 +91,10 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
     """Very basic English tokenizer."""
     sentence = clean_sentence(sentence)
     words = [x[0] for x in re.findall(constants._WORD_SPLIT_RESPECT_QUOTES, sentence)]
-
     normalized_words = []
     for i in xrange(len(words)):
         word = words[i].strip()
+
         # remove unnecessary upper cases
         if lower_case:
             # if i == 0 and word[0].isupper() \
