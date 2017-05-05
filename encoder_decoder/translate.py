@@ -448,6 +448,8 @@ def eval_slot_filling(dataset):
                     num_gt_align += len(gt_mappings)
 
                     tokens = data_tools.ast2tokens(tree)
+                    if not tokens:
+                        continue
                     for ii in xrange(len(outputs)):
                         output = outputs[ii]
                         token = rev_tg_vocab[output]
@@ -456,9 +458,11 @@ def eval_slot_filling(dataset):
                             if argument.startswith('__LF__'):
                                 argument = argument[len('__LF__'):]
                             pred = tokens[ii]
-                            print(argument, pred)
-                            if argument == pred:
+                            if constants.remove_quotation(argument) == \
+                                    constants.remove_quotation(pred):
                                 num_correct_argument += 1
+                            print(constants.remove_quotation(argument),
+                                  constants.remove_quotation(pred))
                             num_argument += 1
 
         precision = num_correct_align / num_predict_align
