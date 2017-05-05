@@ -387,6 +387,8 @@ def eval_slot_filling(dataset):
                     decoder_full_inputs = [dp.tg_full_ids]
                     if FLAGS.use_copy:
                         pointer_targets = [dp.pointer_targets]
+                    else:
+                        pointer_targets = None
                     formatted_example = model.format_example(
                         [encoder_inputs, encoder_full_inputs],
                         [decoder_inputs, decoder_full_inputs],
