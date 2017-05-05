@@ -15,10 +15,10 @@ from encoder_decoder import data_utils
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
                  construct_model_dir=True, construct_slot_filling=False):
     params = collections.defaultdict()
-    # FLAGS.sc_vocab_size = FLAGS.cm_vocab_size \
-    #     if FLAGS.explain else FLAGS.nl_vocab_size
-    # FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
-    #     if FLAGS.explain else FLAGS.cm_vocab_size
+    FLAGS.sc_vocab_size = FLAGS.cm_vocab_size \
+        if FLAGS.explain else FLAGS.nl_vocab_size
+    FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
+        if FLAGS.explain else FLAGS.cm_vocab_size
     params["source_vocab_size"] = FLAGS.sc_vocab_size
     params["target_vocab_size"] = FLAGS.tg_vocab_size
     params["max_source_length"] = FLAGS.max_sc_length \
