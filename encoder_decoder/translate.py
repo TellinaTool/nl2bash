@@ -37,11 +37,6 @@ from .seq2tree.seq2tree_model import Seq2TreeModel
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
 
-FLAGS.sc_vocab_size = FLAGS.cm_vocab_size \
-    if FLAGS.explain else FLAGS.nl_vocab_size
-FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
-    if FLAGS.explain else FLAGS.cm_vocab_size
-
 _buckets = graph_utils.get_buckets(FLAGS)
 
 
@@ -392,6 +387,8 @@ def eval_slot_filling(dataset):
                     decoder_full_inputs = [dp.tg_full_ids]
                     if FLAGS.use_copy:
                         pointer_targets = [dp.pointer_targets]
+                    else:
+                        pointer_targets = None
                     formatted_example = model.format_example(
                         [encoder_inputs, encoder_full_inputs],
                         [decoder_inputs, decoder_full_inputs],
@@ -451,6 +448,8 @@ def eval_slot_filling(dataset):
                     num_gt_align += len(gt_mappings)
 
                     tokens = data_tools.ast2tokens(tree)
+                    if not tokens:
+                        continue
                     for ii in xrange(len(outputs)):
                         output = outputs[ii]
                         token = rev_tg_vocab[output]
@@ -459,9 +458,11 @@ def eval_slot_filling(dataset):
                             if argument.startswith('__LF__'):
                                 argument = argument[len('__LF__'):]
                             pred = tokens[ii]
-                            print(argument, pred)
-                            if argument == pred:
+                            if constants.remove_quotation(argument) == \
+                                    constants.remove_quotation(pred):
                                 num_correct_argument += 1
+                            print(constants.remove_quotation(argument),
+                                  constants.remove_quotation(pred))
                             num_argument += 1
 
         precision = num_correct_align / num_predict_align
@@ -581,6 +582,12 @@ def main(_):
     FLAGS.data_dir = os.path.join(
         os.path.dirname(__file__), "..", "data", FLAGS.dataset)
     print("Reading data from {}".format(FLAGS.data_dir))
+
+    # set up source and tareget vocabulary size
+    FLAGS.sc_vocab_size = FLAGS.cm_vocab_size \
+        if FLAGS.explain else FLAGS.nl_vocab_size
+    FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
+        if FLAGS.explain else FLAGS.cm_vocab_size
 
     if FLAGS.decoder_topology in ['basic_tree']:
         FLAGS.model_dir = os.path.join(
