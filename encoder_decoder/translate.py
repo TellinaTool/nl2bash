@@ -37,11 +37,6 @@ from .seq2tree.seq2tree_model import Seq2TreeModel
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
 
-FLAGS.sc_vocab_size = FLAGS.cm_vocab_size \
-    if FLAGS.explain else FLAGS.nl_vocab_size
-FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
-    if FLAGS.explain else FLAGS.cm_vocab_size
-
 _buckets = graph_utils.get_buckets(FLAGS)
 
 
@@ -587,6 +582,12 @@ def main(_):
     FLAGS.data_dir = os.path.join(
         os.path.dirname(__file__), "..", "data", FLAGS.dataset)
     print("Reading data from {}".format(FLAGS.data_dir))
+
+    # set up source and tareget vocabulary size
+    FLAGS.sc_vocab_size = FLAGS.cm_vocab_size \
+        if FLAGS.explain else FLAGS.nl_vocab_size
+    FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
+        if FLAGS.explain else FLAGS.cm_vocab_size
 
     if FLAGS.decoder_topology in ['basic_tree']:
         FLAGS.model_dir = os.path.join(

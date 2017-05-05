@@ -529,11 +529,10 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
 
 def prepare_bash(FLAGS, verbose=False):
     data_dir = FLAGS.data_dir
-    nl_vocab_size = FLAGS.tg_vocab_size \
-        if FLAGS.explain else FLAGS.sc_vocab_size
-    cm_vocab_size = FLAGS.sc_vocab_size \
-        if FLAGS.explain else FLAGS.tg_vocab_size
-
+    nl_vocab_size = FLAGS.nl_vocab_size
+    cm_vocab_size = FLAGS.cm_vocab_size
+    print(nl_vocab_size)
+    print(cm_vocab_size)
     def add_to_set(nl_data, cm_data, split):
         with_parent = True
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
@@ -1036,29 +1035,29 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     append_end_token = True
     
     if FLAGS.char:
-        nl_extension = ".ids%d.nl.char" % FLAGS.sc_vocab_size
-        cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
+        nl_extension = ".ids%d.nl.char" % FLAGS.nl_vocab_size
+        cm_extension = ".ids%d.cm.char" % FLAGS.cm_vocab_size
     elif FLAGS.decoder_topology in ["rnn"]:
-        nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
-        cm_extension = ".ids%d.cm" % FLAGS.tg_vocab_size
+        nl_extension = ".ids%d.nl" % FLAGS.nl_vocab_size
+        cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
         if FLAGS.canonical:
-            nl_extension = ".ids%d.nl.norm" % FLAGS.sc_vocab_size
-            cm_extension = ".ids%d.cm.norm.order" % FLAGS.tg_vocab_size
+            nl_extension = ".ids%d.nl.norm" % FLAGS.nl_vocab_size
+            cm_extension = ".ids%d.cm.norm.order" % FLAGS.cm_vocab_size
         elif FLAGS.normalized:
-            nl_extension = ".ids%d.nl.norm" % FLAGS.sc_vocab_size
-            cm_extension = ".ids%d.cm.norm" % FLAGS.tg_vocab_size
-        nl_full_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size
-        cm_full_extension = ".ids%d.cm.full" % FLAGS.tg_vocab_size
-        nl_copy_full_extension = ".ids%d.nl.copy.full" % FLAGS.sc_vocab_size
-        cm_copy_full_extension = ".ids%d.cm.copy.full" % FLAGS.tg_vocab_size
+            nl_extension = ".ids%d.nl.norm" % FLAGS.nl_vocab_size
+            cm_extension = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
+        nl_full_extension = ".ids%d.nl.full" % FLAGS.nl_vocab_size
+        cm_full_extension = ".ids%d.cm.full" % FLAGS.cm_vocab_size
+        nl_copy_full_extension = ".ids%d.nl.copy.full" % FLAGS.nl_vocab_size
+        cm_copy_full_extension = ".ids%d.cm.copy.full" % FLAGS.cm_vocab_size
     elif FLAGS.decoder_topology in ["basic_tree"]:
-        nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
+        nl_extension = ".ids%d.nl" % FLAGS.nl_vocab_size
         if FLAGS.canonical:
-            cm_extension = ".seq%d.cm.norm.order" % FLAGS.tg_vocab_size
+            cm_extension = ".seq%d.cm.norm.order" % FLAGS.cm_vocab_size
         elif FLAGS.normalized:
-            cm_extension = ".seq%d.cm.norm" % FLAGS.tg_vocab_size
+            cm_extension = ".seq%d.cm.norm" % FLAGS.cm_vocab_size
         else:
-            cm_extension = ".seq%d.cm" % FLAGS.tg_vocab_size
+            cm_extension = ".seq%d.cm" % FLAGS.cm_vocab_size
         append_head_token = False
         append_end_token = False
 
@@ -1066,8 +1065,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
 
     for split in ["train", "dev", "test"]:
         data_path = os.path.join(data_dir, split)
-        nl_txt = data_path + ".%d.nl" % FLAGS.sc_vocab_size
-        cm_txt = data_path + ".%d.cm" % FLAGS.tg_vocab_size
+        nl_txt = data_path + ".%d.nl" % FLAGS.nl_vocab_size
+        cm_txt = data_path + ".%d.cm" % FLAGS.cm_vocab_size
         nl = data_path + nl_extension
         nl_full = data_path + nl_full_extension
         nl_copy_full = data_path + nl_copy_full_extension
