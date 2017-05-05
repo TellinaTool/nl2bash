@@ -65,6 +65,8 @@ def define_input_flags():
 
     # data hyperparameters
     tf.app.flags.DEFINE_string("dataset", "bash", "select dataset to use.")
+    tf.app.flags.DEFINE_integer("nl_vocab_size", 1000, "natural language vocabulary size.")
+    tf.app.flags.DEFINE_integer("cm_vocab_size", 1000, "command vocabulary size.")
     tf.app.flags.DEFINE_integer("max_sc_length", 30, "maximum length of the source token sequence.")
     tf.app.flags.DEFINE_integer("max_tg_length", 40, "maximum length of the target token sequence.")
     tf.app.flags.DEFINE_integer("max_sc_token_size", 60, "maximum number of characters in a source token.")
