@@ -134,8 +134,8 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
         nl_fillers = entities[0]
-    decoded_outputs = decode(formatted_example, model_outputs, FLAGS, vocabs,
-                             nl_fillers, slot_filling_classifier)
+    decoded_outputs = decode(formatted_example.encoder_copy_full_inputs, model_outputs, 
+                             FLAGS, vocabs, nl_fillers, slot_filling_classifier)
 
     return decoded_outputs, output_logits
 
@@ -234,11 +234,11 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                 else:
                                     pred_token_type = pred_token
                                 cm_slots[ii] = (pred_token, pred_token_type)
-                        if FLAGS.use_copy and pred_token == data_utils._UNK:
-                            copy_idx = \
-                                batch_copy_indices[batch_id, beam_id, ii]
-                            pred_token = \
-                                rev_sc_vocab[encoder_inputs[copy_idx][batch_id]]
+                        # if FLAGS.use_copy and pred_token == data_utils._UNK:
+                        #     copy_idx = #\
+                        #         batch_copy_indices[batch_id, beam_id, ii]
+                        #     pred_token = \
+                        #         rev_sc_vocab[encoder_inputs[copy_idx][batch_id]]
                     else:
                         if FLAGS.use_copy:
                             pred_token = rev_sc_vocab[
