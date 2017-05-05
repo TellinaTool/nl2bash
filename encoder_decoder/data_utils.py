@@ -465,7 +465,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                 data_to_token_ids(
                     getattr(data, split), data_path + suffix + '.full',
                     vocab_path, use_unk=False, parallel_data=parallel_data,
-                    use_dummy_indices=('nl.copy' in suffix \
+                    use_dummy_indices=('nl.copy' in suffix
                                        and split in ['dev', 'test']),
                     parallel_vocab_size=parallel_vocab_size)
     else:
