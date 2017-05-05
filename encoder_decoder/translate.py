@@ -37,6 +37,11 @@ from .seq2tree.seq2tree_model import Seq2TreeModel
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
 
+FLAGS.sc_vocab_size = FLAGS.cm_vocab_size \
+    if FLAGS.explain else FLAGS.nl_vocab_size
+FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
+    if FLAGS.explain else FLAGS.cm_vocab_size
+
 _buckets = graph_utils.get_buckets(FLAGS)
 
 
