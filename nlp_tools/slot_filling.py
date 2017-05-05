@@ -408,7 +408,9 @@ def get_fill_in_value(cm_slot, nl_filler):
     return slot_filler_value
 
 def extract_value(filler_type, slot_type, surface):
-    """Extract slot filling values from the natural language."""
+    """
+    Extract slot filling values from the natural language.
+    """
     if filler_type in constants.type_conversion:
         filler_type = constants.type_conversion[filler_type]
 
@@ -651,8 +653,3 @@ def is_min_flag(token):
     if len(token) == 5 and token.endswith('min') and token.startswith('-'):
         return True
     return False
-
-if __name__ == '__main__':
-    nl = 'find all js files under the build direcotry except build/external and build/log directory.'
-    cm = 'find build -not \( -path build/external -prune \) -not \( -path build/blog -prune \) -name \*.js'
-    slot_filler_alignment_induction(nl, cm)
