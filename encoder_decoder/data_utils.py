@@ -982,13 +982,26 @@ def load_vocab(FLAGS):
     nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
 
+    nl_full_extension = 'vocab%d.nl' % FLAGS.sc_vocab_size
+    cm_full_extension = 'vocab%d.cm' % FLAGS.tg_vocab_size
+    nl_full_vocab_path = os.path.join(FLAGS.data_dir, nl_full_extension)
+    cm_full_vocab_path = os.path.join(FLAGS.data_dir, cm_full_extension)
+    nl_full_vocab, rev_nl_full_vocab = \
+        initialize_vocabulary(nl_full_vocab_path)
+    cm_full_vocab, rev_cm_full_vocab = initialize_vocabulary(
+        cm_full_vocab_path)
+
     V = Vocab()
     if FLAGS.explain:
         V.sc_vocab, V.rev_sc_vocab = cm_vocab, rev_cm_vocab
         V.tg_vocab, V.rev_tg_vocab = nl_vocab, rev_nl_vocab
+        V.sc_full_vocab, V.rev_sc_full_vocab = cm_full_vocab, rev_cm_full_vocab
+        V.tg_full_vocab, V.rev_tg_full_vocab = nl_full_vocab, rev_nl_full_vocab
     else:
         V.sc_vocab, V.rev_sc_vocab = nl_vocab, rev_nl_vocab
         V.tg_vocab, V.rev_tg_vocab = cm_vocab, rev_cm_vocab
+        V.sc_full_vocab, V.rev_sc_full_vocab = nl_full_vocab, rev_nl_full_vocab
+        V.tg_full_vocab, V.rev_tg_full_vocab = cm_full_vocab, rev_cm_full_vocab
 
     if FLAGS.use_copy:
         cp_vocab_path = os.path.join(FLAGS.data_dir, "vocab.copy")
@@ -1217,11 +1230,15 @@ class Vocab(object):
     def __init__(self):
         self.sc_vocab = None
         self.tg_vocab = None
+        self.sc_full_vocab = None
+        self.tg_full_vocab = None
         self.sc_char_vocab = None
         self.tg_char_vocab = None
         self.cp_vocab = None
         self.rev_sc_vocab = None
         self.rev_tg_vocab = None
+        self.rev_sc_full_vocab = None
+        self.rev_tg_full_vocab = None
         self.rev_sc_char_vocab = None
         self.rev_tg_char_vocab = None
         self.rev_cp_vocab = None
