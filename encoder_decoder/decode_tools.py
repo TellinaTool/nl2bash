@@ -12,7 +12,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import numpy as np
-import tensorflow as tf
 
 from encoder_decoder import classifiers, data_utils
 from bashlex import data_tools
