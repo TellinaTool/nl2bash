@@ -352,6 +352,7 @@ def eval_slot_filling(dataset):
     """
     vocabs = data_utils.load_vocab(FLAGS)
     rev_tg_vocab = vocabs.rev_tg_vocab
+    rev_tg_full_vocab = vocabs.rev_tg_full_vocab
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
@@ -450,7 +451,7 @@ def eval_slot_filling(dataset):
                         output = outputs[ii]
                         token = rev_tg_vocab[output]
                         if token in constants._ENTITIES:
-                            argument = rev_tg_vocab[full_outputs[ii]]
+                            argument = rev_tg_full_vocab[full_outputs[ii]]
                             if argument.startswith('__LF__'):
                                 argument = argument[len('__LF__'):]
                             pred = tokens[ii]
@@ -625,7 +626,7 @@ def main(_):
             if not FLAGS.explain:
                 eval(dataset, model_sig=model_sig, verbose=False)
         elif FLAGS.grid_search:
-            grid_search(train_set, dataset)
+            grid_searc455h(train_set, dataset)
         elif FLAGS.cross_valid:
             cross_validation(train_set)
         else:
