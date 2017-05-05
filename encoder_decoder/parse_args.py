@@ -51,7 +51,7 @@ def define_input_flags():
                                 "Set to True to decode and evaluate on the test set.")
     tf.app.flags.DEFINE_boolean("demo", False,
                                 "Set to True for interactive demo.")
-    tf.app.flags.DEFINE_boolean("gen_test_results", False,
+    tf.app.flags.DEFINE_boolean("print_test_results", False,
                                 "Set to True to generate a list of test predictions.")
     tf.app.flags.DEFINE_boolean("bucket_selection", False,
                                 "Run a bucket_selection if this is set to True.")

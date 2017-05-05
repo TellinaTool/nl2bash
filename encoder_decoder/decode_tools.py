@@ -20,44 +20,6 @@ from nlp_tools import constants, slot_filling, tokenizer
 from eval.eval_archive import DBConnection
 
 
-def gen_test_results(test_file, output_file, sess, model, FLAGS):
-    vocabs = data_utils.load_vocab(FLAGS)
-
-    slot_filling_classifier = None
-    if FLAGS.fill_argument_slots:
-        # create slot filling classifier
-        mapping_param_dir = os.path.join(
-            FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        train_X, train_Y = \
-            data_utils.load_slot_filling_data(mapping_param_dir)
-        slot_filling_classifier = classifiers.KNearestNeighborModel(
-            FLAGS.num_nn_slot_filling, train_X, train_Y)
-        print('Slot filling classifier parameters loaded.')
-
-    with open(output_file, 'w') as o_f:
-        with open(test_file) as f:
-            for line in f:
-                sentence = line.strip()
-                batch_outputs, output_logits = translate_fun(sentence, sess, model,
-                    vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
-                if FLAGS.token_decoding_algorithm == "greedy":
-                    tree, pred_cmd, outputs = batch_outputs[0]
-                    score = output_logits[0]
-                    o_f.write(pred_cmd + '\n')
-                elif FLAGS.token_decoding_algorithm == "beam_search":
-                    if batch_outputs:
-                        top_k_predictions = batch_outputs[0]
-                        top_k_scores = output_logits[0]
-                        for j in xrange(min(FLAGS.beam_size, 1, len(batch_outputs[0]))):
-                            if len(top_k_predictions) <= j:
-                                break
-                            top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
-                                top_k_predictions[j]
-                            o_f.write(top_k_pred_cmd + '\n')
-                    else:
-                        print('\m') 
-
-
 def demo(sess, model, FLAGS):
     """
     Simple command line decoding interface.
@@ -463,6 +425,43 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
             #         M = attn_alignments[batch_id, 0, :, :]
             #     visualize_attn_alignments(M, sc, outputs, rev_sc_vocab, rev_tg_vocab,
             #         os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
+
+
+def print_test_results(test_file, output_file, sess, model, FLAGS):
+    vocabs = data_utils.load_vocab(FLAGS)
+
+    slot_filling_classifier = None
+    if FLAGS.fill_argument_slots:
+        # create slot filling classifier
+        mapping_param_dir = os.path.join(
+            FLAGS.model_dir, 'train.mappings.X.Y.npz')
+        train_X, train_Y = \
+            data_utils.load_slot_filling_data(mapping_param_dir)
+        slot_filling_classifier = classifiers.KNearestNeighborModel(
+            FLAGS.num_nn_slot_filling, train_X, train_Y)
+        print('Slot filling classifier parameters loaded.')
+
+    o_f = open(output_file, 'w')
+    with open(test_file) as f:
+        for line in f:
+            sentence = line.strip()
+            batch_outputs, output_logits = translate_fun(sentence, sess, model,
+                vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
+            if FLAGS.token_decoding_algorithm == "greedy":
+                tree, pred_cmd, outputs = batch_outputs[0]
+                o_f.write(pred_cmd + '\n')
+            elif FLAGS.token_decoding_algorithm == "beam_search":
+                if batch_outputs:
+                    top_k_predictions = batch_outputs[0]
+                    for j in xrange(min(FLAGS.beam_size, 1, len(batch_outputs[0]))):
+                        if len(top_k_predictions) <= j:
+                            break
+                        top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
+                            top_k_predictions[j]
+                        o_f.write(top_k_pred_cmd + '\n')
+                else:
+                    print('\m')
+    o_f.close()
 
 
 def visualize_attn_alignments(M, source, target, rev_sc_vocab,
