@@ -534,7 +534,6 @@ def prepare_bash(FLAGS, verbose=False):
     print(nl_vocab_size)
     print(cm_vocab_size)
     def add_to_set(nl_data, cm_data, split):
-        with_parent = True
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
             ast = data_tools.bash_parser(cm)
             if ast:
@@ -542,26 +541,26 @@ def prepare_bash(FLAGS, verbose=False):
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl, lemmatization=True)
-                    cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent,
-                                                      arg_unk=False, unk_token=_UNK)
-                    cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
+                    cm_tokens = data_tools.ast2tokens(
+                        ast, with_parent=True, arg_unk=True, unk_token=_UNK)
+                    cm_seq = data_tools.ast2list(ast, list=[], with_parent=True)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
-                        pruned_ast, loose_constraints=True, with_parent=with_parent)
+                        pruned_ast, loose_constraints=True, with_parent=True)
                     cm_pruned_seq = data_tools.ast2list(
-                        pruned_ast, list=[], with_parent=with_parent)
+                        pruned_ast, list=[], with_parent=True)
                     nl_normalized_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_normalized_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True,
-                        with_parent=with_parent)
+                        with_parent=True)
                     cm_normalized_seq = data_tools.ast2list(
-                        ast, arg_type_only=True, list=[], with_parent=with_parent)
+                        ast, arg_type_only=True, list=[], with_parent=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True,
-                        ignore_flag_order=True, with_parent=with_parent)
+                        ignore_flag_order=True, with_parent=True)
                     cm_canonical_seq = data_tools.ast2list(
                         ast, arg_type_only=True, ignore_flag_order=True, list=[],
-                        with_parent=with_parent)
+                        with_parent=True)
                     getattr(nl_list, split).append(nl)
                     getattr(cm_list, split).append(cm)
                     getattr(nl_char_list, split).append(nl_chars)
@@ -1002,9 +1001,9 @@ def load_vocab(FLAGS):
         V.sc_full_vocab, V.rev_sc_full_vocab = nl_full_vocab, rev_nl_full_vocab
         V.tg_full_vocab, V.rev_tg_full_vocab = cm_full_vocab, rev_cm_full_vocab
 
-    if FLAGS.use_copy:
-        cp_vocab_path = os.path.join(FLAGS.data_dir, "vocab.copy")
-        V.cp_vocab, V.rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
+    # if FLAGS.use_copy:
+    #     cp_vocab_path = os.path.join(FLAGS.data_dir, "vocab.copy")
+    #     V.cp_vocab, V.rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
 
     if FLAGS.sc_char or FLAGS.tg_char:
         nl_char_vocab_path = os.path.join(
