@@ -833,7 +833,9 @@ def prepare_data(FLAGS):
 
 
 def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
-    """Induce the filler-slot alignments on train/dev/test dataset."""
+    """
+    Induce the filler-slot alignments on train/dev/test dataset.
+    """
     data_dir = FLAGS.data_dir
 
     for dataset in ['train', 'dev', 'test']:

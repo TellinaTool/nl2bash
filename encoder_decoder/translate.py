@@ -28,6 +28,7 @@ from tensorflow.python.util import nest
 
 from encoder_decoder import classifiers, data_utils, data_stats, graph_utils, \
     decode_tools, hyperparam_range, parse_args
+from bashlex import data_tools
 from nlp_tools import tokenizer, slot_filling, constants
 from eval import eval_tools
 from .seq2seq.seq2seq_model import Seq2SeqModel
@@ -200,12 +201,12 @@ def demo():
         model, _ = create_model(sess, forward_only=True)
         decode_tools.demo(sess, model, FLAGS)
 
-def gen_test_results(test_file, output_file):
+def print_test_results(test_file, output_file):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         model, _ = create_model(sess, forward_only=True)
-        decode_tools.gen_test_results(test_file, output_file, sess, model, 
+        decode_tools.print_test_results(test_file, output_file, sess, model,
                                      FLAGS)
 
 def train_and_eval(train_set, dev_set):
@@ -347,7 +348,7 @@ def eval_local_slot_filling(train_path, test_path):
 
 def eval_slot_filling(dataset):
     """
-    Evaluate global slot filling algorithm accuracy using ground truth templates.
+    Evaluate global slot filling algorithm F1 using ground truth templates.
     """
     vocabs = data_utils.load_vocab(FLAGS)
     rev_tg_vocab = vocabs.rev_tg_vocab
@@ -365,14 +366,18 @@ def eval_slot_filling(dataset):
             FLAGS.num_nn_slot_filling, train_X, train_Y)
         print('Slot filling classifier parameters loaded.')
 
-        num_correct = 0.0
-        num_predict = 0.0
-        num_gt = 0.0
+        num_correct_argument = 0.0
+        num_argument = 0.0
+        num_correct_align = 0.0
+        num_predict_align = 0.0
+        num_gt_align = 0.0
         for bucket_id in xrange(len(_buckets)):
             print(len(dataset[bucket_id]))
             for data_id in xrange(len(dataset[bucket_id])):
                 dp = dataset[bucket_id][data_id]
                 gt_mappings = [tuple(m) for m in dp.mappings]
+                outputs = dp.tg_ids[1:-1]
+                full_outputs = dp.tg_full_ids[1:-1]
                 if gt_mappings:
                     _, entities = tokenizer.ner_tokenizer(dp.sc_txt)
                     nl_fillers = entities[0]
@@ -394,29 +399,29 @@ def eval_slot_filling(dataset):
                     decoder_outputs = model_outputs.decoder_hidden_states
                     cm_slots = {}
                     output_tokens = []
-                    outputs = dp.tg_ids[1:-1]
                     for ii in xrange(len(outputs)):
                         output = outputs[ii]
                         if output < len(rev_tg_vocab):
-                            pred_token = rev_tg_vocab[output]
-                            if "@@" in pred_token:
-                                pred_token = pred_token.split("@@")[-1]
-                            output_tokens.append(pred_token)
+                            token = rev_tg_vocab[output]
+                            if "@@" in token:
+                                token = token.split("@@")[-1]
+                            output_tokens.append(token)
                             if nl_fillers is not None and \
-                                    pred_token in constants._ENTITIES:
+                                    token in constants._ENTITIES:
                                 if ii > 0 and slot_filling.is_min_flag(
                                         rev_tg_vocab[outputs[ii-1]]):
-                                    pred_token_type = 'Timespan'
+                                    token_type = 'Timespan'
                                 else:
-                                    pred_token_type = pred_token
-                                cm_slots[ii] = (pred_token, pred_token_type)
+                                    token_type = token
+                                cm_slots[ii] = (token, token_type)
                         else:
                             output_tokens.append(data_utils._UNK)
                     if FLAGS.use_copy:
                         P = pointer_targets[0][0] > 0
                         pointers = model_outputs.pointers[0]
-                        pointers = np.multiply(np.sum(P.astype(float)[:pointers.shape[0],
-                            -pointers.shape[1]:], 1, keepdims=True), pointers)
+                        pointers = np.multiply(
+                            np.sum(P.astype(float)[:pointers.shape[0],
+                                -pointers.shape[1]:], 1, keepdims=True), pointers)
                         M = {}
                         for j in xrange(pointers.shape[0]):
                             for i in xrange(pointers.shape[1]):
@@ -430,23 +435,39 @@ def eval_slot_filling(dataset):
                         mappings, _ = \
                             slot_filling.stable_marriage_alignment_with_partial(M)
                     else:
-                        _, _, mappings = slot_filling.stable_slot_filling(
+                        tree, _, mappings = slot_filling.stable_slot_filling(
                                     output_tokens, nl_fillers, cm_slots,
                                     encoder_outputs[0], decoder_outputs[0],
                                     slot_filling_classifier)
-                    print(mappings)
-                    print(gt_mappings)
                     for mapping in mappings:
                         if mapping in gt_mappings:
-                            num_correct += 1
-                    num_predict += len(mappings)
-                    num_gt += len(gt_mappings)
+                            num_correct_align += 1
+                    num_predict_align += len(mappings)
+                    num_gt_align += len(gt_mappings)
 
-        precision = num_correct / num_predict
-        recall = num_correct / num_gt
-        print("Precision: {}".format(precision))
-        print("Recall: {}".format(recall))
-        print("F1: {}".format(2 * precision * recall / (precision + recall)))
+                    tokens = data_tools.ast2tokens(tree)
+                    for ii in xrange(len(outputs)):
+                        output = outputs[ii]
+                        token = rev_tg_vocab[output]
+                        if token in constants._ENTITIES:
+                            argument = rev_tg_vocab[full_outputs[ii]]
+                            if argument.startswith('__LF__'):
+                                argument = argument[len('__LF__'):]
+                            pred = tokens[ii]
+                            print(argument, pred)
+                            if argument == pred:
+                                num_correct_argument += 1
+                            num_argument += 1
+
+        precision = num_correct_align / num_predict_align
+        recall = num_correct_align / num_gt_align
+        print("Argument Alignment Precision: {}".format(precision))
+        print("Argument Alignment Recall: {}".format(recall))
+        print("Argument Alignment F1: {}".format(2 * precision * recall /
+                                                 (precision + recall)))
+
+        print("Argument filling accuracy: {}".format(num_correct_argument /
+                                                     num_argument))
 
 
 def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
@@ -572,17 +593,14 @@ def main(_):
     elif FLAGS.process_data:
         process_data()
 
-    elif FLAGS.gen_test_results:
-        gen_test_results(os.path.join(FLAGS.data_dir, '..', 'reader',  
+    elif FLAGS.print_test_results:
+        print_test_results(os.path.join(FLAGS.data_dir, '..', 'reader',
                                       'data.final0502', 'test.3112.cm'),
                          'test.3112.explain')
 
+
     elif FLAGS.gen_slot_filling_training_data:
         gen_slot_filling_training_data()
-    elif FLAGS.eval_slot_filling:
-        _, dev_set, test_set = load_data()
-        dataset = test_set if FLAGS.test else dev_set
-        eval_slot_filling(dataset)
     elif FLAGS.eval_local_slot_filling:
         train_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
         dev_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
@@ -593,35 +611,34 @@ def main(_):
 
     else:
         train_set, dev_set, test_set = load_data()
+        dataset = test_set if FLAGS.test else dev_set
         if FLAGS.gen_eval_sheet:
-            dataset = test_set if FLAGS.test else dev_set
             gen_eval_sheet(dataset)
         elif FLAGS.eval:
-            dataset = test_set if FLAGS.test else dev_set
             eval(dataset, verbose=False)
         elif FLAGS.manual_eval:
-            dataset = test_set if FLAGS.test else dev_set
             manual_eval(dataset, 100)
+        elif FLAGS.eval_slot_filling:
+            eval_slot_filling(dataset)
         elif FLAGS.decode:
-            dataset = test_set if FLAGS.test else dev_set
             model_sig = decode(dataset)
             if not FLAGS.explain:
                 eval(dataset, model_sig=model_sig, verbose=False)
         elif FLAGS.grid_search:
-            grid_search(train_set, dev_set)
+            grid_search(train_set, dataset)
         elif FLAGS.cross_valid:
             cross_validation(train_set)
         else:
             # Train the model.
-            train(train_set, dev_set)
+            train(train_set, dataset)
 
             # Decode the new model on the development set.
             tf.reset_default_graph()
-            model_sig = decode(dev_set, construct_model_dir=False)
+            model_sig = decode(dataset, construct_model_dir=False)
 
             # Run automatic evaluation on the development set.
             if not FLAGS.explain:
-                eval(dev_set, model_sig, verbose=False)
+                eval(dataset, model_sig, verbose=False)
 
     
 if __name__ == "__main__":
