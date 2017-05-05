@@ -119,7 +119,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [[sc_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
+        [[sc_ids],[sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
         pointer_targets=[pointer_targets], bucket_id=bucket_id)
 
     # Decode the output for this 1-element batch.
@@ -134,8 +134,8 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
         nl_fillers = entities[0]
-    decoded_outputs = decode([sc_full_ids], model_outputs,
-                             FLAGS, vocabs, nl_fillers, slot_filling_classifier)
+    decoded_outputs = decode(formatted_example., model_outputs, FLAGS, vocabs,
+                             nl_fillers, slot_filling_classifier)
 
     return decoded_outputs, output_logits
 
