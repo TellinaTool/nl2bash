@@ -544,7 +544,7 @@ def prepare_bash(FLAGS, verbose=False):
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl, lemmatization=True)
                     cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent,
-                                                      arg_unk=True, unk_token=_UNK)
+                                                      arg_unk=False, unk_token=_UNK)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
