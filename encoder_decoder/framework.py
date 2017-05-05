@@ -632,7 +632,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         pointer_targets = []
 
         # Get a random batch of encoder and decoder inputs from data,
-        data_ids = xrange(len(data[bucket_id]))
+        data_ids = list(xrange(len(data[bucket_id])))
         if not use_all:
             random.shuffle(data_ids)
             data_ids = data_ids[:self.batch_size]
