@@ -241,7 +241,9 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                     else:
                         if FLAGS.use_copy:
                             pred_token = rev_sc_vocab[
-                                encoder_inputs[output - FLAGS.tg_vocab_size][batch_id]]
+                                encoder_inputs[
+                                    len(encoder_inputs) - 1
+                                    - (output - FLAGS.tg_vocab_size)][batch_id]]
                             print(pred_token)
                         else:
                             pred_token = data_utils._UNK
