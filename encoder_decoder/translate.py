@@ -200,6 +200,13 @@ def demo():
         model, _ = create_model(sess, forward_only=True)
         decode_tools.demo(sess, model, FLAGS)
 
+def gen_test_results(test_file, output_file):
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+        log_device_placement=FLAGS.log_device_placement)) as sess:
+        # Create model and load parameters.
+        model, _ = create_model(sess, forward_only=True)
+        decode_tools.gen_test_results(test_file, output_file, sess, model, 
+                                     FLAGS)
 
 def train_and_eval(train_set, dev_set):
     train(train_set, dev_set, construct_model_dir=True)
@@ -564,6 +571,11 @@ def main(_):
         data_statistics()
     elif FLAGS.process_data:
         process_data()
+
+    elif FLAGS.gen_test_results:
+        gen_test_results(os.path.join(FLAGS.data_dir, '..', 'reader',  
+                                      'data.final0502', 'test.3112.cm'),
+                         'test.3112.explain')
 
     elif FLAGS.gen_slot_filling_training_data:
         gen_slot_filling_training_data()
