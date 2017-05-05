@@ -76,8 +76,8 @@ CATOM_ID = 3
 CLONG_ID = 4
 CGO_ID = 5
 
-_CHAR_START_VOCAB = [_CPAD, _CEOS, _CUNK, _CATOM,
-                     constants._LONG_TOKEN_IND, _CGO]
+_CHAR_START_VOCAB = [_CPAD, _CEOS, _CUNK, _CATOM, constants._LONG_TOKEN_IND,
+                     _CGO]
 
 _data_splits = ['train', 'dev', 'test']
 
