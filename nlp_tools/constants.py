@@ -251,13 +251,13 @@ def include_space(r):
     A regular expression has to have a whitespace or other separator at both
     ends.
     """
-    return r'(^|\s)' + r + r'(\s|$|,|\.)'
+    return r'(^|\s)' + r + r'(\s|$|,|\.){1}'
 
 def quotation_safe(r):
     """
     Match a regular expression with or without quotation marks.
     """
-    return '({}|\'{}\'|"{}")'.format(r, r)
+    return '({}|\'{}\'|"{}")'.format(r, r, r)
 
 def polarity_safe(r):
     """
