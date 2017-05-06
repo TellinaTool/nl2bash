@@ -130,6 +130,9 @@ def annotate(tokens):
     for m in re.finditer(
         re.compile(constants._WORD_SPLIT_RESPECT_QUOTES), sentence):
         w = m.group(0)
+        # exclude isolated quotations
+        if w in ['"', '\'']:
+            continue
         # normalized_words_char_pos.append((m.start(0), m.end(0)))
         if set(w) == {'-'}:
             if (m.start(0), m.end(0)) in ner_by_char_pos:
@@ -147,9 +150,6 @@ def annotate(tokens):
             else:
                 normalized_words.append(w)
         i += 1
-
-    # for i in xrange(len(normalized_words)):
-    #     w = normalized_words[i]
 
     return normalized_words, (ner_by_token_id, ner_by_char_pos, ner_by_category)
 
