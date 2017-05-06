@@ -125,7 +125,6 @@ def annotate(tokens):
 
     # prepare list of tokens
     normalized_words = []
-    # normalized_words_char_pos = []
     ner_by_char_pos, ner_by_category = entities
     i = 0
     for m in re.finditer(
@@ -134,7 +133,6 @@ def annotate(tokens):
         # exclude isolated quotations
         if w in ['"', '\'']:
             continue
-        # normalized_words_char_pos.append((m.start(0), m.end(0)))
         if set(w) == {'-'}:
             if (m.start(0), m.end(0)) in ner_by_char_pos:
                 surface, category = ner_by_char_pos[(m.start(0), m.end(0))]
