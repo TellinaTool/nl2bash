@@ -105,7 +105,7 @@ def annotate(tokens):
     sentence = annotate_ner(_FILE_RE, constants._FILE, sentence, entities)
 
     # -- Other patterns
-    _REGEX_QUOTED_RE = re.compile(decorate_boundaries(constants._QUOTED_RE))
+    _REGEX_QUOTED_RE = re.compile(constants.include_space(constants._QUOTED_RE))
     sentence = annotate_ner(_REGEX_QUOTED_RE, constants._REGEX, sentence, entities)
 
     # -- Match all unquoted patterns
