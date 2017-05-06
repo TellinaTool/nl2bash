@@ -99,8 +99,8 @@ def annotate(tokens):
         _DIRECTORY_RE, constants._DIRECTORY, sentence, entities)
 
     # -- File
-    _FILE_RE = re.compile(constants.include_quotations(r'([^"\']*\.[^ "\']+|' +
-        r'([^"\']*\/)+[^"\']*|' + constants._FILE_EXTENSION_RE + ')'))
+    _FILE_RE = re.compile(constants.include_quotations(r'([^"\']*\.[^ "\']+)|' +
+        r'(([^"\']*\/)+[^"\']*)|' + constants._FILE_EXTENSION_RE + ')'))
     sentence = annotate_ner(_FILE_RE, constants._FILE, sentence, entities)
 
     # -- Other patterns
