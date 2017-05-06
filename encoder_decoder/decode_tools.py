@@ -107,7 +107,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
             sc_ids, entities = data_utils.sentence_to_token_ids(
                 sentence, sc_vocab, tokenizer.ner_tokenizer, None)
             sc_full_ids, _ = data_utils.sentence_to_token_ids(
-                sentence, sc_vocab, tokenizer.ner_tokenizer, None, use_unk=False)
+                sentence, sc_vocab, tokenizer.basic_tokenizer, None, use_unk=False)
             sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
                 tg_vocab, tokenizer.basic_tokenizer, None, use_unk=False,
                 use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
@@ -118,7 +118,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [[sc_ids],[sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
+        [[sc_ids], [sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
         pointer_targets=[pointer_targets], bucket_id=bucket_id)
 
     # Decode the output for this 1-element batch.
