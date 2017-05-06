@@ -253,11 +253,12 @@ def include_space(r):
     """
     return r'(^|\s)' + r + r'(\s|$|,|\.){1}'
 
-def quotation_safe(r):
+def quotation_safe(r, rq=None):
     """
     Match a regular expression with or without quotation marks.
     """
-    return '({}|\'{}\'|"{}")'.format(r, r, r)
+    rq = r if rq is None else rq
+    return '({}|\'{}\'|"{}")'.format(r, rq, rq)
 
 def polarity_safe(r):
     """
