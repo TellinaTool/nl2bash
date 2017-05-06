@@ -120,15 +120,15 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
         # covert number words into numbers
         if word in constants.word2num:
             word = str(constants.word2num[word])
-
+        
         # lemmatization
-        if lemmatization:
+        if lemmatization and not constants.with_quotation(word):
             if not re.match(constants._SPECIAL_SYMBOL_RE, word):
                 try:
                     word = stemmer.stem(word.decode('utf-8'))
                 except AttributeError:
                     word = stemmer.stem(word)
-
+        
         # remove empty words
         if not word.strip():
             continue
