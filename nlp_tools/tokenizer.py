@@ -81,7 +81,7 @@ def clean_sentence(sentence):
         '"?files\/directories"?', 'files and directories', sentence)
     sentence = re.sub('"?name\/path"?', 'name or path', sentence)
     sentence = re.sub('"?names\/paths"?', 'name or path', sentence)
-
+    sentence = re.sub(' pattern` ', ' pattern ', sentence)
     return sentence
 
 
