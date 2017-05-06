@@ -1,11 +1,11 @@
 type
-		File        (file, source_file, target_file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, reference)
+		File        (file, source_file, target_file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, reference, input_file, output_file)
 		Directory   (directory, exdir, dir)
 		Path        (path)
-		Permission  (permmode, MINUSpermmode, PLUSpermmode)
+		Permission  (permmode, MINUSpermmode, PLUSpermmode, mode)
 		Date        (date)
 		Prog        (command, prog, program, utility, varEQvalue)
-		Regex       (name, gname, uname, eofstr, replstr, string, extension, option, options, MINUSflags, PLUSflags, flags, type, findexp, format, owner, group, first, last, suffixes, pattern, fs, mask)
+		Regex       (name, gname, uname, eofstr, replstr, string, extension, option, options, MINUSflags, PLUSflags, flags, type, findexp, format, owner, group, first, last, suffix, suffixes, pattern, fs, mask, system)
 		Number      (n, num, number, replacements, maxprocs, incr, bytes, count, depth)
 		Time        (time, date)
 		Size        (size, blocksize)
@@ -19,8 +19,61 @@ constants
 		LB (
 		RB )
 		{} {}
+		DASHDASH --
+		GE >
+		LE <
 
 PrimitiveCmd :=
+
+		file [-bcdDhiIkLnNprsvz] [--extension] [--mime-encoding] [--mime-type] [-f file] [-m file] [-P string] [-M file] file
+
+		file -C [-m file]
+
+		file [--help]
+
+		cat [-benstuv] [file ...]
+
+		basename string [suffix]
+
+		basename [-a] [-s suffix] string ...
+
+		dirname string
+
+		cut -b list [-n] [file ...]
+
+		cut -c list [file ...]
+
+		cut -f list [-d delimiter] [-s] [file ...]
+
+		uniq [-c | -d | -u] [-i] [-f num] [-s string] [input_file [output_file]]
+
+		pwd [-L | -P]
+
+		tee [-ai] [file ...]
+
+		rmdir [-p] directory ...
+
+		mkdir [-pv] [-m mode] directory ...
+
+		md5sum [-bctw] [--quiet] [--status] [--warn] [file ...]
+
+		compress [-fv] [-b bits] [file ...]
+
+		compress -c [-b bits] [file]
+
+		uncompress [-fv] [file ...]
+
+		uncompress -c [file]
+
+		less [-S]
+
+		parallel [-j num] [-l num] [-i] [-n] [:command:] DASHDASH [string ...]
+
+		cpio -i [-0acvABLV] [-C bytes] [-H format] [-M message] [-O string] [-F string] [--file=string] [--format=format] [--message=message] [--null] [--reset-access-time] [--verbose] [--dot] [--append] [--block-size=blocks] [--dereference] [--io-size=bytes] [--rsh-command=command] [--help] [--version] LE name ... [GE archive]
+
+		cpio -p [-0adlmuvLV] [-R string] [--null] [--reset-access-time] [--make-directories] [--link] [--quiet] [--preserve-modification-time] [--unconditional] [--verbose] [--dot] [--dereference] [--owner=string] [--no-preserve-owner] [--sparse] [--help] [--version] dir LE name ...
+
+		cpio -o [-bcdfmnrtsuvBSV] [-C bytes] [-E file] [-H format] [-M message] [-R string] [-I string] [-F string] [--file=string] [--make-directories] [--nonmatching] [--preserve-modification-time] [--numeric-uid-gid] [--rename] [-t | --list] [--swap-bytes] [--swap] [--dot] [--unconditional] [--verbose] [--block-size=blocks] [--swap-halfwords] [--io-size=bytes] [--pattern-file=file] [--format=format] [--owner=string] [--no-preserve-owner] [--message=message] [--force-local] [--no-absolute-filenames] [--absolute-filenames] [--sparse] [--only-verify-crc] [--to-stdout] [--quiet] [--rsh-command=command] [--help] [--version] [pattern...] LE name ... [GE string]
 
 		find [-H | -L | -P] [-EXdsx] [-f path] path ... :find_expression: ...
 
@@ -31,6 +84,8 @@ PrimitiveCmd :=
 		mv [-f | -i | -n] [-v] source_file ... directory
 
 		mv [-f | -i | -n] [-v] -t directory source_file ...
+
+		rename [-svnVh] regex regex file ...
 
 		sort [-bdfgiMnrckmosStTuz] [file ...]
 				

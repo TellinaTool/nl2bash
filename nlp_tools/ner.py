@@ -120,11 +120,9 @@ def annotate(tokens):
     normalized_words = []
     ner_by_char_pos, ner_by_category = entities
     i = 0
-    print(sentence)
     for m in re.finditer(
         re.compile(constants._WORD_SPLIT_RESPECT_QUOTES), sentence):
         w = m.group(0)
-        print(w)
         if set(w) == {'-'}:
             if (m.start(0), m.end(0)) in ner_by_char_pos:
                 surface, category = ner_by_char_pos[(m.start(0), m.end(0))]

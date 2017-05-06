@@ -12,7 +12,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import numpy as np
-import tensorflow as tf
 
 from encoder_decoder import classifiers, data_utils
 from bashlex import data_tools
@@ -91,6 +90,8 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
             sentence, arg_type_only=FLAGS.normalized)
         sc_ids, _ = data_utils.sentence_to_token_ids(
             sc_tokens, sc_vocab, data_tools.bash_tokenizer, None)
+        sc_full_ids, _ = data_utils.sentence_to_token_ids(
+            sc_tokens, sc_vocab, data_tools.bash_tokenizer, None, use_unk=False)
         sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(
             sc_tokens, tg_vocab, data_tools.bash_tokenizer, None, use_unk=False,
             use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
@@ -98,12 +99,18 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
         if FLAGS.char:
             sc_ids, entities = data_utils.sentence_to_token_ids(sentence,
                 sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+            sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
+                sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer,
+                use_unk=False)
             sc_copy_full_ids = []
         else:
             sc_ids, entities = data_utils.sentence_to_token_ids(
                 sentence, sc_vocab, tokenizer.ner_tokenizer, None)
+            sc_full_ids, _ = data_utils.sentence_to_token_ids(
+                sentence, sc_vocab, tokenizer.basic_tokenizer, None, use_unk=False)
             sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
-                tg_vocab, tokenizer.basic_tokenizer, None, use_unk=False)
+                tg_vocab, tokenizer.basic_tokenizer, None, use_unk=False,
+                use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
     
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
@@ -111,7 +118,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [[sc_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
+        [[sc_ids], [sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
         pointer_targets=[pointer_targets], bucket_id=bucket_id)
 
     # Decode the output for this 1-element batch.
@@ -126,7 +133,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
         nl_fillers = entities[0]
-    decoded_outputs = decode(formatted_example.encoder_full_inputs, model_outputs,
+    decoded_outputs = decode(formatted_example.encoder_full_inputs, model_outputs, 
                              FLAGS, vocabs, nl_fillers, slot_filling_classifier)
 
     return decoded_outputs, output_logits
@@ -226,16 +233,18 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                 else:
                                     pred_token_type = pred_token
                                 cm_slots[ii] = (pred_token, pred_token_type)
-                        if FLAGS.use_copy and pred_token == data_utils._UNK:
-                            copy_idx = \
-                                batch_copy_indices[batch_id, beam_id, ii]
-                            pred_token = \
-                                rev_tg_vocab[encoder_inputs[copy_idx][batch_id]]
+                        # if FLAGS.use_copy and pred_token == data_utils._UNK:
+                        #     copy_idx = #\
+                        #         batch_copy_indices[batch_id, beam_id, ii]
+                        #     pred_token = \
+                        #         rev_sc_vocab[encoder_inputs[copy_idx][batch_id]]
                     else:
                         if FLAGS.use_copy:
                             pred_token = rev_sc_vocab[
-                                encoder_inputs[batch_id][output - FLAGS.target_vocab_size]]
-                            print(pred_token)
+                                encoder_inputs[len(encoder_inputs) - 1
+                                    - (output - FLAGS.tg_vocab_size)][batch_id]]
+                            if pred_token.startswith('__LF__'):
+                                pred_token = pred_token[len('__LF__'):]
                         else:
                             pred_token = data_utils._UNK
                     output_tokens.append(pred_token)
@@ -417,6 +426,43 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
             #         M = attn_alignments[batch_id, 0, :, :]
             #     visualize_attn_alignments(M, sc, outputs, rev_sc_vocab, rev_tg_vocab,
             #         os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
+
+
+def print_test_results(test_file, output_file, sess, model, FLAGS):
+    vocabs = data_utils.load_vocab(FLAGS)
+
+    slot_filling_classifier = None
+    if FLAGS.fill_argument_slots:
+        # create slot filling classifier
+        mapping_param_dir = os.path.join(
+            FLAGS.model_dir, 'train.mappings.X.Y.npz')
+        train_X, train_Y = \
+            data_utils.load_slot_filling_data(mapping_param_dir)
+        slot_filling_classifier = classifiers.KNearestNeighborModel(
+            FLAGS.num_nn_slot_filling, train_X, train_Y)
+        print('Slot filling classifier parameters loaded.')
+
+    o_f = open(output_file, 'w')
+    with open(test_file) as f:
+        for line in f:
+            sentence = line.strip()
+            batch_outputs, output_logits = translate_fun(sentence, sess, model,
+                vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
+            if FLAGS.token_decoding_algorithm == "greedy":
+                tree, pred_cmd, outputs = batch_outputs[0]
+                o_f.write(pred_cmd + '\n')
+            elif FLAGS.token_decoding_algorithm == "beam_search":
+                if batch_outputs:
+                    top_k_predictions = batch_outputs[0]
+                    for j in xrange(min(FLAGS.beam_size, 1, len(batch_outputs[0]))):
+                        if len(top_k_predictions) <= j:
+                            break
+                        top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
+                            top_k_predictions[j]
+                        o_f.write(top_k_pred_cmd + '\n')
+                else:
+                    print('\m')
+    o_f.close()
 
 
 def visualize_attn_alignments(M, source, target, rev_sc_vocab,
