@@ -120,6 +120,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
     formatted_example = model.format_example(
         [[sc_ids],[sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
         pointer_targets=[pointer_targets], bucket_id=bucket_id)
+    print(sc_copy_full_ids)
 
     # Decode the output for this 1-element batch.
     # Non-grammatical templates and templates that cannot hold all fillers are
