@@ -459,7 +459,8 @@ def extract_filename(value, slot_type='File'):
     """Extract file names."""
     quoted_span_re = re.compile(constants._QUOTED_RE)
     special_symbol_re = re.compile(constants._SPECIAL_SYMBOL_RE)
-    file_extension_re = re.compile(constants._FILE_EXTENSION_RE)
+    file_extension_re = re.compile('{}|{}'.format(constants._FILE_EXTENSION_RE,
+        constants._FILE_EXTENSION_RE.upper()))
     path_re = re.compile(constants._PATH_RE)
 
     # path
