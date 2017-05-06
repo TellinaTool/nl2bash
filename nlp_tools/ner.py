@@ -115,7 +115,7 @@ def annotate(tokens):
         _DIRECTORY_RE, constants._DIRECTORY, sentence, entities)
     print(entities)
     # -- File
-    _FILE_RE = re.compile(r'([^ "\']*\.[^ "\']+|' + r'([^ "\']*\/)+[^ "\']*)|(' +
+    _FILE_RE = re.compile(r'([^ ]*\.[^ ]+|' + r'([^ ]*\/)+[^ ]*)|(' +
         decorate_boundaries(constants._FILE_EXTENSION_RE) + ')')
     sentence = annotate_ner(_FILE_RE, constants._FILE, sentence, entities)
     print(entities)
