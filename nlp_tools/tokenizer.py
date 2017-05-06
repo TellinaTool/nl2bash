@@ -95,6 +95,9 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
     for i in xrange(len(words)):
         word = words[i].strip()
 
+        if word in ['"', '\'']:
+            continue
+
         # remove unnecessary upper cases
         if lower_case:
             # if i == 0 and word[0].isupper() \
