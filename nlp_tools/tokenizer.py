@@ -32,32 +32,31 @@ def clean_sentence(sentence):
     sentence = re.sub(_PAREN_REMOVE, '', sentence)
 
     try:
-        sentence = sentence.replace("“", '"')
-        sentence = sentence.replace("”", '"')
-        sentence = sentence.replace('‘', '\'')
-        sentence = sentence.replace('’', '\'')
+        sentence = sentence.replace("“", '"')\
+            .replace("”", '"')\
+            .replace('‘', '\'')\
+            .replace('’', '\'')
     except UnicodeDecodeError:
-        sentence = sentence.replace("“".decode('utf-8'), '"')
-        sentence = sentence.replace("”".decode('utf-8'), '"')
-        sentence = sentence.replace('‘'.decode('utf-8'), '\'')
-        sentence = sentence.replace('’'.decode('utf-8'), '\'')
+        sentence = sentence.replace("“".decode('utf-8'), '"')\
+            .replace("”".decode('utf-8'), '"')\
+            .replace('‘'.decode('utf-8'), '\'')\
+            .replace('’'.decode('utf-8'), '\'')
     sentence = sentence.replace('`\'', '"')\
-            .replace('``', '"')\
-            .replace("''", '"') \
-            .replace('(', ' ( ') \
-            .replace(')', ' ) ')
-            # .replace(' \'', ' "') \
-            # .replace('\' ', '" ') \
-            # .replace('\',', '",') \
-            # .replace('\'.', '".') \
-            # .replace('`', '"') \
-            # .replace('[', '[ ') \
-            # .replace('{', '{ ') \
-            # .replace(']', ' ]') \
-            # .replace('}', ' }') \
-            # .replace('<', '< ') \
-            # .replace('>', ' >')
-    sentence = re.sub('\'$', '"', sentence)
+        .replace('``', '"')\
+        .replace("''", '"')\
+        .replace('(', ' ( ')\
+        .replace(')', ' ) ')
+        # .replace(' \'', ' "') \
+        # .replace('\' ', '" ') \
+        # .replace('\',', '",') \
+        # .replace('\'.', '".') \
+        # .replace('`', '"') \
+        # .replace('[', '[ ') \
+        # .replace('{', '{ ') \
+        # .replace(']', ' ]') \
+        # .replace('}', ' }') \
+        # .replace('<', '< ') \
+        # .replace('>', ' >')
 
     sentence = re.sub('(,\s+)|(,$)', ' ', sentence)
     sentence = re.sub('(;\s+)|(;$)', ' ', sentence)
