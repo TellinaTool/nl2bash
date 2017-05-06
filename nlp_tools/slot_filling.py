@@ -439,11 +439,12 @@ def extract_value(filler_type, slot_type, surface):
         value = value
     elif filler_type in ['Username', 'Groupname']:
         value = value
-    print(value)
+    
     # add quotations for pattern slots
     if filler_type in constants._PATTERNS and \
             not constants.with_quotation(value):
         value = constants.add_quotations(value)
+    
     return value
 
 def extract_number(value):

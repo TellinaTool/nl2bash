@@ -110,7 +110,7 @@ def annotate(tokens):
 
     # -- Match all unquoted patterns
     # -- Directory
-    _DIRECTORY_RE = re.compile(r'[^ "\']*\/')
+    _DIRECTORY_RE = re.compile(decorate_boundaries(r'[^ "\']*\/'))
     sentence = annotate_ner(
         _DIRECTORY_RE, constants._DIRECTORY, sentence, entities)
 
