@@ -45,9 +45,9 @@ def clean_sentence(sentence):
         .replace('``', '"')\
         .replace("''", '"')\
         .replace('(', ' ( ')\
-        .replace(')', ' ) ')
-        # .replace(' \'', ' "') \
-        # .replace('\' ', '" ') \
+        .replace(')', ' ) ')\
+        .replace(' `', ' \'') \
+        .replace('` ', '\' ')
         # .replace('\',', '",') \
         # .replace('\'.', '".') \
         # .replace('`', '"') \
