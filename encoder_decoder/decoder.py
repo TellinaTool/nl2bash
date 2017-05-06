@@ -244,7 +244,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                             * self.hidden_features[a], [1])
                 context = tf.reshape(d, [-1, self.attn_dim])
                 ds.append(context)
-        # attns = tf.concat(1, ds)
 
         self.attention_vars = True
         return ds, alignments

@@ -317,29 +317,32 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             words, entities = tokenizer(sentence)
     token_ids = []
     for (i, w) in enumerate(words):
-        if use_dummy_indices:
-            token_ids.append(parallel_vocab_size + i)
-        else:
-            if w in vocabulary:
-                if w.startswith('__LF__'):
-                    if use_unk:
-                        token_ids.append(UNK_ID)
-                    elif parallel_sentence is not None:
-                        if not (w in parallel_sentence
-                                or w[len('__LF__'):] in parallel_sentence):
-                            token_ids.append(UNK_ID)
+        if w in vocabulary:
+            if w.startswith('__LF__'):
+                if use_unk:
+                    token_ids.append(UNK_ID)
+                elif parallel_sentence is not None:
+                    if not (w in parallel_sentence
+                            or w[len('__LF__'):] in parallel_sentence):
+                        if use_dummy_indices:
+                            token_ids.append(parallel_vocab_size + i)
                         else:
-                            token_ids.append(vocabulary[w])
+                            token_ids.append(UNK_ID)
                     else:
                         token_ids.append(vocabulary[w])
                 else:
                     token_ids.append(vocabulary[w])
             else:
-                # Unknown token
-                if w.startswith('__LF__') and w[len('__LF__'):] in vocabulary:
-                    token_ids.append(vocabulary[w[len('__LF__'):]])
-                elif not use_unk and ('__LF__' + w) in vocabulary:
-                    token_ids.append(vocabulary['__LF__' + w])
+                token_ids.append(vocabulary[w])
+        else:
+            # Unknown token
+            if w.startswith('__LF__') and w[len('__LF__'):] in vocabulary:
+                token_ids.append(vocabulary[w[len('__LF__'):]])
+            elif not use_unk and ('__LF__' + w) in vocabulary:
+                token_ids.append(vocabulary['__LF__' + w])
+            else:
+                if use_dummy_indices:
+                    token_ids.append(parallel_vocab_size + i)
                 else:
                     token_ids.append(UNK_ID)
 
