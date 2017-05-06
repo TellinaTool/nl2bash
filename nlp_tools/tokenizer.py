@@ -121,7 +121,7 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
         # covert number words into numbers
         if word in constants.word2num:
             word = str(constants.word2num[word])
-        print(word) 
+        
         # lemmatization
         if lemmatization and not constants.with_quotation(word):
             if not re.match(constants._SPECIAL_SYMBOL_RE, word):
