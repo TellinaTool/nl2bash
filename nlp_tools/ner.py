@@ -11,9 +11,6 @@ import re
 
 from . import constants
 
-def add_space(s):
-    return ' ' + s + ' '
-
 def decorate_boundaries(r):
     """
     Match named entity boundary characters s.a. quotations and whitespaces.
@@ -95,10 +92,6 @@ def annotate(tokens):
         constants.polarity_safe(constants._DIGIT_RE)))
     sentence = annotate_ner(_NUMBER_RE, constants._NUMBER, sentence, entities)
 
-    # -- Path
-    # path_re = re.compile(decorate_boundaries(constants._PATH_RE))
-    # sentence = annotate_ner(path_re, constants._PATH, sentence, entities)
-
     # -- Directory
     _DIRECTORY_RE = re.compile(decorate_boundaries(r'[^ ]*\/'))
     sentence = annotate_ner(
@@ -118,11 +111,13 @@ def annotate(tokens):
 
     # prepare list of tokens
     normalized_words = []
+    # normalized_words_char_pos = []
     ner_by_char_pos, ner_by_category = entities
     i = 0
     for m in re.finditer(
         re.compile(constants._WORD_SPLIT_RESPECT_QUOTES), sentence):
         w = m.group(0)
+        # normalized_words_char_pos.append((m.start(0), m.end(0)))
         if set(w) == {'-'}:
             if (m.start(0), m.end(0)) in ner_by_char_pos:
                 surface, category = ner_by_char_pos[(m.start(0), m.end(0))]
@@ -139,6 +134,9 @@ def annotate(tokens):
             else:
                 normalized_words.append(w)
         i += 1
+
+    # for i in xrange(len(normalized_words)):
+    #     w = normalized_words[i]
 
     return normalized_words, (ner_by_token_id, ner_by_char_pos, ner_by_category)
 
