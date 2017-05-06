@@ -253,6 +253,9 @@ def include_space(r):
     """
     return r'(^|\s)' + r + r'(\s|$|,|\.){1}'
 
+def include_quotations(r):
+    return '(\'{}\'|"{}")'.format(r)
+
 def quotation_safe(r, rq=None):
     """
     Match a regular expression with or without quotation marks.
