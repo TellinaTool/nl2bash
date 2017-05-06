@@ -2,7 +2,7 @@
 Gazetteers for bash.
 """
 
-head_commands = [
+utilities = [
     "find",
     "xargs",
     "grep",
@@ -19,7 +19,45 @@ head_commands = [
     "sort",
     "head",
     "tail",
-    "tar"
+    "tar",
+    "du",
+    "file",
+    "cat",
+    "basename",
+    "cut",
+    "uniq",
+    "pwd",
+    "cpio",
+    "dirname",
+    "tee",
+    "rename",
+    "rmdir",
+    "mkdir",
+    "less",
+    "md5sum",
+    "compress"
+]
+
+utilities_20_to_15 = [
+    "du",
+    "file",
+    "cat",
+    "basename",
+    "cut",
+    "uniq",
+    "pwd",
+    "cpio",
+    "dirname",
+    "tee"
+]
+
+utilities_15_to_10 = [
+    "rename",
+    "rmdir",
+    "mkdir",
+    "less",
+    "md5sum",
+    "compress"
 ]
 
 float_arguments = {

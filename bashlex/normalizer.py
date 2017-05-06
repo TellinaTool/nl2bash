@@ -239,7 +239,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             value, arg_value = node.word.rsplit('=', 1)
             norm_node = FlagNode(value=value)
             arg_node = ArgumentNode(value=arg_value,
-                arg_type=man_lookup.get_flag_arg_type(current.value, value))
+                arg_type=man_lookup.get_flag_arg_type(current.value, value,
+                                                      default_type='Unknown'))
             attach_to_tree(norm_node, current)
             attach_to_tree(arg_node, norm_node)
         else:
@@ -257,7 +258,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
     def normalize_command(node, current):
         arg_status = None                       # determine argument types
-        head_commands = []
+        utilities = []
         unary_logic_ops = []
         binary_logic_ops = []
         unprocessed_unary_logic_ops = []
@@ -488,7 +489,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                         if node_kind == "headcommand":
                             norm_node = normalize_headcommand(child,
                                                               attach_point)
-                            head_commands.append(norm_node)
+                            utilities.append(norm_node)
                             head_cmd = norm_node.value
                             arg_status = copy.deepcopy(man_lookup.get_arg_types(head_cmd))
                             attach_point_info = \
@@ -574,16 +575,16 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
         # TODO: some commands get parsed with no head command
         # This is usually due to unrecognized utilities e.g. "mp3player".
-        if len(head_commands) == 0:
+        if len(utilities) == 0:
             return
 
-        if len(head_commands) > 1:
+        if len(utilities) > 1:
             print("Error: multiple headcommands in one command.")
-            for hc in head_commands:
+            for hc in utilities:
                 print(hc.symbol)
             sys.exit()
 
-        head_command = head_commands[0]
+        head_command = utilities[0]
 
         # process (embedded) parenthese -- treat as implicit "-and"
         stack = []
@@ -852,6 +853,9 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
     except AssertionError:
         print("Cannot parse: %s - AssertionError" % cmd2)
         # not a bash command
+        return None
+    except TypeError:
+        print("Cannot parse: %s - AssertionError" % cmd2)
         return None
 
     if len(tree) > 1:
@@ -1225,20 +1229,3 @@ def to_tokens(node, loose_constraints=False, ignore_flag_order=False,
         return tokens
 
     return to_tokens_fun(node)
-
-
-def test_tokenization():
-    i_f = open(sys.argv[1])
-    o_f = open(sys.argv[2], 'w')
-
-    for cmd in i_f.readlines():
-        cmd = cmd.strip()
-        cmd = ' '.join(to_tokens(normalize_ast(cmd)))
-        # str = ''
-        # for token in tokenizer.split(cmd):
-        #     str += cmd + ' '
-        o_f.write(cmd.strip() + '\n')
-
-
-if __name__ == "__main__":
-    test_tokenization()

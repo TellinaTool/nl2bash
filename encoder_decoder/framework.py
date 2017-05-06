@@ -524,6 +524,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if len(encoder_channel_inputs) > 1:
             batch_encoder_full_inputs = load_channel(
                 encoder_channel_inputs[1], encoder_size, reversed_output=True)
+        if len(encoder_channel_inputs) > 2:
+            batch_encoder_copy_full_inputs = load_channel(
+                encoder_channel_inputs[2], encoder_size, reversed_output=True)
         batch_decoder_inputs = load_channel(
             decoder_channel_inputs[0], decoder_size, reversed_output=False)
         if len(decoder_channel_inputs) > 1:
@@ -555,7 +558,10 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         E = Example()
         E.encoder_inputs = batch_encoder_inputs
-        E.encoder_full_inputs = batch_encoder_full_inputs
+        if len(encoder_channel_inputs) > 1:
+            E.encoder_full_inputs = batch_encoder_full_inputs
+        if len(encoder_channel_inputs) > 2:
+            E.encoder_copy_full_inputs = batch_encoder_copy_full_inputs
         E.encoder_attn_masks = batch_encoder_input_masks
         E.decoder_inputs = batch_decoder_inputs
         E.decoder_full_inputs = batch_decoder_full_inputs
@@ -605,7 +611,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         return E
 
 
-    def get_batch(self, data, bucket_id):
+    def get_batch(self, data, bucket_id, use_all=False):
         """Get a random batch of data from the specified bucket, prepare for step.
 
         To feed data in step(..) it must be a list of batch-major vectors, while
@@ -621,47 +627,35 @@ class EncoderDecoderModel(graph_utils.NNModel):
           The triple (encoder_inputs, decoder_inputs, target_weights) for
           the constructed batch that has the proper format to call step(...) later.
         """
-        encoder_inputs, encoder_full_inputs, decoder_inputs, \
-            decoder_full_inputs = [], [], [], []
+        encoder_inputs, encoder_full_inputs, encoder_copy_full_inputs, \
+            decoder_inputs, decoder_full_inputs = [], [], [], [], []
         pointer_targets = []
 
         # Get a random batch of encoder and decoder inputs from data,
-        # pad them if needed, reverse encoder inputs and add GO to decoder.
-        for _ in xrange(self.batch_size):
-            random_dp = random.choice(data[bucket_id])
-            encoder_inputs.append(random_dp.sc_ids)
-            # print("IDs: {}".format(random_dp.sc_ids))
-            encoder_full_inputs.append(random_dp.sc_copy_full_ids)
-            # print("Full IDs: {}".format(random_dp.sc_copy_full_ids))
-            decoder_inputs.append(random_dp.tg_ids)
-            decoder_full_inputs.append(random_dp.tg_full_ids)
-            if self.use_copy and self.copy_fun == 'supervised':
-                pointer_targets.append(random_dp.pointer_targets)
+        data_ids = list(xrange(len(data[bucket_id])))
+        if not use_all:
+            random.shuffle(data_ids)
+            data_ids = data_ids[:self.batch_size]
 
-        return self.format_example([encoder_inputs, encoder_full_inputs],
-                                   [decoder_inputs, decoder_full_inputs],
-                                   pointer_targets=pointer_targets,
-                                   bucket_id=bucket_id)
-
-
-    def get_bucket(self, data, bucket_id):
-        """Get all data points from the specified bucket, prepare for step.
-        """
-        encoder_inputs, encoder_full_inputs, decoder_inputs, \
-            decoder_full_inputs = [], [], [], []
-        pointer_targets = []
-
-        for i in xrange(len(data[bucket_id])):
+        for i in data_ids:
             dp = data[bucket_id][i]
             encoder_inputs.append(dp.sc_ids)
-            encoder_full_inputs.append(dp.sc_copy_full_ids)
+            encoder_full_inputs.append(dp.sc_full_ids)
+            encoder_copy_full_inputs.append(dp.sc_copy_full_ids)
             decoder_inputs.append(dp.tg_ids)
             decoder_full_inputs.append(dp.tg_full_ids)
             if self.use_copy and self.copy_fun == 'supervised':
                 pointer_targets.append(dp.pointer_targets)
 
-        return self.format_example([encoder_inputs, encoder_full_inputs],
-                                   [decoder_inputs, decoder_full_inputs],
+        if self.use_copy:
+            encoder_channel_inputs = [encoder_inputs, encoder_full_inputs,
+                                      encoder_copy_full_inputs]
+        else:
+            encoder_channel_inputs = [encoder_inputs, encoder_full_inputs]
+        decoder_channel_inputs = [decoder_inputs, decoder_full_inputs]
+
+        return self.format_example(encoder_channel_inputs,
+                                   decoder_channel_inputs,
                                    pointer_targets=pointer_targets,
                                    bucket_id=bucket_id)
 
@@ -675,9 +669,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
         input_feed = {}
         for l in xrange(encoder_size):
             input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
-            input_feed[self.encoder_full_inputs[l].name] = E.encoder_full_inputs[l]
+            input_feed[self.encoder_full_inputs[l].name] = \
+                E.encoder_copy_full_inputs[l]
             if self.sc_char:
-                input_feed[self.char_encoder_inputs[l].name] = E.char_encoder_inputs[l]
+                input_feed[self.char_encoder_inputs[l].name] = \
+                    E.char_encoder_inputs[l]
             input_feed[self.encoder_attn_masks[l].name] = E.encoder_attn_masks[l]
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
@@ -806,6 +802,7 @@ class Example(object):
     def __init__(self):
         self.encoder_inputs = None
         self.encoder_full_inputs = None
+        self.encoder_copy_full_inputs = None
         self.encoder_attn_masks = None
         self.decoder_inputs = None
         self.decoder_full_inputs = None

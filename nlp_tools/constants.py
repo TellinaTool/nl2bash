@@ -81,8 +81,11 @@ _DURATION_UNIT = r'(second|sec|minute|minut|min|hour|hr|day|week|month|mon|year'
 
 # Regular expressions used to tokenize an English sentence.
 _WORD_SPLIT = "^\s+|\s*,\s*|\s+$|^[\(|\[|\{|\<]|[\)|\]|\}|\>]$"
+_WORD_SPLIT_RESPECT_SINGLE_QUOTES = "(?:[^\s,']|'(?:\\.|[^'])*')"
 _WORD_SPLIT_RESPECT_QUOTES = \
-    '({}|(?:[^\s,"]|"(?:\\.|[^"])*")+)'.format(_PATTERN_PERMISSION_RE)
+    '({}+|{}+|(?:[^\s,"]|"(?:\\.|[^"])*")+)'.format(
+        _WORD_SPLIT_RESPECT_SINGLE_QUOTES,
+        _PATTERN_PERMISSION_RE)
 
 ENGLISH_STOPWORDS = {
     # "a",

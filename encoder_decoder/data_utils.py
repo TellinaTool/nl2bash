@@ -76,9 +76,10 @@ CATOM_ID = 3
 CLONG_ID = 4
 CGO_ID = 5
 
-_CHAR_START_VOCAB = [_CPAD, _CEOS, _CUNK, _CATOM,
-                     constants._LONG_TOKEN_IND, _CGO]
+_CHAR_START_VOCAB = [_CPAD, _CEOS, _CUNK, _CATOM, constants._LONG_TOKEN_IND,
+                     _CGO]
 
+_data_splits = ['train', 'dev', 'test']
 
 def clean_dir(dir):
     for f_name in os.listdir(dir):
@@ -167,7 +168,9 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                 elif v.startswith('__SP__'):
                     sorted_vocab[v] = vocab[v]
                 else:
-                    if '.nl' in vocab_path and not constants.is_english_word(v):
+                    if '.nl' in vocab_path and (
+                            not constants.is_english_word(v)
+                            and not v in constants.type_conversion):
                         # print("Infrequent token: %s"  % v)
                         sorted_vocab['__LF__' + v] = min(vocab[v], min_word_frequency-1)
                     elif vocab[v] >= min_word_frequency:
@@ -333,7 +336,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                     token_ids.append(vocabulary[w])
             else:
                 # Unknown token
-                if w[len('__LF__'):] in vocabulary:
+                if w.startswith('__LF__') and w[len('__LF__'):] in vocabulary:
                     token_ids.append(vocabulary[w[len('__LF__'):]])
                 elif not use_unk and ('__LF__' + w) in vocabulary:
                     token_ids.append(vocabulary['__LF__' + w])
@@ -422,7 +425,7 @@ def fold_split(data_set, num_folds):
 def read_raw_data(data_dir):
     nl_list = DataSet()
     cm_list = DataSet()
-    for split in ['train', 'dev', 'test']:
+    for split in _data_splits:
         data_path = os.path.join(data_dir, split)
         if os.path.exists(data_path + ".nl"):
             with open(data_path + '.nl') as f:
@@ -451,7 +454,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
                 create_vocabulary(vocab_path, data.test, vocab_size,
                     min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
-        for split in ['train', 'dev', 'test']:
+        for split in _data_splits:
             data_path = os.path.join(data_dir, split)
             data_to_token_ids(
                 getattr(data, split), data_path + suffix, vocab_path)
@@ -463,12 +466,12 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                 data_to_token_ids(
                     getattr(data, split), data_path + suffix + '.full',
                     vocab_path, use_unk=False, parallel_data=parallel_data,
-                    use_dummy_indices=('nl.copy' in suffix \
+                    use_dummy_indices=('nl.copy' in suffix
                                        and split in ['dev', 'test']),
                     parallel_vocab_size=parallel_vocab_size)
     else:
         # save string data
-        for split in ['train', 'dev', 'test']:
+        for split in _data_splits:
             data_path = os.path.join(data_dir, split)
             with open(data_path + suffix, 'w') as o_f:
                 for line in getattr(data, split):
@@ -527,13 +530,9 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
 
 def prepare_bash(FLAGS, verbose=False):
     data_dir = FLAGS.data_dir
-    nl_vocab_size = FLAGS.tg_vocab_size \
-        if FLAGS.explain else FLAGS.sc_vocab_size
-    cm_vocab_size = FLAGS.sc_vocab_size \
-        if FLAGS.explain else FLAGS.tg_vocab_size
-
+    nl_vocab_size = FLAGS.nl_vocab_size
+    cm_vocab_size = FLAGS.cm_vocab_size
     def add_to_set(nl_data, cm_data, split):
-        with_parent = True
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
             ast = data_tools.bash_parser(cm)
             if ast:
@@ -541,26 +540,26 @@ def prepare_bash(FLAGS, verbose=False):
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl, lemmatization=True)
-                    cm_tokens = data_tools.ast2tokens(ast, with_parent=with_parent,
-                                                      arg_unk=True, unk_token=_UNK)
-                    cm_seq = data_tools.ast2list(ast, list=[], with_parent=with_parent)
+                    cm_tokens = data_tools.ast2tokens(
+                        ast, with_parent=True, arg_unk=True, unk_token=_UNK)
+                    cm_seq = data_tools.ast2list(ast, list=[], with_parent=True)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
-                        pruned_ast, loose_constraints=True, with_parent=with_parent)
+                        pruned_ast, loose_constraints=True, with_parent=True)
                     cm_pruned_seq = data_tools.ast2list(
-                        pruned_ast, list=[], with_parent=with_parent)
+                        pruned_ast, list=[], with_parent=True)
                     nl_normalized_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_normalized_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True,
-                        with_parent=with_parent)
+                        with_parent=True)
                     cm_normalized_seq = data_tools.ast2list(
-                        ast, arg_type_only=True, list=[], with_parent=with_parent)
+                        ast, arg_type_only=True, list=[], with_parent=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True,
-                        ignore_flag_order=True, with_parent=with_parent)
+                        ignore_flag_order=True, with_parent=True)
                     cm_canonical_seq = data_tools.ast2list(
                         ast, arg_type_only=True, ignore_flag_order=True, list=[],
-                        with_parent=with_parent)
+                        with_parent=True)
                     getattr(nl_list, split).append(nl)
                     getattr(cm_list, split).append(cm)
                     getattr(nl_char_list, split).append(nl_chars)
@@ -652,7 +651,7 @@ def prepare_bash(FLAGS, verbose=False):
         cm_seq_norm_order_suffix, cm_vocab_size, cm_ast_norm_vocab_path)
     max_cm_seq_pruned_len = prepare_dataset(cm_pruned_seq_list, data_dir,
         cm_seq_pruned_suffix, cm_vocab_size, cm_ast_vocab_path)
-
+    
     print("maximum num chars in description = %d" % max_nl_char_len)
     print("maximum num tokens in description = %d" % max_nl_token_len)
     print("maximum num chars in command = %d" % max_cm_char_len)
@@ -736,21 +735,11 @@ def prepare_bash(FLAGS, verbose=False):
         nl_vocab_path, nl_char_vocab_path, pad_start=True)
     compute_channel_representations(
         cm_vocab_path, cm_char_vocab_path, add_eos=True)
-
+    
     slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix)
 
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
-
-    # copy data preparation
-    # merge_vocab_for_copy(nl_vocab_path, cm_vocab_path,
-    #                      os.path.join(data_dir, "vocab.copy"))
-    # cp_vocab_path = os.path.join(data_dir, "vocab.copy")
-    # prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
-    #                 nl_vocab_size, cp_vocab_path, create_vocab=False)
-    # prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
-    #                 cm_vocab_size, cp_vocab_path, create_vocab=False)
-    # cp_vocab, rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
 
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
                     nl_vocab_size, cm_vocab_path, create_vocab=False,
@@ -831,10 +820,12 @@ def prepare_data(FLAGS):
 
 
 def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
-    """Induce the filler-slot alignments on train/dev/test dataset."""
+    """
+    Induce the filler-slot alignments on train/dev/test dataset.
+    """
     data_dir = FLAGS.data_dir
 
-    for dataset in ['train', 'dev', 'test']:
+    for dataset in _data_splits:
         nl_path = os.path.join(data_dir, '{}{}'.format(dataset, nl_suffix))
         cm_path = os.path.join(data_dir, '{}{}'.format(dataset, cm_suffix))
         nl_list = [nl.strip() for nl in open(nl_path, 'r').readlines()]
@@ -978,17 +969,26 @@ def load_vocab(FLAGS):
     nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
 
+    nl_full_extension = 'vocab%d.nl' % FLAGS.sc_vocab_size
+    cm_full_extension = 'vocab%d.cm' % FLAGS.tg_vocab_size
+    nl_full_vocab_path = os.path.join(FLAGS.data_dir, nl_full_extension)
+    cm_full_vocab_path = os.path.join(FLAGS.data_dir, cm_full_extension)
+    nl_full_vocab, rev_nl_full_vocab = \
+        initialize_vocabulary(nl_full_vocab_path)
+    cm_full_vocab, rev_cm_full_vocab = initialize_vocabulary(
+        cm_full_vocab_path)
+
     V = Vocab()
     if FLAGS.explain:
         V.sc_vocab, V.rev_sc_vocab = cm_vocab, rev_cm_vocab
         V.tg_vocab, V.rev_tg_vocab = nl_vocab, rev_nl_vocab
+        V.sc_full_vocab, V.rev_sc_full_vocab = cm_full_vocab, rev_cm_full_vocab
+        V.tg_full_vocab, V.rev_tg_full_vocab = nl_full_vocab, rev_nl_full_vocab
     else:
         V.sc_vocab, V.rev_sc_vocab = nl_vocab, rev_nl_vocab
         V.tg_vocab, V.rev_tg_vocab = cm_vocab, rev_cm_vocab
-
-    if FLAGS.use_copy:
-        cp_vocab_path = os.path.join(FLAGS.data_dir, "vocab.copy")
-        V.cp_vocab, V.rev_cp_vocab = initialize_vocabulary(cp_vocab_path)
+        V.sc_full_vocab, V.rev_sc_full_vocab = nl_full_vocab, rev_nl_full_vocab
+        V.tg_full_vocab, V.rev_tg_full_vocab = cm_full_vocab, rev_cm_full_vocab
 
     if FLAGS.sc_char or FLAGS.tg_char:
         nl_char_vocab_path = os.path.join(
@@ -1019,29 +1019,29 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     append_end_token = True
     
     if FLAGS.char:
-        nl_extension = ".ids%d.nl.char" % FLAGS.sc_vocab_size
-        cm_extension = ".ids%d.cm.char" % FLAGS.tg_vocab_size
+        nl_extension = ".ids%d.nl.char" % FLAGS.nl_vocab_size
+        cm_extension = ".ids%d.cm.char" % FLAGS.cm_vocab_size
     elif FLAGS.decoder_topology in ["rnn"]:
-        nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
-        cm_extension = ".ids%d.cm" % FLAGS.tg_vocab_size
+        nl_extension = ".ids%d.nl" % FLAGS.nl_vocab_size
+        cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
         if FLAGS.canonical:
-            nl_extension = ".ids%d.nl.norm" % FLAGS.sc_vocab_size
-            cm_extension = ".ids%d.cm.norm.order" % FLAGS.tg_vocab_size
+            nl_extension = ".ids%d.nl.norm" % FLAGS.nl_vocab_size
+            cm_extension = ".ids%d.cm.norm.order" % FLAGS.cm_vocab_size
         elif FLAGS.normalized:
-            nl_extension = ".ids%d.nl.norm" % FLAGS.sc_vocab_size
-            cm_extension = ".ids%d.cm.norm" % FLAGS.tg_vocab_size
-        nl_full_extension = ".ids%d.nl.full" % FLAGS.sc_vocab_size
-        cm_full_extension = ".ids%d.cm.full" % FLAGS.tg_vocab_size
-        nl_copy_full_extension = ".ids%d.nl.copy.full" % FLAGS.sc_vocab_size
-        cm_copy_full_extension = ".ids%d.cm.copy.full" % FLAGS.tg_vocab_size
+            nl_extension = ".ids%d.nl.norm" % FLAGS.nl_vocab_size
+            cm_extension = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
+        nl_full_extension = ".ids%d.nl.full" % FLAGS.nl_vocab_size
+        cm_full_extension = ".ids%d.cm.full" % FLAGS.cm_vocab_size
+        nl_copy_full_extension = ".ids%d.nl.copy.full" % FLAGS.nl_vocab_size
+        cm_copy_full_extension = ".ids%d.cm.copy.full" % FLAGS.cm_vocab_size
     elif FLAGS.decoder_topology in ["basic_tree"]:
-        nl_extension = ".ids%d.nl" % FLAGS.sc_vocab_size
+        nl_extension = ".ids%d.nl" % FLAGS.nl_vocab_size
         if FLAGS.canonical:
-            cm_extension = ".seq%d.cm.norm.order" % FLAGS.tg_vocab_size
+            cm_extension = ".seq%d.cm.norm.order" % FLAGS.cm_vocab_size
         elif FLAGS.normalized:
-            cm_extension = ".seq%d.cm.norm" % FLAGS.tg_vocab_size
+            cm_extension = ".seq%d.cm.norm" % FLAGS.cm_vocab_size
         else:
-            cm_extension = ".seq%d.cm" % FLAGS.tg_vocab_size
+            cm_extension = ".seq%d.cm" % FLAGS.cm_vocab_size
         append_head_token = False
         append_end_token = False
 
@@ -1049,8 +1049,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
 
     for split in ["train", "dev", "test"]:
         data_path = os.path.join(data_dir, split)
-        nl_txt = data_path + ".%d.nl" % FLAGS.sc_vocab_size
-        cm_txt = data_path + ".%d.cm" % FLAGS.tg_vocab_size
+        nl_txt = data_path + ".%d.nl" % FLAGS.nl_vocab_size
+        cm_txt = data_path + ".%d.cm" % FLAGS.cm_vocab_size
         nl = data_path + nl_extension
         nl_full = data_path + nl_full_extension
         nl_copy_full = data_path + nl_copy_full_extension
@@ -1213,11 +1213,15 @@ class Vocab(object):
     def __init__(self):
         self.sc_vocab = None
         self.tg_vocab = None
+        self.sc_full_vocab = None
+        self.tg_full_vocab = None
         self.sc_char_vocab = None
         self.tg_char_vocab = None
         self.cp_vocab = None
         self.rev_sc_vocab = None
         self.rev_tg_vocab = None
+        self.rev_sc_full_vocab = None
+        self.rev_tg_full_vocab = None
         self.rev_sc_char_vocab = None
         self.rev_tg_char_vocab = None
         self.rev_cp_vocab = None

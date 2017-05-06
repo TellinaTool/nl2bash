@@ -51,6 +51,8 @@ def define_input_flags():
                                 "Set to True to decode and evaluate on the test set.")
     tf.app.flags.DEFINE_boolean("demo", False,
                                 "Set to True for interactive demo.")
+    tf.app.flags.DEFINE_boolean("print_test_results", False,
+                                "Set to True to generate a list of test predictions.")
     tf.app.flags.DEFINE_boolean("bucket_selection", False,
                                 "Run a bucket_selection if this is set to True.")
     tf.app.flags.DEFINE_boolean("self_test", False,
@@ -63,6 +65,8 @@ def define_input_flags():
 
     # data hyperparameters
     tf.app.flags.DEFINE_string("dataset", "bash", "select dataset to use.")
+    tf.app.flags.DEFINE_integer("nl_vocab_size", 1000, "natural language vocabulary size.")
+    tf.app.flags.DEFINE_integer("cm_vocab_size", 1000, "command vocabulary size.")
     tf.app.flags.DEFINE_integer("max_sc_length", 30, "maximum length of the source token sequence.")
     tf.app.flags.DEFINE_integer("max_tg_length", 40, "maximum length of the target token sequence.")
     tf.app.flags.DEFINE_integer("max_sc_token_size", 60, "maximum number of characters in a source token.")
@@ -180,7 +184,7 @@ def define_input_flags():
                                 "Proportion of character target output to keep if dropout is used.")
     tf.app.flags.DEFINE_float("gamma", 5, "Define the weight of the character channel loss.")
 
-    # copying mechanism
+    # hyperparameters for copying UNKs
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
     tf.app.flags.DEFINE_string("copy_fun", 'implicit',
                                 "Specifying the type of copying functions to use.")

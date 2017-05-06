@@ -8,20 +8,30 @@ from __future__ import division
 from __future__ import print_function
 
 import inspect
+import sys
 
 from bashlex import bash, nast, normalizer
 from nlp_tools import constants
 
 
 def is_simple(ast):
-    # Check if tree contains only high-frequency commands
-    if ast.kind == "headcommand" and not ast.value in bash.head_commands:
+    # Check if tree contains only high-frequency utilities
+    if ast.kind == "headcommand" and not ast.value in bash.utilities:
         return False
     for child in ast.children:
         if not is_simple(child):
             return False
     return True
 
+def is_low_frequency(ast):
+    # Check if tree contains a low-frequency utilities
+    if ast.kind == "headcommand" and ast.value in \
+            (bash.utilities_20_to_15 + bash.utilities_15_to_10):
+        return True
+    for child in ast.children:
+        if is_low_frequency(child):
+            return True
+    return False
 
 def char_tokenizer(sentence, base_tokenizer=None):
     if base_tokenizer:
@@ -86,11 +96,12 @@ def ast2command(node, loose_constraints=False, ignore_flag_order=False):
 
 
 def ast2template(node, loose_constraints=False, ignore_flag_order=True,
-                 arg_type_only=True):
+                 arg_type_only=True, index_arg=False):
     # convert a bash AST to a template that contains only reserved words and
     # argument types flags are alphabetically ordered
     tokens = normalizer.to_tokens(node, loose_constraints, ignore_flag_order,
-                                  arg_type_only=arg_type_only, index_arg=True)
+                                  arg_type_only=arg_type_only,
+                                  index_arg=index_arg)
     return ' '.join(tokens) 
 
 
@@ -213,7 +224,7 @@ def fill_default_value(node):
 def test_bash_parser():
     while True:
         try:
-            cmd = raw_input("> ")
+            cmd = input("> ")
             norm_tree = bash_parser(cmd)
             # pruned_tree = normalizer.prune_ast(norm_tree)
             print()
@@ -233,6 +244,19 @@ def test_bash_parser():
             print()
         except EOFError as ex:
             break
+
+
+def test_tokenization():
+    i_f = open(sys.argv[1])
+    o_f = open(sys.argv[2], 'w')
+
+    for cmd in i_f.readlines():
+        cmd = cmd.strip()
+        cmd = ' '.join(bash_tokenizer(cmd))
+        # str = ''
+        # for token in tokenizer.split(cmd):
+        #     str += cmd + ' '
+        o_f.write(cmd.strip() + '\n')
 
 
 if __name__ == "__main__":

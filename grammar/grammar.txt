@@ -1,5 +1,5 @@
 type
-		File        (file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, reference)
+		File        (file, xfile, file1, file2, filename, progfile, command_file, zipfile, archive-file, reference, F)
 		Directory   (directory, exdir, dir)
 		Path        (path, source_file, target_file)
 		Permission  (permmode)
@@ -7,7 +7,7 @@ type
 		Prog        (command, prog, program, utility, varEQvalue)
 		Type        (t, type)
 		Option      (option, options, MINUSflags, PLUSflags, flags)
-		Regex       (name, gname, uname, eofstr, fs, replstr, string, extension, format, owner, group, first, last, suffix, suffixes, pattern, mask)
+		Regex       (name, gname, uname, eofstr, fs, replstr, string, extension, format, owner, group, first, last, suffix, suffixes, pattern, mask, regex, expression, replacement)
 		Number      (n, num, number, replacements, maxargs, maxchars, maxlines, maxprocs, incr, count, depth)
 		Timespan    (time)
 		Size        (size, bytes, blocksize)
@@ -46,7 +46,7 @@ PrimitiveCmd ::=
 
 		cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] source_file ... directory [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
 
-        cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] directory source_file ... [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
+        	cp [-R [-H | -L | -P]] [ -fi | -n] [-apvX] directory source_file ... [ -l ] [ --link ] [ --parents ] [-R] [-r] [--recursive] [ -S suffix ] [ --suffix[=suffix]] [ -t directory] [ --target-directory[=directory]] [ -T ] [ --no-target-directory ] [ -u ] [ --update ] [ -v ] [ --verbose ]
 
 		ls [-ABCFGHLOPRSTUW@abcdefghiklmnopqrstuwx1] [file ...]
 
@@ -100,7 +100,7 @@ PrimitiveCmd ::=
 
 		unzip [-Z] [-cflptTuvzabjnoqsCKLMVWX] file [file ...]  [-x xfile ...] [-d exdir]
 
-		du [-H | -L | -P] [-a | -s | [-d depth] ] [-c] [-h | -k | -m | -g] [-x] [-I mask] [file ...]
+		du [-H | -L | -P] [-a | -s | [-d depth] ] [-c] [-h | -k | -m | -g] [-x] [-I mask] [--files0-from[=F]] [file ...]
 
 		echo [-n] [string ...]
 
@@ -109,3 +109,51 @@ PrimitiveCmd ::=
 		comm [-ONE] [-TWO] [-THREE] [-i] file1 file2
 
 		sh [option ...] [file ...]
+
+		file [-bcdDhiIkLnNprsvz] [--extension] [--mime-encoding] [--mime-type] [-f file] [-m file] [-P string] [-M file] file
+
+		file -C [-m file]
+
+		file [--help]
+		
+		basename string [suffix]
+
+		basename [-a] [-s suffix] string ...
+		
+		dirname string
+	
+		cut -b list [-n] [file ...]
+
+		cut -c list [file ...]
+
+		cut -f list [-d delimiter] [-s] [file ...]
+		
+		uniq [-c | -d | -u] [-i] [-f num] [-s string] [input_file [output_file]]
+
+		pwd [-L | -P]
+
+		tee [-ai] [file ...]
+
+		rmdir [-p] directory ...
+		
+		mkdir [-pv] [-m mode] directory ...
+
+		md5sum [-bctw] [--quiet] [--status] [--warn] [file ...]
+		
+		compress [-fv] [-b bits] [file ...]
+
+		compress -c [-b bits] [file]
+
+		uncompress [-fv] [file ...]
+
+		uncompress -c [file]
+
+		less [-S]
+
+		rename [-svnVh] expression replacement file ...
+		
+		cpio -i [-0acvABLV] [-C bytes] [-H format] [-M message] [-O string] [-F string] [--file=string] [--format=format] [--message=message] [--null] [--reset-access-time] [--verbose] [--dot] [--append] [--block-size=blocks] [--dereference] [--io-size=bytes] [--rsh-command=command] [--help] [--version] LE name ... [GE archive]
+
+		cpio -p [-0adlmuvLV] [-R string] [--null] [--reset-access-time] [--make-directories] [--link] [--quiet] [--preserve-modification-time] [--unconditional] [--verbose] [--dot] [--dereference] [--owner=string] [--no-preserve-owner] [--sparse] [--help] [--version] dir LE name ...
+
+		cpio -o [-bcdfmnrtsuvBSV] [-C bytes] [-E file] [-H format] [-M message] [-R string] [-I string] [-F string] [--file=string] [--make-directories] [--nonmatching] [--preserve-modification-time] [--numeric-uid-gid] [--rename] [-t | --list] [--swap-bytes] [--swap] [--dot] [--unconditional] [--verbose] [--block-size=blocks] [--swap-halfwords] [--io-size=bytes] [--pattern-file=file] [--format=format] [--owner=string] [--no-preserve-owner] [--message=message] [--force-local] [--no-absolute-filenames] [--absolute-filenames] [--sparse] [--only-verify-crc] [--to-stdout] [--quiet] [--rsh-command=command] [--help] [--version] [pattern...] LE name ... [GE string]
