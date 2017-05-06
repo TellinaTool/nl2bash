@@ -486,7 +486,8 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
             if dp.mappings:
                 mappings = [tuple(m) for m in dp.mappings]
                 encoder_inputs = [dp.sc_ids]
-                encoder_full_inputs = [dp.sc_copy_full_ids]
+                encoder_full_inputs = [dp.sc_full_ids]
+                encoder_copy_full_inputs = [dp.sc_copy_full_ids]
                 decoder_inputs = [dp.tg_ids]
                 decoder_full_inputs = [dp.tg_full_ids]
                 if FLAGS.use_copy:
