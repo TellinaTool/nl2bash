@@ -41,22 +41,22 @@ def clean_sentence(sentence):
         sentence = sentence.replace("”".decode('utf-8'), '"')
         sentence = sentence.replace('‘'.decode('utf-8'), '\'')
         sentence = sentence.replace('’'.decode('utf-8'), '\'')
-    sentence = sentence.replace('`\'', '"') \
-            .replace('``', '"') \
+    sentence = sentence.replace('`\'', '"')\
+            .replace('``', '"')\
             .replace("''", '"') \
-            .replace(' \'', ' "') \
-            .replace('\' ', '" ') \
-            .replace('\',', '",') \
-            .replace('`', '"') \
             .replace('(', ' ( ') \
             .replace(')', ' ) ')
+            # .replace(' \'', ' "') \
+            # .replace('\' ', '" ') \
+            # .replace('\',', '",') \
+            # .replace('\'.', '".') \
+            # .replace('`', '"') \
             # .replace('[', '[ ') \
             # .replace('{', '{ ') \
             # .replace(']', ' ]') \
             # .replace('}', ' }') \
             # .replace('<', '< ') \
             # .replace('>', ' >')
-    sentence = re.sub('^\'', '"', sentence)
     sentence = re.sub('\'$', '"', sentence)
 
     sentence = re.sub('(,\s+)|(,$)', ' ', sentence)
