@@ -114,7 +114,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
       (used for simplifying testing sentences with unseen tokens).
     """
 
-    MIN_ARG_FREQ = 5
+    MIN_ARG_FREQ = 10
 
     vocab = {}
 
@@ -845,6 +845,7 @@ def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
             pair_list = list(zip(nl_list, cm_list))
             for idx in xrange(len(pair_list)):
                 nl, cm = pair_list[idx]
+                print(nl)
                 mappings = slot_filling.slot_filler_alignment_induction(nl, cm)
                 if mappings:
                     for i, j in sorted(mappings, key=lambda x:x[0]):

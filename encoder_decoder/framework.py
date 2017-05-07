@@ -670,7 +670,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(encoder_size):
             input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
             input_feed[self.encoder_full_inputs[l].name] = \
-                E.encoder_copy_full_inputs[l]
+                E.encoder_copy_full_inputs[l] if self.use_copy \
+                else E.encoder_full_inputs[l]
             if self.sc_char:
                 input_feed[self.char_encoder_inputs[l].name] = \
                     E.char_encoder_inputs[l]
