@@ -658,11 +658,13 @@ def prepare_bash(FLAGS, verbose=False):
                 else:
                     pos_start = token.index(word)
                     pos_end = pos_start + len(word)
+                    splitted_cm_tokens.append(_ARG_START)
                     for k in xrange(pos_start):
                         splitted_cm_tokens.append(token[k])
                     splitted_cm_tokens.append(word)
                     for k in xrange(pos_end, len(token)):
                         splitted_cm_tokens.append(token[k])
+                    splitted_cm_tokens.append(_ARG_END)
             else:
                 splitted_cm_tokens.append(token)
 
