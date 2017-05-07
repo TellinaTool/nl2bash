@@ -566,6 +566,8 @@ def prepare_bash(FLAGS, verbose=False):
                         with_parent=True)
                     nl_break_tokens, cm_break_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)
+                    print(nl_break_tokens)
+                    print(cm_break_tokens)
                     cm_normalized_seq = data_tools.ast2list(
                         ast, arg_type_only=True, list=[], with_parent=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
