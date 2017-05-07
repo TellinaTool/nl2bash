@@ -633,6 +633,8 @@ def prepare_bash(FLAGS, verbose=False):
             for j in xrange(len(cm_normalized_tokens)):
                 if cm_normalized_tokens[j] in constants._ENTITIES:
                     token = cm_tokens[j]
+                    if token.startswith('__LF__'):
+                        token = token[len('__LF__'):]
                     if word == token:
                         M[i][j] = 1
                     elif word in token:
@@ -646,6 +648,8 @@ def prepare_bash(FLAGS, verbose=False):
         splitted_cm_tokens = []
         for j in xrange(len(cm_tokens)):
             token = cm_tokens[j]
+            if token.startswith('__LF__'):
+                token = token[len('__LF__'):]
             if j in mapping_dict:
                 i = mapping_dict[j]
                 word = splitted_nl_tokens[i]
