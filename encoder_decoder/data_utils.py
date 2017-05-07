@@ -709,11 +709,11 @@ def prepare_bash(FLAGS, verbose=False):
     cm_token_break_suffix = ".ids%d.cm.break" % cm_vocab_size
     nl_token_norm_suffix = ".ids%d.nl.norm" % nl_vocab_size
     cm_token_norm_suffix = ".ids%d.cm.norm" % cm_vocab_size
-    cm_token_norm_order_suffix = ".ids%d.cm.norm.order" % cm_vocab_size
+    cm_token_norm_order_suffix = ".ids%d.cm.norm.ordered" % cm_vocab_size
     cm_token_pruned_suffix = ".ids%d.cm.pruned" % cm_vocab_size
     cm_seq_suffix = ".seq%d.cm" % cm_vocab_size
     cm_seq_norm_suffix = ".seq%d.cm.norm" % cm_vocab_size
-    cm_seq_norm_order_suffix = ".seq%d.cm.norm.order" % cm_vocab_size
+    cm_seq_norm_order_suffix = ".seq%d.cm.norm.ordered" % cm_vocab_size
     cm_seq_pruned_suffix = ".seq%d.cm.pruned" % cm_vocab_size
 
     _ = prepare_dataset(nl_list, data_dir, nl_suffix, nl_vocab_size, None)
@@ -1005,9 +1005,9 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
 
 
 def load_vocab(FLAGS):
+    nl_extension = "vocab%d.nl" % FLAGS.sc_vocab_size
+    nl_vocab_path = os.path.join(FLAGS.data_dir, nl_extension)
     if FLAGS.decoder_topology in ['rnn']:
-        nl_extension = "vocab%d.nl" % FLAGS.sc_vocab_size 
-        nl_vocab_path = os.path.join(FLAGS.data_dir, nl_extension)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
@@ -1016,12 +1016,15 @@ def load_vocab(FLAGS):
                 FLAGS.data_dir, "vocab%d.nl.norm" % FLAGS.sc_vocab_size)
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
+        elif FLAGS.partial_token:
+            nl_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.nl.break" % FLAGS.sc_vocab_size)
+            cm_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.cm.break" % FLAGS.tg_vocab_size)
         else:
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm" % FLAGS.tg_vocab_size)
     elif FLAGS.decoder_topology in ['basic_tree']:
-        nl_vocab_path = os.path.join(
-            FLAGS.data_dir, "vocab%d.nl" % FLAGS.sc_vocab_size)
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.ast.norm" % FLAGS.tg_vocab_size)
@@ -1087,24 +1090,37 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     append_head_token = True
     append_end_token = True
     
+    # Set up natural language file extensions
+    nl_full_extension = ".ids%d.nl.full" % FLAGS.nl_vocab_size
+    nl_copy_full_extension = ".ids%d.nl.copy.full" % FLAGS.nl_vocab_size
     if FLAGS.char:
         nl_extension = ".ids%d.nl.char" % FLAGS.nl_vocab_size
-        cm_extension = ".ids%d.cm.char" % FLAGS.cm_vocab_size
-    elif FLAGS.decoder_topology in ["rnn"]:
+    elif FLAGS.partial_token:
+        nl_extension = ".ids%d.nl.break" % FLAGS.nl_vocab_size
+        nl_full_extension = ".ids%d.nl.break.full" % FLAGS.nl_vocab_size
+        nl_copy_full_extension = ".ids%d.nl.break.copy.full" % FLAGS.nl_vocab_size
+    elif FLAGS.normalized or FLAGS.canonical:
+        nl_extension = ".ids%d.nl.norm" % FLAGS.nl_vocab_size
+    else:
         nl_extension = ".ids%d.nl" % FLAGS.nl_vocab_size
-        cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
-        if FLAGS.canonical:
-            nl_extension = ".ids%d.nl.norm" % FLAGS.nl_vocab_size
-            cm_extension = ".ids%d.cm.norm.order" % FLAGS.cm_vocab_size
-        elif FLAGS.normalized:
-            nl_extension = ".ids%d.nl.norm" % FLAGS.nl_vocab_size
-            cm_extension = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
-        nl_full_extension = ".ids%d.nl.full" % FLAGS.nl_vocab_size
+
+    # Set up command files extensions
+    if FLAGS.decoder_topology in ["rnn"]:
         cm_full_extension = ".ids%d.cm.full" % FLAGS.cm_vocab_size
-        nl_copy_full_extension = ".ids%d.nl.copy.full" % FLAGS.nl_vocab_size
         cm_copy_full_extension = ".ids%d.cm.copy.full" % FLAGS.cm_vocab_size
+        if FLAGS.char:
+            cm_extension = ".ids%d.cm.char" % FLAGS.cm_vocab_size
+        elif FLAGS.partial_token:
+            cm_extension = ".ids%d.cm.break" % FLAGS.cm_vocab_size
+            cm_full_extension = ".ids%d.cm.break.full" % FLAGS.cm_vocab_size
+            cm_copy_full_extension = ".ids%d.cm.break.copy.full" % FLAGS.cm_vocab_size
+        elif FLAGS.normalized:
+            cm_extension = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
+        elif FLAGS.canonical:
+            cm_extension = ".ids%d.cm.norm.ordered" % FLAGS.cm_vocab_size
+        else:
+            cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
     elif FLAGS.decoder_topology in ["basic_tree"]:
-        nl_extension = ".ids%d.nl" % FLAGS.nl_vocab_size
         if FLAGS.canonical:
             cm_extension = ".seq%d.cm.norm.order" % FLAGS.cm_vocab_size
         elif FLAGS.normalized:

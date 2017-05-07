@@ -147,7 +147,9 @@ def define_input_flags():
                                 "Set to True for raw evaluation of the slot-filling classifier.")
 
     # granularity control
-    tf.app.flags.DEFINE_boolean("char", False, "Set to True to train a pure char RNN model.")
+    tf.app.flags.DEFINE_boolean("char", False, "Set to True to train a pure character translation model.")
+    tf.app.flags.DEFINE_boolean("partial_token", False, "Set to True to train a translation model"
+                                + "using partial tokens.")
 
     # channel network hyperparameters
     tf.app.flags.DEFINE_boolean("sc_token", True,

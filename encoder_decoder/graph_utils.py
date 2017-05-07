@@ -245,7 +245,10 @@ def get_buckets(FLAGS):
         if FLAGS.decoder_topology in ['basic_tree']:
             buckets = [(30, 72)] if not FLAGS.explain else [(72, 30)]
         elif FLAGS.decoder_topology in ['rnn']:
-            buckets = [(30, 40)] if not FLAGS.explain else [(40, 30)]
+            if FLAGS.partial_token:
+                buckets = [(60, 60)]
+            else:
+                buckets = [(40, 40)]
     elif FLAGS.dataset == "dummy":
         buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explain else \
             [(95, 20), (95, 30), (95, 45)]
