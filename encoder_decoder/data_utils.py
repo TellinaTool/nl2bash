@@ -637,7 +637,7 @@ def prepare_bash(FLAGS, verbose=False):
                     if word == token:
                         M[i][j] = 1
                     elif word in token:
-                        if len(token) - len(word) > 10:
+                        if len(token) - len(word) > 10 or word in ['"', '\'']:
                             print(token, word)
                             M[i][j] = -np.inf
                         else:
