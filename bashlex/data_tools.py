@@ -10,6 +10,9 @@ from __future__ import print_function
 import inspect
 import sys
 
+if sys.version_info > (3, 0):
+    from six.moves import xrange
+
 from bashlex import bash, nast, normalizer
 from nlp_tools import constants
 
