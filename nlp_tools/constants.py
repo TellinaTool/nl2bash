@@ -1,4 +1,5 @@
 import re
+import string
 
 _SPACE = "__SP__SPACE"
 _LONG_TOKEN_IND = "__SP__LONG_TOKEN"
@@ -245,6 +246,8 @@ duration_units = {
     'month',
     'year'
 }
+
+punctuation = string.punctuation
 
 def include_space(r):
     """
