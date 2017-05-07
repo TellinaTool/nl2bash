@@ -244,6 +244,25 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                         else:
                             pred_token = data_utils._UNK
                     output_tokens.append(pred_token)
+                if FLAGS.partial_token:
+                    # process partial-token outputs
+                    merged_output_tokens = []
+                    buffer = ''
+                    load_buffer = False
+                    for token in output_tokens:
+                        if load_buffer:
+                            if token == data_utils._ARG_END:
+                                merged_output_tokens.append(buffer)
+                                load_buffer = False
+                                buffer = ''
+                            else:
+                                buffer += token
+                        else:
+                            if token == data_utils._ARG_START:
+                                load_buffer = True
+                            else:
+                                merged_output_tokens.append(token)
+                    output_tokens = merged_output_tokens
                 tg = " ".join(output_tokens)
             
             # check if the predicted command templates have enough slots to
