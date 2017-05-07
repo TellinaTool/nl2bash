@@ -87,10 +87,24 @@ def clean_sentence(sentence):
 
 
 def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
-                    remove_stop_words=True, correct_spell=True, verbose=False):
-    """Very basic English tokenizer."""
+                    remove_stop_words=True, correct_spell=True,
+                    separate_quotations=False, verbose=False):
+    """
+    Regex-based English tokenizer.
+    :param sentence: input sentence.
+    :param lower_case: if set, remove capitalization at the beginning of the
+        input sentence.
+    :param lemmatization: if set, lemmatize the tokens.
+    :param remove_stop_words: if set, remove stop words.
+    :param correct_spell: if set, perform spelling error correction.
+    :param separate_quotations: if set, separate quotation marks from a quoted
+        token
+
+    :return: list of tokens obtained subjected to the tokenization criteria.
+    """
     sentence = clean_sentence(sentence)
-    words = [x[0] for x in re.findall(constants._WORD_SPLIT_RESPECT_QUOTES, sentence)]
+    words = [x[0] for x in re.findall(
+        constants._WORD_SPLIT_RESPECT_QUOTES, sentence)]
     normalized_words = []
     for i in xrange(len(words)):
         word = words[i].strip()
@@ -100,9 +114,6 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
 
         # remove unnecessary upper cases
         if lower_case:
-            # if i == 0 and word[0].isupper() \
-            #         and len(word) > 1 and word[1:].islower():
-            #     word = word.lower()
             if len(word) > 1 and constants.is_english_word(word) \
                     and not constants.with_quotation(word):
                 word = word.lower()
@@ -137,7 +148,12 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
         if not word.strip():
             continue
 
-        normalized_words.append(word)
+        if separate_quotations and constants.with_quotation(word):
+            normalized_words.append(word[0])
+            normalized_words.append(word[1:-1])
+            normalized_words.append(word[-1])
+        else:
+            normalized_words.append(word)
 
     return normalized_words, None
 

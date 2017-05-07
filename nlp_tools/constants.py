@@ -33,7 +33,7 @@ type_conversion = {
     _NUMBER: 'Number',
 }
 
-_QUOTED_RE = r'(\'[^ \']*\')|("[^"]*")'
+_QUOTED_RE = r'(\'[^ \']*\')|("[^ "]*")'
 _SPECIAL_SYMBOL_RE = r'[^ ]*[_\.\*|\\|\/|\~|\@|\%|\#|\?|\+|\$|\{|\}]+[^ ]*'
 _FILE_EXTENSION_RE = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|' \
         r'rar|rpm|gz|bin|dmg|iso|vcd|vcr|dvd|csv|dat|db|log|mdb|sav|sql|' \
@@ -295,10 +295,4 @@ def is_english_word(word):
         return True
     if word in ['\'s', '\'t']:
         return True
-    # if any(x.isalpha() for x in word):
-    #     if word[-1].isdigit():
-    #         return False
-    # if word.isalpha() and any(x.isupper() for x in word):
-    #     return False
-    # return bool(re.match('[0-9A-Za-z\-\'\(\)]+$', word, re.IGNORECASE))
     return bool(re.match('^[a-z]+(-[a-z]+)*$', word, re.IGNORECASE))

@@ -18,7 +18,7 @@ from bashlex import data_tools
 # --- Slot filling functions --- #
 
 def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
-                    decoder_outputs, slot_filling_classifier, verbose=False):
+                        decoder_outputs, slot_filling_classifier, verbose=False):
     """
     Fills the argument slots using learnt local alignment scores and a greedy 
     global alignment algorithm (stable marriage).
@@ -48,7 +48,6 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
 
     # Step b: check if the alignment score matrix generated in
     # step a contains ambiguity
-    alignment_id = 0
     for f in M:
         if len([s for s in M[f] if M[f][s] > -np.inf]) > 1:
             # Step 3c: if there exists ambiguity in the alignment
@@ -72,7 +71,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
                     print('alignment ({}, {}): {}\t{}\t{}'.format(
                         f, s, nl_fillers[f], cm_slots[s], raw_scores[ii][0]))
 
-    mappings, remained_fillers = stable_marriage_alignment_with_partial(M)
+    mappings, remained_fillers = stable_marriage_alignment(M)
     if not remained_fillers:
         for f, s in mappings:
             template_tokens[s] = get_fill_in_value(cm_slots[s], nl_fillers[f])
@@ -159,7 +158,7 @@ def heuristic_slot_filling(node, ner_by_category):
 
     return True
 
-def stable_marriage_alignment_with_partial(M, include_partial_mappings=False):
+def stable_marriage_alignment(M):
     """
     Return the stable marriage alignment between two sets of entities (fillers
     and slots).
@@ -213,6 +212,7 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
 
     # Step 1: extract the token ids of the constants in the English sentence
     # and the slots in the command
+
     tokens, entities = tokenizer.ner_tokenizer(nl)
     nl_fillers, _, _ = entities
     cm_tokens = data_tools.bash_tokenizer(cm)
@@ -228,10 +228,11 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
             cm_slots[i] = (cm_tokens[i], cm_token_type)
     
     # Step 2: construct one-to-one mappings for the token ids from both sides
+
     M = collections.defaultdict(dict)               # alignment score matrix
     for i in nl_fillers:
         surface, filler_type = nl_fillers[i]
-        print(surface)
+        # print(surface)
         filler_value = extract_value(filler_type, filler_type, surface)
         for j in cm_slots:
             slot_value, slot_type = cm_slots[j]
@@ -242,7 +243,7 @@ def slot_filler_alignment_induction(nl, cm, verbose=True):
             else:
                 M[i][j] = -np.inf
 
-    mappings, remained_fillers = stable_marriage_alignment_with_partial(M)
+    mappings, remained_fillers = stable_marriage_alignment(M)
 
     if verbose:
         print('nl: {}'.format(nl))
@@ -270,14 +271,15 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
     """
     if slot_type in constants._PATTERNS or \
             (filler_value and is_parameter(filler_value)):
-        if slot_value.lower() == filler_value:
+        if slot_value == filler_value:
             return 1
-        if constants.remove_quotation(slot_value).lower() == \
-            constants.remove_quotation(filler_value):
-            return 1
+
+        slot_value = constants.remove_quotation(slot_value).lower()
+        filler_value = constants.remove_quotation(filler_value).lower()
+
         if filler_value and is_parameter(filler_value):
             if strip(strip_sign(slot_value)).lower() == \
-                strip(filler_value).lower():
+                    strip(filler_value).lower():
                 return 1
         else:
             sv = strip(slot_value).lower()
