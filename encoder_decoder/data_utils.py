@@ -23,6 +23,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 
+import collections
 import functools
 import numpy as np
 import random
@@ -43,6 +44,8 @@ _UNK = "__SP__UNK"
 _ARG_UNK = "__SP__ARGUMENT_UNK"
 _UTL_UNK = "__SP__HEADCOMMAND_UNK"
 _FLAG_UNK = "__SP__FLAG_UNK"
+_ARG_START = "__SP__ARG_START"
+_ARG_END = "__SP__ARG_END"
 
 _GO = "__SP__GO"                    # seq2seq start symbol
 _ROOT = "__SP__ROOT"                # seq2tree start symbol
@@ -57,9 +60,12 @@ H_NO_EXPAND_ID = 6
 V_NO_EXPAND_ID = 7
 GO_ID = 8
 ROOT_ID = 9
+_ARG_START_ID = 10                  # start argument sketch
+_ARG_END_ID = 11                    # end argument sketch
 
 _TOKEN_START_VOCAB = [_PAD, _EOS, _UNK, _ARG_UNK, _UTL_UNK, _FLAG_UNK,
-    normalizer._H_NO_EXPAND, normalizer._V_NO_EXPAND, _GO, _ROOT]
+    normalizer._H_NO_EXPAND, normalizer._V_NO_EXPAND, _GO, _ROOT, _ARG_START,
+    _ARG_END]
 
 # Special char symbols
 _CPAD = "__SP__CPAD"
@@ -114,7 +120,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
       (used for simplifying testing sentences with unseen tokens).
     """
 
-    MIN_ARG_FREQ = 5
+    MIN_ARG_FREQ = 10
 
     vocab = {}
 
@@ -172,7 +178,8 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                             not constants.is_english_word(v)
                             and not v in constants.type_conversion):
                         # print("Infrequent token: %s"  % v)
-                        sorted_vocab['__LF__' + v] = min(vocab[v], min_word_frequency-1)
+                        sorted_vocab['__LF__' + v] = \
+                            min(vocab[v], min_word_frequency-1)
                     elif vocab[v] >= min_word_frequency:
                         sorted_vocab[v] = vocab[v]
                     else:
@@ -535,14 +542,16 @@ def prepare_bash(FLAGS, verbose=False):
     data_dir = FLAGS.data_dir
     nl_vocab_size = FLAGS.nl_vocab_size
     cm_vocab_size = FLAGS.cm_vocab_size
+
     def add_to_set(nl_data, cm_data, split):
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
             ast = data_tools.bash_parser(cm)
             if ast:
                 if data_tools.is_simple(ast):
+                    mappings = slot_filling.slot_filler_alignment_induction(nl, cm)
                     nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
-                    nl_tokens, _ = tokenizer.basic_tokenizer(nl, lemmatization=True)
+                    nl_tokens, _ = tokenizer.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(
                         ast, with_parent=True, arg_unk=True, unk_token=_UNK)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=True)
@@ -555,6 +564,8 @@ def prepare_bash(FLAGS, verbose=False):
                     cm_normalized_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True,
                         with_parent=True)
+                    nl_break_tokens, cm_break_tokens = split_arguments(
+                        nl_tokens, cm_tokens, cm_normalized_tokens)
                     cm_normalized_seq = data_tools.ast2list(
                         ast, arg_type_only=True, list=[], with_parent=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
@@ -563,6 +574,7 @@ def prepare_bash(FLAGS, verbose=False):
                     cm_canonical_seq = data_tools.ast2list(
                         ast, arg_type_only=True, ignore_flag_order=True, list=[],
                         with_parent=True)
+                    getattr(slot_argument_mappings, split).append(mappings)
                     getattr(nl_list, split).append(nl)
                     getattr(cm_list, split).append(cm)
                     getattr(nl_char_list, split).append(nl_chars)
@@ -572,8 +584,10 @@ def prepare_bash(FLAGS, verbose=False):
                     getattr(cm_seq_list, split).append(cm_seq)
                     getattr(cm_pruned_token_list, split).append(cm_pruned_tokens)
                     getattr(cm_pruned_seq_list, split).append(cm_pruned_seq)
-                    getattr(nl_normalized_token_list, split).append(nl_normalized_tokens)
-                    getattr(cm_normalized_token_list, split).append(cm_normalized_tokens)
+                    getattr(nl_break_token_list, split).append(nl_break_tokens)
+                    getattr(cm_break_token_list, split).append(cm_break_tokens)
+                    getattr(nl_norm_token_list, split).append(nl_normalized_tokens)
+                    getattr(cm_norm_token_list, split).append(cm_normalized_tokens)
                     getattr(cm_normalized_seq_list, split).append(cm_normalized_seq)
                     getattr(cm_canonical_token_list, split).append(cm_canonical_tokens)
                     getattr(cm_canonical_seq_list, split).append(cm_canonical_seq)
@@ -581,11 +595,79 @@ def prepare_bash(FLAGS, verbose=False):
                     if verbose:
                         print("Rare command: " + cm)
 
+    def save_slot_argument_mappings(dataset, suffix):
+        for split in _data_splits:
+            with open('{}{}'.format(split, suffix), 'w') as o_f:
+                for mappings in getattr(dataset, split):
+                    if mappings:
+                        for i, j in sorted(mappings, key=lambda x:x[0]):
+                            o_f.write('{}-{} '.format(i, j))
+                    o_f.write('\n')
+
+    def split_arguments(nl_tokens, cm_tokens, cm_normalized_tokens):
+        """
+        Example:
+            nl: find all '.txt' files
+            cm: find . -name "*.txt"
+
+            splitted_nl_tokens = ['find', 'all', "'", '.txt', "'", 'files']
+            splitted_cm_tokens = ['find', '.', '-name', _ARG_START, '"', '*',
+                '.txt', '"', _ARG_END]
+        """
+        assert(len(cm_tokens) == len(cm_normalized_tokens))
+
+        splitted_nl_tokens = []
+        for word in nl_tokens:
+            if constants.with_quotation(word):
+                splitted_nl_tokens.append(word[0])
+                splitted_nl_tokens.append(word[1:-1])
+                splitted_nl_tokens.append(word[-1])
+            else:
+                splitted_nl_tokens.append(word)
+
+        M = collections.defaultdict(dict)
+        for i in xrange(len(splitted_nl_tokens)):
+            word = splitted_nl_tokens[i]
+            for j in xrange(len(cm_normalized_tokens)):
+                if cm_normalized_tokens[j] in constants._ENTITIES:
+                    token = cm_tokens[j]
+                    if word == token:
+                        M[i][j] = 1
+                    elif word in token:
+                        M[i][j] = 0.5
+                    else:
+                        M[i][j] = -np.inf
+
+        mappings, _ = slot_filling.stable_marriage_alignment(M)
+        mapping_dict = dict([(y, x) for (x, y) in mappings])
+
+        splitted_cm_tokens = []
+        for j in xrange(len(cm_tokens)):
+            token = cm_tokens[j]
+            if j in mapping_dict:
+                i = mapping_dict[j]
+                word = splitted_nl_tokens[i]
+                if word == token:
+                    splitted_cm_tokens.append(token)
+                else:
+                    pos_start = token.index(word)
+                    pos_end = pos_start + len(word)
+                    for k in xrange(pos_start):
+                        splitted_cm_tokens.append(token[k])
+                    splitted_cm_tokens.append(word)
+                    for k in xrange(pos_end, len(token)):
+                        splitted_cm_tokens.append(token[k])
+            else:
+                splitted_cm_tokens.append(token)
+
+        return splitted_nl_tokens, splitted_cm_tokens
+
     # unfiltered data
     nl_data, cm_data = read_raw_data(data_dir)
 
     nl_list = DataSet()
     cm_list = DataSet()
+    slot_argument_mappings = DataSet()
     nl_char_list = DataSet()
     cm_char_list = DataSet()
     nl_token_list = DataSet()
@@ -593,8 +675,10 @@ def prepare_bash(FLAGS, verbose=False):
     cm_seq_list = DataSet()
     cm_pruned_token_list = DataSet()
     cm_pruned_seq_list = DataSet()
-    nl_normalized_token_list = DataSet()
-    cm_normalized_token_list = DataSet()
+    nl_break_token_list = DataSet()
+    cm_break_token_list = DataSet()
+    nl_norm_token_list = DataSet()
+    cm_norm_token_list = DataSet()
     cm_normalized_seq_list = DataSet()
     cm_canonical_token_list = DataSet()
     cm_canonical_seq_list = DataSet()
@@ -608,6 +692,8 @@ def prepare_bash(FLAGS, verbose=False):
     cm_char_vocab_path = os.path.join(data_dir, "vocab%d.cm.char" % cm_vocab_size)
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
+    nl_break_vocab_path = os.path.join(data_dir, "vocab%d.nl.break" % nl_vocab_size)
+    cm_break_vocab_path = os.path.join(data_dir, "vocab%d.cm.break" % cm_vocab_size)
     nl_norm_vocab_path = os.path.join(data_dir, "vocab%d.nl.norm" % nl_vocab_size)
     cm_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.norm" % cm_vocab_size)
     cm_ast_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast" % cm_vocab_size)
@@ -619,6 +705,8 @@ def prepare_bash(FLAGS, verbose=False):
     cm_char_suffix = ".ids%d.cm.char" % cm_vocab_size
     nl_token_suffix = ".ids%d.nl" % nl_vocab_size
     cm_token_suffix = ".ids%d.cm" % cm_vocab_size
+    nl_token_break_suffix = ".ids%d.nl.break" % nl_vocab_size
+    cm_token_break_suffix = ".ids%d.cm.break" % cm_vocab_size
     nl_token_norm_suffix = ".ids%d.nl.norm" % nl_vocab_size
     cm_token_norm_suffix = ".ids%d.cm.norm" % cm_vocab_size
     cm_token_norm_order_suffix = ".ids%d.cm.norm.order" % cm_vocab_size
@@ -638,9 +726,13 @@ def prepare_bash(FLAGS, verbose=False):
         nl_vocab_size, nl_vocab_path)
     max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix,
         cm_vocab_size, cm_vocab_path, parallel_token_list=nl_token_list)
-    max_nl_token_norm_len = prepare_dataset(nl_normalized_token_list, data_dir,
+    max_nl_token_break_len = prepare_dataset(nl_break_token_list, data_dir,
+        nl_token_break_suffix, nl_vocab_size, nl_break_vocab_path)
+    max_cm_token_break_len = prepare_dataset(cm_break_token_list, data_dir,
+        cm_token_break_suffix, cm_vocab_size, cm_break_vocab_path)
+    max_nl_token_norm_len = prepare_dataset(nl_norm_token_list, data_dir,
         nl_token_norm_suffix, nl_vocab_size, nl_norm_vocab_path)
-    max_cm_token_norm_len = prepare_dataset(cm_normalized_token_list, data_dir,
+    max_cm_token_norm_len = prepare_dataset(cm_norm_token_list, data_dir,
         cm_token_norm_suffix, cm_vocab_size, cm_norm_vocab_path)
     max_cm_token_norm_order_len = prepare_dataset(cm_canonical_token_list, data_dir,
         cm_token_norm_order_suffix, cm_vocab_size, cm_norm_vocab_path)
@@ -654,12 +746,17 @@ def prepare_bash(FLAGS, verbose=False):
         cm_seq_norm_order_suffix, cm_vocab_size, cm_ast_norm_vocab_path)
     max_cm_seq_pruned_len = prepare_dataset(cm_pruned_seq_list, data_dir,
         cm_seq_pruned_suffix, cm_vocab_size, cm_ast_vocab_path)
+    save_slot_argument_mappings(slot_argument_mappings, mapping_suffix='.mappings')
     
     print("maximum num chars in description = %d" % max_nl_char_len)
     print("maximum num tokens in description = %d" % max_nl_token_len)
     print("maximum num chars in command = %d" % max_cm_char_len)
     print("maximum num tokens in command = %d" % max_cm_token_len)
     print("maximum num AST search steps = %d" % max_cm_seq_len)
+    print("maximum num tokens in splitted description = %d" %
+          max_nl_token_break_len)
+    print("maximum num tokens in splitted command = %d" %
+          max_cm_token_break_len)
     print("maximum num tokens in normalized description = %d" %
           max_nl_token_norm_len)
     print("maximum num tokens in normalized command = %d" %
@@ -673,7 +770,7 @@ def prepare_bash(FLAGS, verbose=False):
     print("maximum num tokens in pruned command = %d" % max_cm_token_pruned_len)
     print("maximum num pruned AST search steps = %d" % max_cm_seq_pruned_len)
 
-    # compute character representation of tokens
+    # compute channel (character or other features) representations
     def compute_channel_representations(
             vocab_path, char_vocab_path, pad_start=False, add_eos=False):
         vocab, _ = initialize_vocabulary(vocab_path)
@@ -710,8 +807,8 @@ def prepare_bash(FLAGS, verbose=False):
                         max_token_size = len(char_ids)
                 char_ids_list.append(char_ids)
                 o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
-        print("maximum token size in {} = {}".format(
-                vocab_path, max_token_size))
+        print("maximum token size in {} = {}".format(vocab_path, max_token_size))
+
         if add_eos:
             vocab_char_features = np.zeros(
                 [len(vocab), max_token_size+1], dtype=np.int64)
@@ -738,33 +835,35 @@ def prepare_bash(FLAGS, verbose=False):
         nl_vocab_path, nl_char_vocab_path, pad_start=True)
     compute_channel_representations(
         cm_vocab_path, cm_char_vocab_path, add_eos=True)
-    
-    slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix)
+
+    # compute representations used for copying
+    def prepare_generation_mask(nl_vocab_path, cm_vocab_path, output_file):
+        nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
+        cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
+        generation_mask = np.zeros([FLAGS.tg_vocab_size + FLAGS.max_sc_length],
+                                   dtype=np.float32)
+        if FLAGS.explain:
+            for v in nl_vocab:
+                if not v.startswith("__LF__"):
+                    generation_mask[nl_vocab[v]] = 1
+        else:
+            for v in cm_vocab:
+                if not v.startswith("__LF__"):
+                    generation_mask[cm_vocab[v]] = 1
+        np.save(os.path.join(data_dir, output_file), generation_mask)
 
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
-    cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
-
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
                     nl_vocab_size, cm_vocab_path, create_vocab=False,
                     parallel_vocab_size=cm_vocab_size)
-    prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
-                    cm_vocab_size, cm_vocab_path, create_vocab=False)
+    prepare_generation_mask(nl_vocab_path, cm_vocab_path, "generation_mask")
 
-    # prepare generation mask
-    nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
-    cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
-
-    generation_mask = np.zeros([FLAGS.tg_vocab_size + FLAGS.max_sc_length],
-                               dtype=np.float32)
-    if FLAGS.explain:
-        for v in nl_vocab:
-            if not v.startswith("__LF__"):
-                generation_mask[nl_vocab[v]] = 1
-    else:
-        for v in cm_vocab:
-            if not v.startswith("__LF__"):
-                generation_mask[cm_vocab[v]] = 1
-    np.save(os.path.join(data_dir, "generation_mask"), generation_mask)
+    nl_token_break_copy_suffix = ".ids%d.nl.break.copy" % nl_vocab_size
+    prepare_dataset(nl_break_token_list, data_dir, nl_token_break_copy_suffix,
+                    nl_vocab_size, cm_break_vocab_path, create_vocab=False,
+                    parallel_vocab_size=cm_vocab_size)
+    prepare_generation_mask(nl_break_vocab_path, cm_break_vocab_path,
+                            "generation_mask.break")
 
 
 def merge_vocab_for_copy(nl_vocab_path, cm_vocab_path, output_path):
@@ -822,45 +921,12 @@ def prepare_data(FLAGS):
         prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
 
 
-def slot_filling_mapping_induction(FLAGS, nl_suffix, cm_suffix):
-    """
-    Induce the filler-slot alignments on train/dev/test dataset.
-    """
-    data_dir = FLAGS.data_dir
-
-    for dataset in _data_splits:
-        nl_path = os.path.join(data_dir, '{}{}'.format(dataset, nl_suffix))
-        cm_path = os.path.join(data_dir, '{}{}'.format(dataset, cm_suffix))
-        nl_list = [nl.strip() for nl in open(nl_path, 'r').readlines()]
-        cm_list = [cm.strip() for cm in open(cm_path, 'r').readlines()]
-
-        assert(len(nl_list) == len(cm_list))
-        # data_size = len(nl_list)
-
-        slot_filling_mapping_file = os.path.join(
-            data_dir, '{}.mappings'.format(dataset))
-        print("Saving slot-filling mapping to {}".format(data_dir))
-
-        with open(slot_filling_mapping_file, 'w') as o_f:
-            pair_list = list(zip(nl_list, cm_list))
-            for idx in xrange(len(pair_list)):
-                nl, cm = pair_list[idx]
-                mappings = slot_filling.slot_filler_alignment_induction(nl, cm)
-                if mappings:
-                    for i, j in sorted(mappings, key=lambda x:x[0]):
-                        o_f.write('{}-{} '.format(i, j))
-                o_f.write('\n')
-
-
 def load_slot_filling_data(input_path):
     data = np.load(input_path)
     train_X, train_Y = data['arr_0']
     train_X = np.concatenate(train_X, axis=0)
     train_Y = np.concatenate([np.expand_dims(y, 0) for y in train_Y], axis=0)
-    # print(train_X[0][:40])
-    # normalize the rows of the feature matrices
     train_X = train_X / norm(train_X, axis=1)[:, None]
-    # print(train_X[0][:40])
     assert(len(train_X) == len(train_Y))
     print('{} slot filling examples loaded'.format(len(train_X)))
     return train_X, train_Y
