@@ -288,7 +288,7 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
                 return 1
             elif fv in sv:
                 # include partial match
-                return 0.5
+                return (len(fv) + 0.0) / len(sv)
         return -np.inf
     else:
         if filler_value is None:
