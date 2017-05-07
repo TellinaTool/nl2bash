@@ -485,18 +485,16 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
             dp = dataset[bucket_id][i]
             if dp.mappings:
                 mappings = [tuple(m) for m in dp.mappings]
-                encoder_inputs = [dp.sc_ids]
-                encoder_full_inputs = [dp.sc_full_ids]
-                encoder_copy_full_inputs = [dp.sc_copy_full_ids]
-                decoder_inputs = [dp.tg_ids]
-                decoder_full_inputs = [dp.tg_full_ids]
+                encoder_channel_inputs = [dp.sc_ids, dp.sc_full_ids]
+                if FLAGS.use_copy:
+                    encoder_channel_inputs.append(dp.sc_copy_full_ids)
+                decoder_channel_inputs = [dp.tg_ids, dp.tg_full_ids]
                 if FLAGS.use_copy:
                     pointer_targets = [dp.pointer_targets]
                 else:
                     pointer_targets = None
                 formatted_example = model.format_example(
-                    [encoder_inputs, encoder_full_inputs],
-                    [decoder_inputs, decoder_full_inputs],
+                    encoder_channel_inputs, decoder_channel_inputs,
                     pointer_targets=pointer_targets,
                     bucket_id=bucket_id)
                 model_outputs = model.step(sess, formatted_example, bucket_id,
@@ -584,11 +582,17 @@ def main(_):
         os.path.dirname(__file__), "..", "data", FLAGS.dataset)
     print("Reading data from {}".format(FLAGS.data_dir))
 
-    # set up source and tareget vocabulary size
+    # set up source and target vocabulary size
     FLAGS.sc_vocab_size = FLAGS.cm_vocab_size \
         if FLAGS.explain else FLAGS.nl_vocab_size
     FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
         if FLAGS.explain else FLAGS.cm_vocab_size
+
+    # set up source and target length
+    FLAGS.max_sc_length = FLAGS.max_sc_length \
+        if not _buckets else _buckets[-1][0]
+    FLAGS.max_tg_length = FLAGS.max_tg_length \
+        if not _buckets else _buckets[-1][1]
 
     if FLAGS.decoder_topology in ['basic_tree']:
         FLAGS.model_dir = os.path.join(
