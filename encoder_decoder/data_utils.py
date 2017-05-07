@@ -639,7 +639,7 @@ def prepare_bash(FLAGS, verbose=False):
                     if word == token:
                         M[i][j] = 1
                     elif word in token:
-                        M[i][j] = 0.5
+                        M[i][j] = (len(word) + 0.0) / len(token)
                     else:
                         M[i][j] = -np.inf
 
