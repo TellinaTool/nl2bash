@@ -182,7 +182,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
     num_output_examples = 0
 
     # prepare copied indices
-    if FLAGS.use_copy:
+    if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
         pointers = model_outputs.pointers
         sentence_length = pointers.shape[1]
         if FLAGS.token_decoding_algorithm == 'greedy':
@@ -234,11 +234,6 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                 else:
                                     pred_token_type = pred_token
                                 cm_slots[ii] = (pred_token, pred_token_type)
-                        # if FLAGS.use_copy and pred_token == data_utils._UNK:
-                        #     copy_idx = #\
-                        #         batch_copy_indices[batch_id, beam_id, ii]
-                        #     pred_token = \
-                        #         rev_sc_vocab[encoder_inputs[copy_idx][batch_id]]
                     else:
                         if FLAGS.use_copy:
                             pred_token = rev_sc_vocab[

@@ -435,7 +435,7 @@ def eval_slot_filling(dataset):
                                 else:
                                     M[ci][j] = pointers[j, i]
                         mappings, _ = \
-                            slot_filling.stable_marriage_alignment_with_partial(M)
+                            slot_filling.stable_marriage_alignment(M)
                     else:
                         tree, _, mappings = slot_filling.stable_slot_filling(
                                     output_tokens, nl_fillers, cm_slots,
