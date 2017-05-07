@@ -17,10 +17,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params = collections.defaultdict()
     params["source_vocab_size"] = FLAGS.sc_vocab_size
     params["target_vocab_size"] = FLAGS.tg_vocab_size
-    params["max_source_length"] = FLAGS.max_sc_length \
-        if not buckets else buckets[-1][0]
-    params["max_target_length"] = FLAGS.max_tg_length \
-        if not buckets else buckets[-1][1]
+    params["max_source_length"] = FLAGS.max_sc_length
+    params["max_target_length"] = FLAGS.max_tg_length
     params["max_source_token_size"] = FLAGS.max_sc_token_size
     params["max_target_token_size"] = FLAGS.max_tg_token_size
     params["rnn_cell"] = FLAGS.rnn_cell
