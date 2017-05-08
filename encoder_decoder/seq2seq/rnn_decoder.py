@@ -46,6 +46,7 @@ class RNNDecoder(decoder.Decoder):
             outputs = []
             states = []
             attn_alignments = []
+            attns = None
 
             # applying cell wrappers: ["attention", "beam"]
             if bs_decoding:
@@ -115,9 +116,21 @@ class RNNDecoder(decoder.Decoder):
                             tf.ones(tf.shape(input), dtype=tf.int32) * data_utils.UNK_ID, input)
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
-                if self.use_attention:
-                    output, state, alignments = \
-                        decoder_cell(input_embedding, state, attn_alignments)
+
+                if self.use_copy and self.copy_fun == 'explicit':
+                    if attns is None:
+                        attn_dim = attention_states.get_shape()[2]
+                        selective_reads = tf.zeros([self.batch_size, attn_dim])
+                    else:
+                        selective_reads = attns[-1] * read_copy_source
+                    input_embeddings = tf.concat(1, input_embeddings,
+                                                 selective_reads)
+                    output, state, alignments, attns, read_copy_source = \
+                        decoder_cell(input_embeddings, state)
+                elif self.use_attention:
+                    output, state, alignments, attns = \
+                        decoder_cell(input_embedding, state)
+                    attn_alignments.append(alignments)
                 else:
                     output, state = decoder_cell(input_embedding, state)
                
@@ -134,10 +147,10 @@ class RNNDecoder(decoder.Decoder):
             if self.use_attention:
                 # Tensor list --> tenosr
                 attn_alignments = tf.concat(1,
-                    [tf.expand_dims(x[0], 1) for x in alignments])
+                    [tf.expand_dims(x[0], 1) for x in attn_alignments])
             if self.use_copy and self.copy_fun == 'explicit':
                 pointers = tf.concat(1,
-                    [tf.expand_dims(x[1], 1) for x in alignments])
+                    [tf.expand_dims(x[1], 1) for x in attn_alignments])
             else:
                 pointers = None
 

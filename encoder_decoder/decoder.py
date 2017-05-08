@@ -105,7 +105,6 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.tg_vocab_size = tg_vocab_size
 
         self.vocab_indices = tf.diag(tf.ones([tg_vocab_size], dtype=tf.float32))
-        # self.vocab_indices = tf.zeros([tg_vocab_size, tg_vocab_size])
         self.encoder_size = len(encoder_inputs)
         encoder_inputs = tf.concat(1,
             [tf.expand_dims(x, 1) for x in encoder_inputs])
@@ -115,11 +114,9 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         print("CopyCellWrapper added!")
 
-    def __call__(self, input_embedding, state, attn_alignments=None, scope=None):
-        assert(attn_alignments is not None)
-
-        output, state, _ = self.cell(
-            input_embedding, state, attn_alignments, scope)
+    def __call__(self, input_embedding, state, scope=None):
+        output, state, alignments, attns = self.cell(
+            input_embedding, state, scope)
 
         # Compute generation/copying mixture
         # TODO: compute the same loss function for LSTMs
@@ -128,16 +125,22 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         gen_logit = tf.exp(tf.matmul(output, W) + b) * self.generation_mask
         
         # copying probability
-        pointers = attn_alignments[-1][1]
+        pointers = alignments[1]
         copy_logit = tf.squeeze(tf.matmul(tf.expand_dims(tf.exp(pointers), 1),
                                           self.encoder_inputs_3d), 1)
         unk_mask = np.ones([1, self.tg_vocab_size])
         unk_mask[0, data_utils.UNK_ID] = 0
         copy_logit = copy_logit * unk_mask
 
+        # mixture probability
         logit = gen_logit + copy_logit
 
-        return logit, state, attn_alignments
+        # selection reads
+        read_copy_source = tf.cast(
+            tf.reduce_max(gen_logit, [1], keep_dims=True) > \
+            tf.reduce_max(pointers, [1], keep_dims=True), tf.float32)
+
+        return logit, state, alignments, attns, read_copy_source
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
@@ -164,8 +167,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         """
         attention_states = tf.nn.dropout(attention_states, attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
-        attn_vec_dim = attention_states.get_shape()[2].value
-        attn_dim = attn_vec_dim
+        attn_dim = attention_states.get_shape()[2].value
 
         self.cell = cell
         self.encoder_attn_masks = encoder_attn_masks
@@ -177,20 +179,18 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             self.vocab_indices, encoder_inputs)
         self.num_heads = num_heads
         self.num_layers = num_layers
-        self.attn_vec_dim = attn_vec_dim
         self.attn_length = attn_length
         self.attn_dim = attn_dim
         self.attention_function = attention_function
         self.attention_input_keep = attention_input_keep
         self.attention_output_keep = attention_output_keep
 
-        hidden = attention_states
         hidden_features = []
         v = []
         with tf.variable_scope("attention_cell_wrapper"):
             for a in xrange(num_heads):
-                hidden_features.append(hidden)
-        self.hidden = hidden
+                # [batch_size x attn_length x attn_dim]
+                hidden_features.append(attention_states)
         self.hidden_features = hidden_features
         self.v = v
 
@@ -213,15 +213,15 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         for a in xrange(self.num_heads):
             with tf.variable_scope("Attention_%d" % a):
-                y = tf.reshape(state, [-1, 1, 1, self.attn_vec_dim])
+                y = tf.reshape(state, [-1, 1, 1, self.attn_dim])
                 # Attention mask is a softmax of v^T * tanh(...).
                 if self.attention_function == 'non-linear':
                     k = tf.get_variable("AttnW_%d" % a,
-                                        [1, 1, 2*self.attn_vec_dim, self.attn_vec_dim])
+                                        [1, 1, 2*self.attn_dim, self.attn_dim])
                     l = tf.get_variable("Attnl_%d" % a,
-                                        [1, 1, 1, self.attn_vec_dim])
+                                        [1, 1, 1, self.attn_dim])
                     z = tf.reshape(self.hidden_features[a],
-                                   [-1, self.attn_length, 1, self.attn_vec_dim])
+                                   [-1, self.attn_length, 1, self.attn_dim])
                     v = tf.concat(3, [z, tf.tile(y, [1, self.attn_length, 1, 1])])
                     s = tf.reduce_sum(
                         l * tf.tanh(tf.nn.conv2d(v, k, [1,1,1,1], "SAME")), [2, 3])
@@ -231,6 +231,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     raise NotImplementedError
 
                 # Apply attention masks
+                # [batch_size x attn_length]
                 s = s - (1 - self.encoder_attn_masks) * 1e9
                 alignment = tf.nn.softmax(s)
                 if a == 0:
@@ -239,17 +240,24 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     alignments.append(s)
 
                 # Now calculate the attention-weighted vector d.
-                d = tf.reduce_sum(
+                if a == 0:
+                    # Soft attention read
+                    d = tf.reduce_sum(
                         tf.reshape(alignment, [-1, self.attn_length, 1])
                             * self.hidden_features[a], [1])
+                else:
+                    # Hard selection read
+                    selection_indices = tf.nn.embedding_lookup(
+                        tf.diag(tf.ones(self.attn_length)),
+                        tf.reduce_max(s, [1], keep_dims=True))
+                    d = tf.matmul(selection_indices, self.hidden_features[a])
                 context = tf.reshape(d, [-1, self.attn_dim])
                 ds.append(context)
 
         self.attention_vars = True
         return ds, alignments
 
-    def __call__(self, input_embedding, state, attn_alignments=None,
-                 scope=None):
+    def __call__(self, input_embedding, state, scope=None):
         if nest.is_sequence(state):
             dim = state[1].get_shape()[1].value
         else:
@@ -280,6 +288,5 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 dim, True)
 
         self.attention_cell_vars = True
-        attn_alignments.append(alignments)
 
-        return output, state, attn_alignments
+        return output, state, alignments, attns
