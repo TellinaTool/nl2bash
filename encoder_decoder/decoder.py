@@ -251,7 +251,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     # Hard selection read
                     selection_indices = tf.nn.embedding_lookup(
                         tf.diag(tf.ones(self.attn_length)),
-                        tf.reduce_max(s, [1], keep_dims=True))
+                        tf.argmax(s, 1, keep_dims=True))
                     d = tf.matmul(selection_indices, self.hidden_features[a])
                 context = tf.reshape(d, [-1, self.attn_dim])
                 ds.append(context)
