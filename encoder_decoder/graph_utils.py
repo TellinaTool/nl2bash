@@ -246,7 +246,7 @@ def get_buckets(FLAGS):
             if FLAGS.partial_token:
                 buckets = [(40, 50)] if not FLAGS.explain else [(50, 40)]
             else:
-                buckets = [(40, 40)]
+                buckets = [(30, 40)] if not FLAGS.explain else [(40, 30)]
     elif FLAGS.dataset == "dummy":
         buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explain else \
             [(95, 20), (95, 30), (95, 45)]
