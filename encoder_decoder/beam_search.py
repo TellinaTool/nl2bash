@@ -218,7 +218,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         past_cell_state = self.get_past_cell_state(past_cell_states)
         if self.use_copy and self.copy_fun != 'supervised':
-            cell_output, raw_cell_state, alignments = \
+            cell_output, raw_cell_state, alignments, attns, read_copy_source = \
                 self.cell(cell_inputs, past_cell_state, alignments, scope)
         elif self.use_attention:
             cell_output, raw_cell_state, alignments = \
