@@ -126,6 +126,7 @@ class RNNDecoder(decoder.Decoder):
                     input_embedding = tf.concat(1, [input_embedding, selective_reads])
                     output, state, alignments, attns, read_copy_source = \
                         decoder_cell(input_embedding, state)
+                    attn_alignments.append(alignments)
                 elif self.use_attention:
                     output, state, alignments, attns = \
                         decoder_cell(input_embedding, state)
