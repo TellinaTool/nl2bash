@@ -45,8 +45,8 @@ class RNNDecoder(decoder.Decoder):
             decoder_cell = self.decoder_cell()
             outputs = []
             states = []
-            attn_alignments = []
-            attns = None
+            alignments_list = []
+            attns_list = None
 
             # applying cell wrappers: ["attention", "beam"]
             if bs_decoding:
@@ -126,11 +126,11 @@ class RNNDecoder(decoder.Decoder):
                     input_embedding = tf.concat(1, [input_embedding, selective_reads])
                     output, state, alignments, attns, read_copy_source = \
                         decoder_cell(input_embedding, state)
-                    attn_alignments.append(alignments)
+                    alignments_list.append(alignments)
                 elif self.use_attention:
                     output, state, alignments, attns = \
                         decoder_cell(input_embedding, state)
-                    attn_alignments.append(alignments)
+                    alignments_list.append(alignments)
                 else:
                     output, state = decoder_cell(input_embedding, state)
                
@@ -147,10 +147,10 @@ class RNNDecoder(decoder.Decoder):
             if self.use_attention:
                 # Tensor list --> tenosr
                 attn_alignments = tf.concat(1,
-                    [tf.expand_dims(x[0], 1) for x in attn_alignments])
+                    [tf.expand_dims(x[0], 1) for x in alignments_list])
             if self.use_copy and self.copy_fun == 'explicit':
                 pointers = tf.concat(1,
-                    [tf.expand_dims(x[1], 1) for x in attn_alignments])
+                    [tf.expand_dims(x[1], 1) for x in alignments_list])
             else:
                 pointers = None
 
