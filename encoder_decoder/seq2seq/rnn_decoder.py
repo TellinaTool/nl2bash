@@ -123,8 +123,7 @@ class RNNDecoder(decoder.Decoder):
                         selective_reads = tf.zeros([self.batch_size, attn_dim])
                     else:
                         selective_reads = attns[-1] * read_copy_source
-                    input_embeddings = tf.concat(1, input_embeddings,
-                                                 selective_reads)
+                    input_embeddings = tf.concat(1, [input_embeddings, selective_reads])
                     output, state, alignments, attns, read_copy_source = \
                         decoder_cell(input_embeddings, state)
                 elif self.use_attention:

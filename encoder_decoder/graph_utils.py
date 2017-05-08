@@ -244,7 +244,7 @@ def get_buckets(FLAGS):
             buckets = [(30, 72)] if not FLAGS.explain else [(72, 30)]
         elif FLAGS.decoder_topology in ['rnn']:
             if FLAGS.partial_token:
-                buckets = [(40, 80)] if not FLAGS.explain else [(80, 40)]
+                buckets = [(40, 50)] if not FLAGS.explain else [(50, 40)]
             else:
                 buckets = [(40, 40)]
     elif FLAGS.dataset == "dummy":
