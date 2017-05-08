@@ -46,7 +46,6 @@ class RNNDecoder(decoder.Decoder):
             outputs = []
             states = []
             alignments_list = []
-            attns_list = None
 
             # applying cell wrappers: ["attention", "beam"]
             if bs_decoding:
@@ -118,7 +117,7 @@ class RNNDecoder(decoder.Decoder):
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
 
                 if self.use_copy and self.copy_fun == 'explicit':
-                    if attns is None:
+                    if i == 0:
                         attn_dim = attention_states.get_shape()[2]
                         selective_reads = tf.zeros([self.batch_size, attn_dim])
                     else:
