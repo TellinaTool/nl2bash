@@ -160,6 +160,9 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.alpha = alpha
         self.locally_normalized = locally_normalized
 
+        if use_attention:
+            self.alignments_list = []
+
         self.parent_refs_offsets = None
 
         # Note: masking out entries to -inf plays poorly with top_k, so just
@@ -191,7 +194,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self._done_mask = tf.tile(self._done_mask, [full_size, 1])
 
 
-    def __call__(self, inputs, state, alignments=None, scope=None):
+    def __call__(self, inputs, state, scope=None):
         (
             past_cand_symbols,      # [batch_size, :]
             past_cand_logprobs,     # [batch_size]
@@ -218,11 +221,13 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         past_cell_state = self.get_past_cell_state(past_cell_states)
         if self.use_copy and self.copy_fun != 'supervised':
-            cell_output, raw_cell_state, alignments = \
-                self.cell(cell_inputs, past_cell_state, alignments, scope)
+            cell_output, raw_cell_state, alignments, attns, read_copy_source = \
+                self.cell(cell_inputs, past_cell_state, scope)
+            self.alignments_list.append(alignments)
         elif self.use_attention:
-            cell_output, raw_cell_state, alignments = \
-                self.cell(cell_inputs, past_cell_state, alignments, scope)
+            cell_output, raw_cell_state, alignments, attns = \
+                self.cell(cell_inputs, past_cell_state, scope)
+            self.alignments_list.append(alignments)
         else:
             cell_output, raw_cell_state = \
                 self.cell(cell_inputs, past_cell_state, scope)
@@ -286,19 +291,19 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         parent_refs = parent_refs + self.parent_refs_offsets
 
         symbols_history = tf.gather(past_beam_symbols, parent_refs)
-        if alignments is not None:
-            num_alignments = len(alignments)
-            num_heads = len(alignments[0])
-            alignments = nest.flatten(alignments)
-            alignments = tf.split(1, num_alignments * num_heads,
-                tf.gather(tf.concat(1, alignments), parent_refs))
-            new_alignments = []
+        if self.use_attention:
+            num_alignments = len(self.alignments_list)
+            num_heads = len(self.alignments_list[0])
+            alignments_list = nest.flatten(self.alignments_list)
+            alignments_history = tf.split(1, num_alignments * num_heads,
+                tf.gather(tf.concat(1, alignments_list), parent_refs))
+            new_alignments_list = []
             for i in xrange(num_alignments):
                 alignment = []
                 for j in xrange(num_heads):
-                    alignment.append(alignments[i*num_heads+j])
-                new_alignments.append(alignment)
-            alignments = new_alignments
+                    alignment.append(alignments_history[i*num_heads+j])
+                new_alignments_list.append(alignment)
+            self.alignments_list = new_alignments_list
 
         beam_symbols = tf.concat(1, [symbols_history,
                                      tf.reshape(symbols, [-1, 1])])
@@ -342,8 +347,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         )
         cell_output = tf.gather(cell_output, parent_refs)
 
-        if self.use_attention:
-            return cell_output, cell_state, alignments
+        if self.use_copy and self.copy_fun == 'explicit':
+            return cell_output, cell_state, alignments, attns, read_copy_source
+        elif self.use_attention:
+            return cell_output, cell_state, alignments, attns
         else:
             return cell_output, cell_state
 
