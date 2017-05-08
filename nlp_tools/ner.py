@@ -99,25 +99,26 @@ def annotate(tokens):
         _DIRECTORY_RE, constants._DIRECTORY, sentence, entities)
 
     # -- File
-    _FILE_RE = re.compile(constants.include_quotations(r'([^"\']*\.[^ "\']+)|' +
-        r'(([^"\']*\/)+[^"\']*)|' + constants._FILE_EXTENSION_RE + ')'))
+    _FILE_RE = re.compile(constants.include_quotations(r'(([^"\']*\.[^ "\']+)|' +
+        r'(([^"\']*\/)+[^"\']*)|' + constants._FILE_EXTENSION_RE + '|' + 
+        constants._FILE_EXTENSION_RE.upper() + ')'))
     sentence = annotate_ner(_FILE_RE, constants._FILE, sentence, entities)
-
+    
     # -- Other patterns
     _REGEX_QUOTED_RE = re.compile(constants.include_space(constants._QUOTED_RE))
     sentence = annotate_ner(_REGEX_QUOTED_RE, constants._REGEX, sentence, entities)
-
+    
     # -- Match all unquoted patterns
     # -- Directory
-    _DIRECTORY_RE = re.compile(r'[^ "\']*\/')
+    _DIRECTORY_RE = re.compile(decorate_boundaries(r'[^ "\']*\/'))
     sentence = annotate_ner(
         _DIRECTORY_RE, constants._DIRECTORY, sentence, entities)
-
+    
     # -- File
     _FILE_RE = re.compile(r'([^ ]*\.[^ ]+|' + r'([^ ]*\/)+[^ ]*)|(' +
         decorate_boundaries(constants._FILE_EXTENSION_RE) + ')')
     sentence = annotate_ner(_FILE_RE, constants._FILE, sentence, entities)
-
+    
     # -- Other patterns
     _REGEX_SPECIAL_RE = re.compile(decorate_boundaries(constants._SPECIAL_SYMBOL_RE))
     sentence = annotate_ner(_REGEX_SPECIAL_RE, constants._REGEX, sentence, entities)
