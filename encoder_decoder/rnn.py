@@ -6,6 +6,7 @@ from __future__ import print_function
 
 import collections
 import hashlib
+import numbers
 import six
 
 from tensorflow.python.util import nest
@@ -340,7 +341,7 @@ class DropoutWrapper(tf.nn.rnn_cell.RNNCell):
         shape = convert_to_batch_shape(s)
         return tf.random_uniform(shape, seed=inner_seed, dtype=dtype)
 
-      if (not isinstance(self._input_keep_prob, tf.real) or
+      if (not isinstance(self._input_keep_prob, numbers.Real) or
           self._input_keep_prob < 1.0):
         if input_size is None:
           raise ValueError(
