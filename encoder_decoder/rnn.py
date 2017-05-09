@@ -335,7 +335,7 @@ class DropoutWrapper(tf.nn.rnn_cell.RNNCell):
         # variational dropout we use the same dropout mask for all
         # batch elements.
         return tf.concat(
-            ([1], tf.shape(s).as_list()), 0)
+            ([1], s.get_shape().as_list()), 0)
 
       def batch_noise(s, inner_seed):
         shape = convert_to_batch_shape(s)
@@ -477,5 +477,3 @@ def map_structure(func, *structure, **check_types_dict):
 
   return nest.pack_sequence_as(
       structure[0], [func(*x) for x in entries])
-
->>>>>>> 7ac755db365300a2c8ee8abdac4b05d65a20be3e
