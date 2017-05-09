@@ -14,15 +14,16 @@ from tensorflow.python.util import nest
 from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
-    def __init__(self, hyperparameters, scope, vocab_size, dim, use_attention,
-        attention_function, input_keep, output_keep, decoding_algorithm,
-        forward_only, use_token_features=False):
+    def __init__(self, hyperparameters, scope, vocab_size, dim, embedding_dim,
+                 use_attention, attention_function, input_keep, output_keep,
+                 decoding_algorithm, forward_only, use_token_features=False):
         """
         :param hyperparameters: Tellina model hyperparameters.
         :param scope: Scope of the decoder. (There might be multiple decoders
             with the same construction in the neural architecture.)
         :param vocab_size: Output vocabulary size.
-        :param dim: Decoder Embedding dimension.
+        :param dim: Decoder dimension.
+        :param embedding_dim: Decoder embedding dimension.
         :param use_attention: Set to True to use attention for decoding.
         :param attention_function: The attention function used.
         :param input_keep: Dropout parameter for the input of the attention layer.
@@ -33,6 +34,7 @@ class Decoder(graph_utils.NNModel):
 
         self.scope = scope
         self.dim = dim
+        self.embedding_dim = embedding_dim
         self.use_attention = use_attention
         self.attention_function = attention_function
         self.input_keep = input_keep
@@ -77,7 +79,7 @@ class Decoder(graph_utils.NNModel):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding",
-                [self.vocab_size, self.dim], initializer=initializer)
+                [self.vocab_size, self.embedding_dim], initializer=initializer)
             self.embedding_vars = True
             if self.use_token_features:
                 return tf.nn.embedding_lookup(embeddings, self.token_features())
@@ -137,7 +139,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # selection reads
         read_copy_source = tf.cast(
-            tf.reduce_max(gen_logit, [1], keep_dims=True) > \
+            tf.reduce_max(gen_logit, [1], keep_dims=True) < \
             tf.reduce_max(pointers, [1], keep_dims=True), tf.float32)
 
         return logit, state, alignments, attns, read_copy_source
@@ -165,7 +167,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param use_copy: Copy source tokens to the target.
         :param copy_fun: Parameterization of the copying function.
         """
-        attention_states = tf.nn.dropout(attention_states, attention_input_keep)
+        # attention_states = tf.nn.dropout(attention_states, attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
         attn_dim = attention_states.get_shape()[2].value
 
@@ -249,7 +251,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                     # Hard selection read
                     selection_indices = tf.nn.embedding_lookup(
                         tf.diag(tf.ones(self.attn_length)),
-                        tf.reduce_max(s, [1], keep_dims=True))
+                        tf.argmax(s, 1, keep_dims=True))
                     d = tf.matmul(selection_indices, self.hidden_features[a])
                 context = tf.reshape(d, [-1, self.attn_dim])
                 ds.append(context)
@@ -283,9 +285,10 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
-            output = tf.nn.rnn_cell._linear(
-                tf.nn.dropout(attn_state, self.attention_output_keep),
-                dim, True)
+            # output = tf.nn.rnn_cell._linear(
+            #     tf.nn.dropout(attn_state, self.attention_output_keep),
+            #     dim, True)
+            output = tf.nn.rnn_cell._linear(dim, True)
 
         self.attention_cell_vars = True
 

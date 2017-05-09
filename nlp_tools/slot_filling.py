@@ -288,12 +288,10 @@ def slot_filler_value_match(slot_value, filler_value, slot_type):
                 return 1
             elif fv in sv:
                 # include partial match
-                ratio = (len(fv) + 0.0) / len(sv)
                 if len(sv) - len(fv) > 10:
-                    print(fv, sv)
                     return -np.inf
                 else:
-                    return ratio
+                    return (len(fv) + 0.0) / len(sv)
         return -np.inf
     else:
         if filler_value is None:
@@ -446,11 +444,12 @@ def extract_value(filler_type, slot_type, surface):
         value = value
     elif filler_type in ['Username', 'Groupname']:
         value = value
-    print(value)
+    
     # add quotations for pattern slots
     if filler_type in constants._PATTERNS and \
             not constants.with_quotation(value):
         value = constants.add_quotations(value)
+    
     return value
 
 def extract_number(value):

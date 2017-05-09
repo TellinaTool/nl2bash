@@ -58,11 +58,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.define_encoder(self.sc_input_keep, self.sc_output_keep)
 
         # Decoder.
-        if self.use_copy and self.copy_fun == 'explicit':
-            decoder_dim = 2 * self.encoder.output_dim
-        else:
-            decoder_dim = self.encoder.output_dim
-        self.define_decoder(decoder_dim,
+        decoder_embedding_dim = self.encoder.output_dim
+        decoder_dim = decoder_embedding_dim
+        self.define_decoder(decoder_dim, decoder_embedding_dim,
                             self.tg_token_use_attention,
                             self.tg_token_attn_fun,
                             self.tg_input_keep,
@@ -441,9 +439,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         self.encoder = None
 
 
-    def define_decoder(self, dim, use_attention, attention_function,
-                       input_keep, output_keep, forward_only,
-                       use_token_features):
+    def define_decoder(self, dim, embedding_dim, use_attention,
+                       attention_function, input_keep, output_keep,
+                       forward_only, use_token_features):
         """Placeholder function."""
         self.decoder = None
 
@@ -674,7 +672,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(encoder_size):
             input_feed[self.encoder_inputs[l].name] = E.encoder_inputs[l]
             input_feed[self.encoder_full_inputs[l].name] = \
-                E.encoder_copy_full_inputs[l]
+                E.encoder_copy_full_inputs[l] if self.use_copy \
+                else E.encoder_full_inputs[l]
             if self.sc_char:
                 input_feed[self.char_encoder_inputs[l].name] = \
                     E.char_encoder_inputs[l]
