@@ -79,7 +79,8 @@ class Decoder(graph_utils.NNModel):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
             embeddings = tf.get_variable("embedding",
-                [self.vocab_size, self.embedding_dim], initializer=initializer)
+                [self.self.target_word_embedding_size, self.embedding_dim],
+                 initializer=initializer)
             self.embedding_vars = True
             if self.use_token_features:
                 return tf.nn.embedding_lookup(embeddings, self.token_features())

@@ -458,15 +458,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             raise ValueError("Unrecognized target character composition: {}."
                              .format(self.tg_char_composition))
 
-    def shared_embeddings(self):
-        with tf.variable_scope("shared_embeddings", reuse=self.embedding_vars):
-            sqrt3 = math.sqrt(3)
-            initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding",
-                [self.copy_vocab_size, self.sc_token_dim], initializer=initializer)
-            self.embedding_vars = True
-            return embeddings
-
 
     def format_example(self, encoder_channel_inputs, decoder_channel_inputs,
                        pointer_targets=None, bucket_id=-1):

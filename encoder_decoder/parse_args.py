@@ -65,8 +65,12 @@ def define_input_flags():
 
     # data hyperparameters
     tf.app.flags.DEFINE_string("dataset", "bash", "select dataset to use.")
-    tf.app.flags.DEFINE_integer("nl_vocab_size", 1000, "natural language vocabulary size.")
-    tf.app.flags.DEFINE_integer("cm_vocab_size", 1000, "command vocabulary size.")
+    tf.app.flags.DEFINE_integer("nl_known_vocab_size", 1000, "natural language vocabulary size.")
+    tf.app.flags.DEFINE_integer("nl_vocab_size", 1000, "natural language vocabulary size " +
+                                                       "(including unknown tokens).")
+    tf.app.flags.DEFINE_integer("cm_known_vocab_size", 1000, "command vocabulary size.")
+    tf.app.flags.DEFINE_integer("cm_vocab_size", 1000, "command vocabulary size " +
+                                                       "(including unknown tokens).")
     tf.app.flags.DEFINE_integer("max_sc_length", 30, "maximum length of the source token sequence.")
     tf.app.flags.DEFINE_integer("max_tg_length", 40, "maximum length of the target token sequence.")
     tf.app.flags.DEFINE_integer("max_sc_token_size", 60, "maximum number of characters in a source token.")
@@ -99,6 +103,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("num_samples", 256,
                                 "Number of samples for sampled softmax.")
     tf.app.flags.DEFINE_integer("seed", -1, "Random seed for graph initialization.")
+    tf.app.flags.DEFINE_boolean("variational_recurrent_dropout", True, "Set to use variational " +
+                                "recurrent dropout on the RNN cells.")
 
     tf.app.flags.DEFINE_string("training_algorithm", "standard", "training algorithm to use.")
     tf.app.flags.DEFINE_string("pretrained_model_subdir", "", "signature of pretrained model.")
@@ -154,7 +160,9 @@ def define_input_flags():
     # channel network hyperparameters
     tf.app.flags.DEFINE_boolean("sc_token", True,
                                 "Set to True to turn on the token channel in the encoder. On by default.")
-    tf.app.flags.DEFINE_integer("sc_vocab_size", 1000, "source vocabulary size.")
+    tf.app.flags.DEFINE_integer("sc_word_embedding_size", 1000, "source word embedding size.")
+    tf.app.flags.DEFINE_integer("sc_vocab_size", 1000, "source vocabulary size " +
+                                                       "(including low-frequency tokens).")
     tf.app.flags.DEFINE_integer("sc_token_dim", 300, "Basic token embedding dimensions.")
     tf.app.flags.DEFINE_float("sc_input_keep", .5,
                                 "Proportion of source input to keep if dropout is used.")
@@ -169,7 +177,9 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("sc_char_rnn_num_layers", 1,
                                 "Number of layers in the RNN cell used for the character model.")
 
-    tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size.")
+    tf.app.flags.DEFINE_integer("tg_word_embedding_size", 1000, "target word embedding size.")
+    tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size " +
+                                                       "(including low-frequency tokens).")
     tf.app.flags.DEFINE_float("tg_input_keep", .5, "Proportion of target input to keep if dropout is used.")
     tf.app.flags.DEFINE_float("tg_output_keep", .5, "Proportion of target output to keep if dropout is used.")
     tf.app.flags.DEFINE_boolean("tg_char", False,
@@ -190,7 +200,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("use_copy", False, "If set, use copying mechanism.")
     tf.app.flags.DEFINE_string("copy_fun", 'implicit',
                                 "Specifying the type of copying functions to use.")
-    tf.app.flags.DEFINE_integer("copy_vocab_size", 38, "shared vocab size for copying mechanism.")
     tf.app.flags.DEFINE_float("chi", 1, "Copy loss weight.")
 
     # debugging options

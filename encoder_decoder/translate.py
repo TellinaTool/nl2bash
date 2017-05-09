@@ -583,8 +583,12 @@ def main(_):
     print("Reading data from {}".format(FLAGS.data_dir))
 
     # set up source and target vocabulary size
+    FLAGS.sc_word_embedding_size = FLAGS.cm_known_vocab_size \
+        if FLAGS.explain else FLAGS.nl_known_vocab_size
     FLAGS.sc_vocab_size = FLAGS.cm_vocab_size \
         if FLAGS.explain else FLAGS.nl_vocab_size
+    FLAGS.tg_word_embedding_size = FLAGS.nl_known_vocab_size \
+        if FLAGS.explain else FLAGS.cm_known_vocab_size
     FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
         if FLAGS.explain else FLAGS.cm_vocab_size
 
@@ -642,7 +646,7 @@ def main(_):
             if not FLAGS.explain:
                 eval(dataset, model_sig=model_sig, verbose=False)
         elif FLAGS.grid_search:
-            grid_searc455h(train_set, dataset)
+            grid_search(train_set, dataset)
         elif FLAGS.cross_valid:
             cross_validation(train_set)
         else:

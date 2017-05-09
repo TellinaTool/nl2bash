@@ -15,7 +15,9 @@ from encoder_decoder import data_utils, rnn
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
                  construct_model_dir=True, construct_slot_filling=False):
     params = collections.defaultdict()
+    params["source_word_embedding_size"] = FLAGS.sc_word_embedding_size
     params["source_vocab_size"] = FLAGS.sc_vocab_size
+    params["target_word_embedding_size"] = FLAGS.tg_word_embedding_size
     params["target_vocab_size"] = FLAGS.tg_vocab_size
     params["max_source_length"] = FLAGS.max_sc_length
     params["max_target_length"] = FLAGS.max_tg_length
@@ -26,6 +28,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["num_layers"] = FLAGS.num_layers
     params["num_samples"] = FLAGS.num_samples
     params["max_gradient_norm"] = FLAGS.max_gradient_norm
+    params["variational_recurrent_dropout"] = \
+        FLAGS.variational_recurrent_dropout
 
     params["sc_input_keep"] = FLAGS.sc_input_keep
     params["sc_output_keep"] = FLAGS.sc_output_keep
@@ -74,7 +78,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
 
     params["use_copy"] = FLAGS.use_copy
     params["copy_fun"] = FLAGS.copy_fun
-    params["copy_vocab_size"] = FLAGS.copy_vocab_size
     params["chi"] = FLAGS.chi
     params["generation_mask_path"] = os.path.join(
         FLAGS.data_dir, "generation_mask.npy")
@@ -210,8 +213,7 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
 
 def create_multilayer_cell(type, scope, dim, num_layers,
                            input_keep_prob=1, output_keep_prob=1,
-                           variational_recurrent=False,
-                           input_dim=-1):
+                           variational_recurrent=True, input_dim=-1):
     """
     Create the multi-layer RNN cell.
     :param type: Type of RNN cell.
@@ -331,6 +333,10 @@ class NNModel(object):
         return self.hyperparams["tg_token_attn_fun"]
 
     @property
+    def variational_recurrent_dropout(self):
+        return self.hyperparams["variational_recurrent_dropout"]
+
+    @property
     def attention_input_keep(self):
         return self.hyperparams["attention_input_keep"]
 
@@ -343,8 +349,16 @@ class NNModel(object):
         return self.hyperparams["rnn_cell"]
 
     @property
+    def source_word_embedding_size(self):
+        return self.hyperparams["source_word_embedding_size"]
+
+    @property
     def source_vocab_size(self):
         return self.hyperparams["source_vocab_size"]
+
+    @property
+    def target_word_embedding_size(self):
+        return self.hyperparams["target_word_embedding_size"]
 
     @property
     def target_vocab_size(self):

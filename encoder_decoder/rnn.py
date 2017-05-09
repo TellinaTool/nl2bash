@@ -493,8 +493,8 @@ def assert_same_structure(nest1, nest2, check_types=True):
     TypeError: If the two structures differ in the type of sequence in any of
       their substructures. Only possible if `check_types` is `True`.
   """
-  len_nest1 = len(flatten(nest1)) if nest.is_sequence(nest1) else 1
-  len_nest2 = len(flatten(nest2)) if nest.is_sequence(nest2) else 1
+  len_nest1 = len(nest.flatten(nest1)) if nest.is_sequence(nest1) else 1
+  len_nest2 = len(nest.flatten(nest2)) if nest.is_sequence(nest2) else 1
   if len_nest1 != len_nest2:
     raise ValueError("The two structures don't have the same number of "
                      "elements. First structure: %s, second structure: %s."

@@ -76,7 +76,7 @@ class Encoder(graph_utils.NNModel):
         """
         with tf.variable_scope("encoder_token_embeddings",
                                reuse=self.token_embedding_vars):
-            vocab_size = self.source_vocab_size
+            vocab_size = self.source_word_embedding_size
             print("source token vocabulary size = {}".format(vocab_size))
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
@@ -160,7 +160,7 @@ class RNNEncoder(Encoder):
         with tf.variable_scope("encoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=True)
+                variational_recurrent=self.variational_recurrent_dropout)
         return cell
 
 
@@ -206,7 +206,7 @@ class BiRNNEncoder(Encoder):
         with tf.variable_scope("forward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=True)
+                variational_recurrent=self.variational_recurrent_dropout)
         return cell
 
     def backward_cell(self):
@@ -214,5 +214,5 @@ class BiRNNEncoder(Encoder):
         with tf.variable_scope("backward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=True)
+                variational_recurrent=self.variational_recurrent_dropout)
         return cell
