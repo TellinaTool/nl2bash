@@ -232,8 +232,8 @@ def create_multilayer_cell(type, scope, dim, num_layers,
         assert(input_keep_prob >= 0 and output_keep_prob >= 0)
         if input_keep_prob < 1 or output_keep_prob < 1:
             cell = rnn.DropoutWrapper(cell, input_keep_prob=input_keep_prob,
-                output_keep_prob=output_keep_prob, variational_recurrent=True)
-                dtype=tf.float32)
+                output_keep_prob=output_keep_prob, variational_recurrent=True,
+                input_size=dim, dtype=tf.float32)
     return cell
 
 
