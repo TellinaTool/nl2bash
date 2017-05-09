@@ -211,10 +211,5 @@ class RNNDecoder(decoder.Decoder):
             cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.input_keep, self.output_keep,
-<<<<<<< HEAD
-                variational_recurrent=True,
-                input_size=rnn_cell.LSTMStateTuple(self.dim))
-=======
                 variational_recurrent=True)
->>>>>>> 2c0f07a268a351c2ee4a3f88f7a54836990cb876
         return cell
