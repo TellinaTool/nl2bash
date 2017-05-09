@@ -14,7 +14,6 @@ class RNNDecoder(decoder.Decoder):
         print("{} dimension = {}".format(scope, dim))
         print("{} decoding_algorithm = {}".format(scope, decoding_algorithm))
 
-
     def define_graph(self, encoder_state, decoder_inputs,
                      input_embeddings=None, encoder_attn_masks=None,
                      attention_states=None, num_heads=1,
