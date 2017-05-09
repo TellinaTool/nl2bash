@@ -158,8 +158,7 @@ class RNNEncoder(Encoder):
         with tf.variable_scope("encoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=True,
-                input_size=[self.batch_size, self.dim])
+                variational_recurrent=True)
         return cell
 
 
@@ -205,8 +204,7 @@ class BiRNNEncoder(Encoder):
         with tf.variable_scope("forward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=True,
-                input_size=[self.batch_size, self.dim])
+                variational_recurrent=True)
         return cell
 
     def backward_cell(self):
@@ -214,6 +212,5 @@ class BiRNNEncoder(Encoder):
         with tf.variable_scope("backward_cell") as scope:
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=True,
-                input_size=[self.batch_size, self.dim])
+                variational_recurrent=True)
         return cell
