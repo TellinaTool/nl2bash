@@ -160,7 +160,7 @@ def define_input_flags():
     # channel network hyperparameters
     tf.app.flags.DEFINE_boolean("sc_token", True,
                                 "Set to True to turn on the token channel in the encoder. On by default.")
-    tf.app.flags.DEFINE_integer("sc_word_embedding_size", 1000, "source word embedding size.")
+    tf.app.flags.DEFINE_integer("sc_token_embedding_size", 1000, "source word embedding size.")
     tf.app.flags.DEFINE_integer("sc_vocab_size", 1000, "source vocabulary size " +
                                                        "(including low-frequency tokens).")
     tf.app.flags.DEFINE_integer("sc_token_dim", 300, "Basic token embedding dimensions.")
@@ -177,7 +177,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("sc_char_rnn_num_layers", 1,
                                 "Number of layers in the RNN cell used for the character model.")
 
-    tf.app.flags.DEFINE_integer("tg_word_embedding_size", 1000, "target word embedding size.")
+    tf.app.flags.DEFINE_integer("tg_token_embedding_size", 1000, "target word embedding size.")
     tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size " +
                                                        "(including low-frequency tokens).")
     tf.app.flags.DEFINE_float("tg_input_keep", .5, "Proportion of target input to keep if dropout is used.")

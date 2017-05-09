@@ -15,9 +15,9 @@ from encoder_decoder import data_utils, rnn
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
                  construct_model_dir=True, construct_slot_filling=False):
     params = collections.defaultdict()
-    params["source_word_embedding_size"] = FLAGS.sc_word_embedding_size
+    params["source_token_embedding_size"] = FLAGS.sc_token_embedding_size
     params["source_vocab_size"] = FLAGS.sc_vocab_size
-    params["target_word_embedding_size"] = FLAGS.tg_word_embedding_size
+    params["target_token_embedding_size"] = FLAGS.tg_token_embedding_size
     params["target_vocab_size"] = FLAGS.tg_vocab_size
     params["max_source_length"] = FLAGS.max_sc_length
     params["max_target_length"] = FLAGS.max_tg_length
@@ -349,16 +349,16 @@ class NNModel(object):
         return self.hyperparams["rnn_cell"]
 
     @property
-    def source_word_embedding_size(self):
-        return self.hyperparams["source_word_embedding_size"]
+    def source_token_embedding_size(self):
+        return self.hyperparams["source_token_embedding_size"]
 
     @property
     def source_vocab_size(self):
         return self.hyperparams["source_vocab_size"]
 
     @property
-    def target_word_embedding_size(self):
-        return self.hyperparams["target_word_embedding_size"]
+    def target_token_embedding_size(self):
+        return self.hyperparams["target_token_embedding_size"]
 
     @property
     def target_vocab_size(self):
