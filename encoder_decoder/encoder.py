@@ -10,7 +10,9 @@ if sys.version_info > (3, 0):
 
 import math
 import numpy as np
+
 import tensorflow as tf
+from tensorflow.python.ops import rnn_cell
 
 from encoder_decoder import graph_utils, rnn
 
@@ -159,7 +161,7 @@ class RNNEncoder(Encoder):
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
                 variational_recurrent=True,
-                input_size=[self.batch_size, self.dim])
+                input_size=rnn_cell.LSTMStateTuple(self.dim))
         return cell
 
 
@@ -206,7 +208,7 @@ class BiRNNEncoder(Encoder):
             cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
                 variational_recurrent=True,
-                input_size=[self.batch_size, self.dim])
+                input_size=rnn_cell.LSTMStateTuple(self.dim))
         return cell
 
     def backward_cell(self):

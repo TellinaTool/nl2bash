@@ -1,6 +1,7 @@
 """A set of sequence decoder modules used in the encoder-decoder framework."""
 
 import tensorflow as tf
+from tensorflow.python.ops import rnn_cell
 
 from encoder_decoder import decoder, data_utils, graph_utils
 
@@ -212,5 +213,5 @@ class RNNDecoder(decoder.Decoder):
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.input_keep, self.output_keep,
                 variational_recurrent=True,
-                input_size=[self.batch_size, self.dim])
+                input_size=rnn_cell.LSTMStateTuple(self.dim))
         return cell
