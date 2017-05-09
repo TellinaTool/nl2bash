@@ -208,7 +208,7 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
 
 def create_multilayer_cell(type, scope, dim, num_layers,
                            input_keep_prob=1, output_keep_prob=1,
-                           variational_recurrent=False, input_size=None):
+                           variational_recurrent=False):
     """
     Create the multi-layer RNN cell.
     :param type: Type of RNN cell.
@@ -218,7 +218,6 @@ def create_multilayer_cell(type, scope, dim, num_layers,
     :param input_keep_prob: Proportion of input to keep in dropout.
     :param output_keep_prob: Proportion of output to keep in dropout.
     :param variational_recurrent: If set, use variational recurrent dropout.
-    :param input_size: If variational_recurrent is set,
     :return: RNN cell as specified.
     """
     with tf.variable_scope(scope):
@@ -237,7 +236,7 @@ def create_multilayer_cell(type, scope, dim, num_layers,
             cell = rnn.DropoutWrapper(cell, input_keep_prob=input_keep_prob,
                 output_keep_prob=output_keep_prob,
                 variational_recurrent=variational_recurrent,
-                input_size=input_size, dtype=tf.float32)
+                input_size=dim, dtype=tf.float32)
     return cell
 
 
