@@ -288,7 +288,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             # output = tf.nn.rnn_cell._linear(
             #     tf.nn.dropout(attn_state, self.attention_output_keep),
             #     dim, True)
-            output = tf.nn.rnn_cell._linear(dim, True)
+            output = tf.nn.rnn_cell._linear(attn_state, dim, True)
 
         self.attention_cell_vars = True
 

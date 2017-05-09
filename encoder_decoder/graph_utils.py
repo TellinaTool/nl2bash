@@ -80,8 +80,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         FLAGS.data_dir, "generation_mask.npy")
 
     params["tg_token_attn_fun"] = FLAGS.tg_token_attn_fun
-    # params["attention_input_keep"] = FLAGS.attention_input_keep
-    # params["attention_output_keep"] = FLAGS.attention_output_keep
+    params["attention_input_keep"] = FLAGS.attention_input_keep
+    params["attention_output_keep"] = FLAGS.attention_output_keep
     params["beta"] = FLAGS.beta
 
     params["encoder_topology"] = FLAGS.encoder_topology
@@ -175,12 +175,14 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
         model_subdir += '-{}'.format(FLAGS.gamma)
     if FLAGS.tg_token_use_attention:
         model_subdir += '-attention'
-        # model_subdir += '-{}'.format(FLAGS.attention_input_keep)
-        # model_subdir += '-{}'.format(FLAGS.attention_output_keep)
+        model_subdir += '-{}'.format(FLAGS.attention_input_keep)
+        model_subdir += '-{}'.format(FLAGS.attention_output_keep)
         model_subdir += '-{}'.format(FLAGS.beta)
     if FLAGS.use_copy:
         model_subdir += '-copy'
         model_subdir += '-{}'.format(FLAGS.chi)
+    if FLAGS.partial_token:
+        model_subdir += '-break'
     model_subdir += '-{}'.format(FLAGS.batch_size)
     if FLAGS.sc_token:
         model_subdir += '-{}'.format(FLAGS.sc_token_dim)
@@ -208,7 +210,8 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
 
 def create_multilayer_cell(type, scope, dim, num_layers,
                            input_keep_prob=1, output_keep_prob=1,
-                           variational_recurrent=False):
+                           variational_recurrent=False,
+                           input_dim=-1):
     """
     Create the multi-layer RNN cell.
     :param type: Type of RNN cell.
@@ -218,6 +221,8 @@ def create_multilayer_cell(type, scope, dim, num_layers,
     :param input_keep_prob: Proportion of input to keep in dropout.
     :param output_keep_prob: Proportion of output to keep in dropout.
     :param variational_recurrent: If set, use variational recurrent dropout.
+    :param input_dim: RNN input dimension, must be specified if it is 
+        different from the cell state dimension.
     :return: RNN cell as specified.
     """
     with tf.variable_scope(scope):
@@ -233,10 +238,12 @@ def create_multilayer_cell(type, scope, dim, num_layers,
                 [cell] * num_layers, state_is_tuple = (type == "lstm"))
         assert(input_keep_prob >= 0 and output_keep_prob >= 0)
         if input_keep_prob < 1 or output_keep_prob < 1:
+            if input_dim == -1:
+                input_dim = dim
             cell = rnn.DropoutWrapper(cell, input_keep_prob=input_keep_prob,
                 output_keep_prob=output_keep_prob,
                 variational_recurrent=variational_recurrent,
-                input_size=dim, dtype=tf.float32)
+                input_size=input_dim, dtype=tf.float32)
     return cell
 
 
@@ -323,13 +330,13 @@ class NNModel(object):
     def tg_token_attn_fun(self):
         return self.hyperparams["tg_token_attn_fun"]
 
-    # @property
-    # def attention_input_keep(self):
-    #     return self.hyperparams["attention_input_keep"]
+    @property
+    def attention_input_keep(self):
+        return self.hyperparams["attention_input_keep"]
 
-    # @property
-    # def attention_output_keep(self):
-    #     return self.hyperparams["attention_output_keep"]
+    @property
+    def attention_output_keep(self):
+        return self.hyperparams["attention_output_keep"]
 
     @property
     def rnn_cell(self):

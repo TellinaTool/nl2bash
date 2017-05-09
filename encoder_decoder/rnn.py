@@ -266,96 +266,95 @@ class DropoutWrapper(tf.nn.rnn_cell.RNNCell):
   """Operator adding dropout to inputs and outputs of the given cell."""
 
   def __init__(self, cell, input_keep_prob=1.0, output_keep_prob=1.0,
-			   state_keep_prob=1.0, variational_recurrent=False,
-			   input_size=None, dtype=None, seed=None):
-	"""Create a cell with added input, state, and/or output dropout.
-	If `variational_recurrent` is set to `True` (**NOT** the default behavior),
-	then the same dropout mask is applied at every step, as described in:
-	Y. Gal, Z Ghahramani.  "A Theoretically Grounded Application of Dropout in
-	Recurrent Neural Networks".  https://arxiv.org/abs/1512.05287
-	Otherwise a different dropout mask is applied at every time step.
-	Args:
-	  cell: an RNNCell, a projection to output_size is added to it.
-	  input_keep_prob: unit Tensor or float between 0 and 1, input keep
-		probability; if it is constant and 1, no input dropout will be added.
-	  output_keep_prob: unit Tensor or float between 0 and 1, output keep
-		probability; if it is constant and 1, no output dropout will be added.
-	  state_keep_prob: unit Tensor or float between 0 and 1, output keep
-		probability; if it is constant and 1, no output dropout will be added.
-		State dropout is performed on the *output* states of the cell.
-	  variational_recurrent: Python bool.  If `True`, then the same
-		dropout pattern is applied across all time steps per run call.
-		If this parameter is set, `input_size` **must** be provided.
-	  input_size: (optional) (possibly nested tuple of) `TensorShape` objects
-		containing the depth(s) of the input tensors expected to be passed in to
-		the `DropoutWrapper`.  Required and used **iff**
-		 `variational_recurrent = True` and `input_keep_prob < 1`.
-	  dtype: (optional) The `dtype` of the input, state, and output tensors.
-		Required and used **iff** `variational_recurrent = True`.
-	  seed: (optional) integer, the randomness seed.
-	Raises:
-	  TypeError: if cell is not an RNNCell.
-	  ValueError: if any of the keep_probs are not between 0 and 1.
-	"""
-	if not isinstance(cell, r=tf.nn.rnn_cell.RNNCell):
-	  raise TypeError("The parameter cell is not a RNNCell.")
-	with tf.name_scope("DropoutWrapperInit"):
-	  def tensor_and_const_value(v):
-		tensor_value = tf.convert_to_tensor(v)
-		const_value = tf.contrib.util.constant_value(tensor_value)
-		return (tensor_value, const_value)
-	  for prob, attr in [(input_keep_prob, "input_keep_prob"),
-						 (state_keep_prob, "state_keep_prob"),
-						 (output_keep_prob, "output_keep_prob")]:
-		tensor_prob, const_prob = tensor_and_const_value(prob)
-		if const_prob is not None:
-		  if const_prob < 0 or const_prob > 1:
-			raise ValueError("Parameter %s must be between 0 and 1: %d"
-							 % (attr, const_prob))
-		  setattr(self, "_%s" % attr, float(const_prob))
-		else:
-		  setattr(self, "_%s" % attr, tensor_prob)
+               state_keep_prob=1.0, variational_recurrent=False,
+               input_size=None, dtype=None, seed=None):
+    """Create a cell with added input, state, and/or output dropout.
+    If `variational_recurrent` is set to `True` (**NOT** the default behavior),
+    then the same dropout mask is applied at every step, as described in:
+    Y. Gal, Z Ghahramani.  "A Theoretically Grounded Application of Dropout in
+    Recurrent Neural Networks".  https://arxiv.org/abs/1512.05287
+    Otherwise a different dropout mask is applied at every time step.
+    Args:
+      cell: an RNNCell, a projection to output_size is added to it.
+      input_keep_prob: unit Tensor or float between 0 and 1, input keep
+        probability; if it is constant and 1, no input dropout will be added.
+      output_keep_prob: unit Tensor or float between 0 and 1, output keep
+        probability; if it is constant and 1, no output dropout will be added.
+      state_keep_prob: unit Tensor or float between 0 and 1, output keep
+        probability; if it is constant and 1, no output dropout will be added.
+        State dropout is performed on the *output* states of the cell.
+      variational_recurrent: Python bool.  If `True`, then the same
+        dropout pattern is applied across all time steps per run call.
+        If this parameter is set, `input_size` **must** be provided.
+      input_size: (optional) (possibly nested tuple of) `TensorShape` objects
+        containing the depth(s) of the input tensors expected to be passed in to
+        the `DropoutWrapper`.  Required and used **iff**
+         `variational_recurrent = True` and `input_keep_prob < 1`.
+      dtype: (optional) The `dtype` of the input, state, and output tensors.
+        Required and used **iff** `variational_recurrent = True`.
+      seed: (optional) integer, the randomness seed.
+    Raises:
+      TypeError: if cell is not an RNNCell.
+      ValueError: if any of the keep_probs are not between 0 and 1.
+    """
+    if not isinstance(cell, tf.nn.rnn_cell.RNNCell):
+      raise TypeError("The parameter cell is not a RNNCell.")
+    with tf.name_scope("DropoutWrapperInit"):
+      def tensor_and_const_value(v):
+        tensor_value = tf.convert_to_tensor(v)
+        const_value = tf.contrib.util.constant_value(tensor_value)
+        return (tensor_value, const_value)
+      for prob, attr in [(input_keep_prob, "input_keep_prob"),
+                         (state_keep_prob, "state_keep_prob"),
+                         (output_keep_prob, "output_keep_prob")]:
+        tensor_prob, const_prob = tensor_and_const_value(prob)
+        if const_prob is not None:
+          if const_prob < 0 or const_prob > 1:
+            raise ValueError("Parameter %s must be between 0 and 1: %d"
+                             % (attr, const_prob))
+          setattr(self, "_%s" % attr, float(const_prob))
+        else:
+          setattr(self, "_%s" % attr, tensor_prob)
 
-	# Set cell, variational_recurrent, seed before running the code below
-	self._cell = cell
-	self._variational_recurrent = variational_recurrent
-	self._seed = seed
+    # Set cell, variational_recurrent, seed before running the code below
+    self._cell = cell
+    self._variational_recurrent = variational_recurrent
+    self._seed = seed
 
-	self._recurrent_input_noise = None
-	self._recurrent_state_noise = None
-	self._recurrent_output_noise = None
+    self._recurrent_input_noise = None
+    self._recurrent_state_noise = None
+    self._recurrent_output_noise = None
 
-	if variational_recurrent:
-	  if dtype is None:
-		raise ValueError(
-			"When variational_recurrent=True, dtype must be provided")
+    if variational_recurrent:
+      if dtype is None:
+        raise ValueError(
+            "When variational_recurrent=True, dtype must be provided")
 
-	  def convert_to_batch_shape(s):
-		# Prepend a 1 for the batch dimension; for recurrent
-		# variational dropout we use the same dropout mask for all
-		# batch elements.
-		return tf.concat(
-			([1], tf.TensorShape(s).as_list()), 0)
+      def convert_to_batch_shape(s):
+        # Prepend a 1 for the batch dimension; for recurrent
+        # variational dropout we use the same dropout mask for all
+        # batch elements.
+        return tf.concat(0, [[1], tf.TensorShape(s).as_list()])
 
-	  def batch_noise(s, inner_seed):
-		shape = convert_to_batch_shape(s)
-		return tf.random_uniform(shape, seed=inner_seed, dtype=dtype)
+      def batch_noise(s, inner_seed):
+        shape = convert_to_batch_shape(s)
+        return tf.random_uniform(shape, seed=inner_seed, dtype=dtype)
 
-	  if (not isinstance(self._input_keep_prob, tf.real) or
-		  self._input_keep_prob < 1.0):
-		if input_size is None:
-		  raise ValueError(
-			  "When variational_recurrent=True and input_keep_prob < 1.0 or "
-			  "is unknown, input_size must be provided")
-		self._recurrent_input_noise = _enumerated_map_structure(
-			lambda i, s: batch_noise(s, inner_seed=self._gen_seed("input", i)),
-			input_size)
-	  self._recurrent_state_noise = _enumerated_map_structure(
-		  lambda i, s: batch_noise(s, inner_seed=self._gen_seed("state", i)),
-		  cell.state_size)
-	  self._recurrent_output_noise = _enumerated_map_structure(
-		  lambda i, s: batch_noise(s, inner_seed=self._gen_seed("output", i)),
-		  cell.output_size)
+      if (not isinstance(self._input_keep_prob, numbers.Real) or
+          self._input_keep_prob < 1.0):
+        if input_size is None:
+          raise ValueError(
+              "When variational_recurrent=True and input_keep_prob < 1.0 or "
+              "is unknown, input_size must be provided")
+        self._recurrent_input_noise = _enumerated_map_structure(
+            lambda i, s: batch_noise(s, inner_seed=self._gen_seed("input", i)),
+            input_size)
+      self._recurrent_state_noise = _enumerated_map_structure(
+          lambda i, s: batch_noise(s, inner_seed=self._gen_seed("state", i)),
+          cell.state_size)
+      self._recurrent_output_noise = _enumerated_map_structure(
+          lambda i, s: batch_noise(s, inner_seed=self._gen_seed("output", i)),
+          cell.output_size)
 
   def _gen_seed(self, salt_prefix, index):
     if self._seed is None:
@@ -429,6 +428,7 @@ def _enumerated_map_structure(map_fn, *args, **kwargs):
     return r
   return map_structure(enumerated_fn, *args, **kwargs)
 
+# --- Tensorflow v1.1 tensorflow/python/util/nest.py --- #
 
 def map_structure(func, *structure, **check_types_dict):
   """Applies `func` to each entry in `structure` and returns a new structure.
@@ -470,10 +470,53 @@ def map_structure(func, *structure, **check_types_dict):
     check_types = True
 
   for other in structure[1:]:
-    nest.assert_same_structure(structure[0], other, check_types=check_types)
+    assert_same_structure(structure[0], other, check_types=check_types)
 
   flat_structure = [nest.flatten(s) for s in structure]
   entries = zip(*flat_structure)
 
   return nest.pack_sequence_as(
       structure[0], [func(*x) for x in entries])
+
+
+def assert_same_structure(nest1, nest2, check_types=True):
+  """Asserts that two structures are nested in the same way.
+  Args:
+    nest1: an arbitrarily nested structure.
+    nest2: an arbitrarily nested structure.
+    check_types: if `True` (default) types of sequences are checked as
+      well. If set to `False`, for example a list and a tuple of objects will
+      look same if they have the same size.
+  Raises:
+    ValueError: If the two structures do not have the same number of elements or
+      if the two structures are not nested in the same way.
+    TypeError: If the two structures differ in the type of sequence in any of
+      their substructures. Only possible if `check_types` is `True`.
+  """
+  len_nest1 = len(flatten(nest1)) if nest.is_sequence(nest1) else 1
+  len_nest2 = len(flatten(nest2)) if nest.is_sequence(nest2) else 1
+  if len_nest1 != len_nest2:
+    raise ValueError("The two structures don't have the same number of "
+                     "elements. First structure: %s, second structure: %s."
+                     % (nest1, nest2))
+  _recursive_assert_same_structure(nest1, nest2, check_types)
+
+
+def _recursive_assert_same_structure(nest1, nest2, check_types):
+  is_sequence_nest1 = nest.is_sequence(nest1)
+  if is_sequence_nest1 != nest.is_sequence(nest2):
+    raise ValueError(
+        "The two structures don't have the same nested structure. "
+        "First structure: %s, second structure: %s." % (nest1, nest2))
+
+  if is_sequence_nest1:
+    type_nest1 = type(nest1)
+    type_nest2 = type(nest2)
+    if check_types and type_nest1 != type_nest2:
+      raise TypeError(
+          "The two structures don't have the same sequence type. First "
+          "structure has type %s, while second structure has type %s."
+          % (type_nest1, type_nest2))
+
+    for n1, n2 in zip(nest1, nest2):
+      _recursive_assert_same_structure(n1, n2, check_types)
