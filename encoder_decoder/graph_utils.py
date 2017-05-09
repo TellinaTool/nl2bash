@@ -9,7 +9,7 @@ import os
 
 import tensorflow as tf
 
-from encoder_decoder import data_utils
+from encoder_decoder import data_utils, rnn
 
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
@@ -80,8 +80,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         FLAGS.data_dir, "generation_mask.npy")
 
     params["tg_token_attn_fun"] = FLAGS.tg_token_attn_fun
-    params["attention_input_keep"] = FLAGS.attention_input_keep
-    params["attention_output_keep"] = FLAGS.attention_output_keep
+    # params["attention_input_keep"] = FLAGS.attention_input_keep
+    # params["attention_output_keep"] = FLAGS.attention_output_keep
     params["beta"] = FLAGS.beta
 
     params["encoder_topology"] = FLAGS.encoder_topology
@@ -175,8 +175,8 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
         model_subdir += '-{}'.format(FLAGS.gamma)
     if FLAGS.tg_token_use_attention:
         model_subdir += '-attention'
-        model_subdir += '-{}'.format(FLAGS.attention_input_keep)
-        model_subdir += '-{}'.format(FLAGS.attention_output_keep)
+        # model_subdir += '-{}'.format(FLAGS.attention_input_keep)
+        # model_subdir += '-{}'.format(FLAGS.attention_output_keep)
         model_subdir += '-{}'.format(FLAGS.beta)
     if FLAGS.use_copy:
         model_subdir += '-copy'
@@ -207,7 +207,8 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
 
 
 def create_multilayer_cell(type, scope, dim, num_layers,
-                           input_keep_prob=1, output_keep_prob=1):
+                           input_keep_prob=1, output_keep_prob=1,
+                           variational_recurrent=False, input_size=None):
     """
     Create the multi-layer RNN cell.
     :param type: Type of RNN cell.
@@ -216,6 +217,8 @@ def create_multilayer_cell(type, scope, dim, num_layers,
     :param num_layers: Number of layers of cells.
     :param input_keep_prob: Proportion of input to keep in dropout.
     :param output_keep_prob: Proportion of output to keep in dropout.
+    :param variational_recurrent: If set, use variational recurrent dropout.
+    :param input_size: If variational_recurrent is set,
     :return: RNN cell as specified.
     """
     with tf.variable_scope(scope):
@@ -231,9 +234,10 @@ def create_multilayer_cell(type, scope, dim, num_layers,
                 [cell] * num_layers, state_is_tuple = (type == "lstm"))
         assert(input_keep_prob >= 0 and output_keep_prob >= 0)
         if input_keep_prob < 1 or output_keep_prob < 1:
-            cell = tf.nn.rnn_cell.DropoutWrapper(cell,
-                input_keep_prob=input_keep_prob,
-                output_keep_prob=output_keep_prob)
+            cell = rnn.DropoutWrapper(cell, input_keep_prob=input_keep_prob,
+                output_keep_prob=output_keep_prob,
+                variational_recurrent=variational_recurrent,
+                input_size=input_size, dtype=tf.float32)
     return cell
 
 
@@ -244,7 +248,7 @@ def get_buckets(FLAGS):
             buckets = [(30, 72)] if not FLAGS.explain else [(72, 30)]
         elif FLAGS.decoder_topology in ['rnn']:
             if FLAGS.partial_token:
-                buckets = [(40, 80)] if not FLAGS.explain else [(80, 40)]
+                buckets = [(40, 50)] if not FLAGS.explain else [(50, 40)]
             else:
                 buckets = [(40, 40)]
     elif FLAGS.dataset == "dummy":
@@ -320,13 +324,13 @@ class NNModel(object):
     def tg_token_attn_fun(self):
         return self.hyperparams["tg_token_attn_fun"]
 
-    @property
-    def attention_input_keep(self):
-        return self.hyperparams["attention_input_keep"]
+    # @property
+    # def attention_input_keep(self):
+    #     return self.hyperparams["attention_input_keep"]
 
-    @property
-    def attention_output_keep(self):
-        return self.hyperparams["attention_output_keep"]
+    # @property
+    # def attention_output_keep(self):
+    #     return self.hyperparams["attention_output_keep"]
 
     @property
     def rnn_cell(self):

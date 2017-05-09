@@ -5,12 +5,12 @@ import tensorflow as tf
 from encoder_decoder import decoder, data_utils, graph_utils
 
 class RNNDecoder(decoder.Decoder):
-    def __init__(self, hyperparameters, scope, vocab_size, dim, use_attention,
-                 attention_function, input_keep, output_keep, decoding_algorithm,
-                 forward_only, use_token_features=False):
+    def __init__(self, hyperparameters, scope, vocab_size, dim, embedding_dim,
+                 use_attention, attention_function, input_keep, output_keep,
+                 decoding_algorithm, forward_only, use_token_features=False):
         super(RNNDecoder, self).__init__(hyperparameters, scope, vocab_size,
-            dim, use_attention, attention_function, input_keep, output_keep,
-            decoding_algorithm, forward_only, use_token_features)
+            dim, embedding_dim, use_attention, attention_function, input_keep,
+            output_keep, decoding_algorithm, forward_only, use_token_features)
         print("{} dimension = {}".format(scope, dim))
         print("{} decoding_algorithm = {}".format(scope, decoding_algorithm))
 
@@ -44,8 +44,7 @@ class RNNDecoder(decoder.Decoder):
             decoder_cell = self.decoder_cell()
             outputs = []
             states = []
-            attn_alignments = []
-            attns = None
+            alignments_list = []
 
             # applying cell wrappers: ["attention", "beam"]
             if bs_decoding:
@@ -117,19 +116,19 @@ class RNNDecoder(decoder.Decoder):
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
 
                 if self.use_copy and self.copy_fun == 'explicit':
-                    if attns is None:
+                    if i == 0:
                         attn_dim = attention_states.get_shape()[2]
                         selective_reads = tf.zeros([self.batch_size, attn_dim])
                     else:
                         selective_reads = attns[-1] * read_copy_source
-                    input_embeddings = tf.concat(1, input_embeddings,
-                                                 selective_reads)
+                    input_embedding = tf.concat(1, [input_embedding, selective_reads])
                     output, state, alignments, attns, read_copy_source = \
-                        decoder_cell(input_embeddings, state)
+                        decoder_cell(input_embedding, state)
+                    alignments_list.append(alignments)
                 elif self.use_attention:
                     output, state, alignments, attns = \
                         decoder_cell(input_embedding, state)
-                    attn_alignments.append(alignments)
+                    alignments_list.append(alignments)
                 else:
                     output, state = decoder_cell(input_embedding, state)
                
@@ -146,10 +145,10 @@ class RNNDecoder(decoder.Decoder):
             if self.use_attention:
                 # Tensor list --> tenosr
                 attn_alignments = tf.concat(1,
-                    [tf.expand_dims(x[0], 1) for x in attn_alignments])
+                    [tf.expand_dims(x[0], 1) for x in alignments_list])
             if self.use_copy and self.copy_fun == 'explicit':
                 pointers = tf.concat(1,
-                    [tf.expand_dims(x[1], 1) for x in attn_alignments])
+                    [tf.expand_dims(x[1], 1) for x in alignments_list])
             else:
                 pointers = None
 
@@ -208,5 +207,7 @@ class RNNDecoder(decoder.Decoder):
         with tf.variable_scope(self.scope + "_decoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
-                self.input_keep, self.output_keep)
+                self.input_keep, self.output_keep,
+                variational_recurrent=True,
+                input_size=[self.batch_size, self.dim])
         return cell
