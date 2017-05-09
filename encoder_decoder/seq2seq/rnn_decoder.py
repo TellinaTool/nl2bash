@@ -207,9 +207,13 @@ class RNNDecoder(decoder.Decoder):
 
 
     def decoder_cell(self):
+        if self.use_copy and self.copy_fun != 'supervised':
+            input_size = 2 * self.dim
+        else:
+            input_size = self.dim
         with tf.variable_scope(self.scope + "_decoder_cell") as scope:
             cell = graph_utils.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.input_keep, self.output_keep,
-                variational_recurrent=True)
+                variational_recurrent=True, input_dim=input_size)
         return cell

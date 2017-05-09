@@ -113,10 +113,10 @@ def define_input_flags():
     tf.app.flags.DEFINE_string("tg_char_attn_fun", "inner_product",
                                "Function used for char-level attention module.")
     tf.app.flags.DEFINE_float("beta", 0, "Attention regularization weight.")
-    # tf.app.flags.DEFINE_float("attention_input_keep", .5,
-    #                           "Proportion of attention input state to keep if dropout is used.")
-    # tf.app.flags.DEFINE_float("attention_output_keep", .5,
-    #                           "Proportion of attention hidden state to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("attention_input_keep", .5,
+                              "Proportion of attention input state to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("attention_output_keep", .5,
+                              "Proportion of attention hidden state to keep if dropout is used.")
 
     tf.app.flags.DEFINE_float("margin", 1.0, "margin for margin-based loss function")
 
