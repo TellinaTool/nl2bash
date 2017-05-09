@@ -24,9 +24,9 @@ class TreeRNNCell(object):
         """
         :param inputs: `2-D` tensor with shape `[batch_size x D]`.
         :param parent_state: hidden_state of parent cell,
-                             `2-D` tensor with shape `[batch_size x H]`
+            `2-D` tensor with shape `[batch_size x H]`
         :param cyc_state: hidden state of current youngest child cell,
-                          `2-D` tensor with shape `[batch_size x H]`
+            `2-D` tensor with shape `[batch_size x H]`
         :param scope: VariableScope for the created subgraph; defaults to class name.
 
         :return:
