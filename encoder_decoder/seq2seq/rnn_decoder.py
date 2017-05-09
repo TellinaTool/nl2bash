@@ -120,6 +120,8 @@ class RNNDecoder(decoder.Decoder):
                     if i == 0:
                         attn_dim = attention_states.get_shape()[2]
                         selective_reads = tf.zeros([self.batch_size, attn_dim])
+                        if bs_decoding:
+                            selective_reads = beam_decoder.wrap_input(selective_reads)
                     else:
                         selective_reads = attns[-1] * read_copy_source
                     input_embedding = tf.concat(1, [input_embedding, selective_reads])
