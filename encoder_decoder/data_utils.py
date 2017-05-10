@@ -257,7 +257,7 @@ def initialize_vocabulary(vocab_path):
 def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                       base_tokenizer=None, with_arg_type=False, use_unk=True,
                       parallel_data=None, use_dummy_indices=False,
-                      parallel_vocab_size=None):
+                      parallel_vocab_size=None, coarse_typing=False):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
@@ -297,7 +297,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 base_tokenizer, with_arg_type=with_arg_type, use_unk=use_unk,
                 parallel_sentence=parallel_line,
                 use_dummy_indices=use_dummy_indices,
-                parallel_vocab_size=parallel_vocab_size)
+                parallel_vocab_size=parallel_vocab_size,
+                coarse_typing=coarses_typing)
             if len(token_ids) > max_token_num:
                 max_token_num = len(token_ids)
             tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
@@ -351,13 +352,16 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         if w in vocabulary:
             if w.startswith('__LF__'):
                 if use_unk:
-                    w = w[len('__LF__'):]
-                    if w.isdigit():
-                        token_ids.append(NUM_ID)
-                    elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):
-                        token_ids.append(NUM_ALPHA_ID)
-                    elif not constants.is_english_word(w):
-                        token_ids.append(NON_ENGLISH_ID)
+                    if coarse_typing:
+                        w = w[len('__LF__'):]
+                        if w.isdigit():
+                            token_ids.append(NUM_ID)
+                        elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):
+                            token_ids.append(NUM_ALPHA_ID)
+                        elif not constants.is_english_word(w):
+                            token_ids.append(NON_ENGLISH_ID)
+                        else:
+                            token_ids.append(UNK_ID)
                     else:
                         token_ids.append(UNK_ID)
                 elif parallel_sentence is not None:
@@ -499,7 +503,8 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
         for split in _data_splits:
             data_path = os.path.join(data_dir, split)
             data_to_token_ids(
-                getattr(data, split), data_path + suffix, vocab_path)
+                getattr(data, split), data_path + suffix, vocab_path,
+                coarse_typing=suffix.endswith('.nl'))
             if '.nl' in suffix or '.cm' in suffix:
                 if parallel_token_list is None:
                     parallel_data = None
