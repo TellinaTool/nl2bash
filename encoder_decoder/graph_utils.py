@@ -242,6 +242,10 @@ def create_multilayer_cell(type, scope, dim, num_layers,
         if input_keep_prob < 1 or output_keep_prob < 1:
             if input_dim == -1:
                 input_dim = dim
+            print("-- rnn dropout input keep probability: {}".format(input_keep_prob))
+            print("-- rnn dropout output keep probability: {}".format(output_keep_prob))
+            if variational_recurrent:
+                print("-- using variational dropout")
             cell = rnn.DropoutWrapper(cell, input_keep_prob=input_keep_prob,
                 output_keep_prob=output_keep_prob,
                 variational_recurrent=variational_recurrent,
