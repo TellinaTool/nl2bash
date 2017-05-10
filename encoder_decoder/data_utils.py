@@ -352,18 +352,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         if w in vocabulary:
             if w.startswith('__LF__'):
                 if use_unk:
-                    if coarse_typing:
-                        w = w[len('__LF__'):]
-                        if w.isdigit():
-                            token_ids.append(NUM_ID)
-                        elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):
-                            token_ids.append(NUM_ALPHA_ID)
-                        elif not constants.is_english_word(w):
-                            token_ids.append(NON_ENGLISH_ID)
-                        else:
-                            token_ids.append(UNK_ID)
-                    else:
-                        token_ids.append(UNK_ID)
+                    token_ids.append(UNK_ID)
                 elif parallel_sentence is not None:
                     if not (w in parallel_sentence
                             or w[len('__LF__'):] in parallel_sentence):
@@ -378,13 +367,24 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             else:
                 token_ids.append(vocabulary[w])
         else:
-            # Unknown token
             if w.startswith('__LF__') and w[len('__LF__'):] in vocabulary:
                 token_ids.append(vocabulary[w[len('__LF__'):]])
             elif not use_unk and ('__LF__' + w) in vocabulary:
                 token_ids.append(vocabulary['__LF__' + w])
             else:
-                if use_dummy_indices:
+                # Unknown token
+                if coarse_typing:
+                    if w.startswith('__LF__'):
+                        w = w[len('__LF__'):]
+                    if w.isdigit():
+                        token_ids.append(NUM_ID)
+                    elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):
+                        token_ids.append(NUM_ALPHA_ID)
+                    elif not constants.is_english_word(w):
+                        token_ids.append(NON_ENGLISH_ID)
+                    else:
+                        token_ids.append(UNK_ID)
+                elif use_dummy_indices:
                     token_ids.append(parallel_vocab_size + i)
                 else:
                     token_ids.append(UNK_ID)
