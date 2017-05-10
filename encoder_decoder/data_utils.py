@@ -298,7 +298,7 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 parallel_sentence=parallel_line,
                 use_dummy_indices=use_dummy_indices,
                 parallel_vocab_size=parallel_vocab_size,
-                coarse_typing=coarses_typing)
+                coarse_typing=coarse_typing)
             if len(token_ids) > max_token_num:
                 max_token_num = len(token_ids)
             tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
