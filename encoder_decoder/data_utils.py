@@ -532,7 +532,11 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
     return max_len
 
 
-def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
+def prepare_jobs(FLAGS):
+    data_dir = FLAGS.data_dir
+    nl_vocab_size = FLAGS.nl_vocab_size
+    cm_vocab_size = FLAGS.cm_vocab_size
+
     def add_to_set(nl_data, cm_data, split):
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
             nl_tokens = nl.split()
@@ -573,6 +577,14 @@ def prepare_jobs(data_dir, nl_vocab_size, cm_vocab_size):
 
     print("maximum num tokens in description = %d" % max_nl_token_len)
     print("maximum num tokens in command = %d" % max_cm_token_len)
+
+    nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
+    prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
+                    nl_vocab_size, cm_vocab_path, create_vocab=False,
+                    parallel_vocab_size=cm_vocab_size)
+    generation_mask = np.ones([FLAGS.tg_vocab_size + FLAGS.max_sc_length],
+                              dtype=np.float32)
+    np.save(os.path.join(data_dir, "generation_mask"), generation_mask)
 
 
 def prepare_bash(FLAGS, verbose=False):
@@ -885,7 +897,7 @@ def prepare_bash(FLAGS, verbose=False):
     compute_channel_representations(
         cm_vocab_path, cm_char_vocab_path, add_eos=True)
 
-    # compute representations used for copying
+    # compute CopyNet representations
     def prepare_generation_mask(nl_vocab_path, cm_vocab_path, output_file):
         nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
         cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
@@ -961,13 +973,15 @@ def prepare_data(FLAGS):
     if FLAGS.dataset.startswith("bash"):
         prepare_bash(FLAGS)
     if FLAGS.dataset == "jobs":
-        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
+        prepare_jobs(FLAGS)
     if FLAGS.dataset == "geo":
-        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
+        prepare_jobs(FLAGS)
     if FLAGS.dataset == "atis":
-        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
+        prepare_jobs(FLAGS)
     if FLAGS.dataset == "dummy":
-        prepare_jobs(FLAGS.data_dir, FLAGS.sc_vocab_size, FLAGS.tg_vocab_size)
+        prepare_jobs(FLAGS)
+    if FLAGS.dataset == "regex-syn" or FLAGS.dataset == "regex-turk":
+        prepare_jobs(FLAGS)
 
 
 def load_slot_filling_data(input_path):
