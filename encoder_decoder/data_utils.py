@@ -27,6 +27,7 @@ import collections
 import functools
 import numpy as np
 import random
+import re
 import os, sys
 
 from numpy.linalg import norm
@@ -60,12 +61,29 @@ H_NO_EXPAND_ID = 6
 V_NO_EXPAND_ID = 7
 GO_ID = 8
 ROOT_ID = 9
-_ARG_START_ID = 10                  # start argument sketch
-_ARG_END_ID = 11                    # end argument sketch
+ARG_START_ID = 10                  # start argument sketch
+ARG_END_ID = 11                    # end argument sketch
+NUM_ID = 12                        # 1, 2, 3, 4, ...
+NUM_ALPHA_ID = 13                  # 10k, 20k, 50k, 100k, ...
+NON_ENGLISH_ID = 14                # /local/bin, hello.txt, ...
 
-_TOKEN_START_VOCAB = [_PAD, _EOS, _UNK, _ARG_UNK, _UTL_UNK, _FLAG_UNK,
-    normalizer._H_NO_EXPAND, normalizer._V_NO_EXPAND, _GO, _ROOT, _ARG_START,
-    _ARG_END]
+_TOKEN_START_VOCAB = [
+    _PAD,
+    _EOS,
+    _UNK,
+    _ARG_UNK,
+    _UTL_UNK,
+    _FLAG_UNK,
+    normalizer._H_NO_EXPAND,
+    normalizer._V_NO_EXPAND,
+    _GO,
+    _ROOT,
+    _ARG_START,
+    _ARG_END,
+    constants._NUMBER,
+    constants._NUMBER_ALPHA,
+    constants._REGEX
+]
 
 # Special char symbols
 _CPAD = "__SP__CPAD"
@@ -290,7 +308,7 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
 def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                           with_arg_type=False, use_unk=True,
                           parallel_sentence=None, use_dummy_indices=False,
-                          parallel_vocab_size=None):
+                          parallel_vocab_size=None, coarse_typing=False):
     """Convert a string to a list of integers representing token-ids.
 
     For example, a sentence "I have a dog" may become tokenized into
@@ -307,10 +325,15 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
 
         with_arg_type: If the vocabulary contains argument type (used for
         deciding which type of UNK tokens to use).
-        use_unk: Set to true to replace the low-frequency tokens with UNK.
+        use_unk: If set, replace the low-frequency tokens with UNK.
         parallel_sentence: Used in cases where token indexing depends on the
-            content of the parallel data.
-
+            content of the parallel data. Used for generating source copy indices
+            in copy mode.
+        use_dummy_indices: If set, map tokens to placeholder indices instead of
+            indices in the vocabulary. Used for generating source copy indices
+            in copy mode.
+        parallel_vocab_size: Vocabulary size of the parallel data.
+        coarse_typing: If set, replace tokens with coarse types.
     Returns:
         a list of integers, the token-ids for the sentence.
     """
@@ -328,7 +351,15 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         if w in vocabulary:
             if w.startswith('__LF__'):
                 if use_unk:
-                    token_ids.append(UNK_ID)
+                    w = w[len('__LF__'):]
+                    if w.isdigit():
+                        token_ids.append(NUM_ID)
+                    elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):
+                        token_ids.append(NUM_ALPHA_ID)
+                    elif not constants.is_english_word(w):
+                        token_ids.append(NON_ENGLISH_ID)
+                    else:
+                        token_ids.append(UNK_ID)
                 elif parallel_sentence is not None:
                     if not (w in parallel_sentence
                             or w[len('__LF__'):] in parallel_sentence):
@@ -1022,6 +1053,8 @@ def load_vocab(FLAGS):
     nl_vocab_path = os.path.join(FLAGS.data_dir, nl_extension)
     if FLAGS.decoder_topology in ['rnn']:
         if FLAGS.canonical:
+            nl_vocab_path = os.path.join(
+                FLAGS.data_dir, "vocab%d.nl.norm" % FLAGS.sc_vocab_size)
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
         elif FLAGS.normalized:
@@ -1036,7 +1069,7 @@ def load_vocab(FLAGS):
                 FLAGS.data_dir, "vocab%d.cm.break" % FLAGS.tg_vocab_size)
         else:
             cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm" % FLAGS.tg_vocab_size)
+                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
     elif FLAGS.decoder_topology in ['basic_tree']:
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
@@ -1127,17 +1160,13 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
             cm_extension = ".ids%d.cm.break" % FLAGS.cm_vocab_size
             cm_full_extension = ".ids%d.cm.break.full" % FLAGS.cm_vocab_size
             cm_copy_full_extension = ".ids%d.cm.break.copy.full" % FLAGS.cm_vocab_size
-        elif FLAGS.normalized:
-            cm_extension = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
         elif FLAGS.canonical:
             cm_extension = ".ids%d.cm.norm.ordered" % FLAGS.cm_vocab_size
         else:
-            cm_extension = ".ids%d.cm" % FLAGS.cm_vocab_size
+            cm_extension = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
     elif FLAGS.decoder_topology in ["basic_tree"]:
         if FLAGS.canonical:
             cm_extension = ".seq%d.cm.norm.order" % FLAGS.cm_vocab_size
-        elif FLAGS.normalized:
-            cm_extension = ".seq%d.cm.norm" % FLAGS.cm_vocab_size
         else:
             cm_extension = ".seq%d.cm" % FLAGS.cm_vocab_size
         append_head_token = False
