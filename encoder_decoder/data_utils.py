@@ -1086,7 +1086,10 @@ def load_vocab(FLAGS):
             nl_ext = ".nl.break"
             cm_ext = ".cm.break"
         else:
-            cm_ext = ".cm.norm"
+            if FLAGS.dataset.startswith("bash"):
+                cm_ext = ".cm.norm"
+            else:
+                cm_ext = ".cm"
     elif FLAGS.decoder_topology in ['basic_tree']:
         if FLAGS.normalized or FLAGS.canonical:
             cm_ext = ".cm.ast.norm"
@@ -1156,7 +1159,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     append_end_token = True
     
     # Set up natural language file extensions
-    nl_ext = ".nl"
+    nl_ext = ".nl" if FLAGS.dataset.startswith("bash") else ".nl.full"
     nl_full_ext = ".nl.full"
     nl_copy_full_ext = ".nl.copy.full"
     if FLAGS.char:

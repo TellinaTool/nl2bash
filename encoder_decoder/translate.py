@@ -631,7 +631,9 @@ def main(_):
         demo()
 
     else:
-        train_set, dev_set, test_set = load_data()
+        train_set, dev_set, test_set = load_data(
+            load_mappings=FLAGS.dataset.startswith("bash"),
+            load_pointers=FLAGS.dataset.startswith("bash"))
         dataset = test_set if FLAGS.test else dev_set
         if FLAGS.gen_eval_sheet:
             gen_eval_sheet(dataset)
