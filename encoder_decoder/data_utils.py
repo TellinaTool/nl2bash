@@ -1087,8 +1087,12 @@ def load_vocab(FLAGS):
             cm_vocab_path = os.path.join(
                 FLAGS.data_dir, "vocab%d.cm.break" % FLAGS.tg_vocab_size)
         else:
-            cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
+            if FLAGS.dataset.startswith("bash"):
+                cm_vocab_path = os.path.join(
+                    FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
+            else:
+                cm_vocab_path = os.path.join(FLAGS.data_dir, 
+                    "vocab%d.cm" % FLAGS.tg_vocab_size)
     elif FLAGS.decoder_topology in ['basic_tree']:
         if FLAGS.canonical:
             cm_vocab_path = os.path.join(
@@ -1167,7 +1171,10 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     elif FLAGS.normalized or FLAGS.canonical:
         nl_extension = ".ids%d.nl.norm" % FLAGS.nl_vocab_size
     else:
-        nl_extension = ".ids%d.nl" % FLAGS.nl_vocab_size
+        if FLAGS.dataset.startswith("bash"):
+            nl_extension = ".ids%d.nl" % FLAGS.nl_vocab_size
+        else:
+            nl_extension = ".ids%d.nl.full" % FLAGS.nl_vocab_size
 
     # Set up command files extensions
     if FLAGS.decoder_topology in ["rnn"]:
@@ -1182,7 +1189,10 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         elif FLAGS.canonical:
             cm_extension = ".ids%d.cm.norm.ordered" % FLAGS.cm_vocab_size
         else:
-            cm_extension = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
+            if FLAGS.dataset.startswith("bash"):
+                cm_extension = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
+            else:
+                cm_extension = ".ids%d.cm.full" % FLAGS.cm_vocab_size
     elif FLAGS.decoder_topology in ["basic_tree"]:
         if FLAGS.canonical:
             cm_extension = ".seq%d.cm.norm.order" % FLAGS.cm_vocab_size
