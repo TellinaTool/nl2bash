@@ -264,7 +264,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                                 merged_output_tokens.append(token)
                     output_tokens = merged_output_tokens
                 tg = " ".join(output_tokens)
-            
+                      
             # check if the predicted command templates have enough slots to
             # hold the fillers (to rule out templates that are trivially
             # unqualified)
@@ -396,8 +396,9 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
             if FLAGS.token_decoding_algorithm == "greedy":
                 if batch_outputs:
                     tree, pred_cmd, outputs = batch_outputs[0]
-                    pred_cmd = data_tools.ast2command(
-                        tree, loose_constraints=True)
+                    if FLAGS.dataset.startswith('bash') and not FLAGS.explain:
+                        pred_cmd = data_tools.ast2command(
+                            tree, loose_constraints=True)
                     score = output_logits[0]
                     print("{} ({})".format(pred_cmd, score))
                     db.add_prediction(
@@ -417,11 +418,11 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                             top_k_predictions[j]
                         if verbose:
-                            if FLAGS.explain:
-                                pred_cmd = top_k_pred_cmd
-                            else:
+                            if FLAGS.dataset.startswith('bash') and not FLAGS.explain:
                                 pred_cmd = data_tools.ast2command(
                                     top_k_pred_tree, loose_constraints=True)
+                            else:
+                                pred_cmd = top_k_pred_cmd
                             print("Prediction {}: {} ({})".format(j+1,
                                 pred_cmd, top_k_scores[j]))
                             if FLAGS.tg_char:
