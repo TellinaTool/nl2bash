@@ -28,7 +28,7 @@ def define_input_flags():
 
     tf.app.flags.DEFINE_boolean("grid_search", False,
                                 "Set to True for grid search.")
-    tf.app.flags.DEFINE_string("tuning", "initialization,output_keep_prob,num_samples",
+    tf.app.flags.DEFINE_string("tuning", "initialization,output_keep_prob, num_samples",
                                "List of hyperparamters to tune.")
     tf.app.flags.DEFINE_boolean("initialization", False,
                                 "Set to try multiple random intialization and select the best one.")
@@ -100,7 +100,7 @@ def define_input_flags():
                                 "Batch size to use during training.")
     tf.app.flags.DEFINE_integer("num_layers", 1,
                                 "Number of layers in the encoder-decoder.")
-    tf.app.flags.DEFINE_integer("num_samples", 256,
+    tf.app.flags.DEFINE_integer("num_samples", 512,
                                 "Number of samples for sampled softmax.")
     tf.app.flags.DEFINE_integer("seed", -1, "Random seed for graph initialization.")
     tf.app.flags.DEFINE_boolean("variational_recurrent_dropout", True, "Set to use variational " +
