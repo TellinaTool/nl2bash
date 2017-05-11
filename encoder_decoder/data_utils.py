@@ -615,6 +615,7 @@ def prepare_bash(FLAGS, verbose=False):
                         with_parent=True)
                     nl_break_tokens, cm_break_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)
+                    # Debugging
                     print(nl_break_tokens)
                     print(cm_break_tokens)
                     cm_normalized_seq = data_tools.ast2list(
@@ -917,12 +918,20 @@ def prepare_bash(FLAGS, verbose=False):
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
                     nl_vocab_size, cm_vocab_path, create_vocab=False,
                     parallel_vocab_size=cm_vocab_size)
+    cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
+    prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
+                    cm_vocab_size, nl_vocab_path, create_vocab=False,
+                    parallel_vocab_size=nl_vocab_size)
     prepare_generation_mask(nl_vocab_path, cm_vocab_path, "generation_mask")
 
     nl_token_break_copy_suffix = ".ids%d.nl.break.copy" % nl_vocab_size
     prepare_dataset(nl_break_token_list, data_dir, nl_token_break_copy_suffix,
                     nl_vocab_size, cm_break_vocab_path, create_vocab=False,
                     parallel_vocab_size=cm_vocab_size)
+    cm_token_break_copy_suffix = ".ids%d.cm.break.copy" % cm_vocab_size
+    prepare_dataset(cm_break_token_list, data_dir, cm_token_break_copy_suffix,
+                    cm_vocab_size, nl_break_vocab_path, create_vocab=False,
+                    parallel_vocab_size=nl_vocab_size)
     prepare_generation_mask(nl_break_vocab_path, cm_break_vocab_path,
                             "generation_mask.break")
 
@@ -1068,52 +1077,40 @@ def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
 
 
 def load_vocab(FLAGS):
-    nl_extension = "vocab%d.nl" % FLAGS.sc_vocab_size
-    nl_vocab_path = os.path.join(FLAGS.data_dir, nl_extension)
+    nl_ext = ".nl"
     if FLAGS.decoder_topology in ['rnn']:
-        if FLAGS.canonical:
-            nl_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.nl.norm" % FLAGS.sc_vocab_size)
-            cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
-        elif FLAGS.normalized:
-            nl_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.nl.norm" % FLAGS.sc_vocab_size)
-            cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
+        if FLAGS.normalized or FLAGS.canonical:
+            nl_ext = ".nl.norm"
+            cm_ext = ".cm.norm"
         elif FLAGS.partial_token:
-            nl_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.nl.break" % FLAGS.sc_vocab_size)
-            cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.break" % FLAGS.tg_vocab_size)
+            nl_ext = ".nl.break"
+            cm_ext = ".cm.break"
         else:
             if FLAGS.dataset.startswith("bash"):
-                cm_vocab_path = os.path.join(
-                    FLAGS.data_dir, "vocab%d.cm.norm" % FLAGS.tg_vocab_size)
+                cm_ext = ".cm.norm"
             else:
-                cm_vocab_path = os.path.join(FLAGS.data_dir, 
-                    "vocab%d.cm" % FLAGS.tg_vocab_size)
+                cm_ext = ".cm"
     elif FLAGS.decoder_topology in ['basic_tree']:
-        if FLAGS.canonical:
-            cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.ast.norm" % FLAGS.tg_vocab_size)
-        elif FLAGS.normalized:
-            cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.ast.norm" % FLAGS.tg_vocab_size)
+        if FLAGS.normalized or FLAGS.canonical:
+            cm_ext = ".cm.ast.norm"
         else:
-            cm_vocab_path = os.path.join(
-                FLAGS.data_dir, "vocab%d.cm.ast" % FLAGS.tg_vocab_size)
+            cm_ext = ".cm.ast"
     else:
-        raise ValueError("Unrecognized decoder topology: {}."
-                         .format(FLAGS.decoder_topology))
+        raise ValueError("Unrecognized decoder topology: {}.".format(
+            FLAGS.decoder_topology))
+
+    nl_vocab_path = os.path.join(FLAGS.data_dir, 'vocab{}{}'.format(
+        FLAGS.nl_vocab_size, nl_ext))
+    cm_vocab_path = os.path.join(FLAGS.data_dir, 'vocab{}{}'.format(
+        FLAGS.cm_vocab_size, cm_ext))
 
     nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
 
-    nl_full_extension = 'vocab%d.nl' % FLAGS.sc_vocab_size
-    cm_full_extension = 'vocab%d.cm' % FLAGS.tg_vocab_size
-    nl_full_vocab_path = os.path.join(FLAGS.data_dir, nl_full_extension)
-    cm_full_vocab_path = os.path.join(FLAGS.data_dir, cm_full_extension)
+    nl_full_ext = 'vocab%d.nl' % FLAGS.sc_vocab_size
+    cm_full_ext = 'vocab%d.cm' % FLAGS.tg_vocab_size
+    nl_full_vocab_path = os.path.join(FLAGS.data_dir, nl_full_ext)
+    cm_full_vocab_path = os.path.join(FLAGS.data_dir, cm_full_ext)
     nl_full_vocab, rev_nl_full_vocab = \
         initialize_vocabulary(nl_full_vocab_path)
     cm_full_vocab, rev_cm_full_vocab = initialize_vocabulary(
@@ -1155,49 +1152,44 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     print("Loading data from %s" % FLAGS.data_dir)
 
     data_dir = FLAGS.data_dir
+    nl_vocab_size = FLAGS.nl_vocab_size
+    cm_vocab_size = FLAGS.cm_vocab_size
 
     append_head_token = True
     append_end_token = True
     
     # Set up natural language file extensions
-    nl_full_extension = ".ids%d.nl.full" % FLAGS.nl_vocab_size
-    nl_copy_full_extension = ".ids%d.nl.copy.full" % FLAGS.nl_vocab_size
+    nl_ext = ".nl" if FLAGS.dataset.startswith("bash") else ".nl.full"
+    nl_full_ext = ".nl.full"
+    nl_copy_full_ext = ".nl.copy.full"
     if FLAGS.char:
-        nl_extension = ".ids%d.nl.char" % FLAGS.nl_vocab_size
+        nl_ext = ".nl.char"
     elif FLAGS.partial_token:
-        nl_extension = ".ids%d.nl.break" % FLAGS.nl_vocab_size
-        nl_full_extension = ".ids%d.nl.break.full" % FLAGS.nl_vocab_size
-        nl_copy_full_extension = ".ids%d.nl.break.copy.full" % FLAGS.nl_vocab_size
+        nl_ext = ".nl.break"
+        nl_full_ext = ".nl.break.full"
+        nl_copy_full_ext = ".nl.break.copy.full"
     elif FLAGS.normalized or FLAGS.canonical:
-        nl_extension = ".ids%d.nl.norm" % FLAGS.nl_vocab_size
-    else:
-        if FLAGS.dataset.startswith("bash"):
-            nl_extension = ".ids%d.nl" % FLAGS.nl_vocab_size
-        else:
-            nl_extension = ".ids%d.nl.full" % FLAGS.nl_vocab_size
+        nl_ext = ".nl.norm"
 
     # Set up command files extensions
-    if FLAGS.decoder_topology in ["rnn"]:
-        cm_full_extension = ".ids%d.cm.full" % FLAGS.cm_vocab_size
-        cm_copy_full_extension = ".ids%d.cm.copy.full" % FLAGS.cm_vocab_size
-        if FLAGS.char:
-            cm_extension = ".ids%d.cm.char" % FLAGS.cm_vocab_size
-        elif FLAGS.partial_token:
-            cm_extension = ".ids%d.cm.break" % FLAGS.cm_vocab_size
-            cm_full_extension = ".ids%d.cm.break.full" % FLAGS.cm_vocab_size
-            cm_copy_full_extension = ".ids%d.cm.break.copy.full" % FLAGS.cm_vocab_size
-        elif FLAGS.canonical:
-            cm_extension = ".ids%d.cm.norm.ordered" % FLAGS.cm_vocab_size
-        else:
-            if FLAGS.dataset.startswith("bash"):
-                cm_extension = ".ids%d.cm.norm" % FLAGS.cm_vocab_size
-            else:
-                cm_extension = ".ids%d.cm.full" % FLAGS.cm_vocab_size
-    elif FLAGS.decoder_topology in ["basic_tree"]:
-        if FLAGS.canonical:
-            cm_extension = ".seq%d.cm.norm.order" % FLAGS.cm_vocab_size
-        else:
-            cm_extension = ".seq%d.cm" % FLAGS.cm_vocab_size
+    cm_ext = ".cm.norm"
+    cm_full_ext = ".cm.full"
+    cm_copy_full_ext = ".cm.copy.full"
+    if FLAGS.char:
+        cm_ext = ".cm.char"
+    elif FLAGS.partial_token:
+        cm_ext = ".cm.break"
+        cm_full_ext = ".cm.break.full"
+        cm_copy_full_ext = ".cm.break.copy.full"
+    elif FLAGS.canonical:
+        cm_ext = ".cm.norm.ordered"
+    nl_ext = "ids{}{}".format(nl_vocab_size, nl_ext)
+    nl_full_ext = "ids{}{}".format(nl_vocab_size, nl_full_ext)
+    nl_copy_full_ext = "ids{}{}".format(nl_vocab_size, nl_copy_full_ext)
+    if FLAGS.decoder_topology in ["basic_tree"]:
+        cm_ext = "seq{}{}".format(cm_vocab_size, cm_ext)
+        cm_full_ext = "seq{}{}".format(cm_vocab_size, cm_full_ext)
+        cm_copy_full_ext = "seq{}{}".format(cm_vocab_size, cm_copy_full_ext)
         append_head_token = False
         append_end_token = False
 
@@ -1207,12 +1199,12 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         data_path = os.path.join(data_dir, split)
         nl_txt = data_path + ".%d.nl" % FLAGS.nl_vocab_size
         cm_txt = data_path + ".%d.cm" % FLAGS.cm_vocab_size
-        nl = data_path + nl_extension
-        nl_full = data_path + nl_full_extension
-        nl_copy_full = data_path + nl_copy_full_extension
-        cm = data_path + cm_extension
-        cm_full = data_path + cm_full_extension
-        cm_copy_full = data_path + cm_copy_full_extension
+        nl = data_path + nl_ext
+        nl_full = data_path + nl_full_ext
+        nl_copy_full = data_path + nl_copy_full_ext
+        cm = data_path + cm_ext
+        cm_full = data_path + cm_full_ext
+        cm_copy_full = data_path + cm_copy_full_ext
         if FLAGS.explain:
             dataset = read_data(cm_txt, nl_txt, cm, nl, cm_full, nl_full,
                                 cm_copy_full, nl_copy_full, FLAGS, buckets,
