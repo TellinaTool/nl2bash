@@ -1172,7 +1172,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         nl_ext = ".nl.norm"
 
     # Set up command files extensions
-    cm_ext = ".cm.norm"
+    cm_ext = ".cm.norm" if FLAGS.dataset.startswith("bash") else ".cm.full"
     cm_full_ext = ".cm.full"
     cm_copy_full_ext = ".cm.copy.full"
     if FLAGS.char:
