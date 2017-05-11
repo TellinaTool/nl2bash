@@ -1183,6 +1183,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         cm_copy_full_ext = ".cm.break.copy.full"
     elif FLAGS.canonical:
         cm_ext = ".cm.norm.ordered"
+
     nl_ext = ".ids{}{}".format(nl_vocab_size, nl_ext)
     nl_full_ext = ".ids{}{}".format(nl_vocab_size, nl_full_ext)
     nl_copy_full_ext = ".ids{}{}".format(nl_vocab_size, nl_copy_full_ext)
@@ -1192,6 +1193,10 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         cm_copy_full_ext = ".seq{}{}".format(cm_vocab_size, cm_copy_full_ext)
         append_head_token = False
         append_end_token = False
+    else:
+        cm_ext = ".ids{}{}".format(cm_vocab_size, cm_ext)
+        cm_full_ext = ".ids{}{}".format(cm_vocab_size, cm_full_ext)
+        cm_copy_full_ext = ".ids{}{}".format(cm_vocab_size, cm_copy_full_ext)
 
     datasets = []
 
