@@ -989,7 +989,7 @@ def prepare_data(FLAGS):
         prepare_jobs(FLAGS)
     if FLAGS.dataset == "dummy":
         prepare_jobs(FLAGS)
-    if FLAGS.dataset == "regex-syn" or FLAGS.dataset == "regex-turk":
+    if FLAGS.dataset.startswith("regex"):
         prepare_jobs(FLAGS)
 
 
