@@ -103,7 +103,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("num_samples", 512,
                                 "Number of samples for sampled softmax.")
     tf.app.flags.DEFINE_integer("seed", -1, "Random seed for graph initialization.")
-    tf.app.flags.DEFINE_boolean("variational_recurrent_dropout", True, "Set to use variational " +
+    tf.app.flags.DEFINE_boolean("variational_recurrent_dropout", False, "Set to use variational " +
                                 "recurrent dropout on the RNN cells.")
 
     tf.app.flags.DEFINE_string("training_algorithm", "standard", "training algorithm to use.")

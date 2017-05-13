@@ -628,7 +628,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
         data_ids = list(xrange(len(data[bucket_id])))
         if not use_all:
             data_ids = np.random.choice(data_ids, self.batch_size)
-
         for i in data_ids:
             dp = data[bucket_id][i]
             encoder_inputs.append(dp.sc_ids)

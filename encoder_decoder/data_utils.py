@@ -1107,8 +1107,8 @@ def load_vocab(FLAGS):
     nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
     cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
 
-    nl_full_ext = 'vocab%d.nl' % FLAGS.sc_vocab_size
-    cm_full_ext = 'vocab%d.cm' % FLAGS.tg_vocab_size
+    nl_full_ext = 'vocab%d.nl' % FLAGS.nl_vocab_size
+    cm_full_ext = 'vocab%d.cm' % FLAGS.cm_vocab_size
     nl_full_vocab_path = os.path.join(FLAGS.data_dir, nl_full_ext)
     cm_full_vocab_path = os.path.join(FLAGS.data_dir, cm_full_ext)
     nl_full_vocab, rev_nl_full_vocab = \
