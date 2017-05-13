@@ -168,7 +168,9 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param use_copy: Copy source tokens to the target.
         :param copy_fun: Parameterization of the copying function.
         """
-        attention_states = tf.nn.dropout(attention_states, attention_input_keep)
+        if attention_input_keep < 1:
+            print("attention input keep probability = {}".format(attention_input_keep))
+            attention_states = tf.nn.dropout(attention_states, attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
         attn_dim = attention_states.get_shape()[2].value
 
@@ -286,6 +288,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
+            print("attention output keep probability = {}".format(
+                self.attention_output_keep))
             output = tf.nn.rnn_cell._linear(
                 tf.nn.dropout(attn_state, self.attention_output_keep), dim,
                 True)
