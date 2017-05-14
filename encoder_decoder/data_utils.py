@@ -1048,15 +1048,19 @@ def bucket_grouped_data(grouped_dataset, buckets):
     return batch_sc_strs, batch_tg_strs, batch_scs, batch_tgs
 
 
-def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
+def group_data(dataset, attribute='source', use_bucket=False, use_temp=False,
+               tokenizer_selector='nl'):
     """
     Group dataset by the natural language sentence.
 
     :param dataset: a list of training quadruples (nl_str, cm_str, nl, cm)
+    :param attribute: attribute by which the data is grouped
     :param bucket_input: if the input is grouped in buckets
     :param use_temp: set to true if the dataset is to be grouped by the natural
         language template; false if the dataset is to be grouped by the natural
-        language strings.
+        language strings
+    :param tokenizer_selector: specify which tokenizer to use for making
+        templates
 
     :return: a dictionary with natural language sentence as the key and data
         list quadruples as the values.
@@ -1066,16 +1070,20 @@ def group_data_by_nl(dataset, use_bucket=False, use_temp=True):
 
     grouped_dataset = {}
     for i in xrange(len(dataset)):
-        nl_str = dataset[i].sc_txt
+        attr = dataset[i].sc_txt \
+            if attribute == 'source' else dataset[i].tg_txt
         if use_temp:
-            words, _ = tokenizer.ner_tokenizer(nl_str)
-            nl_template = " ".join(words)
+            if tokenizer_selector == 'nl':
+                words, _ = tokenizer.ner_tokenizer(attr)
+            else:
+                words = data_tools.bash_tokenizer(attr, arg_type_only=True)
+            temp = " ".join(words)
         else:
-            nl_template = nl_str
-        if nl_template in grouped_dataset:
-            grouped_dataset[nl_template].append(dataset[i])
+            temp = attr
+        if temp in grouped_dataset:
+            grouped_dataset[temp].append(dataset[i])
         else:
-            grouped_dataset[nl_template] = [dataset[i]]
+            grouped_dataset[temp] = [dataset[i]]
 
     return grouped_dataset
 
