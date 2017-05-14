@@ -602,8 +602,12 @@ def prepare_jobs(FLAGS):
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
             nl_tokens = nl.split()
             cm_tokens = cm.split()
+            nl_chars = data_tools.char_tokenizer(nl, tokenizer.basic_tokenizer)
+            cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
             getattr(nl_list, split).append(nl)
             getattr(cm_list, split).append(cm)
+            getattr(nl_char_list, split).append(nl_chars)
+            getattr(cm_char_list, split).append(cm_chars)
             getattr(nl_token_list, split).append(nl_tokens)
             getattr(cm_token_list, split).append(cm_tokens)
 
@@ -708,8 +712,8 @@ def prepare_bash(FLAGS, verbose=False):
                     getattr(nl_list, split).append(nl)
                     getattr(cm_list, split).append(cm)
                     getattr(nl_char_list, split).append(nl_chars)
-                    getattr(nl_token_list, split).append(nl_tokens)
                     getattr(cm_char_list, split).append(cm_chars)
+                    getattr(nl_token_list, split).append(nl_tokens)
                     getattr(cm_token_list, split).append(cm_tokens)
                     getattr(cm_seq_list, split).append(cm_seq)
                     getattr(cm_pruned_token_list, split).append(cm_pruned_tokens)
