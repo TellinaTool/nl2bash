@@ -19,6 +19,10 @@ from nlp_tools import constants, slot_filling, tokenizer
 from eval.eval_archive import DBConnection
 
 
+APOLOGY_MSG = \
+        "I'm very sorry, I can't translate this command at the moment."
+
+
 def demo(sess, model, FLAGS):
     """
     Simple command line decoding interface.
@@ -350,11 +354,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
 
 
 def decode_set(sess, model, dataset, FLAGS, verbose=True):
-    APOLOGY_MSG = \
-        "I'm very sorry, I can't translate this command at the moment."
-
-    grouped_dataset = data_utils.group_data_by_nl(dataset, use_bucket=True,
-                                                  use_temp=False)
+    grouped_dataset = data_utils.group_data(dataset, use_bucket=True)
     vocabs = data_utils.load_vocab(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
 
