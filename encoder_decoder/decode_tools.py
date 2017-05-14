@@ -85,32 +85,32 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
     sc_vocab = vocabs.sc_vocab
     tg_vocab = vocabs.tg_vocab
 
-    if FLAGS.explain:
-        sc_tokens = data_tools.bash_tokenizer(
-            sentence, arg_type_only=FLAGS.normalized)
-        sc_ids, _ = data_utils.sentence_to_token_ids(
-            sc_tokens, sc_vocab, data_tools.bash_tokenizer, None)
-        sc_full_ids, _ = data_utils.sentence_to_token_ids(
-            sc_tokens, sc_vocab, data_tools.bash_tokenizer, None, use_unk=False)
-        sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(
-            sc_tokens, tg_vocab, data_tools.bash_tokenizer, None, use_unk=False,
-            use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
+    if FLAGS.char:
+        sc_ids, entities = data_utils.sentence_to_token_ids(sentence,
+            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+        sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
+            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer,
+            use_unk=False)
+        sc_copy_full_ids = []
     else:
-        if FLAGS.char:
-            sc_ids, entities = data_utils.sentence_to_token_ids(sentence,
-                sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
-            sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
-                sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer,
-                use_unk=False)
-            sc_copy_full_ids = []
+        if FLAGS.explain:
+            sentence = data_tools.bash_tokenizer(
+                sentence, arg_type_only=FLAGS.normalized)
+            sc_tokenizer = None
+            sc_full_tokenizer = None
         else:
-            sc_ids, entities = data_utils.sentence_to_token_ids(
-                sentence, sc_vocab, tokenizer.ner_tokenizer, None)
-            sc_full_ids, _ = data_utils.sentence_to_token_ids(
-                sentence, sc_vocab, tokenizer.basic_tokenizer, None, use_unk=False)
-            sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
-                tg_vocab, tokenizer.basic_tokenizer, None, use_unk=False,
-                use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
+            if FLAGS.dataset.startswith("bash"):
+                sc_tokenizer = tokenizer.basic_tokenizer
+            else:
+                sc_tokenizer = tokenizer.space_tokenizer
+            sc_full_tokenizer = tokenizer.basic_tokenizer
+        sc_ids, entities = data_utils.sentence_to_token_ids(
+            sentence, sc_vocab, sc_tokenizer, None)
+        sc_full_ids, _ = data_utils.sentence_to_token_ids(
+            sentence, sc_vocab,sc_full_tokenizer, None, use_unk=False)
+        sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
+            tg_vocab, sc_full_tokenizer, None, use_unk=False,
+            use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
     
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
