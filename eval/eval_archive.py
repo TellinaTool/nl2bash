@@ -210,8 +210,9 @@ class DBConnection(object):
         if cmd2_id is None:
             return None
         c = self.cursor
-        for _, _, dist in c.execute("SELECT cmd1_id, cmd2_id, dist FROM CmdTED WHERE cmd1_id = ?, "
-                                    "cmd2_id = ?", (cmd1_id, cmd2_id)):
+        for _, _, dist in c.execute(
+                "SELECT cmd1_id, cmd2_id, dist FROM CmdTED WHERE cmd1_id = ?, "
+                "cmd2_id = ?", (cmd1_id, cmd2_id)):
             return dist
 
     def get_temp_dist(self, temp1, temp2):
@@ -222,8 +223,9 @@ class DBConnection(object):
         if temp2_id is None:
             return None
         c = self.cursor
-        for _, _, dist in c.execute("SELECT temp1_id, temp2_id, dist FROM TempTED WHERE temp1_id "
-                                    "= ? AND temp2_id = ?", (temp1_id, temp2_id)):
+        for _, _, dist in c.execute(
+                "SELECT temp1_id, temp2_id, dist FROM TempTED WHERE temp1_id "
+                "= ? AND temp2_id = ?", (temp1_id, temp2_id)):
             return dist
 
     # --- Prediction ---
