@@ -247,9 +247,9 @@ def create_multilayer_cell(type, scope, dim, num_layers,
             if variational_recurrent:
                 print("-- using variational dropout")
             cell = rnn.DropoutWrapper(cell, input_keep_prob=input_keep_prob,
-                output_keep_prob=output_keep_prob,
-                variational_recurrent=variational_recurrent,
-                input_size=input_dim, dtype=tf.float32)
+                output_keep_prob=output_keep_prob)
+            #     variational_recurrent=variational_recurrent,
+            #     input_size=input_dim, dtype=tf.float32)
     return cell
 
 
@@ -300,7 +300,7 @@ def wrap_inputs(beam_decoder, inputs):
 
 def cross_entropy_with_logits(logits, targets):
     P = normalize(logits)
-    epsilon = tf.constant(value=1e-12)
+    epsilon = tf.constant(value=1e-6)
     xent = -tf.reduce_sum(
         tf.reshape(targets, tf.shape(P)) * tf.log(P + epsilon), 1)
     return xent

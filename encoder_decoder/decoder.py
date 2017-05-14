@@ -288,8 +288,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
-            print("attention output keep probability = {}".format(
-                self.attention_output_keep))
+            # print("attention output keep probability = {}".format(
+            #     self.attention_output_keep))
             output = tf.nn.rnn_cell._linear(
                 tf.nn.dropout(attn_state, self.attention_output_keep), dim,
                 True)
