@@ -532,6 +532,67 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
     return max_len
 
 
+def compute_channel_representations(vocab_path, char_vocab_path,
+                                    pad_start=False, add_eos=False):
+    vocab, _ = initialize_vocabulary(vocab_path)
+    char_vocab, _ = initialize_vocabulary(char_vocab_path)
+    vocab_token_feature_path = vocab_path + ".token.feature"
+    vocab_char_feature_path = vocab_path + ".char.feature"
+
+    # token channel
+    vocab_token_features = np.zeros(len(vocab), dtype=np.int64)
+    for v in vocab:
+        idx = vocab[v]
+        vocab_token_features[idx] = UNK_ID \
+            if v.startswith('__LF__') else idx
+    np.save(vocab_token_feature_path, vocab_token_features)
+
+    # character channel
+    max_token_size = 0
+    char_ids_list = []
+    with open(vocab_char_feature_path, 'w') as o_f:
+        for token, _ in sorted(vocab.items(), key=lambda x:x[1]):
+            if token.startswith("__SP__"):
+                # special tokens are non-decomposable
+                char_ids = [CATOM_ID]
+            else:
+                if token.startswith("__LF__"):
+                    # remove prefix for low-frequency words
+                    char_ids = token_to_char_ids(token[6:], char_vocab)
+                elif "@@" in token:
+                    char_ids = token_to_char_ids(
+                        token.split('@@')[1], char_vocab)
+                else:
+                    char_ids = token_to_char_ids(token, char_vocab)
+                if len(char_ids) > max_token_size:
+                    max_token_size = len(char_ids)
+            char_ids_list.append(char_ids)
+            o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
+    print("maximum token size in {} = {}".format(vocab_path, max_token_size))
+
+    if add_eos:
+        vocab_char_features = np.zeros(
+            [len(vocab), max_token_size+1], dtype=np.int64)
+    else:
+        vocab_char_features = np.zeros(
+            [len(vocab), max_token_size], dtype=np.int64)
+    for token_id in xrange(len(char_ids_list)):
+        char_ids = char_ids_list[token_id]
+        if add_eos:
+            char_ids.append(CEOS_ID)
+        # padding character indices
+        if pad_start:
+            padded_char_ids = \
+                [CPAD_ID] * (max_token_size - len(char_ids)) + char_ids
+        else:
+            padded_char_ids = \
+                char_ids + [CPAD_ID] * (max_token_size - len(char_ids))
+        for j in xrange(len(padded_char_ids)):
+            c_id = padded_char_ids[j]
+            vocab_char_features[token_id][j] = c_id
+    np.save(vocab_char_feature_path, vocab_char_features)
+
+
 def prepare_jobs(FLAGS):
     data_dir = FLAGS.data_dir
     nl_vocab_size = FLAGS.nl_vocab_size
@@ -551,6 +612,8 @@ def prepare_jobs(FLAGS):
 
     nl_list = DataSet()
     cm_list = DataSet()
+    nl_char_list = DataSet()
+    cm_char_list = DataSet()
     nl_token_list = DataSet()
     cm_token_list = DataSet()
 
@@ -560,14 +623,22 @@ def prepare_jobs(FLAGS):
 
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
+    nl_char_vocab_path = os.path.join(data_dir, "vocab%d.nl.char" % nl_vocab_size)
+    cm_char_vocab_path = os.path.join(data_dir, "vocab%d.cm.char" % cm_vocab_size)
 
     nl_suffix = ".%d.nl" % nl_vocab_size
     cm_suffix = ".%d.cm" % cm_vocab_size
+    nl_char_suffix = ".ids%d.nl.char" % nl_vocab_size
+    cm_char_suffix = ".ids%d.cm.char" % cm_vocab_size
     nl_token_suffix = ".ids%d.nl" % nl_vocab_size
     cm_token_suffix = ".ids%d.cm" % cm_vocab_size
 
     _ = prepare_dataset(nl_list, data_dir, nl_suffix, nl_vocab_size, None)
     _ = prepare_dataset(cm_list, data_dir, cm_suffix, cm_vocab_size, None)
+    max_nl_char_len = prepare_dataset(nl_char_list, data_dir, nl_char_suffix,
+        nl_vocab_size, nl_char_vocab_path)
+    max_cm_char_len = prepare_dataset(cm_char_list, data_dir, cm_char_suffix,
+        cm_vocab_size, cm_char_vocab_path)
     max_nl_token_len = prepare_dataset(nl_token_list, data_dir,
                                        nl_token_suffix, nl_vocab_size,
                                        nl_vocab_path)
@@ -575,8 +646,15 @@ def prepare_jobs(FLAGS):
                                        cm_token_suffix, cm_vocab_size,
                                        cm_vocab_path)
 
+    print("maximum num chars in description = %d" % max_nl_char_len)
+    print("maximum num chars in command = %d" % max_cm_char_len)
     print("maximum num tokens in description = %d" % max_nl_token_len)
     print("maximum num tokens in command = %d" % max_cm_token_len)
+
+    compute_channel_representations(
+        nl_vocab_path, nl_char_vocab_path, pad_start=True)
+    compute_channel_representations(
+        cm_vocab_path, cm_char_vocab_path, add_eos=True)
 
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
@@ -811,8 +889,8 @@ def prepare_bash(FLAGS, verbose=False):
     save_slot_argument_mappings(slot_argument_mappings, mapping_suffix='.mappings')
     
     print("maximum num chars in description = %d" % max_nl_char_len)
-    print("maximum num tokens in description = %d" % max_nl_token_len)
     print("maximum num chars in command = %d" % max_cm_char_len)
+    print("maximum num tokens in description = %d" % max_nl_token_len)
     print("maximum num tokens in command = %d" % max_cm_token_len)
     print("maximum num AST search steps = %d" % max_cm_seq_len)
     print("maximum num tokens in splitted description = %d" %
@@ -833,66 +911,6 @@ def prepare_bash(FLAGS, verbose=False):
     print("maximum num pruned AST search steps = %d" % max_cm_seq_pruned_len)
 
     # compute channel (character or other features) representations
-    def compute_channel_representations(
-            vocab_path, char_vocab_path, pad_start=False, add_eos=False):
-        vocab, _ = initialize_vocabulary(vocab_path)
-        char_vocab, _ = initialize_vocabulary(char_vocab_path)
-        vocab_token_feature_path = vocab_path + ".token.feature"
-        vocab_char_feature_path = vocab_path + ".char.feature"
-
-        # token channel
-        vocab_token_features = np.zeros(len(vocab), dtype=np.int64)
-        for v in vocab:
-            idx = vocab[v]
-            vocab_token_features[idx] = UNK_ID \
-                if v.startswith('__LF__') else idx
-        np.save(vocab_token_feature_path, vocab_token_features)
-
-        # character channel
-        max_token_size = 0
-        char_ids_list = []
-        with open(vocab_char_feature_path, 'w') as o_f:
-            for token, _ in sorted(vocab.items(), key=lambda x:x[1]):
-                if token.startswith("__SP__"):
-                    # special tokens are non-decomposable
-                    char_ids = [CATOM_ID]
-                else:
-                    if token.startswith("__LF__"):
-                        # remove prefix for low-frequency words
-                        char_ids = token_to_char_ids(token[6:], char_vocab)
-                    elif "@@" in token:
-                        char_ids = token_to_char_ids(
-                            token.split('@@')[1], char_vocab)
-                    else:
-                        char_ids = token_to_char_ids(token, char_vocab)
-                    if len(char_ids) > max_token_size:
-                        max_token_size = len(char_ids)
-                char_ids_list.append(char_ids)
-                o_f.write(' '.join([str(c_id) for c_id in char_ids]) + '\n')
-        print("maximum token size in {} = {}".format(vocab_path, max_token_size))
-
-        if add_eos:
-            vocab_char_features = np.zeros(
-                [len(vocab), max_token_size+1], dtype=np.int64)
-        else:
-            vocab_char_features = np.zeros(
-                [len(vocab), max_token_size], dtype=np.int64)
-        for token_id in xrange(len(char_ids_list)):
-            char_ids = char_ids_list[token_id]
-            if add_eos:
-                char_ids.append(CEOS_ID)
-            # padding character indices
-            if pad_start:
-                padded_char_ids = \
-                    [CPAD_ID] * (max_token_size - len(char_ids)) + char_ids
-            else:
-                padded_char_ids = \
-                    char_ids + [CPAD_ID] * (max_token_size - len(char_ids))
-            for j in xrange(len(padded_char_ids)):
-                c_id = padded_char_ids[j]
-                vocab_char_features[token_id][j] = c_id
-        np.save(vocab_char_feature_path, vocab_char_features)
-
     compute_channel_representations(
         nl_vocab_path, nl_char_vocab_path, pad_start=True)
     compute_channel_representations(
