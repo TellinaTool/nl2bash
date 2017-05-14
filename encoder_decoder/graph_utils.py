@@ -236,8 +236,8 @@ def create_multilayer_cell(type, scope, dim, num_layers,
             raise ValueError("Unrecognized RNN cell type: {}.".format(type))
 
         if num_layers > 1:
-            cell = tf.nn.rnn_cell.MultiRNNCell(
-                [cell] * num_layers, state_is_tuple = (type == "lstm"))
+            cell = rnn.MultiRNNCell(
+                [cell] * num_layers, state_is_tuple=(type == "lstm"))
         assert(input_keep_prob >= 0 and output_keep_prob >= 0)
         if input_keep_prob < 1 or output_keep_prob < 1:
             if input_dim == -1:
@@ -246,10 +246,11 @@ def create_multilayer_cell(type, scope, dim, num_layers,
             print("-- rnn dropout output keep probability: {}".format(output_keep_prob))
             if variational_recurrent:
                 print("-- using variational dropout")
-            cell = rnn.DropoutWrapper(cell, input_keep_prob=input_keep_prob,
-                output_keep_prob=output_keep_prob)
-            #     variational_recurrent=variational_recurrent,
-            #     input_size=input_dim, dtype=tf.float32)
+            cell = rnn.DropoutWrapper(cell,
+                input_keep_prob=input_keep_prob,
+                output_keep_prob=output_keep_prob,
+                variational_recurrent=variational_recurrent,
+                input_size=input_dim, dtype=tf.float32)
     return cell
 
 

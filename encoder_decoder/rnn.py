@@ -112,7 +112,8 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
       zero_output = tf.zeros(
           tf.pack([batch_size, cell.output_size]), inputs[0].dtype)
       zero_output.set_shape(
-          tf.tensor_shape.TensorShape([fixed_batch_size.value, cell.output_size]))
+          tf.tensor_shape.TensorShape([fixed_batch_size.value,
+                                       cell.output_size]))
       min_sequence_length = tf.reduce_min(sequence_length)
       max_sequence_length = tf.reduce_max(sequence_length)
 
@@ -123,21 +124,18 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
       # pylint: enable=cell-var-from-loop
       if sequence_length is not None:
         (output, state) = tf.nn.rnn._rnn_step(
-            time=time,
-            sequence_length=sequence_length,
+            time=time, sequence_length=sequence_length,
             min_sequence_length=min_sequence_length,
             max_sequence_length=max_sequence_length,
-            zero_output=zero_output,
-            state=state,
-            call_cell=call_cell,
-            state_size=cell.state_size)
+            zero_output=zero_output, state=state,
+            call_cell=call_cell, state_size=cell.state_size)
       else:
         (output, state) = call_cell()
 
       outputs.append(output)
       if num_cell_layers > 1:
         if _is_sequence(state):
-            raise NotImplementedError
+            states.append(())
         else:
             states.append(tf.split(1, num_cell_layers, state))
       else:
@@ -203,20 +201,19 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
   name = scope or "BiRNN"
   # Forward direction
   with tf.variable_scope(name + "_FW") as fw_scope:
-    output_fw, output_states_fw = RNNModel(cell_fw, inputs, initial_state_fw, dtype,
-                       sequence_length, num_cell_layers=num_cell_layers, scope=fw_scope)
+    output_fw, output_states_fw = RNNModel(cell_fw, inputs, initial_state_fw,
+        dtype, sequence_length, num_cell_layers=num_cell_layers, scope=fw_scope)
 
   # Backward direction
   with tf.variable_scope(name + "_BW") as bw_scope:
     tmp, tmp_states = RNNModel(cell_bw, _reverse_seq(inputs, sequence_length),
-                         initial_state_bw, dtype, sequence_length,
-                         num_cell_layers=num_cell_layers, scope=bw_scope)
+                               initial_state_bw, dtype, sequence_length,
+                               num_cell_layers=num_cell_layers, scope=bw_scope)
   output_bw = _reverse_seq(tmp, sequence_length)
   output_states_bw = _reverse_seq(tmp_states, sequence_length)
 
   # Concat each of the forward/backward outputs
-  outputs = [tf.concat(1, [fw, bw])
-             for fw, bw in zip(output_fw, output_bw)]
+  outputs = [tf.concat(1, [fw, bw]) for fw, bw in zip(output_fw, output_bw)]
 
   return (outputs, output_states_fw, output_states_bw)
 
@@ -255,6 +252,84 @@ def _reverse_seq(input_seq, lengths):
   for r in result:
     r.set_shape(input_shape)
   return result
+
+# --- Tensorflow v1.1
+#           tensorflow/contrib/rnn/python/ops/core_rnn_cell_impl.py --- #
+
+class MultiRNNCell(tf.nn.rnn_cell.RNNCell):
+  """RNN cell composed sequentially of multiple simple cells."""
+
+  def __init__(self, cells, state_is_tuple=True):
+    """Create a RNN cell composed sequentially of a number of RNNCells.
+    Args:
+      cells: list of RNNCells that will be composed in this order.
+      state_is_tuple: If True, accepted and returned states are n-tuples, where
+        `n = len(cells)`.  If False, the states are all
+        concatenated along the column axis.  This latter behavior will soon be
+        deprecated.
+    Raises:
+      ValueError: if cells is empty (not allowed), or at least one of the cells
+        returns a state tuple but the flag `state_is_tuple` is `False`.
+    """
+    super(MultiRNNCell, self).__init__()
+    if not cells:
+      raise ValueError("Must specify at least one cell for MultiRNNCell.")
+    if not nest.is_sequence(cells):
+      raise TypeError(
+          "cells must be a list or tuple, but saw: %s." % cells)
+
+    self._cells = cells
+    self._state_is_tuple = state_is_tuple
+    if not state_is_tuple:
+      if any(nest.is_sequence(c.state_size) for c in self._cells):
+        raise ValueError("Some cells return tuples of states, but the flag "
+                         "state_is_tuple is not set.  State sizes are: %s"
+                         % str([c.state_size for c in self._cells]))
+
+  @property
+  def state_size(self):
+    if self._state_is_tuple:
+      return tuple(cell.state_size for cell in self._cells)
+    else:
+      return sum([cell.state_size for cell in self._cells])
+
+  @property
+  def output_size(self):
+    return self._cells[-1].output_size
+
+  def zero_state(self, batch_size, dtype):
+    with tf.name_scope(type(self).__name__ + "ZeroState", values=[batch_size]):
+      if self._state_is_tuple:
+        return tuple(cell.zero_state(batch_size, dtype) for cell in self._cells)
+      else:
+        # We know here that state_size of each cell is not a tuple and
+        # presumably does not contain TensorArrays or anything else fancy
+        return super(MultiRNNCell, self).zero_state(batch_size, dtype)
+
+  def call(self, inputs, state):
+    """Run this multi-layer cell on inputs, starting from state."""
+    cur_state_pos = 0
+    cur_inp = inputs
+    new_states = []
+    for i, cell in enumerate(self._cells):
+      with tf.variable_scope("cell_%d" % i):
+        if self._state_is_tuple:
+          if not nest.is_sequence(state):
+            raise ValueError(
+                "Expected state to be a tuple of length %d, but received: %s" %
+                (len(self.state_size), state))
+          cur_state = state[i]
+        else:
+          cur_state = tf.slice(state, [0, cur_state_pos],
+                                      [-1, cell.state_size])
+          cur_state_pos += cell.state_size
+        cur_inp, new_state = cell(cur_inp, cur_state)
+        new_states.append(new_state)
+
+    new_states = (tuple(new_states) if self._state_is_tuple else
+                  tf.concat(new_states, 1))
+
+    return cur_inp, new_states
 
 
 def _is_sequence(seq):
