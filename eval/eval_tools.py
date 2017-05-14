@@ -17,6 +17,7 @@ from encoder_decoder import data_utils
 from bashlex import data_tools, nast
 from eval import token_based, tree_dist, zss
 from eval.eval_archive import DBConnection
+from eval.dfa_equal import regexDFAEquals
 
 error_types = {
     0 : "unmarked error",
@@ -31,7 +32,8 @@ error_types = {
 }
 
 def eval_set(model, dataset, FLAGS, verbose=True):
-    eval_bash = FLAGS.dataset.startswith("bash")
+    eval_bash = FLAGS.dataset.startswith("bash") and not FLAGS.explain
+    eval_regex = FLAGS.dataset.startswith("regex") and not FLAGS.explain
 
     num_top1_correct_temp = 0.0
     num_top3_correct_temp = 0.0
@@ -54,31 +56,36 @@ def eval_set(model, dataset, FLAGS, verbose=True):
 
     use_bucket = False if model == "knn" else True
 
-    grouped_dataset = data_utils.group_data_by_nl(
-        dataset, use_bucket=use_bucket, use_temp = eval_bash)
+    tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
+    grouped_dataset = data_utils.group_data(
+        dataset, use_bucket=use_bucket, use_temp=eval_bash,
+        tokenizer_selector=tokenizer_selector)
 
     with DBConnection() as db:
-        for nl_temp in grouped_dataset:
-            data_group = grouped_dataset[nl_temp]
-            nl_str = bytes(data_group[0].sc_txt, 'utf-8')
+        for sc_temp in grouped_dataset:
+            data_group = grouped_dataset[sc_temp]
+            sc_str = bytes(data_group[0].sc_txt, 'utf-8')
             cm_strs = [dp.tg_txt for dp in data_group]
-            gt_trees = [cmd_parser(cm_str) for cm_str in cm_strs]
-            num_gts = len(gt_trees)
-            gt_trees = gt_trees + [cmd_parser(cmd)
-                                   for cmd in db.get_correct_temps(nl_str)]
+            if eval_bash:
+                gt_trees = [cmd_parser(cm_str) for cm_str in cm_strs]
+                num_gts = len(gt_trees)
+                gts = gt_trees + \
+                      [cmd_parser(cmd) for cmd in db.get_correct_temps(sc_str)]
+            else:
+                gts = cm_strs + db.get_correct_temps(sc_str)
 
-            predictions = db.get_top_k_predictions(model, nl_str, k=10)
+            predictions = db.get_top_k_predictions(model, sc_str, k=10)
 
             if verbose:
                 print("Example %d (%d)" % (num_eval, len(cm_strs)))
-                print("Original English: {}".format(nl_str.strip()))
-                print("English: " + nl_temp)
+                print("Original Source: {}".format(sc_str.strip()))
+                print("Source: " + sc_temp)
                 for j in xrange(len(cm_strs)):
-                    print("GT Command {}: ".format(j+1) + cm_strs[j].strip())
+                    print("GT Target {}: ".format(j+1) + cm_strs[j].strip())
             num_eval += (1 if eval_bash else num_gts)
 
-            top1_correct_temp, top3_correct_temp, top5_correct_temp, top10_correct_temp = \
-                False, False, False, False
+            top1_correct_temp, top3_correct_temp, top5_correct_temp, \
+                top10_correct_temp = False, False, False, False
             top1_correct, top3_correct, top5_correct, top10_correct = \
                 False, False, False, False
             if eval_bash:
@@ -88,12 +95,30 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
                 # evaluation ignoring flag orders
-                temp_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=True)
-                str_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=False)
                 if eval_bash:
-                    cms = token_based.command_match_score(gt_trees, tree)
+                    temp_match = tree_dist.one_match(gts, tree,
+                                                     ignore_arg_value=True)
+                    str_match = tree_dist.one_match(gts, tree,
+                                                    ignore_arg_value=False)
                 else:
-                    cms = -1
+                    if eval_regex:
+                        str_match = False
+                        for cmd_str in gts:
+                            if regexDFAEquals.regex_equiv(cmd_str, pred_cmd):
+                                str_match = True
+                                # Debugging
+                                if cmd_str != pred_cmd:
+                                    print("----------------------------------")
+                                    print("1) {}".format(cmd_str))
+                                    print("2) {}".format(pred_cmd))
+                                    print("----------------------------------")
+                                break
+                    else:
+                        str_match = pred_cmd in gts
+                    temp_match = str_match
+
+                cms = token_based.command_match_score(gt_trees, tree) \
+                    if eval_bash else -1
 
                 if temp_match:
                     if i < 1:
@@ -161,8 +186,8 @@ def eval_set(model, dataset, FLAGS, verbose=True):
     #TODO: compute top-K matching scores
     top1_temp_match_score = num_top1_correct_temp / num_eval
     top1_string_match_score = num_top1_correct / num_eval
-    if eval_bash:
-        avg_top1_cms = (total_top1_cms + 0.0) / num_eval
+    avg_top1_cms = (total_top1_cms + 0.0) / num_eval \
+        if eval_bash else avg_top1_cms = -1
     print("%d examples evaluated" % num_eval)
     print("Top 1 Match (template-only) = %.3f" % top1_temp_match_score)
     print("Top 1 Match (whole-string) = %.3f" % top1_string_match_score)
@@ -202,9 +227,12 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
     num_top10_correct = 0.0
     num_evaled = 0
 
-    grouped_dataset = data_utils.group_data_by_nl(dataset,
-                                                  use_bucket=False).values()
-    random.shuffle(grouped_dataset, lambda: 0.5208484091114275)
+    eval_bash = FLAGS.dataset.startswith("bash")
+    use_bucket = False if model == "knn" else True
+    tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
+    grouped_dataset = data_utils.group_data(
+        dataset, use_bucket=use_bucket, use_temp=eval_bash,
+        tokenizer_selector=tokenizer_selector)
 
     if num_eval is None:
         num_eval = len(grouped_dataset)
@@ -413,8 +441,9 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
         eval_bash = FLAGS.dataset.startswith("bash")
         cmd_parser = data_tools.bash_parser if eval_bash \
             else data_tools.paren_parser
-        grouped_dataset = data_utils.group_data_by_nl(
-            dataset, use_bucket=True, use_temp=False)
+        tokenizer_selector = "cm" if FLAGS.explain else "nl"
+        grouped_dataset = data_utils.group_data(
+            dataset, use_bucket=True, tokenizer_selector=tokenizer_selector)
 
         with DBConnection() as db:
             for nl_temp in grouped_dataset:
