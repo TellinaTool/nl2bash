@@ -86,6 +86,13 @@ def clean_sentence(sentence):
     return sentence
 
 
+def space_tokenizer(sentence):
+    """
+    Split an already-tokenized sentence into tokens.
+    """
+    return sentence.split(' ')
+
+
 def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
                     remove_stop_words=True, correct_spell=True,
                     separate_quotations=False, verbose=False):
