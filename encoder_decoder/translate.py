@@ -619,7 +619,6 @@ def main(_):
                                       'data.final0502', 'test.3112.cm'),
                          'test.3112.explain')
 
-
     elif FLAGS.gen_slot_filling_training_data:
         gen_slot_filling_training_data()
     elif FLAGS.eval_local_slot_filling:
@@ -638,13 +637,13 @@ def main(_):
         if FLAGS.gen_eval_sheet:
             gen_eval_sheet(dataset)
         elif FLAGS.eval:
-            eval(dataset, verbose=False)
+            eval(dataset, verbose=True)
         elif FLAGS.manual_eval:
             manual_eval(dataset, 100)
         elif FLAGS.eval_slot_filling:
             eval_slot_filling(dataset)
         elif FLAGS.decode:
-            model_sig = decode(train_set)
+            model_sig = decode(dataset)
             if not FLAGS.explain:
                 eval(dataset, model_sig=model_sig, verbose=False)
         elif FLAGS.grid_search:
