@@ -77,7 +77,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     if type(input) is list:
-        sentence = input[0].sc_txt
+        sentence = input[0].sc_txt.strip()
         tg_ids = input[0].tg_ids
         tg_full_ids = input[0].tg_full_ids
         pointer_targets = input[0].pointer_targets

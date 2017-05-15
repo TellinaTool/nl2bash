@@ -265,12 +265,16 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         return ds, alignments
 
     def __call__(self, input_embedding, state, scope=None):
-        if nest.is_sequence(state):
-            dim = state[1].get_shape()[1].value
-        else:
-            dim = state.get_shape()[1].value
         if self.num_layers > 1:
-            dim /= self.num_layers
+            if nest.is_sequence(state[0]):
+                dim = state[0][1].get_shape()[1].value
+            else:
+                dim = state[0].get_shape()[1].value
+        else:
+            if nest.is_sequence(state):
+                dim = state[1].get_shape()[1].value
+            else:
+                dim = state.get_shape()[1].value
 
         cell_output, state = self.cell(input_embedding, state, scope)
         # If multi-layer RNN cell is used, apply attention to the top layer.
