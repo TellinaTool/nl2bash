@@ -184,15 +184,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.attn_alignments.append(batch_attn_alignments)
                 if forward_only and self.tg_char:
                      bucket_char_output_symbols, bucket_char_output_logits = \
-                        encode_decode_outputs[4:6]
-                    self.char_output_symbols.append(
-                        tf.reshape(bucket_char_output_symbols,
-                                   [self.max_target_length,
-                                    self.batch_size, self.beam_size,
-                                    self.max_target_token_size + 1]))
-                    self.char_output_logits.append(
-                        tf.reshape(bucket_char_output_logits,
-                                   [self.max_target_length,
+                         encode_decode_outputs[4:6]
+                     self.char_output_symbols.append(
+                         tf.reshape(bucket_char_output_symbols,
+                                    [self.max_target_length,
+                                     self.batch_size, self.beam_size,
+                                     self.max_target_token_size + 1]))
+                     self.char_output_logits.append(
+                         tf.reshape(bucket_char_output_logits,
+                                    [self.max_target_length,
                                     self.batch_size, self.beam_size]))
                 if self.use_copy:
                     self.pointers.append(encode_decode_outputs[-1])
