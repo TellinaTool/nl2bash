@@ -258,8 +258,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
         encoder_outputs, encoder_states = \
             self.encoder.define_graph(encoder_channel_inputs)
         if self.tg_token_use_attention:
-            top_states = [tf.reshape(e, [-1, 1, self.encoder.output_dim])
-                          for e in encoder_states]
+            top_states = [tf.reshape(h, [-1, 1, self.encoder.output_dim])
+                          for h in encoder_outputs]
             attention_states = tf.concat(1, top_states)
         else:
             attention_states = None

@@ -169,8 +169,10 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param copy_fun: Parameterization of the copying function.
         """
         if attention_input_keep < 1:
-            print("attention input keep probability = {}".format(attention_input_keep))
-            attention_states = tf.nn.dropout(attention_states, attention_input_keep)
+            print("attention input keep probability = {}".format(
+                attention_input_keep))
+            attention_states = tf.nn.dropout(
+                attention_states, attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
         attn_dim = attention_states.get_shape()[2].value
 
@@ -263,36 +265,35 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         return ds, alignments
 
     def __call__(self, input_embedding, state, scope=None):
-        if nest.is_sequence(state):
+        if nest.is_sequencce(state):
             dim = state[1].get_shape()[1].value
         else:
             dim = state.get_shape()[1].value
         if self.num_layers > 1:
             dim /= self.num_layers
 
-        with tf.variable_scope("AttnInputProjection"):
-            _, state = self.cell(input_embedding, state, scope)
-            # If multi-layer RNN cell is used, apply attention to the top layer.
-            if self.num_layers > 1:
-                if nest.is_sequence(state):
-                    raise NotImplementedError
-                else:
-                    top_state = tf.split(1, self.num_layers, state)[-1]
-            else:
-                top_state = state
-            attns, alignments = self.attention(top_state)
+        cell_output, state = self.cell(input_embedding, state, scope)
+        # If multi-layer RNN cell is used, apply attention to the top layer.
+        # if self.num_layers > 1:
+        #     if nest.is_sequence(state):
+        #         top_state = state[-1]
+        #     else:
+        #         top_state = tf.split(1, self.num_layers, state)[-1]
+        # else:
+        #     top_state = state
+        # if nest.is_sequence(top_state):
+        #     top_state = tf.concat(1, nest.flatten(top_state))
+        attns, alignments = self.attention(cell_output)
 
         with tf.variable_scope("AttnStateProjection"):
-            attn_state = tf.tanh(tf.nn.rnn_cell._linear(
-                [top_state, attns[0]], dim, True))
+            attn_state = tf.nn.dropout(
+                            tf.tanh(tf.nn.rnn_cell._linear(
+                                [cell_output, attns[0]], dim, True)),
+                                self.attention_output_keep)
 
         with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
-            # print("attention output keep probability = {}".format(
-            #     self.attention_output_keep))
-            output = tf.nn.rnn_cell._linear(
-                tf.nn.dropout(attn_state, self.attention_output_keep), dim,
-                True)
+            output = tf.nn.rnn_cell._linear(attn_state, dim, True)
 
         self.attention_cell_vars = True
 
