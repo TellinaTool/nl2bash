@@ -72,7 +72,8 @@ def demo(sess, model, FLAGS):
         sentence = sys.stdin.readline()
 
 
-def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=None):
+def translate_fun(input, sess, model, vocabs, FLAGS,
+                  slot_filling_classifier=None):
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     if type(input) is list:
@@ -115,6 +116,11 @@ def translate_fun(input, sess, model, vocabs, FLAGS, slot_filling_classifier=Non
         sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
             tg_vocab, sc_full_tokenizer, None, use_unk=False,
             use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
+
+    # Note that we only perform source word filtering when translating from
+    # natural language to bash
+    if not (FLAGS.dataset.startswith('bash') and not FLAGS.explain):
+        sc_ids = sc_full_ids
     
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
