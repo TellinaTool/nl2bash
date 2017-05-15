@@ -265,7 +265,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         return ds, alignments
 
     def __call__(self, input_embedding, state, scope=None):
-        if nest.is_sequencce(state):
+        if nest.is_sequence(state):
             dim = state[1].get_shape()[1].value
         else:
             dim = state.get_shape()[1].value
