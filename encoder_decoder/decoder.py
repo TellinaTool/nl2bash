@@ -54,6 +54,7 @@ class Decoder(graph_utils.NNModel):
 
         self.beam_decoder = beam_search.BeamDecoder(
             self.vocab_size,
+            self.num_layers,
             data_utils.ROOT_ID,
             data_utils.EOS_ID,
             self.batch_size,
