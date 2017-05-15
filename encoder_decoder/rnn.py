@@ -132,6 +132,12 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
         (output, state) = call_cell()
 
       outputs.append(output)
+      # if num_cell_layers > 1:
+      #   if nest.is_sequence(state):
+      #       states.append(state)
+      #   else:
+      #       states.append(tf.split(1, num_cell_layers, state))
+      # else:
       states.append(state)
     return (outputs, states)
 
@@ -211,27 +217,14 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
   # Notice that the computation of the encoder final state uses the final state
   # of the backward RNN without reverse!!!
   if nest.is_sequence(cell_fw.state_size):
-    def concatenate_tuple_output(fw, bw):
-        return tuple([tf.concat(1, [l_fw, l_bw])
-                      for l_fw, l_bw in zip(fw, bw)])
-
-    if num_cell_layers > 1:
-      output_states = []
-      for fw, bw in zip(states_fw, tmp_states):
-        l_states = []
-        for l_fw, l_bw in zip(fw, bw):
-            l_states.append(concatenate_tuple_output(l_fw, l_bw))
-        output_states.append(tuple(l_states))
-    else:
-      output_states = []
-      for fw, bw in zip(states_fw, tmp_states):
-        output_states.append(concatenate_tuple_output(fw, bw))
+    states = [tf.concat(1, [fw, bw]) for fw, bw in zip(states_fw, tmp_states)]
   else:
     if num_cell_layers > 1:
       output_states = []
       for fw, bw in zip(states_fw, tmp_states):
-        output_states.append(tuple([tf.concat(1, [l_fw, l_bw])
-                                    for l_fw, l_bw in zip(fw, bw)]))
+        output_states.append(tf.concat(1, ([tf.concat(1, [l_fw, l_bw])
+          for l_fw, l_bw in zip(tf.split(1, self.num_cell_layers, fw), 
+                                tf.split(1, self.num_cell_layers, bw))])))
     else:
       output_states = [tf.concat(1, [fw, bw])
                        for fw, bw in zip(states_fw, tmp_states)]

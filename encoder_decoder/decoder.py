@@ -269,7 +269,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             if nest.is_sequence(state[0]):
                 dim = state[0][1].get_shape()[1].value
             else:
-                dim = state[0].get_shape()[1].value
+                dim = state.get_shape()[1].value / self.num_layers
         else:
             if nest.is_sequence(state):
                 dim = state[1].get_shape()[1].value
