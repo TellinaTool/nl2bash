@@ -77,7 +77,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     if type(input) is list:
-        sentence = input[0].sc_txt.strip()
+        sentence = input[0].sc_txt
         tg_ids = input[0].tg_ids
         tg_full_ids = input[0].tg_full_ids
         pointer_targets = input[0].pointer_targets
@@ -390,11 +390,10 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                 [rev_sc_vocab[i] for i in data_group[0].sc_ids])
             if verbose:
                 print("Example {}:".format(example_id))
-                print("(Orig) Source: " + sc_temp.strip())
+                print("(Orig) Source: " + sc_temp)
                 print("Source: " + sc_normalized_temp)
                 for j in xrange(len(data_group)):
-                    print("GT Target {}: {}".format(
-                        j+1, data_group[j].tg_txt.strip()))
+                    print("GT Target {}: {}".format(j+1, data_group[j].tg_txt))
 
             batch_outputs, output_logits = translate_fun(data_group, sess, model,
                 vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)

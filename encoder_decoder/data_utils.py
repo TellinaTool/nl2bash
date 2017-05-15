@@ -1318,7 +1318,8 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
 
     data_idx = 0
     while True:
-        sc_txt, tg_txt = sc_file.readline(), tg_file.readline()
+        sc_txt, tg_txt = sc_file.readline().strip(), \
+                         tg_file.readline().strip()
         sc, tg = sc_id_file.readline(), tg_id_file.readline()
         sc_full = sc_full_id_file.readline()
         tg_full = tg_full_id_file.readline()
