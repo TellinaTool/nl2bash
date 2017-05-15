@@ -150,7 +150,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, attention_states, encoder_attn_masks,
                  encoder_inputs, attention_function, attention_input_keep,
-                 attention_output_keep, num_heads, num_layers, use_copy,
+                 attention_output_keep, num_heads, dim, num_layers, use_copy,
                  tg_vocab_size=-1):
         """
         Hidden layer above attention states.
@@ -164,6 +164,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param num_heads: Number of attention heads that read from from
             attention_states. Dummy field if attention_states is None.
         :param rnn_cell: Type of rnn cells used.
+        :param dim: Size of the hidden and output layers of the decoder, which
+            we assume to be the same.
         :param num_layers: Number of layers in the RNN cells.
 
         :param use_copy: Copy source tokens to the target.
@@ -186,6 +188,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.encoder_inputs_3d = tf.nn.embedding_lookup(
             self.vocab_indices, encoder_inputs)
         self.num_heads = num_heads
+        self.dim = dim
         self.num_layers = num_layers
         self.attn_length = attn_length
         self.attn_dim = attn_dim
@@ -265,17 +268,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         return ds, alignments
 
     def __call__(self, input_embedding, state, scope=None):
-        if self.num_layers > 1:
-            if nest.is_sequence(state[0]):
-                dim = state[0][1].get_shape()[1].value
-            else:
-                dim = state.get_shape()[1].value / self.num_layers
-        else:
-            if nest.is_sequence(state):
-                dim = state[1].get_shape()[1].value
-            else:
-                dim = state.get_shape()[1].value
-
         cell_output, state = self.cell(input_embedding, state, scope)
         # If multi-layer RNN cell is used, apply attention to the top layer.
         # if self.num_layers > 1:
@@ -292,12 +284,12 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         with tf.variable_scope("AttnStateProjection"):
             attn_state = tf.nn.dropout(
                             tf.tanh(tf.nn.rnn_cell._linear(
-                                [cell_output, attns[0]], dim, True)),
+                                [cell_output, attns[0]], self.dim, True)),
                                 self.attention_output_keep)
 
         with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
-            output = tf.nn.rnn_cell._linear(attn_state, dim, True)
+            output = tf.nn.rnn_cell._linear(attn_state, self.dim, True)
 
         self.attention_cell_vars = True
 
