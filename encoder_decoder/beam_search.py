@@ -165,9 +165,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.alpha = alpha
         self.locally_normalized = locally_normalized
 
-        if use_attention:
-            self.alignments_list = []
-
         self.parent_refs_offsets = None
 
         # Note: masking out entries to -inf plays poorly with top_k, so just
@@ -230,11 +227,9 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         if self.use_copy and self.copy_fun != 'supervised':
             cell_output, cell_state, alignments, attns, read_copy_source = \
                 self.cell(cell_inputs, past_cell_state, scope)
-            self.alignments_list.append(alignments)
         elif self.use_attention:
             cell_output, cell_state, alignments, attns = \
                 self.cell(cell_inputs, past_cell_state, scope)
-            self.alignments_list.append(alignments)
         else:
             cell_output, cell_state = \
                 self.cell(cell_inputs, past_cell_state, scope)
@@ -302,19 +297,14 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]),
                                             self.stop_token), tf.float32)
+
+        if self.use_copy and self.copy_fun != 'supervised':
+            ranked_read_copy_source = tf.gather(read_copy_source, parent_refs)
         if self.use_attention:
-            num_alignments = len(self.alignments_list)
-            num_heads = len(self.alignments_list[0])
-            alignments_list = nest.flatten(self.alignments_list)
-            alignments_history = tf.split(1, num_alignments * num_heads,
-                tf.gather(tf.concat(1, alignments_list), parent_refs))
-            ranked_alignments_list = []
-            for i in xrange(num_alignments):
-                alignment = []
-                for j in xrange(num_heads):
-                    alignment.append(alignments_history[i*num_heads+j])
-                ranked_alignments_list.append(alignment)
-            self.alignments_list = ranked_alignments_list
+            # self.alignments_list = tf.gather(self.alignments_list, parent_refs)
+            ranked_alignments = tf.gather(alignments, parent_refs)
+            # self.alignments_list.append(ranked_alignments)
+            ranked_attns = tf.gather(attns, parent_refs)
 
         # update cell_states
         def gather_and_append_tuple_states(pc_states, c_state):
@@ -365,10 +355,11 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         ranked_cell_output = tf.gather(cell_output, parent_refs)
 
         if self.use_copy and self.copy_fun == 'explicit':
-            return ranked_cell_output, compound_cell_state, alignments, attns, \
-                   read_copy_source
+            return ranked_cell_output, compound_cell_state, ranked_alignments, \
+                   ranked_attns, ranked_read_copy_source
         elif self.use_attention:
-            return ranked_cell_output, compound_cell_state, alignments, attns
+            return ranked_cell_output, compound_cell_state, ranked_alignments, \
+                   ranked_attns
         else:
             return ranked_cell_output, compound_cell_state
 
