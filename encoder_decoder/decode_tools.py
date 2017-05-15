@@ -105,10 +105,12 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
             sc_full_tokenizer = None
         else:
             if FLAGS.dataset.startswith("bash"):
-                sc_tokenizer = tokenizer.basic_tokenizer
+                sc_tokenizer = tokenizer.basic_tokenizer \
+                    if not FLAGS.normalized else tokenizer.ner_tokenizer
+                sc_full_tokenizer = tokenizer.basic_tokenizer
             else:
                 sc_tokenizer = tokenizer.space_tokenizer
-            sc_full_tokenizer = tokenizer.basic_tokenizer
+                sc_full_tokenizer = tokenizer.space_tokenizer
         sc_ids, entities = data_utils.sentence_to_token_ids(
             sentence, sc_vocab, sc_tokenizer, None)
         sc_full_ids, _ = data_utils.sentence_to_token_ids(
