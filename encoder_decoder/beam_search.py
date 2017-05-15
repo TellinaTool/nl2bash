@@ -310,20 +310,20 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]),
                                             self.stop_token), tf.float32)
-        # if nest.is_sequence(raw_cell_state):
-        #     raw_cell_states = (
-        #         tf.concat(1, [past_cell_states[0], tf.expand_dims(raw_cell_state[0], 1)]),
-        #         tf.concat(1, [past_cell_states[1], tf.expand_dims(raw_cell_state[1], 1)])
-        #     )
-        #     cell_states = (
-        #         nest_map(lambda element: tf.gather(element, parent_refs), raw_cell_states[0]),
-        #         nest_map(lambda element: tf.gather(element, parent_refs), raw_cell_states[1])
-        #     )
-        # TODO: this statement might choke if the cell state is a tuple
-        cell_states = nest_map(
-            lambda element: tf.gather(element, parent_refs),
-            tf.concat(1, [past_cell_states, tf.expand_dims(raw_cell_state, 1)])
-        )
+        if nest.is_sequence(raw_cell_state):
+            raw_cell_states = (
+                tf.concat(1, [past_cell_states[0], tf.expand_dims(raw_cell_state[0], 1)]),
+                tf.concat(1, [past_cell_states[1], tf.expand_dims(raw_cell_state[1], 1)])
+            )
+            cell_states = (
+                nest_map(lambda element: tf.gather(element, parent_refs), raw_cell_states[0]),
+                nest_map(lambda element: tf.gather(element, parent_refs), raw_cell_states[1])
+            )
+        else:
+            cell_states = nest_map(
+                lambda element: tf.gather(element, parent_refs),
+                tf.concat(1, [past_cell_states, tf.expand_dims(raw_cell_state, 1)])
+            )
 
         # Handling for getting a done token
         logprobs_done = tf.reshape(logprobs_batched,
