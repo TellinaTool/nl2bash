@@ -149,11 +149,8 @@ class RNNEncoder(Encoder):
         if input_embeddings is None:
             input_embeddings = self.token_representations(encoder_inputs)
         with tf.variable_scope("encoder_rnn"):
-            encoder_outputs, encoder_states = rnn.RNNModel(
-                self.cell, input_embeddings,
+            return rnn.RNNModel(self.cell, input_embeddings,
                 num_cell_layers=self.num_layers, dtype=tf.float32)
-        encoder_state = encoder_states[-1]
-        return encoder_outputs, encoder_state
 
     def encoder_cell(self):
         """RNN cell for the encoder."""
@@ -183,23 +180,9 @@ class BiRNNEncoder(Encoder):
         # Compute the continuous input representations
         if input_embeddings is None:
             input_embeddings = self.token_representations(encoder_inputs)
-        outputs, states_fw, states_bw = rnn.BiRNNModel(
-            self.fw_cell, self.bw_cell, input_embeddings,
-            num_cell_layers=self.num_layers, dtype=tf.float32)
-        if self.rnn_cell == "gru":
-            if self.num_layers > 1:
-                states = []
-                for i in xrange(self.num_layers):
-                    states.append(tf.concat(1, [states_fw[-1][i],
-                                                states_bw[0][i]]))
-                state = tf.concat(1, states)
-            else:
-                state = tf.concat(1, [states_fw[-1], states_bw[0]])
-        elif self.rnn_cell == "lstm":
-            raise NotImplementedError
-        else:
-            raise AttributeError("Unrecognized RNN cell type.")
-        return outputs, state
+        with tf.variable_scope("encoder_rnn"):
+            return rnn.BiRNNModel(self.fw_cell, self.bw_cell, input_embeddings,
+                num_cell_layers=self.num_layers, dtype=tf.float32)
 
     def forward_cell(self):
         """RNN cell for the forward RNN."""
