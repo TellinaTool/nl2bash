@@ -262,7 +262,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 context = tf.reshape(d, [-1, self.attn_dim])
                 ds.append(context)
 
-        self.attention_vars = True
         return ds, alignments
 
     def __call__(self, input_embedding, state, scope=None):
