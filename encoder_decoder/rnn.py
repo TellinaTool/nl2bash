@@ -217,14 +217,15 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
   # Notice that the computation of the encoder final state uses the final state
   # of the backward RNN without reverse!!!
   if nest.is_sequence(cell_fw.state_size):
-    states = [tf.concat(1, [fw, bw]) for fw, bw in zip(states_fw, tmp_states)]
+    output_states = [tf.concat(1, [fw, bw])
+                     for fw, bw in zip(states_fw, tmp_states)]
   else:
     if num_cell_layers > 1:
       output_states = []
       for fw, bw in zip(states_fw, tmp_states):
         output_states.append(tf.concat(1, ([tf.concat(1, [l_fw, l_bw])
-          for l_fw, l_bw in zip(tf.split(1, self.num_cell_layers, fw), 
-                                tf.split(1, self.num_cell_layers, bw))])))
+          for l_fw, l_bw in zip(tf.split(1, num_cell_layers, fw),
+            tf.split(1, num_cell_layers, bw))])))
     else:
       output_states = [tf.concat(1, [fw, bw])
                        for fw, bw in zip(states_fw, tmp_states)]
