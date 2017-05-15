@@ -135,7 +135,7 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
       outputs.append(output)
       if num_cell_layers > 1:
         if _is_sequence(state):
-            states.append(())
+            states.append(state)
         else:
             states.append(tf.split(1, num_cell_layers, state))
       else:
@@ -178,11 +178,11 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
     scope: VariableScope for the created subgraph; defaults to "BiRNN"
 
   Returns:
-    A tuple (outputs, output_state_fw, output_state_bw) where:
+    A tuple (outputs, output_states) where:
       outputs is a length `T` list of outputs (one for each input), which
         are depth-concatenated forward and backward outputs.
-      output_state_fw is the final state of the forward rnn.
-      output_state_bw is the final state of the backward rnn.
+      output_states is a length `T` list of hidden states (one for each step),
+        which are depth-concatenated forward and backward states.
 
   Raises:
     TypeError: If `cell_fw` or `cell_bw` is not an instance of `RNNCell`.
@@ -201,21 +201,46 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
   name = scope or "BiRNN"
   # Forward direction
   with tf.variable_scope(name + "_FW") as fw_scope:
-    output_fw, output_states_fw = RNNModel(cell_fw, inputs, initial_state_fw,
-        dtype, sequence_length, num_cell_layers=num_cell_layers, scope=fw_scope)
+    output_fw, states_fw = RNNModel(cell_fw, inputs, initial_state_fw,
+      dtype, sequence_length, num_cell_layers=num_cell_layers, scope=fw_scope)
 
   # Backward direction
   with tf.variable_scope(name + "_BW") as bw_scope:
     tmp, tmp_states = RNNModel(cell_bw, _reverse_seq(inputs, sequence_length),
-                               initial_state_bw, dtype, sequence_length,
-                               num_cell_layers=num_cell_layers, scope=bw_scope)
+      initial_state_bw, dtype, sequence_length,
+      num_cell_layers=num_cell_layers, scope=bw_scope)
   output_bw = _reverse_seq(tmp, sequence_length)
-  output_states_bw = _reverse_seq(tmp_states, sequence_length)
+  states_bw = _reverse_seq(tmp_states, sequence_length)
 
   # Concat each of the forward/backward outputs
   outputs = [tf.concat(1, [fw, bw]) for fw, bw in zip(output_fw, output_bw)]
 
-  return (outputs, output_states_fw, output_states_bw)
+  if _is_sequence(cell_fw.state_size):
+    def concatenate_tuple_output(fw, bw):
+        return tuple([tf.concat(1, [l_fw, l_bw])
+                      for l_fw, l_bw in zip(fw, bw)])
+
+    if num_cell_layers > 1:
+      output_states = []
+      for fw, bw in zip(states_fw, states_bw):
+        l_states = []
+        for l_fw, l_bw in zip(fw, bw):
+            l_states.append(concatenate_tuple_output(l_fw, l_bw))
+        output_states.append(tuple(l_states))
+    else:
+      output_states = []
+      for fw, bw in zip(states_fw, states_bw):
+        output_states.append(concatenate_tuple_output(fw, bw))
+  else:
+    if num_cell_layers > 1:
+      output_states = []
+      for fw, bw in zip(states_fw, states_bw):
+        output_states.append(tuple([tf.concat(1, [l_fw, l_bw])
+                                    for l_fw, l_bw in zip(fw, bw)]))
+    else:
+      output_states = [tf.concat(1, [fw, bw])
+                       for fw, bw in zip(states_fw, states_bw)]
+  return (outputs, output_states)
 
 
 def _reverse_seq(input_seq, lengths):
