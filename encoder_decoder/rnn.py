@@ -216,6 +216,8 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
   # Concat each of the forward/backward outputs
   outputs = [tf.concat(1, [fw, bw]) for fw, bw in zip(output_fw, output_bw)]
 
+  # Notice that the computation of the encoder final state uses the final state
+  # of the backward RNN without reverse!!!
   if _is_sequence(cell_fw.state_size):
     def concatenate_tuple_output(fw, bw):
         return tuple([tf.concat(1, [l_fw, l_bw])
@@ -223,14 +225,14 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
 
     if num_cell_layers > 1:
       output_states = []
-      for fw, bw in zip(states_fw, states_bw):
+      for fw, bw in zip(states_fw, tmp_states):
         l_states = []
         for l_fw, l_bw in zip(fw, bw):
             l_states.append(concatenate_tuple_output(l_fw, l_bw))
         output_states.append(tuple(l_states))
     else:
       output_states = []
-      for fw, bw in zip(states_fw, states_bw):
+      for fw, bw in zip(states_fw, tmp_states):
         output_states.append(concatenate_tuple_output(fw, bw))
   else:
     if num_cell_layers > 1:
