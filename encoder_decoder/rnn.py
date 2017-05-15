@@ -77,6 +77,7 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
 
   outputs = []
   states = []
+
   # Create a new scope in which the caching device is either
   # determined by the parent scope, or is set to place the cached
   # Variable using the same placement as for the rest of the RNN.
@@ -240,6 +241,7 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
     else:
       output_states = [tf.concat(1, [fw, bw])
                        for fw, bw in zip(states_fw, states_bw)]
+
   return (outputs, output_states)
 
 
