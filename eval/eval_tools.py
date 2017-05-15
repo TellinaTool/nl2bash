@@ -65,10 +65,10 @@ def eval_set(model, dataset, FLAGS, verbose=True):
         for sc_temp in grouped_dataset:
             data_group = grouped_dataset[sc_temp]
             sc_str = bytes(data_group[0].sc_txt, 'utf-8')
-            cm_strs = [dp.tg_txt for dp in data_group]
+            cm_strs = [dp.tg_txt.strip() for dp in data_group]
+            num_gts = len(cm_strs)
             if eval_bash:
                 gt_trees = [cmd_parser(cm_str) for cm_str in cm_strs]
-                num_gts = len(gt_trees)
                 gts = gt_trees + \
                       [cmd_parser(cmd) for cmd in db.get_correct_temps(sc_str)]
             else:
@@ -104,7 +104,7 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                     if eval_regex:
                         str_match = False
                         for cmd_str in gts:
-                            if regexDFAEquals.regex_equiv(cmd_str, pred_cmd):
+                            if regexDFAEquals.regex_equiv_from_raw(cmd_str, pred_cmd):
                                 str_match = True
                                 # Debugging
                                 if cmd_str != pred_cmd:
@@ -112,7 +112,17 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                                     print("1) {}".format(cmd_str))
                                     print("2) {}".format(pred_cmd))
                                     print("----------------------------------")
+                                else:
+                                    print("----------------------------------")
+                                    print("i) {}".format(cmd_str))
+                                    print("ii) {}".format(pred_cmd))
+                                    print("----------------------------------")
                                 break
+                            else:
+                                print("----------------------------------")
+                                print("A) {}".format(cmd_str))
+                                print("B) {}".format(pred_cmd))
+                                print("----------------------------------")
                     else:
                         str_match = pred_cmd in gts
                     temp_match = str_match
@@ -186,8 +196,7 @@ def eval_set(model, dataset, FLAGS, verbose=True):
     #TODO: compute top-K matching scores
     top1_temp_match_score = num_top1_correct_temp / num_eval
     top1_string_match_score = num_top1_correct / num_eval
-    avg_top1_cms = (total_top1_cms + 0.0) / num_eval \
-        if eval_bash else avg_top1_cms = -1
+    avg_top1_cms = (total_top1_cms + 0.0) / num_eval if eval_bash else -1
     print("%d examples evaluated" % num_eval)
     print("Top 1 Match (template-only) = %.3f" % top1_temp_match_score)
     print("Top 1 Match (whole-string) = %.3f" % top1_string_match_score)
