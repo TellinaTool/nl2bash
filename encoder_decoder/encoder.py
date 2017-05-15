@@ -149,7 +149,8 @@ class RNNEncoder(Encoder):
         if input_embeddings is None:
             input_embeddings = self.token_representations(encoder_inputs)
         with tf.variable_scope("encoder_rnn"):
-            return tf.nn.rnn(self.cell, input_embeddings, dtype=tf.float32)
+            return rnn.RNNModel(self.cell, input_embeddings,
+                num_cell_layers=self.num_layers, dtype=tf.float32)
 
     def encoder_cell(self):
         """RNN cell for the encoder."""
@@ -180,8 +181,8 @@ class BiRNNEncoder(Encoder):
         if input_embeddings is None:
             input_embeddings = self.token_representations(encoder_inputs)
         with tf.variable_scope("encoder_rnn"):
-            return tf.nn.bidirectional_rnn(self.fw_cell, self.bw_cell,
-                                           input_embeddings, dtype=tf.float32)
+            return rnn.BiRNNModel(self.fw_cell, self.bw_cell, input_embeddings,
+                num_cell_layers=self.num_layers, dtype=tf.float32)
 
     def forward_cell(self):
         """RNN cell for the forward RNN."""

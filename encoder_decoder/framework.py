@@ -255,11 +255,11 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
                       decoder_inputs, targets, target_weights, forward_only):
 
-        encoder_outputs, encoder_state = \
+        encoder_outputs, encoder_states = \
             self.encoder.define_graph(encoder_channel_inputs)
         if self.tg_token_use_attention:
-            top_states = [tf.reshape(h, [-1, 1, self.encoder.output_dim])
-                          for h in encoder_outputs]
+            top_states = [tf.reshape(m, [-1, 1, self.encoder.output_dim])
+                          for m in encoder_outputs]
             attention_states = tf.concat(1, top_states)
         else:
             attention_states = None
@@ -270,7 +270,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # --- Run encode-decode steps --- #
         output_symbols, output_logits, outputs, states, attn_alignments, \
             pointers = self.decoder.define_graph(
-                        encoder_state, decoder_inputs,
+                        encoder_states[-1], decoder_inputs,
                         encoder_attn_masks=encoder_attn_masks,
                         attention_states=attention_states,
                         num_heads=num_heads,
