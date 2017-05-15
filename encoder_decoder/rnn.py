@@ -135,7 +135,7 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
 
       outputs.append(output)
       if num_cell_layers > 1:
-        if _is_sequence(state):
+        if nest.is_sequence(state):
             states.append(state)
         else:
             states.append(tf.split(1, num_cell_layers, state))
