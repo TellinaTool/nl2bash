@@ -66,7 +66,7 @@ def demo(sess, model, FLAGS):
                         j+1, top_k_pred_cmd, top_k_scores[j]))
                 print()
             else:
-                print("I'm very sorry, I can't translate this command at the moment.")
+                print(APOLOGY_MSG)
         print("> ", end="")
         sys.stdout.flush()
         sentence = sys.stdin.readline()
