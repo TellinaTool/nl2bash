@@ -664,8 +664,8 @@ def prepare_jobs(FLAGS):
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
                     nl_vocab_size, cm_vocab_path, create_vocab=False,
                     parallel_vocab_size=cm_vocab_size)
-    generation_mask = np.ones([FLAGS.tg_vocab_size + FLAGS.max_sc_length],
-                              dtype=np.float32)
+    generation_mask = np.ones(
+        [FLAGS.tg_vocab_size + FLAGS.max_sc_length], dtype=np.float32)
     np.save(os.path.join(data_dir, "generation_mask"), generation_mask)
 
 
