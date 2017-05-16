@@ -25,10 +25,14 @@ class Decoder(graph_utils.NNModel):
         :param dim: Decoder dimension.
         :param embedding_dim: Decoder embedding dimension.
         :param use_attention: Set to True to use attention for decoding.
-        :param attention_function: The attention function used.
+        :param attention_function: The attention function to use.
         :param input_keep: Dropout parameter for the input of the attention layer.
         :param output_keep: Dropout parameter for the output of the attention layer.
-        :param decoding_algorithm
+        :param decoding_algorithm: The decoding algorithm to use.
+            1. "greedy"
+            2. "beam_search"
+        :param forward_only:
+        :param use_token_features:
         """
         super(Decoder, self).__init__(hyperparameters)
 
@@ -54,6 +58,7 @@ class Decoder(graph_utils.NNModel):
 
         self.beam_decoder = beam_search.BeamDecoder(
             self.vocab_size,
+            self.num_layers,
             data_utils.ROOT_ID,
             data_utils.EOS_ID,
             self.batch_size,
@@ -107,10 +112,11 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.num_layers = num_layers
         self.tg_vocab_size = tg_vocab_size
 
-        self.vocab_indices = tf.diag(tf.ones([tg_vocab_size], dtype=tf.float32))
+        self.vocab_indices = \
+            tf.diag(tf.ones([tg_vocab_size], dtype=tf.float32))
         self.encoder_size = len(encoder_inputs)
-        encoder_inputs = tf.concat(1,
-            [tf.expand_dims(x, 1) for x in encoder_inputs])
+        encoder_inputs = \
+            tf.concat(1, [tf.expand_dims(x, 1) for x in encoder_inputs])
         self.encoder_inputs_3d = tf.nn.embedding_lookup(
             self.vocab_indices, encoder_inputs)
         self.generation_mask = generation_mask
@@ -138,7 +144,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         # mixture probability
         logit = gen_logit + copy_logit
 
-        # selection reads
+        # selective reads
         read_copy_source = tf.cast(
             tf.reduce_max(gen_logit, [1], keep_dims=True) < \
             tf.reduce_max(pointers, [1], keep_dims=True), tf.float32)
@@ -149,7 +155,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, attention_states, encoder_attn_masks,
                  encoder_inputs, attention_function, attention_input_keep,
-                 attention_output_keep, num_heads, num_layers, use_copy,
+                 attention_output_keep, num_heads, dim, num_layers, use_copy,
                  tg_vocab_size=-1):
         """
         Hidden layer above attention states.
@@ -163,6 +169,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param num_heads: Number of attention heads that read from from
             attention_states. Dummy field if attention_states is None.
         :param rnn_cell: Type of rnn cells used.
+        :param dim: Size of the hidden and output layers of the decoder, which
+            we assume to be the same.
         :param num_layers: Number of layers in the RNN cells.
 
         :param use_copy: Copy source tokens to the target.
@@ -185,6 +193,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.encoder_inputs_3d = tf.nn.embedding_lookup(
             self.vocab_indices, encoder_inputs)
         self.num_heads = num_heads
+        self.dim = dim
         self.num_layers = num_layers
         self.attn_length = attn_length
         self.attn_dim = attn_dim
@@ -253,29 +262,17 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                         tf.reshape(alignment, [-1, self.attn_length, 1])
                             * self.hidden_features[a], [1])
                 else:
-                    # Hard selection read
-                    selection_indices = tf.nn.embedding_lookup(
+                    # Hard selective read
+                    selective_indices = tf.nn.embedding_lookup(
                         tf.diag(tf.ones(self.attn_length)),
                         tf.expand_dims(tf.argmax(s, 1), 1))
-                    d = tf.matmul(selection_indices, self.hidden_features[a])
+                    d = tf.matmul(selective_indices, self.hidden_features[a])
                 context = tf.reshape(d, [-1, self.attn_dim])
                 ds.append(context)
 
-        self.attention_vars = True
         return ds, alignments
 
     def __call__(self, input_embedding, state, scope=None):
-        if self.num_layers > 1:
-            if nest.is_sequence(state[0]):
-                dim = state[0][1].get_shape()[1].value
-            else:
-                dim = state[0].get_shape()[1].value
-        else:
-            if nest.is_sequence(state):
-                dim = state[1].get_shape()[1].value
-            else:
-                dim = state.get_shape()[1].value
-
         cell_output, state = self.cell(input_embedding, state, scope)
         # If multi-layer RNN cell is used, apply attention to the top layer.
         # if self.num_layers > 1:
@@ -292,12 +289,12 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         with tf.variable_scope("AttnStateProjection"):
             attn_state = tf.nn.dropout(
                             tf.tanh(tf.nn.rnn_cell._linear(
-                                [cell_output, attns[0]], dim, True)),
+                                [cell_output, attns[0]], self.dim, True)),
                                 self.attention_output_keep)
 
         with tf.variable_scope("AttnOutputProjection"):
             # attention mechanism on output state
-            output = tf.nn.rnn_cell._linear(attn_state, dim, True)
+            output = tf.nn.rnn_cell._linear(attn_state, self.dim, True)
 
         self.attention_cell_vars = True
 
