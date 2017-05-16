@@ -229,7 +229,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         cell_inputs = inputs
 
-        past_cell_state = self.get_past_cell_state(past_cell_states)
+        past_cell_state = self.get_last_cell_state(past_cell_states)
         if self.use_copy and self.copy_fun != 'supervised':
             cell_output, cell_state, alignments, attns, read_copy_source = \
                 self.cell(cell_inputs, past_cell_state, scope)
@@ -369,13 +369,23 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         else:
             return ranked_cell_output, compound_cell_state
 
-    def get_past_cell_state(self, past_cell_states):
+    def get_last_cell_state(self, past_cell_states):
+        def get_last_tuple_state(pc_states):
+            c_states, h_states = pc_states
+            lc_state = c_states[:, -1, :]
+            lh_state = h_states[:, -1, :]
+            l_state = (lc_state, lh_state)
+            return l_state
+
         if nest.is_sequence(past_cell_states):
-            nest_map(lambda element: tf.squeeze(
-                tf.slice(element, [0, -1, 0], [-1, 1, -1]), 1), past_cell_states)
+            if self.num_layers > 1:
+                last_cell_state = [get_last_tuple_state(l)
+                                   for l in past_cell_states]
+            else:
+                last_cell_state = get_last_tuple_state(past_cell_states)
         else:
-            past_cell_state = past_cell_states[:, -1, :]
-        return past_cell_state
+            last_cell_state = past_cell_states[:, -1, :]
+        return last_cell_state
 
     def _create_state(self, batch_size, dtype, cell_state=None):
         cand_symbols = tf.fill([batch_size, 1],
