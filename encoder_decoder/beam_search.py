@@ -371,8 +371,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def get_past_cell_state(self, past_cell_states):
         if nest.is_sequence(past_cell_states):
-            nest_map(lambda element: tf.squeeze(
-                tf.slice(element, [0, -1, 0], [-1, 1, -1]), 1), past_cell_states)
+            print(past_cell_states)
+            last_step = nest.flatten(past_cell_states)[0].get_shape()[1]
+            past_cell_state = nest_map(lambda element: tf.squeeze(
+                tf.slice(element, [0, last_step-1, 0], [-1, 1, -1]), 1), past_cell_states)
         else:
             past_cell_state = past_cell_states[:, -1, :]
         return past_cell_state
