@@ -378,6 +378,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             past_cell_state = (past_cell_state, past_hidden_state)
         else:
             past_cell_state = past_cell_states[:, -1, :]
+        print(past_cell_state)
         return past_cell_state
 
     def _create_state(self, batch_size, dtype, cell_state=None):
