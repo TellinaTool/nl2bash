@@ -121,7 +121,8 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
 
     # Note that we only perform source word filtering when translating from
     # natural language to bash
-    if not (FLAGS.dataset.startswith('bash') and not FLAGS.explain):
+    if not ((FLAGS.dataset.startswith('bash') or FLAGS.dataset == 'regex-turk')
+            and not FLAGS.explain):
         sc_ids = sc_full_ids
     
     # Which bucket does it belong to?
