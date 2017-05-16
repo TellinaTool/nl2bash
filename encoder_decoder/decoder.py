@@ -144,7 +144,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         # mixture probability
         logit = gen_logit + copy_logit
 
-        # selection reads
+        # selective reads
         read_copy_source = tf.cast(
             tf.reduce_max(gen_logit, [1], keep_dims=True) < \
             tf.reduce_max(pointers, [1], keep_dims=True), tf.float32)
@@ -262,11 +262,11 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                         tf.reshape(alignment, [-1, self.attn_length, 1])
                             * self.hidden_features[a], [1])
                 else:
-                    # Hard selection read
-                    selection_indices = tf.nn.embedding_lookup(
+                    # Hard selective read
+                    selective_indices = tf.nn.embedding_lookup(
                         tf.diag(tf.ones(self.attn_length)),
                         tf.expand_dims(tf.argmax(s, 1), 1))
-                    d = tf.matmul(selection_indices, self.hidden_features[a])
+                    d = tf.matmul(selective_indices, self.hidden_features[a])
                 context = tf.reshape(d, [-1, self.attn_dim])
                 ds.append(context)
 
