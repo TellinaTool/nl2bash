@@ -1077,31 +1077,13 @@ def group_data(dataset, attribute='source', use_bucket=False, use_temp=False,
                 words, _ = tokenizer.ner_tokenizer(attr)
             else:
                 words = data_tools.bash_tokenizer(attr, arg_type_only=True)
-            temp = " ".join(words)
+            temp = ' '.join(words)
         else:
             temp = attr
         if temp in grouped_dataset:
             grouped_dataset[temp].append(dataset[i])
         else:
             grouped_dataset[temp] = [dataset[i]]
-
-    return grouped_dataset
-
-
-def group_data_by_cm(dataset, use_bucket=False, use_temp=True):
-    if use_bucket:
-        dataset = functools.reduce(lambda x,y: x + y, dataset)
-    grouped_dataset = {}
-    for i in xrange(len(dataset)):
-        cm_str = dataset[i].tg_str
-        if use_temp:
-            cm_template = data_tools.cmd2template(cm_str)
-        else:
-            cm_template = cm_str
-        if cm_template in grouped_dataset:
-            grouped_dataset[cm_template].append(dataset[i])
-        else:
-            grouped_dataset[cm_template] = [dataset[i]]
 
     return grouped_dataset
 
