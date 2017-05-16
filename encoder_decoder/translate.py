@@ -498,7 +498,7 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     pointer_targets=pointer_targets,
                     bucket_id=bucket_id)
                 model_outputs = model.step(sess, formatted_example, bucket_id,
-                    forward_only=True, return_rnn_hidden_states=True)
+                    forward_only=True)
                 encoder_outputs = model_outputs.encoder_hidden_states
                 decoder_outputs = model_outputs.decoder_hidden_states
 
