@@ -370,7 +370,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             return ranked_cell_output, compound_cell_state
 
     def get_past_cell_state(self, past_cell_states):
-        print(past_cell_states)
         if nest.is_sequence(past_cell_states):
             cell_states, hidden_states = past_cell_states
             past_cell_state = cell_states[:, -1, :]
@@ -378,7 +377,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             past_cell_state = (past_cell_state, past_hidden_state)
         else:
             past_cell_state = past_cell_states[:, -1, :]
-        print(past_cell_state)
         return past_cell_state
 
     def _create_state(self, batch_size, dtype, cell_state=None):
