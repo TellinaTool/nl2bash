@@ -127,19 +127,17 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
                     if model.buckets[b][0] > len(sc_ids)])
-
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
         [[sc_ids], [sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
         pointer_targets=[pointer_targets], bucket_id=bucket_id)
-    print(sc_copy_full_ids)
 
     # Decode the output for this 1-element batch.
     # Non-grammatical templates and templates that cannot hold all fillers are
     # filtered out.
     # TODO: align output commands and their scores correctly
     model_outputs = model.step(sess, formatted_example, bucket_id,
-        forward_only=True, return_rnn_hidden_states=FLAGS.fill_argument_slots)
+        forward_only=True)
     output_logits = model_outputs.output_logits
 
     nl_fillers = None
