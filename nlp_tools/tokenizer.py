@@ -90,7 +90,7 @@ def space_tokenizer(sentence):
     """
     Split an already-tokenized sentence into tokens.
     """
-    return sentence.split(' ')
+    return sentence.split()
 
 
 def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
