@@ -601,9 +601,7 @@ def prepare_jobs(FLAGS):
 
     def add_to_set(nl_data, cm_data, split):
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
-            print(nl)
             nl_tokens = nl.split()
-            print(nl_tokens)
             cm_tokens = cm.split()
             nl_chars = data_tools.char_tokenizer(nl, tokenizer.space_tokenizer)
             cm_chars = data_tools.char_tokenizer(cm, None)
@@ -1174,7 +1172,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     append_end_token = True
     
     # Set up natural language file extensions
-    nl_ext = ".nl" if FLAGS.dataset.startswith("bash") else ".nl.full"
+    nl_ext = ".nl" if (FLAGS.dataset.startswith("bash") or 
+                       FLAGS.dataset == 'regex-turk') else ".nl.full"
     nl_full_ext = ".nl.full"
     nl_copy_full_ext = ".nl.copy.full"
     if FLAGS.char:

@@ -276,8 +276,12 @@ def get_buckets(FLAGS):
     elif FLAGS.dataset == "atis":
         buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explain else \
             [(95, 20), (95, 30), (95, 40)]
-    elif FLAGS.dataset.startswith("regex"):
+    elif FLAGS.dataset == "regex-syn":
         buckets = [(25, 35)] if not FLAGS.explain else [(35, 25)]
+    elif FLAGS.dataset == 'regex-turk':
+        buckets = [(30, 35)] if not FLAGS.explain else [(35, 30)]
+    elif FLAGS.dataset == 'regex-kb13':
+        buckets = [(25, 55)] if not FLAGS.explain else [(55, 25)]
     else:
         raise AttributeError("Unrecognized dataset: {}".format(FLAGS.dataset))
     return buckets
