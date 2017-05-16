@@ -157,6 +157,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
             if type(line) is list:
+                # print(line)
                 tokens = line
             else:
                 if base_tokenizer:
@@ -600,7 +601,9 @@ def prepare_jobs(FLAGS):
 
     def add_to_set(nl_data, cm_data, split):
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
+            print(nl)
             nl_tokens = nl.split()
+            print(nl_tokens)
             cm_tokens = cm.split()
             nl_chars = data_tools.char_tokenizer(nl, tokenizer.space_tokenizer)
             cm_chars = data_tools.char_tokenizer(cm, None)
