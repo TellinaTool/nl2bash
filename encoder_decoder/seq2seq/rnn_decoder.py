@@ -1,7 +1,12 @@
-"""A set of sequence decoder modules used in the encoder-decoder framework."""
+"""
+RNN-based decoders.
+"""
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import tensorflow as tf
-from tensorflow.python.ops import rnn_cell
 
 from encoder_decoder import decoder, data_utils, graph_utils
 
@@ -9,6 +14,20 @@ class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, scope, vocab_size, dim, embedding_dim,
                  use_attention, attention_function, input_keep, output_keep,
                  decoding_algorithm, forward_only, use_token_features=False):
+        """
+        :member hyperparameters:
+        :member scope:
+        :member vocab_size:
+        :member dim:
+        :member embedding_dim:
+        :member use_attention:
+        :member attention_function:
+        :member input_keep:
+        :member output_keep:
+        :member decoding_algorithm:
+        :member forward_only:
+        :member use_token_features:
+        """
         super(RNNDecoder, self).__init__(hyperparameters, scope, vocab_size,
             dim, embedding_dim, use_attention, attention_function, input_keep,
             output_keep, decoding_algorithm, forward_only, use_token_features)
