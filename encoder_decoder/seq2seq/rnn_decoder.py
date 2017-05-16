@@ -1,7 +1,12 @@
-"""A set of sequence decoder modules used in the encoder-decoder framework."""
+"""
+RNN-based decoders.
+"""
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import tensorflow as tf
-from tensorflow.python.ops import rnn_cell
 
 from encoder_decoder import decoder, data_utils, graph_utils
 
@@ -9,6 +14,20 @@ class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, scope, vocab_size, dim, embedding_dim,
                  use_attention, attention_function, input_keep, output_keep,
                  decoding_algorithm, forward_only, use_token_features=False):
+        """
+        :member hyperparameters:
+        :member scope:
+        :member vocab_size:
+        :member dim:
+        :member embedding_dim:
+        :member use_attention:
+        :member attention_function:
+        :member input_keep:
+        :member output_keep:
+        :member decoding_algorithm:
+        :member forward_only:
+        :member use_token_features:
+        """
         super(RNNDecoder, self).__init__(hyperparameters, scope, vocab_size,
             dim, embedding_dim, use_attention, attention_function, input_keep,
             output_keep, decoding_algorithm, forward_only, use_token_features)
@@ -71,7 +90,7 @@ class RNNDecoder(decoder.Decoder):
                     decoder_cell, attention_states, encoder_attn_masks,
                     encoder_inputs, self.attention_function,
                     self.attention_input_keep, self.attention_output_keep,
-                    num_heads, self.num_layers, self.use_copy,
+                    num_heads, self.dim, self.num_layers, self.use_copy,
                     self.vocab_size)
 
             if self.use_copy and self.copy_fun != 'supervised':
@@ -165,28 +184,53 @@ class RNNDecoder(decoder.Decoder):
                     past_cell_states,
                 ) = state
                 # [self.batch_size, self.beam_size, max_len]
-                top_k_outputs = tf.reshape(past_beam_symbols[:, 1:], [self.batch_size, self.beam_size, -1])
+                top_k_outputs = tf.reshape(past_beam_symbols[:, 1:],
+                                           [self.batch_size, self.beam_size, -1])
                 top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
-                top_k_outputs = [tf.split(0, self.beam_size, tf.squeeze(top_k_output, squeeze_dims=[0]))
+                top_k_outputs = [tf.split(0, self.beam_size,
+                                          tf.squeeze(top_k_output, squeeze_dims=[0]))
                                  for top_k_output in top_k_outputs]
-                top_k_outputs = [[tf.squeeze(output, squeeze_dims=[0]) for output in top_k_output]
+                top_k_outputs = [[tf.squeeze(output, squeeze_dims=[0])
+                                  for output in top_k_output]
                                  for top_k_output in top_k_outputs]
                 # [self.batch_size, self.beam_size]
-                top_k_logits = tf.reshape(past_beam_logprobs, [self.batch_size, self.beam_size])
+                top_k_logits = tf.reshape(past_beam_logprobs,
+                                          [self.batch_size, self.beam_size])
                 top_k_logits = tf.split(0, self.batch_size, top_k_logits)
                 top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
                                 for top_k_logit in top_k_logits]
                 if self.use_attention:
-                    attn_alignments = tf.reshape(attn_alignments, [self.batch_size, self.beam_size,
-                            len(decoder_inputs), attention_states.get_shape()[1].value])
-                states = tf.split(1, past_cell_states.get_shape()[1], past_cell_states)[1:]
+                    attn_alignments = tf.reshape(attn_alignments,
+                            [self.batch_size, self.beam_size, len(decoder_inputs),
+                             attention_states.get_shape()[1].value])
+                # LSTM: ([batch_size*self.beam_size, :, dim],
+                #        [batch_size*self.beam_size, :, dim])
+                # GRU: [batch_size*self.beam_size, :, dim]
+                if self.rnn_cell == 'lstm':
+                    if self.num_layers > 1:
+                        past_hidden_states = past_cell_states[-1][1]
+                    else:
+                        past_hidden_states = past_cell_states[1]
+                elif self.rnn_cell == 'gru':
+                    if self.num_layers > 1:
+                        past_hidden_states = tf.split(2, self.num_layers,
+                                                      past_cell_states)[-1]
+                    else:
+                        past_hidden_states = past_cell_states
+                else:
+                    raise AttributeError(
+                        "Unrecognized rnn cell type: {}".format(self.rnn_cell))
+                states = tf.split(1, past_hidden_states.get_shape()[1],
+                                  past_hidden_states)[1:]
+
                 if self.use_copy and self.copy_fun != 'supervised':
-                    # TODO: make beam search output logits computation in copy mode is right
+                    # TODO: correct beam search output logits computation in copy modes
                     # so far dummy zero vectors are used
                     outputs = [tf.zeros([self.batch_size * self.beam_size, self.vocab_size])
                                for s in states]
                 else:
                     outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:] for s in states]
+
                 return top_k_outputs, top_k_logits, outputs, states, \
                        attn_alignments, pointers
             else:
@@ -203,7 +247,7 @@ class RNNDecoder(decoder.Decoder):
                 past_output_logits = tf.add(
                     past_output_logits, tf.reduce_max(projected_output, 1))
                 return output_symbols, past_output_logits, outputs, states, \
-                       attn_alignments, pointers
+                    attn_alignments, pointers
 
 
     def decoder_cell(self):

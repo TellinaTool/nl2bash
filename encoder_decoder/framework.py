@@ -690,19 +690,18 @@ class EncoderDecoderModel(graph_utils.NNModel):
         return input_feed
 
 
-    def step(self, session, formatted_example, bucket_id=-1, forward_only=False,
-             return_rnn_hidden_states=False):
+    def step(self, session, formatted_example, bucket_id=-1, forward_only=False):
         """Run a step of the model feeding the given inputs.
         :param session: tensorflow session to use.
         :param encoder_inputs: list of numpy int vectors to feed as encoder inputs.
-        :param attn_alignments: list of numpy int vectors to feed as the mask over inputs
-            about which tokens to attend to.
+        :param attn_alignments: list of numpy int vectors to feed as the mask
+            over inputs about which tokens to attend to.
         :param decoder_inputs: list of numpy int vectors to feed as decoder inputs.
         :param target_weights: list of numpy float vectors to feed as target weights.
         :param bucket_id: which bucket of the model to use.
         :param forward_only: whether to do the backward step or only forward.
-        :param return_rnn_hidden_states: if set to True, return the hidden states of the
-            two RNNs.
+        :param return_rnn_hidden_states: if set to True, return the hidden states
+            of the two RNNs.
         :return (gradient_norm, average_perplexity, outputs)
         """
 
