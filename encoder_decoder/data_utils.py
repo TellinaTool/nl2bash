@@ -48,7 +48,7 @@ _FLAG_UNK = "__SP__FLAG_UNK"
 _ARG_START = "__SP__ARG_START"
 _ARG_END = "__SP__ARG_END"
 
-_GO = "__SP__GO"                    # seq2seq start symbol
+_GO = "__SP__GO"                   # seq2seq start symbol
 _ROOT = "__SP__ROOT"                # seq2tree start symbol
 
 PAD_ID = 0
@@ -277,6 +277,11 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
       use_unk: if set, set low-frequency tokens to UNK.
       parallel_data: used in cases where token indexing depends on the
         content of the parallel data.
+      use_dummy_indices: If set, map tokens to placeholder indices instead of
+            indices in the vocabulary. Used for generating source copy indices
+            in copy mode.
+      parallel_vocab_size: Vocabulary size of the parallel data.
+      coarse_typing: If set, replace tokens with coarse types.
     """
     max_token_num = 0
     if not tf.gfile.Exists(tg_id_path):
@@ -490,8 +495,8 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     parallel_vocab_size=None):
     if isinstance(data.train[0], list):
         # save indexed token sequences
-
-        MIN_WORD_FREQ = 2 if ("bash" in data_dir) else 0
+        MIN_WORD_FREQ = 2 if "bash" in data_dir else 0
+        coarse_typing = 'bash' in data_dir and suffix.endswith('.nl')
 
         if create_vocab:
             create_vocabulary(vocab_path, data.train, vocab_size,
@@ -503,9 +508,10 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
         for split in _data_splits:
             data_path = os.path.join(data_dir, split)
-            data_to_token_ids(
-                getattr(data, split), data_path + suffix, vocab_path,
-                coarse_typing=suffix.endswith('.nl'))
+            data_to_token_ids(getattr(data, split), data_path + suffix,
+                              vocab_path, coarse_typing=coarse_typing)
+            use_dummy_indices = \
+                'nl.copy' in suffix and split in ['dev', 'test']
             if '.nl' in suffix or '.cm' in suffix:
                 if parallel_token_list is None:
                     parallel_data = None
@@ -514,8 +520,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                 data_to_token_ids(
                     getattr(data, split), data_path + suffix + '.full',
                     vocab_path, use_unk=False, parallel_data=parallel_data,
-                    use_dummy_indices=('nl.copy' in suffix
-                                       and split in ['dev', 'test']),
+                    use_dummy_indices=use_dummy_indices,
                     parallel_vocab_size=parallel_vocab_size)
     else:
         # save string data
