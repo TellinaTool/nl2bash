@@ -8,24 +8,30 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import sys
-if sys.version_info > (3, 0):
-    from six.moves import xrange
-
 import tensorflow as tf
 from tensorflow.python.util import nest
 
+
 def nest_map(func, nested):
+    """
+    Apply function to each element in a nested list.
+
+    :param func: The function to apply.
+    :param nested: The nested list to which the function is going to be applied.
+
+    :return: A list with the same structue as nested where the each element
+        is the output of applying func to the corresponding element in nest.
+    """
     if not nest.is_sequence(nested):
         return func(nested)
     flat = nest.flatten(nested)
     return nest.pack_sequence_as(nested, list(map(func, flat)))
 
+
 class BeamDecoder(object):
     def __init__(self, num_classes, num_layers, start_token=-1, stop_token=-1,
-                 batch_size=1, beam_size=7, use_attention=False,
-                 use_copy=False, copy_fun='explicit', alpha=1.0,
-                 locally_normalized=True):
+                 batch_size=1, beam_size=7, use_attention=False, use_copy=False,
+                 copy_fun='explicit', alpha=1.0, locally_normalized=True):
         """
         :param num_classes: int. Number of output classes used
         :param num_layers: int. Number of layers used in the RNN cell.
@@ -146,6 +152,7 @@ class BeamDecoder(object):
         """
         return final_state[1]
 
+
 class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, output_project, num_classes, num_layers,
                  start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
@@ -195,7 +202,6 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         )
         self._done_mask = tf.tile(self._done_mask, [full_size, 1])
 
-
     def __call__(self, inputs, state, scope=None):
         (
             past_cand_symbols,      # [batch_size, :]
@@ -237,8 +243,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         # [batch_size*beam_size, num_classes]
         if self.use_copy and self.copy_fun != 'supervised':
             if self.locally_normalized:
-                logprobs = tf.log(cell_output /
-                                  tf.reduce_sum(cell_output, 1, keep_dims=True))
+                logprobs = tf.log(
+                    cell_output / tf.reduce_sum(cell_output, 1, keep_dims=True))
             else:
                 logprobs = tf.log(cell_output)
         else:
@@ -301,10 +307,10 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         if self.use_copy and self.copy_fun != 'supervised':
             ranked_read_copy_source = tf.gather(read_copy_source, parent_refs)
         if self.use_attention:
-            # self.alignments_list = tf.gather(self.alignments_list, parent_refs)
-            ranked_alignments = tf.gather(alignments, parent_refs)
-            # self.alignments_list.append(ranked_alignments)
-            ranked_attns = tf.gather(attns, parent_refs)
+            ranked_alignments = nest_map(
+                lambda element: tf.gather(element, parent_refs), alignments)
+            ranked_attns = nest_map(
+                lambda element: tf.gather(element, parent_refs), attns)
 
         # update cell_states
         def gather_and_append_tuple_states(pc_states, c_state):
@@ -414,6 +420,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     @property
     def output_size(self):
         return 1
+
 
 def sparse_boolean_mask(tensor, mask):
     """
