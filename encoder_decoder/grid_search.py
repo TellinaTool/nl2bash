@@ -8,6 +8,9 @@ from __future__ import print_function
 
 import itertools
 import random
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
 
 import tensorflow as tf
 
@@ -33,7 +36,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
 
     hyperparameters = FLAGS.tuning.split(',')
     num_hps = len(hyperparameters)
-    hp_range = grid_search.hyperparam_range
+    hp_range = hyperparam_range
 
     print("======== Grid Search ========")
     print("%d hyperparameters: " % num_hps)
