@@ -138,7 +138,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
     # filtered out.
     # TODO: align output commands and their scores correctly
     model_outputs = model.step(sess, formatted_example, bucket_id,
-        forward_only=True)
+                               forward_only=True)
     output_logits = model_outputs.output_logits
 
     nl_fillers = None
@@ -157,7 +157,6 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
     Transform the neural network output into readable strings and apply the
     relevant filters.
     """
-
     rev_sc_vocab = vocabs.rev_sc_vocab
     rev_tg_vocab = vocabs.rev_tg_vocab
     rev_tg_char_vocab = vocabs.rev_tg_char_vocab
@@ -448,15 +447,17 @@ def write_predictions_to_file(test_file, output_file, sess, model, FLAGS):
     with open(test_file) as f:
         for line in f:
             sentence = line.strip()
-            batch_outputs, output_logits = translate_fun(sentence, sess, model,
-                vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
+            batch_outputs, output_logits = translate_fun(
+                sentence, sess, model, vocabs, FLAGS,
+                slot_filling_classifier=slot_filling_classifier)
             if FLAGS.token_decoding_algorithm == "greedy":
                 tree, pred_cmd, outputs = batch_outputs[0]
                 o_f.write(pred_cmd + '\n')
             elif FLAGS.token_decoding_algorithm == "beam_search":
                 if batch_outputs:
                     top_k_predictions = batch_outputs[0]
-                    for j in xrange(min(FLAGS.beam_size, 1, len(batch_outputs[0]))):
+                    for j in xrange(min(FLAGS.beam_size, 1,
+                                        len(batch_outputs[0]))):
                         if len(top_k_predictions) <= j:
                             break
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
