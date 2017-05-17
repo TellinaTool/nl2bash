@@ -23,13 +23,19 @@ from tqdm import tqdm
 
 import tensorflow as tf
 
-from encoder_decoder import classifiers, data_utils, data_stats, graph_utils, \
-    decode_tools, grid_search, parse_args
 from bashlex import data_tools
-from nlp_tools import tokenizer, slot_filling, constants
-from eval import eval_tools
+from encoder_decoder import classifiers
+from encoder_decoder import data_stats
+from encoder_decoder import data_utils
+from encoder_decoder import decode_tools
+from encoder_decoder import graph_utils
+from encoder_decoder import grid_search
+from encoder_decoder import parse_args
 from .seq2seq.seq2seq_model import Seq2SeqModel
 from .seq2tree.seq2tree_model import Seq2TreeModel
+from eval import eval_tools
+from nlp_tools import tokenizer, slot_filling, constants
+
 
 FLAGS = tf.app.flags.FLAGS
 parse_args.define_input_flags()
@@ -564,7 +570,7 @@ def main(_):
             if not FLAGS.explain:
                 eval(dataset, model_sig=model_sig, verbose=False)
         elif FLAGS.grid_search:
-            grid_search(train_set, dataset)
+            grid_search.grid_search(train_set, dataset, FLAGS)
         elif FLAGS.cross_valid:
             cross_validation(train_set)
         else:
