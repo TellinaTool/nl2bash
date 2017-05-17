@@ -423,12 +423,12 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             break
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                             top_k_predictions[j]
+                        if FLAGS.dataset.startswith('bash') and not FLAGS.explain:
+                            pred_cmd = data_tools.ast2command(
+                                top_k_pred_tree, loose_constraints=True)
+                        else:
+                            pred_cmd = top_k_pred_cmd
                         if verbose:
-                            if FLAGS.dataset.startswith('bash') and not FLAGS.explain:
-                                pred_cmd = data_tools.ast2command(
-                                    top_k_pred_tree, loose_constraints=True)
-                            else:
-                                pred_cmd = top_k_pred_cmd
                             print("Prediction {}: {} ({})".format(j+1,
                                 pred_cmd, top_k_scores[j]))
                             if FLAGS.tg_char:
