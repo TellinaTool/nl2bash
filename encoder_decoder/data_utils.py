@@ -157,6 +157,7 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
             if type(line) is list:
+                # print(line)
                 tokens = line
             else:
                 if base_tokenizer:
@@ -1176,7 +1177,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     append_end_token = True
     
     # Set up natural language file extensions
-    nl_ext = ".nl" if FLAGS.dataset.startswith("bash") else ".nl.full"
+    nl_ext = ".nl" if (FLAGS.dataset.startswith("bash") or 
+                       FLAGS.dataset == 'regex-turk') else ".nl.full"
     nl_full_ext = ".nl.full"
     nl_copy_full_ext = ".nl.copy.full"
     if FLAGS.char:

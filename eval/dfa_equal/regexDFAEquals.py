@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import os
 import sys
 import argparse
 import subprocess
@@ -48,10 +49,10 @@ def regex_equiv(gold, predicted):
     if gold == predicted:
         return True
     try:
-        out = subprocess.check_output(['java', '-jar', 'regex_dfa_equals.jar',
+        out = subprocess.check_output(['java', '-jar', 
+            '{}/regex_dfa_equals.jar'.format(os.path.dirname(__file__)),
             '{}'.format(gold), '{}'.format(predicted)])
-        print("out")
-        print(out)
+        # print("out: {}".format(out))
         if '\n1' in str(out):
             return True
         else:
