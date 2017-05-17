@@ -169,17 +169,6 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
         assert(encoder_outputs is not None)
         assert(decoder_outputs is not None)
 
-    # def to_readable(outputs, rev_tg_vocab):
-    #     search_history = [data_utils._ROOT]
-    #     for output in outputs:
-    #         if output < len(rev_tg_vocab):
-    #             search_history.append(rev_tg_vocab[output])
-    #         else:
-    #             search_history.append(data_utils._UNK)
-    #     tree = data_tools.list2ast(search_history)
-    #     cmd = data_tools.ast2command(tree, loose_constraints=True)
-    #     return tree, cmd, search_history
-
     def as_str(output):
         if output < FLAGS.target_vocab_size:
             token = rev_tg_vocab[output]
@@ -428,16 +417,16 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                                 top_k_pred_tree, loose_constraints=True)
                         else:
                             pred_cmd = top_k_pred_cmd
+                        db.add_prediction(model.model_sig, sc_temp,
+                            pred_cmd, float(top_k_scores[j]),
+                            update_mode=False)
                         if verbose:
                             print("Prediction {}: {} ({})".format(j+1,
                                 pred_cmd, top_k_scores[j]))
                             if FLAGS.tg_char:
                                 print("Character-based prediction {}: {}".format(
                                     j+1, top_k_char_predictions[j]))
-                        db.add_prediction(model.model_sig, sc_temp,
-                            pred_cmd, float(top_k_scores[j]),
-                            update_mode=False)
-                    print()
+                            print()
                 else:
                     print(APOLOGY_MSG)
 
