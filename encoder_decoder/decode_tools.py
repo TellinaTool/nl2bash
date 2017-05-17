@@ -412,6 +412,9 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             break
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                             top_k_predictions[j]
+                        db.add_prediction(model.model_sig, sc_temp,
+                            pred_cmd, float(top_k_scores[j]),
+                            update_mode=False)
                         if verbose:
                             if FLAGS.dataset.startswith('bash') and not FLAGS.explain:
                                 pred_cmd = data_tools.ast2command(
@@ -423,10 +426,7 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             if FLAGS.tg_char:
                                 print("Character-based prediction {}: {}".format(
                                     j+1, top_k_char_predictions[j]))
-                        db.add_prediction(model.model_sig, sc_temp,
-                            pred_cmd, float(top_k_scores[j]),
-                            update_mode=False)
-                    print()
+                            print()
                 else:
                     print(APOLOGY_MSG)
 
