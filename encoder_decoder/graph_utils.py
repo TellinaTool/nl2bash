@@ -31,8 +31,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["variational_recurrent_dropout"] = \
         FLAGS.variational_recurrent_dropout
 
-    params["sc_input_keep"] = FLAGS.sc_input_keep
-    params["sc_output_keep"] = FLAGS.sc_output_keep
     params["sc_token"] = FLAGS.sc_token
     params["sc_token_dim"] = FLAGS.sc_token_dim
     params["sc_char"] = FLAGS.sc_char
@@ -47,8 +45,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         "vocab%d.nl.char.feature.npy" % FLAGS.sc_vocab_size)
 
     params["tg_token_use_attention"] = FLAGS.tg_token_use_attention
-    params["tg_input_keep"] = FLAGS.tg_input_keep
-    params["tg_output_keep"] = FLAGS.tg_output_keep
     params["tg_char"] = FLAGS.tg_char
     params["tg_char_vocab_size"] = FLAGS.tg_char_vocab_size
     params["tg_char_composition"] = FLAGS.tg_char_composition
@@ -83,12 +79,25 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
         FLAGS.data_dir, "generation_mask.npy")
 
     params["tg_token_attn_fun"] = FLAGS.tg_token_attn_fun
-    params["attention_input_keep"] = FLAGS.attention_input_keep
-    params["attention_output_keep"] = FLAGS.attention_output_keep
     params["beta"] = FLAGS.beta
 
     params["encoder_topology"] = FLAGS.encoder_topology
     params["decoder_topology"] = FLAGS.decoder_topology
+
+    if FLAGS.universal_keep >= 0 and FLAGS.universal_keep < 1:
+        params["sc_input_keep"] = FLAGS.sc_input_keep
+        params["sc_output_keep"] = FLAGS.sc_output_keep
+        params["tg_input_keep"] = FLAGS.tg_input_keep
+        params["tg_output_keep"] = FLAGS.tg_output_keep
+        params["attention_input_keep"] = FLAGS.attention_input_keep
+        params["attention_output_keep"] = FLAGS.attention_output_keep
+    else:
+        params["sc_input_keep"] = FLAGS.universal_keep
+        params["sc_output_keep"] = FLAGS.universal_keep
+        params["tg_input_keep"] = FLAGS.universal_keep
+        params["tg_output_keep"] = FLAGS.universal_keep
+        params["attention_input_keep"] = FLAGS.universal_keep
+        params["attention_output_keep"] = FLAGS.universal_keep
 
     params["token_decoding_algorithm"] = FLAGS.token_decoding_algorithm
     params["char_decoding_algorithm"] = FLAGS.char_decoding_algorithm
