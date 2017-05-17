@@ -6,8 +6,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import random
-
+import numpy as np
 import os, sys
 
 if sys.version_info > (3, 0):
@@ -18,6 +17,7 @@ from bashlex import data_tools, nast
 from eval import token_based, tree_dist, zss
 from eval.eval_archive import DBConnection
 from eval.dfa_equal import regexDFAEquals
+
 
 error_types = {
     0 : "unmarked error",
@@ -31,24 +31,10 @@ error_types = {
     9 : "count error"
 }
 
-def eval_set(model, dataset, FLAGS, verbose=True):
+
+def eval_set(model, dataset, top_k, FLAGS, verbose=True):
     eval_bash = FLAGS.dataset.startswith("bash") and not FLAGS.explain
     eval_regex = FLAGS.dataset.startswith("regex") and not FLAGS.explain
-
-    num_top1_correct_temp = 0.0
-    num_top3_correct_temp = 0.0
-    num_top5_correct_temp = 0.0
-    num_top10_correct_temp = 0.0
-    num_top1_correct = 0.0
-    num_top3_correct = 0.0
-    num_top5_correct = 0.0
-    num_top10_correct = 0.0
-
-    if eval_bash:
-        total_top1_cms = 0.0
-        total_top3_cms = 0.0
-        total_top5_cms = 0.0
-        total_top10_cms = 0.0
 
     num_eval = 0
     cmd_parser = data_tools.bash_parser if eval_bash \
@@ -61,7 +47,13 @@ def eval_set(model, dataset, FLAGS, verbose=True):
         dataset, use_bucket=use_bucket, use_temp=eval_bash,
         tokenizer_selector=tokenizer_selector)
 
+    top_k_temp_correct = np.zeros(len(grouped_dataset), top_k)
+    top_k_str_correct = np.zeros(len(grouped_dataset), top_k)
+    if eval_bash:
+        top_k_cms = np.zeros(len(grouped_dataset), top_k)
+
     with DBConnection() as db:
+        data_id = 0
         for sc_temp in grouped_dataset:
             data_group = grouped_dataset[sc_temp]
             sc_str = bytes(data_group[0].sc_txt, 'utf-8')
@@ -74,7 +66,7 @@ def eval_set(model, dataset, FLAGS, verbose=True):
             else:
                 gts = cm_strs + db.get_correct_temps(sc_str)
 
-            predictions = db.get_top_k_predictions(model, sc_str, k=10)
+            predictions = db.get_top_k_predictions(model, sc_str, k=top_k)
 
             if verbose:
                 print("Example %d (%d)" % (num_eval, len(cm_strs)))
@@ -84,22 +76,15 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                     print("GT Target {}: ".format(j+1) + cm_strs[j].strip())
             num_eval += (1 if eval_bash else num_gts)
 
-            top1_correct_temp, top3_correct_temp, top5_correct_temp, \
-                top10_correct_temp = False, False, False, False
-            top1_correct, top3_correct, top5_correct, top10_correct = \
-                False, False, False, False
-            if eval_bash:
-                top1_cms, top3_cms, top5_cms, top10_cms = 0.0, 0.0, 0.0, 0.0
-
             for i in xrange(min(3, len(predictions))):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
                 # evaluation ignoring flag orders
                 if eval_bash:
-                    temp_match = tree_dist.one_match(gts, tree,
-                                                     ignore_arg_value=True)
-                    str_match = tree_dist.one_match(gts, tree,
-                                                    ignore_arg_value=False)
+                    temp_match = tree_dist.one_match(
+                        gts, tree, ignore_arg_value=True)
+                    str_match = tree_dist.one_match(
+                        gts, tree, ignore_arg_value=False)
                 else:
                     if eval_regex:
                         str_match = False
@@ -129,40 +114,15 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                         str_match = pred_cmd in gts
                     temp_match = str_match
 
-                cms = token_based.command_match_score(gt_trees, tree) \
+                cms = token_based.command_match_score(gts, tree) \
                     if eval_bash else -1
 
                 if temp_match:
-                    if i < 1:
-                        top1_correct_temp = True
-                    if i < 3:
-                        top3_correct_temp = True
-                    if i < 5:
-                        top5_correct_temp = True
-                    if i < 10:
-                        top10_correct_temp = True
+                    top_k_temp_correct[data_id, i] = 1 if eval_bash else num_gts
                 if str_match:
-                    if i < 1:
-                        top1_correct = True
-                    if i < 3:
-                        top3_correct = True
-                    if i < 5:
-                        top5_correct = True
-                    if i < 10:
-                        top10_correct = True
+                    top_k_str_correct[data_id, i] = 1 if eval_bash else num_gts
                 if eval_bash:
-                    if i < 1:
-                        if cms > top1_cms:
-                            top1_cms = cms
-                    if i < 3:
-                        if cms > top3_cms:
-                            top3_cms = cms
-                    if i < 5:
-                        if cms > top5_cms:
-                            top5_cms = cms
-                    if i < 10:
-                        if cms > top10_cms:
-                            top10_cms = cms
+                    top_k_cms[data_id, i] = cms
                 if verbose:
                     if eval_bash:
                         print("Prediction {}: {} ({}) ({})".format(i+1, pred_cmd, score, cms))
@@ -172,59 +132,60 @@ def eval_set(model, dataset, FLAGS, verbose=True):
             if verbose:
                 print()
 
-            if top1_correct_temp:
-                num_top1_correct_temp += (1 if eval_bash else num_gts)
-            if top3_correct_temp:
-                num_top3_correct_temp += (1 if eval_bash else num_gts)
-            if top5_correct_temp:
-                num_top5_correct_temp += (1 if eval_bash else num_gts)
-            if top10_correct_temp:
-                num_top10_correct_temp += (1 if eval_bash else num_gts)
-            if top1_correct:
-                num_top1_correct += (1 if eval_bash else num_gts)
-            if top3_correct:
-                num_top3_correct += (1 if eval_bash else num_gts)
-            if top5_correct:
-                num_top5_correct += (1 if eval_bash else num_gts)
-            if top10_correct:
-                num_top10_correct += (1 if eval_bash else num_gts)
+            data_id += 1
+    M = {}
+    M["top1_temp_ms"] = np.sum(top_k_temp_correct[:, 0]) / num_eval
+    M["top3_temp_ms"] = -1
+    M["top5_temp_ms"] = -1
+    M["top10_temp_ms"] = -1
+    M["top1_str_ms"] = np.sum(top_k_str_correct[:, 0]) / num_eval
+    M["top3_str_ms"] = -1
+    M["top5_str_ms"] = -1
+    M["top10_str_ms"] = -1
+    M["top1_cms"] = np.sum(top_k_cms[:, 0] / num_eval)
+    M["top3_cms"] = -1
+    M["top5_cms"] = -1
+    M["top10_cms"] = -1
 
-            if eval_bash:
-                total_top1_cms += top1_cms
-                total_top3_cms += top3_cms
-                total_top5_cms += top5_cms
-                total_top10_cms += top10_cms
-
-    #TODO: compute top-K matching scores
-    top1_temp_match_score = num_top1_correct_temp / num_eval
-    top1_string_match_score = num_top1_correct / num_eval
-    avg_top1_cms = (total_top1_cms + 0.0) / num_eval if eval_bash else -1
     print("%d examples evaluated" % num_eval)
-    print("Top 1 Match (template-only) = %.3f" % top1_temp_match_score)
-    print("Top 1 Match (whole-string) = %.3f" % top1_string_match_score)
+    print("Top 1 Match (template-only) = %.3f" % M["top1_temp_ms"])
+    print("Top 1 Match (whole-string) = %.3f" % M["top1_str_ms"])
     if eval_bash:
-        print("Average top 1 Template Match Score = %.3f" % avg_top1_cms)
+        print("Average top 1 Template Match Score = %.3f" % M["top1_cms"])
+
     if len(predictions) > 1:
-        print("Top 3 Match (template-only) = %.3f" % (num_top3_correct_temp/num_eval))
-        print("Top 3 Match (whole-string) = %.3f" % (num_top3_correct/num_eval))
+        M["top3_temp_ms"] = \
+            np.sum(np.max(top_k_temp_correct[:, :3], 1)) / num_eval
+        M["top3_str_ms"] = \
+            np.sum(np.max(top_k_str_correct[:, :3], 1)) /num_eval
+        print("Top 3 Match (template-only) = %.3f" % M["top3_temp_ms"])
+        print("Top 3 Match (whole-string) = %.3f" % M["top3_str_ms"])
         if eval_bash:
-            avg_top3_cms = (total_top3_cms + 0.0) / num_eval
-            print("Average top 3 Template Match Score = %.3f" % avg_top3_cms)
+            M["top3_cms"] = np.sum(np.max(top_k_cms[:, :3], 1)) / num_eval
+            print("Average top 3 Template Match Score = %.3f" % M["top3_cms"])
     if len(predictions) > 3:
-        print("Top 5 Match (template-only) = %.3f" % (num_top5_correct_temp/num_eval))
-        print("Top 5 Match (whole-string) = %.3f" % (num_top5_correct/num_eval))
+        M["top5_temp_ms"] = \
+            np.sum(np.max(top_k_temp_correct[:, :5], 1)) / num_eval
+        M["top5_str_ms"] = \
+            np.sum(np.max(top_k_str_correct[:, :5], 1)) /num_eval
+        print("Top 5 Match (template-only) = %.3f" % M["top5_temp_ms"])
+        print("Top 5 Match (whole-string) = %.3f" % M["top5_str_ms"])
         if eval_bash:
-            avg_top5_cms = (total_top5_cms + 0.0) / num_eval
-            print("Average top 5 Template Match Score = %.3f" % avg_top5_cms)
+            M["top5_cms"] = np.sum(np.max(top_k_cms[:, :5], 1)) / num_eval
+            print("Average top 5 Template Match Score = %.3f" % M["top5_cms"])
     if len(predictions) > 5:
-        print("Top 10 Match (template-only) = %.3f" % (num_top10_correct_temp/num_eval))
-        print("Top 10 Match (whole-string) = %.3f" % (num_top10_correct/num_eval))
+        M["top10_temp_ms"] = \
+            np.sum(np.max(top_k_temp_correct[:, :10], 1)) / num_eval
+        M["top10_str_ms"] = \
+            np.sum(np.max(top_k_str_correct[:, :10], 1)) / num_eval
+        print("Top 10 Match (template-only) = %.3f" % M["top10_temp_ms"])
+        print("Top 10 Match (whole-string) = %.3f" % M["top10_str_ms"])
         if eval_bash:
-            avg_top10_cms = (total_top10_cms + 0.0) / num_eval
-            print("Average top 10 Template Match Score = %.3f" % avg_top10_cms)
+            M["top10_cms"] = np.sum(np.max(top_k_cms[:, :10], 1)) / num_eval
+            print("Average top 10 Template Match Score = %.3f" % M["top10_cms"])
     print()
 
-    return top1_temp_match_score, avg_top1_cms
+    return M
 
 
 def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
@@ -508,6 +469,7 @@ def test_ted():
         )
         print("ted = {}".format(dist))
         print()
+
 
 if __name__ == "__main__":
     test_ted()

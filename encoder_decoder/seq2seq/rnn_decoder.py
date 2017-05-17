@@ -34,6 +34,7 @@ class RNNDecoder(decoder.Decoder):
         print("{} dimension = {}".format(scope, dim))
         print("{} decoding_algorithm = {}".format(scope, decoding_algorithm))
 
+
     def define_graph(self, encoder_state, decoder_inputs,
                      input_embeddings=None, encoder_attn_masks=None,
                      attention_states=None, num_heads=1,
@@ -52,7 +53,7 @@ class RNNDecoder(decoder.Decoder):
 
         if self.use_attention and \
                 not attention_states.get_shape()[1:2].is_fully_defined():
-            raise ValueError("Shape[1] and [2] of attention_states must be "
+            raise ValueError("Shape [1] and [2] of attention_states must be "
                              "known %s" % attention_states.get_shape())
 
         bs_decoding = forward_only and self.decoding_algorithm == "beam_search"
@@ -135,7 +136,7 @@ class RNNDecoder(decoder.Decoder):
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
 
-                if self.use_copy and self.copy_fun == 'explicit':
+                if self.use_copy and self.copy_fun == 'copynet':
                     if i == 0:
                         attn_dim = attention_states.get_shape()[2]
                         selective_reads = tf.zeros([self.batch_size, attn_dim])
@@ -168,7 +169,7 @@ class RNNDecoder(decoder.Decoder):
                 # Tensor list --> tenosr
                 attn_alignments = tf.concat(1,
                     [tf.expand_dims(x[0], 1) for x in alignments_list])
-            if self.use_copy and self.copy_fun == 'explicit':
+            if self.use_copy and self.copy_fun == 'copynet':
                 pointers = tf.concat(1,
                     [tf.expand_dims(x[1], 1) for x in alignments_list])
             else:

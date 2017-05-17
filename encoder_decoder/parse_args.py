@@ -51,7 +51,7 @@ def define_input_flags():
                                 "Set to True to decode and evaluate on the test set.")
     tf.app.flags.DEFINE_boolean("demo", False,
                                 "Set to True for interactive demo.")
-    tf.app.flags.DEFINE_boolean("print_test_results", False,
+    tf.app.flags.DEFINE_boolean("write_predictions_to_file", False,
                                 "Set to True to generate a list of test predictions.")
     tf.app.flags.DEFINE_boolean("bucket_selection", False,
                                 "Run a bucket_selection if this is set to True.")
@@ -105,6 +105,8 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("seed", -1, "Random seed for graph initialization.")
     tf.app.flags.DEFINE_boolean("variational_recurrent_dropout", False, "Set to use variational " +
                                 "recurrent dropout on the RNN cells.")
+    tf.app.flags.DEFINE_float("universal_keep", -1, "Use the rate for all " +
+                              "dropout layers if set to a number between 0 and 1.")
 
     tf.app.flags.DEFINE_string("training_algorithm", "standard", "training algorithm to use.")
     tf.app.flags.DEFINE_string("pretrained_model_subdir", "", "signature of pretrained model.")
