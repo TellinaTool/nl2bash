@@ -13,6 +13,8 @@ import tensorflow as tf
 
 from tensorflow.python.util import nest
 
+from encoder_decoder import translate
+
 
 hyperparam_range = {
     "attention_input_keep": [0.4, 0.6, 0.8, 1.0],
@@ -48,8 +50,7 @@ def grid_search(train_set, dev_set, FLAGS):
 
     best_hp_set = [-1] * num_hps
     best_seed = -1
-    best_tms = 0.0
-    best_cms = 0.0
+    best_metrics_value = 0
 
     model_root_dir = FLAGS.model_dir
 
@@ -68,25 +69,24 @@ def grid_search(train_set, dev_set, FLAGS):
         for t in xrange(num_trials):
             seed = random.getrandbits(32)
             tf.set_random_seed(seed)
-            tms, cms = single_round_model_eval(train_set, dev_set)
+            metrics = "top1_temp_ms"
+            metrics_value = single_round_model_eval(
+                translate.train, translate.decode, translate.eval,
+                train_set, dev_set, metrics)
             print("Parameter set: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], row[i]))
             print("random seed: {}".format(seed))
-            print("Template match score = {}".format(tms))
-            print("Template match score (token-based) = {}".format(cms))
+            print("{} = {}".format(metrics, metrics_value))
             print("Best parameter set so far: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
             print("Best random seed so far: {}".format(best_seed))
-            print("Best template match score so far = {}".format(best_tms))
-            print("Best template match score (token-based) so far = {}"
-                  .format(best_cms))
-            if cms > best_cms:
+            print("Best {} so far = {}".format(metrics, best_metrics_value))
+            if metrics_value > best_metrics_value:
                 best_hp_set = row
                 best_seed = seed
-                best_tms = tms
-                best_cms = cms
+                best_metrics_value = metrics_value
                 print("☺ New best parameter setting found")
 
     print()
@@ -95,20 +95,19 @@ def grid_search(train_set, dev_set, FLAGS):
     for i in xrange(num_hps):
         print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
     print("Best seed = {}".format(best_seed))
-    print("Best template match score = {}".format(best_tms))
-    print("Best template match score (token-based) = {}".format(best_cms))
+    print("Best {} = {}".format(metrics, best_metrics_value))
     print("*****************************")
 
 
 def single_round_model_eval(train_fun, decode_fun, eval_fun,
-                            train_set, dev_set, metrics_tuned):
+                            train_set, dev_set, metrics):
     """
     :param train_fun: Function to train the model.
     :param decode_fun: Function to decode from the trained model.
     :param eval_fun: Function to evaluate the decoding results.
     :param train_set: Training dataset.
     :param dev_set: Development dataset.
-    :param metrics_tuned: Name of the evaluation metrics to be tuned.
+    :param metrics: Name of the evaluation metrics to be tuned.
 
     :return: The metrics being tuned.
     """
@@ -116,7 +115,7 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun,
 
     tf.reset_default_graph()
     model_sig = decode_fun(dev_set, construct_model_dir=False, verbose=False)
-    tms, cms = eval_fun(dev_set, model_sig, verbose=False)
+    M = eval_fun(dev_set, model_sig, verbose=False)
 
     tf.reset_default_graph()
-    return tms, cms
+    return M[metrics]
