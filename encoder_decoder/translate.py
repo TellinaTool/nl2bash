@@ -172,7 +172,7 @@ def eval(data_set, model_sig=None, verbose=True):
         _, model_sig = graph_utils.get_model_signature(FLAGS)
     print("evaluating " + model_sig)
 
-    return eval_tools.eval_set(model_sig, data_set, FLAGS, verbose=verbose)
+    return eval_tools.eval_set(model_sig, data_set, 3, FLAGS, verbose=verbose)
 
 
 def manual_eval(dataset, num_eval):
