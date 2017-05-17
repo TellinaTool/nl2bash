@@ -101,15 +101,16 @@ def grid_search(train_set, dev_set, FLAGS):
 
 
 def single_round_model_eval(train_fun, decode_fun, eval_fun,
-                            train_set, dev_set, tuning_criteria):
+                            train_set, dev_set, metrics_tuned):
     """
-    :param train_fun:
-    :param decode_fun:
-    :param eval_fun:
-    :param train_set:
-    :param dev_set:
-    :param tuning_criteria:
-    :return:
+    :param train_fun: Function to train the model.
+    :param decode_fun: Function to decode from the trained model.
+    :param eval_fun: Function to evaluate the decoding results.
+    :param train_set: Training dataset.
+    :param dev_set: Development dataset.
+    :param metrics_tuned: Name of the evaluation metrics to be tuned.
+
+    :return: The metrics being tuned.
     """
     train_fun(train_set, dev_set, construct_model_dir=True)
 
