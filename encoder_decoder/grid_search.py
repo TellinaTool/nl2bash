@@ -29,6 +29,14 @@ hyperparam_range = {
 
 
 def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
+    """
+    :param train_fun: Function to train the model.
+    :param decode_fun: Function to decode from the trained model.
+    :param eval_fun: Function to evaluate the decoding results.
+    :param train_set: Training dataset.
+    :param dev_set: Development dataset.
+    :param FLAGS: General model hyperparameters.
+    """
     FLAGS.create_fresh_params = True
 
     hyperparameters = FLAGS.tuning.split(',')
@@ -38,8 +46,8 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     print("======== Grid Search ========")
     print("%d hyperparameters: " % num_hps)
     for i in xrange(num_hps):
-        print("{}: {}".format(hyperparameters[i],
-                              hp_range[hyperparameters[i]]))
+        print("{}: {}".format(
+            hyperparameters[i], hp_range[hyperparameters[i]]))
     print()
 
     grid = [v for v in hp_range[hyperparameters[0]]]
@@ -56,6 +64,13 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
         row = nest.flatten(row)
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
+            if hyperparameters[i] == 'universal_keep':
+                setattr(FLAGS, 'sc_input_keep', row[i])
+                setattr(FLAGS, 'sc_output_keep', row[i])
+                setattr(FLAGS, 'tg_input_keep', row[i])
+                setattr(FLAGS, 'tg_output_keep', row[i])
+                setattr(FLAGS, 'attention_input_keep', row[i])
+                setattr(FLAGS, 'attention_output_keep', row[i])
         FLAGS.model_dir = model_root_dir
 
         print("Trying parameter set: ")
