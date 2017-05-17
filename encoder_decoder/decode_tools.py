@@ -169,17 +169,6 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
         assert(encoder_outputs is not None)
         assert(decoder_outputs is not None)
 
-    # def to_readable(outputs, rev_tg_vocab):
-    #     search_history = [data_utils._ROOT]
-    #     for output in outputs:
-    #         if output < len(rev_tg_vocab):
-    #             search_history.append(rev_tg_vocab[output])
-    #         else:
-    #             search_history.append(data_utils._UNK)
-    #     tree = data_tools.list2ast(search_history)
-    #     cmd = data_tools.ast2command(tree, loose_constraints=True)
-    #     return tree, cmd, search_history
-
     def as_str(output):
         if output < FLAGS.target_vocab_size:
             token = rev_tg_vocab[output]
