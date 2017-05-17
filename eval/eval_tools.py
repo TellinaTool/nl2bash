@@ -142,10 +142,11 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
     M["top3_str_ms"] = -1
     M["top5_str_ms"] = -1
     M["top10_str_ms"] = -1
-    M["top1_cms"] = np.sum(top_k_cms[:, 0] / num_eval)
-    M["top3_cms"] = -1
-    M["top5_cms"] = -1
-    M["top10_cms"] = -1
+    if eval_bash:
+        M["top1_cms"] = np.sum(top_k_cms[:, 0] / num_eval)
+        M["top3_cms"] = -1
+        M["top5_cms"] = -1
+        M["top10_cms"] = -1
 
     print("%d examples evaluated" % num_eval)
     print("Top 1 Match (template-only) = %.3f" % M["top1_temp_ms"])
