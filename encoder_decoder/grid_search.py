@@ -99,6 +99,10 @@ def grid_search(train_set, dev_set, FLAGS):
     print("*****************************")
 
 
+def schedule_experiments():
+    pass
+
+
 def single_round_model_eval(train_fun, decode_fun, eval_fun,
                             train_set, dev_set, metrics):
     """
