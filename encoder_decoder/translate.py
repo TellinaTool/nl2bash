@@ -16,18 +16,15 @@ import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
     
-import itertools
 import math
 import numpy as np
-import random
 import time
 from tqdm import tqdm
 
 import tensorflow as tf
-from tensorflow.python.util import nest
 
 from encoder_decoder import classifiers, data_utils, data_stats, graph_utils, \
-    decode_tools, hyperparam_range, parse_args
+    decode_tools, grid_search, parse_args
 from bashlex import data_tools
 from nlp_tools import tokenizer, slot_filling, constants
 from eval import eval_tools
@@ -201,21 +198,13 @@ def demo():
         model, _ = create_model(sess, forward_only=True)
         decode_tools.demo(sess, model, FLAGS)
 
-def print_test_results(test_file, output_file):
+def write_predictions_to_file(test_file, output_file):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         model, _ = create_model(sess, forward_only=True)
-        decode_tools.print_test_results(test_file, output_file, sess, model,
+        decode_tools.write_predictions_to_file(test_file, output_file, sess, model,
                                      FLAGS)
-
-def train_and_eval(train_set, dev_set):
-    train(train_set, dev_set, construct_model_dir=True)
-    tf.reset_default_graph()
-    model_sig = decode(dev_set, construct_model_dir=False, verbose=False)
-    tms, cms = eval(dev_set, model_sig, verbose=False)
-    tf.reset_default_graph()
-    return tms, cms
 
 
 def cross_validation(train_set):
@@ -254,77 +243,6 @@ def cross_validation(train_set):
           .format(sum(match_scores) / num_folds))
     print("cross validation template distance = {}"
           .format(sum(dists) / num_folds))
-
-
-def grid_search(train_set, dev_set):
-    FLAGS.create_fresh_params = True
-
-    hyperparameters = FLAGS.tuning.split(',')
-    num_hps = len(hyperparameters)
-    hp_range = hyperparam_range.hyperparam_range
-
-    print("======== Grid Search ========")
-    print("%d hyperparameters: " % num_hps)
-    for i in xrange(num_hps):
-        print("{}: {}".format(hyperparameters[i],
-                              hp_range[hyperparameters[i]]))
-    print()
-
-    grid = [v for v in hp_range[hyperparameters[0]]]
-    for i in xrange(1, num_hps):
-        grid = itertools.product(grid, hp_range[hyperparameters[i]])
-
-    best_hp_set = [-1] * num_hps
-    best_seed = -1
-    best_tms = 0.0
-    best_cms = 0.0
-
-    model_root_dir = FLAGS.model_dir
-
-    for row in grid:
-        row = nest.flatten(row)
-        for i in xrange(num_hps):
-            setattr(FLAGS, hyperparameters[i], row[i])
-        FLAGS.model_dir = model_root_dir
-
-        print("Trying parameter set: ")
-        for i in xrange(num_hps):
-            print("* {}: {}".format(hyperparameters[i], row[i]))
-
-        num_trials = 5 if FLAGS.initialization else 1
-
-        for t in xrange(num_trials):
-            seed = random.getrandbits(32)
-            tf.set_random_seed(seed)
-            tms, cms = train_and_eval(train_set, dev_set)
-            print("Parameter set: ")
-            for i in xrange(num_hps):
-                print("* {}: {}".format(hyperparameters[i], row[i]))
-            print("random seed: {}".format(seed))
-            print("Template match score = {}".format(tms))
-            print("Template match score (token-based) = {}".format(cms))
-            print("Best parameter set so far: ")
-            for i in xrange(num_hps):
-                print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
-            print("Best random seed so far: {}".format(best_seed))
-            print("Best template match score so far = {}".format(best_tms))
-            print("Best template match score (token-based) so far = {}".format(best_cms))
-            if cms > best_cms:
-                best_hp_set = row
-                best_seed = seed
-                best_tms = tms
-                best_cms = cms
-                print("☺ New best parameter setting found")
-
-    print()
-    print("*****************************")
-    print("Best parameter set: ")
-    for i in xrange(num_hps):
-        print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
-    print("Best seed = {}".format(best_seed))
-    print("Best template match score = {}".format(best_tms))
-    print("Best template match score (token-based) = {}".format(best_cms))
-    print("*****************************")
 
 
 # --- Train/Test slot-filling classifier --- #
@@ -614,10 +532,9 @@ def main(_):
     elif FLAGS.process_data:
         process_data()
 
-    elif FLAGS.print_test_results:
-        print_test_results(os.path.join(FLAGS.data_dir, '..', 'reader',
-                                      'data.final0502', 'test.3112.cm'),
-                         'test.3112.explain')
+    elif FLAGS.write_predictions_to_file:
+        write_predictions_to_file(os.path.join(FLAGS.data_dir, '..', 'reader',
+            'data.final0502', 'test.3112.cm'), 'test.3112.explain')
 
     elif FLAGS.gen_slot_filling_training_data:
         gen_slot_filling_training_data()

@@ -440,16 +440,8 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                 else:
                     print(APOLOGY_MSG)
 
-            # if attn_alignments is not None:
-            #     if FLAGS.token_decoding_algorithm == "greedy":
-            #         M = attn_alignments[batch_id, :, :]
-            #     elif FLAGS.token_decoding_algorithm == "beam_search":
-            #         M = attn_alignments[batch_id, 0, :, :]
-            #     visualize_attn_alignments(M, sc, outputs, rev_sc_vocab, rev_tg_vocab,
-            #         os.path.join(FLAGS.model_dir, "{}-{}.jpg".format(bucket_id, example_id)))
 
-
-def print_test_results(test_file, output_file, sess, model, FLAGS):
+def write_predictions_to_file(test_file, output_file, sess, model, FLAGS):
     vocabs = data_utils.load_vocab(FLAGS)
 
     slot_filling_classifier = None
