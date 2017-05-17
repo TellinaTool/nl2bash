@@ -107,22 +107,24 @@ def eval_set(model, dataset, FLAGS, verbose=True):
                             if regexDFAEquals.regex_equiv_from_raw(cmd_str, pred_cmd):
                                 str_match = True
                                 # Debugging
-                                if cmd_str != pred_cmd:
-                                    print("----------------------------------")
-                                    print("1) {}".format(cmd_str))
-                                    print("2) {}".format(pred_cmd))
-                                    print("----------------------------------")
-                                else:
-                                    print("----------------------------------")
-                                    print("i) {}".format(cmd_str))
-                                    print("ii) {}".format(pred_cmd))
-                                    print("----------------------------------")
-                                break
+                                if verbose:
+                                    if cmd_str != pred_cmd:
+                                        print("----------------------------------")
+                                        print("1) {}".format(cmd_str))
+                                        print("2) {}".format(pred_cmd))
+                                        print("----------------------------------")
+                                    else:
+                                        print("----------------------------------")
+                                        print("i) {}".format(cmd_str))
+                                        print("ii) {}".format(pred_cmd))
+                                        print("----------------------------------")
+                                    break
                             else:
-                                print("----------------------------------")
-                                print("A) {}".format(cmd_str))
-                                print("B) {}".format(pred_cmd))
-                                print("----------------------------------")
+                                if verbose:
+                                    print("----------------------------------")
+                                    print("A) {}".format(cmd_str))
+                                    print("B) {}".format(pred_cmd))
+                                    print("----------------------------------")
                     else:
                         str_match = pred_cmd in gts
                     temp_match = str_match
