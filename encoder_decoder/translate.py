@@ -178,7 +178,7 @@ def eval(data_set, model_sig=None, verbose=True):
         _, model_sig = graph_utils.get_model_signature(FLAGS)
     print("evaluating " + model_sig)
 
-    return eval_tools.eval_set(model_sig, data_set, FLAGS, verbose=verbose)
+    return eval_tools.eval_set(model_sig, data_set, 3, FLAGS, verbose=verbose)
 
 
 def manual_eval(dataset, num_eval):
@@ -422,7 +422,7 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     pointer_targets=pointer_targets,
                     bucket_id=bucket_id)
                 model_outputs = model.step(sess, formatted_example, bucket_id,
-                    forward_only=True, return_rnn_hidden_states=True)
+                    forward_only=True)
                 encoder_outputs = model_outputs.encoder_hidden_states
                 decoder_outputs = model_outputs.decoder_hidden_states
 
