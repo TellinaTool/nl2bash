@@ -13,8 +13,6 @@ import tensorflow as tf
 
 from tensorflow.python.util import nest
 
-from encoder_decoder import translate
-
 
 hyperparam_range = {
     "attention_input_keep": [0.4, 0.6, 0.8, 1.0],
@@ -30,7 +28,7 @@ hyperparam_range = {
 }
 
 
-def grid_search(train_set, dev_set, FLAGS):
+def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     FLAGS.create_fresh_params = True
 
     hyperparameters = FLAGS.tuning.split(',')
@@ -71,8 +69,7 @@ def grid_search(train_set, dev_set, FLAGS):
             tf.set_random_seed(seed)
             metrics = "top1_temp_ms"
             metrics_value = single_round_model_eval(
-                translate.train, translate.decode, translate.eval,
-                train_set, dev_set, metrics)
+                train_fun, decode_fun, eval_fun, train_set, dev_set, metrics)
             print("Parameter set: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], row[i]))

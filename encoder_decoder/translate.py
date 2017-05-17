@@ -570,7 +570,8 @@ def main(_):
             if not FLAGS.explain:
                 eval(dataset, model_sig=model_sig, verbose=False)
         elif FLAGS.grid_search:
-            grid_search.grid_search(train_set, dataset, FLAGS)
+            grid_search.grid_search(
+                train, decode, eval, train_set, dataset, FLAGS)
         elif FLAGS.cross_valid:
             cross_validation(train_set)
         else:
