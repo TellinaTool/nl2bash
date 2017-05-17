@@ -426,7 +426,6 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             if FLAGS.tg_char:
                                 print("Character-based prediction {}: {}".format(
                                     j+1, top_k_char_predictions[j]))
-                            print()
                 else:
                     print(APOLOGY_MSG)
 
