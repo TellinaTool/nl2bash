@@ -31,7 +31,7 @@ def nest_map(func, nested):
 class BeamDecoder(object):
     def __init__(self, num_classes, num_layers, start_token=-1, stop_token=-1,
                  batch_size=1, beam_size=7, use_attention=False, use_copy=False,
-                 copy_fun='explicit', alpha=1.0, locally_normalized=True):
+                 copy_fun='copynet', alpha=1.0, locally_normalized=True):
         """
         :param num_classes: int. Number of output classes used
         :param num_layers: int. Number of layers used in the RNN cell.
@@ -156,7 +156,7 @@ class BeamDecoder(object):
 class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
     def __init__(self, cell, output_project, num_classes, num_layers,
                  start_token=-1, stop_token=-1, batch_size=1, beam_size=7,
-                 use_attention=False, use_copy=False, copy_fun='explicit',
+                 use_attention=False, use_copy=False, copy_fun='copynet',
                  alpha=1.0, locally_normalized=True):
         self.cell = cell
         self.output_project = output_project
@@ -360,7 +360,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         )
         ranked_cell_output = tf.gather(cell_output, parent_refs)
 
-        if self.use_copy and self.copy_fun == 'explicit':
+        if self.use_copy and self.copy_fun == 'copynet':
             return ranked_cell_output, compound_cell_state, ranked_alignments, \
                    ranked_attns, ranked_read_copy_source
         elif self.use_attention:

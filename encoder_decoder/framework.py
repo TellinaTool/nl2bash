@@ -265,7 +265,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             attention_states = None
 
         num_heads = 2 if (self.tg_token_use_attention and
-            (self.use_copy and self.copy_fun == 'explicit')) else 1
+            (self.use_copy and self.copy_fun == 'copynet')) else 1
 
         # --- Run encode-decode steps --- #
         output_symbols, output_logits, outputs, states, attn_alignments, \
