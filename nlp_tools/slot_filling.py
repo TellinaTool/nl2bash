@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-"""Algorithms for filling the argument slots in a command template with the
-   argument values extracted from the natural language"""
+"""
+Algorithms for filling the argument slots in a command template with the
+argument values extracted from the natural language.
+"""
 
 import sys
 if sys.version_info > (3, 0):
@@ -17,8 +19,9 @@ from bashlex import data_tools
 
 # --- Slot filling functions --- #
 
-def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
-                        decoder_outputs, slot_filling_classifier, verbose=False):
+def stable_slot_filling(template_tokens, nl_fillers, cm_slots, pointer_targets,
+                        encoder_outputs, decoder_outputs,
+                        slot_filling_classifier, verbose=False):
     """
     Fills the argument slots using learnt local alignment scores and a greedy 
     global alignment algorithm (stable marriage).
@@ -28,6 +31,8 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
         sentence, indexed by token id
     :param cm_slots: the argument slots in the command template, indexed by
         token id
+    :param pointer_targets: [encoder_length, decoder_length], local alignment
+        scores between source and target tokens
     :param encoder_outputs: [encoder_length, dim] sequence of encoder hidden states
     :param decoder_outputs: [decoder_length, dim] sequence of decoder hidden states
     :param slot_filling_classifier: the classifier that produces the local
@@ -35,43 +40,44 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
     :param verbose: print all local alignment scores if set to true
     """
 
-    # Step a: prepare alignment score matrix based on type info
-    M = collections.defaultdict(dict)
+    # Step a): prepare (binary) type alignment matrix based on type info
+    M = np.zeros(pointer_targets.shape)
     for f in nl_fillers:
         assert(f <= len(encoder_outputs))
         surface, filler_type = nl_fillers[f]
         for s in cm_slots:
             assert(s <= len(decoder_outputs))
             slot_value, slot_type = cm_slots[s]
-            M[f][s] = 0 if slot_filler_type_match(slot_type, filler_type) \
-                else -np.inf
+            if slot_filler_type_match(slot_type, filler_type):
+                M[f, s] = 1
 
-    # Step b: check if the alignment score matrix generated in
-    # step a contains ambiguity
-    for f in M:
-        if len([s for s in M[f] if M[f][s] > -np.inf]) > 1:
-            # Step 3c: if there exists ambiguity in the alignment
-            # generated based on type info, adjust the alignment
-            # score based on neural network run
-            X = []
-            # use reversed index for the encoder embeddings matrix
-            ff = len(encoder_outputs) - f - 1
-            cm_slots_keys = list(cm_slots.keys())
-            for s in cm_slots_keys:
-                X.append(np.expand_dims(np.concatenate(
-                    [encoder_outputs[ff], decoder_outputs[s]],
-                    axis=0), 0))
-            X = np.concatenate(X, axis=0)
-            X = X / norm(X, axis=1)[:, None]
-            raw_scores = slot_filling_classifier.predict(X)
-            for ii in xrange(len(raw_scores)):
-                s = cm_slots_keys[ii]
-                M[f][s] += raw_scores[ii][0]
-                if verbose:
-                    print('alignment ({}, {}): {}\t{}\t{}'.format(
-                        f, s, nl_fillers[f], cm_slots[s], raw_scores[ii][0]))
+    # Step b): compute local alignment scores if they are not provided already
+    if pointer_targets is None:
+        assert(encoder_outputs is not None)
+        assert(decoder_outputs is not None)
+        assert(slot_filling_classifier is not None)
+        pointer_targets = np.zeros(len(encoder_outputs), len(decoder_outputs))
+        for f in M:
+            if len([s for s in M[f] if M[f][s] > -np.inf]) > 1:
+                X = []
+                # use reversed index for the encoder embeddings matrix
+                ff = len(encoder_outputs) - f - 1
+                cm_slots_keys = list(cm_slots.keys())
+                for s in cm_slots_keys:
+                    X.append(np.expand_dims(np.concatenate(
+                        [encoder_outputs[ff], decoder_outputs[s]], axis=0), 0))
+                X = np.concatenate(X, axis=0)
+                X = X / norm(X, axis=1)[:, None]
+                raw_scores = slot_filling_classifier.predict(X)
+                for ii in xrange(len(raw_scores)):
+                    s = cm_slots_keys[ii]
+                    pointer_targets[f, s] = raw_scores[ii][0]
+                    if verbose:
+                        print('alignment ({}, {}): {}\t{}\t{}'.format(
+                            f, s, nl_fillers[f], cm_slots[s], raw_scores[ii][0]))
 
-    mappings, remained_fillers = stable_marriage_alignment(M)
+    mappings, remained_fillers = stable_marriage_alignment(M * pointer_targets)
+
     if not remained_fillers:
         for f, s in mappings:
             template_tokens[s] = get_fill_in_value(cm_slots[s], nl_fillers[f])
@@ -79,11 +85,11 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, encoder_outputs,
         tree = data_tools.bash_parser(cmd)
         if not tree is None:
             data_tools.fill_default_value(tree)
-        temp = data_tools.ast2command(tree, loose_constraints=True,
-                           ignore_flag_order=False)
+        temp = data_tools.ast2command(
+            tree, loose_constraints=True, ignore_flag_order=False)
     else:
-        tree = None
-        temp = None
+        tree, temp = None, None
+
     return tree, temp, mappings
 
 def heuristic_slot_filling(node, ner_by_category):

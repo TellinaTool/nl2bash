@@ -1,5 +1,6 @@
 """
-Perform hyper-parameter tuning of a model using grid-search.
+Meta-experiments which involves training and testing the model with multiple
+hyperparamter settings.
 """
 
 from __future__ import absolute_import
@@ -33,6 +34,8 @@ hyperparam_range = {
 
 def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     """
+    Perform hyperparameter tuning of a model using grid-search.
+
     :param train_fun: Function to train the model.
     :param decode_fun: Function to decode from the trained model.
     :param eval_fun: Function to evaluate the decoding results.
@@ -61,6 +64,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     best_seed = -1
     best_metrics_value = 0
 
+    # Remember the root directory of the model.
     model_root_dir = FLAGS.model_dir
 
     for row in grid:
@@ -74,6 +78,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
                 setattr(FLAGS, 'tg_output_keep', row[i])
                 setattr(FLAGS, 'attention_input_keep', row[i])
                 setattr(FLAGS, 'attention_output_keep', row[i])
+        # Reset the root directory of the model.
         FLAGS.model_dir = model_root_dir
 
         print("Trying parameter set: ")
@@ -114,13 +119,46 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     print("*****************************")
 
 
-def schedule_experiments():
-    pass
+def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set,
+                         hyperparam_sets, FLAGS):
+    """
+    Run multiple experiments with different sets of hyperparameters.
+    """
+    # Remember the root directory of the model.
+    model_root_dir = FLAGS.model_dir
+
+    for hyperparam_set in hyperparam_sets:
+        for hp in hyperparam_set:
+            setattr(FLAGS, hp, hyperparam_set[hp])
+            if hp == 'universal_keep':
+                setattr(FLAGS, 'sc_input_keep', hyperparam_set[hp])
+                setattr(FLAGS, 'sc_output_keep', hyperparam_set[hp])
+                setattr(FLAGS, 'tg_input_keep', hyperparam_set[hp])
+                setattr(FLAGS, 'tg_output_keep', hyperparam_set[hp])
+                setattr(FLAGS, 'attention_input_keep', hyperparam_set[hp])
+                setattr(FLAGS, 'attention_output_keep', hyperparam_set[hp])
+        # Reset the root directory of the model.
+        FLAGS.model_dir = model_root_dir
+
+        print("Trying parameter set: ")
+        for hp in xrange(hyperparam_set):
+            print("* {}: {}".format(hp, hyperparam_set[hp]))
+            metrics = "top1_temp_ms"
+
+        metrics_value = single_round_model_eval(
+            train_fun, decode_fun, eval_fun, train_set, dev_set, metrics)
+        print("Parameter set: ")
+        for hp in xrange(hyperparam_set):
+            print("* {}: {}".format(hp, hyperparam_set[hp]))
+        print("{} = {}".format(metrics, metrics_value))
 
 
 def single_round_model_eval(train_fun, decode_fun, eval_fun,
                             train_set, dev_set, metrics):
     """
+    Train the model with a certain set of hyperparameters and evaluate on the
+    development set.
+
     :param train_fun: Function to train the model.
     :param decode_fun: Function to decode from the trained model.
     :param eval_fun: Function to evaluate the decoding results.
