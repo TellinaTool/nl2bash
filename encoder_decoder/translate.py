@@ -515,6 +515,14 @@ def main(_):
     FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
         if FLAGS.explain else FLAGS.cm_vocab_size
 
+    if FLAGS.universal_keep >= 0 and FLAGS.universal_keep < 1:
+        FLAGS.sc_input_keep = FLAGS.universal_keep
+        FLAGS.sc_output_keep = FLAGS.universal_keep
+        FLAGS.tg_input_keep = FLAGS.universal_keep
+        FLAGS.tg_output_keep = FLAGS.universal_keep
+        FLAGS.attention_input_keep = FLAGS.universal_keep
+        FLAGS.attention_output_keep = FLAGS.universal_keep
+
     # set up source and target length
     FLAGS.max_sc_length = FLAGS.max_sc_length \
         if not _buckets else _buckets[-1][0]

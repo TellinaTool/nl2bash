@@ -84,20 +84,12 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["encoder_topology"] = FLAGS.encoder_topology
     params["decoder_topology"] = FLAGS.decoder_topology
 
-    if FLAGS.universal_keep >= 0 and FLAGS.universal_keep < 1:
-        params["sc_input_keep"] = FLAGS.sc_input_keep
-        params["sc_output_keep"] = FLAGS.sc_output_keep
-        params["tg_input_keep"] = FLAGS.tg_input_keep
-        params["tg_output_keep"] = FLAGS.tg_output_keep
-        params["attention_input_keep"] = FLAGS.attention_input_keep
-        params["attention_output_keep"] = FLAGS.attention_output_keep
-    else:
-        params["sc_input_keep"] = FLAGS.universal_keep
-        params["sc_output_keep"] = FLAGS.universal_keep
-        params["tg_input_keep"] = FLAGS.universal_keep
-        params["tg_output_keep"] = FLAGS.universal_keep
-        params["attention_input_keep"] = FLAGS.universal_keep
-        params["attention_output_keep"] = FLAGS.universal_keep
+    params["sc_input_keep"] = FLAGS.sc_input_keep
+    params["sc_output_keep"] = FLAGS.sc_output_keep
+    params["tg_input_keep"] = FLAGS.tg_input_keep
+    params["tg_output_keep"] = FLAGS.tg_output_keep
+    params["attention_input_keep"] = FLAGS.attention_input_keep
+    params["attention_output_keep"] = FLAGS.attention_output_keep
 
     params["token_decoding_algorithm"] = FLAGS.token_decoding_algorithm
     params["char_decoding_algorithm"] = FLAGS.char_decoding_algorithm
