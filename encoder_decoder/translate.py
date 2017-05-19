@@ -64,9 +64,10 @@ def create_model(session, forward_only, construct_model_dir=True, buckets=None):
 def train(train_set, dev_set, construct_model_dir=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
+
         # Create model.
-        model, global_epochs = create_model(sess, forward_only=False,
-                                    construct_model_dir=construct_model_dir)
+        model, global_epochs = create_model(
+            sess, forward_only=False, construct_model_dir=construct_model_dir)
 
         train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
         train_total_size = float(sum(train_bucket_sizes))
