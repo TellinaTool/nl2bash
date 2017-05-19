@@ -91,7 +91,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
     tg_vocab = vocabs.tg_vocab
 
     if FLAGS.char:
-        sc_ids, entities = data_utils.sentence_to_token_ids(sentence,
+        sc_ids, _ = data_utils.sentence_to_token_ids(sentence,
             sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
         sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
             sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer,
@@ -121,7 +121,7 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
 
     # Note that we only perform source word filtering when translating from
     # natural language to bash
-    if not ((FLAGS.dataset.startswith('bash') or FLAGS.dataset == 'regex-turk')
+    if not (FLAGS.dataset.startswith('bash') or FLAGS.dataset == 'regex-turk'
             and not FLAGS.explain):
         sc_ids = sc_full_ids
     
@@ -133,29 +133,36 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
         [[sc_ids], [sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
         pointer_targets=[pointer_targets], bucket_id=bucket_id)
 
+    model_outputs = model.step(
+        sess, formatted_example, bucket_id, forward_only=True)
+    output_logits = model_outputs.output_logits
+
+
     # Decode the output for this 1-element batch.
     # Non-grammatical templates and templates that cannot hold all fillers are
     # filtered out.
-    # TODO: align output commands and their scores correctly
-    model_outputs = model.step(sess, formatted_example, bucket_id,
-                               forward_only=True)
-    output_logits = model_outputs.output_logits
-
-    nl_fillers = None
+    sc_fillers = None
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
-        nl_fillers = entities[0]
+        sc_fillers = entities[0]
     decoded_outputs = decode(formatted_example.encoder_full_inputs, model_outputs, 
-                             FLAGS, vocabs, nl_fillers, slot_filling_classifier)
+                             FLAGS, vocabs, sc_fillers, slot_filling_classifier)
 
     return decoded_outputs, output_logits
 
 
-def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
+def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
            slot_filling_classifier=None):
     """
-    Transform the neural network output into readable strings and apply the
-    relevant filters.
+    Transform the neural network output into readable strings and apply related
+    filters.
+    :param encoder_inputs:
+    :param model_outputs:
+    :param FLAGS:
+    :param vocabs:
+    :param sc_fillers:
+    :param slot_filling_classifier:
+    :return:
     """
     rev_sc_vocab = vocabs.rev_sc_vocab
     rev_tg_vocab = vocabs.rev_tg_vocab
@@ -163,78 +170,79 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
 
     encoder_outputs = model_outputs.encoder_hidden_states
     decoder_outputs = model_outputs.decoder_hidden_states
-    if nl_fillers is not None:
+
+    if FLAGS.fill_argument_slots:
+        assert(sc_fillers is not None)
         assert(slot_filling_classifier is not None)
         assert(encoder_outputs is not None)
         assert(decoder_outputs is not None)
-
-    def as_str(output):
-        if output < FLAGS.target_vocab_size:
-            token = rev_tg_vocab[output]
-        else:
-            token = rev_sc_vocab[
-                encoder_inputs[batch_id][output - FLAGS.target_vocab_size]]
-        return token
 
     output_symbols = model_outputs.output_symbols
     batch_outputs = []
     num_output_examples = 0
 
-    # prepare copied indices
+    # prepare copied indices if the model is trained to predict argument-slot
+    # alignments explicitly
     if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
         pointers = model_outputs.pointers
-        sentence_length = pointers.shape[1]
+        sc_length = pointers.shape[1]
+        tg_length = pointers.shape[2]
         if FLAGS.token_decoding_algorithm == 'greedy':
-            batch_copy_indices = np.reshape(np.argmax(pointers, 2),
-                [FLAGS.batch_size, 1, sentence_length])
+            batch_pointers = np.reshape(pointers,
+                [FLAGS.batch_size, 1, sc_length, tg_length])
         else:
-            batch_copy_indices = np.reshape(np.argmax(pointers, 2),
-                [FLAGS.batch_size, FLAGS.beam_size, sentence_length])
+            batch_pointers = np.reshape(pointers,
+                [FLAGS.batch_size, FLAGS.beam_size, sc_length, tg_length])
 
     for batch_id in xrange(len(output_symbols)):
+        def as_str(output):
+            if output < FLAGS.target_vocab_size:
+                token = rev_tg_vocab[output]
+            else:
+                token = rev_sc_vocab[
+                    encoder_inputs[batch_id][output - FLAGS.target_vocab_size]]
+            return token
+
         top_k_predictions = output_symbols[batch_id]
-        assert((FLAGS.token_decoding_algorithm == "greedy") or 
-               len(top_k_predictions) == FLAGS.beam_size)
         if FLAGS.token_decoding_algorithm == "beam_search":
+            assert(len(top_k_predictions) == FLAGS.beam_size)
             beam_outputs = []
         else:
+            # pack greedy decoding results into size-1 beam
             top_k_predictions = [top_k_predictions]
+
         for beam_id in xrange(len(top_k_predictions)):
             # Step 1: transform the neural network output into readable strings
             prediction = top_k_predictions[beam_id]
             outputs = [int(pred) for pred in prediction]
-            
+
             # If there is an EOS symbol in outputs, cut them at that point.
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
 
-            if nl_fillers is not None:
-                cm_slots = {}
+            if FLAGS.fill_argument_slots:
+                tg_slots = {}
 
             tree, output_tokens = None, []
             if FLAGS.char:
                 tg = "".join([as_str(output) for output in outputs])\
                     .replace(data_utils._UNK, ' ')
             else:
-                for ii in xrange(len(outputs)):
-                    output = outputs[ii]
+                for token_id in xrange(len(outputs)):
+                    output = outputs[token_id]
                     if output < len(rev_tg_vocab):
                         pred_token = rev_tg_vocab[output]
                         if "@@" in pred_token:
                             pred_token = pred_token.split("@@")[-1]
                         if pred_token.startswith('__LF__'):
                             pred_token = pred_token[len('__LF__'):]
-                        # process argument slots
-                        if pred_token in constants._ENTITIES:
-                            if nl_fillers is not None:
-                                if ii > 0 and slot_filling.is_min_flag(
-                                        rev_tg_vocab[outputs[ii-1]]):
-                                    pred_token_type = 'Timespan'
-                                else:
-                                    pred_token_type = pred_token
-                                cm_slots[ii] = (pred_token, pred_token_type)
+                        if FLAGS.fill_argument_slots:
+                            # process argument slots
+                            if pred_token in constants._ENTITIES:
+                                pred_token_type = pred_token
+                                tg_slots[token_id] = (pred_token, pred_token_type)
                     else:
-                        if FLAGS.use_copy:
+                        if FLAGS.use_copy and FLAGS.copy_fun != 'supervised':
                             pred_token = rev_sc_vocab[
                                 encoder_inputs[len(encoder_inputs) - 1
                                     - (output - FLAGS.tg_vocab_size)][batch_id]]
@@ -243,6 +251,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                         else:
                             pred_token = data_utils._UNK
                     output_tokens.append(pred_token)
+
                 if FLAGS.partial_token:
                     # process partial-token outputs
                     merged_output_tokens = []
@@ -262,49 +271,57 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
                             else:
                                 merged_output_tokens.append(token)
                     output_tokens = merged_output_tokens
+
                 tg = " ".join(output_tokens)
-                      
-            # check if the predicted command templates have enough slots to
-            # hold the fillers (to rule out templates that are trivially
-            # unqualified)
-            if nl_fillers is None or len(cm_slots) >= len(nl_fillers):
-                # Step 2: check if the predicted command template is grammatical
-                if not FLAGS.explain:
-                    if FLAGS.dataset.startswith("bash"):
-                        tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
-                        tree = data_tools.bash_parser(tg)
-                    else:
-                        tree = data_tools.paren_parser(tg)
 
+            # Step 2: check if the predicted command template is grammatical
+            if (FLAGS.grammatical_only or FLAGS.fill_argument_slots) \
+                    and not FLAGS.explain:
+                if FLAGS.dataset.startswith("bash"):
+                    tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
+                    tree = data_tools.bash_parser(tg)
+                elif FLAGS.dataset.startswith("regex"):
+                    # TODO: check if a predicted regular expression is legal
+                    tree = ''
+                else:
+                    tree = data_tools.paren_parser(tg)
                 # filter out non-grammatical output
-                if tree is not None or not FLAGS.grammatical_only:
-                    output_example = False
-                    if FLAGS.explain or not FLAGS.dataset.startswith("bash"):
-                        temp = tg
-                        output_example = True
-                    else:
-                        temp = data_tools.ast2template(tree,
-                            loose_constraints=True, ignore_flag_order=False)
-                        if nl_fillers is None:
-                            output_example = True
-                        else:
-                            # Step 3: match the fillers to the argument slots
-                            tree2, temp, _ = slot_filling.stable_slot_filling(
-                                output_tokens, nl_fillers, cm_slots,
-                                encoder_outputs[batch_id],
-                                decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
-                                slot_filling_classifier, verbose=False)
-                            if temp is not None:
-                                output_example = True
-                                tree = tree2
-                    if output_example:
-                        if FLAGS.token_decoding_algorithm == "greedy":
-                            batch_outputs.append((tree, temp, outputs))
-                        else:
-                            beam_outputs.append((tree, temp, outputs))
-                        num_output_examples += 1
+                if tree is None:
+                    continue
 
-            # TODO: the threshold is used to increase decoding speed
+            # Step 3: check if the predicted command templates have enough
+            # slots to hold the fillers (to rule out templates that are
+            # trivially unqualified)
+            if FLAGS.fill_argument_slots:
+                output_example = False
+                if FLAGS.explain or not FLAGS.dataset.startswith("bash") \
+                        or sc_fillers is None:
+                    temp = tg
+                    output_example = True
+                else:
+                    # Step 3: match the fillers to the argument slots
+                    if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
+                        tree2, temp, _ = slot_filling.stable_slot_filling(
+                            output_tokens, sc_fillers, tg_slots,
+                            batch_pointers[batch_id, beam_id, :, :],
+                            None, None, None, verbose=False)
+                    else:
+                        tree2, temp, _ = slot_filling.stable_slot_filling(
+                            output_tokens, sc_fillers, tg_slots, None,
+                            encoder_outputs[batch_id],
+                            decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
+                            slot_filling_classifier, verbose=False)
+                    if temp is not None:
+                        output_example = True
+                        tree = tree2
+                if output_example:
+                    if FLAGS.token_decoding_algorithm == "greedy":
+                        batch_outputs.append((tree, temp, outputs))
+                    else:
+                        beam_outputs.append((tree, temp, outputs))
+                    num_output_examples += 1
+
+            # The threshold is used to increase decoding speed
             if num_output_examples == 20:
                 break
 
@@ -312,6 +329,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, nl_fillers=None,
             if beam_outputs:
                 batch_outputs.append(beam_outputs)
 
+    # Step 4: apply character decoding
     if FLAGS.tg_char:
         char_output_symbols = model_outputs.char_output_symbols
         sentence_length = char_output_symbols.shape[0]

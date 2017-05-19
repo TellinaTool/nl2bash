@@ -594,9 +594,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
             E.char_target_weights = batch_char_target_weights
 
         if self.use_copy and self.copy_fun == 'supervised':
-            # if len(pointer_targets) == 1:
-            #     E.pointer_targets = pointer_targets[:, :decoder_size, :encoder_size]
-            # else:
             E.pointer_targets = np.concatenate(pointer_targets, 0)\
                 [:, :decoder_size, -encoder_size:]
 
@@ -604,7 +601,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def get_batch(self, data, bucket_id, use_all=False):
-        """Get a random batch of data from the specified bucket, prepare for step.
+        """
+        Get a random batch of data from the specified bucket, prepare for step.
 
         To feed data in step(..) it must be a list of batch-major vectors, while
         data here contains single length-major cases. So the main logic of this
