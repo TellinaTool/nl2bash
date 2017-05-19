@@ -167,10 +167,9 @@ def basic_tokenizer(sentence, lower_case=True, lemmatization=True,
 
 def ner_tokenizer(sentence, lower_case=True, lemmatization=True,
                   remove_stop_words=True, correct_spell=True):
-    words, _ = basic_tokenizer(sentence, lower_case=lower_case,
-                            lemmatization=lemmatization,
-                            remove_stop_words=remove_stop_words,
-                            correct_spell=correct_spell)
+    words, _ = basic_tokenizer(
+        sentence, lower_case=lower_case, lemmatization=lemmatization,
+        remove_stop_words=remove_stop_words, correct_spell=correct_spell)
     return ner.annotate(words)
 
 # --- Utility functions --- #

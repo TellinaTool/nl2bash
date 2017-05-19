@@ -251,6 +251,15 @@ def cross_validation(train_set):
           .format(sum(dists) / num_folds))
 
 
+# --- Schedule experiments --- #
+
+def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set):
+    hp_set1 = {}
+    hyperparam_sets = [hp_set1]
+    grid_search.schedule_experiments(train_fun, decode_fun, eval_fun,
+        train_set, dev_set, hyperparam_sets, FLAGS)
+
+
 # --- Train/Test slot-filling classifier --- #
 
 def eval_local_slot_filling(train_path, test_path):
@@ -572,6 +581,9 @@ def main(_):
         elif FLAGS.grid_search:
             grid_search.grid_search(
                 train, decode, eval, train_set, dataset, FLAGS)
+        elif FLAGS.schedule_experiments:
+            schedule_experiments(
+                train, decode, eval, train_set, dataset)
         elif FLAGS.cross_valid:
             cross_validation(train_set)
         else:
