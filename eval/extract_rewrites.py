@@ -15,6 +15,7 @@ if sys.version_info > (3, 0):
 from bashlex import data_tools, normalizer
 from nlp_tools import tokenizer
 
+
 def rewrite(ast, temp):
     """Rewrite an AST into an equivalent one using the given template."""
     arg_slots = normalizer.arg_slots(ast)
