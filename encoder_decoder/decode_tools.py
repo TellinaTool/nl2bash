@@ -20,7 +20,7 @@ from eval.eval_archive import DBConnection
 
 
 APOLOGY_MSG = \
-        "I'm very sorry, I can't translate this command at the moment."
+    "I'm very sorry, I can't translate this command at the moment."
 
 
 def demo(sess, model, FLAGS):
@@ -77,7 +77,9 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
     # Get token-ids for the input sentence.
     # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
     if type(input) is list:
-        sentence = input[0].sc_txt
+        sc_ids = input[0].sc_ids
+        sc_full_ids = input[0].sc_full_ids
+        sc_copy_full_ids = input[0].sc_copy_full_ids
         tg_ids = input[0].tg_ids
         tg_full_ids = input[0].tg_full_ids
         pointer_targets = input[0].pointer_targets
@@ -87,37 +89,38 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
         tg_full_ids = [data_utils.ROOT_ID]
         pointer_targets = np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
 
-    sc_vocab = vocabs.sc_vocab
-    tg_vocab = vocabs.tg_vocab
+        # extract Tensorflow features from the input string
+        sc_vocab = vocabs.sc_vocab
+        tg_vocab = vocabs.tg_vocab
 
-    if FLAGS.char:
-        sc_ids, _ = data_utils.sentence_to_token_ids(sentence,
-            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
-        sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
-            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer,
-            use_unk=False)
-        sc_copy_full_ids = []
-    else:
-        if FLAGS.explain:
-            sentence = data_tools.bash_tokenizer(
-                sentence, arg_type_only=FLAGS.normalized)
-            sc_tokenizer = None
-            sc_full_tokenizer = None
+        if FLAGS.char:
+            sc_ids, _ = data_utils.sentence_to_token_ids(sentence,
+                sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+            sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
+                sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer,
+                use_unk=False)
+            sc_copy_full_ids = []
         else:
-            if FLAGS.dataset.startswith("bash"):
-                sc_tokenizer = tokenizer.ner_tokenizer \
-                    if FLAGS.normalized else tokenizer.basic_tokenizer
-                sc_full_tokenizer = tokenizer.basic_tokenizer
+            if FLAGS.explain:
+                sentence = data_tools.bash_tokenizer(
+                    sentence, arg_type_only=FLAGS.normalized)
+                sc_tokenizer = None
+                sc_full_tokenizer = None
             else:
-                sc_tokenizer = tokenizer.space_tokenizer
-                sc_full_tokenizer = tokenizer.space_tokenizer
-        sc_ids, entities = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab, sc_tokenizer, None)
-        sc_full_ids, _ = data_utils.sentence_to_token_ids(
-            sentence, sc_vocab,sc_full_tokenizer, None, use_unk=False)
-        sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
-            tg_vocab, sc_full_tokenizer, None, use_unk=False,
-            use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
+                if FLAGS.dataset.startswith("bash"):
+                    sc_tokenizer = tokenizer.ner_tokenizer \
+                        if FLAGS.normalized else tokenizer.basic_tokenizer
+                    sc_full_tokenizer = tokenizer.basic_tokenizer
+                else:
+                    sc_tokenizer = tokenizer.space_tokenizer
+                    sc_full_tokenizer = tokenizer.space_tokenizer
+            sc_ids, entities = data_utils.sentence_to_token_ids(
+                sentence, sc_vocab, sc_tokenizer, None)
+            sc_full_ids, _ = data_utils.sentence_to_token_ids(
+                sentence, sc_vocab,sc_full_tokenizer, None, use_unk=False)
+            sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
+                tg_vocab, sc_full_tokenizer, None, use_unk=False,
+                use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
 
     # Note that we only perform source word filtering when translating from
     # natural language to bash
@@ -367,11 +370,11 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
 
 
 def decode_set(sess, model, dataset, FLAGS, verbose=True):
-    grouped_dataset = data_utils.group_data(dataset, use_bucket=True)
+    grouped_dataset = data_utils.group_data(dataset, use_bucket=True,
+                                            use_temp=FLAGS.normalized)
     vocabs = data_utils.load_vocab(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
 
-    slot_filling_classifier = None
     if FLAGS.fill_argument_slots:
         # create slot filling classifier
         mapping_param_dir = os.path.join(
@@ -380,6 +383,8 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
         slot_filling_classifier = classifiers.KNearestNeighborModel(
             FLAGS.num_nn_slot_filling, train_X, train_Y)
         print('Slot filling classifier parameters loaded.')
+    else:
+        slot_filling_classifier = None
 
     with DBConnection() as db:
         db.create_schema()
@@ -430,8 +435,7 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                             top_k_predictions[j]
                         db.add_prediction(model.model_sig, sc_temp,
-                            pred_cmd, float(top_k_scores[j]),
-                            update_mode=False)
+                            pred_cmd, float(top_k_scores[j]), update_mode=False)
                         if verbose:
                             if FLAGS.dataset.startswith('bash') and not FLAGS.explain:
                                 pred_cmd = data_tools.ast2command(
