@@ -137,8 +137,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     model = model_constructor(params, buckets, forward_only)
 
     ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
-    global_epochs = int(ckpt.model_checkpoint_path.rsplit('-')[-1]) \
-        if ckpt else 0
 
     if forward_only or not FLAGS.create_fresh_params:
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
@@ -160,7 +158,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
             print("Created model with fresh parameters.")
             session.run(tf.global_variables_initializer())
 
-    return model, global_epochs
+    return model
 
 
 def get_model_signature(FLAGS, construct_slot_filling=False):
