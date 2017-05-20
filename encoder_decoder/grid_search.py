@@ -168,11 +168,12 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun,
 
     :return: The metrics being tuned.
     """
-    train_fun(train_set, dev_set, construct_model_dir=True)
+    tf.reset_default_graph()
+    train_fun(train_set, dev_set)
 
     tf.reset_default_graph()
     model_sig = decode_fun(dev_set, construct_model_dir=False, verbose=False)
+
     M = eval_fun(dev_set, model_sig, verbose=False)
 
-    tf.reset_default_graph()
     return M[metrics]
