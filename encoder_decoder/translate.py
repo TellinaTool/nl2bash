@@ -164,9 +164,8 @@ def decode(data_set, construct_model_dir=True, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True,
+        model = create_model(sess, forward_only=True,
                                 construct_model_dir=construct_model_dir)
-
         decode_tools.decode_set(sess, model, data_set, FLAGS, verbose)
 
         return model.model_sig
@@ -200,14 +199,14 @@ def demo():
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True)
+        model = create_model(sess, forward_only=True)
         decode_tools.demo(sess, model, FLAGS)
 
 def write_predictions_to_file(test_file, output_file):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model, _ = create_model(sess, forward_only=True)
+        model = create_model(sess, forward_only=True)
         decode_tools.write_predictions_to_file(test_file, output_file, sess, model,
                                      FLAGS)
 
@@ -289,7 +288,7 @@ def eval_slot_filling(dataset):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
-        model, global_epochs = graph_utils.create_model(sess, FLAGS,
+        model = graph_utils.create_model(sess, FLAGS,
             Seq2SeqModel, buckets=_buckets, forward_only=True)
 
         model_param_dir = os.path.join(
@@ -471,8 +470,8 @@ def gen_slot_filling_training_data():
             log_device_placement=FLAGS.log_device_placement)) as sess:
         datasets = load_data(load_mappings=True)
 
-        seq2seq_model, global_epochs = graph_utils.create_model(sess, FLAGS,
-            Seq2SeqModel, buckets=_buckets, forward_only=True)
+        seq2seq_model = graph_utils.create_model(sess, FLAGS, Seq2SeqModel,
+            buckets=_buckets, forward_only=True)
 
         data_splits = ['train', 'dev', 'test']
         for i in xrange(len(data_splits)):
