@@ -66,7 +66,7 @@ def train(train_set, dev_set, construct_model_dir=True):
         log_device_placement=FLAGS.log_device_placement)) as sess:
 
         # Create model.
-        model, global_epochs = create_model(
+        model = create_model(
             sess, forward_only=False, construct_model_dir=construct_model_dir)
 
         train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
@@ -119,8 +119,7 @@ def train(train_set, dev_set, construct_model_dir=True):
 
                 checkpoint_path = os.path.join(FLAGS.model_dir, "translate.ckpt")
                 # Save checkpoint and zero timer and loss.
-                model.saver.save(sess, checkpoint_path,
-                    global_step=global_epochs+t+1, write_meta_graph=False)
+                model.saver.save(sess, checkpoint_path, write_meta_graph=False)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
@@ -140,8 +139,8 @@ def train(train_set, dev_set, construct_model_dir=True):
                 dev_loss = dev_loss / dev_size
 
                 dev_perplexity = math.exp(dev_loss) if dev_loss < 1000 else float('inf')
-                print("global step %d learning rate %.4f dev_perplexity %.2f" 
-                        % (global_epochs+t+1, model.learning_rate.eval(), dev_perplexity))
+                print("step %d learning rate %.4f dev_perplexity %.2f"
+                        % (t+1, model.learning_rate.eval(), dev_perplexity))
 
                 # Early stop if no improvement of dev loss was seen over last 3 checkpoints.
                 if len(previous_dev_losses) > 2 and dev_loss > max(previous_dev_losses[-3:]):
