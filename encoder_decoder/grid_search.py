@@ -141,14 +141,14 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set,
         FLAGS.model_dir = model_root_dir
 
         print("Trying parameter set: ")
-        for hp in xrange(hyperparam_set):
+        for hp in hyperparam_set:
             print("* {}: {}".format(hp, hyperparam_set[hp]))
             metrics = "top1_temp_ms"
 
         metrics_value = single_round_model_eval(
             train_fun, decode_fun, eval_fun, train_set, dev_set, metrics)
         print("Parameter set: ")
-        for hp in xrange(hyperparam_set):
+        for hp in hyperparam_set:
             print("* {}: {}".format(hp, hyperparam_set[hp]))
         print("{} = {}".format(metrics, metrics_value))
 
