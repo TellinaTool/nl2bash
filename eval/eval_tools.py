@@ -15,7 +15,7 @@ if sys.version_info > (3, 0):
 from encoder_decoder import data_utils
 from bashlex import data_tools, nast
 from eval import token_based, tree_dist, zss
-from eval.eval_archive import DBConnection
+from eval.eval_db import DBConnection
 from eval.dfa_equal import regexDFAEquals
 
 
@@ -80,13 +80,6 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
 
-                if verbose:
-                    if eval_bash:
-                        print("Prediction {}: {} ({}) ({})".format(
-                            i+1, pred_cmd, score, cms))
-                    else:
-                        print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
-
                 # evaluation ignoring flag orders
                 if eval_bash:
                     temp_match = tree_dist.one_match(
@@ -131,6 +124,12 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
                     top_k_str_correct[data_id, i] = 1 if eval_bash else num_gts
                 if eval_bash:
                     top_k_cms[data_id, i] = cms
+                    if verbose:
+                        print("Prediction {}: {} ({}) ({})".format(
+                            i+1, pred_cmd, score, cms))
+                else:
+                    if verbose:
+                        print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
 
             if verbose:
                 print()
