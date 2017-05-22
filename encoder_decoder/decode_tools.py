@@ -16,7 +16,7 @@ import numpy as np
 from encoder_decoder import classifiers, data_utils
 from bashlex import data_tools
 from nlp_tools import constants, slot_filling, tokenizer
-from eval.eval_archive import DBConnection
+from eval.eval_db import DBConnection
 
 
 APOLOGY_MSG = \
