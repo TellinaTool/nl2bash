@@ -11,16 +11,17 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+import datetime, time
 import numpy as np
+import shutil
 
 from encoder_decoder import classifiers, data_utils
 from bashlex import data_tools
 from nlp_tools import constants, slot_filling, tokenizer
-from eval.eval_db import DBConnection
 
 
 APOLOGY_MSG = \
-    "I'm very sorry, I can't translate this command at the moment."
+    "Sorry, I don't know how to translate this command at the moment."
 
 
 def demo(sess, model, FLAGS):
@@ -370,9 +371,21 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
         return batch_outputs
 
 
-def decode_set(sess, model, dataset, FLAGS, verbose=True):
-    grouped_dataset = data_utils.group_data(dataset, use_bucket=True,
-                                            use_temp=FLAGS.normalized)
+def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
+    """
+    Compute top-k predictions on the dev/test dataset and write the predictions
+    to disk.
+
+    :param sess: A TensorFlow session.
+    :param model: Prediction model object.
+    :param top_k: Number of top predictions to compute.
+    :param FLAGS: Training/testing hyperparameter settings.
+    :param verbose: If set, also print decoding results to screen.
+    """
+    nl2bash = FLAGS.dataset.startswith('bash') and not FLAGS.explain
+
+    grouped_dataset = data_utils.group_data(
+        dataset, use_bucket=True, use_temp=FLAGS.normalized)
     vocabs = data_utils.load_vocab(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
 
@@ -387,109 +400,63 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
     else:
         slot_filling_classifier = None
 
-    with DBConnection() as db:
-        db.create_schema()
-        db.remove_model(model.model_sig)
+    ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+    pred_file_path = os.path.join(FLAGS.model_dir, 'predictions.{}'.format(ts))
+    pred_file = open(pred_file_path, 'w')
+    for example_id in xrange(len(grouped_dataset)):
+        key, data_group = grouped_dataset[example_id]
 
-        sorted_sc_temps = sorted(grouped_dataset.keys(), key=lambda x:len(x))
-        example_id = 0
-        for sc_temp in sorted_sc_temps:
-            example_id += 1
-            data_group = grouped_dataset[sc_temp]
+        sc_txt = data_group[0].sc_txt
+        sc_temp = ' '.join([rev_sc_vocab[i] for i in data_group[0].sc_ids])
+        if verbose:
+            print("Example {}:".format(example_id))
+            print("(Orig) Source: {}".format(sc_txt))
+            print("Source: {}".format(sc_temp))
+            for j in xrange(len(data_group)):
+                print("GT Target {}: {}".format(j+1, data_group[j].tg_txt))
 
-            sc_normalized_temp = ' '.join(
-                [rev_sc_vocab[i] for i in data_group[0].sc_ids])
-            if verbose:
-                print("Example {}:".format(example_id))
-                print("(Orig) Source: " + sc_temp)
-                print("Source: " + sc_normalized_temp)
-                for j in xrange(len(data_group)):
-                    print("GT Target {}: {}".format(j+1, data_group[j].tg_txt))
+        batch_outputs, output_logits = translate_fun(data_group, sess, model,
+            vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
+        if FLAGS.tg_char:
+            batch_outputs, batch_char_outputs = batch_outputs
 
-            batch_outputs, output_logits = translate_fun(data_group, sess, model,
-                vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
-            if FLAGS.tg_char:
-                batch_outputs, batch_char_outputs = batch_outputs
-
-            if FLAGS.token_decoding_algorithm == "greedy":
-                if batch_outputs:
-                    tree, pred_cmd, outputs = batch_outputs[0]
-                    if FLAGS.dataset.startswith('bash') and not FLAGS.explain:
-                        pred_cmd = data_tools.ast2command(
-                            tree, loose_constraints=True)
-                    score = output_logits[0]
-                    if verbose:
-                        print("{} ({})".format(pred_cmd, score))
-                    db.add_prediction(
-                        model.model_sig, sc_temp, pred_cmd, float(score))
-                else:
-                    print(APOLOGY_MSG)
-            elif FLAGS.token_decoding_algorithm == "beam_search":
-                if batch_outputs:
-                    top_k_predictions = batch_outputs[0]
-                    if FLAGS.tg_char:
-                        top_k_char_predictions = batch_char_outputs[0]
-                    top_k_scores = output_logits[0]
-                    for j in xrange(min(FLAGS.beam_size, 10,
-                                        len(batch_outputs[0]))):
-                        if len(top_k_predictions) <= j:
-                            break
-                        top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
-                            top_k_predictions[j]
-                        if FLAGS.dataset.startswith('bash') and not FLAGS.explain:
-                            pred_cmd = data_tools.ast2command(
-                                top_k_pred_tree, loose_constraints=True)
-                        else:
-                            pred_cmd = top_k_pred_cmd
-                        db.add_prediction(model.model_sig, sc_temp,
-                            pred_cmd, float(top_k_scores[j]), update_mode=False)
-                        if verbose:
-                            print("Prediction {}: {} ({})".format(j+1,
-                                pred_cmd, top_k_scores[j]))
-                            if FLAGS.tg_char:
-                                print("Character-based prediction {}: {}".format(
-                                    j+1, top_k_char_predictions[j]))
-                else:
-                    print(APOLOGY_MSG)
-
-
-def write_predictions_to_file(test_file, output_file, sess, model, FLAGS):
-    vocabs = data_utils.load_vocab(FLAGS)
-
-    slot_filling_classifier = None
-    if FLAGS.fill_argument_slots:
-        # create slot filling classifier
-        mapping_param_dir = os.path.join(
-            FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        train_X, train_Y = \
-            data_utils.load_slot_filling_data(mapping_param_dir)
-        slot_filling_classifier = classifiers.KNearestNeighborModel(
-            FLAGS.num_nn_slot_filling, train_X, train_Y)
-        print('Slot filling classifier parameters loaded.')
-
-    o_f = open(output_file, 'w')
-    with open(test_file) as f:
-        for line in f:
-            sentence = line.strip()
-            batch_outputs, output_logits = translate_fun(
-                sentence, sess, model, vocabs, FLAGS,
-                slot_filling_classifier=slot_filling_classifier)
+        if batch_outputs:
             if FLAGS.token_decoding_algorithm == "greedy":
                 tree, pred_cmd, outputs = batch_outputs[0]
-                o_f.write(pred_cmd + '\n')
+                if nl2bash:
+                    pred_cmd = data_tools.ast2command(
+                        tree, loose_constraints=True)
+                score = output_logits[0]
+                pred_file.write('{}\n'.format(pred_cmd))
+                if verbose:
+                    print("Prediction: {} ({})".format(pred_cmd, score))
             elif FLAGS.token_decoding_algorithm == "beam_search":
-                if batch_outputs:
-                    top_k_predictions = batch_outputs[0]
-                    for j in xrange(min(FLAGS.beam_size, 1,
-                                        len(batch_outputs[0]))):
-                        if len(top_k_predictions) <= j:
-                            break
-                        top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
-                            top_k_predictions[j]
-                        o_f.write(top_k_pred_cmd + '\n')
-                else:
-                    print('\m')
-    o_f.close()
+                top_k_predictions = batch_outputs[0]
+                if FLAGS.tg_char:
+                    top_k_char_predictions = batch_char_outputs[0]
+                top_k_scores = output_logits[0]
+                num_preds = min(FLAGS.beam_size, top_k, len(top_k_predictions))
+                for j in xrange(num_preds):
+                    top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
+                        top_k_predictions[j]
+                    if nl2bash:
+                        pred_cmd = data_tools.ast2command(
+                            top_k_pred_tree, loose_constraints=True)
+                    else:
+                        pred_cmd = top_k_pred_cmd
+                    pred_file.write('{}|||'.format(pred_cmd))
+                    if verbose:
+                        print("Prediction {}: {} ({})".format(
+                            j+1, pred_cmd, top_k_scores[j]))
+                        if FLAGS.tg_char:
+                            print("Character-based prediction {}: {}".format(
+                                j+1, top_k_char_predictions[j]))
+                pred_file.write('\n')
+        else:
+            print(APOLOGY_MSG)
+    pred_file.close()
+    shutil.copyfile(pred_file_path, os.path.join(
+        FLAGS.model_dir, 'predictions.latest'))
 
 
 def visualize_attn_alignments(M, source, target, rev_sc_vocab,
