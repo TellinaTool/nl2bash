@@ -64,7 +64,7 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
                 gts = gt_trees + \
                       [cmd_parser(cmd) for cmd in db.get_correct_temps(sc_str)]
             else:
-                gts = cm_strs + db.get_correct_temps(sc_str)
+                gts = cm_strs
 
             predictions = db.get_top_k_predictions(model, sc_str, k=top_k)
 
