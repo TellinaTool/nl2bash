@@ -257,8 +257,8 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set):
     # hp_set3 = {'universal_keep': 0.7}
     # hyperparam_sets = [hp_set1, hp_set2, hp_set3]
     
-    hp_set1 = {'universal_keep': 0.6, 'rnn_cell': 'gru', 'num_layers': 1}
-    hp_set2 = {'universal_keep': 0.6, 'rnn_cell': 'gru', 'num_layers': 2}
+    hp_set1 = {'universal_keep': 0.6, 'rnn_cell': 'gru', 'num_layers': 2}
+    hp_set2 = {'universal_keep': 0.75, 'rnn_cell': 'gru', 'num_layers': 2}
     hyperparam_sets = [hp_set1, hp_set2]
     grid_search.schedule_experiments(train_fun, decode_fun, eval_fun,
         train_set, dev_set, hyperparam_sets, FLAGS)

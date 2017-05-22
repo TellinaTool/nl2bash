@@ -210,7 +210,7 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
     return model_subdir, model_sig
 
 
-def create_multilayer_cell(type, scope, dim, num_layers,
+def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
                            input_keep_prob=1, output_keep_prob=1,
                            variational_recurrent=True, input_dim=-1):
     """
@@ -227,9 +227,9 @@ def create_multilayer_cell(type, scope, dim, num_layers,
     :return: RNN cell as specified.
     """
     with tf.variable_scope(scope):
-        if type == "lstm":
+        if rnn_cell == "lstm":
             cell = tf.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
-        elif type == "gru":
+        elif rnn_cell == "gru":
             cell = tf.nn.rnn_cell.GRUCell(dim)
         else:
             raise ValueError("Unrecognized RNN cell type: {}.".format(type))
@@ -251,7 +251,7 @@ def create_multilayer_cell(type, scope, dim, num_layers,
 
         if num_layers > 1:
             cell = rnn.MultiRNNCell(
-                [cell] * num_layers, state_is_tuple=(type == "lstm"))
+                [cell] * num_layers, state_is_tuple=(rnn_cell=="lstm"))
     return cell
 
 
@@ -275,7 +275,7 @@ def get_buckets(FLAGS):
     elif FLAGS.dataset == "atis":
         buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explain else \
             [(95, 20), (95, 30), (95, 40)]
-    elif FLAGS.dataset == "regex-syn":
+    elif FLAGS.dataset.startswith("regex-syn"):
         buckets = [(25, 35)] if not FLAGS.explain else [(35, 25)]
     elif FLAGS.dataset == 'regex-turk':
         buckets = [(30, 35)] if not FLAGS.explain else [(35, 30)]
