@@ -157,6 +157,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
             data_utils.clean_dir(FLAGS.model_dir)
         if FLAGS.pretrained_model_subdir:
             # load pre-trained parameteres for advanced training algorithms
+            # load pre-trained parameteres for advanced training algorithms
             pretrain_dir = os.path.join(model_root_dir, FLAGS.pretrained_model_subdir)
             print("Reading pre-trained model parameters from {}".format(pretrain_dir))
             pretrain_ckpt = tf.train.get_checkpoint_state(pretrain_dir)
