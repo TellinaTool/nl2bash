@@ -56,9 +56,9 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
             hyperparameters[i], hp_range[hyperparameters[i]]))
     print()
 
-    grid = [v for v in hp_range[hyperparameters[0]]]
+    param_grid = [v for v in hp_range[hyperparameters[0]]]
     for i in xrange(1, num_hps):
-        grid = itertools.product(grid, hp_range[hyperparameters[i]])
+        param_grid = itertools.product(param_grid, hp_range[hyperparameters[i]])
 
     best_hp_set = [-1] * num_hps
     best_seed = -1
@@ -67,7 +67,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     # Remember the root directory of the model.
     model_root_dir = FLAGS.model_dir
 
-    for row in grid:
+    for row in param_grid:
         row = nest.flatten(row)
         for i in xrange(num_hps):
             setattr(FLAGS, hyperparameters[i], row[i])
