@@ -602,7 +602,7 @@ def main(_):
 
             # Decode the new model on the development set.
             tf.reset_default_graph()
-            model_sig = decode(dataset, construct_model_dir=False)
+            model_sig = decode(dataset)
 
             # Run automatic evaluation on the development set.
             if not FLAGS.explain:
