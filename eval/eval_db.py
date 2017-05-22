@@ -9,8 +9,6 @@ import collections
 import os
 import sqlite3
 
-from .eval_correction import *
-
 
 class DBConnection(object):
     def __init__(self):
@@ -418,16 +416,6 @@ class DBConnection(object):
                   (0, nl_id, temp_id))
         self.conn.commit()
 
-    def correction(self):
-        for pair in correct_temp_pairs:
-            self.correct_temp_pair(pair)
-        for pair in correct_str_pairs:
-            self.correct_str_pair(pair)
-        for pair in error_temp_pairs:
-            self.error_temp_pair(pair)
-        for pair in error_str_pairs:
-            self.error_str_pair(pair)
-
     def positive_examples(self):
         positive_examples = collections.defaultdict(set)
         c = self.cursor
@@ -459,8 +447,12 @@ class DBConnection(object):
             print("Prediction: {} ({})".format(temp, judgement))
             print()
 
+    def clear_model_output(self):
+        c = self.cursor
+        c.execute("DELETE FROM ModelOutput")
+
  
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
-    db.positive_examples()
+    db.clear_model_output()
