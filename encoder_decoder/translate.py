@@ -42,7 +42,7 @@ parse_args.define_input_flags()
 _buckets = graph_utils.get_buckets(FLAGS)
 
 
-def create_model(session, forward_only, construct_model_dir=True, buckets=None):
+def create_model(session, forward_only, buckets=None):
     """
     Refer parse_args.py for model parameter explanations.
     """
@@ -51,23 +51,22 @@ def create_model(session, forward_only, construct_model_dir=True, buckets=None):
 
     if FLAGS.decoder_topology in ['basic_tree']:
         return graph_utils.create_model(session, FLAGS, Seq2TreeModel, buckets,
-                                        forward_only, construct_model_dir)
+                                        forward_only)
     elif FLAGS.decoder_topology in ['rnn']:
         return graph_utils.create_model(session, FLAGS, Seq2SeqModel, buckets,
-                                        forward_only, construct_model_dir)
+                                        forward_only)
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
 
 # --- Run/train encoder-decoder models --- #
 
-def train(train_set, dev_set, construct_model_dir=True):
+def train(train_set, dev_set):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
 
         # Create model.
-        model = create_model(
-            sess, forward_only=False, construct_model_dir=construct_model_dir)
+        model = create_model(sess, forward_only=False)
 
         train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
         train_total_size = float(sum(train_bucket_sizes))
@@ -160,12 +159,11 @@ def train(train_set, dev_set, construct_model_dir=True):
     return True
 
 
-def decode(data_set, construct_model_dir=True, verbose=True):
+def decode(data_set, verbose=True):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
-        model = create_model(sess, forward_only=True,
-                                construct_model_dir=construct_model_dir)
+        model = create_model(sess, forward_only=True)
         decode_tools.decode_set(sess, model, data_set, FLAGS, verbose)
 
         return model.model_sig
@@ -236,7 +234,7 @@ def cross_validation(train_set):
         cv_dev_set = train_folds[fold_id]
         train(cv_train_set, cv_dev_set)
         tf.reset_default_graph()
-        model_sig = decode(cv_dev_set, construct_model_dir=False)
+        model_sig = decode(cv_dev_set)
         tf.reset_default_graph()
         match_score, _, dist, _ = \
             eval(cv_dev_set, model_sig, verbose=False)
