@@ -450,6 +450,8 @@ class DBConnection(object):
     def clear_model_output(self):
         c = self.cursor
         c.execute("DELETE FROM ModelOutput")
+        c.execute("VACUUM")
+        self.conn.commit()
 
  
 if __name__ == "__main__":
