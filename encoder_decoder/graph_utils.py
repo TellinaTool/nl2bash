@@ -13,7 +13,7 @@ from encoder_decoder import data_utils, rnn
 
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only,
-                 construct_model_dir=True, construct_slot_filling=False):
+                 construct_slot_filling=False):
     params = collections.defaultdict()
     params["source_token_embedding_size"] = FLAGS.sc_token_embedding_size
     params["source_vocab_size"] = FLAGS.sc_vocab_size
@@ -104,8 +104,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["model_sig"] = model_sig
 
     model_root_dir = FLAGS.model_dir
-    if construct_model_dir:
-        setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
+    setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
     print("model_dir={}".format(FLAGS.model_dir))
     print("model_sig={}".format(model_sig))
 
