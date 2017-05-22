@@ -226,7 +226,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 if ndims:
                     assert ndims == 2
             state = tf.concat(1, query_list)
-
         for a in xrange(self.num_heads):
             with tf.variable_scope("Attention_%d" % a):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_dim])
@@ -297,5 +296,4 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
             output = tf.nn.rnn_cell._linear(attn_state, self.dim, True)
 
         self.attention_cell_vars = True
-
         return output, state, alignments, attns

@@ -478,7 +478,7 @@ class DropoutWrapper(tf.nn.rnn_cell.RNNCell):
       return (not isinstance(p, float)) or p < 1
 
     if _should_dropout(self._input_keep_prob):
-      inputs = self._dropout(inputs, "input",
+        inputs = self._dropout(inputs, "input",
                              self._recurrent_input_noise,
                              self._input_keep_prob)
     output, new_state = self._cell(inputs, state, scope)
