@@ -10,6 +10,37 @@ import numbers
 from tensorflow.python.util import nest
 import tensorflow as tf
 
+class RANCell(RNNCell):
+  """Recurrent Additive Unit cell (cf. )."""
+
+  def __init__(self, num_units, input_size=None, activation=tanh):
+    if input_size is not None:
+      print("%s: The input_size parameter is deprecated." % self)
+    self._num_units = num_units
+    self._activation = activation
+
+  @property
+  def state_size(self):
+    return self._num_units
+
+  @property
+  def output_size(self):
+    return self._num_units
+
+  def __call__(self, inputs, state, scope=None):
+    """Gated recurrent unit (GRU) with nunits cells."""
+    with tf.variable_scope(scope or type(self).__name__):  # "GRUCell"
+      with tf.variable_scope("Gates"):  # Reset gate and update gate.
+        # We start with bias of 1.0 to not reset and not update.
+        r, u = tf.split(1, 2, tf.nn.rnn_cell._linear([inputs, state],
+                                             2 * self._num_units, True, 1.0))
+        r, u = tf.sigmoid(r), tf.sigmoid(u)
+      with tf.variable_scope("Candidate"):
+        c = self._activation(tf.nn.rnn_cell._linear([inputs, r * state],
+                                     self._num_units, True))
+      new_h = u * state + (1 - u) * c
+    return new_h, new_h
+
 
 def RNNModel(cell, inputs, initial_state=None, dtype=None,
         sequence_length=None, num_cell_layers=None, scope=None):
