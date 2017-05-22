@@ -84,20 +84,12 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     params["encoder_topology"] = FLAGS.encoder_topology
     params["decoder_topology"] = FLAGS.decoder_topology
 
-    if FLAGS.universal_keep >= 0 and FLAGS.universal_keep < 1:
-        params["sc_input_keep"] = FLAGS.sc_input_keep
-        params["sc_output_keep"] = FLAGS.sc_output_keep
-        params["tg_input_keep"] = FLAGS.tg_input_keep
-        params["tg_output_keep"] = FLAGS.tg_output_keep
-        params["attention_input_keep"] = FLAGS.attention_input_keep
-        params["attention_output_keep"] = FLAGS.attention_output_keep
-    else:
-        params["sc_input_keep"] = FLAGS.universal_keep
-        params["sc_output_keep"] = FLAGS.universal_keep
-        params["tg_input_keep"] = FLAGS.universal_keep
-        params["tg_output_keep"] = FLAGS.universal_keep
-        params["attention_input_keep"] = FLAGS.universal_keep
-        params["attention_output_keep"] = FLAGS.universal_keep
+    params["sc_input_keep"] = FLAGS.sc_input_keep
+    params["sc_output_keep"] = FLAGS.sc_output_keep
+    params["tg_input_keep"] = FLAGS.tg_input_keep
+    params["tg_output_keep"] = FLAGS.tg_output_keep
+    params["attention_input_keep"] = FLAGS.attention_input_keep
+    params["attention_output_keep"] = FLAGS.attention_output_keep
 
     params["token_decoding_algorithm"] = FLAGS.token_decoding_algorithm
     params["char_decoding_algorithm"] = FLAGS.char_decoding_algorithm
@@ -219,7 +211,7 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
     return model_subdir, model_sig
 
 
-def create_multilayer_cell(type, scope, dim, num_layers,
+def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
                            input_keep_prob=1, output_keep_prob=1,
                            variational_recurrent=True, input_dim=-1):
     """
@@ -236,9 +228,9 @@ def create_multilayer_cell(type, scope, dim, num_layers,
     :return: RNN cell as specified.
     """
     with tf.variable_scope(scope):
-        if type == "lstm":
+        if rnn_cell == "lstm":
             cell = tf.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
-        elif type == "gru":
+        elif rnn_cell == "gru":
             cell = tf.nn.rnn_cell.GRUCell(dim)
         else:
             raise ValueError("Unrecognized RNN cell type: {}.".format(type))
@@ -260,7 +252,7 @@ def create_multilayer_cell(type, scope, dim, num_layers,
 
         if num_layers > 1:
             cell = rnn.MultiRNNCell(
-                [cell] * num_layers, state_is_tuple=(type == "lstm"))
+                [cell] * num_layers, state_is_tuple=(rnn_cell=="lstm"))
     return cell
 
 
@@ -284,7 +276,7 @@ def get_buckets(FLAGS):
     elif FLAGS.dataset == "atis":
         buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explain else \
             [(95, 20), (95, 30), (95, 40)]
-    elif FLAGS.dataset == "regex-syn":
+    elif FLAGS.dataset.startswith("regex-syn"):
         buckets = [(25, 35)] if not FLAGS.explain else [(35, 25)]
     elif FLAGS.dataset == 'regex-turk':
         buckets = [(30, 35)] if not FLAGS.explain else [(35, 30)]

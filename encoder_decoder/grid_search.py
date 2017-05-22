@@ -9,6 +9,9 @@ from __future__ import print_function
 
 import itertools
 import random
+import sys
+if sys.version_info > (3, 0):
+    from six.moves import xrange
 
 import tensorflow as tf
 
@@ -44,7 +47,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
 
     hyperparameters = FLAGS.tuning.split(',')
     num_hps = len(hyperparameters)
-    hp_range = grid_search.hyperparam_range
+    hp_range = hyperparam_range
 
     print("======== Grid Search ========")
     print("%d hyperparameters: " % num_hps)
@@ -138,14 +141,14 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set,
         FLAGS.model_dir = model_root_dir
 
         print("Trying parameter set: ")
-        for hp in xrange(hyperparam_set):
+        for hp in hyperparam_set:
             print("* {}: {}".format(hp, hyperparam_set[hp]))
             metrics = "top1_temp_ms"
 
         metrics_value = single_round_model_eval(
             train_fun, decode_fun, eval_fun, train_set, dev_set, metrics)
         print("Parameter set: ")
-        for hp in xrange(hyperparam_set):
+        for hp in hyperparam_set:
             print("* {}: {}".format(hp, hyperparam_set[hp]))
         print("{} = {}".format(metrics, metrics_value))
 

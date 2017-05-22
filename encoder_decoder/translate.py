@@ -252,8 +252,14 @@ def cross_validation(train_set):
 # --- Schedule experiments --- #
 
 def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set):
-    hp_set1 = {}
-    hyperparam_sets = [hp_set1]
+    # hp_set1 = {'universal_keep': 0.5}
+    # hp_set2 = {'universal_keep': 0.6}
+    # hp_set3 = {'universal_keep': 0.7}
+    # hyperparam_sets = [hp_set1, hp_set2, hp_set3]
+    
+    hp_set1 = {'universal_keep': 0.6, 'rnn_cell': 'gru', 'num_layers': 2}
+    hp_set2 = {'universal_keep': 0.75, 'rnn_cell': 'gru', 'num_layers': 2}
+    hyperparam_sets = [hp_set1, hp_set2]
     grid_search.schedule_experiments(train_fun, decode_fun, eval_fun,
         train_set, dev_set, hyperparam_sets, FLAGS)
 
@@ -522,6 +528,14 @@ def main(_):
         if FLAGS.explain else FLAGS.cm_known_vocab_size
     FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
         if FLAGS.explain else FLAGS.cm_vocab_size
+
+    if FLAGS.universal_keep >= 0 and FLAGS.universal_keep < 1:
+        FLAGS.sc_input_keep = FLAGS.universal_keep
+        FLAGS.sc_output_keep = FLAGS.universal_keep
+        FLAGS.tg_input_keep = FLAGS.universal_keep
+        FLAGS.tg_output_keep = FLAGS.universal_keep
+        FLAGS.attention_input_keep = FLAGS.universal_keep
+        FLAGS.attention_output_keep = FLAGS.universal_keep
 
     # set up source and target length
     FLAGS.max_sc_length = FLAGS.max_sc_length \
