@@ -36,7 +36,6 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
     eval_bash = FLAGS.dataset.startswith("bash") and not FLAGS.explain
     eval_regex = FLAGS.dataset.startswith("regex") and not FLAGS.explain
 
-    num_eval = 0
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
 
@@ -52,31 +51,32 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
     if eval_bash:
         top_k_cms = np.zeros([len(grouped_dataset), top_k])
 
+    prediction_list = load_predictions(model, FLAGS, top_k)
+
     with DBConnection() as db:
         data_id = 0
-        for sc_temp in grouped_dataset:
-            data_group = grouped_dataset[sc_temp]
+        for num_eval in xrange(len(grouped_dataset)):
+            key, data_group = grouped_dataset[num_eval]
             sc_str = bytes(data_group[0].sc_txt, 'utf-8')
-            cm_strs = [dp.tg_txt.strip() for dp in data_group]
-            num_gts = len(cm_strs)
+            tg_strs = [dp.tg_txt.strip() for dp in data_group]
+            num_gts = len(tg_strs)
             if eval_bash:
-                gt_trees = [cmd_parser(cm_str) for cm_str in cm_strs]
+                gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
                 gts = gt_trees + \
                       [cmd_parser(cmd) for cmd in db.get_correct_temps(sc_str)]
             else:
-                gts = cm_strs + db.get_correct_temps(sc_str)
-
-            predictions = db.get_top_k_predictions(model, sc_str, k=top_k)
+                gts = tg_strs + db.get_correct_temps(sc_str)
 
             if verbose:
-                print("Example %d (%d)" % (num_eval, len(cm_strs)))
+                print("Example {} ({})".format(num_eval, len(tg_strs)))
                 print("Original Source: {}".format(sc_str.strip()))
-                print("Source: " + sc_temp)
-                for j in xrange(len(cm_strs)):
-                    print("GT Target {}: ".format(j+1) + cm_strs[j].strip())
+                print("Source: {}".format(key))
+                for j in xrange(len(tg_strs)):
+                    print("GT Target {}: ".format(j+1) + tg_strs[j].strip())
             num_eval += (1 if eval_bash else num_gts)
 
-            for i in xrange(min(3, len(predictions))):
+            predictions = prediction_list[data_id]
+            for i in xrange(len(predictions)):
                 pred_cmd, score = predictions[i]
                 tree = cmd_parser(pred_cmd)
 
@@ -222,13 +222,13 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
     with DBConnection() as db:
         db.create_schema()
         while num_evaled < len(grouped_dataset):
-            nl_strs, cm_strs, nls, search_historys = grouped_dataset[num_evaled]
+            nl_strs, tg_strs, nls, search_historys = grouped_dataset[num_evaled]
             nl_str = nl_strs[0].decode('utf-8')
 
             if num_evaled == num_eval:
                 break
 
-            gt_trees = [cmd_parser(cmd) for cmd in cm_strs]
+            gt_trees = [cmd_parser(cmd) for cmd in tg_strs]
 
             predictions = db.get_top_k_predictions(model, nl_str, k=10)
 
@@ -238,13 +238,13 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
                 False, False, False, False
 
             # evaluation ignoring ordering of flags
-            print("Example %d (%d)" % (num_evaled+1, len(cm_strs)))
-            o_f.write("Example %d (%d)" % (num_evaled+1, len(cm_strs)) + "\n")
+            print("Example %d (%d)" % (num_evaled+1, len(tg_strs)))
+            o_f.write("Example %d (%d)" % (num_evaled+1, len(tg_strs)) + "\n")
             print("English: " + nl_str.strip())
             o_f.write("English: " + nl_str.encode('utf-8'))
-            for j in xrange(len(cm_strs)):
-                print("GT Command %d: " % (j+1) + cm_strs[j].strip())
-                o_f.write("GT Command %d: " % (j+1) + cm_strs[j].strip() + "\n")
+            for j in xrange(len(tg_strs)):
+                print("GT Command %d: " % (j+1) + tg_strs[j].strip())
+                o_f.write("GT Command %d: " % (j+1) + tg_strs[j].strip() + "\n")
 
             pred_id = 0
             while pred_id < min(3, len(predictions)):
@@ -425,8 +425,8 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                 data_group = grouped_dataset[nl_temp]
                 nl_str = data_group[0].sc_txt
 
-                cm_strs = [dp.tg_txt for dp in data_group]
-                gt_trees = [cmd_parser(cm_str) for cm_str in cm_strs]
+                tg_strs = [dp.tg_txt for dp in data_group]
+                gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
                 if any(data_tools.is_low_frequency(t) for t in gt_trees):
                     continue
                 gt_trees = gt_trees + [cmd_parser(cmd)
@@ -447,8 +447,8 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                     # evaluation ignoring flag orders
                     temp_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=True)
                     str_match = tree_dist.one_match(gt_trees, tree, ignore_arg_value=False)
-                    if i < len(cm_strs):
-                        output_str += '{},'.format(cm_strs[i].strip())
+                    if i < len(tg_strs):
+                        output_str += '{},'.format(tg_strs[i].strip())
                     else:
                         output_str += ','
                     output_str += '{},'.format(pred_cmd)
@@ -458,6 +458,22 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                         output_str += 'y'
 
                     o_f.write(output_str + '\n')
+
+
+def load_predictions(input_dir, top_k):
+    """
+    Load model predictions (top_k per example) from disk.
+
+    :param input_dir: Directory where the model prediction file is stored.
+    :param top_k: Maximum number of predictions to read per example.
+    :return: List of top k predictions.
+    """
+    with open(os.path.join(input_dir, 'predictions.latest')) as f:
+        prediction_list = []
+        for line in f:
+            predictions = line.split('|||')
+            prediction_list.append(predictions[:top_k])
+    return prediction_list
 
 
 def test_ted():

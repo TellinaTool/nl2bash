@@ -1068,8 +1068,7 @@ def group_data(dataset, attribute='source', use_bucket=False, use_temp=False,
     :param tokenizer_selector: specify which tokenizer to use for making
         templates
 
-    :return: a dictionary with natural language sentence as the key and data
-        list quadruples as the values.
+    :return: list of (key, data group) tuples sorted by the key value.
     """
     if use_bucket:
         dataset = functools.reduce(lambda x,y: x + y, dataset)
@@ -1091,7 +1090,7 @@ def group_data(dataset, attribute='source', use_bucket=False, use_temp=False,
         else:
             grouped_dataset[temp] = [dataset[i]]
 
-    return grouped_dataset
+    return sorted(grouped_dataset.items(), key=lambda x: x[0])
 
 
 def load_vocab(FLAGS):
@@ -1253,7 +1252,9 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
               FLAGS, buckets=None, append_head_token=False,
               append_end_token=False, load_mappings=False, load_pointers=False):
     """
-    Read preprocessed data from source and target files and put into buckets.
+    Read preprocessed data from source and target files (grouped into buckets
+    when the buckets argument is not None).
+
     :param sc_path: path to the file containing the original source strings.
     :param tg_path: path to the file containing the original target strings.
     :param sc_id_path: path to the file with token-ids for the source language.
