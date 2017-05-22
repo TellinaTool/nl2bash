@@ -135,19 +135,18 @@ def translate_fun(input, sess, model, vocabs, FLAGS,
     formatted_example = model.format_example(
         [[sc_ids], [sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
         pointer_targets=[pointer_targets], bucket_id=bucket_id)
-
     model_outputs = model.step(
         sess, formatted_example, bucket_id, forward_only=True)
     output_logits = model_outputs.output_logits
 
-
     # Decode the output for this 1-element batch.
     # Non-grammatical templates and templates that cannot hold all fillers are
     # filtered out.
-    sc_fillers = None
     if FLAGS.fill_argument_slots:
         assert(slot_filling_classifier is not None)
         sc_fillers = entities[0]
+    else:
+        sc_fillers = None
     decoded_outputs = decode(formatted_example.encoder_full_inputs, model_outputs, 
                              FLAGS, vocabs, sc_fillers, slot_filling_classifier)
 
@@ -218,7 +217,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             # Step 1: transform the neural network output into readable strings
             prediction = top_k_predictions[beam_id]
             outputs = [int(pred) for pred in prediction]
-
+            
             # If there is an EOS symbol in outputs, cut them at that point.
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
@@ -276,7 +275,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     output_tokens = merged_output_tokens
 
                 tg = " ".join(output_tokens)
-
+            
             # Step 2: check if the predicted command template is grammatical
             if (FLAGS.grammatical_only or FLAGS.fill_argument_slots) \
                     and not FLAGS.explain:
@@ -295,34 +294,36 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             # Step 3: check if the predicted command templates have enough
             # slots to hold the fillers (to rule out templates that are
             # trivially unqualified)
-            if FLAGS.fill_argument_slots:
-                output_example = False
-                if FLAGS.explain or not FLAGS.dataset.startswith("bash") \
-                        or sc_fillers is None:
-                    temp = tg
-                    output_example = True
-                else:
-                    # Step 3: match the fillers to the argument slots
-                    if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
-                        tree2, temp, _ = slot_filling.stable_slot_filling(
-                            output_tokens, sc_fillers, tg_slots,
-                            batch_pointers[batch_id, beam_id, :, :],
-                            None, None, None, verbose=False)
-                    else:
+            output_example = False
+            if FLAGS.explain or not FLAGS.dataset.startswith("bash") \
+                    or sc_fillers is None:
+                temp = tg
+                output_example = True
+            else:
+                # Step 3: match the fillers to the argument slots
+                if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
+                    tree2, temp, _ = slot_filling.stable_slot_filling(
+                        output_tokens, sc_fillers, tg_slots,
+                        batch_pointers[batch_id, beam_id, :, :],
+                        None, None, None, verbose=False)
+                elif FLAGS.fill_argument_slots:
+                    if len(tg_slots) > len(sc_fillers):
                         tree2, temp, _ = slot_filling.stable_slot_filling(
                             output_tokens, sc_fillers, tg_slots, None,
                             encoder_outputs[batch_id],
                             decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
                             slot_filling_classifier, verbose=False)
-                    if temp is not None:
-                        output_example = True
-                        tree = tree2
-                if output_example:
-                    if FLAGS.token_decoding_algorithm == "greedy":
-                        batch_outputs.append((tree, temp, outputs))
                     else:
-                        beam_outputs.append((tree, temp, outputs))
-                    num_output_examples += 1
+                        temp = None
+                if temp is not None:
+                    output_example = True
+                    tree = tree2
+            if output_example:
+                if FLAGS.token_decoding_algorithm == "greedy":
+                    batch_outputs.append((tree, temp, outputs))
+                else:
+                    beam_outputs.append((tree, temp, outputs))
+                num_output_examples += 1
 
             # The threshold is used to increase decoding speed
             if num_output_examples == 20:
@@ -417,7 +418,8 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                         pred_cmd = data_tools.ast2command(
                             tree, loose_constraints=True)
                     score = output_logits[0]
-                    print("{} ({})".format(pred_cmd, score))
+                    if verbose:
+                        print("{} ({})".format(pred_cmd, score))
                     db.add_prediction(
                         model.model_sig, sc_temp, pred_cmd, float(score))
                 else:
@@ -434,20 +436,19 @@ def decode_set(sess, model, dataset, FLAGS, verbose=True):
                             break
                         top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                             top_k_predictions[j]
+                        if FLAGS.dataset.startswith('bash') and not FLAGS.explain:
+                            pred_cmd = data_tools.ast2command(
+                                top_k_pred_tree, loose_constraints=True)
+                        else:
+                            pred_cmd = top_k_pred_cmd
                         db.add_prediction(model.model_sig, sc_temp,
                             pred_cmd, float(top_k_scores[j]), update_mode=False)
                         if verbose:
-                            if FLAGS.dataset.startswith('bash') and not FLAGS.explain:
-                                pred_cmd = data_tools.ast2command(
-                                    top_k_pred_tree, loose_constraints=True)
-                            else:
-                                pred_cmd = top_k_pred_cmd
                             print("Prediction {}: {} ({})".format(j+1,
                                 pred_cmd, top_k_scores[j]))
                             if FLAGS.tg_char:
                                 print("Character-based prediction {}: {}".format(
                                     j+1, top_k_char_predictions[j]))
-                            print()
                 else:
                     print(APOLOGY_MSG)
 
