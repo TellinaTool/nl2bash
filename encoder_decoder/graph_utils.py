@@ -231,6 +231,8 @@ def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
             cell = tf.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
         elif rnn_cell == "gru":
             cell = tf.nn.rnn_cell.GRUCell(dim)
+        elif rnn_cell == 'ran':
+            cell = rnn.RANCell(dim)
         else:
             raise ValueError("Unrecognized RNN cell type: {}.".format(type))
 
