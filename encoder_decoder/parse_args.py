@@ -87,7 +87,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_boolean("normalized", False, "Set to True for learning with normalized command.")
 
     # training hyperparameters
-    tf.app.flags.DEFINE_string("model_root_dir", '', "Directory to save trained models.")
+    tf.app.flags.DEFINE_string("model_root_dir", 'model', "Directory to save trained models.")
     tf.app.flags.DEFINE_boolean("create_fresh_params", False,
                                 "Set to force remove previously trained models.")
     tf.app.flags.DEFINE_string("rnn_cell", "gru", "Type of RNN cell to use.")
