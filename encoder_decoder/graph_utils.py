@@ -12,8 +12,7 @@ import tensorflow as tf
 from encoder_decoder import data_utils, rnn
 
 
-def create_model(session, FLAGS, model_constructor, buckets, forward_only,
-                 construct_slot_filling=False):
+def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params = collections.defaultdict()
     params["source_token_embedding_size"] = FLAGS.sc_token_embedding_size
     params["source_vocab_size"] = FLAGS.sc_vocab_size
@@ -161,7 +160,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only,
     return model
 
 
-def get_model_signature(FLAGS, construct_slot_filling=False):
+def get_model_signature(FLAGS):
     model_subdir = FLAGS.dataset
     if FLAGS.explain:
         model_subdir += '-expl'
@@ -200,7 +199,7 @@ def get_model_signature(FLAGS, construct_slot_filling=False):
         model_subdir += '.canonical'
     elif FLAGS.normalized:
         model_subdir += '.normalized'
-    if construct_slot_filling:
+    if FLAGS.fill_argument_slots:
         model_subdir += '.slot.filler'
 
     model_sig = model_subdir + "-{}".format(FLAGS.token_decoding_algorithm)
