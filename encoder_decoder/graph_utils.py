@@ -169,8 +169,7 @@ def get_decode_signature(FLAGS):
     prediction results of a particular model.
     """
 
-    # The directory where the training parameters are stored is stamped with
-    # model parameter information.
+    # The model directory is stamped with training hyperparameter information.
     model_subdir = FLAGS.dataset
     if FLAGS.explain:
         model_subdir += '-expl'
@@ -210,8 +209,8 @@ def get_decode_signature(FLAGS):
     elif FLAGS.normalized:
         model_subdir += '.normalized'
 
-    # The file which stores the prediction results of a particular model is
-    # stamped with decoding parameter information.
+    # The prediction file of a particular model is stamped with decoding 
+    # hyperparameter information.
     decode_sig = FLAGS.token_decoding_algorithm
     if FLAGS.token_decoding_algorithm == 'beam_search': 
         decode_sig += ".{}".format(FLAGS.beam_size)

@@ -28,14 +28,14 @@ class RANCell(tf.nn.rnn_cell.RNNCell):
   def output_size(self):
     return self._num_units
 
-  def __call__(self, inputs, state, scope=None):
+  def __call__(self, inputs, state, bias=1.0, scope=None):
     """Recurrent Additive Network (RAN) with nunits cells."""
     with tf.variable_scope(scope or type(self).__name__):  # "RANCell"
       with tf.variable_scope("Input_projection"):
         c_tilde = tf.nn.rnn_cell._linear(inputs, self._num_units, True)
       with tf.variable_scope("Gates"):  # input gate and forget gate.
         i, f = tf.split(1, 2, tf.nn.rnn_cell._linear([inputs, state],
-                                             2 * self._num_units, True, 1.0))
+                                             2 * self._num_units, True, bias))
         i, f = tf.sigmoid(i), tf.sigmoid(f)
       with tf.variable_scope("Context"):
         new_c = self._activation(i * c_tilde + f * state)
