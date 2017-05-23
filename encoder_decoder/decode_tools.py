@@ -32,7 +32,7 @@ def demo(sess, model, FLAGS):
     if FLAGS.fill_argument_slots:
         # create slot filling classifier
         mapping_param_dir = os.path.join(
-            FLAGS.model_root_dir, 'train.mappings.X.Y.npz')
+            FLAGS.model_dir, 'train.mappings.X.Y.npz')
         train_X, train_Y = \
             data_utils.load_slot_filling_data(mapping_param_dir)
         slot_filling_classifier = classifiers.KNearestNeighborModel(
@@ -392,7 +392,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     if FLAGS.fill_argument_slots:
         # create slot filling classifier
         mapping_param_dir = os.path.join(
-            FLAGS.model_root_dir, 'train.mappings.X.Y.npz')
+            FLAGS.model_dir, 'train.mappings.X.Y.npz')
         train_X, train_Y = data_utils.load_slot_filling_data(mapping_param_dir)
         slot_filling_classifier = classifiers.KNearestNeighborModel(
             FLAGS.num_nn_slot_filling, train_X, train_Y)
@@ -455,8 +455,8 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         else:
             print(APOLOGY_MSG)
     pred_file.close()
-    shutil.copyfile(pred_file_path, os.path.join(
-        FLAGS.model_root_dir, 'predictions.latest'))
+    shutil.copyfile(pred_file_path,
+                    os.path.join(FLAGS.model_dir, 'predictions.latest'))
 
 
 def visualize_attn_alignments(M, source, target, rev_sc_vocab,
