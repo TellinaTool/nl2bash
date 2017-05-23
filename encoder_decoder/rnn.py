@@ -37,8 +37,7 @@ class RANCell(tf.nn.rnn_cell.RNNCell):
                                              2 * self._num_units, True, 1.0))
         i, f = tf.sigmoid(i), tf.sigmoid(f)
       with tf.variable_scope("Context"):
-        new_c = self._activation(tf.nn.rnn_cell._linear([i * c_tilde, f * state],
-                                     self._num_units, True))
+        new_c = self._activation(i * c_tilde + f * state)
     return new_c, new_c
 
 
