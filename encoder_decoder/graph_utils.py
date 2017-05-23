@@ -100,10 +100,11 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
 
     # construct model directory
     model_subdir, model_sig = get_model_signature(FLAGS, construct_slot_filling)
+    params["model_dir"] = os.path.join(FLAGS.model_dir, model_subdir)
     params["model_sig"] = model_sig
 
     model_root_dir = FLAGS.model_dir
-    setattr(FLAGS, "model_dir", os.path.join(FLAGS.model_dir, model_subdir))
+    setattr(FLAGS, "model_dir", )
     print("model_dir={}".format(FLAGS.model_dir))
     print("model_sig={}".format(model_sig))
 
@@ -295,7 +296,8 @@ def softmax_loss(output_project, num_samples, target_vocab_size):
                 w_t, b, inputs, labels, num_samples, target_vocab_size)
         loss_function = sampled_loss
     else:
-        loss_function = tf.nn.softmax_cross_entropy_with_logits
+        def loss(inputs, labels):
+            return tf.nn.softmax_cross_entropy_with_logits()
     return loss_function
 
 
@@ -393,6 +395,10 @@ class NNModel(object):
     @property
     def model_sig(self):
         return self.hyperparams["model_sig"]
+
+    @property
+    def model_dir(self):
+        return self.hyperparams["model_dir"]
 
     @property
     def sc_token(self):
