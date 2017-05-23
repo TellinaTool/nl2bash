@@ -166,7 +166,7 @@ def decode(data_set, verbose=True):
         model = create_model(sess, forward_only=True)
         decode_tools.decode_set(sess, model, data_set, 3, FLAGS, verbose)
 
-        return model.model_sig
+        return model.model_dir
 
 
 def eval(data_set, model_sig=None, verbose=True):
