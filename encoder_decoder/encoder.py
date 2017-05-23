@@ -12,7 +12,6 @@ import math
 import numpy as np
 
 import tensorflow as tf
-from tensorflow.python.ops import rnn_cell
 
 from encoder_decoder import graph_utils, rnn
 

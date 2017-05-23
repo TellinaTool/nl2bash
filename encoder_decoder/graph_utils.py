@@ -99,13 +99,13 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params["force_reading_input"] = FLAGS.force_reading_input
 
     # construct model directory
-    model_subdir, model_sig = get_model_signature(FLAGS)
+    model_subdir, decode_sig = get_decode_signature(FLAGS)
     setattr(FLAGS, 'model_dir', os.path.join(FLAGS.model_root_dir,
                                              model_subdir))
     params["model_dir"] = FLAGS.model_dir
-    params["model_sig"] = model_sig
+    params["decode_sig"] = decode_sig
     print("model_dir={}".format(FLAGS.model_dir))
-    print("model_sig={}".format(model_sig))
+    print("decode_sig={}".format(decode_sig))
 
     if forward_only:
         # In our experience using large batch size for decoding doesn't
@@ -163,7 +163,14 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     return model
 
 
-def get_model_signature(FLAGS):
+def get_decode_signature(FLAGS):
+    """
+    Model signature is used by the system to locate the trained parameters and
+    prediction results of a particular model.
+    """
+
+    # The directory where the training parameters are stored is stamped with
+    # model parameter information.
     model_subdir = FLAGS.dataset
     if FLAGS.explain:
         model_subdir += '-expl'
@@ -202,14 +209,16 @@ def get_model_signature(FLAGS):
         model_subdir += '.canonical'
     elif FLAGS.normalized:
         model_subdir += '.normalized'
-    if FLAGS.fill_argument_slots:
-        model_subdir += '.slot.filler'
 
-    model_sig = model_subdir + "-{}".format(FLAGS.token_decoding_algorithm)
+    # The file which stores the prediction results of a particular model is
+    # stamped with decoding parameter information.
+    decode_sig = FLAGS.token_decoding_algorithm
     if FLAGS.token_decoding_algorithm == 'beam_search': 
-        model_sig += "-{}".format(FLAGS.beam_size)
-    model_sig += ("-test" if FLAGS.test else "-dev")
-    return model_subdir, model_sig
+        decode_sig += ".{}".format(FLAGS.beam_size)
+    if FLAGS.fill_argument_slots:
+        decode_sig += '.slot.filler'
+    decode_sig += (".test" if FLAGS.test else ".dev")
+    return model_subdir, decode_sig
 
 
 def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
@@ -397,8 +406,8 @@ class NNModel(object):
         return self.hyperparams["max_target_token_size"]
 
     @property
-    def model_sig(self):
-        return self.hyperparams["model_sig"]
+    def decode_sig(self):
+        return self.hyperparams["decode_sig"]
 
     @property
     def model_dir(self):
