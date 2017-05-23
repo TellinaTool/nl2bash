@@ -585,8 +585,10 @@ def main(_):
         elif FLAGS.eval_slot_filling:
             eval_slot_filling(dataset)
         elif FLAGS.decode:
+            model_root_dir = FLAGS.model_dir
             model_sig = decode(dataset)
             if not FLAGS.explain:
+                FLAGS.model_dir = model_root_dir
                 eval(dataset, model_sig=model_sig, verbose=False)
         elif FLAGS.grid_search:
             grid_search.grid_search(
@@ -597,15 +599,18 @@ def main(_):
         elif FLAGS.cross_valid:
             cross_validation(train_set)
         else:
+            model_root_dir = FLAGS.model_dir
             # Train the model.
             train(train_set, dataset)
 
             # Decode the new model on the development set.
             tf.reset_default_graph()
+            FLAGS.model_dir = model_root_dir
             model_sig = decode(dataset)
 
             # Run automatic evaluation on the development set.
             if not FLAGS.explain:
+                FLAGS.model_dir = model_root_dir
                 eval(dataset, model_sig, verbose=False)
 
     

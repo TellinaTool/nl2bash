@@ -99,7 +99,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params["force_reading_input"] = FLAGS.force_reading_input
 
     # construct model directory
-    model_subdir, model_sig = get_model_signature(FLAGS, construct_slot_filling)
+    model_subdir, model_sig = get_model_signature(FLAGS)
     params["model_sig"] = model_sig
 
     model_root_dir = FLAGS.model_dir
