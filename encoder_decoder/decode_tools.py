@@ -400,7 +400,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     else:
         slot_filling_classifier = None
 
-    ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+    ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d-%H%M%S')
     pred_file_path = os.path.join(FLAGS.model_dir, 'predictions.{}'.format(ts))
     pred_file = open(pred_file_path, 'w')
     for example_id in xrange(len(grouped_dataset)):
