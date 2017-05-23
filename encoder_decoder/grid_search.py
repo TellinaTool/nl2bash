@@ -163,8 +163,8 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun,
     train_fun(train_set, dev_set)
 
     tf.reset_default_graph()
-    model_sig = decode_fun(dev_set, verbose=False)
+    decode_sig = decode_fun(dev_set, verbose=False)
 
-    M = eval_fun(dev_set, model_sig, verbose=False)
+    M = eval_fun(dev_set, decode_sig, verbose=False)
 
     return M[metrics]

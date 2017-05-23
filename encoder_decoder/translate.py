@@ -171,7 +171,7 @@ def decode(data_set, verbose=True):
 
 def eval(data_set, model_dir=None, verbose=True):
     if model_dir is None:
-        model_subdir, model_sig = graph_utils.get_model_signature(FLAGS)
+        model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
     print("evaluating " + model_dir)
 
@@ -179,17 +179,17 @@ def eval(data_set, model_dir=None, verbose=True):
 
 
 def manual_eval(dataset, num_eval):
-    _, model_sig = graph_utils.get_model_signature(FLAGS)
+    _, decode_sig = graph_utils.get_decode_signature(FLAGS)
     eval_tools.manual_eval(
-        model_sig, dataset, FLAGS, FLAGS.model_root_dir, num_eval)
+        decode_sig, dataset, FLAGS, FLAGS.model_root_dir, num_eval)
 
 
 def gen_eval_sheet(dataset):
-    model_dir, model_sig = graph_utils.get_model_signature(FLAGS)
-    print("evaluating " + model_sig)
+    model_dir, decode_sig = graph_utils.get_decode_signature(FLAGS)
+    print("evaluating " + decode_sig)
 
     output_path = os.path.join(FLAGS.model_root_dir, model_dir, "predictions.csv")
-    eval_tools.gen_eval_sheet(model_sig, dataset, FLAGS, output_path)
+    eval_tools.gen_eval_sheet(decode_sig, dataset, FLAGS, output_path)
     print("prediction results saved to {}".format(output_path))
 
 
@@ -234,10 +234,10 @@ def cross_validation(train_set):
         cv_dev_set = train_folds[fold_id]
         train(cv_train_set, cv_dev_set)
         tf.reset_default_graph()
-        model_sig = decode(cv_dev_set)
+        decode_sig = decode(cv_dev_set)
         tf.reset_default_graph()
         match_score, _, dist, _ = \
-            eval(cv_dev_set, model_sig, verbose=False)
+            eval(cv_dev_set, decode_sig, verbose=False)
         match_scores.append(match_score)
         dists.append(dist)
 
