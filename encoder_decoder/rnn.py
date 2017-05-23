@@ -28,18 +28,18 @@ class RANCell(tf.nn.rnn_cell.RNNCell):
     return self._num_units
 
   def __call__(self, inputs, state, scope=None):
-    """Gated recurrent unit (GRU) with nunits cells."""
-    with tf.variable_scope(scope or type(self).__name__):  # "GRUCell"
-      with tf.variable_scope("Gates"):  # Reset gate and update gate.
-        # We start with bias of 1.0 to not reset and not update.
-        r, u = tf.split(1, 2, tf.nn.rnn_cell._linear([inputs, state],
+    """Recurrent Additive Network (RAN) with nunits cells."""
+    with tf.variable_scope(scope or type(self).__name__):  # "RANCell"
+      with tf.variable_scope("Input_projection"):
+        c_tilde = tf.nn.rnn_cell._linear(inputs, self._num_units, True)
+      with tf.variable_scope("Gates"):  # input gate and forget gate.
+        i, f = tf.split(1, 2, tf.nn.rnn_cell._linear([inputs, state],
                                              2 * self._num_units, True, 1.0))
-        r, u = tf.sigmoid(r), tf.sigmoid(u)
-      with tf.variable_scope("Candidate"):
-        c = self._activation(tf.nn.rnn_cell._linear([inputs, r * state],
+        i, f = tf.sigmoid(i), tf.sigmoid(f)
+      with tf.variable_scope("Context"):
+        new_c = self._activation(tf.nn.rnn_cell._linear([i * c_tilde, f * state],
                                      self._num_units, True))
-      new_h = u * state + (1 - u) * c
-    return new_h, new_h
+    return new_c, new_c
 
 
 def RNNModel(cell, inputs, initial_state=None, dtype=None,

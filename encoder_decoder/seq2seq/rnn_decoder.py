@@ -212,7 +212,7 @@ class RNNDecoder(decoder.Decoder):
                         past_hidden_states = past_cell_states[-1][1]
                     else:
                         past_hidden_states = past_cell_states[1]
-                elif self.rnn_cell == 'gru':
+                elif self.rnn_cell in ['gru', 'ran']:
                     if self.num_layers > 1:
                         past_hidden_states = tf.split(2, self.num_layers,
                                                       past_cell_states)[-1]
