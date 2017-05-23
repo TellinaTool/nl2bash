@@ -51,7 +51,7 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
     if eval_bash:
         top_k_cms = np.zeros([len(grouped_dataset), top_k])
 
-    prediction_list = load_predictions(FLAGS.model_root_dir, top_k)
+    prediction_list = load_predictions(model.model_dir, top_k)
 
     with DBConnection() as db:
         data_id = 0
@@ -77,7 +77,7 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
 
             predictions = prediction_list[data_id]
             for i in xrange(len(predictions)):
-                pred_cmd, score = predictions[i]
+                pred_cmd = predictions[i]
                 tree = cmd_parser(pred_cmd)
 
                 # evaluation ignoring flag orders
@@ -125,11 +125,11 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
                 if eval_bash:
                     top_k_cms[data_id, i] = cms
                     if verbose:
-                        print("Prediction {}: {} ({}) ({})".format(
-                            i+1, pred_cmd, score, cms))
+                        print("Prediction {}: {} ({})".format(
+                            i+1, pred_cmd, cms))
                 else:
                     if verbose:
-                        print("Prediction {}: {} ({})".format(i+1, pred_cmd, score))
+                        print("Prediction {}: {}".format(i+1, pred_cmd))
 
             if verbose:
                 print()
@@ -460,16 +460,15 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                     o_f.write(output_str + '\n')
 
 
-def load_predictions(FLAGS, top_k):
+def load_predictions(pred_dir, top_k):
     """
     Load model predictions (top_k per example) from disk.
 
-    :param input_dir: Directory where the model prediction file is stored.
+    :param pred_dir: Directory where the model prediction file is stored.
     :param top_k: Maximum number of predictions to read per example.
     :return: List of top k predictions.
     """
-    input_dir, _ = graph_utils.get_model_signature(FLAGS)
-    with open(os.path.join(input_dir, 'predictions.latest')) as f:
+    with open(os.path.join(pred_dir, 'predictions.latest')) as f:
         prediction_list = []
         for line in f:
             predictions = line.split('|||')
