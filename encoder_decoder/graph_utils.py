@@ -99,12 +99,11 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params["force_reading_input"] = FLAGS.force_reading_input
 
     # construct model directory
-    model_subdir, model_sig = get_model_signature(FLAGS, construct_slot_filling)
-    params["model_dir"] = os.path.join(FLAGS.model_dir, model_subdir)
+    model_subdir, model_sig = get_model_signature(FLAGS)
+    setattr(FLAGS, 'model_dir', os.path.join(FLAGS.model_root_dir,
+                                             model_subdir))
+    params["model_dir"] = FLAGS.model_dir
     params["model_sig"] = model_sig
-
-    model_root_dir = FLAGS.model_dir
-    setattr(FLAGS, "model_dir", )
     print("model_dir={}".format(FLAGS.model_dir))
     print("model_sig={}".format(model_sig))
 
@@ -135,7 +134,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
 
     model = model_constructor(params, buckets, forward_only)
 
-    ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
+    ckpt = tf.train.get_checkpoint_state(params["model_dir"])
 
     if forward_only or not FLAGS.create_fresh_params:
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
@@ -149,7 +148,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
         if FLAGS.pretrained_model_subdir:
             # load pre-trained parameteres for advanced training algorithms
             # load pre-trained parameteres for advanced training algorithms
-            pretrain_dir = os.path.join(model_root_dir, FLAGS.pretrained_model_subdir)
+            pretrain_dir = os.path.join(FLAGS.model_root_dir,
+                                        FLAGS.pretrained_model_subdir)
             print("Reading pre-trained model parameters from {}".format(pretrain_dir))
             pretrain_ckpt = tf.train.get_checkpoint_state(pretrain_dir)
             model.saver.restore(session, pretrain_ckpt.model_checkpoint_path)

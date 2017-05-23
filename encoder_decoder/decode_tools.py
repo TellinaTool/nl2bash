@@ -32,7 +32,7 @@ def demo(sess, model, FLAGS):
     if FLAGS.fill_argument_slots:
         # create slot filling classifier
         mapping_param_dir = os.path.join(
-            FLAGS.model_dir, 'train.mappings.X.Y.npz')
+            FLAGS.model_root_dir, 'train.mappings.X.Y.npz')
         train_X, train_Y = \
             data_utils.load_slot_filling_data(mapping_param_dir)
         slot_filling_classifier = classifiers.KNearestNeighborModel(
@@ -392,7 +392,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     if FLAGS.fill_argument_slots:
         # create slot filling classifier
         mapping_param_dir = os.path.join(
-            FLAGS.model_dir, 'train.mappings.X.Y.npz')
+            FLAGS.model_root_dir, 'train.mappings.X.Y.npz')
         train_X, train_Y = data_utils.load_slot_filling_data(mapping_param_dir)
         slot_filling_classifier = classifiers.KNearestNeighborModel(
             FLAGS.num_nn_slot_filling, train_X, train_Y)
@@ -400,8 +400,8 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     else:
         slot_filling_classifier = None
 
-    ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-    pred_file_path = os.path.join(FLAGS.model_dir, 'predictions.{}'.format(ts))
+    ts = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d-%H%M%S')
+    pred_file_path = os.path.join(FLAGS.model_root_dir, 'predictions.{}'.format(ts))
     pred_file = open(pred_file_path, 'w')
     for example_id in xrange(len(grouped_dataset)):
         key, data_group = grouped_dataset[example_id]
@@ -456,7 +456,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
             print(APOLOGY_MSG)
     pred_file.close()
     shutil.copyfile(pred_file_path, os.path.join(
-        FLAGS.model_dir, 'predictions.latest'))
+        FLAGS.model_root_dir, 'predictions.latest'))
 
 
 def visualize_attn_alignments(M, source, target, rev_sc_vocab,

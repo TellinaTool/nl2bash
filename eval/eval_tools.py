@@ -51,7 +51,7 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
     if eval_bash:
         top_k_cms = np.zeros([len(grouped_dataset), top_k])
 
-    prediction_list = load_predictions(model, FLAGS, top_k)
+    prediction_list = load_predictions(FLAGS.model_dir, top_k)
 
     with DBConnection() as db:
         data_id = 0
