@@ -169,13 +169,13 @@ def decode(data_set, verbose=True):
         return model.model_dir
 
 
-def eval(data_set, model_sig=None, verbose=True):
-    if model_sig is None:
+def eval(data_set, model_dir=None, verbose=True):
+    if model_dir is None:
         model_subdir, model_sig = graph_utils.get_model_signature(FLAGS)
-    print("evaluating " + model_sig)
+        model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
+    print("evaluating " + model_dir)
 
-    return eval_tools.eval_set(os.path.join(FLAGS.model_root_dir, model_subdir), 
-                               data_set, 3, FLAGS, verbose=verbose)
+    return eval_tools.eval_set(model_dir, data_set, 3, FLAGS, verbose=verbose)
 
 
 def manual_eval(dataset, num_eval):
@@ -603,11 +603,11 @@ def main(_):
 
             # Decode the new model on the development set.
             tf.reset_default_graph()
-            model_sig = decode(dataset)
+            model_dir = decode(dataset)
 
             # Run automatic evaluation on the development set.
             if not FLAGS.explain:
-                eval(dataset, model_sig, verbose=False)
+                eval(dataset, model_dir, verbose=False)
 
     
 if __name__ == "__main__":
