@@ -116,7 +116,7 @@ def train(train_set, dev_set):
                     sess.run(model.learning_rate_decay_op)
                 previous_losses.append(loss)
 
-                checkpoint_path = os.path.join(FLAGS.model_dir, "translate.ckpt")
+                checkpoint_path = os.path.join(FLAGS.model_root_dir, "translate.ckpt")
                 # Save checkpoint and zero timer and loss.
                 model.saver.save(sess, checkpoint_path, write_meta_graph=False)
 
@@ -151,9 +151,9 @@ def train(train_set, dev_set):
 
         # Save slot filling embeddings.
         if not FLAGS.explain and (FLAGS.normalized or FLAGS.canonical):
-            mapping_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
+            mapping_path = os.path.join(FLAGS.model_root_dir, 'train.mappings.X.Y.npz')
             gen_slot_filling_training_data_fun(sess, model, train_set, mapping_path)
-            mapping_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
+            mapping_path = os.path.join(FLAGS.model_root_dir, 'dev.mappings.X.Y.npz')
             gen_slot_filling_training_data_fun(sess, model, dev_set, mapping_path)
 
     return True
@@ -181,14 +181,14 @@ def manual_eval(dataset, num_eval):
     # Create model and load parameters.
     _, model_sig = graph_utils.get_model_signature(FLAGS)
     eval_tools.manual_eval(
-        model_sig, dataset, FLAGS, FLAGS.model_dir, num_eval)
+        model_sig, dataset, FLAGS, FLAGS.model_root_dir, num_eval)
 
 
 def gen_eval_sheet(dataset):
     model_dir, model_sig = graph_utils.get_model_signature(FLAGS)
     print("evaluating " + model_sig)
 
-    output_path = os.path.join(FLAGS.model_dir, model_dir, "predictions.csv")
+    output_path = os.path.join(FLAGS.model_root_dir, model_dir, "predictions.csv")
     eval_tools.gen_eval_sheet(model_sig, dataset, FLAGS, output_path)
     print("prediction results saved to {}".format(output_path))
 
@@ -296,7 +296,7 @@ def eval_slot_filling(dataset):
             Seq2SeqModel, buckets=_buckets, forward_only=True)
 
         model_param_dir = os.path.join(
-            FLAGS.model_dir, 'train.mappings.X.Y.npz')
+            FLAGS.model_root_dir, 'train.mappings.X.Y.npz')
         train_X, train_Y = data_utils.load_slot_filling_data(model_param_dir)
         slot_filling_classifier = classifiers.KNearestNeighborModel(
             FLAGS.num_nn_slot_filling, train_X, train_Y)
@@ -481,7 +481,7 @@ def gen_slot_filling_training_data():
         for i in xrange(len(data_splits)):
             split = data_splits[i]
             mapping_path = os.path.join(
-                FLAGS.model_dir, '{}.mappings.X.Y.npz'.format(split))
+                FLAGS.model_root_dir, '{}.mappings.X.Y.npz'.format(split))
             gen_slot_filling_training_data_fun(
                 sess, seq2seq_model, datasets[i], mapping_path)
 
@@ -542,15 +542,15 @@ def main(_):
         if not _buckets else _buckets[-1][1]
 
     if FLAGS.decoder_topology in ['basic_tree']:
-        FLAGS.model_dir = os.path.join(
-            os.path.dirname(__file__), "..", FLAGS.model_dir, "seq2tree")
+        FLAGS.model_root_dir = os.path.join(
+            os.path.dirname(__file__), "..", FLAGS.model_root_dir, "seq2tree")
     elif FLAGS.decoder_topology in ['rnn']:
-        FLAGS.model_dir = os.path.join(
-            os.path.dirname(__file__), "..", FLAGS.model_dir, "seq2seq")
+        FLAGS.model_root_dir = os.path.join(
+            os.path.dirname(__file__), "..", FLAGS.model_root_dir, "seq2seq")
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
-    print("Saving models to {}".format(FLAGS.model_dir))
+    print("Saving models to {}".format(FLAGS.model_root_dir))
 
     if FLAGS.data_stats:
         data_statistics()
@@ -564,8 +564,8 @@ def main(_):
     elif FLAGS.gen_slot_filling_training_data:
         gen_slot_filling_training_data()
     elif FLAGS.eval_local_slot_filling:
-        train_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
-        dev_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')
+        train_path = os.path.join(FLAGS.model_root_dir, 'train.mappings.X.Y.npz')
+        dev_path = os.path.join(FLAGS.model_root_dir, 'dev.mappings.X.Y.npz')
         eval_local_slot_filling(train_path, dev_path)
 
     elif FLAGS.demo:

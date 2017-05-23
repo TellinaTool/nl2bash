@@ -65,7 +65,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     best_metrics_value = 0
 
     # Remember the root directory of the model.
-    model_root_dir = FLAGS.model_dir
+    model_root_dir = FLAGS.model_root_dir
 
     for row in param_grid:
         row = nest.flatten(row)
@@ -79,7 +79,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
                 setattr(FLAGS, 'attention_input_keep', row[i])
                 setattr(FLAGS, 'attention_output_keep', row[i])
         # Reset the root directory of the model.
-        FLAGS.model_dir = model_root_dir
+        FLAGS.model_root_dir = model_root_dir
 
         print("Trying parameter set: ")
         for i in xrange(num_hps):
@@ -125,7 +125,7 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set,
     Run multiple experiments with different sets of hyperparameters.
     """
     # Remember the root directory of the model.
-    model_root_dir = FLAGS.model_dir
+    model_root_dir = FLAGS.model_root_dir
 
     for hyperparam_set in hyperparam_sets:
         for hp in hyperparam_set:
@@ -138,7 +138,7 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set,
                 setattr(FLAGS, 'attention_input_keep', hyperparam_set[hp])
                 setattr(FLAGS, 'attention_output_keep', hyperparam_set[hp])
         # Reset the root directory of the model.
-        FLAGS.model_dir = model_root_dir
+        FLAGS.model_root_dir = model_root_dir
 
         print("Trying parameter set: ")
         for hp in hyperparam_set:
