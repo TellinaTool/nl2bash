@@ -32,18 +32,19 @@ error_types = {
 }
 
 
-def eval_set(model, dataset, top_k, FLAGS, verbose=True):
+def eval_set(model_dir, dataset, top_k, FLAGS, verbose=True):
     eval_bash = FLAGS.dataset.startswith("bash") and not FLAGS.explain
     eval_regex = FLAGS.dataset.startswith("regex") and not FLAGS.explain
 
     cmd_parser = data_tools.bash_parser if eval_bash \
         else data_tools.paren_parser
 
-    use_bucket = False if model == "knn" else True
+    use_bucket = False if "knn" in model_dir else True
 
     tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
     grouped_dataset = data_utils.group_data(
-        dataset, use_bucket=use_bucket, use_temp=eval_bash,
+        dataset, use_bucket=use_bucket, 
+        use_temp=(eval_bash and FLAGS.normalized),
         tokenizer_selector=tokenizer_selector)
 
     top_k_temp_correct = np.zeros([len(grouped_dataset), top_k])
@@ -51,7 +52,7 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
     if eval_bash:
         top_k_cms = np.zeros([len(grouped_dataset), top_k])
 
-    prediction_list = load_predictions(model.model_dir, top_k)
+    prediction_list = load_predictions(model_dir, top_k)
 
     with DBConnection() as db:
         data_id = 0
