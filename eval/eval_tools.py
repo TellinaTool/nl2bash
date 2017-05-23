@@ -12,7 +12,7 @@ import os, sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-from encoder_decoder import data_utils, graph_utils
+from encoder_decoder import data_utils
 from bashlex import data_tools, nast
 from eval import token_based, tree_dist, zss
 from eval.eval_db import DBConnection
@@ -51,7 +51,7 @@ def eval_set(model, dataset, top_k, FLAGS, verbose=True):
     if eval_bash:
         top_k_cms = np.zeros([len(grouped_dataset), top_k])
 
-    prediction_list = load_predictions(model.model_dir, top_k)
+    prediction_list = load_predictions(model, top_k)
 
     with DBConnection() as db:
         data_id = 0
@@ -460,7 +460,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                     o_f.write(output_str + '\n')
 
 
-def load_predictions(pred_dir, top_k):
+def load_predictions(model, top_k):
     """
     Load model predictions (top_k per example) from disk.
 
@@ -468,7 +468,8 @@ def load_predictions(pred_dir, top_k):
     :param top_k: Maximum number of predictions to read per example.
     :return: List of top k predictions.
     """
-    with open(os.path.join(pred_dir, 'predictions.latest')) as f:
+    with open(os.path.join(model.model_dir,
+            'predictions.{}.latest'.format(model.decode_sig))) as f:
         prediction_list = []
         for line in f:
             predictions = line.split('|||')
