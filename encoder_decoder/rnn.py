@@ -11,7 +11,8 @@ from tensorflow.python.util import nest
 import tensorflow as tf
 
 class RANCell(tf.nn.rnn_cell.RNNCell):
-  """Recurrent Additive Unit cell (cf. )."""
+  """[Experimental] Recurrent Additive Network cell
+     (cf. http://www.kentonl.com/pub/llz.2017.pdf)."""
 
   def __init__(self, num_units, input_size=None, activation=tf.tanh):
     if input_size is not None:
