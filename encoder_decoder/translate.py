@@ -550,7 +550,7 @@ def main(_):
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
-    print("Saving models to {}".format(FLAGS.model_dir))
+    print("Saving models to {}".format(FLAGS.model_root_dir))
 
     if FLAGS.data_stats:
         data_statistics()
