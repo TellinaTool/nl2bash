@@ -586,9 +586,9 @@ def main(_):
         elif FLAGS.eval_slot_filling:
             eval_slot_filling(dataset)
         elif FLAGS.decode:
-            model_sig = decode(dataset)
+            model_dir = decode(dataset)
             if not FLAGS.explain:
-                eval(dataset, model_sig=model_sig, verbose=False)
+                eval(dataset, model_dir=model_dir, verbose=False)
         elif FLAGS.grid_search:
             grid_search.grid_search(
                 train, decode, eval, train_set, dataset, FLAGS)
@@ -607,7 +607,7 @@ def main(_):
 
             # Run automatic evaluation on the development set.
             if not FLAGS.explain:
-                eval(dataset, model_dir, verbose=False)
+                eval(dataset, model_dir=model_dir, verbose=False)
 
     
 if __name__ == "__main__":
