@@ -171,10 +171,11 @@ def decode(data_set, verbose=True):
 
 def eval(data_set, model_sig=None, verbose=True):
     if model_sig is None:
-        _, model_sig = graph_utils.get_model_signature(FLAGS)
+        model_subdir, model_sig = graph_utils.get_model_signature(FLAGS)
     print("evaluating " + model_sig)
 
-    return eval_tools.eval_set(model_sig, data_set, 3, FLAGS, verbose=verbose)
+    return eval_tools.eval_set(os.path.join(FLAGS.model_root_dir, model_subdir), 
+                               data_set, 3, FLAGS, verbose=verbose)
 
 
 def manual_eval(dataset, num_eval):
