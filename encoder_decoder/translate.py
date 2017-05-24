@@ -103,8 +103,10 @@ def train(train_set, dev_set):
             if t % FLAGS.epochs_per_checkpoint == 0:
                 # Print statistics for the previous epoch.
                 loss /= FLAGS.steps_per_epoch
-                ppx = math.exp(loss) if loss < 300 else float('inf')
-                print(loss)
+                if loss < 300:
+                    ppx = math.exp(loss)
+                else:
+                    raise ValueError("Training loss = {} is too large.".format(loss))
                 print("learning rate %.4f epoch-time %.4f perplexity %.2f" % (
                     model.learning_rate.eval(), epoch_time, ppx))
 
