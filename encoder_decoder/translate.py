@@ -50,11 +50,11 @@ def create_model(session, forward_only, buckets=None):
         buckets = _buckets
 
     if FLAGS.decoder_topology in ['basic_tree']:
-        return graph_utils.create_model(session, FLAGS, Seq2TreeModel, buckets,
-                                        forward_only)
+        return graph_utils.create_model(
+            session, FLAGS, Seq2TreeModel, buckets, forward_only)
     elif FLAGS.decoder_topology in ['rnn']:
-        return graph_utils.create_model(session, FLAGS, Seq2SeqModel, buckets,
-                                        forward_only)
+        return graph_utils.create_model(
+            session, FLAGS, Seq2SeqModel, buckets, forward_only)
     else:
         raise ValueError("Unrecognized decoder topology: {}."
                          .format(FLAGS.decoder_topology))
@@ -85,25 +85,22 @@ def train(train_set, dev_set):
         for t in xrange(FLAGS.num_epochs):
             print("Epoch %d" % (t+1))
 
-            start_time = time.time()
-
             # progress bar
+            start_time = time.time()
             for _ in tqdm(xrange(FLAGS.steps_per_epoch)):
                 time.sleep(0.01)
                 random_number_01 = np.random.random_sample()
                 bucket_id = min([i for i in xrange(len(train_buckets_scale))
                                  if train_buckets_scale[i] > random_number_01])
                 formatted_example = model.get_batch(train_set, bucket_id)
-                model_outputs = model.step(sess, formatted_example,
-                                           bucket_id, forward_only=False)
+                model_outputs = model.step(
+                    sess, formatted_example, bucket_id, forward_only=False)
                 loss += model_outputs.losses
                 current_step += 1
-
             epoch_time = time.time() - start_time
 
             # Once in a while, we save checkpoint, print statistics, and run evals.
             if t % FLAGS.epochs_per_checkpoint == 0:
-
                 # Print statistics for the previous epoch.
                 loss /= FLAGS.steps_per_epoch
                 ppx = math.exp(loss) if loss < 300 else float('inf')
@@ -111,14 +108,16 @@ def train(train_set, dev_set):
                 print("learning rate %.4f epoch-time %.4f perplexity %.2f" % (
                     model.learning_rate.eval(), epoch_time, ppx))
 
-                # Decrease learning rate if no improvement of loss was seen over last 3 times.
+                # Decrease learning rate if no improvement of loss was seen
+                # over last 3 times.
                 if len(previous_losses) > 2 and loss > max(previous_losses[-3:]):
                     sess.run(model.learning_rate_decay_op)
                 previous_losses.append(loss)
 
                 checkpoint_path = os.path.join(FLAGS.model_dir, "translate.ckpt")
                 # Save checkpoint and zero timer and loss.
-                model.saver.save(sess, checkpoint_path, write_meta_graph=False)
+                model.saver.save(sess, checkpoint_path, global_step=t,
+                                 write_meta_graph=False)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
@@ -405,11 +404,11 @@ def eval_slot_filling(dataset):
         recall = num_correct_align / num_gt_align
         print("Argument Alignment Precision: {}".format(precision))
         print("Argument Alignment Recall: {}".format(recall))
-        print("Argument Alignment F1: {}".format(2 * precision * recall /
-                                                 (precision + recall)))
+        print("Argument Alignment F1: {}".format(
+            2 * precision * recall / (precision + recall)))
 
-        print("Argument filling accuracy: {}".format(num_correct_argument /
-                                                     num_argument))
+        print("Argument filling accuracy: {}".format(
+            num_correct_argument / num_argument))
 
 
 def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
@@ -433,8 +432,8 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                     encoder_channel_inputs, decoder_channel_inputs,
                     pointer_targets=pointer_targets,
                     bucket_id=bucket_id)
-                model_outputs = model.step(sess, formatted_example, bucket_id,
-                    forward_only=True)
+                model_outputs = model.step(
+                    sess, formatted_example, bucket_id, forward_only=True)
                 encoder_outputs = model_outputs.encoder_hidden_states
                 decoder_outputs = model_outputs.decoder_hidden_states
 
@@ -468,23 +467,6 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
                       .format(len(X)))
 
     np.savez(output_file, [X, Y])
-
-
-def gen_slot_filling_training_data():
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-            log_device_placement=FLAGS.log_device_placement)) as sess:
-        datasets = load_data(load_mappings=True)
-
-        seq2seq_model = graph_utils.create_model(sess, FLAGS, Seq2SeqModel,
-            buckets=_buckets, forward_only=True)
-
-        data_splits = ['train', 'dev', 'test']
-        for i in xrange(len(data_splits)):
-            split = data_splits[i]
-            mapping_path = os.path.join(
-                FLAGS.model_dir, '{}.mappings.X.Y.npz'.format(split))
-            gen_slot_filling_training_data_fun(
-                sess, seq2seq_model, datasets[i], mapping_path)
 
 # --- Pre-processing --- #
 
@@ -562,8 +544,6 @@ def main(_):
         write_predictions_to_file(os.path.join(FLAGS.data_dir, '..', 'reader',
             'data.final0502', 'test.3112.cm'), 'test.3112.explain')
 
-    elif FLAGS.gen_slot_filling_training_data:
-        gen_slot_filling_training_data()
     elif FLAGS.eval_local_slot_filling:
         train_path = os.path.join(FLAGS.model_dir, 'train.mappings.X.Y.npz')
         dev_path = os.path.join(FLAGS.model_dir, 'dev.mappings.X.Y.npz')

@@ -108,10 +108,9 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     print("decode_sig={}".format(decode_sig))
 
     if forward_only:
-        # In our experience using large batch size for decoding doesn't
-        # significantly improve computing efficiency.
-        FLAGS.batch_size = 1
+        # Set batch_size to 1 for decoding.
         params["batch_size"] = 1
+        # Reset dropout probabilities for decoding.
         params["attention_input_keep"] = 1.0
         params["attention_output_keep"] = 1.0
         params["sc_input_keep"] = 1.0
@@ -134,8 +133,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
 
     model = model_constructor(params, buckets, forward_only)
 
-    print("A: {}".format(params["model_dir"]))
-    print("B: {}".format(FLAGS.model_dir))
     ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
 
     if forward_only or not FLAGS.create_fresh_params:
@@ -152,12 +149,13 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
             # load pre-trained parameteres for advanced training algorithms
             pretrain_dir = os.path.join(FLAGS.model_root_dir,
                                         FLAGS.pretrained_model_subdir)
-            print("Reading pre-trained model parameters from {}".format(pretrain_dir))
+            print("Initialize the graph with pre-trained parameters from {}"
+                  .format(pretrain_dir))
             pretrain_ckpt = tf.train.get_checkpoint_state(pretrain_dir)
             model.saver.restore(session, pretrain_ckpt.model_checkpoint_path)
             session.run(model.learning_rate.assign(tf.constant(FLAGS.learning_rate)))
         else:
-            print("Created model with fresh parameters.")
+            print("Initialize the graph with random parameters.")
             session.run(tf.global_variables_initializer())
 
     return model
