@@ -1381,6 +1381,7 @@ class DataPoint(object):
         self.sc_copy_full_ids = None
         self.mappings = None
         self.pointer_targets = None
+        self.sc_fillers = None
 
 
 class Vocab(object):

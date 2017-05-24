@@ -73,92 +73,87 @@ def demo(sess, model, FLAGS):
         sentence = sys.stdin.readline()
 
 
-def translate_fun(input, sess, model, vocabs, FLAGS,
+def translate_fun(sentence, sess, model, vocabs, FLAGS,
                   slot_filling_classifier=None):
-    # Get token-ids for the input sentence.
-    # entities: ner_by_token_id, ner_by_char_pos, ner_by_category
-    if type(input) is list:
-        sc_ids = input[0].sc_ids
-        sc_full_ids = input[0].sc_full_ids
-        sc_copy_full_ids = input[0].sc_copy_full_ids
-        tg_ids = input[0].tg_ids
-        tg_full_ids = input[0].tg_full_ids
-        pointer_targets = input[0].pointer_targets
-    else:
-        sentence = input
-        tg_ids = [data_utils.ROOT_ID]
-        tg_full_ids = [data_utils.ROOT_ID]
-        pointer_targets = np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
+    sc_ids, sc_full_ids, sc_copy_full_ids, sc_fillers = \
+        vectorize_query(sentence, vocabs, FLAGS)
 
-        # extract Tensorflow features from the input string
-        sc_vocab = vocabs.sc_vocab
-        tg_vocab = vocabs.tg_vocab
-
-        if FLAGS.char:
-            sc_ids, _ = data_utils.sentence_to_token_ids(sentence,
-                sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
-            sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
-                sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer,
-                use_unk=False)
-            sc_copy_full_ids = []
-        else:
-            if FLAGS.explain:
-                sentence = data_tools.bash_tokenizer(
-                    sentence, arg_type_only=FLAGS.normalized)
-                sc_tokenizer = None
-                sc_full_tokenizer = None
-            else:
-                if FLAGS.dataset.startswith("bash"):
-                    sc_tokenizer = tokenizer.ner_tokenizer \
-                        if FLAGS.normalized else tokenizer.basic_tokenizer
-                    sc_full_tokenizer = tokenizer.basic_tokenizer
-                else:
-                    sc_tokenizer = tokenizer.space_tokenizer
-                    sc_full_tokenizer = tokenizer.space_tokenizer
-            sc_ids, entities = data_utils.sentence_to_token_ids(
-                sentence, sc_vocab, sc_tokenizer, None)
-            sc_full_ids, _ = data_utils.sentence_to_token_ids(
-                sentence, sc_vocab,sc_full_tokenizer, None, use_unk=False)
-            sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
-                tg_vocab, sc_full_tokenizer, None, use_unk=False,
-                use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
-
-    # Note that we only perform source word filtering when translating from
-    # natural language to bash
-    if not (FLAGS.dataset.startswith('bash') or FLAGS.dataset == 'regex-turk'
-            and not FLAGS.explain):
-        sc_ids = sc_full_ids
+    tg_ids = [data_utils.ROOT_ID]
+    tg_full_ids = [data_utils.ROOT_ID]
     
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
                     if model.buckets[b][0] > len(sc_ids)])
+
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [[sc_ids], [sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
-        pointer_targets=[pointer_targets], bucket_id=bucket_id)
+        [sc_ids, sc_full_ids, sc_copy_full_ids], [[tg_ids], [tg_full_ids]],
+        bucket_id=bucket_id)
+
+    # Compute neural network decoding output
     model_outputs = model.step(
         sess, formatted_example, bucket_id, forward_only=True)
     output_logits = model_outputs.output_logits
 
-    # Decode the output for this 1-element batch.
-    # Non-grammatical templates and templates that cannot hold all fillers are
-    # filtered out.
-    if FLAGS.fill_argument_slots:
-        assert(slot_filling_classifier is not None)
-        sc_fillers = entities[0]
-    else:
-        sc_fillers = None
     decoded_outputs = decode(formatted_example.encoder_full_inputs, model_outputs, 
                              FLAGS, vocabs, sc_fillers, slot_filling_classifier)
 
     return decoded_outputs, output_logits
 
 
+def vectorize_query(sentence, vocabs, FLAGS):
+    """
+    Vectorize an input query.
+    """
+    sc_vocab = vocabs.sc_vocab
+    tg_vocab = vocabs.tg_vocab
+
+    if FLAGS.char:
+        sc_ids, _ = data_utils.sentence_to_token_ids(sentence,
+            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer)
+        sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
+            sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer,
+            use_unk=False)
+        sc_copy_full_ids = []
+    else:
+        if FLAGS.explain:
+            sentence = data_tools.bash_tokenizer(
+                sentence, arg_type_only=FLAGS.normalized)
+            sc_tokenizer = None
+            sc_full_tokenizer = None
+        else:
+            if FLAGS.dataset.startswith("bash"):
+                sc_tokenizer = tokenizer.ner_tokenizer \
+                    if FLAGS.normalized else tokenizer.basic_tokenizer
+                sc_full_tokenizer = tokenizer.basic_tokenizer
+            else:
+                sc_tokenizer = tokenizer.space_tokenizer
+                sc_full_tokenizer = tokenizer.space_tokenizer
+        sc_ids, entities = data_utils.sentence_to_token_ids(
+            sentence, sc_vocab, sc_tokenizer, None)
+        sc_full_ids, _ = data_utils.sentence_to_token_ids(
+            sentence, sc_vocab,sc_full_tokenizer, None, use_unk=False)
+        sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
+            tg_vocab, sc_full_tokenizer, None, use_unk=False,
+            use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
+
+    # Decode the output for this 1-element batch and apply output filtering.
+    sc_fillers = entities[0] if FLAGS.fill_argument_slots else None
+
+    # Note that we only perform source word filtering when translating from
+    # natural language to bash
+    if not (FLAGS.dataset.startswith('bash') or FLAGS.dataset == 'regex-turk'
+            and not FLAGS.explain):
+        sc_ids = sc_full_ids
+
+    return sc_ids, sc_full_ids, sc_copy_full_ids, sc_fillers
+
+
 def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
            slot_filling_classifier=None):
     """
-    Transform the neural network output into readable strings and apply related
-    filters.
+    Transform the neural network output into readable strings and apply output
+    filtering (if any).
     :param encoder_inputs:
     :param model_outputs:
     :param FLAGS:
@@ -181,23 +176,24 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
         assert(decoder_outputs is not None)
 
     output_symbols = model_outputs.output_symbols
+    batch_size = len(output_symbols)
     batch_outputs = []
     num_output_examples = 0
 
-    # prepare copied indices if the model is trained to predict argument-slot
-    # alignments explicitly
+    # Prepare copied indices if the model is trained with explicit copy
+    # alignments.
     if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
         pointers = model_outputs.pointers
         sc_length = pointers.shape[1]
         tg_length = pointers.shape[2]
         if FLAGS.token_decoding_algorithm == 'greedy':
             batch_pointers = np.reshape(pointers,
-                [FLAGS.batch_size, 1, sc_length, tg_length])
+                [batch_size, 1, sc_length, tg_length])
         else:
             batch_pointers = np.reshape(pointers,
-                [FLAGS.batch_size, FLAGS.beam_size, sc_length, tg_length])
+                [batch_size, FLAGS.beam_size, sc_length, tg_length])
 
-    for batch_id in xrange(len(output_symbols)):
+    for batch_id in xrange(batch_size):
         def as_str(output):
             if output < FLAGS.target_vocab_size:
                 token = rev_tg_vocab[output]
@@ -296,21 +292,22 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             # slots to hold the fillers (to rule out templates that are
             # trivially unqualified)
             output_example = False
-            if FLAGS.explain or not FLAGS.dataset.startswith("bash") \
-                    or sc_fillers is None:
+            if FLAGS.explain or \
+                    not FLAGS.dataset.startswith("bash") or sc_fillers is None:
                 temp = tg
                 output_example = True
             else:
                 # Step 3: match the fillers to the argument slots
+                batch_sc_fillers = sc_fillers[batch_id]
                 if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
                     tree2, temp, _ = slot_filling.stable_slot_filling(
-                        output_tokens, sc_fillers, tg_slots,
+                        output_tokens, batch_sc_fillers, tg_slots,
                         batch_pointers[batch_id, beam_id, :, :],
                         None, None, None, verbose=False)
                 elif FLAGS.fill_argument_slots:
                     if len(tg_slots) > len(sc_fillers):
                         tree2, temp, _ = slot_filling.stable_slot_filling(
-                            output_tokens, sc_fillers, tg_slots, None,
+                            output_tokens, batch_sc_fillers, tg_slots, None,
                             encoder_outputs[batch_id],
                             decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
                             slot_filling_classifier, verbose=False)
@@ -343,7 +340,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             [np.transpose(np.reshape(x, [sentence_length, FLAGS.beam_size,
                                          FLAGS.max_tg_token_size + 1]),
                           (1, 0, 2))
-             for x in np.split(char_output_symbols, FLAGS.batch_size, 1)]
+             for x in np.split(char_output_symbols, batch_size, 1)]
         for batch_id in xrange(len(batch_char_predictions)):
             beam_char_outputs = []
             top_k_char_predictions = batch_char_predictions[batch_id]
