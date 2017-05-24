@@ -32,7 +32,7 @@ error_types = {
 }
 
 
-def eval_set(model_dir, dataset, top_k, FLAGS, verbose=True):
+def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
     eval_bash = FLAGS.dataset.startswith("bash") and not FLAGS.explain
     eval_regex = FLAGS.dataset.startswith("regex") and not FLAGS.explain
 
@@ -52,7 +52,7 @@ def eval_set(model_dir, dataset, top_k, FLAGS, verbose=True):
     if eval_bash:
         top_k_cms = np.zeros([len(grouped_dataset), top_k])
 
-    prediction_list = load_predictions(model, top_k)
+    prediction_list = load_predictions(model_dir, decode_sig, top_k)
 
     with DBConnection() as db:
         data_id = 0
@@ -461,7 +461,7 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                     o_f.write(output_str + '\n')
 
 
-def load_predictions(model, top_k):
+def load_predictions(model_dir, decode_sig, top_k):
     """
     Load model predictions (top_k per example) from disk.
 
@@ -469,8 +469,8 @@ def load_predictions(model, top_k):
     :param top_k: Maximum number of predictions to read per example.
     :return: List of top k predictions.
     """
-    with open(os.path.join(model.model_dir,
-            'predictions.{}.latest'.format(model.decode_sig))) as f:
+    with open(os.path.join(model_dir,
+            'predictions.{}.latest'.format(decode_sig))) as f:
         prediction_list = []
         for line in f:
             predictions = line.split('|||')
