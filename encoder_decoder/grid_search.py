@@ -50,7 +50,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
     hp_range = hyperparam_range
 
     print("======== Grid Search ========")
-    print("%d hyperparameters: " % num_hps)
+    print("%d hyperparameter(s): " % num_hps)
     for i in xrange(num_hps):
         print("{}: {}".format(
             hyperparameters[i], hp_range[hyperparameters[i]]))
@@ -120,6 +120,7 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set,
     Run multiple experiments with different sets of hyperparameters.
     """
 
+    print("===== Scheduled Experiments =====")
     for hyperparam_set in hyperparam_sets:
         for hp in hyperparam_set:
             setattr(FLAGS, hp, hyperparam_set[hp])
