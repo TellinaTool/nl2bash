@@ -273,27 +273,17 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
     def __call__(self, input_embedding, state, scope=None):
         cell_output, state = self.cell(input_embedding, state, scope)
-        # If multi-layer RNN cell is used, apply attention to the top layer.
-        # if self.num_layers > 1:
-        #     if nest.is_sequence(state):
-        #         top_state = state[-1]
-        #     else:
-        #         top_state = tf.split(1, self.num_layers, state)[-1]
-        # else:
-        #     top_state = state
-        # if nest.is_sequence(top_state):
-        #     top_state = tf.concat(1, nest.flatten(top_state))
         attns, alignments = self.attention(cell_output)
 
-        with tf.variable_scope("AttnStateProjection"):
-            attn_state = tf.nn.dropout(
-                            tf.tanh(tf.nn.rnn_cell._linear(
-                                [cell_output, attns[0]], self.dim, True)),
-                                self.attention_output_keep)
+        # with tf.variable_scope("AttnStateProjection"):
+        #     attn_state = tf.nn.dropout(
+        #                     tf.tanh(tf.nn.rnn_cell._linear(
+        #                          [cell_output, attns[0]], self.dim, True)),
+        #                          self.attention_output_keep# )
 
         with tf.variable_scope("AttnOutputProjection"):
-            # attention mechanism on output state
-            output = tf.nn.rnn_cell._linear(attn_state, self.dim, True)
+            output = tf.nn.rnn_cell._linear(
+                [cell_output, attns[0]], self.dim, True)
 
         self.attention_cell_vars = True
         return output, state, alignments, attns
