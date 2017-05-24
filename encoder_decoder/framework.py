@@ -277,9 +277,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         num_heads=num_heads,
                         encoder_inputs=encoder_channel_inputs[1],
                         forward_only=forward_only)
-        
-        # --- Compute Losses --- #
 
+        bs_decoding = forward_only and \
+                      self.token_decoding_algorithm == 'beam_search'
+
+        # --- Compute Losses --- #
+        
         # A. Sequence Loss
         if forward_only or self.training_algorithm == "standard":
             if self.use_copy and self.copy_fun != 'supervised':
@@ -287,13 +290,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 binary_targets = tf.split(1, self.max_target_length,
                     tf.nn.embedding_lookup(vocab_indices,
                         tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))
-                if forward_only and self.token_decoding_algorithm == 'beam_search':
+                if bs_decoding:
                     binary_targets = graph_utils.wrap_inputs(
                         self.decoder.beam_decoder, binary_targets)
                 encoder_decoder_token_loss = self.sequence_loss(
                     outputs, binary_targets, target_weights,
                     graph_utils.cross_entropy_with_logits)
             else:
+                if bs_decoding:
+                    targets = graph_utils.wrap_inputs(targets)
                 encoder_decoder_token_loss = self.sequence_loss(
                     outputs, targets, target_weights,
                     graph_utils.softmax_loss(
@@ -330,7 +335,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             char_target_weights = [tf.squeeze(x, 1)
                             for x in tf.split(1, self.max_target_token_size + 1,
                             tf.concat(0, self.char_target_weights))]
-            if forward_only and self.token_decoding_algorithm == 'beam_search':
+            if bs_decoding:
                 char_decoder_inputs = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, char_decoder_inputs)
                 char_targets = graph_utils.wrap_inputs(
@@ -370,7 +375,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             C = tf.argmax(tf.concat(1, binary_targets), 2)
             output_symbols = []
             for i in xrange(self.batch_size):
-                if forward_only and self.token_decoding_algorithm == 'beam_search':
+                if bs_decoding:
                     beam_output_symbols = []
                     for j in xrange(self.beam_size):
                         beam_output_symbols.append(C[i*self.beam_size + j])
