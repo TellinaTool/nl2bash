@@ -300,7 +300,8 @@ def get_buckets(FLAGS):
 
 def softmax_loss(output_project, num_samples, target_vocab_size):
     w, b = output_project
-    if num_samples > 0:
+    if num_samples > 0 and num_samples < target_vocab_size:
+        print("loss function = sampled_softmax_loss")
         w_t = tf.transpose(w)
         def sampled_loss(outputs, labels):
             labels = tf.reshape(labels, [-1, 1])
@@ -308,11 +309,12 @@ def softmax_loss(output_project, num_samples, target_vocab_size):
                 w_t, b, outputs, labels, num_samples, target_vocab_size)
         loss_function = sampled_loss
     else:
+        print("loss function = softmax_loss")
         def loss(outputs, labels):
             logits = tf.matmul(outputs, w) + b
             vocab_indices = tf.diag(tf.ones(w.get_shape()[1]))
-            return tf.nn.softmax_cross_entropy_with_logits(logits,
-                tf.nn.embedding_lookup(vocab_indices, labels))
+            return tf.nn.softmax_cross_entropy_with_logits(
+                logits, tf.nn.embedding_lookup(vocab_indices, labels))
         loss_function = loss
     return loss_function
 
