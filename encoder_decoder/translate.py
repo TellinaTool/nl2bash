@@ -166,16 +166,17 @@ def decode(data_set, verbose=True):
         model = create_model(sess, forward_only=True)
         decode_tools.decode_set(sess, model, data_set, 3, FLAGS, verbose)
 
-        return model.model_dir
+        return model.model_dir, model.decode_sig
 
 
-def eval(data_set, model_dir=None, verbose=True):
+def eval(data_set, model_dir=None, decode_sig=None, verbose=True):
     if model_dir is None:
         model_subdir, decode_sig = graph_utils.get_decode_signature(FLAGS)
         model_dir = os.path.join(FLAGS.model_root_dir, model_subdir)
     print("evaluating " + model_dir)
 
-    return eval_tools.eval_set(model_dir, data_set, 3, FLAGS, verbose=verbose)
+    return eval_tools.eval_set(model_dir, decode_sig, data_set, 3, FLAGS, 
+        verbose=verbose)
 
 
 def manual_eval(dataset, num_eval):
@@ -234,10 +235,10 @@ def cross_validation(train_set):
         cv_dev_set = train_folds[fold_id]
         train(cv_train_set, cv_dev_set)
         tf.reset_default_graph()
-        decode_sig = decode(cv_dev_set)
+        model_dir, decode_sig = decode(cv_dev_set)
         tf.reset_default_graph()
         match_score, _, dist, _ = \
-            eval(cv_dev_set, decode_sig, verbose=False)
+            eval(cv_dev_set, model_dir, decode_sig, verbose=False)
         match_scores.append(match_score)
         dists.append(dist)
 
@@ -585,9 +586,9 @@ def main(_):
         elif FLAGS.eval_slot_filling:
             eval_slot_filling(dataset)
         elif FLAGS.decode:
-            model_dir = decode(dataset)
+            model_dir, decode_sig = decode(dataset)
             if not FLAGS.explain:
-                eval(dataset, model_dir=model_dir, verbose=False)
+                eval(dataset, model_dir, decode_sig, verbose=False)
         elif FLAGS.grid_search:
             grid_search.grid_search(
                 train, decode, eval, train_set, dataset, FLAGS)
@@ -602,11 +603,11 @@ def main(_):
 
             # Decode the new model on the development set.
             tf.reset_default_graph()
-            model_dir = decode(dataset)
+            model_dir, decode_sig = decode(dataset)
 
             # Run automatic evaluation on the development set.
             if not FLAGS.explain:
-                eval(dataset, model_dir=model_dir, verbose=False)
+                eval(dataset, model_dir, decode_sig, verbose=False)
 
     
 if __name__ == "__main__":
