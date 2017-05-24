@@ -1,4 +1,4 @@
-# Tellina Learning Module
+# Awesome Neural Machine Translation
 
 This repository consists of the following components:
 
