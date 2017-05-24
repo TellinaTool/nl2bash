@@ -600,7 +600,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         return E
 
 
-    def get_batch(self, data, bucket_id, use_all=False):
+    def get_batch(self, data, bucket_id=-1, use_all=False):
         """
         Get a random batch of data from the specified bucket, prepare for step.
 
@@ -626,7 +626,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if not use_all:
             data_ids = np.random.choice(data_ids, self.batch_size)
         for i in data_ids:
-            dp = data[bucket_id][i]
+            dp = data[i] if bucket_id == -1 else data[bucket_id][i]
             encoder_inputs.append(dp.sc_ids)
             encoder_full_inputs.append(dp.sc_full_ids)
             encoder_copy_full_inputs.append(dp.sc_copy_full_ids)
