@@ -282,7 +282,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                       self.token_decoding_algorithm == 'beam_search'
 
         # --- Compute Losses --- #
-        
+
         # A. Sequence Loss
         if forward_only or self.training_algorithm == "standard":
             if self.use_copy and self.copy_fun != 'supervised':
@@ -298,7 +298,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     graph_utils.cross_entropy_with_logits)
             else:
                 if bs_decoding:
-                    targets = graph_utils.wrap_inputs(targets)
+                    targets = graph_utils.wrap_inputs(
+                        self.decoder.beam_decoder, targets)
                 encoder_decoder_token_loss = self.sequence_loss(
                     outputs, targets, target_weights,
                     graph_utils.softmax_loss(
