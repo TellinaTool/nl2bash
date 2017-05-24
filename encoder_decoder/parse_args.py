@@ -96,6 +96,7 @@ def define_input_flags():
     tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
     tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
                               "Learning rate decays by this much.")
+    tf.app.flags.DEFINE_float("adam_epsilon", 1e-08, "Epsilon parameter in the Adam Optimizer.")
     tf.app.flags.DEFINE_float("max_gradient_norm", 5.0,
                               "Clip gradients to this norm.")
     tf.app.flags.DEFINE_integer("batch_size", 128,

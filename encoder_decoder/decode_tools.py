@@ -73,21 +73,34 @@ def demo(sess, model, FLAGS):
         sentence = sys.stdin.readline()
 
 
-def translate_fun(sentence, sess, model, vocabs, FLAGS,
+def translate_fun(data_point, sess, model, vocabs, FLAGS,
                   slot_filling_classifier=None):
-    sc_ids, sc_full_ids, sc_copy_full_ids, sc_fillers = \
-        vectorize_query(sentence, vocabs, FLAGS)
-
-    tg_ids = [data_utils.ROOT_ID]
-    tg_full_ids = [data_utils.ROOT_ID]
-    
+    if type(data_point) is str:
+        sc_ids, sc_full_ids, sc_copy_full_ids, sc_fillers = \
+            vectorize_query(input, vocabs, FLAGS)
+        tg_ids = [data_utils.ROOT_ID]
+        tg_full_ids = [data_utils.ROOT_ID]
+        pointer_targets = None
+    else:
+        sc_ids = data_point[0].sc_ids
+        sc_full_ids = data_point[0].sc_full_ids
+        sc_copy_full_ids = data_point[0].sc_copy_full_ids
+        tg_ids = data_point[0].tg_ids
+        tg_full_ids = data_point[0].tg_full_ids
+        pointer_targets = data_point[0].pointer_targets
+        if FLAGS.fill_argument_slots:
+            _, entities = tokenizer.ner_tokenizer(data_point[0].sc_txt)
+            sc_fillers = entities[0]
+        else:
+            sc_fillers = None
+ 
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
                     if model.buckets[b][0] > len(sc_ids)])
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [sc_ids, sc_full_ids, sc_copy_full_ids], [[tg_ids], [tg_full_ids]],
+        [[sc_ids], [sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
         bucket_id=bucket_id)
 
     # Compute neural network decoding output
