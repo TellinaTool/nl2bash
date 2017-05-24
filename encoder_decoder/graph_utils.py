@@ -62,6 +62,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params["optimizer"] = FLAGS.optimizer
     params["learning_rate"] = FLAGS.learning_rate
     params["learning_rate_decay_factor"] = FLAGS.learning_rate_decay_factor
+    params["adam_epsilon"] = FLAGS.adam_epsilon
 
     params["steps_per_epoch"] = FLAGS.steps_per_epoch
     params["num_epochs"] = FLAGS.num_epochs
@@ -198,6 +199,7 @@ def get_decode_signature(FLAGS):
         model_subdir += '-{}'.format(FLAGS.sc_char_dim)
     model_subdir += '-{}'.format(FLAGS.num_layers)
     model_subdir += '-{}'.format(FLAGS.learning_rate)
+    model_subdir += '-{}'.format(FLAGS.adam_epsilon)
     model_subdir += '-{}'.format(FLAGS.sc_input_keep)
     model_subdir += '-{}'.format(FLAGS.sc_output_keep)
     model_subdir += '-{}'.format(FLAGS.tg_input_keep)
@@ -345,6 +347,49 @@ class NNModel(object):
     @property
     def num_layers(self):
         return self.hyperparams["num_layers"]
+
+    # --- training algorithm hyperparameters --- #
+
+    @property
+    def training_algorithm(self):
+        return self.hyperparams["training_algorithm"]
+
+    @property
+    def use_sampled_softmax(self):
+        return self.num_samples > 0 and \
+               self.num_samples < self.target_vocab_size
+
+    @property
+    def num_samples(self):
+        return self.hyperparams["num_samples"]
+
+    @property
+    def batch_size(self):
+        return self.hyperparams["batch_size"]
+
+    @property
+    def num_epochs(self):
+        return self.hyperparams["num_epochs"]
+
+    @property
+    def steps_per_epoch(self):
+        return self.hyperparams["steps_per_epoch"]
+
+    @property
+    def max_gradient_norm(self):
+        return self.hyperparams["max_gradient_norm"]
+
+    @property
+    def optimizer(self):
+        return self.hyperparams["optimizer"]
+
+    @property
+    def margin(self):
+        return self.hyperparams["margin"]
+
+    @property
+    def adam_epsilon(self):
+        return self.hyperparams["adam_epsilon"]
 
     @property
     def tg_token_use_attention(self):
@@ -536,32 +581,7 @@ class NNModel(object):
     def generation_mask_path(self):
         return self.hyperparams["generation_mask_path"]
 
-    # -- optimization parameters -- #
-
-    @property
-    def training_algorithm(self):
-        return self.hyperparams["training_algorithm"]
-
-    @property
-    def use_sampled_softmax(self):
-        return self.num_samples > 0 and \
-               self.num_samples < self.target_vocab_size
-
-    @property
-    def num_samples(self):
-        return self.hyperparams["num_samples"]
-
-    @property
-    def batch_size(self):
-        return self.hyperparams["batch_size"]
-
-    @property
-    def max_gradient_norm(self):
-        return self.hyperparams["max_gradient_norm"]
-
-    @property
-    def margin(self):
-        return self.hyperparams["margin"]
+    # --- decoding algorithm hyperparameters --- #
 
     @property
     def token_decoding_algorithm(self):
@@ -570,10 +590,6 @@ class NNModel(object):
     @property
     def char_decoding_algorithm(self):
         return self.hyperparams["char_decoding_algorithm"]
-
-    @property
-    def optimizer(self):
-        return self.hyperparams["optimizer"]
 
     @property
     def beam_size(self):
@@ -594,14 +610,6 @@ class NNModel(object):
     @property
     def top_k(self):
         return self.hyperparams["top_k"]
-
-    @property
-    def num_epochs(self):
-        return self.hyperparams["num_epochs"]
-
-    @property
-    def steps_per_epoch(self):
-        return self.hyperparams["steps_per_epoch"]
 
     @property
     def force_reading_input(self):
