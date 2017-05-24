@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 
 import itertools
+import numpy as np
 import random
 import sys
 if sys.version_info > (3, 0):
@@ -161,11 +162,12 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun,
     :return: The metrics being tuned.
     """
     tf.reset_default_graph()
-    train_fun(train_set, dev_set)
+    try:
+        train_fun(train_set, dev_set)
+        tf.reset_default_graph()
+        decode_sig = decode_fun(dev_set, verbose=False)
 
-    tf.reset_default_graph()
-    decode_sig = decode_fun(dev_set, verbose=False)
-
-    M = eval_fun(dev_set, decode_sig, verbose=False)
-
-    return M[metrics]
+        M = eval_fun(dev_set, decode_sig, verbose=False)
+        return M[metrics]
+    except ValueError:
+        return -np.inf

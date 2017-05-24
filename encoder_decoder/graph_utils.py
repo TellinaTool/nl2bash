@@ -74,8 +74,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params["use_copy"] = FLAGS.use_copy
     params["copy_fun"] = FLAGS.copy_fun
     params["chi"] = FLAGS.chi
-    params["generation_mask_path"] = os.path.join(FLAGS.data_dir,
-                                                  "generation_mask.npy")
+    params["generation_mask_path"] = \
+        os.path.join(FLAGS.data_dir, "generation_mask.npy")
 
     params["tg_token_attn_fun"] = FLAGS.tg_token_attn_fun
     params["beta"] = FLAGS.beta
