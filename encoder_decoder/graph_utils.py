@@ -199,6 +199,7 @@ def get_decode_signature(FLAGS):
         model_subdir += '-{}'.format(FLAGS.sc_char_dim)
     model_subdir += '-{}'.format(FLAGS.num_layers)
     model_subdir += '-{}'.format(FLAGS.learning_rate)
+    model_subdir += '-{}'.format(FLAGS.adam_epsilon)
     model_subdir += '-{}'.format(FLAGS.sc_input_keep)
     model_subdir += '-{}'.format(FLAGS.sc_output_keep)
     model_subdir += '-{}'.format(FLAGS.tg_input_keep)
