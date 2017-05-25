@@ -101,15 +101,15 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
         [[sc_ids], [sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
-        bucket_id=bucket_id)
+        pointer_targets=pointer_targets, bucket_id=bucket_id)
 
     # Compute neural network decoding output
     model_outputs = model.step(
         sess, formatted_example, bucket_id, forward_only=True)
     output_logits = model_outputs.output_logits
 
-    decoded_outputs = decode(formatted_example.encoder_full_inputs, model_outputs, 
-                             FLAGS, vocabs, sc_fillers, slot_filling_classifier)
+    decoded_outputs = decode(formatted_example.encoder_full_inputs,
+        model_outputs, FLAGS, vocabs, sc_fillers, slot_filling_classifier)
 
     return decoded_outputs, output_logits
 
@@ -173,7 +173,10 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
     :param vocabs:
     :param sc_fillers:
     :param slot_filling_classifier:
-    :return:
+    :return batch_outputs: nested list of (target_ast, target) tuples
+        - target_ast is a python tree object for target languages that we know how to
+          parse and a dummy string for those we don't
+        - target is the output string
     """
     rev_sc_vocab = vocabs.rev_sc_vocab
     rev_tg_vocab = vocabs.rev_tg_vocab
@@ -232,14 +235,13 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             if data_utils.EOS_ID in outputs:
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
 
-            if FLAGS.fill_argument_slots:
-                tg_slots = {}
-
-            tree, output_tokens = None, []
             if FLAGS.char:
-                tg = "".join([as_str(output) for output in outputs])\
+                target = "".join([as_str(output) for output in outputs])\
                     .replace(data_utils._UNK, ' ')
             else:
+                tree, output_tokens = None, []
+                if FLAGS.fill_argument_slots:
+                    tg_slots = {}
                 for token_id in xrange(len(outputs)):
                     output = outputs[token_id]
                     if output < len(rev_tg_vocab):
@@ -284,21 +286,21 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                                 merged_output_tokens.append(token)
                     output_tokens = merged_output_tokens
 
-                tg = " ".join(output_tokens)
+                target = " ".join(output_tokens)
             
             # Step 2: check if the predicted command template is grammatical
             if (FLAGS.grammatical_only or FLAGS.fill_argument_slots) \
                     and not FLAGS.explain:
                 if FLAGS.dataset.startswith("bash"):
-                    tg = re.sub('( ;\s+)|( ;$)', ' \\; ', tg)
-                    tree = data_tools.bash_parser(tg)
+                    target = re.sub('( ;\s+)|( ;$)', ' \\; ', target)
+                    ast = data_tools.bash_parser(target)
                 elif FLAGS.dataset.startswith("regex"):
                     # TODO: check if a predicted regular expression is legal
-                    tree = ''
+                    ast = '__DUMMY_TREE__'
                 else:
-                    tree = data_tools.paren_parser(tg)
+                    ast = data_tools.paren_parser(target)
                 # filter out non-grammatical output
-                if tree is None:
+                if ast is None:
                     continue
 
             # Step 3: check if the predicted command templates have enough
@@ -307,33 +309,30 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             output_example = False
             if FLAGS.explain or \
                     not FLAGS.dataset.startswith("bash") or sc_fillers is None:
-                temp = tg
                 output_example = True
             else:
                 # Step 3: match the fillers to the argument slots
                 batch_sc_fillers = sc_fillers[batch_id]
                 if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
-                    tree2, temp, _ = slot_filling.stable_slot_filling(
+                    target_ast, target, _ = slot_filling.stable_slot_filling(
                         output_tokens, batch_sc_fillers, tg_slots,
                         batch_pointers[batch_id, beam_id, :, :],
                         None, None, None, verbose=False)
+                    output_example = True
                 elif FLAGS.fill_argument_slots:
                     if len(tg_slots) > len(sc_fillers):
-                        tree2, temp, _ = slot_filling.stable_slot_filling(
+                        target_ast, target, _ = slot_filling.stable_slot_filling(
                             output_tokens, batch_sc_fillers, tg_slots, None,
                             encoder_outputs[batch_id],
                             decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
                             slot_filling_classifier, verbose=False)
-                    else:
-                        temp = None
-                if temp is not None:
-                    output_example = True
-                    tree = tree2
+                        output_example = True
+
             if output_example:
                 if FLAGS.token_decoding_algorithm == "greedy":
-                    batch_outputs.append((tree, temp, outputs))
+                    batch_outputs.append((target_ast, target))
                 else:
-                    beam_outputs.append((tree, temp, outputs))
+                    beam_outputs.append((target_ast, target))
                 num_output_examples += 1
 
             # The threshold is used to increase decoding speed
@@ -433,7 +432,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
 
         if batch_outputs:
             if FLAGS.token_decoding_algorithm == "greedy":
-                tree, pred_cmd, outputs = batch_outputs[0]
+                tree, pred_cmd = batch_outputs[0]
                 if nl2bash:
                     pred_cmd = data_tools.ast2command(
                         tree, loose_constraints=True)
@@ -448,8 +447,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                 top_k_scores = output_logits[0]
                 num_preds = min(FLAGS.beam_size, top_k, len(top_k_predictions))
                 for j in xrange(num_preds):
-                    top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
-                        top_k_predictions[j]
+                    top_k_pred_tree, top_k_pred_cmd = top_k_predictions[j]
                     if nl2bash:
                         pred_cmd = data_tools.ast2command(
                             top_k_pred_tree, loose_constraints=True)

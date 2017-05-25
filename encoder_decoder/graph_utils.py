@@ -325,7 +325,7 @@ def wrap_inputs(beam_decoder, inputs):
 
 def cross_entropy_with_logits(logits, targets):
     P = normalize(logits)
-    epsilon = tf.constant(value=1e-6)
+    epsilon = tf.constant(value=1e-12)
     xent = -tf.reduce_sum(
         tf.reshape(targets, tf.shape(P)) * tf.log(P + epsilon), 1)
     return xent
@@ -468,8 +468,7 @@ class NNModel(object):
     @property
     def sc_token_dim(self):
         """
-        The layer dimension of each model depends on the model architecture and
-        the channels used.
+        Source token channel embedding dimension.
         """
         return self.hyperparams["sc_token_dim"]
 
@@ -495,6 +494,9 @@ class NNModel(object):
 
     @property
     def sc_char_dim(self):
+        """
+        Source character channel embedding dimension.
+        """
         return self.hyperparams["sc_char_dim"]
 
     @property
