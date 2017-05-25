@@ -1,0 +1,2 @@
+SRC = Parameter.cpp myassert.cpp Perplexity.cpp model1.cpp model2.cpp model3.cpp getSentence.cpp TTables.cpp ATables.cpp AlignTables.cpp main.cpp NTables.cpp model2to3.cpp collCounts.cpp alignment.cpp vocab.cpp MoveSwapMatrix.cpp transpair_model3.cpp transpair_model5.cpp transpair_model4.cpp utility.cpp parse.cpp reports.cpp model3_viterbi.cpp model3_viterbi_with_tricks.cpp Dictionary.cpp model345-peg.cpp hmm.cpp HMMTables.cpp ForwardBackward.cpp
+
