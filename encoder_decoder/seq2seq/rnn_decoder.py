@@ -8,7 +8,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-from encoder_decoder import decoder, data_utils, graph_utils
+from encoder_decoder import decoder, data_utils, graph_utils, rnn
 
 class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, scope, vocab_size, dim, embedding_dim,
@@ -257,7 +257,7 @@ class RNNDecoder(decoder.Decoder):
         else:
             input_size = self.dim
         with tf.variable_scope(self.scope + "_decoder_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(
+            cell = rnn.create_multilayer_cell(
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout,

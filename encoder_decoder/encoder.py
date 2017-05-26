@@ -115,7 +115,7 @@ class Encoder(graph_utils.NNModel):
         if self.sc_char_composition == 'rnn':
             with tf.variable_scope("encoder_char_rnn",
                                    reuse=self.char_rnn_vars) as scope:
-                cell = graph_utils.create_multilayer_cell(
+                cell = rnn.create_multilayer_cell(
                     self.sc_char_rnn_cell, scope, self.sc_char_dim,
                     self.sc_char_rnn_num_layers)
                 rnn_outputs, rnn_states = rnn.RNNModel(cell, input_embeddings,
@@ -154,7 +154,7 @@ class RNNEncoder(Encoder):
     def encoder_cell(self):
         """RNN cell for the encoder."""
         with tf.variable_scope("encoder_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
+            cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout)
         return cell
@@ -186,7 +186,7 @@ class BiRNNEncoder(Encoder):
     def forward_cell(self):
         """RNN cell for the forward RNN."""
         with tf.variable_scope("forward_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
+            cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout)
         return cell
@@ -194,7 +194,7 @@ class BiRNNEncoder(Encoder):
     def backward_cell(self):
         """RNN cell for the backward RNN."""
         with tf.variable_scope("backward_cell") as scope:
-            cell = graph_utils.create_multilayer_cell(self.rnn_cell, scope,
+            cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout)
         return cell

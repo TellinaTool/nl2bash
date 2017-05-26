@@ -10,7 +10,7 @@ import os
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from encoder_decoder import data_utils, rnn
+from encoder_decoder import data_utils
 
 
 def create_model(session, FLAGS, model_constructor, buckets, forward_only):
@@ -250,53 +250,6 @@ def get_buckets(FLAGS):
     else:
         raise AttributeError("Unrecognized dataset: {}".format(FLAGS.dataset))
     return buckets
-
-
-def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
-                           input_keep_prob=1, output_keep_prob=1,
-                           variational_recurrent=True, input_dim=-1):
-    """
-    Create the multi-layer RNN cell.
-    :param type: Type of RNN cell.
-    :param scope: Variable scope.
-    :param dim: Dimension of hidden layers.
-    :param num_layers: Number of layers of cells.
-    :param input_keep_prob: Proportion of input to keep in dropout.
-    :param output_keep_prob: Proportion of output to keep in dropout.
-    :param variational_recurrent: If set, use variational recurrent dropout.
-    :param input_dim: RNN input dimension, must be specified if it is 
-        different from the cell state dimension.
-    :return: RNN cell as specified.
-    """
-    with tf.variable_scope(scope):
-        if rnn_cell == "lstm":
-            cell = tf.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
-        elif rnn_cell == "gru":
-            cell = tf.nn.rnn_cell.GRUCell(dim)
-        elif rnn_cell == 'ran':
-            cell = rnn.RANCell(dim)
-        else:
-            raise ValueError("Unrecognized RNN cell type: {}.".format(type))
-
-        assert(input_keep_prob >= 0 and output_keep_prob >= 0)
-
-        if input_keep_prob < 1 or output_keep_prob < 1:
-            if input_dim == -1:
-                input_dim = dim
-            print("-- rnn dropout input keep probability: {}".format(input_keep_prob))
-            print("-- rnn dropout output keep probability: {}".format(output_keep_prob))
-            if variational_recurrent:
-                print("-- using variational dropout")
-            cell = rnn.DropoutWrapper(cell,
-                input_keep_prob=input_keep_prob,
-                output_keep_prob=output_keep_prob,
-                variational_recurrent=variational_recurrent,
-                input_size=input_dim, dtype=tf.float32)
-
-        if num_layers > 1:
-            cell = rnn.MultiRNNCell(
-                [cell] * num_layers, state_is_tuple=(rnn_cell=="lstm"))
-    return cell
 
 
 def softmax_loss(output_project, num_samples, target_vocab_size):
