@@ -240,8 +240,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     .replace(data_utils._UNK, ' ')
             else:
                 output_tokens = []
-                if FLAGS.fill_argument_slots:
-                    tg_slots = {}
+                tg_slots = {}
                 for token_id in xrange(len(outputs)):
                     output = outputs[token_id]
                     if output < len(rev_tg_vocab):
@@ -250,11 +249,10 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                             pred_token = pred_token.split("@@")[-1]
                         if pred_token.startswith('__LF__'):
                             pred_token = pred_token[len('__LF__'):]
-                        if FLAGS.fill_argument_slots:
-                            # process argument slots
-                            if pred_token in constants._ENTITIES:
-                                pred_token_type = pred_token
-                                tg_slots[token_id] = (pred_token, pred_token_type)
+                        # process argument slots
+                        if pred_token in constants._ENTITIES:
+                            pred_token_type = pred_token
+                            tg_slots[token_id] = (pred_token, pred_token_type)
                     else:
                         if FLAGS.use_copy and FLAGS.copy_fun != 'supervised':
                             pred_token = rev_sc_vocab[
