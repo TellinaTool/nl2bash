@@ -6,14 +6,14 @@ from __future__ import division
 from __future__ import print_function
 
 import collections
-import os
+import os, sys
 import sqlite3
 
 
 class DBConnection(object):
-    def __init__(self):
+    def __init__(self, db_path="eval_archive.db"):
         self.conn = sqlite3.connect(
-            os.path.join(os.path.dirname(__file__), "eval_archive.db"),
+            os.path.join(os.path.dirname(__file__), db_path),
             detect_types=sqlite3.PARSE_DECLTYPES,
             check_same_thread=False)
         self.cursor = self.conn.cursor()
@@ -395,8 +395,27 @@ class DBConnection(object):
         c.execute("VACUUM")
         self.conn.commit()
 
- 
+
+def import_from_table():
+    db_path1 = sys.argv[1]
+    db_path2 = sys.argv[2]
+    db1 = DBConnection(db_path1)
+    db2 = DBConnection(db_path2)
+    for nl, cmd in db1.execute("SELECT NL.nl, Cmd.cmd FROM CmdJudge "
+                             "JOIN NL ON CmdJudge.nl_id = NL.id "
+                             "JOIN Cmd ON CmdJudge.cmd_id = Cmd.id "
+                             "WHERE CmdJudge.judgement = 1"):
+        print("cmd judgement: {}".format((nl.strip(), cmd.strip(), 1)))
+        db2.add_str_judgement((nl.strip(), cmd.strip(), 1))
+    for nl, temp in db1.execute("SELECT NL.nl, Temp.temp FROM TempJudge "
+                              "JOIN NL ON TempJudge.nl_id = NL.id "
+                              "JOIN Temp ON TempJudge.temp_id = Temp.id "
+                              "WHERE TempJudge.judgement = 1"):
+        print("temp judgement: {}".format((nl.strip(), temp.strip(), 1)))
+        db2.add_temp_judgement((nl.strip(), temp.strip(), 1))
+
+
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
-    # db.clear_model_output()
+    import_from_table()
