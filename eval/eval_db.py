@@ -403,13 +403,13 @@ def import_from_table():
     db_path2 = sys.argv[2]
     db1 = DBConnection(db_path1)
     db2 = DBConnection(db_path2)
-    for nl, cmd in db1.execute("SELECT NL.nl, Cmd.cmd FROM CmdJudge "
+    for nl, cmd in db1.cursor.execute("SELECT NL.nl, Cmd.cmd FROM CmdJudge "
                              "JOIN NL ON CmdJudge.nl_id = NL.id "
                              "JOIN Cmd ON CmdJudge.cmd_id = Cmd.id "
                              "WHERE CmdJudge.judgement = 1"):
         print("cmd judgement: {}".format((nl.strip(), cmd.strip(), 1)))
         db2.add_str_judgement((nl.strip(), cmd.strip(), 1))
-    for nl, temp in db1.execute("SELECT NL.nl, Temp.temp FROM TempJudge "
+    for nl, temp in db1.cursor.execute("SELECT NL.nl, Temp.temp FROM TempJudge "
                               "JOIN NL ON TempJudge.nl_id = NL.id "
                               "JOIN Temp ON TempJudge.temp_id = Temp.id "
                               "WHERE TempJudge.judgement = 1"):

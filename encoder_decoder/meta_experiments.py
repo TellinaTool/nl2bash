@@ -29,6 +29,7 @@ hyperparam_range = {
     "tg_output_keep": [0.5, 0.6, 0.7, 0.8],
     "adam_epsilon": [1e-8, 1e-7, 1e-5, 1e-3, 1e-1],
     "learning_rate": [0.0001, 0.001, 0.01, 0.1],
+    "sc_token_dim": [150, 200, 250, 100],
     "num_layers": [2, 4, 8],
     "num_samples": [1024, 512],
     "beta": [0.8,0.9,1.0,1.1,1.2]
