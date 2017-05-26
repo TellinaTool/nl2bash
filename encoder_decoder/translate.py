@@ -562,7 +562,7 @@ def main(_):
         if FLAGS.gen_eval_sheet:
             gen_eval_sheet(dataset)
         elif FLAGS.eval:
-            eval(dataset, verbose=True)
+            eval(dataset, verbose=False)
         elif FLAGS.manual_eval:
             manual_eval(dataset, 100)
         elif FLAGS.eval_slot_filling:
