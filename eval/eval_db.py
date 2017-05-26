@@ -1,5 +1,6 @@
 """
 Database which stores model predictions and manual judgements.
+            irint(nl)
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -314,10 +315,11 @@ class DBConnection(object):
         nl = str(nl, 'utf-8') if not isinstance(nl, str) else nl
         c = self.cursor
         correct_temps = []
-        for pred_temp, in c.execute("SELECT Temp.temp FROM TempJudge "
+        for nl, pred_temp, in c.execute("SELECT NL.nl, Temp.temp FROM TempJudge "
                                     "JOIN NL ON TempJudge.nl_id = NL.id "
                                     "JOIN Temp ON TempJudge.temp_id = Temp.id "
                                     "WHERE NL.nl = ? AND TempJudge.judgement = 1", (nl,)):
+            print(nl)
             correct_temps.append(pred_temp)
         return correct_temps
 

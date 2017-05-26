@@ -63,20 +63,19 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
         data_id = 0
         for num_eval in xrange(len(grouped_dataset)):
             key, data_group = grouped_dataset[num_eval]
-            sc_str = bytes(data_group[0].sc_txt, 'utf-8')
+            sc_str = data_group[0].sc_txt
             tg_strs = [dp.tg_txt.strip() for dp in data_group]
             num_gts = len(tg_strs)
             if eval_bash:
                 gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
                 gts = gt_trees + \
                       [cmd_parser(cmd) for cmd in db.get_correct_temps(sc_str)]
-                print(db.get_correct_temps(sc_str))
             else:
                 gts = tg_strs + db.get_correct_temps(sc_str)
 
             if verbose:
                 print("Example {} ({})".format(num_eval, len(tg_strs)))
-                print("Original Source: {}".format(sc_str.strip()))
+                print("Original Source: {}".format(sc_str))
                 print("Source: {}".format(key))
                 for j in xrange(len(tg_strs)):
                     print("GT Target {}: ".format(j+1) + tg_strs[j].strip())
@@ -478,7 +477,7 @@ def import_manual_annotations_from_files(input_dir):
     def parse_csv(file_name):
         """parse a file into a log for evaluation"""
         task_log = {}
-        with open(file_name) as csvfile:
+        with open(os.path.join(input_dir, file_name)) as csvfile:
             reader = csv.DictReader(csvfile)
             current_task = {}
             for row in reader:
@@ -547,14 +546,14 @@ def import_manual_annotations_from_files(input_dir):
 
     with DBConnection() as db:
         for task_id in annotation_log:
-            task = merge_log(task_id)
+            task = annotation_log[task_id]
             for i in range(len(task["top_solutions"])):
                 solution = task["top_solutions"][i]
-                print((task["description"], solution["command"], 1))
                 if solution["command_correct"]:
                     db.add_str_judgement(
                         (task["description"], solution["command"], 1))
                 if solution["template_correct"]:
+                    print((task["description"], solution["command"], 1))
                     db.add_temp_judgement(
                         (task["description"], solution["command"], 1))
 
