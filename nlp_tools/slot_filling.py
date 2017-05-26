@@ -41,7 +41,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, pointer_targets,
     """
 
     # Step a): prepare (binary) type alignment matrix based on type info
-    M = np.zeros(pointer_targets.shape)
+    M = np.zeros([len(encoder_outputs), len(decoder_outputs)], dtype=np.int32)
     for f in nl_fillers:
         assert(f <= len(encoder_outputs))
         surface, filler_type = nl_fillers[f]
@@ -56,9 +56,9 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, pointer_targets,
         assert(encoder_outputs is not None)
         assert(decoder_outputs is not None)
         assert(slot_filling_classifier is not None)
-        pointer_targets = np.zeros(len(encoder_outputs), len(decoder_outputs))
+        pointer_targets = np.zeros([len(encoder_outputs), len(decoder_outputs)])
         for f in M:
-            if len([s for s in M[f] if M[f][s] > -np.inf]) > 1:
+            if np.sum(M[f]) > 1:
                 X = []
                 # use reversed index for the encoder embeddings matrix
                 ff = len(encoder_outputs) - f - 1
@@ -76,7 +76,15 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, pointer_targets,
                         print('alignment ({}, {}): {}\t{}\t{}'.format(
                             f, s, nl_fillers[f], cm_slots[s], raw_scores[ii][0]))
 
-    mappings, remained_fillers = stable_marriage_alignment(M * pointer_targets)
+    M = M + pointer_targets
+    # convert M into a dictinary representation of a sparse matrix
+    M_dict = collections.defaultdict(dict)
+    for i in xrange(M.shape[0]):
+        if np.sum(M[i]) > 0:
+            for j in xrange(M.shape[1]):
+                if M[i, j] > 0:
+                    M_dict[i][j] = M[i, j]
+    mappings, remained_fillers = stable_marriage_alignment(M_dict)
 
     if not remained_fillers:
         for f, s in mappings:
