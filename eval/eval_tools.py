@@ -68,7 +68,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
                 gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
                 gts = gt_trees + \
                       [cmd_parser(cmd) for cmd in db.get_correct_temps(sc_str)]
-                gts = gt_trees + \
+                gts = gts + \
                       [cmd_parser(cmd) for cmd in db.get_correct_temps(key)]
             else:
                 gts = tg_strs + db.get_correct_temps(sc_str)
