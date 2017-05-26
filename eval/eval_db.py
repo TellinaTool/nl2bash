@@ -399,4 +399,4 @@ class DBConnection(object):
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
-    db.clear_model_output()
+    # db.clear_model_output()
