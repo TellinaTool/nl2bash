@@ -239,7 +239,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 target = "".join([as_str(output) for output in outputs])\
                     .replace(data_utils._UNK, ' ')
             else:
-                tree, output_tokens = None, []
+                output_tokens = []
                 if FLAGS.fill_argument_slots:
                     tg_slots = {}
                 for token_id in xrange(len(outputs)):
@@ -320,13 +320,15 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                         None, None, None, verbose=False)
                     output_example = True
                 elif FLAGS.fill_argument_slots:
-                    if len(tg_slots) > len(sc_fillers):
+                    if len(tg_slots) >= len(sc_fillers):
                         target_ast, target, _ = slot_filling.stable_slot_filling(
                             output_tokens, batch_sc_fillers, tg_slots, None,
                             encoder_outputs[batch_id],
                             decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
                             slot_filling_classifier, verbose=False)
                         output_example = True
+                else:
+                    output_example = True
 
             if output_example:
                 if FLAGS.token_decoding_algorithm == "greedy":
