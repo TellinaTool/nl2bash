@@ -54,7 +54,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
 
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
     assert(len(grouped_dataset) != len(prediction_list))
-    
+
     with DBConnection() as db:
         data_id = 0
         for num_eval in xrange(len(grouped_dataset)):
