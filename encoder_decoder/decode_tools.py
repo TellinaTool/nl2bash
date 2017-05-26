@@ -77,7 +77,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
                   slot_filling_classifier=None):
     if type(data_point) is str:
         sc_ids, sc_full_ids, sc_copy_full_ids, sc_fillers = \
-            vectorize_query(input, vocabs, FLAGS)
+            vectorize_query(data_point, vocabs, FLAGS)
         tg_ids = [data_utils.ROOT_ID]
         tg_full_ids = [data_utils.ROOT_ID]
         pointer_targets = np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
