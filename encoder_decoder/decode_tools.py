@@ -80,7 +80,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
             vectorize_query(input, vocabs, FLAGS)
         tg_ids = [data_utils.ROOT_ID]
         tg_full_ids = [data_utils.ROOT_ID]
-        pointer_targets = None
+        pointer_targets = np.zeros([1, FLAGS.max_tg_length, FLAGS.max_sc_length])
     else:
         sc_ids = data_point[0].sc_ids
         sc_full_ids = data_point[0].sc_full_ids
@@ -109,7 +109,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
     output_logits = model_outputs.output_logits
 
     decoded_outputs = decode(formatted_example.encoder_full_inputs,
-        model_outputs, FLAGS, vocabs, sc_fillers, slot_filling_classifier)
+        model_outputs, FLAGS, vocabs, [sc_fillers], slot_filling_classifier)
 
     return decoded_outputs, output_logits
 
@@ -293,14 +293,14 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     and not FLAGS.explain:
                 if FLAGS.dataset.startswith("bash"):
                     target = re.sub('( ;\s+)|( ;$)', ' \\; ', target)
-                    ast = data_tools.bash_parser(target)
+                    target_ast = data_tools.bash_parser(target)
                 elif FLAGS.dataset.startswith("regex"):
                     # TODO: check if a predicted regular expression is legal
-                    ast = '__DUMMY_TREE__'
+                    target_ast = '__DUMMY_TREE__'
                 else:
-                    ast = data_tools.paren_parser(target)
+                    target_ast = data_tools.paren_parser(target)
                 # filter out non-grammatical output
-                if ast is None:
+                if target_ast is None:
                     continue
 
             # Step 3: check if the predicted command templates have enough

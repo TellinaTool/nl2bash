@@ -345,7 +345,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     self.decoder.beam_decoder, char_target_weights)
             # get initial state from decoder output
             char_decoder_init_state = tf.concat(0,
-                [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in states])
+                [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in outputs])
             char_output_symbols, char_output_logits, char_outputs, _, _ = \
                 self.char_decoder.define_graph(
                     char_decoder_init_state, char_decoder_inputs,
@@ -370,7 +370,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 for e_o in encoder_outputs])
         self.decoder_hidden_states = tf.concat(1,
                 [tf.reshape(d_o, [-1, 1, self.decoder.dim])
-                for d_o in states])
+                for d_o in outputs])
 
         if DEBUG:
             C = tf.argmax(tf.concat(1, binary_targets), 2)
