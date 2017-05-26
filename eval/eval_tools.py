@@ -70,6 +70,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
                       [cmd_parser(cmd) for cmd in db.get_correct_temps(sc_str)]
                 gts = gts + \
                       [cmd_parser(cmd) for cmd in db.get_correct_temps(key)]
+                print(db.get_correct_temps(key) + db.get_correct_temps(sc_str))
             else:
                 gts = tg_strs + db.get_correct_temps(sc_str)
 
