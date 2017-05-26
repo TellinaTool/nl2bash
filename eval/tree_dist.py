@@ -2,8 +2,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import sys
-
 from bashlex import data_tools, nast
 from eval import zss
 from eval import extract_rewrites as er
@@ -12,8 +10,6 @@ def ignore_differences(cmd):
     cmd = cmd.replace('-ls', '')
     cmd = cmd.replace('-print', '')
     cmd = cmd.replace('-print0', '')
-    cmd = cmd.replace('-name', '-iname')
-    cmd = cmd.replace('-regex', '-iregex')
     return cmd
 
 def local_dist(s1, s2, skip_argument=False):
