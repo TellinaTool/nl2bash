@@ -11,21 +11,7 @@ from __future__ import print_function
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-
-def nest_map(func, nested):
-    """
-    Apply function to each element in a nested list.
-
-    :param func: The function to apply.
-    :param nested: The nested list to which the function is going to be applied.
-
-    :return: A list with the same structue as nested where the each element
-        is the output of applying func to the corresponding element in nest.
-    """
-    if not nest.is_sequence(nested):
-        return func(nested)
-    flat = nest.flatten(nested)
-    return nest.pack_sequence_as(nested, list(map(func, flat)))
+from encoder_decoder.graph_utils import nest_map
 
 
 class BeamDecoder(object):

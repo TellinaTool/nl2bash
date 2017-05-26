@@ -8,6 +8,7 @@ import collections
 import os
 
 import tensorflow as tf
+from tensorflow.python.util import nest
 
 from encoder_decoder import data_utils, rnn
 
@@ -220,6 +221,37 @@ def get_decode_signature(FLAGS):
     return model_subdir, decode_sig
 
 
+def get_buckets(FLAGS):
+    # We use a number of buckets and pad to the closest one for efficiency.
+    if FLAGS.dataset.startswith("bash"):
+        if FLAGS.decoder_topology in ['basic_tree']:
+            buckets = [(30, 72)] if not FLAGS.explain else [(72, 30)]
+        elif FLAGS.decoder_topology in ['rnn']:
+            if FLAGS.partial_token:
+                buckets = [(40, 50)] if not FLAGS.explain else [(50, 40)]
+            else:
+                buckets = [(30, 40)] if not FLAGS.explain else [(40, 30)]
+    elif FLAGS.dataset == "dummy":
+        buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explain else \
+            [(95, 20), (95, 30), (95, 45)]
+    elif FLAGS.dataset == "jobs":
+        buckets = [(20, 45)] if not FLAGS.explain else [(45, 20)]
+    elif FLAGS.dataset == "geo":
+        buckets = [(20, 70)] if not FLAGS.explain else [(70, 20)]
+    elif FLAGS.dataset == "atis":
+        buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explain else \
+            [(95, 20), (95, 30), (95, 40)]
+    elif FLAGS.dataset.startswith("regex-syn"):
+        buckets = [(25, 35)] if not FLAGS.explain else [(35, 25)]
+    elif FLAGS.dataset == 'regex-turk':
+        buckets = [(30, 35)] if not FLAGS.explain else [(35, 30)]
+    elif FLAGS.dataset == 'regex-kb13':
+        buckets = [(25, 55)] if not FLAGS.explain else [(55, 25)]
+    else:
+        raise AttributeError("Unrecognized dataset: {}".format(FLAGS.dataset))
+    return buckets
+
+
 def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
                            input_keep_prob=1, output_keep_prob=1,
                            variational_recurrent=True, input_dim=-1):
@@ -267,37 +299,6 @@ def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
     return cell
 
 
-def get_buckets(FLAGS):
-    # We use a number of buckets and pad to the closest one for efficiency.
-    if FLAGS.dataset.startswith("bash"):
-        if FLAGS.decoder_topology in ['basic_tree']:
-            buckets = [(30, 72)] if not FLAGS.explain else [(72, 30)]
-        elif FLAGS.decoder_topology in ['rnn']:
-            if FLAGS.partial_token:
-                buckets = [(40, 50)] if not FLAGS.explain else [(50, 40)]
-            else:
-                buckets = [(30, 40)] if not FLAGS.explain else [(40, 30)]
-    elif FLAGS.dataset == "dummy":
-        buckets = [(20, 95), (30, 95), (45, 95)] if not FLAGS.explain else \
-            [(95, 20), (95, 30), (95, 45)]
-    elif FLAGS.dataset == "jobs":
-        buckets = [(20, 45)] if not FLAGS.explain else [(45, 20)]
-    elif FLAGS.dataset == "geo":
-        buckets = [(20, 70)] if not FLAGS.explain else [(70, 20)]
-    elif FLAGS.dataset == "atis":
-        buckets = [(20, 95), (30, 95), (40, 95)] if not FLAGS.explain else \
-            [(95, 20), (95, 30), (95, 40)]
-    elif FLAGS.dataset.startswith("regex-syn"):
-        buckets = [(25, 35)] if not FLAGS.explain else [(35, 25)]
-    elif FLAGS.dataset == 'regex-turk':
-        buckets = [(30, 35)] if not FLAGS.explain else [(35, 30)]
-    elif FLAGS.dataset == 'regex-kb13':
-        buckets = [(25, 55)] if not FLAGS.explain else [(55, 25)]
-    else:
-        raise AttributeError("Unrecognized dataset: {}".format(FLAGS.dataset))
-    return buckets
-
-
 def softmax_loss(output_project, num_samples, target_vocab_size):
     w, b = output_project
     if num_samples > 0 and num_samples < target_vocab_size:
@@ -333,6 +334,31 @@ def cross_entropy_with_logits(logits, targets):
 
 def normalize(logits):
     return logits / tf.reduce_sum(logits, -1, keep_dims=True)
+
+
+def nest_map(func, nested):
+    """
+    Apply function to each element in a nested list.
+
+    :param func: The function to apply.
+    :param nested: The nested list to which the function is going to be applied.
+
+    :return: A list with the same structue as nested where the each element
+        is the output of applying func to the corresponding element in nest.
+    """
+    if not nest.is_sequence(nested):
+        return func(nested)
+    flat = nest.flatten(nested)
+    return nest.pack_sequence_as(nested, list(map(func, flat)))
+
+
+def nest_map_dual(func, nested1, nested2):
+    if not nest.is_sequence(nested1):
+        return func(nested1, nested2)
+    flat1 = nest.flatten(nested1)
+    flat2 = nest.flatten(nested2)
+    output = [func(x, y) for x, y in zip(flat1, flat2)]
+    return nest.pack_sequence_as(nested1, list(output))
 
 
 class NNModel(object):

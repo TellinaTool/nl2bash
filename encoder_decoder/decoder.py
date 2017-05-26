@@ -135,8 +135,8 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         
         # copying probability
         pointers = alignments[1]
-        copy_logit = tf.squeeze(tf.matmul(tf.expand_dims(tf.exp(pointers), 1),
-                                          self.encoder_inputs_3d), 1)
+        copy_logit = tf.squeeze(tf.matmul(
+            tf.expand_dims(tf.exp(pointers), 1), self.encoder_inputs_3d), 1)
         unk_mask = np.ones([1, self.tg_vocab_size])
         unk_mask[0, data_utils.UNK_ID] = 0
         copy_logit = copy_logit * unk_mask
@@ -159,6 +159,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                  tg_vocab_size=-1):
         """
         Hidden layer above attention states.
+
         :param attention_states: 3D Tensor [batch_size x attn_length x attn_dim].
         :param encoder_attn_masks: encoder input masks, used for masking out
             padded contents in the encoder inputs
@@ -177,8 +178,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         :param copy_fun: Parameterization of the copying function.
         """
         if attention_input_keep < 1:
-            print("attention input keep probability = {}".format(
-                attention_input_keep))
+            print("attention input keep probability = {}"
+                  .format(attention_input_keep))
             attention_states = tf.nn.dropout(
                 attention_states, attention_input_keep)
         attn_length = attention_states.get_shape()[1].value
@@ -219,7 +220,6 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         ds = []             # Results of attention reads will be stored here.
         alignments = []     # Alignment values for each attention head.
         if nest.is_sequence(state):  # If the query is a tuple, flatten it.
-            # TODO: implement attention with LSTM cells
             query_list = nest.flatten(state)
             for q in query_list:  # Check that ndims == 2 if specified.
                 ndims = q.get_shape().ndims
