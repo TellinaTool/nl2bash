@@ -78,7 +78,7 @@ class DBConnection(object):
         self.conn.commit()
 
     def add_nl(self, nl):
-        nl = str(nl, 'utf-8')
+        nl = str(nl, 'utf-8') if not type(nl) is str else nl
         nl_id = self.get_nl_id(nl)
         if nl_id is not None:
             return nl_id
@@ -94,7 +94,7 @@ class DBConnection(object):
             return id
 
     def add_cmd(self, cmd):
-        cmd = str(cmd, 'utf-8')
+        cmd = str(cmd, 'utf-8') if not type(cmd) is str else cmd
         cmd_id = self.get_cm_id(cmd)
         if cmd_id is not None:
             return cmd_id
@@ -110,7 +110,7 @@ class DBConnection(object):
             return id
 
     def add_temp(self, temp):
-        temp = str(temp, 'utf-8')
+        temp = str(temp, 'utf-8') if not type(temp) is str else temp
         temp_id = self.get_temp_id(temp)
         if temp_id is not None:
             return temp_id
@@ -120,7 +120,7 @@ class DBConnection(object):
         return c.lastrowid
 
     def get_temp_id(self, temp):
-        temp = str(temp, 'utf-8')
+        temp = str(temp, 'utf-8') if not type(temp) is str else temp
         c = self.cursor
         for id, _ in c.execute("SELECT * FROM Temp WHERE temp = ?", (temp,)):
             return id
@@ -399,4 +399,4 @@ class DBConnection(object):
 if __name__ == "__main__":
     db = DBConnection()
     db.create_schema()
-    db.clear_model_output()
+    # db.clear_model_output()
