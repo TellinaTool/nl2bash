@@ -70,8 +70,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
                 gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
                 gts = gt_trees + \
                       [cmd_parser(cmd) for cmd in db.get_correct_temps(sc_str)]
-                gts = gts + \
-                      [cmd_parser(cmd) for cmd in db.get_correct_temps(key)]
+                print(db.get_correct_temps(sc_str))
             else:
                 gts = tg_strs + db.get_correct_temps(sc_str)
 
@@ -579,8 +578,8 @@ def load_predictions(model_dir, decode_sig, top_k):
 
 def test_ted():
     while True:
-        cmd1 = raw_input(">cmd1: ")
-        cmd2 = raw_input(">cmd2: ")
+        cmd1 = input(">cmd1: ")
+        cmd2 = input(">cmd2: ")
         ast1 = data_tools.bash_parser(cmd1)
         ast2 = data_tools.bash_parser(cmd2)
         dist = zss.simple_distance(
@@ -597,6 +596,4 @@ def import_manual_annotation():
 
 
 if __name__ == "__main__":
-    test_ted()
     import_manual_annotation()
-
