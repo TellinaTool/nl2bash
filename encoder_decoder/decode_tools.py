@@ -314,22 +314,21 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             else:
                 # Step 3: match the fillers to the argument slots
                 batch_sc_fillers = sc_fillers[batch_id]
-                if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
-                    target_ast, target, _ = slot_filling.stable_slot_filling(
-                        output_tokens, batch_sc_fillers, tg_slots,
-                        batch_pointers[batch_id, beam_id, :, :],
-                        None, None, None, verbose=False)
-                    output_example = True
-                elif FLAGS.fill_argument_slots:
-                    if len(tg_slots) >= len(sc_fillers):
+                if len(tg_slots) >= len(batch_sc_fillers):
+                    if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
+                        target_ast, target, _ = slot_filling.stable_slot_filling(
+                            output_tokens, batch_sc_fillers, tg_slots,
+                            batch_pointers[batch_id, beam_id, :, :],
+                            None, None, None, verbose=False)
+                    elif FLAGS.fill_argument_slots:
                         target_ast, target, _ = slot_filling.stable_slot_filling(
                             output_tokens, batch_sc_fillers, tg_slots, None,
                             encoder_outputs[batch_id],
                             decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
                             slot_filling_classifier, verbose=False)
-                        output_example = True
-                else:
                     output_example = True
+                else:
+                    output_example = False
 
             if output_example:
                 if FLAGS.token_decoding_algorithm == "greedy":
