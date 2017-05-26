@@ -135,7 +135,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
 
     model = model_constructor(params, buckets, forward_only)
 
-    ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
+    ckpt = tf.train.get_checkpoint_state(
+        os.path.join(FLAGS.model_root_dir, FLAGS.model_dir))
 
     if forward_only or not FLAGS.create_fresh_params:
         print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
