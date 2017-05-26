@@ -57,7 +57,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, pointer_targets,
         assert(decoder_outputs is not None)
         assert(slot_filling_classifier is not None)
         pointer_targets = np.zeros([len(encoder_outputs), len(decoder_outputs)])
-        for f in M:
+        for f in xrange(M.shape[0]):
             if np.sum(M[f]) > 1:
                 X = []
                 # use reversed index for the encoder embeddings matrix
