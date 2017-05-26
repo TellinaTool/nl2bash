@@ -300,7 +300,7 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
   # of the backward RNN without reverse!!!
   if nest.is_sequence(cell_fw.state_size):
     output_states = [tf.concat(1, [fw, bw])
-                     for fw, bw in zip(states_fw, states_bw)]
+                     for fw, bw in zip(states_fw, tmp_states)]
   else:
     if num_cell_layers > 1:
       output_states = []
@@ -310,7 +310,7 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
             tf.split(1, num_cell_layers, bw))])))
     else:
       output_states = [tf.concat(1, [fw, bw])
-                       for fw, bw in zip(states_fw, states_bw)]
+                       for fw, bw in zip(states_fw, tmp_states)]
 
   return (outputs, output_states)
 
