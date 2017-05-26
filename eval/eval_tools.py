@@ -53,7 +53,9 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
         top_k_cms = np.zeros([len(grouped_dataset), top_k])
 
     prediction_list = load_predictions(model_dir, decode_sig, top_k)
-    assert(len(grouped_dataset) != len(prediction_list))
+    if len(grouped_dataset) != len(prediction_list):
+        raise ValueError("ground truth and predictions length must be equal: {} vs. {}"
+            .format(len(grouped_dataset), len(prediction_list)))
     
     with DBConnection() as db:
         data_id = 0
@@ -66,6 +68,8 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
                 gt_trees = [cmd_parser(cm_str) for cm_str in tg_strs]
                 gts = gt_trees + \
                       [cmd_parser(cmd) for cmd in db.get_correct_temps(sc_str)]
+                gts = gt_trees + \
+                      [cmd_parser(cmd) for cmd in db.get_correct_temps(key)]
             else:
                 gts = tg_strs + db.get_correct_temps(sc_str)
 
