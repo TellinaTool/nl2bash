@@ -14,6 +14,8 @@ python3 -m encoder_decoder.translate \
     --cm_vocab_size 3400 \
     --encoder_topology birnn \
     --batch_size 32 \
+    --num_epochs 100 \
+    --num_samples 256 \
     --token_decoding_algorithm beam_search \
     --beam_size 100 \
     --alpha 1.0 \
