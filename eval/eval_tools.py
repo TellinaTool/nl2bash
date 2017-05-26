@@ -47,7 +47,7 @@ def import_manual_annotations_from_files(input_dir):
     def parse_csv(file_name):
         """parse a file into a log for evaluation"""
         task_log = {}
-        with open(file_name) as csvfile:
+        with open(os.path.join(input_dir, file_name)) as csvfile:
             reader = csv.DictReader(csvfile)
             current_task = {}
             for row in reader:
@@ -116,7 +116,7 @@ def import_manual_annotations_from_files(input_dir):
 
     with DBConnection() as db:
         for task_id in annotation_log:
-            task = merge_log(task_id)
+            task = annotation_log[task_id]
             for i in range(len(task["top_solutions"])):
                 solution = task["top_solutions"][i]
                 print((task["description"], solution["command"], 1))
@@ -580,8 +580,8 @@ def load_predictions(model_dir, decode_sig, top_k):
 
 def test_ted():
     while True:
-        cmd1 = raw_input(">cmd1: ")
-        cmd2 = raw_input(">cmd2: ")
+        cmd1 = input(">cmd1: ")
+        cmd2 = input(">cmd2: ")
         ast1 = data_tools.bash_parser(cmd1)
         ast2 = data_tools.bash_parser(cmd2)
         dist = zss.simple_distance(
@@ -598,6 +598,4 @@ def import_manual_annotation():
 
 
 if __name__ == "__main__":
-    test_ted()
     import_manual_annotation()
-
