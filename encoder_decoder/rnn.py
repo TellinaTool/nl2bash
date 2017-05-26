@@ -304,7 +304,7 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
   else:
     if num_cell_layers > 1:
       output_states = []
-      for fw, bw in zip(states_fw, states_bw):
+      for fw, bw in zip(states_fw, tmp_states):
         output_states.append(tf.concat(1, ([tf.concat(1, [l_fw, l_bw])
           for l_fw, l_bw in zip(tf.split(1, num_cell_layers, fw),
             tf.split(1, num_cell_layers, bw))])))
