@@ -34,100 +34,6 @@ error_types = {
 }
 
 
-def import_manual_annotations_from_files(input_dir):
-    """
-    Import manual annotations to the database to extend the set of ground truths.
-
-    :param input_dir: Directory where the manual annotation CSV files are stored.
-        - If there is only one file in the input directory, read the annotations
-            as they are.
-        - If there are multiple files in the input directory, read the annotations
-            as the majority voting of them.
-    """
-    def parse_csv(file_name):
-        """parse a file into a log for evaluation"""
-        task_log = {}
-        with open(file_name) as csvfile:
-            reader = csv.DictReader(csvfile)
-            current_task = {}
-            for row in reader:
-                if row["id"] != "":
-                    assert(row["description"] != "" )
-                    if current_task:
-                        task_log[current_task["id"]] = current_task
-                    current_task = {}
-                    current_task["id"] = int(row["id"])
-                    current_task["description"] = row["description"]
-                    current_task["top_solutions"] = []
-                solution = {}
-                solution["command"] = row["command"]
-                solution["template_correct"] = False \
-                    if row["correct template"] == "x" else True
-                solution["command_correct"] = False \
-                    if row["correct command"] == "x" else True
-                current_task["top_solutions"].append(solution)
-        return task_log
-
-    def merge_log(task_logs):
-        """merge multiple logs by majority voting"""
-        num_logs = len(task_logs)
-        vote_threshold = num_logs / 2 + 1
-        merged_log = copy.deepcopy(task_logs[0])
-        uncertain_cnt = 0
-        weak_uncertain_cnt = 0
-        total_cnt = 0
-        for task_id in merged_log:
-            task = merged_log[task_id]
-            for i in range(len(task["top_solutions"])):
-                command_correct_vote = 0
-                template_correct_vote = 0
-                for log in task_logs:
-                    solution = log[task_id]["top_solutions"][i]
-                    if solution["command_correct"]:
-                        command_correct_vote += 1
-                    if solution["template_correct"]:
-                        template_correct_vote += 1
-
-                # the following code section calculates command properties
-                total_cnt += 1
-                if command_correct_vote != 0 and command_correct_vote != num_logs \
-                        and template_correct_vote != 0 and template_correct_vote != num_logs:
-                    uncertain_cnt += 1
-                if (command_correct_vote != 0 and command_correct_vote != num_logs) \
-                        or (template_correct_vote != 0 and template_correct_vote != num_logs):
-                    weak_uncertain_cnt += 1
-                task["top_solutions"][i]["command_correct"] = True \
-                    if command_correct_vote >= vote_threshold else False
-                task["top_solutions"][i]["template_correct"] = True \
-                    if template_correct_vote >= vote_threshold else False
-        print("Total: ", total_cnt, "Uncertain ones: ", uncertain_cnt,
-              "Weak uncertain ones: ", weak_uncertain_cnt)
-        return merged_log
-
-    task_logs = []
-    for f_name in os.listdir(input_dir):
-        if f_name.endswith('.csv'):
-            task_log = parse_csv(f_name)
-            task_logs.append(task_log)
-    if len(task_logs) > 1:
-        annotation_log = merge_log(task_logs)
-    else:
-        annotation_log = task_logs[0]
-
-    with DBConnection() as db:
-        for task_id in annotation_log:
-            task = merge_log(task_id)
-            for i in range(len(task["top_solutions"])):
-                solution = task["top_solutions"][i]
-                print((task["description"], solution["command"], 1))
-                if solution["command_correct"]:
-                    db.add_str_judgement(
-                        (task["description"], solution["command"], 1))
-                if solution["template_correct"]:
-                    db.add_temp_judgement(
-                        (task["description"], solution["command"], 1))
-
-
 def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
     eval_bash = FLAGS.dataset.startswith("bash") and not FLAGS.explain
     eval_regex = FLAGS.dataset.startswith("regex") and not FLAGS.explain
@@ -558,6 +464,100 @@ def gen_eval_sheet(model, dataset, FLAGS, output_path):
                         output_str += 'y'
 
                     o_f.write(output_str + '\n')
+
+
+def import_manual_annotations_from_files(input_dir):
+    """
+    Import manual annotations to the database to extend the set of ground truths.
+
+    :param input_dir: Directory where the manual annotation CSV files are stored.
+        - If there is only one file in the input directory, read the annotations
+            as they are.
+        - If there are multiple files in the input directory, read the annotations
+            as the majority voting of them.
+    """
+    def parse_csv(file_name):
+        """parse a file into a log for evaluation"""
+        task_log = {}
+        with open(file_name) as csvfile:
+            reader = csv.DictReader(csvfile)
+            current_task = {}
+            for row in reader:
+                if row["id"] != "":
+                    assert(row["description"] != "" )
+                    if current_task:
+                        task_log[current_task["id"]] = current_task
+                    current_task = {}
+                    current_task["id"] = int(row["id"])
+                    current_task["description"] = row["description"]
+                    current_task["top_solutions"] = []
+                solution = {}
+                solution["command"] = row["command"]
+                solution["template_correct"] = False \
+                    if row["correct template"] == "x" else True
+                solution["command_correct"] = False \
+                    if row["correct command"] == "x" else True
+                current_task["top_solutions"].append(solution)
+        return task_log
+
+    def merge_log(task_logs):
+        """merge multiple logs by majority voting"""
+        num_logs = len(task_logs)
+        vote_threshold = num_logs / 2 + 1
+        merged_log = copy.deepcopy(task_logs[0])
+        uncertain_cnt = 0
+        weak_uncertain_cnt = 0
+        total_cnt = 0
+        for task_id in merged_log:
+            task = merged_log[task_id]
+            for i in range(len(task["top_solutions"])):
+                command_correct_vote = 0
+                template_correct_vote = 0
+                for log in task_logs:
+                    solution = log[task_id]["top_solutions"][i]
+                    if solution["command_correct"]:
+                        command_correct_vote += 1
+                    if solution["template_correct"]:
+                        template_correct_vote += 1
+
+                # the following code section calculates command properties
+                total_cnt += 1
+                if command_correct_vote != 0 and command_correct_vote != num_logs \
+                        and template_correct_vote != 0 and template_correct_vote != num_logs:
+                    uncertain_cnt += 1
+                if (command_correct_vote != 0 and command_correct_vote != num_logs) \
+                        or (template_correct_vote != 0 and template_correct_vote != num_logs):
+                    weak_uncertain_cnt += 1
+                task["top_solutions"][i]["command_correct"] = True \
+                    if command_correct_vote >= vote_threshold else False
+                task["top_solutions"][i]["template_correct"] = True \
+                    if template_correct_vote >= vote_threshold else False
+        print("Total: ", total_cnt, "Uncertain ones: ", uncertain_cnt,
+              "Weak uncertain ones: ", weak_uncertain_cnt)
+        return merged_log
+
+    task_logs = []
+    for f_name in os.listdir(input_dir):
+        if f_name.endswith('.csv'):
+            task_log = parse_csv(f_name)
+            task_logs.append(task_log)
+    if len(task_logs) > 1:
+        annotation_log = merge_log(task_logs)
+    else:
+        annotation_log = task_logs[0]
+
+    with DBConnection() as db:
+        for task_id in annotation_log:
+            task = merge_log(task_id)
+            for i in range(len(task["top_solutions"])):
+                solution = task["top_solutions"][i]
+                print((task["description"], solution["command"], 1))
+                if solution["command_correct"]:
+                    db.add_str_judgement(
+                        (task["description"], solution["command"], 1))
+                if solution["template_correct"]:
+                    db.add_temp_judgement(
+                        (task["description"], solution["command"], 1))
 
 
 def load_predictions(model_dir, decode_sig, top_k):
