@@ -88,11 +88,8 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
         tg_ids = data_point[0].tg_ids
         tg_full_ids = data_point[0].tg_full_ids
         pointer_targets = data_point[0].pointer_targets
-        if FLAGS.fill_argument_slots:
-            _, entities = tokenizer.ner_tokenizer(data_point[0].sc_txt)
-            sc_fillers = entities[0]
-        else:
-            sc_fillers = None
+        _, entities = tokenizer.ner_tokenizer(data_point[0].sc_txt)
+        sc_fillers = entities[0]
  
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(model.buckets))
