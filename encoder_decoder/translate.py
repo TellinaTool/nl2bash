@@ -28,7 +28,7 @@ from encoder_decoder import data_stats
 from encoder_decoder import data_utils
 from encoder_decoder import decode_tools
 from encoder_decoder import graph_utils
-from encoder_decoder import grid_search
+from encoder_decoder import meta_experiments
 from encoder_decoder import parse_args
 from .seq2seq.seq2seq_model import Seq2SeqModel
 from .seq2tree.seq2tree_model import Seq2TreeModel
@@ -260,7 +260,7 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set):
     hp_set1 = {'universal_keep': 0.6, 'rnn_cell': 'gru', 'num_layers': 2}
     hp_set2 = {'universal_keep': 0.75, 'rnn_cell': 'gru', 'num_layers': 2}
     hyperparam_sets = [hp_set1, hp_set2]
-    grid_search.schedule_experiments(train_fun, decode_fun, eval_fun,
+    meta_experiments.schedule_experiments(train_fun, decode_fun, eval_fun,
         train_set, dev_set, hyperparam_sets, FLAGS)
 
 
@@ -572,7 +572,7 @@ def main(_):
             if not FLAGS.explain:
                 eval(dataset, model_dir, decode_sig, verbose=False)
         elif FLAGS.grid_search:
-            grid_search.grid_search(
+            meta_experiments.grid_search(
                 train, decode, eval, train_set, dataset, FLAGS)
         elif FLAGS.schedule_experiments:
             schedule_experiments(
