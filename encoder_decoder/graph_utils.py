@@ -256,7 +256,7 @@ def get_buckets(FLAGS):
 def softmax_loss(output_project, num_samples, target_vocab_size):
     w, b = output_project
     if num_samples > 0 and num_samples < target_vocab_size:
-        print("loss function = sampled_softmax_loss")
+        print("loss function = sampled_softmax_loss ({})".format(num_samples))
         w_t = tf.transpose(w)
         def sampled_loss(outputs, labels):
             labels = tf.reshape(labels, [-1, 1])

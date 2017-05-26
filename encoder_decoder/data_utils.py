@@ -737,7 +737,8 @@ def prepare_bash(FLAGS, verbose=False):
 
     def save_slot_argument_mappings(dataset, mapping_suffix):
         for split in _data_splits:
-            with open('{}{}'.format(split, mapping_suffix), 'w') as o_f:
+            with open(os.path.join(FLAGS.data_dir,
+                    '{}{}'.format(split, mapping_suffix)), 'w') as o_f:
                 for mappings in getattr(dataset, split):
                     if mappings:
                         for i, j in sorted(mappings, key=lambda x:x[0]):
