@@ -289,8 +289,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 target = " ".join(output_tokens)
             
             # Step 2: check if the predicted command template is grammatical
-            if (FLAGS.grammatical_only or FLAGS.fill_argument_slots) \
-                    and not FLAGS.explain:
+            if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith("bash"):
                     target = re.sub('( ;\s+)|( ;$)', ' \\; ', target)
                     target_ast = data_tools.bash_parser(target)
@@ -302,6 +301,8 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 # filter out non-grammatical output
                 if target_ast is None:
                     continue
+            else:
+                target_ast = '__DUMMY_TREE__'
 
             # Step 3: check if the predicted command templates have enough
             # slots to hold the fillers (to rule out templates that are
