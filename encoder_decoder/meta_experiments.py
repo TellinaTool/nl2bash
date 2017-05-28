@@ -92,7 +92,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
             metrics = ["top1_temp_ms", "top1_cms", "top3_temp_ms", "top3_cms"]
             metrics_weights = [0.4, 0.4, 0.1, 0.1]
             metrics_value = single_round_model_eval( train_fun, decode_fun,
-                seval_fun, train_set, dev_set, metrics, metrics_weights)
+                eval_fun, train_set, dev_set, metrics, metrics_weights)
             print("Parameter set: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], row[i]))
