@@ -319,7 +319,6 @@ class DBConnection(object):
                                     "JOIN NL ON TempJudge.nl_id = NL.id "
                                     "JOIN Temp ON TempJudge.temp_id = Temp.id "
                                     "WHERE NL.nl = ? AND TempJudge.judgement = 1", (nl,)):
-            print(nl)
             correct_temps.append(pred_temp)
         return correct_temps
 
