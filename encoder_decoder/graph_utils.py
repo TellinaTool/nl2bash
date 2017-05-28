@@ -265,12 +265,7 @@ def softmax_loss(output_project, num_samples, target_vocab_size):
         loss_function = sampled_loss
     else:
         print("loss function = softmax_loss")
-        def loss(outputs, labels):
-            logits = tf.matmul(outputs, w) + b
-            vocab_indices = tf.diag(tf.ones(w.get_shape()[1]))
-            return tf.nn.softmax_cross_entropy_with_logits(
-                logits, tf.nn.embedding_lookup(vocab_indices, labels))
-        loss_function = loss
+        loss_function = tf.nn.sparse_softmax_cross_entropy_with_logits
     return loss_function
 
 

@@ -102,7 +102,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
             print("Best random seed so far: {}".format(best_seed))
-            print("Best {} so far = {}".format(metrics, best_metrics_value))
+            print("Best evaluation metrics so far = {}".format(best_metrics_value))
             if metrics_value > best_metrics_value:
                 best_hp_set = row
                 best_seed = seed
