@@ -20,6 +20,6 @@ ARGS=${@:1}
     --attention_output_keep 1.0 \
     --beta 0 \
     --use_copy \
-    --copy_fun explicit \
+    --copy_fun copynet \
     --create_fresh_params \
     ${ARGS}
