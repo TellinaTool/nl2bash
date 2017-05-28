@@ -365,12 +365,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                  self.beta * attention_reg
 
         # store encoder/decoder output states
-        self.encoder_hidden_states = tf.concat(1,
+        if not self.use_copy:
+            self.encoder_hidden_states = tf.concat(1,
                 [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
-                for e_o in encoder_outputs])
-        self.decoder_hidden_states = tf.concat(1,
+                 for e_o in encoder_outputs])
+            self.decoder_hidden_states = tf.concat(1,
                 [tf.reshape(d_o, [-1, 1, self.decoder.dim])
-                for d_o in outputs])
+                 for d_o in outputs])
 
         if DEBUG:
             C = tf.argmax(tf.concat(1, binary_targets), 2)
