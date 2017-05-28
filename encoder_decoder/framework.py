@@ -365,10 +365,24 @@ class EncoderDecoderModel(graph_utils.NNModel):
                  self.beta * attention_reg
 
         # store encoder/decoder output states
-        if not self.use_copy:
-            self.encoder_hidden_states = tf.concat(1,
-                [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
-                 for e_o in encoder_outputs])
+        self.encoder_hidden_states = tf.concat(1,
+            [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
+             for e_o in encoder_outputs])
+        if self.use_copy and self.copy_fun == 'copynet':
+            top_states = []
+            if self.rnn_cell == 'gru':
+                for state in states:
+                    top_states.append(state[:, -self.decoder.dim:])
+            elif self.rnn_cell == 'lstm':
+                for state in states:
+                    if self.num_layers > 1:
+                        top_states.append(state[-1][1])
+                    else:
+                        top_states.append(state[1])
+            self.decoder_hidden_states = tf.concat(1,
+                [tf.reshape(d_o, [-1, 1, self.decoder.dim])
+                 for d_o in top_states])
+        else:
             self.decoder_hidden_states = tf.concat(1,
                 [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                  for d_o in outputs])
