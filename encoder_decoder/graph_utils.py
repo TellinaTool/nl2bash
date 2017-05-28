@@ -282,7 +282,8 @@ def cross_entropy_with_logits(logits, targets):
 
 
 def normalize(logits):
-    return logits / tf.reduce_sum(logits, -1, keep_dims=True)
+    epsilon = tf.constant(value=1e-12)
+    return logits / (tf.reduce_sum(logits, -1, keep_dims=True) + epsilon)
 
 
 def nest_map(func, nested):
