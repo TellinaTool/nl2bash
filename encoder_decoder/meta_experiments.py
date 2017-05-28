@@ -91,7 +91,7 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
             tf.set_random_seed(seed)
             metrics = ["top1_temp_ms", "top1_cms", "top3_temp_ms", "top3_cms"]
             metrics_weights = [0.4, 0.4, 0.1, 0.1]
-            metrics_value = single_round_model_eval( train_fun, decode_fun,
+            metrics_value = single_round_model_eval(train_fun, decode_fun,
                 eval_fun, train_set, dev_set, metrics, metrics_weights)
             print("Parameter set: ")
             for i in xrange(num_hps):
@@ -150,8 +150,8 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set,
         print("{} = {}".format(metrics, metrics_value))
 
 
-def single_round_model_eval(train_fun, decode_fun, eval_fun,
-                            train_set, dev_set, metrics, metrics_weights):
+def single_round_model_eval(train_fun, decode_fun, eval_fun, train_set,
+                            dev_set, metrics, metrics_weights):
     """
     Train the model with a certain set of hyperparameters and evaluate on the
     development set.
