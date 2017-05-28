@@ -22,7 +22,7 @@ from tensorflow.python.util import nest
 hyperparam_range = {
     "attention_input_keep": [0.4, 0.6, 0.8, 1.0],
     "attention_output_keep": [0.4, 0.6, 0.8, 1.0],
-    "universal_keep": [0.6, 0.7, 0.75, 0.8, 0.9, 0.5],
+    "universal_keep": [0.6, 0.7, 0.75, 0.8, 0.5],
     "sc_input_keep": [0.6, 0.7, 0.8],
     "sc_output_keep": [0.6, 0.7, 0.8],
     "tg_input_keep": [0.6, 0.7, 0.8],
@@ -169,9 +169,8 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun, train_set,
     assert(len(metrics) > 0)
     assert(len(metrics) == len(metrics_weights))
     tf.reset_default_graph()
+    train_fun(train_set, dev_set)
     try:
-        train_fun(train_set, dev_set)
-
         tf.reset_default_graph()
         model_dir, decode_sig = decode_fun(dev_set, verbose=False)
 
