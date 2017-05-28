@@ -89,9 +89,10 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
         for t in xrange(num_trials):
             seed = random.getrandbits(32)
             tf.set_random_seed(seed)
-            metrics = "top1_temp_ms"
-            metrics_value = single_round_model_eval(
-                train_fun, decode_fun, eval_fun, train_set, dev_set, metrics)
+            metrics = ["top1_temp_ms", "top1_cms", "top3_temp_ms", "top3_cms"]
+            metrics_weights = [0.4, 0.4, 0.1, 0.1]
+            metrics_value = single_round_model_eval( train_fun, decode_fun,
+                seval_fun, train_set, dev_set, metrics, metrics_weights)
             print("Parameter set: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], row[i]))
@@ -150,7 +151,7 @@ def schedule_experiments(train_fun, decode_fun, eval_fun, train_set, dev_set,
 
 
 def single_round_model_eval(train_fun, decode_fun, eval_fun,
-                            train_set, dev_set, metrics):
+                            train_set, dev_set, metrics, metrics_weights):
     """
     Train the model with a certain set of hyperparameters and evaluate on the
     development set.
@@ -160,10 +161,13 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun,
     :param eval_fun: Function to evaluate the decoding results.
     :param train_set: Training dataset.
     :param dev_set: Development dataset.
-    :param metrics: Name of the evaluation metrics to be tuned.
+    :param metrics: List of evaluation metrics used for tuning.
+    :param metrics_weights: List of evaluation metrics weights used for tuning.
 
-    :return: The metrics being tuned.
+    :return: The weighted evaluation metrics.
     """
+    assert(len(metrics) > 0)
+    assert(len(metrics) == len(metrics_weights))
     tf.reset_default_graph()
     try:
         train_fun(train_set, dev_set)
@@ -172,6 +176,11 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun,
         model_dir, decode_sig = decode_fun(dev_set, verbose=False)
 
         M = eval_fun(dev_set, model_dir, decode_sig, verbose=False)
-        return M[metrics]
+
+        metrics_value = 0
+        for m, m_w in zip(metrics, metrics_weights):
+            metrics_value += m_w * M[m]
     except ValueError:
-        return -np.inf
+        metrics_value = -np.inf
+
+    return metrics_value
