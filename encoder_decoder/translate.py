@@ -423,10 +423,9 @@ def gen_slot_filling_training_data_fun(sess, model, dataset, output_file):
             if dp.mappings:
                 mappings = [tuple(m) for m in dp.mappings]
                 encoder_channel_inputs = [[dp.sc_ids], [dp.sc_full_ids]]
-                if FLAGS.use_copy:
-                    encoder_channel_inputs.append([dp.sc_copy_full_ids])
                 decoder_channel_inputs = [[dp.tg_ids], [dp.tg_full_ids]]
                 if FLAGS.use_copy:
+                    encoder_channel_inputs.append([dp.sc_copy_full_ids])
                     pointer_targets = [dp.pointer_targets]
                 else:
                     pointer_targets = None

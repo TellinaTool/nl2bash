@@ -35,6 +35,8 @@ class Decoder(graph_utils.NNModel):
         :param use_token_features:
         """
         super(Decoder, self).__init__(hyperparameters)
+        if forward_only:
+            self.hyperparams['batch_size'] = 1
 
         self.scope = scope
         self.dim = dim
