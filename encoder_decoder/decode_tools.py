@@ -210,10 +210,10 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
     for batch_id in xrange(batch_size):
         def as_str(output, r_sc_vocab, r_tg_vocab):
             if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-                if output < FLAGS.tg_vocab_size:
-                    token = r_sc_vocab[output]
+                if output < FLAGS.target_vocab_size:
+                    token = r_tg_vocab[output]
                 else:
-                    token = r_tg_vocab[encoder_full_inputs[batch_id]
+                    token = r_sc_vocab[encoder_full_inputs[batch_id]
                         [output - FLAGS.target_vocab_size]]
                 return token
             else:
