@@ -962,6 +962,7 @@ def prepare_bash(FLAGS, verbose=False):
         """
         nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
         cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
+        print(cm_vocab)
         generation_mask = np.zeros(
             [FLAGS.tg_token_embedding_size + FLAGS.max_sc_length],
             dtype=np.float32)
@@ -972,6 +973,7 @@ def prepare_bash(FLAGS, verbose=False):
         else:
             for v in cm_vocab:
                 if not v.startswith("__LF__"):
+                    print(v, cm_vocab[v])
                     generation_mask[cm_vocab[v]] = 1
         np.save(os.path.join(data_dir, output_file), generation_mask)
 
