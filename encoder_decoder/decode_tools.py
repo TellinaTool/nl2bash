@@ -240,7 +240,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 tg_slots = {}
                 for token_id in xrange(len(outputs)):
                     output = outputs[token_id]
-                    if output < len(rev_tg_vocab):
+                    if output < FLAGS.tg_vocab_size:
                         pred_token = rev_tg_vocab[output]
                         if "@@" in pred_token:
                             pred_token = pred_token.split("@@")[-1]
