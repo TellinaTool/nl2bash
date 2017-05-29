@@ -311,6 +311,10 @@ def nest_map_dual(func, nested1, nested2):
     return nest.pack_sequence_as(nested1, list(output))
 
 
+class InfPerplexityError(Exception):
+    pass
+
+
 class NNModel(object):
     def __init__(self, hyperparams, buckets=None):
         self.hyperparams = hyperparams
