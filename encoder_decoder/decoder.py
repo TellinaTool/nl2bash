@@ -49,10 +49,9 @@ class Decoder(graph_utils.NNModel):
         self.forward_only = forward_only
         self.use_token_features = use_token_features
 
+        self.vocab_size = self.target_token_embedding_size
         if self.use_copy and self.copy_fun != 'supervised':
-            self.vocab_size = vocab_size + self.max_source_length
-        else:
-            self.vocab_size = vocab_size
+             self.vocab_size += self.max_source_length
 
         # variable sharing
         self.embedding_vars = False
