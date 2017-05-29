@@ -257,7 +257,7 @@ def initialize_vocabulary(vocab_path):
 
 def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                       base_tokenizer=None, with_arg_type=False, use_unk=True,
-                      parallel_data=None, use_dummy_indices=False,
+                      parallel_data=None, use_source_placeholder=False,
                       parallel_vocab_size=None, coarse_typing=False):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
@@ -278,7 +278,7 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
       parallel_data: Used for computing the CopyNet training objective
         (if a target token has appeared in the source, store its vocabulary
          index; otherwise, marked as unknown).
-      use_dummy_indices: If set, map tokens to placeholder indices instead of
+      use_source_placeholder: If set, map tokens to placeholder indices instead of
         indices in the vocabulary. Used for generating source copy indices in
         copy mode.
       parallel_vocab_size: Vocabulary size of the parallel language, used for
@@ -303,8 +303,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 parallel_line = parallel_data[i]
             token_ids, _ = sentence_to_token_ids(data[i], vocab, tokenizer,
                 base_tokenizer, with_arg_type=with_arg_type, use_unk=use_unk,
-                parallel_sentence=parallel_line,
-                use_dummy_indices=use_dummy_indices,
+                parallel_sequence=parallel_line,
+                use_source_placeholder=use_source_placeholder,
                 parallel_vocab_size=parallel_vocab_size,
                 coarse_typing=coarse_typing)
             if len(token_ids) > max_token_num:
@@ -315,9 +315,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
 
 
 def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
-                          use_unk=True, parallel_sentence=None,
-                          use_dummy_indices=False, parallel_vocab_size=-1,
-                          coarse_typing=False):
+        use_unk=True, parallel_sequence=None, use_source_placeholder=False,
+        parallel_vocab_size=-1, coarse_typing=False):
     """
     Convert a string to a list of integers representing token-ids.
 
@@ -334,10 +333,10 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             extraction.
 
         use_unk: If set, replace the low-frequency tokens with UNK.
-        parallel_sentence: Used for computing the CopyNet training objective
+        parallel_sequence: Used for computing the CopyNet training objective
           (if a target token has appeared in the source, store its vocabulary
            index; otherwise, marked as unknown).
-        use_dummy_indices: If set, map tokens to placeholder indices instead of
+        use_source_placeholder: If set, map tokens to placeholder indices instead of
             indices in the vocabulary. Used for generating source copy indices
             in copy mode.
         parallel_vocab_size: Vocabulary size of the parallel data, used for
@@ -377,15 +376,15 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         else:
             return w
 
-    if use_dummy_indices:
+    if use_source_placeholder:
         assert(parallel_vocab_size != -1)
 
     for (i, w) in enumerate(words):
         word_id = get_index(w, vocabulary)
-        if parallel_sentence is not None and \
-                (w in parallel_sentence or remove_prefix(w) in parallel_sentence):
+        if parallel_sequence is not None and \
+                (w in parallel_sequence or remove_prefix(w) in parallel_sequence):
             # If the token has appeared in the parallel sequence, store its
-            # vocabulary index. Used for computing the CopyNet training objective.
+            # vocabulary index. Used to compute the CopyNet training objective.
             token_ids.append(word_id)
         else:
             if word_id == -1 or (is_low_frequency(w) and use_unk):
@@ -401,7 +400,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                         token_ids.append(NON_ENGLISH_ID)
                     else:
                         token_ids.append(UNK_ID)
-                elif use_dummy_indices:
+                elif use_source_placeholder:
                     token_ids.append(parallel_vocab_size + i)
                 else:
                     token_ids.append(UNK_ID)
@@ -505,14 +504,14 @@ def read_raw_data(data_dir):
 
 
 def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
-                    create_vocab=True, parallel_token_list=None,
-                    parallel_vocab_size=None):
+                    create_vocab=True, parallel_vocab_size=-1,
+                    parallel_vocab_path=None, parallel_data=None):
     if isinstance(data.train[0], list):
         # save indexed token sequences
-        MIN_WORD_FREQ = 2 if "bash" in data_dir else 1
         coarse_typing = 'bash' in data_dir and suffix.endswith('.nl')
 
         if create_vocab:
+            MIN_WORD_FREQ = 2 if "bash" in data_dir else 1
             create_vocabulary(vocab_path, data.train, vocab_size,
                               min_word_frequency=MIN_WORD_FREQ)
             if suffix.endswith('.nl') or suffix.endswith('.cm'):
@@ -523,23 +522,24 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
         for split in _data_splits:
             data_path = os.path.join(data_dir, split)
             if suffix.endswith('.copy'):
+                assert(parallel_vocab_size != -1)
+                assert(parallel_vocab_path is not None)
+                assert(parallel_data is not None)
                 # compute CopyNet source indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.sc',
-                    vocab_path, use_unk=True, use_dummy_indices=(split in ['dev', 'test']),
+                    vocab_path=parallel_vocab_path, use_source_placeholder=True,
                     parallel_vocab_size=parallel_vocab_size)
                 # compute CopyNet target indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.tg',
-                    vocab_path, use_unk=True, use_dummy_indices=False,
-                    parallel_data=parallel_token_list)
+                    vocab_path, use_unk=True, parallel_data=parallel_data)
             else:
                 data_to_token_ids(getattr(data, split), data_path + suffix,
-                              vocab_path, coarse_typing=coarse_typing)
+                                  vocab_path, coarse_typing=coarse_typing)
                 if '.nl' in suffix or '.cm' in suffix:
-                    data_to_token_ids(
-                        getattr(data, split), data_path + suffix + '.full',
-                        vocab_path, use_unk=False, use_dummy_indices=False)
+                    data_to_token_ids(getattr(data, split),
+                        data_path + suffix + '.full', vocab_path, use_unk=False)
     else:
-        # save string data
+        # save plain string
         for split in _data_splits:
             data_path = os.path.join(data_dir, split)
             with open(data_path + suffix, 'w') as o_f:
@@ -740,8 +740,8 @@ def prepare_bash(FLAGS, verbose=False):
                     getattr(cm_seq_list, split).append(cm_seq)
                     getattr(cm_pruned_token_list, split).append(cm_pruned_tokens)
                     getattr(cm_pruned_seq_list, split).append(cm_pruned_seq)
-                    getattr(nl_break_token_list, split).append(nl_break_tokens)
-                    getattr(cm_break_token_list, split).append(cm_break_tokens)
+                    getattr(nl_partial_token_list, split).append(nl_break_tokens)
+                    getattr(cm_partial_token_list, split).append(cm_break_tokens)
                     getattr(nl_norm_token_list, split).append(nl_normalized_tokens)
                     getattr(cm_norm_token_list, split).append(cm_normalized_tokens)
                     getattr(cm_normalized_seq_list, split).append(cm_normalized_seq)
@@ -842,8 +842,8 @@ def prepare_bash(FLAGS, verbose=False):
     cm_seq_list = DataSet()
     cm_pruned_token_list = DataSet()
     cm_pruned_seq_list = DataSet()
-    nl_break_token_list = DataSet()
-    cm_break_token_list = DataSet()
+    nl_partial_token_list = DataSet()
+    cm_partial_token_list = DataSet()
     nl_norm_token_list = DataSet()
     cm_norm_token_list = DataSet()
     cm_normalized_seq_list = DataSet()
@@ -859,8 +859,8 @@ def prepare_bash(FLAGS, verbose=False):
     cm_char_vocab_path = os.path.join(data_dir, "vocab%d.cm.char" % cm_vocab_size)
     nl_vocab_path = os.path.join(data_dir, "vocab%d.nl" % nl_vocab_size)
     cm_vocab_path = os.path.join(data_dir, "vocab%d.cm" % cm_vocab_size)
-    nl_break_vocab_path = os.path.join(data_dir, "vocab%d.nl.break" % nl_vocab_size)
-    cm_break_vocab_path = os.path.join(data_dir, "vocab%d.cm.break" % cm_vocab_size)
+    nl_partial_vocab_path = os.path.join(data_dir, "vocab%d.nl.break" % nl_vocab_size)
+    cm_partial_vocab_path = os.path.join(data_dir, "vocab%d.cm.break" % cm_vocab_size)
     nl_norm_vocab_path = os.path.join(data_dir, "vocab%d.nl.norm" % nl_vocab_size)
     cm_norm_vocab_path = os.path.join(data_dir, "vocab%d.cm.norm" % cm_vocab_size)
     cm_ast_vocab_path = os.path.join(data_dir, "vocab%d.cm.ast" % cm_vocab_size)
@@ -893,10 +893,10 @@ def prepare_bash(FLAGS, verbose=False):
         nl_vocab_size, nl_vocab_path)
     max_cm_token_len = prepare_dataset(cm_token_list, data_dir, cm_token_suffix,
         cm_vocab_size, cm_vocab_path)
-    max_nl_token_break_len = prepare_dataset(nl_break_token_list, data_dir,
-        nl_token_break_suffix, nl_vocab_size, nl_break_vocab_path)
-    max_cm_token_break_len = prepare_dataset(cm_break_token_list, data_dir,
-        cm_token_break_suffix, cm_vocab_size, cm_break_vocab_path)
+    max_nl_token_break_len = prepare_dataset(nl_partial_token_list, data_dir,
+        nl_token_break_suffix, nl_vocab_size, nl_partial_vocab_path)
+    max_cm_token_break_len = prepare_dataset(cm_partial_token_list, data_dir,
+        cm_token_break_suffix, cm_vocab_size, cm_partial_vocab_path)
     max_nl_token_norm_len = prepare_dataset(nl_norm_token_list, data_dir,
         nl_token_norm_suffix, nl_vocab_size, nl_norm_vocab_path)
     max_cm_token_norm_len = prepare_dataset(cm_norm_token_list, data_dir,
@@ -963,27 +963,40 @@ def prepare_bash(FLAGS, verbose=False):
                     generation_mask[cm_vocab[v]] = 1
         np.save(os.path.join(data_dir, output_file), generation_mask)
 
+    # Two types of sequence indices are prepared for CopyNet.
+    #   A) '.copy.sc' - indices of source tokens in the target vocab, used to
+    #       compute the copying part of the output mixture probability; if
+    #       a source token is not in the target vocab, use a positional
+    #       placeholder to indicate a 'copy' operation
+    #   B) '.copy.tg' - indices of target tokens where low-frequency words are
+    #       not replaced with _UNK iff they appeared in the source sequence
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
-                    nl_vocab_size, cm_vocab_path, create_vocab=False,
-                    parallel_token_list=cm_token_list,
-                    parallel_vocab_size=cm_vocab_size)
+                    nl_vocab_size, nl_vocab_path, create_vocab=False,
+                    parallel_vocab_size=cm_vocab_size,
+                    parallel_vocab_path=cm_vocab_path,
+                    parallel_data=cm_token_list)
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
     prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
-                    cm_vocab_size, nl_vocab_path, create_vocab=False,
-                    parallel_token_list=nl_token_list,
-                    parallel_vocab_size=nl_vocab_size)
+                    cm_vocab_size, cm_vocab_path, create_vocab=False,
+                    parallel_vocab_size=nl_vocab_size,
+                    parallel_vocab_path=nl_vocab_path,
+                    parallel_data=nl_token_list)
     prepare_generation_mask(nl_vocab_path, cm_vocab_path, "generation_mask")
 
     nl_token_break_copy_suffix = ".ids%d.nl.break.copy" % nl_vocab_size
-    prepare_dataset(nl_break_token_list, data_dir, nl_token_break_copy_suffix,
-                    nl_vocab_size, cm_break_vocab_path, create_vocab=False,
-                    parallel_vocab_size=cm_vocab_size)
+    prepare_dataset(nl_partial_token_list, data_dir, nl_token_break_copy_suffix,
+                    nl_vocab_size, nl_partial_vocab_path, create_vocab=False,
+                    parallel_vocab_size=cm_vocab_size,
+                    parallel_vocab_path=cm_vocab_path,
+                    parallel_data=cm_partial_token_list)
     cm_token_break_copy_suffix = ".ids%d.cm.break.copy" % cm_vocab_size
-    prepare_dataset(cm_break_token_list, data_dir, cm_token_break_copy_suffix,
-                    cm_vocab_size, nl_break_vocab_path, create_vocab=False,
-                    parallel_vocab_size=nl_vocab_size)
-    prepare_generation_mask(nl_break_vocab_path, cm_break_vocab_path,
+    prepare_dataset(cm_partial_token_list, data_dir, cm_token_break_copy_suffix,
+                    cm_vocab_size, cm_partial_vocab_path, create_vocab=False,
+                    parallel_vocab_size=nl_vocab_size,
+                    parallel_vocab_path=nl_vocab_path,
+                    parallel_data=nl_partial_token_list)
+    prepare_generation_mask(nl_partial_vocab_path, cm_partial_vocab_path,
                             "generation_mask.break")
 
 
@@ -1198,42 +1211,49 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
     # Set up natural language file extensions
     nl_ext = ".nl"
     nl_full_ext = ".nl.full"
-    nl_copy_full_ext = ".nl.copy"
+    nl_copy_sc_ext = ".nl.copy.sc"
+    nl_copy_tg_ext = ".nl.copy.tg"
     if FLAGS.char:
         nl_ext = ".nl.char"
     elif FLAGS.partial_token:
         nl_ext = ".nl.break"
         nl_full_ext = ".nl.break.full"
-        nl_copy_full_ext = ".nl.break.copy.full"
+        nl_copy_sc_ext = ".nl.break.copy.sc"
+        nl_copy_tg_ext = ".nl.break.copy.tg"
     elif FLAGS.normalized or FLAGS.canonical:
         nl_ext = ".nl.norm"
 
     # Set up command files extensions
     cm_ext = ".cm"
     cm_full_ext = ".cm.full"
-    cm_copy_full_ext = ".cm.copy.full"
+    cm_copy_sc_ext = ".cm.copy.sc"
+    cm_copy_tg_ext = ".cm.copy.tg"
     if FLAGS.char:
         cm_ext = ".cm.char"
     elif FLAGS.partial_token:
         cm_ext = ".cm.break"
         cm_full_ext = ".cm.break.full"
-        cm_copy_full_ext = ".cm.break.copy.full"
+        cm_copy_sc_ext = ".cm.break.copy.sc"
+        cm_copy_tg_ext = ".cm.break.copy.tg"
     elif FLAGS.canonical:
         cm_ext = ".cm.norm.ordered"
 
     nl_ext = ".ids{}{}".format(nl_vocab_size, nl_ext)
     nl_full_ext = ".ids{}{}".format(nl_vocab_size, nl_full_ext)
-    nl_copy_full_ext = ".ids{}{}".format(nl_vocab_size, nl_copy_full_ext)
+    nl_copy_sc_ext = ".ids{}{}".format(nl_vocab_size, nl_copy_sc_ext)
+    nl_copy_tg_ext = ".ids{}{}".format(nl_vocab_size, nl_copy_tg_ext)
     if FLAGS.decoder_topology in ["basic_tree"]:
         cm_ext = ".seq{}{}".format(cm_vocab_size, cm_ext)
         cm_full_ext = ".seq{}{}".format(cm_vocab_size, cm_full_ext)
-        cm_copy_full_ext = ".seq{}{}".format(cm_vocab_size, cm_copy_full_ext)
+        cm_copy_sc_ext = ".seq{}{}".format(cm_vocab_size, cm_copy_sc_ext)
+        cm_copy_tg_ext = ".seq{}{}".format(cm_vocab_size, cm_copy_tg_ext)
         append_head_token = False
         append_end_token = False
     else:
         cm_ext = ".ids{}{}".format(cm_vocab_size, cm_ext)
         cm_full_ext = ".ids{}{}".format(cm_vocab_size, cm_full_ext)
-        cm_copy_full_ext = ".ids{}{}".format(cm_vocab_size, cm_copy_full_ext)
+        cm_copy_sc_ext = ".ids{}{}".format(cm_vocab_size, cm_copy_sc_ext)
+        cm_copy_tg_ext = ".ids{}{}".format(cm_vocab_size, cm_copy_tg_ext)
 
     datasets = []
 
@@ -1243,20 +1263,22 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         cm_txt = data_path + ".%d.cm" % FLAGS.cm_vocab_size
         nl = data_path + nl_ext
         nl_full = data_path + nl_full_ext
-        nl_copy_full = data_path + nl_copy_full_ext
+        nl_copy_sc = data_path + nl_copy_sc_ext
+        nl_copy_tg = data_path + nl_copy_tg_ext
         cm = data_path + cm_ext
         cm_full = data_path + cm_full_ext
-        cm_copy_full = data_path + cm_copy_full_ext
+        cm_copy_sc = data_path + cm_copy_sc_ext
+        cm_copy_tg = data_path + cm_copy_tg_ext
         if FLAGS.explain:
             dataset = read_data(cm_txt, nl_txt, cm, nl, cm_full, nl_full,
-                                cm_copy_full, nl_copy_full, FLAGS, buckets,
+                                cm_copy_sc, nl_copy_tg, FLAGS, buckets,
                                 append_head_token=append_head_token,
                                 append_end_token=append_end_token,
                                 load_mappings=load_mappings,
                                 load_pointers=load_pointers)
         else:
             dataset = read_data(nl_txt, cm_txt, nl, cm, nl_full, cm_full,
-                                nl_copy_full, cm_copy_full, FLAGS, buckets,
+                                nl_copy_sc, cm_copy_tg, FLAGS, buckets,
                                 append_head_token=append_head_token,
                                 append_end_token=append_end_token,
                                 load_mappings=load_mappings,
@@ -1267,7 +1289,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
 
 
 def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
-              tg_full_id_path, sc_copy_full_id_path, tg_copy_full_id_path,
+              tg_full_id_path, sc_copy_id_path, tg_copy_id_path,
               FLAGS, buckets=None, append_head_token=False,
               append_end_token=False, load_mappings=False, load_pointers=False):
     """
@@ -1318,7 +1340,8 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
     tg_id_file = tf.gfile.GFile(tg_id_path, mode="r")
     sc_full_id_file = tf.gfile.GFile(sc_full_id_path, mode="r")
     tg_full_id_file = tf.gfile.GFile(tg_full_id_path, mode="r")
-    sc_copy_full_id_file = tf.gfile.GFile(sc_copy_full_id_path, mode="r")
+    sc_copy_id_file = tf.gfile.GFile(sc_copy_id_path, mode="r")
+    tg_copy_id_file = tf.gfile.GFile(tg_copy_id_path, mode="r")
     if load_mappings or load_pointers:
         data_dir, file_name = os.path.split(sc_path)
         mapping_path = os.path.join(
@@ -1332,7 +1355,8 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
         sc, tg = sc_id_file.readline(), tg_id_file.readline()
         sc_full = sc_full_id_file.readline()
         tg_full = tg_full_id_file.readline()
-        sc_copy_full = sc_copy_full_id_file.readline()
+        sc_copy = sc_copy_id_file.readline()
+        tg_copy = tg_copy_id_file.readline()
         if load_mappings or load_pointers:
             mapping = mapping_file.readline()
         if not sc or not tg:
@@ -1351,7 +1375,8 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
         dp.tg_ids = get_target_ids(tg)
         dp.sc_full_ids = [int(x) for x in sc_full.split()]
         dp.tg_full_ids = get_target_ids(tg_full)
-        dp.sc_copy_full_ids = [int(x) for x in sc_copy_full.split()]
+        dp.sc_copy_ids = [int(x) for x in sc_copy.split()]
+        dp.tg_copy_ids = [int(x) for x in tg_copy.split()]
 
         if load_mappings:
             mappings = []
@@ -1397,7 +1422,8 @@ class DataPoint(object):
         self.tg_ids = None
         self.sc_full_ids = None
         self.tg_full_ids = None
-        self.sc_copy_full_ids = None
+        self.sc_copy_ids = None
+        self.tg_copy_ids = None
         self.mappings = None
         self.pointer_targets = None
         self.sc_fillers = None
@@ -1411,11 +1437,9 @@ class Vocab(object):
         self.tg_full_vocab = None
         self.sc_char_vocab = None
         self.tg_char_vocab = None
-        self.cp_vocab = None
         self.rev_sc_vocab = None
         self.rev_tg_vocab = None
         self.rev_sc_full_vocab = None
         self.rev_tg_full_vocab = None
         self.rev_sc_char_vocab = None
         self.rev_tg_char_vocab = None
-        self.rev_cp_vocab = None
