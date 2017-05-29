@@ -76,7 +76,7 @@ def demo(sess, model, FLAGS):
 def translate_fun(data_point, sess, model, vocabs, FLAGS,
                   slot_filling_classifier=None):
     if type(data_point) is str:
-        sc_ids, sc_full_ids, sc_copy_full_ids, sc_fillers = \
+        sc_ids, sc_full_ids, sc_copy_ids, sc_fillers = \
             vectorize_query(data_point, vocabs, FLAGS)
         tg_ids = [data_utils.ROOT_ID]
         tg_full_ids = [data_utils.ROOT_ID]
@@ -84,7 +84,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
     else:
         sc_ids = data_point[0].sc_ids
         sc_full_ids = data_point[0].sc_full_ids
-        sc_copy_full_ids = data_point[0].sc_copy_full_ids
+        sc_copy_ids = data_point[0].sc_copy_ids
         tg_ids = data_point[0].tg_ids
         tg_full_ids = data_point[0].tg_full_ids
         pointer_targets = data_point[0].pointer_targets
@@ -97,7 +97,7 @@ def translate_fun(data_point, sess, model, vocabs, FLAGS,
 
     # Get a 1-element batch to feed the sentence to the model.
     formatted_example = model.format_example(
-        [[sc_ids], [sc_full_ids], [sc_copy_full_ids]], [[tg_ids], [tg_full_ids]],
+        [[sc_ids], [sc_full_ids], [sc_copy_ids]], [[tg_ids], [tg_full_ids]],
         pointer_targets=pointer_targets, bucket_id=bucket_id)
 
     # Compute neural network decoding output
@@ -210,7 +210,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
     for batch_id in xrange(batch_size):
         def as_str(output, r_sc_vocab, r_tg_vocab):
             if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-                if output < FLAGS.target_vocab_size:
+                if output < FLAGS.tg_vocab_size:
                     token = r_tg_vocab[output]
                 else:
                     token = r_sc_vocab[encoder_full_inputs[batch_id]
