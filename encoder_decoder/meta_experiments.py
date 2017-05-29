@@ -15,8 +15,9 @@ if sys.version_info > (3, 0):
     from six.moves import xrange
 
 import tensorflow as tf
-
 from tensorflow.python.util import nest
+
+from encoder_decoder import translate
 
 
 hyperparam_range = {
@@ -84,20 +85,28 @@ def grid_search(train_fun, decode_fun, eval_fun, train_set, dev_set, FLAGS):
         for i in xrange(num_hps):
             print("* {}: {}".format(hyperparameters[i], row[i]))
 
+        # Try different random seed if tuning initialization
         num_trials = 5 if FLAGS.initialization else 1
+
+        if FLAGS.dataset.startswith('bash'):
+            metrics = ["top1_temp_ms", "top1_cms", "top3_temp_ms", "top3_cms"]
+            metrics_weights = [0.4, 0.4, 0.1, 0.1]
+        else:
+            metrics = ["top1_temp_ms"]
+            metrics_weights = [1]
+        metrics_signature = '+'.join(
+            ['{}x{}'.format(m, mw) for m, mw in zip(metrics, metrics_weights)])
 
         for t in xrange(num_trials):
             seed = random.getrandbits(32)
             tf.set_random_seed(seed)
-            metrics = ["top1_temp_ms", "top1_cms", "top3_temp_ms", "top3_cms"]
-            metrics_weights = [0.4, 0.4, 0.1, 0.1]
             metrics_value = single_round_model_eval(train_fun, decode_fun,
                 eval_fun, train_set, dev_set, metrics, metrics_weights)
             print("Parameter set: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], row[i]))
             print("random seed: {}".format(seed))
-            print("{} = {}".format(metrics, metrics_value))
+            print("{} = {}".format(metrics_signature, metrics_value))
             print("Best parameter set so far: ")
             for i in xrange(num_hps):
                 print("* {}: {}".format(hyperparameters[i], best_hp_set[i]))
@@ -180,7 +189,7 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun, train_set,
         metrics_value = 0
         for m, m_w in zip(metrics, metrics_weights):
             metrics_value += m_w * M[m]
-    except ValueError:
+    except translate.InfPerplexityError:
         metrics_value = -np.inf
 
     return metrics_value
