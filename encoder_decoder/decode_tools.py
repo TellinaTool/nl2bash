@@ -211,9 +211,9 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
         def as_str(output, r_sc_vocab, r_tg_vocab):
             if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
                 if output < FLAGS.target_vocab_size:
-                    token = r_sc_vocab[output]
+                    token = r_tg_vocab[output]
                 else:
-                    token = r_tg_vocab[encoder_full_inputs[batch_id]
+                    token = r_sc_vocab[encoder_full_inputs[batch_id]
                         [output - FLAGS.target_vocab_size]]
                 return token
             else:
