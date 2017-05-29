@@ -357,9 +357,6 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
 
     token_ids = []
 
-    def is_low_frequency(w):
-        return w.startswith('__LF__')
-
     def get_index(w, vocab):
         if w in vocab:
             return vocab[w]
@@ -370,19 +367,14 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         else:
             return -1
 
-    def remove_prefix(w):
-        if is_low_frequency(w):
-            return w[len('__LF__'):]
-        else:
-            return w
-
     if use_source_placeholder:
         assert(parallel_vocab_size != -1)
 
     for (i, w) in enumerate(words):
         word_id = get_index(w, vocabulary)
         if parallel_sequence is not None and \
-                (w in parallel_sequence or remove_prefix(w) in parallel_sequence):
+                (w in parallel_sequence
+                 or remove_low_frequency_prefix(w) in parallel_sequence):
             # If the token has appeared in the parallel sequence, store its
             # vocabulary index. Used to compute the CopyNet training objective.
             token_ids.append(word_id)
@@ -728,11 +720,11 @@ def prepare_bash(FLAGS, verbose=False):
                     cm_normalized_tokens = data_tools.ast2tokens(
                         ast, loose_constraints=True, arg_type_only=True,
                         with_parent=True)
-                    nl_break_tokens, cm_break_tokens = split_arguments(
+                    nl_partial_tokens, cm_partial_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)
                     # Debugging
-                    print(nl_break_tokens)
-                    print(cm_break_tokens)
+                    print(nl_partial_tokens)
+                    print(cm_partial_tokens)
                     cm_normalized_seq = data_tools.ast2list(
                         ast, arg_type_only=True, list=[], with_parent=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
@@ -751,8 +743,8 @@ def prepare_bash(FLAGS, verbose=False):
                     getattr(cm_seq_list, split).append(cm_seq)
                     getattr(cm_pruned_token_list, split).append(cm_pruned_tokens)
                     getattr(cm_pruned_seq_list, split).append(cm_pruned_seq)
-                    getattr(nl_partial_token_list, split).append(nl_break_tokens)
-                    getattr(cm_partial_token_list, split).append(cm_break_tokens)
+                    getattr(nl_partial_token_list, split).append(nl_partial_tokens)
+                    getattr(cm_partial_token_list, split).append(cm_partial_tokens)
                     getattr(nl_norm_token_list, split).append(nl_normalized_tokens)
                     getattr(cm_norm_token_list, split).append(cm_normalized_tokens)
                     getattr(cm_normalized_seq_list, split).append(cm_normalized_seq)
@@ -818,12 +810,15 @@ def prepare_bash(FLAGS, verbose=False):
         splitted_cm_tokens = []
         for j in xrange(len(cm_tokens)):
             token = cm_tokens[j]
-            if token.startswith('__LF__'):
-                token = token[len('__LF__'):]
+            low_frequency = is_low_frequency(token)
+            if low_frequency:
+                token = remove_low_frequency_prefix(token)
             if j in mapping_dict:
                 i = mapping_dict[j]
                 word = splitted_nl_tokens[i]
                 if word == token:
+                    if low_frequency:
+                        token = add_low_frequency_prefix(token)
                     splitted_cm_tokens.append(token)
                 else:
                     pos_start = token.index(word)
@@ -831,7 +826,10 @@ def prepare_bash(FLAGS, verbose=False):
                     splitted_cm_tokens.append(_ARG_START)
                     for k in xrange(pos_start):
                         splitted_cm_tokens.append(token[k])
-                    splitted_cm_tokens.append(word)
+                    if low_frequency:
+                        splitted_cm_tokens.append(add_low_frequency_prefix(word))
+                    else:
+                        splitted_cm_tokens.append(word)
                     for k in xrange(pos_end, len(token)):
                         splitted_cm_tokens.append(token[k])
                     splitted_cm_tokens.append(_ARG_END)
@@ -1417,6 +1415,21 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
             data_set.append(dp)
     print("  %d data points read." % data_idx)
     return data_set
+
+
+def is_low_frequency(w):
+    return w.startswith('__LF__')
+
+
+def remove_low_frequency_prefix(w):
+    if is_low_frequency(w):
+        return w[len('__LF__'):]
+    else:
+        return w
+
+
+def add_low_frequency_prefix(w):
+    return '__LF__' + w
 
 
 class DataSet(object):
