@@ -960,7 +960,7 @@ def prepare_bash(FLAGS, verbose=False):
         cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
         print(cm_vocab)
         generation_mask = np.zeros(
-            [FLAGS.tg_token_embedding_size + FLAGS.max_sc_length],
+            [FLAGS.tg_vocab_size + FLAGS.max_sc_length],
             dtype=np.float32)
         if FLAGS.explain:
             for v in nl_vocab:
