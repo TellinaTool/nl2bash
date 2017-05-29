@@ -52,7 +52,7 @@ class Decoder(graph_utils.NNModel):
         self.vocab_size = self.target_vocab_size
         if self.use_copy and self.copy_fun != 'supervised':
              self.vocab_size += self.max_source_length
-
+        
         # variable sharing
         self.embedding_vars = False
         self.output_project_vars = False
