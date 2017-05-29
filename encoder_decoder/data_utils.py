@@ -812,26 +812,24 @@ def prepare_bash(FLAGS, verbose=False):
             token = cm_tokens[j]
             low_frequency = is_low_frequency(token)
             if low_frequency:
-                token = remove_low_frequency_prefix(token)
+                basic_token = remove_low_frequency_prefix(token)
             if j in mapping_dict:
                 i = mapping_dict[j]
                 word = splitted_nl_tokens[i]
-                if word == token:
-                    if low_frequency:
-                        token = add_low_frequency_prefix(token)
+                if word == basic_token:
                     splitted_cm_tokens.append(token)
                 else:
-                    pos_start = token.index(word)
+                    pos_start = basic_token.index(word)
                     pos_end = pos_start + len(word)
                     splitted_cm_tokens.append(_ARG_START)
                     for k in xrange(pos_start):
-                        splitted_cm_tokens.append(token[k])
+                        splitted_cm_tokens.append(basic_token[k])
                     if low_frequency:
                         splitted_cm_tokens.append(add_low_frequency_prefix(word))
                     else:
                         splitted_cm_tokens.append(word)
-                    for k in xrange(pos_end, len(token)):
-                        splitted_cm_tokens.append(token[k])
+                    for k in xrange(pos_end, len(basic_token)):
+                        splitted_cm_tokens.append(basic_token[k])
                     splitted_cm_tokens.append(_ARG_END)
             else:
                 splitted_cm_tokens.append(token)
