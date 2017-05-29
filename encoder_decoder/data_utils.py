@@ -302,7 +302,7 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
             else:
                 parallel_line = parallel_data[i]
             token_ids, _ = sentence_to_token_ids(data[i], vocab, tokenizer,
-                base_tokenizer, with_arg_type=with_arg_type, use_unk=use_unk,
+                base_tokenizer, use_unk=use_unk,
                 parallel_sequence=parallel_line,
                 use_source_placeholder=use_source_placeholder,
                 parallel_vocab_size=parallel_vocab_size,
@@ -531,7 +531,8 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     parallel_vocab_size=parallel_vocab_size)
                 # compute CopyNet target indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.tg',
-                    vocab_path, use_unk=True, parallel_data=parallel_data)
+                    vocab_path, use_unk=True, 
+                    parallel_data=getattr(parallel_data, split))
             else:
                 data_to_token_ids(getattr(data, split), data_path + suffix,
                                   vocab_path, coarse_typing=coarse_typing)
