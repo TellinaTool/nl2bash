@@ -11,7 +11,7 @@ import tensorflow as tf
 from encoder_decoder import decoder, data_utils, graph_utils, rnn
 
 class RNNDecoder(decoder.Decoder):
-    def __init__(self, hyperparameters, scope, vocab_size, dim, embedding_dim,
+    def __init__(self, hyperparameters, scope, dim, embedding_dim,
                  use_attention, attention_function, input_keep, output_keep,
                  decoding_algorithm, forward_only, use_token_features=False):
         """
@@ -28,8 +28,8 @@ class RNNDecoder(decoder.Decoder):
         :member forward_only:
         :member use_token_features:
         """
-        super(RNNDecoder, self).__init__(hyperparameters, scope, vocab_size,
-            dim, embedding_dim, use_attention, attention_function, input_keep,
+        super(RNNDecoder, self).__init__(hyperparameters, scope, dim,
+            embedding_dim, use_attention, attention_function, input_keep,
             output_keep, decoding_algorithm, forward_only, use_token_features)
         print("{} dimension = {}".format(scope, dim))
         print("{} decoding_algorithm = {}".format(scope, decoding_algorithm))
