@@ -17,7 +17,7 @@ if sys.version_info > (3, 0):
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from encoder_decoder import translate
+from encoder_decoder import graph_utils
 
 
 hyperparam_range = {
@@ -180,7 +180,7 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun, train_set,
     tf.reset_default_graph()
     try:
         train_fun(train_set, dev_set)
-        
+
         tf.reset_default_graph()
         model_dir, decode_sig = decode_fun(dev_set, verbose=False)
 
@@ -189,7 +189,7 @@ def single_round_model_eval(train_fun, decode_fun, eval_fun, train_set,
         metrics_value = 0
         for m, m_w in zip(metrics, metrics_weights):
             metrics_value += m_w * M[m]
-    except translate.InfPerplexityError:
+    except graph_utils.InfPerplexityError:
         metrics_value = -np.inf
 
     return metrics_value
