@@ -686,13 +686,13 @@ def prepare_jobs(FLAGS):
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
                     nl_vocab_size, nl_vocab_path, create_vocab=False,
-                    parallel_vocab_size=cm_vocab_size,
+                    parallel_vocab_size=FLAGS.cm_known_vocab_size,
                     parallel_vocab_path=cm_vocab_path,
                     parallel_data=cm_token_list)
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
     prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
                     cm_vocab_size, cm_vocab_path, create_vocab=False,
-                    parallel_vocab_size=nl_vocab_size,
+                    parallel_vocab_size=FLAGS.nl_known_vocab_size,
                     parallel_vocab_path=nl_vocab_path,
                     parallel_data=nl_token_list)
 
@@ -1386,7 +1386,7 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
         dp.sc_full_ids = [int(x) for x in sc_full.split()]
         dp.tg_full_ids = get_target_ids(tg_full)
         dp.sc_copy_ids = [int(x) for x in sc_copy.split()]
-        dp.tg_copy_ids = get_target_ids(tg_copy]
+        dp.tg_copy_ids = get_target_ids(tg_copy)
 
         if load_mappings:
             mappings = []
