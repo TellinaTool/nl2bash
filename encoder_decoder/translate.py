@@ -106,7 +106,7 @@ def train(train_set, dev_set):
                 if loss < 300:
                     ppx = math.exp(loss)
                 else:
-                    raise ValueError("Training loss = {} is too large.".format(loss))
+                    raise InfPerplexityError("Training loss = {} is too large.".format(loss))
                 print("learning rate %.4f epoch-time %.4f perplexity %.2f" % (
                     model.learning_rate.eval(), epoch_time, ppx))
 
@@ -158,6 +158,10 @@ def train(train_set, dev_set):
             gen_slot_filling_training_data_fun(sess, model, dev_set, mapping_path)
 
     return True
+
+
+class InfPerplexityError(Exception):
+    pass
 
 
 def decode(data_set, verbose=True):
