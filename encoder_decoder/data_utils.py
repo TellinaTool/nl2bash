@@ -697,7 +697,8 @@ def prepare_jobs(FLAGS):
                     parallel_data=nl_token_list)
 
     generation_mask = np.ones(
-        [FLAGS.tg_vocab_size + FLAGS.max_sc_length], dtype=np.float32)
+        [FLAGS.tg_token_embedding_size + FLAGS.max_sc_length],
+        dtype=np.float32)
     np.save(os.path.join(data_dir, "generation_mask"), generation_mask)
 
 
@@ -962,7 +963,8 @@ def prepare_bash(FLAGS, verbose=False):
         nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
         cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
         generation_mask = np.zeros(
-            [FLAGS.tg_vocab_size + FLAGS.max_sc_length], dtype=np.float32)
+            [FLAGS.tg_token_embedding_size + FLAGS.max_sc_length],
+            dtype=np.float32)
         if FLAGS.explain:
             for v in nl_vocab:
                 if not v.startswith("__LF__"):
