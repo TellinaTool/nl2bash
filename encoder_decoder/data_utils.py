@@ -1385,7 +1385,7 @@ def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
         dp.sc_full_ids = [int(x) for x in sc_full.split()]
         dp.tg_full_ids = get_target_ids(tg_full)
         dp.sc_copy_ids = [int(x) for x in sc_copy.split()]
-        dp.tg_copy_ids = [int(x) for x in tg_copy.split()]
+        dp.tg_copy_ids = get_target_ids(tg_copy]
 
         if load_mappings:
             mappings = []
