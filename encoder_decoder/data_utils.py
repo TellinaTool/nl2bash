@@ -678,18 +678,18 @@ def prepare_jobs(FLAGS):
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
                     nl_vocab_size, nl_vocab_path, create_vocab=False,
-                    parallel_vocab_size=FLAGS.cm_known_vocab_size,
+                    parallel_vocab_size=cm_vocab_size,
                     parallel_vocab_path=cm_vocab_path,
                     parallel_data=cm_token_list)
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
     prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
                     cm_vocab_size, cm_vocab_path, create_vocab=False,
-                    parallel_vocab_size=FLAGS.nl_known_vocab_size,
+                    parallel_vocab_size=nl_vocab_size,
                     parallel_vocab_path=nl_vocab_path,
                     parallel_data=nl_token_list)
 
     generation_mask = np.ones(
-        [FLAGS.tg_token_embedding_size + FLAGS.max_sc_length],
+        [FLAGS.tg_vocab_size + FLAGS.max_sc_length],
         dtype=np.float32)
     np.save(os.path.join(data_dir, "generation_mask"), generation_mask)
 
@@ -983,13 +983,13 @@ def prepare_bash(FLAGS, verbose=False):
     nl_token_copy_suffix = ".ids%d.nl.copy" % nl_vocab_size
     prepare_dataset(nl_token_list, data_dir, nl_token_copy_suffix,
                     nl_vocab_size, nl_vocab_path, create_vocab=False,
-                    parallel_vocab_size=FLAGS.cm_known_vocab_size,
+                    parallel_vocab_size=cm_vocab_size,
                     parallel_vocab_path=cm_vocab_path,
                     parallel_data=cm_token_list)
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
     prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
                     cm_vocab_size, cm_vocab_path, create_vocab=False,
-                    parallel_vocab_size=FLAGS.nl_known_vocab_size,
+                    parallel_vocab_size=nl_vocab_size,
                     parallel_vocab_path=nl_vocab_path,
                     parallel_data=nl_token_list)
     prepare_generation_mask(nl_vocab_path, cm_vocab_path, "generation_mask")
@@ -997,13 +997,13 @@ def prepare_bash(FLAGS, verbose=False):
     nl_token_break_copy_suffix = ".ids%d.nl.break.copy" % nl_vocab_size
     prepare_dataset(nl_partial_token_list, data_dir, nl_token_break_copy_suffix,
                     nl_vocab_size, nl_partial_vocab_path, create_vocab=False,
-                    parallel_vocab_size=FLAGS.cm_known_vocab_size,
+                    parallel_vocab_size=cm_vocab_size,
                     parallel_vocab_path=cm_vocab_path,
                     parallel_data=cm_partial_token_list)
     cm_token_break_copy_suffix = ".ids%d.cm.break.copy" % cm_vocab_size
     prepare_dataset(cm_partial_token_list, data_dir, cm_token_break_copy_suffix,
                     cm_vocab_size, cm_partial_vocab_path, create_vocab=False,
-                    parallel_vocab_size=FLAGS.nl_known_vocab_size,
+                    parallel_vocab_size=nl_vocab_size,
                     parallel_vocab_path=nl_vocab_path,
                     parallel_data=nl_partial_token_list)
     prepare_generation_mask(nl_partial_vocab_path, cm_partial_vocab_path,
