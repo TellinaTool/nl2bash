@@ -124,7 +124,7 @@ def vectorize_query(sentence, vocabs, FLAGS):
         sc_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
             sc_vocab, data_tools.char_tokenizer, tokenizer.basic_tokenizer,
             use_unk=False)
-        sc_copy_full_ids = []
+        sc_copy_ids = []
     else:
         if FLAGS.explain:
             sentence = data_tools.bash_tokenizer(
@@ -143,9 +143,9 @@ def vectorize_query(sentence, vocabs, FLAGS):
             sentence, sc_vocab, sc_tokenizer, None)
         sc_full_ids, _ = data_utils.sentence_to_token_ids(
             sentence, sc_vocab,sc_full_tokenizer, None, use_unk=False)
-        sc_copy_full_ids, _ = data_utils.sentence_to_token_ids(sentence,
-            tg_vocab, sc_full_tokenizer, None, use_unk=False,
-            use_dummy_indices=True, parallel_vocab_size=FLAGS.tg_vocab_size)
+        sc_copy_ids, _ = data_utils.sentence_to_token_ids(sentence,
+            tg_vocab, tokenizer=sc_full_tokenizer, base_tokenizer=None,
+            use_source_placeholder=True, parallel_vocab_size=FLAGS.tg_vocab_size)
 
     # Decode the output for this 1-element batch and apply output filtering.
     sc_fillers = entities[0] if FLAGS.fill_argument_slots else None
@@ -156,10 +156,10 @@ def vectorize_query(sentence, vocabs, FLAGS):
             and not FLAGS.explain):
         sc_ids = sc_full_ids
 
-    return sc_ids, sc_full_ids, sc_copy_full_ids, sc_fillers
+    return sc_ids, sc_full_ids, sc_copy_ids, sc_fillers
 
 
-def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
+def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
            slot_filling_classifier=None):
     """
     Transform the neural network output into readable strings and apply output
@@ -177,6 +177,7 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
     """
     rev_sc_vocab = vocabs.rev_sc_vocab
     rev_tg_vocab = vocabs.rev_tg_vocab
+    rev_sc_char_vocab = vocabs.rev_sc_char_vocab
     rev_tg_char_vocab = vocabs.rev_tg_char_vocab
 
     encoder_outputs = model_outputs.encoder_hidden_states
@@ -207,13 +208,16 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 [batch_size, FLAGS.beam_size, sc_length, tg_length])
 
     for batch_id in xrange(batch_size):
-        def as_str(output):
-            if output < FLAGS.target_vocab_size:
-                token = rev_tg_vocab[output]
+        def as_str(output, r_sc_vocab, r_tg_vocab):
+            if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
+                if output < FLAGS.target_vocab_size:
+                    token = r_sc_vocab[output]
+                else:
+                    token = r_tg_vocab[encoder_full_inputs[batch_id]
+                        [output - FLAGS.target_vocab_size]]
+                return token
             else:
-                token = rev_sc_vocab[
-                    encoder_inputs[batch_id][output - FLAGS.target_vocab_size]]
-            return token
+                return data_utils._UNK
 
         top_k_predictions = output_symbols[batch_id]
         if FLAGS.token_decoding_algorithm == "beam_search":
@@ -233,32 +237,23 @@ def decode(encoder_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
 
             if FLAGS.char:
-                target = "".join([as_str(output) for output in outputs])\
-                    .replace(data_utils._UNK, ' ')
+                target = "".join([as_str(output, rev_sc_char_vocab,
+                                         rev_tg_char_vocab)
+                    for output in outputs]).replace(constants._SPACE, ' ')
             else:
                 output_tokens = []
                 tg_slots = {}
                 for token_id in xrange(len(outputs)):
                     output = outputs[token_id]
-                    if output < FLAGS.tg_vocab_size:
-                        pred_token = rev_tg_vocab[output]
-                        if "@@" in pred_token:
-                            pred_token = pred_token.split("@@")[-1]
-                        if pred_token.startswith('__LF__'):
-                            pred_token = pred_token[len('__LF__'):]
-                        # process argument slots
-                        if pred_token in constants._ENTITIES:
-                            pred_token_type = pred_token
-                            tg_slots[token_id] = (pred_token, pred_token_type)
-                    else:
-                        if FLAGS.use_copy and FLAGS.copy_fun != 'supervised':
-                            pred_token = rev_sc_vocab[
-                                encoder_inputs[len(encoder_inputs) - 1
-                                    - (output - FLAGS.tg_vocab_size)][batch_id]]
-                            if pred_token.startswith('__LF__'):
-                                pred_token = pred_token[len('__LF__'):]
-                        else:
-                            pred_token = data_utils._UNK
+                    pred_token = as_str(output, rev_sc_vocab, rev_tg_vocab)
+                    if "@@" in pred_token:
+                        pred_token = pred_token.split("@@")[-1]
+                    if pred_token.startswith('__LF__'):
+                        pred_token = pred_token[len('__LF__'):]
+                    # process argument slots
+                    if pred_token in constants._ENTITIES:
+                        pred_token_type = pred_token
+                        tg_slots[token_id] = (pred_token, pred_token_type)
                     output_tokens.append(pred_token)
 
                 if FLAGS.partial_token:
