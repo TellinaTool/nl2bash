@@ -106,7 +106,11 @@ def train(train_set, dev_set):
                 if loss < 300:
                     ppx = math.exp(loss)
                 else:
-                    raise InfPerplexityError("Training loss = {} is too large.".format(loss))
+                    print("Training loss = {} is too large.".format(loss))
+                    if t > 1:
+                        break
+                    else:
+                        raise graph_utils.InfPerplexityError
                 print("learning rate %.4f epoch-time %.4f perplexity %.2f" % (
                     model.learning_rate.eval(), epoch_time, ppx))
 
@@ -117,9 +121,9 @@ def train(train_set, dev_set):
                 previous_losses.append(loss)
 
                 checkpoint_path = os.path.join(FLAGS.model_dir, "translate.ckpt")
-                # Save checkpoint and zero timer and loss.
-                model.saver.save(sess, checkpoint_path, global_step=t,
-                                 write_meta_graph=False)
+                # Save checkpoint and reset timer and loss.
+                model.saver.save(
+                    sess, checkpoint_path, global_step=t, write_meta_graph=False)
 
                 epoch_time, loss, dev_loss = 0.0, 0.0, 0.0
                 # Run evals on development set and print the metrics.
@@ -158,10 +162,6 @@ def train(train_set, dev_set):
             gen_slot_filling_training_data_fun(sess, model, dev_set, mapping_path)
 
     return True
-
-
-class InfPerplexityError(Exception):
-    pass
 
 
 def decode(data_set, verbose=True):
