@@ -119,8 +119,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.target_weights.append(
                 tf.placeholder(
                     tf.float32, shape=[None], name="weight{0}".format(i)))
-        # self.decoder_channel_inputs = \
-        #     [self.decoder_inputs, self.decoder_full_inputs]
+
         # Our targets are decoder inputs shifted by one.
         if self.use_copy and self.copy_fun != 'supervised':
             self.targets = [self.decoder_full_inputs[i + 1]
@@ -539,7 +538,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             batch_encoder_full_inputs = load_channel(
                 encoder_channel_inputs[1], encoder_size, reversed_output=True)
         if len(encoder_channel_inputs) > 2:
-            batch_encoder_copy_full_inputs = load_channel(
+            batch_encoder_copy_inputs = load_channel(
                 encoder_channel_inputs[2], encoder_size, reversed_output=True)
         batch_decoder_inputs = load_channel(
             decoder_channel_inputs[0], decoder_size, reversed_output=False)
@@ -575,7 +574,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if len(encoder_channel_inputs) > 1:
             E.encoder_full_inputs = batch_encoder_full_inputs
         if len(encoder_channel_inputs) > 2:
-            E.encoder_copy_full_inputs = batch_encoder_copy_full_inputs
+            E.encoder_copy_full_inputs = batch_encoder_copy_inputs
         E.encoder_attn_masks = batch_encoder_input_masks
         E.decoder_inputs = batch_decoder_inputs
         E.decoder_full_inputs = batch_decoder_full_inputs
