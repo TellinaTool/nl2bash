@@ -14,7 +14,7 @@ from tensorflow.python.util import nest
 from encoder_decoder import data_utils, graph_utils, beam_search
 
 class Decoder(graph_utils.NNModel):
-    def __init__(self, hyperparameters, scope, vocab_size, dim, embedding_dim,
+    def __init__(self, hyperparameters, scope, dim, embedding_dim,
                  use_attention, attention_function, input_keep, output_keep,
                  decoding_algorithm, forward_only, use_token_features=False):
         """
