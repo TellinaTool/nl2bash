@@ -197,7 +197,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
     # Prepare copied indices if the model is trained with explicit copy
     # alignments.
     if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
-        pointers = model_outputs.pointers
+        pointers = model_outputs.pointersf
         sc_length = pointers.shape[1]
         tg_length = pointers.shape[2]
         if FLAGS.token_decoding_algorithm == 'greedy':
@@ -316,7 +316,10 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                             encoder_outputs[batch_id],
                             decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
                             slot_filling_classifier, verbose=False)
-                    output_example = True
+                    else:
+                        output_example = True
+                    if not output_example and (target_ast is not None):
+                        output_example = True
                 else:
                     output_example = False
 
