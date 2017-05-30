@@ -209,15 +209,15 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
 
     for batch_id in xrange(batch_size):
         def as_str(output, r_sc_vocab, r_tg_vocab):
-            if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-                if output < FLAGS.tg_vocab_size:
-                    token = r_tg_vocab[output]
-                else:
+            if output < FLAGS.tg_vocab_size:
+                token = r_tg_vocab[output]
+            else:
+                if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
                     token = r_sc_vocab[encoder_full_inputs[batch_id]
                         [output - FLAGS.target_vocab_size]]
-                return token
-            else:
-                return data_utils._UNK
+                else:
+                    return data_utils._UNK
+            return token
 
         top_k_predictions = output_symbols[batch_id]
         if FLAGS.token_decoding_algorithm == "beam_search":
@@ -320,8 +320,6 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                         output_example = True
                     if not output_example and (target_ast is not None):
                         output_example = True
-                else:
-                    output_example = False
 
             if output_example:
                 if FLAGS.token_decoding_algorithm == "greedy":
