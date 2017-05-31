@@ -55,7 +55,6 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
         if not matched:
             # If no target slot can hold a source filler, skip the alignment
             # step and return None
-            print(s, slot_type, filler_type)
             return None, None, None
 
     # Step b): compute local alignment scores if they are not provided already
@@ -352,6 +351,9 @@ def slot_filler_type_match(slot_type, filler_type):
         '_TIMESPAN:::Timespan',
         '_TIMESPAN:::+Timespan',
         '_TIMESPAN:::-Timespan',
+        '_DATETIME:::Timespan',
+        '_DATETIME:::+Timespan',
+        '_DATETIME:::-Timespan',
         '_DATETIME:::DateTime',
         '_DATETIME:::+DateTime',
         '_DATETIME:::-DateTime',
