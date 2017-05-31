@@ -85,7 +85,8 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
             for i in xrange(len(predictions)):
                 pred_cmd = predictions[i]
                 tree = cmd_parser(pred_cmd)
-
+                unprocessed_cmd_str = regexDFAEquals.unprocess_regex(cmd_str)
+                unprocessed_pred_cmd = regexDFAEquals.unprocess_regex(pred_cmd)
                 # evaluation ignoring flag orders
                 if eval_bash:
                     temp_match = tree_dist.one_match(gts, tree, ignore_arg_value=True)
@@ -100,8 +101,8 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
                                 if verbose:
                                     if cmd_str != pred_cmd:
                                         print("----------------------------------")
-                                        print("1) {}".format(cmd_str))
-                                        print("2) {}".format(pred_cmd))
+                                        print("1) {} ({})".format(cmd_str, unprocessed_cmd_str))
+                                        print("2) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
                                         print("----------------------------------")
                                     else:
                                         print("----------------------------------")
@@ -313,8 +314,8 @@ def manual_eval(model, dataset, FLAGS, output_dir, num_eval=None):
                             else "n ({})".format(error_types[str_judge])
                         print("Is the complete command correct [y/n]? %s" % judgement_str)
                     else:
-                        str_judge = tree_dist.one_match(gt_trees, tree, rewrite=False,
-                                                        ignore_arg_value=False)
+                        str_judge = tree_dist.one_match(
+                            gt_trees, tree, rewrite=False, ignore_arg_value=False)
                         if not str_judge:
                             inp = raw_input("Is the complete command correct [y/n]? ")
                             if inp == "REVERSE":
