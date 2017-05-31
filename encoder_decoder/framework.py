@@ -368,6 +368,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
              for e_o in encoder_outputs])
         if self.use_copy and self.copy_fun == 'copynet':
+            print(states)
             self.decoder_hidden_states = tf.concat(1,
                 [tf.reshape(d_o, [-1, 1, self.decoder.dim])
                  for d_o in states])
