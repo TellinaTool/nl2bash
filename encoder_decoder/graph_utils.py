@@ -266,7 +266,6 @@ def softmax_loss(output_project, num_samples, target_vocab_size):
     else:
         print("loss function = softmax_loss")
         def loss(outputs, labels):
-            labels = tf.reshape(labels, [-1, 1])
             logits = tf.matmul(outputs, w) + b
             return tf.nn.sparse_softmax_cross_entropy_with_logits(logits, labels)
         loss_function = loss
@@ -307,11 +306,13 @@ def nest_map(func, nested):
 
 
 def nest_map_dual(func, nested1, nested2):
+    # print(nested1)
     if not nest.is_sequence(nested1):
         return func(nested1, nested2)
     flat1 = nest.flatten(nested1)
     flat2 = nest.flatten(nested2)
     output = [func(x, y) for x, y in zip(flat1, flat2)]
+    # print(nest.pack_sequence_as(nested1, list(output)))
     return nest.pack_sequence_as(nested1, list(output))
 
 
