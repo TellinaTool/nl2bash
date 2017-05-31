@@ -19,7 +19,7 @@ from bashlex import data_tools
 
 # --- Slot filling functions --- #
 
-def stable_slot_filling(template_tokens, nl_fillers, cm_slots, pointer_targets,
+def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
                         encoder_outputs, decoder_outputs,
                         slot_filling_classifier, verbose=False):
     """
@@ -27,9 +27,9 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, pointer_targets,
     global alignment algorithm (stable marriage).
 
     :param template_tokens: list of tokens in the command template
-    :param nl_fillers: the slot fillers extracted from the natural language
-        sentence, indexed by token id
-    :param cm_slots: the argument slots in the command template, indexed by
+    :param sc_fillers: the slot fillers extracted from the source sequence,
+        indexed by token id
+    :param tg_slots: the argument slots in the command template, indexed by
         token id
     :param pointer_targets: [encoder_length, decoder_length], local alignment
         scores between source and target tokens
@@ -42,14 +42,20 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, pointer_targets,
 
     # Step a): prepare (binary) type alignment matrix based on type info
     M = np.zeros([len(encoder_outputs), len(decoder_outputs)], dtype=np.int32)
-    for f in nl_fillers:
+    for f in sc_fillers:
         assert(f <= len(encoder_outputs))
-        surface, filler_type = nl_fillers[f]
-        for s in cm_slots:
+        surface, filler_type = sc_fillers[f]
+        matched = False
+        for s in tg_slots:
             assert(s <= len(decoder_outputs))
-            slot_value, slot_type = cm_slots[s]
+            slot_value, slot_type = tg_slots[s]
             if slot_filler_type_match(slot_type, filler_type):
                 M[f, s] = 1
+                matched = True
+        if not matched:
+            # If no target slot can hold a source filler, skip the alignment
+            # step and return None
+            return None, None, None
 
     # Step b): compute local alignment scores if they are not provided already
     if pointer_targets is None:
@@ -62,7 +68,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, pointer_targets,
                 X = []
                 # use reversed index for the encoder embeddings matrix
                 ff = len(encoder_outputs) - f - 1
-                cm_slots_keys = list(cm_slots.keys())
+                cm_slots_keys = list(tg_slots.keys())
                 for s in cm_slots_keys:
                     X.append(np.expand_dims(np.concatenate(
                         [encoder_outputs[ff], decoder_outputs[s]], axis=0), 0))
@@ -74,7 +80,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, pointer_targets,
                     pointer_targets[f, s] = raw_scores[ii][0]
                     if verbose:
                         print('alignment ({}, {}): {}\t{}\t{}'.format(
-                            f, s, nl_fillers[f], cm_slots[s], raw_scores[ii][0]))
+                            f, s, sc_fillers[f], tg_slots[s], raw_scores[ii][0]))
 
     M = M + pointer_targets
     # convert M into a dictinary representation of a sparse matrix
@@ -84,6 +90,7 @@ def stable_slot_filling(template_tokens, nl_fillers, cm_slots, pointer_targets,
             for j in xrange(M.shape[1]):
                 if M[i, j] > 0:
                     M_dict[i][j] = M[i, j]
+
     mappings, remained_fillers = stable_marriage_alignment(M_dict)
 
     if not remained_fillers:
