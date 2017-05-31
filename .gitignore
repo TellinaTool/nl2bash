@@ -63,7 +63,7 @@ site_config.py
 parsers/out/production/*
 
 # sensitive data
-baselines/knn/data/*
+shallow_baselines/knn/data/*
 data/bash/*
 parsers/test_data/*
 *.cm*
