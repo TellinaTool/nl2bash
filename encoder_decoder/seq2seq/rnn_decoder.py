@@ -208,17 +208,12 @@ class RNNDecoder(decoder.Decoder):
                 #        [batch_size*self.beam_size, :, dim])
                 # GRU: [batch_size*self.beam_size, :, dim]
                 if self.rnn_cell == 'lstm':
-                    top_c_states, top_h_states = past_cell_states[-1]
-                    states = zip(tf.split(1, top_c_states.get_shape()[1], top_c_states),
-                                 tf.split(1, top_h_states.get_shape()[1], top_h_states))
+                    states = [zip(tf.split(1, c_states.get_shape()[1], c_states),
+                                 tf.split(1, h_states.get_shape()[1], h_states))
+                              for c_states, h_states in past_cell_states]
                 elif self.rnn_cell in ['gru', 'ran']:
-                    if self.num_layers > 1:
-                        past_hidden_states = tf.split(2, self.num_layers,
-                                                      past_cell_states)[-1]
-                    else:
-                        past_hidden_states = past_cell_states
-                    states = tf.split(1, past_hidden_states.get_shape()[1],
-                                  past_hidden_states)[1:]
+                    states = tf.split(1, past_cell_states.get_shape()[1],
+                                  past_cell_states)[1:]
                 else:
                     raise AttributeError(
                         "Unrecognized rnn cell type: {}".format(self.rnn_cell))
