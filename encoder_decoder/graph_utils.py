@@ -265,7 +265,10 @@ def softmax_loss(output_project, num_samples, target_vocab_size):
         loss_function = sampled_loss
     else:
         print("loss function = softmax_loss")
-        loss_function = tf.nn.sparse_softmax_cross_entropy_with_logits
+        def loss(outputs, labels):
+            logits = tf.matmul(outputs, w) + b
+            return tf.nn.sparse_softmax_cross_entropy_with_logits(logits, labels)
+        loss_function = loss
     return loss_function
 
 
@@ -303,11 +306,13 @@ def nest_map(func, nested):
 
 
 def nest_map_dual(func, nested1, nested2):
+    # print(nested1)
     if not nest.is_sequence(nested1):
         return func(nested1, nested2)
     flat1 = nest.flatten(nested1)
     flat2 = nest.flatten(nested2)
     output = [func(x, y) for x, y in zip(flat1, flat2)]
+    # print(nest.pack_sequence_as(nested1, list(output)))
     return nest.pack_sequence_as(nested1, list(output))
 
 
@@ -315,7 +320,7 @@ class InfPerplexityError(Exception):
     pass
 
 
-class NNModel(object)::
+class NNModel(object):
     def __init__(self, hyperparams, buckets=None):
         self.hyperparams = hyperparams
         self.buckets = buckets
