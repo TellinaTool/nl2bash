@@ -315,7 +315,7 @@ class InfPerplexityError(Exception):
     pass
 
 
-class NNModel(object):
+class NNModel(object)::
     def __init__(self, hyperparams, buckets=None):
         self.hyperparams = hyperparams
         self.buckets = buckets
