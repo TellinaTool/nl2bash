@@ -316,6 +316,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                             encoder_outputs[batch_id],
                             decoder_outputs[batch_id*FLAGS.beam_size+beam_id],
                             slot_filling_classifier, verbose=False)
+                        print(target_ast, target)
                     else:
                         output_example = True
                     if not output_example and (target_ast is not None):
