@@ -40,7 +40,7 @@ def demo(sess, model, FLAGS):
         print('Slot filling classifier parameters loaded.')
 
     # Decode from standard input.
-    sys.stdout.write("> ")
+    sys.stdout.write('> ')
     sys.stdout.flush()
     sentence = sys.stdin.readline()
 
@@ -50,11 +50,11 @@ def demo(sess, model, FLAGS):
         batch_outputs, output_logits = translate_fun(sentence, sess, model,
             vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
 
-        if FLAGS.token_decoding_algorithm == "greedy":
+        if FLAGS.token_decoding_algorithm == 'greedy':
             tree, pred_cmd, outputs = batch_outputs[0]
             score = output_logits[0]
-            print("{} ({})".format(pred_cmd, score))
-        elif FLAGS.token_decoding_algorithm == "beam_search":
+            print('{} ({})'.format(pred_cmd, score))
+        elif FLAGS.token_decoding_algorithm == 'beam_search':
             if batch_outputs:
                 top_k_predictions = batch_outputs[0]
                 top_k_scores = output_logits[0]
@@ -63,12 +63,12 @@ def demo(sess, model, FLAGS):
                         break
                     top_k_pred_tree, top_k_pred_cmd, top_k_outputs = \
                         top_k_predictions[j]
-                    print("Prediction {}: {} ({}) ".format(
+                    print('Prediction {}: {} ({}) '.format(
                         j+1, top_k_pred_cmd, top_k_scores[j]))
                 print()
             else:
                 print(APOLOGY_MSG)
-        print("> ", end="")
+        print('> ', end='')
         sys.stdout.flush()
         sentence = sys.stdin.readline()
 
@@ -132,7 +132,8 @@ def vectorize_query(sentence, vocabs, FLAGS):
             sc_tokenizer = None
             sc_full_tokenizer = None
         else:
-            if FLAGS.dataset.startswith("bash"):
+            if FLAGS.dataset.startswith('bash') \
+                    or FLAGS.dataset in ['regex-turk', 'regex-kb13']:
                 sc_tokenizer = tokenizer.ner_tokenizer \
                     if FLAGS.normalized else tokenizer.basic_tokenizer
                 sc_full_tokenizer = tokenizer.basic_tokenizer
@@ -149,7 +150,7 @@ def vectorize_query(sentence, vocabs, FLAGS):
 
     # Decode the output for this 1-element batch and apply output filtering.
     sc_fillers = entities[0] if FLAGS.fill_argument_slots else None
-
+    
     # Note that we only perform source word filtering when translating from
     # natural language to bash
     if not (FLAGS.dataset.startswith('bash') or FLAGS.dataset == 'regex-turk'
@@ -213,14 +214,14 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 token = r_tg_vocab[output]
             else:
                 if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
-                    token = r_sc_vocab[encoder_full_inputs[batch_id]
-                        [output - FLAGS.target_vocab_size]]
+                    token = r_sc_vocab[encoder_full_inputs
+                        [output - FLAGS.tg_vocab_size][batch_id]]
                 else:
                     return data_utils._UNK
             return token
 
         top_k_predictions = output_symbols[batch_id]
-        if FLAGS.token_decoding_algorithm == "beam_search":
+        if FLAGS.token_decoding_algorithm == 'beam_search':
             assert(len(top_k_predictions) == FLAGS.beam_size)
             beam_outputs = []
         else:
@@ -237,7 +238,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 outputs = outputs[:outputs.index(data_utils.EOS_ID)]
 
             if FLAGS.char:
-                target = "".join([as_str(output, rev_sc_char_vocab,
+                target = ''.join([as_str(output, rev_sc_char_vocab,
                                          rev_tg_char_vocab)
                     for output in outputs]).replace(constants._SPACE, ' ')
             else:
@@ -246,8 +247,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 for token_id in xrange(len(outputs)):
                     output = outputs[token_id]
                     pred_token = as_str(output, rev_sc_vocab, rev_tg_vocab)
-                    if "@@" in pred_token:
-                        pred_token = pred_token.split("@@")[-1]
+                    if '@@' in pred_token:
+                        pred_token = pred_token.split('@@')[-1]
                     if pred_token.startswith('__LF__'):
                         pred_token = pred_token[len('__LF__'):]
                     # process argument slots
@@ -276,14 +277,14 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                                 merged_output_tokens.append(token)
                     output_tokens = merged_output_tokens
 
-                target = " ".join(output_tokens)
+                target = ' '.join(output_tokens)
             
             # Step 2: check if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
-                if FLAGS.dataset.startswith("bash"):
+                if FLAGS.dataset.startswith('bash'):
                     target = re.sub('( ;\s+)|( ;$)', ' \\; ', target)
                     target_ast = data_tools.bash_parser(target)
-                elif FLAGS.dataset.startswith("regex"):
+                elif FLAGS.dataset.startswith('regex'):
                     # TODO: check if a predicted regular expression is legal
                     target_ast = '__DUMMY_TREE__'
                 else:
@@ -298,8 +299,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             # slots to hold the fillers (to rule out templates that are
             # trivially unqualified)
             output_example = False
-            if FLAGS.explain or \
-                    not FLAGS.dataset.startswith("bash") or sc_fillers is None:
+            if FLAGS.explain or not FLAGS.dataset.startswith('bash') \
+                    or sc_fillers is None:
                 output_example = True
             else:
                 # Step 3: match the fillers to the argument slots
@@ -322,7 +323,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                         output_example = True
 
             if output_example:
-                if FLAGS.token_decoding_algorithm == "greedy":
+                if FLAGS.token_decoding_algorithm == 'greedy':
                     batch_outputs.append((target_ast, target))
                 else:
                     beam_outputs.append((target_ast, target))
@@ -332,7 +333,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             if num_output_examples == 20:
                 break
 
-        if FLAGS.token_decoding_algorithm == "beam_search":
+        if FLAGS.token_decoding_algorithm == 'beam_search':
             if beam_outputs:
                 batch_outputs.append(beam_outputs)
 
@@ -412,11 +413,11 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         sc_txt = data_group[0].sc_txt
         sc_temp = ' '.join([rev_sc_vocab[i] for i in data_group[0].sc_ids])
         if verbose:
-            print("Example {}:".format(example_id))
-            print("(Orig) Source: {}".format(sc_txt))
-            print("Source: {}".format(sc_temp))
+            print('Example {}:'.format(example_id))
+            print('(Orig) Source: {}'.format(sc_txt))
+            print('Source: {}'.format(sc_temp))
             for j in xrange(len(data_group)):
-                print("GT Target {}: {}".format(j+1, data_group[j].tg_txt))
+                print('GT Target {}: {}'.format(j+1, data_group[j].tg_txt))
 
         batch_outputs, output_logits = translate_fun(data_group, sess, model,
             vocabs, FLAGS, slot_filling_classifier=slot_filling_classifier)
@@ -424,7 +425,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
             batch_outputs, batch_char_outputs = batch_outputs
 
         if batch_outputs:
-            if FLAGS.token_decoding_algorithm == "greedy":
+            if FLAGS.token_decoding_algorithm == 'greedy':
                 tree, pred_cmd = batch_outputs[0]
                 if nl2bash:
                     pred_cmd = data_tools.ast2command(
@@ -432,8 +433,8 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                 score = output_logits[0]
                 pred_file.write('{}\n'.format(pred_cmd))
                 if verbose:
-                    print("Prediction: {} ({})".format(pred_cmd, score))
-            elif FLAGS.token_decoding_algorithm == "beam_search":
+                    print('Prediction: {} ({})'.format(pred_cmd, score))
+            elif FLAGS.token_decoding_algorithm == 'beam_search':
                 top_k_predictions = batch_outputs[0]
                 if FLAGS.tg_char:
                     top_k_char_predictions = batch_char_outputs[0]
@@ -448,10 +449,10 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                         pred_cmd = top_k_pred_cmd
                     pred_file.write('{}|||'.format(pred_cmd))
                     if verbose:
-                        print("Prediction {}: {} ({})".format(
+                        print('Prediction {}: {} ({})'.format(
                             j+1, pred_cmd, top_k_scores[j]))
                         if FLAGS.tg_char:
-                            print("Character-based prediction {}: {}".format(
+                            print('Character-based prediction {}: {}'.format(
                                 j+1, top_k_char_predictions[j]))
                 pred_file.write('\n')
         else:
@@ -479,10 +480,10 @@ def visualize_attn_alignments(M, source, target, rev_sc_vocab,
 
     pad_size = source_length - len(nl)
     plt.xticks(xrange(source_length),
-               [x.replace("$$", "") for x in reversed(
+               [x.replace('$$', '') for x in reversed(
                    nl + [data_utils._PAD] * pad_size)],
                rotation='vertical')
-    plt.yticks(xrange(len(cm)), [x.replace("$$", "") for x in cm],
+    plt.yticks(xrange(len(cm)), [x.replace('$$', '') for x in cm],
                rotation='horizontal')
 
     plt.colorbar()

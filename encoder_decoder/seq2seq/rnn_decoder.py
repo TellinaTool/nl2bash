@@ -208,21 +208,20 @@ class RNNDecoder(decoder.Decoder):
                 #        [batch_size*self.beam_size, :, dim])
                 # GRU: [batch_size*self.beam_size, :, dim]
                 if self.rnn_cell == 'lstm':
-                    if self.num_layers > 1:
-                        past_hidden_states = past_cell_states[-1][1]
-                    else:
-                        past_hidden_states = past_cell_states[1]
+                    top_c_states, top_h_states = past_cell_states[-1]
+                    states = zip(tf.split(1, top_c_states.get_shape()[1], top_c_states),
+                                 tf.split(1, top_h_states.get_shape()[1], top_h_states))
                 elif self.rnn_cell in ['gru', 'ran']:
                     if self.num_layers > 1:
                         past_hidden_states = tf.split(2, self.num_layers,
                                                       past_cell_states)[-1]
                     else:
                         past_hidden_states = past_cell_states
+                    states = tf.split(1, past_hidden_states.get_shape()[1],
+                                  past_hidden_states)[1:]
                 else:
                     raise AttributeError(
                         "Unrecognized rnn cell type: {}".format(self.rnn_cell))
-                states = tf.split(1, past_hidden_states.get_shape()[1],
-                                  past_hidden_states)[1:]
 
                 if self.use_copy and self.copy_fun != 'supervised':
                     # TODO: correct beam search output logits computation in copy modes
