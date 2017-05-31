@@ -149,7 +149,7 @@ def vectorize_query(sentence, vocabs, FLAGS):
 
     # Decode the output for this 1-element batch and apply output filtering.
     sc_fillers = entities[0] if FLAGS.fill_argument_slots else None
-
+    
     # Note that we only perform source word filtering when translating from
     # natural language to bash
     if not (FLAGS.dataset.startswith('bash') or FLAGS.dataset == 'regex-turk'
@@ -209,7 +209,6 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
 
     for batch_id in xrange(batch_size):
         def as_str(output, r_sc_vocab, r_tg_vocab):
-            print(output)
             if output < FLAGS.tg_vocab_size:
                 token = r_tg_vocab[output]
             else:
@@ -278,7 +277,6 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     output_tokens = merged_output_tokens
 
                 target = " ".join(output_tokens)
-            
             # Step 2: check if the predicted command template is grammatical
             if FLAGS.grammatical_only and not FLAGS.explain:
                 if FLAGS.dataset.startswith("bash"):
