@@ -95,7 +95,7 @@ def stable_slot_filling(template_tokens, sc_fillers, tg_slots, pointer_targets,
 
     if not remained_fillers:
         for f, s in mappings:
-            template_tokens[s] = get_fill_in_value(cm_slots[s], nl_fillers[f])
+            template_tokens[s] = get_fill_in_value(tg_slots[s], sc_fillers[f])
         cmd = ' '.join(template_tokens)
         tree = data_tools.bash_parser(cmd)
         if not tree is None:
@@ -351,6 +351,9 @@ def slot_filler_type_match(slot_type, filler_type):
         '_TIMESPAN:::Timespan',
         '_TIMESPAN:::+Timespan',
         '_TIMESPAN:::-Timespan',
+        # '_DATETIME:::Timespan',
+        # '_DATETIME:::+Timespan',
+        # '_DATETIME:::-Timespan',
         '_DATETIME:::DateTime',
         '_DATETIME:::+DateTime',
         '_DATETIME:::-DateTime',
