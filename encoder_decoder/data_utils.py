@@ -615,7 +615,10 @@ def prepare_jobs(FLAGS):
 
     def add_to_set(nl_data, cm_data, split):
         for nl, cm in zip(getattr(nl_data, split), getattr(cm_data, split)):
-            nl_tokens = nl.split()
+            if FLAGS.dataset in ['regex-turk', 'regex-kb13']:
+                nl_tokens, _ = tokenizer.basic_tokenizer(nl)
+            else:
+                nl_tokens, _ = tokenizer.space_tokenizer(nl)
             cm_tokens = cm.split()
             nl_chars = data_tools.char_tokenizer(nl, tokenizer.space_tokenizer)
             cm_chars = data_tools.char_tokenizer(cm, None)
