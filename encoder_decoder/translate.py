@@ -95,6 +95,7 @@ def train(train_set, dev_set):
                 formatted_example = model.get_batch(train_set, bucket_id)
                 model_outputs = model.step(
                     sess, formatted_example, bucket_id, forward_only=False)
+                print(model_outputs.gradient_norms)
                 loss += model_outputs.losses
                 current_step += 1
             epoch_time = time.time() - start_time
@@ -338,7 +339,6 @@ def eval_slot_filling(dataset):
                     model_outputs = model.step(sess, formatted_example,
                                                bucket_id, forward_only=True,
                                                return_rnn_hidden_states=True)
-                    print(model_outputs.gradient_norms)
                     encoder_outputs = model_outputs.encoder_hidden_states
                     decoder_outputs = model_outputs.decoder_hidden_states
                     cm_slots = {}
