@@ -210,8 +210,11 @@ class RNNDecoder(decoder.Decoder):
                 if self.rnn_cell == 'lstm':
                     if self.num_layers == 1:
                         c_states, h_states = past_cell_states
-                        states = list(zip(tf.split(1, c_states.get_shape()[1], c_states),
-                                      tf.split(1, h_states.get_shape()[1], h_states)))
+                        states = list(zip(
+                            [tf.squeeze(x, squeeze_dims=[1])
+                             for x in tf.split(1, c_states.get_shape()[1], c_states)],
+                            [tf.squeeze(x, squeeze_dims=[1])
+                             for x in tf.split(1, h_states.get_shape()[1], h_states)]))
                     else:
                         layered_states = [list(zip(
                                 [tf.squeeze(x, squeeze_dims=[1]) 
@@ -234,12 +237,12 @@ class RNNDecoder(decoder.Decoder):
                                for s in states]
                 else:
                     if self.num_layers == 1:
+                        outputs = states
+                    else:
                         if self.rnn_cell in ['gru', 'ran']:
                             outputs = [s[:, -self.dim:] for s in states]
                         else:        
                             outputs = [s[1] for s in states]
-                    else:
-                        outputs = states
 
                 return top_k_outputs, top_k_logits, outputs, states, \
                        attn_alignments, pointers
