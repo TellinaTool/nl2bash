@@ -208,16 +208,21 @@ class RNNDecoder(decoder.Decoder):
                 #        [batch_size*self.beam_size, :, dim])
                 # GRU: [batch_size*self.beam_size, :, dim]
                 if self.rnn_cell == 'lstm':
-                    layered_states = [list(zip(tf.split(1, c_states.get_shape()[1], c_states),
-                                          tf.split(1, h_states.get_shape()[1], h_states)))
-                                      for c_states, h_states in past_cell_states]
-                    if len(layered_states) == 1:
-                        states = layered_states[0]
+                    if self.num_layers == 1:
+                        c_states, h_states = past_cell_states
+                        states = list(zip(tf.split(1, c_states.get_shape()[1], c_states),
+                                      tf.split(1, h_states.get_shape()[1], h_states)))
                     else:
+                        layered_states = [list(zip(
+                                [tf.squeeze(x, squeeze_dims=[1]) 
+                                    for x in tf.split(1, c_states.get_shape()[1], c_states)],
+                                [tf.squeeze(x, squeeze_dims=[1])
+                                    for x in tf.split(1, h_states.get_shape()[1], h_states)]))
+                            for c_states, h_states in past_cell_states]
                         states = list(zip(layered_states))
                 elif self.rnn_cell in ['gru', 'ran']:
-                    states = tf.split(1, past_cell_states.get_shape()[1],
-                                  past_cell_states)[1:]
+                    states = [tf.squeeze(x, squeeze_dims=[1]) for x in \
+                        tf.split(1, past_cell_states.get_shape()[1], past_cell_states)][1:]
                 else:
                     raise AttributeError(
                         "Unrecognized rnn cell type: {}".format(self.rnn_cell))
@@ -228,7 +233,13 @@ class RNNDecoder(decoder.Decoder):
                     outputs = [tf.zeros([self.batch_size * self.beam_size, self.vocab_size])
                                for s in states]
                 else:
-                    outputs = [tf.squeeze(s, squeeze_dims=[1])[:, -self.dim:] for s in states]
+                    if self.num_layers == 1:
+                        if self.rnn_cell in ['gru', 'ran']:
+                            outputs = [s[:, -self.dim:] for s in states]
+                        else:        
+                            outputs = [s[1] for s in states]
+                    else:
+                        outputs = states
 
                 return top_k_outputs, top_k_logits, outputs, states, \
                        attn_alignments, pointers
