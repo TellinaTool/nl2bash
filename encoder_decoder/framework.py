@@ -380,7 +380,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         top_states.append(state[1])
             self.decoder_hidden_states = tf.concat(1,
                 [tf.reshape(d_o, [-1, 1, self.decoder.dim])
-                 for d_o in states])
+                 for d_o in top_states])
         else:
             self.decoder_hidden_states = tf.concat(1,
                 [tf.reshape(d_o, [-1, 1, self.decoder.dim])

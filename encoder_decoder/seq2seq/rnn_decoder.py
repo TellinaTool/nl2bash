@@ -208,9 +208,13 @@ class RNNDecoder(decoder.Decoder):
                 #        [batch_size*self.beam_size, :, dim])
                 # GRU: [batch_size*self.beam_size, :, dim]
                 if self.rnn_cell == 'lstm':
-                    states = [zip(tf.split(1, c_states.get_shape()[1], c_states),
-                                 tf.split(1, h_states.get_shape()[1], h_states))
-                              for c_states, h_states in past_cell_states]
+                    layered_states = [list(zip(tf.split(1, c_states.get_shape()[1], c_states),
+                                          tf.split(1, h_states.get_shape()[1], h_states)))
+                                      for c_states, h_states in past_cell_states]
+                    if len(layered_states) == 1:
+                        states = layered_states[0]
+                    else:
+                        states = list(zip(layered_states))
                 elif self.rnn_cell in ['gru', 'ran']:
                     states = tf.split(1, past_cell_states.get_shape()[1],
                                   past_cell_states)[1:]
