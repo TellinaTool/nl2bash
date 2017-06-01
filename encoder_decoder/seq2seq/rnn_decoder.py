@@ -236,13 +236,13 @@ class RNNDecoder(decoder.Decoder):
                     outputs = [tf.zeros([self.batch_size * self.beam_size, self.vocab_size])
                                for s in states]
                 else:
-                    if self.num_layers == 1:
-                        outputs = states
+                    if self.rnn_cell in ['gru', 'ran']:
+                        outputs = [s[:, -self.dim:] for s in states]
                     else:
-                        if self.rnn_cell in ['gru', 'ran']:
-                            outputs = [s[:, -self.dim:] for s in states]
-                        else:        
+                        if self.num_layers == 1:
                             outputs = [s[1] for s in states]
+                        else:
+                            outputs = [s[-1][1] for s in states]
 
                 return top_k_outputs, top_k_logits, outputs, states, \
                        attn_alignments, pointers
