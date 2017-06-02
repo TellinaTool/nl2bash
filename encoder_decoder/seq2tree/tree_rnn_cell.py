@@ -104,8 +104,8 @@ class BasicTreeLSTMCell(TreeRNNCell):
             # parameters of gates are concatenated into one multiply for efficiency
             parent_c, parent_h = parent_state
             cyc_c, cyc_h = cyc_state
-            c = rnn_cell._linear([parent_c, cyc_c], self._num_units, True)
-            concat = rnn_cell._linear([inputs, parent_h, cyc_h], 4 * self._num_units, True)
+            c = rnn_cell.linear([parent_c, cyc_c], self._num_units, True)
+            concat = rnn_cell.linear([inputs, parent_h, cyc_h], 4 * self._num_units, True)
 
             # i = input_gate, j = new_input, f = forget_gate, o = output_gate
             i, j, f, o = array_ops.split(1, 4, concat)

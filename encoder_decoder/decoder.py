@@ -278,12 +278,12 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # with tf.variable_scope("AttnStateProjection"):
         #     attn_state = tf.nn.dropout(
-        #                     tf.tanh(tf.nn.rnn_cell._linear(
+        #                     tf.tanh(tf.nn.rnn_cell.linear(
         #                          [cell_output, attns[0]], self.dim, True)),
         #                          self.attention_output_keep# )
 
         with tf.variable_scope("AttnOutputProjection"):
-            output = tf.nn.rnn_cell._linear(
+            output = tf.nn.rnn_cell.linear(
                 [cell_output, attns[0]], self.dim, True)
 
         self.attention_cell_vars = True
