@@ -63,7 +63,7 @@ class BeamDecoder(object):
         except:
             new_first_dim = None
 
-        dynamic_tensor_shape = tf.unpack(tf.shape(tensor))
+        dynamic_tensor_shape = tf.unstack(tf.shape(tensor))
         res = tf.expand_dims(tensor, 1)
         res = tf.tile(res, [1, beam_size] + [1] * (tensor_shape.ndims-1))
         res = tf.reshape(res, [-1] + list(dynamic_tensor_shape[1:]))
@@ -111,7 +111,7 @@ class BeamDecoder(object):
         """
         res = final_state[0]
         if include_stop_tokens:
-            res = tf.concat(1, [res[:,1:],
+            res = tf.concat(axis=1, values=[res[:,1:],
                                 tf.ones_like(res[:,0:1]) * self.stop_token])
         return res
 
@@ -125,9 +125,9 @@ class BeamDecoder(object):
         mask = tf.not_equal(output_dense, self.stop_token)
 
         if include_stop_tokens:
-            output_dense = tf.concat(1, [output_dense[:,1:],
+            output_dense = tf.concat(axis=1, values=[output_dense[:,1:],
                 tf.ones_like(output_dense[:,0:1]) * self.stop_token])
-            mask = tf.concat(1, [mask[:,1:],
+            mask = tf.concat(axis=1, values=[mask[:,1:],
                 tf.cast(tf.ones_like(mask[:,0:1], dtype=tf.int8), tf.bool)])
 
         return sparse_boolean_mask(output_dense, mask)
@@ -248,24 +248,24 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         # [-100 -100 0 -100 -100 -100]
         # [0 0 0 0 0 0]
         # [0 0 0 0 0 0]
-        done_only_mask = tf.mul(stop_mask_2d, self._done_mask)
+        done_only_mask = tf.multiply(stop_mask_2d, self._done_mask)
         # [- - _STOP - - - ]
         # [1 1 1 1 1 1]
         # [1 1 0 1 1 1]
         # [1 1 1 1 1 1]
         # [1 1 1 1 1 1]
         zero_done_mask = tf.ones([full_size, self.num_classes]) - \
-            tf.mul(stop_mask_2d, tf.cast(tf.equal(self._done_mask, 0), tf.float32))
+            tf.multiply(stop_mask_2d, tf.cast(tf.equal(self._done_mask, 0), tf.float32))
         logprobs = tf.add(logprobs, done_only_mask)
-        logprobs = tf.mul(logprobs, zero_done_mask)
+        logprobs = tf.multiply(logprobs, zero_done_mask)
 
         # length normalization
         past_beam_acc_logprobs = \
-            tf.mul(past_beam_logprobs, tf.pow(self.seq_len, self.alpha))
+            tf.multiply(past_beam_logprobs, tf.pow(self.seq_len, self.alpha))
         logprobs_batched = tf.expand_dims(past_beam_acc_logprobs, 1) + logprobs
         float_done_mask = tf.cast(tf.not_equal(self._done_mask, 0), tf.float32)
         seq_len = tf.expand_dims(self.seq_len, 1) + \
-                    tf.mul(tf.ones([full_size, 1]) - stop_mask_2d,
+                    tf.multiply(tf.ones([full_size, 1]) - stop_mask_2d,
                            float_done_mask)
         logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, self.alpha))
         logprobs_batched = \
@@ -284,7 +284,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         parent_refs = tf.reshape(indices // self.num_classes, [-1]) # [batch_size*self.beam_size]
         parent_refs = parent_refs + self.parent_refs_offsets
 
-        beam_symbols = tf.concat(1, [tf.gather(past_beam_symbols, parent_refs),
+        beam_symbols = tf.concat(axis=1, values=[tf.gather(past_beam_symbols, parent_refs),
                                      tf.reshape(symbols, [-1, 1])])
         self.seq_len = tf.gather(self.seq_len, parent_refs) + \
                        tf.cast(tf.not_equal(tf.reshape(symbols, [-1]),
@@ -301,8 +301,8 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         # update cell_states
         def gather_and_append_tuple_states(pc_states, c_state):
             rc_states = (
-                tf.concat(1, [pc_states[0], tf.expand_dims(c_state[0], 1)]),
-                tf.concat(1, [pc_states[1], tf.expand_dims(c_state[1], 1)])
+                tf.concat(axis=1, values=[pc_states[0], tf.expand_dims(c_state[0], 1)]),
+                tf.concat(axis=1, values=[pc_states[1], tf.expand_dims(c_state[1], 1)])
             )
             c_states = (
                 nest_map(lambda element: tf.gather(element, parent_refs), rc_states[0]),
@@ -320,7 +320,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         else:
             ranked_cell_states = nest_map(
                 lambda element: tf.gather(element, parent_refs),
-                tf.concat(1, [past_cell_states, tf.expand_dims(cell_state, 1)])
+                tf.concat(axis=1, values=[past_cell_states, tf.expand_dims(cell_state, 1)])
             )
 
         # Handling for getting a done token
@@ -333,7 +333,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                                  done_parent_refs + done_parent_refs_offsets)
 
         logprobs_done_max = tf.reduce_max(logprobs_done, 1)
-        cand_symbols = tf.select(logprobs_done_max > past_cand_logprobs,
+        cand_symbols = tf.where(logprobs_done_max > past_cand_logprobs,
                                  done_symbols, past_cand_symbols)
         cand_logprobs = tf.maximum(logprobs_done_max, past_cand_logprobs)
 
@@ -387,7 +387,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         beam_symbols = tf.fill([full_size, 1],
                                tf.constant(self.start_token, dtype=tf.int32))
-        beam_logprobs = tf.select(
+        beam_logprobs = tf.where(
             first_in_beam_mask,
             tf.fill([full_size], 0.0),
             tf.fill([full_size], -1e18), # top_k does not play well with -inf
@@ -432,6 +432,6 @@ def sparse_boolean_mask(tensor, mask):
     return tf.SparseTensor(
         indices=tf.where(left_shifted_mask),
         values=tf.boolean_mask(tensor, mask),
-        shape=tf.cast(tf.pack([mask_shape[0], tf.reduce_max(mask_lens)]),
+        shape=tf.cast(tf.stack([mask_shape[0], tf.reduce_max(mask_lens)]),
                       tf.int64) # For 2D only
     )

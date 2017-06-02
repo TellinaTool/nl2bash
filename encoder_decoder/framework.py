@@ -260,7 +260,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.tg_token_use_attention:
             top_states = [tf.reshape(m, [-1, 1, self.encoder.output_dim])
                           for m in encoder_outputs]
-            attention_states = tf.concat(1, top_states)
+            attention_states = tf.concat(axis=1, values=top_states)
         else:
             attention_states = None
 
@@ -286,9 +286,9 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if forward_only or self.training_algorithm == "standard":
             if self.use_copy and self.copy_fun != 'supervised':
                 vocab_indices = tf.diag(tf.ones(self.decoder.vocab_size))
-                binary_targets = tf.split(1, self.max_target_length,
-                    tf.nn.embedding_lookup(vocab_indices,
-                        tf.concat(1, [tf.expand_dims(x, 1) for x in targets])))
+                binary_targets = tf.split(axis=1, num_or_size_splits=self.max_target_length,
+                    value=tf.nn.embedding_lookup(vocab_indices,
+                        tf.concat(axis=1, values=[tf.expand_dims(x, 1) for x in targets])))
                 if bs_decoding:
                     binary_targets = graph_utils.wrap_inputs(
                         self.decoder.beam_decoder, binary_targets)
@@ -327,14 +327,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
         if self.tg_char:
             # re-arrange character inputs
             char_decoder_inputs = [tf.squeeze(x, 1)
-                            for x in tf.split(1, self.max_target_token_size + 2,
-                            tf.concat(0, self.char_decoder_inputs))]
+                            for x in tf.split(axis=1, num_or_size_splits=self.max_target_token_size + 2,
+                            value=tf.concat(axis=0, values=self.char_decoder_inputs))]
             char_targets = [tf.squeeze(x, 1) for x in
-                            tf.split(1, self.max_target_token_size + 1,
-                                     tf.concat(0, self.char_targets))]
+                            tf.split(axis=1, num_or_size_splits=self.max_target_token_size + 1,
+                                     value=tf.concat(axis=0, values=self.char_targets))]
             char_target_weights = [tf.squeeze(x, 1)
-                            for x in tf.split(1, self.max_target_token_size + 1,
-                            tf.concat(0, self.char_target_weights))]
+                            for x in tf.split(axis=1, num_or_size_splits=self.max_target_token_size + 1,
+                            value=tf.concat(axis=0, values=self.char_target_weights))]
             if bs_decoding:
                 char_decoder_inputs = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, char_decoder_inputs)
@@ -343,8 +343,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 char_target_weights = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, char_target_weights)
             # get initial state from decoder output
-            char_decoder_init_state = tf.concat(0,
-                [tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in outputs])
+            char_decoder_init_state = tf.concat(axis=0,
+                values=[tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in outputs])
             char_output_symbols, char_output_logits, char_outputs, _, _ = \
                 self.char_decoder.define_graph(
                     char_decoder_init_state, char_decoder_inputs,
@@ -364,8 +364,8 @@ class EncoderDecoderModel(graph_utils.NNModel):
                  self.beta * attention_reg
 
         # store encoder/decoder output states
-        self.encoder_hidden_states = tf.concat(1,
-            [tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
+        self.encoder_hidden_states = tf.concat(axis=1,
+            values=[tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
              for e_o in encoder_outputs])
         if self.use_copy and self.copy_fun == 'copynet':
             top_states = []
@@ -378,16 +378,16 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         top_states.append(state[-1][1])
                     else:
                         top_states.append(state[1])
-            self.decoder_hidden_states = tf.concat(1,
-                [tf.reshape(d_o, [-1, 1, self.decoder.dim])
+            self.decoder_hidden_states = tf.concat(axis=1,
+                values=[tf.reshape(d_o, [-1, 1, self.decoder.dim])
                  for d_o in top_states])
         else:
-            self.decoder_hidden_states = tf.concat(1,
-                [tf.reshape(d_o, [-1, 1, self.decoder.dim])
+            self.decoder_hidden_states = tf.concat(axis=1,
+                values=[tf.reshape(d_o, [-1, 1, self.decoder.dim])
                  for d_o in outputs])
 
         if DEBUG:
-            C = tf.argmax(tf.concat(1, binary_targets), 2)
+            C = tf.argmax(tf.concat(axis=1, values=binary_targets), 2)
             output_symbols = []
             for i in xrange(self.batch_size):
                 if bs_decoding:
@@ -429,12 +429,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
     def copy_loss(self, pointers, pointer_targets):
         raw_loss = tf.reshape(
                 tf.nn.softmax_cross_entropy_with_logits(
-                     tf.reshape(pointers, [-1, self.max_source_length]), 
-                     tf.reshape(pointer_targets, [-1, self.max_source_length])),
+                     logits=tf.reshape(pointers, [-1, self.max_source_length]), 
+                     labels=tf.reshape(pointer_targets, [-1, self.max_source_length])),
                 [-1, self.max_target_length])
         copy_positions = tf.cast(tf.reduce_sum(pointer_targets, 2), tf.floatf2)
         return tf.reduce_mean(
-                tf.reduce_sum(tf.mul(raw_loss, copy_positions), 1) /
+                tf.reduce_sum(tf.multiply(raw_loss, copy_positions), 1) /
                 (tf.reduce_sum(copy_positions, 1) + 1e-12))
 
 

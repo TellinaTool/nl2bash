@@ -86,7 +86,7 @@ class RNNDecoder(decoder.Decoder):
                     attention_states = beam_decoder.wrap_input(attention_states)
                 encoder_attn_masks = [tf.expand_dims(encoder_attn_mask, 1)
                     for encoder_attn_mask in encoder_attn_masks]
-                encoder_attn_masks = tf.concat(1, encoder_attn_masks)
+                encoder_attn_masks = tf.concat(axis=1, values=encoder_attn_masks)
                 decoder_cell = decoder.AttentionCellWrapper(
                     decoder_cell, attention_states, encoder_attn_masks,
                     encoder_inputs, self.attention_function,
@@ -131,7 +131,7 @@ class RNNDecoder(decoder.Decoder):
                             past_output_logits = \
                                 tf.add(past_output_logits, tf.reduce_max(projected_output, 1))
                             input = tf.cast(output_symbol, dtype=tf.int32)
-                        input = tf.select(input >= self.target_vocab_size,
+                        input = tf.where(input >= self.target_vocab_size,
                             tf.ones(tf.shape(input), dtype=tf.int32) * data_utils.UNK_ID, input)
 
                 input_embedding = tf.nn.embedding_lookup(input_embeddings, input)
@@ -144,7 +144,7 @@ class RNNDecoder(decoder.Decoder):
                             selective_reads = beam_decoder.wrap_input(selective_reads)
                     else:
                         selective_reads = attns[-1] * read_copy_source
-                    input_embedding = tf.concat(1, [input_embedding, selective_reads])
+                    input_embedding = tf.concat(axis=1, values=[input_embedding, selective_reads])
                     output, state, alignments, attns, read_copy_source = \
                         decoder_cell(input_embedding, state)
                     alignments_list.append(alignments)
@@ -167,11 +167,11 @@ class RNNDecoder(decoder.Decoder):
 
             if self.use_attention:
                 # Tensor list --> tenosr
-                attn_alignments = tf.concat(1,
-                    [tf.expand_dims(x[0], 1) for x in alignments_list])
+                attn_alignments = tf.concat(axis=1,
+                    values=[tf.expand_dims(x[0], 1) for x in alignments_list])
             if self.use_copy and self.copy_fun == 'copynet':
-                pointers = tf.concat(1,
-                    [tf.expand_dims(x[1], 1) for x in alignments_list])
+                pointers = tf.concat(axis=1,
+                    values=[tf.expand_dims(x[1], 1) for x in alignments_list])
             else:
                 pointers = None
 
@@ -187,18 +187,18 @@ class RNNDecoder(decoder.Decoder):
                 # [self.batch_size, self.beam_size, max_len]
                 top_k_outputs = tf.reshape(past_beam_symbols[:, 1:],
                                            [self.batch_size, self.beam_size, -1])
-                top_k_outputs = tf.split(0, self.batch_size, top_k_outputs)
-                top_k_outputs = [tf.split(0, self.beam_size,
-                                          tf.squeeze(top_k_output, squeeze_dims=[0]))
+                top_k_outputs = tf.split(axis=0, num_or_size_splits=self.batch_size, value=top_k_outputs)
+                top_k_outputs = [tf.split(axis=0, num_or_size_splits=self.beam_size,
+                                          value=tf.squeeze(top_k_output, axis=[0]))
                                  for top_k_output in top_k_outputs]
-                top_k_outputs = [[tf.squeeze(output, squeeze_dims=[0])
+                top_k_outputs = [[tf.squeeze(output, axis=[0])
                                   for output in top_k_output]
                                  for top_k_output in top_k_outputs]
                 # [self.batch_size, self.beam_size]
                 top_k_logits = tf.reshape(past_beam_logprobs,
                                           [self.batch_size, self.beam_size])
-                top_k_logits = tf.split(0, self.batch_size, top_k_logits)
-                top_k_logits = [tf.squeeze(top_k_logit, squeeze_dims=[0])
+                top_k_logits = tf.split(axis=0, num_or_size_splits=self.batch_size, value=top_k_logits)
+                top_k_logits = [tf.squeeze(top_k_logit, axis=[0])
                                 for top_k_logit in top_k_logits]
                 if self.use_attention:
                     attn_alignments = tf.reshape(attn_alignments,
@@ -211,21 +211,21 @@ class RNNDecoder(decoder.Decoder):
                     if self.num_layers == 1:
                         c_states, h_states = past_cell_states
                         states = list(zip(
-                            [tf.squeeze(x, squeeze_dims=[1])
-                             for x in tf.split(1, c_states.get_shape()[1], c_states)],
-                            [tf.squeeze(x, squeeze_dims=[1])
-                             for x in tf.split(1, h_states.get_shape()[1], h_states)]))
+                            [tf.squeeze(x, axis=[1])
+                             for x in tf.split(axis=1, num_or_size_splits=c_states.get_shape()[1], value=c_states)],
+                            [tf.squeeze(x, axis=[1])
+                             for x in tf.split(axis=1, num_or_size_splits=h_states.get_shape()[1], value=h_states)]))
                     else:
                         layered_states = [list(zip(
-                                [tf.squeeze(x, squeeze_dims=[1]) 
-                                    for x in tf.split(1, c_states.get_shape()[1], c_states)],
-                                [tf.squeeze(x, squeeze_dims=[1])
-                                    for x in tf.split(1, h_states.get_shape()[1], h_states)]))
+                                [tf.squeeze(x, axis=[1]) 
+                                    for x in tf.split(axis=1, num_or_size_splits=c_states.get_shape()[1], value=c_states)],
+                                [tf.squeeze(x, axis=[1])
+                                    for x in tf.split(axis=1, num_or_size_splits=h_states.get_shape()[1], value=h_states)]))
                             for c_states, h_states in past_cell_states]
                         states = list(zip(layered_states))
                 elif self.rnn_cell in ['gru', 'ran']:
-                    states = [tf.squeeze(x, squeeze_dims=[1]) for x in \
-                        tf.split(1, past_cell_states.get_shape()[1], past_cell_states)][1:]
+                    states = [tf.squeeze(x, axis=[1]) for x in \
+                        tf.split(axis=1, num_or_size_splits=past_cell_states.get_shape()[1], value=past_cell_states)][1:]
                 else:
                     raise AttributeError(
                         "Unrecognized rnn cell type: {}".format(self.rnn_cell))
@@ -255,7 +255,7 @@ class RNNDecoder(decoder.Decoder):
                     projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
                 output_symbol = tf.argmax(projected_output, 1)
                 past_output_symbols.append(tf.expand_dims(output_symbol, 1))
-                output_symbols = tf.concat(1, past_output_symbols) \
+                output_symbols = tf.concat(axis=1, values=past_output_symbols) \
                     if forward_only else tf.cast(input, tf.float32)
                 past_output_logits = tf.add(
                     past_output_logits, tf.reduce_max(projected_output, 1))

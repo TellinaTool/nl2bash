@@ -90,7 +90,7 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
         h = tf.nn.sigmoid(tf.matmul(X, Wh))
         self.output_logits = tf.nn.softmax(tf.matmul(h, W) + b)
         self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-            self.output_logits, Y))
+            logits=self.output_logits, labels=Y))
 
         # Optimizer
         opt = tf.train.AdamOptimizer(
@@ -108,7 +108,7 @@ class BinaryLogisticRegressionModel(graph_utils.NNModel):
         self.Y = Y
         self.W = W
         self.b = b
-        self.saver = tf.train.Saver(tf.all_variables())
+        self.saver = tf.train.Saver(tf.global_variables())
 
     def get_batch(self, X, Y):
         data = zip(X, Y)

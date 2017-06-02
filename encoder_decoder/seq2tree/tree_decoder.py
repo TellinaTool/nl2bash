@@ -72,23 +72,23 @@ class BasicTreeDecoder(decoder.Decoder):
             if self.rnn_cell == "gru":
                 init_state = encoder_state
             else:
-                init_state = tf.concat(1, [encoder_state[0], encoder_state[1]])
+                init_state = tf.concat(axis=1, values=[encoder_state[0], encoder_state[1]])
 
             if self.use_attention:
                 hidden, hidden_features, v = \
                     self.attention_hidden_layer(attention_states, num_heads)
                 batch_size = tf.shape(attention_states)[0]
                 attn_dim = tf.shape(attention_states)[2]
-                batch_attn_size = tf.pack([batch_size, attn_dim])
+                batch_attn_size = tf.stack([batch_size, attn_dim])
                 # initial attention state
-                attns = tf.concat(1, [tf.zeros(batch_attn_size, dtype=tf.float32)
+                attns = tf.concat(axis=1, values=[tf.zeros(batch_attn_size, dtype=tf.float32)
                          for _ in xrange(num_heads)])
                 if initial_state_attention:
                     attns, attn_alignment = \
                         self.attention(v, encoder_state, hidden_features,
                                        num_heads, hidden)
                     attn_alignments.append(attn_alignment)
-                init_state = tf.concat(1, [init_state] + [attns])
+                init_state = tf.concat(axis=1, values=[init_state] + [attns])
             self.state = tf.expand_dims(init_state, 1)
             self.input = tf.expand_dims(decoder_inputs[0], 1)
             self.input = tf.expand_dims(self.input, 1)
@@ -109,7 +109,7 @@ class BasicTreeDecoder(decoder.Decoder):
                     input, state = self.peek()
 
                 input_embeddings = tf.squeeze(tf.nn.embedding_lookup(embeddings, input),
-                                              squeeze_dims=[1])
+                                              axis=[1])
 
                 # compute batch horizontal and vertical steps.
                 if self.use_attention:
@@ -130,7 +130,7 @@ class BasicTreeDecoder(decoder.Decoder):
                     mask = tf.cond(search_left_to_right[j], lambda: tf.constant([[1, 0]]),
                                                             lambda: tf.constant([[0, 1]]))
                     switch_masks.append(mask)
-                switch_mask = tf.concat(0, switch_masks)
+                switch_mask = tf.concat(axis=0, values=switch_masks)
 
                 batch_output = switch_mask(switch_mask, [h_output, v_output])
                 if self.rnn_cell == "gru":
@@ -138,11 +138,11 @@ class BasicTreeDecoder(decoder.Decoder):
                 elif self.rnn_cell == "lstm":
                     batch_cell = switch_mask(switch_mask, [h_state[0], v_state[0]])
                     batch_hs = switch_mask(switch_mask, [h_state[1], v_state[1]])
-                    batch_state = tf.concat(1, [batch_cell, batch_hs])
+                    batch_state = tf.concat(axis=1, values=[batch_cell, batch_hs])
 
                 if self.use_attention:
                     batch_attns = switch_mask(switch_mask, [h_attns, v_attns])
-                    batch_state = tf.concat(1, [batch_state, batch_attns])
+                    batch_state = tf.concat(axis=1, values=[batch_state, batch_attns])
 
                     batch_attn_alignment = h_attn_alignment
                     attn_alignments.append(batch_attn_alignment)
@@ -203,7 +203,7 @@ class BasicTreeDecoder(decoder.Decoder):
 
         if self.use_attention:
             temp = [tf.expand_dims(batch_attn_alignment, 1) for batch_attn_alignment in attn_alignments]
-            return outputs, final_batch_state, tf.concat(1, temp)
+            return outputs, final_batch_state, tf.concat(axis=1, values=temp)
         else:
             return outputs, final_batch_state
 
@@ -227,25 +227,25 @@ class BasicTreeDecoder(decoder.Decoder):
                        lambda : next)
 
     def parent_input(self):
-        inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
-        inds = tf.squeeze(inds, squeeze_dims=[1])
+        inds = tf.nn.embedding_lookup(self.E, tf.split(axis=0, num_or_size_splits=self.batch_size, value=self.parent()))
+        inds = tf.squeeze(inds, axis=[1])
         inds = inds[:, :self.step]
-        return tf.reduce_sum(tf.mul(self.input[:, :, 0], inds), 1)
+        return tf.reduce_sum(tf.multiply(self.input[:, :, 0], inds), 1)
 
 
     def parent_state(self):
-        inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
-        inds = tf.squeeze(inds, squeeze_dims=[1])
+        inds = tf.nn.embedding_lookup(self.E, tf.split(axis=0, num_or_size_splits=self.batch_size, value=self.parent()))
+        inds = tf.squeeze(inds, axis=[1])
         inds = inds[:, :self.step]
         inds = tf.expand_dims(inds, 2)
-        inds = tf.tile(inds, tf.pack([tf.constant(1), tf.constant(1), tf.shape(self.state)[2]]))
-        return tf.reduce_sum(tf.mul(self.state, tf.cast(inds, tf.float32)), 1)
+        inds = tf.tile(inds, tf.stack([tf.constant(1), tf.constant(1), tf.shape(self.state)[2]]))
+        return tf.reduce_sum(tf.multiply(self.state, tf.cast(inds, tf.float32)), 1)
 
     def grandparent(self):
-        inds = tf.nn.embedding_lookup(self.E, tf.split(0, self.batch_size, self.parent()))
-        inds = tf.squeeze(inds, squeeze_dims=[1])
+        inds = tf.nn.embedding_lookup(self.E, tf.split(axis=0, num_or_size_splits=self.batch_size, value=self.parent()))
+        inds = tf.squeeze(inds, axis=[1])
         inds = inds[:, :self.step]
-        return tf.reduce_sum(tf.mul(self.back_pointers[:, :, 0], inds), 1)
+        return tf.reduce_sum(tf.multiply(self.back_pointers[:, :, 0], inds), 1)
 
     def parent(self):
         p = self.back_pointers[:, -1, 0]
@@ -264,15 +264,15 @@ class BasicTreeDecoder(decoder.Decoder):
         batch_next_input = batch_states[0]
         batch_next_input = tf.expand_dims(batch_next_input, 1)
         batch_next_input = tf.expand_dims(batch_next_input, 1)
-        self.input = tf.concat(1, [self.input, batch_next_input])
+        self.input = tf.concat(axis=1, values=[self.input, batch_next_input])
 
         batch_back_pointers = batch_states[1]
         batch_back_pointers = tf.expand_dims(batch_back_pointers, 1)
         batch_back_pointers = tf.expand_dims(batch_back_pointers, 1)
-        self.back_pointers = tf.concat(1, [self.back_pointers, batch_back_pointers])
+        self.back_pointers = tf.concat(axis=1, values=[self.back_pointers, batch_back_pointers])
 
         batch_states = tf.expand_dims(batch_states[2], 1)
-        self.state = tf.concat(1, [self.state, batch_states])
+        self.state = tf.concat(axis=1, values=[self.state, batch_states])
 
 
     def peek(self):
@@ -347,19 +347,19 @@ def switch_mask(mask, candidates):
                           [1, 1, candidates[0].get_shape()[1].value])
     threed_mask = tf.cast(threed_mask, candidates[0].dtype)
     expanded_candidates = [tf.expand_dims(c, 1) for c in candidates]
-    candidate = tf.concat(1, expanded_candidates)
-    return tf.reduce_sum(tf.mul(threed_mask, candidate), 1)
+    candidate = tf.concat(axis=1, values=expanded_candidates)
+    return tf.reduce_sum(tf.multiply(threed_mask, candidate), 1)
 
 
 def map_fn(fn, elems, batch_size):
     """Pesudo multi-ariti scan."""
     results = []
-    elem_lists = [tf.split(0, batch_size, elem) for elem in elems]
+    elem_lists = [tf.split(axis=0, num_or_size_splits=batch_size, value=elem) for elem in elems]
     for i in xrange(batch_size):
-        args = [tf.squeeze(elem_lists[0][i], squeeze_dims=[0])] + \
+        args = [tf.squeeze(elem_lists[0][i], axis=[0])] + \
                [elem_list[i] for elem_list in elem_lists[1:]]
         results.append(fn(args))
-    _results = tf.concat(0, results)
+    _results = tf.concat(axis=0, values=results)
     return _results
 
 
@@ -379,7 +379,7 @@ if __name__ == "__main__":
                                                          feed_previous=False)
 
     with tf.Session() as sess:
-        sess.run(tf.initialize_all_variables())
+        sess.run(tf.global_variables_initializer())
         input_feed = {}
         inputs = [[9], [10], [21], [7], [53], [105], [7], [6], [32], [51], [7], [6], [6], [6]]
         for l in xrange(14):
