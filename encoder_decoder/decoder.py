@@ -11,7 +11,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from encoder_decoder import data_utils, graph_utils, beam_search
+from encoder_decoder import data_utils, graph_utils, beam_search, rnn
 
 class Decoder(graph_utils.NNModel):
     def __init__(self, hyperparameters, scope, dim, embedding_dim,
@@ -283,8 +283,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         #                          self.attention_output_keep# )
 
         with tf.variable_scope("AttnOutputProjection"):
-            output = tf.nn.rnn_cell.linear(
-                [cell_output, attns[0]], self.dim, True)
+            output = rnn.linear([cell_output, attns[0]], self.dim, True)
 
         self.attention_cell_vars = True
         return output, state, alignments, attns
