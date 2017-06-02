@@ -106,10 +106,24 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("num_samples", -1,
                                 "Number of samples for sampled softmax.")
     tf.app.flags.DEFINE_integer("seed", -1, "Random seed for graph initialization.")
+
     tf.app.flags.DEFINE_boolean("variational_recurrent_dropout", False, "Set to use variational " +
                                 "recurrent dropout on the RNN cells.")
     tf.app.flags.DEFINE_float("universal_keep", -1, "Use the rate for all " +
                               "dropout layers if set to a number between 0 and 1.")
+    tf.app.flags.DEFINE_float("sc_input_keep", .5, "Proportion of source input to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("sc_output_keep", .5, "Proportion of source output to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("tg_input_keep", .5, "Proportion of target input to keep if dropout is used.")
+    tf.app.flags.DEFINE_float("tg_output_keep", .5, "Proportion of target output to keep if dropout is used.")
+
+    tf.app.flags.DEFINE_boolean("recurrent_batch_normalization", False,
+                                "Set to use recurrent batch normalization.")
+    tf.app.flags.DEFINE_float("gamma_c", .1, "Scale of cell state normalization.")
+    tf.app.flags.DEFINE_float("beta_c", .1, "Offset of cell state normalization.")
+    tf.app.flags.DEFINE_float("gamma_h", .1, "Scale of hidden state normalization.")
+    tf.app.flags.DEFINE_float("beta_h", .1, "Offset of hidden state normalization.")
+    tf.app.flags.DEFINE_float("gamma_x", .1, "Scale of input state normalization.")
+    tf.app.flags.DEFINE_float("beta_x", .1, "Offset of input state normalization.")
 
     tf.app.flags.DEFINE_string("training_algorithm", "standard", "training algorithm to use.")
     tf.app.flags.DEFINE_string("pretrained_model_subdir", "", "signature of pretrained model.")
@@ -169,10 +183,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("sc_vocab_size", 1000, "source vocabulary size " +
                                                        "(including low-frequency tokens).")
     tf.app.flags.DEFINE_integer("sc_token_dim", 300, "Basic token embedding dimensions.")
-    tf.app.flags.DEFINE_float("sc_input_keep", .5,
-                                "Proportion of source input to keep if dropout is used.")
-    tf.app.flags.DEFINE_float("sc_output_keep", .5,
-                                "Proportion of source output to keep if dropout is used.")
     tf.app.flags.DEFINE_boolean("sc_char", False,
                                 "Set to True to turn on the character channel in the encoder. Off by default.")
     tf.app.flags.DEFINE_integer("sc_char_vocab_size", 1000, "source character vocabulary size.")
@@ -185,8 +195,6 @@ def define_input_flags():
     tf.app.flags.DEFINE_integer("tg_token_embedding_size", 1000, "target word embedding size.")
     tf.app.flags.DEFINE_integer("tg_vocab_size", 1000, "target vocabulary size " +
                                                        "(including low-frequency tokens).")
-    tf.app.flags.DEFINE_float("tg_input_keep", .5, "Proportion of target input to keep if dropout is used.")
-    tf.app.flags.DEFINE_float("tg_output_keep", .5, "Proportion of target output to keep if dropout is used.")
     tf.app.flags.DEFINE_boolean("tg_char", False,
                                 "Set to True to turn on character RNN extention module in the decoder.")
     tf.app.flags.DEFINE_integer("tg_char_vocab_size", 150, "Target character vocabulary size.")
