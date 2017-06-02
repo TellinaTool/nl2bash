@@ -117,7 +117,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
             tf.diag(tf.ones([tg_vocab_size], dtype=tf.float32))
         self.encoder_size = len(encoder_inputs)
         encoder_inputs = \
-            tf.concat(1, [tf.expand_dims(x, 1) for x in encoder_inputs])
+            tf.concat(axis=1, values=[tf.expand_dims(x, 1) for x in encoder_inputs])
         self.encoder_inputs_3d = tf.nn.embedding_lookup(
             self.vocab_indices, encoder_inputs)
         self.generation_mask = generation_mask
@@ -190,7 +190,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.encoder_attn_masks = encoder_attn_masks
         self.encoder_size = len(encoder_inputs)
         self.vocab_indices = tf.diag(tf.ones(tg_vocab_size))
-        encoder_inputs = tf.concat(1, [tf.expand_dims(x, 1)
+        encoder_inputs = tf.concat(axis=1, values=[tf.expand_dims(x, 1)
                                        for x in encoder_inputs])
         self.encoder_inputs_3d = tf.nn.embedding_lookup(
             self.vocab_indices, encoder_inputs)
@@ -226,7 +226,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                 ndims = q.get_shape().ndims
                 if ndims:
                     assert ndims == 2
-            state = tf.concat(1, query_list)
+            state = tf.concat(axis=1, values=query_list)
         for a in xrange(self.num_heads):
             with tf.variable_scope("Attention_%d" % a):
                 y = tf.reshape(state, [-1, 1, 1, self.attn_dim])
@@ -238,11 +238,11 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                                         [1, 1, 1, self.attn_dim])
                     z = tf.reshape(self.hidden_features[a],
                                    [-1, self.attn_length, 1, self.attn_dim])
-                    v = tf.concat(3, [z, tf.tile(y, [1, self.attn_length, 1, 1])])
+                    v = tf.concat(axis=3, values=[z, tf.tile(y, [1, self.attn_length, 1, 1])])
                     s = tf.reduce_sum(
                         l * tf.tanh(tf.nn.conv2d(v, k, [1,1,1,1], "SAME")), [2, 3])
                 elif self.attention_function == 'inner_product':
-                    s = tf.reduce_sum(tf.mul(self.hidden_features[a], y), [2])
+                    s = tf.reduce_sum(tf.multiply(self.hidden_features[a], y), [2])
                 else:
                     raise NotImplementedError
 

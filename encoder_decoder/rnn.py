@@ -85,7 +85,7 @@ class RANCell(tf.nn.rnn_cell.RNNCell):
       with tf.variable_scope("Input_projection"):
         c_tilde = tf.nn.rnn_cell._linear(inputs, self._num_units, True)
       with tf.variable_scope("Gates"):  # input gate and forget gate.
-        i, f = tf.split(1, 2, tf.nn.rnn_cell._linear([inputs, state],
+        i, f = tf.split(axis=1, num_or_size_splits=2, value=tf.nn.rnn_cell._linear([inputs, state],
             2 * self._num_units, True, self.bias))
         i, f = tf.sigmoid(i), tf.sigmoid(f)
       with tf.variable_scope("Context"):
@@ -191,7 +191,7 @@ def RNNModel(cell, inputs, initial_state=None, dtype=None,
     if sequence_length is not None:  # Prepare variables
       sequence_length = tf.to_int32(sequence_length)
       zero_output = tf.zeros(
-          tf.pack([batch_size, cell.output_size]), inputs[0].dtype)
+          tf.stack([batch_size, cell.output_size]), inputs[0].dtype)
       zero_output.set_shape(
           tf.tensor_shape.TensorShape([fixed_batch_size.value,
                                        cell.output_size]))
@@ -288,22 +288,22 @@ def BiRNNModel(cell_fw, cell_bw, inputs, initial_state_fw=None,
   states_bw = _reverse_seq(tmp_states, sequence_length)
 
   # Concat each of the forward/backward outputs
-  outputs = [tf.concat(1, [fw, bw]) for fw, bw in zip(output_fw, output_bw)]
+  outputs = [tf.concat(axis=1, values=[fw, bw]) for fw, bw in zip(output_fw, output_bw)]
 
   # Notice that the computation of the encoder final state uses the final state
   # of the backward RNN without reverse!!!
   if nest.is_sequence(cell_fw.state_size):
-    output_states = [nest_map_dual(lambda x, y: tf.concat(1, [x, y]), fw, bw)
+    output_states = [nest_map_dual(lambda x, y: tf.concat(axis=1, values=[x, y]), fw, bw)
                      for fw, bw in zip(states_fw, tmp_states)]
   else:
     if num_cell_layers > 1:
       output_states = []
       for fw, bw in zip(states_fw, tmp_states):
-        output_states.append(tf.concat(1, ([tf.concat(1, [l_fw, l_bw])
-          for l_fw, l_bw in zip(tf.split(1, num_cell_layers, fw),
-            tf.split(1, num_cell_layers, bw))])))
+        output_states.append(tf.concat(axis=1, values=[tf.concat(axis=1, values=[l_fw, l_bw])
+          for l_fw, l_bw in zip(tf.split(axis=1, num_or_size_splits=num_cell_layers, value=fw),
+            tf.split(axis=1, num_or_size_splits=num_cell_layers, value=bw))]))
     else:
-      output_states = [tf.concat(1, [fw, bw])
+      output_states = [tf.concat(axis=1, values=[fw, bw])
                        for fw, bw in zip(states_fw, tmp_states)]
 
   return (outputs, output_states)
@@ -330,7 +330,7 @@ def _reverse_seq(input_seq, lengths):
     input_.set_shape(input_shape)
 
   # Join into (time, batch_size, depth)
-  s_joined = tf.pack(input_seq)
+  s_joined = tf.stack(input_seq)
 
   # TODO(schuster, ebrevdo): Remove cast when reverse_sequence takes int32
   if lengths is not None:
@@ -339,7 +339,7 @@ def _reverse_seq(input_seq, lengths):
   # Reverse along dimension 0
   s_reversed = tf.reverse_sequence(s_joined, lengths, 0, 1)
   # Split again into list
-  result = tf.unpack(s_reversed)
+  result = tf.unstack(s_reversed)
   for r in result:
     r.set_shape(input_shape)
   return result
@@ -406,7 +406,7 @@ class MultiRNNCell(tf.nn.rnn_cell.RNNCell):
           new_states.append(new_state)
 
     new_states = (tuple(new_states) if self._state_is_tuple
-                  else tf.concat(1, new_states))
+                  else tf.concat(axis=1, values=new_states))
 
     return cur_inp, new_states
 
@@ -483,7 +483,7 @@ class DropoutWrapper(tf.nn.rnn_cell.RNNCell):
         # Prepend a 1 for the batch dimension; for recurrent
         # variational dropout we use the same dropout mask for all
         # batch elements.
-        return tf.concat(0, [[1], tf.TensorShape(s).as_list()])
+        return tf.concat(axis=0, values=[[1], tf.TensorShape(s).as_list()])
 
       def batch_noise(s, inner_seed):
         shape = convert_to_batch_shape(s)

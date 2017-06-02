@@ -95,7 +95,6 @@ def train(train_set, dev_set):
                 formatted_example = model.get_batch(train_set, bucket_id)
                 model_outputs = model.step(
                     sess, formatted_example, bucket_id, forward_only=False)
-                print(model_outputs.gradient_norms)
                 loss += model_outputs.losses
                 current_step += 1
             epoch_time = time.time() - start_time
