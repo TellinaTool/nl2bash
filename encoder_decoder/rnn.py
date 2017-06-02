@@ -4,6 +4,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import logging
+
 from tensorflow.python.util import nest
 import tensorflow as tf
 
@@ -12,7 +14,8 @@ from encoder_decoder.graph_utils import nest_map_dual
 
 def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
                            input_keep_prob=1, output_keep_prob=1,
-                           variational_recurrent=True, input_dim=-1):
+                           variational_recurrent=True, input_dim=-1,
+                           batch_normalization=True):
     """
     Create the multi-layer RNN cell.
     :param type: Type of RNN cell.
@@ -22,13 +25,19 @@ def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
     :param input_keep_prob: Proportion of input to keep in dropout.
     :param output_keep_prob: Proportion of output to keep in dropout.
     :param variational_recurrent: If set, use variational recurrent dropout.
+        (cf. https://arxiv.org/abs/1512.05287)
     :param input_dim: RNN input dimension, must be specified if it is
         different from the cell state dimension.
+    :param batch_normalization: If set, use recurrent batch normalization.
+        (cf. https://arxiv.org/abs/1603.09025)
     :return: RNN cell as specified.
     """
     with tf.variable_scope(scope):
         if rnn_cell == "lstm":
-            cell = tf.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
+            if batch_normalization:
+                cell = BNLSTMCell(dim, state_is_tuple=True)
+            else:
+                cell = tf.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
         elif rnn_cell == "gru":
             cell = tf.nn.rnn_cell.GRUCell(dim)
         elif rnn_cell == 'ran':
@@ -88,6 +97,190 @@ class RANCell(tf.nn.rnn_cell.RNNCell):
       with tf.variable_scope("Context"):
         new_c = self._activation(i * c_tilde + f * state)
     return new_c, new_c
+
+
+class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
+  """Batch Normalized Long short-term memory unit (LSTM) recurrent network cell.
+
+  cf. https://arxiv.org/abs/1603.09025
+  """
+
+  def __init__(self, num_units, gamma_c=0.1, gamma_h=0.1, gamma_x=0.1,
+               beta_c=0, beta_h=0, beta_x=0, input_size=None,
+               use_peepholes=False, cell_clip=None,
+               initializer=None, num_proj=None,
+               num_unit_shards=1, num_proj_shards=1,
+               forget_bias=1.0, state_is_tuple=False,
+               activation=tf.tanh):
+    """Initialize the parameters for an LSTM cell.
+
+    Args:
+      num_units: int, The number of units in the LSTM cell
+      gamma_c: scale of cell state normalization
+      beta_c: offset of cell state normalization
+      gamma_h: scale of hidden state normalization
+      beta_h: offset of hidden state normalization
+        (set to 0 to avoid redundancy)
+      gamma_x: scale of input normalization
+      beta_x: offset of input normalization
+        (set to 0 to avoid redundancy)
+      input_size: Deprecated and unused.
+      use_peepholes: bool, set True to enable diagonal/peephole connections.
+      cell_clip: (optional) A float value, if provided the cell state is clipped
+        by this value prior to the cell output activation.
+      initializer: (optional) The initializer to use for the weight and
+        projection matrices.
+      num_proj: (optional) int, The output dimensionality for the projection
+        matrices.  If None, no projection is performed.
+      num_unit_shards: How to split the weight matrix.  If >1, the weight
+        matrix is stored across num_unit_shards.
+      num_proj_shards: How to split the projection matrix.  If >1, the
+        projection matrix is stored across num_proj_shards.
+      forget_bias: Biases of the forget gate are initialized by default to 1
+        in order to reduce the scale of forgetting at the beginning of
+        the training.
+      state_is_tuple: If True, accepted and returned states are 2-tuples of
+        the `c_state` and `m_state`.  By default (False), they are concatenated
+        along the column axis.  This default behavior will soon be deprecated.
+      activation: Activation function of the inner states.
+    """
+    if not state_is_tuple:
+      logging.warn(
+          "%s: Using a concatenated state is slower and will soon be "
+          "deprecated.  Use state_is_tuple=True." % self)
+    if input_size is not None:
+      logging.warn("%s: The input_size parameter is deprecated." % self)
+    self._num_units = num_units
+    self._gamma_c = gamma_c
+    self._beta_c = beta_c
+    self._gamma_h = gamma_h
+    self._beta_h = beta_h
+    self._gamma_x = gamma_x
+    self._beta_x = beta_x
+    self._use_peepholes = use_peepholes
+    self._cell_clip = cell_clip
+    self._initializer = initializer
+    self._num_proj = num_proj
+    self._num_unit_shards = num_unit_shards
+    self._num_proj_shards = num_proj_shards
+    self._forget_bias = forget_bias
+    self._state_is_tuple = state_is_tuple
+    self._activation = activation
+
+    if num_proj:
+      self._state_size = (
+          tf.nn.rnn_cell.LSTMStateTuple(num_units, num_proj)
+          if state_is_tuple else num_units + num_proj)
+      self._output_size = num_proj
+    else:
+      self._state_size = (
+          tf.nn.rnn_cell.LSTMStateTuple(num_units, num_units)
+          if state_is_tuple else 2 * num_units)
+      self._output_size = num_units
+
+  @property
+  def state_size(self):
+    return self._state_size
+
+  @property
+  def output_size(self):
+    return self._output_size
+
+  def __call__(self, inputs, state, scope=None):
+    """Run one step of LSTM.
+
+    Args:
+      inputs: input Tensor, 2D, batch x num_units.
+      state: if `state_is_tuple` is False, this must be a state Tensor,
+        `2-D, batch x state_size`.  If `state_is_tuple` is True, this must be a
+        tuple of state Tensors, both `2-D`, with column sizes `c_state` and
+        `m_state`.
+      scope: VariableScope for the created subgraph; defaults to "LSTMCell".
+
+    Returns:
+      A tuple containing:
+      - A `2-D, [batch x output_dim]`, Tensor representing the output of the
+        LSTM after reading `inputs` when previous state was `state`.
+        Here output_dim is:
+           num_proj if num_proj was set,
+           num_units otherwise.
+      - Tensor(s) representing the new state of LSTM after reading `inputs` when
+        the previous state was `state`.  Same type and shape(s) as `state`.
+
+    Raises:
+      ValueError: If input size cannot be inferred from inputs via
+        static shape inference.
+    """
+    num_proj = self._num_units if self._num_proj is None else self._num_proj
+
+    if self._state_is_tuple:
+      (c_prev, m_prev) = state
+    else:
+      c_prev = tf.slice(state, [0, 0], [-1, self._num_units])
+      m_prev = tf.slice(state, [0, self._num_units], [-1, num_proj])
+
+    dtype = inputs.dtype
+    input_size = inputs.get_shape().with_rank(2)[1]
+    if input_size.value is None:
+      raise ValueError("Could not infer input size from inputs.get_shape()[-1]")
+    with tf.variable_scope(scope or type(self).__name__,
+                           initializer=self._initializer):  # "LSTMCell"
+      w_h = tf.get_variable("W_h", [input_size.value, 4 * self._num_units],
+                            dtype, self._num_unit_shards)
+      w_x = tf.get_variable("W_x", [num_proj, 4 * self._num_units],
+                            dtype, self._num_unit_shards)
+
+      b = tf.get_variable(
+          "B", shape=[4 * self._num_units],
+          initializer=tf.zeros_initializer, dtype=dtype)
+
+      # i = input_gate, j = new_input, f = forget_gate, o = output_gate
+      hidden_matrix = tf.matmul(m_prev, w_h)
+      bn_hidden_matrix = tf.nn.batch_normalization(
+          hidden_matrix, offset=self._beta_h, scale=self._gamma_h)
+      input_matrix = tf.matmul(inputs, w_x)
+      bn_input_matrix = tf.nn.batch_normalization(
+          input_matrix, offset=self._beta_x, scale=self._gamma_x)
+      lstm_matrix = tf.nn.bias_add(tf.concat(1, [bn_input_matrix, bn_hidden_matrix]), b)
+      i, j, f, o = tf.split(1, 4, lstm_matrix)
+
+      # Diagonal connections
+      if self._use_peepholes:
+        w_f_diag = tf.get_variable(
+            "W_F_diag", shape=[self._num_units], dtype=dtype)
+        w_i_diag = tf.get_variable(
+            "W_I_diag", shape=[self._num_units], dtype=dtype)
+        w_o_diag = tf.get_variable(
+            "W_O_diag", shape=[self._num_units], dtype=dtype)
+
+      if self._use_peepholes:
+        c = (tf.sigmoid(f + self._forget_bias + w_f_diag * c_prev) * c_prev +
+             tf.sigmoid(i + w_i_diag * c_prev) * self._activation(j))
+      else:
+        c = (tf.sigmoid(f + self._forget_bias) * c_prev + tf.sigmoid(i) *
+             self._activation(j))
+
+      if self._cell_clip is not None:
+        # pylint: disable=invalid-unary-operand-type
+        c = tf.clip_by_value(c, -self._cell_clip, self._cell_clip)
+        # pylint: enable=invalid-unary-operand-type
+
+      bn_c = tf.nn.batch_normalization(c, offset=self._beta_c, scale=self._gamma_c)
+      if self._use_peepholes:
+        m = tf.sigmoid(o + w_o_diag * c) * self._activation(bn_c)
+      else:
+        m = tf.sigmoid(o) * self._activation(bn_c)
+
+      if self._num_proj is not None:
+        concat_w_proj = tf.nn.rnn_cell._get_concat_variable(
+            "W_P", [self._num_units, self._num_proj],
+            dtype, self._num_proj_shards)
+
+        m = tf.matmul(m, concat_w_proj)
+
+    new_state = (tf.nn.rnn_cell.LSTMStateTuple(c, m) if self._state_is_tuple
+                 else tf.concat(1, [c, m]))
+    return m, new_state
 
 
 def RNNModel(cell, inputs, initial_state=None, dtype=None,
