@@ -245,7 +245,7 @@ def initialize_vocabulary(vocab_path):
     """
     if tf.gfile.Exists(vocab_path):
         rev_vocab = []
-        with tf.gfile.GFile(vocab_path, mode="rb") as f:
+        with tf.gfile.GFile(vocab_path, mode="r") as f:
             rev_vocab.extend(f.readlines())
         rev_vocab = [line.strip() for line in rev_vocab]
         vocab = dict([(x, y) for (y, x) in enumerate(rev_vocab)])
