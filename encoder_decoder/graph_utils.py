@@ -134,7 +134,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     if FLAGS.explain:
         FLAGS.grammatical_only = False
 
-    model = model_constructor(params, buckets, forward_only)
+    model = model_constructor(params, buckets)
 
     ckpt = tf.train.get_checkpoint_state(
         os.path.join(FLAGS.model_root_dir, FLAGS.model_dir))
