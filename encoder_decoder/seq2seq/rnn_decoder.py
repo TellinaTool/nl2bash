@@ -120,7 +120,8 @@ class RNNDecoder(decoder.Decoder):
                             input = past_beam_symbols[:, -1]
                         elif self.decoding_algorithm == "greedy":
                             if self.use_copy and self.copy_fun != 'supervised':
-                                projected_output = graph_utils.normalize(output)
+                                epsilon = tf.constant(1e-12)
+                                projected_output = tf.log(output + epsilon)
                             else:
                                 W, b = self.output_project
                                 projected_output = \
@@ -190,8 +191,7 @@ class RNNDecoder(decoder.Decoder):
                 top_k_outputs = [tf.split(axis=0, num_or_size_splits=self.beam_size,
                                           value=tf.squeeze(top_k_output, axis=[0]))
                                  for top_k_output in top_k_outputs]
-                top_k_outputs = [[tf.squeeze(output, axis=[0])
-                                  for output in top_k_output]
+                top_k_outputs = [[tf.squeeze(output, axis=[0]) for output in top_k_output]
                                  for top_k_output in top_k_outputs]
                 # [self.batch_size, self.beam_size]
                 top_k_logits = tf.reshape(past_beam_logprobs,

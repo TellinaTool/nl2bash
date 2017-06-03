@@ -370,17 +370,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 values=[tf.reshape(d_o, [-1, 1, self.decoder.dim])
                  for d_o in outputs])
 
-        if DEBUG:
-            C = tf.argmax(tf.concat(axis=1, values=binary_targets), 2)
-            output_symbols = []
-            for i in xrange(self.batch_size):
-                if bs_decoding:
-                    beam_output_symbols = []
-                    for j in xrange(self.beam_size):
-                        beam_output_symbols.append(C[i*self.beam_size + j])
-                    output_symbols.append(beam_output_symbols)
-                else:
-                    output_symbols.append(C[i])
         O = [output_symbols, output_logits, losses, attn_alignments]
         if self.tg_char:
             O.append(char_output_symbols)
