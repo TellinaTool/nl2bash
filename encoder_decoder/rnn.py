@@ -35,6 +35,7 @@ def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
     with tf.variable_scope(scope):
         if rnn_cell == "lstm":
             if batch_normalization:
+                print("--using recurrent batch normalization")
                 cell = BNLSTMCell(dim, state_is_tuple=True)
             else:
                 cell = tf.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
@@ -226,9 +227,9 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
     with tf.variable_scope(scope or type(self).__name__,
                            initializer=self._initializer):  # "LSTMCell"
       w_h = tf.get_variable("W_h", [input_size.value, 4 * self._num_units],
-                            dtype, self._num_unit_shards)
+                            dtype=tf.float32)
       w_x = tf.get_variable("W_x", [num_proj, 4 * self._num_units],
-                            dtype, self._num_unit_shards)
+                            dtype=tf.float32)
 
       b = tf.get_variable(
           "B", shape=[4 * self._num_units],
