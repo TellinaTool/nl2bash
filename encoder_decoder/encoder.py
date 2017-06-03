@@ -120,7 +120,7 @@ class Encoder(graph_utils.NNModel):
                     self.sc_char_rnn_cell, scope,
                     self.sc_char_dim, self.sc_char_rnn_num_layers,
                     variational_recurrent=self.variational_recurrent_dropout,
-                    batch_normalization=self.batch_normalization,
+                    batch_normalization=self.recurrent_batch_normalization,
                     forward_only=self.forward_only)
                 rnn_outputs, rnn_states = rnn.RNNModel(cell, input_embeddings,
                     num_cell_layers=self.sc_char_rnn_num_layers, dtype=tf.float32)
@@ -161,7 +161,7 @@ class RNNEncoder(Encoder):
             cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout,
-                batch_normalization=self.batch_normalization,
+                batch_normalization=self.recurrent_batch_normalization,
                 forward_only=self.forward_only)
         return cell
 
@@ -195,7 +195,7 @@ class BiRNNEncoder(Encoder):
             cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout,
-                batch_normalization=self.batch_normalization,
+                batch_normalization=self.recurrent_batch_normalization,
                 forward_only=self.forward_only)
         return cell
 
@@ -205,6 +205,6 @@ class BiRNNEncoder(Encoder):
             cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout,
-                batch_normalization=self.batch_normalization,
+                batch_normalization=self.recurrent_batch_normalization,
                 forward_only=self.forward_only)
         return cell
