@@ -287,7 +287,7 @@ def wrap_inputs(beam_decoder, inputs):
 
 
 def sparse_cross_entropy(P, targets):
-    epsilon = tf.constant(1e-6)
+    epsilon = tf.constant(1e-12)
     return -tf.reduce_sum(
         tf.nn.embedding_lookup(tf.log(P + epsilon), targets), 1)
 
