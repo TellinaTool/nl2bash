@@ -273,7 +273,7 @@ class RNNDecoder(decoder.Decoder):
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout,
-                batch_normalization=self.batch_normalization,
+                batch_normalization=self.recurrent_batch_normalization,
                 forward_only=self.forward_only,
                 input_dim=input_size)
         return cell

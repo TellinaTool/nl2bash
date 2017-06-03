@@ -31,6 +31,15 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params["variational_recurrent_dropout"] = \
         FLAGS.variational_recurrent_dropout
 
+    params["recurrent_batch_normalization"] = \
+        FLAGS.recurrent_batch_normalization
+    params["gramma_c"] = FLAGS.gamma_c
+    params["beta_c"] = FLAGS.beta_c
+    params["gramma_h"] = FLAGS.gamma_h
+    params["beta_h"] = FLAGS.beta_h
+    params["gramma_x"] = FLAGS.gamma_x
+    params["beta_x"] = FLAGS.beta_x
+
     params["sc_token"] = FLAGS.sc_token
     params["sc_token_dim"] = FLAGS.sc_token_dim
     params["sc_char"] = FLAGS.sc_char
@@ -406,6 +415,34 @@ class NNModel(object):
     @property
     def rnn_cell(self):
         return self.hyperparams["rnn_cell"]
+
+    @property
+    def recurrent_batch_normalization(self):
+        return self.hyperparams["recurrent_batch_normalization"]
+
+    @property
+    def gamma_c(self):
+        return self.hyperparams["gamma_c"]
+
+    @property
+    def beta_c(self):
+        return self.hyperparams["beta_c"]
+
+    @property
+    def gamma_h(self):
+        return self.hyperparams["gamma_h"]
+
+    @property
+    def beta_h(self):
+        return self.hyperparams["beta_h"]
+
+    @property
+    def gamma_x(self):
+        return self.hyperparams["gamma_x"]
+
+    @property
+    def beta_x(self):
+        return self.hyperparams["beta_x"]
 
     @property
     def source_token_embedding_size(self):
