@@ -279,7 +279,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             if bs_decoding:
                 targets = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, targets)
-            if self.use_copy and self.copy_fun != 'supervised':
+            if self.use_copy and self.copy_fun == 'copynet':
                 encoder_decoder_token_loss = self.sequence_loss(
                     outputs, targets, target_weights,
                     graph_utils.sparse_cross_entropy)
