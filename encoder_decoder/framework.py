@@ -280,16 +280,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 targets = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, targets)
             if self.use_copy and self.copy_fun == 'copynet':
-                encoder_decoder_token_loss = self.sequence_loss(
-                    outputs, targets, target_weights,
-                    graph_utils.sparse_cross_entropy)
+                step_loss_fun = graph_utils.sparse_cross_entropy
             else:
-                encoder_decoder_token_loss = self.sequence_loss(
-                    outputs, targets, target_weights,
-                    graph_utils.softmax_loss(
-                        self.decoder.output_project,
-                        self.num_samples,
-                        self.target_vocab_size))
+                step_loss_fun = graph_utils.softmax_loss(
+                    self.decoder.output_project,
+                    self.num_samples,
+                    self.target_vocab_size)
+            encoder_decoder_token_loss = self.sequence_loss(
+                outputs, targets, target_weights, step_loss_fun)
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
