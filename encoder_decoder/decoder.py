@@ -118,14 +118,14 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         print("CopyCellWrapper added!")
 
     def __call__(self, input_embedding, state, scope=None):
-        output, state, alignments, attns = self.cell(
-            input_embedding, state, scope)
+        output, state, alignments, attns = \
+            self.cell(input_embedding, state, scope)
 
         # Compute generation/copying mixture
 
         # <generation probability, copying probability>
         W, b = self.output_project
-        gen_logit = tf.matmul(output, W) + b - 1e12 * self.generation_mask
+        gen_logit = tf.matmul(output, W) + b - 1e12 * (1 - self.generation_mask)
 
         pointers = alignments[1]
         prob = tf.nn.softmax(tf.concat([gen_logit, pointers], axis=1))
