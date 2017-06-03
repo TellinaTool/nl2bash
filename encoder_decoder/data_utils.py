@@ -537,6 +537,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
             data_path = os.path.join(data_dir, split)
             with open(data_path + suffix, 'w') as o_f:
                 for line in getattr(data, split):
+                    print(line)
                     o_f.write(line.strip() + '\n')
 
     # compute max training sequence length to determine bucket size
@@ -619,7 +620,7 @@ def prepare_jobs(FLAGS):
                 nl_tokenizer = tokenizer.basic_tokenizer
             else:
                 nl_tokenizer = tokenizer.space_tokenizer
-            nl_tokens = nl_tokenizer(nl)
+            nl_tokens, _ = nl_tokenizer(nl)
             cm_tokens = cm.split()
             nl_chars = data_tools.char_tokenizer(nl, nl_tokenizer)
             cm_chars = data_tools.char_tokenizer(cm, None)

@@ -129,7 +129,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         gen_prob = tf.slice(prob, [0, 0], [-1, self.tg_vocab_size])
         copy_prob = tf.slice(prob, [0, self.tg_vocab_size], [-1, -1])
-        copy_prob = tf.squeeze(tf.matmul(tf.expand_dims(tf.exp(copy_prob), 1),
+        copy_prob = tf.squeeze(tf.matmul(tf.expand_dims(copy_prob, 1),
             tf.one_hot(self.encoder_inputs, self.tg_vocab_size)), 1)
 
         # mixture probability
