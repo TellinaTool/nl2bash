@@ -248,7 +248,7 @@ class RNNDecoder(decoder.Decoder):
             else:
                 # Greedy output
                 if self.use_copy and self.copy_fun != 'supervised':
-                    projected_output = graph_utils.normalize(output)
+                    projected_output = output
                 else:
                     W, b = self.output_project
                     projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
