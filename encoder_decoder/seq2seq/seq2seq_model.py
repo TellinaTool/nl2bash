@@ -24,8 +24,8 @@ class Seq2SeqModel(EncoderDecoderModel):
       http://arxiv.org/abs/1412.2007
     """
 
-    def __init__(self, hyperparams, buckets=None, forward_only=False):
-        super(Seq2SeqModel, self).__init__(hyperparams, buckets, forward_only)
+    def __init__(self, hyperparams, buckets=None):
+        super(Seq2SeqModel, self).__init__(hyperparams, buckets)
 
 
     def define_encoder(self, input_keep, output_keep):
@@ -41,15 +41,13 @@ class Seq2SeqModel(EncoderDecoderModel):
 
 
     def define_decoder(self, dim, embedding_dim, use_attention,
-                       attention_function, input_keep, output_keep,
-                       forward_only, use_token_features):
+            attention_function, input_keep, output_keep):
         """Construct sequence decoders."""
         if self.decoder_topology == "rnn":
-            self.decoder = rnn_decoder.RNNDecoder(self.hyperparams,
-                'token_decoder', dim, embedding_dim, use_attention,
-                attention_function, input_keep, output_keep,
-                self.token_decoding_algorithm, forward_only,
-                use_token_features=use_token_features)
+            self.decoder = rnn_decoder.RNNDecoder(
+                self.hyperparams, 'token_decoder', dim, embedding_dim,
+                use_attention, attention_function, input_keep, output_keep,
+                self.token_decoding_algorithm)
         else:
             raise ValueError("Unrecognized decoder topology: {}.".format(
                 self.decoder_topology))
