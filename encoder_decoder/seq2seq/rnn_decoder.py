@@ -247,8 +247,9 @@ class RNNDecoder(decoder.Decoder):
                        attn_alignments, pointers
             else:
                 # Greedy output
-                if self.use_copy and self.copy_fun != 'supervised':
-                    projected_output = output
+                if self.use_copy and self.copy_fun == 'copynet':
+                    epsilon = tf.constant(1e-12)
+                    projected_output = tf.log(output + epsilon)
                 else:
                     W, b = self.output_project
                     projected_output = tf.nn.log_softmax(tf.matmul(output, W) + b)
