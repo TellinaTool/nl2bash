@@ -277,7 +277,8 @@ def softmax_loss(output_project, num_samples, target_vocab_size):
         print("loss function = softmax_loss")
         def loss(outputs, labels):
             logits = tf.matmul(outputs, w) + b
-            return tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
+            return tf.nn.sparse_softmax_cross_entropy_with_logits(
+                logits=logits, labels=labels)
         loss_function = loss
     return loss_function
 
@@ -289,7 +290,7 @@ def wrap_inputs(beam_decoder, inputs):
 def sparse_cross_entropy(P, targets):
     epsilon = tf.constant(1e-12)
     return -tf.reduce_sum(
-        tf.nn.embedding_lookup(tf.log(P + epsilon), targets), 1)
+        tf.log(P + epsilon) * tf.one_hot(targets, P.get_shape()[1]), 1)
 
 
 def nest_map(func, nested):
