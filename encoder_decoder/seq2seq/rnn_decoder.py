@@ -13,7 +13,7 @@ from encoder_decoder import decoder, data_utils, graph_utils, rnn
 class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, scope, dim, embedding_dim,
                  use_attention, attention_function, input_keep, output_keep,
-                 decoding_algorithm, forward_only):
+                 decoding_algorithm):
         """
         :member hyperparameters:
         :member scope:
@@ -30,15 +30,14 @@ class RNNDecoder(decoder.Decoder):
         """
         super(RNNDecoder, self).__init__(hyperparameters, scope, dim,
             embedding_dim, use_attention, attention_function, input_keep,
-            output_keep, decoding_algorithm, forward_only)
+            output_keep, decoding_algorithm)
         print("{} dimension = {}".format(scope, dim))
         print("{} decoding_algorithm = {}".format(scope, decoding_algorithm))
 
 
     def define_graph(self, encoder_state, decoder_inputs,
                      input_embeddings=None, encoder_attn_masks=None,
-                     attention_states=None, num_heads=1,
-                     encoder_inputs=None, forward_only=False):
+                     attention_states=None, num_heads=1, encoder_inputs=None):
         """
         :return output_symbols: batch of discrete output sequences
         :return output_logits: batch of output sequence scores
@@ -56,7 +55,7 @@ class RNNDecoder(decoder.Decoder):
             raise ValueError("Shape [1] and [2] of attention_states must be "
                              "known %s" % attention_states.get_shape())
 
-        bs_decoding = forward_only and self.decoding_algorithm == "beam_search"
+        bs_decoding = self.forward_only and self.decoding_algorithm == "beam_search"
 
         if self.force_reading_input:
             print("Warning: reading ground truth decoder inputs at decoding time.")
@@ -109,7 +108,7 @@ class RNNDecoder(decoder.Decoder):
 
                 if i > 0:
                     scope.reuse_variables()
-                    if forward_only and not self.force_reading_input:
+                    if self.forward_only and not self.force_reading_input:
                         if self.decoding_algorithm == "beam_search":
                             (
                                 past_cand_symbols,  # [batch_size, max_len]
@@ -256,7 +255,7 @@ class RNNDecoder(decoder.Decoder):
                 output_symbol = tf.argmax(projected_output, 1)
                 past_output_symbols.append(tf.expand_dims(output_symbol, 1))
                 output_symbols = tf.concat(axis=1, values=past_output_symbols) \
-                    if forward_only else tf.cast(input, tf.float32)
+                    if self.forward_only else tf.cast(input, tf.float32)
                 past_output_logits = tf.add(
                     past_output_logits, tf.reduce_max(projected_output, 1))
                 return output_symbols, past_output_logits, outputs, states, \
