@@ -46,8 +46,8 @@ class Decoder(graph_utils.NNModel):
         self.decoding_algorithm = decoding_algorithm
 
         self.vocab_size = self.target_vocab_size
-        if self.use_copy and self.copy_fun != 'supervised':
-             self.vocab_size += self.max_source_length
+        if self.use_copy and self.copy_fun == 'copynet':
+            self.vocab_size += self.max_source_length
         
         # variable sharing
         self.embedding_vars = False
@@ -123,27 +123,27 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         # Compute generation/copying mixture
 
-        # generation probability
+        # <generation probability, copying probability>
         W, b = self.output_project
-        gen_logit = tf.exp(tf.matmul(output, W) + b) * self.generation_mask
-        
-        # copying probability
+        gen_logit = tf.matmul(output, W) + b - 1e12 * self.generation_mask
+
         pointers = alignments[1]
-        copy_logit = tf.squeeze(tf.matmul(
-            tf.expand_dims(tf.exp(pointers), 1), self.encoder_inputs_3d), 1)
-        unk_mask = np.ones([1, self.tg_vocab_size])
-        unk_mask[0, data_utils.UNK_ID] = 0
-        copy_logit = copy_logit * unk_mask
+        prob = tf.nn.softmax(tf.concat([gen_logit, pointers], axis=1))
+
+        gen_prob = prob[:, :self.tg_vocab_size]
+        copy_prob = prob[:, -self.tg_vocab_size:]
+        copy_prob = tf.squeeze(tf.matmul(
+            tf.expand_dims(tf.exp(copy_prob), 1), self.encoder_inputs_3d), 1)
 
         # mixture probability
-        logit = gen_logit + copy_logit
+        prob = gen_prob + copy_prob
 
         # selective reads
         read_copy_source = tf.cast(
             tf.reduce_max(gen_logit, [1], keep_dims=True) < \
             tf.reduce_max(pointers, [1], keep_dims=True), tf.float32)
 
-        return logit, state, alignments, attns, read_copy_source
+        return prob, state, alignments, attns, read_copy_source
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):

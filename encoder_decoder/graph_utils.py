@@ -286,17 +286,10 @@ def wrap_inputs(beam_decoder, inputs):
     return [beam_decoder.wrap_input(input) for input in inputs]
 
 
-def cross_entropy_with_logits(logits, targets):
-    P = normalize(logits)
-    epsilon = tf.constant(value=1e-6)
-    xent = -tf.reduce_sum(
-        tf.reshape(targets, tf.shape(P)) * tf.log(P + epsilon), 1)
-    return xent
-
-
-def normalize(logits):
-    epsilon = tf.constant(value=1e-6)
-    return logits / (tf.reduce_sum(logits, -1, keep_dims=True) + epsilon)
+def sparse_cross_entropy(P, targets):
+    epsilon = tf.constant(1e-12)
+    return -tf.reduce_sum(
+        tf.nn.embedding_lookup(tf.log(P + epsilon), targets), 1)
 
 
 def nest_map(func, nested):
@@ -316,13 +309,11 @@ def nest_map(func, nested):
 
 
 def nest_map_dual(func, nested1, nested2):
-    # print(nested1)
     if not nest.is_sequence(nested1):
         return func(nested1, nested2)
     flat1 = nest.flatten(nested1)
     flat2 = nest.flatten(nested2)
     output = [func(x, y) for x, y in zip(flat1, flat2)]
-    # print(nest.pack_sequence_as(nested1, list(output)))
     return nest.pack_sequence_as(nested1, list(output))
 
 
