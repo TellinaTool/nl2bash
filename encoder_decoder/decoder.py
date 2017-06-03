@@ -127,8 +127,8 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         W, b = self.output_project
         gen_logit = tf.matmul(output, W) + b - 1e12 * (1 - self.generation_mask)
 
-        pointers = alignments[1]
-        prob = tf.nn.softmax(tf.concat([gen_logit, pointers], axis=1))
+        copy_logit = alignments[1]
+        prob = tf.nn.softmax(tf.concat([gen_logit, copy_logit], axis=1))
 
         gen_prob = tf.slice(prob, [0, 0], [-1, self.tg_vocab_size])
         copy_prob = tf.slice(prob, [0, self.tg_vocab_size], [-1, -1])
