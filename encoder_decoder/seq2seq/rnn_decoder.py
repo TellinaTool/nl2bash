@@ -13,7 +13,7 @@ from encoder_decoder import decoder, data_utils, graph_utils, rnn
 class RNNDecoder(decoder.Decoder):
     def __init__(self, hyperparameters, scope, dim, embedding_dim,
                  use_attention, attention_function, input_keep, output_keep,
-                 decoding_algorithm, forward_only, use_token_features=False):
+                 decoding_algorithm, forward_only):
         """
         :member hyperparameters:
         :member scope:
@@ -30,7 +30,7 @@ class RNNDecoder(decoder.Decoder):
         """
         super(RNNDecoder, self).__init__(hyperparameters, scope, dim,
             embedding_dim, use_attention, attention_function, input_keep,
-            output_keep, decoding_algorithm, forward_only, use_token_features)
+            output_keep, decoding_algorithm, forward_only)
         print("{} dimension = {}".format(scope, dim))
         print("{} decoding_algorithm = {}".format(scope, decoding_algorithm))
 
@@ -273,5 +273,7 @@ class RNNDecoder(decoder.Decoder):
                 self.rnn_cell, scope, self.dim, self.num_layers,
                 self.input_keep, self.output_keep,
                 variational_recurrent=self.variational_recurrent_dropout,
+                batch_normalization=self.batch_normalization,
+                forward_only=self.forward_only,
                 input_dim=input_size)
         return cell

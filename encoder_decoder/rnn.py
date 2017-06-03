@@ -13,9 +13,8 @@ from encoder_decoder.graph_utils import nest_map_dual
 
 
 def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
-                           input_keep_prob=1, output_keep_prob=1,
-                           variational_recurrent=True, input_dim=-1,
-                           batch_normalization=True):
+        input_keep_prob=1, output_keep_prob=1, variational_recurrent=True,
+        input_dim=-1, batch_normalization=True, forward_only=None):
     """
     Create the multi-layer RNN cell.
     :param type: Type of RNN cell.
@@ -30,12 +29,15 @@ def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
         different from the cell state dimension.
     :param batch_normalization: If set, use recurrent batch normalization.
         (cf. https://arxiv.org/abs/1603.09025)
+    :param forward_only: If batch_normalization is set, inform the cell about
+        the batch normalization process.
     :return: RNN cell as specified.
     """
     with tf.variable_scope(scope):
         if rnn_cell == "lstm":
             if batch_normalization:
-                cell = BNLSTMCell(dim, state_is_tuple=True)
+                cell = BNLSTMCell(
+                    dim, forward_only=forward_only, state_is_tuple=True)
             else:
                 cell = tf.nn.rnn_cell.LSTMCell(dim, state_is_tuple=True)
         elif rnn_cell == "gru":
@@ -100,13 +102,18 @@ class RANCell(tf.nn.rnn_cell.RNNCell):
 
 
 class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
-  """Batch Normalized Long short-term memory unit (LSTM) recurrent network cell.
+  """
+  Batch Normalized Long short-term memory unit (LSTM) recurrent network cell.
 
-  cf. https://arxiv.org/abs/1603.09025
+  cf. Recurrent Batch Normalization
+    https://arxiv.org/abs/1603.09025
+
+  cf. A Gentle Guide to Using Batch Normalization in TensorFlow
+    http://ruishu.io/2016/12/27/batchnorm/
   """
 
-  def __init__(self, num_units, gamma_c=0.1, gamma_h=0.1, gamma_x=0.1,
-               beta_c=0, beta_h=0, beta_x=0, input_size=None,
+  def __init__(self, num_units, forward_only, gamma_c=0.1, gamma_h=0.1,
+               gamma_x=0.1, beta_c=0, beta_h=0, beta_x=0, input_size=None,
                use_peepholes=False, cell_clip=None,
                initializer=None, num_proj=None,
                num_unit_shards=1, num_proj_shards=1,
@@ -116,16 +123,26 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
 
     Args:
       num_units: int, The number of units in the LSTM cell
-      gamma_c: scale of cell state normalization
-      beta_c: offset of cell state normalization
-      gamma_h: scale of hidden state normalization
-      beta_h: offset of hidden state normalization
+      forward_only:
+        If False (training):
+          1. Normalize layer activations according to mini-batch statistics.
+          2. During the training step, update population statistics
+             approximation via moving average of mini-batch statistics.
+        If True (testing):
+          1. Normalize layer activations according to estimated population
+             statistics.
+          2. No update of population statistics according to mini-batch
+             statistcs from test data.
+      gamma_c: Scale of cell state normalization
+      beta_c: Offset of cell state normalization
+      gamma_h: Scale of hidden state normalization
+      beta_h: Offset of hidden state normalization
         (set to 0 to avoid redundancy)
-      gamma_x: scale of input normalization
-      beta_x: offset of input normalization
+      gamma_x: Scale of input normalization
+      beta_x: Offset of input normalization
         (set to 0 to avoid redundancy)
       input_size: Deprecated and unused.
-      use_peepholes: bool, set True to enable diagonal/peephole connections.
+      use_peepholes: bool, Set True to enable diagonal/peephole connections.
       cell_clip: (optional) A float value, if provided the cell state is clipped
         by this value prior to the cell output activation.
       initializer: (optional) The initializer to use for the weight and
@@ -151,6 +168,7 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
     if input_size is not None:
       logging.warn("%s: The input_size parameter is deprecated." % self)
     self._num_units = num_units
+    self.forward_only = forward_only
     self._gamma_c = gamma_c
     self._beta_c = beta_c
     self._gamma_h = gamma_h
@@ -236,12 +254,15 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
 
       # i = input_gate, j = new_input, f = forget_gate, o = output_gate
       hidden_matrix = tf.matmul(m_prev, w_h)
-      bn_hidden_matrix = tf.nn.batch_normalization(
-          hidden_matrix, offset=self._beta_h, scale=self._gamma_h)
+      bn_hidden_matrix = tf.layers.batch_normalization(
+          hidden_matrix, offset=self._beta_h, scale=self._gamma_h,
+          training=(not self.forward_only))
       input_matrix = tf.matmul(inputs, w_x)
-      bn_input_matrix = tf.nn.batch_normalization(
-          input_matrix, offset=self._beta_x, scale=self._gamma_x)
-      lstm_matrix = tf.nn.bias_add(tf.concat(1, [bn_input_matrix, bn_hidden_matrix]), b)
+      bn_input_matrix = tf.layers.batch_normalization(
+          input_matrix, offset=self._beta_x, scale=self._gamma_x,
+          training=(not self.forward_only))
+      lstm_matrix = tf.nn.bias_add(
+          tf.concat(1, [bn_input_matrix, bn_hidden_matrix]), b)
       i, j, f, o = tf.split(1, 4, lstm_matrix)
 
       # Diagonal connections
@@ -265,7 +286,8 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
         c = tf.clip_by_value(c, -self._cell_clip, self._cell_clip)
         # pylint: enable=invalid-unary-operand-type
 
-      bn_c = tf.nn.batch_normalization(c, offset=self._beta_c, scale=self._gamma_c)
+      bn_c = tf.layers.batch_normalization(c, offset=self._beta_c,
+        scale=self._gamma_c, training=(not self.forward_only))
       if self._use_peepholes:
         m = tf.sigmoid(o + w_o_diag * c) * self._activation(bn_c)
       else:

@@ -108,7 +108,8 @@ class Encoder(graph_utils.NNModel):
                 [[batch, token_size], [batch, token_size], ...]
         :return: embeddings_char [source_vocab_size, char_channel_dim]
         """
-        inputs = [tf.squeeze(x, 1) for x in tf.split(axis=1, num_or_size_splits=self.max_source_token_size,
+        inputs = [tf.squeeze(x, 1) for x in tf.split(axis=1,
+                  num_or_size_splits=self.max_source_token_size,
                   value=tf.concat(axis=0, values=channel_inputs))]
         input_embeddings = [tf.nn.embedding_lookup(self.char_embeddings(), input) 
                             for input in inputs]
@@ -116,8 +117,11 @@ class Encoder(graph_utils.NNModel):
             with tf.variable_scope("encoder_char_rnn",
                                    reuse=self.char_rnn_vars) as scope:
                 cell = rnn.create_multilayer_cell(
-                    self.sc_char_rnn_cell, scope, self.sc_char_dim,
-                    self.sc_char_rnn_num_layers)
+                    self.sc_char_rnn_cell, scope,
+                    self.sc_char_dim, self.sc_char_rnn_num_layers,
+                    variational_recurrent=self.variational_recurrent_dropout,
+                    batch_normalization=self.batch_normalization,
+                    forward_only=self.forward_only)
                 rnn_outputs, rnn_states = rnn.RNNModel(cell, input_embeddings,
                     num_cell_layers=self.sc_char_rnn_num_layers, dtype=tf.float32)
                 self.char_rnn_vars = True
@@ -156,7 +160,9 @@ class RNNEncoder(Encoder):
         with tf.variable_scope("encoder_cell") as scope:
             cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=self.variational_recurrent_dropout)
+                variational_recurrent=self.variational_recurrent_dropout,
+                batch_normalization=self.batch_normalization,
+                forward_only=self.forward_only)
         return cell
 
 
@@ -188,7 +194,9 @@ class BiRNNEncoder(Encoder):
         with tf.variable_scope("forward_cell") as scope:
             cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=self.variational_recurrent_dropout)
+                variational_recurrent=self.variational_recurrent_dropout,
+                batch_normalization=self.batch_normalization,
+                forward_only=self.forward_only)
         return cell
 
     def backward_cell(self):
@@ -196,5 +204,7 @@ class BiRNNEncoder(Encoder):
         with tf.variable_scope("backward_cell") as scope:
             cell = rnn.create_multilayer_cell(self.rnn_cell, scope,
                 self.dim, self.num_layers, self.input_keep, self.output_keep,
-                variational_recurrent=self.variational_recurrent_dropout)
+                variational_recurrent=self.variational_recurrent_dropout,
+                batch_normalization=self.batch_normalization,
+                forward_only=self.forward_only)
         return cell

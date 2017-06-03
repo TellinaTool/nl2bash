@@ -483,7 +483,7 @@ def read_raw_data(data_dir):
     nl_list = DataSet()
     cm_list = DataSet()
     for split in _data_splits:
-        data_path = os.path.join(data_dir, split)
+        data_path = os. path.join(data_dir, split)
         if os.path.exists(data_path + ".nl"):
             with open(data_path + '.nl') as f:
                 setattr(nl_list, split,

@@ -16,7 +16,7 @@ from encoder_decoder import data_utils, graph_utils, beam_search, rnn
 class Decoder(graph_utils.NNModel):
     def __init__(self, hyperparameters, scope, dim, embedding_dim,
                  use_attention, attention_function, input_keep, output_keep,
-                 decoding_algorithm, forward_only, use_token_features=False):
+                 decoding_algorithm):
         """
         :param hyperparameters: Tellina model hyperparameters.
         :param scope: Scope of the decoder. (There might be multiple decoders
@@ -31,11 +31,9 @@ class Decoder(graph_utils.NNModel):
         :param decoding_algorithm: The decoding algorithm to use.
             1. "greedy"
             2. "beam_search"
-        :param forward_only:
-        :param use_token_features:
         """
         super(Decoder, self).__init__(hyperparameters)
-        if forward_only:
+        if self.forward_only:
             self.hyperparams['batch_size'] = 1
 
         self.scope = scope
@@ -46,8 +44,6 @@ class Decoder(graph_utils.NNModel):
         self.input_keep = input_keep
         self.output_keep = output_keep
         self.decoding_algorithm = decoding_algorithm
-        self.forward_only = forward_only
-        self.use_token_features = use_token_features
 
         self.vocab_size = self.target_vocab_size
         if self.use_copy and self.copy_fun != 'supervised':
@@ -88,10 +84,7 @@ class Decoder(graph_utils.NNModel):
             embeddings = tf.get_variable("embedding",
                 [vocab_size, self.embedding_dim], initializer=initializer)
             self.embedding_vars = True
-            if self.use_token_features:
-                return tf.nn.embedding_lookup(embeddings, self.token_features())
-            else:
-                return embeddings
+            return embeddings
 
     def token_features(self):
         return np.load(self.tg_token_features_path)
