@@ -131,7 +131,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         prob = tf.nn.softmax(tf.concat([gen_logit, pointers], axis=1))
 
         gen_prob = prob[:, :self.tg_vocab_size]
-        copy_prob = prob[:, -self.tg_vocab_size:]
+        copy_prob = prob[:, -pointers.get_shape()[1]:]
         copy_prob = tf.squeeze(tf.matmul(
             tf.expand_dims(tf.exp(copy_prob), 1), self.encoder_inputs_3d), 1)
 
