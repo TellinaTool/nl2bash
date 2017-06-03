@@ -198,7 +198,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
     # Prepare copied indices if the model is trained with explicit copy
     # alignments.
     if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
-        pointers = model_outputs.pointersf
+        pointers = model_outputs.pointers
         sc_length = pointers.shape[1]
         tg_length = pointers.shape[2]
         if FLAGS.token_decoding_algorithm == 'greedy':
