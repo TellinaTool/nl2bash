@@ -114,8 +114,8 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
   """
 
   def __init__(self, num_units, forward_only, gamma_c=0.1, gamma_h=0.1,
-               gamma_x=0.1, beta_c=0, beta_h=0, beta_x=0, input_size=None,
-               use_peepholes=False, cell_clip=None,
+               gamma_x=0.1, beta_c=0.0, beta_h=0.0, beta_x=0.0, 
+               input_size=None, use_peepholes=False, cell_clip=None,
                initializer=None, num_proj=None,
                num_unit_shards=1, num_proj_shards=1,
                forget_bias=1.0, state_is_tuple=False,
@@ -255,16 +255,18 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
 
       # i = input_gate, j = new_input, f = forget_gate, o = output_gate
       hidden_matrix = tf.matmul(m_prev, w_h)
-      bn_hidden_matrix = tf.layers.batch_normalization(
-          hidden_matrix, offset=self._beta_h, scale=self._gamma_h,
-          training=(not self.forward_only))
+      bn_hidden_matrix = tf.layers.batch_normalization(hidden_matrix, 
+        beta_initializer=tf.constant_initializer(self._beta_h), 
+        gamma_initializer=tf.constant_initializer(self._gamma_h), 
+        training=(not self.forward_only))
       input_matrix = tf.matmul(inputs, w_x)
-      bn_input_matrix = tf.layers.batch_normalization(
-          input_matrix, offset=self._beta_x, scale=self._gamma_x,
-          training=(not self.forward_only))
+      bn_input_matrix = tf.layers.batch_normalization(input_matrix, 
+        beta_initializer=tf.constant_initializer(self._beta_x), 
+        gamma_initializer=tf.constant_initializer(self._gamma_x), 
+        training=(not self.forward_only))
       lstm_matrix = tf.nn.bias_add(
-          tf.concat(1, [bn_input_matrix, bn_hidden_matrix]), b)
-      i, j, f, o = tf.split(1, 4, lstm_matrix)
+          tf.add(bn_input_matrix, bn_hidden_matrix), b)
+      i, j, f, o = tf.split(lstm_matrix, num_or_size_splits=4, axis=1)
 
       # Diagonal connections
       if self._use_peepholes:
@@ -287,8 +289,10 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
         c = tf.clip_by_value(c, -self._cell_clip, self._cell_clip)
         # pylint: enable=invalid-unary-operand-type
 
-      bn_c = tf.layers.batch_normalization(c, offset=self._beta_c,
-        scale=self._gamma_c, training=(not self.forward_only))
+      bn_c = tf.layers.batch_normalization(c, 
+        beta_initializer=tf.constant_initializer(self._beta_c),
+        gamma_initializer=tf.constant_initializer(self._gamma_c), 
+        training=(not self.forward_only))
       if self._use_peepholes:
         m = tf.sigmoid(o + w_o_diag * c) * self._activation(bn_c)
       else:
