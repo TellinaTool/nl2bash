@@ -66,7 +66,7 @@ class KNearestNeighborModel():
 class BinaryLogisticRegressionModel(graph_utils.NNModel):
     # TODO: create separate graphs for the forward and backward passes of the
     # logistic regression model
-    def __init__ (self, hyperparams, buckets=None, forward_only=False):
+    def __init__ (self, hyperparams, buckets=None):
         super(BinaryLogisticRegressionModel, self)\
             .__init__(hyperparams, buckets)
         self.learning_rate = tf.Variable(float(hyperparams["learning_rate"]),

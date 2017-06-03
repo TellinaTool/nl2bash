@@ -98,6 +98,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
     params["alpha"] = FLAGS.alpha
     params["top_k"] = FLAGS.top_k
 
+    params["forward_only"] = forward_only
     params["force_reading_input"] = FLAGS.force_reading_input
 
     # construct model directory
@@ -150,8 +151,8 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
         if FLAGS.pretrained_model_subdir:
             # load pre-trained parameteres for advanced training algorithms
             # load pre-trained parameteres for advanced training algorithms
-            pretrain_dir = os.path.join(FLAGS.model_root_dir,
-                                        FLAGS.pretrained_model_subdir)
+            pretrain_dir = os.path.join(
+                FLAGS.model_root_dir, FLAGS.pretrained_model_subdir)
             print("Initialize the graph with pre-trained parameters from {}"
                   .format(pretrain_dir))
             pretrain_ckpt = tf.train.get_checkpoint_state(pretrain_dir)
@@ -575,6 +576,11 @@ class NNModel(object):
         return self.hyperparams["generation_mask_path"]
 
     # --- decoding algorithm hyperparameters --- #
+
+    @property
+    def forward_only(self):
+        # If set, we do not construct the backward pass in the model.
+        return self.hyperparams["forward_only"]
 
     @property
     def token_decoding_algorithm(self):
