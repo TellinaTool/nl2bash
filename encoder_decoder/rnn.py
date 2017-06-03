@@ -36,7 +36,7 @@ def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
     with tf.variable_scope(scope):
         if rnn_cell == "lstm":
             if batch_normalization:
-                print("--using recurrent batch normalization")
+                print("-- using recurrent batch normalization")
                 cell = BNLSTMCell(
                     dim, forward_only=forward_only, state_is_tuple=True)
             else:
@@ -294,7 +294,7 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
         gamma_initializer=tf.constant_initializer(self._gamma_c), 
         training=(not self.forward_only))
       if self._use_peepholes:
-        m = tf.sigmoid(o + w_o_diag * c) * self._activation(bn_c)
+        m = tf.sigmoid(o + w_o_diag * bn_c) * self._activation(bn_c)
       else:
         m = tf.sigmoid(o) * self._activation(bn_c)
 

@@ -276,21 +276,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # A. Sequence Loss
         if self.forward_only or self.training_algorithm == "standard":
+            if bs_decoding:
+                targets = graph_utils.wrap_inputs(
+                    self.decoder.beam_decoder, targets)
             if self.use_copy and self.copy_fun != 'supervised':
-                vocab_indices = tf.diag(tf.ones(self.decoder.vocab_size))
-                binary_targets = tf.split(axis=1, num_or_size_splits=self.max_target_length,
-                    value=tf.nn.embedding_lookup(vocab_indices,
-                        tf.concat(axis=1, values=[tf.expand_dims(x, 1) for x in targets])))
-                if bs_decoding:
-                    binary_targets = graph_utils.wrap_inputs(
-                        self.decoder.beam_decoder, binary_targets)
                 encoder_decoder_token_loss = self.sequence_loss(
-                    outputs, binary_targets, target_weights,
-                    graph_utils.cross_entropy_with_logits)
+                    outputs, targets, target_weights,
+                    graph_utils.sparse_cross_entropy)
             else:
-                if bs_decoding:
-                    targets = graph_utils.wrap_inputs(
-                        self.decoder.beam_decoder, targets)
                 encoder_decoder_token_loss = self.sequence_loss(
                     outputs, targets, target_weights,
                     graph_utils.softmax_loss(
