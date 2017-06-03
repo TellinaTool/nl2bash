@@ -141,7 +141,7 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         # selective reads
         read_copy_source = tf.cast(
             tf.reduce_max(gen_logit, [1], keep_dims=True) < \
-            tf.reduce_max(pointers, [1], keep_dims=True), tf.float32)
+            tf.reduce_max(copy_logit, [1], keep_dims=True), tf.float32)
 
         return prob, state, alignments, attns, read_copy_source
 
