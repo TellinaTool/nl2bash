@@ -8,9 +8,7 @@ import sys
 if sys.version_info > (3, 0):
     from six.moves import xrange
 
-import math
 import numpy as np
-import random
 
 import tensorflow as tf
 
@@ -22,7 +20,7 @@ DEBUG = False
 
 class EncoderDecoderModel(graph_utils.NNModel):
 
-    def __init__(self, hyperparams, buckets=None, forward_only=False):
+    def __init__(self, hyperparams, buckets=None):
         """Create the model.
 
         Hyperparameters:
@@ -43,7 +41,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
           learning_rate_decay_factor: decay learning rate by this much when needed.
           use_lstm: if true, we use LSTM cells instead of GRU cells.
           num_samples: number of samples for sampled softmax.
-          forward_only: if set, we do not construct the backward pass in the model.
           use_attention: if set, use attention model.
         """
         super(EncoderDecoderModel, self).__init__(hyperparams, buckets)
@@ -64,19 +61,17 @@ class EncoderDecoderModel(graph_utils.NNModel):
                             self.tg_token_use_attention,
                             self.tg_token_attn_fun,
                             self.tg_input_keep,
-                            self.tg_output_keep,
-                            forward_only,
-                            forward_only and self.use_copy)
+                            self.tg_output_keep)
 
         # Character Decoder.
         if self.tg_char:
             self.define_char_decoder(self.decoder.dim, False,
                 self.tg_char_rnn_input_keep, self.tg_char_rnn_output_keep)
 
-        self.define_graph(forward_only)
+        self.define_graph()
 
 
-    def define_graph(self, forward_only):
+    def define_graph(self):
         self.debug_vars = []
 
         # Feeds for inputs.
@@ -173,7 +168,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         self.decoder_inputs,
                         self.targets[:bucket[1]],
                         self.target_weights[:bucket[1]],
-                        forward_only=forward_only
                     )
                 bucket_output_symbols, bucket_output_logits, bucket_losses, \
                     batch_attn_alignments = encode_decode_outputs[:4]
@@ -181,7 +175,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.output_logits.append(bucket_output_logits)
                 self.losses.append(bucket_losses)
                 self.attn_alignments.append(batch_attn_alignments)
-                if forward_only and self.tg_char:
+                if self.forward_only and self.tg_char:
                      bucket_char_output_symbols, bucket_char_output_logits = \
                          encode_decode_outputs[4:6]
                      self.char_output_symbols.append(
@@ -201,8 +195,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                                         self.encoder_attn_masks,
                                         self.decoder_inputs,
                                         self.targets,
-                                        self.target_weights,
-                                        forward_only=forward_only
+                                        self.target_weights
                                     )
             self.output_symbols, self.output_logits, self.losses, \
                 self.attn_alignments = encode_decode_outputs[:4]
@@ -216,12 +209,12 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 self.char_output_logits = tf.reshape(char_output_logits,
                                    [self.batch_size, self.beam_size,
                                     self.max_target_length])
-            if forward_only and self.use_copy:
+            if self.forward_only and self.use_copy:
                 self.pointers = encode_decode_outputs[-1]
 
 
         # Gradients and SGD updates in the backward direction.
-        if not forward_only:
+        if not self.forward_only:
             params = tf.trainable_variables()
             if self.optimizer == "sgd":
                 opt = tf.train.GradientDescentOptimizer(self.learning_rate)
@@ -253,7 +246,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def encode_decode(self, encoder_channel_inputs, encoder_attn_masks,
-                      decoder_inputs, targets, target_weights, forward_only):
+                      decoder_inputs, targets, target_weights):
 
         encoder_outputs, encoder_states = \
             self.encoder.define_graph(encoder_channel_inputs)
@@ -274,16 +267,15 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         encoder_attn_masks=encoder_attn_masks,
                         attention_states=attention_states,
                         num_heads=num_heads,
-                        encoder_inputs=encoder_channel_inputs[1],
-                        forward_only=forward_only)
+                        encoder_inputs=encoder_channel_inputs[1])
 
-        bs_decoding = forward_only and \
+        bs_decoding = self.forward_only and \
                       self.token_decoding_algorithm == 'beam_search'
 
         # --- Compute Losses --- #
 
         # A. Sequence Loss
-        if forward_only or self.training_algorithm == "standard":
+        if self.forward_only or self.training_algorithm == "standard":
             if self.use_copy and self.copy_fun != 'supervised':
                 vocab_indices = tf.diag(tf.ones(self.decoder.vocab_size))
                 binary_targets = tf.split(axis=1, num_or_size_splits=self.max_target_length,
@@ -314,7 +306,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
         # C. Supervised Copying Loss (if any)
         if self.use_copy and self.copy_fun == 'supervised':
-            if forward_only and self.token_decoding_algorithm == 'beam_search':
+            if self.forward_only and self.token_decoding_algorithm == 'beam_search':
                 pointer_targets = self.decoder.beam_decoder.wrap_input(
                     self.pointer_targets)
             else:
@@ -347,8 +339,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 values=[tf.reshape(d_o, [-1, self.decoder.dim]) for d_o in outputs])
             char_output_symbols, char_output_logits, char_outputs, _, _ = \
                 self.char_decoder.define_graph(
-                    char_decoder_init_state, char_decoder_inputs,
-                    forward_only=forward_only)
+                    char_decoder_init_state, char_decoder_inputs)
             encoder_decoder_char_loss = self.sequence_loss(
                 char_outputs, char_targets, char_target_weights,
                 graph_utils.softmax_loss(
@@ -460,8 +451,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
 
 
     def define_decoder(self, dim, embedding_dim, use_attention,
-                       attention_function, input_keep, output_keep,
-                       forward_only, use_token_features):
+                       attention_function, input_keep, output_keep):
         """Placeholder function."""
         self.decoder = None
 

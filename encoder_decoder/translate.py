@@ -134,8 +134,8 @@ def train(train_set, dev_set):
                         print("  eval: empty bucket %d" % (bucket_id))
                         continue
                     formatted_example = model.get_batch(dev_set, bucket_id)
-                    model_outputs = model.step(sess, formatted_example,
-                                               bucket_id, forward_only=True)
+                    model_outputs = model.step(
+                        sess, formatted_example, bucket_id, forward_only=True)
                     eval_loss = model_outputs.losses
                     dev_loss += eval_loss
                     eval_ppx = math.exp(eval_loss) if eval_loss < 300 else float('inf')
@@ -211,8 +211,8 @@ def write_predictions_to_file(test_file, output_file):
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         model = create_model(sess, forward_only=True)
-        decode_tools.write_predictions_to_file(test_file, output_file, sess, model,
-                                     FLAGS)
+        decode_tools.write_predictions_to_file(
+            test_file, output_file, sess, model, FLAGS)
 
 
 def cross_validation(train_set):
@@ -298,8 +298,8 @@ def eval_slot_filling(dataset):
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
             log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model.
-        model = graph_utils.create_model(sess, FLAGS,
-            Seq2SeqModel, buckets=_buckets, forward_only=True)
+        model = graph_utils.create_model(
+            sess, FLAGS, Seq2SeqModel, buckets=_buckets, forward_only=True)
 
         model_param_dir = os.path.join(
             FLAGS.model_dir, 'train.mappings.X.Y.npz')
@@ -336,8 +336,7 @@ def eval_slot_filling(dataset):
                         pointer_targets=pointer_targets,
                         bucket_id=bucket_id)
                     model_outputs = model.step(sess, formatted_example,
-                                               bucket_id, forward_only=True,
-                                               return_rnn_hidden_states=True)
+                        bucket_id, forward_only=True, return_rnn_hidden_states=True)
                     encoder_outputs = model_outputs.encoder_hidden_states
                     decoder_outputs = model_outputs.decoder_hidden_states
                     cm_slots = {}
