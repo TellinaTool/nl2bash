@@ -106,13 +106,10 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.num_layers = num_layers
         self.tg_vocab_size = tg_vocab_size
 
-        self.vocab_indices = \
-            tf.diag(tf.ones([tg_vocab_size], dtype=tf.float32))
         self.encoder_size = len(encoder_inputs)
-        encoder_inputs = \
+        self.encoder_inputs = \
             tf.concat(axis=1, values=[tf.expand_dims(x, 1) for x in encoder_inputs])
-        self.encoder_inputs_3d = tf.nn.embedding_lookup(
-            self.vocab_indices, encoder_inputs)
+
         self.generation_mask = generation_mask
 
         print("CopyCellWrapper added!")
@@ -132,8 +129,8 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         gen_prob = tf.slice(prob, [0, 0], [-1, self.tg_vocab_size])
         copy_prob = tf.slice(prob, [0, self.tg_vocab_size], [-1, -1])
-        copy_prob = tf.squeeze(tf.matmul(
-            tf.expand_dims(tf.exp(copy_prob), 1), self.encoder_inputs_3d), 1)
+        copy_prob = tf.squeeze(tf.matmul(tf.expand_dims(tf.exp(copy_prob), 1),
+            tf.one_hot(self.encoder_inputs, self.tg_vocab_size)), 1)
 
         # mixture probability
         prob = gen_prob + copy_prob
