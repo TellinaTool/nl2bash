@@ -133,14 +133,14 @@ class CopyCellWrapper(tf.nn.rnn_cell.RNNCell):
             tf.one_hot(self.encoder_inputs, self.tg_vocab_size)), 1)
 
         # mixture probability
-        prob = gen_prob + copy_prob
+        mix_prob = gen_prob + copy_prob
 
         # selective reads
         read_copy_source = tf.cast(
             tf.reduce_max(gen_logit, [1], keep_dims=True) < \
             tf.reduce_max(copy_logit, [1], keep_dims=True), tf.float32)
 
-        return prob, state, alignments, attns, read_copy_source
+        return mix_prob, state, alignments, attns, read_copy_source
 
 
 class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
