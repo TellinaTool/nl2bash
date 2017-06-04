@@ -255,15 +255,14 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
       # i = input_gate, j = new_input, f = forget_gate, o = output_gate
       hidden_matrix = tf.matmul(m_prev, w_h)
       bn_hidden_matrix = tf.layers.batch_normalization(hidden_matrix, 
-        momentum=0.5,
+        momentum=0.9,
         beta_initializer=tf.constant_initializer(self._beta_h), 
         gamma_initializer=tf.constant_initializer(self._gamma_h), 
         training=(not self.forward_only), 
         name='bn_hidden_matrix', reuse=None)
-      # print(tf.get_collection(tf.GraphKeys.VARIABLES, scope=scope))
       input_matrix = tf.matmul(inputs, w_x)
       bn_input_matrix = tf.layers.batch_normalization(input_matrix, 
-        momentum=0.5,
+        momentum=0.9,
         beta_initializer=tf.constant_initializer(self._beta_x), 
         gamma_initializer=tf.constant_initializer(self._gamma_x), 
         training=(not self.forward_only), 
@@ -294,7 +293,7 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
         # pylint: enable=invalid-unary-operand-type
 
       bn_c = tf.layers.batch_normalization(c, 
-        momentum=0.5,
+        momentum=0.9,
         beta_initializer=tf.constant_initializer(self._beta_c),
         gamma_initializer=tf.constant_initializer(self._gamma_c), 
         training=(not self.forward_only), 
