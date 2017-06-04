@@ -752,7 +752,13 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed['pointers'] = self.pointers
             else:
                 output_feed['pointers'] = self.pointers[bucket_id]
-        outputs = session.run(output_feed, input_feed)
+
+        extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        if extra_update_ops:
+            print(extra_update_ops)
+            outputs = session.run([output_feed, extra_update_ops], input_feed)
+        else:
+            outputs = session.run(output_feed, input_feed)
 
         O = Output()
         if not forward_only:
