@@ -258,7 +258,7 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
         momentum=0.9,
         beta_initializer=tf.constant_initializer(self._beta_h), 
         gamma_initializer=tf.constant_initializer(self._gamma_h), 
-        training=(not self.forward_only), 
+        training=(not self.forward_only),
         name='bn_hidden_matrix', reuse=None)
       input_matrix = tf.matmul(inputs, w_x)
       bn_input_matrix = tf.layers.batch_normalization(input_matrix, 
