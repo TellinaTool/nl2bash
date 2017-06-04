@@ -49,7 +49,6 @@ def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
             raise ValueError("Unrecognized RNN cell type: {}.".format(type))
 
         assert(input_keep_prob >= 0 and output_keep_prob >= 0)
-
         if input_keep_prob < 1 or output_keep_prob < 1:
             if input_dim == -1:
                 input_dim = dim
@@ -113,8 +112,8 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
     http://ruishu.io/2016/12/27/batchnorm/
   """
 
-  def __init__(self, num_units, forward_only, gamma_c=0.1, gamma_h=0.1,
-               gamma_x=0.1, beta_c=0.0, beta_h=0.0, beta_x=0.0, 
+  def __init__(self, num_units, forward_only, gamma_c=1.0, gamma_h=1.0,
+               gamma_x=1.0, beta_c=0.0, beta_h=0.0, beta_x=0.0, 
                input_size=None, use_peepholes=False, cell_clip=None,
                initializer=None, num_proj=None,
                num_unit_shards=1, num_proj_shards=1,
@@ -256,14 +255,19 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
       # i = input_gate, j = new_input, f = forget_gate, o = output_gate
       hidden_matrix = tf.matmul(m_prev, w_h)
       bn_hidden_matrix = tf.layers.batch_normalization(hidden_matrix, 
+        momentum=0.5,
         beta_initializer=tf.constant_initializer(self._beta_h), 
         gamma_initializer=tf.constant_initializer(self._gamma_h), 
-        training=(not self.forward_only))
+        training=(not self.forward_only), 
+        name='bn_hidden_matrix', reuse=None)
+      # print(tf.get_collection(tf.GraphKeys.VARIABLES, scope=scope))
       input_matrix = tf.matmul(inputs, w_x)
       bn_input_matrix = tf.layers.batch_normalization(input_matrix, 
+        momentum=0.5,
         beta_initializer=tf.constant_initializer(self._beta_x), 
         gamma_initializer=tf.constant_initializer(self._gamma_x), 
-        training=(not self.forward_only))
+        training=(not self.forward_only), 
+        name='bn_input_matrix', reuse=None)
       lstm_matrix = tf.nn.bias_add(
           tf.add(bn_input_matrix, bn_hidden_matrix), b)
       i, j, f, o = tf.split(lstm_matrix, num_or_size_splits=4, axis=1)
@@ -290,9 +294,11 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
         # pylint: enable=invalid-unary-operand-type
 
       bn_c = tf.layers.batch_normalization(c, 
+        momentum=0.5,
         beta_initializer=tf.constant_initializer(self._beta_c),
         gamma_initializer=tf.constant_initializer(self._gamma_c), 
-        training=(not self.forward_only))
+        training=(not self.forward_only), 
+        name='bn_cell', reuse=None)
       if self._use_peepholes:
         m = tf.sigmoid(o + w_o_diag * bn_c) * self._activation(bn_c)
       else:
