@@ -756,7 +756,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         if extra_update_ops and not forward_only:
             outputs, extra_updates = session.run(
-                [extra_update_ops, output_feed], input_feed)
+                [output_feed, extra_update_ops], input_feed)
         else:
             outputs = session.run(output_feed, input_feed)
 

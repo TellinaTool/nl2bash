@@ -210,6 +210,8 @@ def get_decode_signature(FLAGS):
     if FLAGS.sc_char:
         model_subdir += '-{}'.format(FLAGS.sc_char_dim)
     model_subdir += '-{}'.format(FLAGS.num_layers)
+    if FLAGS.recurrent_batch_normalization:
+        model_subdir += '-rbc'
     model_subdir += '-{}'.format(FLAGS.learning_rate)
     model_subdir += '-{}'.format(FLAGS.adam_epsilon)
     model_subdir += '-{}'.format(FLAGS.sc_input_keep)
