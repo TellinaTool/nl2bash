@@ -159,7 +159,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
             data_utils.clean_dir(FLAGS.model_dir)
         if FLAGS.pretrained_model_subdir:
             # load pre-trained parameteres for advanced training algorithms
-            # load pre-trained parameteres for advanced training algorithms
             pretrain_dir = os.path.join(
                 FLAGS.model_root_dir, FLAGS.pretrained_model_subdir)
             print("Initialize the graph with pre-trained parameters from {}"
