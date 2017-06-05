@@ -272,7 +272,7 @@ def softmax_loss(output_project, num_samples, target_vocab_size):
         def sampled_loss(outputs, labels):
             labels = tf.reshape(labels, [-1, 1])
             return tf.nn.sampled_softmax_loss(
-                w_t, b, outputs, labels, num_samples, target_vocab_size)
+                w_t, b, labels, outputs, num_samples, target_vocab_size)
         loss_function = sampled_loss
     else:
         print("loss function = softmax_loss")
