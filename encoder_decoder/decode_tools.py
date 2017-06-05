@@ -172,8 +172,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
     :param sc_fillers:
     :param slot_filling_classifier:
     :return batch_outputs: nested list of (target_ast, target) tuples
-        - target_ast is a python tree object for target languages that we know how to
-          parse and a dummy string for those we don't
+        - target_ast is a python tree object for target languages that we know
+          how to parse and a dummy string for those we don't
         - target is the output string
     """
     rev_sc_vocab = vocabs.rev_sc_vocab
@@ -300,12 +300,12 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             # trivially unqualified)
             output_example = False
             if FLAGS.explain or not FLAGS.dataset.startswith('bash') \
-                    or sc_fillers is None:
+                    or not FLAGS.normalized:
                 output_example = True
             else:
                 # Step 3: match the fillers to the argument slots
-                batch_sc_fillers = sc_fillers[batch_id]
                 if len(tg_slots) >= len(batch_sc_fillers):
+                    batch_sc_fillers = sc_fillers[batch_id]
                     if FLAGS.use_copy and FLAGS.copy_fun == 'supervised':
                         target_ast, target, _ = slot_filling.stable_slot_filling(
                             output_tokens, batch_sc_fillers, tg_slots,
