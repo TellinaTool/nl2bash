@@ -530,9 +530,11 @@ def main(_):
         if FLAGS.explain else FLAGS.cm_vocab_size
 
     # adjust hyperparameters for batch normalization
-    if FLAGS.recurrent_batch_nomralization:
-        # use larger batch size
+    if FLAGS.recurrent_batch_normalization:
+        # larger batch size
         FLAGS.batch_size *= 4
+        # larger initial learning rate
+        FLAGS.learning_rate *= 10
 
     if FLAGS.decoder_topology in ['basic_tree']:
         FLAGS.model_root_dir = os.path.join(
