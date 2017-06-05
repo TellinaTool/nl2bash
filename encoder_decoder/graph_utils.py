@@ -159,7 +159,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
             data_utils.clean_dir(FLAGS.model_dir)
         if FLAGS.pretrained_model_subdir:
             # load pre-trained parameteres for advanced training algorithms
-            # load pre-trained parameteres for advanced training algorithms
             pretrain_dir = os.path.join(
                 FLAGS.model_root_dir, FLAGS.pretrained_model_subdir)
             print("Initialize the graph with pre-trained parameters from {}"
@@ -210,6 +209,8 @@ def get_decode_signature(FLAGS):
     if FLAGS.sc_char:
         model_subdir += '-{}'.format(FLAGS.sc_char_dim)
     model_subdir += '-{}'.format(FLAGS.num_layers)
+    if FLAGS.recurrent_batch_normalization:
+        model_subdir += '-rbc'
     model_subdir += '-{}'.format(FLAGS.learning_rate)
     model_subdir += '-{}'.format(FLAGS.adam_epsilon)
     model_subdir += '-{}'.format(FLAGS.sc_input_keep)

@@ -504,6 +504,21 @@ def main(_):
         os.path.dirname(__file__), "..", "data", FLAGS.dataset)
     print("Reading data from {}".format(FLAGS.data_dir))
 
+    # set up source and target length
+    FLAGS.max_sc_length = FLAGS.max_sc_length \
+        if not _buckets else _buckets[-1][0]
+    FLAGS.max_tg_length = FLAGS.max_tg_length \
+        if not _buckets else _buckets[-1][1]
+
+    # set up encoder/decider dropout rate
+    if FLAGS.universal_keep >= 0 and FLAGS.universal_keep < 1:
+        FLAGS.sc_input_keep = FLAGS.universal_keep
+        FLAGS.sc_output_keep = FLAGS.universal_keep
+        FLAGS.tg_input_keep = FLAGS.universal_keep
+        FLAGS.tg_output_keep = FLAGS.universal_keep
+        FLAGS.attention_input_keep = FLAGS.universal_keep
+        FLAGS.attention_output_keep = FLAGS.universal_keep
+
     # set up source and target vocabulary size
     FLAGS.sc_token_embedding_size = FLAGS.cm_known_vocab_size \
         if FLAGS.explain else FLAGS.nl_known_vocab_size
@@ -514,19 +529,12 @@ def main(_):
     FLAGS.tg_vocab_size = FLAGS.nl_vocab_size \
         if FLAGS.explain else FLAGS.cm_vocab_size
 
-    if FLAGS.universal_keep >= 0 and FLAGS.universal_keep < 1:
-        FLAGS.sc_input_keep = FLAGS.universal_keep
-        FLAGS.sc_output_keep = FLAGS.universal_keep
-        FLAGS.tg_input_keep = FLAGS.universal_keep
-        FLAGS.tg_output_keep = FLAGS.universal_keep
-        FLAGS.attention_input_keep = FLAGS.universal_keep
-        FLAGS.attention_output_keep = FLAGS.universal_keep
-
-    # set up source and target length
-    FLAGS.max_sc_length = FLAGS.max_sc_length \
-        if not _buckets else _buckets[-1][0]
-    FLAGS.max_tg_length = FLAGS.max_tg_length \
-        if not _buckets else _buckets[-1][1]
+    # adjust hyperparameters for batch normalization
+    if FLAGS.recurrent_batch_normalization:
+        # larger batch size
+        FLAGS.batch_size *= 4
+        # larger initial learning rate
+        FLAGS.learning_rate *= 10
 
     if FLAGS.decoder_topology in ['basic_tree']:
         FLAGS.model_root_dir = os.path.join(
