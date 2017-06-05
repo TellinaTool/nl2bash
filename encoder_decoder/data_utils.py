@@ -1250,6 +1250,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         cm_full_ext = ".cm.break.full"
         cm_copy_sc_ext = ".cm.break.copy.sc"
         cm_copy_tg_ext = ".cm.break.copy.tg"
+    elif FLAGS.normalized:
+        cm_ext = ".cm.norm"
     elif FLAGS.canonical:
         cm_ext = ".cm.norm.ordered"
 
