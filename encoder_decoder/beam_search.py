@@ -1,6 +1,6 @@
 """
 Beam decoder with length normalization
-Adapted from source
+Adapted from
 curl -LO 'https://gist.github.com/nikitakit/6ab61a73b86c50ad88d409bac3c3d09f'
 """
 
