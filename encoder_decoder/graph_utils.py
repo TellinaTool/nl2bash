@@ -159,7 +159,6 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
             data_utils.clean_dir(FLAGS.model_dir)
         if FLAGS.pretrained_model_subdir:
             # load pre-trained parameteres for advanced training algorithms
-            # load pre-trained parameteres for advanced training algorithms
             pretrain_dir = os.path.join(
                 FLAGS.model_root_dir, FLAGS.pretrained_model_subdir)
             print("Initialize the graph with pre-trained parameters from {}"
@@ -273,7 +272,7 @@ def softmax_loss(output_project, num_samples, target_vocab_size):
         def sampled_loss(outputs, labels):
             labels = tf.reshape(labels, [-1, 1])
             return tf.nn.sampled_softmax_loss(
-                w_t, b, outputs, labels, num_samples, target_vocab_size)
+                w_t, b, labels, outputs, num_samples, target_vocab_size)
         loss_function = sampled_loss
     else:
         print("loss function = softmax_loss")

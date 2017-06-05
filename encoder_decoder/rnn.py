@@ -68,39 +68,6 @@ def create_multilayer_cell(rnn_cell, scope, dim, num_layers,
     return cell
 
 
-class RANCell(tf.nn.rnn_cell.RNNCell):
-  """[Experimental] Recurrent Additive Network cell
-     (cf. http://www.kentonl.com/pub/llz.2017.pdf)."""
-
-  def __init__(self, num_units, bias=1.0, input_size=None, activation=tf.tanh):
-    if input_size is not None:
-      print("%s: The input_size parameter is deprecated." % self)
-    self._num_units = num_units
-    self.bias = bias
-    self._activation = activation
-
-  @property
-  def state_size(self):
-    return self._num_units
-
-  @property
-  def output_size(self):
-    return self._num_units
-
-  def __call__(self, inputs, state, scope=None):
-    """Recurrent Additive Network (RAN) with nunits cells."""
-    with tf.variable_scope(scope or type(self).__name__):  # "RANCell"
-      with tf.variable_scope("Input_projection"):
-        c_tilde = linear(inputs, self._num_units, True)
-      with tf.variable_scope("Gates"):  # input gate and forget gate.
-        i, f = tf.split(axis=1, num_or_size_splits=2,
-            value=linear([inputs, state], 2 * self._num_units, True, self.bias))
-        i, f = tf.sigmoid(i), tf.sigmoid(f)
-      with tf.variable_scope("Context"):
-        new_c = self._activation(i * c_tilde + f * state)
-    return new_c, new_c
-
-
 class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
   """
   Batch Normalized Long short-term memory unit (LSTM) recurrent network cell.
@@ -255,14 +222,14 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
       # i = input_gate, j = new_input, f = forget_gate, o = output_gate
       hidden_matrix = tf.matmul(m_prev, w_h)
       bn_hidden_matrix = tf.layers.batch_normalization(hidden_matrix, 
-        momentum=0.9,
+        momentum=0.99,
         beta_initializer=tf.constant_initializer(self._beta_h), 
         gamma_initializer=tf.constant_initializer(self._gamma_h), 
         training=(not self.forward_only),
         name='bn_hidden_matrix', reuse=None)
       input_matrix = tf.matmul(inputs, w_x)
       bn_input_matrix = tf.layers.batch_normalization(input_matrix, 
-        momentum=0.9,
+        momentum=0.99,
         beta_initializer=tf.constant_initializer(self._beta_x), 
         gamma_initializer=tf.constant_initializer(self._gamma_x), 
         training=(not self.forward_only), 
@@ -293,7 +260,7 @@ class BNLSTMCell(tf.nn.rnn_cell.RNNCell):
         # pylint: enable=invalid-unary-operand-type
 
       bn_c = tf.layers.batch_normalization(c, 
-        momentum=0.9,
+        momentum=0.99,
         beta_initializer=tf.constant_initializer(self._beta_c),
         gamma_initializer=tf.constant_initializer(self._gamma_c), 
         training=(not self.forward_only), 
@@ -628,3 +595,36 @@ def linear(args,
           dtype=dtype,
           initializer=bias_initializer)
     return tf.nn.bias_add(res, biases)
+
+
+class RANCell(tf.nn.rnn_cell.RNNCell):
+  """[Experimental] Recurrent Additive Network cell
+     (cf. http://www.kentonl.com/pub/llz.2017.pdf)."""
+
+  def __init__(self, num_units, bias=1.0, input_size=None, activation=tf.tanh):
+    if input_size is not None:
+      print("%s: The input_size parameter is deprecated." % self)
+    self._num_units = num_units
+    self.bias = bias
+    self._activation = activation
+
+  @property
+  def state_size(self):
+    return self._num_units
+
+  @property
+  def output_size(self):
+    return self._num_units
+
+  def __call__(self, inputs, state, scope=None):
+    """Recurrent Additive Network (RAN) with nunits cells."""
+    with tf.variable_scope(scope or type(self).__name__):  # "RANCell"
+      with tf.variable_scope("Input_projection"):
+        c_tilde = linear(inputs, self._num_units, True)
+      with tf.variable_scope("Gates"):  # input gate and forget gate.
+        i, f = tf.split(axis=1, num_or_size_splits=2,
+            value=linear([inputs, state], 2 * self._num_units, True, self.bias))
+        i, f = tf.sigmoid(i), tf.sigmoid(f)
+      with tf.variable_scope("Context"):
+        new_c = self._activation(i * c_tilde + f * state)
+    return new_c, new_c
