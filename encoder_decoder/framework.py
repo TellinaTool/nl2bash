@@ -280,16 +280,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 targets = graph_utils.wrap_inputs(
                     self.decoder.beam_decoder, targets)
             if self.use_copy and self.copy_fun == 'copynet':
-                encoder_decoder_token_loss = self.sequence_loss(
-                    outputs, targets, target_weights,
-                    graph_utils.sparse_cross_entropy)
+                step_loss_fun = graph_utils.sparse_cross_entropy
             else:
-                encoder_decoder_token_loss = self.sequence_loss(
-                    outputs, targets, target_weights,
-                    graph_utils.softmax_loss(
-                        self.decoder.output_project,
-                        self.num_samples,
-                        self.target_vocab_size))
+                step_loss_fun = graph_utils.softmax_loss(
+                    self.decoder.output_project,
+                    self.num_samples,
+                    self.target_vocab_size)
+            encoder_decoder_token_loss = self.sequence_loss(
+                outputs, targets, target_weights, step_loss_fun)
         else:
             raise AttributeError("Unrecognized training algorithm.")
 
@@ -370,17 +368,6 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 values=[tf.reshape(d_o, [-1, 1, self.decoder.dim])
                  for d_o in outputs])
 
-        if DEBUG:
-            C = tf.argmax(tf.concat(axis=1, values=binary_targets), 2)
-            output_symbols = []
-            for i in xrange(self.batch_size):
-                if bs_decoding:
-                    beam_output_symbols = []
-                    for j in xrange(self.beam_size):
-                        beam_output_symbols.append(C[i*self.beam_size + j])
-                    output_symbols.append(beam_output_symbols)
-                else:
-                    output_symbols.append(C[i])
         O = [output_symbols, output_logits, losses, attn_alignments]
         if self.tg_char:
             O.append(char_output_symbols)
@@ -765,7 +752,14 @@ class EncoderDecoderModel(graph_utils.NNModel):
                 output_feed['pointers'] = self.pointers
             else:
                 output_feed['pointers'] = self.pointers[bucket_id]
-        outputs = session.run(output_feed, input_feed)
+
+        extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        if extra_update_ops and not forward_only:
+            print(extra_update_ops)
+            outputs, extra_updates = session.run(
+                [output_feed, extra_update_ops], input_feed)
+        else:
+            outputs = session.run(output_feed, input_feed)
 
         O = Output()
         if not forward_only:
