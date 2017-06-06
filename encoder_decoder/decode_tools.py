@@ -414,7 +414,7 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
         sc_temp = ' '.join([rev_sc_vocab[i] for i in data_group[0].sc_ids])
         if verbose:
             print('Example {}:'.format(example_id))
-            print('(Orig) Source: {}'.format(sc_txt))
+            print('Original Source: {}'.format(sc_txt))
             print('Source: {}'.format(sc_temp))
             for j in xrange(len(data_group)):
                 print('GT Target {}: {}'.format(j+1, data_group[j].tg_txt))
