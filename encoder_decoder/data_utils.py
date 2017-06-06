@@ -372,14 +372,13 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
 
     for (i, w) in enumerate(words):
         word_id = get_index(w, vocabulary)
-        if parallel_sequence is not None and \
-                (w in parallel_sequence
-                 or remove_low_frequency_prefix(w) in parallel_sequence):
+        if parallel_sequence is not None and (w in parallel_sequence
+                or remove_low_frequency_prefix(w) in parallel_sequence):
             # If the token has appeared in the parallel sequence, store its
             # vocabulary index. Used to compute the CopyNet training objective.
             token_ids.append(word_id)
         else:
-            if word_id == -1 or (is_low_frequency(w) and use_unk):
+            if word_id == -1 or (not w in vocabulary and use_unk):
                 # out-of-vocabulary word
                 if coarse_typing:
                     if w.startswith('__LF__'):
@@ -523,8 +522,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     parallel_vocab_size=parallel_vocab_size)
                 # compute CopyNet target indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.tg',
-                    vocab_path, use_unk=True, 
-                    parallel_data=getattr(parallel_data, split))
+                    vocab_path, use_unk=True, parallel_data=getattr(parallel_data, split))
             else:
                 data_to_token_ids(getattr(data, split), data_path + suffix,
                                   vocab_path, coarse_typing=coarse_typing)

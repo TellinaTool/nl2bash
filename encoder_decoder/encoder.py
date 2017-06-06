@@ -89,10 +89,9 @@ class Encoder(graph_utils.NNModel):
                                reuse=self.char_embedding_vars):
             sqrt3 = math.sqrt(3)
             initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
-            embeddings = tf.get_variable("embedding",
-                                         [self.source_char_vocab_size,
-                                          self.sc_char_dim],
-                                         initializer=initializer)
+            embeddings = tf.get_variable(
+                "embedding", [self.source_char_vocab_size, self.sc_char_dim],
+                initializer=initializer)
             self.char_embedding_vars = True
             return embeddings
 
