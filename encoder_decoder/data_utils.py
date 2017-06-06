@@ -962,7 +962,6 @@ def prepare_bash(FLAGS, verbose=False):
         """
         nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
         cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
-        print(cm_vocab)
         generation_mask = np.zeros(
             [FLAGS.tg_vocab_size + FLAGS.max_sc_length],
             dtype=np.float32)
@@ -990,6 +989,7 @@ def prepare_bash(FLAGS, verbose=False):
                     parallel_vocab_size=cm_vocab_size,
                     parallel_vocab_path=cm_vocab_path,
                     parallel_data=cm_token_list)
+    print("aaahhh.{}".format(cm_token_list))
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
     prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
                     cm_vocab_size, cm_vocab_path, create_vocab=False,
@@ -1152,8 +1152,10 @@ def load_vocab(FLAGS):
         elif FLAGS.partial_token:
             nl_ext = ".nl.break"
             cm_ext = ".cm.break"
-        else:
+        elif FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
             cm_ext = ".cm"
+        else:
+            cm_ext = ".cm.norm"
     elif FLAGS.decoder_topology in ['basic_tree']:
         if FLAGS.normalized or FLAGS.canonical:
             cm_ext = ".cm.ast.norm"
@@ -1238,7 +1240,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         nl_ext = ".nl.norm"
 
     # Set up command files extensions
-    cm_ext = ".cm"
+    cm_ext = ".cm.norm"
     cm_full_ext = ".cm.full"
     cm_copy_sc_ext = ".cm.copy.sc"
     cm_copy_tg_ext = ".cm.copy.tg"
@@ -1249,6 +1251,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         cm_full_ext = ".cm.break.full"
         cm_copy_sc_ext = ".cm.break.copy.sc"
         cm_copy_tg_ext = ".cm.break.copy.tg"
+    elif FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
+        cm_ext = ".cm"
     elif FLAGS.normalized:
         cm_ext = ".cm.norm"
     elif FLAGS.canonical:

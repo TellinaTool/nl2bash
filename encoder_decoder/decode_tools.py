@@ -215,7 +215,8 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
             else:
                 if FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
                     token = r_sc_vocab[encoder_full_inputs
-                        [output - FLAGS.tg_vocab_size][batch_id]]
+                        [len(encoder_full_inputs) - 1 
+                         - (output - FLAGS.tg_vocab_size)][batch_id]]
                 else:
                     return data_utils._UNK
             return token
