@@ -36,7 +36,7 @@ type_conversion = {
 }
 
 _QUOTED_RE = r'(\'[^ \']*\')|("[^ "]*")'
-_SPECIAL_SYMBOL_RE = r'[^ ]*[_\.\*|\\|\/|\~|\@|\%|\#|\?|\+|\$|\{|\}]+[^ ]*'
+_SPECIAL_SYMBOL_RE = r'[^ ]*[_\.\*|\\|\/|\~|\@|\%|\#|\?|\+|\$|\{|\}|\<|\>]+[^ ]*'
 _FILE_EXTENSION_RE1 = r'(aiff|cda|mid|mp3|mp4|mpa|ogg|wav|wma|wpl|7z|arj|deb|pkg|' \
         r'rar|rpm|gz|bin|dmg|iso|vcd|vcr|dvd|csv|dat|db|log|mdb|sav|sql|' \
         r'xml|apk|bat|bin|cgi|pl|com|html|css|js|exe|gadget|jar|py|wsf|fnt|' \
@@ -287,6 +287,9 @@ def remove_quotation(s):
     if s and s[-1] in ['"', '\'']:
         s = s[:-1]
     return s
+
+def with_angle_brackets(s):
+    return s.startswith('<') and s.endswith('>')
 
 def is_float(s):
     return '.' in s
