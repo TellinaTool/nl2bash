@@ -360,10 +360,10 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     def get_index(w, vocab):
         if w in vocab:
             return vocab[w]
-        elif is_low_frequency(w) and w[len('__LF__'):] in vocab:
-            return vocab[w[len('__LF__'):]]
-        elif ('__LF__' + w) in vocabulary:
-            return vocab['__LF__' + w]
+        elif remove_low_frequency_prefix(w) in vocab:
+            return vocab[remove_low_frequency_prefix(w)]
+        elif add_low_frequency_prefix(w) in vocabulary:
+            return vocab[add_low_frequency_prefix(w)]
         else:
             return -1
 
@@ -373,9 +373,12 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     for (i, w) in enumerate(words):
         word_id = get_index(w, vocabulary)
         if parallel_sequence is not None and (w in parallel_sequence
-                or remove_low_frequency_prefix(w) in parallel_sequence):
+                or remove_low_frequency_prefix(w) in parallel_sequence
+                or add_low_frequency_prefix(w) in parallel_sequence):
             # If the token has appeared in the parallel sequence, store its
             # vocabulary index. Used to compute the CopyNet training objective.
+            print(words)
+            print("parallel_sequence: {}".format(parallel_sequence))
             token_ids.append(word_id)
         else:
             if word_id == -1 or \
@@ -518,12 +521,15 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                 assert(parallel_vocab_path is not None)
                 assert(parallel_data is not None)
                 # compute CopyNet source indices
+                parallel_split = getattr(parallel_data, split) \
+                    if split == 'train' else None
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.sc',
                     vocab_path=parallel_vocab_path, use_source_placeholder=True,
-                    parallel_vocab_size=parallel_vocab_size)
+                    parallel_vocab_size=parallel_vocab_size,
+                    parallel_data=parallel_split)
                 # compute CopyNet target indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.tg',
-                    vocab_path, use_unk=True, parallel_data=getattr(parallel_data, split))
+                    vocab_path, parallel_data=getattr(parallel_data, split))
             else:
                 data_to_token_ids(getattr(data, split), data_path + suffix,
                                   vocab_path, coarse_typing=coarse_typing)
@@ -727,8 +733,8 @@ def prepare_bash(FLAGS, verbose=False):
                     nl_partial_tokens, cm_partial_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)
                     # Debugging
-                    print(nl_partial_tokens)
-                    print(cm_partial_tokens)
+                    # print(nl_partial_tokens)
+                    # print(cm_partial_tokens)
                     cm_normalized_seq = data_tools.ast2list(
                         ast, arg_type_only=True, list=[], with_parent=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
@@ -962,7 +968,6 @@ def prepare_bash(FLAGS, verbose=False):
         """
         nl_vocab, rev_nl_vocab = initialize_vocabulary(nl_vocab_path)
         cm_vocab, rev_cm_vocab = initialize_vocabulary(cm_vocab_path)
-        print(cm_vocab)
         generation_mask = np.zeros(
             [FLAGS.tg_vocab_size + FLAGS.max_sc_length],
             dtype=np.float32)
@@ -1152,8 +1157,10 @@ def load_vocab(FLAGS):
         elif FLAGS.partial_token:
             nl_ext = ".nl.break"
             cm_ext = ".cm.break"
-        else:
+        elif FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
             cm_ext = ".cm"
+        else:
+            cm_ext = ".cm.norm"
     elif FLAGS.decoder_topology in ['basic_tree']:
         if FLAGS.normalized or FLAGS.canonical:
             cm_ext = ".cm.ast.norm"
@@ -1238,7 +1245,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         nl_ext = ".nl.norm"
 
     # Set up command files extensions
-    cm_ext = ".cm"
+    cm_ext = ".cm.norm"
     cm_full_ext = ".cm.full"
     cm_copy_sc_ext = ".cm.copy.sc"
     cm_copy_tg_ext = ".cm.copy.tg"
@@ -1249,6 +1256,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         cm_full_ext = ".cm.break.full"
         cm_copy_sc_ext = ".cm.break.copy.sc"
         cm_copy_tg_ext = ".cm.break.copy.tg"
+    elif FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
+        cm_ext = ".cm"
     elif FLAGS.normalized:
         cm_ext = ".cm.norm"
     elif FLAGS.canonical:
