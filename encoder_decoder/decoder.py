@@ -75,8 +75,7 @@ class Decoder(graph_utils.NNModel):
         self.output_project = self.output_project()
 
     def embeddings(self):
-        with tf.variable_scope(self.scope + "_embeddings",
-                               reuse=self.embedding_vars):
+        with tf.variable_scope(self.scope + "_embeddings", reuse=self.embedding_vars):
             vocab_size = self.target_token_embedding_size
             print("target token embedding size = {}".format(vocab_size))
             sqrt3 = math.sqrt(3)
