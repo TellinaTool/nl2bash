@@ -267,7 +267,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                         encoder_attn_masks=encoder_attn_masks,
                         attention_states=attention_states,
                         num_heads=num_heads,
-                        encoder_inputs=self.encoder_full_inputs)
+                        encoder_copy_inputs=self.encoder_full_inputs)
 
         bs_decoding = self.forward_only and \
                       self.token_decoding_algorithm == 'beam_search'
