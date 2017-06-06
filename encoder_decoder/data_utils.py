@@ -521,12 +521,12 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                 assert(parallel_vocab_path is not None)
                 assert(parallel_data is not None)
                 # compute CopyNet source indices
-                parallel_data = getattr(parallel_data, split) \
+                parallel_split = getattr(parallel_data, split) \
                     if split == 'train' else None
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.sc',
                     vocab_path=parallel_vocab_path, use_source_placeholder=True,
                     parallel_vocab_size=parallel_vocab_size,
-                    parallel_data=parallel_data)
+                    parallel_data=parallel_split)
                 # compute CopyNet target indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.tg',
                     vocab_path, parallel_data=getattr(parallel_data, split))
