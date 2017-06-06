@@ -360,10 +360,10 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     def get_index(w, vocab):
         if w in vocab:
             return vocab[w]
-        elif is_low_frequency(w) and w[len('__LF__'):] in vocab:
-            return vocab[w[len('__LF__'):]]
-        elif ('__LF__' + w) in vocabulary:
-            return vocab['__LF__' + w]
+        elif remove_low_frequency_prefix(w) in vocab:
+            return vocab[remove_low_frequency_prefix(w)]
+        elif add_low_frequency_prefix(w) in vocabulary:
+            return vocab[add_low_frequency_prefix(w)]
         else:
             return -1
 
@@ -377,6 +377,8 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                 or add_low_frequency_prefix(w) in parallel_sequence):
             # If the token has appeared in the parallel sequence, store its
             # vocabulary index. Used to compute the CopyNet training objective.
+            print(words)
+            print("parallel_sequence: {}".format(parallel_sequence))
             token_ids.append(word_id)
         else:
             if word_id == -1 or \
@@ -728,8 +730,8 @@ def prepare_bash(FLAGS, verbose=False):
                     nl_partial_tokens, cm_partial_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)
                     # Debugging
-                    print(nl_partial_tokens)
-                    print(cm_partial_tokens)
+                    # print(nl_partial_tokens)
+                    # print(cm_partial_tokens)
                     cm_normalized_seq = data_tools.ast2list(
                         ast, arg_type_only=True, list=[], with_parent=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
@@ -990,7 +992,6 @@ def prepare_bash(FLAGS, verbose=False):
                     parallel_vocab_size=cm_vocab_size,
                     parallel_vocab_path=cm_vocab_path,
                     parallel_data=cm_token_list)
-    print("aaahhh.{}".format(cm_token_list))
     cm_token_copy_suffix = ".ids%d.cm.copy" % cm_vocab_size
     prepare_dataset(cm_token_list, data_dir, cm_token_copy_suffix,
                     cm_vocab_size, cm_vocab_path, create_vocab=False,
