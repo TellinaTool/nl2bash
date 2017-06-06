@@ -348,7 +348,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         # store encoder/decoder output states
         self.encoder_hidden_states = tf.concat(axis=1,
             values=[tf.reshape(e_o, [-1, 1, self.encoder.output_dim])
-             for e_o in encoder_outputs])
+                    for e_o in encoder_outputs])
         if self.use_copy and self.copy_fun == 'copynet':
             top_states = []
             if self.rnn_cell == 'gru':
