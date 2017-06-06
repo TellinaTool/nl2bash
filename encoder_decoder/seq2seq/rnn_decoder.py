@@ -243,8 +243,7 @@ class RNNDecoder(decoder.Decoder):
                         else:
                             outputs = [s[-1][1] for s in states]
 
-                return top_k_outputs, top_k_logits, outputs, states, \
-                       attn_alignments, pointers
+                return top_k_outputs, top_k_logits, outputs, states, attn_alignments, pointers
             else:
                 # Greedy output
                 if self.use_copy and self.copy_fun == 'copynet':
