@@ -266,7 +266,7 @@ def ast2list(node, order='dfs', list=None, ignore_flag_order=False,
         if node.is_argument() and node.is_open_vocab() and arg_type_only:
             token = node.arg_type
         elif node.is_option() and with_parent:
-            token = node.utility + '@@' + node.value if node.utility \
+            token = node.utility.value + '@@' + node.value if node.utility \
                 else node.value
         else:
             token = node.value
