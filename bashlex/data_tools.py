@@ -101,7 +101,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
     wat = with_arg_type
     wp = with_parent
     ia = index_arg
-    tp = with_prefix
+    wp = with_prefix
 
     def to_tokens_fun(node):
         tokens = []
@@ -159,7 +159,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                     token = node.utility.value + "@@" + token
                 else:
                     token = "@@" + token
-            if tp:
+            if wp:
                 token = node.simple_prefix + token
             tokens.append(token)
             for child in node.children:
@@ -219,7 +219,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                     token = node.arg_type
             else:
                 token = node.value
-            if tp and node.is_open_vocab():
+            if wp and node.is_open_vocab():
                 token = node.simple_prefix + token
             if wat:
                 token = token + "_" + node.arg_type
