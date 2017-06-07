@@ -723,8 +723,7 @@ def prepare_bash(FLAGS, verbose=False):
                         pruned_ast, list=[], with_parent=True)
                     nl_normalized_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_normalized_tokens = data_tools.ast2tokens(
-                        ast, loose_constraints=True, arg_type_only=True,
-                        with_parent=True)
+                        ast, arg_type_only=True, with_parent=True, type_prefix=True)
                     nl_partial_tokens, cm_partial_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)
                     # Debugging
@@ -733,11 +732,11 @@ def prepare_bash(FLAGS, verbose=False):
                     cm_normalized_seq = data_tools.ast2list(
                         ast, arg_type_only=True, list=[], with_parent=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
-                        ast, loose_constraints=True, arg_type_only=True,
-                        ignore_flag_order=True, with_parent=True)
+                        ast, arg_type_only=True, with_parent=True,
+                        ignore_flag_order=True, type_prefix=True)
                     cm_canonical_seq = data_tools.ast2list(
-                        ast, arg_type_only=True, ignore_flag_order=True, list=[],
-                        with_parent=True)
+                        ast, arg_type_only=True, list=[], with_parent=True,
+                        ignore_flag_order=True, type_prefix=True)
                     getattr(slot_argument_mappings, split).append(mappings)
                     getattr(nl_list, split).append(nl)
                     getattr(cm_list, split).append(cm)
