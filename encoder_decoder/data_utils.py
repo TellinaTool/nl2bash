@@ -157,7 +157,6 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
             if counter % 1000 == 0:
                 print("  processing line %d" % counter)
             if type(line) is list:
-                # print(line)
                 tokens = line
             else:
                 if base_tokenizer:
@@ -256,7 +255,7 @@ def initialize_vocabulary(vocab_path):
 
 
 def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
-                      base_tokenizer=None, with_arg_type=False, use_unk=True,
+                      base_tokenizer=None, use_unk=True,
                       parallel_data=None, use_source_placeholder=False,
                       parallel_vocab_size=None, coarse_typing=False):
     """Tokenize data file and turn into token-ids using given vocabulary file.
@@ -272,8 +271,6 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
       tokenizer: a function to use to tokenize each sentence;
         if None, basic_tokenizer will be used.
       base_tokenizer: base tokenizer used for splitting strings into characters.
-      with_arg_types: if the vocabulary contains argument type (used for
-      deciding which type of UNK tokens to use).
       use_unk: if set, set low-frequency tokens to UNK.
       parallel_data: Used for computing the CopyNet training objective
         (if a target token has appeared in the source, store its vocabulary
@@ -506,14 +503,15 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
         coarse_typing = 'bash' in data_dir and suffix.endswith('.nl')
 
         if create_vocab:
-            MIN_WORD_FREQ = 2 if "bash" in data_dir else 1
+            MIN_WORD_FREQ = 2 \
+                if ("bash" in data_dir and suffix.endswith('.nl')) else 1
             create_vocabulary(vocab_path, data.train, vocab_size,
                               min_word_frequency=MIN_WORD_FREQ)
-            if suffix.endswith('.nl') or suffix.endswith('.cm'):
-                create_vocabulary(vocab_path, data.dev, vocab_size,
-                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
-                create_vocabulary(vocab_path, data.test, vocab_size,
-                    min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
+            # if suffix.endswith('.nl') or suffix.endswith('.cm'):
+            #     create_vocabulary(vocab_path, data.dev, vocab_size,
+            #         min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
+            #     create_vocabulary(vocab_path, data.test, vocab_size,
+            #         min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
         for split in _data_splits:
             data_path = os.path.join(data_dir, split)
             if suffix.endswith('.copy'):
@@ -532,7 +530,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     vocab_path, parallel_data=getattr(parallel_data, split))
             else:
                 data_to_token_ids(getattr(data, split), data_path + suffix,
-                                  vocab_path, coarse_typing=coarse_typing)
+                    vocab_path, coarse_typing=coarse_typing)
                 if '.nl' in suffix or '.cm' in suffix:
                     data_to_token_ids(getattr(data, split),
                         data_path + suffix + '.full', vocab_path, use_unk=False)
@@ -1316,7 +1314,8 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
 def read_data(sc_path, tg_path, sc_id_path, tg_id_path, sc_full_id_path,
               tg_full_id_path, sc_copy_id_path, tg_copy_id_path,
               FLAGS, buckets=None, append_head_token=False,
-              append_end_token=False, load_mappings=False, load_pointers=False):
+              append_end_token=False, load_mappings=False,
+              load_pointers=False):
     """
     Read preprocessed data from source and target files (grouped into buckets
     when the buckets argument is not None).
@@ -1436,15 +1435,15 @@ def is_low_frequency(w):
     return w.startswith('__LF__')
 
 
+def add_low_frequency_prefix(w):
+    return '__LF__' + w
+
+
 def remove_low_frequency_prefix(w):
     if is_low_frequency(w):
         return w[len('__LF__'):]
     else:
         return w
-
-
-def add_low_frequency_prefix(w):
-    return '__LF__' + w
 
 
 class DataSet(object):
