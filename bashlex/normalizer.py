@@ -252,7 +252,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
     def normalize_utility(node, current):
         value = node.word
-        norm_node = HeadCommandNode(value=value)
+        norm_node = UtilityNode(value=value)
         attach_to_tree(norm_node, current)
         return norm_node
 
@@ -580,8 +580,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
 
         if len(utilities) > 1:
             print("Error: multiple utilitys in one command.")
-            for hc in utilities:
-                print(hc.symbol)
+            for u in utilities:
+                print(u.value)
             sys.exit()
 
         head_command = utilities[0]
@@ -966,7 +966,7 @@ def list_to_ast(list, order='dfs'):
                 elif kind == "flag":
                     node = FlagNode(value=value)
                 elif kind == "utility":
-                    node = HeadCommandNode(value=value)
+                    node = UtilityNode(value=value)
                     arg_status = copy.deepcopy(
                             man_lookup.get_arg_types(value))
                     arg_status_stack.append(arg_status)
