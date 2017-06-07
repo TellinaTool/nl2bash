@@ -87,7 +87,7 @@ def pretty_print(node, depth=0):
 
 def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                arg_type_only=False, with_arg_type=False, with_parent=False,
-               index_arg=False, arg_unk=False, unk_token=None):
+               index_arg=False, type_prefix=False):
     """
     Convert a bash ast into a list of tokens.
     """
@@ -101,7 +101,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
     wat = with_arg_type
     wp = with_parent
     ia = index_arg
-    au = arg_unk
+    tp = type_prefix
 
     def to_tokens_fun(node):
         tokens = []
@@ -159,6 +159,8 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                     token = node.headcommand.value + "@@" + token
                 else:
                     token = "@@" + token
+            if tp:
+                token = '__FLAG__' + token
             tokens.append(token)
             for child in node.children:
                 tokens += to_tokens_fun(child)
@@ -217,8 +219,9 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                     token = node.arg_type
             else:
                 token = node.value
-            if au and node.is_open_vocab():
-                token = '__LF__' + token
+            if tp:
+                if node.is_open_vocab():
+                    token = '__ARG__' + token
             if wat:
                 token = token + "_" + node.arg_type
             if ia and node.to_index():
