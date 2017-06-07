@@ -169,7 +169,7 @@ def decode(data_set, verbose=True):
         log_device_placement=FLAGS.log_device_placement)) as sess:
         # Create model and load parameters.
         model = create_model(sess, forward_only=True)
-        decode_tools.decode_set(sess, model, data_set, 1, FLAGS, verbose)
+        decode_tools.decode_set(sess, model, data_set, 3, FLAGS, verbose)
 
         return model.model_dir, model.decode_sig
 

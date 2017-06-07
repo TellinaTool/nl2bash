@@ -501,8 +501,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
         coarse_typing = 'bash' in data_dir and suffix.endswith('.nl')
 
         if create_vocab:
-            MIN_WORD_FREQ = 2 \
-                if ("bash" in data_dir and suffix.endswith('.nl')) else 1
+            MIN_WORD_FREQ = 2 if "bash" in data_dir else 1
             create_vocabulary(vocab_path, data.train, vocab_size,
                               min_word_frequency=MIN_WORD_FREQ)
             # if suffix.endswith('.nl') or suffix.endswith('.cm'):
