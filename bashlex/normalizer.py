@@ -250,7 +250,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             attach_to_tree(norm_node, current)
         return norm_node
 
-    def normalize_headcommand(node, current):
+    def normalize_utility(node, current):
         value = node.word
         norm_node = HeadCommandNode(value=value)
         attach_to_tree(norm_node, current)
@@ -440,7 +440,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                     if verbose:
                         print(str)
 
-            head_cmd = attach_point.headcommand.value
+            head_cmd = attach_point.utility.value
             flag = node.word
             arg_type = man_lookup.get_flag_arg_type(head_cmd, flag)
             if arg_type:
@@ -452,12 +452,12 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                 return attach_point_info
 
         def look_above(attach_point):
-            head_cmd = attach_point.headcommand
+            head_cmd = attach_point.utility
             return (head_cmd, ["flags", "arguments"], None)
 
         # Attach point format: (pointer_to_the_attach_point,
         #                       ast_node_type, arg_type)
-        attach_point_info = (current, ["headcommand"], [])
+        attach_point_info = (current, ["utility"], [])
 
         ind = 0
         while ind < len(node.parts):
@@ -486,8 +486,8 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
                     if len(possible_node_kinds) == 1:
                         # no ast_node_kind ambiguation
                         node_kind = possible_node_kinds[0]
-                        if node_kind == "headcommand":
-                            norm_node = normalize_headcommand(child,
+                        if node_kind == "utility":
+                            norm_node = normalize_utility(child,
                                                               attach_point)
                             utilities.append(norm_node)
                             head_cmd = norm_node.value
@@ -579,7 +579,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             return
 
         if len(utilities) > 1:
-            print("Error: multiple headcommands in one command.")
+            print("Error: multiple utilitys in one command.")
             for hc in utilities:
                 print(hc.symbol)
             sys.exit()
@@ -703,7 +703,7 @@ def normalize_ast(cmd, recover_quotes=True, verbose=False):
             utility = head_command.get_subcommand()
             if not has_repl_str and utility is not None:
                 for i in xrange(head_command.get_num_of_children()):
-                    if head_command.children[i].is_headcommand():
+                    if head_command.children[i].is_utility():
                         repl_str_flag_node = FlagNode("-I")
                         repl_str_node = ArgumentNode("{}", "ReservedWord")
                         repl_str_node2 = ArgumentNode("{}", "ReservedWord")
@@ -940,7 +940,7 @@ def list_to_ast(list, order='dfs'):
                 break
             symbol = list[i]
             if symbol in [_V_NO_EXPAND, _H_NO_EXPAND]:
-                if current and current.is_headcommand():
+                if current and current.is_utility():
                     arg_status_stack.pop()
                 current = current.parent
             else:
@@ -949,11 +949,11 @@ def list_to_ast(list, order='dfs'):
                 # add argument types
                 if kind == "argument":
                     if current.is_option():
-                        head_cmd = current.headcommand.value
+                        head_cmd = current.utility.value
                         flag = current.value
                         arg_type = \
                             man_lookup.get_flag_arg_type(head_cmd, flag)
-                    elif current.is_headcommand():
+                    elif current.is_utility():
                         arg_type = cmd_arg_type_check(
                             value, arg_status_stack[-1])
                     else:
@@ -965,7 +965,7 @@ def list_to_ast(list, order='dfs'):
                     node = ArgumentNode(value=value, arg_type=arg_type)
                 elif kind == "flag":
                     node = FlagNode(value=value)
-                elif kind == "headcommand":
+                elif kind == "utility":
                     node = HeadCommandNode(value=value)
                     arg_status = copy.deepcopy(
                             man_lookup.get_arg_types(value))
@@ -1024,7 +1024,7 @@ def to_command(node, loose_constraints=False, ignore_flag_order=False):
                 str += '{}('.format(node.value)
                 str += to_command_fun(node.get_left_child())
                 str += ')'
-        elif node.is_headcommand():
+        elif node.is_utility():
             str += node.value + ' '
             children = sorted(node.children, key=lambda x:x.value) \
                 if ifo else node.children
