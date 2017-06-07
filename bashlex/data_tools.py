@@ -232,6 +232,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                     tokens += to_tokens_fun(child)
         return tokens
 
+    print(to_tokens_fun(node))
     return to_tokens_fun(node)
 
 
