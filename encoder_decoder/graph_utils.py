@@ -175,7 +175,7 @@ def create_model(session, FLAGS, model_constructor, buckets, forward_only):
 
 def get_decode_signature(FLAGS):
     """
-    Model signature is used by the system to locate the trained parameters and
+    Model signature is used to locate the trained parameters and
     prediction results of a particular model.
     """
 
@@ -262,6 +262,18 @@ def get_buckets(FLAGS):
     else:
         raise AttributeError("Unrecognized dataset: {}".format(FLAGS.dataset))
     return buckets
+
+
+def clean_dir(dir):
+    for f_name in os.listdir(dir):
+        if f_name.startswith('prediction'):
+            continue
+        f_path = os.path.join(dir, f_name)
+        try:
+            if os.path.isfile(f_path):
+                os.unlink(f_path)
+        except Exception as e:
+            print(e)
 
 
 def softmax_loss(output_project, num_samples, target_vocab_size):
