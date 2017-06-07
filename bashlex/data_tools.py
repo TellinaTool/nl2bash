@@ -18,7 +18,7 @@ from nlp_tools import constants
 
 
 def is_simple(ast):
-    # Check if tree contains only high-frequency utilities
+    """Check if a tree contains only high-frequency utilities."""
     if ast.kind == "utility" and not ast.value in bash.utilities:
         return False
     for child in ast.children:
@@ -27,7 +27,7 @@ def is_simple(ast):
     return True
 
 def is_low_frequency(ast):
-    # Check if tree contains a low-frequency utilities
+    """Check if a tree contains a low-frequency utilities."""
     if ast.kind == "utility" and ast.value in \
             (bash.utilities_20_to_15 + bash.utilities_15_to_10):
         return True
@@ -160,7 +160,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 else:
                     token = "@@" + token
             if tp:
-                token = '__FLAG__' + token
+                token = node.simple_prefix + token
             tokens.append(token)
             for child in node.children:
                 tokens += to_tokens_fun(child)
@@ -221,7 +221,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 token = node.value
             if tp:
                 if node.is_open_vocab():
-                    token = node.symbol
+                    token = node.simple_prefix + node.prefix
             if wat:
                 token = token + "_" + node.arg_type
             if ia and node.to_index():
@@ -251,8 +251,10 @@ def ast2template(node, loose_constraints=False, ignore_flag_order=True,
 
 def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
                 loose_constraints=False):
-    # convert a bash command to a template that contains only reserved words
-    # and argument types flags are alphabetically ordered
+    """
+    Convert a bash command to a template that contains only reserved words
+        and argument types flags are alphabetically ordered.
+    """
     tree = normalizer.normalize_ast(cmd, recover_quotation)
     return ast2template(tree, loose_constraints, arg_type_only)
 
@@ -261,24 +263,25 @@ def ast2list(node, order='dfs', list=None, ignore_flag_order=False,
              arg_type_only=False, with_parent=False, with_prefix=False):
     """Linearize the AST."""
     if order == 'dfs':
-        if arg_type_only and node.is_argument() and node.is_open_vocab():
-            list.append(node.prefix + node.arg_type)
+        if node.is_argument() and node.is_open_vocab() and arg_type_only:
+            token = node.arg_type
+        elif node.is_option() and with_parent:
+            token = node.utility + '@@' + node.value if node.utility \
+                else node.value
         else:
-            if node.is_option() and with_parent and node.utility:
-                token = node.get_label()
-                if with_prefix:
-                    token = '__FLAG__' + token
-                list.append(token)
-            else:
-                list.append(node.symbol)
+            token = node.value
+        if with_prefix:
+            if node.is_option() or (node.is_argument() and node.is_open_vocab()):
+                token = node.simple_prefix + token
+        list.append(token)
         if node.get_num_of_children() > 0:
-            if node.kind == "utility" and ignore_flag_order:
+            if node.is_utility() and ignore_flag_order:
                 children = sorted(node.children, key=lambda x:x.value)
             else:
                 children = node.children
             for child in children:
                 ast2list(child, order, list, ignore_flag_order, arg_type_only,
-                         with_parent)
+                         with_parent, with_prefix)
             list.append(normalizer._H_NO_EXPAND)
         else:
             list.append(normalizer._V_NO_EXPAND)
@@ -291,6 +294,7 @@ def list2ast(list, order='dfs'):
 
 
 def paren_parser(line):
+    """A simple parser for parenthesized sequence."""
     def order_child_fun(node):
         for child in node.children:
             order_child_fun(child)
@@ -299,7 +303,6 @@ def paren_parser(line):
                     key=lambda x:(x.value if x.kind == "t" else (
                         x.children[0].value if x.children else x.value)))
 
-    """A very simple algorithm for parsing data with parentheses."""
     if not line.startswith("("):
         line = "( " + line
     if not line.endswith(")"):
@@ -339,9 +342,7 @@ def paren_parser(line):
 
 
 def fill_default_value(node):
-    """
-    Fill empty slot in the bash ast with default value.
-    """
+    """Fill empty slot in the bash ast with default value."""
     if node.is_argument():
         if node.value in constants._ENTITIES:
             if node.arg_type == 'Path' and node.parent.is_utility() \

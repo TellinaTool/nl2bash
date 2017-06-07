@@ -142,13 +142,16 @@ class Node(object):
         return index
 
     @property
-    def prefix(self):
-        if self.is_utility():
-            return '__UTIL__'
+    def simple_prefix(self):
         if self.is_option():
             return '__FLAG__'
         if self.is_argument():
             return '__ARG__'
+        return ''
+
+    @property
+    def prefix(self):
+        return self.kind.upper() + "_"
 
     @property
     def symbol(self):
@@ -169,19 +172,71 @@ class Node(object):
     def grandparent(self):
         return self.parent.parent
 
+class UtilityNode(Node):
+    def __init__(self, value='', parent=None, lsb=None):
+        super(UtilityNode, self).__init__(parent, lsb, "utility", value)
+        self.arg_dict = {'': collections.defaultdict(int)}
+
+    def add_child(self, child, index=None):
+        super(UtilityNode, self).add_child(child)
+        if child.is_argument() and not child.is_bracket():
+            # command argument
+            self.arg_dict[''][child.arg_type] += 1
+            child.set_index(self.arg_dict[''][child.arg_type])
+
+    def get_flags(self):
+        flags = []
+        for child in self.children:
+            if child.is_option():
+                flags.append(child)
+        return flags
+
+    def get_subcommand(self):
+        for child in self.children:
+            if child.is_utility():
+                return child
+
+    def normalize_repl_str(self, repl_str, norm):
+        def normalize_repl_str_fun(node):
+            for child in node.children:
+                if child.is_argument():
+                    if repl_str in child.value:
+                        child.value = child.value.replace(repl_str, norm)
+                        if child.value == norm:
+                            child.arg_type = "ReservedWord"
+                else:
+                    normalize_repl_str_fun(child)
+        normalize_repl_str_fun(self)
+
+class FlagNode(Node):
+    def __init__(self, value='', parent=None, lsb=None):
+        super(FlagNode, self).__init__(parent, lsb, "flag", value)
+
+    def add_child(self, child, index=None):
+        super(FlagNode, self).add_child(child)
+        if child.is_argument():
+            if not self.value in self.utility.arg_dict:
+                self.utility.arg_dict[self.value] \
+                    = collections.defaultdict(int)
+            self.utility.arg_dict[self.value][child.arg_type] += 1
+            child.set_index(
+                self.utility.arg_dict[self.value][child.arg_type])
+
+    def get_argument(self):
+        for child in self.children:
+            if child.kind == "argument":
+                return child
+
+    def is_long_option(self):
+        return self.value.startswith('--')
+
 class ArgumentNode(Node):
     num_child = 0
 
-    def __init__(self, value="", arg_type="", parent=None, lsb=None):
+    def __init__(self, value='', arg_type='', parent=None, lsb=None):
         super(ArgumentNode, self).__init__(parent, lsb, "argument", value)
         self.arg_type = arg_type
         self.index = 1
-
-    def get_label(self):
-        label = self.kind.upper() + "_" + self.value
-        if not self.is_open_vocab():
-            label = "CLOSED:::" + label
-        return label
 
     def is_bracket(self):
         return self.value == "(" or self.value == ")"
@@ -208,77 +263,12 @@ class ArgumentNode(Node):
 
     def to_index(self):
         if self.parent.kind == "utility":
-            return self.utility.arg_dict[""][self.arg_type] > 1
+            return self.utility.arg_dict[''][self.arg_type] > 1
         else:
             return self.utility.arg_dict[self.parent.value][self.arg_type] > 1
 
     def set_index(self, ind):
         self.index = ind
-
-class FlagNode(Node):
-    def __init__(self, value="", parent=None, lsb=None):
-        super(FlagNode, self).__init__(parent, lsb, "flag", value)
-
-    def add_child(self, child, index=None):
-        super(FlagNode, self).add_child(child)
-        if child.is_argument():
-            if not self.value in self.utility.arg_dict:
-                self.utility.arg_dict[self.value] \
-                    = collections.defaultdict(int)
-            self.utility.arg_dict[self.value][child.arg_type] += 1
-            child.set_index(
-                self.utility.arg_dict[self.value][child.arg_type])
-
-    def get_label(self):
-        if self.parent:
-            label = self.prefix + self.utility.value + "@@" + self.value
-        else:
-            label = self.prefix + self.value
-        return label
-
-    def get_argument(self):
-        for child in self.children:
-            if child.kind == "argument":
-                return child
-
-    def is_long_option(self):
-        return self.value.startswith('--')
-
-class HeadCommandNode(Node):
-    def __init__(self, value="", parent=None, lsb=None):
-        super(HeadCommandNode, self).__init__(parent, lsb, "utility", value)
-        self.arg_dict = {"":collections.defaultdict(int)}
-
-    def add_child(self, child, index=None):
-        super(HeadCommandNode, self).add_child(child)
-        if child.is_argument() and not child.is_bracket():
-            # command argument
-            self.arg_dict[""][child.arg_type] += 1
-            child.set_index(self.arg_dict[""][child.arg_type])
-
-    def get_flags(self):
-        flags = []
-        for child in self.children:
-            if child.is_option():
-                flags.append(child)
-        return flags
-
-    def get_subcommand(self):
-        for child in self.children:
-            if child.is_utility():
-                return child
-
-    def normalize_repl_str(self, repl_str, norm):
-        def normalize_repl_str_fun(node):
-            for child in node.children:
-                if child.is_argument():
-                    if repl_str in child.value:
-                        child.value = child.value.replace(repl_str, norm)
-                        if child.value == norm:
-                            child.arg_type = "ReservedWord"
-                else:
-                    normalize_repl_str_fun(child)
-        normalize_repl_str_fun(self)
 
 class UnaryLogicOpNode(Node):
     num_child = 1
@@ -299,7 +289,7 @@ class BinaryLogicOpNode(Node):
     num_child = -1
     children_types = [set(['flag', 'bracket', 'unarylogicop', 'binarylogicop'])]
 
-    def __init__(self, value="", parent=None, lsb=None):
+    def __init__(self, value='', parent=None, lsb=None):
         super(BinaryLogicOpNode, self).__init__(parent, lsb, 'binarylogicop', value)
 
 class BracketNode(Node):
@@ -312,7 +302,7 @@ class BracketNode(Node):
 class RedirectNode(Node):
     num_child = 2
 
-    def __init__(self, value="", parent=None, lsb=None):
+    def __init__(self, value='', parent=None, lsb=None):
         super(RedirectNode, self).__init__(parent, lsb, 'redirect', value)
 
 class PipelineNode(Node):
