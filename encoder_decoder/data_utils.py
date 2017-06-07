@@ -390,9 +390,9 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                     token_ids.append(parallel_vocab_size + i)
                 else:
                     if use_typed_unk:
-                        if w.startswith('__ARG__'):
+                        if '__ARG__' in w:
                             token_ids.append(ARG_UNK_ID)
-                        elif w.startswith('__FLAG__'):
+                        elif '__FLAG__' in w:
                             token_ids.append(FLAG_UNK_ID)
                         else:
                             token_ids.append(UNK_ID)
@@ -723,15 +723,16 @@ def prepare_bash(FLAGS, verbose=False):
                         pruned_ast, list=[], with_parent=True)
                     nl_normalized_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_normalized_tokens = data_tools.ast2tokens(
-                        ast, arg_type_only=True, with_parent=True)
+                        ast, arg_type_only=True, with_parent=True, with_prefix=True)
                     cm_normalized_seq = data_tools.ast2list(
-                        ast, arg_type_only=True, list=[], with_parent=True)
+                        ast, arg_type_only=True, list=[], with_parent=True,
+                        with_prefix=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
                         ast, arg_type_only=True, with_parent=True,
-                        ignore_flag_order=True)
+                        ignore_flag_order=True, with_prefix=True)
                     cm_canonical_seq = data_tools.ast2list(
                         ast, arg_type_only=True, list=[], with_parent=True,
-                        ignore_flag_order=True)
+                        ignore_flag_order=True, with_prefix=True)
                     nl_partial_tokens, cm_partial_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)
                     # Debugging
@@ -768,7 +769,8 @@ def prepare_bash(FLAGS, verbose=False):
                             o_f.write('{}-{} '.format(i, j))
                     o_f.write('\n')
 
-    def split_arguments(nl_tokens, cm_tokens, cm_normalized_tokens):
+    def split_arguments(nl_tokens, cm_tokens, cm_normalized_tokens,
+                        verbose=False):
         """
         Example:
             nl: find all '.txt' files
@@ -803,7 +805,8 @@ def prepare_bash(FLAGS, verbose=False):
                         M[i][j] = 1
                     elif word in token:
                         if len(token) - len(word) > 10 or word in ['"', '\'']:
-                            print("False match: {}, {}".format(token, word))
+                            if verbose:
+                                print("False match: {}, {}".format(token, word))
                             M[i][j] = -np.inf
                         else:
                             M[i][j] = (len(word) + 0.0) / len(token)
@@ -829,7 +832,6 @@ def prepare_bash(FLAGS, verbose=False):
                 if word == basic_token:
                     splitted_cm_tokens.append(token)
                 else:
-                    print(word, token, basic_token)
                     pos_start = basic_token.index(word)
                     pos_end = pos_start + len(word)
                     splitted_cm_tokens.append(_ARG_START)
