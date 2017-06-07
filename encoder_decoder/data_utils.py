@@ -506,9 +506,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
         is_bash_cm = 'bash' in data_dir and suffix.endswith('.cm')
 
         if create_vocab:
-            if is_bash_nl: MIN_WORD_FREQ = 2
-            elif is_bash_cm: MIN_WORD_FREQ = 10
-            else: MIN_WORD_FREQ = 1
+            MIN_WORD_FREQ = 2 if "bash" in data_dir else 1
             create_vocabulary(vocab_path, data.train, vocab_size,
                               min_word_frequency=MIN_WORD_FREQ)
         for split in _data_splits:
@@ -530,7 +528,7 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
             else:
                 data_to_token_ids(getattr(data, split), data_path + suffix,
                     vocab_path, coarse_typing=is_bash_nl)
-                if suffix.endswith('.nl') or suffix.encode('.cm'):
+                if suffix.endswith('.nl') or suffix.endswith('.cm'):
                     data_to_token_ids(getattr(data, split),
                         data_path + suffix + '.full', vocab_path, use_unk=False)
     else:
@@ -799,6 +797,8 @@ def prepare_bash(FLAGS, verbose=False):
                     token = cm_tokens[j]
                     if token.startswith('__LF__'):
                         token = token[len('__LF__'):]
+                    if token.startswith('__ARG__'):
+                        token = token[len('__ARG__'):]
                     if word == token:
                         M[i][j] = 1
                     elif word in token:
@@ -816,21 +816,26 @@ def prepare_bash(FLAGS, verbose=False):
         splitted_cm_tokens = []
         for j in xrange(len(cm_tokens)):
             token = cm_tokens[j]
-            low_frequency = is_low_frequency(token)
-            if low_frequency:
+            low_freq = is_low_frequency(token)
+            if low_freq:
                 basic_token = remove_low_frequency_prefix(token)
+            else:
+                basic_token = token
+            if basic_token.startswith('__ARG__'):
+                basic_token = basic_token[len('__ARG__'):]
             if j in mapping_dict:
                 i = mapping_dict[j]
                 word = splitted_nl_tokens[i]
                 if word == basic_token:
                     splitted_cm_tokens.append(token)
                 else:
+                    print(word, token, basic_token)
                     pos_start = basic_token.index(word)
                     pos_end = pos_start + len(word)
                     splitted_cm_tokens.append(_ARG_START)
                     for k in xrange(pos_start):
                         splitted_cm_tokens.append(basic_token[k])
-                    if low_frequency:
+                    if low_freq:
                         splitted_cm_tokens.append(add_low_frequency_prefix(word))
                     else:
                         splitted_cm_tokens.append(word)
@@ -1156,7 +1161,8 @@ def load_vocab(FLAGS):
         elif FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
             cm_ext = ".cm"
         else:
-            cm_ext = ".cm.norm"
+            cm_ext = ".cm.norm" if FLAGS.dataset.startswith('.cm') \
+                else '.cm'
     elif FLAGS.decoder_topology in ['basic_tree']:
         if FLAGS.normalized or FLAGS.canonical:
             cm_ext = ".cm.ast.norm"
@@ -1241,7 +1247,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         nl_ext = ".nl.norm"
 
     # Set up command files extensions
-    cm_ext = ".cm.norm"
+    cm_ext = ".cm.norm" if FLAGS.dataset.startswith('bash') else '.cm'
     cm_full_ext = ".cm.full"
     cm_copy_sc_ext = ".cm.copy.sc"
     cm_copy_tg_ext = ".cm.copy.tg"
