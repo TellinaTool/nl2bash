@@ -220,7 +220,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
             else:
                 token = node.value
             if tp and node.is_open_vocab():
-                token = node.simple_prefix + node.value
+                token = node.simple_prefix + token
             if wat:
                 token = token + "_" + node.arg_type
             if ia and node.to_index():
