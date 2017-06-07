@@ -716,7 +716,7 @@ def prepare_bash(FLAGS, verbose=False):
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(
-                        ast, with_parent=True, type_prefix=True)
+                        ast, with_parent=True, with_prefix=True)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=True)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
@@ -725,7 +725,7 @@ def prepare_bash(FLAGS, verbose=False):
                         pruned_ast, list=[], with_parent=True)
                     nl_normalized_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_normalized_tokens = data_tools.ast2tokens(
-                        ast, arg_type_only=True, with_parent=True, type_prefix=True)
+                        ast, arg_type_only=True, with_parent=True, with_prefix=True)
                     nl_partial_tokens, cm_partial_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)
                     # Debugging
@@ -735,10 +735,10 @@ def prepare_bash(FLAGS, verbose=False):
                         ast, arg_type_only=True, list=[], with_parent=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
                         ast, arg_type_only=True, with_parent=True,
-                        ignore_flag_order=True, type_prefix=True)
+                        ignore_flag_order=True, with_prefix=True)
                     cm_canonical_seq = data_tools.ast2list(
                         ast, arg_type_only=True, list=[], with_parent=True,
-                        ignore_flag_order=True, type_prefix=True)
+                        ignore_flag_order=True, with_prefix=True)
                     getattr(slot_argument_mappings, split).append(mappings)
                     getattr(nl_list, split).append(nl)
                     getattr(cm_list, split).append(cm)

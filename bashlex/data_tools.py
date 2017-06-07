@@ -19,7 +19,7 @@ from nlp_tools import constants
 
 def is_simple(ast):
     # Check if tree contains only high-frequency utilities
-    if ast.kind == "headcommand" and not ast.value in bash.utilities:
+    if ast.kind == "utility" and not ast.value in bash.utilities:
         return False
     for child in ast.children:
         if not is_simple(child):
@@ -28,7 +28,7 @@ def is_simple(ast):
 
 def is_low_frequency(ast):
     # Check if tree contains a low-frequency utilities
-    if ast.kind == "headcommand" and ast.value in \
+    if ast.kind == "utility" and ast.value in \
             (bash.utilities_20_to_15 + bash.utilities_15_to_10):
         return True
     for child in ast.children:
@@ -87,7 +87,7 @@ def pretty_print(node, depth=0):
 
 def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                arg_type_only=False, with_arg_type=False, with_parent=False,
-               index_arg=False, type_prefix=False):
+               index_arg=False, with_prefix=False):
     """
     Convert a bash ast into a list of tokens.
     """
@@ -101,7 +101,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
     wat = with_arg_type
     wp = with_parent
     ia = index_arg
-    tp = type_prefix
+    tp = with_prefix
 
     def to_tokens_fun(node):
         tokens = []
@@ -141,7 +141,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 tokens.append(node.value + "(")
                 tokens += to_tokens_fun(node.children[0])
                 tokens.append(")")
-        elif node.is_headcommand():
+        elif node.is_utility():
             tokens.append(node.value)
             children = sorted(node.children, key=lambda x:x.value) \
                 if ifo else node.children
@@ -156,7 +156,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 token = node.value
             if wp:
                 if node.parent:
-                    token = node.headcommand.value + "@@" + token
+                    token = node.utility.value + "@@" + token
                 else:
                     token = "@@" + token
             if tp:
@@ -221,7 +221,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 token = node.value
             if tp:
                 if node.is_open_vocab():
-                    token = '__ARG__' + token
+                    token = node.symbol
             if wat:
                 token = token + "_" + node.arg_type
             if ia and node.to_index():
@@ -258,19 +258,21 @@ def cmd2template(cmd, recover_quotation=True, arg_type_only=True,
 
 
 def ast2list(node, order='dfs', list=None, ignore_flag_order=False,
-             arg_type_only=False, with_parent=False):
+             arg_type_only=False, with_parent=False, with_prefix=False):
     """Linearize the AST."""
     if order == 'dfs':
         if arg_type_only and node.is_argument() and node.is_open_vocab():
             list.append(node.prefix + node.arg_type)
         else:
-            if node.is_option() and with_parent and node.headcommand:
-                list.append(
-                    node.prefix + node.headcommand.value + "@@" + node.value)
+            if node.is_option() and with_parent and node.utility:
+                token = node.get_label()
+                if with_prefix:
+                    token = '__FLAG__' + token
+                list.append(token)
             else:
                 list.append(node.symbol)
         if node.get_num_of_children() > 0:
-            if node.kind == "headcommand" and ignore_flag_order:
+            if node.kind == "utility" and ignore_flag_order:
                 children = sorted(node.children, key=lambda x:x.value)
             else:
                 children = node.children
@@ -342,16 +344,16 @@ def fill_default_value(node):
     """
     if node.is_argument():
         if node.value in constants._ENTITIES:
-            if node.arg_type == 'Path' and node.parent.is_headcommand() \
+            if node.arg_type == 'Path' and node.parent.is_utility() \
                 and node.parent.value == 'find':
                 node.value = '.'
             elif node.arg_type == 'Regex':
-                if  node.parent.is_headcommand() and node.parent.value == 'grep':
+                if  node.parent.is_utility() and node.parent.value == 'grep':
                     node.value = '\'.*\''           
                 elif node.parent.is_option() and node.parent.value == '-name' \
                     and node.value == 'Regex':
                     node.value = '"*"'
-            elif node.arg_type == 'Number' and node.headcommand.value in ['head', 'tail']:
+            elif node.arg_type == 'Number' and node.utility.value in ['head', 'tail']:
                 node.value = '10'
             else:
                 if node.is_open_vocab():

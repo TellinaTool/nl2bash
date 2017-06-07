@@ -44,7 +44,7 @@ class Node(object):
         :member lsb: pointer to left sibling node
         :member rsb: pointer to right sibling node
         :member kind: ['pipeline',
-                      'headcommand',
+                      'utility',
                       'unarylogicop',
                       'binarylogicop'
                       'flag',
@@ -97,10 +97,10 @@ class Node(object):
             return True
 
     def is_command(self, value):
-        return self.kind == "headcommand" and self.value == value
+        return self.kind == "utility" and self.value == value
 
-    def is_headcommand(self):
-        return self.kind == "headcommand"
+    def is_utility(self):
+        return self.kind == "utility"
 
     def is_open_vocab(self):
         return False
@@ -143,21 +143,26 @@ class Node(object):
 
     @property
     def prefix(self):
-        return self.kind.upper() + "_"
+        if self.is_utility():
+            return '__UTIL__'
+        if self.is_option():
+            return '__FLAG__'
+        if self.is_argument():
+            return '__ARG__'
 
     @property
     def symbol(self):
         return self.prefix + self.value
 
     @property
-    def headcommand(self):
-        if self.kind == "headcommand":
+    def utility(self):
+        if self.kind == "utility":
             return self
         ancester = self.parent
         while ancester is not None:
-            if ancester.kind == "headcommand":
+            if ancester.kind == "utility":
                 return ancester
-            # if not head command is detect, return "root"
+            # if no parent utility is detect, return "root"
             ancester = ancester.parent
 
     @property
@@ -202,10 +207,10 @@ class ArgumentNode(Node):
         return True
 
     def to_index(self):
-        if self.parent.kind == "headcommand":
-            return self.headcommand.arg_dict[""][self.arg_type] > 1
+        if self.parent.kind == "utility":
+            return self.utility.arg_dict[""][self.arg_type] > 1
         else:
-            return self.headcommand.arg_dict[self.parent.value][self.arg_type] > 1
+            return self.utility.arg_dict[self.parent.value][self.arg_type] > 1
 
     def set_index(self, ind):
         self.index = ind
@@ -217,16 +222,16 @@ class FlagNode(Node):
     def add_child(self, child, index=None):
         super(FlagNode, self).add_child(child)
         if child.is_argument():
-            if not self.value in self.headcommand.arg_dict:
-                self.headcommand.arg_dict[self.value] \
+            if not self.value in self.utility.arg_dict:
+                self.utility.arg_dict[self.value] \
                     = collections.defaultdict(int)
-            self.headcommand.arg_dict[self.value][child.arg_type] += 1
+            self.utility.arg_dict[self.value][child.arg_type] += 1
             child.set_index(
-                self.headcommand.arg_dict[self.value][child.arg_type])
+                self.utility.arg_dict[self.value][child.arg_type])
 
     def get_label(self):
         if self.parent:
-            label = self.prefix + self.headcommand.value + "@@" + self.value
+            label = self.prefix + self.utility.value + "@@" + self.value
         else:
             label = self.prefix + self.value
         return label
@@ -241,7 +246,7 @@ class FlagNode(Node):
 
 class HeadCommandNode(Node):
     def __init__(self, value="", parent=None, lsb=None):
-        super(HeadCommandNode, self).__init__(parent, lsb, "headcommand", value)
+        super(HeadCommandNode, self).__init__(parent, lsb, "utility", value)
         self.arg_dict = {"":collections.defaultdict(int)}
 
     def add_child(self, child, index=None):
@@ -260,7 +265,7 @@ class HeadCommandNode(Node):
 
     def get_subcommand(self):
         for child in self.children:
-            if child.is_headcommand():
+            if child.is_utility():
                 return child
 
     def normalize_repl_str(self, repl_str, norm):
@@ -281,8 +286,8 @@ class UnaryLogicOpNode(Node):
     LEFT = 0
     RIGHT = 1
 
-    def __init__(self, value="", parent=None, lsb=None):
-        super(UnaryLogicOpNode, self).__init__( parent, lsb, 'unarylogicop', value)
+    def __init__(self, value='', parent=None, lsb=None):
+        super(UnaryLogicOpNode, self).__init__(parent, lsb, 'unarylogicop', value)
         if value in right_associate_unary_logic_operators:
             self.associate = UnaryLogicOpNode.RIGHT
         elif value in left_associate_unary_logic_operators:
@@ -311,14 +316,14 @@ class RedirectNode(Node):
         super(RedirectNode, self).__init__(parent, lsb, 'redirect', value)
 
 class PipelineNode(Node):
-    children_types = [set(['headcommand'])]
+    children_types = [set(['utility'])]
 
     def __init__(self, parent=None, lsb=None):
         super(PipelineNode, self).__init__(parent, lsb, 'pipeline')
 
 class CommandSubstitutionNode(Node):
     num_child = 1
-    children_types = [set(['pipe', 'headcommand'])]
+    children_types = [set(['pipe', 'utility'])]
 
     def __init__(self, parent=None, lsb=None):
         super(CommandSubstitutionNode, self).__init__(parent, lsb)
@@ -326,7 +331,7 @@ class CommandSubstitutionNode(Node):
 
 class ProcessSubstitutionNode(Node):
     num_child = 1
-    children_types = [set(['pipe', 'headcommand'])]
+    children_types = [set(['pipe', 'utility'])]
 
     def __init__(self, value, parent=None, lsb=None):
         super(ProcessSubstitutionNode, self).__init__(parent, lsb)
