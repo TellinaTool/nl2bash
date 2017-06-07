@@ -380,8 +380,8 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                     ((not w in vocabulary or is_low_frequency(w)) and use_unk):
                 # out-of-vocabulary word
                 if coarse_typing:
-                    if w.startswith('__LF__'):
-                        w = w[len('__LF__'):]
+                    if is_low_frequency(w):
+                        w = remove_low_frequency_prefix(w)
                     if w.isdigit():
                         token_ids.append(NUM_ID)
                     elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):
