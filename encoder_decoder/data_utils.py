@@ -377,8 +377,6 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                 or add_low_frequency_prefix(w) in parallel_sequence):
             # If the token has appeared in the parallel sequence, store its
             # vocabulary index. Used to compute the CopyNet training objective.
-            print(words)
-            print("parallel_sequence: {}".format(parallel_sequence))
             token_ids.append(word_id)
         else:
             if word_id == -1 or \
@@ -1160,7 +1158,8 @@ def load_vocab(FLAGS):
         elif FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
             cm_ext = ".cm"
         else:
-            cm_ext = ".cm.norm"
+            cm_ext = ".cm.norm" if FLAGS.dataset.startswith('.cm') \
+                else '.cm'
     elif FLAGS.decoder_topology in ['basic_tree']:
         if FLAGS.normalized or FLAGS.canonical:
             cm_ext = ".cm.ast.norm"
@@ -1245,7 +1244,7 @@ def load_data(FLAGS, buckets=None, load_mappings=False, load_pointers=False):
         nl_ext = ".nl.norm"
 
     # Set up command files extensions
-    cm_ext = ".cm.norm"
+    cm_ext = ".cm.norm" if FLAGS.dataset.startswith('bash') else '.cm'
     cm_full_ext = ".cm.full"
     cm_copy_sc_ext = ".cm.copy.sc"
     cm_copy_tg_ext = ".cm.copy.tg"
