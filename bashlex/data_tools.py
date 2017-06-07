@@ -219,8 +219,7 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                     token = node.arg_type
             else:
                 token = node.value
-            if tp:
-                if node.is_open_vocab():
+            if tp and node.is_open_vocab():
                     token = node.simple_prefix + node.prefix
             if wat:
                 token = token + "_" + node.arg_type
