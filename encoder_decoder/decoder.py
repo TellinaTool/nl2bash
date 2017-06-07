@@ -71,7 +71,6 @@ class Decoder(graph_utils.NNModel):
         # probabilities
         if self.use_copy and self.copy_fun != 'supervised':
             self.generation_mask = np.load(self.generation_mask_path)
-
         self.output_project = self.output_project()
 
     def embeddings(self):

@@ -217,6 +217,7 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                     token = r_sc_vocab[encoder_full_inputs
                         [len(encoder_full_inputs) - 1 
                          - (output - FLAGS.tg_vocab_size)][batch_id]]
+                    print(output, token)
                 else:
                     return data_utils._UNK
             return token
