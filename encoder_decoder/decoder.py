@@ -179,8 +179,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         self.encoder_attn_masks = encoder_attn_masks
         self.encoder_size = len(encoder_inputs)
         self.vocab_indices = tf.diag(tf.ones(tg_vocab_size))
-        encoder_inputs = tf.concat(axis=1, values=[tf.expand_dims(x, 1)
-                                       for x in encoder_inputs])
+        encoder_inputs = tf.concat(axis=1,
+            values=[tf.expand_dims(x, 1) for x in encoder_inputs])
         self.encoder_inputs_3d = tf.nn.embedding_lookup(
             self.vocab_indices, encoder_inputs)
         self.num_heads = num_heads
@@ -196,7 +196,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
         v = []
         with tf.variable_scope("attention_cell_wrapper"):
             for a in xrange(num_heads):
-                # [batch_size x attn_length x attn_dim]
+                # [batch_size, attn_length, attn_dim]
                 hidden_features.append(attention_states)
         self.hidden_features = hidden_features
         self.v = v
@@ -237,7 +237,7 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
 
                 # Apply attention masks
                 # [batch_size x attn_length]
-                s = s - (1 - self.encoder_attn_masks) * 1e9
+                s = s - (1 - self.encoder_attn_masks) * 1e12
                 alignment = tf.nn.softmax(s)
                 if a == 0:
                     alignments.append(alignment)
@@ -252,9 +252,8 @@ class AttentionCellWrapper(tf.nn.rnn_cell.RNNCell):
                             * self.hidden_features[a], [1])
                 else:
                     # Hard selective read
-                    selective_indices = tf.nn.embedding_lookup(
-                        tf.diag(tf.ones(self.attn_length)),
-                        tf.expand_dims(tf.argmax(s, 1), 1))
+                    selective_indices = \
+                        tf.expand_dims(tf.one_hot(tf.argmax(s, 1), self.attn_length), 1)
                     d = tf.matmul(selective_indices, self.hidden_features[a])
                 context = tf.reshape(d, [-1, self.attn_dim])
                 ds.append(context)
