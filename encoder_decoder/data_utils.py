@@ -374,16 +374,14 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                 or add_low_frequency_prefix(w) in parallel_sequence):
             # If the token has appeared in the parallel sequence, store its
             # vocabulary index. Used to compute the CopyNet training objective.
-            print(words)
-            print("parallel_sequence: {}".format(parallel_sequence))
             token_ids.append(word_id)
         else:
             if word_id == -1 or \
                     ((not w in vocabulary or is_low_frequency(w)) and use_unk):
                 # out-of-vocabulary word
                 if coarse_typing:
-                    if w.startswith('__LF__'):
-                        w = w[len('__LF__'):]
+                    if is_low_frequency(w):
+                        w = remove_low_frequency_prefix(w)
                     if w.isdigit():
                         token_ids.append(NUM_ID)
                     elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):

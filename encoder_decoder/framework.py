@@ -99,8 +99,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
             self.char_encoder_inputs = []
             for i in xrange(self.max_source_length):
                 self.char_encoder_inputs.append(
-                    tf.placeholder(tf.int32,
-                                   shape=[None, self.max_target_token_size],
+                    tf.placeholder(tf.int32, shape=[None, self.max_target_token_size],
                                    name="char_encoder{0}".format(i)))
             self.encoder_channel_inputs.append(self.char_encoder_inputs)
 
@@ -116,7 +115,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
                     tf.float32, shape=[None], name="weight{0}".format(i)))
 
         # Our targets are decoder inputs shifted by one.
-        if self.use_copy and self.copy_fun != 'supervised':
+        if self.use_copy and self.copy_fun == 'copy':
             self.targets = [self.decoder_full_inputs[i + 1]
                             for i in xrange(self.max_target_length)]
         else:
@@ -662,7 +661,7 @@ class EncoderDecoderModel(graph_utils.NNModel):
         for l in xrange(decoder_size):
             input_feed[self.decoder_inputs[l].name] = E.decoder_inputs[l]
             input_feed[self.decoder_full_inputs[l].name] = E.decoder_copy_inputs[l] \
-                if (self.use_copy and self.copy_fun == 'copynet' and E.decoder_copy_inputs) \
+                if (self.use_copy and self.copy_fun == 'copynet') \
                 else E.decoder_full_inputs[l]
             input_feed[self.target_weights[l].name] = E.target_weights[l]
         # Since our targets are decoder inputs shifted by one, we need one more.
