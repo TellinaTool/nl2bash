@@ -248,10 +248,12 @@ def decode(encoder_full_inputs, model_outputs, FLAGS, vocabs, sc_fillers=None,
                 for token_id in xrange(len(outputs)):
                     output = outputs[token_id]
                     pred_token = as_str(output, rev_sc_vocab, rev_tg_vocab)
-                    if '@@' in pred_token:
-                        pred_token = pred_token.split('@@')[-1]
                     if pred_token.startswith('__LF__'):
                         pred_token = pred_token[len('__LF__'):]
+                    if pred_token.startswith('__ARG__'):
+                        pred_token = pred_token[len('__ARG__'):]
+                    if '@@' in pred_token:
+                        pred_token = pred_token.split('@@')[-1]
                     # process argument slots
                     if pred_token in constants._ENTITIES:
                         pred_token_type = pred_token

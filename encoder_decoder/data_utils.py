@@ -43,7 +43,7 @@ _PAD = "__SP__PAD"
 _EOS = "__SP__EOS"
 _UNK = "__SP__UNK"
 _ARG_UNK = "__SP__ARGUMENT_UNK"
-_UTL_UNK = "__SP__HEADCOMMAND_UNK"
+_UTL_UNK = "__SP__UTILITY_UNK"
 _FLAG_UNK = "__SP__FLAG_UNK"
 _ARG_START = "__SP__ARG_START"
 _ARG_END = "__SP__ARG_END"
@@ -54,9 +54,9 @@ _ROOT = "__SP__ROOT"               # seq2tree start symbol
 PAD_ID = 0
 EOS_ID = 1
 UNK_ID = 2
-ARG_ID = 3
-UTL_ID = 4
-FLAG_ID = 5
+ARG_UNK_ID = 3
+UTL_UNK_ID = 4
+FLAG_UNK_ID = 5
 H_NO_EXPAND_ID = 6
 V_NO_EXPAND_ID = 7
 GO_ID = 8
@@ -104,15 +104,6 @@ _CHAR_START_VOCAB = [_CPAD, _CEOS, _CUNK, _CATOM, constants._LONG_TOKEN_IND,
                      _CGO]
 
 _data_splits = ['train', 'dev', 'test']
-
-def clean_dir(dir):
-    for f_name in os.listdir(dir):
-        f_path = os.path.join(dir, f_name)
-        try:
-            if os.path.isfile(f_path):
-                os.unlink(f_path)
-        except Exception as e:
-            print(e)
 
 
 def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
@@ -184,13 +175,16 @@ def create_vocabulary(vocab_path, data, max_vocabulary_size, min_word_frequency,
                 sorted(sorted_vocab.items(), key=lambda x:x[1])]
         else:
             for v in vocab:
-                if v.startswith('__LF__'):
-                    if vocab[v] >= MIN_ARG_FREQ:
-                        sorted_vocab[v[len('__LF__'):]] = vocab[v]
-                    else:
-                        sorted_vocab[v] = min(vocab[v], min_word_frequency-1)
-                elif v.startswith('__SP__'):
+                if v.startswith('__SP__'):
                     sorted_vocab[v] = vocab[v]
+                elif v.startswith('__FLAG__'):
+                    sorted_vocab[v] = vocab[v]
+                elif v.startswith('__ARG__'):
+                    if vocab[v] >= MIN_ARG_FREQ:
+                        sorted_vocab[v] = vocab[v]
+                    else:
+                        sorted_vocab['__LF__' + v] = \
+                            min(vocab[v], min_word_frequency-1)
                 else:
                     if 'bash' in vocab_path and '.nl' in vocab_path and \
                             not constants.is_english_word(v) and \
@@ -300,6 +294,7 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 parallel_line = parallel_data[i]
             token_ids, _ = sentence_to_token_ids(data[i], vocab, tokenizer,
                 base_tokenizer, use_unk=use_unk,
+                use_typed_unk=('bash' in vocab_path and '.cm' in vocab_path),
                 parallel_sequence=parallel_line,
                 use_source_placeholder=use_source_placeholder,
                 parallel_vocab_size=parallel_vocab_size,
@@ -312,8 +307,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
 
 
 def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
-        use_unk=True, parallel_sequence=None, use_source_placeholder=False,
-        parallel_vocab_size=-1, coarse_typing=False):
+        use_unk=True, use_typed_unk=False, parallel_sequence=None,
+        use_source_placeholder=False, parallel_vocab_size=-1, coarse_typing=False):
     """
     Convert a string to a list of integers representing token-ids.
 
@@ -330,6 +325,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             extraction.
 
         use_unk: If set, replace the low-frequency tokens with UNK.
+        use_typed_unk: If set, add type prefix to UNK tokens.
         parallel_sequence: Used for computing the CopyNet training objective
           (if a target token has appeared in the source, store its vocabulary
            index; otherwise, marked as unknown).
@@ -357,10 +353,10 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     def get_index(w, vocab):
         if w in vocab:
             return vocab[w]
-        elif remove_low_frequency_prefix(w) in vocab:
-            return vocab[remove_low_frequency_prefix(w)]
-        elif add_low_frequency_prefix(w) in vocabulary:
-            return vocab[add_low_frequency_prefix(w)]
+        elif w[len('__LF__'):] in vocab:
+            return vocab[w[len('__LF__'):]]
+        elif '__LF__' + w in vocabulary:
+            return vocab['__LF__' + w]
         else:
             return -1
 
@@ -370,8 +366,8 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     for (i, w) in enumerate(words):
         word_id = get_index(w, vocabulary)
         if parallel_sequence is not None and (w in parallel_sequence
-                or remove_low_frequency_prefix(w) in parallel_sequence
-                or add_low_frequency_prefix(w) in parallel_sequence):
+                or w[len('__LF__'):] in parallel_sequence
+                or '__LF__' + w in parallel_sequence):
             # If the token has appeared in the parallel sequence, store its
             # vocabulary index. Used to compute the CopyNet training objective.
             token_ids.append(word_id)
@@ -381,7 +377,7 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                 # out-of-vocabulary word
                 if coarse_typing:
                     if is_low_frequency(w):
-                        w = remove_low_frequency_prefix(w)
+                        w = w[len('__LF__'):]
                     if w.isdigit():
                         token_ids.append(NUM_ID)
                     elif re.match(re.compile('[0-9]+[A-Za-z]+'), w):
@@ -393,7 +389,15 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
                 elif use_source_placeholder:
                     token_ids.append(parallel_vocab_size + i)
                 else:
-                    token_ids.append(UNK_ID)
+                    if use_typed_unk:
+                        if w.startswith('__ARG__'):
+                            token_ids.append(ARG_UNK_ID)
+                        elif w.startswith('__FLAG__'):
+                            token_ids.append(FLAG_UNK_ID)
+                        else:
+                            token_ids.append(UNK_ID)
+                    else:
+                        token_ids.append(UNK_ID)
             else:
                 # in-vocabulary word
                 token_ids.append(word_id)
@@ -498,38 +502,35 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                     parallel_vocab_path=None, parallel_data=None):
     if isinstance(data.train[0], list):
         # save indexed token sequences
-        coarse_typing = 'bash' in data_dir and suffix.endswith('.nl')
+        is_bash_nl = 'bash' in data_dir and suffix.endswith('.nl')
+        is_bash_cm = 'bash' in data_dir and suffix.endswith('.cm')
 
         if create_vocab:
-            MIN_WORD_FREQ = 2 \
-                if ("bash" in data_dir and suffix.endswith('.nl')) else 1
+            if is_bash_nl: MIN_WORD_FREQ = 2
+            elif is_bash_cm: MIN_WORD_FREQ = 10
+            else: MIN_WORD_FREQ = 1
             create_vocabulary(vocab_path, data.train, vocab_size,
                               min_word_frequency=MIN_WORD_FREQ)
-            # if suffix.endswith('.nl') or suffix.endswith('.cm'):
-            #     create_vocabulary(vocab_path, data.dev, vocab_size,
-            #         min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
-            #     create_vocabulary(vocab_path, data.test, vocab_size,
-            #         min_word_frequency=MIN_WORD_FREQ, append_to_vocab=True)
         for split in _data_splits:
             data_path = os.path.join(data_dir, split)
             if suffix.endswith('.copy'):
                 assert(parallel_vocab_size != -1)
                 assert(parallel_vocab_path is not None)
                 assert(parallel_data is not None)
-                # compute CopyNet source indices
                 parallel_split = getattr(parallel_data, split) \
                     if split == 'train' else None
+                # compute CopyNet source indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.sc',
                     vocab_path=parallel_vocab_path, use_source_placeholder=True,
                     parallel_vocab_size=parallel_vocab_size,
                     parallel_data=parallel_split)
                 # compute CopyNet target indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.tg',
-                    vocab_path, parallel_data=getattr(parallel_data, split))
+                    vocab_path, parallel_data=parallel_split)
             else:
                 data_to_token_ids(getattr(data, split), data_path + suffix,
-                    vocab_path, coarse_typing=coarse_typing)
-                if '.nl' in suffix or '.cm' in suffix:
+                    vocab_path, coarse_typing=is_bash_nl)
+                if suffix.endswith('.nl') or suffix.encode('.cm'):
                     data_to_token_ids(getattr(data, split),
                         data_path + suffix + '.full', vocab_path, use_unk=False)
     else:
@@ -715,7 +716,7 @@ def prepare_bash(FLAGS, verbose=False):
                     cm_chars = data_tools.char_tokenizer(cm, data_tools.bash_tokenizer)
                     nl_tokens, _ = tokenizer.basic_tokenizer(nl)
                     cm_tokens = data_tools.ast2tokens(
-                        ast, with_parent=True, arg_unk=True, unk_token=_UNK)
+                        ast, with_parent=True, type_prefix=True)
                     cm_seq = data_tools.ast2list(ast, list=[], with_parent=True)
                     pruned_ast = normalizer.prune_ast(ast)
                     cm_pruned_tokens = data_tools.ast2tokens(
