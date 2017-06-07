@@ -175,6 +175,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
 
         full_size = self.batch_size * self.beam_size
         self.seq_len = tf.constant(1e-10, shape=[full_size], dtype=tf.float32)
+
         # [self.batch_size*self.beam_size, self.num_classes]
         # [- - _STOP - - - ]
         # [-100 -100 0 -100 -100 -100]
@@ -227,7 +228,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
                 self.cell(cell_inputs, past_cell_state, scope)
 
         # [batch_size*beam_size, num_classes]
-        if self.use_copy and self.copy_fun != 'supervised':
+        if self.use_copy and self.copy_fun == 'copynet':
             logprobs = tf.log(cell_output)
         else:
             W, b = self.output_project
@@ -261,8 +262,7 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
         logprobs_batched = tf.expand_dims(past_beam_acc_logprobs, 1) + logprobs
         float_done_mask = tf.cast(tf.not_equal(self._done_mask, 0), tf.float32)
         seq_len = tf.expand_dims(self.seq_len, 1) + \
-                    tf.multiply(tf.ones([full_size, 1]) - stop_mask_2d,
-                           float_done_mask)
+            tf.multiply(tf.ones([full_size, 1]) - stop_mask_2d, float_done_mask)
         logprobs_batched = tf.div(logprobs_batched, tf.pow(seq_len, self.alpha))
         logprobs_batched = \
             tf.reshape(logprobs_batched, [-1, self.beam_size * self.num_classes])
@@ -320,9 +320,9 @@ class BeamDecoderCellWrapper(tf.nn.rnn_cell.RNNCell):
             )
 
         # Handling for getting a done token
-        logprobs_batched_3D = tf.reshape(logprobs_batched,
-                                         [-1, self.beam_size, self.num_classes])
-        logprobs_done = logprobs_batched_3D[:,:,self.stop_token]
+        logprobs_batched_3D = tf.reshape(
+            logprobs_batched, [-1, self.beam_size, self.num_classes])
+        logprobs_done = logprobs_batched_3D[:, :, self.stop_token]
         done_parent_refs = tf.to_int32(tf.argmax(logprobs_done, 1))
         done_parent_refs_offsets = tf.range(batch_size) * self.beam_size
         done_symbols = tf.gather(past_beam_symbols[:, -1:],

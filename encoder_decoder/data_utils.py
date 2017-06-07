@@ -49,7 +49,7 @@ _ARG_START = "__SP__ARG_START"
 _ARG_END = "__SP__ARG_END"
 
 _GO = "__SP__GO"                   # seq2seq start symbol
-_ROOT = "__SP__ROOT"                # seq2tree start symbol
+_ROOT = "__SP__ROOT"               # seq2tree start symbol
 
 PAD_ID = 0
 EOS_ID = 1
