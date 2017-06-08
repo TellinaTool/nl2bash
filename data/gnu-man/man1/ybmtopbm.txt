@@ -1,0 +1,23 @@
+ybmtopbm(1)                                    General Commands Manual                                   ybmtopbm(1)
+
+
+
+NAME
+       ybmtopbm - convert a Bennet Yee "face" file into a portable bitmap
+
+SYNOPSIS
+       ybmtopbm [facefile]
+
+DESCRIPTION
+       Reads a file acceptable to the face and xbm programs by Bennet Yee (bsy+@cs.cmu.edu).  Writes a portable bit‐
+       map as output.
+
+SEE ALSO
+       pbmtoybm(1), pbm(5), face(1), face(5), xbm(1)
+
+AUTHOR
+       Copyright (C) 1991 by Jamie Zawinski and Jef Poskanzer.
+
+
+
+                                                    06 March 1990                                        ybmtopbm(1)

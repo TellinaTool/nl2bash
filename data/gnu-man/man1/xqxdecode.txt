@@ -1,0 +1,132 @@
+xqxdecode(1)                                   General Commands Manual                                  xqxdecode(1)
+
+
+
+
+
+NAME
+       xqxdecode - Decode a XQX stream into human readable form.
+
+SYNOPSIS
+       xqxdecode [options] <xqx-file
+
+DESCRIPTION
+       xqxdecode decodes a XQX stream into human readable form.
+
+       An XQX stream is the printer language used by some HP LaserJet printers, such as the HP LaserJet M1005 (MFP).
+
+
+COMMAND LINE OPTIONS
+       These are the options that can appear on the command line.
+
+       -d basename
+              Basename of .pbm file for saving decompressed planes.
+
+       -h     Print hex file offsets.
+
+       -o     Print file offsets.
+
+       -D level
+              Set Debug level [0].
+
+
+EXAMPLES
+       Decode an XQX stream file created by foo2xqx.
+
+       $ xqxdecode -h < testpage.xm
+            0: \033%-12345X@PJL JOB
+           12: @PJL SET JAMRECOVERY=OFF
+           2b: @PJL SET DENSITY=3
+           3e: @PJL SET ECONOMODE=OFF
+           55: @PJL SET RET=MEDIUM
+           69: @PJL INFO STATUS
+           7a: @PJL USTATUS DEVICE = ON
+           93: @PJL USTATUS JOB = ON
+           a9: @PJL USTATUS PAGE = ON
+           c0: @PJL USTATUS TIMED = 30
+          10c: @PJL SET JOBATTR="JobAttr4=20061118160242"
+          10c: XQX_MAGIC, 0x5851582c (,XQX)
+          110: XQX_START_DOC(1), 7 items
+          118:         XQXI_0x80000000, 84 (0x54)
+          124:         XQXI_0x10000005, 1 (0x1)
+          130:         XQXI_0x10000001, 0 (0x0)
+          13c:         XQXI_DMDUPLEX, 0 (0x0)
+          148:         XQXI_0x10000000, 0 (0x0)
+          154:         XQXI_0x10000003, 1 (0x1)
+          160:         XQXI_END, 3735928559 (0xdeadbeef)
+          16c: XQX_START_PAGE(3), 15 items [Page 1]
+          174:         XQXI_0x80000000, 180 (0xb4)
+          180:         XQXI_0x20000005, 1 (0x1)
+          18c:         XQXI_DMDEFAULTSOURCE, 7 (0x7)
+          198:         XQXI_DMMEDIATYPE, 1 (0x1)
+          1a4:         XQXI_0x20000007, 1 (0x1)
+          1b0:         XQXI_RESOLUTION_X, 600 (0x258)
+          1bc:         XQXI_RESOLUTION_Y, 600 (0x258)
+          1c8:         XQXI_RASTER_X, 9856 (0x2680)
+          1d4:         XQXI_RASTER_Y, 6432 (0x1920)
+          1e0:         XQXI_VIDEO_BPP, 2 (0x2)
+          1ec:         XQXI_VIDEO_X, 4923 (0x133b)
+          1f8:         XQXI_VIDEO_Y, 6432 (0x1920)
+          204:         XQXI_ECONOMODE, 0 (0x0)
+          210:         XQXI_DMPAPER, 1 (0x1)
+          21c:         XQXI_END, 3735928559 (0xdeadbeef)
+          228: XQX_START_PLANE(5), 4 items
+          230:         XQXI_0x80000000, 64 (0x40)
+          23c:         XQXI_0x40000000, 0 (0x0)
+          248:         XQXI_BIH(0x40000002)
+                       DL = 0, D = 0, P = 1, - = 0, XY = 9856 x 6432
+                       L0 = 128, MX = 16, MY = 0
+                       Order   = 3  ILEAVE SMID
+                       Options = 92  LRLTWO TPDON TPBON DPON
+                       51 stripes, 0 layers, 1 planes
+
+          264:         XQXI_END, 3735928559 (0xdeadbeef)
+          270: XQX_JBIG(7), 110 items
+          2e6: XQX_END_PLANE(6), 0 items
+          2ee: XQX_END_PAGE(4), 0 items
+          2f6: XQX_END_DOC(2), 0 items
+       Total size: 110 bytes
+            0: \033%-12345X@PJL EOJ
+           12: \033%-12345X
+
+
+
+FILES
+       /usr/bin/xqxdecode
+
+SEE ALSO
+       foo2xqx-wrapper(1), foo2xqx(1)
+
+AUTHOR
+       Rick Richardson <rick.richardson@comcast.net>
+       http://foo2xqx.rkkda.com/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

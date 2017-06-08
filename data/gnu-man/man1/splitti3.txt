@@ -1,0 +1,59 @@
+SPLIT(1)                                            User Commands                                           SPLIT(1)
+
+
+
+NAME
+       Split - Split a .ti3 into two.
+
+DESCRIPTION
+       Split a .ti3 into two, Version 1.5.1 Author: Graeme W. Gill, licensed under the AGPL Version 3 usage: splitc‐
+       gats [-options] input.ti3 output1.ti3 output2.ti3
+
+       -v     Verbose - print each patch value
+
+       -n no  Put no sets in first file, and balance in second file.
+
+       -p percent
+              Put percent% sets in first file, and balance in second file. (def. 50%)
+
+       -w     Put white patches in both files.
+
+       -r seed
+              Use given random seed.
+
+       input.ti3
+              File to be split up.
+
+       output1.ti3
+              First output file
+
+       output2.ti3
+              Second output file
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3 usage: splitcgats [-options] input.ti3  output1.ti3
+       output2.ti3
+
+       -v     Verbose - print each patch value
+
+       -n no  Put no sets in first file, and balance in second file.
+
+       -p percent
+              Put percent% sets in first file, and balance in second file. (def. 50%)
+
+       -w     Put white patches in both files.
+
+       -r seed
+              Use given random seed.
+
+       input.ti3
+              File to be split up.
+
+       output1.ti3
+              First output file
+
+       output2.ti3
+              Second output file
+
+
+
+Split a .ti3 into two, Version 1.5.1                 August 2013                                            SPLIT(1)

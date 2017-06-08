@@ -1,0 +1,78 @@
+XDG-SETTINGS(1)                                  xdg-settings Manual                                 XDG-SETTINGS(1)
+
+
+
+NAME
+       xdg-settings - get various settings from the desktop environment
+
+SYNOPSIS
+       xdg-settings {get | check | set} {property} [value]
+
+       xdg-settings {--help | --list | --manual | --version}
+
+DESCRIPTION
+       xdg-settings gets various settings from the desktop environment. For instance, desktop environments often
+       provide proxy configuration and default web browser settings. Using xdg-settings these parameters can be
+       extracted for use by applications that do not use the desktop environment's libraries (which would use the
+       settings natively).
+
+       xdg-settings is for use inside a desktop session only. It is not recommended to use xdg-settings as root.
+
+OPTIONS
+       --help
+           Show command synopsis.
+
+       --list
+           List all properties xdg-settings knows about.
+
+       --manual
+           Show this manualpage.
+
+       --version
+           Show the xdg-utils version information.
+
+EXIT CODES
+       An exit code of 0 indicates success while a non-zero exit code indicates failure. The following failure codes
+       can be returned:
+
+       1
+           Error in command line syntax.
+
+       2
+           One of the files passed on the command line did not exist.
+
+       3
+           A required tool could not be found.
+
+       4
+           The action failed.
+
+EXAMPLES
+       Get the desktop file name of the current default web browser
+
+                   xdg-settings get default-web-browser
+
+
+       Check whether the default web browser is firefox.desktop, which can be false even if "get
+       default-web-browser" says that is the current value (if only some of the underlying settings actually reflect
+       that value)
+
+                   xdg-settings check default-web-browser firefox.desktop
+
+
+       Set the default web browser to google-chrome.desktop
+
+                   xdg-settings set default-web-browser google-chrome.desktop
+
+
+
+AUTHOR
+       Mike Mammarella
+           Author.
+
+COPYRIGHT
+       Copyright © 2009
+
+
+
+[FIXME: source]                                      12/31/2010                                      XDG-SETTINGS(1)

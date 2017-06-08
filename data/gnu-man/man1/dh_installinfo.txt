@@ -1,0 +1,36 @@
+DH_INSTALLINFO(1)                                     Debhelper                                    DH_INSTALLINFO(1)
+
+
+
+NAME
+       dh_installinfo - install info files
+
+SYNOPSIS
+       dh_installinfo [debhelper options] [-A] [file ...]
+
+DESCRIPTION
+       dh_installinfo is a debhelper program that is responsible for installing info files into usr/share/info in
+       the package build directory.
+
+FILES
+       debian/package.info
+           List info files to be installed.
+
+OPTIONS
+       -A, --all
+           Install all files specified by command line parameters in ALL packages acted on.
+
+       file ...
+           Install these info files into the first package acted on. (Or in all packages if -A is specified).
+
+SEE ALSO
+       debhelper(7)
+
+       This program is a part of debhelper.
+
+AUTHOR
+       Joey Hess <joeyh@debian.org>
+
+
+
+9.20131227ubuntu1                                    2013-07-01                                    DH_INSTALLINFO(1)

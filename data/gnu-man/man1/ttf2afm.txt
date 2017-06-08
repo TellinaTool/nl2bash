@@ -1,0 +1,66 @@
+ttf2afm(1)                                             pdfTeX                                             ttf2afm(1)
+
+
+
+NAME
+       ttf2afm - utility to generate AFM files for TrueType fonts
+
+SYNOPSIS
+       ttf2afm [OPTIONS] FONTFILE
+
+DESCRIPTION
+       ttf2afm  is used to generate Adobe Font Metrics (AFM) files for TrueType (TTF) fonts to allow them to be used
+       with TeX.
+
+       ttf2afm takes the name of a TrueType font file as a required argument.  It may also take one or more  options
+       from the list below (note that -d and -h are mutually exclusive).
+
+OPTIONS
+       -a     print all glyphs
+
+       -i     read names in encoding vector in form `indexnum'
+
+       -d     print glyph names in the form `indexdecimal_num'
+
+       -h     print glyph names in the form `indexhex_num'
+
+       -c name
+              print encoding tables to file name.eMN, where M is the platform number and N is the encoding
+
+       -e enc use encoding from file enc
+
+       -o output
+              output to file output instead of stdout
+
+       Platform numbers can be one of
+
+       0      Apple Unicode
+
+       1      Macintosh
+
+       2      ISO
+
+       3      Microsoft
+
+       Encodings can be
+
+       0      Roman (if platform is Macintosh)
+
+       0      Symbol (if platform is Microsoft)
+
+       1      Unicode (if platform is Microsoft)
+
+BUGS
+       None known, but submit bug reports to <pdftex@tug.org> (mailing list).
+
+AUTHOR
+       ttf2afm is part of pdfTeX and was written by Han The Thanh <thanh@informatics.muni.cz>.
+
+       This  manual  page was written by C.M. Connelly <cmc@debian.org>, for the Debian GNU/Linux system.  It may be
+       used by other distributions without contacting the author.  Any mistakes or omissions in the manual page  are
+       my fault; inquiries about or corrections to this manual page should be directed to me (and not to the primary
+       author).
+
+
+
+pdfTeX                                             September 2000                                         ttf2afm(1)

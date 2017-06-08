@@ -1,0 +1,21 @@
+EXTRACT(1)                                          User Commands                                         EXTRACT(1)
+
+
+
+NAME
+       Extract - Extract an ICC profile from a TIFF file.
+
+DESCRIPTION
+       Extract  an  ICC  profile  from a TIFF or JPEG file, Version 1.5.1 Author: Graeme W. Gill, licensed under the
+       AGPL Version 3 Diagnostic: Too few parameters usage: extracticc  [-v] infile.tif/jpg outfile.icc
+
+       -v     Verbose
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3 Diagnostic: Too few  parameters  usage:  extracticc
+       [-v] infile.tif/jpg outfile.icc
+
+       -v     Verbose
+
+
+
+Extract an ICC profile from a TIFF or JPEG file, VersAugust52013                                          EXTRACT(1)

@@ -1,0 +1,35 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-image-prune - Remove unused images
+
+
+
+SYNOPSIS
+       docker image prune [OPTIONS]
+
+
+
+DESCRIPTION
+       Remove unused images
+
+
+
+OPTIONS
+       -a, --all[=false]
+           Remove all unused images, not just dangling ones
+
+
+       -f, --force[=false]
+           Do not prompt for confirmation
+
+
+
+SEE ALSO
+       docker-image(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

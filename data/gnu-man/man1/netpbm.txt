@@ -1,0 +1,981 @@
+netpbm(1)                                      General Commands Manual                                     netpbm(1)
+
+
+
+NAME
+       netpbm - package of graphics manipulation programs and libraries
+
+
+DESCRIPTION
+       Netpbm is a package of graphics programs and programming libraries.
+
+       There  are  over  220  separate  programs in the package, most of which have "pbm", "pgm", "ppm", or "pnm" in
+       their names.  For example, pnmscale and giftopnm.
+
+       For example, you might use pnmscale to shrink an image by 10%.  Or use pnmcomp to overlay one image on top of
+       another.   Or  use  pbmtext  to  create  an  image  of text.  Or reduce the number of colors in an image with
+       pnmquant.
+
+
+The Netpbm Formats
+       All of the programs work with a set of graphics formats called the  "netpbm"  formats.   Specifically,  these
+       formats  are pbm(5), pgm(5), ppm(5), and pam(5).  The first three of these are sometimes known generically as
+       pnm.  Many of the Netpbm programs convert from a Netpbm format to another format or vice versa.  This  is  so
+       you can use the Netpbm programs to work on graphics of any format.  It is also common to use a combination of
+       Netpbm programs to convert from one non-Netpbm format to another non-Netpbm format.   Netpbm  has  converters
+       for  over  80 graphics formats, and as a package Netpbm lets you do more graphics format conversions than any
+       other computer graphics facility.
+
+       The Netpbm formats are all raster formats, i.e. they describe an image as a matrix of  rows  and  columns  of
+       pixels.   In  the  PBM format, the pixels are black and white.  In the PGM format, pixels are shades of gray.
+       In the PPM format, the pixels are in full color.  The PAM format is more sophisticated.   A  replacement  for
+       all  three of the other formats, it can represent matrices of general data including but not limited to black
+       and white, grayscale, and color images.
+
+       Programs designed to work with PBM images have "pbm" in their names.  Programs designed  to  work  with  PGM,
+       PPM, and PAM images similarly have "pgm", "ppm", and "pam" in their names.
+
+       All  Netpbm programs designed to read PGM images see PBM images as if they were PGM too.  All Netpbm programs
+       designed to read PPM images see PGM and PBM images as if they were PPM.  See the section "Implied Format Con‐
+       version" below.
+
+       Programs  that  have  "pnm" in their names read PBM, PGM, and PPM but unlike "ppm" programs, they distinguish
+       between them and their function depends on the format.  For example, pnmtogif creates a black and  white  GIF
+       output image if its input is PBM or PGM, but a color GIF output image if its input is PPM.  And pnmscale pro‐
+       duces an output image of the same format as the input.  A ppmscale program would read  all  three  PNM  input
+       formats, but would see them all as PPM and would always generate PPM output.
+
+       If  it  seems  wasteful to you to have three separate PNM formats, be aware that there is a historical reason
+       for it.  In the beginning, there were only PBMs.  PGMs came later, and then PPMs.  Much later came PAM, which
+       realizes the possibility of having just one aggregate format.
+
+       The formats are described in the man pages pbm(5), pgm(5), ppm(5), and pam(5),
+
+
+Implied Format Conversion
+       A  program  that uses the PGM library to read an image can read a PBM image as well as a PGM image.  The pro‐
+       gram sees the PBM image as if it were the equivalent PGM image, with a maxval of 255.
+
+       A program that uses the PPM library to read an image can read a PGM image as well as a PPM image  and  a  PBM
+       image  as well as a PGM image.  The program sees the PBM or PGM image as if it were the equivalent PPM image,
+       with a maxval of 255 in the PBM case and the same maxval as the PGM in the PGM case.
+
+
+Netpbm and Transparency
+       In many graphics format, there's a means of indicating that certain parts of the image  are  wholly  or  par‐
+       tially  transparent,  meaning  that  if  it  were  displayed "over" another image, the other image would show
+       through there.  Netpbm formats deliberately omit that capability, since their purpose is to be extremely sim‐
+       ple.
+
+       In  Netpbm, you handle transparency via a transparency mask in a separate (slightly redefined) PGM image.  In
+       this pseudo-PGM, what would normally be a pixel's intensity is instead it an opaqueness value.   See  pgm(5).
+       pnmcomp is an example of a program that uses a PGM transparency mask.
+
+
+The Netpbm Programs
+       The  Netpbm  programs  are generally useful run by a person from a command shell, but are also designed to be
+       used by programs.  A common characteristic of Netpbm programs is that they are simple,  fundamental  building
+       blocks.   They are most powerful when stacked in pipelines.  Netpbm programs do not use graphical user inter‐
+       faces (in fact, none of them display graphics at all, except for a very simple Linux Svgalib  displayer)  and
+       do not seek input from a user.
+
+       Each of these programs has its own man page.
+
+
+Common Options
+       There  are  a  few options that are present on all programs that are based on the Netpbm libraries, including
+       virtually all Netpbm programs.  These are not mentioned in the individual man pages for the programs.
+
+
+       -quiet Suppress all informational messages that would otherwise be issued to Standard Error.  (To be precise,
+              this only works to the extent that the program in question implements the Netpbm convention of issuing
+              all informational messages via the pm_message() service of the Netpbm libraries).
+
+       -version
+              Instead of doing anything else, report the version of the libpbm library linked with the  program  (it
+              may  have  been linked statically into the program, or dynamically linked at run time).  Normally, the
+              Netpbm programs and the libraries are installed at the same time, so this tells you the version of the
+              program and all the other Netpbm libraries and files it uses as well.
+
+              Here is a directory of the Netpbm programs.  You can also use man -k to search for a program that does
+              what you want.
+
+
+   Converters
+       ppmtompeg
+              convert series of PPM frames to an MPEG movie
+
+       jpegtopnm
+              convert JFIF/JPEG/EXIF file to Netpbm format
+
+       pnmtojpeg
+              convert PPM to JPEG/JFIF/EXIF format
+
+       anytopnm
+              convert any graphics format to Netpbm format
+
+       bmptoppm
+              convert Windows or OS/2 Bitmap file to PPM
+
+       ppmtobmp
+              convert PPM to Windows or OS/2 Bitmap file
+
+       winicontoppm
+              convert Windows icon file to PPM
+
+       ppmtowinicon
+              convert PPM to Windows icon file
+
+       giftopnm
+              convert GIF to portable anymap
+
+       ppmtogif
+              convert PPM to GIF
+
+       pnmtopng
+              convert Netpbm format to Portable Network Graphics
+
+       pngtopnm
+              convert PNG (Portable Network Graphics) to Netpbm formats
+
+       palmtopnm
+              convert Palm pixmap to Netpbm formats
+
+       pnmtopalm
+              convert Netpbm formats to Palm pixmap
+
+       jbigtopbm
+              convert JBIG BIE (compressed bitmap) to PBM
+
+       pamtopnm
+              convert a PAM image to PBM, PGM, or PPM
+
+       pbmtojbig
+              convert PBM to JBIG BIE (compressed bitmap)
+
+       pnmtofiasco
+              convert Netpbm image to Fiasco (wfa) highly compressed format
+
+       fiascotopnm
+              convert Fiasco (wfa) highly compressed format to Netpbm image
+
+       hpcdtoppm
+              convert photo CD to PPM
+
+       pbmtonokia
+              convert PBM to Nokia Smart Messaging Format (SMF)
+
+       pbmtowbmp
+              convert PBM to WAP (Wireless App Protocol) Wireless Bitmap
+
+       wbmptopbm
+              convert WAP (Wireless App Protocol) Wireless Bitmap to PBM
+
+       neotoppm
+              convert Atari Neochrome (.neo) image to PPM
+
+       ppmtoneo
+              convert PPM image to Atari Neochrome (.neo)
+
+       pbmtomda
+              convert from PBM to Microdesign (for Amstrad PCWs)
+
+       mdatopbm
+              convert from Microdesign (for Amstrad PCWs) to PBM
+
+       atktopbm
+              convert Andrew Toolkit raster object to PBM
+
+       pbmtoatk
+              convert PBM to Andrew Toolkit raster object
+
+       brushtopbm
+              convert Xerox doodle brushes to PBM
+
+       cmuwmtopbm
+              convert CMU window manager format to PBM
+
+       g3topbm
+              convert Group 3 FAX to PBM
+
+       pbmtog3
+              convert PBM to Group 3 FAX
+
+       icontopbm
+              convert Sun icon to PBM
+
+       pbmtoicon
+              convert PBM to Sun icon
+
+       gemtopnm
+              convert GEM .img format to PBM or pixmap
+
+       macptopbm
+              convert MacPaint to PBM
+
+       pbmtomacp
+              convert PBM to MacPaint
+
+       mgrtopbm
+              convert MGR format to PBM
+
+       pbmtomgr
+              convert PBM to MGR format
+
+       pi3topbm
+              convert Atari Degas .pi3 to PBM
+
+       pbmtopi3
+              convert PBM to Atari Degas .pi3
+
+       xbmtopbm
+              convert X10 or X11 bitmap to PBM
+
+       pbmtoxbm
+              convert PBM to X11 bitmap
+
+       pbmtox10bm
+              convert PBM to X10 bitmap
+
+       ybmtopbm
+              convert Bennet Yee "face" file into PBM
+
+       pbmtoybm
+              convert PBM into Bennet Yee "face" file
+
+       pbmto10x
+              convert PBM to Gemini 10x printer graphics
+
+       pbmtoascii
+              convert PBM to ASCII graphic form
+
+       asciitopgm
+              convert ASCII character graphics to PGM
+
+       pbmtobbnbg
+              convert PBM to BBN BitGraph graphics
+
+       pbmtocmuwm
+              convert PBM to CMU window manager format
+
+       pbmtoepson
+              convert PBM to Epson printer graphics
+
+       pbmtogem
+              convert PBM into GEM .img file
+
+       pbmtogo
+              convert PBM to GraphOn graphics
+
+       pbmtolj
+              convert PBM to HP LaserJet black and white graphics
+
+       ppmtolj
+              convert PPM to HP LaserJet color graphics (PCL)
+
+       pjtoppm
+              convert HP PaintJet file to PPM
+
+       ppmtopj
+              convert PPM to HP PaintJet file
+
+       thinkjettopbm
+              convert HP Thinkjet printer stream to PBM
+
+       pbmtoplot
+              convert PBM into Unix plot(5) file
+
+       pbmtoptx
+              convert PBM to Printronix graphics
+
+       pbmtozinc
+              convert PBM to Zinc Interface Library icon
+
+       fitstopnm
+              convert FITS format to portable anymap
+
+       pnmtofits
+              convert Netpbm formats to FITS format
+
+       fstopgm
+              convert Usenix FaceSaver(tm) format to PGM
+
+       pgmtofs
+              convert PGM to Usenix FaceSaver(tm) format
+
+       hipstopgm
+              convert HIPS format to PGM
+
+       lispmtopgm
+              convert a Lisp Machine bitmap file into PGM format
+
+       pgmtolispm
+              convert PGM into Lisp Machine format
+
+       pnmtops
+              convert Netpbm formats to Postscript
+
+       pstopnm
+              convert Postscript to Netpbm formats
+
+       psidtopgm
+              convert PostScript "image" data to PGM
+
+       pbmtolps
+              convert PBM image to Postscript using lines
+
+       pbmtoepsi
+              convert a PBM image to encapsulated Postscript preview bitmap
+
+       pbmtopsg3
+              convert PBM images to Postscript using G3 fax compression.
+
+       rawtopgm
+              convert raw grayscale bytes to PGM
+
+       pgmtopbm
+              convert PGM to PBM
+
+       gouldtoppm
+              convert Gould scanner file to PPM
+
+       ilbmtoppm
+              convert IFF ILBM to PPM
+
+       ppmtoilbm
+              convert PPM to IFF ILBM
+
+       imgtoppm
+              convert Img-whatnot to PPM
+
+       mtvtoppm
+              convert MTV ray-tracer output to PPM
+
+       pcxtoppm
+              convert PC Paintbrush format to PPM
+
+       pgmtoppm
+              colorize a portable graymap into a PPM
+
+       pi1toppm
+              convert Atari Degas .pi1 to PPM
+
+       ppmtopi1
+              convert PPM to Atari Degas .pi1
+
+       picttoppm
+              convert Macintosh PICT to PPM
+
+       ppmtopict
+              convert PPM to Macintosh PICT
+
+       qrttoppm
+              convert QRT ray-tracer output to PPM
+
+       rawtoppm
+              convert raw RGB bytes to PPM
+
+       sldtoppm
+              convert an AutoCAD slide file into a PPM
+
+       spctoppm
+              convert Atari compressed Spectrum to PPM
+
+       sputoppm
+              convert Atari uncompressed Spectrum to PPM
+
+       tgatoppm
+              convert TrueVision Targa file to PPM
+
+       ppmtotga
+              convert PPM to TrueVision Targa file
+
+       ximtoppm
+              convert Xim to PPM
+
+       xpmtoppm
+              convert XPM format to PPM
+
+       ppmtoxpm
+              convert PPM to XPM format
+
+       yuvtoppm
+              convert Abekas YUV format to PPM
+
+       eyuvtoppm
+              convert Encoder/Berkeley YUV format to PPM
+
+       ppmtoeyuv
+              convert PPM to Encoder/Berkeley YUV format
+
+       ppmtoyuv
+              convert PPM to Abekas YUV format
+
+       ppmtoyuvsplit
+              convert PPM to 3 subsampled raw YUV files
+
+       yuvsplittoppm
+              merge 3 subsampled raw YUV files to one PPM
+
+       ppmtoacad
+              convert PPM to AutoCAD database or slide
+
+       ppmtoicr
+              convert PPM to NCSA ICR graphics
+
+       ppmtopcx
+              convert PPM to PC Paintbrush format
+
+       ppmtopgm
+              convert PPM to portable graymap
+
+       ppmtopuzz
+              convert PPM to X11 "puzzle" file
+
+       rasttopnm
+              convert Sun raster file to Netpbm formats
+
+       pnmtorast
+              convert Netpbm formats to Sun raster file
+
+       tifftopnm
+              convert TIFF file to portable anymap
+
+       pnmtotiff
+              convert Netpbm formats to TIFF RGB file
+
+       pnmtotiffcmyk
+              convert Netpbm formats to TIFF CMYK file
+
+       xwdtopnm
+              convert X10 or X11 window dump to Netpbm formats
+
+       pnmtoxwd
+              convert Netpbm formats to X11 window dump
+
+       pnmtoplainpnm
+              convert regular Netpbm format image into plain Netpbm format
+
+       pbmtopgm
+              convert PBM file to PGM by averaging areas
+
+       411toppm
+              convert 411 (Sony Mavica) to PPM
+
+       ppmtosixel
+              convert PPM to DEC sixel format
+
+       ppmtouil
+              convert PPM to Motif UIL icon file
+
+       sbigtopgm
+              convert Santa Barbara Instrument Group CCD file to PGM
+
+       vidtoppm
+              convert Parallax XVideo JPEG to sequence of PPM files
+
+       pnmtorle
+              convert PNM to Utah Raster Toolkit (urt/rle) file
+
+       rletopnm
+              convert Utah Raster Toolkit (urt/rle) file to PNM
+
+       ppmtoleaf
+              convert PPM to Interleaf
+
+       leaftoppm
+              convert Interleaf to PPM
+
+       bioradtopgm
+              convert Biorad confocal image to PGM
+
+       pbmtoln03
+              convert PGM image to Dec LN03+ Sixel image
+
+       pbmtopk
+              convert PBM image to packed format (PK) font
+
+       pktopbm
+              convert packed format (PK) font to PBM image
+
+
+   Image Generators
+       All of these generate Netpbm format output.
+
+
+       pbmmake
+              create a blank PBM image of a specified size
+
+       ppmmake
+              create a PPM image of a specified size and color
+
+       pgmramp
+              generate a grayscale ramp
+
+       ppmpat create a pretty PPM image
+
+       ppmrainbow
+              create a spectrum-like image with colors fading together.
+
+       pgmnoise
+              create a PGM image of white noise
+
+       pbmtext
+              render text into a PBM image
+
+       pbmupc create a Universal Product Code PBM image
+
+       ppmcie generate a CIE color map PPM image
+
+       pbmpage
+              create a printer test pattern page in PBM format
+
+       ppmcolors
+              create a color map (PPM image) containing all possible colors of given maxval
+
+
+
+   Image Editors
+       All of these work on the Netpbm formats
+
+
+       ppmlabel
+              Add text to an image
+
+       pnmshadow
+              add a shadow to an image so it looks like it's floating
+
+       ppmbrighten
+              brighten or dim an image -- change saturation and value
+
+       ppmdim dim an image - different way from ppmbrighten
+
+       pbmreduce
+              reduce a PBM N times, using Floyd-Steinberg
+
+       pgmnorm
+              normalize contrast in a PGM image
+
+       ppmnorm
+              normalize contrast in a PPM image
+
+       pbmpscale
+              enlarge a PBM image with edge smoothing
+
+       pnmscale
+              scale an image with high precision
+
+       pnmscalefixed
+              scale an image quickly with low precision
+
+       pnmenlarge
+              enlarge an image N times
+
+       ppmdither
+              ordered dither for color images
+
+       pnmcolormap
+              Choose the N best colors to represent an image; create a colormap
+
+       pnmremap
+              Replace colors in an image with those from a color map
+
+       ppmquant
+              quantize colors in a color image down to fewer colors
+
+       pnmquant
+              quantize colors/shades in a color or grayscale image down to fewer
+
+       ppmquantall
+              quantize colors on many files
+
+       ppmrelief
+              run a Laplacian Relief filter on a PPM
+
+       pnmarith
+              perform arithmetic on two images
+
+       pnmcat concatenate images
+
+       pnmpad add borders to an image
+
+       pnmcomp
+              create composite (overlay) of images
+
+       ppmmix mix (overlay) two images.
+
+       pnmcrop
+              crop all like-colored borders off an image
+
+       pamcut select a rectangular region from an image
+
+       pnmcut obsolete version of pamcut (kept because it may have fewer bugs)
+
+       pamdice
+              slice an image into many horizontally and/or vertically
+
+       pamdeinterlace
+              remove every other row from an image
+
+       pamchannel
+              extract a single plane (channel, e.g. R, G, or B) from an image
+
+       pnmdepth
+              change the maxval in an image
+
+       pnmflip
+              perform one or more flip operations on an image
+
+       pamstretch
+              scale up an image by inserting interpolated pixels
+
+       pamstretch-gen
+              scale by non-integer values using pamstretch and pnmscale
+
+       pnminvert
+              invert an image
+
+       pnmgamma
+              perform gamma correction on an image
+
+       pnmhisteq
+              histogram equalize image to increase contrast
+
+       pnmmargin
+              add a margin to an image
+
+       pnmpaste
+              paste a rectangle into an image
+
+       pnmrotate
+              rotate an image
+
+       pnmshear
+              shear an image
+
+       pnmsmooth
+              smooth am image
+
+       pnmtile
+              replicate an image into a specified size
+
+       pbmclean
+              remove lone pixels (snow) from a PBM image
+
+       pnmalias
+              antialias an image
+
+       ppmchange
+              change all of one color to another in PPM image
+
+       pnmnlfilt
+              filter an image by replacing each pixel with a function of nearby pixels
+
+       ppmshift
+              shift lines of PPM image left or right a random amount
+
+       ppmspread
+              move pixels of PPM image a random amount
+
+       pnmconvol
+              general MxN convolution on an image
+
+       rgb3toppm
+              combine three portable graymaps into one PPM
+
+       ppmtorgb3
+              separate a PPM into three portable graymaps
+
+       pbmlife
+              apply Conway's rules of Life to a PBM image
+
+       ppmdist
+              map colors to high contrast grayscales arbitrarily
+
+       ppmntsc
+              adjust colors so they are legal for NTSC or PAL television
+
+
+
+   Image Analyzers
+       These all work on the Netpbm formats as input.
+
+
+       pnmfile
+              describe an image's vital characteristics
+
+       pnmpsnr
+              measure difference between two images
+
+       pgmedge
+              edge-detect a PGM image
+
+       pgmenhance
+              edge-enhance a PGM image
+
+       pgmslice
+              print grayscale values for a row or column of a PGM image
+
+       pgmtexture
+              calculate textural features on a PGM image
+
+       pgmhist
+              print a histogram of the values in a PGM image
+
+       ppmhist
+              print a histogram of a PPM
+
+       pnmhistmap
+              draw a histogram of a PGM or PPM
+
+       ppmtomap
+              generate a map of all colors in an image
+
+       ppm3d  generate a blue/green 3D glasses image from two images
+
+
+   Miscellaneous
+       ppmsvgalib
+              display a PPM image on a Linux virtual console using Svgalib
+
+       pbmmask
+              create a mask bitmap from a regular bitmap
+
+       ppmcolormask
+              create mask of areas of a certain color in an image
+
+       pnmsplit
+              split a multi-image Netpbm file into multiple 1-image files
+
+       pnmindex
+              build a visual index of a bunch of Netpbm images
+
+       pcdindex
+              build a visual index of a photo CD from PCD overview file
+
+       pnmmontage
+              build multiple Netpbm images into a single montage image
+
+       pgmbentley
+              Bentleyize a PGM image
+
+       pgmcrater
+              create cratered terrain by fractal forgery
+
+       pamoil turn a PNM or PAM image into an oil painting
+
+       ppmforge
+              fractal forgeries of clouds, planets, and starry skies
+
+       pgmkernel
+              generate a convolution kernel
+
+       ppmtv  Make an image lined so it looks like an old TV
+
+       pbmto4425
+              Display PBM image on AT&T 4425 ASCII terminal with gfx chars
+
+
+   Uncatalogued As Yet
+       pnmtoddif
+
+       pnmtosgi
+
+       pnmtosir
+
+       ppmflash
+
+       ppmqvga
+
+       ppmtomitsu
+
+       ppmtopjxl
+
+       sgitopnm
+
+       sirtopnm
+
+       spottopgm
+
+       xvminitoppm
+
+       zeisstopnm
+
+
+
+The Netpbm Libraries
+       The Netpbm programming libraries, libpbm(3), libpgm(3), libppm(3), and libpnm(3), make it easy to write  pro‐
+       grams  that  manipulate graphic images.  Their main function is to read and write files in the Netpbm format,
+       and because the Netpbm package contains converters for all the popular  graphics  formats,  if  your  program
+       reads and writes the Netpbm formats, you can use it with any formats.
+
+       But the libraries also contain some utility functions, such as character drawing and RGB/YCrCb conversion.
+
+       The libraries have the conventional C linkage.  Virtually all programs in the Netpbm package are based on the
+       Netpbm libraries.
+
+
+
+   Application Notes
+       As a collection of primitive tools, the power of Netpbm is multiplied by the power  of  all  the  other  unix
+       tools you can use with them.  These notes remind you of some of the more useful ways to do this.  Often, when
+       people want to add high level functions to the Netpbm tools, they have overlooked some existing tool that, in
+       combination with Netpbm, already does it.
+
+       Often, you need to apply some conversion or edit to a whole bunch of files.
+
+       As a rule, Netpbm programs take one input file and produce one output file, usually on Standard Output.  This
+       is for flexibility, since you so often have to pipeline many tools together.
+
+       Here is an example of a shell command to convert all your of PNG files (named  *.png)  to  JPEG  files  named
+       *.jpg:
+
+       for i in *.png; do pngtopnm $i | ppmtojpeg >`basename $i .png`.jpg; done
+
+       Or you might just generate a stream of individual shell commands, one per file, with awk or perl.  Here's how
+       to brighten 30 YUV images that make up one second of a movie, keeping the images in the same files:
+
+       ls *.yuv .br | perl -ne 'chomp;
+       print yuvtoppm $_ | ppmbrighten -v 100 | ppmtoyuv >tmp$$.yuv; ,
+       mv tmp$$.yuv $_0
+       ' .br | sh
+
+       The tools find (with the -exec option) and xargs are also useful for simple manipulation of groups of files.
+
+       Some shells' "process substitution" facility can help where a non-Netpbm program expects you  to  identify  a
+       disk  file  for  input  and  you want it to use the result of a Netpbm manipulation.  Say printcmyk takes the
+       filename of a Tiff CMYK file as input and what you have is a PNG file abc.png.  Try:
+
+       printcmyk <({ pngtopnm abc.png | pnmtotiffcmyk ; })
+
+       It works in the other direction too, if you have a program that makes you name its output file and  you  want
+       the output to go through a Netpbm tool.
+
+
+   Other Graphics Software
+       Netpbm contains primitive building blocks.  It certainly is not a complete graphics library.
+
+       The  first  thing  you will need to make use of any of these tools is a viewer.  For the X inclined, there is
+       xzgv.  See ftp://metalab.unc.edu/pub/Linux/apps/graphics/viewers/X.
+
+       xloadimage and its extension xli are also common ways to display a graphic image in X.
+
+       ImageMagick is like a visual version of Netpbm.  Using the X/Window system on Unix, you can do basic  editing
+       of images and lots of format conversions.  The package does include at least some non-visual tools.  Convert,
+       Mogrify, Montage, and Animate are popular programs from the ImageMagick package.  ImageMagick runs  on  Unix,
+       Windows, Windows NT, Macintosh, and VMS.
+
+       The  Gimp is a visual image editor for Unix and X, in the same category as the more famous, less capable, and
+       much more expensive Adobe Photoshop, etc. for Windows.  See http://www.gimp.org.
+
+       The file program looks at a file and tells you what kind of file it is.  It recognizes most of  the  graphics
+       formats  with which Netpbm deals, so it is pretty handy for graphics work.  Netpbm's anytopnm program depends
+       on file.  See ftp://ftp.astron.com/pub/file.
+
+       The Utah Raster Toolkit serves a lot of the same purpose as Netpbm, but without the emphasis on  format  con‐
+       versions.   This  package  is  based on the RLE format, which you can convert to and from the Netpbm formats.
+       http://www.cs.utah.edu/research/projects/alpha1/urt.html gives some information on the Utah  Raster  Toolkit,
+       but does not tell where to get it.
+
+
+       There  are some Netpbm-like graphics tools distributed by the Army High Performance Computing Research Center
+       at http://www.arc.umn.edu/gvl-software/media-tools.html.  These operate directly on non-Netpbm format images,
+       so  they aren't included in the Netpbm package.  However, you can use them with any image format by using the
+       Netpbm format converters.
+
+
+       Ivtools is a suite of free X Windows drawing editors for Postscript, Tex, and  web  graphics  production,  as
+       well  as  an  embeddable  and  extendable  vector  graphic  shell.   It  uses  the  Netpbm  facilities.   See
+       http://www.ivtools.org.
+
+       Ilib is a C subroutine library with functions for adding text to an image (as you might do at a higher  level
+       with    pbmtext,    pnmcomp,   etc.).    It   works   with   Netpbm   input   and   output.    Find   it   at
+       http://www.radix.net/~cknudsen/Ilib.  Netpbm also includes character drawing functions in the libppm library,
+       but  they  do not have as fancy font capabilities (see ppmlabel for an example of use of the Netpbm character
+       drawing functions).
+
+       GD is a library of graphics routines that is part of PHP.  It has a subset of Netpbm's functions and has been
+       found to resize images more slowly and with less quality.
+
+       pnm2ppa converts to HP's "Winprinter" format (for HP 710, 720, 820, 1000, etc).  It is a superset of Netpbm's
+       pbmtoppa and handles, notably, color.  However, it is more of a printer driver than a Netpbm-style  primitive
+       graphics building block.  See http://sourceforge.net/project/?group_id=1322.
+
+       The  program  morph morphs one image into another.  It uses Targa format images, but you can use tgatoppm and
+       ppmtotga to deal with that format.  You have to use the graphical (X/Tk) Xmorph to create the mesh files that
+       you   must   feed   to   morph.    morph   is   part   of   the  Xmorph  package.   See  http://www.colorado-
+       research.com/~gourlay/software/Graphics/Xmorph.
+
+       To create an animated GIF, or extract a frame from one, use gifsicle.  gifsicle converts between animated GIF
+       and  still  GIF,  and  you  can  use  ppmtogif  and  giftopnm to connect up to all the Netpbm utilities.  See
+       http://www.lcdf.org/gifsicle.
+
+       To convert an image of text to text (optical character recongition - OCR),  use  gocr  (think  of  it  as  an
+       inverse of pbmtext).  See http://altmark.nat.uni-magdeburg.de/~jschulen/ocr/.
+
+       http://schaik.com/pngsuite  contains  a  PNG test suite -- a whole bunch of PNG images exploiting the various
+       features of the PNG format.
+
+       Another version of pnmtopng/pngtopnm is at http://www.schaik.com/png/pnmtopng.html.  The  version  in  Netpbm
+       was actually based on that package a long time ago, and you can expect to find better exploitation of the PNG
+       format, especially recent enhancements, in that package.  It may be a little less consistent with the  Netpbm
+       project and less exploitive of recent Netpbm format enhancements, though.
+
+       jpegtran  Does  some  of the same transformations as Netpbm is famous for, but does them specifically on JPEG
+       files and does them without loss of information.  By contrast, if you were to use  Netpbm,  you  would  first
+       decompress  the  JPEG image to Netpbm format, then transform the image, then compress it back to JPEG format.
+       In that recompression, you lose a little image information because JPEG is  a  lossy  compression.   jpegtran
+       comes with the Independent Jpeg Group's (http://www.ijg.org) JPEG library.
+
+       Some  tools  to deal with EXIF files (see also Netpbm's jpegtopnm and pnmtojpeg): To dump (interpret) an EXIF
+       header: Exifdump  ((http://topo.math.u-psud.fr/~bousch/exifdump.py)  or  Jhead  (http://www.sentex.net/~mwan‐
+       del/jhead).
+
+       A Python EXIF library and dumper:  http://pyexif.sourceforge.net.
+
+       Latex2html  converts  Latex  document  source  to  HTML document source.  Part of that involves graphics, and
+       Latex2html uses Netpbm tools for some of that.  But Latex2html through its history has had some  rather  eso‐
+       teric  codependencies  with Netpbm.  Older Latex2html doesn't work with current Netpbm.  Latex2html-99.2beta8
+       works, though.
+
+
+
+   Other Graphics Formats
+       People never seem to tire of inventing new graphics formats, often  completely  redundant  with  pre-existing
+       ones.  Netpbm cannot keep up with them.  Here is a list of a few that we know Netpbm does not handle (yet).
+
+         CAL  (originated by US Department Of Defense, favored by architects).  http://www.landfield.com/faqs/graph‐
+       ics/fileformats-faq/part3/section-24.html
+
+         array formats dx, general, netcdf, CDF, hdf, cm
+
+         CGM+
+
+         Windows Meta File (.WMF).  Libwmf converts from WMF to things like Latex, PDF, PNG.  Some of these  can  be
+       input to Netpbm.
+
+         Microsoft  Word,  RTF.  Microsoft keeps a proprietary hold on these formats.  Any software you see that can
+       handle them is likely to cost money.
+
+         DXF (AutoCAD)
+
+
+HISTORY
+       Netpbm has a long history, starting with Jef Poskanzer's Pbmplus package in 1988.  The file  HISTORY  in  the
+       Netpbm source code contains a historical overview as well as a detailed history release by release.
+
+
+AUTHOR
+       Netpbm  is  based  on  the  Pbmplus package by Jef Poskanzer, first distributed in 1988 and maintained by him
+       until 1991.  But the package contains work by countless other authors, added since Jef's original  work.   In
+       fact,  the  name  is derived from the fact that the work was contributed by people all over the world via the
+       Internet, when such collaboration was still novel enough to merit naming the package after it.
+
+       Bryan Henderson has been maintaining Netpbm since 1999.  In addition to packaging work by others,  Bryan  has
+       also written a significant amount of new material for the package.
+
+
+
+
+
+                                                                                                           netpbm(1)

@@ -1,0 +1,102 @@
+jcmd(1)                                         Troubleshooting Tools                                        jcmd(1)
+
+
+
+NAME
+       jcmd - Sends diagnostic command requests to a running Java Virtual Machine (JVM).
+
+SYNOPSIS
+           jcmd [-l|-h|-help]
+
+           jcmd pid|main-class PerfCounter.print
+
+           jcmd pid|main-class -f filename
+
+           jcmd pid|main-class command[ arguments]
+
+DESCRIPTION
+       The jcmd utility is used to send diagnostic command requests to the JVM. It must be used on the same machine
+       on which the JVM is running, and have the same effective user and group identifiers that were used to launch
+       the JVM.
+
+           Note
+           ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+           │                                                                                                                            │
+           │           To invoke diagnostic commands from a remote                                                                      │
+           │           machine or with different identifiers, you can                                                                   │
+           │           use the                                                                                                          │
+           │           com.sun.management.DiagnosticCommandMBean                                                                        │
+           │           interface. For more information about the                                                                        │
+           │           DiagnosticCommandMBean interface, see the API                                                                    │
+           │           documentation at                                                                                                 │
+           │           http://docs.oracle.com/javase/8/docs/jre/api/management/extension/com/sun/management/DiagnosticCommandMBean.html │
+           └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+       If you run jcmd without arguments or with the -l option, it prints the list of running Java process
+       identifiers with the main class and command-line arguments that were used to launch the process. Running jcmd
+       with the -h or -help option prints the tool’s help message.
+
+           Note
+           ┌──────────────────────────────────────────────────────────┐
+           │                                                          │
+           │           The jcmd utility can be used to dynamically    │
+           │           interact with Java Flight Recorder (JFR) in a  │
+           │           JVM that is already running. You can use it to │
+           │           unlock commercial features, enable/start/stop  │
+           │           flight recordings, and obtain various status   │
+           │           messages from the system. For a list of        │
+           │           examples, see the Java Flight Recorder Runtime │
+           │           Guide at                                       │
+           │           http://docs.oracle.com/javacomponents/jmc.htm  │
+           └──────────────────────────────────────────────────────────┘
+
+       If you specify the processes identifier (pid) or the main class (main-class) as the first argument, jcmd
+       sends the diagnostic command request to the Java process with the specified identifier or to all Java
+       processes with the specified name of the main class. You can also send the diagnostic command request to all
+       available Java processes by specifying 0 as the process identifier. Use one of the following as the
+       diagnostic command request:
+
+       Perfcounter.print
+           Prints the performance counters available for the specified Java process. The list of performance
+           counters might vary with the Java process.
+
+       -f filename
+           The name of the file from which to read diagnostic commands and send them to the specified Java process.
+           Used only with the -f option. Each command in the file must be written on a single line. Lines starting
+           with a number sign (#) are ignored. Processing of the file ends when all lines have been read or when a
+           line containing the stop keyword is read.
+
+       command [arguments]
+           The command to be sent to the specified Java process. The list of available diagnostic commands for a
+           given process can be obtained by sending the help command to this process. Each diagnostic command has
+           its own set of arguments. To see the description, syntax, and a list of available arguments for a
+           command, use the name of the command as the argument for the help command.
+
+           Note: If any arguments contain spaces, you must surround them with single or double quotation marks (' or
+           "). In addition, you must escape single or double quotation marks with a backslash (\) to prevent the
+           operating system shell from processing quotation marks. Alternatively, you can surround these arguments
+           with single quotation marks and then with double quotation marks (or with double quotation marks and then
+           with single quotation marks).
+
+OPTIONS
+       Options are mutually exclusive.
+
+       -f filename
+           Reads commands from the specified file. This option can be used only if you specify the process
+           identifier or the main class as the first argument. Each command in the file must be written on a single
+           line. Lines starting with a number sign (#) are ignored. Processing of the file ends when all lines have
+           been read or when a line containing the stop keyword is read.
+
+       -h
+       -help
+           Prints a help message.
+
+       -l
+           Prints the list of running Java processes identifiers with the main class and command-line arguments.
+
+SEE ALSO
+       ·   jps(1)
+
+
+
+JDK 8                                               03 March 2015                                            jcmd(1)

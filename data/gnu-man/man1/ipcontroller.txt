@@ -1,0 +1,28 @@
+IPCONTROLLER(1)                                                                                      IPCONTROLLER(1)
+
+
+
+NAME
+       ipcontroller - start a controller for IPython parallel computing
+
+
+SYNOPSIS
+       ipcontroller [options]
+
+
+DESCRIPTION
+       ipcontroller starts a controller for the IPython cluster
+
+       For  more information on how to use ipcontroller, see 'ipcontroller --help', or 'ipcontroller --help-all' for
+       all available command‐line options.
+
+
+SEE ALSO
+       ipython(1), ipengine(1), ipcluster(1)
+
+AUTHORS
+       ipcontroller ships with IPython, maintained by the IPython Development Team.
+
+
+
+                                                    June 10, 2012                                    IPCONTROLLER(1)

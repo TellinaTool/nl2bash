@@ -1,0 +1,60 @@
+dpkg-trigger(1)                                      dpkg suite                                      dpkg-trigger(1)
+
+
+
+NAME
+       dpkg-trigger - a package trigger utility
+
+SYNOPSIS
+       dpkg-trigger [option...] trigger-name
+       dpkg-trigger [option...] command
+
+DESCRIPTION
+       dpkg-trigger is a tool to explicitly activate triggers and check for its support on the running dpkg.
+
+       This  can be used by maintainer scripts in complex and conditional situations where the file triggers, or the
+       declarative activate triggers control file directive, are insufficiently rich. It can also be used for  test‐
+       ing and by system administrators (but note that the triggers won't actually be run by dpkg-trigger).
+
+       Unrecognized trigger name syntaxes are an error for dpkg-trigger.
+
+COMMANDS
+       --check-supported
+              Check  if  the running dpkg supports triggers (usually called from a postinst). Will exit 0 if a trig‐
+              gers-capable dpkg has run, or 1 with an error message to stderr if not. Normally, however, it is  bet‐
+              ter just to activate the desired trigger with dpkg-trigger.
+
+       -?, --help
+              Show the usage message and exit.
+
+       --version
+              Show the version and exit.
+
+OPTIONS
+       --admindir=dir
+              Change the location of the dpkg database. The default location is /var/lib/dpkg.
+
+       --by-package=package
+              Override  trigger awaiter (normally set by dpkg through the DPKG_MAINTSCRIPT_PACKAGE environment vari‐
+              able of the maintainer scripts, naming the package to which the script belongs, and this will be  used
+              by default).
+
+       --no-await
+              This  option  arranges that the calling package T (if any) need not await the processing of this trig‐
+              ger; the interested package(s) I, will not be added to T's trigger processing  awaited  list  and  T's
+              status is unchanged.  T may be considered installed even though I may not yet have processed the trig‐
+              ger.
+
+       --no-act
+              Just test, do not actually change anything.
+
+ENVIRONMENT
+       DPKG_ADMINDIR
+              If set and the --admindir option has not been specified, it will be used as the dpkg data directory.
+
+SEE ALSO
+       dpkg(1), deb-triggers(5), /usr/share/doc/dpkg-dev/triggers.txt.gz.
+
+
+
+Debian Project                                       2011-08-14                                      dpkg-trigger(1)

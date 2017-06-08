@@ -1,0 +1,62 @@
+
+UCFQ(1)                                  User Contributed Perl Documentation                                 UCFQ(1)
+
+
+
+NAME
+       ucfq - query the ucf database
+
+SYNOPSIS
+        usage: ucfq [options] (/path/to/file|package)[/path/to/file|package  ...]
+
+OPTIONS
+       --help h Print out a usage message.
+       --debug -d Turn on debugging mode.
+       --verbose -v Make the script more verbose..
+       --with-colons -w
+            Normally, the script presents the information in a human readable tabular format, but that may be harder
+            for a machine to parse. With this option, the output is a compact, colon separated line, with no
+            dividers, headers, or footer.
+
+       --state-dr dir
+            Set the state directory to "/path/to/dir" instead of the default "/var/lib/ucf".  Used mostly for test‐
+            ing.
+
+DESCRIPTION
+       This script takes a set of arguments, each of which is a package name (and thus does not contain a /) or a
+       full path to a configuration file, and outputs the associated package, if any, if the file exists on disk,
+       and whether it has been modified by the user.  The output is either a human readable tabular form, or a com‐
+       pact colon-separated machine friendly format.
+
+       This script can potentially be used in package "postrm" scripts during purge to query the system for configu‐
+       ration files that may still exist on the system, and whether these files have been locally modified by the
+       user -- assuming that the package registered all the configuration files with ucf using "ucfr".
+
+CAVEATS
+       This is very inchoate, at the moment, and needs testing.
+
+BUGS
+       None Known so far.
+
+AUTHOR
+       Manoj Srivastava <srivasta\@debian.org>
+
+COPYRIGHT AND LICENSE
+       This script is a part of the Ucf package, and is
+
+       Copyright (c) 2006 Manoj Srivastava <srivasta\@debian.org>
+
+       This program is free software; you can redistribute it and / or modify it under the terms of the GNU General
+       Public License as published by the Free Software Foundation; either version 2 of the License, or (at your
+       option) any later version.
+
+       This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+       implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+       for more details.
+
+       You should have received a copy of the GNU General Public License along with this program; if not, write to
+       the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+
+perl v5.8.8                                          2006-04-16                                              UCFQ(1)

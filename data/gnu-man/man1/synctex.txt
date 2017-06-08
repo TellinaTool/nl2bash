@@ -1,0 +1,25 @@
+synctex(1)                                   BSD General Commands Manual                                  synctex(1)
+
+NAME
+     synctex — command line client tool to support the Synchronize TeXnology available in recent TeX engines.
+
+SYNOPSIS
+     synctex command [options] [args]
+
+OVERVIEW
+     The Synchronization TeXnology is a new feature of recent TeX engines.  It allows to synchronize between input
+     and output, which means to navigate from the source document to the typeset material and vice versa.
+
+     Run `synctex help' to access the built-in tool documentation.
+
+SEE ALSO
+     synctex(5) tex(1)
+
+AUTHOR
+     The Synchronize TeXnology is essentially due to Jerome Laurens, with useful suggestions by some well known
+     actors of the TeX world.
+
+HISTORY
+     This document has never been updated.
+
+                                                    June 8, 2017

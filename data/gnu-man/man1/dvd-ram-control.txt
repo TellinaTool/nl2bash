@@ -1,0 +1,32 @@
+DVD-RAM-CONTROL(1)                                  User Commands                                 DVD-RAM-CONTROL(1)
+
+
+
+NAME
+       dev-ram-control - checks features of DVD-RAM discs
+
+
+SYNOPSIS
+       dvd-ram-control [-arre] [-awre] [-rdonly|-rdwr] /dev/dvd
+
+
+DESCRIPTION
+       The  dvd-ram-control  command allows the user to check/set features of DVD-RAM discs. One such information is
+       the Persistent Write Protection, controlling if the disc can be in read-only mode or if both reads and writes
+       are  enabled. It also allows the user to check and or set if Automatic Write Relocation Enable (AWRE) as well
+       as Automatic Read Relocation Enable (ARRE) are enabled or not for a given media.
+
+
+SEE ALSO
+       Most up-to-date information on dvd+rw-tools is available at http://fy.chalmers.se/~appro/linux/DVD+RW/.
+
+       The manpage for growisofs(1), dvd+rw-format(1), dvd+rw-booktype(1).
+
+
+AUTHOR
+       dvd+rw-mediainfo was written by Andy Polyakov  <appro@fy.chalmers.se>.   This  manual  page  was  written  by
+       Rogério Brito <rbrito@ime.usp.br> for the Debian project, but it may be used by others.
+
+
+
+dvd+rw-tools                                        February 2010                                 DVD-RAM-CONTROL(1)

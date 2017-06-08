@@ -1,0 +1,47 @@
+pbmtonokia(1)                                  General Commands Manual                                 pbmtonokia(1)
+
+
+
+NAME
+       pbmtonokia - convert a portable bitmap to Nokia Smart Messaging Formats
+
+SYNOPSIS
+       pbmtonokia [options] [pbmfile]
+
+DESCRIPTION
+       Reads a portable bitmap as input.  Produces a Nokia Smart Messaging (hexcode, .nok, .ngg) file as output.
+
+OPTIONS
+       -fmt   Specifies the output format (default is HEX_NOL).
+
+       HEX_NOL
+              Nokia Operator Logo as (uploadable) hexcode.  Use option -net to specify network code.
+
+       HEX_NGG
+              Nokia Group Graphic as (uploadable) hexcode.
+
+       HEX_NMP
+              Nokia Picture Message as (uploadable) hexcode.  Use option -txt to specify optional text message.
+
+       NOL    Nokia Operator Logo as .nol format. This is editable by the Group-Graphic Editor from Kessler Wireless
+              Design (www.kessler-design.com)
+
+       NGG    Nokia Group Graphic as .ngg format. This is editable by the Group-Graphic Editor from Kessler Wireless
+              Design (www.kessler-design.com)
+
+       -net   Specifies the 6 hex-digit operator network code for Operator Logos (Default is 62F210 = D1,Germany).
+
+       -txt   Specifies the text message for Picture Messages. Default is no text message.
+
+LIMITATIONS
+       Currently limited to rows<=255 and columns<=255. Supports only b/w graphics, not animated.
+
+SEE ALSO
+       pbm(5), Nokia Smart Messaging Specification (http://forum.nokia.com)
+
+AUTHOR
+       Copyright (C) 2001 Tim Ruehsen <tim.ruehsen@openmediasystem.de>.
+
+
+
+                                                    26 June 2001                                       pbmtonokia(1)

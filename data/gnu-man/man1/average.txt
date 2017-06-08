@@ -1,0 +1,53 @@
+AVERAGE(1)                                          User Commands                                         AVERAGE(1)
+
+
+
+NAME
+       Average - Average or merge values in .ti3 like files.
+
+DESCRIPTION
+       Average or merge values in .ti3 like files, Version 1.5.1
+
+              Diagnostic: Too few arguments (1, minimum is 2)
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3 usage: average [-options] input1.ti3 input2.ti3 ...
+       output.ti3
+
+       -v     Verbose
+
+       -m     Merge rather than average
+
+       input1.ti3
+              First input file
+
+       input2.ti3
+              Second input file
+
+       ...    etc.
+
+       output.ti3
+              Resulting averaged or merged output file
+
+              Diagnostic: Too few arguments (1, minimum is 2)
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3 usage: average [-options] input1.ti3 input2.ti3 ...
+       output.ti3
+
+       -v     Verbose
+
+       -m     Merge rather than average
+
+       input1.ti3
+              First input file
+
+       input2.ti3
+              Second input file
+
+       ...    etc.
+
+       output.ti3
+              Resulting averaged or merged output file
+
+
+
+Average or merge values in .ti3 like files, Version 1August 2013                                          AVERAGE(1)

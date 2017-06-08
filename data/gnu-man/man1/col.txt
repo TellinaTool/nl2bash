@@ -1,0 +1,70 @@
+COL(1)                                       BSD General Commands Manual                                      COL(1)
+
+NAME
+     col — filter reverse line feeds from input
+
+SYNOPSIS
+     col [-bfhpx] [-l num]
+
+DESCRIPTION
+     The col utility filters out reverse (and half reverse) line feeds so that the output is in the correct order
+     with only forward and half forward line feeds, and replaces white-space characters with tabs where possible.
+     This can be useful in processing the output of nroff(1) and tbl(1).
+
+     The col utility reads from the standard input and writes to the standard output.
+
+     The options are as follows:
+
+     -b      Do not output any backspaces, printing only the last character written to each column position.
+
+     -f      Forward half line feeds are permitted (``fine'' mode).  Normally characters printed on a half line
+             boundary are printed on the following line.
+
+     -h      Do not output multiple spaces instead of tabs (default).
+
+     -l num  Buffer at least num lines in memory.  By default, 128 lines are buffered.
+
+     -p      Force unknown control sequences to be passed through unchanged.  Normally, col will filter out any con‐
+             trol sequences from the input other than those recognized and interpreted by itself, which are listed
+             below.
+
+     -x      Output multiple spaces instead of tabs.
+
+     The control sequences for carriage motion that col understands and their decimal values are listed in the fol‐
+     lowing table:
+
+     ESC-7            reverse line feed (escape then 7)
+     ESC-8            half reverse line feed (escape then 8)
+     ESC-9            half forward line feed (escape then 9)
+     backspace        moves back one column (8); ignored in the first column
+     carriage return  (13)
+     newline          forward line feed (10); also does carriage return
+     shift in         shift to normal character set (15)
+     shift out        shift to alternate character set (14)
+     space            moves forward one column (32)
+     tab              moves forward to next tab stop (9)
+     vertical tab     reverse line feed (11)
+
+     All unrecognized control characters and escape sequences are discarded.
+
+     The col utility keeps track of the character set as characters are read and makes sure the character set is
+     correct when they are output.
+
+     If the input attempts to back up to the last flushed line, col will display a warning message.
+
+ENVIRONMENT
+     The LANG, LC_ALL and LC_CTYPE environment variables affect the execution of col as described in environ(7).
+
+EXIT STATUS
+     The col utility exits 0 on success, and >0 if an error occurs.
+
+SEE ALSO
+     colcrt(1), expand(1), nroff(1), tbl(1)
+
+STANDARDS
+     The col utility conforms to Version 2 of the Single UNIX Specification (“SUSv2”).
+
+HISTORY
+     A col command appeared in Version 6 AT&T UNIX.
+
+BSD                                                August 4, 2004                                                BSD

@@ -1,0 +1,733 @@
+pbmfilters(1)                                  General Commands Manual                                 pbmfilters(1)
+
+
+
+NAME
+       pbmfilters - list of all programs in the netpbm package
+
+DESCRIPTION
+       411toppm
+              convert Sony Mavica .411 image to ppm
+
+       anytopnm
+              attempt to convert an unknown type of image file to a portable anymap
+
+       asciitopgm
+              convert ASCII graphics into a portable graymap
+
+       atktopbm
+              convert Andrew Toolkit raster object to portable bitmap
+
+       bioradtopgm
+              convert a Biorad confocal file into a portable graymap
+
+       bmptopnm
+              convert a BMP file into a portable anymap
+
+       bmptoppm (deprecated)
+              is replaced by bmptopnm(1)
+
+       brushtopbm
+              convert a doodle brush file into a portable bitmap
+
+       cmuwmtopbm
+              convert a CMU window manager bitmap into a portable bitmap
+
+       eyuvtoppm
+              convert a Berkeley YUV file to a portable pixmap file
+
+       fiascotopnm
+              Convert compressed FIASCO image to PGM, or PPM
+
+       fitstopnm
+              convert a FITS file into a portable anymap
+
+       fstopgm
+              convert a Usenix FaceSaver(tm) file into a portable graymap
+
+       g3topbm
+              convert a Group 3 fax file into a portable bitmap
+
+       gemtopbm (deprecated)
+              is replaced by gemtopnm(1)
+
+       gemtopnm
+              convert a GEM .img file into a portable anymap
+
+       giftopnm
+              convert a GIF file into a portable anymap
+
+       gouldtoppm
+              convert Gould scanner file into a portable pixmap
+
+       hipstopgm
+              convert a HIPS file into a portable graymap
+
+       icontopbm
+              convert a Sun icon into a portable bitmap
+
+       ilbmtoppm
+              convert an ILBM file into a portable pixmap
+
+       imgtoppm
+              convert an Img-whatnot file into a portable pixmap
+
+       jpegtopnm
+              convert JPEG/JFIF file to portable pixmap or graymap
+
+       leaftoppm
+              convert Interleaf image format to a portable anymap
+
+       lispmtopgm
+              convert a Lisp Machine bitmap file into pgm format
+
+       macptopbm
+              convert a MacPaint file into a portable bitmap
+
+       mdatopbm
+              convert a Microdesign .mda or .mdp file into a portable bitmap
+
+       mgrtopbm
+              convert a MGR bitmap into a portable bitmap
+
+       mtvtoppm
+              convert output from the MTV or PRT ray tracers into a portable pixmap
+
+       neotoppm
+              convert an Atari Neochrome .neo into a portable pixmap
+
+       palmtopnm
+              convert a Palm pixmap into a portable anymap
+
+       pamcut cut a rectangle out of a PAM, PBM, PGM, or PPM image
+
+       pamdeinterlace
+              remove ever other row from a PAM/PNM image
+
+       pamdice
+              slice a Netpbm image into many horizontally and/or vertically
+
+       pamfile
+              describe a Netpbm (PAM or PNM) file
+
+       pamoil turn a PAM image into an oil painting
+
+       pamstack
+              stack planes of multiple PAM images into one PAM image
+
+       pamstretch-gen
+              use pamstretch and pnmscale to scale by non-integer values
+
+       pamstretch
+              scale up a PNM or PAM image by interpolating between pixels
+
+       pbmclean
+              flip isolated pixels in portable bitmap
+
+       pbmlife
+              apply Conway's rules of Life to a portable bitmap
+
+       pbmmake
+              create a blank bitmap of a specified size
+
+       pbmmask
+              create a mask bitmap from a regular bitmap
+
+       pbmpage
+              create a one page test pattern for printing
+
+       pbmpscale
+              enlarge a portable bitmap with edge smoothing
+
+       pbmreduce
+              read a portable bitmap and reduce it N times
+
+       pbmtext
+              render text into a bitmap
+
+       pbmtextps
+              render text into a bitmap via postscript
+
+       pbmto10x
+              convert a portable bitmap into Gemini 10X printer graphics
+
+       pbmtoascii
+              convert a portable bitmap into ASCII graphics
+
+       pbmtoatk
+              convert portable bitmap to Andrew Toolkit raster object
+
+       pbmtobbnbg
+              convert a portable bitmap into BitGraph graphics
+
+       pbmtocmuwm
+              convert a portable bitmap into a CMU window manager bitmap
+
+       pbmtoepsi
+              convert a portable bitmap into an encapsulated PostScript
+
+       pbmtoepson
+              convert a portable bitmap into Epson printer graphics
+
+       pbmtog3
+              convert a portable bitmap into a Group 3 fax file
+
+       pbmtogem
+              convert a portable bitmap into a GEM .img file
+
+       pbmtogo
+              convert a portable bitmap into compressed GraphOn graphics
+
+       pbmtoicon
+              convert a portable bitmap into a Sun icon
+
+       pbmtolj
+              convert a portable bitmap into HP LaserJet format
+
+       pbmtomacp
+              convert a portable bitmap into a MacPaint file
+
+       pbmtomda
+              convert a portable bitmap to a Microdesign .mda
+
+       pbmtomgr
+              convert a portable bitmap into a MGR bitmap
+
+       pbmtonokia
+              convert a portable bitmap to Nokia Smart Messaging Formats
+
+       pbmtopgm
+              convert portable bitmap to portable graymap by averaging areas
+
+       pbmtopi3
+              convert a portable bitmap into an Atari Degas .pi3 file
+
+       pbmtoplot
+              convert a portable bitmap into a Unix plot(5) file
+
+       pbmtoppa
+              convert PBM image to HP Printer Performance Architecture (PPA)
+
+       pbmtopsg3
+              convert PBM images to Postscript with G3 fax compression
+
+       pbmtoptx
+              convert a portable bitmap into Printronix printer graphics
+
+       pbmtowbmp
+              convert a portable bitmap to a wireless bitmap (wbmp) file
+
+       pbmtox10bm
+              convert a portable bitmap into an X10 bitmap
+
+       pbmtoxbm
+              convert a portable bitmap into an X11 bitmap
+
+       pbmtoybm
+              convert a portable bitmap into a Bennet Yee "face" file
+
+       pbmtozinc
+              convert a portable bitmap into a Zinc bitmap
+
+       pbmupc create a Universal Product Code bitmap
+
+       pcxtoppm
+              convert a PCX file into a portable pixmap
+
+       pgmbentley
+              Bentleyize a portable graymap
+
+       pgmcrater
+              create cratered terrain by fractal forgery
+
+       pgmedge
+              edge-detect a portable graymap
+
+       pgmenhance
+              edge-enhance a portable graymap
+
+       pgmhist
+              print a histogram of the values in a portable graymap
+
+       pgmkernel
+              generate a convolution kernel
+
+       pgmnoise
+              create a graymap made up of white noise
+
+       pgmnorm (deprecated)
+              is replaced by pnmnorm(1)
+
+       pgmoil (deprecated)
+              is replaced by pamoil(1)
+
+       pgmramp
+              generate a grayscale ramp
+
+       pgmslice
+              extract one line of pixel values out of a portable graymap
+
+       pgmtexture
+              calculate textural features on a portable graymap
+
+       pgmtofs
+              convert portable graymap to Usenix FaceSaver(tm) format
+
+       pgmtolispm
+              convert a portable graymap into Lisp Machine format
+
+       pgmtopbm
+              convert a portable graymap into a portable bitmap
+
+       pgmtoppm
+              colorize a portable graymap into a portable pixmap
+
+       pi1toppm
+              convert an Atari Degas .pi1 into a portable pixmap
+
+       pi3topbm
+              convert an Atari Degas .pi3 file into a portable bitmap
+
+       pjtoppm
+              convert an HP PaintJet file to a portable pixmap
+
+       pngtopnm
+              convert a Portable Network Graphics file into portable anymap
+
+       pnmalias
+              antialias a portable anyumap.
+
+       pnmarith
+              perform arithmetic on two portable anymaps
+
+       pnmcat concatenate portable anymaps
+
+       pnmcolormap
+              create quantization color map for a portable anymap
+
+       pnmcomp
+              composite (overlay) two portable anymap files together
+
+       pnmconvol
+              general MxN convolution on a portable anymap
+
+       pnmcrop
+              crop a portable anymap
+
+       pnmcut cut a rectangle out of a portable anymap
+
+       pnmdepth
+              change the maxval in a portable anymap
+
+       pnmenlarge
+              read a portable anymap and enlarge it N times
+
+       pnmfile
+              describe a portable anymap
+
+       pnmflip
+              perform one or more flip operations on a portable anymap
+
+       pnmgamma
+              perform gamma correction on a portable anymap
+
+       pnmhisteq
+              histogram equalise a portable anymap
+
+       pnmhistmap
+              draw a histogram for a PGM or PPM file
+
+       pnmindex
+              build a visual index of a bunch of anymaps
+
+       pnminterp-gen (deprecated)
+              is replaced by pamstretch-gen(1)
+
+       pnminterp (deprecated)
+              is replaced by pamstretch(1)
+
+       pnminvert
+              invert a portable anymap
+
+       pnmmargin
+              add a border to a portable anymap
+
+       pnmmontage
+              create a montage of portable anymaps
+
+       pnmnlfilt
+              non-linear filters: smooth, alpha trim mean, optimal
+
+       pnmnoraw (deprecated)
+              is replaced by pnmtoplainpnm(1)
+
+       pnmnorm
+              normalize the contrast in a Netbpm image
+
+       pnmpad add borders to portable anymap
+
+       pnmpaste
+              paste a rectangle into a portable anymap
+
+       pnmpsnr
+              compute the difference between two portable anymaps
+
+       pnmquant
+              quantize the colors in a Netpbm image to a smaller set
+
+       pnmremap
+              replace colors in a PPM image with colors from another set
+
+       pnmrotate
+              rotate a portable anymap by some angle
+
+       pnmscale
+              scale a portable anymap
+
+       pnmscalefixed
+              scale a portable anymap quickly, but less accurate
+
+       pnmshear
+              shear a portable anymap by some angle
+
+       pnmsmooth
+              smooth out an image
+
+       pnmsplit
+              split a multi-image portable anymap into multiple single-image files
+
+       pnmtile
+              replicate a portable anymap into a specified size
+
+       pnmtoddif
+              Convert a portable anymap to DDIF format
+
+       pnmtofiasco
+              Convert a portable anymap to FIASCO compressed file
+
+       pnmtofits
+              convert a portable anymap into FITS format
+
+       pnmtojpeg
+              convert PNM image to a JFIF ("JPEG") image
+
+       pnmtopalm
+              convert a portable anymap into a Palm pixmap
+
+       pnmtoplainpnm
+              convert portable any map to plain (ASCII) anymap format
+
+       pnmtopng
+              convert a portable anymap into a Portable Network Graphics file
+
+       pnmtops
+              convert portable anymap to PostScript
+
+       pnmtorast
+              convert a portable pixmap into a Sun rasterfile
+
+       pnmtorle
+              convert a Netpbm image file into an RLE image file.
+
+       pnmtosgi
+              convert a portable anymap to a SGI image file
+
+       pnmtosir
+              convert a portable anymap into a Solitaire format
+
+       pnmtotiff
+              convert a portable anymap into a TIFF file
+
+       pnmtotiffcmyk
+              convert a portable anymap into a CMYK encoded TIFF file
+
+       pnmtoxwd
+              convert a portable anymap into an X11 window dump
+
+       ppm3d  convert two portable pixmap into a red/blue 3d glasses pixmap
+
+       ppmbrighten
+              change an images Saturation and Value from an HSV map
+
+       ppmchange
+              change all pixels of one color to another in a portable pixmap
+
+       ppmcie draw a CIE color chart as a PPM image
+
+       ppmcolormask
+              produce mask of areas of a certain color in a PPM file
+
+       ppmcolors
+              generate a color map of all colors of a certain maxval
+
+       ppmdim dim a portable pixmap down to total blackness
+
+       ppmdist
+              simplistic grayscale assignment for machine generated, color images
+
+       ppmdither
+              ordered dither for color images
+
+       ppmfade
+              generate a transition between two image files using special effects.
+
+       ppmflash
+              brighten a picture up to complete white-out
+
+       ppmforge
+              fractal forgeries of clouds, planets, and starry skies
+
+       ppmhist
+              print a histogram of a portable pixmap
+
+       ppmlabel
+              add text to a portable pixmap
+
+       ppmmake
+              create a pixmap of a specified size and color
+
+       ppmmix blend together two portable pixmaps
+
+       ppmnorm (deprecated)
+              is replaced by pnmnorm(1)
+
+       ppmntsc
+              make a portable pixmap look like taken from an American TV
+
+       ppmpat make a pretty pixmap
+
+       ppmquant
+              quantize the colors in a portable pixmap down to a specified number
+
+       ppmquantall
+              run ppmquant on a bunch of files all at once, so they share a common colormap
+
+       ppmqvga
+              8 plane quantization
+
+       ppmrainbow
+              Generate a rainbow
+
+       ppmrelief
+              run a Laplacian relief filter on a portable pixmap
+
+       ppmshadow
+              add simulated shadows to a portable pixmap image
+
+       ppmshift
+              shift lines of a portable pixmap left or right by a random amount
+
+       ppmspread
+              displace a portable pixmap's pixels by a random amount
+
+       ppmtoacad
+              convert portable pixmap to AutoCAD database or slide
+
+       ppmtobmp
+              convert a portable pixmap into a BMP file
+
+       ppmtoeyuv
+              convert a portable pixmap into a Berkeley YUV file
+
+       ppmtogif
+              convert a portable pixmap into a GIF file
+
+       ppmtoicr
+              convert a portable pixmap into NCSA ICR format
+
+       ppmtoilbm
+              convert a portable pixmap into an ILBM file
+
+       ppmtojpeg (deprecated)
+              is replaced by pnmtojpeg(1)
+
+       ppmtoleaf
+              convert portable pixmap to Interleaf image format
+
+       ppmtolj
+              convert a portable pixmap to an HP LaserJet PCL 5 Color file
+
+       ppmtomap
+              extract all colors from a portable pixmap
+
+       ppmtomitsu
+              convert a portable pixmap to a Mitsubishi S340-10 file
+
+       ppmtompeg
+              encodes MPEG-1 bitstreams
+
+       ppmtoneo
+              convert a portable pixmap into an Atari Neochrome .neo file
+
+       ppmtopcx
+              convert a portable pixmap into a PCX file
+
+       ppmtopgm
+              convert a portable pixmap into a portable graymap
+
+       ppmtopi1
+              convert a portable pixmap into an Atari Degas .pi1 file
+
+       ppmtopict
+              convert a portable pixmap into a Macintosh PICT file
+
+       ppmtopj
+              convert a portable pixmap to an HP PaintJet file
+
+       ppmtopuzz
+              convert a portable pixmap into an X11 "puzzle" file
+
+       ppmtorgb3
+              separate a portable pixmap into three portable graymaps
+
+       ppmtosixel
+              convert a portable pixmap into DEC sixel format
+
+       ppmtotga
+              convert portable pixmap into a TrueVision Targa file
+
+       ppmtouil
+              convert a portable pixmap into a Motif UIL icon file
+
+       ppmtowinicon
+              convert 1 or more portable pixmaps into a Windows .ico
+
+       ppmtoxpm
+              convert a portable pixmap into an X11 pixmap
+
+       ppmtoyuv
+              convert a portable pixmap into an Abekas YUV file
+
+       ppmtoyuvsplit
+              convert a portable pixmap into 3 subsampled raw YUV files
+
+       ppmtv  make a portable pixmap look like taken from an American TV
+
+       psidtopgm
+              convert PostScript "image" data into a portable graymap
+
+       pstopnm
+              convert a PostScript file into a portable anymap
+
+       qrttoppm
+              convert output from the QRT ray tracer into a portable pixmap
+
+       rasttopnm
+              convert a Sun rasterfile into a portable anymap
+
+       rawtopgm
+              convert raw grayscale bytes into a portable graymap
+
+       rawtoppm
+              convert raw RGB bytes into a portable pixmap
+
+       rgb3toppm
+              combine three portable graymaps into one portable pixmap
+
+       rletopnm
+              convert a Utah Raster Tools RLE image file into a PNM image file.
+
+       sbigtopgm
+              convert an SBIG CCDOPS file into a portable graymap
+
+       sgitopnm
+              convert a SGI image file to a portable anymap
+
+       sirtopnm
+              convert a Solitaire file into a portable anymap
+
+       sldtoppm
+              convert an AutoCAD slide file into a portable pixmap
+
+       spctoppm
+              convert an Atari compressed Spectrum file into a portable pixmap
+
+       sputoppm
+              convert an Atari uncompressed Spectrum file into a portable pixmap
+
+       st4topgm
+              convert an SBIG ST4 format file into a portable graymap
+
+       tgatoppm
+              convert TrueVision Targa file into a portable pixmap
+
+       thinkjettopbm
+              convert HP ThinkJet printer commands file to PBM
+
+       tifftopnm
+              convert a TIFF file into a portable anymap
+
+       wbmptopbm
+              convert a wireless bitmap (wbmp) file to a portable bitmap (pbm)
+
+       winicontoppm
+              convert a Windows .ico file into 1 or more portable pixmap
+
+       xbmtopbm
+              convert an X11 or X10 bitmap into a portable bitmap
+
+       ximtoppm
+              convert an Xim file into a portable pixmap
+
+       xpmtoppm
+              convert an X11 pixmap into a portable pixmap
+
+       xvminitoppm
+              convert a XV "thumbnail" picture to PPM
+
+       xwdtopnm
+              convert a X11 or X10 window dump file into a portable anymap
+
+       ybmtopbm
+              convert a Bennet Yee "face" file into a portable bitmap
+
+       yuvsplittoppm
+              convert a Y- and a U- and a V-file into a portable pixmap
+
+       yuvtoppm
+              convert Abekas YUV bytes into a portable pixmap
+
+       zeisstopnm
+              convert a Zeiss confocal file into a portable anymap
+
+
+
+SEE ALSO
+       411toppm(1),  anytopnm(1),  asciitopgm(1),  atktopbm(1),  bioradtopgm(1),  bmptopnm(1), brushtopbm(1), cmuwm‐
+       topbm(1), eyuvtoppm(1),  fiascotopnm(1),  fitstopnm(1),  fstopgm(1),  g3topbm(1),  gemtopnm(1),  giftopnm(1),
+       gouldtoppm(1),  hipstopgm(1),  icontopbm(1),  ilbmtoppm(1),  imgtoppm(1),  jpegtopnm(1), leaftoppm(1), lispm‐
+       topgm(1), macptopbm(1), mdatopbm(1), mgrtopbm(1), mtvtoppm(1), neotoppm(1), palmtopnm(1), pamcut(1), pamdein‐
+       terlace(1),  pamdice(1),  pamfile(1),  pamoil(1), pamstack(1), pamstretch-gen(1), pamstretch(1), pbmclean(1),
+       pbmlife(1),  pbmmake(1),  pbmmask(1),  pbmpage(1),  pbmpscale(1),  pbmreduce(1),  pbmtext(1),   pbmtextps(1),
+       pbmto10x(1),  pbmtoascii(1),  pbmtoatk(1),  pbmtobbnbg(1),  pbmtocmuwm(1),  pbmtoepsi(1), pbmtoepson(1), pbm‐
+       tog3(1),  pbmtogem(1),  pbmtogo(1),  pbmtoicon(1),  pbmtolj(1),   pbmtomacp(1),   pbmtomda(1),   pbmtomgr(1),
+       pbmtonokia(1),  pbmtopgm(1), pbmtopi3(1), pbmtoplot(1), pbmtoppa(1), pbmtopsg3(1), pbmtoptx(1), pbmtowbmp(1),
+       pbmtox10bm(1), pbmtoxbm(1), pbmtoybm(1), pbmtozinc(1), pbmupc(1), pcxtoppm(1),  pgmbentley(1),  pgmcrater(1),
+       pgmedge(1),  pgmenhance(1),  pgmhist(1),  pgmkernel(1),  pgmnoise(1), pgmramp(1), pgmslice(1), pgmtexture(1),
+       pgmtofs(1), pgmtolispm(1),  pgmtopbm(1),  pgmtoppm(1),  pi1toppm(1),  pi3topbm(1),  pjtoppm(1),  pngtopnm(1),
+       pnmalias(1),   pnmarith(1),  pnmcat(1),  pnmcolormap(1),  pnmcomp(1),  pnmconvol(1),  pnmcrop(1),  pnmcut(1),
+       pnmdepth(1), pnmenlarge(1), pnmfile(1), pnmflip(1), pnmgamma(1),  pnmhisteq(1),  pnmhistmap(1),  pnmindex(1),
+       pnminvert(1),  pnmmargin(1),  pnmmontage(1),  pnmnlfilt(1),  pnmnorm(1),  pnmpad(1), pnmpaste(1), pnmpsnr(1),
+       pnmquant(1),  pnmremap(1),  pnmrotate(1),  pnmscale(1),  pnmscalefixed(1),  pnmshear(1),  pnmsmooth(1),  pnm‐
+       split(1),   pnmtile(1),   pnmtoddif(1),  pnmtofiasco(1),  pnmtofits(1),  pnmtojpeg(1),  pnmtopalm(1),  pnmto‐
+       plainpnm(1), pnmtopng(1), pnmtops(1), pnmtorast(1), pnmtorle(1), pnmtosgi(1), pnmtosir(1), pnmtotiff(1), pnm‐
+       totiffcmyk(1), pnmtoxwd(1), ppm3d(1), ppmbrighten(1), ppmchange(1), ppmcie(1), ppmcolormask(1), ppmcolors(1),
+       ppmdim(1), ppmdist(1), ppmdither(1), ppmfade(1),  ppmflash(1),  ppmforge(1),  ppmhist(1),  ppmlabel(1),  ppm‐
+       make(1),  ppmmix(1),  ppmntsc(1),  ppmpat(1),  ppmquant(1), ppmquantall(1), ppmqvga(1), ppmrainbow(1), ppmre‐
+       lief(1), ppmshadow(1), ppmshift(1), ppmspread(1), ppmtoacad(1), ppmtobmp(1), ppmtoeyuv(1), ppmtoicr(1),  ppm‐
+       toilbm(1), ppmtoleaf(1), ppmtolj(1), ppmtomap(1), ppmtomitsu(1), ppmtompeg(1), ppmtoneo(1), ppmtopcx(1), ppm‐
+       topgm(1), ppmtopi1(1), ppmtopict(1), ppmtopj(1), ppmtopuzz(1), ppmtorgb3(1), ppmtosixel(1), ppmtotga(1), ppm‐
+       touil(1),  ppmtowinicon(1),  ppmtoxpm(1),  ppmtoyuv(1), ppmtoyuvsplit(1), ppmtv(1), psidtopgm(1), pstopnm(1),
+       qrttoppm(1), rasttopnm(1), rawtopgm(1), rawtoppm(1), rgb3toppm(1),  rletopnm(1),  sbigtopgm(1),  sgitopnm(1),
+       sirtopnm(1), sldtoppm(1), spctoppm(1), sputoppm(1), st4topgm(1), tgatoppm(1), thinkjettopbm(1), tifftopnm(1),
+       wbmptopbm(1), winicontoppm(1),  xbmtopbm(1),  ximtoppm(1),  xpmtoppm(1),  xvminitoppm(1),  xwdtopnm(1),  ybm‐
+       topbm(1), yuvsplittoppm(1), yuvtoppm(1), zeisstopnm(1).
+
+
+
+AUTHORS
+       Many. See the individual manual pages.
+
+
+
+                                                  08 February 1994                                     pbmfilters(1)

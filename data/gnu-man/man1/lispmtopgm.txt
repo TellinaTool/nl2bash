@@ -1,0 +1,39 @@
+lispmtopgm(1)                                  General Commands Manual                                 lispmtopgm(1)
+
+
+
+NAME
+       lispmtopgm - convert a Lisp Machine bitmap file into pgm format
+
+SYNOPSIS
+       lispmtopgm [lispmfile]
+
+DESCRIPTION
+       Reads a Lisp Machine bitmap as input.  Produces a portable graymap as output.
+
+       This  is  the  file  format written by the tv:write-bit-array-file function on TI Explorer and Symbolics lisp
+       machines.
+
+       Multi-plane bitmaps on lisp machines are color; but the lispm image file format does not include a color map,
+       so we must treat it as a graymap instead.  This is unfortunate.
+
+SEE ALSO
+       pgmtolispm(1), pgm(5)
+
+BUGS
+       The  Lispm bitmap file format is a bit quirky;  Usually the image in the file has its width rounded up to the
+       next higher multiple of 32, but not always.  If the width is not a multiple of 32,  we  don't  deal  with  it
+       properly, but because of the Lispm microcode, such arrays are probably not image data anyway.
+
+       Also,  the  lispm  code  for saving bitmaps has a bug, in that if you are writing a bitmap which is not mod32
+       across, the file may be up to 7 bits too short!  They round down instead of up, and we don't handle this  bug
+       gracefully.
+
+       No color.
+
+AUTHOR
+       Copyright (C) 1991 by Jamie Zawinski and Jef Poskanzer.
+
+
+
+                                                    06 March 1990                                      lispmtopgm(1)

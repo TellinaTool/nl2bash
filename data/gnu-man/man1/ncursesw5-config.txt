@@ -1,0 +1,71 @@
+ncursesw5-config(1)                            General Commands Manual                           ncursesw5-config(1)
+
+
+
+NAME
+       ncursesw5-config - helper script for ncurses libraries
+
+SYNOPSIS
+       ncursesw5-config [options]
+
+DESCRIPTION
+       This  is  a  shell  script  which  simplifies  configuring  applications  against a particular set of ncurses
+       libraries.
+
+OPTIONS
+       --prefix
+              echos the package-prefix of ncurses
+
+       --exec-prefix
+              echos the executable-prefix of ncurses
+
+       --cflags
+              echos the C compiler flags needed to compile with ncurses
+
+       --libs echos the libraries needed to link with ncurses
+
+       --version
+              echos the release+patchdate version of ncurses
+
+       --abi-version
+              echos the ABI version of ncurses
+
+       --mouse-version
+              echos the mouse-interface version of ncurses
+
+       --bindir
+              echos the directory containing ncurses programs
+
+       --datadir
+              echos the directory containing ncurses data
+
+       --includedir
+              echos the directory containing ncurses header files
+
+       --libdir
+              echos the directory containing ncurses libraries
+
+       --mandir
+              echos the directory containing ncurses manpages
+
+       --terminfo
+              echos the $TERMINFO terminfo database path, e.g.,
+              /etc/terminfo
+
+       --terminfo-dirs
+              echos the $TERMINFO_DIRS directory list, e.g.,
+              /etc/terminfo:/lib/terminfo:/usr/share/terminfo
+
+       --termpath
+              echos the $TERMPATH termcap list, if support for termcap is configured.
+
+       --help prints this message
+
+SEE ALSO
+       curses(3X)
+
+       This describes ncurses version 5.9 (patch 20140118).
+
+
+
+                                                                                                 ncursesw5-config(1)

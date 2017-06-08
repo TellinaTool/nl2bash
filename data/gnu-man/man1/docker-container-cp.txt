@@ -1,0 +1,36 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-container-cp - Copy files/folders between a container and the local filesystem
+
+
+
+SYNOPSIS
+       docker container cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
+           docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH
+
+
+
+DESCRIPTION
+       Copy files/folders between a container and the local filesystem
+
+
+       Use '-' as the source to read a tar archive from stdin and extract it to a directory destination in a
+       container.  Use '-' as the destination to stream a tar archive of a container source to stdout.
+
+
+
+OPTIONS
+       -L, --follow-link[=false]
+           Always follow symbol link in SRC_PATH
+
+
+
+SEE ALSO
+       docker-container(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

@@ -1,0 +1,31 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-node-rm - Remove one or more nodes from the swarm
+
+
+
+SYNOPSIS
+       docker node rm [OPTIONS] NODE [NODE...]
+
+
+
+DESCRIPTION
+       Remove one or more nodes from the swarm
+
+
+
+OPTIONS
+       -f, --force[=false]
+           Force remove a node from the swarm
+
+
+
+SEE ALSO
+       docker-node(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

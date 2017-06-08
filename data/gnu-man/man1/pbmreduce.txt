@@ -1,0 +1,41 @@
+pbmreduce(1)                                   General Commands Manual                                  pbmreduce(1)
+
+
+
+NAME
+       pbmreduce - read a portable bitmap and reduce it N times
+
+SYNOPSIS
+       pbmreduce [-floyd|-fs|-threshold ] [-value val] N [pbmfile]
+
+DESCRIPTION
+       Reads a portable bitmap as input.  Reduces it by a factor of N, and produces a portable bitmap as output.
+
+       pbmreduce duplicates a lot of the functionality of pgmtopbm; you could do something like pnmscale | pgmtopbm,
+       but pbmreduce is a lot faster.
+
+       pbmreduce can be used to  "re-halftone"  an  image.   Let's  say  you  have  a  scanner  that  only  produces
+       black&white,  not  grayscale,  and  it does a terrible job of halftoning (most b&w scanners fit this descrip‐
+       tion).  One way to fix the halftoning is to scan at the highest possible resolution, say 300  dpi,  and  then
+       reduce by a factor of three or so using pbmreduce.  You can even correct the brightness of an image, by using
+       the -value flag.
+
+OPTIONS
+       By default, the halftoning after the reduction is done via boustrophedonic Floyd-Steinberg  error  diffusion;
+       however,  the  -threshold  flag  can  be used to specify simple thresholding.  This gives better results when
+       reducing line drawings.
+
+       The -value flag alters the thresholding value for all quantizations.  It should be a real  number  between  0
+       and 1.  Above 0.5 means darker images; below 0.5 means lighter.
+
+       All flags can be abbreviated to their shortest unique prefix.
+
+SEE ALSO
+       pnmenlarge(1), pnmscale(1), pgmtopbm(1), pbm(5)
+
+AUTHOR
+       Copyright (C) 1988 by Jef Poskanzer.
+
+
+
+                                                   02 August 1989                                       pbmreduce(1)

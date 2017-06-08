@@ -1,0 +1,110 @@
+LIBTOOLIZE(1)                                       User Commands                                      LIBTOOLIZE(1)
+
+
+
+NAME
+       libtoolize - manual page for libtoolize 2.4.2
+
+SYNOPSIS
+       libtoolize [OPTION]...
+
+DESCRIPTION
+       Prepare a package to use libtool.
+
+       -c, --copy
+              copy files rather than symlinking them
+
+       --debug
+              enable verbose shell tracing
+
+       -n, --dry-run
+              print commands rather than running them
+
+       -f, --force
+              replace existing files
+
+       -i, --install
+              copy missing auxiliary files
+
+       --ltdl[=DIR]
+              install libltdl sources [default: libltdl]
+
+       --no-warn
+              don't display warning messages
+
+       --nonrecursive
+              prepare ltdl for non-recursive make
+
+       -q, --quiet
+              work silently
+
+       --recursive
+              prepare ltdl for recursive make
+
+       --subproject
+              prepare ltdl to configure and build independently
+
+       -v, --verbose
+              verbosely report processing
+
+       --version
+              print version information and exit
+
+       -h, --help
+              print short or long help message
+
+       The  following  space  or  comma  delimited  options can be passed to libtoolize via the environment variable
+       LIBTOOLIZE_OPTIONS, unknown environment options are ignored:
+
+       --debug
+              enable verbose shell tracing
+
+       --no-warn
+              don't display warning messages
+
+       --quiet
+              work silently
+
+       --verbose
+              verbosely report processing
+
+       You must `cd' to the top directory of your package before you run `libtoolize'.
+
+       When reporting a bug, please describe a test case to reproduce it and include the following information:
+
+       host-triplet:
+              x86_64-pc-linux-gnu
+
+       libtoolize:
+              (GNU libtool) 2.4.2 Debian-2.4.2-1.7ubuntu1
+
+       automake:
+              automake (GNU automake) 1.14.1
+
+       autoconf:
+              autoconf (GNU Autoconf) 2.69
+
+AUTHOR
+       Written by Gary V. Vaughan <gary@gnu.org>, 2003
+
+REPORTING BUGS
+       Report bugs to <bug-libtool@gnu.org>.
+       GNU libtool home page: <http://www.gnu.org/software/libtool/>.
+       General help using GNU software: <http://www.gnu.org/gethelp/>.
+
+COPYRIGHT
+       Copyright © 2011 Free Software Foundation, Inc.
+       This is free software; see the source for copying conditions.  There  is  NO  warranty;  not  even  for  MER‐
+       CHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+SEE ALSO
+       The full documentation for libtoolize is maintained as a Texinfo manual.  If the info and libtoolize programs
+       are properly installed at your site, the command
+
+              info libtoolize
+
+       should give you access to the complete manual.
+
+
+
+libtoolize 2.4.2                                    February 2014                                      LIBTOOLIZE(1)

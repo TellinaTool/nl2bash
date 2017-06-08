@@ -1,0 +1,30 @@
+FONT2C(1)                                            Ghostscript                                           FONT2C(1)
+
+
+
+NAME
+       font2c - Write PostScript Type 0 or Type 1 font as C code
+
+SYNOPSIS
+       font2c fontnames
+
+DESCRIPTION
+       This script invokes gs(1) with the following options:
+
+                                             -q -dNODISPLAY -dWRITESYSTEMDICT
+
+       followed by the arguments from the command line.  This will write out a PostScript Type 0 or Type 1 font as C
+       code that can be linked with the interpreter.
+
+SEE ALSO
+       gs(1)
+
+VERSION
+       This document was last revised for Ghostscript version 9.10.
+
+AUTHOR
+       Artifex Software, Inc. are the primary maintainers of Ghostscript.  This manpage by George Ferguson.
+
+
+
+9.10                                               30 August 2013                                          FONT2C(1)

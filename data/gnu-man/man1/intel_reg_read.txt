@@ -1,0 +1,21 @@
+intel_reg_read(1)                              General Commands Manual                             intel_reg_read(1)
+
+
+
+NAME
+       intel_reg_read - Reads an Intel GPU register value
+
+SYNOPSIS
+       intel_reg_read register
+
+DESCRIPTION
+       intel_reg_read  is  a tool to read Intel GPU registers, for use in debugging.  The register argument is given
+       as hexadecimal.
+
+EXAMPLES
+       intel_reg_read 0x61230
+              Shows the register value for the first internal panel fitter.
+
+
+
+X Version 11                                     intel-gpu-tools 1.3                               intel_reg_read(1)

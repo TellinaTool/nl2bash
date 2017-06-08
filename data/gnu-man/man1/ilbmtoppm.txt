@@ -1,0 +1,74 @@
+ilbmtoppm(1)                                   General Commands Manual                                  ilbmtoppm(1)
+
+
+
+NAME
+       ilbmtoppm - convert an ILBM file into a portable pixmap
+
+SYNOPSIS
+       ilbmtoppm [-verbose] [-ignore<chunkID>] [-isham|-isehb] [-adjustcolors] [ILBMfile]
+
+DESCRIPTION
+       Reads an IFF ILBM file as input.  Produces a portable pixmap as output.  Supported ILBM types are:
+
+       Normal ILBMs with 1-16 planes.
+
+       Amiga Extra_Halfbrite (EHB)
+
+       Amiga HAM with 3-16 planes.
+
+       24 bit.
+
+       Multiplatte (normal or HAM) pictures.
+
+       Color map (BMHD + CMAP chunk only, nPlanes = 0).
+
+       Unofficial direct color.
+              1-16 planes for each color component.
+
+       Chunks used:
+              BMHD,  CMAP,  CAMG  (only  HAM  & EHB flags used), PCHG, BODY unofficial DCOL chunk to identify direct
+              color ILBM
+
+       Chunks ignored:
+              GRAB, DEST, SPRT, CRNG, CCRT, CLUT, DPPV, DRNG, EPSF
+
+       Other chunks (ignored but displayed in verbose mode):
+              NAME, AUTH, (c), ANNO, DPI
+
+       Unknown chunks are skipped.
+
+OPTIONS
+       -verbose
+              Give some information about the ILBM file.
+
+       -ignore <chunkID>
+              Skip a chunk.  <chunkID> is the 4-letter IFF chunk identifier of the chunk to be skipped.
+
+       -isham | -isehb
+              Treat the input file as a HAM or Extra_Halfbrite picture, even if these flags or not set in  the  CAMG
+              chunk (or if there is no CAMG chunk).
+
+       -adjustcolors
+              If all colors in the CMAP have a value of less then 16, ilbmtoppm assumes a 4-bit colormap and gives a
+              warning.  With this option the colormap is scaled to 8 bits.
+
+BUGS
+       The multipalette PCHG BigLineChanges and Huffman decompression code is untested.
+
+REFERENCES
+       Amiga ROM Kernel Reference Manual - Devices (3rd Ed.)
+       Addison Wesley, ISBN 0-201-56775-X
+
+SEE ALSO
+       ppm(5), ppmtoilbm(1)
+
+AUTHORS
+       Copyright (C) 1989 by Jef Poskanzer.
+       Modified October 1993 by Ingo Wilken (Ingo.Wilken@informatik.uni-oldenburg.de)
+
+
+
+
+
+                                                   04 October 1993                                      ilbmtoppm(1)

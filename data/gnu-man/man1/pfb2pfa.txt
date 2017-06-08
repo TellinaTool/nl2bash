@@ -1,0 +1,25 @@
+PFB2PFA(1)                                     General Commands Manual                                    PFB2PFA(1)
+
+
+
+NAME
+       pfb2pfa - convert a type1 pfb file (binary MSDOS) into a pfa (ASCII)
+
+SYNOPSIS
+       pfb2pfa [-v] pfbfile [pfafile]
+
+DESCRIPTION
+       Program  converts  a  binary  MSDOS representation for a type1 PostScript font into a readable ASCII version.
+       The MSDOS newline (\r) is converted into the UNIX newline (\n).  The output is written in a file  whose  name
+       is the name that is provided on the command line or the basename of the input file plus extension ".pfa".
+
+       With the -v option you get some information about what the program is doing.
+
+AUTHOR
+       Piet Tutelaers <rcpt@urc.tue.nl>
+
+
+
+
+
+                                                         TeX                                              PFB2PFA(1)

@@ -1,0 +1,112 @@
+pnmcolormap(1)                                 General Commands Manual                                pnmcolormap(1)
+
+
+
+NAME
+       pnmcolormap - create quantization color map for a portable anymap
+
+
+SYNOPSIS
+       pnmcolormap  [-center|-meancolor|-meanpixel]  [-spreadbrightness|-spreadluminosity]  [-sort]  [-square] ncol‐
+       ors|all [pnmfile]
+
+       All options can be abbreviated to their shortest unique prefix.  You may use two hyphens instead  of  one  to
+       designate an option.  You may use either white space or an equals sign between an option name and its value.
+
+
+DESCRIPTION
+       Reads  a PNM image as input.  Chooses ncolors colors to best represent the image, maps the existing colors to
+       the new ones, and writes a PNM color map defining them as output.
+
+       You can use this map as input to pnmremap on the same input image to quantize the colors in that image,  I.e.
+       produce a similar image with fewer colors.  pnmquant does both the pnmcolormap and pnmremap steps for you.
+
+       A  PNM colormap is a PNM image of any dimensions that contains at least one pixel of each color in the set of
+       colors it represents.
+
+       The quantization method is Heckbert's "median cut".  See the section QUANTIZATION METHOD.
+
+       If the input image is a PPM, the output image is a PPM.  If the input image is a PBM or PGM, the output  col‐
+       ormap is a PGM.  Note that a colormap of a PBM image is not very interesting.
+
+       The colormap generally has the same maxval as the input image, but pnmcolormap may reduce it if there are too
+       many colors in the input, as part of its quantization algorithm.
+
+       If you want to create a colormap without basing it on the colors in an input image, see ppmcolors.
+
+
+PARAMETERS
+       The single parameter, which is required, is the number of colors you want in the  output  colormap.   pnmcol‐
+       ormap may produce a color map with slightly fewer colors than that.  You may specify all to get a colormap of
+       every color in the input image (no quantization).
+
+
+       OPTIONS
+
+       -sort  This option causes the output colormap to be sorted by the red component intensity,  then  the  green,
+              then  the  blue  in  ascending order.  This is an insertion sort, so it is not very fast on large col‐
+              ormaps.  Sorting is useful because it allows you to compare two sets of colors.
+
+       -square
+              By default, pnmcolormap produces as the color map a PPM image with one row and  one  column  for  each
+              color  in  the colormap.  This option causes pnmcolormap instead to produce a PPM image that is within
+              one row or column of being square, with multiple pixels of the same color as  necessary  to  create  a
+              number of pixels which is a perfect square.
+
+       -verbose
+              This option causes pnmcolormap to display messages to Standard Error about the quantization.
+
+       -center
+
+       -meancolor
+
+       -meanpixel
+
+       -spreadbrightness
+
+       -spreadluminosity
+              These options control the quantization algorithm.  See QUANTIZATION METHOD below.
+
+
+
+QUANTIZATION METHOD
+       A  quantization  method is a way to choose which colors, being fewer in number than in the input, you want in
+       the output.  pnmcolormap uses Heckbert's "median cut" quantization method.
+
+       This method involves separating all the colors into "boxes," each holding colors  that  represent  about  the
+       same  number  of pixels.  You start with one box and split boxes in two until the number of boxes is the same
+       as the number of colors you want in the output, and choose one color to represent each box.
+
+       When you split a box, you do it so that all the colors in one sub-box are "greater" than all  the  colors  in
+       the  other.   "Greater," for a particular box, means it is brighter in the color component (red, green, blue)
+       which has the largest spread in that box.  pnmcolormap gives you two ways to define  "largest  spread.":   1)
+       largest  spread of brightness; 2) largest spread of contribution to the luminosity of the color.  E.g. red is
+       weighted much more than blue.  Select among these with the -spreadbrightness and  -spreadluminosity  options.
+       The default is -spreadbrightness.
+
+       pnmcut  provides  three  ways of choosing a color to represent a box: 1) the center color - the color halfway
+       between the greatest and least colors in the box, using the above definition of "greater"; 2) the mean of the
+       colors  (each  component averaged separately by brightness) in the box; 3) the mean weighted by the number of
+       pixels of a color in the image.
+
+       Note that in all three methods, there may be colors in the output which do not appear in the input at all.
+
+       Select among these with the -center, -meancolor, and -meanpixel options.  The default is -center.
+
+
+
+
+REFERENCES
+       "Color Image Quantization for Frame Buffer Display" by Paul Heckbert, SIGGRAPH '82 Proceedings, page 297.
+
+
+SEE ALSO
+       pnmremap(1), pnmquant(1), ppmquantall(1), pnmdepth(1), ppmdither(1), ppmquant(1), ppm(5)
+
+
+AUTHOR
+       Copyright (C) 1989, 1991 by Jef Poskanzer.  Copyright (C) 2001 by Bryan Henderson.
+
+
+
+                                                  12 December 2001                                    pnmcolormap(1)

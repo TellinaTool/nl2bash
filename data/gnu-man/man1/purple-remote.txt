@@ -1,0 +1,60 @@
+PURPLE-REMOTE(1)                               General Commands Manual                              PURPLE-REMOTE(1)
+
+
+
+NAME
+       purple-remote - Send remote commands to Pidgin/Finch
+
+SYNOPSIS
+       purple-remote command1 command2 ...
+
+OPTIONS
+       Each command is of one of the three types:
+
+       [protocol:]commandname?param1=value1&param2=value2&...
+       FunctionName?param1=value1&param2=value2&...
+       FunctionName(value1,value2,...)
+
+       The  second and third form are provided for completeness but their use is not recommended; use purple-send or
+       purple-send-async instead.  The second form uses introspection to find out  the  parameter  names  and  their
+       types, therefore it is rather slow.
+
+
+EXAMPLES
+       jabber:goim?screenname=testone@localhost&message=hi
+       jabber:gochat?room=TestRoom&server=conference.localhost
+       jabber:getinfo?screenname=testone@localhost
+       jabber:addbuddy?screenname=my friend
+
+       setstatus?status=away&message=don't disturb
+       quit
+
+       PurpleAccountsFindConnected?name=&protocol=prpl-jabber
+       PurpleAccountFindConnected(,prpl-jabber)
+
+
+DESCRIPTION
+       Send remote commands to Purple. This program uses DBus to communicate with Pidgin/Finch.
+
+
+LICENSE
+       Copyright (c) 1998-2006 see: AUTHORS
+
+
+       This  program  is  free software; you can redistribute it and/or modify it under the terms of the GNU General
+       Public License version 2, as published by the Free Software Foundation
+
+AUTHORS
+       Sean Egan <seanegan@gmail.com> - Lead Developer
+
+       This manual page was written by Anibal Avelar <avelar@gmail.com>.  Permission is granted to copy,  distribute
+       and/or  modify  this  document under the terms of the GNU General Public License, Version 2 any later version
+       published by the Free Software Foundation.
+
+
+       On Debian systems, the complete text of the GNU General Public License can  be  found  in  /usr/share/common-
+       licenses/GPL.
+
+
+
+                                                                                                    PURPLE-REMOTE(1)

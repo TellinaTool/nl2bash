@@ -1,0 +1,154 @@
+READ(1)                                             User Commands                                            READ(1)
+
+
+
+NAME
+       Read - Read Target Test Chart.
+
+DESCRIPTION
+       Read  Target  Test  Chart,  Version  1.5.1  Author:  Graeme W. Gill, licensed under the AGPL Version 3 usage:
+       chartread [-options] outfile
+
+       -v     Verbose mode
+
+       -c listno
+              Set communication port from the following list (default 1)
+
+              ** No ports found **
+
+       -t     Use transmission measurement mode
+
+       -d     Use display measurement mode (white Y relative results)
+
+       -e     Emissive for transparency on a light box
+
+       -p     Measure patch by patch rather than strip
+
+       -x [lx]
+              Take external values, either L*a*b* (-xl) or XYZ (-xx).
+
+       -n     Don't save spectral information (default saves spectral)
+
+       -l     Save CIE as D50 L*a*b* rather than XYZ
+
+       -L     Save CIE as D50 L*a*b* as well as XYZ
+
+       -r     Resume reading partly read chart
+
+       -I file.cal
+              Override calibration info from .ti2 in resulting .ti3
+
+       -F filter
+              Set filter configuration (if aplicable):
+
+       n      None
+
+       p      Polarising filter
+
+       6      D65
+
+       u      U.V. Cut
+
+       -N     Disable initial calibration of instrument if possible
+
+       -B     Disable auto bi-directional strip recognition
+
+       -H     Use high resolution spectrum mode (if available)
+
+       -X file.ccmx
+              Apply Colorimeter Correction Matrix
+
+       -X file.ccss
+              Use Colorimeter Calibration Spectral Samples for calibration
+
+       -Q observ
+              Choose CIE Observer for CCSS instrument: 1931_2 (def), 1964_10, S&B 1955_2, shaw, J&V 1978_2
+
+       -T ratio
+              Modify strip patch consistency tolerance by ratio
+
+       -S     Suppress wrong strip & unexpected value warnings
+
+       -W n|h|x
+              Override serial port flow control: n = none, h = HW, x = Xon/Xoff
+
+       -D [level]
+              Print debug diagnostics to stderr
+
+       outfile
+              Base name for input[ti2]/output[ti3] file
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3 usage: chartread [-options] outfile
+
+       -v     Verbose mode
+
+       -c listno
+              Set communication port from the following list (default 1)
+
+              ** No ports found **
+
+       -t     Use transmission measurement mode
+
+       -d     Use display measurement mode (white Y relative results)
+
+       -e     Emissive for transparency on a light box
+
+       -p     Measure patch by patch rather than strip
+
+       -x [lx]
+              Take external values, either L*a*b* (-xl) or XYZ (-xx).
+
+       -n     Don't save spectral information (default saves spectral)
+
+       -l     Save CIE as D50 L*a*b* rather than XYZ
+
+       -L     Save CIE as D50 L*a*b* as well as XYZ
+
+       -r     Resume reading partly read chart
+
+       -I file.cal
+              Override calibration info from .ti2 in resulting .ti3
+
+       -F filter
+              Set filter configuration (if aplicable):
+
+       n      None
+
+       p      Polarising filter
+
+       6      D65
+
+       u      U.V. Cut
+
+       -N     Disable initial calibration of instrument if possible
+
+       -B     Disable auto bi-directional strip recognition
+
+       -H     Use high resolution spectrum mode (if available)
+
+       -X file.ccmx
+              Apply Colorimeter Correction Matrix
+
+       -X file.ccss
+              Use Colorimeter Calibration Spectral Samples for calibration
+
+       -Q observ
+              Choose CIE Observer for CCSS instrument: 1931_2 (def), 1964_10, S&B 1955_2, shaw, J&V 1978_2
+
+       -T ratio
+              Modify strip patch consistency tolerance by ratio
+
+       -S     Suppress wrong strip & unexpected value warnings
+
+       -W n|h|x
+              Override serial port flow control: n = none, h = HW, x = Xon/Xoff
+
+       -D [level]
+              Print debug diagnostics to stderr
+
+       outfile
+              Base name for input[ti2]/output[ti3] file
+
+
+
+Read Target Test Chart, Version 1.5.1                August 2013                                             READ(1)

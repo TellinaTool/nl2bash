@@ -1,0 +1,25 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-node-demote - Demote one or more nodes from manager in the swarm
+
+
+
+SYNOPSIS
+       docker node demote NODE [NODE...]
+
+
+
+DESCRIPTION
+       Demote one or more nodes from manager in the swarm
+
+
+
+SEE ALSO
+       docker-node(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

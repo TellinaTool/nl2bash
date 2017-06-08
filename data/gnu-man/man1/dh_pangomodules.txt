@@ -1,0 +1,32 @@
+DH_PANGOMODULES(1)                                      Pango                                     DH_PANGOMODULES(1)
+
+
+
+NAME
+       dh_pangomodules - create a Pango Module file for all Pango modules
+
+SYNOPSIS
+       dh_pangomodules [debhelper options] [directory or module ...]
+
+DESCRIPTION
+       dh_pangomodules is a debhelper program that handles correctly generating Pango Module files with modules that
+       it finds in the Pango Modules Path, in directories you pass on the command line, and on the command line.
+
+       This command scans the specified packages for Pango modules thanks to pango-querymodules.  When any module is
+       found, the generated <package>.modules file is installed into the corresponding package and a dependency on
+       the Module API version of pango is added to ${misc:Depends}.
+
+OPTIONS
+       -k  Do not generate any dependencies in ${misc:Depends}.
+
+SEE ALSO
+       debhelper
+
+       This program relies on Debhelper, but is shipped with the Pango development files.
+
+AUTHOR
+       Loic Minier <lool@dooz.org>
+
+
+
+1.36.3-1ubuntu1.1                                    2014-07-15                                   DH_PANGOMODULES(1)
