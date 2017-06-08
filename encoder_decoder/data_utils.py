@@ -749,16 +749,19 @@ def prepare_bash(FLAGS, verbose=False):
                         pruned_ast, list=[], with_parent=True)
                     nl_normalized_tokens, _ = tokenizer.ner_tokenizer(nl)
                     cm_normalized_tokens = data_tools.ast2tokens(
-                        ast, arg_type_only=True, with_parent=True, with_prefix=True)
+                        ast, arg_type_only=True, keep_common_args=True,
+                        with_parent=True, with_prefix=True)
                     cm_normalized_seq = data_tools.ast2list(
-                        ast, arg_type_only=True, list=[], with_parent=True,
-                        with_prefix=True)
+                        ast, arg_type_only=True, keep_common_args=True,
+                        list=[], with_parent=True, with_prefix=True)
                     cm_canonical_tokens = data_tools.ast2tokens(
-                        ast, arg_type_only=True, with_parent=True,
-                        ignore_flag_order=True, with_prefix=True)
+                        ast, arg_type_only=True, keep_common_args=True,
+                        with_parent=True, ignore_flag_order=True,
+                        with_prefix=True)
                     cm_canonical_seq = data_tools.ast2list(
-                        ast, arg_type_only=True, list=[], with_parent=True,
-                        ignore_flag_order=True, with_prefix=True)
+                        ast, arg_type_only=True, keep_common_args=True,
+                        list=[], with_parent=True, ignore_flag_order=True,
+                        with_prefix=True)
                     nl_partial_tokens, cm_partial_tokens = split_arguments(
                         nl_tokens, cm_tokens, cm_normalized_tokens)
                     # Debugging
