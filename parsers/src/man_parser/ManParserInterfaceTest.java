@@ -1,7 +1,7 @@
 package man_parser;
 
 import man_parser.parser.ParseException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
