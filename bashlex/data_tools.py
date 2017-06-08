@@ -208,15 +208,19 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
         elif node.is_argument() or node.kind in ["t"]:
             assert(loose_constraints or node.get_num_of_children() == 0)
             if ato and node.is_open_vocab():
-                if node.arg_type in constants._QUANTITIES:
-                    if node.value.startswith('+'):
-                        token = '+{}'.format(node.arg_type)
-                    elif node.value.startswith('-'):
-                        token = '-{}'.format(node.arg_type)
+                if node.value in bash.common_arguments:
+                    # keep frequently-occurred arguments in the vocabulary
+                    token = node.value
+                else:
+                    if node.arg_type in constants._QUANTITIES:
+                        if node.value.startswith('+'):
+                            token = '+{}'.format(node.arg_type)
+                        elif node.value.startswith('-'):
+                            token = '-{}'.format(node.arg_type)
+                        else:
+                            token = node.arg_type
                     else:
                         token = node.arg_type
-                else:
-                    token = node.arg_type
             else:
                 token = node.value
             if wp and node.is_open_vocab():
@@ -233,8 +237,6 @@ def ast2tokens(node, loose_constraints=False, ignore_flag_order=False,
                 for child in node.children:
                     tokens += to_tokens_fun(child)
         return tokens
-
-    print(to_tokens_fun(node))
     return to_tokens_fun(node)
 
 
