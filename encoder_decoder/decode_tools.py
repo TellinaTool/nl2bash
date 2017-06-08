@@ -391,15 +391,10 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
     """
     nl2bash = FLAGS.dataset.startswith('bash') and not FLAGS.explain
 
-<<<<<<< HEAD
-    grouped_dataset = data_utils.group_data(dataset,
-        use_bucket=model.buckets, use_temp=FLAGS.normalized)
-=======
     tokenizer_selector = 'cm' if FLAGS.explain else 'nl'
     grouped_dataset = data_utils.group_data(
         dataset, use_bucket=model.buckets, use_temp=FLAGS.normalized,
         tokenizer_selector=tokenizer_selector)
->>>>>>> 1ee0ce6f2be2aac74942a62b59819bddaffd7ea2
     vocabs = data_utils.load_vocab(FLAGS)
     rev_sc_vocab = vocabs.rev_sc_vocab
 
@@ -442,9 +437,9 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                     pred_cmd = data_tools.ast2command(
                         tree, loose_constraints=True)
                 score = output_logits[0]
-                pred_file.write('{}\n'.format(pred_cmd))
                 if verbose:
                     print('Prediction: {} ({})'.format(pred_cmd, score))
+                pred_file.write('{}\n'.format(pred_cmd))
             elif FLAGS.token_decoding_algorithm == 'beam_search':
                 top_k_predictions = batch_outputs[0]
                 if FLAGS.tg_char:
