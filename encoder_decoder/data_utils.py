@@ -251,7 +251,8 @@ def initialize_vocabulary(vocab_path):
 def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                       base_tokenizer=None, use_unk=True,
                       parallel_data=None, use_source_placeholder=False,
-                      parallel_vocab_size=None, coarse_typing=False):
+                      parallel_vocab_size=None, coarse_typing=False,
+                      add_type_prefix=False, remove_type_prefix=False):
     """Tokenize data file and turn into token-ids using given vocabulary file.
 
     This function loads data line-by-line from data_path, calls the above
@@ -275,6 +276,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
       parallel_vocab_size: Vocabulary size of the parallel language, used for
         creading dummy indices in CopyNet.
       coarse_typing: If set, replace tokens with coarse types.
+      add_type_prefix: If set, add type prefix of the token while indexing.
+      remove_type_prefix: If set, remove type prefix of the token while indexing.
     """
     max_token_num = 0
     if not tf.gfile.Exists(tg_id_path):
@@ -298,7 +301,9 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
                 parallel_sequence=parallel_line,
                 use_source_placeholder=use_source_placeholder,
                 parallel_vocab_size=parallel_vocab_size,
-                coarse_typing=coarse_typing)
+                coarse_typing=coarse_typing,
+                add_type_prefix=add_type_prefix,
+                remove_type_prefix=remove_type_prefix)
             if len(token_ids) > max_token_num:
                 max_token_num = len(token_ids)
             tokens_file.write(" ".join([str(tok) for tok in token_ids]) + "\n")
@@ -538,10 +543,14 @@ def prepare_dataset(data, data_dir, suffix, vocab_size, vocab_path,
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.sc',
                     vocab_path=parallel_vocab_path, use_source_placeholder=True,
                     parallel_vocab_size=parallel_vocab_size,
-                    parallel_data=parallel_split)
+                    parallel_data=parallel_split,
+                    add_type_prefix=is_bash_nl,
+                    remove_type_prefix=is_bash_cm)
                 # compute CopyNet target indices
                 data_to_token_ids(getattr(data, split), data_path + suffix + '.tg',
-                    vocab_path, parallel_data=parallel_split)
+                    vocab_path, parallel_data=parallel_split,
+                    add_type_prefix=False,
+                    remove_type_prefix=False)
             else:
                 data_to_token_ids(getattr(data, split), data_path + suffix,
                     vocab_path, coarse_typing=is_bash_nl)
