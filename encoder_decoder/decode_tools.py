@@ -437,9 +437,9 @@ def decode_set(sess, model, dataset, top_k, FLAGS, verbose=True):
                     pred_cmd = data_tools.ast2command(
                         tree, loose_constraints=True)
                 score = output_logits[0]
-                pred_file.write('{}\n'.format(pred_cmd))
                 if verbose:
                     print('Prediction: {} ({})'.format(pred_cmd, score))
+                pred_file.write('{}\n'.format(pred_cmd))
             elif FLAGS.token_decoding_algorithm == 'beam_search':
                 top_k_predictions = batch_outputs[0]
                 if FLAGS.tg_char:
