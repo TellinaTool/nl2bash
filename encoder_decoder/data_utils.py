@@ -365,9 +365,11 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
 
     for (i, w) in enumerate(words):
         word_id = get_index(w, vocabulary)
-        if parallel_sequence is not None and (w in parallel_sequence
-                or w[len('__LF__'):] in parallel_sequence
-                or '__LF__' + w in parallel_sequence):
+        if parallel_sequence is not None and (
+                (w.startswith('__ARG__') and w[len('__ARG__'):] in parallel_sequence)
+                or (w.startswith('__FLAG__') and w[len('__FLAGS__'):] in parallel_sequence)
+                or (('__ARG__' + w) in parallel_sequence)
+                or (('__FLAG__' + w) in parallel_sequence)):
             # If the token has appeared in the parallel sequence, store its
             # vocabulary index. Used to compute the CopyNet training objective.
             token_ids.append(word_id)
