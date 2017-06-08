@@ -1163,7 +1163,7 @@ def load_vocab(FLAGS):
         elif FLAGS.use_copy and FLAGS.copy_fun == 'copynet':
             cm_ext = ".cm"
         else:
-            cm_ext = ".cm.norm" if FLAGS.dataset.startswith('.cm') \
+            cm_ext = ".cm.norm" if FLAGS.dataset.startswith('bash') \
                 else '.cm'
     elif FLAGS.decoder_topology in ['basic_tree']:
         if FLAGS.normalized or FLAGS.canonical:
