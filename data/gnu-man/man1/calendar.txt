@@ -1,0 +1,147 @@
+CALENDAR(1)                                  BSD General Commands Manual                                 CALENDAR(1)
+
+NAME
+     calendar — reminder service
+
+SYNOPSIS
+     calendar [-ab] [-A num] [-B num] [-l num] [-w num] [-f calendarfile] [-t [[[cc]yy]mm]dd]
+
+DESCRIPTION
+     The calendar utility checks the current directory or the directory specified by the CALENDAR_DIR environment
+     variable for a file named calendar and displays lines that begin with either today's date or tomorrow's.  On
+     Fridays, events on Friday through Monday are displayed.
+
+     The options are as follows:
+
+     -A num  Print lines from today and next num days (forward, future).  Defaults to one. (same as -l)
+
+     -a      Process the “calendar” files of all users and mail the results to them.  This requires superuser privi‐
+             leges.
+
+     -B num  Print lines from today and previous num days (backward, past).
+
+     -b      Enforce special date calculation mode for KOI8 calendars.
+
+     -l num  Print lines from today and next num days (forward, future). Defaults to one. (same as -A)
+
+     -w num  Print lines from today and next num days, only if today is Friday (forward, future). Defaults to two,
+             which causes calendar to print entries through the weekend on Fridays.
+
+     -f calendarfile
+             Use calendarfile as the default calendar file.
+
+     -t [[[cc]yy]mm]dd
+             Act like the specified value is “today” instead of using the current date.  If yy is specified, but cc
+             is not, a value for yy between 69 and 99 results in a cc value of 19.  Otherwise, a cc value of 20 is
+             used.
+
+     To handle calendars in your national code table you can specify “LANG=<locale_name>” in the calendar file as
+     early as possible.  To handle national Easter names in the calendars, “Easter=<national_name>” (for Catholic
+     Easter) or “Paskha=<national_name>” (for Orthodox Easter) can be used.
+
+     A special locale name exists: ‘utf-8’.  Specifying “LANG=utf-8” indicates that the dates will be read using the
+     C locale, and the descriptions will be encoded in UTF-8.  This is usually used for the distributed calendar
+     files.  The “CALENDAR” variable can be used to specify the style.  Only ‘Julian’ and ‘Gregorian’ styles are
+     currently supported.  Use “CALENDAR=” to return to the default (Gregorian).
+
+     To enforce special date calculation mode for Cyrillic calendars you should specify “LANG=<local_name>” and
+     “BODUN=<bodun_prefix>” where <local_name> can be ru_RU.KOI8-R, uk_UA.KOI8-U or by_BY.KOI8-B.
+
+     Note that the locale is reset to the user's default for each new file that is read. This is so that locales
+     from one file do not accidentally carry over into another file.
+
+     Other lines should begin with a month and day.  They may be entered in almost any format, either numeric or as
+     character strings.  If proper locale is set, national months and weekdays names can be used.  A single asterisk
+     (`*') matches every month.  A day without a month matches that day of every week.  A month without a day
+     matches the first of that month.  Two numbers default to the month followed by the day.  Lines with leading
+     tabs default to the last entered date, allowing multiple line specifications for a single date.  “Easter” (may
+     be followed by a positive or negative integer) is Easter for this year.  “Paskha” (may be followed by a posi‐
+     tive or negative integer) is Orthodox Easter for this year.  Weekdays may be followed by “-4” ... “+5” (aliases
+     last, first, second, third, fourth) for moving events like “the last Monday in April”.
+
+     By convention, dates followed by an asterisk (‘*’) are not fixed, i.e., change from year to year.
+
+     Day descriptions start after the first <tab> character in the line; if the line does not contain a <tab> char‐
+     acter, it isn't printed out.  If the first character in the line is a <tab> character, it is treated as the
+     continuation of the previous description.
+
+     The calendar file is preprocessed by cpp(1), allowing the inclusion of shared files such as company holidays or
+     meetings.  If the shared file is not referenced by a full pathname, cpp(1) searches in the current (or home)
+     directory first, and then in the directory directory /etc/calendar, and finally in /usr/share/calendar.  Empty
+     lines and lines protected by the C commenting syntax (/* ... */) are ignored.
+
+     Some possible calendar entries (a \t sequence denotes a <tab> character):
+
+           LANG=C
+           Easter=Ostern
+
+           #include <calendar.usholiday>
+           #include <calendar.birthday>
+
+           6/15\tJune 15 (if ambiguous, will default to month/day).
+           Jun. 15\tJune 15.
+           15 June\tJune 15.
+           Thursday\tEvery Thursday.
+           June\tEvery June 1st.
+           15 *\t15th of every month.
+
+           May Sun+2\tsecond Sunday in May (Muttertag)
+           04/SunLast\tlast Sunday in April,
+           \tsummer time in Europe
+           Easter\tEaster
+           Ostern-2\tGood Friday (2 days before Easter)
+           Paskha\tOrthodox Easter
+
+FILES
+     calendar              File in current directory.
+     ~/.calendar           Directory in the user's home directory (which calendar changes into, if it exists).
+     ~/.calendar/calendar  File to use if no calendar file exists in the current directory.
+     ~/.calendar/nomail    calendar will not send mail if this file exists.
+     calendar.all          International and national calendar files.
+     calendar.birthday     Births and deaths of famous (and not-so-famous) people.
+     calendar.christian    Christian holidays (should be updated yearly by the local system administrator so that
+                           roving holidays are set correctly for the current year).
+     calendar.computer     Days of special significance to computer people.
+     calendar.croatian     Croatian calendar.
+     calendar.discord      Discordian calendar (all rites reversed).
+     calendar.fictional    Fantasy and fiction dates (mostly LOTR).
+     calendar.french       French calendar.
+     calendar.german       German calendar.
+     calendar.history      Miscellaneous history.
+     calendar.holiday      Other holidays (including the not-well-known, obscure, and really obscure).
+     calendar.judaic       Jewish holidays (should be updated yearly by the local system administrator so that rov‐
+                           ing holidays are set correctly for the current year).
+     calendar.music        Musical events, births, and deaths (strongly oriented toward rock n' roll).
+     calendar.openbsd      OpenBSD related events.
+     calendar.pagan        Pagan holidays, celebrations and festivals.
+     calendar.russian      Russian calendar.
+     calendar.space        Cosmic history.
+     calendar.ushistory    U.S. history.
+     calendar.usholiday    U.S. holidays.
+     calendar.world        World wide calendar.
+
+SEE ALSO
+     at(1), cal(1), cpp(1), mail(1), cron(8)
+
+STANDARDS
+     The calendar program previously selected lines which had the correct date anywhere in the line.  This is no
+     longer true: the date is only recognized when it occurs at the beginning of a line.
+
+COMPATIBILITY
+     The calendar command will only display lines that use a <tab> character to separate the date and description,
+     or that begin with a <tab>. This is different than in previous releases.
+
+     The -t flag argument syntax is from the original FreeBSD calendar program.
+
+     The -l and -w flags are Debian-specific enhancements. Also, the original calendar program did not accept 0 as
+     an argument to the -A flag.
+
+     Using ‘utf-8’ as a locale name is a Debian-specific enhancement.
+
+HISTORY
+     A calendar command appeared in Version 7 AT&T UNIX.
+
+BUGS
+     calendar doesn't handle all Jewish holidays or moon phases.
+
+BSD                                                 June 8, 2017                                                 BSD

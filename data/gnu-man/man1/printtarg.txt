@@ -1,0 +1,203 @@
+GENERATE(1)                                         User Commands                                        GENERATE(1)
+
+
+
+NAME
+       Generate - Generate Target PostScrip file.
+
+DESCRIPTION
+       Generate Target PostScrip file, Version 1.5.1 Author: Graeme W. Gill, licensed under the AGPL Version 3
+
+              Diagnostic: Unknown flag
+
+       usage: printtarg [-v] [-i instr] [-r] [-s] [-p size] basename
+
+       -v     Verbose mode
+
+       -i 20 | 22 | 41 | 51 | SS | i1 | CM Select target instrument (default DTP41)
+
+              20 = DTP20, 22 = DTP22, 41 = DTP41, 51 = DTP51, SS = SpectroScan, i1 = i1Pro, CM = ColorMunki
+
+       -h     Use hexagon patches for SS, double density for CM
+
+       -a scale
+              Scale patch size and spacers by factor (e.g. 0.857 or 1.5 etc.)
+
+       -A scale
+              Scale spacers by additional factor (e.g. 0.857 or 1.5 etc.)
+
+       -r     Don't randomize patch location
+
+       -s     Create a scan image recognition (.cht) file
+
+       -S     Same as -s, but don't generate wide orientation strip.
+
+       -c     Force colored spacers
+
+       -b     Force B&W spacers
+
+       -n     Force no spacers
+
+       -f     Create PostScript DeviceN Color fallback
+
+       -w g|r|s|n
+              White colorspace encoding DeviceGray (def), DeviceRGB, Separation or DeviceN
+
+       -k g|c|s|n
+              Black colorspace encoding DeviceGray (def), DeviceCMYK, Separation or DeviceN
+
+       -o k|r|n
+              CMY colorspace encoding DefiveCMYK (def), inverted DeviceRGB or DeviceN
+
+       -e     Output EPS compatible file
+
+       -t [res]
+              Output 8 bit TIFF raster file, optional res DPI (default 100)
+
+       -T [res]
+              Output 16 bit TIFF raster file, optional res DPI (default 100)
+
+       -C     Don't use TIFF compression
+
+       -N     Use TIFF alpha N channels more than 4
+
+       -D     Dither 8 bit TIFF values down from 16 bit
+
+       -Q nbits
+              Quantize test values to fit in nbits
+
+       -R rsnum
+              Use given random start number
+
+       -K file.cal
+              Apply printer calibration to patch values and include in .ti2
+
+       -I file.cal
+              Include calibration in .ti2 (but don't apply it)
+
+       -x pattern
+              Use given strip indexing pattern (Default = "A-Z, A-Z")
+
+       -y pattern
+              Use given patch indexing pattern (Default = "0-9,@-9,@-9;1-999")
+
+       -m margin
+              Set a page margin in mm (default 6.0 mm)
+
+       -M margin
+              Set a page margin in mm and include it in TIFF
+
+       -P     Don't limit strip length
+
+       -L     Suppress any left paper clip border
+
+       -p size
+              Select page size from: A4       [210.0 x 297.0 mm] A4R      [297.0 x 210.0 mm] A3       [297.0 x 420.0
+              mm] (default) A2       [420.0 x 594.0 mm] Letter   [215.9 x 279.4 mm]  LetterR   [279.4  x  215.9  mm]
+              Legal    [215.9 x 355.6 mm] 4x6      [101.6 x 152.4 mm] 11x17    [279.4 x 431.8 mm]
+
+       -p WWWxHHH
+              Custom size, WWW mm wide by HHH mm high
+
+       basname
+              Base name for input(.ti1), output(.ti2) and output(.ps/.eps/.tif)
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3
+
+              Diagnostic: Unknown flag
+
+       usage: printtarg [-v] [-i instr] [-r] [-s] [-p size] basename
+
+       -v     Verbose mode
+
+       -i 20 | 22 | 41 | 51 | SS | i1 | CM Select target instrument (default DTP41)
+
+              20 = DTP20, 22 = DTP22, 41 = DTP41, 51 = DTP51, SS = SpectroScan, i1 = i1Pro, CM = ColorMunki
+
+       -h     Use hexagon patches for SS, double density for CM
+
+       -a scale
+              Scale patch size and spacers by factor (e.g. 0.857 or 1.5 etc.)
+
+       -A scale
+              Scale spacers by additional factor (e.g. 0.857 or 1.5 etc.)
+
+       -r     Don't randomize patch location
+
+       -s     Create a scan image recognition (.cht) file
+
+       -S     Same as -s, but don't generate wide orientation strip.
+
+       -c     Force colored spacers
+
+       -b     Force B&W spacers
+
+       -n     Force no spacers
+
+       -f     Create PostScript DeviceN Color fallback
+
+       -w g|r|s|n
+              White colorspace encoding DeviceGray (def), DeviceRGB, Separation or DeviceN
+
+       -k g|c|s|n
+              Black colorspace encoding DeviceGray (def), DeviceCMYK, Separation or DeviceN
+
+       -o k|r|n
+              CMY colorspace encoding DefiveCMYK (def), inverted DeviceRGB or DeviceN
+
+       -e     Output EPS compatible file
+
+       -t [res]
+              Output 8 bit TIFF raster file, optional res DPI (default 100)
+
+       -T [res]
+              Output 16 bit TIFF raster file, optional res DPI (default 100)
+
+       -C     Don't use TIFF compression
+
+       -N     Use TIFF alpha N channels more than 4
+
+       -D     Dither 8 bit TIFF values down from 16 bit
+
+       -Q nbits
+              Quantize test values to fit in nbits
+
+       -R rsnum
+              Use given random start number
+
+       -K file.cal
+              Apply printer calibration to patch values and include in .ti2
+
+       -I file.cal
+              Include calibration in .ti2 (but don't apply it)
+
+       -x pattern
+              Use given strip indexing pattern (Default = "A-Z, A-Z")
+
+       -y pattern
+              Use given patch indexing pattern (Default = "0-9,@-9,@-9;1-999")
+
+       -m margin
+              Set a page margin in mm (default 6.0 mm)
+
+       -M margin
+              Set a page margin in mm and include it in TIFF
+
+       -P     Don't limit strip length
+
+       -L     Suppress any left paper clip border
+
+       -p size
+              Select page size from: A4       [210.0 x 297.0 mm] A4R      [297.0 x 210.0 mm] A3       [297.0 x 420.0
+              mm] (default) A2       [420.0 x 594.0 mm] Letter   [215.9 x 279.4 mm]  LetterR   [279.4  x  215.9  mm]
+              Legal    [215.9 x 355.6 mm] 4x6      [101.6 x 152.4 mm] 11x17    [279.4 x 431.8 mm]
+
+       -p WWWxHHH
+              Custom size, WWW mm wide by HHH mm high
+
+       basname
+              Base name for input(.ti1), output(.ti2) and output(.ps/.eps/.tif)
+
+
+
+Generate Target PostScrip file, Version 1.5.1        August 2013                                         GENERATE(1)

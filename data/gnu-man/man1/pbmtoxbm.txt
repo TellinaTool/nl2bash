@@ -1,0 +1,22 @@
+pbmtoxbm(1)                                    General Commands Manual                                   pbmtoxbm(1)
+
+
+
+NAME
+       pbmtoxbm - convert a portable bitmap into an X11 bitmap
+
+SYNOPSIS
+       pbmtoxbm [pbmfile]
+
+DESCRIPTION
+       Reads a portable bitmap as input.  Produces an X11 bitmap as output.
+
+SEE ALSO
+       pbmtox10bm(1), xbmtopbm(1), pbm(5)
+
+AUTHOR
+       Copyright (C) 1988 by Jef Poskanzer.
+
+
+
+                                                   31 August 1988                                        pbmtoxbm(1)

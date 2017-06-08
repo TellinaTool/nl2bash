@@ -1,0 +1,37 @@
+VERSION(1SSL)                                          OpenSSL                                         VERSION(1SSL)
+
+
+
+NAME
+       version - print OpenSSL version information
+
+SYNOPSIS
+       openssl version [-a] [-v] [-b] [-o] [-f] [-p]
+
+DESCRIPTION
+       This command is used to print out version information about OpenSSL.
+
+OPTIONS
+       -a  all information, this is the same as setting all the other flags.
+
+       -v  the current OpenSSL version.
+
+       -b  the date the current version of OpenSSL was built.
+
+       -o  option information: various options set when the library was built.
+
+       -c  compilation flags.
+
+       -p  platform setting.
+
+       -d  OPENSSLDIR setting.
+
+NOTES
+       The output of openssl version -a would typically be used when sending in a bug report.
+
+HISTORY
+       The -d option was added in OpenSSL 0.9.7.
+
+
+
+1.0.1f                                               2014-01-06                                        VERSION(1SSL)

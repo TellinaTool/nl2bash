@@ -1,0 +1,42 @@
+dvd+rw-format(1)                               General Commands Manual                              dvd+rw-format(1)
+
+
+
+NAME
+       dvd+rw-format - format DVD+-RW/-RAM disk
+
+
+SYNOPSIS
+       dvd+rw-format [-force[=full]] [-lead-out | -blank[=full]] [-ssa[=none | default | max]] /dev/dvd
+
+
+DESCRIPTION
+       The dvd+rw-format command formats dvd disk in the specified dvd drive (e.g. /dev/dvd).
+
+
+OPTIONS
+       -force[=full]
+              This forces to format dvd as new while wiping any existing data.
+
+       -blank[=full]
+              This blanks dvd while changing to sequential mode.
+
+       -lead-out
+              This  relocates the lead-out next to outermost written sector as well as makes sure there is no virgin
+              surface before it. Previously written data is not affected by this operation.  Useful  for  addressing
+              DVD-ROM compatibility, or playability of already recorded media in legacy units.
+
+
+SEE ALSO
+       Most up-to-date information on dvd+rw-tools is available at http://fy.chalmers.se/~appro/linux/DVD+RW/.
+
+       The manpage for genisofs(8), growisofs(1), dvd+rw-mediainfo(1), dvd+rw-booktype(1).
+
+
+AUTHOR
+       dvd+rw-format  was  written  by  Andy Polyakov <appro@fy.chalmers.se>.  This manual page was written by Osamu
+       Aoki <osamu@debian.org> for the Debian project.
+
+
+
+                                                   September 2004                                   dvd+rw-format(1)

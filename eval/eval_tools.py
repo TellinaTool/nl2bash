@@ -85,7 +85,6 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
             for i in xrange(len(predictions)):
                 pred_cmd = predictions[i]
                 tree = cmd_parser(pred_cmd)
-                unprocessed_cmd_str = regexDFAEquals.unprocess_regex(cmd_str)
                 unprocessed_pred_cmd = regexDFAEquals.unprocess_regex(pred_cmd)
                 # evaluation ignoring flag orders
                 if eval_bash:
@@ -95,6 +94,7 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
                     if eval_regex:
                         str_match = False
                         for cmd_str in gts:
+                            unprocessed_cmd_str = regexDFAEquals.unprocess_regex(cmd_str)
                             if regexDFAEquals.regex_equiv_from_raw(cmd_str, pred_cmd):
                                 str_match = True
                                 # Debugging
@@ -106,15 +106,15 @@ def eval_set(model_dir, decode_sig, dataset, top_k, FLAGS, verbose=True):
                                         print("----------------------------------")
                                     else:
                                         print("----------------------------------")
-                                        print("i) {}".format(cmd_str))
-                                        print("ii) {}".format(pred_cmd))
+                                        print("i) {} ({})".format(cmd_str, unprocessed_cmd_str))
+                                        print("ii) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
                                         print("----------------------------------")
                                 break
                             else:
                                 if verbose:
                                     print("----------------------------------")
-                                    print("A) {}".format(cmd_str))
-                                    print("B) {}".format(pred_cmd))
+                                    print("A) {} ({})".format(cmd_str, unprocessed_cmd_str))
+                                    print("B) {} ({})".format(pred_cmd, unprocessed_pred_cmd))
                                     print("----------------------------------")
                     else:
                         str_match = pred_cmd in gts

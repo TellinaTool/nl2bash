@@ -1,0 +1,87 @@
+HOSTNAMECTL(1)                                       hostnamectl                                      HOSTNAMECTL(1)
+
+
+
+NAME
+       hostnamectl - Control the system hostname
+
+SYNOPSIS
+       hostnamectl [OPTIONS...] {COMMAND}
+
+DESCRIPTION
+       hostnamectl may be used to query and change the system hostname and related settings.
+
+       This tool distinguishes three different host names: the high-level "pretty" hostname which might include all
+       kinds of special characters (e.g. "Lennart's Laptop"), the static hostname which is used to initialize the
+       kernel hostname at boot (e.g. "lennarts-laptop"), and the transient hostname which might be assigned
+       temporarily due to network configuration and might revert back to the static hostname if network connectivity
+       is lost and is only temporarily written to the kernel hostname (e.g. "dhcp-47-11").
+
+       Note that the pretty hostname has little restrictions on the characters used, while the static and transient
+       hostnames are limited to the usually accepted characters of internet domain names.
+
+       The static host name is stored in /etc/hostname, see hostname(5) for more information. The pretty host name,
+       chassis type and icon name are stored in /etc/machine-info, see machine-id(5).
+
+OPTIONS
+       The following options are understood:
+
+       -h, --help
+           Prints a short help text and exits.
+
+       --version
+           Prints a short version string and exits.
+
+       --no-ask-password
+           Don't query the user for authentication for privileged operations.
+
+       -H, --host
+           Execute the operation remotely. Specify a hostname, or username and hostname separated by @, to connect
+           to. This will use SSH to talk to a remote system.
+
+       --static, --transient, --pretty
+           If set-hostname is invoked and one or more of these options are passed only the selected hostnames is
+           updated.
+
+       The following commands are understood:
+
+       status
+           Show current system hostname and related information.
+
+       set-hostname [NAME]
+           Set the system hostname. By default this will alter the pretty, the static, and the transient hostname
+           alike, however if one or more of --static, --transient, --pretty are used only the selected hostnames are
+           changed. If the pretty hostname is being set, and static or transient are being set as well the specified
+           host name will be simplified in regards to the character set used before the latter are updated. This is
+           done by replacing spaces by "-" and removing special characters. This ensures that the pretty and the
+           static hostname are always closely related while still following the validity rules of the specific name.
+           This simplification of the hostname string is not done if only the transient and/or static host names are
+           set, and the pretty host name is left untouched. Pass the empty string "" as hostname to reset the
+           selected hostnames to their default (usually "localhost").
+
+       set-icon-name [NAME]
+           Set the system icon name. The icon name is used by some graphical applications to visualize this host.
+           The icon name should follow the Icon Naming Specification[1]. Pass an empty string to this operation to
+           reset the icon name to the default value which is determined from chassis type (see below) and possibly
+           other parameters.
+
+       set-chassis [TYPE]
+           Set the chassis type. The chassis type is used by some graphical applications to visualize the host or
+           alter user interaction. Currently, the following chassis types are defined: desktop, laptop, server,
+           tablet, handset, as well as the special chassis types vm and container for virtualized systems that lack
+           an immediate physical chassis. Pass an empty string to this operation to reset the chassis type to the
+           default value which is determined from the firmware and possibly other parameters.
+
+EXIT STATUS
+       On success 0 is returned, a non-zero failure code otherwise.
+
+SEE ALSO
+       systemd(1), hostname(1), hostname(5), machine-info(5), systemctl(1), systemd-hostnamed.service(8)
+
+NOTES
+        1. Icon Naming Specification
+           http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html
+
+
+
+systemd 204                                                                                           HOSTNAMECTL(1)

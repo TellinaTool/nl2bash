@@ -1,0 +1,48 @@
+DEB-SYSTEMD-HELPER(1p)                   User Contributed Perl Documentation                  DEB-SYSTEMD-HELPER(1p)
+
+
+
+NAME
+       deb-systemd-helper - subset of systemctl for machines not running systemd
+
+SYNOPSIS
+       deb-systemd-helper enable|disable|mask|unmask|is-enabled|was-enabled|debian-installed|update-state|reenable
+       unit file ...
+
+DESCRIPTION
+       deb-systemd-helper is a Debian-specific helper script which re-implements the enable, disable, is-enabled and
+       reenable commands from systemctl.
+
+       The "enable" action will only be performed once (when first installing the package). On the first "enable",
+       an state file is created which will be deleted upon "disable", but only when _DEB_SYSTEMD_HELPER_PURGE=1 to
+       distinguish purge from remove.
+
+       The "mask" action will keep state on whether the service was enabled/disabled before and will properly return
+       to that state on "unmask".
+
+       The "was-enabled" action is not present in systemctl, but is required in Debian so that we can figure out
+       whether a service was enabled before we installed an updated service file. See http://bugs.debian.org/717603
+       for details.
+
+       The "debian-installed" action is also not present in systemctl. It returns 0 if the state file of at least
+       one of the given units is present.
+
+       The "update-state" action is also not present in systemctl. It updates deb-systemd-helper's state file,
+       removing obsolete entries (e.g. service files that are no longer shipped by the package) and adding new
+       entries (e.g.  new service files shipped by the package) without enabling them.
+
+       deb-systemd-helper is intended to be used from maintscripts to enable systemd unit files. It is specifically
+       NOT intended to be used interactively by users. Instead, users should run systemd and use systemctl, or not
+       bother about the systemd enabled state in case they are not running systemd.
+
+ENVIRONMENT
+       _DEB_SYSTEMD_HELPER_DEBUG
+           If you export _DEB_SYSTEMD_HELPER_DEBUG=1, deb-systemd-helper will print debug messages to stderr (thus
+           visible in dpkg runs). Please include these when filing a bugreport.
+
+AUTHOR
+       Michael Stapelberg <stapelberg@debian.org>
+
+
+
+perl v5.18.2                                         2013-12-25                               DEB-SYSTEMD-HELPER(1p)

@@ -1,0 +1,56 @@
+PSSELECT(1)                                    General Commands Manual                                   PSSELECT(1)
+
+
+
+NAME
+       psselect - select pages from a PostScript file
+
+SYNOPSIS
+       psselect [ -q ] [ -e ] [ -o ] [ -r ] [ -ppages ] [ pages ] [ infile [ outfile ] ]
+
+DESCRIPTION
+       Psselect  selects pages from a PostScript document, creating a new PostScript file. The input PostScript file
+       should follow the Adobe Document Structuring Conventions.
+
+       The -e option selects all of the even pages; it may be used in conjunction  with  the  other  page  selection
+       options to select the even pages from a range of pages.
+
+       The  -o  option  selects  all  of  the odd pages; it may be used in conjunction with the other page selection
+       options.
+
+       The -ppages option specifies the pages which are to be selected.  Pages is a comma  separated  list  of  page
+       ranges,  each of which may be a page number, or a page range of the form first-last. If first is omitted, the
+       first page is assumed, and if last is omitted, the last page is assumed.
+
+       The prefix character `_' indicates that the page number is relative to the  end  of  the  document,  counting
+       backwards. If just this character with no page number is used, a blank page will be inserted.
+
+       The -r option causes psselect to output the selected pages in reverse order.
+
+       Psselect normally prints the page numbers of the pages rearranged; the -q option suppresses this.
+
+       If  any  of the -r, -e, or -o options are specified, the page range must be given with the -p option. This is
+       for backwards compatibility with previous versions.
+
+
+NOTES
+       The page number given to psselect is the number of the page counting from the  start  or  end  of  the  file,
+       starting at one. The actual page number in the document may be different.
+
+AUTHOR
+       Copyright (C) Angus J. C. Duggan 1991-1995
+
+SEE ALSO
+       psbook(1),  psselect(1), pstops(1), epsffit(1), psnup(1), psresize(1), psmerge(1), fixscribeps(1), getafm(1),
+       fixdlsrps(1),  fixfmps(1),  fixpsditps(1),  fixpspps(1),  fixtpps(1),  fixwfwps(1),  fixwpps(1),  fixwwps(1),
+       extractres(1), includeres(1), showchar(1)
+
+TRADEMARKS
+       PostScript is a trademark of Adobe Systems Incorporated.
+
+BUGS
+       Psselect does not accept all DSC comments.
+
+
+
+                                           PSUtils Release 1 Patchlevel 17                               PSSELECT(1)

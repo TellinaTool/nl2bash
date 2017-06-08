@@ -1,0 +1,56 @@
+ppmtopj(1)                                     General Commands Manual                                    ppmtopj(1)
+
+
+
+NAME
+       ppmtopj - convert a portable pixmap to an HP PaintJet file
+
+SYNOPSIS
+       ppmtopj   [-gamma   val]   [-xpos   val]   [-ypos   val]   [-back   dark|lite]   [-rle]   [-center]  [-render
+       none|snap|bw|dither|diffuse|monodither|monodiffuse|clusterdither|monoclusterdither] [ppmfile]
+
+DESCRIPTION
+       Reads a portable pixmap as input and converts it into a format suitable to  be  printed  by  an  HP  PaintJet
+       printer.
+
+       For  best results, the input file should be in 8-color RGB form; i.e. it should have only the 8 binary combi‐
+       nations of full-on and full-off primaries.  You could get this by sending the  input  file  through  ppmquant
+       -map with a map file such as:
+           P3
+           8 1
+           255
+           0 0 0      255 0 0    0 255 0    0 0 255
+           255 255 0  255 0 255  0 255 255  255 255 255
+       Or else you could use use ppmdither -red 2 -green 2 -blue 2.
+
+OPTIONS
+       -rle          Run length encode the image.  (This can result in larger images)
+
+       -back         Enhance  the  foreground by indicating if the background is light or dark compated to the fore‐
+                     ground.
+
+       -render alg   Use an internal rendering algorithm (default dither).
+
+       -gamma int    Gamma correct the image using the integet parameter as a gamma (default 0).
+
+       -center       Center the image to an 8.5 by 11 page
+
+       -xpos pos     Move by pos pixels in the x direction.
+
+       -ypos pos     Move by pos pixels in the y direction.
+
+REFERENCES
+       HP PaintJet XL Color Graphics Printer User's Guide
+
+SEE ALSO
+       pnmdepth(1), ppmquant(1), ppmdither(1), ppm(5)
+
+BUGS
+       Most of the options have not been tested because of the price of the paper.
+
+AUTHOR
+       Copyright (C) 1991 by Christos Zoulas.
+
+
+
+                                                    13 July 1991                                          ppmtopj(1)

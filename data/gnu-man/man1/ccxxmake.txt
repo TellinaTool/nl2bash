@@ -1,0 +1,149 @@
+CREATE(1)                                           User Commands                                          CREATE(1)
+
+
+
+NAME
+       Create - Create CCMX or CCSS.
+
+DESCRIPTION
+       Create CCMX or CCSS, Version 1.5.1 Author: Graeme W. Gill, licensed under the AGPL Version 3 Diagnostic: Flag
+       '--' not recognised usage: ccmxmake [-options] output.ccmx
+
+       -v     Verbose mode
+
+       -S     Create CCSS rather than CCMX
+
+       -f file1.ti3[,file2.ti3] Create from one or two .ti3 files rather than measure.
+
+       -display displayname
+              Choose X11 display name
+
+       -d n[,m]
+              Choose the display n from the following list (default 1) Optionally choose  different  display  m  for
+              VideoLUT access
+
+              1 name = ':0.0' 1 = 'Screen 1, Output VBOX0 at 0, 0, width 1605, height 1079'
+
+       -dweb[:port]
+              Display via a web server at port (default 8080)
+
+       -p     Use telephoto mode (ie. for a projector) (if available)
+
+       -P ho,vo,ss[,vs]
+              Position  test  window  and scale it ho,vi: 0.0 = left/top, 0.5 = center, 1.0 = right/bottom etc.  ss:
+              0.5 = half, 1.0 = normal, 2.0 = double etc.
+
+       -F     Fill whole screen with black background
+
+       -n     Don't set override redirect on test window
+
+       -N     Disable initial calibration of instrument if possible
+
+       -H     Use high resolution spectrum mode (if available)
+
+       -C "command"
+              Invoke shell "command" each time a color is set
+
+       -o observ
+              Choose CIE Observer for CCMX spectrometer data: 1931_2 (def), 1964_10, S&B 1955_2, shaw, J&V 1978_2
+
+       -s steps
+              Override default patch sequence combination steps  (default 1)
+
+       -W n|h|x
+              Override serial port flow control: n = none, h = HW, x = Xon/Xoff
+
+       -D [level]
+              Print debug diagnostics to stderr
+
+       -E desciption
+              Override the default overall description
+
+       -I displayname
+              Set display make and model description
+
+       -T displaytech
+              Set display technology description (ie. CRT, LCD etc.)
+
+       -U c   Set UI selection character(s)
+
+       -Y r|n Set or override refresh/non-refresh display type
+
+       -Y A   Use non-adaptive integration time mode (if available).
+
+              correction.ccmx | calibration.ccss
+
+              File to save result to
+
+       Author: Graeme W. Gill, licensed under the AGPL Version 3 Diagnostic: Flag '--' not recognised  usage:  ccmx‐
+       make [-options] output.ccmx
+
+       -v     Verbose mode
+
+       -S     Create CCSS rather than CCMX
+
+       -f file1.ti3[,file2.ti3] Create from one or two .ti3 files rather than measure.
+
+       -display displayname
+              Choose X11 display name
+
+       -d n[,m]
+              Choose  the  display  n  from the following list (default 1) Optionally choose different display m for
+              VideoLUT access
+
+              1 name = ':0.0' 1 = 'Screen 1, Output VBOX0 at 0, 0, width 1605, height 1079'
+
+       -dweb[:port]
+              Display via a web server at port (default 8080)
+
+       -p     Use telephoto mode (ie. for a projector) (if available)
+
+       -P ho,vo,ss[,vs]
+              Position test window and scale it ho,vi: 0.0 = left/top, 0.5 = center, 1.0 =  right/bottom  etc.   ss:
+              0.5 = half, 1.0 = normal, 2.0 = double etc.
+
+       -F     Fill whole screen with black background
+
+       -n     Don't set override redirect on test window
+
+       -N     Disable initial calibration of instrument if possible
+
+       -H     Use high resolution spectrum mode (if available)
+
+       -C "command"
+              Invoke shell "command" each time a color is set
+
+       -o observ
+              Choose CIE Observer for CCMX spectrometer data: 1931_2 (def), 1964_10, S&B 1955_2, shaw, J&V 1978_2
+
+       -s steps
+              Override default patch sequence combination steps  (default 1)
+
+       -W n|h|x
+              Override serial port flow control: n = none, h = HW, x = Xon/Xoff
+
+       -D [level]
+              Print debug diagnostics to stderr
+
+       -E desciption
+              Override the default overall description
+
+       -I displayname
+              Set display make and model description
+
+       -T displaytech
+              Set display technology description (ie. CRT, LCD etc.)
+
+       -U c   Set UI selection character(s)
+
+       -Y r|n Set or override refresh/non-refresh display type
+
+       -Y A   Use non-adaptive integration time mode (if available).
+
+              correction.ccmx | calibration.ccss
+
+              File to save result to
+
+
+
+Create CCMX or CCSS, Version 1.5.1                   August 2013                                           CREATE(1)

@@ -1,0 +1,52 @@
+pnmconvol(1)                                   General Commands Manual                                  pnmconvol(1)
+
+
+
+NAME
+       pnmconvol - general MxN convolution on a portable anymap
+
+SYNOPSIS
+       pnmconvol convolutionfile [pnmfile]
+
+DESCRIPTION
+       Reads  two  portable anymaps as input.  Convolves the second using the first, and writes a portable anymap as
+       output.
+
+       Convolution means replacing each pixel with a weighted average of the nearby pixels.   The  weights  and  the
+       area  to  average are determined by the convolution matrix.  The unsigned numbers in the convolution file are
+       offset by -maxval/2 to make signed numbers, and then normalized, so the actual values in the convolution file
+       are only relative.
+
+       Here  is  a sample convolution file; it does a simple average of the nine immediate neighbors, resulting in a
+       smoothed image:
+           P2
+           3 3
+           18
+           10 10 10
+           10 10 10
+           10 10 10
+
+       To see how this works, do the above-mentioned offset: 10 - 18/2 gives 1.  The possible  range  of  values  is
+       from  0  to 18, and after the offset that's -9 to 9.  The normalization step makes the range -1 to 1, and the
+       values get scaled correspondingly so they become 1/9 - exactly what you want.  The equivalent matrix for  5x5
+       smoothing would have maxval 50 and be filled with 26.
+
+       The  convolution file will usually be a graymap, so that the same convolution gets applied to each color com‐
+       ponent.  However, if you want to use a pixmap and do a different convolution to  different  colors,  you  can
+       certainly do that.
+
+       At  the  edges  of the convolved image, where the convolution matrix would extend over the edge of the image,
+       pnmconvol just copies the input pixels directly to the output.
+
+
+SEE ALSO
+       pnmsmooth(1), pnm(5)
+
+
+AUTHORS
+       Copyright (C) 1989, 1991 by Jef Poskanzer.
+       Modified 26 November 1994 by Mike Burns, burns@chem.psu.edu
+
+
+
+                                                  26 November 1994                                      pnmconvol(1)

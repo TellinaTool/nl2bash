@@ -1,0 +1,31 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-image-save - Save one or more images to a tar archive (streamed to STDOUT by default)
+
+
+
+SYNOPSIS
+       docker image save [OPTIONS] IMAGE [IMAGE...]
+
+
+
+DESCRIPTION
+       Save one or more images to a tar archive (streamed to STDOUT by default)
+
+
+
+OPTIONS
+       -o, --output=""
+           Write to a file, instead of STDOUT
+
+
+
+SEE ALSO
+       docker-image(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

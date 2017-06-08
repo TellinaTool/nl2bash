@@ -1,0 +1,22 @@
+pbmtoicon(1)                                   General Commands Manual                                  pbmtoicon(1)
+
+
+
+NAME
+       pbmtoicon - convert a portable bitmap into a Sun icon
+
+SYNOPSIS
+       pbmtoicon [pbmfile]
+
+DESCRIPTION
+       Reads a portable bitmap as input.  Produces a Sun icon as output.
+
+SEE ALSO
+       icontopbm(1), pbm(5)
+
+AUTHOR
+       Copyright (C) 1988 by Jef Poskanzer.
+
+
+
+                                                   31 August 1988                                       pbmtoicon(1)

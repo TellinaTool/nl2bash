@@ -1,0 +1,42 @@
+anytopnm(1)                                    General Commands Manual                                   anytopnm(1)
+
+
+
+NAME
+       anytopnm - attempt to convert an unknown type of image file to a portable anymap
+
+
+SYNOPSIS
+       anytopnm [file]
+
+
+DESCRIPTION
+       anytopnm  converts  the  input  image, which may be in any of dozens of graphics formats, to PBM, PGM, or PPM
+       format, depending on that nature of the input image, and outputs it to Standard Output.
+
+       To determine the format of the input, anytopnm uses the file program (possibly assisted by the magic  numbers
+       file  fragment  included  with  Netpbm).  If that fails (very few image formats have magic numbers), anytopnm
+       looks at the filename extension.  If that fails, anytopnm punts.
+
+       The type of the output file depends on the input image.
+
+       If file indicates that the input file is compressed (either via Unix compress, gzip,  or  bzip  compression),
+       anytopnm uncompresses it and proceeds as above with the uncompressed result.
+
+       If  file  indicates  that  the input file is encoded by uuencode or btoa, anytopnm decodes it and proceeds as
+       above with the decoded result.
+
+       If file is - or not given, anytopnm takes its input from Standard Input.
+
+
+
+SEE ALSO
+       pnmfile(1), pnm(5), file(1)
+
+
+AUTHOR
+       Copyright (C) 1991 by Jef Poskanzer.
+
+
+
+                                                    11 July 2000                                         anytopnm(1)

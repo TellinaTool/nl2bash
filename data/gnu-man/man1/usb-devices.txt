@@ -1,0 +1,57 @@
+usb-devices(1)                                   Linux USB Utilities                                  usb-devices(1)
+
+
+
+NAME
+       usb-devices - print USB device details
+
+SYNOPSIS
+       usb-devices
+
+
+DESCRIPTION
+       usb-devices  is  a (bash) shell script that can be used to display details of USB buses in the system and the
+       devices connected to them.
+
+       The output of the script is similar to the usb/devices file available either under  /proc/bus  (if  usbfs  is
+       mounted),  or  under  /sys/kernel/debug (if debugfs is mounted there). The script is primarily intended to be
+       used if the file is not available.
+
+       In contrast to the usb/devices file, this script only lists active interfaces (those marked with a "*" in the
+       usb/devices file) and their endpoints.
+
+       Be  advised  that  there can be differences in the way information is sorted, as well as in the format of the
+       output.
+
+
+RETURN VALUE
+       If sysfs is not mounted, a non-zero exit code is returned.
+
+
+FILES
+       /sys/bus/usb/devices/usb*
+              The part of the sysfs tree the script walks through to assemble the printed information.
+
+       /proc/bus/usb/devices
+              Location where the usb/devices file can normally be found for Linux kernels before 2.6.31, if usbfs is
+              mounted.
+
+       /sys/kernel/debug/usb/devices
+              Location  where  the  usb/devices  file  can  normally  be found for Linux kernel 2.6.31 and later, if
+              debugfs is mounted.
+
+
+SEE ALSO
+       lsusb(8), usbview(8).
+
+
+AUTHORS
+       Greg Kroah-Hartman <greg@kroah.com>
+
+       Randy Dunlap <rdunlap@xenotime.net>
+
+       Frans Pop <elendil@planet.nl>
+
+
+
+usbutils-007                                        23 June 2009                                      usb-devices(1)

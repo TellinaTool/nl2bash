@@ -1,0 +1,35 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-system-prune - Remove unused data
+
+
+
+SYNOPSIS
+       docker system prune [OPTIONS]
+
+
+
+DESCRIPTION
+       Remove unused data
+
+
+
+OPTIONS
+       -a, --all[=false]
+           Remove all unused images not just dangling ones
+
+
+       -f, --force[=false]
+           Do not prompt for confirmation
+
+
+
+SEE ALSO
+       docker-system(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

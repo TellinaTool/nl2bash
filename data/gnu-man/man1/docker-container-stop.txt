@@ -1,0 +1,31 @@
+DOCKER(1)                                                                                                  DOCKER(1)
+
+
+
+NAME
+       docker-container-stop - Stop one or more running containers
+
+
+
+SYNOPSIS
+       docker container stop [OPTIONS] CONTAINER [CONTAINER...]
+
+
+
+DESCRIPTION
+       Stop one or more running containers
+
+
+
+OPTIONS
+       -t, --time=10
+           Seconds to wait for stop before killing it
+
+
+
+SEE ALSO
+       docker-container(1)
+
+
+
+Docker Community                                      Mar 2017                                             DOCKER(1)

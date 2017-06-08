@@ -1,0 +1,52 @@
+FALLOCATE(1)                                        User Commands                                       FALLOCATE(1)
+
+
+
+NAME
+       fallocate - preallocate space to a file
+
+SYNOPSIS
+       fallocate [-n] [-o offset] -l length filename
+
+DESCRIPTION
+       fallocate  is used to preallocate blocks to a file.  For filesystems which support the fallocate system call,
+       this is done quickly by allocating blocks and marking them as uninitialized, requiring  no  IO  to  the  data
+       blocks.  This is much faster than creating a file by filling it with zeros.
+
+       As  of  the  Linux  Kernel v2.6.31, the fallocate system call is supported by the btrfs, ext4, ocfs2, and xfs
+       filesystems.
+
+       The exit code returned by fallocate is 0 on success and 1 on failure.
+
+OPTIONS
+       The length and offset arguments may be followed by binary (2^N) suffixes KiB, MiB, GiB, TiB, PiB and EiB (the
+       "iB" is optional, e.g. "K" has the same meaning as "KiB") or decimal (10^N) suffixes KB, MB, GB, PB and EB.
+
+       -h, --help
+              Print help and exit.
+
+       -n, --keep-size
+              Do  not  modify  the apparent length of the file. This may effectively allocate blocks past EOF, which
+              can be removed with a truncate.
+
+       -o, --offset offset
+              Specifies the beginning offset of the allocation, in bytes.
+
+       -l, --length length
+              Specifies the length of the allocation, in bytes.
+
+AUTHORS
+       Eric Sandeen <sandeen@redhat.com>
+       Karel Zak <kzak@redhat.com>
+
+SEE ALSO
+       fallocate(2), posix_fallocate(3), truncate(1)
+
+AVAILABILITY
+       The  fallocate  command  is  part  of  the  util-linux  package  and   is   available   from   ftp://ftp.ker‐
+       nel.org/pub/linux/utils/util-linux/.
+
+
+
+
+util-linux                                            July 2009                                         FALLOCATE(1)

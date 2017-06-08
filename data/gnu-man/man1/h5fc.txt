@@ -1,0 +1,88 @@
+FORTRAN(1)                                          User Commands                                         FORTRAN(1)
+
+
+
+NAME
+       Fortran - Reports statistics regarding an HDF5 file and the objects in the file.
+
+DESCRIPTION
+       usage: h5fc [OPTIONS] <compile line>
+
+              OPTIONS:
+
+       -help  This help message.
+
+       -echo  Show all the shell commands executed
+
+       -prefix=DIR
+              Prefix directory to find HDF5 lib/ and include/
+
+              subdirectories [default: /usr]
+
+       -show  Show the commands without executing them
+
+       -showconfig
+              Show the HDF5 library configuration summary
+
+       -shlib Compile with shared HDF5 libraries
+
+       -noshlib
+              Compile with static HDF5 libraries [default]
+
+       <compile line>
+              - the normal compile line options for your compiler.
+
+              h5fc  uses  the  same compiler you used to compile HDF5. Check with your compiler's man pages for more
+              information on which options are needed.
+
+              You can override the compiler and linker to compile your program by setting the following  environment
+              variables accordingly:
+
+       HDF5_FC
+              -  use a different Fortran 90 or 95 compiler
+
+       HDF5_FLINKER
+              -  use a different linker
+
+       HDF5_USE_SHLIB=[yes|no]
+              -  use shared or static version of the HDF5 library
+
+              [default: no]
+
+              You  can  also add or change paths and flags to the compile line using the following environment vari‐
+              bles or by assigning them to their counterparts in the 'Things You Can Modify to Override...'  section
+              of h5fc
+
+       Variable
+              Current value to be replaced
+
+       HDF5_FFLAGS
+              ""
+
+       HDF5_LDFLAGS
+              ""
+
+       HDF5_LIBS
+              ""
+
+              Note  that  adding  library  paths to HDF5_LDFLAGS where another hdf5 version is located may link your
+              program with that other hdf5 library version.
+
+COPYRIGHT
+       Copyright © 2011 Free Software Foundation, Inc.
+
+       GNU Fortran comes with NO WARRANTY, to the extent permitted by law.  You may redistribute copies of GNU  For‐
+       tran  under  the  terms of the GNU General Public License.  For more information about these matters, see the
+       file named COPYING
+
+SEE ALSO
+       The full documentation for Fortran is maintained as a Texinfo manual.  If the info and Fortran  programs  are
+       properly installed at your site, the command
+
+              info Fortran
+
+       should give you access to the complete manual.
+
+
+
+Fortran (Debian 4.6.1-4) 4.6.1                       August 2011                                          FORTRAN(1)

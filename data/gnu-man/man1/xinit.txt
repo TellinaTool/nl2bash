@@ -1,0 +1,127 @@
+XINIT(1)                                       General Commands Manual                                      XINIT(1)
+
+
+
+NAME
+       xinit - X Window System initializer
+
+SYNOPSIS
+       xinit [ [ client ] options ... ] [ -- [ server ] [ display ] options ... ]
+
+DESCRIPTION
+       The  xinit program is used to start the X Window System server and a first client program on systems that are
+       not using a display manager such as xdm(1) or in environments that use multiple window  systems.   When  this
+       first client exits, xinit will kill the X server and then terminate.
+
+       If  no  specific  client  program is given on the command line, xinit will look for a file in the user's home
+       directory called .xinitrc to run as a shell script to start up client programs.   If  no  such  file  exists,
+       xinit will use the following as a default:
+
+            xterm  -geometry  +1+1  -n  login  -display  :0
+
+
+       If  no  specific  server  program is given on the command line, xinit will look for a file in the user's home
+       directory called .xserverrc to run as a shell script to start up the server.  If no such file  exists,  xinit
+       will use the following as a default:
+
+            X  :0
+
+       Note  that  this  assumes that there is a program named X in the current search path.  The site administrator
+       should, therefore, make a link to the appropriate type of server on the machine, or  create  a  shell  script
+       that runs xinit with the appropriate server.
+
+       Note,  when using a .xserverrc script be sure to ``exec'' the real X server.  Failing to do this can make the
+       X server slow to start and exit.  For example:
+
+            exec Xdisplaytype
+
+       An important point is that programs which are run by .xinitrc should be run in the background if they do  not
+       exit  right  away,  so that they don't prevent other programs from starting up.  However, the last long-lived
+       program started (usually a window manager or terminal emulator) should be left in the foreground so that  the
+       script won't exit (which indicates that the user is done and that xinit should exit).
+
+       An  alternate  client and/or server may be specified on the command line.  The desired client program and its
+       arguments should be given as the first command line arguments to xinit.  To specify a particular server  com‐
+       mand  line,  append a double dash (--) to the xinit command line (after any client and arguments) followed by
+       the desired server command.
+
+       Both the client program name and the server program name must begin with a slash (/) or a period (.).  Other‐
+       wise,  they are treated as an arguments to be appended to their respective startup lines.  This makes it pos‐
+       sible to add arguments (for example, foreground and background colors) without having  to  retype  the  whole
+       command line.
+
+       If an explicit server name is not given and the first argument following the double dash (--) is a colon fol‐
+       lowed by a digit, xinit will use that number as the display number instead of zero.  All remaining  arguments
+       are appended to the server command line.
+
+EXAMPLES
+       Below are several examples of how command line arguments in xinit are used.
+
+       xinit   This  will  start  up  a  server  named X and run the user's .xinitrc, if it exists, or else start an
+               xterm.
+
+       xinit -- /usr/local/bin/Xvnc  :1
+               This is how one could start a specific type of server on an alternate display.
+
+       xinit -geometry =80x65+10+10 -fn 8x13 -j -fg white -bg navy
+               This will start up a server named X, and will append the given arguments to the  default  xterm  com‐
+               mand.  It will ignore .xinitrc.
+
+       xinit -e widgets -- ./Xorg -l -c
+               This will use the command .Xorg -l -c to start the server and will append the arguments -e widgets to
+               the default xterm command.
+
+       xinit /usr/ucb/rsh fasthost cpupig -display ws:1 --  :1 -a 2 -t 5
+               This will start a server named X on display 1 with the arguments -a 2 -t 5.  It  will  then  start  a
+               remote  shell  on the machine fasthost in which it will run the command cpupig, telling it to display
+               back on the local workstation.
+
+       Below is a sample .xinitrc that starts a clock, several terminals, and leaves the window manager  running  as
+       the  ``last''  application.   Assuming  that  the  window manager has been configured properly, the user then
+       chooses the ``Exit'' menu item to shut down X.
+
+               xrdb -load $HOME/.Xresources
+               xsetroot -solid gray &
+               xclock -g 50x50-0+0 -bw 0 &
+               xload -g 50x50-50+0 -bw 0 &
+               xterm -g 80x24+0+0 &
+               xterm -g 80x24+0-0 &
+               twm
+
+       Sites that want to create a common startup environment could simply create a default .xinitrc that references
+       a site-wide startup file:
+
+               #!/bin/sh
+               . /usr/local/lib/site.xinitrc
+
+       Another  approach is to write a script that starts xinit with a specific shell script.  Such scripts are usu‐
+       ally named x11, xstart, or startx and are a convenient way to provide a simple interface for novice users:
+
+               #!/bin/sh
+               xinit /usr/local/lib/site.xinitrc -- /usr/bin/X -br
+
+
+ENVIRONMENT VARIABLES
+       DISPLAY        This variable gets set to the name of the display to which clients should connect.
+
+       XINITRC        This variable specifies an init file containing shell commands to start up  the  initial  win‐
+                      dows.  By default, .xinitrc in the home directory will be used.
+
+FILES
+       .xinitrc       default client script
+
+       xterm          client to run if .xinitrc does not exist
+
+       .xserverrc     default server script
+
+       X              server to run if .xserverrc does not exist
+
+SEE ALSO
+       X(7), startx(1), Xserver(1), Xorg(1), xorg.conf(5), xterm(1)
+
+AUTHOR
+       Bob Scheifler, MIT Laboratory for Computer Science
+
+
+
+X Version 11                                         xinit 1.3.2                                            XINIT(1)

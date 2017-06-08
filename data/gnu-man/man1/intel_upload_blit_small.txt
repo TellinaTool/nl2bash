@@ -1,0 +1,20 @@
+intel_upload_blit_small(1)                     General Commands Manual                    intel_upload_blit_small(1)
+
+
+
+NAME
+       intel_upload_blit_small - microbenchmark of Intel GPU performance
+
+SYNOPSIS
+       intel_upload_blit_small
+
+DESCRIPTION
+       intel_upload_blit_small  is a microbenchmark tool for DRM performance.  It should be run with kernel modeset‐
+       ting enabled, and may require root privilege for correct operation.  It does not require X to be running.
+
+       Given that it is a microbenchmark, its utility is largely for regression testing of the kernel, and  not  for
+       general conclusions on graphics performance.
+
+
+
+X Version 11                                     intel-gpu-tools 1.3                      intel_upload_blit_small(1)

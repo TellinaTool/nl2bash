@@ -1,0 +1,952 @@
+GFORTRAN(1)                                              GNU                                             GFORTRAN(1)
+
+
+
+NAME
+       gfortran - GNU Fortran compiler
+
+SYNOPSIS
+       gfortran [-c|-S|-E]
+                [-g] [-pg] [-Olevel]
+                [-Wwarn...] [-pedantic]
+                [-Idir...] [-Ldir...]
+                [-Dmacro[=defn]...] [-Umacro]
+                [-foption...]
+                [-mmachine-option...]
+                [-o outfile] infile...
+
+       Only the most useful options are listed here; see below for the remainder.
+
+DESCRIPTION
+       The gfortran command supports all the options supported by the gcc command.  Only options specific to GNU
+       Fortran are documented here.
+
+       All GCC and GNU Fortran options are accepted both by gfortran and by gcc (as well as any other drivers built
+       at the same time, such as g++), since adding GNU Fortran to the GCC distribution enables acceptance of GNU
+       Fortran options by all of the relevant drivers.
+
+       In some cases, options have positive and negative forms; the negative form of -ffoo would be -fno-foo.  This
+       manual documents only one of these two forms, whichever one is not the default.
+
+OPTIONS
+       Here is a summary of all the options specific to GNU Fortran, grouped by type.  Explanations are in the
+       following sections.
+
+       Fortran Language Options
+           -fall-intrinsics -fbackslash -fcray-pointer -fd-lines-as-code -fd-lines-as-comments -fdefault-double-8
+           -fdefault-integer-8 -fdefault-real-8 -fdollar-ok -ffixed-line-length-n -ffixed-line-length-none
+           -ffree-form -ffree-line-length-n -ffree-line-length-none -fimplicit-none -finteger-4-integer-8
+           -fmax-identifier-length -fmodule-private -fno-fixed-form -fno-range-check -fopenmp -freal-4-real-10
+           -freal-4-real-16 -freal-4-real-8 -freal-8-real-10 -freal-8-real-16 -freal-8-real-4 -std=std
+
+       Preprocessing Options
+           -A-question[=answer] -Aquestion=answer -C -CC -Dmacro[=defn] -H -P -Umacro -cpp -dD -dI -dM -dN -dU
+           -fworking-directory -imultilib dir -iprefix file -iquote -isysroot dir -isystem dir -nocpp -nostdinc
+           -undef
+
+       Error and Warning Options
+           -Waliasing -Wall -Wampersand -Warray-bounds -Wc-binding-type -Wcharacter-truncation -Wconversion
+           -Wfunction-elimination -Wimplicit-interface -Wimplicit-procedure -Wintrinsic-shadow -Wintrinsics-std
+           -Wline-truncation -Wno-align-commons -Wno-tabs -Wreal-q-constant -Wsurprising -Wunderflow
+           -Wunused-parameter -Wrealloc-lhs Wrealloc-lhs-all -Wtarget-lifetime -fmax-errors=n -fsyntax-only
+           -pedantic -pedantic-errors
+
+       Debugging Options
+           -fbacktrace -fdump-fortran-optimized -fdump-fortran-original -fdump-parse-tree -ffpe-trap=list
+
+       Directory Options
+           -Idir  -Jdir -fintrinsic-modules-path dir
+
+       Link Options
+           -static-libgfortran
+
+       Runtime Options
+           -fconvert=conversion -fmax-subrecord-length=length -frecord-marker=length -fsign-zero
+
+       Code Generation Options
+           -faggressive-function-elimination -fblas-matmul-limit=n -fbounds-check -fcheck-array-temporaries
+           -fcheck=<all|array-temps|bounds|do|mem|pointer|recursion> -fcoarray=<none|single|lib> -fexternal-blas
+           -ff2c -ffrontend-optimize -finit-character=n -finit-integer=n -finit-local-zero
+           -finit-logical=<true|false> -finit-real=<zero|inf|-inf|nan|snan> -fmax-array-constructor=n
+           -fmax-stack-var-size=n -fno-align-commons -fno-automatic -fno-protect-parens -fno-underscoring
+           -fno-whole-file -fsecond-underscore -fpack-derived -frealloc-lhs -frecursive -frepack-arrays
+           -fshort-enums -fstack-arrays
+
+   Options controlling Fortran dialect
+       The following options control the details of the Fortran dialect accepted by the compiler:
+
+       -ffree-form
+       -ffixed-form
+           Specify the layout used by the source file.  The free form layout was introduced in Fortran 90.  Fixed
+           form was traditionally used in older Fortran programs.  When neither option is specified, the source form
+           is determined by the file extension.
+
+       -fall-intrinsics
+           This option causes all intrinsic procedures (including the GNU-specific extensions) to be accepted.  This
+           can be useful with -std=f95 to force standard-compliance but get access to the full range of intrinsics
+           available with gfortran.  As a consequence, -Wintrinsics-std will be ignored and no user-defined
+           procedure with the same name as any intrinsic will be called except when it is explicitly declared
+           "EXTERNAL".
+
+       -fd-lines-as-code
+       -fd-lines-as-comments
+           Enable special treatment for lines beginning with "d" or "D" in fixed form sources.  If the
+           -fd-lines-as-code option is given they are treated as if the first column contained a blank.  If the
+           -fd-lines-as-comments option is given, they are treated as comment lines.
+
+       -fdefault-double-8
+           Set the "DOUBLE PRECISION" type to an 8 byte wide type.  If -fdefault-real-8 is given, "DOUBLE PRECISION"
+           would instead be promoted to 16 bytes if possible, and -fdefault-double-8 can be used to prevent this.
+           The kind of real constants like "1.d0" will not be changed by -fdefault-real-8 though, so also
+           -fdefault-double-8 does not affect it.
+
+       -fdefault-integer-8
+           Set the default integer and logical types to an 8 byte wide type.  Do nothing if this is already the
+           default.  This option also affects the kind of integer constants like 42.
+
+       -fdefault-real-8
+           Set the default real type to an 8 byte wide type.  Do nothing if this is already the default.  This
+           option also affects the kind of non-double real constants like 1.0, and does promote the default width of
+           "DOUBLE PRECISION" to 16 bytes if possible, unless "-fdefault-double-8" is given, too.
+
+       -fdollar-ok
+           Allow $ as a valid non-first character in a symbol name. Symbols that start with $ are rejected since it
+           is unclear which rules to apply to implicit typing as different vendors implement different rules.  Using
+           $ in "IMPLICIT" statements is also rejected.
+
+       -fbackslash
+           Change the interpretation of backslashes in string literals from a single backslash character to
+           "C-style" escape characters. The following combinations are expanded "\a", "\b", "\f", "\n", "\r", "\t",
+           "\v", "\\", and "\0" to the ASCII characters alert, backspace, form feed, newline, carriage return,
+           horizontal tab, vertical tab, backslash, and NUL, respectively.  Additionally, "\x"nn, "\u"nnnn and
+           "\U"nnnnnnnn (where each n is a hexadecimal digit) are translated into the Unicode characters
+           corresponding to the specified code points. All other combinations of a character preceded by \ are
+           unexpanded.
+
+       -fmodule-private
+           Set the default accessibility of module entities to "PRIVATE".  Use-associated entities will not be
+           accessible unless they are explicitly declared as "PUBLIC".
+
+       -ffixed-line-length-n
+           Set column after which characters are ignored in typical fixed-form lines in the source file, and through
+           which spaces are assumed (as if padded to that length) after the ends of short fixed-form lines.
+
+           Popular values for n include 72 (the standard and the default), 80 (card image), and 132 (corresponding
+           to "extended-source" options in some popular compilers).  n may also be none, meaning that the entire
+           line is meaningful and that continued character constants never have implicit spaces appended to them to
+           fill out the line.  -ffixed-line-length-0 means the same thing as -ffixed-line-length-none.
+
+       -ffree-line-length-n
+           Set column after which characters are ignored in typical free-form lines in the source file. The default
+           value is 132.  n may be none, meaning that the entire line is meaningful.  -ffree-line-length-0 means the
+           same thing as -ffree-line-length-none.
+
+       -fmax-identifier-length=n
+           Specify the maximum allowed identifier length. Typical values are 31 (Fortran 95) and 63 (Fortran 2003
+           and Fortran 2008).
+
+       -fimplicit-none
+           Specify that no implicit typing is allowed, unless overridden by explicit "IMPLICIT" statements.  This is
+           the equivalent of adding "implicit none" to the start of every procedure.
+
+       -finteger-4-integer-8
+           Promote all "INTEGER(KIND=4)" entities to an "INTEGER(KIND=8)" entities.  If "KIND=8" is unavailable,
+           then an error will be issued.  This option should be used with care and may not be suitable for your
+           codes.  Areas of possible concern include calls to external procedures, alignment in "EQUIVALENCE" and/or
+           "COMMON", generic interfaces, BOZ literal constant conversion, and I/O.  Inspection of the intermediate
+           representation of the translated Fortran code, produced by -fdump-tree-original, is suggested.
+
+       -fcray-pointer
+           Enable the Cray pointer extension, which provides C-like pointer functionality.
+
+       -fopenmp
+           Enable the OpenMP extensions.  This includes OpenMP "!$omp" directives in free form and "c$omp", *$omp
+           and "!$omp" directives in fixed form, "!$" conditional compilation sentinels in free form and "c$", "*$"
+           and "!$" sentinels in fixed form, and when linking arranges for the OpenMP runtime library to be linked
+           in.  The option -fopenmp implies -frecursive.
+
+       -fno-range-check
+           Disable range checking on results of simplification of constant expressions during compilation.  For
+           example, GNU Fortran will give an error at compile time when simplifying "a = 1. / 0".  With this option,
+           no error will be given and "a" will be assigned the value "+Infinity".  If an expression evaluates to a
+           value outside of the relevant range of ["-HUGE()":"HUGE()"], then the expression will be replaced by
+           "-Inf" or "+Inf" as appropriate.  Similarly, "DATA i/Z'FFFFFFFF'/" will result in an integer overflow on
+           most systems, but with -fno-range-check the value will "wrap around" and "i" will be initialized to -1
+           instead.
+
+       -freal-4-real-8
+       -freal-4-real-10
+       -freal-8-real-4
+       -freal-8-real-10
+       -freal-8-real-16
+           Promote all "REAL(KIND=M)" entities to "REAL(KIND=N)" entities.  If "REAL(KIND=N)" is unavailable, then
+           an error will be issued.  All other real kind types are unaffected by this option.  These options should
+           be used with care and may not be suitable for your codes.  Areas of possible concern include calls to
+           external procedures, alignment in "EQUIVALENCE" and/or "COMMON", generic interfaces, BOZ literal constant
+           conversion, and I/O.  Inspection of the intermediate representation of the translated Fortran code,
+           produced by -fdump-tree-original, is suggested.
+
+       -std=std
+           Specify the standard to which the program is expected to conform, which may be one of f95, f2003, f2008,
+           gnu, or legacy.  The default value for std is gnu, which specifies a superset of the Fortran 95 standard
+           that includes all of the extensions supported by GNU Fortran, although warnings will be given for
+           obsolete extensions not recommended for use in new code.  The legacy value is equivalent but without the
+           warnings for obsolete extensions, and may be useful for old non-standard programs.  The f95, f2003 and
+           f2008 values specify strict conformance to the Fortran 95, Fortran 2003 and Fortran 2008 standards,
+           respectively; errors are given for all extensions beyond the relevant language standard, and warnings are
+           given for the Fortran 77 features that are permitted but obsolescent in later standards. -std=f2008ts
+           allows the Fortran 2008 standard including the additions of the Technical Specification (TS) 29113 on
+           Further Interoperability of Fortran with C.
+
+   Enable and customize preprocessing
+       Preprocessor related options. See section Preprocessing and conditional compilation for more detailed
+       information on preprocessing in gfortran.
+
+       -cpp
+       -nocpp
+           Enable preprocessing. The preprocessor is automatically invoked if the file extension is .fpp, .FPP,  .F,
+           .FOR, .FTN, .F90, .F95, .F03 or .F08. Use this option to manually enable preprocessing of any kind of
+           Fortran file.
+
+           To disable preprocessing of files with any of the above listed extensions, use the negative form: -nocpp.
+
+           The preprocessor is run in traditional mode. Any restrictions of the file-format, especially the limits
+           on line length, apply for preprocessed output as well, so it might be advisable to use the
+           -ffree-line-length-none or -ffixed-line-length-none options.
+
+       -dM Instead of the normal output, generate a list of '#define' directives for all the macros defined during
+           the execution of the preprocessor, including predefined macros. This gives you a way of finding out what
+           is predefined in your version of the preprocessor.  Assuming you have no file foo.f90, the command
+
+                     touch foo.f90; gfortran -cpp -E -dM foo.f90
+
+           will show all the predefined macros.
+
+       -dD Like -dM except in two respects: it does not include the predefined macros, and it outputs both the
+           "#define" directives and the result of preprocessing. Both kinds of output go to the standard output
+           file.
+
+       -dN Like -dD, but emit only the macro names, not their expansions.
+
+       -dU Like dD except that only macros that are expanded, or whose definedness is tested in preprocessor
+           directives, are output; the output is delayed until the use or test of the macro; and '#undef' directives
+           are also output for macros tested but undefined at the time.
+
+       -dI Output '#include' directives in addition to the result of preprocessing.
+
+       -fworking-directory
+           Enable generation of linemarkers in the preprocessor output that will let the compiler know the current
+           working directory at the time of preprocessing. When this option is enabled, the preprocessor will emit,
+           after the initial linemarker, a second linemarker with the current working directory followed by two
+           slashes. GCC will use this directory, when it is present in the preprocessed input, as the directory
+           emitted as the current working directory in some debugging information formats.  This option is
+           implicitly enabled if debugging information is enabled, but this can be inhibited with the negated form
+           -fno-working-directory. If the -P flag is present in the command line, this option has no effect, since
+           no "#line" directives are emitted whatsoever.
+
+       -idirafter dir
+           Search dir for include files, but do it after all directories specified with -I and the standard system
+           directories have been exhausted. dir is treated as a system include directory.  If dir begins with "=",
+           then the "=" will be replaced by the sysroot prefix; see --sysroot and -isysroot.
+
+       -imultilib dir
+           Use dir as a subdirectory of the directory containing target-specific C++ headers.
+
+       -iprefix prefix
+           Specify prefix as the prefix for subsequent -iwithprefix options. If the prefix represents a directory,
+           you should include the final '/'.
+
+       -isysroot dir
+           This option is like the --sysroot option, but applies only to header files. See the --sysroot option for
+           more information.
+
+       -iquote dir
+           Search dir only for header files requested with "#include "file""; they are not searched for "#include
+           <file>", before all directories specified by -I and before the standard system directories. If dir begins
+           with "=", then the "=" will be replaced by the sysroot prefix; see --sysroot and -isysroot.
+
+       -isystem dir
+           Search dir for header files, after all directories specified by -I but before the standard system
+           directories. Mark it as a system directory, so that it gets the same special treatment as is applied to
+           the standard system directories. If dir begins with "=", then the "=" will be replaced by the sysroot
+           prefix; see --sysroot and -isysroot.
+
+       -nostdinc
+           Do not search the standard system directories for header files. Only the directories you have specified
+           with -I options (and the directory of the current file, if appropriate) are searched.
+
+       -undef
+           Do not predefine any system-specific or GCC-specific macros.  The standard predefined macros remain
+           defined.
+
+       -Apredicate=answer
+           Make an assertion with the predicate predicate and answer answer.  This form is preferred to the older
+           form -A predicate(answer), which is still supported, because it does not use shell special characters.
+
+       -A-predicate=answer
+           Cancel an assertion with the predicate predicate and answer answer.
+
+       -C  Do not discard comments. All comments are passed through to the output file, except for comments in
+           processed directives, which are deleted along with the directive.
+
+           You should be prepared for side effects when using -C; it causes the preprocessor to treat comments as
+           tokens in their own right. For example, comments appearing at the start of what would be a directive line
+           have the effect of turning that line into an ordinary source line, since the first token on the line is
+           no longer a '#'.
+
+           Warning: this currently handles C-Style comments only. The preprocessor does not yet recognize Fortran-
+           style comments.
+
+       -CC Do not discard comments, including during macro expansion. This is like -C, except that comments
+           contained within macros are also passed through to the output file where the macro is expanded.
+
+           In addition to the side-effects of the -C option, the -CC option causes all C++-style comments inside a
+           macro to be converted to C-style comments. This is to prevent later use of that macro from inadvertently
+           commenting out the remainder of the source line. The -CC option is generally used to support lint
+           comments.
+
+           Warning: this currently handles C- and C++-Style comments only. The preprocessor does not yet recognize
+           Fortran-style comments.
+
+       -Dname
+           Predefine name as a macro, with definition 1.
+
+       -Dname=definition
+           The contents of definition are tokenized and processed as if they appeared during translation phase three
+           in a '#define' directive.  In particular, the definition will be truncated by embedded newline
+           characters.
+
+           If you are invoking the preprocessor from a shell or shell-like program you may need to use the shell's
+           quoting syntax to protect characters such as spaces that have a meaning in the shell syntax.
+
+           If you wish to define a function-like macro on the command line, write its argument list with surrounding
+           parentheses before the equals sign (if any). Parentheses are meaningful to most shells, so you will need
+           to quote the option. With sh and csh, "-D'name(args...)=definition'" works.
+
+           -D and -U options are processed in the order they are given on the command line. All -imacros file and
+           -include file options are processed after all -D and -U options.
+
+       -H  Print the name of each header file used, in addition to other normal activities. Each name is indented to
+           show how deep in the '#include' stack it is.
+
+       -P  Inhibit generation of linemarkers in the output from the preprocessor.  This might be useful when running
+           the preprocessor on something that is not C code, and will be sent to a program which might be confused
+           by the linemarkers.
+
+       -Uname
+           Cancel any previous definition of name, either built in or provided with a -D option.
+
+   Options to request or suppress errors and warnings
+       Errors are diagnostic messages that report that the GNU Fortran compiler cannot compile the relevant piece of
+       source code.  The compiler will continue to process the program in an attempt to report further errors to aid
+       in debugging, but will not produce any compiled output.
+
+       Warnings are diagnostic messages that report constructions which are not inherently erroneous but which are
+       risky or suggest there is likely to be a bug in the program.  Unless -Werror is specified, they do not
+       prevent compilation of the program.
+
+       You can request many specific warnings with options beginning -W, for example -Wimplicit to request warnings
+       on implicit declarations.  Each of these specific warning options also has a negative form beginning -Wno- to
+       turn off warnings; for example, -Wno-implicit.  This manual lists only one of the two forms, whichever is not
+       the default.
+
+       These options control the amount and kinds of errors and warnings produced by GNU Fortran:
+
+       -fmax-errors=n
+           Limits the maximum number of error messages to n, at which point GNU Fortran bails out rather than
+           attempting to continue processing the source code.  If n is 0, there is no limit on the number of error
+           messages produced.
+
+       -fsyntax-only
+           Check the code for syntax errors, but do not actually compile it.  This will generate module files for
+           each module present in the code, but no other output file.
+
+       -pedantic
+           Issue warnings for uses of extensions to Fortran 95.  -pedantic also applies to C-language constructs
+           where they occur in GNU Fortran source files, such as use of \e in a character constant within a
+           directive like "#include".
+
+           Valid Fortran 95 programs should compile properly with or without this option.  However, without this
+           option, certain GNU extensions and traditional Fortran features are supported as well.  With this option,
+           many of them are rejected.
+
+           Some users try to use -pedantic to check programs for conformance.  They soon find that it does not do
+           quite what they want---it finds some nonstandard practices, but not all.  However, improvements to GNU
+           Fortran in this area are welcome.
+
+           This should be used in conjunction with -std=f95, -std=f2003 or -std=f2008.
+
+       -pedantic-errors
+           Like -pedantic, except that errors are produced rather than warnings.
+
+       -Wall
+           Enables commonly used warning options pertaining to usage that we recommend avoiding and that we believe
+           are easy to avoid.  This currently includes -Waliasing, -Wampersand, -Wconversion, -Wsurprising,
+           -Wc-binding-type, -Wintrinsics-std, -Wno-tabs, -Wintrinsic-shadow, -Wline-truncation, -Wtarget-lifetime,
+           -Wreal-q-constant and -Wunused.
+
+       -Waliasing
+           Warn about possible aliasing of dummy arguments. Specifically, it warns if the same actual argument is
+           associated with a dummy argument with "INTENT(IN)" and a dummy argument with "INTENT(OUT)" in a call with
+           an explicit interface.
+
+           The following example will trigger the warning.
+
+                     interface
+                       subroutine bar(a,b)
+                         integer, intent(in) :: a
+                         integer, intent(out) :: b
+                       end subroutine
+                     end interface
+                     integer :: a
+
+                     call bar(a,a)
+
+       -Wampersand
+           Warn about missing ampersand in continued character constants. The warning is given with -Wampersand,
+           -pedantic, -std=f95, -std=f2003 and -std=f2008. Note: With no ampersand given in a continued character
+           constant, GNU Fortran assumes continuation at the first non-comment, non-whitespace character after the
+           ampersand that initiated the continuation.
+
+       -Warray-temporaries
+           Warn about array temporaries generated by the compiler.  The information generated by this warning is
+           sometimes useful in optimization, in order to avoid such temporaries.
+
+       -Wc-binding-type
+           Warn if the a variable might not be C interoperable.  In particular, warn if the variable has been
+           declared using an intrinsic type with default kind instead of using a kind parameter defined for C
+           interoperability in the intrinsic "ISO_C_Binding" module.  This option is implied by -Wall.
+
+       -Wcharacter-truncation
+           Warn when a character assignment will truncate the assigned string.
+
+       -Wline-truncation
+           Warn when a source code line will be truncated.  This option is implied by -Wall.
+
+       -Wconversion
+           Warn about implicit conversions that are likely to change the value of the expression after conversion.
+           Implied by -Wall.
+
+       -Wconversion-extra
+           Warn about implicit conversions between different types and kinds.
+
+       -Wextra
+           Enables some warning options for usages of language features which may be problematic. This currently
+           includes -Wcompare-reals and -Wunused-parameter.
+
+       -Wimplicit-interface
+           Warn if a procedure is called without an explicit interface.  Note this only checks that an explicit
+           interface is present.  It does not check that the declared interfaces are consistent across program
+           units.
+
+       -Wimplicit-procedure
+           Warn if a procedure is called that has neither an explicit interface nor has been declared as "EXTERNAL".
+
+       -Wintrinsics-std
+           Warn if gfortran finds a procedure named like an intrinsic not available in the currently selected
+           standard (with -std) and treats it as "EXTERNAL" procedure because of this.  -fall-intrinsics can be used
+           to never trigger this behavior and always link to the intrinsic regardless of the selected standard.
+
+       -Wreal-q-constant
+           Produce a warning if a real-literal-constant contains a "q" exponent-letter.
+
+       -Wsurprising
+           Produce a warning when "suspicious" code constructs are encountered.  While technically legal these
+           usually indicate that an error has been made.
+
+           This currently produces a warning under the following circumstances:
+
+           ·   An INTEGER SELECT construct has a CASE that can never be matched as its lower value is greater than
+               its upper value.
+
+           ·   A LOGICAL SELECT construct has three CASE statements.
+
+           ·   A TRANSFER specifies a source that is shorter than the destination.
+
+           ·   The type of a function result is declared more than once with the same type.  If -pedantic or
+               standard-conforming mode is enabled, this is an error.
+
+           ·   A "CHARACTER" variable is declared with negative length.
+
+       -Wtabs
+           By default, tabs are accepted as whitespace, but tabs are not members of the Fortran Character Set.  For
+           continuation lines, a tab followed by a digit between 1 and 9 is supported.  -Wno-tabs will cause a
+           warning to be issued if a tab is encountered. Note, -Wno-tabs is active for -pedantic, -std=f95,
+           -std=f2003, -std=f2008 and -Wall.
+
+       -Wunderflow
+           Produce a warning when numerical constant expressions are encountered, which yield an UNDERFLOW during
+           compilation.
+
+       -Wintrinsic-shadow
+           Warn if a user-defined procedure or module procedure has the same name as an intrinsic; in this case, an
+           explicit interface or "EXTERNAL" or "INTRINSIC" declaration might be needed to get calls later resolved
+           to the desired intrinsic/procedure.  This option is implied by -Wall.
+
+       -Wunused-dummy-argument
+           Warn about unused dummy arguments. This option is implied by -Wall.
+
+       -Wunused-parameter
+           Contrary to gcc's meaning of -Wunused-parameter, gfortran's implementation of this option does not warn
+           about unused dummy arguments (see -Wunused-dummy-argument), but about unused "PARAMETER" values.
+           -Wunused-parameter is not included in -Wall but is implied by -Wall -Wextra.
+
+       -Walign-commons
+           By default, gfortran warns about any occasion of variables being padded for proper alignment inside a
+           "COMMON" block. This warning can be turned off via -Wno-align-commons. See also -falign-commons.
+
+       -Wfunction-elimination
+           Warn if any calls to functions are eliminated by the optimizations enabled by the -ffrontend-optimize
+           option.
+
+       -Wrealloc-lhs
+           Warn when the compiler might insert code to for allocation or reallocation of an allocatable array
+           variable of intrinsic type in intrinsic assignments.  In hot loops, the Fortran 2003 reallocation feature
+           may reduce the performance.  If the array is already allocated with the correct shape, consider using a
+           whole-array array-spec (e.g. "(:,:,:)") for the variable on the left-hand side to prevent the
+           reallocation check. Note that in some cases the warning is shown, even if the compiler will optimize
+           reallocation checks away.  For instance, when the right-hand side contains the same variable multiplied
+           by a scalar.  See also -frealloc-lhs.
+
+       -Wrealloc-lhs-all
+           Warn when the compiler inserts code to for allocation or reallocation of an allocatable variable; this
+           includes scalars and derived types.
+
+       -Wcompare-reals
+           Warn when comparing real or complex types for equality or inequality.  This option is implied by -Wextra.
+
+       -Wtarget-lifetime
+           Warn if the pointer in a pointer assignment might be longer than the its target. This option is implied
+           by -Wall.
+
+       -Werror
+           Turns all warnings into errors.
+
+       Some of these have no effect when compiling programs written in Fortran.
+
+   Options for debugging your program or GNU Fortran
+       GNU Fortran has various special options that are used for debugging either your program or the GNU Fortran
+       compiler.
+
+       -fdump-fortran-original
+           Output the internal parse tree after translating the source program into internal representation.  Only
+           really useful for debugging the GNU Fortran compiler itself.
+
+       -fdump-fortran-optimized
+           Output the parse tree after front-end optimization.  Only really useful for debugging the GNU Fortran
+           compiler itself.
+
+       -fdump-parse-tree
+           Output the internal parse tree after translating the source program into internal representation.  Only
+           really useful for debugging the GNU Fortran compiler itself.  This option is deprecated; use
+           "-fdump-fortran-original" instead.
+
+       -ffpe-trap=list
+           Specify a list of floating point exception traps to enable.  On most systems, if a floating point
+           exception occurs and the trap for that exception is enabled, a SIGFPE signal will be sent and the program
+           being aborted, producing a core file useful for debugging.  list is a (possibly empty) comma-separated
+           list of the following exceptions: invalid (invalid floating point operation, such as "SQRT(-1.0)"), zero
+           (division by zero), overflow (overflow in a floating point operation), underflow (underflow in a floating
+           point operation), inexact (loss of precision during operation), and denormal (operation performed on a
+           denormal value).  The first five exceptions correspond to the five IEEE 754 exceptions, whereas the last
+           one (denormal) is not part of the IEEE 754 standard but is available on some common architectures such as
+           x86.
+
+           The first three exceptions (invalid, zero, and overflow) often indicate serious errors, and unless the
+           program has provisions for dealing with these exceptions, enabling traps for these three exceptions is
+           probably a good idea.
+
+           Many, if not most, floating point operations incur loss of precision due to rounding, and hence the
+           "ffpe-trap=inexact" is likely to be uninteresting in practice.
+
+           By default no exception traps are enabled.
+
+       -fno-backtrace
+           When a serious runtime error is encountered or a deadly signal is emitted (segmentation fault, illegal
+           instruction, bus error, floating-point exception, and the other POSIX signals that have the action core),
+           the Fortran runtime library tries to output a backtrace of the error. "-fno-backtrace" disables the
+           backtrace generation. This option only has influence for compilation of the Fortran main program.
+
+   Options for directory search
+       These options affect how GNU Fortran searches for files specified by the "INCLUDE" directive and where it
+       searches for previously compiled modules.
+
+       It also affects the search paths used by cpp when used to preprocess Fortran source.
+
+       -Idir
+           These affect interpretation of the "INCLUDE" directive (as well as of the "#include" directive of the cpp
+           preprocessor).
+
+           Also note that the general behavior of -I and "INCLUDE" is pretty much the same as of -I with "#include"
+           in the cpp preprocessor, with regard to looking for header.gcc files and other such things.
+
+           This path is also used to search for .mod files when previously compiled modules are required by a "USE"
+           statement.
+
+       -Jdir
+           This option specifies where to put .mod files for compiled modules.  It is also added to the list of
+           directories to searched by an "USE" statement.
+
+           The default is the current directory.
+
+       -fintrinsic-modules-path dir
+           This option specifies the location of pre-compiled intrinsic modules, if they are not in the default
+           location expected by the compiler.
+
+   Influencing the linking step
+       These options come into play when the compiler links object files into an executable output file. They are
+       meaningless if the compiler is not doing a link step.
+
+       -static-libgfortran
+           On systems that provide libgfortran as a shared and a static library, this option forces the use of the
+           static version. If no shared version of libgfortran was built when the compiler was configured, this
+           option has no effect.
+
+   Influencing runtime behavior
+       These options affect the runtime behavior of programs compiled with GNU Fortran.
+
+       -fconvert=conversion
+           Specify the representation of data for unformatted files.  Valid values for conversion are: native, the
+           default; swap, swap between big- and little-endian; big-endian, use big-endian representation for
+           unformatted files; little-endian, use little-endian representation for unformatted files.
+
+           This option has an effect only when used in the main program.  The "CONVERT" specifier and the
+           GFORTRAN_CONVERT_UNIT environment variable override the default specified by -fconvert.
+
+       -frecord-marker=length
+           Specify the length of record markers for unformatted files.  Valid values for length are 4 and 8.
+           Default is 4.  This is different from previous versions of gfortran, which specified a default record
+           marker length of 8 on most systems.  If you want to read or write files compatible with earlier versions
+           of gfortran, use -frecord-marker=8.
+
+       -fmax-subrecord-length=length
+           Specify the maximum length for a subrecord.  The maximum permitted value for length is 2147483639, which
+           is also the default.  Only really useful for use by the gfortran testsuite.
+
+       -fsign-zero
+           When enabled, floating point numbers of value zero with the sign bit set are written as negative number
+           in formatted output and treated as negative in the "SIGN" intrinsic.  -fno-sign-zero does not print the
+           negative sign of zero values (or values rounded to zero for I/O) and regards zero as positive number in
+           the "SIGN" intrinsic for compatibility with Fortran 77. The default is -fsign-zero.
+
+   Options for code generation conventions
+       These machine-independent options control the interface conventions used in code generation.
+
+       Most of them have both positive and negative forms; the negative form of -ffoo would be -fno-foo.  In the
+       table below, only one of the forms is listed---the one which is not the default.  You can figure out the
+       other form by either removing no- or adding it.
+
+       -fno-automatic
+           Treat each program unit (except those marked as RECURSIVE) as if the "SAVE" statement were specified for
+           every local variable and array referenced in it. Does not affect common blocks. (Some Fortran compilers
+           provide this option under the name -static or -save.)  The default, which is -fautomatic, uses the stack
+           for local variables smaller than the value given by -fmax-stack-var-size.  Use the option -frecursive to
+           use no static memory.
+
+       -ff2c
+           Generate code designed to be compatible with code generated by g77 and f2c.
+
+           The calling conventions used by g77 (originally implemented in f2c) require functions that return type
+           default "REAL" to actually return the C type "double", and functions that return type "COMPLEX" to return
+           the values via an extra argument in the calling sequence that points to where to store the return value.
+           Under the default GNU calling conventions, such functions simply return their results as they would in
+           GNU C---default "REAL" functions return the C type "float", and "COMPLEX" functions return the GNU C type
+           "complex".  Additionally, this option implies the -fsecond-underscore option, unless
+           -fno-second-underscore is explicitly requested.
+
+           This does not affect the generation of code that interfaces with the libgfortran library.
+
+           Caution: It is not a good idea to mix Fortran code compiled with -ff2c with code compiled with the
+           default -fno-f2c calling conventions as, calling "COMPLEX" or default "REAL" functions between program
+           parts which were compiled with different calling conventions will break at execution time.
+
+           Caution: This will break code which passes intrinsic functions of type default "REAL" or "COMPLEX" as
+           actual arguments, as the library implementations use the -fno-f2c calling conventions.
+
+       -fno-underscoring
+           Do not transform names of entities specified in the Fortran source file by appending underscores to them.
+
+           With -funderscoring in effect, GNU Fortran appends one underscore to external names with no underscores.
+           This is done to ensure compatibility with code produced by many UNIX Fortran compilers.
+
+           Caution: The default behavior of GNU Fortran is incompatible with f2c and g77, please use the -ff2c
+           option if you want object files compiled with GNU Fortran to be compatible with object code created with
+           these tools.
+
+           Use of -fno-underscoring is not recommended unless you are experimenting with issues such as integration
+           of GNU Fortran into existing system environments (vis-a-vis existing libraries, tools, and so on).
+
+           For example, with -funderscoring, and assuming other defaults like -fcase-lower and that "j()" and
+           "max_count()" are external functions while "my_var" and "lvar" are local variables, a statement like
+
+                   I = J() + MAX_COUNT (MY_VAR, LVAR)
+
+           is implemented as something akin to:
+
+                   i = j_() + max_count__(&my_var__, &lvar);
+
+           With -fno-underscoring, the same statement is implemented as:
+
+                   i = j() + max_count(&my_var, &lvar);
+
+           Use of -fno-underscoring allows direct specification of user-defined names while debugging and when
+           interfacing GNU Fortran code with other languages.
+
+           Note that just because the names match does not mean that the interface implemented by GNU Fortran for an
+           external name matches the interface implemented by some other language for that same name.  That is,
+           getting code produced by GNU Fortran to link to code produced by some other compiler using this or any
+           other method can be only a small part of the overall solution---getting the code generated by both
+           compilers to agree on issues other than naming can require significant effort, and, unlike naming
+           disagreements, linkers normally cannot detect disagreements in these other areas.
+
+           Also, note that with -fno-underscoring, the lack of appended underscores introduces the very real
+           possibility that a user-defined external name will conflict with a name in a system library, which could
+           make finding unresolved-reference bugs quite difficult in some cases---they might occur at program run
+           time, and show up only as buggy behavior at run time.
+
+           In future versions of GNU Fortran we hope to improve naming and linking issues so that debugging always
+           involves using the names as they appear in the source, even if the names as seen by the linker are
+           mangled to prevent accidental linking between procedures with incompatible interfaces.
+
+       -fno-whole-file
+           This flag causes the compiler to resolve and translate each procedure in a file separately.
+
+           By default, the whole file is parsed and placed in a single front-end tree.  During resolution, in
+           addition to all the usual checks and fixups, references to external procedures that are in the same file
+           effect resolution of that procedure, if not already done, and a check of the interfaces.  The dependences
+           are resolved by changing the order in which the file is translated into the backend tree.  Thus, a
+           procedure that is referenced is translated before the reference and the duplication of backend tree
+           declarations eliminated.
+
+           The -fno-whole-file option is deprecated and may lead to wrong code.
+
+       -fsecond-underscore
+           By default, GNU Fortran appends an underscore to external names.  If this option is used GNU Fortran
+           appends two underscores to names with underscores and one underscore to external names with no
+           underscores.  GNU Fortran also appends two underscores to internal names with underscores to avoid naming
+           collisions with external names.
+
+           This option has no effect if -fno-underscoring is in effect.  It is implied by the -ff2c option.
+
+           Otherwise, with this option, an external name such as "MAX_COUNT" is implemented as a reference to the
+           link-time external symbol "max_count__", instead of "max_count_".  This is required for compatibility
+           with g77 and f2c, and is implied by use of the -ff2c option.
+
+       -fcoarray=<keyword>
+           none
+               Disable coarray support; using coarray declarations and image-control statements will produce a
+               compile-time error. (Default)
+
+           single
+               Single-image mode, i.e. "num_images()" is always one.
+
+           lib Library-based coarray parallelization; a suitable GNU Fortran coarray library needs to be linked.
+
+       -fcheck=<keyword>
+           Enable the generation of run-time checks; the argument shall be a comma-delimited list of the following
+           keywords.
+
+           all Enable all run-time test of -fcheck.
+
+           array-temps
+               Warns at run time when for passing an actual argument a temporary array had to be generated. The
+               information generated by this warning is sometimes useful in optimization, in order to avoid such
+               temporaries.
+
+               Note: The warning is only printed once per location.
+
+           bounds
+               Enable generation of run-time checks for array subscripts and against the declared minimum and
+               maximum values.  It also checks array indices for assumed and deferred shape arrays against the
+               actual allocated bounds and ensures that all string lengths are equal for character array
+               constructors without an explicit typespec.
+
+               Some checks require that -fcheck=bounds is set for the compilation of the main program.
+
+               Note: In the future this may also include other forms of checking, e.g., checking substring
+               references.
+
+           do  Enable generation of run-time checks for invalid modification of loop iteration variables.
+
+           mem Enable generation of run-time checks for memory allocation.  Note: This option does not affect
+               explicit allocations using the "ALLOCATE" statement, which will be always checked.
+
+           pointer
+               Enable generation of run-time checks for pointers and allocatables.
+
+           recursion
+               Enable generation of run-time checks for recursively called subroutines and functions which are not
+               marked as recursive. See also -frecursive.  Note: This check does not work for OpenMP programs and is
+               disabled if used together with -frecursive and -fopenmp.
+
+       -fbounds-check
+           Deprecated alias for -fcheck=bounds.
+
+       -fcheck-array-temporaries
+           Deprecated alias for -fcheck=array-temps.
+
+       -fmax-array-constructor=n
+           This option can be used to increase the upper limit permitted in array constructors.  The code below
+           requires this option to expand the array at compile time.
+
+                   program test
+                   implicit none
+                   integer j
+                   integer, parameter :: n = 100000
+                   integer, parameter :: i(n) = (/ (2*j, j = 1, n) /)
+                   print '(10(I0,1X))', i
+                   end program test
+
+           Caution:  This option can lead to long compile times and excessively large object files.
+
+           The default value for n is 65535.
+
+       -fmax-stack-var-size=n
+           This option specifies the size in bytes of the largest array that will be put on the stack; if the size
+           is exceeded static memory is used (except in procedures marked as RECURSIVE). Use the option -frecursive
+           to allow for recursive procedures which do not have a RECURSIVE attribute or for parallel programs. Use
+           -fno-automatic to never use the stack.
+
+           This option currently only affects local arrays declared with constant bounds, and may not apply to all
+           character variables.  Future versions of GNU Fortran may improve this behavior.
+
+           The default value for n is 32768.
+
+       -fstack-arrays
+           Adding this option will make the Fortran compiler put all local arrays, even those of unknown size onto
+           stack memory.  If your program uses very large local arrays it is possible that you will have to extend
+           your runtime limits for stack memory on some operating systems. This flag is enabled by default at
+           optimization level -Ofast.
+
+       -fpack-derived
+           This option tells GNU Fortran to pack derived type members as closely as possible.  Code compiled with
+           this option is likely to be incompatible with code compiled without this option, and may execute slower.
+
+       -frepack-arrays
+           In some circumstances GNU Fortran may pass assumed shape array sections via a descriptor describing a
+           noncontiguous area of memory.  This option adds code to the function prologue to repack the data into a
+           contiguous block at runtime.
+
+           This should result in faster accesses to the array.  However it can introduce significant overhead to the
+           function call, especially  when the passed data is noncontiguous.
+
+       -fshort-enums
+           This option is provided for interoperability with C code that was compiled with the -fshort-enums option.
+           It will make GNU Fortran choose the smallest "INTEGER" kind a given enumerator set will fit in, and give
+           all its enumerators this kind.
+
+       -fexternal-blas
+           This option will make gfortran generate calls to BLAS functions for some matrix operations like "MATMUL",
+           instead of using our own algorithms, if the size of the matrices involved is larger than a given limit
+           (see -fblas-matmul-limit).  This may be profitable if an optimized vendor BLAS library is available.  The
+           BLAS library will have to be specified at link time.
+
+       -fblas-matmul-limit=n
+           Only significant when -fexternal-blas is in effect.  Matrix multiplication of matrices with size larger
+           than (or equal to) n will be performed by calls to BLAS functions, while others will be handled by
+           gfortran internal algorithms. If the matrices involved are not square, the size comparison is performed
+           using the geometric mean of the dimensions of the argument and result matrices.
+
+           The default value for n is 30.
+
+       -frecursive
+           Allow indirect recursion by forcing all local arrays to be allocated on the stack. This flag cannot be
+           used together with -fmax-stack-var-size= or -fno-automatic.
+
+       -finit-local-zero
+       -finit-integer=n
+       -finit-real=<zero|inf|-inf|nan|snan>
+       -finit-logical=<true|false>
+       -finit-character=n
+           The -finit-local-zero option instructs the compiler to initialize local "INTEGER", "REAL", and "COMPLEX"
+           variables to zero, "LOGICAL" variables to false, and "CHARACTER" variables to a string of null bytes.
+           Finer-grained initialization options are provided by the -finit-integer=n,
+           -finit-real=<zero|inf|-inf|nan|snan> (which also initializes the real and imaginary parts of local
+           "COMPLEX" variables), -finit-logical=<true|false>, and -finit-character=n (where n is an ASCII character
+           value) options.  These options do not initialize
+
+           ·   allocatable arrays
+
+           ·   components of derived type variables
+
+           ·   variables that appear in an "EQUIVALENCE" statement.
+
+           (These limitations may be removed in future releases).
+
+           Note that the -finit-real=nan option initializes "REAL" and "COMPLEX" variables with a quiet NaN. For a
+           signalling NaN use -finit-real=snan; note, however, that compile-time optimizations may convert them into
+           quiet NaN and that trapping needs to be enabled (e.g. via -ffpe-trap).
+
+           Finally, note that enabling any of the -finit-* options will silence warnings that would have been
+           emitted by -Wuninitialized for the affected local variables.
+
+       -falign-commons
+           By default, gfortran enforces proper alignment of all variables in a "COMMON" block by padding them as
+           needed. On certain platforms this is mandatory, on others it increases performance. If a "COMMON" block
+           is not declared with consistent data types everywhere, this padding can cause trouble, and
+           -fno-align-commons can be used to disable automatic alignment. The same form of this option should be
+           used for all files that share a "COMMON" block.  To avoid potential alignment issues in "COMMON" blocks,
+           it is recommended to order objects from largest to smallest.
+
+       -fno-protect-parens
+           By default the parentheses in expression are honored for all optimization levels such that the compiler
+           does not do any re-association. Using -fno-protect-parens allows the compiler to reorder "REAL" and
+           "COMPLEX" expressions to produce faster code. Note that for the re-association optimization
+           -fno-signed-zeros and -fno-trapping-math need to be in effect. The parentheses protection is enabled by
+           default, unless -Ofast is given.
+
+       -frealloc-lhs
+           An allocatable left-hand side of an intrinsic assignment is automatically (re)allocated if it is either
+           unallocated or has a different shape. The option is enabled by default except when -std=f95 is given. See
+           also -Wrealloc-lhs.
+
+       -faggressive-function-elimination
+           Functions with identical argument lists are eliminated within statements, regardless of whether these
+           functions are marked "PURE" or not. For example, in
+
+                     a = f(b,c) + f(b,c)
+
+           there will only be a single call to "f".  This option only works if -ffrontend-optimize is in effect.
+
+       -ffrontend-optimize
+           This option performs front-end optimization, based on manipulating parts the Fortran parse tree.  Enabled
+           by default by any -O option.  Optimizations enabled by this option include elimination of identical
+           function calls within expressions, removing unnecessary calls to "TRIM" in comparisons and assignments
+           and replacing TRIM(a) with "a(1:LEN_TRIM(a))".  It can be deselected by specifying
+           -fno-frontend-optimize.
+
+ENVIRONMENT
+       The gfortran compiler currently does not make use of any environment variables to control its operation above
+       and beyond those that affect the operation of gcc.
+
+BUGS
+       For instructions on reporting bugs, see <file:///usr/share/doc/gcc-4.8/README.Bugs>.
+
+SEE ALSO
+       gpl(7), gfdl(7), fsf-funding(7), cpp(1), gcov(1), gcc(1), as(1), ld(1), gdb(1), adb(1), dbx(1), sdb(1) and
+       the Info entries for gcc, cpp, gfortran, as, ld, binutils and gdb.
+
+AUTHOR
+       See the Info entry for gfortran for contributors to GCC and GNU Fortran.
+
+COPYRIGHT
+       Copyright (c) 2004-2013 Free Software Foundation, Inc.
+
+       Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free
+       Documentation License, Version 1.3 or any later version published by the Free Software Foundation; with the
+       Invariant Sections being "Funding Free Software", the Front-Cover Texts being (a) (see below), and with the
+       Back-Cover Texts being (b) (see below).  A copy of the license is included in the gfdl(7) man page.
+
+       (a) The FSF's Front-Cover Text is:
+
+            A GNU Manual
+
+       (b) The FSF's Back-Cover Text is:
+
+            You have freedom to copy and modify this GNU Manual, like GNU
+            software.  Copies published by the Free Software Foundation raise
+            funds for GNU development.
+
+
+
+gcc-4.8                                              2015-06-23                                          GFORTRAN(1)

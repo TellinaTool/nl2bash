@@ -1,0 +1,193 @@
+dpkg-buildpackage(1)                               dpkg utilities                               dpkg-buildpackage(1)
+
+
+
+NAME
+       dpkg-buildpackage - build binary or source packages from sources
+
+SYNOPSIS
+       dpkg-buildpackage [option...]
+
+DESCRIPTION
+       dpkg-buildpackage  is  a  program that automates the process of building a Debian package. It consists of the
+       following steps:
+
+       1. It prepares the build environment by setting various environment variables  (see  ENVIRONMENT)  and  calls
+          dpkg-source --before-build (unless -T or --target has been used).
+
+       2. It checks that the build-dependencies and build-conflicts are satisfied (unless -d is specified).
+
+       3. If  a  specific  target  has  been selected with the -T or --target option, it calls that target and stops
+          here. Otherwise it calls fakeroot debian/rules clean to clean the build-tree (unless -nc is specified).
+
+       4. It calls dpkg-source -b to generate the source package (unless a binary-only build has been requested with
+          -b, -B or -A).
+
+       5. It  calls  debian/rules build-target followed by fakeroot debian/rules binary-target (unless a source-only
+          build has been requested with -S). Note that build-target and binary-target are either  build  and  binary
+          (default  case, or if -b is specified), or build-arch and binary-arch (if -B is specified), or build-indep
+          and binary-indep (if -A is specified).
+
+       6. It calls gpg2 or gpg to sign the .dsc file (if any, unless -us is specified or on UNRELEASED builds).
+
+       7. It calls dpkg-genchanges to generate a .changes file.  Many dpkg-buildpackage  options  are  forwarded  to
+          dpkg-genchanges.
+
+       8. It calls gpg2 or gpg to sign the .changes file (unless -uc is specified or on UNRELEASED builds).
+
+       9. If  -tc  is  specified,  it  will  call  fakeroot  debian/rules  clean again. Finally it calls dpkg-source
+          --after-build.
+
+OPTIONS
+       -b     Specifies a binary-only build, no source files are to be built and/or distributed. Passed to dpkg-gen‐
+              changes.
+
+       -B     Specifies a binary-only build, limited to architecture dependent packages.  Passed to dpkg-genchanges.
+
+       -A     Specifies  a  binary-only  build,  limited  to  architecture independent packages. Passed to dpkg-gen‐
+              changes.
+
+       -S     Specifies a source-only build, no binary packages need to be made.  Passed to dpkg-genchanges.
+
+       -F     Specifies a normal full build, binary and source packages will be built.  This  is  the  same  as  the
+              default case when no build option is specified.
+
+       --target=target
+       --target target
+       -Ttarget
+              Calls debian/rules target after having setup the build environment and stops the package build process
+              here. If --as-root is also given, then the command is executed as root (see -r).  Note  that  official
+              targets that are required to be run as root by the Debian policy do not need this option.
+
+       --as-root
+              Only meaningful together with --target. Requires that the target be run with root rights.
+
+       -si
+       -sa
+       -sd
+       -vversion
+       -Cchanges-description
+       -mmaintainer-address
+       -emaintainer-address
+              Passed unchanged to dpkg-genchanges. See its manual page.
+
+       -aarchitecture
+              Specify  the  Debian  architecture we build for. The architecture of the machine we build on is deter‐
+              mined automatically, and is also the default for the host machine.
+
+       -tgnu-system-type
+              Specify the GNU system type we build for. It can be used in place of -a or as a complement to override
+              the default GNU system type of the target Debian architecture.
+
+       -Pprofile[,...]
+              Specify  the  profile(s) we build, as a comma-separated list, without the "profile." namespace prefix.
+              The default behavior is to build for no specific profile. Also adds them (as a space  separated  list)
+              to  the  DEB_BUILD_PROFILES  environment variable which allows, for example, debian/rules files to use
+              this information for conditional builds.
+
+       -jjobs Number of jobs allowed to be run simultaneously, equivalent to the make(1) option of  the  same  name.
+              Will  add itself to the MAKEFLAGS environment variable, which should cause all subsequent make invoca‐
+              tions to inherit the option. Also adds parallel=jobs to  the  DEB_BUILD_OPTIONS  environment  variable
+              which  allows debian/rules files to use this information for their own purposes.  The parallel=jobs in
+              DEB_BUILD_OPTIONS environment variable will override the -j value if this option is given.
+
+       -D     Check build dependencies and conflicts; abort if unsatisfied. This is the default behavior.
+
+       -d     Do not check build dependencies and conflicts.
+
+       -nc    Do not clean the source tree (implies -b if nothing else has been selected among -B, -A or -S).
+
+       -tc    Clean the source tree (using gain-root-command debian/rules clean) after the package has been built.
+
+       -rgain-root-command
+              When dpkg-buildpackage needs to execute part of the build process as root, it prefixes the command  it
+              executes  with  gain-root-command  if  one  has been specified. Otherwise, if none has been specified,
+              fakeroot will be used by default, if the command is present.  gain-root-command should start with  the
+              name  of  a  program on the PATH and will get as arguments the name of the real command to run and the
+              arguments it should take.  gain-root-command can include parameters (they must be space-separated) but
+              no shell metacharacters.  gain-root-command might typically be fakeroot, sudo, super or really.  su is
+              not suitable, since it can only invoke the user's shell with -c instead of passing arguments individu‐
+              ally to the command to be run.
+
+       -Rrules-file
+              Building  a  Debian  package usually involves invoking debian/rules as a command with several standard
+              parameters. With this option it's possible to use another program invocation to build the package  (it
+              can  include  space separated parameters).  Alternatively it can be used to execute the standard rules
+              file with another make program (for example by using /usr/local/bin/make  -f  debian/rules  as  rules-
+              file).
+
+       -psign-command
+              When dpkg-buildpackage needs to execute GPG to sign a source control (.dsc) file or a .changes file it
+              will run sign-command (searching the PATH if necessary) instead of gpg2 or gpg. sign-command will  get
+              all  the  arguments  that gpg2 or gpg would have gotten. sign-command should not contain spaces or any
+              other shell metacharacters.
+
+       -kkey-id
+              Specify a key-ID to use when signing packages.
+
+       -us    Do not sign the source package.
+
+       -uc    Do not sign the .changes file.
+
+       --force-sign
+              Force the signing of the resulting files (since dpkg 1.17.0), regardless of -us or -uc or other inter‐
+              nal heuristics.
+
+       -i[regex]
+       -I[pattern]
+       -s[nsAkurKUR]
+       -z, -Z Passed unchanged to dpkg-source. See its manual page.
+
+       --source-option=opt
+              Pass option opt to dpkg-source.
+
+       --changes-option=opt
+              Pass option opt to dpkg-genchanges.
+
+       --admindir=dir
+       --admindir dir
+              Change the location of the dpkg database. The default location is /var/lib/dpkg.
+
+       -?, --help
+              Show the usage message and exit.
+
+       --version
+              Show the version and exit.
+
+ENVIRONMENT
+       DEB_SIGN_KEYID
+              If set, it will be used to sign the .changes and .dsc files.  Overridden by the -k option.
+
+       DEB_BUILD_PROFILES
+              If set, it will be used as the active build profile(s) for the package being built. It is a space sep‐
+              arated list of profile names, without the "profile." namespace prefix. Overridden by the -P option.
+
+
+   Reliance on exported environment flags
+       Even if dpkg-buildpackage exports some variables, debian/rules should not rely on their presence  and  should
+       instead use the respective interface to retrieve the needed values.
+
+   Variables set by dpkg-architecture
+       dpkg-architecture  is  called  with the -a and -t parameters forwarded. Any variable that is output by its -s
+       option is integrated in the build environment.
+
+NOTES
+   Compiler flags are no longer exported
+       Between dpkg 1.14.17 and  1.16.1,  dpkg-buildpackage  exported  compiler  flags  (CFLAGS,  CXXFLAGS,  FFLAGS,
+       CPPFLAGS and LDFLAGS) with values as returned by dpkg-buildflags. This is no longer the case.
+
+   Default build targets
+       dpkg-buildpackage  is  using the build-arch and build-indep targets since dpkg 1.16.2. Those targets are thus
+       mandatory. But to avoid breakages of existing packages, and ease the transition, it will  fallback  to  using
+       the build target if make -f debian/rules -qn build-target returns 2 as exit code.
+
+BUGS
+       It  should be possible to specify spaces and shell metacharacters in and initial arguments for gain-root-com‐
+       mand and sign-command.
+
+SEE ALSO
+       dpkg-source(1), dpkg-architecture(1), dpkg-buildflags(1), dpkg-genchanges(1), fakeroot(1), gpg2(1), gpg(1).
+
+
+
+Debian Project                                       2013-12-12                                 dpkg-buildpackage(1)

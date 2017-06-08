@@ -1,0 +1,138 @@
+M4(1)                                               User Commands                                              M4(1)
+
+
+
+NAME
+       m4 - macro processor
+
+SYNOPSIS
+       m4 [OPTION]... [FILE]...
+
+DESCRIPTION
+       Process macros in FILEs.  If no FILE or if FILE is `-', standard input is read.
+
+       Mandatory or optional arguments to long options are mandatory or optional for short options too.
+
+   Operation modes:
+       --help display this help and exit
+
+       --version
+              output version information and exit
+
+       -E, --fatal-warnings
+              once: warnings become errors, twice: stop execution at first error
+
+       -i, --interactive
+              unbuffer output, ignore interrupts
+
+       -P, --prefix-builtins
+              force a `m4_' prefix to all builtins
+
+       -Q, --quiet, --silent
+              suppress some warnings for builtins
+
+       --warn-macro-sequence[=REGEXP]
+              warn if macro definition matches REGEXP,
+
+              default \$\({[^}]*}\|[0-9][0-9]+\)
+
+   Preprocessor features:
+       -D, --define=NAME[=VALUE]
+              define NAME as having VALUE, or empty
+
+       -I, --include=DIRECTORY
+              append DIRECTORY to include path
+
+       -s, --synclines
+              generate `#line NUM "FILE"' lines
+
+       -U, --undefine=NAME
+              undefine NAME
+
+   Limits control:
+       -g, --gnu
+              override -G to re-enable GNU extensions
+
+       -G, --traditional
+              suppress all GNU extensions
+
+       -H, --hashsize=PRIME
+              set symbol lookup hash table size [509]
+
+       -L, --nesting-limit=NUMBER
+              change nesting limit, 0 for unlimited [0]
+
+   Frozen state files:
+       -F, --freeze-state=FILE
+              produce a frozen state on FILE at end
+
+       -R, --reload-state=FILE
+              reload a frozen state from FILE at start
+
+   Debugging:
+       -d, --debug[=FLAGS]
+              set debug level (no FLAGS implies `aeq')
+
+       --debugfile[=FILE]
+              redirect debug and trace output to FILE (default stderr, discard if empty string)
+
+       -l, --arglength=NUM
+              restrict macro tracing size
+
+       -t, --trace=NAME
+              trace NAME when it is defined
+
+   FLAGS is any of:
+       a      show actual arguments
+
+       c      show before collect, after collect and after call
+
+       e      show expansion
+
+       f      say current input file name
+
+       i      show changes in input files
+
+       l      say current input line number
+
+       p      show results of path searches
+
+       q      quote values as necessary, with a or e flag
+
+       t      trace for all macro calls, not only traceon'ed
+
+       x      add a unique macro call id, useful with c flag
+
+       V      shorthand for all of the above flags
+
+       If  defined,  the  environment  variable `M4PATH' is a colon-separated list of directories included after any
+       specified by `-I'.
+
+       Exit status is 0 for success, 1 for failure, 63 for frozen file  version  mismatch,  or  whatever  value  was
+       passed to the m4exit macro.
+
+AUTHOR
+       Written by Rene' Seindal.
+
+REPORTING BUGS
+       Report bugs to: bug-m4@gnu.org
+       GNU M4 home page: <http://www.gnu.org/software/m4/>
+       General help using GNU software: <http://www.gnu.org/gethelp/>
+
+COPYRIGHT
+       Copyright   ©   2013   Free   Software  Foundation,  Inc.   License  GPLv3+:  GNU  GPL  version  3  or  later
+       <http://gnu.org/licenses/gpl.html>.
+       This is free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent  per‐
+       mitted by law.
+
+SEE ALSO
+       The  full  documentation  for m4 is maintained as a Texinfo manual.  If the info and m4 programs are properly
+       installed at your site, the command
+
+              info m4
+
+       should give you access to the complete manual.
+
+
+
+GNU M4 1.4.17                                      September 2013                                              M4(1)

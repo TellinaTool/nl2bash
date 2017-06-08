@@ -1,0 +1,56 @@
+ppmpat(1)                                      General Commands Manual                                     ppmpat(1)
+
+
+
+NAME
+       ppmpat - make a pretty pixmap
+
+SYNOPSIS
+       ppmpat -gingham2|-g2|-gingham3| -g3|-madras|-tartan| -poles|-squig|-camo| -anticamo width height
+
+DESCRIPTION
+       Produces a portable pixmap of the specified width and height, with a pattern in it.
+
+       This  program  is  mainly  to demonstrate use of the ppmdraw routines, a simple but powerful drawing library.
+       See the ppmdraw.h include file for more info on using these routines.  Still, some of  the  patterns  can  be
+       rather  pretty.   If you have a color workstation, something like ppmpat -squig 300 300 | ppmquant 128 should
+       generate a nice background.
+
+OPTIONS
+       The different flags specify various different pattern types:
+
+       -gingham2
+              A gingham check pattern.  Can be tiled.
+
+       -gingham3
+              A slightly more complicated gingham.  Can be tiled.
+
+       -madras
+              A madras plaid.  Can be tiled.
+
+       -tartan
+              A tartan plaid.  Can be tiled.
+
+       -poles Color gradients centered on randomly-placed poles.  May need to be run through ppmquant.
+
+       -squig Squiggley tubular pattern.  Can be tiled.  May need to be run through ppmquant.
+
+       -camo  Camouflage pattern.  May need to be run through ppmquant.
+
+       -anticamo
+              Anti-camouflage pattern - like -camo, but ultra-bright colors.  May need to be run through ppmquant.
+
+       All flags can be abbreviated to their shortest unique prefix.
+
+REFERENCES
+       Some of the patterns are from "Designer's Guide to Color 3" by Jeanne Allen.
+
+SEE ALSO
+       pnmtile(1), ppmquant(1), ppm(5)
+
+AUTHOR
+       Copyright (C) 1989 by Jef Poskanzer.
+
+
+
+                                                  04 September 1989                                        ppmpat(1)

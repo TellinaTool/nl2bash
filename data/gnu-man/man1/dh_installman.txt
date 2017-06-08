@@ -1,0 +1,66 @@
+DH_INSTALLMAN(1)                                      Debhelper                                     DH_INSTALLMAN(1)
+
+
+
+NAME
+       dh_installman - install man pages into package build directories
+
+SYNOPSIS
+       dh_installman [debhelper options] [manpage ...]
+
+DESCRIPTION
+       dh_installman is a debhelper program that handles installing man pages into the correct locations in package
+       build directories. You tell it what man pages go in your packages, and it figures out where to install them
+       based on the section field in their .TH or .Dt line. If you have a properly formatted .TH or .Dt line, your
+       man page will be installed into the right directory, with the right name (this includes proper handling of
+       pages with a subsection, like 3perl, which are placed in man3, and given an extension of .3perl). If your .TH
+       or .Dt line is incorrect or missing, the program may guess wrong based on the file extension.
+
+       It also supports translated man pages, by looking for extensions like .ll.8 and .ll_LL.8, or by use of the
+       --language switch.
+
+       If dh_installman seems to install a man page into the wrong section or with the wrong extension, this is
+       because the man page has the wrong section listed in its .TH or .Dt line. Edit the man page and correct the
+       section, and dh_installman will follow suit. See man(7) for details about the .TH section, and mdoc(7) for
+       the .Dt section. If dh_installman seems to install a man page into a directory like /usr/share/man/pl/man1/,
+       that is because your program has a name like foo.pl, and dh_installman assumes that means it is translated
+       into Polish. Use --language=C to avoid this.
+
+       After the man page installation step, dh_installman will check to see if any of the man pages in the
+       temporary directories of any of the packages it is acting on contain .so links. If so, it changes them to
+       symlinks.
+
+       Also, dh_installman will use man to guess the character encoding of each manual page and convert it to UTF-8.
+       If the guesswork fails for some reason, you can override it using an encoding declaration. See manconv(1) for
+       details.
+
+FILES
+       debian/package.manpages
+           Lists man pages to be installed.
+
+OPTIONS
+       -A, --all
+           Install all files specified by command line parameters in ALL packages acted on.
+
+       --language=ll
+           Use this to specify that the man pages being acted on are written in the specified language.
+
+       manpage ...
+           Install these man pages into the first package acted on. (Or in all packages if -A is specified).
+
+NOTES
+       An older version of this program, dh_installmanpages(1), is still used by some packages, and so is still
+       included in debhelper.  It is, however, deprecated, due to its counterintuitive and inconsistent interface.
+       Use this program instead.
+
+SEE ALSO
+       debhelper(7)
+
+       This program is a part of debhelper.
+
+AUTHOR
+       Joey Hess <joeyh@debian.org>
+
+
+
+9.20131227ubuntu1                                    2013-07-01                                     DH_INSTALLMAN(1)
