@@ -308,7 +308,8 @@ def data_to_token_ids(data, tg_id_path, vocab_path, tokenizer=None,
 
 def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         use_unk=True, use_typed_unk=False, parallel_sequence=None,
-        use_source_placeholder=False, parallel_vocab_size=-1, coarse_typing=False):
+        use_source_placeholder=False, parallel_vocab_size=-1, coarse_typing=False,
+        add_type_prefix=False, remove_type_prefix=False):
     """
     Convert a string to a list of integers representing token-ids.
 
@@ -335,6 +336,8 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
         parallel_vocab_size: Vocabulary size of the parallel data, used for
             creating dummy indices in CopyNet.
         coarse_typing: If set, replace tokens with coarse types.
+        add_type_prefix: If set, add type prefix of the token while indexing.
+        remove_type_prefix: If set, remove type prefix of the token while indexing.
     Returns:
         a list of integers, the token-ids for the sentence.
     """
@@ -357,10 +360,18 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
             base_w = remove_low_frequency_prefix(w)
             if base_w in vocab:
                 return vocab[base_w]
-            elif '__ARG__' + base_w in vocabulary:
-                return vocab['__ARG__' + base_w]
-            elif '__FLAG__' + w in vocabulary:
-                return vocab['__FLAG__' + base_w]
+            if add_type_prefix:
+                if '__ARG__' + base_w in vocabulary:
+                    return vocab['__ARG__' + base_w]
+                elif '__FLAG__' + w in vocabulary:
+                    return vocab['__FLAG__' + base_w]
+            if remove_type_prefix:
+                if base_w.startswith('__ARG__') \
+                        and base_w[len('__ARG__'):] in vocabulary:
+                    return vocab[base_w[len('__ARG__'):]]
+                elif base_w.startswith('__FLAG__') \
+                        and base_w[len('__FLAG__'):] in vocabulary:
+                    return vocab[base_w[len('__FLAG__'):]]
         else:
             return -1
 
