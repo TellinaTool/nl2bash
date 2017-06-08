@@ -353,10 +353,14 @@ def sentence_to_token_ids(sentence, vocabulary, tokenizer, base_tokenizer,
     def get_index(w, vocab):
         if w in vocab:
             return vocab[w]
-        elif w[len('__LF__'):] in vocab:
-            return vocab[w[len('__LF__'):]]
-        elif '__LF__' + w in vocabulary:
-            return vocab['__LF__' + w]
+        if is_low_frequency(w):
+            base_w = remove_low_frequency_prefix(w)
+            if base_w in vocab:
+                return vocab[base_w]
+            elif '__ARG__' + base_w in vocabulary:
+                return vocab['__ARG__' + base_w]
+            elif '__FLAG__' + w in vocabulary:
+                return vocab['__FLAG__' + base_w]
         else:
             return -1
 
