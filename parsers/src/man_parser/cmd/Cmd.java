@@ -16,7 +16,6 @@ public class Cmd {
     public static Map<String, String> NameToTypeDict = new HashMap<>();
 
     public static class ManPage {
-        String type = "man_parser";
         public List<String> aliases = new ArrayList<>();
         public String description = "";
         public String rawSynopsis = "";
